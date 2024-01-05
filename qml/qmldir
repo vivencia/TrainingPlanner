@@ -1,0 +1,35 @@
+singleton Database 1.0 Database.qml
+singleton AppSettings 1.0 AppSettings.qml
+
+DatePicker 1.0 DatePicker.qml
+CalendarDialog 1.0 CalendarDialog.qml
+TimePicker 1.0 TimePicker.qml
+TimerDialog 1.0 TimerDialog.qml
+TrainingDayProgressDialog 1.0 TrainingDayProgressDialog.qml
+
+ButtonFlat 1.0 ButtonFlat.qml
+ButtonIconActive 1.0 ButtonIconActive.qml
+IconActive 1.0 IconActive.qml
+DevSettingsPage 1.0 DevSettingsPage.qml
+LanguageSettingsPage 1.0 LanguageSettingsPage.qml
+ThemeSettingsPage 1.0 ThemeSettingsPage.qml
+MainMenu 1.0 MainMenu.qml
+SetInputField 1.0 SetInputField.qml
+PageScrollButtons 1.0 PageScrollButtons.qml
+ImageViewer 1.0 ImageViewer.qml
+VideoPlayer 1.0 VideoPlayer.qml
+
+MesoCycle 1.0 MesoCycle.qml
+MesoContent 1.0 MesoContent.qml
+TrainingDayInfo 1.0 TrainingDayInfo.qml
+MealsDayInfo 1.0 MealsDayInfo.qml
+ExerciceEntry 1.0 ExerciceEntry.qml
+ExercicesDatabase 1.0 ExercisesDatabase.qml
+SetTypeRegular 1.0 SetTypeRegular.qml
+SetTypeCluster 1.0 SetTypeCluster.qml
+SetTypeDrop 1.0 SetTypeDrop.qml
+SetTypeGiant 1.0 SetTypeGiant.qml
+SetTypeMyoReps 1.0 SetTypeMyoReps.qml
+SetTypePyramid 1.0 SetTypePyramid.qml
+RepsAndWeightRow 1.0 RepsAndWeightRow.qml
+FloatingButton 1.0 FloatingButton.qml
