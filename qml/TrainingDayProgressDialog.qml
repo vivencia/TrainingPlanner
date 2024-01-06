@@ -35,7 +35,7 @@ Popup {
 						dlgProgressIndicator.splitletter = mesoSplit.charAt(dlgProgressIndicator.splitIdx);
 						Database.updateMesoCalendarDaySplit(dlgProgressIndicator.calId, dlgProgressIndicator.splitletter);
 						if (dlgProgressIndicator.splitletter !== 'R')
-							Database.updateMesoCalendarTrainingDay(dlgProgressIndicator.calId, ++dlgProgressIndicator.tDay);
+							Database.updateMesoCalendarTrainingDay(dlgProgressIndicator.calId, dlgProgressIndicator.tDay++);
 						else
 							Database.updateMesoCalendarTrainingDay(dlgProgressIndicator.calId, 0);
 						dlgProgressIndicator.splitIdx++;

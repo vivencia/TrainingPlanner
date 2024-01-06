@@ -208,11 +208,12 @@ Page {
 		const endday = enddate.getDate();
 
 		if (endmonth > startmonth)
-			nMonths = endmonth - startmonth;
-		else
-			nMonths = (11 - startmonth) + endmonth;
-
-		nMonths += 2; //Include the first and the last months, not only the ones in between
+			nMonths = endmonth - startmonth + 1;
+		else {
+			nMonths = (11 - startmonth) + endmonth + 1;
+			if (endmonth === 0)
+				nMonths++;
+		}
 
 		var trainingDayNumber = 1;
 		let monthsmodel = [];
@@ -308,7 +309,7 @@ Page {
 			width: parent.width
 			wrapMode: Text.WordWrap
 			text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
-			font.pixelSize: AppSettings.fontSizeText
+			font.pixelSize: AppSettings.fontSizeLists
 
 			anchors {
 				bottom: parent.bottom
@@ -364,7 +365,7 @@ Page {
 				else {
 					running = false;
 					dlgProgressIndicator.close ();
-					AppDBModified = true;
+					appDBModified = true;
 				}
 			}
 		}
@@ -515,8 +516,6 @@ Page {
 				}
 				width: parent.width
 				height: calendar.cellSize * 8
-				property int firstDay: model.firstDay
-				property int lastDay: model.lastDay
 				property var daysSplitModel: model.daySplit
 
 				locale: Qt.locale("pt_BR")

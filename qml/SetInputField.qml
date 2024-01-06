@@ -10,9 +10,10 @@ FocusScope {
 	required property int availableWidth
 	property bool showLabel: true
 	property alias text: txtMain.text
-	property alias windowTitle: dlgRestTime.windowTitle
+	property string windowTitle
 	property var alternativeLabels: []
 	property bool bClearInput: true
+	property var timerDialog: null
 
 	signal valueChanged(string str, real value)
 	signal enterOrReturnKeyPressed()
@@ -59,17 +60,6 @@ FocusScope {
 	property var maxLen: [5,4,5,1]
 	property var labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property var origText
-
-	TimerDialog {
-		id: dlgRestTime
-		simpleTimer: false
-		bJustMinsAndSecs: true
-
-		onUseTime: (time) => {
-			txtMain.text = time;
-			changeText(txtMain.text, 0);
-		}
-	}
 
 	Rectangle {
 		anchors.fill: parent
@@ -202,7 +192,7 @@ FocusScope {
 			readOnly: type === SetInputField.Type.TimeType
 			width: type === SetInputField.Type.TimeType ? 40 : 20
 			padding: 0
-			focus: true
+			focus: type !== SetInputField.Type.TimeType
 
 			anchors {
 				left: btnDecrease.right
@@ -221,15 +211,6 @@ FocusScope {
 			}
 
 			onActiveFocusChanged: {
-				if (type === SetInputField.Type.TimeType) {
-					if (setNbr >=1) {
-						dlgRestTime.mins = JSF.getHourOrMinutesFromStrTime(txtMain.text);
-						dlgRestTime.secs = JSF.getMinutesOrSeconsFromStrTime(txtMain.text);
-						dlgRestTime.open();
-					}
-					return;
-				}
-
 				if(activeFocus) {
 					if (bClearInput) {
 						txtMain.clear();
@@ -258,7 +239,25 @@ FocusScope {
 					changeText(text, nbr);
 				}
 			}
-		}
+
+			MouseArea {
+				anchors.fill: parent
+				enabled: type === SetInputField.Type.TimeType
+
+				onClicked: {
+					if (setNbr >=1) {
+						if (timerDialog === null) {
+							var component = Qt.createComponent("TimerDialog.qml");
+							timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false, windowTitle:windowTitle });
+							timerDialog.onUseTime.connect(timeChanged);
+						}
+						timerDialog.mins = JSF.getHourOrMinutesFromStrTime(txtMain.text);
+						timerDialog.secs = JSF.getMinutesOrSeconsFromStrTime(txtMain.text);
+						timerDialog.open();
+					}
+				}
+			}
+		} //TextInput
 
 		ToolButton {
 			id: btnIncrease
@@ -373,6 +372,11 @@ FocusScope {
 			wrapMode: Text.WordWrap
 			width: availableWidth - x
 		}
+
+		Component.onDestruction: {
+			if (timerDialog !== null)
+				timerDialog.destroy();
+		}
 	} //Rectangle
 
 	function sanitizeText(text) {
@@ -383,6 +387,11 @@ FocusScope {
 		if (text.indexOf('E') !== -1)
 			text = text.replace('E', '');
 		return text.trim();
+	}
+
+	function timeChanged(strTime) {
+		txtMain.text = strTime;
+		changeText(strTime, 0);
 	}
 
 	function changeText(text, nbr) {

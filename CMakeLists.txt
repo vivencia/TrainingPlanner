@@ -3,7 +3,11 @@ project(trainingplanner LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2)
+if (${ANDROID_ABI})
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets AndroidExtras)
+else ()
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets)
+endif()
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS)
 
@@ -16,6 +20,7 @@ qt_add_executable(trainingplanner
 	cxx/main.cpp
 	cxx/backupclass.cpp cxx/backupclass.h
 	cxx/translationclass.cpp cxx/translationclass.h
+	cxx/runcommands.cpp cxx/runcommands.h
 	${PROJECT_RESOURCES}
 )
 
@@ -30,14 +35,27 @@ qt_add_executable(trainingplanner
 #	PERFORMANCEMONITOR_SUPPORT
 #)
 
-target_link_libraries(trainingplanner PUBLIC
+if (${ANDROID_ABI})
+    target_link_libraries(trainingplanner PUBLIC
 	Qt::Core
 	Qt::Gui
 	Qt::Multimedia
-	Qt::Qml
-	Qt::Quick
+	Qt::Widgets
+	Qt6::Qml
+	Qt6::Quick
 	Qt6::QuickControls2
-)
+	Qt6::AndroidExtras)
+else()
+    target_link_libraries(trainingplanner PUBLIC
+	Qt::Core
+	Qt::Gui
+	Qt::Multimedia
+	Qt::Widgets
+	Qt6::Qml
+	Qt6::Quick
+	Qt6::QuickControls2)
+endif()
+
 
 set(trainingplanner_resource_files
 	"images/app_logo.png"
@@ -98,6 +116,8 @@ install(TARGETS trainingplanner
 	BUNDLE DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
 	LIBRARY DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
+set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
 set_property(TARGET trainingplanner APPEND PROPERTY
     QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android

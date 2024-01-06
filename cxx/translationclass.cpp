@@ -1,17 +1,17 @@
 #include "translationclass.h"
 
-TraslationClass::TraslationClass (const QSettings& settingsObj )
+TranslationClass::TranslationClass (const QSettings& settingsObj )
 {
 	mTranslator = new QTranslator ( this );
 	mSettingsObj = const_cast<QSettings*>( &settingsObj );
 }
 
-QString TraslationClass::getEmptyString()
+TranslationClass::~TranslationClass()
 {
-	return "";
+	delete mTranslator;
+	this->QObject::~QObject();
 }
-
-void TraslationClass::selectLanguage()
+void TranslationClass::selectLanguage()
 {
 	const QString strLocale( mSettingsObj->value( "appLocale" ).toString() );
 	if ( strLocale != QString( "en_US" ) ) {

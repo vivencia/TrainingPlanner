@@ -3,14 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
 
-Video {
-	required property url videoSource
+VideoOutput {
+	//required property url videoSource
 
 	id: videoPreview
 	fillMode: VideoOutput.PreserveAspectCrop
 	clip: true
-	source: videoSource
-	volume: 0.0
 	focus: true
 	width: mainwindow.width * 0.7
 	height: mainwindow.width * 0.9
@@ -19,23 +17,45 @@ Video {
 	Layout.maximumHeight: height
 	Layout.maximumWidth: width
 
-	MouseArea {
-		anchors.fill: parent
-		onClicked: videoPreview.playbackState === Video.PlayingState ? videoPreview.pause() : videoPreview.play();
-		onDoubleClicked: {
-			videoPreview.stop();
-			videoWindow.showFullScreen();
-			videoFullScreen.play();
-			videoFullScreen.focus = true;
+	property alias duration: mediaPlayer.duration
+	property alias mediaSource: mediaPlayer.source
+	property alias metaData: mediaPlayer.metaData
+	property alias playbackRate: mediaPlayer.playbackRate
+	property alias position: mediaPlayer.position
+	property alias seekable: mediaPlayer.seekable
+	property alias volume: audioOutput.volume
+
+	MediaPlayer{
+		id: mediaPlayer
+		videoOutput: videoPreview;
+		audioOutput: AudioOutput {
+			id: audioOutput
+			volume: 0.0
+		}
+
+		onSourceChanged: {
+			stop();
+			play();
+		}
+
+		onErrorOccurred: (error,errorString) => {
+			console.log("Video error:")
+			console.log(error + ": " + errorString);
 		}
 	}
 
-	onErrorOccurred: (error,errorString) => {
-		console.log("Video error:")
-		console.log(error + ": " + errorString);
+	MouseArea {
+		anchors.fill: parent
+		onClicked: mediaPlayer.playbackState === Video.PlayingState ? mediaPlayer.pause() : mediaPlayer.play();
+		/*onDoubleClicked: {
+			mediaPlayer.stop();
+			videoWindow.showFullScreen();
+			videoFullScreen.play();
+			videoFullScreen.focus = true;
+		}*/
 	}
 
-	Window {
+	/*Window {
 		id: videoWindow
 
 		Video {
@@ -71,5 +91,5 @@ Video {
 				console.log(error + ": " + errorString);
 			}
 		} // Video
-	}
+	}*/
 } // Video

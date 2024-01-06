@@ -292,26 +292,33 @@ Page {
 	} // ScrollView
 
 	function displaySelectedExercise(lstIdx) {
-		txtExerciseName.text = lstExercises.model.get(lstIdx).mainName;
-		txtExerciseSubName.text = lstExercises.model.get(lstIdx).subName;
-		txtMuscularGroup.text = lstExercises.model.get(lstIdx).muscularGroup;
-		spinSets.value = lstExercises.model.get(lstIdx).nSets;
-		spinReps.value = lstExercises.model.get(lstIdx).nReps;
-		spinWeight.value = lstExercises.model.get(lstIdx).nWeight;
-		strMediaPath = lstExercises.model.get(lstIdx).mediaPath;
-		displaySelectedMedia();
-
 		hBar2.setPosition(0);
+		if (lstExercises.count > 0) {
+			txtExerciseName.text = lstExercises.model.get(lstIdx).mainName;
+			txtExerciseSubName.text = lstExercises.model.get(lstIdx).subName;
+			txtMuscularGroup.text = lstExercises.model.get(lstIdx).muscularGroup;
+			spinSets.value = lstExercises.model.get(lstIdx).nSets;
+			spinReps.value = lstExercises.model.get(lstIdx).nReps;
+			spinWeight.value = lstExercises.model.get(lstIdx).nWeight;
+			strMediaPath = lstExercises.model.get(lstIdx).mediaPath;
+			displaySelectedMedia();
 
-		if (bChooseButtonEnabled || bTempDisableChoose) {
-			bTempDisableChoose = false;
-			for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
-				if (lstExercises.model.get(lstIdx).exerciseId === doNotChooseTheseIds[i]) {
-					bTempDisableChoose = true;
-					break;
+			if (bChooseButtonEnabled || bTempDisableChoose) {
+				bTempDisableChoose = false;
+				for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
+					if (lstExercises.model.get(lstIdx).exerciseId === doNotChooseTheseIds[i]) {
+						bTempDisableChoose = true;
+						break;
+					}
 				}
+				bChooseButtonEnabled = !bTempDisableChoose;
 			}
-			bChooseButtonEnabled = !bTempDisableChoose;
+		}
+		else {
+			txtExerciseName.clear();
+			txtExerciseSubName.clear();
+			txtMuscularGroup.clear();
+			strMediaPath = "qrc:/images/no_image.jpg";
 		}
 	}
 
@@ -729,21 +736,6 @@ Page {
 		} //ColumnLayout
 	} // footer
 
-	FileDialog {
-		id: fileDialog;
-		title: qsTr("Please choose a media file");
-		acceptLabel: (qsTr("Choose"))
-		nameFilters: [qsTr("Images (*.jpg *.png *.gif)"), qsTr("Videos (*.mp4)")];
-		currentFolder: imagesPath
-
-		onAccepted: {
-			strMediaPath = currentFile;
-			console.log("strMediaPath:   ", strMediaPath);
-			close();
-			displaySelectedMedia();
-		}
-	}
-
 	function removeExercise(removeIdx) {
 		const actualIndex = lstExercises.model.get(removeIdx).actualIndex; //position of item in the main model
 		var i;
@@ -764,11 +756,20 @@ Page {
 		}
 	}
 
-	//TODO: improve detection method.
-	function mediaType() {
-		if (strMediaPath.includes(".mp4"))
-			return 1;
-		return 0;
+	FileDialog {
+		id: fileDialog;
+		title: qsTr("Please choose a media file");
+		//acceptLabel: (qsTr("Choose"))
+		//nameFilters: [qsTr("Videos (*.mp4)")];
+		//currentFolder: imagesPath
+
+		onAccepted: {
+			strMediaPath = runCmd.getCorrectPath(currentFile);
+			console.log("strMediaPath:   ", strMediaPath);
+			console.log("currentFile:   ", currentFile);
+			close();
+			displaySelectedMedia();
+		}
 	}
 
 	function chooseMediaFromDevice() {
@@ -778,32 +779,32 @@ Page {
 	function displaySelectedMedia() {
 		if (strMediaPath.length < 5)
 			return;
-		//const mediaPath = JSF.pathToLocalUrl(strMediaPath);
-		//console.log("mediaPath:  ", mediaPath);
-		if (mediaType() === 0) {
-			if (videoViewer !== null) {
-				videoViewer.destroy();
-				videoViewer = null;
-			}
-			if (imageViewer === null) {
-				console.log("creating image viewer");
-				var component = Qt.createComponent("ImageViewer.qml");
-				imageViewer = component.createObject(layoutMain, { imageSource:encodeURI(strMediaPath) });
-			}
-			else
-				imageViewer.imageSource = encodeURI(strMediaPath);
-		}
-		else {
+		var mediaType = runCmd.getFileType(strMediaPath);
+		if ( mediaType === 1) { //video
 			if (imageViewer !== null) {
 				imageViewer.destroy();
 				imageViewer = null;
 			}
 			if (videoViewer === null) {
-				component = Qt.createComponent("VideoPlayer.qml");
-				videoViewer = component.createObject(layoutMain, { videoSource:encodeURI(strMediaPath) });
+				var component = Qt.createComponent("VideoPlayer.qml");
+				videoViewer = component.createObject(layoutMain, { mediaSource:strMediaPath} );
 			}
 			else
-				videoViewer.videoSource = encodeURI(strMediaPath);
+				videoViewer.mediaSource = strMediaPath;
+		}
+		else {
+			if (mediaType === -1) //unknown
+				strMediaPath = "qrc:/images/no_image.jpg";
+			if (videoViewer !== null) {
+				videoViewer.destroy();
+				videoViewer = null;
+			}
+			if (imageViewer === null) {
+				component = Qt.createComponent("ImageViewer.qml");
+				imageViewer = component.createObject(layoutMain, { imageSource:strMediaPath });
+			}
+			else
+				imageViewer.imageSource = strMediaPath;
 		}
 	}
 } // Page

@@ -5,14 +5,16 @@
 #include <QtGui>
 #include <QSettings>
 
-class TraslationClass : public QObject
+class TranslationClass : public QObject
 {
 Q_OBJECT
 Q_PROPERTY( QString emptyString READ getEmptyString NOTIFY languageChanged )
 
 public:
-	explicit TraslationClass( const QSettings& settingsObj );
-	QString getEmptyString();
+	explicit TranslationClass( const QSettings& settingsObj );
+	virtual ~TranslationClass () override;
+
+	inline QString getEmptyString() { return QString(); }
 	Q_INVOKABLE void selectLanguage();
 
 signals:

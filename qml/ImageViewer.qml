@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Image {
-	required property url imageSource
+	required property string imageSource
 
 	id: imagePreview
 	fillMode: Image.PreserveAspectFit

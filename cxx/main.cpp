@@ -8,9 +8,11 @@
 #include <QSettings>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QStandardPaths>
 
 #include "translationclass.h"
 #include "backupclass.h"
+#include "runcommands.h"
 
 #ifdef Q_OS_ANDROID
 
@@ -87,7 +89,7 @@ int main(int argc, char *argv[])
 	QSettings appSettings;
 	populateSettingsWithDefaultValue(appSettings);
 
-	TraslationClass trClass( appSettings );
+	TranslationClass trClass( appSettings );
 	trClass.selectLanguage();
 	QQmlApplicationEngine engine;
 	//BackupClass backUpClass( engine.offlineStoragePath() );
@@ -96,10 +98,12 @@ int main(int argc, char *argv[])
 	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	const QStringList imagesLocation ( QStandardPaths::standardLocations(QStandardPaths::PicturesLocation) );
-	const QUrl imagesPath( QUrl::fromLocalFile(imagesLocation.isEmpty() ? app.applicationDirPath() : imagesLocation.front() ) );
+	const QStringList imagesLocation ( QStandardPaths::standardLocations( QStandardPaths::MoviesLocation ) );
+	const QUrl imagesPath( QUrl::fromLocalFile( imagesLocation.isEmpty() ? app.applicationDirPath() : imagesLocation.front() ) );
 	engine.rootContext()->setContextProperty("imagesPath", imagesPath);
 
+	RunCommands runCmd;
+	engine.rootContext()->setContextProperty("runCmd", &runCmd);
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(
 				&engine, &QQmlApplicationEngine::objectCreated, &app,

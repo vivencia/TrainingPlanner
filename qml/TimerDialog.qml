@@ -216,7 +216,7 @@ Dialog {
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: dlgTimer.close();
+				onClicked: { mainTimer.stopTimer(reset); dlgTimer.close(); }
 			}
 		}
 	}
@@ -573,7 +573,7 @@ Dialog {
 
 		Button {
 			id: btnUseTime
-			text: qsTr("Use")
+			text: simpleTimer ? qsTr("Close") : qsTr("Use")
 			font.pixelSize: AppSettings.fontSizePixelSize
 			width: 70
 			height: 30
@@ -582,44 +582,44 @@ Dialog {
 				var totalsecs = secs;
 				var totalmins = mins;
 				var totalhours = hours;
-				if (!bTextChanged) {
-					if (bTimer) {
-						if (bForward) { // Elapsed time after zero plus the starting time
-							totalsecs += origSecs;
-							totalmins += origMins;
-							totalhours += origHours;
-							if (totalsecs > 59) {
-								totalsecs -= 59;
-								totalmins++;
+				if (!simpleTimer) {
+					if (!bTextChanged) {
+						if (bTimer) {
+							if (bForward) { // Elapsed time after zero plus the starting time
+								totalsecs += origSecs;
+								totalmins += origMins;
+								totalhours += origHours;
+								if (totalsecs > 59) {
+									totalsecs -= 59;
+									totalmins++;
+								}
+								if (totalmins > 59) {
+									totalmins -= 59;
+									totalhours++;
+								}
+								if (totalhours > 99)
+									totalhours = 99;
 							}
-							if (totalmins > 59) {
-								totalmins -= 59;
-								totalhours++;
+							else { //Compute elapsed time
+								if (origSecs > secs)
+									totalsecs = origSecs - secs;
+								else
+									totalsecs = secs - origSecs;
+								if (origMins > mins)
+									totalmins = origMins - mins;
+								else
+									totalmins = mins - origMins;
+								totalhours = origHours - hours;
 							}
-							if (totalhours > 99)
-								totalhours = 99;
-						}
-						else { //Compute elapsed time
-							if (origSecs > secs)
-								totalsecs = origSecs - secs;
-							else
-								totalsecs = secs - origSecs;
-							if (origMins > mins)
-								totalmins = origMins - mins;
-							else
-								totalmins = mins - origMins;
-							totalhours = origHours - hours;
 						}
 					}
+					if ( totalhours > 0 )
+						useTime(JSF.intTimeToStrTime(totalhours) + ":" + JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+					else
+						useTime(JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
 				}
-				if ( totalhours > 0 )
-					useTime(JSF.intTimeToStrTime(totalhours) + ":" + JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
-				else
-					useTime(JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
-				if (!simpleTimer) {
-					dlgTimer.close();
-					mainTimer.stopTimer(true);
-				}
+				dlgTimer.close();
+				mainTimer.stopTimer(true);
 			}
 		}
 	} // recButtons
