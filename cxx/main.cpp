@@ -14,51 +14,6 @@
 #include "backupclass.h"
 #include "runcommands.h"
 
-#ifdef Q_OS_ANDROID
-
-/*#include <QtCore/private/qandroidextras_p.h>
-
-"android.intent.action.OPEN_DOCUMENT"
-bool createIntent()
-{
-	auto serviceIntent = QAndroidIntent(QtAndroidPrivate::androidActivity().object(), "com.example.MyService");
-
-	bool success = true;
-	if(QNativeInterface::QAndroidApplication::androidSdkVersion() >= 23)
-	{
-		static const QVector<QString> permissions({
-
-		});
-
-		for(const QString &permission : permissions)
-		{
-		QGuiApplication::nativeInterface()
-			// check if permission is granded
-			auto result = QNativeInterface::QAndroidApplication::checkPermission(permission);
-			if(result != QNativeInterface::QAndroidApplication::PermissionResult::Granted)
-			{
-				// request permission
-				auto resultHash = QNativeInterface::QAndroidApplication::requestPermissionsSync(QStringList({permission}));
-				if(resultHash[permission] != QNativeInterface::QAndroidApplication::PermissionResult::Granted)
-				{
-					qDebug() << "Fail to get permission" << permission;
-					success = false;
-				}
-				else
-				{
-					qDebug() << "Permission" << permission << "granted!";
-				}
-			}
-			else
-			{
-				qDebug() << "Permission" << permission << "already granted!";
-			}
-		}
-	}
-	return success;
-}*/
-#endif //Q_OS_ANDROID
-
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
 	if ( settingsObj.childKeys().isEmpty() ) {
@@ -91,19 +46,19 @@ int main(int argc, char *argv[])
 
 	TranslationClass trClass( appSettings );
 	trClass.selectLanguage();
+
 	QQmlApplicationEngine engine;
+	engine.rootContext()->setContextProperty("trClass", &trClass);
+
 	//BackupClass backUpClass( engine.offlineStoragePath() );
 	//backUpClass.checkIfDBFileIsMissing();
-	engine.rootContext()->setContextProperty("trClass", &trClass);
 	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	const QStringList imagesLocation ( QStandardPaths::standardLocations( QStandardPaths::MoviesLocation ) );
-	const QUrl imagesPath( QUrl::fromLocalFile( imagesLocation.isEmpty() ? app.applicationDirPath() : imagesLocation.front() ) );
-	engine.rootContext()->setContextProperty("imagesPath", imagesPath);
-
 	RunCommands runCmd;
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);
+	runCmd.updateExercisesList();
+
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(
 				&engine, &QQmlApplicationEngine::objectCreated, &app,
@@ -115,10 +70,6 @@ int main(int argc, char *argv[])
 	engine.load(url);
 	if (engine.rootObjects().isEmpty())
 		return -1;
-
-#ifdef Q_OS_ANDROID
-	//checkPermissions();
-#endif
 
 	return app.exec();
 }

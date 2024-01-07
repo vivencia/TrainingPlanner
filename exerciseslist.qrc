@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>exerciseslist.lst</file>
+    </qresource>
+</RCC>

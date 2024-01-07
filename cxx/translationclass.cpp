@@ -9,8 +9,8 @@ TranslationClass::TranslationClass (const QSettings& settingsObj )
 TranslationClass::~TranslationClass()
 {
 	delete mTranslator;
-	this->QObject::~QObject();
 }
+
 void TranslationClass::selectLanguage()
 {
 	const QString strLocale( mSettingsObj->value( "appLocale" ).toString() );

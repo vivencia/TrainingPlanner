@@ -22,6 +22,10 @@
 	    <meta-data android:name="android.app.splash_screen_drawable_portrait" android:resource="@drawable/splashscreen_port"/>
 	    <meta-data android:name="android.app.splash_screen_drawable" android:resource="@drawable/splashscreen"/>
 	    <meta-data android:name="android.app.splash_screen_drawable_portrait" android:resource="@drawable/splashscreen_port"/>
+	    <meta-data android:name="android.app.splash_screen_drawable" android:resource="@drawable/splashscreen"/>
+	    <meta-data android:name="android.app.splash_screen_drawable_portrait" android:resource="@drawable/splashscreen_port"/>
 	</activity>
     </application>
+<!-- %%INSERT_PERMISSIONS -->
+    <!-- %%INSERT_FEATURES -->
 </manifest>

@@ -1,11 +1,7 @@
 #include "runcommands.h"
 
-#include <QImageReader>
+#include <QFileInfo>
 #include <QFile>
-RunCommands::~RunCommands()
-{
-	this->QObject::~QObject();
-}
 
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
@@ -38,4 +34,72 @@ int RunCommands::getFileType( const QString& filename )
 		else
 			return -1;
 	#endif
+}
+
+bool RunCommands::updateExercisesList()
+{
+	QFileInfo fi("exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("qrc:/exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("qrc://exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("qrc:exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("/exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("./exerciseslist.lst");
+	qDebug() << fi.exists();
+	fi.setFile("qrc://images/black/time.png");
+	qDebug() << fi.exists();
+
+	fi.setFile(QUrl("exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc:/exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc://exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc:exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("/exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("./exerciseslist.lst").toString());
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc://images/black/time.png").toString());
+	qDebug() << fi.exists();
+
+	fi.setFile(QUrl("exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc:/exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc://exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc:exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("/exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("./exerciseslist.lst").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+	fi.setFile(QUrl("qrc://images/black/time.png").toString(QUrl::PreferLocalFile));
+	qDebug() << fi.exists();
+
+	QFile exercisesList( "qrc://exerciseslist.lst" );
+	if ( exercisesList.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+	{
+		char buf[1024];
+		qint64 lineLength;
+		QString line;
+		do
+		{
+			lineLength = exercisesList.readLine( buf, sizeof(buf) );
+			if (lineLength < 0) break;
+			line = buf;
+			const QStringList exerciseInfo ( line.split(';') );
+			for (int i = 0; i < exerciseInfo.length(); ++i)
+				qDebug() << i << ":  " <<exerciseInfo.at(i);
+		} while (true);
+		exercisesList.close();
+		return true;
+	}
+	return false;
 }

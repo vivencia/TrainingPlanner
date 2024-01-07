@@ -707,25 +707,26 @@ Page {
 				cal_id = calendar_date_info[0].mesoCalId;
 				Database.updateMesoCalendarDaySplit(cal_id, splitLetter);
 
-				if (!chkAdjustCalendar.checked) {
-					if (splitLetter !== 'R') {
-						if (mesoTDay === tDay) { //User did not change txtTDay
-							calendar_date_info = Database.getMesoCalendarDate(JSF.getPreviousDate(mainDate));
-							if (calendar_date_info.length > 0) {
-								const prevtDay = calendar_date_info[0].mesoCalnDay;
-								if ( prevtDay === 0 ) {
-									calendar_date_info = Database.getMesoCalendarDate(JSF.getNextDate(mainDate));
-									tDay = calendar_date_info[0].mesoCalnDay;
-								}
-								else
-									tDay = prevtDay + 1;
-							}
+				//If in the old calendar, day was R and the user did not explicitly change tDay, go back
+				//in date until we find a suitable training day. This will be starting training day if the user
+				//wants to modify the rest of the calendar, or simply the continuation from the previous training day if not
+				if (mesoSplitLetter === 'R' && tDay === mesoTDay) {
+					//Find a suitable training day to continue
+					var prevdate = JSF.getPreviousDate(mainDate);
+					//Find the first training day before mainDate that is not a rest day;
+					while ( (calendar_date_info = Database.getMesoCalendarDate(prevdate)) !== null) {
+						//console.log(prevdate.toDateString());
+						//console.log(calendar_date_info[0].mesoCalSplit);
+						if (calendar_date_info[0].mesoCalSplit !== 'R') {
+							tDay = calendar_date_info[0].mesoCalnDay + 1;
+							break;
 						}
+						prevdate = JSF.getPreviousDate(prevdate);
 					}
-					Database.updateMesoCalendarTrainingDay(cal_id, tDay);
-				} // chkAdjustCalendar.checked = false
-				else {
-					//const n = mesoSplit.split(mesoSplitLetter).length - 1;
+				}
+				//Update this day
+				Database.updateMesoCalendarTrainingDay(cal_id, tDay);
+				if (chkAdjustCalendar.checked) {
 					var split_idx;
 					var tday;
 					var splitletter;
@@ -735,29 +736,9 @@ Page {
 						if (split_idx >= mesoSplit.length)
 							split_idx = 0;
 
-						//Update this day
-						Database.updateMesoCalendarTrainingDay(cal_id, splitLetter === 'R' ? 0 : tDay);
-
-						//Try to find tDay for the next calendar day
-						tday = tDay + 1;
-						// If this became a rest day or if not but the user did not change the training day, we must go back
-						// and find the last good working day.
-						if (splitLetter === 'R' && tDay === mesoTDay) {
-							//Find a suitable training day to continue
-							var prevdate = JSF.getPreviousDate(mainDate);
-							//Find the first training day before mainDate that is not a rest day;
-							while ( (calendar_date_info = Database.getMesoCalendarDate(prevdate)) !== null) {
-								//console.log(prevdate.toDateString());
-								//console.log(calendar_date_info[0].mesoCalSplit);
-								if (calendar_date_info[0].mesoCalSplit !== 'R') {
-									tday = calendar_date_info[0].mesoCalnDay + 1;
-									break;
-								}
-								prevdate = JSF.getPreviousDate(prevdate);
-							}
-						}
+						tday = tDay + 1; //tDay of the next day in calendar
 					}
-					else {
+					else { //Start all over
 						Database.updateMesoCalendarTrainingDay(cal_id, splitLetter === 'R' ? 0 : 1); //Update this day
 						split_idx = 0;
 						tday = splitLetter === 'R' ? 1 : 2; //tDay of the next day in calendar

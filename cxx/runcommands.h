@@ -14,9 +14,9 @@ QML_ELEMENT
 
 public:
 	explicit RunCommands( QObject *parent = nullptr ) : QObject(parent) {}
-	virtual ~RunCommands () override;
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
+	bool updateExercisesList();
 };
 
 #endif // RUNCOMMANDS_H

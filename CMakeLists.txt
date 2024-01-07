@@ -13,15 +13,24 @@ add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_
 
 set( CMAKE_VERBOSE_MAKEFILE on )
 
-set(RESOURCE_FILES images.qrc sounds.qrc)
-QT6_ADD_RESOURCES(PROJECT_RESOURCES ${RESOURCE_FILES})
+set(CMAKE_AUTORCC ON)
+set( RESOURCE_FILES
+	images.qrc
+	sounds.qrc
+	exerciseslist.qrc
+)
 
-qt_add_executable(trainingplanner
+set( SOURCES
 	cxx/main.cpp
 	cxx/backupclass.cpp cxx/backupclass.h
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/runcommands.cpp cxx/runcommands.h
-	${PROJECT_RESOURCES}
+)
+
+qt_add_resources(${RESOURCE_FILES})
+qt_add_executable(trainingplanner
+	${SOURCES}
+	${RESOURCE_FILES}
 )
 
 #set_target_properties(trainingplanner PROPERTIES
@@ -56,7 +65,6 @@ else()
 	Qt6::QuickControls2)
 endif()
 
-
 set(trainingplanner_resource_files
 	"images/app_logo.png"
 	"images/app_icon.png"
@@ -64,6 +72,7 @@ set(trainingplanner_resource_files
 	"images.qrc"
 	"sounds.qrc"
 	"translations.qrc"
+	"exerciseslist.qrc"
 	"qml/main.qml"
 	"qml/AppSettings.qml"
 	"qml/Database.qml"
