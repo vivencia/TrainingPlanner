@@ -88,7 +88,8 @@ QtObject {
 				reps REAL,
 				weight REAL,
 				weight_unit TEXT,
-				media_path TEXT
+				media_path TEXT,
+				from_list INTEGER
 			)`);
 		});
 	}
@@ -575,8 +576,8 @@ QtObject {
 		let results;
 		db.transaction(function (tx) {
 			results = tx.executeSql("INSERT INTO exercises_table
-							(primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path) VALUES(?,?,?,?,?,?,?,?)",
-							[mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath]);
+							(primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list) VALUES(?,?,?,?,?,?,?,?,?)",
+							[mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath,0]);
 		});
 		return results;
 	}

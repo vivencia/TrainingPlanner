@@ -275,7 +275,7 @@ Item {
 				alternativeLabels: ["","","",""]
 
 				onEnterOrReturnKeyPressed: {
-					txtNWeight1.forceActiveFocus();
+					txtNWeight2.forceActiveFocus();
 				}
 
 				onValueChanged: (str, val) => {
@@ -335,7 +335,7 @@ Item {
 		let result = Database.getExercise(exerciseId2);
 		if (result.length > 0) {
 			exerciseName2 = "2 - " + result[0].exercisePName;
-			subName2 = "2 - " + result[0].exerciseSName;
+			subName2 = result[0].exerciseSName;
 		}
 		else {
 			exerciseName2 = qsTr("Add exercise");
@@ -394,7 +394,7 @@ Item {
 
 	function removeSecondExercise() {
 		exerciseName2 = qsTr("2 - Add exercise");
-		subName2 = qsTr("2 - Add exercise");
+		subName2 = "";
 		exerciseId2 = -1;
 		exerciseIdsChanged(exerciseId, exerciseId1);
 		exerciseId = exerciseId1;

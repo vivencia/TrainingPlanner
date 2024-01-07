@@ -102,5 +102,7 @@
         <file>images/black/downward.png</file>
         <file>images/black/minus.png</file>
         <file>images/black/plus.png</file>
+        <file>extras/exerciseslist.lst</file>
+        <file>sounds/timer-end.wav</file>
     </qresource>
 </RCC>

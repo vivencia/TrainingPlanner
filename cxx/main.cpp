@@ -13,6 +13,7 @@
 #include "translationclass.h"
 #include "backupclass.h"
 #include "runcommands.h"
+#include "dbmanager.h"
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
@@ -29,6 +30,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue( "fontSizePixelSize", qApp->font().pixelSize() );
 		settingsObj.setValue( "titleFontSizePixelSize", qApp->font().pixelSize() * 1.25 );
 		settingsObj.setValue( "hugeFontSizePixelSize", qApp->font().pixelSize() * 2 );
+		settingsObj.setValue( "exercisesListVersion", 0.0);
 		settingsObj.sync();
 	}
 }
@@ -50,15 +52,25 @@ int main(int argc, char *argv[])
 	QQmlApplicationEngine engine;
 	engine.rootContext()->setContextProperty("trClass", &trClass);
 
-	//BackupClass backUpClass( engine.offlineStoragePath() );
-	//backUpClass.checkIfDBFileIsMissing();
-	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	RunCommands runCmd;
+	/*RunCommands runCmd;
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);
-	runCmd.updateExercisesList();
-
+	const QString dbFile(runCmd.searchForDatabaseFile(engine.offlineStoragePath()));
+	const QString appDir(runCmd.getAppDir(dbFile));
+	qDebug() << appDir;
+	const float listVersion(appSettings.value("exercisesListVersion").toFloat());
+	if (listVersion != runCmd.getExercisesListVersion())
+	{
+		QStringList exercisesList;
+		runCmd.getExercisesList(exercisesList);
+		DbManager db(nullptr, dbFile);
+		if (db.updateExercisesList(exercisesList))
+			appSettings.setValue( "exercisesListUpdated", 0);
+	}*/
+	//BackupClass backUpClass(dbFile, appDir);
+	//backUpClass.checkIfDBFileIsMissing();
+	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(
 				&engine, &QQmlApplicationEngine::objectCreated, &app,

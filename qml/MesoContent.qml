@@ -315,7 +315,6 @@ Page {
 				bottom: parent.bottom
 				horizontalCenter: parent.horizontalCenter
 				bottomMargin: 5
-				leftMargin: 5
 			}
 		}
 	}
@@ -518,7 +517,7 @@ Page {
 				height: calendar.cellSize * 8
 				property var daysSplitModel: model.daySplit
 
-				locale: Qt.locale("pt_BR")
+				locale: Qt.locale(AppSettings.appLocale)
 				delegate: Rectangle {
 					id: dayEntry
 					height: calendar.cellSize

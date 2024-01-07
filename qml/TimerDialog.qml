@@ -34,6 +34,7 @@ Dialog {
 	property bool bInputOK: true
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
+	property bool bTempHide: false
 	property string windowTitle
 
 	signal useTime(string time)
@@ -640,11 +641,17 @@ Dialog {
 	}
 
 	function hideDlg() {
-		visible = false;
+		if (visible) {
+			bTempHide = true;
+			visible = false;
+		}
 	}
 
 	function showDlg() {
-		visible = true;
+		if (bTempHide) {
+			visible = true;
+			bTempHide = false;
+		}
 	}
 
 	function processKeyEvents(event) {

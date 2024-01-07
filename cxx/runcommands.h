@@ -16,7 +16,10 @@ public:
 	explicit RunCommands( QObject *parent = nullptr ) : QObject(parent) {}
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
-	bool updateExercisesList();
+	float getExercisesListVersion();
+	bool getExercisesList(QStringList& exercisesList);
+	QString searchForDatabaseFile( const QString& baseDir );
+	QString getAppDir(const QString& dbFile);
 };
 
 #endif // RUNCOMMANDS_H

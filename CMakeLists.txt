@@ -3,28 +3,25 @@ project(trainingplanner LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
-if (${ANDROID_ABI})
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets AndroidExtras)
-else ()
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets)
-endif()
+#if (${ANDROID_ABI})
+#    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql AndroidExtras)
+#else ()
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql)
+#endif()
 
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS)
 
 set( CMAKE_VERBOSE_MAKEFILE on )
 
 set(CMAKE_AUTORCC ON)
-set( RESOURCE_FILES
-	images.qrc
-	sounds.qrc
-	exerciseslist.qrc
-)
+set( RESOURCE_FILES app_resources.qrc )
 
 set( SOURCES
 	cxx/main.cpp
 	cxx/backupclass.cpp cxx/backupclass.h
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/runcommands.cpp cxx/runcommands.h
+	cxx/dbmanager.h cxx/dbmanager.cpp
 )
 
 qt_add_resources(${RESOURCE_FILES})
@@ -44,35 +41,33 @@ qt_add_executable(trainingplanner
 #	PERFORMANCEMONITOR_SUPPORT
 #)
 
-if (${ANDROID_ABI})
+#if (${ANDROID_ABI})
+#    target_link_libraries(trainingplanner PUBLIC
+#	Qt::Core
+#	Qt::Gui
+#	Qt::Multimedia
+#	Qt::Widgets
+#	Qt6::Qml
+#	Qt6::Quick
+#	Qt6::QuickControls2
+#	Qt6::AndroidExtras)
+#else()
     target_link_libraries(trainingplanner PUBLIC
 	Qt::Core
 	Qt::Gui
 	Qt::Multimedia
 	Qt::Widgets
-	Qt6::Qml
-	Qt6::Quick
-	Qt6::QuickControls2
-	Qt6::AndroidExtras)
-else()
-    target_link_libraries(trainingplanner PUBLIC
-	Qt::Core
-	Qt::Gui
-	Qt::Multimedia
-	Qt::Widgets
+	Qt::Sql
 	Qt6::Qml
 	Qt6::Quick
 	Qt6::QuickControls2)
-endif()
+#endif()
 
 set(trainingplanner_resource_files
 	"images/app_logo.png"
 	"images/app_icon.png"
 	"images/no_image.jpg"
-	"images.qrc"
-	"sounds.qrc"
-	"translations.qrc"
-	"exerciseslist.qrc"
+	"app_resources.qrc"
 	"qml/main.qml"
 	"qml/AppSettings.qml"
 	"qml/Database.qml"

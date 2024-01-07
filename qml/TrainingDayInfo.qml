@@ -64,6 +64,7 @@ Page {
 			timeOut = hour + ":" + minutes;
 			bModified = true;
 			hideFloatingButton(-1); //Day is finished
+			btnSaveDay.clicked();
 		}
 	}
 
@@ -707,10 +708,10 @@ Page {
 				cal_id = calendar_date_info[0].mesoCalId;
 				Database.updateMesoCalendarDaySplit(cal_id, splitLetter);
 
-				//If in the old calendar, day was R and the user did not explicitly change tDay, go back
+				//If in the old calendar, day was R or the user did not explicitly change tDay, go back
 				//in date until we find a suitable training day. This will be starting training day if the user
 				//wants to modify the rest of the calendar, or simply the continuation from the previous training day if not
-				if (mesoSplitLetter === 'R' && tDay === mesoTDay) {
+				if (mesoSplitLetter === 'R' || tDay === mesoTDay) {
 					//Find a suitable training day to continue
 					var prevdate = JSF.getPreviousDate(mainDate);
 					//Find the first training day before mainDate that is not a rest day;

@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QFile>
+#include <QDir>
 
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
@@ -36,70 +37,72 @@ int RunCommands::getFileType( const QString& filename )
 	#endif
 }
 
-bool RunCommands::updateExercisesList()
+float RunCommands::getExercisesListVersion()
 {
-	QFileInfo fi("exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("qrc:/exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("qrc://exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("qrc:exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("/exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("./exerciseslist.lst");
-	qDebug() << fi.exists();
-	fi.setFile("qrc://images/black/time.png");
-	qDebug() << fi.exists();
+	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
+	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+	{
+		char buf[50];
+		qint64 lineLength;
+		QString line;
+		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
+		if (lineLength < 0) return 0;
+		line = buf;
+		if (line.startsWith(QStringLiteral("#Vers:"))) {
+			bool b_ok(false);
+			const float version = line.split(';').at(1).toFloat(&b_ok);
+			if (b_ok)
+				return version;
+		}
+		exercisesListFile.close();
+	}
+	return 0.0;
+}
 
-	fi.setFile(QUrl("exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc:/exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc://exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc:exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("/exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("./exerciseslist.lst").toString());
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc://images/black/time.png").toString());
-	qDebug() << fi.exists();
-
-	fi.setFile(QUrl("exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc:/exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc://exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc:exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("/exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("./exerciseslist.lst").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-	fi.setFile(QUrl("qrc://images/black/time.png").toString(QUrl::PreferLocalFile));
-	qDebug() << fi.exists();
-
-	QFile exercisesList( "qrc://exerciseslist.lst" );
-	if ( exercisesList.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+bool RunCommands::getExercisesList(QStringList& exercisesList)
+{
+	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
+	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 	{
 		char buf[1024];
 		qint64 lineLength;
-		QString line;
 		do
 		{
-			lineLength = exercisesList.readLine( buf, sizeof(buf) );
-			if (lineLength < 0) break;
-			line = buf;
-			const QStringList exerciseInfo ( line.split(';') );
-			for (int i = 0; i < exerciseInfo.length(); ++i)
-				qDebug() << i << ":  " <<exerciseInfo.at(i);
-		} while (true);
-		exercisesList.close();
-		return true;
+			lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
+			if (lineLength < 0) continue;
+			exercisesList.append(buf);
+		} while (!exercisesListFile.atEnd());
+		exercisesListFile.close();
+		return !exercisesList.isEmpty();
 	}
 	return false;
+}
+
+QString RunCommands::searchForDatabaseFile( const QString& baseDir)
+{
+	QDir root (baseDir);
+	root.setFilter(QDir::AllEntries);
+	QFileInfoList list = root.entryInfoList();
+	for (int i = 0; i < list.size(); ++i) {
+		if (list.at(i).fileName() == "." || list.at(i).fileName() == "..")
+			continue;
+		if (list.at(i).isDir()) {
+			return searchForDatabaseFile(list.at(i).filePath());
+		}
+		else {
+			if (list.at(i).fileName().endsWith(QString(".sqlite")))
+				return list.at(i).filePath();
+		}
+	}
+	return QString();
+}
+
+QString RunCommands::getAppDir(const QString& dbFile)
+{
+	if (!dbFile.isEmpty()) {
+		const int idx (dbFile.indexOf("Planner"));
+		if (idx > 1)
+			return dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
+	}
+	return QString ();
 }
