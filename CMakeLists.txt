@@ -6,9 +6,9 @@ set(CMAKE_AUTOMOC ON)
 #if (${ANDROID_ABI})
 #    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql AndroidExtras)
 #else ()
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql)
-#endif()
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql LinguistTools)
 
+find_package(Qt6 REQUIRED COMPONENTS )
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS)
 
 set( CMAKE_VERBOSE_MAKEFILE on )
@@ -29,6 +29,15 @@ qt_add_executable(trainingplanner
 	${SOURCES}
 	${RESOURCE_FILES}
 )
+
+set( TS_FILES
+    translations/tplanner.pt_BR.ts
+    translations/tplanner.de_DE.ts
+)
+set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION ${PROJECT_BINARY_DIR}/translations)
+
+qt_add_lupdate(trainingplanner TS_FILES ${TS_FILES})
+qt_add_lrelease(trainingplanner TS_FILES ${TS_FILES})
 
 #set_target_properties(trainingplanner PROPERTIES
 #	WIN32_EXECUTABLE TRUE

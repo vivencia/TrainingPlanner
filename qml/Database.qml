@@ -26,10 +26,14 @@ QtObject {
 						createExercisesTable();
 						createSetsInfoTable();
 						createTrainingDayTable();
+						if (AppSettings.exercisesListVersion === 0.0) { //First run. Insert exercises list into database
+							var exercisesList = runCmd.getExercisesList();
+							if (exercisesList.length > 0)
+								appDB.updateExercisesList(exercisesList);
+						}
 					}
 					//console.log(res.rows.item(0).name)
-				}
-		);
+			});
 		} catch (error) {
 			console.log("Error opening database: " + error);
 		}
@@ -82,7 +86,7 @@ QtObject {
 			tx.executeSql(`CREATE TABLE IF NOT EXISTS exercises_table (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				primary_name TEXT CHECK(primary_name != ''),
-				secondary_name TEXT CHECK(secondary_name != ''),
+				secondary_name TEXT,
 				muscular_group TEXT,
 				sets INTEGER,
 				reps REAL,

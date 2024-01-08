@@ -290,31 +290,27 @@ Page {
 	}
 
 	header: ToolBar {
-		Label {
-			id: lbl1
-			text: mesoName
-			font.bold: true
-			color: "white"
-			font.pixelSize: AppSettings.fontSize
+		ColumnLayout {
+			anchors.fill: parent
 
-			anchors {
-				top: parent.top
-				horizontalCenter: parent.horizontalCenter
-				topMargin: 5
+			Label {
+				id: lbl1
+				text: mesoName
+				font.bold: true
+				color: "white"
+				font.pixelSize: AppSettings.fontSize
+				Layout.alignment: Qt.AlignVCenter
+				Layout.topMargin: 5
 			}
-		}
-		Label {
-			id: lbl2
-			color: "white"
-			width: parent.width
-			wrapMode: Text.WordWrap
-			text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
-			font.pixelSize: AppSettings.fontSizeLists
-
-			anchors {
-				bottom: parent.bottom
-				horizontalCenter: parent.horizontalCenter
-				bottomMargin: 5
+			Label {
+				id: lbl2
+				color: "white"
+				width: parent.width
+				wrapMode: Text.WordWrap
+				text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
+				font.pixelSize: AppSettings.fontSizeLists
+				Layout.alignment: Qt.AlignVCenter | Qt.AlignBottom
+				Layout.bottomMargin: 2
 			}
 		}
 	}

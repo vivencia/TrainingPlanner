@@ -1,10 +1,59 @@
-#Version;1.0
+#Version;1.1
 Cadeira Extensora;amplitude total;pernas, quadríceps
+Cadeira Extensora;unilateral;pernas, quadríceps
 Cadeira Flexora;amplitude total;pernas, posterior
+Cadeira Flexora;unilateral;pernas, posterior
+Máquina Flexora em Pé;unilateral;pernas, posterior
 Mesa Flexora;amplitude total;pernas, posterior
-Rack Squat;amplitude total;pernas
-Leg Press;amplitude total,pausar em baixo;pernas
-Passadas;kettlebell, halter ou barra;pernas
+Mesa Flexora;unilateral;pernas, posterior
+Rack Squat;pés juntos ou muito próximos;pernas
+Rack Squat;pés na largura dos ombros;pernas
+Leg Press;45o;pernas
+Leg Press;pés juntos ou muito próximos, 45o;pernas
+Leg Press;articulado;pernas
+Leg Press;pés juntos ou muito próximos, articulado;pernas
+Passadas;kettlebell;pernas
+Passadas;halte ou anilhasr;pernas
+Passadas;barra;pernas
 Belt Squat;corpo ereto; pernas, quadríceps
+Belt Squat;sumô, corpo ereto; pernas, quadríceps
 Belt Squat;corpo inclinado; pernas, quadríceps,posterior
+Belt Squat;sumô, corpo inclinado; pernas, quadríceps,posterior
 Agachamento Livre;barra;pernas
+Agachamento Livre;sumô, barra;pernas
+Agachamento Livre;halter;pernas
+Agachamento Livre;sumô, halter;pernas
+Agachamento Smith;;pernas
+Agachamento Smith;sumô;pernas
+Agachamento Frontal;smith;;pernas
+Agachamento Frontal;barra, livre;pernas
+Agachamento Frontal;halter ou kettlebell ou anilha, livre;pernas
+Agachamento Pêndulo;pés juntos ou muito próximos;pernas
+Agachamento Pêndulo;pés na largura dos ombros;pernas
+Agachamento Búlgaro;halter;pernas
+Agachamento Búlgaro;smith;pernas
+Agachamento Búlgaro;máquina;pernas
+Agachamento Sissy;livre;pernas, quadríceps
+Agachamento Sissy;máquina;pernas, quadríceps
+Agachamento Máquina Sentado;pés juntos ou muito próximos;pernas
+Agachamento Máquina Sentado;pés na largura dos ombros;pernas
+Stiff;barra;pernas,posterior
+Stiff;halter ou kettlebell;pernas,posterior
+Stiff;máquina;pernas,posterior
+Bom dia;barra;pernas,posterior
+Bom dia;máquina;pernas,posterior
+Elevação Pélvica;livre, barra;glúteos
+Elevação Pélvica;máquina;glúteos
+Abdutora;cadeira;pernas, glúteos
+Abdutora;unilateral, polia;pernas, glúteos
+Adutora;cadeira;pernas
+Adutora;máquina em pé;pernas
+Adutora;unilateral, polia;pernas, glúteos
+Coice;máquina;glúteos
+Coice;polia;glúteos
+Panturrilha em Pé;máquina;pernas,panturrilha
+Panturrilha em Pé;smith;pernas,panturrilha
+Panturrilha em Pé;livre;pernas,panturrilha
+Panturrilha sentado;máquina;pernas,panturrilha
+Panturrilha na Máquin;Leg Press;pernas,panturrilha
+Panturrilha na Máquina;agachamento sentado;pernas,panturrilha

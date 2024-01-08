@@ -810,7 +810,7 @@ Page {
 					trainingNotes = " ";
 				if (splitLetter === 'R')
 					tDay = 0;
-				Database.updateTrainingDay(dayId, tDay, splitLetter, exercisesIds, timeIn, timeOut, location, trainingNotes);
+				Database.updateTrainingDay(dayId, exercisesIds, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
 						exerciseSpriteList[i].Object.logSets();
 				updateMesoCalendar();

@@ -104,5 +104,7 @@
         <file>images/black/plus.png</file>
         <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
+        <file>translations/tplanner.pt_BR.qm</file>
+        <file>translations/tplanner.de_DE.qm</file>
     </qresource>
 </RCC>

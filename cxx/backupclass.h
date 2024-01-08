@@ -10,10 +10,10 @@ class BackupClass : public QObject
 
 Q_OBJECT
 QML_ELEMENT
-Q_PROPERTY( QStringList allBackupsList READ getBackupsList NOTIFY backupsListChanged )
+Q_PROPERTY( QStringList backupsList READ getBackupsList NOTIFY backupsListChanged )
 
 public:
-	explicit BackupClass( const QString &dbFilePath );
+	explicit BackupClass( const QString &dbFileName, const QString& privateAppDir );
 	Q_INVOKABLE bool doBackUp( const QString& fileName = QString() );
 	Q_INVOKABLE bool doRestore( const QString& fileName );
 	QStringList getBackupsList();
@@ -28,8 +28,8 @@ private:
 	void addBackupFileToList( bool result, const QString& backupFilename );
 	QString mDBFile;
 	QString mSavePath;
-	QString mDBFileName;
-	QStringList mBackupFiles;
+	QStringList m_backupsList;
+	bool mb_CanDoBackup;
 };
 
 #endif // BACKUPCLASS_H

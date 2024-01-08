@@ -54,23 +54,28 @@ int main(int argc, char *argv[])
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	/*RunCommands runCmd;
-	engine.rootContext()->setContextProperty("runCmd", &runCmd);
-	const QString dbFile(runCmd.searchForDatabaseFile(engine.offlineStoragePath()));
-	const QString appDir(runCmd.getAppDir(dbFile));
-	qDebug() << appDir;
-	const float listVersion(appSettings.value("exercisesListVersion").toFloat());
-	if (listVersion != runCmd.getExercisesListVersion())
+	RunCommands runCmd;
+	const float actualListVersion ( appSettings.value("exercisesListVersion").toFloat() );
+	const float mostRecentListVersion ( runCmd.getExercisesListVersion() );
+	runCmd.searchForDatabaseFile(engine.offlineStoragePath());
+	DbManager db(runCmd.getDBFileName(), &appSettings, &engine, mostRecentListVersion);
+
+	if (actualListVersion != mostRecentListVersion)
 	{
-		QStringList exercisesList;
-		runCmd.getExercisesList(exercisesList);
-		DbManager db(nullptr, dbFile);
-		if (db.updateExercisesList(exercisesList))
-			appSettings.setValue( "exercisesListUpdated", 0);
-	}*/
-	//BackupClass backUpClass(dbFile, appDir);
-	//backUpClass.checkIfDBFileIsMissing();
-	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
+		//Let the QML side create the database. And in the first run it will update the exercises list.
+		//After that, it will be updated on the C++ side
+		if (!runCmd.getDBFileName().isEmpty())
+		{
+			//Should be here only when there is a program update with a list update. Otherwise, never
+			QStringList exercisesList( runCmd.getExercisesList() );
+			db.updateExercisesList(exercisesList);
+		}
+	}
+	BackupClass backUpClass( runCmd.getDBFileName(), runCmd.getAppDir(runCmd.getDBFileName()) );
+
+	engine.rootContext()->setContextProperty("appDB", &db);
+	engine.rootContext()->setContextProperty("runCmd", &runCmd);
+	engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(
 				&engine, &QQmlApplicationEngine::objectCreated, &app,

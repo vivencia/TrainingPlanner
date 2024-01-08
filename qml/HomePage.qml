@@ -9,7 +9,7 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: homePage
-	property ListModel mainModel: mesosModel
+	property ListModel mainModel: mainMesosModel
 	property int currentMesoIndex
 	property date minimumStartDate;
 
@@ -35,7 +35,7 @@ Page {
 		}
 
 		model: ListModel {
-			id: mesosModel
+			id: mainMesosModel
 
 			Component.onCompleted: {
 				let mesos = Database.getMesos();
@@ -106,7 +106,7 @@ Page {
 						switch (button) {
 							case MessageDialog.Yes:
 								Database.deleteMeso(mesoId);
-								mesosModel.remove(mesoDelegate.index, 1);
+								mainMesosModel.remove(mesoDelegate.index, 1);
 								dateTimer.triggered(); //Update tabBar and the meso model index it uses
 								accept();
 							break;
@@ -230,7 +230,7 @@ footer: ToolBar {
 
 			onClicked: {
 				var startDate, endDate;
-				if (mesosModel.count === 0) {
+				if (mainMesosModel.count === 0) {
 					minimumStartDate = new Date(2023, 0, 2); //first monday of year
 					startDate = today;
 					endDate = JSF.createFutureDate(startDate, 0, 2, 0);
@@ -244,7 +244,7 @@ footer: ToolBar {
 				const weekTwo = JSF.weekNumber(endDate);
 
 				homePage.StackView.view.push("MesoCycle.qml",  {
-						"mesosModel": mesosModel,
+						"mesosModel": mainMesosModel,
 						"mesoId": -1,
 						"mesoName": "Novo mesociclo",
 						mesoStartDate: startDate,
@@ -252,9 +252,10 @@ footer: ToolBar {
 						mesoNote: "",
 						nWeeks: JSF.calculateNumberOfWeeks(weekOne, weekTwo),
 						mesoSplit:"ABCRDER",
-						mesoDrugs: "",
+						mesoDrugs: " ",
 						minimumMesoStartDate: minimumStartDate,
 						maximumMesoEndDate: JSF.createFutureDate(startDate,0,6,0),
+						fixedMesoEndDate: endDate,
 						week1: weekOne,
 						week2: weekTwo,
 						calendarStartDate: startDate
@@ -264,7 +265,7 @@ footer: ToolBar {
 } // footer
 
 	function showMeso() {
-		let meso = mesosModel.get(currentMesoIndex);
+		let meso = mainMesosModel.get(currentMesoIndex);
 		var startDate;
 		if (currentMesoIndex === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
@@ -278,7 +279,7 @@ footer: ToolBar {
 		const weekTwo = JSF.weekNumber(meso.mesoEndDate);
 
 		homePage.StackView.view.push("MesoCycle.qml", {
-			"mesosModel": mesosModel,
+			"mesosModel": mainMesosModel,
 			"idxModel": currentMesoIndex,
 			"mesoId": meso.mesoId,
 			"mesoName": meso.mesoName,

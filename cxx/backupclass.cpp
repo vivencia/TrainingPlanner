@@ -1,4 +1,5 @@
 #include "backupclass.h"
+
 #include <QFileInfo>
 #include <QDate>
 #include <QFile>
@@ -6,41 +7,46 @@
 
 static const QString backupsListFileName( QStringLiteral( "tp_backups.bk" ) );
 
-BackupClass::BackupClass( const QString &dbFilePath )
-	: QObject ( nullptr )
+BackupClass::BackupClass( const QString &dbFileName , const QString &privateAppDir )
+	: QObject (nullptr), mDBFile (dbFileName), mb_CanDoBackup (false)
 {
-	QDir backupsDir( dbFilePath + QStringLiteral("/Databases/") );
-	QFileInfoList backupFilesList ( backupsDir.entryInfoList( QStringList() << QStringLiteral("*.sqlite") ) );
-	if ( !backupFilesList.isEmpty() )
-		mDBFileName = backupFilesList.at( 0 ).fileName();
-	mDBFile = backupFilesList.at( 0 ).filePath();
-	backupsDir.cdUp();
-	mSavePath = backupsDir.path() + '/';
-	connect(this, &BackupClass::backupOperationResult, this, &BackupClass::addBackupFileToList);
+
+	QDir backupsDir( privateAppDir );
+	QFileInfoList backupFilesList ( backupsDir.entryInfoList(QStringList(), QDir::Dirs|QDir::Executable|QDir::NoDotDot|QDir::Writable) );
+	if (!backupFilesList.isEmpty()) //can write to directory
+	{
+		mSavePath = privateAppDir + QStringLiteral("/DBBackups/");
+		backupsDir.mkdir(QStringLiteral("DBBackups"));
+		connect(this, &BackupClass::backupOperationResult, this, &BackupClass::addBackupFileToList);
+		mb_CanDoBackup = true;
+	}
 }
 
 bool BackupClass::doBackUp( const QString& fileName )
 {
+	if (!mb_CanDoBackup)
+		return false;
+
 	QString strBackupFileName;
 	if (!fileName.isEmpty())
 		strBackupFileName = fileName;
 	else
-		strBackupFileName = mSavePath + mDBFileName + '_' + QDate::currentDate().toString("yyyyMMdd");
+		strBackupFileName = mSavePath + mDBFile + '_' + QDate::currentDate().toString("yyyyMMdd");
 
 	QFile outFile( mDBFile );
 	bool ret ( outFile.copy( strBackupFileName ) );
 	if (ret)
 	{
-		QFile backupsList( mSavePath + backupsListFileName );
+		QFile backupsListFile( mSavePath + backupsListFileName );
 		bool bAddFile = true;
-		if ( backupsList.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+		if ( backupsListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 		{
 			char buf[1024];
 			qint64 lineLength;
 			QString line;
 			do
 			{
-				lineLength = backupsList.readLine( buf, sizeof(buf) );
+				lineLength = backupsListFile.readLine( buf, sizeof(buf) );
 				if (lineLength < 0) break;
 				line = buf;
 				if (line == strBackupFileName) {
@@ -48,12 +54,12 @@ bool BackupClass::doBackUp( const QString& fileName )
 					break;
 				}
 			} while (true);
-			backupsList.close();
+			backupsListFile.close();
 		}
 		if ( bAddFile ) {
-			if ( backupsList.open( QIODeviceBase::Append|QIODeviceBase::Text ) ) {
-				ret = backupsList.write( strBackupFileName.toLatin1() ) > 0;
-				backupsList.close();
+			if ( backupsListFile.open( QIODeviceBase::Append|QIODeviceBase::Text ) ) {
+				ret = backupsListFile.write( strBackupFileName.toLatin1() ) > 0;
+				backupsListFile.close();
 				if ( ret )
 					emit backupsListChanged();
 			}
@@ -67,6 +73,9 @@ bool BackupClass::doBackUp( const QString& fileName )
 
 bool BackupClass::doRestore( const QString &fileName )
 {
+	if (!mb_CanDoBackup)
+		return false;
+
 	QFileInfo fInfo( fileName );
 	bool ret ( fInfo.isReadable() );
 	if ( ret )
@@ -83,8 +92,8 @@ bool BackupClass::doRestore( const QString &fileName )
 
 QStringList BackupClass::getBackupsList()
 {
-	if (!mBackupFiles.isEmpty())
-		return mBackupFiles;
+	if (!m_backupsList.isEmpty())
+		return m_backupsList;
 
 	QFile backupsList( mSavePath + backupsListFileName );
 	if ( backupsList.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
@@ -95,18 +104,16 @@ QStringList BackupClass::getBackupsList()
 		{
 			lineLength = backupsList.readLine( buf, sizeof(buf) );
 			if (lineLength < 0) break;
-			mBackupFiles.append( QString( buf ) );
+			m_backupsList.append( QString( buf ) );
 		} while( !backupsList.atEnd() );
 	}
-	return mBackupFiles;
+	return m_backupsList;
 }
 
 void BackupClass::checkIfDBFileIsMissing()
 {
 	return;
 	QFileInfo fInfo( mDBFile );
-	//First time ever the program is running or, most likely, some QGuiApplication setting was changed
-	//like version or organization. If the name was changed, then this will not work
 	if ( !fInfo.exists() )
 	{
 		//Try to restore
@@ -123,8 +130,8 @@ void BackupClass::addBackupFileToList( bool result, const QString& backupFilenam
 {
 	if ( result )
 	{
-		if ( mBackupFiles.isEmpty() )
+		if ( m_backupsList.isEmpty() )
 			getBackupsList();
-		mBackupFiles.append(backupFilename);
+		m_backupsList.append(backupFilename);
 	}
 }

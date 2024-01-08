@@ -17,7 +17,6 @@ const QString RunCommands::getCorrectPath(const QUrl& url)
 
 int RunCommands::getFileType( const QString& filename )
 {
-	qDebug() << "getFileType:   " << filename;
 	#ifdef Q_OS_ANDROID
 		if ( filename.contains("video%", Qt::CaseInsensitive))
 			return 1;
@@ -42,13 +41,13 @@ float RunCommands::getExercisesListVersion()
 	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 	{
-		char buf[50];
+		char buf[20] = { 0 };
 		qint64 lineLength;
 		QString line;
 		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
 		if (lineLength < 0) return 0;
 		line = buf;
-		if (line.startsWith(QStringLiteral("#Vers:"))) {
+		if (line.startsWith(QStringLiteral("#Vers"))) {
 			bool b_ok(false);
 			const float version = line.split(';').at(1).toFloat(&b_ok);
 			if (b_ok)
@@ -59,8 +58,9 @@ float RunCommands::getExercisesListVersion()
 	return 0.0;
 }
 
-bool RunCommands::getExercisesList(QStringList& exercisesList)
+QStringList RunCommands::getExercisesList()
 {
+	QStringList exercisesList;
 	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 	{
@@ -73,9 +73,8 @@ bool RunCommands::getExercisesList(QStringList& exercisesList)
 			exercisesList.append(buf);
 		} while (!exercisesListFile.atEnd());
 		exercisesListFile.close();
-		return !exercisesList.isEmpty();
 	}
-	return false;
+	return exercisesList;
 }
 
 QString RunCommands::searchForDatabaseFile( const QString& baseDir)
@@ -83,26 +82,33 @@ QString RunCommands::searchForDatabaseFile( const QString& baseDir)
 	QDir root (baseDir);
 	root.setFilter(QDir::AllEntries);
 	QFileInfoList list = root.entryInfoList();
-	for (int i = 0; i < list.size(); ++i) {
+	for (int i = 0; i < list.size(); ++i)
+	{
 		if (list.at(i).fileName() == "." || list.at(i).fileName() == "..")
 			continue;
-		if (list.at(i).isDir()) {
+		if (list.at(i).isDir())
+		{
 			return searchForDatabaseFile(list.at(i).filePath());
 		}
-		else {
-			if (list.at(i).fileName().endsWith(QString(".sqlite")))
-				return list.at(i).filePath();
+		else
+		{
+			if (list.at(i).fileName().endsWith(QStringLiteral(".sqlite")))
+			{
+				m_dbFileName = list.at(i).filePath();
+				break;
+			}
 		}
 	}
-	return QString();
+	return m_dbFileName;
 }
 
 QString RunCommands::getAppDir(const QString& dbFile)
 {
-	if (!dbFile.isEmpty()) {
+	if (!dbFile.isEmpty())
+	{
 		const int idx (dbFile.indexOf("Planner"));
 		if (idx > 1)
-			return dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
+			m_appPrivateDir = dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
 	}
-	return QString ();
+	return m_appPrivateDir;
 }

@@ -6,13 +6,14 @@ import "jsfunctions.js" as JSF
 
 Rectangle {
 	id: root
-	height: cellSize * 12
-	width: cellSize * 8
 	clip: true
+	height: cellSize * 12.5
+	width: cellSize * 8
 
 	property date selectedDate;
 	property int weekNbr: 1
 	property bool justCalendar: false
+	property string calendarWindowTitle
 
 	required property date displayDate
 	required property date startDate
@@ -37,9 +38,34 @@ Rectangle {
 	}
 
 	Rectangle {
+		id: windowTitelBar
+		color: primaryLightColor
+		visible: !justCalendar
+		width: parent.width
+		height: lblTitle.contentHeight + 10
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			top: parent.top
+		}
+
+		Label {
+			id: lblTitle
+			anchors.centerIn: parent
+			text: calendarWindowTitle
+			wrapMode: Text.WordWrap
+			width: parent.width
+			horizontalAlignment: Text.AlignJustify
+			verticalAlignment: Text.AlignJustify
+			font.bold: true
+		}
+	}
+
+	Rectangle {
 		id: titleOfDate
 		anchors {
-			top: parent.top
+			top: windowTitelBar.visible ? windowTitelBar.bottom : parent.top
 			horizontalCenter: parent.horizontalCenter
 		}
 		height: 2.5 * cellSize
@@ -275,11 +301,12 @@ Rectangle {
 	} // ListView yearsList
 
 	Rectangle {
-		height: cellSize * 1.5
+		height: cellSize
 		anchors {
 			top: calendar.bottom
 			right: parent.right
 			rightMargin: cellSize * 0.5
+			topMargin: -20
 		}
 		z: titleOfDate.z
 		color: "black"

@@ -11,9 +11,10 @@ Popup {
 	required property date initDate
 	required property date finalDate
 	property bool simpleCalendar
+	property string windowTitle
 
-    width: datePickerControl.width + 20
-    height: datePickerControl.height + 20
+	width: datePickerControl.width + 20
+	height: datePickerControl.height + 20
     topMargin: 10
     bottomMargin: 10
     leftMargin: 10
@@ -27,12 +28,13 @@ Popup {
     focus: true
     clip: true
 
-    DatePicker {
-        id: datePickerControl
+	DatePicker {
+		id: datePickerControl
 		displayDate: showDate
 		startDate: initDate
 		endDate: finalDate
 		justCalendar: simpleCalendar
+		calendarWindowTitle: windowTitle
 
 		Component.onCompleted: {
 			datePickerControl.setDate (showDate);
@@ -45,5 +47,5 @@ Popup {
 		onCancelClicked: {
 			calendarPopup.close()
 		}
-    }
+	}
 }

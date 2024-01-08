@@ -4,102 +4,102 @@
 <context>
     <name>DatePicker</name>
     <message>
-        <location filename="../DatePicker.qml" line="128"/>
+        <location filename="../qml/DatePicker.qml" line="154"/>
         <source>January</source>
         <translation>Janeiro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="128"/>
+        <location filename="../qml/DatePicker.qml" line="154"/>
         <source>February</source>
         <translation>Fevereiro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="128"/>
+        <location filename="../qml/DatePicker.qml" line="154"/>
         <source>March</source>
         <translation>Refeições</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="128"/>
+        <location filename="../qml/DatePicker.qml" line="154"/>
         <source>April</source>
         <translation>Abril</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="129"/>
+        <location filename="../qml/DatePicker.qml" line="155"/>
         <source>May</source>
         <translation>Maio</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="129"/>
+        <location filename="../qml/DatePicker.qml" line="155"/>
         <source>June</source>
         <translation>Junho</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="129"/>
+        <location filename="../qml/DatePicker.qml" line="155"/>
         <source>July</source>
         <translation>Julho</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="129"/>
+        <location filename="../qml/DatePicker.qml" line="155"/>
         <source>August</source>
         <translation>Agosto</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="130"/>
+        <location filename="../qml/DatePicker.qml" line="156"/>
         <source>September</source>
         <translation>Setembro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="130"/>
+        <location filename="../qml/DatePicker.qml" line="156"/>
         <source>October</source>
         <translation>Outubro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="130"/>
+        <location filename="../qml/DatePicker.qml" line="156"/>
         <source>November</source>
         <translation>Novembro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="130"/>
+        <location filename="../qml/DatePicker.qml" line="156"/>
         <source>December</source>
         <translation>Dezembro</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="131"/>
+        <location filename="../qml/DatePicker.qml" line="157"/>
         <source>Monday</source>
         <translation>Segunda-feira</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="131"/>
+        <location filename="../qml/DatePicker.qml" line="157"/>
         <source>Tuesday</source>
         <translation>Terça-feira</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="131"/>
+        <location filename="../qml/DatePicker.qml" line="157"/>
         <source>Wednesday</source>
         <translation>Quarta-feira</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="132"/>
+        <location filename="../qml/DatePicker.qml" line="158"/>
         <source>Thursday</source>
         <translation>Quinta-feira</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="132"/>
+        <location filename="../qml/DatePicker.qml" line="158"/>
         <source>Friday</source>
         <translation>Sexta-feira</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="132"/>
+        <location filename="../qml/DatePicker.qml" line="158"/>
         <source>Saturday</source>
         <translation>Sábado</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="326"/>
+        <location filename="../qml/DatePicker.qml" line="353"/>
         <source>CANCEL</source>
         <translation>CANCELAR</translation>
     </message>
     <message>
-        <location filename="../DatePicker.qml" line="131"/>
+        <location filename="../qml/DatePicker.qml" line="157"/>
         <source>Sunday</source>
         <translation>Domingo</translation>
     </message>
@@ -186,42 +186,42 @@ Exercício duplicado
 <context>
     <name>DevSettingsPage</name>
     <message>
-        <location filename="../DevSettingsPage.qml" line="23"/>
+        <location filename="../qml/DevSettingsPage.qml" line="23"/>
         <source>Delete MesoCycle Table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="32"/>
+        <location filename="../qml/DevSettingsPage.qml" line="32"/>
         <source>Delete MesoCycle Calendar Table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="41"/>
+        <location filename="../qml/DevSettingsPage.qml" line="41"/>
         <source>Delete Exercises Table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="50"/>
+        <location filename="../qml/DevSettingsPage.qml" line="50"/>
         <source>Delete Sets Table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="59"/>
+        <location filename="../qml/DevSettingsPage.qml" line="59"/>
         <source>Delete Day Info Table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="68"/>
+        <location filename="../qml/DevSettingsPage.qml" line="68"/>
         <source>Update exercises table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="77"/>
+        <location filename="../qml/DevSettingsPage.qml" line="77"/>
         <source>Update sets table</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../DevSettingsPage.qml" line="89"/>
+        <location filename="../qml/DevSettingsPage.qml" line="89"/>
         <source>Run action</source>
         <translation></translation>
     </message>
@@ -229,27 +229,27 @@ Exercício duplicado
 <context>
     <name>ExerciseEntry</name>
     <message>
-        <location filename="../ExerciseEntry.qml" line="42"/>
+        <location filename="../qml/ExerciseEntry.qml" line="42"/>
         <source>Drop Set</source>
         <translation>Drop Set</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="43"/>
+        <location filename="../qml/ExerciseEntry.qml" line="43"/>
         <source>Cluster Set</source>
         <translation>Cluster Set</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="43"/>
+        <location filename="../qml/ExerciseEntry.qml" line="43"/>
         <source>Giant Set</source>
         <translation>Bi Set</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="43"/>
+        <location filename="../qml/ExerciseEntry.qml" line="43"/>
         <source>Myo Reps</source>
         <translation>Myo Reps</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="68"/>
+        <location filename="../qml/ExerciseEntry.qml" line="68"/>
         <source>
 
 Remove Exercise?
@@ -262,27 +262,27 @@ Excluir Exercício?
 </translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="69"/>
+        <location filename="../qml/ExerciseEntry.qml" line="69"/>
         <source>This action cannot be undone.</source>
         <translation>Esta ação não pode ser desfeita.</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="222"/>
+        <location filename="../qml/ExerciseEntry.qml" line="222"/>
         <source>Set type: </source>
         <translation>Tipo de série: </translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="271"/>
+        <location filename="../qml/ExerciseEntry.qml" line="271"/>
         <source>Add set</source>
         <translation>Adicionar série</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="42"/>
+        <location filename="../qml/ExerciseEntry.qml" line="42"/>
         <source>Regular</source>
         <translation>Normal</translation>
     </message>
     <message>
-        <location filename="../ExerciseEntry.qml" line="42"/>
+        <location filename="../qml/ExerciseEntry.qml" line="42"/>
         <source>Pyramid</source>
         <translation>Pirâmide</translation>
     </message>
@@ -290,118 +290,121 @@ Excluir Exercício?
 <context>
     <name>ExercisesDatabase</name>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="85"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="84"/>
         <source>Exercise:</source>
         <translation>Exercício:</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="108"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="107"/>
         <source>Specifics:</source>
         <translation>Especifico:</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="139"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="138"/>
         <source>Muscular Group:</source>
         <translation>Grupo Muscular:</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="163"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="162"/>
         <source>Optional defaults</source>
         <translation>Opcional</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="219"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="218"/>
         <source>Sets: </source>
         <translation>Séries: </translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="235"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="234"/>
         <source>Reps: </source>
         <translation>Repetições: </translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="251"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="250"/>
         <source>Weigth: </source>
         <translation>Peso: </translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="732"/>
         <source>Images (*.jpg *.png *.gif)</source>
-        <translation>Imagens (*.jpg *.png *.gif)</translation>
+        <translation type="vanished">Imagens (*.jpg *.png *.gif)</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="732"/>
         <source>Videos (*.mp4)</source>
-        <translation>Vídeos (*.mp4)</translation>
+        <translation type="vanished">Vídeos (*.mp4)</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="269"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="268"/>
         <source>Descriptive media:</source>
         <translation>Mídia de Exemplo:</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="282"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="281"/>
         <source>File</source>
         <translation>Arquivo</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="288"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="287"/>
         <source>Camera</source>
         <translation>Câmera</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="491"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="499"/>
         <source>Filter: </source>
         <translation>Filtro: </translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="547"/>
-        <location filename="../ExercisesDatabase.qml" line="573"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="555"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="581"/>
         <source>New</source>
         <translation>Novo</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="567"/>
-        <location filename="../ExercisesDatabase.qml" line="599"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="575"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="607"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="582"/>
-        <location filename="../ExercisesDatabase.qml" line="605"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="590"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="613"/>
         <source>Edit</source>
         <translation>Editar</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="614"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="622"/>
         <source>Save</source>
         <translation>Salvar</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="695"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="705"/>
         <source>Choose</source>
         <translation>Escolher</translation>
     </message>
     <message>
-        <location filename="../ExercisesDatabase.qml" line="714"/>
+        <location filename="../qml/ExercisesDatabase.qml" line="724"/>
         <source>Close</source>
         <translation>Fechar</translation>
+    </message>
+    <message>
+        <location filename="../qml/ExercisesDatabase.qml" line="761"/>
+        <source>Please choose a media file</source>
+        <translation>Por favor, escolha um arquivo de mídia</translation>
     </message>
 </context>
 <context>
     <name>FloatingButton</name>
     <message>
-        <location filename="../FloatingButton.qml" line="29"/>
+        <location filename="../qml/FloatingButton.qml" line="29"/>
         <source>Regular</source>
         <translation>Normal</translation>
     </message>
     <message>
-        <location filename="../FloatingButton.qml" line="29"/>
+        <location filename="../qml/FloatingButton.qml" line="29"/>
         <source>Pyramid</source>
         <translation>Pirâmide</translation>
     </message>
     <message>
-        <location filename="../FloatingButton.qml" line="29"/>
+        <location filename="../qml/FloatingButton.qml" line="29"/>
         <source>Drop set</source>
         <translation>Drop set</translation>
     </message>
@@ -409,22 +412,22 @@ Excluir Exercício?
 <context>
     <name>FontSizePage</name>
     <message>
-        <location filename="../FontSizePage.qml" line="42"/>
+        <location filename="../qml/FontSizePage.qml" line="42"/>
         <source>Example text</source>
         <translation>Texto de exemplo</translation>
     </message>
     <message>
-        <location filename="../FontSizePage.qml" line="51"/>
+        <location filename="../qml/FontSizePage.qml" line="51"/>
         <source>Font used in titles</source>
         <translation>Fonte utilizada em títulos</translation>
     </message>
     <message>
-        <location filename="../FontSizePage.qml" line="60"/>
+        <location filename="../qml/FontSizePage.qml" line="60"/>
         <source>Font used in lists</source>
         <translation>Fonte utilizada em listas</translation>
     </message>
     <message>
-        <location filename="../FontSizePage.qml" line="69"/>
+        <location filename="../qml/FontSizePage.qml" line="69"/>
         <source>Font used on text input fields</source>
         <translation>Fonte utilizadas em entradas de texto</translation>
     </message>
@@ -432,17 +435,17 @@ Excluir Exercício?
 <context>
     <name>HomePage</name>
     <message>
-        <location filename="../HomePage.qml" line="17"/>
+        <location filename="../qml/HomePage.qml" line="17"/>
         <source>Mesocycles</source>
         <translation>Mesociclos</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="78"/>
+        <location filename="../qml/HomePage.qml" line="78"/>
         <source>Remove Mesocycle</source>
         <translation>Remover Mesociclo</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="101"/>
+        <location filename="../qml/HomePage.qml" line="101"/>
         <source>
 
 Remove Mesocycle?
@@ -455,37 +458,37 @@ Remover MesoCiclo?
 </translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="102"/>
+        <location filename="../qml/HomePage.qml" line="102"/>
         <source>This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.</source>
         <translation>Esta ação não pode ser desfeita. Atenção: a remoção de um MesoCiclo não afeta as informações dos dias que ele contém.</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="190"/>
+        <location filename="../qml/HomePage.qml" line="190"/>
         <source>Name: &lt;b&gt;</source>
         <translation>Nome: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="193"/>
+        <location filename="../qml/HomePage.qml" line="193"/>
         <source>Start of mesocycle: &lt;b&gt;</source>
         <translation>Início do MesoCiclo: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="196"/>
+        <location filename="../qml/HomePage.qml" line="196"/>
         <source>End of mesocycle: &lt;b&gt;</source>
         <translation>Final do MesoCiclo: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="199"/>
+        <location filename="../qml/HomePage.qml" line="199"/>
         <source>Weeks in mesocycle: &lt;b&gt;</source>
         <translation>Semanas no mesociclo: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="202"/>
+        <location filename="../qml/HomePage.qml" line="202"/>
         <source>Training Split: &lt;b&gt;</source>
         <translation>Divisão de Treino: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../HomePage.qml" line="224"/>
+        <location filename="../qml/HomePage.qml" line="224"/>
         <source>New Mesocycle</source>
         <translation>Novo Mesociclo</translation>
     </message>
@@ -493,32 +496,32 @@ Remover MesoCiclo?
 <context>
     <name>LanguageSettingsPage</name>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="23"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="23"/>
         <source>Application Language</source>
         <translation>Língua do aplicativo</translation>
     </message>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="45"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="45"/>
         <source>Measuring Units</source>
         <translation>Unidade de medida</translation>
     </message>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="57"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="57"/>
         <source>International Units</source>
         <translation>Unidades Internacionais</translation>
     </message>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="72"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="72"/>
         <source>Imperial Units</source>
         <translation>Unidades Imperiais</translation>
     </message>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="89"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="89"/>
         <source>The App must be restarted in order to reflect the changes</source>
         <translation>O aplicativo precisa ser reiniciado para as alterações terem efeito</translation>
     </message>
     <message>
-        <location filename="../LanguageSettingsPage.qml" line="102"/>
+        <location filename="../qml/LanguageSettingsPage.qml" line="102"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
@@ -526,42 +529,42 @@ Remover MesoCiclo?
 <context>
     <name>MainMenu</name>
     <message>
-        <location filename="../MainMenu.qml" line="59"/>
+        <location filename="../qml/MainMenu.qml" line="59"/>
         <source>SETTINGS</source>
         <translation>CONFIGUARAÇÕES</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="64"/>
+        <location filename="../qml/MainMenu.qml" line="64"/>
         <source>Exercises Database</source>
         <translation>Lista de Exercícios</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="76"/>
+        <location filename="../qml/MainMenu.qml" line="76"/>
         <source>Theme</source>
         <translation>Tema</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="88"/>
+        <location filename="../qml/MainMenu.qml" line="88"/>
         <source>Language</source>
         <translation>Lingua</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="100"/>
+        <location filename="../qml/MainMenu.qml" line="100"/>
         <source>Fonts</source>
         <translation>Fontes</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="112"/>
+        <location filename="../qml/MainMenu.qml" line="112"/>
         <source>Developer Options</source>
         <translation>Desenvolvedor</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="130"/>
+        <location filename="../qml/MainMenu.qml" line="130"/>
         <source>Training</source>
         <translation>Treino</translation>
     </message>
     <message>
-        <location filename="../MainMenu.qml" line="147"/>
+        <location filename="../qml/MainMenu.qml" line="147"/>
         <source>Meals</source>
         <translation>Refeições</translation>
     </message>
@@ -569,82 +572,82 @@ Remover MesoCiclo?
 <context>
     <name>MesoContent</name>
     <message>
-        <location filename="../MesoContent.qml" line="310"/>
+        <location filename="../qml/MesoContent.qml" line="310"/>
         <source>from  &lt;b&gt;</source>
         <translation>desde  &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="310"/>
+        <location filename="../qml/MesoContent.qml" line="310"/>
         <source>&lt;/b&gt;  through  &lt;b&gt;</source>
         <translation>&lt;/b&gt;  até  &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="470"/>
+        <location filename="../qml/MesoContent.qml" line="467"/>
         <source>January</source>
         <translation>Janeiro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="470"/>
+        <location filename="../qml/MesoContent.qml" line="467"/>
         <source>February</source>
         <translation>Fevereiro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="470"/>
+        <location filename="../qml/MesoContent.qml" line="467"/>
         <source>March</source>
         <translation>Março</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="470"/>
+        <location filename="../qml/MesoContent.qml" line="467"/>
         <source>April</source>
         <translation>Abril</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="471"/>
+        <location filename="../qml/MesoContent.qml" line="468"/>
         <source>May</source>
         <translation>Maio</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="471"/>
+        <location filename="../qml/MesoContent.qml" line="468"/>
         <source>June</source>
         <translation>Junho</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="471"/>
+        <location filename="../qml/MesoContent.qml" line="468"/>
         <source>July</source>
         <translation>Julho</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="471"/>
+        <location filename="../qml/MesoContent.qml" line="468"/>
         <source>August</source>
         <translation>Agosto</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="472"/>
+        <location filename="../qml/MesoContent.qml" line="469"/>
         <source>September</source>
         <translation>Setembro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="472"/>
+        <location filename="../qml/MesoContent.qml" line="469"/>
         <source>October</source>
         <translation>Outubro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="472"/>
+        <location filename="../qml/MesoContent.qml" line="469"/>
         <source>November</source>
         <translation>Novembro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="472"/>
+        <location filename="../qml/MesoContent.qml" line="469"/>
         <source>December</source>
         <translation>Dezembro</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="599"/>
+        <location filename="../qml/MesoContent.qml" line="594"/>
         <source>Day is not part of the current mesocycle</source>
         <translation>Dia não faz parte do mesociclo atual</translation>
     </message>
     <message>
-        <location filename="../MesoContent.qml" line="606"/>
+        <location filename="../qml/MesoContent.qml" line="601"/>
         <source>View Day</source>
         <translation>Ver Dia</translation>
     </message>
@@ -652,97 +655,107 @@ Remover MesoCiclo?
 <context>
     <name>MesoCycle</name>
     <message>
-        <location filename="../MesoCycle.qml" line="51"/>
+        <location filename="../qml/MesoCycle.qml" line="52"/>
         <source>Mesocycle Calendar</source>
         <translation>Calendário do Mesociclo</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="102"/>
+        <location filename="../qml/MesoCycle.qml" line="103"/>
         <source>Mesocycle&apos;s name</source>
         <translation>Nome do Mesociclo</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="135"/>
+        <location filename="../qml/MesoCycle.qml" line="143"/>
         <source>Start date for meso</source>
         <translation>Início</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="189"/>
+        <location filename="../qml/MesoCycle.qml" line="162"/>
+        <source>Please select the initial date for the mesocycle </source>
+        <translation>Por favor, selecione a data de início para o mesociclo </translation>
+    </message>
+    <message>
+        <location filename="../qml/MesoCycle.qml" line="190"/>
         <source>End date for meso</source>
         <translation>Fim</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="243"/>
+        <location filename="../qml/MesoCycle.qml" line="213"/>
+        <source>Please select the end date for the mesocycle </source>
+        <translation>Por favor, selecione a data final para o mesociclo </translation>
+    </message>
+    <message>
+        <location filename="../qml/MesoCycle.qml" line="241"/>
         <source>Number of weeks: </source>
         <translation>Número de semanas: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="259"/>
+        <location filename="../qml/MesoCycle.qml" line="262"/>
         <source>Weekly Training Division: </source>
         <translation>Divisão Semanal dos Treinos: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="322"/>
+        <location filename="../qml/MesoCycle.qml" line="330"/>
         <source>Preserve previous calendar information?</source>
         <translation>Manter informações do calendário antigo?</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="363"/>
+        <location filename="../qml/MesoCycle.qml" line="371"/>
         <source>All of the old information</source>
         <translation>Toda informação</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="371"/>
+        <location filename="../qml/MesoCycle.qml" line="379"/>
         <source>Only until yesterday</source>
         <translation>Apenas até o dia anterior</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="400"/>
+        <location filename="../qml/MesoCycle.qml" line="408"/>
         <source>Day A: </source>
         <translation>Dia A: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="423"/>
+        <location filename="../qml/MesoCycle.qml" line="437"/>
         <source>Day B: </source>
         <translation>Dia B: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="446"/>
+        <location filename="../qml/MesoCycle.qml" line="473"/>
         <source>Day C: </source>
         <translation>Dia C: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="469"/>
+        <location filename="../qml/MesoCycle.qml" line="509"/>
         <source>Day D: </source>
         <translation>Dia D: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="492"/>
+        <location filename="../qml/MesoCycle.qml" line="532"/>
         <source>Day E: </source>
         <translation>Dia E: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="515"/>
+        <location filename="../qml/MesoCycle.qml" line="568"/>
         <source>Day F: </source>
         <translation>Dia F: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="541"/>
+        <location filename="../qml/MesoCycle.qml" line="601"/>
         <source>Drug Protocol: </source>
         <translation>Protocolo de Drogas: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="571"/>
+        <location filename="../qml/MesoCycle.qml" line="638"/>
         <source>Notes: </source>
         <translation>Notas: </translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="608"/>
+        <location filename="../qml/MesoCycle.qml" line="682"/>
         <source>Cancel alterations</source>
         <translation>Cancelar Alterações</translation>
     </message>
     <message>
-        <location filename="../MesoCycle.qml" line="641"/>
+        <location filename="../qml/MesoCycle.qml" line="733"/>
         <source>Save Information</source>
         <translation>Salvar Informações</translation>
     </message>
@@ -750,7 +763,7 @@ Remover MesoCiclo?
 <context>
     <name>NavBar</name>
     <message>
-        <location filename="../NavBar.qml" line="24"/>
+        <location filename="../qml/NavBar.qml" line="24"/>
         <source>Back</source>
         <translation>Voltar</translation>
     </message>
@@ -762,32 +775,32 @@ Remover MesoCiclo?
         <translation type="vanished">Peso:</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="60"/>
+        <location filename="../qml/SetInputField.qml" line="61"/>
         <source>Reps:</source>
         <translation>Repetições:</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="60"/>
+        <location filename="../qml/SetInputField.qml" line="61"/>
         <source>Rest time:</source>
         <translation>Descanso:</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="60"/>
+        <location filename="../qml/SetInputField.qml" line="61"/>
         <source>SubSets:</source>
         <translation>MiniSets:</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="60"/>
+        <location filename="../qml/SetInputField.qml" line="61"/>
         <source>Weight</source>
         <translation>Peso</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="366"/>
+        <location filename="../qml/SetInputField.qml" line="365"/>
         <source>&lt;- Leading to set</source>
         <translation>&lt;- Antes da série</translation>
     </message>
     <message>
-        <location filename="../SetInputField.qml" line="366"/>
+        <location filename="../qml/SetInputField.qml" line="365"/>
         <source>&lt;- Time between exercises not computed</source>
         <translation>&lt;- Tempo entre exercícios não é calculado</translation>
     </message>
@@ -795,22 +808,22 @@ Remover MesoCiclo?
 <context>
     <name>SetTypeCluster</name>
     <message>
-        <location filename="../SetTypeCluster.qml" line="45"/>
+        <location filename="../qml/SetTypeCluster.qml" line="45"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../SetTypeCluster.qml" line="45"/>
+        <location filename="../qml/SetTypeCluster.qml" line="45"/>
         <source>  -  Cluster set</source>
         <translation>  -  Cluster set</translation>
     </message>
     <message>
-        <location filename="../SetTypeCluster.qml" line="66"/>
+        <location filename="../qml/SetTypeCluster.qml" line="66"/>
         <source>Total reps: </source>
         <translation>Repetições totais: </translation>
     </message>
     <message>
-        <location filename="../SetTypeCluster.qml" line="148"/>
+        <location filename="../qml/SetTypeCluster.qml" line="148"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -818,27 +831,27 @@ Remover MesoCiclo?
 <context>
     <name>SetTypeDrop</name>
     <message>
-        <location filename="../SetTypeDrop.qml" line="48"/>
+        <location filename="../qml/SetTypeDrop.qml" line="48"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../SetTypeDrop.qml" line="48"/>
+        <location filename="../qml/SetTypeDrop.qml" line="48"/>
         <source>  -  Drop set</source>
         <translation>  -  Drop set</translation>
     </message>
     <message>
-        <location filename="../SetTypeDrop.qml" line="88"/>
+        <location filename="../qml/SetTypeDrop.qml" line="88"/>
         <source>Reps:</source>
         <translation>Repetições:</translation>
     </message>
     <message>
-        <location filename="../SetTypeDrop.qml" line="95"/>
+        <location filename="../qml/SetTypeDrop.qml" line="95"/>
         <source>Weight:</source>
         <translation>Peso:</translation>
     </message>
     <message>
-        <location filename="../SetTypeDrop.qml" line="106"/>
+        <location filename="../qml/SetTypeDrop.qml" line="106"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -846,44 +859,43 @@ Remover MesoCiclo?
 <context>
     <name>SetTypeGiant</name>
     <message>
-        <location filename="../SetTypeGiant.qml" line="69"/>
+        <location filename="../qml/SetTypeGiant.qml" line="69"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="69"/>
+        <location filename="../qml/SetTypeGiant.qml" line="69"/>
         <source>  -  Giant set</source>
         <translation>  -  Bi set</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="180"/>
+        <location filename="../qml/SetTypeGiant.qml" line="180"/>
         <source>Exercise 1</source>
         <translation>Exercício 1</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="192"/>
+        <location filename="../qml/SetTypeGiant.qml" line="192"/>
         <source>Exercise 2</source>
         <translation>Exercício 2</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="211"/>
-        <location filename="../SetTypeGiant.qml" line="221"/>
+        <location filename="../qml/SetTypeGiant.qml" line="211"/>
+        <location filename="../qml/SetTypeGiant.qml" line="221"/>
         <source>Reps/Weight</source>
         <translation>Repetições/Peso</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="341"/>
+        <location filename="../qml/SetTypeGiant.qml" line="341"/>
         <source>Add exercise</source>
         <translation>Adicionar Exercício</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="396"/>
-        <location filename="../SetTypeGiant.qml" line="397"/>
+        <location filename="../qml/SetTypeGiant.qml" line="396"/>
         <source>2 - Add exercise</source>
         <translation>2 - Adicionar Execício</translation>
     </message>
     <message>
-        <location filename="../SetTypeGiant.qml" line="304"/>
+        <location filename="../qml/SetTypeGiant.qml" line="304"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -891,42 +903,42 @@ Remover MesoCiclo?
 <context>
     <name>SetTypeMyoReps</name>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="60"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="60"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="60"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="60"/>
         <source>  -  Myo Reps</source>
         <translation>  -  Myo Reps</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="21"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="21"/>
         <source>Weight:</source>
         <translation>Peso:</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="21"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="21"/>
         <source>Reps to failure:</source>
         <translation>Repetições até a falha:</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="21"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="21"/>
         <source>Reps to match:</source>
         <translation>Repetições a alcançar:</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="22"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="22"/>
         <source>Rest time:</source>
         <translation>Descanso:</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="22"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="22"/>
         <source>Number of short rest pauses:</source>
         <translation>Número de pausas curtas:</translation>
     </message>
     <message>
-        <location filename="../SetTypeMyoReps.qml" line="157"/>
+        <location filename="../qml/SetTypeMyoReps.qml" line="157"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -934,17 +946,17 @@ Remover MesoCiclo?
 <context>
     <name>SetTypePyramid</name>
     <message>
-        <location filename="../SetTypePyramid.qml" line="45"/>
+        <location filename="../qml/SetTypePyramid.qml" line="45"/>
         <source>Set #: </source>
         <translation>Série #: </translation>
     </message>
     <message>
-        <location filename="../SetTypePyramid.qml" line="45"/>
+        <location filename="../qml/SetTypePyramid.qml" line="45"/>
         <source>  -  Pyramid set</source>
         <translation>  -  Série Pirâmide</translation>
     </message>
     <message>
-        <location filename="../SetTypePyramid.qml" line="118"/>
+        <location filename="../qml/SetTypePyramid.qml" line="118"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -952,17 +964,17 @@ Remover MesoCiclo?
 <context>
     <name>SetTypeRegular</name>
     <message>
-        <location filename="../SetTypeRegular.qml" line="46"/>
+        <location filename="../qml/SetTypeRegular.qml" line="46"/>
         <source>  -  Regular set</source>
         <translation>  -  Série Normal</translation>
     </message>
     <message>
-        <location filename="../SetTypeRegular.qml" line="46"/>
+        <location filename="../qml/SetTypeRegular.qml" line="46"/>
         <source>Set # </source>
         <translation>Série # </translation>
     </message>
     <message>
-        <location filename="../SetTypeRegular.qml" line="119"/>
+        <location filename="../qml/SetTypeRegular.qml" line="119"/>
         <source>Notes:</source>
         <translation>Nota:</translation>
     </message>
@@ -977,62 +989,62 @@ Remover MesoCiclo?
 <context>
     <name>ThemeSettingsPage</name>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="18"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="18"/>
         <source>Application style</source>
         <translation>Estilo do aplicativo</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="30"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="30"/>
         <source>Basic</source>
         <translation>Básico</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="39"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="39"/>
         <source>Fusion</source>
         <translation>Fusion</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="48"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="48"/>
         <source>Imagine</source>
         <translation>Imagine</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="57"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="57"/>
         <source>Material</source>
         <translation>Material</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="66"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="66"/>
         <source>Universal</source>
         <translation>Universal</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="77"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="77"/>
         <source>Appearance</source>
         <translation>Aprarência</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="88"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="88"/>
         <source>Follow System</source>
         <translation>Sistem</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="97"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="97"/>
         <source>Light Mode</source>
         <translation>Modo Claro</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="106"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="106"/>
         <source>Dark Mode</source>
         <translation>Modo Escuro</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="118"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="118"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
     <message>
-        <location filename="../ThemeSettingsPage.qml" line="149"/>
+        <location filename="../qml/ThemeSettingsPage.qml" line="149"/>
         <source>You must restart the application for the settings to take effect</source>
         <translation>O aplicativo precisa ser reiniciado para as alterações terem efeito</translation>
     </message>
@@ -1040,17 +1052,17 @@ Remover MesoCiclo?
 <context>
     <name>TimePicker</name>
     <message>
-        <location filename="../TimePicker.qml" line="308"/>
+        <location filename="../qml/TimePicker.qml" line="308"/>
         <source>Now</source>
         <translation>Agora</translation>
     </message>
     <message>
-        <location filename="../TimePicker.qml" line="541"/>
+        <location filename="../qml/TimePicker.qml" line="541"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../TimePicker.qml" line="553"/>
+        <location filename="../qml/TimePicker.qml" line="553"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -1058,110 +1070,115 @@ Remover MesoCiclo?
 <context>
     <name>TimerDialog</name>
     <message>
-        <location filename="../TimerDialog.qml" line="288"/>
+        <location filename="../qml/TimerDialog.qml" line="289"/>
         <source>Hours</source>
         <translation>Horas</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="295"/>
+        <location filename="../qml/TimerDialog.qml" line="296"/>
         <source>Minutes</source>
         <translation>Minutos</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="302"/>
+        <location filename="../qml/TimerDialog.qml" line="303"/>
         <source>Seconds</source>
         <translation>Segundos</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="232"/>
+        <location filename="../qml/TimerDialog.qml" line="233"/>
         <source>Timer?</source>
         <translation>Temporizador?</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="530"/>
+        <location filename="../qml/TimerDialog.qml" line="531"/>
         <source>Start</source>
         <translation>Iniciar</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="530"/>
+        <location filename="../qml/TimerDialog.qml" line="531"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="560"/>
+        <location filename="../qml/TimerDialog.qml" line="561"/>
         <source>Reset</source>
         <translation>Reiniciar</translation>
     </message>
     <message>
-        <location filename="../TimerDialog.qml" line="576"/>
+        <location filename="../qml/TimerDialog.qml" line="577"/>
         <source>Use</source>
         <translation>Usar</translation>
+    </message>
+    <message>
+        <location filename="../qml/TimerDialog.qml" line="577"/>
+        <source>Close</source>
+        <translation>Fechar</translation>
     </message>
 </context>
 <context>
     <name>TrainingDayInfo</name>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="136"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="139"/>
         <source>Training Division:</source>
         <translation>Divisão do Treino:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="166"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="168"/>
         <source>Training Day #:</source>
         <translation>Treino #:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="211"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="213"/>
         <source>Adjust meso calendar from the next day till the end?</source>
         <translation>Ajustar calendário do meso a partir do próximo dia até o final?</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="251"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="253"/>
         <source>Continue cycle from this division letter</source>
         <translation>Continuar o ciclo a partir desta letra de divisão</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="258"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="260"/>
         <source>Start cycle over</source>
         <translation>Recomeçar ciclo</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="266"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="268"/>
         <source>Location:</source>
         <translation>Local:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="293"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="295"/>
         <source>In time:</source>
         <translation>Chegada:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="318"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="320"/>
         <source>Out time:</source>
         <translation>Saída:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="341"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="343"/>
         <source>This training session considerations:</source>
         <translation>Considerações sobre o treino:</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="370"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="372"/>
         <source>--- EXERCISES ---</source>
         <translation>--- EXERCÍCIOS ---</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="390"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="392"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="399"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="401"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="475"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="477"/>
         <source>
 
 Duplicated exercise
@@ -1174,27 +1191,27 @@ Exercício duplicado
 </translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="476"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="478"/>
         <source>Cannot add exercise because it&apos;s already been added to this day.</source>
         <translation>Impossível adicionar exercício porque este já foi adicionado para este dia.</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="774"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="771"/>
         <source>Updating calendar database. Please wait...</source>
         <translation>Atualizando banco de dados do calendário. Por favor, espere...</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="802"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="799"/>
         <source>Log Day</source>
         <translation>Salvar dia</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="828"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="828"/>
         <source>Cancel alterations</source>
         <translation>Reverter</translation>
     </message>
     <message>
-        <location filename="../TrainingDayInfo.qml" line="875"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="876"/>
         <source>Add exercise</source>
         <translation>Adicionar Exercício</translation>
     </message>
@@ -1202,57 +1219,57 @@ Exercício duplicado
 <context>
     <name>jsfunctions</name>
     <message>
-        <location filename="../jsfunctions.js" line="3"/>
+        <location filename="../qml/jsfunctions.js" line="3"/>
         <source>Jan</source>
         <translation>Jan</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="5"/>
+        <location filename="../qml/jsfunctions.js" line="5"/>
         <source>Feb</source>
         <translation>Fev</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="7"/>
+        <location filename="../qml/jsfunctions.js" line="7"/>
         <source>Mar</source>
         <translation>Mar</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="9"/>
+        <location filename="../qml/jsfunctions.js" line="9"/>
         <source>Apr</source>
         <translation>Abr</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="11"/>
+        <location filename="../qml/jsfunctions.js" line="11"/>
         <source>May</source>
         <translation>Mai</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="13"/>
+        <location filename="../qml/jsfunctions.js" line="13"/>
         <source>Jun</source>
         <translation>Jun</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="15"/>
+        <location filename="../qml/jsfunctions.js" line="15"/>
         <source>Jul</source>
         <translation>Jul</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="17"/>
+        <location filename="../qml/jsfunctions.js" line="17"/>
         <source>Aug</source>
         <translation>Ago</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="19"/>
+        <location filename="../qml/jsfunctions.js" line="19"/>
         <source>Sep</source>
         <translation>Set</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="21"/>
+        <location filename="../qml/jsfunctions.js" line="21"/>
         <source>Oct</source>
         <translation>Out</translation>
     </message>
     <message>
-        <location filename="../jsfunctions.js" line="23"/>
+        <location filename="../qml/jsfunctions.js" line="23"/>
         <source>Nov</source>
         <translation>Nov</translation>
     </message>
@@ -1260,12 +1277,12 @@ Exercício duplicado
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.qml" line="144"/>
+        <location filename="../qml/main.qml" line="164"/>
         <source>HOME</source>
         <translation>INÍCIO</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="152"/>
+        <location filename="../qml/main.qml" line="172"/>
         <source>  + Training Day</source>
         <translation>  + Dia de Treino</translation>
     </message>

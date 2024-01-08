@@ -19,9 +19,10 @@ Page {
 	property string mesoDrugs
 	property date minimumMesoStartDate
 	property date maximumMesoEndDate
+	property date fixedMesoEndDate //Used on newMeso to revert data to the original value gathered from HomePage
 	property int week1: 0
 	property int week2: 1
-	property date calendarStartDate
+	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
 	property int idxDivision: 0
 	property string strSplitA: " "
@@ -112,22 +113,29 @@ Page {
 				Layout.maximumWidth: parent.width - 20
 				wrapMode: Text.WordWrap
 
-				Keys.onReturnPressed: {
-					if (btnSaveMeso.enabled)
-						btnSaveMeso.clicked()
-				}
-
-				onTextChanged: {
+				onTextEdited: {
 					if (text.length >= 3) {
-						if ( !bNewMeso ) {
-							if (text !== mesosModel.get(idxModel).mesoName) {
+						if (!bNewMeso) {
+							if (text !== mesosModel.get(idxModel).mesoName)
 								mesoName = text;
-								bModified = true;
-							}
 						}
 						else
 							mesoName = text;
+						bModified = true;
 					}
+				}
+
+				Keys.onReturnPressed: { //Alphanumeric keyboard
+					if (bNewMeso)
+						caldlg.open();
+					else
+						txtMesoSplit.forceActiveFocus();
+				}
+				Keys.onEnterPressed: { //Numeric keyboard
+					if (bNewMeso)
+						caldlg.open();
+					else
+						txtMesoSplit.forceActiveFocus();
 				}
 			}
 
@@ -146,22 +154,12 @@ Page {
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
 
-				Keys.onReturnPressed: {
-					if (btnSaveMeso.enabled)
-						btnSaveMeso.clicked();
-				}
-
-				onTextChanged: {
-					if ( bLoadCompleted && !bNewMeso ) {
-						bModified = true;
-					}
-				}
-
 				CalendarDialog {
 					id: caldlg
 					showDate: calendarStartDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
+					windowTitle: qsTr("Please select the initial date for the mesocycle ") + mesoName
 					onDateSelected: function(date, nweek) {
 						if (bNewMeso || (date !== mesosModel.get(idxModel).mesoStartDate)) {
 							mesoStartDate = date;
@@ -171,6 +169,9 @@ Page {
 						}
 						else
 							bDate1Changed = false;
+
+						if (bNewMeso)
+							caldlg2.open();
 					}
 				}
 
@@ -199,12 +200,6 @@ Page {
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
 
-				onTextChanged: {
-					if ( bLoadCompleted && !bNewMeso ) {
-						bModified = true;
-					}
-				}
-
 				Keys.onReturnPressed: {
 					if (btnSaveMeso.enabled)
 						btnSaveMeso.clicked();
@@ -215,6 +210,7 @@ Page {
 					showDate: mesoEndDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
+					windowTitle: qsTr("Please select the end date for the mesocycle ") + mesoName
 					onDateSelected: function(date, nweek) {
 						if (bNewMeso || (date !== mesosModel.get(idxModel).mesoEndDate)) {
 							mesoEndDate = date;
@@ -224,6 +220,8 @@ Page {
 						}
 						else
 							bDate2Changed = false;
+
+						txtMesoSplit.forceActiveFocus();
 					}
 				}
 
@@ -253,6 +251,11 @@ Page {
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
 				readOnly: true
+
+				onTextChanged: {
+					if (bLoadCompleted)
+						bModified = true;
+				}
 			}
 
 			Label {
@@ -274,11 +277,6 @@ Page {
 				validator: regEx
 				text: mesoSplit
 
-				Keys.onReturnPressed: {
-					if (btnSaveMeso.enabled)
-						btnSaveMeso.clicked();
-				}
-
 				ToolButton {
 					id: btnTrainingSplit
 					x: txtMesoSplit.width + width
@@ -289,17 +287,27 @@ Page {
 
 				onTextEdited: {
 					if (acceptableInput) {
-						console.log("acceptable input");
 						if (text.length >= 3) {
 							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
 								mesoSplit = text;
-								bModified = true;
 								bMesoSplitChanged = true;
 							}
 							else
 								bMesoSplitChanged = false;
+							bModified = true;
 						}
 					}
+				}
+
+				Keys.onReturnPressed: { //Alphanumeric keyboard
+					if (!paneTrainingSplit.shown)
+						btnTrainingSplit.clicked();
+					txtSplitA.forceActiveFocus();
+				}
+				Keys.onEnterPressed: { //Numeric keyboard
+					if (!paneTrainingSplit.shown)
+						btnTrainingSplit.clicked();
+					txtSplitA.forceActiveFocus();
 				}
 			}
 
@@ -412,11 +420,17 @@ Page {
 
 						onEditingFinished: {
 							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
+								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA))
 									strSplitA = text;
-									bModified = true;
-								}
+								bModified = true;
 							}
+						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							txtSplitB.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							txtSplitB.forceActiveFocus();
 						}
 					}
 					Label {
@@ -437,9 +451,22 @@ Page {
 							if (text.length > 1) {
 								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
 									strSplitB = text;
-									bModified = true;
 								}
+								bModified = true;
 							}
+						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							if (mesoSplit.indexOf('C') !== -1)
+								txtSplitC.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							if (mesoSplit.indexOf('C') !== -1)
+								txtSplitC.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
 						}
 					}
 					Label {
@@ -460,9 +487,22 @@ Page {
 							if (text.length > 1) {
 								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
 									strSplitC = text;
-									bModified = true;
 								}
+								bModified = true;
 							}
+						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							if (mesoSplit.indexOf('D') !== -1)
+								txtSplitD.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							if (mesoSplit.indexOf('D') !== -1)
+								txtSplitD.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
 						}
 					}
 					Label {
@@ -483,8 +523,8 @@ Page {
 							if (text.length > 1) {
 								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
 									strSplitD = text;
-									bModified = true;
 								}
+								bModified = true;
 							}
 						}
 					}
@@ -506,9 +546,22 @@ Page {
 							if (text.length > 1) {
 								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
 									strSplitE = text;
-									bModified = true;
 								}
+								bModified = true;
 							}
+						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							if (mesoSplit.indexOf('E') !== -1)
+								txtSplitE.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							if (mesoSplit.indexOf('E') !== -1)
+								txtSplitE.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
 						}
 					}
 					Label {
@@ -529,9 +582,16 @@ Page {
 							if (text.length > 1) {
 								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
 									strSplitF = text;
-									bModified = true;
 								}
+								bModified = true;
 							}
+						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							txtMesoDrugs.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							txtMesoDrugs.forceActiveFocus();
 						}
 					}
 				} //GridLayout
@@ -558,9 +618,16 @@ Page {
 						if (text.length > 1) {
 							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoDrugs)) {
 								mesoDrugs = text;
-								bModified = true;
 							}
+							bModified = true;
 						}
+					}
+
+					Keys.onReturnPressed: { //Alphanumeric keyboard
+						txtMesoNotes.forceActiveFocus();
+					}
+					Keys.onEnterPressed: { //Numeric keyboard
+						txtMesoNotes.forceActiveFocus();
 					}
 				}
 				ScrollBar.vertical: ScrollBar { id: vBar}
@@ -588,9 +655,16 @@ Page {
 						if (text.length > 1) {
 							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoNote)) {
 								mesoNote = text;
-								bModified = true;
 							}
+							bModified = true;
 						}
+					}
+
+					Keys.onReturnPressed: { //Alphanumeric keyboard
+						btnSaveMeso.clicked();
+					}
+					Keys.onEnterPressed: { //Numeric keyboard
+						btnSaveMeso.clicked();
 					}
 				}
 				ScrollBar.vertical: ScrollBar {}
@@ -616,19 +690,37 @@ Page {
 			enabled: bModified
 
 			onClicked: {
-				mesoName = mesosModel.get(idxModel).mesoName;
-				mesoStartDate = mesosModel.get(idxModel).mesoStartDate;
-				mesoEndDate = mesosModel.get(idxModel).mesoEndDate;
-				nWeeks = mesosModel.get(idxModel).nWeeks;
-				mesoSplit = mesosModel.get(idxModel).mesoSplit;
-				mesoDrugs = mesosModel.get(idxModel).mesoDrugs;
-				mesoNote = mesosModel.get(idxModel).mesoNote;
-				strSplitA = divisionModel.get(idxDivision).splitA;
-				strSplitB = divisionModel.get(idxDivision).splitB;
-				strSplitC = divisionModel.get(idxDivision).splitC;
-				strSplitD = divisionModel.get(idxDivision).splitD;
-				strSplitE = divisionModel.get(idxDivision).splitE;
-				strSplitF = divisionModel.get(idxDivision).splitF;
+				if (!bNewMeso) {
+					mesoPropertiesPage.mesoName = mesosModel.get(idxModel).mesoName;
+					mesoPropertiesPage.mesoStartDate = mesosModel.get(idxModel).mesoStartDate;
+					mesoPropertiesPage.mesoEndDate = mesosModel.get(idxModel).mesoEndDate;
+					mesoPropertiesPage.nWeeks = mesosModel.get(idxModel).nWeeks;
+					mesoPropertiesPage.mesoSplit = mesosModel.get(idxModel).mesoSplit;
+					mesoPropertiesPage.mesoDrugs = mesosModel.get(idxModel).mesoDrugs;
+					mesoPropertiesPage.mesoNote = mesosModel.get(idxModel).mesoNote;
+					strSplitA = divisionModel.get(idxDivision).splitA;
+					strSplitB = divisionModel.get(idxDivision).splitB;
+					strSplitC = divisionModel.get(idxDivision).splitC;
+					strSplitD = divisionModel.get(idxDivision).splitD;
+					strSplitE = divisionModel.get(idxDivision).splitE;
+					strSplitF = divisionModel.get(idxDivision).splitF;
+				}
+				else {
+					mesoPropertiesPage.mesoName = "Novo mesociclo";
+					mesoPropertiesPage.mesoStartDate = calendarStartDate;
+					mesoPropertiesPage.mesoEndDate = fixedMesoEndDate;
+					mesoPropertiesPage.nWeeks = JSF.calculateNumberOfWeeks(calendarStartDate.getDay(), fixedMesoEndDate.getDay());
+					mesoPropertiesPage.mesoSplit = "ABCRDER";
+					mesoPropertiesPage.mesoDrugs = " ";
+					mesoPropertiesPage.mesoNote = " ";
+					strSplitA = " ";
+					strSplitB = " ";
+					strSplitC = " ";
+					strSplitD = " ";
+					strSplitE = " ";
+					strSplitF = " ";
+				}
+
 				bModified = false;
 				bDate1Changed = false;
 				bDate2Changed = false;
@@ -650,7 +742,7 @@ Page {
 
 			onClicked: {
 				if (mesoName.length === 0)
-					mesoName = "Meso";
+					mesoName = "Novo Mesociclo";
 				if (mesoNote.length === 0)
 					mesoNote = " ";
 				if (mesoDrugs.length === 0)
@@ -760,6 +852,8 @@ Page {
 
 		Component.onCompleted: {
 			bLoadCompleted = true;
+			if (bNewMeso)
+				txtMesoName.forceActiveFocus();
 		}
 	} //footer
 
@@ -775,10 +869,6 @@ Page {
 					mesoEndDate: mesosModel.get(idxModel).mesoEndDate, mesoSplit: mesosModel.get(idxModel).mesoSplit, bVisualLoad: bshowpage
 			});
 		}
-		/*mesoPropertiesPage.StackView.view.push("MesoContent.qml", {
-						"mesoId": mesoId, "mesoName": mesosModel.get(idxModel).mesoName, "mesoStartDate": mesosModel.get(idxModel).mesoStartDate,
-						"mesoEndDate": mesosModel.get(idxModel).mesoEndDate, "mesoSplit": mesosModel.get(idxModel).mesoSplit, "bVisualLoad": true
-					});*/
 	}
 } //Page
 

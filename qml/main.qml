@@ -98,7 +98,7 @@ ApplicationWindow {
 
 		onTriggered: {
 			if (appDBModified) {
-				//backUpClass.doBackUp();
+				backUpClass.doBackUp();
 				console.log("database modified!!!!");
 			}
 			else
