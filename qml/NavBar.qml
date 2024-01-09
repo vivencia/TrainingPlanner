@@ -55,7 +55,8 @@ ToolBar {
 				var component;
 				component = Qt.createComponent("CalendarDialog.qml");
 				if (component.status === Component.Ready) {
-					mainCalendar = component.createObject(this, { showDate:today, initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
+					mainCalendar = component.createObject(this, { showDate:today, simpleCalendar:true,
+						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
 				}
 			}
 			mainCalendar.open();

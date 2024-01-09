@@ -16,7 +16,7 @@
     <message>
         <location filename="../qml/DatePicker.qml" line="154"/>
         <source>March</source>
-        <translation>Refeições</translation>
+        <translation>Março</translation>
     </message>
     <message>
         <location filename="../qml/DatePicker.qml" line="154"/>
@@ -1198,7 +1198,7 @@ Exercício duplicado
     <message>
         <location filename="../qml/TrainingDayInfo.qml" line="771"/>
         <source>Updating calendar database. Please wait...</source>
-        <translation>Atualizando banco de dados do calendário. Por favor, espere...</translation>
+        <translation>Atualizando banco de dados do calendário. Por favor, aguarde...</translation>
     </message>
     <message>
         <location filename="../qml/TrainingDayInfo.qml" line="799"/>

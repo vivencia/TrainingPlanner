@@ -287,15 +287,13 @@ Page {
 
 				onTextEdited: {
 					if (acceptableInput) {
-						if (text.length >= 3) {
-							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
-								mesoSplit = text;
-								bMesoSplitChanged = true;
-							}
-							else
-								bMesoSplitChanged = false;
-							bModified = true;
+						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
+							mesoSplit = text;
+							bMesoSplitChanged = true;
 						}
+						else
+							bMesoSplitChanged = false;
+						bModified = true;
 					}
 				}
 
@@ -402,7 +400,7 @@ Page {
 				GridLayout {
 					anchors.fill: parent
 					columns: 2
-					rows: 6
+					rows: 7
 
 					Label {
 						text: qsTr("Day A: ")
@@ -419,10 +417,11 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA))
-									strSplitA = text;
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
+								strSplitA = text;
 								bModified = true;
+								if (text.length >=3)
+									checkWhetherCanCreatePlan();
 							}
 						}
 
@@ -448,11 +447,11 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
-									strSplitB = text;
-								}
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
+								strSplitB = text;
 								bModified = true;
+								if (text.length >=3)
+									checkWhetherCanCreatePlan();
 							}
 						}
 
@@ -484,11 +483,11 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
-									strSplitC = text;
-								}
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
+								strSplitC = text;
 								bModified = true;
+								if (text.length >=3)
+									checkWhetherCanCreatePlan();
 							}
 						}
 
@@ -520,14 +519,28 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
-									strSplitD = text;
-								}
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
+								strSplitD = text;
 								bModified = true;
+								if (text.length >=3 )
+									checkWhetherCanCreatePlan();
 							}
 						}
+
+						Keys.onReturnPressed: { //Alphanumeric keyboard
+							if (mesoSplit.indexOf('E') !== -1)
+								txtSplitE.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
+						}
+						Keys.onEnterPressed: { //Numeric keyboard
+							if (mesoSplit.indexOf('E') !== -1)
+								txtSplitE.forceActiveFocus();
+							else
+								txtMesoDrugs.forceActiveFocus();
+						}
 					}
+
 					Label {
 						text: qsTr("Day E: ")
 						font.bold: true
@@ -543,23 +556,23 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
-									strSplitE = text;
-								}
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
+								strSplitE = text;
 								bModified = true;
+								if (text.length >=3 )
+									checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							if (mesoSplit.indexOf('E') !== -1)
-								txtSplitE.forceActiveFocus();
+							if (mesoSplit.indexOf('F') !== -1)
+								txtSplitF.forceActiveFocus();
 							else
 								txtMesoDrugs.forceActiveFocus();
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							if (mesoSplit.indexOf('E') !== -1)
-								txtSplitE.forceActiveFocus();
+							if (mesoSplit.indexOf('F') !== -1)
+								txtSplitF.forceActiveFocus();
 							else
 								txtMesoDrugs.forceActiveFocus();
 						}
@@ -579,11 +592,11 @@ Page {
 						Layout.minimumWidth: parent.width / 2
 
 						onEditingFinished: {
-							if (text.length > 1) {
-								if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
-									strSplitF = text;
-								}
+							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
+								strSplitF = text;
 								bModified = true;
+								if (text.length >=3 )
+									checkWhetherCanCreatePlan();
 							}
 						}
 
@@ -593,6 +606,15 @@ Page {
 						Keys.onEnterPressed: { //Numeric keyboard
 							txtMesoDrugs.forceActiveFocus();
 						}
+					}
+
+					ButtonFlat {
+						id: btnCreateExercisePlan
+						text: qsTr("Create Exercises Plan")
+						Layout.row: 6
+						Layout.column: 0
+						Layout.columnSpan: 2
+						Layout.alignment: Qt.AlignCenter
 					}
 				} //GridLayout
 			} //Pane
@@ -615,19 +637,10 @@ Page {
 					text: mesoDrugs
 
 					onEditingFinished: {
-						if (text.length > 1) {
-							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoDrugs)) {
-								mesoDrugs = text;
-							}
+						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoDrugs)) {
+							mesoDrugs = text;
 							bModified = true;
 						}
-					}
-
-					Keys.onReturnPressed: { //Alphanumeric keyboard
-						txtMesoNotes.forceActiveFocus();
-					}
-					Keys.onEnterPressed: { //Numeric keyboard
-						txtMesoNotes.forceActiveFocus();
 					}
 				}
 				ScrollBar.vertical: ScrollBar { id: vBar}
@@ -652,19 +665,10 @@ Page {
 					text: mesoNote
 
 					onEditingFinished: {
-						if (text.length > 1) {
-							if (bNewMeso || (text !== mesosModel.get(idxModel).mesoNote)) {
-								mesoNote = text;
-							}
+						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoNote)) {
+							mesoNote = text;
 							bModified = true;
 						}
-					}
-
-					Keys.onReturnPressed: { //Alphanumeric keyboard
-						btnSaveMeso.clicked();
-					}
-					Keys.onEnterPressed: { //Numeric keyboard
-						btnSaveMeso.clicked();
 					}
 				}
 				ScrollBar.vertical: ScrollBar {}
@@ -680,9 +684,9 @@ Page {
 		ToolButton {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
-			font.capitalization: Font.MixedCase
 			anchors.left: parent.left
 			anchors.verticalCenter: parent.verticalCenter
+			font.capitalization: Font.MixedCase
 			display: AbstractButton.TextUnderIcon
 			icon.source: "qrc:/images/"+lightIconFolder+"revert-day.png"
 			icon.height: 20
@@ -852,6 +856,7 @@ Page {
 
 		Component.onCompleted: {
 			bLoadCompleted = true;
+			checkWhetherCanCreatePlan();
 			if (bNewMeso)
 				txtMesoName.forceActiveFocus();
 		}
@@ -869,6 +874,30 @@ Page {
 					mesoEndDate: mesosModel.get(idxModel).mesoEndDate, mesoSplit: mesosModel.get(idxModel).mesoSplit, bVisualLoad: bshowpage
 			});
 		}
+	}
+
+	function checkWhetherCanCreatePlan()
+	{
+		var ok = true;
+		if (mesoSplit.indexOf('A') !== -1) {
+			ok &= (txtSplitA.length > 1);
+		}
+		if (mesoSplit.indexOf('B') !== -1) {
+			ok &= (txtSplitB.length > 1);
+		}
+		if (mesoSplit.indexOf('C') !== -1) {
+			ok &= (txtSplitC.length > 1);
+		}
+		if (mesoSplit.indexOf('D') !== -1) {
+			ok &= (txtSplitD.length > 1);
+		}
+		if (mesoSplit.indexOf('E') !== -1) {
+			ok &= (txtSplitE.length > 1);
+		}
+		if (mesoSplit.indexOf('F') !== -1) {
+			ok &= (txtSplitF.length > 1);
+		}
+		btnCreateExercisePlan.enabled = ok;
 	}
 } //Page
 

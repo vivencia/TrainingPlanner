@@ -13,6 +13,7 @@ Button {
 	leftPadding: 6
 	rightPadding: 6
 	width: buttonText.contentWidth + buttonImage.width + 5
+	font.capitalization: Font.MixedCase
 
 	contentItem: Text {
 		id: buttonText
@@ -39,10 +40,12 @@ Button {
 
 	background: Rectangle {
 		id: buttonBackground
-		Layout.fillWidth: true
-		Layout.fillHeight: true
-		color: button.pressed ? buttonText.color : "transparent"
-		radius: 5
+		anchors.fill: parent
+		anchors.topMargin: 10
+		anchors.bottomMargin: 10
+		anchors.rightMargin: - 10
+		color: button.pressed ? buttonText.color : primaryLightColor
+		radius: 10
 		opacity: button.pressed ? 0.12 : 1.0
 	} // background
 } // button

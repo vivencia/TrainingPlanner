@@ -31,5 +31,4 @@ private:
 	QStringList m_backupsList;
 	bool mb_CanDoBackup;
 };
-
 #endif // BACKUPCLASS_H

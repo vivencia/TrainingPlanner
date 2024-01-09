@@ -7,7 +7,7 @@ import "jsfunctions.js" as JSF
 Rectangle {
 	id: root
 	clip: true
-	height: cellSize * 12.5
+	height: cellSize * ( justCalendar ? 11 : 12.5 )
 	width: cellSize * 8
 
 	property date selectedDate;

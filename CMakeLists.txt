@@ -1,18 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 project(trainingplanner LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON)
-
-#if (${ANDROID_ABI})
-#    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql AndroidExtras)
-#else ()
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql LinguistTools)
 
 find_package(Qt6 REQUIRED COMPONENTS )
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS)
 
+set(CMAKE_AUTOMOC ON)
 set( CMAKE_VERBOSE_MAKEFILE on )
-
 set(CMAKE_AUTORCC ON)
 set( RESOURCE_FILES app_resources.qrc )
 
@@ -24,44 +19,27 @@ set( SOURCES
 	cxx/dbmanager.h cxx/dbmanager.cpp
 )
 
+set( TRANSLATIONS_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+)
+set( TS_FILES
+    ${TRANSLATIONS_DIR}/tplanner.pt_BR.ts
+    ${TRANSLATIONS_DIR}/tplanner.de_DE.ts
+)
+set( QM_FILES
+    ${TRANSLATIONS_DIR}/tplanner.pt_BR.qm
+    ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
+)
+
 qt_add_resources(${RESOURCE_FILES})
 qt_add_executable(trainingplanner
 	${SOURCES}
 	${RESOURCE_FILES}
+	${QM_FILES}
+	#java/timer.java
 )
 
-set( TS_FILES
-    translations/tplanner.pt_BR.ts
-    translations/tplanner.de_DE.ts
-)
-set_source_files_properties(${TS_FILES} PROPERTIES OUTPUT_LOCATION ${PROJECT_BINARY_DIR}/translations)
-
-qt_add_lupdate(trainingplanner TS_FILES ${TS_FILES})
-qt_add_lrelease(trainingplanner TS_FILES ${TS_FILES})
-
-#set_target_properties(trainingplanner PROPERTIES
-#	WIN32_EXECUTABLE TRUE
-#	MACOSX_BUNDLE TRUE
-#	MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-#)
-
-#target_compile_definitions(trainingplanner PUBLIC
-#	FREQUENCYMONITOR_SUPPORT
-#	PERFORMANCEMONITOR_SUPPORT
-#)
-
-#if (${ANDROID_ABI})
-#    target_link_libraries(trainingplanner PUBLIC
-#	Qt::Core
-#	Qt::Gui
-#	Qt::Multimedia
-#	Qt::Widgets
-#	Qt6::Qml
-#	Qt6::Quick
-#	Qt6::QuickControls2
-#	Qt6::AndroidExtras)
-#else()
-    target_link_libraries(trainingplanner PUBLIC
+target_link_libraries(trainingplanner PUBLIC
 	Qt::Core
 	Qt::Gui
 	Qt::Multimedia
@@ -69,8 +47,9 @@ qt_add_lrelease(trainingplanner TS_FILES ${TS_FILES})
 	Qt::Sql
 	Qt6::Qml
 	Qt6::Quick
-	Qt6::QuickControls2)
-#endif()
+	Qt6::QuickControls2
+)
+
 
 set(trainingplanner_resource_files
 	"images/app_logo.png"
@@ -114,6 +93,8 @@ set(trainingplanner_resource_files
 	"qml/PageScrollButtons.qml"
 	"qml/ImageViewer.qml"
 	"qml/VideoPlayer.qml"
+	"qml/ExercisesPlan.qml"
+	"qml/ExercisesListView.qml"
 	"qml/qmldir"
 )
 

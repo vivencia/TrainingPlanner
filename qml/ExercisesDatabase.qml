@@ -9,64 +9,18 @@ Page {
 	id: pageExercises
 
 	property string strMediaPath
-	property int curIndex: -1
 
-	property int seconds
 	property bool bCanEdit: false
 	property bool bNew: false
 	property bool bEdit: false
 	property bool bChooseButtonEnabled: false
 	property bool bTempDisableChoose: false
-	property bool bFilterApplied: false
 	property bool bJustSaved: false
 	property var doNotChooseTheseIds: []
 	property var imageViewer: null
 	property var videoViewer: null
 
 	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight, string uWeight, int exerciseId, bool bAdd)
-
-	ListModel {
-		id: filterModel
-		property var foundIdxs: []
-
-		function newItem(origidx, item) {
-			for (var i = 0; i < foundIdxs.length; ++i) {
-				if (foundIdxs[i] === origidx)
-					return;
-			}
-			filterModel.append(item);
-			foundIdxs.push(origidx);
-		}
-
-		function finish() {
-			filterModel.clear();
-			const len = foundIdxs.length;
-			for (var i = 0; i < len; ++i)
-				foundIdxs.pop();
-		}
-	}
-
-	Timer {
-		id: undoTimer
-		interval: 1000
-		property int idxToRemove
-
-		onTriggered: {
-			if ( seconds === 0 ) {
-				undoTimer.stop();
-				removeExercise(idxToRemove);
-			}
-			else {
-				seconds = seconds - 1000;
-				start();
-			}
-		}
-
-		function init(idxtoremove) {
-			idxToRemove = idxtoremove;
-			start();
-		}
-	} //Timer
 
 	ScrollView {
 		id: scrollExercises
@@ -108,30 +62,22 @@ Page {
 				Layout.leftMargin: 5
 			}
 
-			Flickable {
+			TextField {
+				id: txtExerciseSubName
+				readOnly: !bCanEdit
+				font.italic: bCanEdit
+				font.bold: true
+				font.pixelSize: AppSettings.fontSizeText
 				Layout.fillWidth: true
-				Layout.rightMargin: 20
 				Layout.leftMargin: 10
-				height: contentHeight
-				width: parent.width - 20
-				contentHeight: txtExerciseSubName.implicitHeight
+				Layout.rightMargin: 20
 
-				TextField {
-					id: txtExerciseSubName
-					readOnly: !bCanEdit
-					font.italic: bCanEdit
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					anchors.fill: parent
-
-					Keys.onReturnPressed: { //Alphanumeric keyboard
-						txtMuscularGroup.forceActiveFocus();
-					}
-					Keys.onEnterPressed: { //Numeric keyboard
-						txtMuscularGroup.forceActiveFocus();
-					}
+				Keys.onReturnPressed: { //Alphanumeric keyboard
+					txtMuscularGroup.forceActiveFocus();
 				}
-				ScrollBar.horizontal: ScrollBar { id: hBar2 }
+				Keys.onEnterPressed: { //Numeric keyboard
+					txtMuscularGroup.forceActiveFocus();
+				}
 			}
 
 			Label {
@@ -291,42 +237,26 @@ Page {
 		} // ColumnLayout
 	} // ScrollView
 
-	function displaySelectedExercise(lstIdx) {
-		hBar2.setPosition(0);
-		if (lstExercises.count > 0) {
-			txtExerciseName.text = lstExercises.model.get(lstIdx).mainName;
-			txtExerciseSubName.text = lstExercises.model.get(lstIdx).subName;
-			txtMuscularGroup.text = lstExercises.model.get(lstIdx).muscularGroup;
-			spinSets.value = lstExercises.model.get(lstIdx).nSets;
-			spinReps.value = lstExercises.model.get(lstIdx).nReps;
-			spinWeight.value = lstExercises.model.get(lstIdx).nWeight;
-			strMediaPath = lstExercises.model.get(lstIdx).mediaPath;
-			displaySelectedMedia();
+	function exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) {
+		txtExerciseName.text = exerciseName;
+		txtExerciseSubName.text = subName;
+		txtMuscularGroup.text = muscularGroup;
+		spinSets.value = sets;
+		spinReps.value = reps;
+		spinWeight.value = weight;
+		strMediaPath = mediaPath;
+		displaySelectedMedia();
 
-			if (bChooseButtonEnabled || bTempDisableChoose) {
-				bTempDisableChoose = false;
-				for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
-					if (lstExercises.model.get(lstIdx).exerciseId === doNotChooseTheseIds[i]) {
-						bTempDisableChoose = true;
-						break;
-					}
+		if (bChooseButtonEnabled || bTempDisableChoose) {
+			bTempDisableChoose = false;
+			for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
+				if (exercisesList.mainModel.get(exercisesList.curIndex).exerciseId === doNotChooseTheseIds[i]) {
+					bTempDisableChoose = true;
+					break;
 				}
-				bChooseButtonEnabled = !bTempDisableChoose;
 			}
+			bChooseButtonEnabled = !bTempDisableChoose;
 		}
-		else {
-			txtExerciseName.clear();
-			txtExerciseSubName.clear();
-			txtMuscularGroup.clear();
-			strMediaPath = "qrc:/images/no_image.jpg";
-		}
-	}
-
-	function simulateMouseClick(new_index) {
-		//if (new_index >= 0 && new_index < lstExercises.model.count) {
-			displaySelectedExercise(new_index);
-			lstExercises.positionViewAtIndex(new_index, ListView.Center);
-		//}
 	}
 
 	footer: ToolBar {
@@ -342,211 +272,25 @@ Page {
 
 		ColumnLayout{
 			width: parent.width
-			height: bottomPane.height
+			height: parent.height
 			spacing: 0
 
-			ListView {
-				id: lstExercises
+			ExercisesListView {
+				id: exercisesList
 				Layout.fillWidth: true
+				Layout.topMargin: 5
+				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
-				Layout.minimumHeight: 200
-				Layout.maximumHeight: parent.height * 0.5
+				Layout.maximumHeight: parent.height * 0.8
 				Layout.leftMargin: 5
-				clip: true
-				contentHeight: totalHeight * 1.1 //contentHeight: Essencial for the ScrollBars to work. The 40 is the height of a single itemList
-				contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-				visible: exercisesListModel.count > 0
-				boundsBehavior: Flickable.StopAtBounds
 
-				property int totalHeight
-				property int totalWidth
-				property Item item
-
-				ScrollBar.horizontal: ScrollBar {
-					id: hBar
-					policy: ScrollBar.AsNeeded
-					active: true; visible: lstExercises.totalWidth > lstExercises.width
+				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
+					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
 				}
-				ScrollBar.vertical: ScrollBar {
-					id: vBar
-					policy: ScrollBar.AsNeeded
-					active: true; visible: lstExercises.totalHeight > lstExercises.height
-				}
-
-				function getItem(idx) {
-					return listItem.itemAt(idx);
-				}
-
-				function ensureVisible(item) {
-					var ypos = item.mapToItem(contentItem, 0, 0).y
-					var ext = item.height + ypos
-					if ( ypos < contentY // begins before
-						|| ypos > contentY + height // begins after
-						|| ext < contentY // ends before
-						|| ext > contentY + height) { // ends after
-						// don't exceed bounds
-						contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height))
-					}
-				}
-
-				function setModel(newmodel) {
-					model = newmodel;
-				}
-
-				model: ListModel {
-					id: exercisesListModel
-
-					Component.onCompleted: {
-						if (count === 0) {
-							let exercises = Database.getExercises();
-							for (let exercise of exercises)
-								append(exercise);
-						}
-						if (count > 0) {
-							curIndex = 0;
-							displaySelectedExercise(curIndex);
-						}
-					}
-				} //model
-
-				FontMetrics {
-					id: fontMetrics
-					font.family: txtFilter.font.family
-					font.pixelSize: AppSettings.fontSizeLists
-				}
-
-				delegate: SwipeDelegate {
-					id: delegate
-					contentItem: Text {
-						id: listItem
-						text: index+1 + ":  " + mainName + "\n"+ subName
-						color: curIndex === index ? "white" : "black"
-						font.pixelSize: AppSettings.fontSizeLists
-						padding: 0
-					}
-					spacing: 0
-					padding: 0
-					width: Math.max(lstExercises.width, fontMetrics.boundingRect(listItem.text).width)
-					height: Math.max(40, fontMetrics.boundingRect(listItem.text).height)
-					clip: false
-
-					background: Rectangle {
-						id:	backgroundColor
-						radius: 5
-						color: curIndex === index ? "darkred" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
-					}
-					onClicked: {
-						curIndex = index;
-						displaySelectedExercise(index);
-					}
-
-					Component.onCompleted: {
-						if ( lstExercises.totalWidth < width )
-							lstExercises.totalWidth = width;
-						lstExercises.totalHeight += height;
-					}
-
-					swipe.right: Rectangle {
-						width: parent.width
-						height: parent.height
-						clip: false
-						color: SwipeDelegate.pressed ? "#555" : "#666"
-						radius: 5
-
-						Image {
-							//font.family: "Fontello"
-							//text: delegate.swipe.complete ? "\ue805" // icon-cw-circled
-							//										 : "\ue801" // icon-cancel-circled-1
-							source: "qrc:/images/"+lightIconFolder+"remove.png"
-							//anchors.fill: parent
-							anchors.left: parent.left
-							anchors.leftMargin: 10
-							anchors.verticalCenter: parent.verticalCenter
-							width: 20
-							height: 20
-							opacity: 2 * -delegate.swipe.position
-							z:2
-							//color: Material.color(delegate.swipe.complete ? Material.Green : Material.Red, Material.Shade200)
-							//Behavior on color { ColorAnimation { } }
-						}
-
-						Label {
-							text: qsTr("Removing in " + seconds/1000 + "s")
-							color: "white"
-							padding: 5
-							anchors.fill: parent
-							anchors.leftMargin: 40
-							horizontalAlignment: Qt.AlignLeft
-							verticalAlignment: Qt.AlignVCenter
-							opacity: delegate.swipe.complete ? 1 : 0
-							Behavior on opacity { NumberAnimation { } }
-							z:0
-						}
-
-						SwipeDelegate.onClicked: delegate.swipe.close();
-						SwipeDelegate.onPressedChanged: undoTimer.stop();
-					} //swipe.right
-
-					swipe.onCompleted: {
-						seconds = 4000;
-						undoTimer.init(index);
-					}
-				} // SwipeDelegate
-			} // Flickable
-
-			Label {
-				Layout.leftMargin: 5
-				text: qsTr("Filter: ")
-				color: "black"
 			}
-			TextField {
-				id: txtFilter
-				readOnly: bCanEdit
-				enabled: exercisesListModel.count > 0
-				Layout.fillWidth: true
-				Layout.maximumHeight: 40
-				Layout.leftMargin: 5
-				Layout.rightMargin: 20
-				color: "black"
-
-				onTextChanged: {
-					filterModel.finish();
-					if (text.length >= 3) {
-						var regex = new RegExp(text, "i");
-						var bFound = false;
-						for(var i = 0; i < exercisesListModel.count; i++ ) {
-							//First look for muscular group
-							if (exercisesListModel.get(i).muscularGroup.match(regex))
-								bFound = true;
-							else {
-								if (exercisesListModel.get(i).mainName.match(regex))
-									bFound = true;
-								else
-									bFound = false;
-							}
-							if (bFound) {
-								if (!bFilterApplied) {
-									lstExercises.setModel(filterModel);
-									bFilterApplied = true;
-								}
-								filterModel.newItem(i, exercisesListModel.get(i));
-							}
-						}
-						if (bFilterApplied)
-							simulateMouseClick(0);
-					}
-					else {
-						if (bFilterApplied) {
-							bFilterApplied = false;
-							lstExercises.setModel(exercisesListModel);
-						}
-					}
-				} //onTextChanged
-			} // txtFilter
 
 			RowLayout {
 				id: toolbarExercises
-				enabled: !undoTimer.running
 				Layout.fillWidth: true
 				spacing: 0
 
@@ -571,16 +315,16 @@ Page {
 							txtExerciseSubName.clear();
 							txtMuscularGroup.clear();
 							strMediaPath = "qrc:/images/no_image.jpg";
-							lstExercises.enabled = false;
+							exercisesList.enabled = false;
 							text = qsTr("Cancel");
 						}
 						else {
 							bNew = false;
 							bCanEdit = false;
-							lstExercises.enabled = true;
+							exercisesList.enabled = true;
 							text = qsTr("New");
 							if (!bJustSaved)
-								displaySelectedExercise(curIndex);
+								exercisesList.displaySelectedExercise(curIndex);
 						}
 					}
 				} //btnNewExercise
@@ -588,7 +332,7 @@ Page {
 				Button {
 					id:btnEditExercise
 					text: qsTr("Edit")
-					enabled: !bNew && curIndex >= 0
+					enabled: !bNew && exercisesList.curIndex >= 0
 					font.capitalization: Font.MixedCase
 					display: AbstractButton.TextUnderIcon
 					contentItem: Text {
@@ -601,18 +345,17 @@ Page {
 							bCanEdit = true;
 							bEdit = true;
 							scrollExercises.ScrollBar.vertical.setPosition(0);
-							hBar2.setPosition(0);
 							txtExerciseName.forceActiveFocus();
-							lstExercises.enabled = false;
+							exercisesList.enabled = false;
 							text = qsTr("Cancel");
 						}
 						else {
 							bCanEdit = false;
 							bEdit = false;
-							lstExercises.enabled = true;
+							exercisesList.enabled = true;
 							text = qsTr("Edit");
 							if (!bJustSaved)
-								displaySelectedExercise(curIndex);
+								exercisesList.displaySelectedExercise(curIndex);
 						}
 					}
 				} //btnEditExercise
@@ -633,7 +376,7 @@ Page {
 						if (bNew) {
 							let results = Database.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, spinSets.value,
 											spinReps.value, spinWeight.value, AppSettings.weightUnit, strMediaPath);
-							exercisesListModel.append({
+							exercisesList.mainModel.append({
 								"exerciseId": parseInt(results.insertId),
 								"mainName": txtExerciseName.text,
 								"subName": txtExerciseSubName.text,
@@ -643,14 +386,12 @@ Page {
 								"nWeight": spinWeight.value,
 								"uWeight": AppSettings.weightUnit,
 								"mediaPath": strMediaPath,
-								"actualIndex": exercisesListModel.count
+								"actualIndex": exercisesList.mainModel.count
 							});
-							curIndex = lstExercises.model.count -1;
+							exercisesList.setCurrentIndex(exercisesList.mainModel.count -1);
 							btnNewExercise.clicked();
-							lstExercises.currentIndex = curIndex;
-							lstExercises.ensureVisible(lstExercises.currentItem);
 
-							if (bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
+							if (exercisesList.bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
 								var regex = new RegExp(txtFilter.text, "i");
 								var bFound = false;
 								//First look for muscular group
@@ -663,11 +404,11 @@ Page {
 									bFound = false;
 								}
 								if (bFound)
-									filterModel.newItem(curIndex, exercisesListModel.get(exercisesListModel.count - 1));
+									exercisesList.tempModel.newItem(curIndex, exercisesList.mainModel.get(exercisesList.curIdx));
 							}
 						}
 						else if (bEdit) {
-							const actualIndex = lstExercises.model.get(curIndex).actualIndex;
+							const actualIndex = exercisesList.mainModel.get(curIndex).actualIndex;
 							exercisesListModel.setProperty(actualIndex, "mainName", txtExerciseName.text);
 							exercisesListModel.setProperty(actualIndex, "subName", txtExerciseSubName.text);
 							exercisesListModel.setProperty(actualIndex, "muscularGroup", txtMuscularGroup.text);
@@ -686,13 +427,13 @@ Page {
 							btnEditExercise.clicked();
 
 							if (bFilterApplied) { //There is an active filter. The edited item is the current selected item on the list. Just update this item
-								filterModel.setProperty(curIndex, "mainName", txtExerciseName.text);
-								filterModel.setProperty(curIndex, "subName", txtExerciseSubName.text);
-								filterModel.setProperty(curIndex, "muscularGroup", txtMuscularGroup.text);
-								filterModel.setProperty(curIndex, "nSets", spinSets.value);
-								filterModel.setProperty(curIndex, "nReps", spinReps.value);
-								filterModel.setProperty(curIndex, "nWeight", spinWeight.value);
-								filterModel.setProperty(curIndex, "mediaPath", strMediaPath);
+								exercisesList.tempModel.setProperty(curIndex, "mainName", txtExerciseName.text);
+								exercisesList.tempModel.setProperty(curIndex, "subName", txtExerciseSubName.text);
+								exercisesList.tempModel.setProperty(curIndex, "muscularGroup", txtMuscularGroup.text);
+								exercisesList.tempModel.setProperty(curIndex, "nSets", spinSets.value);
+								exercisesList.tempModel.setProperty(curIndex, "nReps", spinReps.value);
+								exercisesList.tempModel.setProperty(curIndex, "nWeight", spinWeight.value);
+								exercisesList.tempModel.setProperty(curIndex, "mediaPath", strMediaPath);
 							}
 						}
 						bJustSaved = false;
@@ -711,10 +452,10 @@ Page {
 					}
 
 					onClicked: {
-						exerciseChosen(lstExercises.model.get(curIndex).mainName, lstExercises.model.get(curIndex).subName,
-									lstExercises.model.get(curIndex).nSets,	lstExercises.model.get(curIndex).nReps,
-									lstExercises.model.get(curIndex).nWeight, lstExercises.model.get(curIndex).uWeight,
-									lstExercises.model.get(curIndex).exerciseId, true);
+						exerciseChosen(exercisesList.mainModel.get(curIndex).mainName, exercisesList.mainModel.get(curIndex).subName,
+									exercisesList.mainModel.get(curIndex).nSets,	exercisesList.mainModel.get(curIndex).nReps,
+									exercisesList.mainModel.get(curIndex).nWeight, exercisesList.mainModel.get(curIndex).uWeight,
+									exercisesList.mainModel.get(curIndex).exerciseId, true);
 						pageExercises.StackView.view.pop();
 					}
 				} //btnChooseExercise
@@ -736,32 +477,9 @@ Page {
 		} //ColumnLayout
 	} // footer
 
-	function removeExercise(removeIdx) {
-		const actualIndex = lstExercises.model.get(removeIdx).actualIndex; //position of item in the main model
-		var i;
-		Database.deleteExerciseFromExercises(lstExercises.model.get(actualIndex).exerciseId);
-		exercisesListModel.remove(actualIndex);
-		if (bFilterApplied) {
-			filterModel.remove(removeIdx);
-			for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
-				filterModel.setProperty(i, "actualIndex", filterModel.get(i).actualIndex - 1);
-		}
-		for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
-				exercisesListModel.setProperty(i, "actualIndex", i);
-		if (curIndex === removeIdx) {
-			if (curIndex >= lstExercises.model.count)
-				curIndex--;
-			if (lstExercises.model.count > 0)
-				simulateMouseClick(curIndex);
-		}
-	}
-
 	FileDialog {
 		id: fileDialog;
 		title: qsTr("Please choose a media file");
-		//acceptLabel: (qsTr("Choose"))
-		//nameFilters: [qsTr("Videos (*.mp4)")];
-		//currentFolder: imagesPath
 
 		onAccepted: {
 			strMediaPath = runCmd.getCorrectPath(currentFile);

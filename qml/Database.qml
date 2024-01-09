@@ -12,6 +12,7 @@ QtObject {
 	id: root
 
 	property var db
+	property int exercisesTableLastId: 1000
 
 	function init_database() {
 		try {
@@ -84,7 +85,7 @@ QtObject {
 	function createExercisesTable() {
 		db.transaction(function (tx) {
 			tx.executeSql(`CREATE TABLE IF NOT EXISTS exercises_table (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				id INTEGER PRIMARY KEY,
 				primary_name TEXT CHECK(primary_name != ''),
 				secondary_name TEXT,
 				muscular_group TEXT,
@@ -559,6 +560,8 @@ QtObject {
 			let results = tx.executeSql("SELECT * FROM exercises_table");
 			for (let i = 0; i < results.rows.length; i++) {
 				let row = results.rows.item(i);
+				if (row.id > 1000)
+					exercisesTableLastId = row.id;
 				exercises.push({
 					"exerciseId": row.id,
 					"mainName": row.primary_name,
@@ -580,8 +583,8 @@ QtObject {
 		let results;
 		db.transaction(function (tx) {
 			results = tx.executeSql("INSERT INTO exercises_table
-							(primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list) VALUES(?,?,?,?,?,?,?,?,?)",
-							[mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath,0]);
+							(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list) VALUES(?,?,?,?,?,?,?,?,?,?)",
+							[++exercisesTableLastId, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath,0]);
 		});
 		return results;
 	}
@@ -739,23 +742,31 @@ QtObject {
 
 	function getPreviousTrainingDayForDivision(division, mesoId, date) {
 		let dayinfo = [];
+		console.log("getPreviousTrainingDayForDivision. Searching for date:   ", new Date(date).toDateString());
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM training_day WHERE date<? AND meso_id=? AND split_letter=?", [date, mesoId,division]);
-			if(results.rows.length === 1) {
-				console.log("getPreviousTrainingDayForDivision:   ", new Date(results.rows.item(0).date).toDateString() );
-				let row = results.rows.item(0);
-				dayinfo.push({
-					"dayId": row.id,
-					"dayDate": row.date,
-					"mesoId": row.meso_id,
-					"exercisesIds": row.exercises_ids,
-					"dayNumber": row.day_number,
-					"daySplitLetter": row.split_letter,
-					"dayTimeIn": row.time_in,
-					"dayTimeOut": row.time_out,
-					"dayLocation": row.location,
-					"dayNotes": row.notes
-				});
+			const len = results.rows.length;
+			if(len > 0) {
+				var i = len - 1;
+				do {
+					console.log("getPreviousTrainingDayForDivision. Found date:   ", new Date(results.rows.item(i).date).toDateString());
+					console.log(date);
+					let row = results.rows.item(i);
+					if (row.exercises_ids) {
+						dayinfo.push({
+							"dayId": row.id,
+							"dayDate": row.date,
+							"mesoId": row.meso_id,
+							"exercisesIds": row.exercises_ids,
+							"dayNumber": row.day_number,
+							"daySplitLetter": row.split_letter,
+							"dayTimeIn": row.time_in,
+							"dayTimeOut": row.time_out,
+							"dayLocation": row.location,
+							"dayNotes": row.notes
+						});
+					}
+				} while (--i >= 0);
 			}
 		});
 		return dayinfo;

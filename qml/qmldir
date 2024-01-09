@@ -18,13 +18,14 @@ SetInputField 1.0 SetInputField.qml
 PageScrollButtons 1.0 PageScrollButtons.qml
 ImageViewer 1.0 ImageViewer.qml
 VideoPlayer 1.0 VideoPlayer.qml
-
+ExercisesListView 1.0 ExercisesListView.qml
 MesoCycle 1.0 MesoCycle.qml
 MesoContent 1.0 MesoContent.qml
 TrainingDayInfo 1.0 TrainingDayInfo.qml
 MealsDayInfo 1.0 MealsDayInfo.qml
 ExerciceEntry 1.0 ExerciceEntry.qml
 ExercicesDatabase 1.0 ExercisesDatabase.qml
+ExercisesPlan 1.0 ExercisesPlan.qml
 SetTypeRegular 1.0 SetTypeRegular.qml
 SetTypeCluster 1.0 SetTypeCluster.qml
 SetTypeDrop 1.0 SetTypeDrop.qml

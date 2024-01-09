@@ -117,10 +117,10 @@ Page {
 
 			Label {
 				id: label1
-				Layout.maximumWidth: parent.width - 10
-				Layout.leftMargin: 5
 				topPadding: 20
 				bottomPadding: 20
+				Layout.maximumWidth: parent.width - 10
+				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: qsTr("Trainning day <b>#" + mesoTDay + "</b> of meso cycle <b>" + mesoName +
@@ -307,7 +307,7 @@ Page {
 					id: btnInTime
 					icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
-						onClicked: dlgTimeIn.open()
+					onClicked: dlgTimeIn.open()
 				}
 			} //RowLayout
 
@@ -534,6 +534,10 @@ Page {
 		console.log("loadTrainingDayInfo:   ", tDate.toDateString());
 		dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
+			if (dayInfoList[0].exercisesIds === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
+				Database.deleteTraingDay(dayInfoList[0].dayId);
+				return false;
+			}
 			dayId = dayInfoList[0].dayId;
 			var tempMesoId = dayInfoList[0].mesoId;
 			if (tempMesoId !== mesoId) {

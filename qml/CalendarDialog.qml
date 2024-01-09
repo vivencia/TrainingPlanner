@@ -10,7 +10,7 @@ Popup {
 	required property date showDate
 	required property date initDate
 	required property date finalDate
-	property bool simpleCalendar
+	property bool simpleCalendar: false
 	property string windowTitle
 
 	width: datePickerControl.width + 20

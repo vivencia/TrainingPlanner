@@ -299,17 +299,18 @@ Page {
 				font.bold: true
 				color: "white"
 				font.pixelSize: AppSettings.fontSize
-				Layout.alignment: Qt.AlignVCenter
+				horizontalAlignment: Qt.AlignHCenter
 				Layout.topMargin: 5
 			}
 			Label {
 				id: lbl2
 				color: "white"
-				width: parent.width
 				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
 				font.pixelSize: AppSettings.fontSizeLists
-				Layout.alignment: Qt.AlignVCenter | Qt.AlignBottom
+				horizontalAlignment: Qt.AlignHCenter
+				Layout.maximumWidth: parent.width - 10
+				Layout.leftMargin: 5
 				Layout.bottomMargin: 2
 			}
 		}
@@ -606,6 +607,10 @@ Page {
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 
 				onClicked: {
+					console.log("######################################################");
+					console.log(calendar.dayInfoDate.toString());
+					console.log(calendar.dayInfoDate.getTime());
+					console.log("######################################################");
 					var component = Qt.createComponent("TrainingDayInfo.qml");
 					if (component.status === Component.Ready) {
 						var dayObject = component.createObject(null, {mainDate: calendar.dayInfoDate,

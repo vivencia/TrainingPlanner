@@ -1,4 +1,4 @@
-#Version;1.1
+#Version;1.2
 Cadeira Extensora;amplitude total;pernas, quadríceps
 Cadeira Extensora;unilateral;pernas, quadríceps
 Cadeira Flexora;amplitude total;pernas, posterior
@@ -8,12 +8,12 @@ Mesa Flexora;amplitude total;pernas, posterior
 Mesa Flexora;unilateral;pernas, posterior
 Rack Squat;pés juntos ou muito próximos;pernas
 Rack Squat;pés na largura dos ombros;pernas
-Leg Press;45o;pernas
-Leg Press;pés juntos ou muito próximos, 45o;pernas
-Leg Press;articulado;pernas
+Leg Press;45o,pés na largura dos ombros;pernas
+Leg Press;45o,pés juntos ou muito próximos;pernas
+Leg Press;articulado,pés na largura dos ombros;pernas
 Leg Press;pés juntos ou muito próximos, articulado;pernas
 Passadas;kettlebell;pernas
-Passadas;halte ou anilhasr;pernas
+Passadas;halter ou anilhas;pernas
 Passadas;barra;pernas
 Belt Squat;corpo ereto; pernas, quadríceps
 Belt Squat;sumô, corpo ereto; pernas, quadríceps
@@ -55,5 +55,103 @@ Panturrilha em Pé;máquina;pernas,panturrilha
 Panturrilha em Pé;smith;pernas,panturrilha
 Panturrilha em Pé;livre;pernas,panturrilha
 Panturrilha sentado;máquina;pernas,panturrilha
-Panturrilha na Máquin;Leg Press;pernas,panturrilha
+Panturrilha na Máquina;Leg Press;pernas,panturrilha
 Panturrilha na Máquina;agachamento sentado;pernas,panturrilha
+Levantamento Terra;livre,barra,convencional;pernas,posterior,costas
+Levantamento Terra;livre,barra,sumô;pernas,posterior,costas
+Levantamento Terra;smith,barra,convencional;pernas,posterior,costas
+Levantamento Terra;smith,barra,sumô;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);livre,barra,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);livre,barra,sumô;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);smith,barra,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);smith,barra,sumô;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);livre,barra,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);livre,barra,sumô;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);smith,barra,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);smith,barra,sumô;pernas,posterior,costas
+Levantamento Terra;livre,barra hexagonal,convencional;pernas,posterior,costas
+Levantamento Terra;smith,barra hexagonal,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);livre,barra hexagonal,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(1/2);smith,barra hexagonal,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);livre,barra hexagonal,convencional;pernas,posterior,costas
+Levantamento Terra Parcial(3/4);smith,barra hexagonal,convencional;pernas,posterior,costas
+Barra livre;sem peso, com strap;costas
+Barra livre;sem peso, sem strap;costas
+Barra livre;com peso, com strap;costas
+Barra livre;com peso, sem strap;costas
+Pull-Down;polia, barra;costas
+Pull-Down;polia, corda;costas
+Pull-Down;máquina;costas
+Puxada Frontal;polia, pegada pronada aberta;costas
+Puxada Frontal;polia, pegada pronada média;costas
+Puxada Frontal;polia, pegada pronada fechada;costas
+Puxada Frontal;polia, pegada supinada aberta;costas
+Puxada Frontal;polia, pegada supinada média;costas
+Puxada Frontal;polia, pegada supinada fechada;costas
+Puxada Frontal;polia, pegada neutra aberta;costas
+Puxada Frontal;polia, pegada neutra média;costas
+Puxada Frontal;polia, pegada neutra fechada;costas
+Puxada Frontal;polia, unilateral, pegada pronada;costas
+Puxada Frontal;polia, unilateral, pegada supinadas;costas
+Puxada Frontal;polia, unilateral, pegada neutra;costas
+Puxada Frontal;máquina articulada, pegada pronada;costas
+Puxada Frontal;máquina articulada, pegada supinada;costas
+Puxada Atrás;polia, pegada pronada aberta;costas
+Puxada Atrás;polia, pegada pronada média;costas
+Puxada Atrás;polia, pegada supinada aberta;costas
+Puxada Atrás;polia, pegada supinada média;costas
+Puxada Atrás;polia, pegada neutra aberta;costas
+Puxada Atrás;polia, pegada neutra média;costas
+Remada Alta;máquina articulada, pegada pronada;costas
+Remada Alta;máquina articulada, pegada supinada;costas
+Remada Alta;máquina articulada, pegada neutra;costas
+Remada Alta;máquina articulada, unilateral,  pegada pronada;costas
+Remada Alta;máquina articulada, unilateral, pegada supinada;costas
+Remada Alta;máquina articulada, unilateral, pegada neutra;costas
+Remada Baixa(Sentada);polia, pegada pronada aberta;costas
+Remada Baixa(Sentada);polia, pegada pronada média;costas
+Remada Baixa(Sentada);polia, pegada pronada fechada;costas
+Remada Baixa(Sentada);polia, unilateral, pegada pronada aberta;costas
+Remada Baixa(Sentada);polia, unilateral, pegada pronada média;costas
+Remada Baixa(Sentada);polia, unilateral, pegada pronada fechada;costas
+Remada Baixa;máquina articulada, pegada supinada;costas
+Remada Baixa;máquina articulada, pegada pronada;costas
+Remada Baixa;máquina articulada, unilateral, pegada supinada;costas
+Remada Baixa;máquina articulada, unilateral, pegada pronada;costas
+Remada Curvada;barra, pegada supinada;costas
+Remada Curvada;barra, pegada pronada;costas
+Remada Curvada;barra, pegada neutra;costas
+Remada Curvada;halter ou kettlebell, pegada supinada;costas
+Remada Curvada;halter ou kettlebell, pegada pronada;costas
+Remada Curvada;halter ou kettlebell, pegada neutra;costas
+Remada Curvada;máquina, pegada supinada;costas
+Remada Curvada;máquina, pegada pronada;costas
+Remada Curvada;máquina, pegada neutra;costas
+Remada Banco Inclinado; halter ou kettlebell, pegada supinada;costas
+Remada Banco Inclinado; halter ou kettlebell, pegada pronada;costas
+Remada Banco Inclinado; halter ou kettlebell, pegada neutra;costas
+Remada Banco Reto; halter ou kettlebell, pegada supinada;costas
+Remada Banco Reto; halter ou kettlebell, pegada pronada;costas
+Remada Banco Reto; halter ou kettlebell, pegada neutra;costas
+Serrote;halter ou kettlebell;costas
+Pull-Over;barra, halter, anilha ou kettlebell, pegada neutra; costas
+Pull-Over;barra, halter, anilha ou kettlebell, pegada pronada; costas
+Remada Cavalinho;barra, pegada neutra;costas
+Remada Cavalinho;barra, pegada pronada;costas
+Remava Cavalinho;belt squat, pegada neutra;costas
+Remada Cavalinho;belt squat, pegada pronada;costas
+Remada Cavalinho;máquina, pegada neutra;costas
+Remada Cavalinho;máquina, pegada supinada;costas
+Remada Cavalinho;máquina, pegada pronada;costas
+Abdominal reto;parcial;abdômen
+Abdominal reto;completo;abdômen
+Abdominal inclinado;parcial, sem peso;abdômen
+Abdominal inclinado;completo, sem peso;abdômen
+Abdominal inclinado;parcial, com peso;abdômen
+Abdominal inclinado;completo, com peso;abdômen
+Abdominal na Barra Paralela;sem peso;abdômen
+Abdominal na Barra Paralela;com peso;abdômen
+Abdominal na Barra Fixa;sem peso;abdômen
+Abdominal na Barra Fixa;com peso;abdômen
+Abdominal na Máquina;reto;abdômen
+Abdominal na Máquina;lateral;abdômen

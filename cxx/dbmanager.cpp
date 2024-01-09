@@ -32,12 +32,13 @@ bool DbManager::updateExercisesList(const QStringList &exercisesList)
 		QStringList fields;
 		QSqlQuery query;
 		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
-		const QString query_cmd(QStringLiteral("INSERT INTO exercises_table (primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES(\'%1\', \'%2\', \'%3\', 4, 12, 20, \'%4\', \'qrc:/images/no_image.jpg\', 1)"));
-		for ( ++itr; itr != itr_end; ++itr ) //++itr Jump over version number
+		const QString query_cmd(QStringLiteral("INSERT INTO exercises_table (id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
+								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)"));
+		uint idx ( 0 );
+		for ( ++itr; itr != itr_end; ++itr, ++idx ) //++itr Jump over version number
 		{
 			fields = static_cast<QString>(*itr).split(';');
-			ret = query.exec(query_cmd.arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
+			ret = query.exec(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
 			if (!ret)
 			{
 				qDebug() << "updateExercisesList Database error:  " << query.lastError().databaseText();
