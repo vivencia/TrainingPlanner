@@ -93,7 +93,7 @@ set(trainingplanner_resource_files
 	"qml/PageScrollButtons.qml"
 	"qml/ImageViewer.qml"
 	"qml/VideoPlayer.qml"
-	"qml/ExercisesPlan.qml"
+	"qml/ExercisesPlanner.qml"
 	"qml/ExercisesListView.qml"
 	"qml/qmldir"
 )

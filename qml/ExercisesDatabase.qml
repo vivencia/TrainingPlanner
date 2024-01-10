@@ -222,13 +222,13 @@ Page {
 				Layout.maximumHeight: 50
 				enabled: bCanEdit
 
-				Button {
+				ButtonFlat {
 					id: btnChooseMediaFromDevice
 					text: qsTr("File")
 					onClicked: chooseMediaFromDevice();
 
 				}
-				Button {
+				ButtonFlat {
 					id: btnChooseMediaFromCamera
 					text: qsTr("Camera")
 					//onClicked: camera.start();
@@ -250,7 +250,7 @@ Page {
 		if (bChooseButtonEnabled || bTempDisableChoose) {
 			bTempDisableChoose = false;
 			for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
-				if (exercisesList.mainModel.get(exercisesList.curIndex).exerciseId === doNotChooseTheseIds[i]) {
+				if (exercisesList.currentModel.get(exercisesList.curIndex).exerciseId === doNotChooseTheseIds[i]) {
 					bTempDisableChoose = true;
 					break;
 				}
@@ -294,16 +294,10 @@ Page {
 				Layout.fillWidth: true
 				spacing: 0
 
-				Button {
+				ButtonFlat {
 					id:btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
-					font.capitalization: Font.MixedCase
-					display: AbstractButton.TextUnderIcon
-					contentItem: Text {
-						text: parent.text
-						color: "black"
-					}
 
 					onClicked: {
 						if (!bNew) {
@@ -324,21 +318,16 @@ Page {
 							exercisesList.enabled = true;
 							text = qsTr("New");
 							if (!bJustSaved)
-								exercisesList.displaySelectedExercise(curIndex);
+								exercisesList.displaySelectedExercise(exercisesList.curIndex);
 						}
 					}
 				} //btnNewExercise
 
-				Button {
+				ButtonFlat {
 					id:btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesList.curIndex >= 0
 					font.capitalization: Font.MixedCase
-					display: AbstractButton.TextUnderIcon
-					contentItem: Text {
-						text: parent.text
-						color: "black"
-					}
 
 					onClicked: {
 						if (!bEdit) {
@@ -355,120 +344,57 @@ Page {
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
 							if (!bJustSaved)
-								exercisesList.displaySelectedExercise(curIndex);
+								exercisesList.displaySelectedExercise(exercisesList.curIndex);
 						}
 					}
 				} //btnEditExercise
 
-				Button {
+				ButtonFlat {
 					id:btnSaveExercise
 					text: qsTr("Save")
 					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
-					font.capitalization: Font.MixedCase
-					display: AbstractButton.TextUnderIcon
-					contentItem: Text {
-						text: parent.text
-						color: "black"
-					}
 
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
 						if (bNew) {
 							let results = Database.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, spinSets.value,
 											spinReps.value, spinWeight.value, AppSettings.weightUnit, strMediaPath);
-							exercisesList.mainModel.append({
-								"exerciseId": parseInt(results.insertId),
-								"mainName": txtExerciseName.text,
-								"subName": txtExerciseSubName.text,
-								"muscularGroup": txtMuscularGroup.text,
-								"nSets": spinSets.value,
-								"nReps": spinReps.value,
-								"nWeight": spinWeight.value,
-								"uWeight": AppSettings.weightUnit,
-								"mediaPath": strMediaPath,
-								"actualIndex": exercisesList.mainModel.count
-							});
-							exercisesList.setCurrentIndex(exercisesList.mainModel.count -1);
+							exercisesList.appendModels(parseInt(results.insertId), txtExerciseName.text, txtExerciseSubName.text,
+											txtMuscularGroup.text, spinSets.value, spinReps.value, spinWeight.value,
+											AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
-
-							if (exercisesList.bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
-								var regex = new RegExp(txtFilter.text, "i");
-								var bFound = false;
-								//First look for muscular group
-								if (txtMuscularGroup.text.match(regex))
-									bFound = true;
-								else {
-									if (txtExerciseName.text.match(regex))
-										bFound = true;
-								else
-									bFound = false;
-								}
-								if (bFound)
-									exercisesList.tempModel.newItem(curIndex, exercisesList.mainModel.get(exercisesList.curIdx));
-							}
 						}
 						else if (bEdit) {
-							const actualIndex = exercisesList.mainModel.get(curIndex).actualIndex;
-							exercisesListModel.setProperty(actualIndex, "mainName", txtExerciseName.text);
-							exercisesListModel.setProperty(actualIndex, "subName", txtExerciseSubName.text);
-							exercisesListModel.setProperty(actualIndex, "muscularGroup", txtMuscularGroup.text);
-							exercisesListModel.setProperty(actualIndex, "nSets", spinSets.value);
-							exercisesListModel.setProperty(actualIndex, "nReps", spinReps.value);
-							exercisesListModel.setProperty(actualIndex, "nWeight", spinWeight.value);
-							exercisesListModel.setProperty(actualIndex, "mediaPath", strMediaPath);
-							const exerciseId = exercisesListModel.get(actualIndex).exerciseId;
-							Database.updateExerciseMainName(exerciseId, txtExerciseName.text);
-							Database.updateExerciseSubName(exerciseId, txtExerciseSubName.text);
-							Database.updateExerciseMuscularGroup(exerciseId, txtMuscularGroup.text);
-							Database.updateExerciseSets(exerciseId, spinSets.value);
-							Database.updateExerciseReps(exerciseId, spinReps.value);
-							Database.updateExerciseWeight(exerciseId, spinWeight.value);
-							Database.updateExerciseMediaPath(exerciseId, strMediaPath);
+							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex).actualIndex;
+							exercisesList.updateModels(actualIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
+									spinSets.value, spinReps.value, spinWeight.value, strMediaPath);
+							const exerciseId = exercisesList.currentModel.get(exercisesList.curIndex).exerciseId;
+							Database.updateExercise(exerciseId, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
+									spinSets.value, spinReps.value, spinWeight.value, strMediaPath);
 							btnEditExercise.clicked();
-
-							if (bFilterApplied) { //There is an active filter. The edited item is the current selected item on the list. Just update this item
-								exercisesList.tempModel.setProperty(curIndex, "mainName", txtExerciseName.text);
-								exercisesList.tempModel.setProperty(curIndex, "subName", txtExerciseSubName.text);
-								exercisesList.tempModel.setProperty(curIndex, "muscularGroup", txtMuscularGroup.text);
-								exercisesList.tempModel.setProperty(curIndex, "nSets", spinSets.value);
-								exercisesList.tempModel.setProperty(curIndex, "nReps", spinReps.value);
-								exercisesList.tempModel.setProperty(curIndex, "nWeight", spinWeight.value);
-								exercisesList.tempModel.setProperty(curIndex, "mediaPath", strMediaPath);
-							}
 						}
 						bJustSaved = false;
 					}
 				} //btnSaveExercise
 
-				Button {
+				ButtonFlat {
 					id: btnChooseExercise
-					enabled: bChooseButtonEnabled && !bCanEdit && curIndex >= 0
+					enabled: bChooseButtonEnabled && !bCanEdit && exercisesList.curIndex >= 0
 					text: qsTr("Choose")
-					font.capitalization: Font.MixedCase
-					display: AbstractButton.TextUnderIcon
-					contentItem: Text {
-						text: parent.text
-						color: "black"
-					}
 
 					onClicked: {
-						exerciseChosen(exercisesList.mainModel.get(curIndex).mainName, exercisesList.mainModel.get(curIndex).subName,
-									exercisesList.mainModel.get(curIndex).nSets,	exercisesList.mainModel.get(curIndex).nReps,
-									exercisesList.mainModel.get(curIndex).nWeight, exercisesList.mainModel.get(curIndex).uWeight,
-									exercisesList.mainModel.get(curIndex).exerciseId, true);
+						const curIndex = exercisesList.curIndex;
+						exerciseChosen(exercisesList.currentModel.get(curIndex).mainName, exercisesList.currentModel.get(curIndex).subName,
+									exercisesList.currentModel.get(curIndex).nSets,	exercisesList.currentModel.get(curIndex).nReps,
+									exercisesList.currentModel.get(curIndex).nWeight, exercisesList.currentModel.get(curIndex).uWeight,
+									exercisesList.currentModel.get(curIndex).exerciseId, true);
 						pageExercises.StackView.view.pop();
 					}
 				} //btnChooseExercise
 
-				Button {
+				ButtonFlat {
 					id: btnCancel
 					text: qsTr("Close")
-					font.capitalization: Font.MixedCase
-					display: AbstractButton.TextUnderIcon
-					contentItem: Text {
-						text: parent.text
-						color: "black"
-					}
 
 					onClicked: pageExercises.StackView.view.pop();
 				} // btnCancel
@@ -483,8 +409,6 @@ Page {
 
 		onAccepted: {
 			strMediaPath = runCmd.getCorrectPath(currentFile);
-			console.log("strMediaPath:   ", strMediaPath);
-			console.log("currentFile:   ", currentFile);
 			close();
 			displaySelectedMedia();
 		}

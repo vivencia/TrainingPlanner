@@ -106,5 +106,6 @@
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
         <file>translations/tplanner.de_DE.qm</file>
+        <file>images/black/edit-clear.png</file>
     </qresource>
 </RCC>

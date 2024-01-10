@@ -39,8 +39,6 @@ Item {
 
 	property var setObjectList: []
 	property var setsInfoList: []
-	property var setTypes: [ { key:qsTr("Regular"), idx:0 }, { key:qsTr("Pyramid"), idx:1 }, { key:qsTr("Drop Set"), idx:2 },
-							{ key:qsTr("Cluster Set"), idx:3 }, { key:qsTr("Giant Set"), idx:4 }, { key:qsTr("Myo Reps"), idx:5 } ]
 
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible

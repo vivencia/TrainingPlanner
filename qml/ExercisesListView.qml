@@ -9,7 +9,7 @@ Column {
 	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
-	readonly property ListModel mainModel: lstExercises.model
+	readonly property ListModel currentModel: lstExercises.model
 	readonly property ListModel tempModel: filterModel
 
 	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, int sets, real reps, real weight, string mediaPath)
@@ -62,14 +62,13 @@ Column {
 		width: parent.width
 		height: parent.height * 0.80
 		clip: true
-		contentHeight: totalHeight * 1.1 //contentHeight: Essencial for the ScrollBars to work.
+		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
 		visible: exercisesListModel.count > 0
 		boundsBehavior: Flickable.StopAtBounds
 
 		property int totalHeight
 		property int totalWidth
-		property Item item
 
 		ScrollBar.horizontal: ScrollBar {
 			id: hBar
@@ -86,11 +85,11 @@ Column {
 			var ypos = item.mapToItem(contentItem, 0, 0).y
 			var ext = item.height + ypos
 			if ( ypos < contentY // begins before
-			|| ypos > contentY + height // begins after
-			|| ext < contentY // ends before
-			|| ext > contentY + height) { // ends after
-			// don't exceed bounds
-			contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height))
+				|| ypos > contentY + height // begins after
+				|| ext < contentY // ends before
+				|| ext > contentY + height) { // ends after
+				// don't exceed bounds
+				contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height))
 			}
 		}
 
@@ -141,8 +140,10 @@ Column {
 				color: curIndex === index ? "darkred" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 			}
 			onClicked: {
-				curIndex = index;
-				displaySelectedExercise(index);
+				if (index !== curIndex) {
+					curIndex = index;
+					displaySelectedExercise(index);
+				}
 			}
 
 			Component.onCompleted: {
@@ -204,15 +205,34 @@ Column {
 		text: qsTr("Filter: ")
 		color: "black"
 	}
-
 	TextField {
 		id: txtFilter
 		readOnly: bCanEdit
 		enabled: exercisesListModel.count > 0
-		width: parent.width
+		width: parent.width - 30
 		Layout.fillWidth: true
-		Layout.maximumHeight: 40
+		Layout.maximumHeight: 30
+		Layout.topMargin: 5
+		clip: true
 		color: "black"
+
+		ToolButton {
+			id: btnClearText
+			anchors.left: txtFilter.right
+			anchors.leftMargin: -30
+			anchors.verticalCenter: txtFilter.verticalCenter
+			height: 20
+			width: 20
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+				anchors.top: parent.top
+				anchors.topMargin: -5
+				anchors.horizontalCenter: parent.horizontalCenter
+				height: 20
+				width: 20
+			}
+			onClicked: txtFilter.clear();
+		}
 
 		onTextChanged: {
 			filterModel.finish();
@@ -250,31 +270,16 @@ Column {
 	} // txtFilter
 
 	function displaySelectedExercise(lstIdx) {
-		if (lstExercises.count > 0) {
-			exerciseEntrySelected(lstExercises.model.get(lstIdx).mainName, lstExercises.model.get(lstIdx).subName,
-								lstExercises.model.get(lstIdx).muscularGroup, lstExercises.model.get(lstIdx).nSets,
-								lstExercises.model.get(lstIdx).nReps, lstExercises.model.get(lstIdx).nWeight,
-			lstExercises.model.get(lstIdx).mediaPath);
-
-			displaySelectedMedia();
-
-			if (bChooseButtonEnabled || bTempDisableChoose) {
-				bTempDisableChoose = false;
-				for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
-					if (lstExercises.model.get(lstIdx).exerciseId === doNotChooseTheseIds[i]) {
-						bTempDisableChoose = true;
-						break;
-					}
-				}
-				bChooseButtonEnabled = !bTempDisableChoose;
-			}
-		}
+		exerciseEntrySelected(currentModel.get(lstIdx).mainName, currentModel.get(lstIdx).subName,
+							currentModel.get(lstIdx).muscularGroup, currentModel.get(lstIdx).nSets,
+							currentModel.get(lstIdx).nReps, currentModel.get(lstIdx).nWeight,
+		currentModel.get(lstIdx).mediaPath);
 	}
 
 	function removeExercise(removeIdx) {
-		const actualIndex = lstExercises.model.get(removeIdx).actualIndex; //position of item in the main model
+		const actualIndex = currentModel.get(removeIdx).actualIndex; //position of item in the main model
 		var i;
-		Database.deleteExerciseFromExercises(lstExercises.model.get(actualIndex).exerciseId);
+		Database.deleteExerciseFromExercises(currentModel.get(actualIndex).exerciseId);
 		exercisesListModel.remove(actualIndex);
 		if (bFilterApplied) {
 			filterModel.remove(removeIdx);
@@ -284,23 +289,80 @@ Column {
 		for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
 				exercisesListModel.setProperty(i, "actualIndex", i);
 		if (curIndex === removeIdx) {
-			if (curIndex >= lstExercises.model.count)
+			if (curIndex >= currentModel.count)
 				curIndex--;
-			if (lstExercises.model.count > 0)
+			if (currentModel.count > 0)
 				simulateMouseClick(curIndex);
 		}
 	}
 
 	function setCurrentIndex(newIdx) {
-		if (newIdx < mainModel.count) {
+		if (newIdx < currentModel.count) {
 			curIndex = newIdx;
 			lstExercises.currentIndex = newIdx;
-			lstExercises.ensureVisible(lstExercises.itemAtIndex(newIdx)); //lstExercises.currentItem
+			lstExercises.ensureVisible(lstExercises.currentItem);
 		}
 	}
 
 	function simulateMouseClick(new_index) {
 		displaySelectedExercise(new_index);
 		lstExercises.positionViewAtIndex(new_index, ListView.Center);
+	}
+
+	function appendModels(exerciseid, name1, name2, group, nsets, nreps, nweight, media) {
+		var actual_idx = exercisesListModel.count;
+		exercisesListModel.append ({
+			"exerciseId": exerciseid,
+			"mainName": name1,
+			"subName": name2,
+			"muscularGroup": group,
+			"nSets": nsets,
+			"nReps": nreps,
+			"nWeight": nweight,
+			"uWeight": AppSettings.weightUnit,
+			"mediaPath": media,
+			"actualIndex": actual_idx
+		});
+
+		if (bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
+			var regex = new RegExp(txtFilter.text, "i");
+			var bFound = false;
+			//First look for muscular group
+			if (group.text.match(regex))
+				bFound = true;
+			else {
+				if (name1.text.match(regex))
+					bFound = true;
+				else
+					bFound = false;
+			}
+			if (bFound) {
+				filterModel.newItem(actual_idx, exercisesListModel.get(actual_idx));
+				setCurrentIndex(filterModel.count - 1); //Make current the last item on the list
+			}
+		}
+		else {
+			setCurrentIndex(actual_idx); //Make current the last item on the list
+		}
+
+	}
+
+	function updateModels(actual_idx, name1, name2, group, nsets, nreps, nweight, media) {
+		exercisesListModel.setProperty(actual_idx, "mainName", name1);
+		exercisesListModel.setProperty(actual_idx, "subName", name2);
+		exercisesListModel.setProperty(actual_idx, "muscularGroup", group);
+		exercisesListModel.setProperty(actual_idx, "nSets", nsets);
+		exercisesListModel.setProperty(actual_idx, "nReps", nreps);
+		exercisesListModel.setProperty(actual_idx, "nWeight", nweight);
+		exercisesListModel.setProperty(actual_idx, "mediaPath", media);
+		if (bFilterApplied) { //There is an active filter. The edited item is the current selected item on the list. Just update this item
+			filterModel.setProperty(curIndex, "mainName", name1);
+			filterModel.setProperty(curIndex, "subName", name2);
+			filterModel.setProperty(curIndex, "muscularGroup", group);
+			filterModel.setProperty(curIndex, "nSets", nsets);
+			filterModel.setProperty(curIndex, "nReps", nreps);
+			filterModel.setProperty(curIndex, "nWeight", nweight);
+			filterModel.setProperty(curIndex, "mediaPath", media);
+		}
 	}
 }

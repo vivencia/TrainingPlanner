@@ -12,20 +12,16 @@ Button {
 	focusPolicy: Qt.NoFocus
 	leftPadding: 6
 	rightPadding: 6
-	width: buttonText.contentWidth + buttonImage.width + 5
+	width: buttonText.contentWidth + (imageSource.length > 0 ? buttonImage.width + 5: - 5)
 	font.capitalization: Font.MixedCase
 
 	contentItem: Text {
 		id: buttonText
 		text: button.text
 		opacity: enabled ? 1.0 : 0.3
-		color: flatButtonTextColor
+		color: "black"
 		horizontalAlignment: imageSource ? Text.AlignHCenter : Text.AlignLeft
 		verticalAlignment: Text.AlignVCenter
-		font {
-			capitalization: Font.AllUppercase
-			weight: Font.Medium
-		}
 
 		Image {
 			id: buttonImage
@@ -34,7 +30,7 @@ Button {
 			fillMode: Image.PreserveAspectFit
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.left: buttonText.right
-			mirror: true
+			mirror: false
 		}
 	}
 
@@ -44,8 +40,9 @@ Button {
 		anchors.topMargin: 10
 		anchors.bottomMargin: 10
 		anchors.rightMargin: - 10
-		color: button.pressed ? buttonText.color : primaryLightColor
+		color: button.pressed ? buttonText.color : primaryColor
 		radius: 10
 		opacity: button.pressed ? 0.12 : 1.0
+		border.color: "black"
 	} // background
 } // button

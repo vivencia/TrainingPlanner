@@ -610,11 +610,15 @@ Page {
 
 					ButtonFlat {
 						id: btnCreateExercisePlan
-						text: qsTr("Create Exercises Plan")
+						text: qsTr("Exercises Planner")
 						Layout.row: 6
 						Layout.column: 0
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
+
+						onClicked: {
+							mesoPropertiesPage.StackView.view.push("ExercisesPlanner.qml", { "mesoId":mesoId });
+						}
 					}
 				} //GridLayout
 			} //Pane

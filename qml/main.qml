@@ -6,19 +6,19 @@ import QtQuick.Layouts
 import "jsfunctions.js" as JSF
 
 ApplicationWindow {
-    id: mainwindow
+	id: mainwindow
 	objectName: "mainWindow"
 	width: 300
 	height: 640
-    visible: true
-    title: "Training Planner"
+	visible: true
+	title: "Training Planner"
 
 	signal backButtonPressed()
 	signal mainMenuOpened()
 	signal mainMenuClosed()
 
-    property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
-    property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
+	property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
+	property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
 	property var colorPalette: AppSettings.themeStyleColorIndex === 2 ? darkPalette : lightPalette
 
 	property color dividerColor: colorPalette[0]
@@ -44,26 +44,29 @@ ApplicationWindow {
 	property var materialBlue: ["#BBDEFB", "#25b5f3", "#1976D2", "#000000", "#FFFFFF", "#FFFFFF", "black", "white", "white"]
 	property color primaryLightColor: materialBlue[0]
 	property color primaryColor: materialBlue[1]
-    property color primaryDarkColor: materialBlue[2]
-    property color textOnPrimaryLight: materialBlue[3]
-    property color textOnPrimary: materialBlue[4]
-    property color textOnPrimaryDark: materialBlue[5]
-    property string iconOnPrimaryLightFolder: materialBlue[6]
-    property string iconOnPrimaryFolder: materialBlue[7]
-    property string iconOnPrimaryDarkFolder: materialBlue[8]
+	property color primaryDarkColor: materialBlue[2]
+	property color textOnPrimaryLight: materialBlue[3]
+	property color textOnPrimary: materialBlue[4]
+	property color textOnPrimaryDark: materialBlue[5]
+	property string iconOnPrimaryLightFolder: materialBlue[6]
+	property string iconOnPrimaryFolder: materialBlue[7]
+	property string iconOnPrimaryDarkFolder: materialBlue[8]
 
-    property var accentPalette: [materialBlue[1], materialBlue[4], materialBlue[7]]
-    property color accentColor: accentPalette[0]
-    property color textOnAccent: accentPalette[1]
-    property string iconOnAccentFolder: accentPalette[2]
+	property var accentPalette: [materialBlue[1], materialBlue[4], materialBlue[7]]
+	property color accentColor: accentPalette[0]
+	property color textOnAccent: accentPalette[1]
+	property string iconOnAccentFolder: accentPalette[2]
 
-    property bool isLandscape: width > height
+	property bool isLandscape: width > height
 	property bool bNavButtonsEnabled: true
 	property bool appDBModified: false
 
 	property date todayFull
 	property date today
 	property int currentMesoIdx: -1
+
+	property var setTypes: [ { key:qsTr("Regular"), idx:0 }, { key:qsTr("Pyramid"), idx:1 }, { key:qsTr("Drop Set"), idx:2 },
+							{ key:qsTr("Cluster Set"), idx:3 }, { key:qsTr("Giant Set"), idx:4 }, { key:qsTr("Myo Reps"), idx:5 } ]
 
 	Timer {
 		id: dateTimer
@@ -124,51 +127,51 @@ ApplicationWindow {
 
 	header: NavBar {
 		id: navBar
-        stackView: stackView
+		stackView: stackView
 
 		Component.onCompleted: {
 			dateTimer.triggered();
 			backupTimer.triggered();
 		}
-    }
+	}
 
 	MainMenu {
 		id: mainMenu
 	}
 
-    Flickable {
-        width: parent.width
-        height: parent.height
-        flickableDirection: Flickable.VerticalFlick
-        boundsBehavior: Flickable.StopAtBounds
+	Flickable {
+		width: parent.width
+		height: parent.height
+		flickableDirection: Flickable.VerticalFlick
+		boundsBehavior: Flickable.StopAtBounds
 
-        ScrollIndicator.vertical: ScrollIndicator {}
+		ScrollIndicator.vertical: ScrollIndicator {}
 
-        HomePage {
-            id: initialPage
+		HomePage {
+			id: initialPage
 
 			Component.onCompleted: Database.init_database();
-        }
+		}
 
-        StackView {
-            id: stackView
-            anchors.fill: parent
-            initialItem: initialPage
-        }
-    }
+		StackView {
+			id: stackView
+			anchors.fill: parent
+			initialItem: initialPage
+		}
+	}
 
-    footer: TabBar {
+	footer: TabBar {
 		id: tabMain
 
-        TabButton {
-            text: qsTr("HOME")
+		TabButton {
+			text: qsTr("HOME")
 			enabled: bNavButtonsEnabled
-            onClicked: {
+			onClicked: {
 				stackView.pop(stackView.get(0));
-            }
-        }
+			}
+		}
 
-        TabButton {
+		TabButton {
 			text: qsTr("  + Training Day")
 			enabled: stackView.depth === 1 && currentMesoIdx >= 0
 			Image {
@@ -189,7 +192,7 @@ ApplicationWindow {
 					"mesoName": meso_name,
 					"mesoId": result[0].mesoCalMesoId
 				});
-            }
-        }
-    }
+			}
+		}
+	}
 } //ApplicationWindow

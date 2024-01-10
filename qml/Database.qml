@@ -61,11 +61,41 @@ QtObject {
 				division_id INTEGER PRIMARY KEY AUTOINCREMENT,
 				meso_id INTEGER,
 				splitA TEXT,
+				splitA_exercisesids TEXT,
+				splitA_exercisesset_types TEXT,
+				splitA_exercisesset_n TEXT,
+				splitA_exercisesset_reps TEXT,
+				splitA_exercisesset_weight TEXT,
 				splitB TEXT,
+				splitB_exercisesids TEXT,
+				splitB_exercisesset_types TEXT,
+				splitB_exercisesset_n TEXT,
+				splitB_exercisesset_reps TEXT,
+				splitB_exercisesset_weight TEXT,
 				splitC TEXT,
+				splitC_exercisesids TEXT,
+				splitC_exercisesset_types TEXT,
+				splitC_exercisesset_n TEXT,
+				splitC_exercisesset_reps TEXT,
+				splitC_exercisesset_weight TEXT,
 				splitD TEXT,
+				splitD_exercisesids TEXT,
+				splitD_exercisesset_types TEXT,
+				splitD_exercisesset_n TEXT,
+				splitD_exercisesset_reps TEXT,
+				splitD_exercisesset_weight TEXT,
 				splitE TEXT,
+				splitE_exercisesids TEXT,
+				splitE_exercisesset_types TEXT,
+				splitE_exercisesset_n TEXT,
+				splitE_exercisesset_reps TEXT,
+				splitE_exercisesset_weight TEXT,
 				splitF TEXT
+				splitF_exercisesids TEXT,
+				splitF_exercisesset_types TEXT,
+				splitF_exercisesset_n TEXT,
+				splitF_exercisesset_reps TEXT,
+				splitF_exercisesset_weight TEXT,
 			)`);
 		});
 	}
@@ -378,7 +408,7 @@ QtObject {
 	function getDivisionForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT * FROM mesocycle_division where meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycle_division where meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
@@ -408,7 +438,7 @@ QtObject {
 
 	function updateMesoDivision(mesoID, split, splitField) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycle_division set split" + split + "=? WHERE meso_id=?", [splitField, mesoID]);
+			tx.executeSql("UPDATE mesocycle_division SET split" + split + "=? WHERE meso_id=?", [splitField, mesoID]);
 		});
 	}
 
@@ -585,6 +615,16 @@ QtObject {
 			results = tx.executeSql("INSERT INTO exercises_table
 							(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list) VALUES(?,?,?,?,?,?,?,?,?,?)",
 							[++exercisesTableLastId, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath,0]);
+		});
+		return results;
+	}
+
+	function updateExercise(exerciseId, mainName, subName, muscularGroup, nSets, nReps, nWeight, mediaPath) {
+		let results;
+		db.transaction(function (tx) {
+			results = tx.executeSql("UPDATE exercises_table SET primary_name=?, secondary_name=?, muscular_group=?,
+									sets=?, reps=?, weight=?, media_path=? WHERE id=?",
+									[mainName, subName, muscularGroup, nSets, nReps, nWeight, mediaPath, exerciseId]);
 		});
 		return results;
 	}

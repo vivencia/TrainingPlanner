@@ -25,7 +25,7 @@ TrainingDayInfo 1.0 TrainingDayInfo.qml
 MealsDayInfo 1.0 MealsDayInfo.qml
 ExerciceEntry 1.0 ExerciceEntry.qml
 ExercicesDatabase 1.0 ExercisesDatabase.qml
-ExercisesPlan 1.0 ExercisesPlan.qml
+ExercisesPlanner 1.0 ExercisesPlanner.qml
 SetTypeRegular 1.0 SetTypeRegular.qml
 SetTypeCluster 1.0 SetTypeCluster.qml
 SetTypeDrop 1.0 SetTypeDrop.qml
