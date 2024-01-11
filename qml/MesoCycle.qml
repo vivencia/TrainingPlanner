@@ -617,7 +617,7 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
-							mesoPropertiesPage.StackView.view.push("ExercisesPlanner.qml", { "mesoId":mesoId });
+							mesoPropertiesPage.StackView.view.push("ExercisesPlanner.qml", { "mesoId":mesoId, "mesoSplit":mesoSplit });
 						}
 					}
 				} //GridLayout

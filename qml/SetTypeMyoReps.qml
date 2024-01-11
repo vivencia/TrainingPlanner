@@ -39,18 +39,6 @@ Item {
 		}
 	}
 
-	TimerDialog {
-		id: dlgTimer
-		simpleTimer: false
-		bJustMinsAndSecs: true
-		windowTitle: lblSetNumber.text
-
-		onUseTime: (time) => {
-			setRestTime = time;
-			setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-		}
-	}
-
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
@@ -91,6 +79,10 @@ Item {
 			onValueChanged: (str, val) => {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
+			}
+
+			onEnterOrReturnKeyPressed: {
+				txtNSubSets.forceActiveFocus();
 			}
 		}
 

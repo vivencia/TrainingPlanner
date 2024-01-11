@@ -36,7 +36,6 @@ qt_add_executable(trainingplanner
 	${SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
-	#java/timer.java
 )
 
 target_link_libraries(trainingplanner PUBLIC
@@ -95,6 +94,7 @@ set(trainingplanner_resource_files
 	"qml/VideoPlayer.qml"
 	"qml/ExercisesPlanner.qml"
 	"qml/ExercisesListView.qml"
+	"qml/MesoSplitPlanner.qml"
 	"qml/qmldir"
 )
 

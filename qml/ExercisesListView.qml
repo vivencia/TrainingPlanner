@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 
 Column {
+	id: mainItem
 	spacing: 0
 
 	property int curIndex: -1
@@ -104,7 +105,7 @@ Column {
 			if (count === 0) {
 				let exercises = Database.getExercises();
 				for (let exercise of exercises)
-				append(exercise);
+					append(exercise);
 			}
 			if (count > 0) {
 				curIndex = 0;
@@ -207,7 +208,7 @@ Column {
 	}
 	TextField {
 		id: txtFilter
-		readOnly: bCanEdit
+		readOnly: !mainItem.enabled
 		enabled: exercisesListModel.count > 0
 		width: parent.width - 30
 		Layout.fillWidth: true

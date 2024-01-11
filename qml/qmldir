@@ -21,6 +21,7 @@ VideoPlayer 1.0 VideoPlayer.qml
 ExercisesListView 1.0 ExercisesListView.qml
 MesoCycle 1.0 MesoCycle.qml
 MesoContent 1.0 MesoContent.qml
+MesoSplitPlanner 1.0 MesoSplitPlanner.qml
 TrainingDayInfo 1.0 TrainingDayInfo.qml
 MealsDayInfo 1.0 MealsDayInfo.qml
 ExerciceEntry 1.0 ExerciceEntry.qml

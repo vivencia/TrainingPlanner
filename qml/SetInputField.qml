@@ -392,6 +392,7 @@ FocusScope {
 	function timeChanged(strTime) {
 		txtMain.text = strTime;
 		changeText(strTime, 0);
+		enterOrReturnKeyPressed();
 	}
 
 	function changeText(text, nbr) {

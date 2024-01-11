@@ -229,8 +229,6 @@ footer: ToolBar {
 			icon.width: 20
 
 			onClicked: {
-				nclient.setNotification("The user is happy!");
-				return;
 				var startDate, endDate;
 				if (mainMesosModel.count === 0) {
 					minimumStartDate = new Date(2023, 0, 2); //first monday of year

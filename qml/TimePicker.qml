@@ -306,10 +306,9 @@ Popup {
 
 		ButtonFlat {
 			text: qsTr("Now")
-			textColor: primaryColor
 			anchors.top: parent.top
 			anchors.left: parent.left
-			anchors.topMargin: -15
+			anchors.leftMargin: 10
 			onClicked: {
 				timePicker.setDisplay(JSF.getTimeStringFromDateTime(new Date()), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 			}
@@ -329,7 +328,6 @@ Popup {
 		ButtonFlat {
 			visible: timePicker.pickMinutes
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
-			textColor: "black"
 			anchors.right: parent.right
 			anchors.top: parent.top
 			anchors.topMargin: -15
@@ -539,7 +537,6 @@ Popup {
 
 		ButtonFlat {
 			text: qsTr("Cancel")
-			textColor: primaryColor
 			anchors.top: parent.top
 			anchors.left: parent.left
 			anchors.leftMargin: 10
@@ -551,7 +548,6 @@ Popup {
 
 		ButtonFlat {
 			text: qsTr("OK")
-			textColor: primaryColor
 			anchors.top: parent.top
 			anchors.right: parent.right
 			anchors.rightMargin: 10

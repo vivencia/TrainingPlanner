@@ -63,7 +63,7 @@ Drawer {
 			id: btnSettingsExDB
 			text: qsTr("Exercises Database")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { stackView.push("ExercisesDatabase.qml"); menuClicked(); }
 			transform: Translate {
@@ -75,7 +75,7 @@ Drawer {
 			id: btnSettingsTheme
 			text: qsTr("Theme")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { stackView.push("ThemeSettingsPage.qml"); menuClicked(); }
 			transform: Translate {
@@ -87,7 +87,7 @@ Drawer {
 			id: btnSettingsLanguage
 			text: qsTr("Language")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { stackView.push("LanguageSettingsPage.qml", {} ); menuClicked(); }
 			transform: Translate {
@@ -99,7 +99,7 @@ Drawer {
 			id: btnSettingsFont
 			text: qsTr("Fonts")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { stackView.push("FontSizePage.qml"); menuClicked(); }
 			transform: Translate {
@@ -111,7 +111,7 @@ Drawer {
 			id: btnSettingsDev
 			text: qsTr("Developer Options")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { stackView.push("DevSettingsPage.qml"); menuClicked(); }
 			transform: Translate {
@@ -129,7 +129,7 @@ Drawer {
 			id: btnTrainingDay
 			text: qsTr("Training")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { dayStack.currentIndex = 0; }
 			transform: Translate {
@@ -146,7 +146,7 @@ Drawer {
 		ButtonFlat {
 			text: qsTr("Meals")
 			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+darkIconFolder+"back.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 			imageMirror: true
 			onClicked: { dayStack.currentIndex = 1; }
 			transform: Translate {

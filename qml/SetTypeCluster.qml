@@ -85,6 +85,10 @@ Item {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 			}
+
+			onEnterOrReturnKeyPressed: {
+				txtNSubSets.forceActiveFocus();
+			}
 		}
 
 		SetInputField {

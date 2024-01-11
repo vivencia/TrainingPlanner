@@ -165,7 +165,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("HOME")
-			enabled: bNavButtonsEnabled
+			enabled: bNavButtonsEnabled && stackView.depth >= 2
 			onClicked: {
 				stackView.pop(stackView.get(0));
 			}

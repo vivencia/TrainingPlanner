@@ -17,16 +17,16 @@ Dialog {
 	spacing: 0
 	padding: 0
 
-	property int hours
-	property int mins
-	property int secs
+	property int hours: 0
+	property int mins: 0
+	property int secs: 0
 	property int totalSecs: secs + 60*mins + 3600*hours
-	property int origHours
-	property int origMins
-	property int origSecs
+	property int origHours: 0
+	property int origMins: 0
+	property int origSecs: 0
 	property bool bJustMinsAndSecs: false
 	property bool bJustSecs: false
-	property bool simpleTimer
+	property bool simpleTimer: false
 	property bool bRunning: false
 	property bool bPaused: false
 	property bool bForward: false
@@ -132,6 +132,7 @@ Dialog {
 				progressBar.value = totalSecs;
 			}
 			bRunning = true;
+			bPaused = false;
 			bTextChanged = false;
 			mainTimer.start();
 		}
@@ -148,6 +149,7 @@ Dialog {
 				mins = origMins;
 				secs = origSecs;
 				progressBar.value = 0;
+				bPaused = false;
 			}
 		}
 	}
@@ -349,18 +351,16 @@ Dialog {
 				}
 
 				onActiveFocusChanged: {
-					if(activeFocus) {
+					if (activeFocus) {
 						txtHours.clear();
+						placeholderText = JSF.intTimeToStrTime(hours);
 					}
 					else {
 						bInputOK = acceptableInput;
-						if (acceptableInput) {
-							if (acceptableInput) {
-								hours = parseInt(text);
-							}
-						}
+						if (acceptableInput)
+							hours = parseInt(text);
 						else
-							text = JSF.intTimeToStrTime(hours)
+							hours = origHours;
 					}
 				}
 				onTextEdited: {
@@ -405,18 +405,16 @@ Dialog {
 				}
 
 				onActiveFocusChanged: {
-					if(activeFocus) {
+					if (activeFocus) {
 						txtMinutes.clear();
+						placeholderText = JSF.intTimeToStrTime(mins);
 					}
 					else {
-						bInputOK = acceptableInput;
-						if (acceptableInput) {
-							if (acceptableInput) {
-								mins = parseInt(text);
-							}
-						}
+						bInputOK = acceptableInput
+						if (acceptableInput)
+							mins = parseInt(text);
 						else
-							text = JSF.intTimeToStrTime(hours)
+							mins = origMins;
 					}
 				}
 				onTextEdited: {
@@ -461,16 +459,15 @@ Dialog {
 				}
 
 				onActiveFocusChanged: {
-					if(activeFocus) {
+					if (activeFocus) {
 						txtSecs.clear();
+						placeholderText = JSF.intTimeToStrTime(secs);
 					}
 					else {
-						bInputOK = acceptableInput;
-						if (acceptableInput) {
+						if (acceptableInput)
 							secs = parseInt(text);
-						}
 						else
-							text = JSF.intTimeToStrTime(hours)
+							secs = origSecs;
 					}
 				}
 				onTextEdited: {
@@ -528,30 +525,34 @@ Dialog {
 
 		Button {
 			id: btnStartPause
-			text: !bRunning ? qsTr("Start") : qsTr("Pause")
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
 			font.pixelSize: AppSettings.fontSizePixelSize
 			width: 70
 			height: 30
+			text: qsTr("Start")
 			x: ((parent.width / 3) - width ) / 2
 			onClicked: {
 				playSound.stop();
 				if (!bRunning) {
-					if (!bPaused) {
+					if (!bPaused) { //Start
 						origHours = hours;
 						origMins = mins;
 						origSecs = secs;
 						mainTimer.init();
 					}
-					else {
-						bRunning = true;
+					else { //Continue
 						bPaused = false;
+						bRunning = true;
 						mainTimer.start();
 					}
+					text = qsTr("Pause");
 				}
-				else {
-					bPaused = true;
-					mainTimer.stopTimer(false);
+				else { //Pause
+					if (!bPaused) {
+						bPaused = true;
+						mainTimer.stopTimer(false);
+						text = qsTr("Continue");
+					}
 				}
 			}
 		}
@@ -560,15 +561,14 @@ Dialog {
 			id: btnReset
 			text: qsTr("Reset")
 			font.pixelSize: AppSettings.fontSizePixelSize
-			enabled: btnStartPause.enabled
+			enabled: bRunning ? false : bPaused
 			width: 70
 			height: 30
 			x: (parent.width / 3) + btnStartPause.x
 			onClicked: {
-				if (bRunning || bPaused) {
-					mainTimer.stopTimer(true);
-					playSound.stop();
-				}
+				mainTimer.stopTimer(true);
+				playSound.stop();
+				btnStartPause.text = qsTr("Start");
 			}
 		}
 
@@ -621,6 +621,7 @@ Dialog {
 				}
 				dlgTimer.close();
 				mainTimer.stopTimer(true);
+				btnStartPause.text = qsTr("Start");
 			}
 		}
 	} // recButtons

@@ -292,7 +292,7 @@ Page {
 			RowLayout {
 				id: toolbarExercises
 				Layout.fillWidth: true
-				spacing: 0
+				spacing: 2
 
 				ButtonFlat {
 					id:btnNewExercise

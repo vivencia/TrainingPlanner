@@ -167,6 +167,10 @@ Item {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 			}
+
+			onEnterOrReturnKeyPressed: {
+				txtNReps1.forceActiveFocus();
+			}
 		}
 
 		Rectangle {

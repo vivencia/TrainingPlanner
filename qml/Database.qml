@@ -61,41 +61,41 @@ QtObject {
 				division_id INTEGER PRIMARY KEY AUTOINCREMENT,
 				meso_id INTEGER,
 				splitA TEXT,
-				splitA_exercisesids TEXT,
+				splitA_exercisesnames TEXT,
 				splitA_exercisesset_types TEXT,
 				splitA_exercisesset_n TEXT,
 				splitA_exercisesset_reps TEXT,
 				splitA_exercisesset_weight TEXT,
 				splitB TEXT,
-				splitB_exercisesids TEXT,
+				splitB_exercisesnames TEXT,
 				splitB_exercisesset_types TEXT,
 				splitB_exercisesset_n TEXT,
 				splitB_exercisesset_reps TEXT,
 				splitB_exercisesset_weight TEXT,
 				splitC TEXT,
-				splitC_exercisesids TEXT,
+				splitC_exercisesnames TEXT,
 				splitC_exercisesset_types TEXT,
 				splitC_exercisesset_n TEXT,
 				splitC_exercisesset_reps TEXT,
 				splitC_exercisesset_weight TEXT,
 				splitD TEXT,
-				splitD_exercisesids TEXT,
+				splitD_exercisesnames TEXT,
 				splitD_exercisesset_types TEXT,
 				splitD_exercisesset_n TEXT,
 				splitD_exercisesset_reps TEXT,
 				splitD_exercisesset_weight TEXT,
 				splitE TEXT,
-				splitE_exercisesids TEXT,
+				splitE_exercisesnames TEXT,
 				splitE_exercisesset_types TEXT,
 				splitE_exercisesset_n TEXT,
 				splitE_exercisesset_reps TEXT,
 				splitE_exercisesset_weight TEXT,
-				splitF TEXT
-				splitF_exercisesids TEXT,
+				splitF TEXT,
+				splitF_exercisesnames TEXT,
 				splitF_exercisesset_types TEXT,
 				splitF_exercisesset_n TEXT,
 				splitF_exercisesset_reps TEXT,
-				splitF_exercisesset_weight TEXT,
+				splitF_exercisesset_weight TEXT
 			)`);
 		});
 	}
@@ -424,6 +424,146 @@ QtObject {
 			}
 		});
 		return mesodivision;
+	}
+
+	function getCompleteDivisionAForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitA_exercisesnames,splitA_exercisesset_types,
+					splitA_exercisesset_n,splitA_exercisesset_reps,splitA_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "A",
+					"splitText": divisionRow.splitA,
+					"splitExercises": divisionRow.splitA_exercisesnames,
+					"splitSetTypes": divisionRow.splitA_exercisesset_types,
+					"splitNSets": divisionRow.splitA_exercisesset_n,
+					"splitNReps": divisionRow.splitA_exercisesset_reps,
+					"splitNWeight": divisionRow.splitA_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function getCompleteDivisionBForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitB_exercisesnames,splitB_exercisesset_types,
+							 splitB_exercisesset_n,splitB_exercisesset_reps,splitB_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "B",
+					"splitText": divisionRow.splitB,
+					"splitExercises": divisionRow.splitB_exercisesnames,
+					"splitSetTypes": divisionRow.splitB_exercisesset_types,
+					"splitNSets": divisionRow.splitB_exercisesset_n,
+					"splitNReps": divisionRow.splitB_exercisesset_reps,
+					"splitNWeight": divisionRow.splitB_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function getCompleteDivisionCForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitC_exercisesnames,splitC_exercisesset_types,
+							 splitC_exercisesset_n,splitC_exercisesset_reps,splitC_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "C",
+					"splitText": divisionRow.splitC,
+					"splitExercises": divisionRow.splitC_exercisesnames,
+					"splitSetTypes": divisionRow.splitC_exercisesset_types,
+					"splitNSets": divisionRow.splitC_exercisesset_n,
+					"splitNReps": divisionRow.splitC_exercisesset_reps,
+					"splitNWeight": divisionRow.splitC_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function getCompleteDivisionDForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitD_exercisesnames,splitD_exercisesset_types,
+							 splitD_exercisesset_n,splitD_exercisesset_reps,splitD_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "D",
+					"splitText": divisionRow.splitD,
+					"splitExercises": divisionRow.splitD_exercisesnames,
+					"splitSetTypes": divisionRow.splitD_exercisesset_types,
+					"splitNSets": divisionRow.splitD_exercisesset_n,
+					"splitNReps": divisionRow.splitD_exercisesset_reps,
+					"splitNWeight": divisionRow.splitD_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function getCompleteDivisionEForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitE_exercisesnames,splitE_exercisesset_types,
+							 splitE_exercisesset_n,splitE_exercisesset_reps,splitE_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "E",
+					"splitText": divisionRow.splitE,
+					"splitExercises": divisionRow.splitE_exercisesnames,
+					"splitSetTypes": divisionRow.splitE_exercisesset_types,
+					"splitNSets": divisionRow.splitE_exercisesset_n,
+					"splitNReps": divisionRow.splitE_exercisesset_reps,
+					"splitNWeight": divisionRow.splitE_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function getCompleteDivisionFForMeso(mesoId) {
+		let mesodivision = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT division_id,splitF_exercisesnames,splitF_exercisesset_types,
+							 splitF_exercisesset_n,splitF_exercisesset_reps,splitF_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			for (let i = 0; i < results.rows.length; i++) {
+				let divisionRow = results.rows.item(i);
+				mesodivision.push({
+					"divisionId": divisionRow.division_id,
+					"splitLetter": "F",
+					"splitText": divisionRow.splitF,
+					"splitExercises": divisionRow.splitF_exercisesnames,
+					"splitSetTypes": divisionRow.splitF_exercisesset_types,
+					"splitNSets": divisionRow.splitF_exercisesset_n,
+					"splitNReps": divisionRow.splitF_exercisesset_reps,
+					"splitNWeight": divisionRow.splitF_exercisesset_weight
+				});
+			}
+		});
+		return mesodivision;
+	}
+
+	function updateMesoDivisionComplete(id, split, exercises, types, nsets, nreps, nweights) {
+		db.transaction(function (tx) {
+			tx.executeSql("UPDATE mesocycle_division SET split" + split + "_exercisesnames=?, split" + split + "_exercisesset_types=?, split" +
+			split + "_exercisesset_n=?, split" + split + "_exercisesset_reps=?, split" + split + "_exercisesset_weight=? WHERE division_id=?",
+			[split,exercises,types,nsets,nreps,nweights,id]);
+		});
 	}
 
 	function newMesoDivision(mesoId, splitA, splitB, splitC, splitD, splitE, splitF) {
