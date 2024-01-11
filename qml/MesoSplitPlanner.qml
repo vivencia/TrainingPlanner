@@ -13,9 +13,11 @@ Frame {
 	property string splitNSets
 	property string splitNReps
 	property string splitNWeight
+	property bool bCurrentItem: false
 
 	property int currentModelIndex: 0
 	property int seconds: 0
+	property bool bModified: false
 
 	signal currentSplitObjectChanged(var splitItem)
 
@@ -48,7 +50,7 @@ Frame {
 
 	property bool shown: true
 	visible: height > 0
-	height: shown ? implicitHeight : lblMain.height
+	height: shown ? implicitHeight : lblMain.height * 3
 	Behavior on height {
 		NumberAnimation {
 			easing.type: Easing.InOutQuad
@@ -74,15 +76,14 @@ Frame {
 		Label {
 			id: lblMain
 			text: qsTr("Training Division ") + splitLetter
-			Layout.fillWidth: true
-			Layout.alignment: Qt.AlignCenter
+			Layout.alignment: Qt.AlignHCenter|Qt.AlignTop
 			Layout.topMargin: 10
 			Layout.maximumWidth: parent.width - 20
+			font.bold: true
 			z: 1
 
 			Image {
 				anchors.left: lblMain.right
-				anchors.leftMargin: -20
 				anchors.verticalCenter: lblMain.verticalCenter
 				source: paneSplit.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
 				height: 20
@@ -108,9 +109,14 @@ Frame {
 			text: splitText
 			font.pixelSize: AppSettings.fontSizeText
 			Layout.fillWidth: true
-			Layout.leftMargin: 10
+			Layout.leftMargin: 5
 			Layout.rightMargin: 20
 			font.bold: true
+
+			onTextEdited: {
+				splitText = text;
+				bModified = true;
+			}
 		}
 
 		Label {
@@ -158,18 +164,7 @@ Frame {
 			Layout.fillWidth: true
 			Layout.rightMargin: 10
 			Layout.leftMargin: 5
-			Layout.minimumHeight: 400
-
-			ScrollBar.horizontal: ScrollBar {
-				id: hBar
-				policy: ScrollBar.AsNeeded
-				active: true; visible: lstSplitAExercises.totalWidth > lstSplitAExercises.width
-			}
-			ScrollBar.vertical: ScrollBar {
-				id: vBar
-				policy: ScrollBar.AsNeeded
-				active: true; visible: lstSplitAExercises.totalHeight > lstSplitAExercises.height
-			}
+			Layout.minimumHeight: 200
 
 			function setModel(newmodel) {
 				model = newmodel;
@@ -206,13 +201,12 @@ Frame {
 						text: exerciseName
 						wrapMode: Text.WordWrap
 						readOnly: !delegate.bEditName
-						focus: true
 						Layout.row: 0
 						Layout.column: 0
 						Layout.columnSpan: 2
-						Layout.minimumWidth: parent.width - 30
-						Layout.maximumWidth: parent.width - 30
-						width: parent.width - 30
+						Layout.minimumWidth: parent.width - 40
+						Layout.maximumWidth: parent.width - 40
+						width: parent.width - 40
 
 							background: Rectangle {
 							color: txtExerciseName.readOnly ? "transparent" : "white"
@@ -223,6 +217,10 @@ Frame {
 						Keys.onReturnPressed: { //Alphanumeric keyboard
 							delegate.bEditName = false;
 							cboSetType.forceActiveFocus();
+						}
+
+						onPressed: (mouse) => { //relay the signal to the delegate
+							mouse.accepted = false;
 						}
 
 						onEditingFinished: {
@@ -270,7 +268,7 @@ Frame {
 						Layout.rightMargin: 5
 
 						onActivated: (index) => {
-							exercisesListModel.setProperty(currentModelIndex, "setType", currentValue);
+							exercisesListModel.setProperty(currentModelIndex, "setType", currentValue.toString());
 							txtNSets.forceActiveFocus();
 						}
 					}
@@ -345,7 +343,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+					color: bCurrentItem ? currentModelIndex === index? "lightcoral" : index % 2 === 0 ? "#dce3f0" : "#c3cad5" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 				}
 
 				Component.onCompleted: {
@@ -356,7 +354,7 @@ Frame {
 
 				onClicked: {
 					currentModelIndex = index;
-					currentSplitObjectChanged(this);
+					currentSplitObjectChanged(paneSplit);
 				}
 
 				swipe.right: Rectangle {
@@ -403,9 +401,10 @@ Frame {
 
 		ButtonFlat {
 			id: btnSave
-			text: qsTr("Save Plan")
+			text: qsTr("Save Plan for division ") + splitLetter
 			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: 10
+			enabled: bModified
 
 			onClicked: saveMesoDivisionPlan();
 		}
@@ -435,19 +434,17 @@ Frame {
 
 	function appendNewExerciseToDivision() {
 		currentModelIndex = exercisesListModel.count;
-		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":0,
-			"setsNumber":0, "repsNumber":12, "weightValue": 20 } );
-		if (currentModelIndex === 0)
-		lstSplitAExercises.setModel(exercisesListModel);
-		currentSplitObjectChanged(this);
+		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
+			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
+		currentSplitObjectChanged(paneSplit);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight) {
 		if (exercisesListModel.count > 0) {
 			exercisesListModel.setProperty(currentModelIndex, "exerciseName", name1 + " - " + name2);
-			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets);
-			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps);
-			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight);
+			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets.toString());
+			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps.toString());
+			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight.toString());
 		}
 	}
 
@@ -459,7 +456,7 @@ Frame {
 			var nreps = exercisesListModel.get(i).repsNumber + '|';
 			var nweights = exercisesListModel.get(i).weightValue + '|';
 		}
-		Database.updateMesoDivisionComplete(divisionId, exercises.slice(0, -1), types.slice(0, -1),
+		Database.updateMesoDivisionComplete(divisionId, exercisesListModel.get(0).splitText , exercises.slice(0, -1), types.slice(0, -1),
 			nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
 	}
 } //Page

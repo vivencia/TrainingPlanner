@@ -109,11 +109,16 @@ Page {
 						splitNWeight:results[0].splitNWeight
 				});
 				object.currentSplitObjectChanged.connect(selectSplitItem);
+				if (idx === 0)
+					selectSplitItem(object);
 			}
 		} while (++idx < mesoSplit.length);
 	}
 
 	function selectSplitItem(splitObjectItem) {
+		if (currentSplitItem !== null)
+			currentSplitItem.bCurrentItem = false;
 		currentSplitItem = splitObjectItem;
+		currentSplitItem.bCurrentItem = true;
 	}
 } //Page

@@ -429,7 +429,7 @@ QtObject {
 	function getCompleteDivisionAForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitA_exercisesnames,splitA_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitA,splitA_exercisesnames,splitA_exercisesset_types,
 					splitA_exercisesset_n,splitA_exercisesset_reps,splitA_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -451,7 +451,7 @@ QtObject {
 	function getCompleteDivisionBForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitB_exercisesnames,splitB_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitB,splitB_exercisesnames,splitB_exercisesset_types,
 							 splitB_exercisesset_n,splitB_exercisesset_reps,splitB_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -473,7 +473,7 @@ QtObject {
 	function getCompleteDivisionCForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitC_exercisesnames,splitC_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitC,splitC_exercisesnames,splitC_exercisesset_types,
 							 splitC_exercisesset_n,splitC_exercisesset_reps,splitC_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -495,7 +495,7 @@ QtObject {
 	function getCompleteDivisionDForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitD_exercisesnames,splitD_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitD,splitD_exercisesnames,splitD_exercisesset_types,
 							 splitD_exercisesset_n,splitD_exercisesset_reps,splitD_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -517,7 +517,7 @@ QtObject {
 	function getCompleteDivisionEForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitE_exercisesnames,splitE_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitE,splitE_exercisesnames,splitE_exercisesset_types,
 							 splitE_exercisesset_n,splitE_exercisesset_reps,splitE_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -539,7 +539,7 @@ QtObject {
 	function getCompleteDivisionFForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitF_exercisesnames,splitF_exercisesset_types,
+			let results = tx.executeSql("SELECT division_id,splitF,splitF_exercisesnames,splitF_exercisesset_types,
 							 splitF_exercisesset_n,splitF_exercisesset_reps,splitF_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
@@ -558,10 +558,11 @@ QtObject {
 		return mesodivision;
 	}
 
-	function updateMesoDivisionComplete(id, split, exercises, types, nsets, nreps, nweights) {
+	function updateMesoDivisionComplete(id, split, splitgroup, exercises, types, nsets, nreps, nweights) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycle_division SET split" + split + "_exercisesnames=?, split" + split + "_exercisesset_types=?, split" +
-			split + "_exercisesset_n=?, split" + split + "_exercisesset_reps=?, split" + split + "_exercisesset_weight=? WHERE division_id=?",
+			tx.executeSql("UPDATE mesocycle_division SET split" + split + "=?, split" + split + "_exercisesnames=?, split" +
+			split + "_exercisesset_types=?, split" + split + "_exercisesset_n=?, split" + split + "_exercisesset_reps=?, split" +
+			split + "_exercisesset_weight=? WHERE division_id=?",
 			[split,exercises,types,nsets,nreps,nweights,id]);
 		});
 	}
