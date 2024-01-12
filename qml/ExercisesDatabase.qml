@@ -217,22 +217,11 @@ Page {
 				Layout.leftMargin: 5
 			}
 
-			RowLayout {
-				Layout.alignment: Qt.AlignHCenter
-				Layout.maximumHeight: 50
-				enabled: bCanEdit
-
-				ButtonFlat {
-					id: btnChooseMediaFromDevice
-					text: qsTr("File")
-					onClicked: chooseMediaFromDevice();
-
-				}
-				ButtonFlat {
-					id: btnChooseMediaFromCamera
-					text: qsTr("Camera")
-					//onClicked: camera.start();
-				}
+			ButtonFlat {
+				id: btnChooseMediaFromDevice
+				text: qsTr("File")
+				onClicked: chooseMediaFromDevice();
+				Layout.alignment: Qt.AlignCenter
 			}
 		} // ColumnLayout
 	} // ScrollView

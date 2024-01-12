@@ -299,7 +299,7 @@ Page {
 				font.bold: true
 				color: "white"
 				font.pixelSize: AppSettings.fontSize
-				horizontalAlignment: Qt.AlignHCenter
+				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
 			Label {
@@ -308,7 +308,7 @@ Page {
 				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
 				font.pixelSize: AppSettings.fontSizeLists
-				horizontalAlignment: Qt.AlignHCenter
+				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 2
@@ -456,9 +456,6 @@ Page {
 
 		model: ListModel {
 			id: mesoMonthsModel
-
-			//Component.onCompleted:
-				//readDatabase(false);
 		}
 
 		property date dayInfoDate

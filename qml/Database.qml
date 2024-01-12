@@ -563,7 +563,7 @@ QtObject {
 			tx.executeSql("UPDATE mesocycle_division SET split" + split + "=?, split" + split + "_exercisesnames=?, split" +
 			split + "_exercisesset_types=?, split" + split + "_exercisesset_n=?, split" + split + "_exercisesset_reps=?, split" +
 			split + "_exercisesset_weight=? WHERE division_id=?",
-			[split,exercises,types,nsets,nreps,nweights,id]);
+			[splitgroup, exercises, types, nsets, nreps, nweights, id]);
 		});
 	}
 
@@ -921,17 +921,15 @@ QtObject {
 		});
 	}
 
-	function getPreviousTrainingDayForDivision(division, mesoId, date) {
+	function getPreviousTrainingDayForDivision(division, tday, mesoId) {
 		let dayinfo = [];
-		console.log("getPreviousTrainingDayForDivision. Searching for date:   ", new Date(date).toDateString());
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT * FROM training_day WHERE date<? AND meso_id=? AND split_letter=?", [date, mesoId,division]);
+			let results = tx.executeSql("SELECT * FROM training_day WHERE meso_id=? AND split_letter=? AND day_number<?", [mesoId, division, tday]);
 			const len = results.rows.length;
 			if(len > 0) {
 				var i = len - 1;
 				do {
-					console.log("getPreviousTrainingDayForDivision. Found date:   ", new Date(results.rows.item(i).date).toDateString());
-					console.log(date);
+					console.log("getPreviousTrainingDayForDivision. Found day number:   ", results.rows.item(i).day_number);
 					let row = results.rows.item(i);
 					if (row.exercises_ids) {
 						dayinfo.push({
@@ -952,6 +950,36 @@ QtObject {
 		});
 		return dayinfo;
 	}
+
+	/*function getPreviousTrainingDayForDivision(division, tday, mesoId) {
+		let dayinfo = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT * FROM training_day");
+			const len = results.rows.length;
+			console.log(len);
+			if(len > 0) {
+				var i = len - 1;
+				do {
+					let row = results.rows.item(i);
+					//if (row.exercises_ids) {
+						//dayinfo.push({
+						console.log("dayId   ", row.id);
+						console.log("dayDate   ", new Date(row.date).toDateString());
+						console.log("mesoId   ", row.meso_id);
+						console.log("exercisesIds   ", row.exercises_ids);
+						console.log("dayNumber   ", row.day_number);
+						console.log("daySplitLetter   ", row.split_letter);
+						console.log("dayTimeIn   ", row.time_in);
+						console.log("dayTimeOut   ", row.time_out);
+						console.log("dayLocation   ", row.location);
+						console.log("dayNotes   ", row.notes);
+						//});
+					//}
+				} while (--i >= 0);
+			}
+		});
+		return dayinfo;
+	}*/
 
 	function getSetsInfo(tdayId) {
 		let setsInfo = [];

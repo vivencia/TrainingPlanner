@@ -7,6 +7,7 @@ Page {
 	required property int mesoId
 	required property string mesoSplit
 	property var currentSplitItem: null
+	property var navButtons: null
 
 	ScrollView {
 		id: scrollMain
@@ -15,6 +16,23 @@ Page {
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
 		padding: 2
+
+		ScrollBar.vertical.onPositionChanged: {
+			if (navButtons) {
+				if (contentItem.contentY <= 50) {
+					navButtons.showUpButton = false;
+					navButtons.showDownButton = true;
+				}
+				else if (contentItem.contentY >= height + navBar.height) {
+					navButtons.showUpButton = true;
+					navButtons.showDownButton = false;
+				}
+				else {
+					navButtons.showUpButton = true;
+					navButtons.showDownButton = true;
+				}
+			}
+		}
 
 		ColumnLayout {
 			id: layoutMain
@@ -108,17 +126,46 @@ Page {
 						splitNSets:results[0].splitNSets, splitNReps:results[0].splitNReps,
 						splitNWeight:results[0].splitNWeight
 				});
-				object.currentSplitObjectChanged.connect(selectSplitItem);
+				object.selectedSplitObjectChanged.connect(selectSplitItem);
+				object.scrollPage.connect(scrollDown);
 				if (idx === 0)
-					selectSplitItem(object);
+					selectSplitItem(object, "");
 			}
 		} while (++idx < mesoSplit.length);
+		if (idx > 0)
+			createNavButtons();
 	}
 
-	function selectSplitItem(splitObjectItem) {
+	function selectSplitItem(splitObjectItem, strFilter) {
 		if (currentSplitItem !== null)
 			currentSplitItem.bCurrentItem = false;
 		currentSplitItem = splitObjectItem;
 		currentSplitItem.bCurrentItem = true;
+		exercisesList.setFilter(strFilter);
+	}
+
+	function createNavButtons() {
+		if (navButtons === null) {
+			var component = Qt.createComponent("PageScrollButtons.qml");
+			navButtons = component.createObject(this, {});
+			navButtons.scrollTo.connect(setScrollBarPosition);
+			navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
+		}
+		navButtons.visible = true;
+	}
+
+	function maybeShowNavButtons() {
+		navButtons.showButtons();
+	}
+
+	function setScrollBarPosition(pos) {
+		if (pos === 0)
+			scrollMain.ScrollBar.vertical.setPosition(0);
+		else
+			scrollMain.ScrollBar.vertical.setPosition(pos - scrollMain.ScrollBar.vertical.size/2);
+	}
+
+	function scrollDown(npixels) {
+		scrollMain.contentItem.contentY += npixels/2;
 	}
 } //Page

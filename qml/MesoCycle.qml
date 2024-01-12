@@ -804,7 +804,7 @@ Page {
 					});
 
 					bNewMeso = false;
-					idxDivision = divisionModel.count - 1;
+					//idxDivision = divisionModel.count - 1;
 					dateTimer.triggered(); //Update tabBar and the meso model index it uses
 				}
 				else {

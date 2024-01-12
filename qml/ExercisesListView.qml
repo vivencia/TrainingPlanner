@@ -366,4 +366,8 @@ Column {
 			filterModel.setProperty(curIndex, "mediaPath", media);
 		}
 	}
+
+	function setFilter(strFilter) {
+		txtFilter.text = strFilter;
+	}
 }

@@ -13,13 +13,17 @@ Frame {
 	property string splitNSets
 	property string splitNReps
 	property string splitNWeight
-	property bool bCurrentItem: false
+	property var currentSplitObject: null
 
+	property bool bCurrentItem: false
+	property bool bCanEditExercise: false
 	property int currentModelIndex: 0
 	property int seconds: 0
 	property bool bModified: false
+	property string filterString: ""
 
-	signal currentSplitObjectChanged(var splitItem)
+	signal selectedSplitObjectChanged(var splitItem, string strFilter)
+	signal scrollPage(int npixels)
 
 	ListModel {
 		id: exercisesListModel
@@ -116,44 +120,13 @@ Frame {
 			onTextEdited: {
 				splitText = text;
 				bModified = true;
+				makeFilterString();
+				selectedSplitObjectChanged(paneSplit, filterString);
 			}
 		}
 
-		Label {
-			text: qsTr("Exercises:")
-			Layout.leftMargin: 5
-			width: pagePlanner.width / 2
-
-			ToolButton {
-				id: btnAddExercise
-				height: 25
-				width: 25
-				text: qsTr("Add exercise")
-				font.capitalization: Font.MixedCase
-				display: AbstractButton.TextBesideIcon
-
-				anchors {
-					left: parent.right
-					verticalCenter: parent.verticalCenter
-					leftMargin: 10
-				}
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"add-new.png"
-					height: 20
-					width: 20
-				}
-
-				onClicked: {
-					bottomPane.shown = true;
-					appendNewExerciseToDivision();
-					//activeSplitObject = this;
-				}
-			} //btnAddExercise
-		} //Label
-
 		ListView {
-			id: lstSplitAExercises
+			id: lstSplitExercises
 			boundsBehavior: Flickable.StopAtBounds
 			flickableDirection: Flickable.VerticalFlick
 			contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
@@ -174,24 +147,14 @@ Frame {
 				id: delegate
 				spacing: 0
 				padding: 0
-				implicitWidth: Math.max(lstSplitAExercises.width, listItem.implicitWidth)
+				implicitWidth: Math.max(lstSplitExercises.width, listItem.implicitWidth)
 				implicitHeight: listItem.height
 				clip: false
-				property bool bEditName: false
-
-				contentItem: Rectangle {
-					id: listItem
-					width: lstSplitAExercises.width - 10
-					height: (contentsLayout.rows + 1) * 40
-					border.color: "transparent"
-					color: "transparent"
-					radius: 5
-				}
 
 				GridLayout {
 					id: contentsLayout
 					anchors.fill: parent
-					rows: 5
+					rows: 6
 					columns: 2
 					rowSpacing: 2
 					columnSpacing: 2
@@ -200,7 +163,7 @@ Frame {
 						id: txtExerciseName
 						text: exerciseName
 						wrapMode: Text.WordWrap
-						readOnly: !delegate.bEditName
+						readOnly: !bCanEditExercise
 						Layout.row: 0
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -208,14 +171,14 @@ Frame {
 						Layout.maximumWidth: parent.width - 40
 						width: parent.width - 40
 
-							background: Rectangle {
+						background: Rectangle {
 							color: txtExerciseName.readOnly ? "transparent" : "white"
 							border.color: txtExerciseName.readOnly ? "transparent" : "black"
 							radius: 5
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							delegate.bEditName = false;
+							bCanEditExercise = false;
 							cboSetType.forceActiveFocus();
 						}
 
@@ -224,7 +187,8 @@ Frame {
 						}
 
 						onEditingFinished: {
-							exercisesListModel.setProperty(currentModelIndex, "exerciseName", text);
+							exercisesListModel.setProperty(index, "exerciseName", text);
+							bModified = true;
 						}
 
 						ToolButton {
@@ -235,6 +199,8 @@ Frame {
 							height: 25
 							width: 25
 							z: 2
+							enabled: bCurrentItem && index === currentModelIndex
+
 							Image {
 								source: "qrc:/images/"+darkIconFolder+"edit.png"
 								anchors.verticalCenter: parent.verticalCenter
@@ -244,8 +210,10 @@ Frame {
 							}
 
 							onClicked: {
-								delegate.bEditName = !delegate.bEditName;
-								txtExerciseName.forceActiveFocus();
+								bCanEditExercise = !bCanEditExercise;
+								bottomPane.shown = bCanEditExercise;
+								if (bCanEditExercise)
+									txtExerciseName.forceActiveFocus();
 							}
 						} //ToolButton btnEditExercise
 					} //TextField
@@ -266,10 +234,12 @@ Frame {
 						Layout.row: 1
 						Layout.column: 1
 						Layout.rightMargin: 5
+						enabled: bCurrentItem && index === currentModelIndex
 
 						onActivated: (index) => {
 							exercisesListModel.setProperty(currentModelIndex, "setType", currentValue.toString());
 							txtNSets.forceActiveFocus();
+							bModified = true;
 						}
 					}
 
@@ -289,6 +259,11 @@ Frame {
 						Layout.row: 2
 						Layout.column: 1
 						Layout.rightMargin: 5
+						enabled: bCurrentItem && index === currentModelIndex
+
+						onValueChanged: (str, val) => {
+							exercisesListModel.setProperty(index, "setsNumber", str);
+						}
 
 						onEnterOrReturnKeyPressed: {
 							txtNReps.forceActiveFocus();
@@ -311,6 +286,11 @@ Frame {
 						Layout.row: 3
 						Layout.column: 1
 						Layout.rightMargin: 5
+						enabled: bCurrentItem && index === currentModelIndex
+
+						onValueChanged: (str, val) => {
+							exercisesListModel.setProperty(index, "repsNumber", str);
+						}
 
 						onEnterOrReturnKeyPressed: {
 							txtNWeight.forceActiveFocus();
@@ -333,12 +313,44 @@ Frame {
 						Layout.row: 4
 						Layout.column: 1
 						Layout.rightMargin: 5
+						enabled: bCurrentItem && index === currentModelIndex
 
-						onEnterOrReturnKeyPressed: {
-							//save?
+						onValueChanged: (str, val) => {
+							exercisesListModel.setProperty(index, "weightValue", str);
 						}
 					}
+
+					ToolButton {
+						id: btnAddExercise
+						height: 25
+						text: qsTr("Add exercise")
+						font.capitalization: Font.MixedCase
+						display: AbstractButton.TextBesideIcon
+						visible: index === exercisesListModel.count - 1
+						Layout.row: 5
+						Layout.column: 0
+						Layout.columnSpan: 2
+						Layout.alignment: Qt.AlignCenter
+						Layout.minimumWidth: 150
+						icon.source: "qrc:/images/"+darkIconFolder+"add-new.png"
+						icon.width: 25
+						icon.height: 25
+
+						onClicked: {
+							appendNewExerciseToDivision();
+							lstSplitExercises.positionViewAtIndex(currentModelIndex, ListView.Beginning);
+						}
+					} //btnAddExercise
 				} //GridLayout
+
+				contentItem: Rectangle {
+					id: listItem
+					width: lstSplitExercises.width - 10
+					height: (contentsLayout.rows + 1) * 40
+					border.color: "transparent"
+					color: "transparent"
+					radius: 5
+				}
 
 				background: Rectangle {
 					id:	backgroundColor
@@ -347,14 +359,16 @@ Frame {
 				}
 
 				Component.onCompleted: {
-					if ( lstSplitAExercises.totalWidth < width )
-						lstSplitAExercises.totalWidth = width;
-					lstSplitAExercises.totalHeight += height;
+					if ( lstSplitExercises.totalWidth < width )
+						lstSplitExercises.totalWidth = width;
+					lstSplitExercises.totalHeight += height;
 				}
 
 				onClicked: {
-					currentModelIndex = index;
-					currentSplitObjectChanged(paneSplit);
+					if (currentModelIndex !== index)
+						currentModelIndex = index;
+					if (!bCurrentItem)
+						selectedSplitObjectChanged(paneSplit, filterString);
 				}
 
 				swipe.right: Rectangle {
@@ -411,20 +425,22 @@ Frame {
 	} //ColumnLayout
 
 	Component.onCompleted: {
-		lstSplitAExercises.setModel(exercisesListModel);
-		const exercises = splitExercises.split('|');
-		const nExercises = exercises.length;
-		if (nExercises === 0) {
+		lstSplitExercises.setModel(exercisesListModel);
+		makeFilterString();
+
+		if (splitExercises.length === 0) {
 			appendNewExerciseToDivision();
 			return;
 		}
 
-		var i = 0;
+		const exercises = splitExercises.split('|');
 		const types = splitSetTypes.split('|');
 		const nsets = splitNSets.split('|');
 		const nreps = splitNReps.split('|');
 		const nweights = splitNWeight.split('|');
-		while (i < nExercises) {
+		var i = 0;
+
+		while (i < exercises.length) {
 			exercisesListModel.append ({ "exerciseName":exercises[i], "setType":types[i],
 			"setsNumber":nsets[i], "repsNumber":nreps[i], "weightValue":nweights[i] });
 			i++;
@@ -436,27 +452,44 @@ Frame {
 		currentModelIndex = exercisesListModel.count;
 		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
 			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
-		currentSplitObjectChanged(paneSplit);
+		selectedSplitObjectChanged(paneSplit, filterString);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight) {
-		if (exercisesListModel.count > 0) {
+		if (bCanEditExercise) {
 			exercisesListModel.setProperty(currentModelIndex, "exerciseName", name1 + " - " + name2);
 			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets.toString());
 			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps.toString());
 			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight.toString());
+			bModified = true;
 		}
 	}
 
 	function saveMesoDivisionPlan() {
+		var exercises, types, nsets, nreps,nweights;
 		for (var i = 0; i < exercisesListModel.count; ++i) {
-			var exercises = exercisesListModel.get(i).exerciseName + '|';
-			var types = exercisesListModel.get(i).setType + '|';
-			var nsets = exercisesListModel.get(i).setsNumber + '|';
-			var nreps = exercisesListModel.get(i).repsNumber + '|';
-			var nweights = exercisesListModel.get(i).weightValue + '|';
+			exercises += exercisesListModel.get(i).exerciseName + '|';
+			types += exercisesListModel.get(i).setType + '|';
+			nsets += exercisesListModel.get(i).setsNumber + '|';
+			nreps += exercisesListModel.get(i).repsNumber + '|';
+			nweights += exercisesListModel.get(i).weightValue + '|';
 		}
-		Database.updateMesoDivisionComplete(divisionId, exercisesListModel.get(0).splitText , exercises.slice(0, -1), types.slice(0, -1),
-			nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
+		Database.updateMesoDivisionComplete(divisionId, splitLetter, splitText,	exercises.slice(0, -1),
+					types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
+		bModified = false;
+	}
+
+	function makeFilterString() {
+		var words = splitText.split(' ');
+		for( var i = 0; i < words.length; ++i) {
+			if (words[i].length >= 3) {
+				if (AppSettings.appLocale === "pt_BR") {
+					if (words[i].charAt(words[i].length-1) === 's')
+						words[i] = words[i].slice(0, -1);
+				}
+				filterString += words[i].toLowerCase() + '|'; // | is here the OR bitwise operator
+			}
+		}
+		filterString = filterString.slice(0, -1);
 	}
 } //Page

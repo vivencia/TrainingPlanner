@@ -520,7 +520,7 @@ Page {
 	}
 
 	function checkIfPreviousDayExists() {
-		let day_info = Database.getPreviousTrainingDayForDivision(mesoSplitLetter, mesoId, mainDate.getTime())
+		let day_info = Database.getPreviousTrainingDayForDivision(mesoSplitLetter, tDay, mesoId)
 		bHasPreviousDay = day_info.length > 0;
 		if (bHasPreviousDay)
 			previousDivisionDayDate = new Date(day_info[0].dayDate);
