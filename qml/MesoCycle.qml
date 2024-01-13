@@ -60,8 +60,8 @@ Page {
 			onClicked: {
 				if (mesoCalendarObject === null)
 					createMesoCalendarObject(true);
-				mesoCalendarObject.bReloadDatabase = true;
-				mesoPropertiesPage.StackView.view.push(mesoCalendarObject);
+				else
+					mesoPropertiesPage.StackView.view.push(mesoCalendarObject);
 			}
 		}
 	}
@@ -806,9 +806,9 @@ Page {
 					bNewMeso = false;
 					//idxDivision = divisionModel.count - 1;
 					dateTimer.triggered(); //Update tabBar and the meso model index it uses
+					createMesoCalendarObject(true);
 				}
 				else {
-					bModified = false;
 					Database.updateMesoName(mesoId, mesoName);
 					Database.updateMesoStartDate(mesoId, mesoStartDate.getTime());
 					Database.updateMesoEndDate(mesoId, mesoEndDate.getTime());
@@ -855,6 +855,7 @@ Page {
 				}
 				bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 				appDBModified = true;
+				bModified = false;
 			} //onClicked
 		} //btnSaveMeso
 
@@ -877,6 +878,8 @@ Page {
 					mesoId: mesoId, mesoName: mesosModel.get(idxModel).mesoName, mesoStartDate: mesosModel.get(idxModel).mesoStartDate,
 					mesoEndDate: mesosModel.get(idxModel).mesoEndDate, mesoSplit: mesosModel.get(idxModel).mesoSplit, bVisualLoad: bshowpage
 			});
+			if (bshowpage)
+				mesoPropertiesPage.StackView.view.push(mesoCalendarObject);
 		}
 	}
 

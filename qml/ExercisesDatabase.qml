@@ -14,13 +14,11 @@ Page {
 	property bool bNew: false
 	property bool bEdit: false
 	property bool bChooseButtonEnabled: false
-	property bool bTempDisableChoose: false
 	property bool bJustSaved: false
-	property var doNotChooseTheseIds: []
 	property var imageViewer: null
 	property var videoViewer: null
 
-	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight, string uWeight, int exerciseId, bool bAdd)
+	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight, bool bAdd)
 
 	ScrollView {
 		id: scrollExercises
@@ -235,17 +233,6 @@ Page {
 		spinWeight.value = weight;
 		strMediaPath = mediaPath;
 		displaySelectedMedia();
-
-		if (bChooseButtonEnabled || bTempDisableChoose) {
-			bTempDisableChoose = false;
-			for (var i = 0; i < doNotChooseTheseIds.length; ++i) {
-				if (exercisesList.currentModel.get(exercisesList.curIndex).exerciseId === doNotChooseTheseIds[i]) {
-					bTempDisableChoose = true;
-					break;
-				}
-			}
-			bChooseButtonEnabled = !bTempDisableChoose;
-		}
 	}
 
 	footer: ToolBar {
@@ -375,8 +362,7 @@ Page {
 						const curIndex = exercisesList.curIndex;
 						exerciseChosen(exercisesList.currentModel.get(curIndex).mainName, exercisesList.currentModel.get(curIndex).subName,
 									exercisesList.currentModel.get(curIndex).nSets,	exercisesList.currentModel.get(curIndex).nReps,
-									exercisesList.currentModel.get(curIndex).nWeight, exercisesList.currentModel.get(curIndex).uWeight,
-									exercisesList.currentModel.get(curIndex).exerciseId, true);
+									exercisesList.currentModel.get(curIndex).nWeight, true);
 						pageExercises.StackView.view.pop();
 					}
 				} //btnChooseExercise

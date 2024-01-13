@@ -9,12 +9,6 @@ Item {
 	id: exerciseItem
 	property ListModel exercicesModel
 	required property string exerciseName
-	required property string subName
-	required property int nSets
-	required property real nReps
-	required property real nWeight
-	required property string uWeight
-	required property int exerciseId
 	required property int tDayId
 	required property var stackViewObj
 	property bool bFoldPaneOnLoad: false
@@ -33,7 +27,7 @@ Item {
 	property int thisObjectIdx
 	signal exerciseRemoved(int ObjectIdx)
 	signal exerciseEdited(int oldId, int newId)
-	signal exerciseEdited_SetChanged(int oldexerciseid, int newexerciseid)
+	signal exerciseEdited_SetChanged(int oldexercisename, int newexercisename)
 	signal setAdded(bool bnewset, int sety, int setheight, int objidx)
 	signal requestHideFloatingButtons(int except_idx)
 
@@ -145,17 +139,7 @@ Item {
 		}
 
 		onClicked: {
-			var exerciseid1, exerciseid2;
-			if (bCompositeExercise) {
-				exerciseid1 = JSF.getExerciseIdFromCompositeExerciseId(0, exerciseId);
-				exerciseid2 = JSF.getExerciseIdFromCompositeExerciseId(1, exerciseId);
-			}
-			else {
-				exerciseid1 = exerciseId;
-				exerciseid2 = -1;
-			}
-			const exercisesids = [exerciseid1, exerciseid2];
-			var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true, doNotChooseTheseIds:exercisesids });
+			var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
 			exercise.exerciseChosen.connect(gotExercise);
 		}
 	}
@@ -307,7 +291,7 @@ Item {
 		setsInfoList = Database.getSetsInfo(tDayId);
 		var nset = 0;
 		for(var i = 0; i < setsInfoList.length; ++i) {
-			if (exerciseId === setsInfoList[i].setExerciseId) {
+			if (thisObjectIdx === setsInfoList[i].setExerciseIdx) {
 				setNbr = setsInfoList[i].setNumber;
 				suggestedReps[nset] = setsInfoList[i].setReps;
 				suggestedWeight[nset] = setsInfoList[i].setWeight;
@@ -347,7 +331,7 @@ Item {
 			sprite = component.createObject(layoutMain, {
 								setId:setIds[setNbr], setNumber:setNbr, setReps:suggestedReps[setNbr],
 								setWeight:suggestedWeight[setNbr], setWeightUnit:uWeight, setSubSets:suggestedSubSets[setNbr],
-								setRestTime:suggestedRestTimes[setNbr], setNotes:setNotes[setNbr], exerciseId:exerciseId,
+								setRestTime:suggestedRestTimes[setNbr], setNotes:setNotes[setNbr], exerciseIdx:thisObjectIdx,
 								tDayId:tDayId
 			});
 			setObjectList.push({"Object" : sprite});
@@ -355,13 +339,9 @@ Item {
 			sprite.setChanged.connect(setChanged);
 
 			if (type === 4) { //Giant set
-				if (!bNewSet && setNbr === 0) {
-					exerciseName = "1 - " + exerciseName;
-					subName = "1 - " + subName;
-					bCompositeExercise = true;
-				}
+				bCompositeExercise = true;
 				sprite.stackViewObj = stackViewObj;
-				sprite.exerciseIdsChanged.connect(compositeSetChanged);
+				sprite.secondExerciseNameChanged.connect(compositeSetChanged);
 			}
 			if (setNbr >= 1) {
 				setObjectY[setNbr] = setObjectList[setNbr-1].Object.y + setObjectList[setNbr-1].Object.height;
@@ -382,16 +362,19 @@ Item {
 		suggestedSubSets[nset] = nSubSets;
 		suggestedRestTimes[nset] = restTime;
 		setNotes[nset] = notes;
-		exerciseEdited_SetChanged(-1, -1);
+		exerciseEdited_SetChanged("", "");
 	}
 
-	function compositeSetChanged(oldexerciseid, newexerciseid) {
-		exerciseId = newexerciseid;
-		exerciseEdited_SetChanged(oldexerciseid, newexerciseid);
-		//When the selected exercise2 is changed in the first set(the only one with the option to do so), update all other sets
-		for( var i = 1; i < setObjectList.length; ++i ) {
-			setObjectList[i].Object.getVariables(exerciseId);
-		}
+	function compositeSetChanged(newexercise2name) {
+		const oldName = exerciseName;
+		const sep = oldName.indexOf('&');
+		var exercise1Name;
+		if (sep !== -1)
+			exercise1Name = oldName.substring(0, sep);
+		else
+			exercise1Name = oldName;
+		exerciseName = exercise1Name + '&' + newexercise2name;
+		exerciseEdited_SetChanged(oldName, exerciseName);
 	}
 
 	function logSets() {
@@ -443,6 +426,12 @@ Item {
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr--;
 		}
+		exerciseEdited_SetChanged("", "");
+	}
+
+	function updateSetsExerciseIndex() {
+		for(var i = 0, x = 0; i < setObjectList.length; ++i)
+			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
 	}
 
 	function calculateSuggestedValues(type) {
@@ -457,8 +446,8 @@ Item {
 					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {
-					suggestedReps[0] = nReps;
-					suggestedWeight[0] = nWeight;
+					suggestedReps[0] = 12;
+					suggestedWeight[0] = 30;
 					suggestedRestTimes[0] = "01:30";
 				}
 				suggestedSubSets[setNbr] = 0;
@@ -470,8 +459,8 @@ Item {
 					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {
-					suggestedReps[0] = nReps;
-					suggestedWeight[0] = nWeight;
+					suggestedReps[0] = 15;
+					suggestedWeight[0] = 20;
 					suggestedRestTimes[0] = "01:30";
 				}
 				suggestedSubSets[setNbr] = 0;
@@ -484,8 +473,8 @@ Item {
 					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {
-					suggestedReps[0] = nReps.toString();
-					suggestedWeight[0] = nWeight.toString();
+					suggestedReps[0] = "15";
+					suggestedWeight[0] = "50";
 					suggestedSubSets[0] = 3;
 					suggestedRestTimes[0] = "01:30";
 				}
@@ -499,7 +488,7 @@ Item {
 				}
 				else {
 					suggestedReps[0] = 6;
-					suggestedWeight[0] = nWeight;
+					suggestedWeight[0] = 40;
 					suggestedSubSets[0] = 4;
 					suggestedRestTimes[0] = "02:00";
 				}
@@ -513,7 +502,7 @@ Item {
 				}
 				else {
 					suggestedReps[0] = 6;
-					suggestedWeight[0] = nWeight;
+					suggestedWeight[0] = 100;
 					suggestedSubSets[0] = 0;
 					suggestedRestTimes[0] = "02:30";
 				}
@@ -521,33 +510,16 @@ Item {
 		}
 	}
 
-	function gotExercise(strName1, strName2, sets, reps, weight, uweight, exerciseid, bAdd) {
-		if (!bCompositeExercise) {
-			exerciseEdited_SetChanged(exerciseId, exerciseid);
-			exerciseId = exerciseid;
-			exerciseName = strName1
-			subName = strName2
-			//Update all sets with the new information
-			for (var i = 0; i < setObjectList.length; ++i)
-				setObjectList[i].Object.exerciseId = exerciseid;
+	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
+		const oldName = exerciseName;
+		exerciseName = strName1 + '-' + strName2;
+		if (bCompositeExercise) {
+			const sep = oldName.indexOf('&');
+			var exercise2Name;
+			if (sep !== -1)
+				exercise2Name = oldName.substring(sep+1, oldName.length - sep -1);
+			exerciseName = "1: " + strName1 + '-' + strName2 + '&' + exercise2Name;
 		}
-		else {
-			const exerciseid2 = JSF.getExerciseIdFromCompositeExerciseId(1, exerciseId);
-			const newExerciseId = JSF.toCompositeExerciseId(exerciseid, exerciseid2);
-			exerciseEdited_SetChanged(exerciseId, newExerciseId);
-			exerciseId = newExerciseId;
-
-			for (var x = 0; x < setObjectList.length; ++x) {
-				setObjectList[x].Object.exerciseId = exerciseId;
-				setObjectList[x].Object.exerciseId1 = exerciseid;
-				setObjectList[x].Object.exerciseId2 = exerciseid2;
-			}
-			exerciseName = "1 - " + strName1;
-			subName = "1 - " + strName2;
-		}
-		nSets = sets;
-		nReps = reps;
-		nWeight = weight;
-		uWeight = uweight;
+		exerciseEdited_SetChanged(oldName, exerciseName);
 	}
 } //Item

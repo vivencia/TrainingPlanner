@@ -127,9 +127,8 @@ Page {
 						splitNWeight:results[0].splitNWeight
 				});
 				object.selectedSplitObjectChanged.connect(selectSplitItem);
-				object.scrollPage.connect(scrollDown);
 				if (idx === 0)
-					selectSplitItem(object, "");
+					selectSplitItem(object, object.filterString);
 			}
 		} while (++idx < mesoSplit.length);
 		if (idx > 0)
@@ -163,9 +162,5 @@ Page {
 			scrollMain.ScrollBar.vertical.setPosition(0);
 		else
 			scrollMain.ScrollBar.vertical.setPosition(pos - scrollMain.ScrollBar.vertical.size/2);
-	}
-
-	function scrollDown(npixels) {
-		scrollMain.contentItem.contentY += npixels/2;
 	}
 } //Page

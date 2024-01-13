@@ -10,8 +10,8 @@ Rectangle {
 	height: cellSize * ( justCalendar ? 11 : 12.5 )
 	width: cellSize * 8
 
-	property date selectedDate;
-	property int weekNbr: 1
+	property date selectedDate: displayDate
+	property int weekNbr: JSF.weekNumber(selectedDate);
 	property bool justCalendar: false
 	property string calendarWindowTitle
 
@@ -231,7 +231,6 @@ Rectangle {
 							calendar.currentMonth = selectedDate.getMonth();
 							calendar.week = selectedDate.getDay();
 							calendar.currentYear = selectedDate.getFullYear();
-							weekNbr = JSF.weekNumber(selectedDate);
 						}
 					}
 				} // delegate: Rectangle

@@ -672,9 +672,8 @@ Page {
 	}
 
 	function pageActivation() {
-		if (bVisualLoad) {
-			if (bReloadDatabase)
-				readDatabase(false);
+		if (bVisualLoad || bReloadDatabase) {
+			readDatabase(false);
 		}
 	}
 

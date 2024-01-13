@@ -165,7 +165,7 @@ QtObject {
 			tx.executeSql(`CREATE TABLE IF NOT EXISTS set_info (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				trainingday_id INTEGER,
-				trainingday_exercise_id INTEGER,
+				trainingday_exercise_idx INTEGER,
 				type INTEGER,
 				number INTEGER,
 				reps TEXT,
@@ -183,7 +183,7 @@ QtObject {
 			tx.executeSql(`CREATE TABLE IF NOT EXISTS set_info2 (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				trainingday_id INTEGER,
-				trainingday_exercise_id INTEGER,
+				trainingday_exercise_idx INTEGER,
 				type INTEGER,
 				number INTEGER,
 				reps TEXT,
@@ -202,8 +202,8 @@ QtObject {
 				let row = results.rows.item(i);
 				db.transaction(function (tx) {
 						tx.executeSql("INSERT INTO set_info2
-							(trainingday_id,trainingday_exercise_id,type,number,reps,weight,weight_unit,subsets,resttime,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",
-							[row.trainingday_id, row.trainingday_exercise_id, row.type, row.number,
+							(trainingday_id,trainingday_exercise_idx,type,number,reps,weight,weight_unit,subsets,resttime,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",
+							[row.trainingday_id, row.trainingday_exercise_idx, row.type, row.number,
 							row.reps, row.weight, "kg(s)", row.subsets, row.resttime, row.notes]);
 				});
 			}
@@ -221,7 +221,7 @@ QtObject {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				date INTEGER,
 				meso_id INTEGER,
-				exercises_ids TEXT,
+				exercises TEXT,
 				day_number INTEGER,
 				split_letter TEXT,
 				time_in TEXT,
@@ -867,7 +867,7 @@ QtObject {
 					"dayId": row.id,
 					"dayDate": row.date,
 					"mesoId": row.meso_id,
-					"exercisesIds": row.exercises_ids,
+					"exercisesNames": row.exercises,
 					"dayNumber": row.day_number,
 					"daySplitLetter": row.split_letter,
 					"dayTimeIn": row.time_in,
@@ -880,20 +880,20 @@ QtObject {
 		return dayinfo;
 	}
 
-	function newTrainingDay(date, mesoId, exercisesIds, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
+	function newTrainingDay(date, mesoId, exercisesNames, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
 		let results;
 		db.transaction(function (tx) {
 			results = tx.executeSql("INSERT INTO training_day
-							(date,meso_id,exercises_ids,day_number,split_letter,time_in,time_out,location,notes) VALUES(?,?,?,?,?,?,?,?,?)",
-							[date,mesoId,exercisesIds,dayNumber,splitLetter,timeIn,timeOut,location,notes]);
+							(date,meso_id,exercises,day_number,split_letter,time_in,time_out,location,notes) VALUES(?,?,?,?,?,?,?,?,?)",
+							[date,mesoId,exercisesNames,dayNumber,splitLetter,timeIn,timeOut,location,notes]);
 		});
 		return results;
 	}
 
-	function updateTrainingDay(id, exercisesIds, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
+	function updateTrainingDay(id, exercisesNames, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE training_day set exercises_ids=?,day_number=?,split_letter=?,time_in=?,time_out=?,location=?, notes=? WHERE id=?",
-			[exercisesIds, dayNumber, splitLetter, timeIn, timeOut, location, notes, id]);
+			tx.executeSql("UPDATE training_day set exercises=?,day_number=?,split_letter=?,time_in=?,time_out=?,location=?, notes=? WHERE id=?",
+			[exercisesNames, dayNumber, splitLetter, timeIn, timeOut, location, notes, id]);
 		});
 	}
 
@@ -936,7 +936,7 @@ QtObject {
 							"dayId": row.id,
 							"dayDate": row.date,
 							"mesoId": row.meso_id,
-							"exercisesIds": row.exercises_ids,
+							"exercisesNames": row.exercises,
 							"dayNumber": row.day_number,
 							"daySplitLetter": row.split_letter,
 							"dayTimeIn": row.time_in,
@@ -966,7 +966,7 @@ QtObject {
 						console.log("dayId   ", row.id);
 						console.log("dayDate   ", new Date(row.date).toDateString());
 						console.log("mesoId   ", row.meso_id);
-						console.log("exercisesIds   ", row.exercises_ids);
+						console.log("exercisesNames   ", row.exercises);
 						console.log("dayNumber   ", row.day_number);
 						console.log("daySplitLetter   ", row.split_letter);
 						console.log("dayTimeIn   ", row.time_in);
@@ -990,7 +990,7 @@ QtObject {
 				setsInfo.push({
 					"setId": row.id,
 					"setTrainingdDayId": row.trainingday_id,
-					"setExerciseId": row.trainingday_exercise_id,
+					"setExerciseIdx": row.trainingday_exercise_idx,
 					"setType": row.type,
 					"setNumber": row.number,
 					"setReps": row.reps,
@@ -1005,29 +1005,29 @@ QtObject {
 		return setsInfo;
 	}
 
-	function newSetInfo(tDayId, exerciseId, setType, setNumber, setReps, setWeight, setWeightUnit, setSubSets, setRestTime, setNotes) {
+	function newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps, setWeight, setWeightUnit, setSubSets, setRestTime, setNotes) {
 		let results;
 		db.transaction(function (tx) {
 			results = tx.executeSql("INSERT INTO set_info
-							(trainingday_id,trainingday_exercise_id,type,number,reps,weight,weight_unit,subsets,resttime,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",
-							[tDayId, exerciseId, setType, setNumber, setReps, setWeight, setWeightUnit, setSubSets, setRestTime, setNotes]);
+							(trainingday_id,trainingday_exercise_idx,type,number,reps,weight,weight_unit,subsets,resttime,notes) VALUES(?,?,?,?,?,?,?,?,?,?)",
+							[tDayId, exerciseIdx, setType, setNumber, setReps, setWeight, setWeightUnit, setSubSets, setRestTime, setNotes]);
 		});
 		return results;
 	}
 
-	function updateSetInfo(setId, exerciseId, setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes) {
+	function updateSetInfo(setId, exerciseIdx, setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes) {
 		let results;
 		db.transaction(function (tx) {
 			results = tx.executeSql("UPDATE set_info set
-						trainingday_exercise_id=?, number=?, reps=?,weight=?, subsets=?, resttime=?, notes=? WHERE id=?",
-						[exerciseId, setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes, setId]);
+						trainingday_exercise_idx=?, number=?, reps=?,weight=?, subsets=?, resttime=?, notes=? WHERE id=?",
+						[exerciseIdx, setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes, setId]);
 		});
 		return results;
 	}
 
-	function updateSetInfo_setExerciseId(setId, exerciseId) {
+	function updateSetInfo_setExerciseId(setId, exerciseIdx) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE set_info set trainingday_exercise_id=? WHERE id=?", [exerciseId, setId]);
+			tx.executeSql("UPDATE set_info set trainingday_exercise_idx=? WHERE id=?", [exerciseIdx, setId]);
 		});
 	}
 
@@ -1080,9 +1080,9 @@ QtObject {
 	}
 
 	//Called when the exercise name is edited and changed
-	function updateSetInfo_Exercise(setId, setExerciseId) {
+	function updateSetInfo_Exercise(setId, setExerciseIdx) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE set_info set trainingday_exercise_id=? WHERE id=?", [setExerciseId, setId]);
+			tx.executeSql("UPDATE set_info set trainingday_exercise_idx=? WHERE id=?", [setExerciseIdx, setId]);
 		});
 	}
 
@@ -1094,9 +1094,9 @@ QtObject {
 	}
 
 	//Called when an exercise is removed
-	function deleteSetsForExercise(setExerciseId) {
+	function deleteSetsForExercise(setExerciseIdx) {
 		db.transaction(function (tx) {
-			tx.executeSql("DELETE * FROM set_info WHERE trainingday_exercise_id=?", [setExerciseId]);
+			tx.executeSql("DELETE * FROM set_info WHERE trainingday_exercise_idx=?", [setExerciseIdx]);
 		});
 	}
 

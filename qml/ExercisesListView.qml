@@ -238,27 +238,26 @@ Column {
 		onTextChanged: {
 			filterModel.finish();
 			if (text.length >= 3) {
-			var regex = new RegExp(text, "i");
-			var bFound = false;
-			for(var i = 0; i < exercisesListModel.count; i++ ) {
-				//First look for muscular group
-				if (exercisesListModel.get(i).muscularGroup.match(regex))
-					bFound = true;
-				else {
-					if (exercisesListModel.get(i).mainName.match(regex))
+				var regex = new RegExp(text, "i");
+				var bFound = false;
+				for(var i = 0; i < exercisesListModel.count; i++ ) {
+					//First look for muscular group
+					if (exercisesListModel.get(i).muscularGroup.match(regex))
 						bFound = true;
-					else
-						bFound = false;
-				}
-				if (bFound) {
-					if (!bFilterApplied) {
-						lstExercises.setModel(filterModel);
-						bFilterApplied = true;
+					else {
+						if (exercisesListModel.get(i).mainName.match(regex))
+							bFound = true;
+						else
+							bFound = false;
 					}
-					filterModel.newItem(i, exercisesListModel.get(i));
+					if (bFound) {
+						filterModel.newItem(i, exercisesListModel.get(i));
+					}
 				}
-			}
-			if (bFilterApplied)
+				if (!bFilterApplied) {
+					bFilterApplied = true;
+					lstExercises.setModel(filterModel);
+				}
 				simulateMouseClick(0);
 			}
 			else {
@@ -274,7 +273,7 @@ Column {
 		exerciseEntrySelected(currentModel.get(lstIdx).mainName, currentModel.get(lstIdx).subName,
 							currentModel.get(lstIdx).muscularGroup, currentModel.get(lstIdx).nSets,
 							currentModel.get(lstIdx).nReps, currentModel.get(lstIdx).nWeight,
-		currentModel.get(lstIdx).mediaPath);
+							currentModel.get(lstIdx).mediaPath);
 	}
 
 	function removeExercise(removeIdx) {
@@ -306,8 +305,10 @@ Column {
 	}
 
 	function simulateMouseClick(new_index) {
-		displaySelectedExercise(new_index);
-		lstExercises.positionViewAtIndex(new_index, ListView.Center);
+		if (new_index < currentModel.count) {
+			displaySelectedExercise(new_index);
+			lstExercises.positionViewAtIndex(new_index, ListView.Center);
+		}
 	}
 
 	function appendModels(exerciseid, name1, name2, group, nsets, nreps, nweight, media) {
@@ -369,5 +370,6 @@ Column {
 
 	function setFilter(strFilter) {
 		txtFilter.text = strFilter;
+		txtFilter.textChanged();
 	}
 }

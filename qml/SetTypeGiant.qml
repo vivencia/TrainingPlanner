@@ -28,7 +28,7 @@ Item {
 
 	signal setRemoved(int nset)
 	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)
-	signal exerciseIdsChanged(int old_exerciseId, int new_exerciseid)
+	signal secondExerciseNameChanged(int old_exerciseId, int new_exerciseid)
 
 	property int exerciseId2: -1
 	property int exerciseId1: -1
@@ -387,21 +387,14 @@ Item {
 		}
 	}
 
-	function exerciseReceived(strName1, strName2, sets, reps, weight, uweight, exerciseid, bAdd) {
-		const oldexerciseid = exerciseId;
-		exerciseId = JSF.toCompositeExerciseId(exerciseId1, exerciseid);
-		exerciseId2 = exerciseid * 10000;
-		exerciseIdsChanged(oldexerciseid, exerciseId);
-		exerciseName2 = "2 - " + strName1;
-		subName2 = "2 - " + strName2;
+	function exerciseReceived(strName1, strName2, sets, reps, weight, bAdd) {
+		exerciseName2 = "2: " + strName1 + '-' + strName2;
+		secondExerciseNameChanged(exerciseName2);
 	}
 
 	function removeSecondExercise() {
-		exerciseName2 = qsTr("2 - Add exercise");
-		subName2 = "";
-		exerciseId2 = -1;
-		exerciseIdsChanged(exerciseId, exerciseId1);
-		exerciseId = exerciseId1;
+		exerciseName2 = qsTr("2: Add exercise");
+		secondExerciseNameChanged(exerciseName2);
 	}
 
 	function updateTrainingDayId(newTDayId) {

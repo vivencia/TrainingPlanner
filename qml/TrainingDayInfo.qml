@@ -17,7 +17,7 @@ Page {
 	property int dayId
 	property int copiedDayId: -1
 	property int mesoId
-	property string exercisesIds
+	property string exercisesNames
 	property string timeIn
 	property string timeOut
 	property string location
@@ -494,7 +494,7 @@ Page {
 	}
 
 	function createDatabaseEntryForDay() {
-		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesIds,
+		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesNames,
 			tDay, splitLetter, txtInTime.text, txtOutTime.text, txtLocation.placeholderText, txtDayInfoTrainingNotes.text);
 		if (bHasPreviousDay)
 			copiedDayId = result.insertId; //To be used later to update all exercise entries and their sets
@@ -509,7 +509,7 @@ Page {
 			"dayId": dayId,
 			"dayDate": mainDate,
 			"mesoId": mesoId,
-			"exercisesIds": exercisesIds,
+			"exercisesNames": exercisesNames,
 			"dayNumber": tDay,
 			"daySplitLetter": splitLetter,
 			"dayTimeIn": txtInTime.text,
@@ -534,7 +534,7 @@ Page {
 		console.log("loadTrainingDayInfo:   ", tDate.toDateString());
 		dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
-			if (dayInfoList[0].exercisesIds === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
+			if (dayInfoList[0].exercisesNames === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
 				Database.deleteTraingDay(dayInfoList[0].dayId);
 				return false;
 			}
@@ -546,7 +546,7 @@ Page {
 				//the valilidy of a mesoId, the stored mesoId is wrong and must be replaced
 				Database.updateTrainingDay_MesoId(dayId, mesoId);
 			}
-			exercisesIds = dayInfoList[0].exercisesIds;
+			exercisesNames = dayInfoList[0].exercisesNames;
 			timeIn = dayInfoList[0].dayTimeIn;
 			timeOut = dayInfoList[0].dayTimeOut;
 			location = dayInfoList[0].dayLocation;
@@ -564,10 +564,10 @@ Page {
 		bModified = true;
 	}
 
-	function gotExercise(strName1, strName2, sets, reps, weight, uweight, exerciseid, bAdd) {
+	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
 		bChoosingExercise = false;
 		if (bAdd) {
-			if (!addExercise(exerciseid))
+			if (!addExercise(strName1 + '-' + strName2))
 				return;
 			bModified = true;
 		}
@@ -578,7 +578,6 @@ Page {
 		if (component.status === Component.Ready) {
 			var idx = exerciseSpriteList.length;
 			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1, subName:strName2,
-						nSets:sets, nReps:reps, nWeight: weight, uWeight:uweight, exerciseId:exerciseid,
 						tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
 			exerciseSpriteList.push({"Object" : exerciseSprite});
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
@@ -602,10 +601,10 @@ Page {
 	//This signal just indicate there is a change within the exercise object. We use to modify the controls of the page
 	//How those changes get properly handled is the business of the originator of the signal. Except when the set changes the id
 	//of the exercise(so far, only GiantSet, but could be any of type CompositeExercise)
-	function exerciseSetChanged(old_exerciseid, new_exerciseid) {
+	function exerciseSetChanged(old_exercisename, new_exercisename) {
 		bModified = true;
-		if (new_exerciseid !== -1)
-			editExercise(old_exerciseid, new_exerciseid);
+		if (new_exercisename !== "")
+			editExercise(old_exercisename, new_exercisename);
 	}
 
 	function addExerciseSet(bnewset, sety, setheight, exerciseObjIdx) {
@@ -627,15 +626,15 @@ Page {
 		}
 	}
 
-	function editExercise(oldExerciseId, newExerciseId) {
-		const ids = exercisesIds.split(',');
-		for (var i = 0; i < ids.length; ++i) {
-			if (ids[i] === newExerciseId.toString()) {
+	function editExercise(oldExerciseName, newExerciseName) {
+		const names = exercisesNames.split('|');
+		for (var i = 0; i < names.length; ++i) {
+			if (names[i] === newExerciseName) {
 				msgDlgDuplicate.open();
 				return false;
 			}
 		}
-		exercisesIds = exercisesIds.replace(oldExerciseId.toString(), newExerciseId.toString());
+		exercisesNames = exercisesNames.replace(oldExerciseName, newExerciseName);
 	}
 
 	function removeExercise(objidx) {
@@ -643,63 +642,57 @@ Page {
 
 		for( var i = 0, x = 0; i < exerciseSpriteList.length; ++i ) {
 			if (i === objidx) {
-				removeExerciseId(exerciseSpriteList[objidx].Object.exerciseId);
+				removeExerciseName(exerciseSpriteList[objidx].Object.exerciseName);
 				exerciseSpriteList[objidx].Object.destroy();
 			}
 			else {
 				newObjectList[x] = exerciseSpriteList[i];
 				newObjectList[x].Object.thisObjectIdx = x;
+				newObjectList[x].Object.updateSetsExerciseIndex();
 				x++;
 			}
 		}
 		delete exerciseSpriteList;
 		exerciseSpriteList = newObjectList;
+		bModified = true;
 	}
 
-	function addExercise(exerciseid) {
-		const ids = exercisesIds.split(',');
-		for (var i = 0; i < ids.length; ++i) {
-			if (ids[i] === exerciseid.toString()) {
+	function addExercise(exercisename) {
+		const names = exercisesNames.split('|');
+		for (var i = 0; i < names.length; ++i) {
+			if (names[i] === exercisename) {
 				msgDlgDuplicate.open();
 				return false;
 			}
 		}
-		if (exercisesIds.length === 0)
-			exercisesIds = exerciseid.toString();
-		else
-			exercisesIds += ',' + exerciseid.toString();
+		exercisesNames += '|' + exerciseName;
 		bModified = true;
 		return true;
 	}
 
-	function removeExerciseId(exerciseid) {
-		const ids = exercisesIds.split(',');
-		exercisesIds = "";
-		for (var i = 0; i < ids.length; ++i) {
-			if (ids[i] !== exerciseid.toString()) { //parseInt(ids[i]) gives me the opposite (and wrong) result. Had to use toString()
-				if (exercisesIds.length !== 0)
-					exercisesIds += "," + ids[i];
-				else
-					exercisesIds = ids[i];
-			}
+	function removeExerciseName(exercisename) {
+		const names = exercisesNames.split('|');
+		exercisesNames = "";
+		for (var i = 0; i < names.length; ++i) {
+			if (names[i] !== exercisename)
+				exercisesNames += names[i] + '|';
 		}
+		exercisesName.slice(0, -1);
 		bModified = true;
 	}
 
 	function createExercisesFromList() {
-		const ids = exercisesIds.split(',');
-		for (var i = 0; i < ids.length; ++i) {
-			var id = parseInt(ids[i]);
-			if (id) { //Not needed, unless something is very wrong, so we cover for that
-				if (id > 9999) //Composite exercise. We only need the first now
-					id = JSF.getExerciseIdFromCompositeExerciseId(0, id);
-				let exercise = Database.getExercise(id);
-				if ( exercise ) {
-					gotExercise(exercise[0].exercisePName, exercise[0].exerciseSName, exercise[0].exerciseSets,
-						exercise[0].exerciseReps, exercise[0].exerciseWeight, exercise[0].exerciseUnitWeight, parseInt(ids[i]), false);
-					exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
-				}
-			}
+		const names = exercisesNames.split('|');
+		var sep, name2 = "";
+		for (var i = 0; i < names.length; ++i) {
+			var name = parseInt(names[i]);
+			if (name.indexOf('&') !== -1) //Composite exercise. We only need the first now
+				name = name.slice(0, name.indexOf('&'));
+			sep = name.indexOf('-');
+			if (sep !== -1)
+				name2 = name.substring(sep + 1, name.length - sep - 1);
+			gotExercise(name, name2, "0", "0", "0", false);
+				exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
 		}
 	}
 
@@ -814,7 +807,7 @@ Page {
 					trainingNotes = " ";
 				if (splitLetter === 'R')
 					tDay = 0;
-				Database.updateTrainingDay(dayId, exercisesIds, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
 						exerciseSpriteList[i].Object.logSets();
 				updateMesoCalendar();
@@ -840,7 +833,7 @@ Page {
 				if (navButtons !== null)
 					navButtons.visible = false;
 				if (copiedDayId === -1) { //A normal day that was edited
-					if (exercisesIds !== dayInfoList[0].exercisesIds) {
+					if (exercisesNames !== dayInfoList[0].exercisesNames) {
 						const len = exerciseSpriteList.length - 1;
 						for (var i = len; i >= 0; --i) {
 							exerciseSpriteList[i].Object.destroy();
