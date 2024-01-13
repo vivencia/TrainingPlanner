@@ -107,5 +107,7 @@
         <file>translations/tplanner.pt_BR.qm</file>
         <file>translations/tplanner.de_DE.qm</file>
         <file>images/black/edit-clear.png</file>
+        <file>images/app_logo.png</file>
+        <file>images/app_icon.png</file>
     </qresource>
 </RCC>

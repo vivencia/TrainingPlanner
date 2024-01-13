@@ -7,31 +7,27 @@ import "jsfunctions.js" as JSF
 Item {
 	id: setItem
 	property int setId
-	property int exerciseId
+	property int exerciseIdxx
 	property int tDayId
 	property int setType: 4 //Constant
 	property int setNumber
 	property string setReps
 	property string setWeight
-	property string setWeightUnit
 	property int setSubSets: 0
 	property string setRestTime: "00:00"
 	property string setNotes: " "
 
 	property string exerciseName2
-	property string subName2
+	property string origExercise2Name
 	property bool bIsRemoving: false
-	property bool bIgnoreExerciseIdChange: false
 	property bool bUpdateLists
 	property var subSetList: []
 	property var stackViewObj
 
 	signal setRemoved(int nset)
 	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)
-	signal secondExerciseNameChanged(int old_exerciseId, int new_exerciseid)
+	signal secondExerciseNameChanged(int old_exercisename, int new_exercisename)
 
-	property int exerciseId2: -1
-	property int exerciseId1: -1
 	property string strReps1
 	property string strReps2
 	property string strWeight1
@@ -47,16 +43,6 @@ Item {
 			if (setId > 0) {
 				Database.deleteSetFromSetsInfo(setId);
 			}
-		}
-	}
-
-	onExerciseIdChanged: {
-		if (!bIgnoreExerciseIdChange) {
-			exerciseId1 = JSF.getExerciseIdFromCompositeExerciseId(0, exerciseId);
-			exerciseId2 = JSF.getExerciseIdFromCompositeExerciseId(1, exerciseId);
-			bIgnoreExerciseIdChange = true;
-			exerciseId = JSF.toCompositeExerciseId(exerciseId1, exerciseId2);
-			bIgnoreExerciseIdChange = false;
 		}
 	}
 
@@ -86,7 +72,7 @@ Item {
 			}
 		}
 
-		TextInput {
+		TextField {
 			id: txtExerciseName2
 			text: exerciseName2
 			font.bold: true
@@ -96,6 +82,29 @@ Item {
 			Layout.leftMargin: 5
 			Layout.fillWidth: true
 			z: 1
+
+			background: Rectangle {
+				color: txtExerciseName2.readOnly ? "transparent" : "white"
+				border.color: txtExerciseName2.readOnly ? "transparent" : "black"
+				radius: 5
+			}
+
+			Keys.onReturnPressed: { //Alphanumeric keyboard
+				btnEditExercise2.clicked();
+				txtRestTime.forceActiveFocus();
+			}
+
+			onReadOnlyChanged: {
+				if (!readOnly) {
+					const idx = exerciseName2.indexOf(':'); //Remove the '2: ' from the name
+					exerciseName2 = exerciseName2.substring(idx + 1, exerciseName2.length).trim();
+				}
+			}
+
+			onEditingFinished: {
+				exerciseName = "2: " + text;
+				secondExerciseNameChanged(origExercise2Name, exerciseName2);
+			}
 
 			ToolButton {
 				id: btnRemoveExercise2
@@ -137,23 +146,21 @@ Item {
 				}
 
 				onClicked: {
-					const exerciseid = [exerciseId1, exerciseId2];
-					var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true, doNotChooseTheseIds:exerciseid });
-						exercise.exerciseChosen.connect(exerciseReceived);
+					if (txtExerciseName2.readOnly) {
+						origExercise2Name = exerciseName;
+						txtExerciseName2.readOnly = false;
+						txtExerciseName2.forceActiveFocus();
+						requestSimpleExerciseList(setItem);
+					}
+					else {
+						txtExerciseName2.readOnly = true;
+						closeSimpleExerciseList();
+					}
+					//var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
+					//exercise.exerciseChosen.connect(exerciseReceived);
 				}
 			} //btnEditExercise2
 		} //txtExerciseName2
-
-		TextInput {
-			id: txtSubName2
-			text: subName2
-			font.italic: true
-			readOnly: true
-			wrapMode: Text.WordWrap
-			Layout.fillWidth: false
-			Layout.maximumWidth: exerciseItem.width - 20
-			visible: setNumber === 0
-		}
 
 		SetInputField {
 			id: txtRestTime
@@ -328,35 +335,22 @@ Item {
 		}
 
 		Component.onCompleted:
-			getVariables(exerciseId);
+			getVariables();
 
 	} //ColumnLayout setLayout
 
-	function getVariables(exerciseid) {
-		exerciseId = exerciseid;
-		exerciseId1 = JSF.getExerciseIdFromCompositeExerciseId(0, exerciseId);
-		exerciseId2 = JSF.getExerciseIdFromCompositeExerciseId(1, exerciseId);
-		let result = Database.getExercise(exerciseId2);
-		if (result.length > 0) {
-			exerciseName2 = "2 - " + result[0].exercisePName;
-			subName2 = result[0].exerciseSName;
-		}
-		else {
-			exerciseName2 = qsTr("Add exercise");
-			subName2 = "";
-		}
-
-		var idx = setReps.indexOf(',')
+	function getVariables() {
+		var idx = setReps.indexOf('|')
 		if (idx === -1) {
-			setReps = "10,10"; //Random default values
+			setReps = "10|10"; //Random default values
 			idx = 2;
 		}
 		strReps1 = setReps.substring(0, idx);
 		strReps2 = setReps.substring(idx+1, setReps.length);
 
-		idx = setWeight.indexOf(',')
+		idx = setWeight.indexOf('|')
 		if (idx === -1) {
-			setWeight = "50,50"; //Random default values
+			setWeight = "50|50"; //Random default values
 			idx = 2;
 		}
 		strWeight1 = setWeight.substring(0, idx);
@@ -364,31 +358,31 @@ Item {
 	}
 
 	function changeRep(idx, newRep) {
-		const reps = setReps.split(',');
+		const reps = setReps.split('|');
 		if (reps[idx] !== newRep) {
 			if (idx === 0)
 				strReps1 = newRep
 			else
 				strReps2 = newRep
-			setReps = strReps1 + "," + strReps2;
+			setReps = strReps1 + "|" + strReps2;
 			setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 		}
 	}
 
 	function changeWeight(idx, newRep) {
-		const weights = setWeight.split(',');
+		const weights = setWeight.split('|');
 		if (weights[idx] !== newRep) {
 			if (idx === 0)
 				strWeight1 = newRep;
 			else
 				strWeight2 = newRep;
-			setWeight = strWeight1 + ',' + strWeight2;
+			setWeight = strWeight1 + '|' + strWeight2;
 			setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 		}
 	}
 
-	function exerciseReceived(strName1, strName2, sets, reps, weight, bAdd) {
-		exerciseName2 = "2: " + strName1 + '-' + strName2;
+	function changeExercise(name1, name2) {
+		exerciseName2 = "2: " + name1 + ' - ' + name2;
 		secondExerciseNameChanged(exerciseName2);
 	}
 
@@ -414,13 +408,6 @@ Item {
 		}
 		else {
 			Database.updateSetInfo(setId, exerciseId, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
-			/*Database.updateSetInfo_setExerciseId(setId, exerciseId);
-			Database.updateSetInfo_setNumber(setId, setNumber);
-			Database.updateSetInfo_setReps(setId, setReps);
-			Database.updateSetInfo_setWeight(setId, setWeight);
-			Database.updateSetInfo_setNotes(setId, setNotes);
-			Database.updateSetInfo_setRestTime(setId, setRestTime);*/
-			//Database.updateSetInfo_setSubSets(setId, setSubSets); //Not applicable to this set type
 		}
 	}
 } // Item

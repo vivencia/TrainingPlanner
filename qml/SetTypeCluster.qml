@@ -7,13 +7,12 @@ import "jsfunctions.js" as JSF
 Item {
 	id: setItem
 	property int setId
-	property int exerciseId
+	property int exerciseIdx
 	property int tDayId
 	property int setType: 3 //Constant
 	property int setNumber
 	property real setReps
 	property real setWeight
-	property string setWeightUnit
 	property int setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
@@ -181,19 +180,13 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetTypeRegular: #" + setNumber.toString() + "  " + exerciseId.toString() + "   " + tDayId.toString());
-			let result = Database.newSetInfo(tDayId, exerciseId, setType, setNumber, setReps.toString(),
+			console.log("SetTypeRegular: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
+			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
 								setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
-			Database.updateSetInfo(setId, exerciseId, setNumber, setReps.toString(), setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
-			/*Database.updateSetInfo_setNumber(setId, setNumber);
-			Database.updateSetInfo_setReps(setId, setReps);
-			Database.updateSetInfo_setWeight(setId, setWeight);
-			Database.updateSetInfo_setNotes(setId, setNotes);
-			Database.updateSetInfo_setRestTime(setId, setRestTime);
-			Database.updateSetInfo_setSubSets(setId, setSubSets);*/
+			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(), setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
 } // Item

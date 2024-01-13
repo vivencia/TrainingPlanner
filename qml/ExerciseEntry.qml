@@ -34,11 +34,12 @@ Item {
 	property var setObjectList: []
 	property var setsInfoList: []
 
+	property string origExerciseName
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
 
 	Layout.fillWidth: true
-	implicitHeight: txtExerciseName.height + paneExercise.height
+	implicitHeight: paneExercise.height
 
 	onBFloatButtonVisibleChanged: {
 		if (bFloatButtonVisible) {
@@ -75,89 +76,11 @@ Item {
 		}
 	} //MessageDialog
 
-	TextInput {
-		id: txtExerciseName
-		text: exerciseName
-		font.bold: true
-		readOnly: true
-		wrapMode: Text.WordWrap
-		Layout.fillWidth: true
-		Layout.leftMargin: 5
-		Layout.rightMargin: 5
-		z: 1
-	} //txtExerciseName
-
-	ToolButton {
-		id: btnFoldIcon
-		anchors.right: paneExercise.right
-		anchors.top: exerciseItem.top
-		anchors.rightMargin: -5
-		height: 20
-		width: 20
-		Image {
-			source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-			height: 20
-			width: 20
-		}
-		onClicked: paneExercise.shown = !paneExercise.shown
-		z: 1
-	}
-	ToolButton {
-		id: btnRemoveExercise
-		padding: 10
-		anchors.right: btnFoldIcon.left
-		anchors.top: txtExerciseName.top
-		height: 25
-		width: 25
-		z: 2
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"remove.png"
-			anchors.fill: parent
-		}
-
-		onClicked: {
-			msgDlgRemove.open();
-		}
-	} //btnRemoveExercise
-
-	ToolButton {
-		id: btnEditExercise
-		padding: 10
-		anchors.right: btnRemoveExercise.left
-		anchors.top: txtExerciseName.top
-		height: 25
-		width: 25
-		z: 2
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"edit.png"
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-			height: 20
-			width: 20
-		}
-
-		onClicked: {
-			var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
-			exercise.exerciseChosen.connect(gotExercise);
-		}
-	}
-
-	MouseArea {
-		anchors.left: exerciseItem.left
-		anchors.right: btnEditExercise.left
-		anchors.top: exerciseItem.top
-		anchors.bottom: txtExerciseName.bottom
-		onClicked: paneExercise.shown = !paneExercise.shown
-		z:1
-	}
-
 	Frame {
 		id: paneExercise
 		property bool shown: !bFoldPaneOnLoad
 		visible: height > 0
-		height: shown ? implicitHeight : 0
+		height: shown ? implicitHeight : txtExerciseName.height
 		Behavior on height {
 			NumberAnimation {
 				easing.type: Easing.InOutQuad
@@ -177,22 +100,146 @@ Item {
 		Layout.fillWidth: true
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: parent.width
+		width: parent.width
 
 		ColumnLayout {
 			id: layoutMain
 			anchors.fill: parent
+			spacing: 0
 
-			TextInput {
-				id: txtSubName
-				text: subName
-				font.italic: true
+			TextField {
+				id: txtExerciseName
+				text: exerciseName
+				font.bold: true
+				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				Layout.fillWidth: true
-				Layout.topMargin: 10
+				width: parent.width - 75
+				height: 60
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
+				Layout.minimumHeight: height
+				Layout.maximumHeight: height
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
-			}
+				Layout.topMargin: 0
+				z: 1
+
+				background: Rectangle {
+					color: txtExerciseName.readOnly ? "transparent" : "white"
+					border.color: txtExerciseName.readOnly ? "transparent" : "black"
+					radius: 5
+				}
+
+				Keys.onReturnPressed: { //Alphanumeric keyboard
+					btnEditExercise.clicked();
+					cboSetType.forceActiveFocus();
+				}
+
+				onReadOnlyChanged: {
+					if (!readOnly) {
+						if (bCompositeExercise) { //Remove the '1: ' from the name
+							const idx = exerciseName.indexOf(':');
+							exerciseName = exerciseName.substring(idx + 1, exerciseName.length).trim();
+						}
+					}
+					else
+						ensureVisible(0);
+				}
+
+				onActiveFocusChanged: {
+					if (activeFocus)
+						closeSimpleExerciseList();
+				}
+
+				onEditingFinished: {
+					if (!bCompositeExercise)
+						exerciseName = text;
+					else
+						exerciseName = "1: " + text;
+					exerciseEdited_SetChanged(origExerciseName, exerciseName);
+				}
+
+				ToolButton {
+					id: btnFoldIcon
+					anchors.left: txtExerciseName.right
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.rightMargin: -5
+					height: 25
+					width: 25
+					Image {
+						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+						height: 20
+						width: 20
+					}
+					onClicked: paneExercise.shown = !paneExercise.shown
+					z: 1
+				}
+
+				ToolButton {
+					id: btnRemoveExercise
+					padding: 10
+					anchors.left: btnFoldIcon.right
+					anchors.verticalCenter: parent.verticalCenter
+					height: 25
+					width: 25
+					z: 2
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"remove.png"
+						anchors.fill: parent
+						height: 20
+						width: 20
+					}
+
+					onClicked: {
+						msgDlgRemove.open();
+					}
+				} //btnRemoveExercise
+
+				ToolButton {
+					id: btnEditExercise
+					padding: 10
+					anchors.left: btnRemoveExercise.right
+					anchors.verticalCenter: parent.verticalCenter
+					height: 25
+					width: 25
+					z: 2
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"edit.png"
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+						height: 20
+						width: 20
+					}
+
+					onClicked: {
+						if (txtExerciseName.readOnly) {
+							origExerciseName = exerciseName;
+							txtExerciseName.readOnly = false;
+							//txtExerciseName.forceActiveFocus();
+							requestSimpleExerciseList(exerciseItem);
+						}
+						else {
+							txtExerciseName.readOnly = true;
+							closeSimpleExerciseList();
+						}
+						//var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
+						//exercise.exerciseChosen.connect(gotExercise);
+					}
+				}
+
+				MouseArea {
+					anchors.left: txtExerciseName.left
+					anchors.right: txtExerciseName.right
+					anchors.top: txtExerciseName.top
+					anchors.bottom: txtExerciseName.bottom
+					onClicked: paneExercise.shown = !paneExercise.shown
+					enabled: txtExerciseName.readOnly
+					z:1
+				}
+			} //txtExerciseName
 
 			RowLayout {
 				Layout.fillWidth: true
@@ -299,7 +346,6 @@ Item {
 				suggestedRestTimes[nset] = setsInfoList[i].setRestTime;
 				setNotes[nset] = setsInfoList[i].setNotes;
 				setIds[nset] = setsInfoList[i].setId;
-				uWeight = setsInfoList[i].setWeightUnit;
 				loadSetType(setsInfoList[i].setType, false);
 				nset++;
 				setType = setsInfoList[i].setType;
@@ -330,7 +376,7 @@ Item {
 			}
 			sprite = component.createObject(layoutMain, {
 								setId:setIds[setNbr], setNumber:setNbr, setReps:suggestedReps[setNbr],
-								setWeight:suggestedWeight[setNbr], setWeightUnit:uWeight, setSubSets:suggestedSubSets[setNbr],
+								setWeight:suggestedWeight[setNbr], setSubSets:suggestedSubSets[setNbr],
 								setRestTime:suggestedRestTimes[setNbr], setNotes:setNotes[setNbr], exerciseIdx:thisObjectIdx,
 								tDayId:tDayId
 			});
@@ -342,6 +388,13 @@ Item {
 				bCompositeExercise = true;
 				sprite.stackViewObj = stackViewObj;
 				sprite.secondExerciseNameChanged.connect(compositeSetChanged);
+				if (!bNewSet) {
+					const sep = exerciseName.indexOf('&');
+					var exercise2Name;
+					if (sep !== -1)
+						exercise2Name = exerciseName.substring(sep + 1, exerciseName.length);
+					sprite.exerciseName2 = exercise2Name;
+				}
 			}
 			if (setNbr >= 1) {
 				setObjectY[setNbr] = setObjectList[setNbr-1].Object.y + setObjectList[setNbr-1].Object.height;
@@ -434,6 +487,10 @@ Item {
 			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
 	}
 
+	function changeExercise(name1, name2) {
+		exerciseName = name1 + ' - ' + name2;
+	}
+
 	function calculateSuggestedValues(type) {
 		setIds[setNbr] = -1;
 		setNotes[setNbr] = setNbr === 0 ? "  " : setNotes[setNbr-1];
@@ -512,13 +569,13 @@ Item {
 
 	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
 		const oldName = exerciseName;
-		exerciseName = strName1 + '-' + strName2;
+		exerciseName = strName1 + ' - ' + strName2;
 		if (bCompositeExercise) {
 			const sep = oldName.indexOf('&');
 			var exercise2Name;
 			if (sep !== -1)
-				exercise2Name = oldName.substring(sep+1, oldName.length - sep -1);
-			exerciseName = "1: " + strName1 + '-' + strName2 + '&' + exercise2Name;
+				exercise2Name = oldName.substring(sep + 1, oldName.length);
+			exerciseName = "1: " + strName1 + ' - ' + strName2 + '&' + exercise2Name;
 		}
 		exerciseEdited_SetChanged(oldName, exerciseName);
 	}

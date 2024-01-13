@@ -61,6 +61,14 @@ Page {
 			color: paneBackgroundColor
 		}
 
+		onShownChanged: {
+			if (shown) {
+				if (currentSplitItem) {
+					exercisesList.setFilter(currentSplitItem.filterString);
+				}
+			}
+		}
+
 		ColumnLayout {
 			width: parent.width
 			height: parent.height
@@ -119,6 +127,7 @@ Page {
 				default: continue;
 			}
 			var component = Qt.createComponent("MesoSplitPlanner.qml");
+			var firstObject;
 			if (component.status === Component.Ready) {
 				var object = component.createObject(layoutMain, { divisionId:results[0].divisionId,
 						mesoId:mesoId, splitLetter:results[0].splitLetter, splitText:results[0].splitText,
@@ -127,20 +136,17 @@ Page {
 						splitNWeight:results[0].splitNWeight
 				});
 				object.selectedSplitObjectChanged.connect(selectSplitItem);
-				if (idx === 0)
-					selectSplitItem(object, object.filterString);
 			}
 		} while (++idx < mesoSplit.length);
 		if (idx > 0)
 			createNavButtons();
 	}
 
-	function selectSplitItem(splitObjectItem, strFilter) {
+	function selectSplitItem(splitObjectItem) {
 		if (currentSplitItem !== null)
 			currentSplitItem.bCurrentItem = false;
 		currentSplitItem = splitObjectItem;
 		currentSplitItem.bCurrentItem = true;
-		exercisesList.setFilter(strFilter);
 	}
 
 	function createNavButtons() {

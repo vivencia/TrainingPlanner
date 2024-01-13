@@ -38,6 +38,9 @@ Page {
 	property int scrollBarPosition: 0
 	property var navButtons: null
 
+	property bool bShowSimpleExercisesList: false
+	property var exerciseEntryThatRequestedSimpleList: null
+
 	signal mesoCalendarChanged()
 
 	onBModifiedChanged: {
@@ -567,7 +570,7 @@ Page {
 	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
 		bChoosingExercise = false;
 		if (bAdd) {
-			if (!addExercise(strName1 + '-' + strName2))
+			if (!addExercise(strName1 + ' - ' + strName2))
 				return;
 			bModified = true;
 		}
@@ -577,7 +580,7 @@ Page {
 
 		if (component.status === Component.Ready) {
 			var idx = exerciseSpriteList.length;
-			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1, subName:strName2,
+			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1 + ' - ' + strName2,
 						tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
 			exerciseSpriteList.push({"Object" : exerciseSprite});
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
@@ -658,14 +661,18 @@ Page {
 	}
 
 	function addExercise(exercisename) {
-		const names = exercisesNames.split('|');
-		for (var i = 0; i < names.length; ++i) {
-			if (names[i] === exercisename) {
-				msgDlgDuplicate.open();
-				return false;
+		if (exercisesNames.length > 0) {
+			const names = exercisesNames.split('|');
+			for (var i = 0; i < names.length; ++i) {
+				if (names[i] === exercisename) {
+					msgDlgDuplicate.open();
+					return false;
+				}
 			}
+			exercisesNames += '|' + exercisename;
 		}
-		exercisesNames += '|' + exerciseName;
+		else
+			exercisesNames = exercisename;
 		bModified = true;
 		return true;
 	}
@@ -677,7 +684,7 @@ Page {
 			if (names[i] !== exercisename)
 				exercisesNames += names[i] + '|';
 		}
-		exercisesName.slice(0, -1);
+		exercisesNames = exercisesNames.slice(0, -1);
 		bModified = true;
 	}
 
@@ -685,12 +692,14 @@ Page {
 		const names = exercisesNames.split('|');
 		var sep, name2 = "";
 		for (var i = 0; i < names.length; ++i) {
-			var name = parseInt(names[i]);
+			var name = names[i];
 			if (name.indexOf('&') !== -1) //Composite exercise. We only need the first now
 				name = name.slice(0, name.indexOf('&'));
 			sep = name.indexOf('-');
-			if (sep !== -1)
-				name2 = name.substring(sep + 1, name.length - sep - 1);
+			if (sep !== -1) {
+				name2 = name.substring(sep + 1, name.length).trim();
+				name = name.substring(0, sep).trim();
+			}
 			gotExercise(name, name2, "0", "0", "0", false);
 				exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
 		}
@@ -785,6 +794,7 @@ Page {
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
+		visible: !bShowSimpleExercisesList
 
 		ToolButton {
 			id: btnSaveDay
@@ -887,6 +897,37 @@ Page {
 				exercise.exerciseChosen.connect(gotExercise);
 			}
 		} // bntAddExercise
+	} //footer: ToolBar
+
+	ExercisesListView {
+		id: exercisesList
+		visible: bShowSimpleExercisesList
+		height: mainwindow.height * 0.4
+		width: parent.width
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.bottom: parent.bottom
+
+		Behavior on height {
+			NumberAnimation {
+				easing.type: Easing.InOutQuad
+			}
+		}
+
+		onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
+			if (exerciseEntryThatRequestedSimpleList)
+				exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName, subName);
+		}
 	}
 
+	function requestSimpleExerciseList(object) {
+		bShowSimpleExercisesList = true;
+		exerciseEntryThatRequestedSimpleList = object;
+		scrollTraining.setScrollBarPosition(1);
+	}
+
+	function closeSimpleExerciseList() {
+		bShowSimpleExercisesList = false;
+		exerciseEntryThatRequestedSimpleList = null;
+	}
 } // Page

@@ -13,7 +13,6 @@ Item {
 	property int setNumber
 	property real setReps
 	property real setWeight
-	property string setWeightUnit
 	property int setSubSets: 0
 	property string setRestTime: "01:30"
 	property string setNotes: " "

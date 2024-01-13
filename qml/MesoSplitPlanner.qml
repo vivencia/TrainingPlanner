@@ -22,7 +22,7 @@ Frame {
 	property bool bModified: false
 	property string filterString: ""
 
-	signal selectedSplitObjectChanged(var splitItem, string strFilter)
+	signal selectedSplitObjectChanged(var splitItem)
 
 	ListModel {
 		id: exercisesListModel
@@ -120,7 +120,6 @@ Frame {
 				splitText = text;
 				bModified = true;
 				makeFilterString();
-				selectedSplitObjectChanged(paneSplit, filterString);
 			}
 		}
 
@@ -367,7 +366,7 @@ Frame {
 					if (currentModelIndex !== index)
 						currentModelIndex = index;
 					if (!bCurrentItem)
-						selectedSplitObjectChanged(paneSplit, filterString);
+						selectedSplitObjectChanged(paneSplit);
 				}
 
 				swipe.right: Rectangle {
@@ -451,7 +450,7 @@ Frame {
 		currentModelIndex = exercisesListModel.count;
 		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
 			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
-		selectedSplitObjectChanged(paneSplit, filterString);
+		selectedSplitObjectChanged(paneSplit);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight) {

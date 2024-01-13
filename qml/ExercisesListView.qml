@@ -102,15 +102,15 @@ Column {
 			id: exercisesListModel
 
 			Component.onCompleted: {
-			if (count === 0) {
-				let exercises = Database.getExercises();
-				for (let exercise of exercises)
-					append(exercise);
-			}
-			if (count > 0) {
-				curIndex = 0;
-				displaySelectedExercise(curIndex);
-			}
+				if (count === 0) {
+					let exercises = Database.getExercises();
+					for (let exercise of exercises)
+						append(exercise);
+				}
+				if (count > 0) {
+					curIndex = 0;
+					displaySelectedExercise(curIndex);
+				}
 			}
 		} //model
 
@@ -210,7 +210,7 @@ Column {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesListModel.count > 0
-		width: parent.width - 30
+		width: parent.width - 10
 		Layout.fillWidth: true
 		Layout.maximumHeight: 30
 		Layout.topMargin: 5

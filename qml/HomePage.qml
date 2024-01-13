@@ -21,6 +21,14 @@ Page {
 		bottomPadding: 20
 	}
 
+	background: Rectangle {
+		Image {
+			anchors.fill: parent
+			source: "qrc:/images/app_logo.png"
+			fillMode: Image.PreserveAspectFit
+		}
+	}
+
 	ListView {
 		id: mesosListView
 		anchors.fill: parent

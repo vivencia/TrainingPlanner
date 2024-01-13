@@ -7,13 +7,12 @@ import "jsfunctions.js" as JSF
 Item {
 	id: setItem
 	property int setId
-	property int exerciseId
+	property int exerciseIdx
 	property int tDayId
 	property int setType: 2 //Constant
 	property int setNumber
 	property string setReps
 	property string setWeight
-	property string setWeightUnit
 	property int setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
@@ -138,7 +137,7 @@ Item {
 
 	function getReps(idx) {
 		if (setReps.length > 0) {
-			const reps = setReps.split(',');
+			const reps = setReps.split('|');
 			return parseInt(reps[idx]);
 		}
 		return "10"; //Random default value
@@ -146,7 +145,7 @@ Item {
 
 	function getWeight(idx) {
 		if (setWeight.length > 0) {
-			const weights = setWeight.split(',');
+			const weights = setWeight.split('|');
 			return parseInt(weights[idx]);
 		}
 		return "100"; //Random default value
@@ -154,23 +153,31 @@ Item {
 
 	function subSetAdded(newReps, newWeight) {
 		setSubSets++;
-		setReps += ',' + newReps.toString();
-		setWeight += ',' + newWeight.toString();
+		if (setReps.length === 0) {
+			setReps = newReps.toString();
+			setWeight = newWeight.toString();
+		}
+		else {
+			setReps += '|' + newReps.toString();
+			setWeight += '|' + newWeight.toString();
+		}
 		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 	}
 
 	function removeSet(idx) {
-		const reps = setReps.split(',');
-		const weights = setWeight.split(',');
+		const reps = setReps.split('|');
+		const weights = setWeight.split('|');
 		setReps = "";
 		setWeight = "";
 		for(var i = 0; i < reps.length; ++i) { //Both arrays are always the same length
 			if (i !== idx) {
-				setReps += ',' + reps[i];
-				setWeight += ',' + weights[i];
+				setReps += reps[i] + '|';
+				setWeight += weights[i] + '|';
 			}
 		}
 		setRemoved(idx);
+		setReps = setReps.slice(0, -1);
+		setWeight = setWeight.slice(0, -1);
 		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 	}
 
@@ -217,20 +224,22 @@ Item {
 	}
 
 	function subSetChanged(idx, newreps, newweight) {
-		const reps = setReps.split(',');
-		const weights = setWeight.split(',');
+		const reps = setReps.split('|');
+		const weights = setWeight.split('|');
 		setReps = "";
 		setWeight = "";
 		for(var i = 0; i < reps.length; ++i) {
 			if (i !== idx) {
-				setReps += ',' + reps[i];
-				setWeight += ',' + weights[i];
+				setReps += reps[i] + '|';
+				setWeight += weights[i] + '|';
 			}
 			else {
-				setReps += ',' + newreps.toString();
-				setWeight += ',' + newweight.toString();
+				setReps += newreps.toString() + '|';
+				setWeight += newweight.toString() + '|';
 			}
 		}
+		setReps = setReps.slice(0, -1);
+		setWeight = setWeight.slice(0, -1);
 		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 	}
 
@@ -244,19 +253,13 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetTypeDropSet: #" + setNumber.toString() + "  " + exerciseId.toString() + "   " + tDayId.toString());
-			let result = Database.newSetInfo(tDayId, exerciseId, setType, setNumber, setReps,
+			console.log("SetTypeDropSet: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
+			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
 								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
-			Database.updateSetInfo(setId, exerciseId, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
-			/*Database.updateSetInfo_setNumber(setId, setNumber);
-			Database.updateSetInfo_setReps(setId, setReps);
-			Database.updateSetInfo_setWeight(setId, setWeight);
-			Database.updateSetInfo_setNotes(setId, setNotes);
-			Database.updateSetInfo_setRestTime(setId, setRestTime);
-			Database.updateSetInfo_setSubSets(setId, setSubSets);*/
+			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
 } // Item
