@@ -41,21 +41,22 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #: ") + (setNumber + 1).toString() + qsTr("  -  Cluster set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Cluster set")
 			font.bold: true
 
 			ToolButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right
-				height: 20
-				width: 20
+				height: 25
+				width: 25
+
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"remove.png"
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.horizontalCenter: parent.horizontalCenter
-					height: 25
-					width: 25
+					height: 20
+					width: 20
 				}
 				onClicked: setRemoved(setNumber);
 			}

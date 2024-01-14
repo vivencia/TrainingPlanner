@@ -20,18 +20,30 @@ FocusScope {
 	implicitHeight: 40
 	implicitWidth: mainRow.width
 
-	Row {
+	GridLayout {
 		id: mainRow
 		anchors.fill: parent
+		rows: 2
+		columns: 3
+		rowSpacing: 0
 
+		Label {
+			text: rowIdx === 0 ? qsTr("Reps:") : ""
+			Layout.alignment: Qt.AlignCenter
+			Layout.row: 0
+			Layout.column: 0
+		}
 		SetInputField {
 			id: txtNReps
 			text: nReps.toString()
 			type: SetInputField.Type.RepType
 			nSetNbr: setNbr
 			showLabel: false
-			availableWidth: mainRow.width/2 - 30
+			availableWidth: mainRow.width/3
 			focus: true // makes FocusScope choose this Item to give focus to
+			Layout.alignment: Qt.AlignCenter
+			Layout.row: 1
+			Layout.column: 0
 
 			onEnterOrReturnKeyPressed: {
 				txtNWeight.forceActiveFocus();
@@ -45,13 +57,22 @@ FocusScope {
 			}
 		}
 
+		Label {
+			text: rowIdx === 0 ? qsTr("Weight:") : ""
+			Layout.alignment: Qt.AlignCenter
+			Layout.row: 0
+			Layout.column: 1
+		}
 		SetInputField {
 			id: txtNWeight
 			text: nWeight.toString()
 			type: SetInputField.Type.WeightType
 			nSetNbr: setNbr
 			showLabel: false
-			availableWidth: mainRow.width/2 - 30
+			availableWidth: mainRow.width/3
+			Layout.alignment: Qt.AlignCenter
+			Layout.row: 1
+			Layout.column: 1
 
 			onEnterOrReturnKeyPressed: {
 				if (nextRowObj !== null)
@@ -64,42 +85,54 @@ FocusScope {
 					changeSubSet(rowIdx, nReps, nWeight);
 				}
 			}
+
+			ToolButton {
+				id: btnInsertAnotherRow
+				width: 25
+				height: 25
+				visible: bBtnAddEnabled
+				anchors {
+					left: txtNWeight.right
+					verticalCenter: txtNWeight.verticalCenter
+					leftMargin: 3
+				}
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"add-new.png"
+					anchors.fill: parent
+					width: 20
+					height: 20
+				}
+
+				onClicked: addSubSet(rowIdx+1, true);
+			} //bntInsertAnotherRow
+
+			ToolButton {
+				id: btnRemoveRow
+				width: 25
+				height: 25
+				visible: rowIdx > 0
+				anchors {
+					left: btnInsertAnotherRow.right
+					verticalCenter: txtNWeight.verticalCenter
+					leftMargin: 3
+				}
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"remove.png"
+					anchors.fill: parent
+					height: 20
+					width: 20
+				}
+
+				onClicked: delSubSet(rowIdx);
+			} //btnRemoveRow
+		} //txtNWeight
+
+		Rectangle {
+			width: 60
+			Layout.row: 1
+			Layout.column: 2
 		}
-
-		ToolButton {
-			id: btnInsertAnotherRow
-			width: 25
-			height: 25
-			visible: bBtnAddEnabled
-			Layout.maximumHeight: 25
-			Layout.maximumWidth: 25
-			Layout.alignment: Qt.AlignCenter
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"add-new.png"
-				anchors.fill: parent
-			}
-
-			onClicked: addSubSet(rowIdx+1, true);
-		}
-
-		ToolButton {
-			id: btnRemoveRow
-			width: 25
-			height: 25
-			visible: rowIdx > 0
-			Layout.maximumHeight: 25
-			Layout.maximumWidth: 25
-			Layout.alignment: Qt.AlignCenter
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"remove.png"
-				anchors.fill: parent
-			}
-
-			onClicked: {
-				delSubSet(rowIdx);
-			}
-		}
-	} //Row
+	} //GridLayout
 } //FocusScope

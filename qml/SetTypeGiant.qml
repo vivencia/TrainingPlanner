@@ -7,7 +7,7 @@ import "jsfunctions.js" as JSF
 Item {
 	id: setItem
 	property int setId
-	property int exerciseIdxx
+	property int exerciseIdx
 	property int tDayId
 	property int setType: 4 //Constant
 	property int setNumber
@@ -18,7 +18,6 @@ Item {
 	property string setNotes: " "
 
 	property string exerciseName2
-	property string origExercise2Name
 	property bool bIsRemoving: false
 	property bool bUpdateLists
 	property var subSetList: []
@@ -26,7 +25,7 @@ Item {
 
 	signal setRemoved(int nset)
 	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)
-	signal secondExerciseNameChanged(int old_exercisename, int new_exercisename)
+	signal secondExerciseNameChanged(string new_exercisename)
 
 	property string strReps1
 	property string strReps2
@@ -34,6 +33,7 @@ Item {
 	property string strWeight2
 
 	implicitHeight: setLayout.implicitHeight
+	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 
@@ -52,21 +52,22 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #: ") + (setNumber + 1).toString() + qsTr("  -  Giant set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Giant set")
 			font.bold: true
 
 			ToolButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right
-				height: 20
-				width: 20
+				height: 25
+				width: 25
+
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"remove.png"
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.horizontalCenter: parent.horizontalCenter
-					height: 25
-					width: 25
+					height: 20
+					width: 20
 				}
 				onClicked: setRemoved(setNumber);
 			}
@@ -76,11 +77,18 @@ Item {
 			id: txtExerciseName2
 			text: exerciseName2
 			font.bold: true
+			font.pixelSize: AppSettings.fontSizeText
 			readOnly: true
 			wrapMode: Text.WordWrap
-			Layout.topMargin: 2
+			width: setItem.width - 75
+			height: 60
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
+			Layout.minimumHeight: height
+			Layout.maximumHeight: height
 			Layout.leftMargin: 5
-			Layout.fillWidth: true
+			Layout.rightMargin: 5
+			Layout.topMargin: 0
 			z: 1
 
 			background: Rectangle {
@@ -99,19 +107,24 @@ Item {
 					const idx = exerciseName2.indexOf(':'); //Remove the '2: ' from the name
 					exerciseName2 = exerciseName2.substring(idx + 1, exerciseName2.length).trim();
 				}
+				else
+					ensureVisible(0);
+			}
+
+			onActiveFocusChanged: {
+				if (activeFocus)
+					closeSimpleExerciseList();
 			}
 
 			onEditingFinished: {
-				exerciseName = "2: " + text;
-				secondExerciseNameChanged(origExercise2Name, exerciseName2);
+				exerciseName2 = "2: " + text;
+				secondExerciseNameChanged(exerciseName2);
 			}
 
 			ToolButton {
 				id: btnRemoveExercise2
-				padding: 10
-				anchors.right: parent.right
-				anchors.top: txtExerciseName2.top
-				anchors.rightMargin: 20
+				anchors.left: txtExerciseName2.right
+				anchors.verticalCenter: txtExerciseName2.verticalCenter
 				height: 25
 				width: 25
 				visible: setNumber === 0
@@ -129,9 +142,8 @@ Item {
 
 			ToolButton {
 				id: btnEditExercise2
-				padding: 10
-				anchors.right: btnRemoveExercise2.left
-				anchors.top: txtExerciseName2.top
+				anchors.left: btnRemoveExercise2.right
+				anchors.verticalCenter: txtExerciseName2.verticalCenter
 				height: 25
 				width: 25
 				z: 2
@@ -147,17 +159,13 @@ Item {
 
 				onClicked: {
 					if (txtExerciseName2.readOnly) {
-						origExercise2Name = exerciseName;
 						txtExerciseName2.readOnly = false;
-						txtExerciseName2.forceActiveFocus();
 						requestSimpleExerciseList(setItem);
 					}
 					else {
 						txtExerciseName2.readOnly = true;
 						closeSimpleExerciseList();
 					}
-					//var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
-					//exercise.exerciseChosen.connect(exerciseReceived);
 				}
 			} //btnEditExercise2
 		} //txtExerciseName2
@@ -401,13 +409,13 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetGiantDropSet: #" + setNumber.toString() + "  " + exerciseId.toString() + "   " + tDayId.toString());
-			let result = Database.newSetInfo(tDayId, exerciseId, setType, setNumber, setReps,
+			console.log("SetGiantDropSet: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
+			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
 								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
-			Database.updateSetInfo(setId, exerciseId, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
+			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
 } // Item

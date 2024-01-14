@@ -7,7 +7,7 @@ import "jsfunctions.js" as JSF
 Item {
 	id: setItem
 	property int setId
-	property int exerciseId
+	property int exerciseIdx
 	property int tDayId
 	property int setType: 1 //Constant
 	property int setNumber
@@ -41,7 +41,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #: ") + (setNumber + 1).toString() + qsTr("  -  Pyramid set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Pyramid set")
 			font.bold: true
 
 			ToolButton {

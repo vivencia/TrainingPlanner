@@ -32,7 +32,6 @@ Page {
 
 	property bool bStopBounce: false
 	property bool bNotScroll: false
-	property bool bChoosingExercise: false
 	property bool bHasPreviousDay
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
@@ -475,15 +474,6 @@ Page {
 		}
 	}
 
-	MessageDialog {
-		id: msgDlgDuplicate
-		text: qsTr("\n\nDuplicated exercise\n\n")
-		informativeText: qsTr("Cannot add exercise because it's already been added to this day.")
-		buttons: MessageDialog.Ok
-
-		onButtonClicked: accept();
-	}
-
 	function loadOrCreateDayInfo() {
 		let mesoinfo = Database.getMesoInfo(mesoId);
 		if ( mesoinfo.length > 0 ) {
@@ -568,25 +558,21 @@ Page {
 	}
 
 	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
-		bChoosingExercise = false;
-		if (bAdd) {
-			if (!addExercise(strName1 + ' - ' + strName2))
-				return;
-			bModified = true;
-		}
+		if (bAdd)
+			addExercise(strName1 + ' - ' + strName2);
+
 		var component;
 		var exerciseSprite;
 		component = Qt.createComponent("ExerciseEntry.qml");
 
 		if (component.status === Component.Ready) {
 			var idx = exerciseSpriteList.length;
-			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1 + ' - ' + strName2,
-						tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
+			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1,
+				exerciseName2:strName2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
 			exerciseSpriteList.push({"Object" : exerciseSprite});
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
-			exerciseSprite.exerciseEdited_SetChanged.connect(exerciseSetChanged);
 			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
 
 			bStopBounce = true;
@@ -599,15 +585,6 @@ Page {
 		}
 		else
 			console.log("not ready");
-	}
-
-	//This signal just indicate there is a change within the exercise object. We use to modify the controls of the page
-	//How those changes get properly handled is the business of the originator of the signal. Except when the set changes the id
-	//of the exercise(so far, only GiantSet, but could be any of type CompositeExercise)
-	function exerciseSetChanged(old_exercisename, new_exercisename) {
-		bModified = true;
-		if (new_exercisename !== "")
-			editExercise(old_exercisename, new_exercisename);
 	}
 
 	function addExerciseSet(bnewset, sety, setheight, exerciseObjIdx) {
@@ -629,15 +606,19 @@ Page {
 		}
 	}
 
-	function editExercise(oldExerciseName, newExerciseName) {
-		const names = exercisesNames.split('|');
-		for (var i = 0; i < names.length; ++i) {
-			if (names[i] === newExerciseName) {
-				msgDlgDuplicate.open();
-				return false;
+	function editExercise(exerciseIdx, newExerciseName) {
+		bModified = true;
+		if (exerciseIdx !== -1) {
+			const names = exercisesNames.split('|');
+			exercisesNames = "";
+			for (var i = 0; i < names.length; ++i) {
+				if (i !== exerciseIdx)
+					exercisesNames += names[i] + '|';
+				else
+					exercisesNames += newExerciseName + '|';
 			}
+			exercisesNames = exercisesNames.slice(0, -1);
 		}
-		exercisesNames = exercisesNames.replace(oldExerciseName, newExerciseName);
 	}
 
 	function removeExercise(objidx) {
@@ -645,7 +626,7 @@ Page {
 
 		for( var i = 0, x = 0; i < exerciseSpriteList.length; ++i ) {
 			if (i === objidx) {
-				removeExerciseName(exerciseSpriteList[objidx].Object.exerciseName);
+				removeExerciseName(objidx);
 				exerciseSpriteList[objidx].Object.destroy();
 			}
 			else {
@@ -661,27 +642,18 @@ Page {
 	}
 
 	function addExercise(exercisename) {
-		if (exercisesNames.length > 0) {
-			const names = exercisesNames.split('|');
-			for (var i = 0; i < names.length; ++i) {
-				if (names[i] === exercisename) {
-					msgDlgDuplicate.open();
-					return false;
-				}
-			}
+		if (exercisesNames.length > 0)
 			exercisesNames += '|' + exercisename;
-		}
 		else
 			exercisesNames = exercisename;
 		bModified = true;
-		return true;
 	}
 
-	function removeExerciseName(exercisename) {
+	function removeExerciseName(exerciseIdx) {
 		const names = exercisesNames.split('|');
 		exercisesNames = "";
 		for (var i = 0; i < names.length; ++i) {
-			if (names[i] !== exercisename)
+			if (i !== exerciseIdx)
 				exercisesNames += names[i] + '|';
 		}
 		exercisesNames = exercisesNames.slice(0, -1);
@@ -690,18 +662,17 @@ Page {
 
 	function createExercisesFromList() {
 		const names = exercisesNames.split('|');
-		var sep, name2 = "";
+		var sep, name, name2 = "";
 		for (var i = 0; i < names.length; ++i) {
-			var name = names[i];
-			if (name.indexOf('&') !== -1) //Composite exercise. We only need the first now
-				name = name.slice(0, name.indexOf('&'));
-			sep = name.indexOf('-');
-			if (sep !== -1) {
-				name2 = name.substring(sep + 1, name.length).trim();
-				name = name.substring(0, sep).trim();
+			sep = names[i].indexOf('&');
+			if (sep !== -1) { //Composite exercise
+				name = names[i].substring(0, sep);
+				name2 = names[i].substring(sep + 1, names[i].length);
 			}
+			else
+				name = names[i];
 			gotExercise(name, name2, "0", "0", "0", false);
-				exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
+			exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
 		}
 	}
 
@@ -817,10 +788,10 @@ Page {
 					trainingNotes = " ";
 				if (splitLetter === 'R')
 					tDay = 0;
+				updateMesoCalendar();
 				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
 						exerciseSpriteList[i].Object.logSets();
-				updateMesoCalendar();
 				bModified = false;
 				appDBModified = true;
 			}
@@ -888,7 +859,6 @@ Page {
 			icon.height: 20
 
 			onClicked: {
-				bChoosingExercise = true;
 				hideFloatingButton(-1);
 				if (navButtons !== null)
 					navButtons.hideButtons();

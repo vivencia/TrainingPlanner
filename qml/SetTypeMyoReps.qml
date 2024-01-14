@@ -44,7 +44,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #: ") + (setNumber + 1).toString() + qsTr("  -  Myo Reps")
+			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Myo Reps")
 			font.bold: true
 			Layout.row: 0
 			Layout.column: 0
@@ -54,14 +54,15 @@ Item {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right
-				height: 20
-				width: 20
+				height: 25
+				width: 25
+
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"remove.png"
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.horizontalCenter: parent.horizontalCenter
-					height: 25
-					width: 25
+					height: 20
+					width: 20
 				}
 				onClicked: setRemoved(setNumber);
 			}

@@ -354,6 +354,7 @@ Dialog {
 					if (activeFocus) {
 						txtHours.clear();
 						placeholderText = JSF.intTimeToStrTime(hours);
+						origHours = hours;
 					}
 					else {
 						bInputOK = acceptableInput;
@@ -408,6 +409,7 @@ Dialog {
 					if (activeFocus) {
 						txtMinutes.clear();
 						placeholderText = JSF.intTimeToStrTime(mins);
+						origMins = mins;
 					}
 					else {
 						bInputOK = acceptableInput
@@ -462,6 +464,7 @@ Dialog {
 					if (activeFocus) {
 						txtSecs.clear();
 						placeholderText = JSF.intTimeToStrTime(secs);
+						origSecs = secs;
 					}
 					else {
 						if (acceptableInput)

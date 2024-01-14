@@ -13,6 +13,8 @@ Item {
 	required property var stackViewObj
 	property bool bFoldPaneOnLoad: false
 
+	property string exerciseName1
+	property string exerciseName2
 	property int setType: 0
 	property int setNbr: -1
 	property var setObjectY: []
@@ -26,15 +28,13 @@ Item {
 
 	property int thisObjectIdx
 	signal exerciseRemoved(int ObjectIdx)
-	signal exerciseEdited(int oldId, int newId)
-	signal exerciseEdited_SetChanged(int oldexercisename, int newexercisename)
+	signal exerciseEdited(int objidx, string newname)
 	signal setAdded(bool bnewset, int sety, int setheight, int objidx)
 	signal requestHideFloatingButtons(int except_idx)
 
 	property var setObjectList: []
 	property var setsInfoList: []
 
-	property string origExerciseName
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
 
@@ -109,7 +109,7 @@ Item {
 
 			TextField {
 				id: txtExerciseName
-				text: exerciseName
+				text: exerciseName1
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
@@ -139,8 +139,8 @@ Item {
 				onReadOnlyChanged: {
 					if (!readOnly) {
 						if (bCompositeExercise) { //Remove the '1: ' from the name
-							const idx = exerciseName.indexOf(':');
-							exerciseName = exerciseName.substring(idx + 1, exerciseName.length).trim();
+							const idx = exerciseName1.indexOf(':');
+							exerciseName1 = exerciseName1.substring(idx + 1, exerciseName1.length).trim();
 						}
 					}
 					else
@@ -153,18 +153,21 @@ Item {
 				}
 
 				onEditingFinished: {
-					if (!bCompositeExercise)
-						exerciseName = text;
-					else
-						exerciseName = "1: " + text;
-					exerciseEdited_SetChanged(origExerciseName, exerciseName);
+					if (!bCompositeExercise) {
+						exerciseName1 = text;
+						exerciseName = exerciseName1;
+					}
+					else {
+						exerciseName1 = "1: " + text;
+						exerciseName = exerciseName1 + '&' + exerciseName2;
+					}
+					exerciseEdited(thisObjectIdx, exerciseName);
 				}
 
 				ToolButton {
 					id: btnFoldIcon
 					anchors.left: txtExerciseName.right
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.rightMargin: -5
+					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
 					Image {
@@ -180,9 +183,8 @@ Item {
 
 				ToolButton {
 					id: btnRemoveExercise
-					padding: 10
 					anchors.left: btnFoldIcon.right
-					anchors.verticalCenter: parent.verticalCenter
+					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
 					z: 2
@@ -200,7 +202,6 @@ Item {
 
 				ToolButton {
 					id: btnEditExercise
-					padding: 10
 					anchors.left: btnRemoveExercise.right
 					anchors.verticalCenter: parent.verticalCenter
 					height: 25
@@ -216,17 +217,13 @@ Item {
 
 					onClicked: {
 						if (txtExerciseName.readOnly) {
-							origExerciseName = exerciseName;
 							txtExerciseName.readOnly = false;
-							//txtExerciseName.forceActiveFocus();
 							requestSimpleExerciseList(exerciseItem);
 						}
 						else {
 							txtExerciseName.readOnly = true;
 							closeSimpleExerciseList();
 						}
-						//var exercise = stackViewObj.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
-						//exercise.exerciseChosen.connect(gotExercise);
 					}
 				}
 
@@ -384,23 +381,24 @@ Item {
 			sprite.setRemoved.connect(setRemoved);
 			sprite.setChanged.connect(setChanged);
 
-			if (type === 4) { //Giant set
-				bCompositeExercise = true;
-				sprite.stackViewObj = stackViewObj;
-				sprite.secondExerciseNameChanged.connect(compositeSetChanged);
-				if (!bNewSet) {
-					const sep = exerciseName.indexOf('&');
-					var exercise2Name;
-					if (sep !== -1)
-						exercise2Name = exerciseName.substring(sep + 1, exerciseName.length);
-					sprite.exerciseName2 = exercise2Name;
-				}
-			}
 			if (setNbr >= 1) {
 				setObjectY[setNbr] = setObjectList[setNbr-1].Object.y + setObjectList[setNbr-1].Object.height;
 			}
-			else
+			else {
+				if (type === 4) { //Giant set
+					bCompositeExercise = true;
+					sprite.stackViewObj = stackViewObj;
+					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
+					if (bNewSet)
+						exerciseName2 = qsTr("2: Add exercise");
+					exerciseName1 = exerciseName;
+					exerciseName += '&' + exerciseName2;
+					sprite.exerciseName2 = exerciseName2;
+				}
+				else
+					exerciseName1 = exerciseName;
 				setObjectY[setNbr] = 0;
+			}
 			setAdded(bNewSet, setObjectY[setNbr], sprite.height, thisObjectIdx);
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr++;
@@ -415,19 +413,13 @@ Item {
 		suggestedSubSets[nset] = nSubSets;
 		suggestedRestTimes[nset] = restTime;
 		setNotes[nset] = notes;
-		exerciseEdited_SetChanged("", "");
+		exerciseEdited(-1, "");
 	}
 
 	function compositeSetChanged(newexercise2name) {
-		const oldName = exerciseName;
-		const sep = oldName.indexOf('&');
-		var exercise1Name;
-		if (sep !== -1)
-			exercise1Name = oldName.substring(0, sep);
-		else
-			exercise1Name = oldName;
-		exerciseName = exercise1Name + '&' + newexercise2name;
-		exerciseEdited_SetChanged(oldName, exerciseName);
+		exerciseName2 = newexercise2name;
+		exerciseName = exerciseName1 + '&' + exerciseName2;
+		exerciseEdited(thisObjectIdx, exerciseName);
 	}
 
 	function logSets() {
@@ -479,7 +471,7 @@ Item {
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr--;
 		}
-		exerciseEdited_SetChanged("", "");
+		exerciseEdited(-1, "");
 	}
 
 	function updateSetsExerciseIndex() {
@@ -488,7 +480,19 @@ Item {
 	}
 
 	function changeExercise(name1, name2) {
-		exerciseName = name1 + ' - ' + name2;
+		if (!bCompositeExercise) {
+			exerciseName1 = name1 + ' - ' + name2;
+			exerciseName = exerciseName1;
+		}
+		else {
+			exerciseName1 = "1: " + name1 + ' - ' + name2;
+			exerciseName = exerciseName1 + '&' + exerciseName2;
+		}
+		exerciseEdited(thisObjectIdx, exerciseName);
+	}
+
+	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
+		changeExercise(strName1, strName2);
 	}
 
 	function calculateSuggestedValues(type) {
@@ -565,18 +569,5 @@ Item {
 				}
 			break;
 		}
-	}
-
-	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
-		const oldName = exerciseName;
-		exerciseName = strName1 + ' - ' + strName2;
-		if (bCompositeExercise) {
-			const sep = oldName.indexOf('&');
-			var exercise2Name;
-			if (sep !== -1)
-				exercise2Name = oldName.substring(sep + 1, oldName.length);
-			exerciseName = "1: " + strName1 + ' - ' + strName2 + '&' + exercise2Name;
-		}
-		exerciseEdited_SetChanged(oldName, exerciseName);
 	}
 } //Item
