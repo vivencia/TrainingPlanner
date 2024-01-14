@@ -1,4 +1,4 @@
-#Version;1.3
+#Version;1.4
 Cadeira Extensora;amplitude total;pernas, quadríceps
 Cadeira Extensora;unilateral;pernas, quadríceps
 Cadeira Flexora;amplitude total;pernas, posterior
@@ -75,10 +75,10 @@ Levantamento Terra Parcial(1/2);livre,barra hexagonal,convencional;pernas,poster
 Levantamento Terra Parcial(1/2);smith,barra hexagonal,convencional;pernas,posterior,costas
 Levantamento Terra Parcial(3/4);livre,barra hexagonal,convencional;pernas,posterior,costas
 Levantamento Terra Parcial(3/4);smith,barra hexagonal,convencional;pernas,posterior,costas
-Barra fixa;sem peso, com strap;costas
-Barra fixa;sem peso, sem strap;costas
-Barra fixa;com peso, com strap;costas
-Barra fixa;com peso, sem strap;costas
+Barra Fixa;sem peso, com strap;costas
+Barra Fixa;sem peso, sem strap;costas
+Barra Fixa;com peso, com strap;costas
+Barra Fixa;com peso, sem strap;costas
 Pull-Down;polia, barra;costas
 Pull-Down;polia, corda;costas
 Pull-Down;máquina;costas
@@ -155,15 +155,154 @@ Remada Cavalinho;belt squat, pegada pronada;costas
 Remada Cavalinho;máquina, pegada neutra;costas
 Remada Cavalinho;máquina, pegada supinada;costas
 Remada Cavalinho;máquina, pegada pronada;costas
-Abdominal reto;parcial;abdômen
-Abdominal reto;completo;abdômen
-Abdominal inclinado;parcial, sem peso;abdômen
-Abdominal inclinado;completo, sem peso;abdômen
-Abdominal inclinado;parcial, com peso;abdômen
-Abdominal inclinado;completo, com peso;abdômen
+Abdominal Reto;parcial;abdômen
+Abdominal Reto;completo;abdômen
+Abdominal Inclinado;parcial, sem peso;abdômen
+Abdominal Inclinado;completo, sem peso;abdômen
+Abdominal Inclinado;parcial, com peso;abdômen
+Abdominal Inclinado;completo, com peso;abdômen
 Abdominal na Barra Paralela;sem peso;abdômen
 Abdominal na Barra Paralela;com peso;abdômen
 Abdominal na Barra Fixa;sem peso;abdômen
 Abdominal na Barra Fixa;com peso;abdômen
 Abdominal na Máquina;reto;abdômen
 Abdominal na Máquina;lateral;abdômen
+Supino Reto;barra;peito
+Supino Reto;halter;peito
+Supino Reto;maquina, pegada neutra;peito
+Supino Reto;maquina, pegada pronada;peito
+Supino Inclinado 45o;barra;peito
+Supino Inclinado 45o;halter;peito;
+Supino Inclinado 45o;maquina, pegada neutra;peito
+Supino Inclinado 45o;maquina, pegada pronada;peito
+Supino Inclinado 30o;barra;peito
+Supino Inclinado 30o;halter;peito;
+Supino Inclinado 30o;maquina, pegada neutra;peito
+Supino Inclinado 30o;maquina, pegada pronada;peito
+Supino Declinado;barra;peito
+Supino Declinado;halter;peito;
+Supino Declinado;maquina, pegada neutra;peito
+Supino Declinado;maquina, pegada pronada;peito
+Flexão 180o;chão;peito
+Flexão 180o;pegador neutro para flexão;peito
+Flexão Inclinada;chão;peito
+Flexão Inclinada;pegador neutro para flexão;peito
+Flexão Declinada;chão;peito
+Flexão Declinada;pegador neutro para flexão;peito
+Crucifixo Reto;halter;peito
+Crucifixo Reto;máquina deitada;peito
+Crucifixo Reto;máquina sentada;peito
+Crucifixo Inclinado 45o;halter;peito
+Crucifixo Inclinado 45o;máquina deitada;peito
+Crucifixo Inclinado 45o;máquina sentada;peito
+Crucifixo Inclinado 30o;halter;peito
+Crucifixo Inclinado 30o;máquina deitada;peito
+Crucifixo Inclinado 30o;máquina sentada;peito
+Crossover;polia, pegada alta;peito
+Crossover;polia, pegada média;peito
+Crossover;polia, pegada baixa;peito
+Barras paralelas;corpo ligeiramento inclinado;peito,ombro,tríceps
+Barras paralelas;corpo 90o;peito,ombro,tríceps
+Elevação Lateral;halter, sentado;ombro
+Elevação Lateral;halter, em pé;ombro
+Elevação Lateral;máquina;ombro
+Elevação Lateral;polia;ombro
+Elevação Lateral;polia, alternado;ombro
+Elevação Frontal;halter, em pé, pegada neutra;ombro
+Elevação Frontal;halter, sentado, pegada neutra;ombro
+Elevação Frontal;halter, alternado, pegada neutra, em pé;ombro
+Elevação Frontal;halter, alternado, pegada neutra, sentado;ombro
+Elevação Frontal;halter, em pé, pegada pronada;ombro
+Elevação Frontal;halter, sentado, pegada pronada;ombro
+Elevação Frontal;halter, alternado, pegada pronada, em pé;ombro
+Elevação Frontal;halter, alternado, pegada pronada, sentado;ombro
+Elevação Frontal;halter, em pé, pegada supinada;ombro
+Elevação Frontal;halter, sentado, pegada supinada;ombro
+Elevação Frontal;halter, alternado, pegada supinada, em pé;ombro
+Elevação Frontal;halter, alternado, pegada supinada, sentado;ombro
+Elevação Frontal;halter, banco inclinado, pegada supinada;ombro
+Elevação Frontal;halter, banco inclinado, pegada supinada, em pé;ombro
+Elevação Frontal;halter, banco inclinado, pegada supinada, sentado;ombro
+Elevação Frontal;barra, em pé, pegada neutra;ombro
+Elevação Frontal;barra, sentado, pegada neutra;ombro
+Elevação Frontal;barra, em pé, pegada pronada;ombro
+Elevação Frontal;barra, sentado, pegada pronada;ombro
+Elevação Frontal;barra, em pé, pegada supinada;ombro
+Elevação Frontal;barra, sentado, pegada supinada;ombro
+Elevação Frontal;polia, pegada neutra;ombro
+Elevação Frontal;polia, pegada supinada;ombro
+Elevação Frontal;polia, pegada pronada;ombro
+Elevação Posterior;halter, em pé;ombro
+Elevação Posterior;halter, em pé, cabeça apoiada;ombro
+Elevação Posterior;halter, sentado;ombro
+Encolhimento frontal;halter;ombro
+Encolhimento frontal;barra;ombro
+Encolhimento frontal;smith;ombro
+Encolhimento frontal;barra hexagonal;ombro
+Encolhimento posterior;barra;ombro
+Encolhimento posterior;smith;ombro
+Arnold Press;halter, sentado;ombro
+Arnold Press;halter, em pé;ombro
+Desenvolvimento Frontal;halter, sentado, pegada neutra;ombro
+Desenvolvimento Frontal;halter, em pé, pegada neutra;ombro
+Desenvolvimento Frontal;halter, sentado, pegada pronada;ombro
+Desenvolvimento Frontal;halter, em pé, pegada pronada;ombro
+Desenvolvimento Frontal;máquina;ombro
+Desenvolvimento Frontal;barra;ombro
+Desenvolvimento Frontal;smith;ombro
+Desenvolvimento Millitar;barra;ombro
+Desenvolvimento Millitar;máquina;ombro
+Desenvolvimento Millitar;halter;ombro
+Remada Alta;halter;ombro
+Remada Alta;barra;ombro
+Remada Alta;polia;ombro
+Crucifixo Inverso(Voador);halter;ombro
+Crucifixo Inverso(Voador);máquina;ombro
+Crucifixo Inverso(Voador);polia;ombro
+Crucifixo Inverso(Voador);polia, unilateral;ombro
+Rosca Direta;halter, em pé;braço,bíceps
+Rosca Direta;halter, em pé, alternado;braço,bíceps
+Rosca Direta;halter, sentado;braço,bíceps
+Rosca Direta;halter, sentado, alternado;braço,bíceps
+Rosca Direta;halter, banco inclinado;braço,bíceps
+Rosca Direta;halter, banco inclinado, alternado;braço,bíceps
+Rosca Direta;barra, em pé;braço,bíceps
+Rosca Direta;barra, sentado;braço,bíceps
+Rosca Direta;polia;braço,bíceps
+Rosca Direta;polia, alternado;braço,bíceps
+Rosca Direta;polia, barra reta;braço,bíceps
+Rosca Direta;polia, barra W ou V;braço,bíceps
+Rosca Direta;máquina;braço,bíceps
+Rosca Direta mesa Scott;sentado;braço,bíceps
+Rosca Direta mesa Scott;em pé;braço,bíceps
+Rosca Direta mesa Scott;lado inverso;braço,bíceps
+Rosca Martelo;halter, em pé;braço,bíceps
+Rosca Martelo;halter, em pé, alternado;braço,bíceps
+Rosca Martelo;halter, sentado;braço,bíceps
+Rosca Martelo;halter, sentado, alternado;braço,bíceps
+Rosca Martelo;halter, banco inclinado;braço,bíceps
+Rosca Martelo;halter, banco inclinado, alternado;braço,bíceps
+Rosca Martelo;barra, em pé;braço,bíceps
+Rosca Martelo;barra, sentado;braço,bíceps
+Rosca Martelo;polia;braço,bíceps
+Rosca Martelo;polia, alternado;braço,bíceps
+Extensão de Tríceps;polia, barra reta;braço,tríceps
+Extensão de Tríceps;polia, barra W ou V;braço,tríceps
+Extensão de Tríceps;máquina;braço,tríceps
+Tríceps Coice;polia;braço,tríceps
+Tríceps Coice;halter;braço,tríceps
+Tríceps Francês;halter;braço,tríceps
+Tríceps Francês;halter, alternado;braço,tríceps
+Tríceps Francês;barra;braço,tríceps
+Tríceps Francês;polia;braço,tríceps
+Tríceps Testa;barra, banco reto;braço,tríceps
+Tríceps Testa;barra, banco inclinado;braço,tríceps
+Tríceps Testa;halter, banco reto;braço,tríceps
+Tríceps Testa;halter, banco inclinado;braço,tríceps
+Tríceps Testa;polia;braço,tríceps
+Tríceps Corda;polia;braço,tríceps
+Supino Fechado;barra;braço,tríceps
+Supino Fechado;smith;braço,tríceps
+Supino Fechado;halter;braço,tríceps
+Mergulho no banco;pernas no chão;braço,tríceps
+Mergulho no banco;pernas elevadas;braço,tríceps

@@ -362,7 +362,7 @@ FocusScope {
 		}
 
 		Label {
-			text: nSetNbr >=1 ? qsTr("<- Leading to set") : qsTr("<- Time between exercises not computed")
+			text: nSetNbr >=1 ? qsTr("<- Leading to this set") : qsTr("<- Time before exercises is not computed")
 			visible: type === SetInputField.Type.TimeType
 			anchors {
 				left: nSetNbr >= 1 ? btnDecreaseTime.right : txtMain.right

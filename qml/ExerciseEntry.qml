@@ -504,7 +504,7 @@ Item {
 				if (setNbr > 0) {
 					suggestedReps[setNbr] = suggestedReps[setNbr-1];
 					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
+					suggestedRestTimes[setNbr] = suggestedRestTimes[setNbr-1];
 				}
 				else {
 					suggestedReps[0] = 12;

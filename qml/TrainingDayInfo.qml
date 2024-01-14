@@ -558,8 +558,11 @@ Page {
 	}
 
 	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
-		if (bAdd)
-			addExercise(strName1 + ' - ' + strName2);
+		if (bAdd) {
+			strName1 += ' - ' + strName2;
+			addExercise(strName1);
+			strName2 = "";
+		}
 
 		var component;
 		var exerciseSprite;
@@ -568,7 +571,7 @@ Page {
 		if (component.status === Component.Ready) {
 			var idx = exerciseSpriteList.length;
 			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1,
-				exerciseName2:strName2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
+				exerciseName1:strName1, exerciseName2:strName2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
 			exerciseSpriteList.push({"Object" : exerciseSprite});
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
 			exerciseSprite.exerciseEdited.connect(editExercise);

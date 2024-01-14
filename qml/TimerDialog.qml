@@ -526,7 +526,7 @@ Dialog {
 		height: 40
 		width: parent.width
 
-		Button {
+		ButtonFlat {
 			id: btnStartPause
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
 			font.pixelSize: AppSettings.fontSizePixelSize
@@ -560,7 +560,7 @@ Dialog {
 			}
 		}
 
-		Button {
+		ButtonFlat {
 			id: btnReset
 			text: qsTr("Reset")
 			font.pixelSize: AppSettings.fontSizePixelSize
@@ -575,7 +575,7 @@ Dialog {
 			}
 		}
 
-		Button {
+		ButtonFlat {
 			id: btnUseTime
 			text: simpleTimer ? qsTr("Close") : qsTr("Use")
 			font.pixelSize: AppSettings.fontSizePixelSize
@@ -605,15 +605,11 @@ Dialog {
 									totalhours = 99;
 							}
 							else { //Compute elapsed time
-								if (origSecs > secs)
-									totalsecs = origSecs - secs;
-								else
-									totalsecs = secs - origSecs;
-								if (origMins > mins)
-									totalmins = origMins - mins;
-								else
-									totalmins = mins - origMins;
-								totalhours = origHours - hours;
+								const elapsedTime = origSecs + 60*origMins + 3600*origHours - totalSecs;
+								totalhours = Math.floor(elapsedTime / 3600);
+								totalmins = elapsedTime - totalhours * 3600;
+								totalmins = Math.floor(totalmins / 60);
+								totalsecs = elapsedTime - totalhours * 3600 - totalmins * 60;
 							}
 						}
 					}

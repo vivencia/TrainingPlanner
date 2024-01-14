@@ -245,7 +245,7 @@ Exercício duplicado
         <translation type="vanished">Myo Reps</translation>
     </message>
     <message>
-        <location filename="../qml/ExerciseEntry.qml" line="59"/>
+        <location filename="../qml/ExerciseEntry.qml" line="61"/>
         <source>
 
 Remove Exercise?
@@ -258,22 +258,22 @@ Excluir Exercício?
 </translation>
     </message>
     <message>
-        <location filename="../qml/ExerciseEntry.qml" line="60"/>
+        <location filename="../qml/ExerciseEntry.qml" line="62"/>
         <source>This action cannot be undone.</source>
         <translation>Esta ação não pode ser desfeita.</translation>
     </message>
     <message>
-        <location filename="../qml/ExerciseEntry.qml" line="242"/>
+        <location filename="../qml/ExerciseEntry.qml" line="248"/>
         <source>Set type: </source>
         <translation>Tipo de série: </translation>
     </message>
     <message>
-        <location filename="../qml/ExerciseEntry.qml" line="291"/>
+        <location filename="../qml/ExerciseEntry.qml" line="297"/>
         <source>Add set</source>
         <translation>Adicionar série</translation>
     </message>
     <message>
-        <location filename="../qml/ExerciseEntry.qml" line="389"/>
+        <location filename="../qml/ExerciseEntry.qml" line="393"/>
         <source>2: Add exercise</source>
         <translation>2: Adicionar exercício</translation>
     </message>
@@ -867,13 +867,21 @@ Remover MesoCiclo?
     </message>
     <message>
         <location filename="../qml/SetInputField.qml" line="365"/>
-        <source>&lt;- Leading to set</source>
-        <translation>&lt;- Antes da série</translation>
+        <source>&lt;- Leading to this set</source>
+        <translation>Antes desta série</translation>
     </message>
     <message>
         <location filename="../qml/SetInputField.qml" line="365"/>
+        <source>&lt;- Time before exercises is not computed</source>
+        <translation>Tempo antes dos exercícios não é calculado</translation>
+    </message>
+    <message>
+        <source>&lt;- Leading to set</source>
+        <translation type="vanished">&lt;- Antes da série</translation>
+    </message>
+    <message>
         <source>&lt;- Time between exercises not computed</source>
-        <translation>&lt;- Tempo entre exercícios não é calculado</translation>
+        <translation type="vanished">&lt;- Tempo entre exercícios não é calculado</translation>
     </message>
 </context>
 <context>
@@ -1188,7 +1196,7 @@ Remover MesoCiclo?
     <message>
         <location filename="../qml/TimerDialog.qml" line="535"/>
         <location filename="../qml/TimerDialog.qml" line="574"/>
-        <location filename="../qml/TimerDialog.qml" line="627"/>
+        <location filename="../qml/TimerDialog.qml" line="623"/>
         <source>Start</source>
         <translation>Iniciar</translation>
     </message>
@@ -1297,22 +1305,22 @@ Exercício duplicado
         <translation type="vanished">Impossível adicionar exercício porque este já foi adicionado para este dia.</translation>
     </message>
     <message>
-        <location filename="../qml/TrainingDayInfo.qml" line="749"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="751"/>
         <source>Updating calendar database. Please wait...</source>
         <translation>Atualizando banco de dados do calendário. Por favor, aguarde...</translation>
     </message>
     <message>
-        <location filename="../qml/TrainingDayInfo.qml" line="778"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="780"/>
         <source>Log Day</source>
         <translation>Salvar dia</translation>
     </message>
     <message>
-        <location filename="../qml/TrainingDayInfo.qml" line="807"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="809"/>
         <source>Cancel alterations</source>
         <translation>Reverter</translation>
     </message>
     <message>
-        <location filename="../qml/TrainingDayInfo.qml" line="855"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="857"/>
         <source>Add exercise</source>
         <translation>Adicionar Exercício</translation>
     </message>
