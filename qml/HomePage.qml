@@ -26,6 +26,7 @@ Page {
 			anchors.fill: parent
 			source: "qrc:/images/app_logo.png"
 			fillMode: Image.PreserveAspectFit
+			opacity: 0.8
 		}
 	}
 
@@ -184,7 +185,7 @@ Page {
 
 			background: Rectangle {
 				radius: 6
-				opacity: 0.3
+				opacity: 0.7
 				color: paneBackgroundColor
 			}
 
@@ -196,18 +197,23 @@ Page {
 
 				Label {
 					text: qsTr("Name: <b>") + mesoName + "</b>"
+					color: "white"
 				}
 				Label {
 					text: qsTr("Start of mesocycle: <b>") + mesoStartDate.toDateString() + "</b>"
+					color: "white"
 				}
 				Label {
 					text: qsTr("End of mesocycle: <b>") + mesoEndDate.toDateString() + "</b>"
+					color: "white"
 				}
 				Label {
 					text: qsTr("Weeks in mesocycle: <b>") + nWeeks.toString() + "</b>"
+					color: "white"
 				}
 				Label {
 					text: qsTr("Training Split: <b>") + mesoSplit + "</b>"
+					color: "white"
 				}
 			}
 

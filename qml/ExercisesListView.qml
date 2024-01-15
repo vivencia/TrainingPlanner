@@ -232,7 +232,10 @@ Column {
 				height: 20
 				width: 20
 			}
-			onClicked: txtFilter.clear();
+			onClicked: {
+				txtFilter.clear();
+				txtFilter.forceActiveFocus();
+			}
 		}
 
 		onTextChanged: {

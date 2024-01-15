@@ -13,7 +13,6 @@ Frame {
 	property string splitNSets
 	property string splitNReps
 	property string splitNWeight
-	property var currentSplitObject: null
 
 	property bool bCurrentItem: false
 	property bool bCanEditExercise: false
@@ -152,22 +151,41 @@ Frame {
 				GridLayout {
 					id: contentsLayout
 					anchors.fill: parent
-					rows: 6
+					rows: 7
 					columns: 2
 					rowSpacing: 2
 					columnSpacing: 2
 
-					TextField {
-						id: txtExerciseName
-						text: exerciseName
-						wrapMode: Text.WordWrap
-						readOnly: !bCanEditExercise
+					RadioButton {
+						id: optCurrentExercise
+						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
+						checked: bCurrentItem
 						Layout.row: 0
 						Layout.column: 0
 						Layout.columnSpan: 2
 						Layout.minimumWidth: parent.width - 40
 						Layout.maximumWidth: parent.width - 40
 						width: parent.width - 40
+
+						onClicked: {
+							if (!bCurrentItem)
+								selectedSplitObjectChanged(paneSplit);
+						}
+					}
+
+					TextField {
+						id: txtExerciseName
+						text: exerciseName
+						wrapMode: Text.WordWrap
+						readOnly: !bCanEditExercise
+						Layout.row: 1
+						Layout.column: 0
+						Layout.columnSpan: 2
+						Layout.leftMargin: 5
+						Layout.minimumWidth: parent.width - 40
+						Layout.maximumWidth: parent.width - 40
+						width: parent.width - 40
+						focus: true
 
 						background: Rectangle {
 							color: txtExerciseName.readOnly ? "transparent" : "white"
@@ -181,12 +199,30 @@ Frame {
 						}
 
 						onPressed: (mouse) => { //relay the signal to the delegate
+							if (bCanEditExercise)
+								forceActiveFocus();
 							mouse.accepted = false;
 						}
 
 						onEditingFinished: {
 							exercisesListModel.setProperty(index, "exerciseName", text);
 							bModified = true;
+						}
+
+						onTextChanged: {
+							if (bCanEditExercise) {
+								if (bottomPane.shown) {
+									exercisesListModel.setProperty(index, "exerciseName", text);
+									bModified = true;
+								}
+							}
+						}
+
+						onActiveFocusChanged: {
+							if (activeFocus)
+								bottomPane.shown = false;
+							else
+								bCanEditExercise = false;
 						}
 
 						ToolButton {
@@ -196,7 +232,6 @@ Frame {
 							anchors.top: txtExerciseName.top
 							height: 25
 							width: 25
-							z: 2
 							enabled: bCurrentItem && index === currentModelIndex
 
 							Image {
@@ -208,28 +243,28 @@ Frame {
 							}
 
 							onClicked: {
+								bottomPane.shown = !bCanEditExercise;
 								bCanEditExercise = !bCanEditExercise;
-								bottomPane.shown = bCanEditExercise;
-								if (bCanEditExercise)
-									txtExerciseName.forceActiveFocus();
 							}
 						} //ToolButton btnEditExercise
 					} //TextField
 
 					Label {
 						text: qsTr("Set Type:")
-						Layout.row: 1
+						Layout.row: 2
 						Layout.column: 0
 						Layout.leftMargin: 5
+						width: listItem.width/3
+						wrapMode: Text.WordWrap
 					}
 					ComboBox {
 						id: cboSetType
 						model: setTypes
-						Layout.minimumWidth: 120
+						Layout.minimumWidth: 110
 						currentIndex: parseInt(setType);
 						textRole: "key"
 						valueRole: "idx"
-						Layout.row: 1
+						Layout.row: 2
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: bCurrentItem && index === currentModelIndex
@@ -243,9 +278,12 @@ Frame {
 
 					Label {
 						text: qsTr("Number of Sets:")
-						Layout.row: 2
+						Layout.row: 3
 						Layout.column: 0
 						Layout.leftMargin: 5
+						width: listItem.width/2
+						Layout.maximumWidth: width
+						wrapMode: Text.WordWrap
 					}
 					SetInputField {
 						id: txtNSets
@@ -254,13 +292,14 @@ Frame {
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
-						Layout.row: 2
+						Layout.row: 3
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: bCurrentItem && index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "setsNumber", str);
+							bModified = true;
 						}
 
 						onEnterOrReturnKeyPressed: {
@@ -270,9 +309,12 @@ Frame {
 
 					Label {
 						text: qsTr("Baseline number of reps:")
-						Layout.row: 3
+						Layout.row: 4
 						Layout.column: 0
 						Layout.leftMargin: 5
+						width: listItem.width/2
+						Layout.maximumWidth: width
+						wrapMode: Text.WordWrap
 					}
 					SetInputField {
 						id: txtNReps
@@ -281,13 +323,14 @@ Frame {
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
-						Layout.row: 3
+						Layout.row: 4
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: bCurrentItem && index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "repsNumber", str);
+							bModified = true;
 						}
 
 						onEnterOrReturnKeyPressed: {
@@ -297,9 +340,12 @@ Frame {
 
 					Label {
 						text: qsTr("Baseline weight:")
-						Layout.row: 4
+						Layout.row: 5
 						Layout.column: 0
 						Layout.leftMargin: 5
+						width: listItem.width/2
+						Layout.maximumWidth: width
+						wrapMode: Text.WordWrap
 					}
 					SetInputField {
 						id: txtNWeight
@@ -308,13 +354,14 @@ Frame {
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
-						Layout.row: 4
+						Layout.row: 5
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: bCurrentItem && index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "weightValue", str);
+							bModified = true;
 						}
 					}
 
@@ -323,9 +370,10 @@ Frame {
 						height: 25
 						text: qsTr("Add exercise")
 						font.capitalization: Font.MixedCase
+						font.bold: true
 						display: AbstractButton.TextBesideIcon
 						visible: index === exercisesListModel.count - 1
-						Layout.row: 5
+						Layout.row: 6
 						Layout.column: 0
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
@@ -384,7 +432,7 @@ Frame {
 						width: 20
 						height: 20
 						opacity: 2 * -delegate.swipe.position
-						z:2
+						z:3
 					}
 
 					Label {
@@ -397,7 +445,7 @@ Frame {
 						verticalAlignment: Qt.AlignVCenter
 						opacity: delegate.swipe.complete ? 1 : 0
 						Behavior on opacity { NumberAnimation { } }
-						z:0
+						z:2
 					}
 
 					SwipeDelegate.onClicked: delegate.swipe.close();
@@ -464,7 +512,7 @@ Frame {
 	}
 
 	function saveMesoDivisionPlan() {
-		var exercises, types, nsets, nreps,nweights;
+		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
 		for (var i = 0; i < exercisesListModel.count; ++i) {
 			exercises += exercisesListModel.get(i).exerciseName + '|';
 			types += exercisesListModel.get(i).setType + '|';
@@ -493,5 +541,17 @@ Frame {
 			}
 		}
 		filterString = filterString.slice(0, -1);
+	}
+
+	function removeExercise(idx) {
+		exercisesListModel.remove(idx);
+		if (idx === exercisesListModel.count) {
+			if (idx > 0)
+				--idx;
+			else //No more items
+				appendNewExerciseToDivision();
+		}
+		currentModelIndex = idx;
+		bModified = true;
 	}
 } //Page

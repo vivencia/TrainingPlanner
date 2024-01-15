@@ -63,10 +63,11 @@ Page {
 
 		onShownChanged: {
 			if (shown) {
-				if (currentSplitItem) {
+				if (currentSplitItem)
 					exercisesList.setFilter(currentSplitItem.filterString);
-				}
 			}
+			if (navButtons)
+				navButtons.visible = !shown;
 		}
 
 		ColumnLayout {
@@ -76,7 +77,8 @@ Page {
 
 			ButtonFlat {
 				id: btnShowHideList
-				imageSource: bottomPane.shown ? "qrc:/images/"+lightIconFolder+"fold-down.png" : "qrc:/images/"+lightIconFolder+"fold-up.png"
+				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+lightIconFolder+"fold-up.png"
+				imageSize: 60
 				onClicked: bottomPane.shown = !bottomPane.shown;
 				Layout.fillWidth: true
 				Layout.topMargin: 0

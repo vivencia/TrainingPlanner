@@ -351,6 +351,20 @@ Item {
 		}
 	}
 
+	function createSetsFromPlan(nsets, type, nreps, nweight) {
+		for(var i = 0; i < nsets; ++i) {
+			setNbr = i;
+			setType = parseInt(type);
+			calculateSuggestedValues(parseInt(type));
+			if (i === 0) {
+				suggestedReps[i] = parseInt(nreps);
+				suggestedWeight[i] = parseInt(nweight);
+			}
+			loadSetType(parseInt(type), false);
+			changeComboModel();
+		}
+	}
+
 	function updateDayId(newDayId) {
 		tDayId = newDayId;
 		for(var i = 0; i < setObjectList.length; ++i) {
@@ -391,12 +405,12 @@ Item {
 					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
 					if (bNewSet)
 						exerciseName2 = qsTr("2: Add exercise");
-					exerciseName1 = exerciseName;
-					exerciseName += '&' + exerciseName2;
+					//exerciseName1 = exerciseName;
+					//exerciseName += '&' + exerciseName2;
 					sprite.exerciseName2 = exerciseName2;
 				}
-				else
-					exerciseName1 = exerciseName;
+				//else
+				//	exerciseName1 = exerciseName;
 				setObjectY[setNbr] = 0;
 			}
 			setAdded(bNewSet, setObjectY[setNbr], sprite.height, thisObjectIdx);
@@ -504,7 +518,7 @@ Item {
 				if (setNbr > 0) {
 					suggestedReps[setNbr] = suggestedReps[setNbr-1];
 					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedRestTimes[setNbr] = suggestedRestTimes[setNbr-1];
+					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {
 					suggestedReps[0] = 12;
@@ -516,7 +530,7 @@ Item {
 			case 1: //Pyramid
 				if (setNbr > 0) {
 					suggestedReps[setNbr] = suggestedReps[setNbr-1] - 3;
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1] * 1.2;
+					suggestedWeight[setNbr] = Math.floor(suggestedWeight[setNbr-1] * 1.2);
 					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {

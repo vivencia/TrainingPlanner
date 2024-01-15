@@ -62,6 +62,8 @@ Dialog {
 				progressBar.value = progressBar.value - 1;
 				if (secs > 0) {
 					--secs;
+					if (secs <= 14 && !playSound.playing)
+						playSound.play();
 				}
 				else if (secs === 0) {
 					if (mins > 0 ) {
@@ -79,7 +81,7 @@ Dialog {
 								--mins;
 						}
 						else {
-							playSound.play();
+							//playSound.play();
 							bForward = true;
 							progressBar.indeterminate = true;
 							progressBar.value = 0;
@@ -98,8 +100,11 @@ Dialog {
 				}
 				progressBar.value = progressBar.value + indVal;
 
-				if (secs < 59)
+				if (secs < 59) {
 					++secs;
+					if (secs >= 4 && playSound.playing)
+						playSound.stop();
+				}
 				else {
 					if (mins < 59) {
 						secs = 0;
@@ -310,7 +315,7 @@ Dialog {
 		id: recTimer
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.top: recStrings.bottom
-		height: headerGrid.implicitHeight
+		height: headerGrid.implicitHeight - 10
 		width: headerGrid.implicitWidth + 20
 		color: paneBackgroundColor
 		opacity: 0.5
@@ -323,6 +328,7 @@ Dialog {
 			Rectangle {
 				id: recNegCountDown
 				Layout.alignment: Qt.AlignVCenter
+				Layout.topMargin: -height
 				radius: 2
 				height: 4
 				width: 12
@@ -344,7 +350,7 @@ Dialog {
 				Layout.alignment: Text.AlignHCenter
 				Layout.leftMargin: 10
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				//Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -399,7 +405,7 @@ Dialog {
 				maximumLength: 2
 				Layout.maximumWidth: 30
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				//Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -454,7 +460,7 @@ Dialog {
 				Layout.maximumWidth: 30
 				Layout.rightMargin: 10
 
-				Keys.onPressed: (event) => processKeyEvents(event);
+				//Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -655,10 +661,16 @@ Dialog {
 	}
 
 	function processKeyEvents(event) {
-		if (event.key === Qt.Key_Back) {
-			event.accepted = true;
-			mainTimer.stopTimer(true);
-			dlgTimer.close();
+		switch (event.key) {
+			case Qt.Key_Back:
+				event.accepted = true;
+				mainTimer.stopTimer(true);
+				dlgTimer.close();
+			break;
+			case Qt.Key_Enter:
+			case Qt.Key_Return:
+				btnStartPause.clicked();
+			break;
 		}
 	}
 } // Dialog

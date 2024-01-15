@@ -5,6 +5,7 @@ Rectangle {
 	id: button
 	property alias textColor: buttonText.color
 	property alias imageMirror: buttonImage.mirror
+	property alias imageSize: buttonImage.height
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property string imageSource
@@ -13,7 +14,7 @@ Rectangle {
 
 	color: bPressed ? primaryColor : paneBackgroundColor
 	radius: 10
-	opacity: button.enabled ? (bPressed ? 0.12 : 1.0) : 0.3
+	opacity: button.enabled ? (bPressed ? 0.12 : 0.7) : 0.3
 	implicitWidth: buttonText.contentWidth + (buttonImage.visible ? buttonImage.width + 10 : 10)
 	implicitHeight: buttonText.height + 10
 
@@ -30,8 +31,8 @@ Rectangle {
 
 	Image {
 		id: buttonImage
-		width: 20
 		height: 20
+		width: height
 		fillMode: Image.PreserveAspectFit
 		anchors.verticalCenter: parent.verticalCenter
 		mirror: false

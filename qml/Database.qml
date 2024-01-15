@@ -927,24 +927,22 @@ QtObject {
 			let results = tx.executeSql("SELECT * FROM training_day WHERE meso_id=? AND split_letter=? AND day_number<?", [mesoId, division, tday]);
 			const len = results.rows.length;
 			if(len > 0) {
-				var i = len - 1;
+				var i = len - 1; //array insertion order: most recent to least recent
 				do {
 					console.log("getPreviousTrainingDayForDivision. Found day number:   ", results.rows.item(i).day_number);
 					let row = results.rows.item(i);
-					if (row.exercises_ids) {
-						dayinfo.push({
-							"dayId": row.id,
-							"dayDate": row.date,
-							"mesoId": row.meso_id,
-							"exercisesNames": row.exercises,
-							"dayNumber": row.day_number,
-							"daySplitLetter": row.split_letter,
-							"dayTimeIn": row.time_in,
-							"dayTimeOut": row.time_out,
-							"dayLocation": row.location,
-							"dayNotes": row.notes
-						});
-					}
+					dayinfo.push({
+						"dayId": row.id,
+						"dayDate": row.date,
+						"mesoId": row.meso_id,
+						"exercisesNames": row.exercises,
+						"dayNumber": row.day_number,
+						"daySplitLetter": row.split_letter,
+						"dayTimeIn": row.time_in,
+						"dayTimeOut": row.time_out,
+						"dayLocation": row.location,
+						"dayNotes": row.notes
+					});
 				} while (--i >= 0);
 			}
 		});

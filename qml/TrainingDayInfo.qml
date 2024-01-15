@@ -15,7 +15,6 @@ Page {
 	required property string mesoName
 
 	property int dayId
-	property int copiedDayId: -1
 	property int mesoId
 	property string exercisesNames
 	property string timeIn
@@ -31,8 +30,9 @@ Page {
 	property var mesoTDay;
 
 	property bool bStopBounce: false
-	property bool bNotScroll: false
-	property bool bHasPreviousDay
+	property bool bNotScroll: true
+	property bool bHasPreviousDay: false
+	property bool bHasMesoPlan: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
 	property var navButtons: null
@@ -86,12 +86,13 @@ Page {
 				}
 			}
 			else {
-				if (!bNotScroll) {
+				if (navButtons) {
 					if (contentItem.contentY <= 50) {
 						navButtons.showUpButton = false;
 						navButtons.showDownButton = true;
 					}
-					else if (scrollBarPosition - contentItem.contentY <= 70) { //This number is arbitrary, but was chosen after reviewing debugging information
+					else if (contentItem.contentY >= height + navBar.height) {
+					//else if (scrollBarPosition - contentItem.contentY <= 70) { //This number is arbitrary, but was chosen after reviewing debugging information
 						navButtons.showUpButton = true;
 						navButtons.showDownButton = false;
 					}
@@ -100,8 +101,6 @@ Page {
 						navButtons.showDownButton = true;
 					}
 				}
-				else
-					bNotScroll = false;
 			}
 		}
 
@@ -379,34 +378,58 @@ Page {
 
 			GroupBox {
 				label: Label {
-					text: qsTr("Base this training off the one from " + previousDivisionDayDate.toDateString() + "?")
-					width: parent.width
-					wrapMode: Text.WordWrap
+					text: qsTr("What do you want to do today?")
 				}
-				visible: bHasPreviousDay
+				visible: bHasMesoPlan || bHasPreviousDay
+				width: parent.width
 				Layout.fillWidth: true
 				Layout.bottomMargin: 30
 
-				RowLayout {
+				ColumnLayout {
 					anchors.fill: parent
 
-					RadioButton {
-						text: qsTr("Yes")
+					ToolButton {
+						id: btnMesoPlan
+						contentItem: Text {
+							text: qsTr("Use the standard exercises plan for the division " + mesoSplitLetter + qsTr(" of the Mesocycle"))
+							wrapMode: Text.WordWrap
+						}
+						visible: bHasMesoPlan
+						width: parent.width
+						Layout.fillWidth: true
+
 						onClicked: {
-							createDatabaseEntryForDay();
-							loadTrainingDayInfo(previousDivisionDayDate);
-							updateDayIdFromExercisesAndSets();
 							bHasPreviousDay = false;
+							loadTrainingDayInfoFromMesoPlan();
 						}
 					}
-					RadioButton {
-						text: qsTr("No")
+					ToolButton {
+						id: optPreviousDay
+						contentItem: Text {
+							text: qsTr("Base this session off the one from ") + previousDivisionDayDate.toDateString()
+							wrapMode: Text.WordWrap
+						}
+						visible: bHasPreviousDay
+						width: parent.width
+						Layout.fillWidth: true
+
+						onClicked: {
+							bHasMesoPlan = false;
+							loadTrainingDayInfo(previousDivisionDayDate);
+						}
+					}
+					ToolButton {
+						contentItem: Text {
+							text: qsTr("Start an empty session")
+						}
+						visible: bHasMesoPlan || bHasPreviousDay
+						width: parent.width
+						Layout.fillWidth: true
+
 						onClicked: {
 							bHasPreviousDay = false;
+							bHasMesoPlan = false;
 							dayInfoList.pop();
-							//New day info. Save it already into database
-							createDatabaseEntryForDay();
-							createEmptyTrainingDay();
 						}
 					}
 				}
@@ -482,6 +505,7 @@ Page {
 		mesoSplitLetter = splitLetter;
 		mesoTDay = tDay;
 		if (!loadTrainingDayInfo(mainDate)) {
+			checkIfMesoPlanExists();
 			checkIfPreviousDayExists();
 		}
 	}
@@ -489,10 +513,7 @@ Page {
 	function createDatabaseEntryForDay() {
 		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesNames,
 			tDay, splitLetter, txtInTime.text, txtOutTime.text, txtLocation.placeholderText, txtDayInfoTrainingNotes.text);
-		if (bHasPreviousDay)
-			copiedDayId = result.insertId; //To be used later to update all exercise entries and their sets
-		else
-			dayId = result.insertId;
+		dayId = result.insertId;
 		bModified = false;
 	}
 
@@ -512,19 +533,57 @@ Page {
 		});
 	}
 
-	function checkIfPreviousDayExists() {
-		let day_info = Database.getPreviousTrainingDayForDivision(mesoSplitLetter, tDay, mesoId)
-		bHasPreviousDay = day_info.length > 0;
-		if (bHasPreviousDay)
-			previousDivisionDayDate = new Date(day_info[0].dayDate);
-		else {
-			createDatabaseEntryForDay();
-			createEmptyTrainingDay();
+	function getMesoPlan () {
+		let plan_info = [];
+		switch (mesoSplitLetter) {
+			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
+			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
+			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;
+			case 'D': plan_info = Database.getCompleteDivisionDForMeso(mesoId); break;
+			case 'E': plan_info = Database.getCompleteDivisionEForMeso(mesoId); break;
+			case 'F': plan_info = Database.getCompleteDivisionFForMeso(mesoId); break;
+		}
+		return plan_info;
+	}
+
+	function checkIfMesoPlanExists() {
+		let plan_info = getMesoPlan();
+		if (plan_info.length > 0) {
+			if (plan_info[0].splitExercises)
+				bHasMesoPlan = plan_info[0].splitExercises.length > 1;
 		}
 	}
 
+	function checkIfPreviousDayExists() {
+		let day_info = Database.getPreviousTrainingDayForDivision(mesoSplitLetter, tDay, mesoId);
+		for (var i = 0; i < day_info.length; ++i ) { //from the most recent to the oldest
+			if (day_info[i].exercisesNames) {
+				bHasPreviousDay = day_info[i].exercisesNames.length > 1;
+				if (bHasPreviousDay) {
+					previousDivisionDayDate = new Date(day_info[i].dayDate);
+					break;
+				}
+			}
+			if (!bHasPreviousDay)
+				Database.deleteTraingDay(day_info[i].dayId); //remove empty day from DB
+		}
+	}
+
+	function loadTrainingDayInfoFromMesoPlan() {
+		let plan_info = getMesoPlan();
+		exercisesNames = plan_info[0].splitExercises;
+		createExercisesFromList();
+
+		const types = plan_info[0].splitSetTypes.split('|');
+		const nsets = plan_info[0].splitNSets.split('|');
+		const nreps = plan_info[0].splitNReps.split('|');
+		const nweights = plan_info[0].splitNWeight.split('|');
+		for(var i = 0; i < exerciseSpriteList.length; ++i)
+			exerciseSpriteList[i].Object.createSetsFromPlan(nsets[i], types[i], nreps[i], nweights[i]);
+		bModified = true;
+	}
+
 	function loadTrainingDayInfo(tDate) {
-		console.log("loadTrainingDayInfo:   ", tDate.toDateString());
 		dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
 			if (dayInfoList[0].exercisesNames === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
@@ -552,8 +611,7 @@ Page {
 
 	function updateDayIdFromExercisesAndSets() {
 		for( var i = 0; i < exerciseSpriteList.length; ++i )
-			exerciseSpriteList[i].Object.updateDayId(copiedDayId);
-		dayId = copiedDayId;
+			exerciseSpriteList[i].Object.updateDayId(dayId);
 		bModified = true;
 	}
 
@@ -792,7 +850,15 @@ Page {
 				if (splitLetter === 'R')
 					tDay = 0;
 				updateMesoCalendar();
-				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				if (dayId === -1) {
+					createDatabaseEntryForDay();
+					createEmptyTrainingDay();
+					if (bHasMesoPlan || bHasPreviousDay)
+						updateDayIdFromExercisesAndSets();
+				}
+				else
+					Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
 						exerciseSpriteList[i].Object.logSets();
 				bModified = false;
@@ -816,36 +882,12 @@ Page {
 			onClicked: {
 				if (navButtons !== null)
 					navButtons.visible = false;
-				if (copiedDayId === -1) { //A normal day that was edited
-					if (exercisesNames !== dayInfoList[0].exercisesNames) {
-						const len = exerciseSpriteList.length - 1;
-						for (var i = len; i >= 0; --i) {
-							exerciseSpriteList[i].Object.destroy();
-							exerciseSpriteList.pop();
-						}
-						loadOrCreateDayInfo();
-					}
-					else {
-						timeIn = dayInfoList[0].dayTimeIn;
-						timeOut = dayInfoList[0].dayTimeOut;
-						location = dayInfoList[0].dayLocation;
-						trainingNotes = dayInfoList[0].dayNotes;
-						splitLetter = mesoSplitLetter;
-					}
+				const len = exerciseSpriteList.length - 1;
+				for (var i = len; i >= 0; --i) {
+					exerciseSpriteList[i].Object.destroy();
+					exerciseSpriteList.pop();
 				}
-				else {
-					// A day that was copied from a previous one
-					const len = exerciseSpriteList.length - 1;
-					for (var x = len; x >= 0; --x) {
-						exerciseSpriteList[x].Object.destroy();
-						exerciseSpriteList.pop();
-					}
-					trainingNotes = " ";
-					location = txtLocation.placeholderText;
-					copiedDayId = -1;
-					createEmptyTrainingDay();
-				}
-
+				loadOrCreateDayInfo();
 				bModified = false;
 			}
 		} //btnRevertDay
