@@ -116,8 +116,10 @@ Item {
 	} // setLayout
 
 	Component.onCompleted: {
-		for (var i = 1; i <= setSubSets; ++i) {
-			addSubSet(i-1, false);
+		const nsubsets = setSubSets;
+		setSubSets = 0; //the value will be incremented in subSetAdded and return to its original value
+		for (var i = 1; i <= nsubsets; ++i) {
+			addSubSet(i-1);
 		}
 	}
 
@@ -167,15 +169,13 @@ Item {
 		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 	}
 
-	function addSubSet(idx, bCreateNew) {
+	function addSubSet(idx) {
 		var component;
 		var rowSprite;
 		component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
-			if (idx >= 1) {
-				if (bCreateNew)
-					subSetAdded(parseInt(getReps(idx-1)) * 0.8, parseInt(getWeight(idx-1)) * 0.6);
-			}
+			if (idx >= 1)
+				subSetAdded(Math.ceil(parseInt(getReps(idx-1)) * 0.8), Math.ceil(parseInt(getWeight(idx-1)) * 0.6));
 			rowSprite = component.createObject(subSetsLayout, {
 						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber
 			});

@@ -49,7 +49,6 @@ target_link_libraries(trainingplanner PUBLIC
 	Qt6::QuickControls2
 )
 
-
 set(trainingplanner_resource_files
 	"images/app_logo.png"
 	"images/app_icon.png"
@@ -95,6 +94,7 @@ set(trainingplanner_resource_files
 	"qml/ExercisesPlanner.qml"
 	"qml/ExercisesListView.qml"
 	"qml/MesoSplitPlanner.qml"
+	"qml/TransparentButton.qml"
 	"qml/qmldir"
 )
 

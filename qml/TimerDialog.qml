@@ -9,8 +9,8 @@ Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
-	width: mainwindow.width - 50
-	height: mainwindow.height * 0.35
+	width: mainwindow.width * 0.75
+	height: mainwindow.height * 0.30
 	x: 25
 	y: simpleTimer ? (mainwindow.height / 2) - (height / 2) : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -669,7 +669,8 @@ Dialog {
 			break;
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
-				btnStartPause.clicked();
+				if (btnStartPause.enabled)
+					btnStartPause.clicked();
 			break;
 		}
 	}

@@ -11,9 +11,16 @@ Drawer {
 	edge: Qt.LeftEdge
 	property bool bMenuClicked: false
 
-	//background: Rectangle {
-	//	color: "#b9ecff"
-	//}
+	background: Rectangle {
+		gradient: Gradient {
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: "#dcfbff"; }
+			GradientStop { position: 0.25; color: primaryLightColor; }
+			GradientStop { position: 0.50; color: primaryColor; }
+			GradientStop { position: 0.75; color: primaryDarkColor; }
+		}
+		opacity: 0.8
+	}
 
 	onClosed: {
 		if (!bMenuClicked)
@@ -26,7 +33,7 @@ Drawer {
 
 	ColumnLayout {
 		id: drawerLayout
-		spacing: 0
+		spacing: 5
 
 		anchors {
 			fill: parent
@@ -35,128 +42,81 @@ Drawer {
 			topMargin: 10
 		}
 
-		Label {
-			id: label1
-			Layout.maximumWidth: parent.width - 10
-			Layout.leftMargin: 5
-			topPadding: 20
-			bottomPadding: 20
-			horizontalAlignment: Qt.AlignHCenter
-			wrapMode: Text.WordWrap
-			//text: qsTr("Trainning day <b>#" + mesoTDay + "</b> of meso cycle <b>" + mesoName +
-			//		"</b>: <b>" + mainDate.toDateString() + "</b> Division: <b>" + mesoSplitLetter + "</b>")
-			font.pixelSize: AppSettings.fontSizeText
-			visible: btnTrainingDay.visible
+		Rectangle {
+			Layout.fillWidth: true
+			Layout.alignment: Qt.AlignCenter
+			height: 200
+			color: "transparent"
+
+			Image {
+				id: imgLogo
+				source: "qrc:/images/app_icon.png"
+				fillMode: Image.PreserveAspectFit
+				height: 150
+				width: 150
+
+				anchors {
+					left: parent.left
+					right: parent.right
+					top: parent.top
+					bottomMargin: 10
+				}
+			}
+
+			Label {
+				text: "TrainingPlanner by VivenciaSoftware - v20240116"
+				wrapMode: Text.WordWrap
+				font.bold: true
+				font.pixelSize: AppSettings.fontSizeLists
+				color: "white"
+				anchors {
+					left: parent.left
+					right: parent.right
+					top: imgLogo.bottom
+					topMargin: 20
+				}
+			}
 		}
 
 		Rectangle {
 			height: 3
 			width: parent.width
-			color: "black"
+			color: "white"
 		}
 
-		Label {
-			text: qsTr("SETTINGS")
-		}
-
-		ButtonFlat {
+		TransparentButton {
 			id: btnSettingsExDB
+			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
-			onClicked: { stackView.push("ExercisesDatabase.qml"); menuClicked(); }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
+			onButtonClicked: { stackView.push("ExercisesDatabase.qml"); menuClicked(); }
 		}
 
-		ButtonFlat {
+		TransparentButton {
 			id: btnSettingsTheme
 			text: qsTr("Theme")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
+			Layout.fillWidth: true
 			onClicked: { stackView.push("ThemeSettingsPage.qml"); menuClicked(); }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
 		}
 
-		ButtonFlat {
+		TransparentButton {
 			id: btnSettingsLanguage
 			text: qsTr("Language")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
+			Layout.fillWidth: true
 			onClicked: { stackView.push("LanguageSettingsPage.qml", {} ); menuClicked(); }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
 		}
 
-		ButtonFlat {
+		TransparentButton {
 			id: btnSettingsFont
 			text: qsTr("Fonts")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
+			Layout.fillWidth: true
 			onClicked: { stackView.push("FontSizePage.qml"); menuClicked(); }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
 		}
 
-		ButtonFlat {
+		TransparentButton {
 			id: btnSettingsDev
 			text: qsTr("Developer Options")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
+			Layout.fillWidth: true
 			onClicked: { stackView.push("DevSettingsPage.qml"); menuClicked(); }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
-		}
-
-		Rectangle {
-			height: 3
-			width: parent.width
-			color: "black"
-		}
-
-		ButtonFlat {
-			id: btnTrainingDay
-			text: qsTr("Training")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
-			onClicked: { dayStack.currentIndex = 0; }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
-
-			visible: {
-				// Force the binding to re-evaluate so that the title check is run each time the page changes.
-				stackView.currentItem
-				stackView.find((item, index) => { return item.title === "mealsPage"; })
-			}
-		}
-
-		ButtonFlat {
-			text: qsTr("Meals")
-			font.pixelSize: AppSettings.fontSizeText
-			imageSource: "qrc:/images/"+lightIconFolder+"back.png"
-			imageMirror: true
-			onClicked: { dayStack.currentIndex = 1; }
-			transform: Translate {
-				x: drawer.position * 0.2
-			}
-			visible: {
-				// Force the binding to re-evaluate so that the title check is run each time the page changes.
-				stackView.currentItem
-				stackView.find((item, index) => { return item.title === "trainingPage"; })
-			}
 		}
 
 		Item { // spacer item

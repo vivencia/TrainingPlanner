@@ -14,14 +14,16 @@ Frame {
 	property string splitNReps
 	property string splitNWeight
 
-	property bool bCurrentItem: false
 	property bool bCanEditExercise: false
 	property int currentModelIndex: 0
 	property int seconds: 0
 	property bool bModified: false
 	property string filterString: ""
 
-	signal selectedSplitObjectChanged(var splitItem)
+	clip: true
+	padding: 0
+	spacing: 0
+	Layout.leftMargin: 5
 
 	ListModel {
 		id: exercisesListModel
@@ -49,27 +51,10 @@ Frame {
 		}
 	} //Timer
 
-
-	property bool shown: true
-	visible: height > 0
-	height: shown ? implicitHeight : lblMain.height * 3
-	Behavior on height {
-		NumberAnimation {
-			easing.type: Easing.InOutQuad
-		}
-	}
-	clip: true
-	padding: 0
-	z: 0
-
 	background: Rectangle {
 		border.color: "transparent"
 		radius: 5
 	}
-
-	implicitHeight: splitLayout.implicitHeight + 10
-	implicitWidth: pagePlanner.width
-	Layout.leftMargin: 5
 
 	ColumnLayout {
 		id: splitLayout
@@ -82,22 +67,6 @@ Frame {
 			Layout.topMargin: 10
 			Layout.maximumWidth: parent.width - 20
 			font.bold: true
-			z: 1
-
-			Image {
-				anchors.left: lblMain.right
-				anchors.verticalCenter: lblMain.verticalCenter
-				source: paneSplit.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
-				height: 20
-				width: 20
-				z: 0
-			}
-
-			MouseArea {
-				anchors.fill: parent
-				onClicked: paneSplit.shown = !paneSplit.shown;
-				z:2
-			}
 		}// Label lblMain
 
 		Label {
@@ -127,14 +96,20 @@ Frame {
 			boundsBehavior: Flickable.StopAtBounds
 			flickableDirection: Flickable.VerticalFlick
 			contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
-			contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
 			property int totalHeight
-			property int totalWidth
+			width: parent.width
 
 			Layout.fillWidth: true
+			Layout.fillHeight: true
 			Layout.rightMargin: 10
 			Layout.leftMargin: 5
 			Layout.minimumHeight: 200
+
+			ScrollBar.vertical: ScrollBar {
+				id: vBar
+				policy: ScrollBar.AsNeeded
+				active: true; visible: lstSplitExercises.totalHeight > lstSplitExercises.height
+			}
 
 			function setModel(newmodel) {
 				model = newmodel;
@@ -159,7 +134,7 @@ Frame {
 					RadioButton {
 						id: optCurrentExercise
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
-						checked: bCurrentItem
+						checked: index === currentModelIndex
 						Layout.row: 0
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -168,8 +143,7 @@ Frame {
 						width: parent.width - 40
 
 						onClicked: {
-							if (!bCurrentItem)
-								selectedSplitObjectChanged(paneSplit);
+							currentModelIndex = index;
 						}
 					}
 
@@ -232,7 +206,7 @@ Frame {
 							anchors.top: txtExerciseName.top
 							height: 25
 							width: 25
-							enabled: bCurrentItem && index === currentModelIndex
+							enabled: index === currentModelIndex
 
 							Image {
 								source: "qrc:/images/"+darkIconFolder+"edit.png"
@@ -267,7 +241,7 @@ Frame {
 						Layout.row: 2
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: bCurrentItem && index === currentModelIndex
+						enabled: index === currentModelIndex
 
 						onActivated: (index) => {
 							exercisesListModel.setProperty(currentModelIndex, "setType", currentValue.toString());
@@ -295,7 +269,7 @@ Frame {
 						Layout.row: 3
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: bCurrentItem && index === currentModelIndex
+						enabled: index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "setsNumber", str);
@@ -326,7 +300,7 @@ Frame {
 						Layout.row: 4
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: bCurrentItem && index === currentModelIndex
+						enabled: index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "repsNumber", str);
@@ -357,7 +331,7 @@ Frame {
 						Layout.row: 5
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: bCurrentItem && index === currentModelIndex
+						enabled: index === currentModelIndex
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "weightValue", str);
@@ -383,6 +357,9 @@ Frame {
 						icon.height: 25
 
 						onClicked: {
+							if (btnEditExercise.enabled)
+								btnEditExercise.clicked();
+
 							appendNewExerciseToDivision();
 							lstSplitExercises.positionViewAtIndex(currentModelIndex, ListView.Beginning);
 						}
@@ -401,20 +378,14 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: bCurrentItem ? currentModelIndex === index? "lightcoral" : index % 2 === 0 ? "#dce3f0" : "#c3cad5" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+					color: currentModelIndex === index ? "lightcoral" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 				}
 
-				Component.onCompleted: {
-					if ( lstSplitExercises.totalWidth < width )
-						lstSplitExercises.totalWidth = width;
-					lstSplitExercises.totalHeight += height;
-				}
+				Component.onCompleted: lstSplitExercises.totalHeight += height;
 
 				onClicked: {
 					if (currentModelIndex !== index)
 						currentModelIndex = index;
-					if (!bCurrentItem)
-						selectedSplitObjectChanged(paneSplit);
 				}
 
 				swipe.right: Rectangle {
@@ -423,6 +394,7 @@ Frame {
 					clip: false
 					color: SwipeDelegate.pressed ? "#555" : "#666"
 					radius: 5
+					opacity: delegate.swipe.complete ? 1 : 0
 
 					Image {
 						source: "qrc:/images/"+lightIconFolder+"remove.png"
@@ -443,7 +415,6 @@ Frame {
 						anchors.leftMargin: 40
 						horizontalAlignment: Qt.AlignLeft
 						verticalAlignment: Qt.AlignVCenter
-						opacity: delegate.swipe.complete ? 1 : 0
 						Behavior on opacity { NumberAnimation { } }
 						z:2
 					}
@@ -498,7 +469,6 @@ Frame {
 		currentModelIndex = exercisesListModel.count;
 		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
 			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
-		selectedSplitObjectChanged(paneSplit);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight) {

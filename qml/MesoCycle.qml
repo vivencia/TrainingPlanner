@@ -148,7 +148,7 @@ Page {
 
 			TextField {
 				id: txtMesoStartDate
-				text: mesoStartDate.toDateString()
+				text: JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale)
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
@@ -194,7 +194,7 @@ Page {
 			}
 			TextField {
 				id: txtMesoEndDate
-				text: mesoEndDate.toDateString()
+				text: JSF.formatDateToDisplay(mesoEndDate, AppSettings.appLocale)
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2

@@ -200,11 +200,11 @@ Page {
 					color: "white"
 				}
 				Label {
-					text: qsTr("Start of mesocycle: <b>") + mesoStartDate.toDateString() + "</b>"
+					text: qsTr("Start of mesocycle: <b>") + JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale) + "</b>"
 					color: "white"
 				}
 				Label {
-					text: qsTr("End of mesocycle: <b>") + mesoEndDate.toDateString() + "</b>"
+					text: qsTr("End of mesocycle: <b>") + JSF.formatDateToDisplay(mesoEndDate, AppSettings.appLocale) + "</b>"
 					color: "white"
 				}
 				Label {

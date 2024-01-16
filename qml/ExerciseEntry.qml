@@ -33,8 +33,6 @@ Item {
 	signal requestHideFloatingButtons(int except_idx)
 
 	property var setObjectList: []
-	property var setsInfoList: []
-
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
 
@@ -91,9 +89,9 @@ Item {
 		z: 0
 
 		background: Rectangle {
-			color: thisObjectIdx % 2 === 0 ? primaryLightColor : primaryColor
+			color: thisObjectIdx % 2 === 0 ? paneBackgroundColor : primaryColor
 			border.color: "transparent"
-			opacity: 0.4
+			opacity: 0.7
 			radius: 5
 		}
 
@@ -332,7 +330,7 @@ Item {
 	}
 
 	function loadSetsFromDatabase() {
-		setsInfoList = Database.getSetsInfo(tDayId);
+		let setsInfoList = Database.getSetsInfo(tDayId);
 		var nset = 0;
 		for(var i = 0; i < setsInfoList.length; ++i) {
 			if (thisObjectIdx === setsInfoList[i].setExerciseIdx) {
@@ -357,18 +355,18 @@ Item {
 			setType = parseInt(type);
 			calculateSuggestedValues(parseInt(type));
 			if (i === 0) {
-				suggestedReps[i] = parseInt(nreps);
-				suggestedWeight[i] = parseInt(nweight);
+				suggestedReps[0] = parseInt(nreps);
+				suggestedWeight[0] = parseInt(nweight);
+				if (type === "3")//ClusterSet
+					suggestedReps[0] /= 4;
 			}
 			loadSetType(parseInt(type), false);
-			changeComboModel();
 		}
 	}
 
 	function updateDayId(newDayId) {
 		tDayId = newDayId;
 		for(var i = 0; i < setObjectList.length; ++i) {
-			setsInfoList[i].setTrainingdDayId = tDayId;
 			setObjectList[i].Object.updateTrainingDayId(tDayId);
 		}
 	}

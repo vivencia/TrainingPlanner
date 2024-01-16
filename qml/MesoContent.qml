@@ -306,7 +306,8 @@ Page {
 				id: lbl2
 				color: "white"
 				wrapMode: Text.WordWrap
-				text: qsTr("from  <b>") + mesoStartDate.toDateString() + qsTr("</b>  through  <b>") + mesoEndDate.toDateString() + "</b>"
+				text: qsTr("from  <b>") + JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale) +
+						qsTr("</b>  through  <b>") + JSF.formatDateToDisplay(mesoEndDate, AppSettings.appLocale) + "</b>"
 				font.pixelSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
@@ -604,10 +605,6 @@ Page {
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 
 				onClicked: {
-					console.log("######################################################");
-					console.log(calendar.dayInfoDate.toString());
-					console.log(calendar.dayInfoDate.getTime());
-					console.log("######################################################");
 					var component = Qt.createComponent("TrainingDayInfo.qml");
 					if (component.status === Component.Ready) {
 						var dayObject = component.createObject(null, {mainDate: calendar.dayInfoDate,

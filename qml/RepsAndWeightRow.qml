@@ -12,7 +12,7 @@ FocusScope {
 	property bool bBtnAddEnabled: true
 
 	signal changeSubSet(int id, int reps, int weight)
-	signal addSubSet(int id, bool bnew)
+	signal addSubSet(int id)
 	signal delSubSet(int id)
 
 	Layout.fillWidth: true
@@ -104,7 +104,7 @@ FocusScope {
 					height: 20
 				}
 
-				onClicked: addSubSet(rowIdx+1, true);
+				onClicked: addSubSet(rowIdx+1);
 			} //bntInsertAnotherRow
 
 			ToolButton {

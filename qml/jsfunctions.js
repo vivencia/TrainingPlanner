@@ -132,6 +132,15 @@ function getNextDate(date) {
 	return new Date(year,month,day);
 }
 
+function formatDateToDisplay(date, locale) {
+	if (locale === "pt_BR") {
+		return date.toLocaleString(locale).slice(0, 10);
+	}
+	else {
+		return date.toDateString();
+	}
+}
+
 //time format: hh:mm, HH:mm, mm:ss
 function getHourOrMinutesFromStrTime(time) {
 	if (time.length > 3) {

@@ -6,39 +6,21 @@ Page {
 	id: pagePlanner
 	required property int mesoId
 	required property string mesoSplit
-	property var currentSplitItem: null
-	property var navButtons: null
 
-	ScrollView {
-		id: scrollMain
+	SwipeView {
+		id: splitView
+		currentIndex: 0
 		anchors.fill: parent
-		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.active: true
-		padding: 2
+		interactive: !bottomPane.shown
+	} //SwipeView
 
-		ScrollBar.vertical.onPositionChanged: {
-			if (navButtons) {
-				if (contentItem.contentY <= 50) {
-					navButtons.showUpButton = false;
-					navButtons.showDownButton = true;
-				}
-				else if (contentItem.contentY >= height + navBar.height) {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = false;
-				}
-				else {
-					navButtons.showUpButton = true;
-					navButtons.showDownButton = true;
-				}
-			}
-		}
-
-		ColumnLayout {
-			id: layoutMain
-			width: scrollMain.availableWidth
-		} //ColumnLayout layoutMain
-	}//ScrollView scrollMain
+	PageIndicator {
+		count: splitView.count
+		currentIndex: splitView.currentIndex
+		anchors.bottom: parent.bottom
+		anchors.horizontalCenter: parent.horizontalCenter
+		visible: !bottomPane.shown
+	}
 
 	footer: ToolBar {
 		id: bottomPane
@@ -62,12 +44,8 @@ Page {
 		}
 
 		onShownChanged: {
-			if (shown) {
-				if (currentSplitItem)
-					exercisesList.setFilter(currentSplitItem.filterString);
-			}
-			if (navButtons)
-				navButtons.visible = !shown;
+			if (shown)
+				exercisesList.setFilter(splitView.currentItem.filterString);
 		}
 
 		ColumnLayout {
@@ -96,8 +74,7 @@ Page {
 				Layout.leftMargin: 5
 
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
-					if (currentSplitItem !== null)
-						currentSplitItem.changeModel(exerciseName, subName, sets, reps, weight);
+					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight);
 				}
 			}
 		}
@@ -131,44 +108,14 @@ Page {
 			var component = Qt.createComponent("MesoSplitPlanner.qml");
 			var firstObject;
 			if (component.status === Component.Ready) {
-				var object = component.createObject(layoutMain, { divisionId:results[0].divisionId,
+				var object = component.createObject(splitView, { divisionId:results[0].divisionId,
 						mesoId:mesoId, splitLetter:results[0].splitLetter, splitText:results[0].splitText,
 						splitExercises:results[0].splitExercises, splitSetTypes:results[0].splitSetTypes,
 						splitNSets:results[0].splitNSets, splitNReps:results[0].splitNReps,
 						splitNWeight:results[0].splitNWeight
 				});
-				object.selectedSplitObjectChanged.connect(selectSplitItem);
+				splitView.addItem(object);
 			}
 		} while (++idx < mesoSplit.length);
-		if (idx > 0)
-			createNavButtons();
-	}
-
-	function selectSplitItem(splitObjectItem) {
-		if (currentSplitItem !== null)
-			currentSplitItem.bCurrentItem = false;
-		currentSplitItem = splitObjectItem;
-		currentSplitItem.bCurrentItem = true;
-	}
-
-	function createNavButtons() {
-		if (navButtons === null) {
-			var component = Qt.createComponent("PageScrollButtons.qml");
-			navButtons = component.createObject(this, {});
-			navButtons.scrollTo.connect(setScrollBarPosition);
-			navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
-		}
-		navButtons.visible = true;
-	}
-
-	function maybeShowNavButtons() {
-		navButtons.showButtons();
-	}
-
-	function setScrollBarPosition(pos) {
-		if (pos === 0)
-			scrollMain.ScrollBar.vertical.setPosition(0);
-		else
-			scrollMain.ScrollBar.vertical.setPosition(pos - scrollMain.ScrollBar.vertical.size/2);
 	}
 } //Page

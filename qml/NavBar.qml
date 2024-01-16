@@ -14,7 +14,7 @@ ToolBar {
 
 	ToolButton {
 		id: btnBack
-		enabled: true //bNavButtonsEnabled && root.stackView.depth >= 2
+		enabled: bNavButtonsEnabled && root.stackView.depth >= 2
 		anchors.left: parent.left
 		anchors.leftMargin: 5
 		visible: root.stackView.depth >= 2

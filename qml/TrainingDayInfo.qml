@@ -14,7 +14,7 @@ Page {
 	required property string splitLetter //daySplitLetter
 	required property string mesoName
 
-	property int dayId
+	property int dayId: -1
 	property int mesoId
 	property string exercisesNames
 	property string timeIn
@@ -24,7 +24,6 @@ Page {
 
 	property bool bModified: false
 	property var exerciseSpriteList: []
-	property var dayInfoList: []
 	property var mesoSplit
 	property var mesoSplitLetter
 	property var mesoTDay;
@@ -125,8 +124,8 @@ Page {
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: qsTr("Trainning day <b>#" + mesoTDay + "</b> of meso cycle <b>" + mesoName +
-						"</b>: <b>" + mainDate.toDateString() + "</b> Division: <b>" + mesoSplitLetter + "</b>")
-				font.pixelSize: AppSettings.fontSize
+						"</b>: <b>" + JSF.formatDateToDisplay(mainDate, AppSettings.appLocale) + "</b> Division: <b>" + mesoSplitLetter + "</b>")
+				font.pixelSize: AppSettings.fontSizeText
 			}
 
 			GridLayout {
@@ -166,7 +165,7 @@ Page {
 				} //txtSplitLetter
 
 				Label {
-					text: qsTr("Training Day #:")
+					text: qsTr("Training Day #")
 					Layout.row: 0
 					Layout.column: 1
 				}
@@ -222,7 +221,7 @@ Page {
 							x: chkAdjustCalendar.leftPadding
 							y: parent.height / 2 - height / 2
 							radius: 5
-							border.color: chkAdjustCalendar.down ? "#17a81a" : "#21be2b"
+							border.color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
 
 							Rectangle {
 								width: 14
@@ -230,7 +229,7 @@ Page {
 								x: 6
 								y: 6
 								radius: 2
-								color: chkAdjustCalendar.down ? "#17a81a" : "#21be2b"
+								color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
 								visible: chkAdjustCalendar.checked
 							}
 						}
@@ -377,59 +376,167 @@ Page {
 			}
 
 			GroupBox {
+				id: grpIntent
 				label: Label {
 					text: qsTr("What do you want to do today?")
+					anchors.horizontalCenter: parent.horizontalCenter
+					anchors.bottomMargin: 10
 				}
 				visible: bHasMesoPlan || bHasPreviousDay
-				width: parent.width
+				width: parent.width - 20
 				Layout.fillWidth: true
 				Layout.bottomMargin: 30
+				property int option
+				spacing: 0
+				padding: 0
 
 				ColumnLayout {
 					anchors.fill: parent
+					spacing: 0
 
-					ToolButton {
-						id: btnMesoPlan
-						contentItem: Text {
-							text: qsTr("Use the standard exercises plan for the division " + mesoSplitLetter + qsTr(" of the Mesocycle"))
+					RadioButton {
+						id: optMesoPlan
+						padding: 0
+						contentItem: Label {
+							text: qsTr("Use the standard exercises plan for the division ") + mesoSplitLetter + qsTr(" of the Mesocycle")
 							wrapMode: Text.WordWrap
+							font.pixelSize: AppSettings.fontSizeText
+							anchors.left: parent.left
+							anchors.leftMargin: 25
+							anchors.right: parent.right
+							anchors.rightMargin: 5
 						}
+
 						visible: bHasMesoPlan
 						width: parent.width
 						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+
+						indicator: Rectangle {
+							implicitWidth: 20
+							implicitHeight: 20
+							x: 3
+							y: parent.height / 2 - height / 2
+							radius: 10
+							border.color: optMesoPlan.down ? primaryDarkColor : primaryLightColor
+
+							Rectangle {
+								width: 14
+								height: 14
+								x: 3
+								y: 3
+								radius: 7
+								color: optMesoPlan.down ? primaryDarkColor : primaryLightColor
+								visible: optMesoPlan.checked
+							}
+						}
 
 						onClicked: {
-							bHasPreviousDay = false;
-							loadTrainingDayInfoFromMesoPlan();
+							grpIntent.option = 0;
 						}
 					}
-					ToolButton {
+					RadioButton {
 						id: optPreviousDay
-						contentItem: Text {
-							text: qsTr("Base this session off the one from ") + previousDivisionDayDate.toDateString()
+						padding: 0
+						contentItem: Label {
+							text: qsTr("Base this session off the one from ") + JSF.formatDateToDisplay(previousDivisionDayDate, AppSettings.appLocale)
 							wrapMode: Text.WordWrap
+							font.pixelSize: AppSettings.fontSizeText
+							anchors.left: parent.left
+							anchors.leftMargin: 25
+							anchors.right: parent.right
+							anchors.rightMargin: 5
 						}
 						visible: bHasPreviousDay
 						width: parent.width
 						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+
+						indicator: Rectangle {
+							implicitWidth: 20
+							implicitHeight: 20
+							x: 3
+							y: parent.height / 2 - height / 2
+							radius: 10
+							border.color: optPreviousDay.down ? primaryDarkColor : primaryLightColor
+
+							Rectangle {
+								width: 14
+								height: 14
+								x: 3
+								y: 3
+								radius: 7
+								color: optPreviousDay.down ? primaryDarkColor : primaryLightColor
+								visible: optPreviousDay.checked
+							}
+						}
 
 						onClicked: {
-							bHasMesoPlan = false;
-							loadTrainingDayInfo(previousDivisionDayDate);
+							grpIntent.option = 1;
 						}
 					}
-					ToolButton {
-						contentItem: Text {
+					RadioButton {
+						id: optEmptySession
+						padding: 0
+						contentItem: Label {
 							text: qsTr("Start an empty session")
+							font.pixelSize: AppSettings.fontSizeText
+							anchors.left: parent.left
+							anchors.leftMargin: 25
+							anchors.right: parent.right
+							anchors.rightMargin: 5
 						}
 						visible: bHasMesoPlan || bHasPreviousDay
 						width: parent.width
 						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+
+						indicator: Rectangle {
+							implicitWidth: 20
+							implicitHeight: 20
+							x: 3
+							y: parent.height / 2 - height / 2
+							radius: 10
+							border.color: optEmptySession.down ? primaryDarkColor : primaryLightColor
+
+							Rectangle {
+								width: 14
+								height: 14
+								x: 3
+								y: 3
+								radius: 7
+								color: optEmptySession.down ? primaryDarkColor : primaryLightColor
+								visible: optEmptySession.checked
+							}
+						}
 
 						onClicked: {
-							bHasPreviousDay = false;
-							bHasMesoPlan = false;
-							dayInfoList.pop();
+							grpIntent.option = 2;
+						}
+					}
+
+					ButtonFlat {
+						id: btnChooseIntent
+						text: qsTr("Begin")
+						Layout.alignment: Qt.AlignCenter
+
+						onClicked: {
+							switch (grpIntent.option) {
+								case 0: //use meso plan
+									bHasPreviousDay = false;
+									loadTrainingDayInfoFromMesoPlan();
+								break;
+								case 1: //use previous day
+									bHasMesoPlan = false;
+									loadTrainingDayInfo(previousDivisionDayDate);
+									dayId = -1;
+								break;
+								case 2: //empty session
+									bHasPreviousDay = false;
+									bHasMesoPlan = false;
+								break;
+							}
+							grpIntent.visible = false;
 						}
 					}
 				}
@@ -517,22 +624,6 @@ Page {
 		bModified = false;
 	}
 
-	function createEmptyTrainingDay() {
-		bModified = false;
-		dayInfoList.push ({
-			"dayId": dayId,
-			"dayDate": mainDate,
-			"mesoId": mesoId,
-			"exercisesNames": exercisesNames,
-			"dayNumber": tDay,
-			"daySplitLetter": splitLetter,
-			"dayTimeIn": txtInTime.text,
-			"dayTimeOut": txtOutTime.text,
-			"dayLocation": txtLocation.text,
-			"dayNotes": txtDayInfoTrainingNotes.text
-		});
-	}
-
 	function getMesoPlan () {
 		let plan_info = [];
 		switch (mesoSplitLetter) {
@@ -584,7 +675,8 @@ Page {
 	}
 
 	function loadTrainingDayInfo(tDate) {
-		dayInfoList = Database.getTrainingDay(tDate.getTime());
+		console.log("Trying to load info for the day: ", tDate.toDateString(), tDate.getTime());
+		let dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
 			if (dayInfoList[0].exercisesNames === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
 				Database.deleteTraingDay(dayInfoList[0].dayId);
@@ -604,6 +696,7 @@ Page {
 			location = dayInfoList[0].dayLocation;
 			trainingNotes = dayInfoList[0].dayNotes;
 			createExercisesFromList();
+			bModified = true;
 			return true;
 		}
 		return false;
@@ -852,12 +945,10 @@ Page {
 				updateMesoCalendar();
 				if (dayId === -1) {
 					createDatabaseEntryForDay();
-					createEmptyTrainingDay();
 					if (bHasMesoPlan || bHasPreviousDay)
 						updateDayIdFromExercisesAndSets();
 				}
-				else
-					Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
 						exerciseSpriteList[i].Object.logSets();
@@ -902,6 +993,7 @@ Page {
 			icon.source: "qrc:/images/"+lightIconFolder+"exercises-add.png"
 			icon.width: 20
 			icon.height: 20
+			enabled: !grpIntent.visible
 
 			onClicked: {
 				hideFloatingButton(-1);
