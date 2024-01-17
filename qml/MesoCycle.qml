@@ -35,11 +35,23 @@ Page {
 	property bool bLoadCompleted: false
 	property bool bNewMeso: mesoId === -1
 	property bool bModified: false
+	property bool bCanSave: true
 	property bool bMesoSplitChanged: false
 	property bool bDate1Changed: false
 	property bool bDate2Changed: false
 
 	property var mesoCalendarObject: null
+
+	background: Rectangle {
+		color: primaryDarkColor
+		opacity: 0.7
+		Image {
+			anchors.fill: parent
+			source: "qrc:/images/app_logo.png"
+			fillMode: Image.PreserveAspectFit
+			opacity: 0.6
+		}
+	}
 
 	onBModifiedChanged: {
 		if (bLoadCompleted)
@@ -55,7 +67,7 @@ Page {
 			display: AbstractButton.TextBesideIcon
 			anchors.centerIn: parent
 			enabled: !bNewMeso && !bModified
-			icon.source: "qrc:/images/"+darkIconFolder+"edit-mesocycle.png"
+			icon.source: "qrc:/images/"+lightIconFolder+"edit-mesocycle.png"
 
 			onClicked: {
 				if (mesoCalendarObject === null)
@@ -104,25 +116,32 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
+				color: "white"
 			}
-			TextField {
+			TPTextInput {
 				id: txtMesoName
 				text: mesoName
 				Layout.alignment: Qt.AlignHCenter
 				Layout.minimumWidth: parent.width / 2
 				Layout.maximumWidth: parent.width - 20
 				wrapMode: Text.WordWrap
+				ToolTip.text: qsTr("Mesocycle name too short")
 
 				onTextEdited: {
-					if (text.length >= 3) {
+					if (text.length >= 5) {
 						if (!bNewMeso) {
 							if (text !== mesosModel.get(idxModel).mesoName)
 								mesoName = text;
 						}
 						else
 							mesoName = text;
+						bCanSave = true;
 						bModified = true;
 					}
+					else {
+						bCanSave = false;
+					}
+					ToolTip.visible = !bCanSave;
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -144,9 +163,10 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
+				color: "white"
 			}
 
-			TextField {
+			TPTextInput {
 				id: txtMesoStartDate
 				text: JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale)
 				Layout.fillWidth: false
@@ -175,12 +195,12 @@ Page {
 					}
 				}
 
-				ToolButton {
+				RoundButton {
 					id: btnStartDate
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 					anchors.leftMargin: 10
-					icon.source: "qrc:/images/"+darkIconFolder+"calendar.png"
+					icon.source: "qrc:/images/white/calendar.png"
 
 					onClicked: caldlg.open();
 				}
@@ -191,8 +211,9 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
+				color: "white"
 			}
-			TextField {
+			TPTextInput {
 				id: txtMesoEndDate
 				text: JSF.formatDateToDisplay(mesoEndDate, AppSettings.appLocale)
 				Layout.fillWidth: false
@@ -225,7 +246,7 @@ Page {
 					}
 				}
 
-				ToolButton {
+				RoundButton {
 					id: btnEndDate
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
@@ -242,9 +263,12 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
+				Layout.minimumWidth: 50
+				Layout.maximumWidth: 50
+				color: "white"
 			}
 
-			TextField {
+			TPTextInput {
 				id: txtMesonWeeks
 				text: nWeeks.toString()
 				width: txtMesoEndDate.width
@@ -263,12 +287,13 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
+				color: "white"
 			}
 			RegularExpressionValidator {
 				id: regEx
 				regularExpression: new RegExp(/[A-FR]+/);
 			}
-			TextField {
+			TPTextInput {
 				id: txtMesoSplit
 				width: txtMesoStartDate.width
 				Layout.alignment: Qt.AlignLeft
@@ -276,25 +301,35 @@ Page {
 				Layout.minimumWidth: parent.width / 2
 				validator: regEx
 				text: mesoSplit
+				ToolTip.text: qsTr("On a mesocycle, there must be at least one rest day(R)")
 
-				ToolButton {
+				RoundButton {
 					id: btnTrainingSplit
-					x: txtMesoSplit.width + width
-					anchors.rightMargin: 2
-					icon.source: paneTrainingSplit.visible ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
+					anchors {
+						left: txtMesoSplit.right
+						verticalCenter: txtMesoSplit.verticalCenter
+						leftMargin: 10
+					}
+					icon.source: paneTrainingSplit.visible ? "qrc:/images/"+lightIconFolder+"fold-up.png" :
+													"qrc:/images/"+lightIconFolder+"fold-down.png"
 					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
 				}
 
 				onTextEdited: {
-					if (acceptableInput) {
-						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
+					if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
+						if (text.indexOf('R') === -1) {
+							bCanSave = false;
+						}
+						else {
+							bCanSave = true;
 							mesoSplit = text;
 							bMesoSplitChanged = true;
 						}
-						else
-							bMesoSplitChanged = false;
-						bModified = true;
 					}
+					else
+						bMesoSplitChanged = false;
+					bModified = true;
+					ToolTip.visible = !bCanSave;
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -354,6 +389,7 @@ Page {
 							opacity: enabled ? 1.0 : 0.3
 							verticalAlignment: Text.AlignVCenter
 							leftPadding: chkPreserveOldCalendar.indicator.width + chkPreserveOldCalendar.spacing
+							color: "white"
 						}
 
 						onClicked: {
@@ -391,11 +427,16 @@ Page {
 				height: shown ? implicitHeight : 0
 				Behavior on height {
 					NumberAnimation {
-						easing.type: Easing.InOutQuad
+						duration: 300
+						easing.type: Easing.InOutBack
 					}
 				}
 				clip: true
 				padding: 0
+
+				background: Rectangle {
+					color: "transparent"
+				}
 
 				GridLayout {
 					anchors.fill: parent
@@ -407,14 +448,15 @@ Page {
 						font.bold: true
 						Layout.row: 0
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitA
 						text: strSplitA
-						font.bold: true
 						Layout.row: 0
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
@@ -432,19 +474,21 @@ Page {
 							txtSplitB.forceActiveFocus();
 						}
 					}
+
 					Label {
 						text: qsTr("Day B: ")
 						font.bold: true
 						Layout.row: 1
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitB
 						text: strSplitB
-						font.bold: true
 						Layout.row: 1
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
@@ -468,19 +512,21 @@ Page {
 								txtMesoDrugs.forceActiveFocus();
 						}
 					}
+
 					Label {
 						text: qsTr("Day C: ")
-						font.bold: true
 						Layout.row: 2
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitC
 						text: strSplitC
 						font.bold: true
 						Layout.row: 2
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
@@ -504,19 +550,21 @@ Page {
 								txtMesoDrugs.forceActiveFocus();
 						}
 					}
+
 					Label {
 						text: qsTr("Day D: ")
-						font.bold: true
 						Layout.row: 3
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitD
 						text: strSplitD
 						font.bold: true
 						Layout.row: 3
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
@@ -543,17 +591,18 @@ Page {
 
 					Label {
 						text: qsTr("Day E: ")
-						font.bold: true
 						Layout.row: 4
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitE
 						text: strSplitE
 						font.bold: true
 						Layout.row: 4
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
@@ -577,19 +626,21 @@ Page {
 								txtMesoDrugs.forceActiveFocus();
 						}
 					}
+
 					Label {
 						text: qsTr("Day F: ")
-						font.bold: true
 						Layout.row: 5
 						Layout.column: 0
+						color: "white"
 					}
-					TextField {
+					TPTextInput {
 						id: txtSplitF
 						text: strSplitF
 						font.bold: true
 						Layout.row: 5
 						Layout.column: 1
-						Layout.minimumWidth: parent.width / 2
+						Layout.fillWidth: true
+						Layout.rightMargin: 20
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
@@ -627,6 +678,7 @@ Page {
 				text: qsTr("Drug Protocol: ")
 				font.bold: true
 				Layout.leftMargin: 5
+				color: "white"
 			}
 			Flickable {
 				Layout.fillWidth: true
@@ -639,6 +691,7 @@ Page {
 				TextArea.flickable: TextArea {
 					id: txtMesoDrugs
 					text: mesoDrugs
+					color: "white"
 
 					onEditingFinished: {
 						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoDrugs)) {
@@ -655,6 +708,7 @@ Page {
 				text: qsTr("Notes: ")
 				font.bold: true
 				Layout.leftMargin: 5
+				color: "white"
 			}
 			Flickable {
 				Layout.fillWidth: true
@@ -667,6 +721,7 @@ Page {
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
 					text: mesoNote
+					color: "white"
 
 					onEditingFinished: {
 						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoNote)) {
@@ -746,7 +801,7 @@ Page {
 			icon.source: "qrc:/images/"+lightIconFolder+"save-day.png"
 			icon.height: 20
 			icon.width: 20
-			enabled: bNewMeso || bModified
+			enabled: bModified & bCanSave
 
 			onClicked: {
 				if (mesoName.length === 0)
@@ -804,7 +859,6 @@ Page {
 					});
 
 					bNewMeso = false;
-					//idxDivision = divisionModel.count - 1;
 					dateTimer.triggered(); //Update tabBar and the meso model index it uses
 					createMesoCalendarObject(true);
 				}
@@ -888,21 +942,27 @@ Page {
 		var ok = true;
 		if (mesoSplit.indexOf('A') !== -1) {
 			ok &= (txtSplitA.length > 1);
+			txtSplitA.cursorPosition = 0;
 		}
 		if (mesoSplit.indexOf('B') !== -1) {
 			ok &= (txtSplitB.length > 1);
+			txtSplitB.cursorPosition = 0;
 		}
 		if (mesoSplit.indexOf('C') !== -1) {
 			ok &= (txtSplitC.length > 1);
+			txtSplitC.cursorPosition = 0;
 		}
 		if (mesoSplit.indexOf('D') !== -1) {
 			ok &= (txtSplitD.length > 1);
+			txtSplitD.cursorPosition = 0;
 		}
 		if (mesoSplit.indexOf('E') !== -1) {
 			ok &= (txtSplitE.length > 1);
+			txtSplitE.cursorPosition = 0;
 		}
 		if (mesoSplit.indexOf('F') !== -1) {
 			ok &= (txtSplitF.length > 1);
+			txtSplitF.cursorPosition = 0;
 		}
 		btnCreateExercisePlan.enabled = ok;
 	}

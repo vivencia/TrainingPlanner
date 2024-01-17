@@ -237,15 +237,17 @@ QtObject {
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM mesocycles");
 			for (let i = 0; i < results.rows.length; i++) {
+				const bRealMeso = results.rows.item(i).meso_end_date !== 0;
 				mesos.push({
 					"mesoId": results.rows.item(i).meso_id,
 					"mesoName": results.rows.item(i).meso_name,
 					"mesoStartDate": new Date(results.rows.item(i).meso_start_date),
-					"mesoEndDate": new Date(results.rows.item(i).meso_end_date),
+					"mesoEndDate": bRealMeso ? new Date(results.rows.item(i).meso_end_date) : results.rows.item(i).meso_end_date,
 					"mesoNote": results.rows.item(i).meso_note,
 					"nWeeks": results.rows.item(i).meso_nweeks,
 					"mesoSplit": results.rows.item(i).meso_split,
-					"mesoDrugs": results.rows.item(i).meso_drugs
+					"mesoDrugs": results.rows.item(i).meso_drugs,
+					"realMeso": bRealMeso
 				});
 			}
 		});

@@ -81,7 +81,7 @@ Item {
 		height: shown ? implicitHeight : txtExerciseName.height
 		Behavior on height {
 			NumberAnimation {
-				easing.type: Easing.InOutQuad
+				easing.type: Easing.InOutBack
 			}
 		}
 		clip: true

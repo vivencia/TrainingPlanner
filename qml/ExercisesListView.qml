@@ -71,11 +71,6 @@ Column {
 		property int totalHeight
 		property int totalWidth
 
-		ScrollBar.horizontal: ScrollBar {
-			id: hBar
-			policy: ScrollBar.AsNeeded
-			active: true; visible: lstExercises.totalWidth > lstExercises.width
-		}
 		ScrollBar.vertical: ScrollBar {
 			id: vBar
 			policy: ScrollBar.AsNeeded

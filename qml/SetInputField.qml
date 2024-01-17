@@ -182,17 +182,16 @@ FocusScope {
 			}
 		}
 
-		TextInput {
+		TPTextInput {
 			id: txtMain
-			font.bold: true
-			font.pixelSize: AppSettings.fontSizeText
 			validator: validatorType[type]
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? 40 : 20
+			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
+			textColor: "black"
 
 			anchors {
 				left: btnDecrease.right

@@ -193,8 +193,10 @@ Frame {
 						}
 
 						onActiveFocusChanged: {
-							if (activeFocus)
+							if (activeFocus) {
 								bottomPane.shown = false;
+								cursorPosition = text.length;
+							}
 							else
 								bCanEditExercise = false;
 						}
@@ -313,7 +315,7 @@ Frame {
 					}
 
 					Label {
-						text: qsTr("Baseline weight:")
+						text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
 						Layout.row: 5
 						Layout.column: 0
 						Layout.leftMargin: 5

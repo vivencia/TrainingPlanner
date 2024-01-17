@@ -109,5 +109,8 @@
         <file>images/black/edit-clear.png</file>
         <file>images/app_logo.png</file>
         <file>images/app_icon.png</file>
+        <file>images/point-down.png</file>
+        <file>images/white/open-schedule.png</file>
+        <file>images/black/open-schedule.png</file>
     </qresource>
 </RCC>

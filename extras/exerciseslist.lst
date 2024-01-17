@@ -1,4 +1,4 @@
-#Version;1.4
+#Version;1.5
 Cadeira Extensora;amplitude total;pernas, quadríceps
 Cadeira Extensora;unilateral;pernas, quadríceps
 Cadeira Flexora;amplitude total;pernas, posterior
@@ -96,6 +96,7 @@ Puxada Frontal;polia, unilateral, pegada supinadas;costas
 Puxada Frontal;polia, unilateral, pegada neutra;costas
 Puxada Frontal;máquina articulada, pegada pronada;costas
 Puxada Frontal;máquina articulada, pegada supinada;costas
+Puxada Frontal;máquina articulada, pegada neutra;costas
 Puxada Atrás;polia, pegada pronada aberta;costas
 Puxada Atrás;polia, pegada pronada média;costas
 Puxada Atrás;polia, pegada supinada aberta;costas

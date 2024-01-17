@@ -134,7 +134,12 @@ function getNextDate(date) {
 
 function formatDateToDisplay(date, locale) {
 	if (locale === "pt_BR") {
-		return date.toLocaleString(locale).slice(0, 10);
+		switch (Qt.platform.os) {
+			case "android":
+				return date.toLocaleString(locale).slice(0, 12);
+			case "linux":
+				return date.toLocaleString(locale).slice(0, 10);
+		}
 	}
 	else {
 		return date.toDateString();

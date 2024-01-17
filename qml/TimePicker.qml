@@ -493,7 +493,7 @@ Popup {
 			width: 1
 			height: timePicker.timeButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
-			rotation: outerButtonGroup.checkedButton? outerButtonGroup.checkedButton.angle : 0
+			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
 			color: primaryColor
 		}
 
@@ -504,7 +504,7 @@ Popup {
 			width: 1
 			height: timePicker.innerButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
-			rotation: innerButtonGroup.checkedButton? innerButtonGroup.checkedButton.angle : 0
+			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
 			color: primaryColor
 		}
 

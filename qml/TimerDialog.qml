@@ -535,11 +535,11 @@ Dialog {
 		ButtonFlat {
 			id: btnStartPause
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
-			font.pixelSize: AppSettings.fontSizePixelSize
 			width: 70
 			height: 30
 			text: qsTr("Start")
 			x: ((parent.width / 3) - width ) / 2
+
 			onClicked: {
 				playSound.stop();
 				if (!bRunning) {

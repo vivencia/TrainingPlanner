@@ -133,7 +133,7 @@ Page {
 				height: shown ? implicitHeight : 0
 				Behavior on height {
 					NumberAnimation {
-						easing.type: Easing.InOutQuad
+						easing.type: Easing.InOutBack
 					}
 				}
 				clip: true

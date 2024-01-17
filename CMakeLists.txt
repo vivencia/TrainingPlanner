@@ -95,6 +95,9 @@ set(trainingplanner_resource_files
 	"qml/ExercisesListView.qml"
 	"qml/MesoSplitPlanner.qml"
 	"qml/TransparentButton.qml"
+	"qml/FirstTimeHomePageTip.qml"
+	"qml/OpenEndedPlan.qml"
+	"qml/TPTextInput.qml"
 	"qml/qmldir"
 )
 
@@ -103,6 +106,11 @@ qt_add_resources(trainingplanner "trainingplanner" images.qrc sounds.qrc
 	    "/"
 	FILES
 	    ${trainingplanner_resource_files}
+)
+
+target_sources(trainingplanner_other_files
+  PRIVATE
+    qml/qmldir
 )
 
 install(TARGETS trainingplanner

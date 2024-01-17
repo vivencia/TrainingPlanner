@@ -6,7 +6,6 @@ CalendarDialog 1.0 CalendarDialog.qml
 TimePicker 1.0 TimePicker.qml
 TimerDialog 1.0 TimerDialog.qml
 TrainingDayProgressDialog 1.0 TrainingDayProgressDialog.qml
-
 ButtonFlat 1.0 ButtonFlat.qml
 ButtonIconActive 1.0 ButtonIconActive.qml
 IconActive 1.0 IconActive.qml
@@ -18,8 +17,10 @@ SetInputField 1.0 SetInputField.qml
 PageScrollButtons 1.0 PageScrollButtons.qml
 ImageViewer 1.0 ImageViewer.qml
 VideoPlayer 1.0 VideoPlayer.qml
+OpenEndedPlan 1.0 OpenEndedPlan.qml
 ExercisesListView 1.0 ExercisesListView.qml
 TransparentButton 1.0 TransparentButton.qml
+FirstTimeHomePageTip 1.0 FirstTimeHomePageTip.qml
 MesoCycle 1.0 MesoCycle.qml
 MesoContent 1.0 MesoContent.qml
 MesoSplitPlanner 1.0 MesoSplitPlanner.qml

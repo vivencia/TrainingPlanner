@@ -303,7 +303,7 @@ Page {
 					Layout.maximumWidth: txtInTime.text.contentWidth + 30
 					Layout.leftMargin: 5
 				}
-				ToolButton {
+				RoundButton {
 					id: btnInTime
 					icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
@@ -330,7 +330,7 @@ Page {
 					Layout.leftMargin: 5
 				}
 
-				ToolButton {
+				RoundButton {
 					id: btnOutTime
 					icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
@@ -1017,7 +1017,7 @@ Page {
 
 		Behavior on height {
 			NumberAnimation {
-				easing.type: Easing.InOutQuad
+				easing.type: Easing.InOutBack
 			}
 		}
 
