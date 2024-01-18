@@ -258,7 +258,7 @@ Item {
 				text: strReps1
 				type: SetInputField.Type.RepType
 				nSetNbr: setNumber
-				availableWidth: setItem.width/4
+				availableWidth: setItem.width/4 - 10
 				alternativeLabels: ["","","",""]
 
 				onEnterOrReturnKeyPressed: {
@@ -290,7 +290,7 @@ Item {
 				text: strReps2
 				type: SetInputField.Type.RepType
 				nSetNbr: setNumber
-				availableWidth: setItem.width/4
+				availableWidth: setItem.width/4 - 10
 				alternativeLabels: ["","","",""]
 
 				onEnterOrReturnKeyPressed: {

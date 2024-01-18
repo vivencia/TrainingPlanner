@@ -250,7 +250,7 @@ Page {
 footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
-		height: 50
+		height: 55
 
 		background: Rectangle {
 			color: primaryDarkColor

@@ -159,6 +159,7 @@ Page {
 
 				background: Rectangle {
 					border.color: "white"
+					color: "transparent"
 					radius: 6
 				}
 
@@ -246,7 +247,7 @@ Page {
 
 			ButtonFlat {
 				id: btnChooseMediaFromDevice
-				text: qsTr("File")
+				text: qsTr("Choose file")
 				onClicked: chooseMediaFromDevice();
 				Layout.alignment: Qt.AlignCenter
 			}
@@ -278,16 +279,17 @@ Page {
 		ColumnLayout{
 			width: parent.width
 			height: parent.height
-			spacing: 0
+			spacing: 5
 
 			ExercisesListView {
 				id: exercisesList
 				Layout.fillWidth: true
-				Layout.topMargin: 5
+				Layout.topMargin: 0
 				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
 				Layout.maximumHeight: parent.height * 0.8
 				Layout.leftMargin: 5
+				Layout.bottomMargin: 5
 
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
 					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
@@ -297,7 +299,7 @@ Page {
 			RowLayout {
 				id: toolbarExercises
 				Layout.fillWidth: true
-				spacing: 2
+				spacing: 5
 
 				ButtonFlat {
 					id:btnNewExercise

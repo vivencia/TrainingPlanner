@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 
 Column {
 	id: mainItem
-	spacing: 0
+	spacing: 5
 
 	property int curIndex: -1
 	property int seconds
@@ -109,12 +109,6 @@ Column {
 			}
 		} //model
 
-		FontMetrics {
-			id: fontMetrics
-			font.family: listItem.font.family
-			font.pixelSize: AppSettings.fontSizeLists
-		}
-
 		delegate: SwipeDelegate {
 			id: delegate
 			contentItem: Text {
@@ -130,9 +124,14 @@ Column {
 			height: Math.max(40, fontMetrics.boundingRect(listItem.text).height)
 			clip: false
 
+			FontMetrics {
+				id: fontMetrics
+				font.family: listItem.font.family
+				font.pixelSize: AppSettings.fontSizeLists
+			}
+
 			background: Rectangle {
 				id:	backgroundColor
-				radius: 5
 				color: curIndex === index ? "darkred" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 			}
 			onClicked: {
@@ -207,7 +206,7 @@ Column {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesListModel.count > 0
-		width: parent.width - 10
+		width: parent.width
 		Layout.fillWidth: true
 		Layout.maximumHeight: 30
 		Layout.topMargin: 5
@@ -222,9 +221,7 @@ Column {
 			width: 20
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-				anchors.top: parent.top
-				anchors.topMargin: -5
-				anchors.horizontalCenter: parent.horizontalCenter
+				anchors.fill: parent
 				height: 20
 				width: 20
 			}

@@ -366,19 +366,21 @@ Page {
 
 	footer: ToolBar {
 		id: mesoCycleToolBar
+		height: 55
 		width: parent.width
 
-		ToolButton {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
+			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
+			enabled: bModified
 			anchors.left: parent.left
 			anchors.verticalCenter: parent.verticalCenter
-			font.capitalization: Font.MixedCase
-			display: AbstractButton.TextUnderIcon
-			icon.source: "qrc:/images/"+lightIconFolder+"revert-day.png"
-			icon.height: 20
-			icon.width: 20
-			enabled: bModified
 
 			onClicked: {
 				if (!bNewMeso) {
@@ -405,17 +407,13 @@ Page {
 			}
 		} //btnRevert
 
-		ToolButton {
+		ButtonFlat {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
-			font.capitalization: Font.MixedCase
+			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			enabled: bModified
 			anchors.right: parent.right
 			anchors.verticalCenter: parent.verticalCenter
-			display: AbstractButton.TextUnderIcon
-			icon.source: "qrc:/images/"+lightIconFolder+"save-day.png"
-			icon.height: 20
-			icon.width: 20
-			enabled: bModified
 
 			onClicked: {
 				if (mesoSplit.length === 0)

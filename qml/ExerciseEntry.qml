@@ -89,9 +89,9 @@ Item {
 		z: 0
 
 		background: Rectangle {
-			color: thisObjectIdx % 2 === 0 ? paneBackgroundColor : primaryColor
+			color: thisObjectIdx % 2 === 0 ? "#dce3f0" : "#c3cad5"
 			border.color: "transparent"
-			opacity: 0.7
+			opacity: 0.8
 			radius: 5
 		}
 

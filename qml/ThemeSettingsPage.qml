@@ -70,7 +70,7 @@ Page {
 					}
 				}
 			} //Column Layout
-		} //Frame
+		} //GroupBox
 
 		GroupBox {
 			Layout.fillWidth: true

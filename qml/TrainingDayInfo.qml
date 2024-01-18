@@ -226,6 +226,7 @@ Page {
 
 				background: Rectangle {
 					border.color: "white"
+					color: "transparent"
 					radius: 6
 				}
 
@@ -337,6 +338,7 @@ Page {
 
 				background: Rectangle {
 					border.color: "white"
+					color: "transparent"
 					radius: 6
 				}
 
@@ -418,6 +420,7 @@ Page {
 
 				background: Rectangle {
 					border.color: "white"
+					color: "transparent"
 					radius: 6
 				}
 
@@ -1024,7 +1027,7 @@ Page {
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
-		height: 50
+		height: 55
 		visible: !bShowSimpleExercisesList
 
 		background: Rectangle {

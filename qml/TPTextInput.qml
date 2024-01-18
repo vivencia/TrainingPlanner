@@ -18,8 +18,8 @@ TextField {
 	topPadding: 0
 	bottomPadding: 0
 	rightPadding: 5
-	implicitWidth: fontMetrics.boundingRect(text).width + 15
-	implicitHeight: fontMetrics.boundingRect(text).height + 10
+	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
+	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 10
 
 	FontMetrics {
 		id: fontMetrics

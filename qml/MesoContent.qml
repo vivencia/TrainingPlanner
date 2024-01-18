@@ -608,6 +608,8 @@ Page {
 	} //ListView
 
 	footer: ToolBar {
+		width: parent.width
+		height: 55
 		background: Rectangle {
 			color: primaryDarkColor
 			opacity: 0.7
@@ -617,24 +619,19 @@ Page {
 			anchors.fill: parent
 
 			Label {
-				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-				Layout.maximumWidth: parent.width / 2
 				text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
 						qsTr("Day is not part of the current mesocycle")
+				color: "white"
 				wrapMode: Text.WordWrap
 				font.pixelSize: AppSettings.fontSize
+				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+				Layout.maximumWidth: parent.width / 2
 			}
 
-			ToolButton {
+			ButtonFlat {
 				id: btnShowDayInfo
-				display: AbstractButton.TextUnderIcon
 				text: qsTr("View Day")
-				font.capitalization: Font.MixedCase
-				font.pixelSize: AppSettings.fontSize
-				font.bold: true
-				icon.source: "qrc:/images/"+lightIconFolder+"day-info.png"
-				icon.height: 20
-				icon.width: 20
+				imageSource: "qrc:/images/"+lightIconFolder+"day-info.png"
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 
 				onClicked: {

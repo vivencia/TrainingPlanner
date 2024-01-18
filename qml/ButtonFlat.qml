@@ -16,7 +16,7 @@ Rectangle {
 	signal clicked();
 
 	border.color: "black"
-	radius: 10
+	radius: 6
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
 	implicitWidth: buttonText.contentWidth + (buttonImage.visible ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 15 : 10 : 10)
