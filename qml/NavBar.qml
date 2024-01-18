@@ -7,24 +7,22 @@ import QtQuick.Controls
 ToolBar {
 	id: root
 	width: parent.width
+	height: 40
 
 	required property StackView stackView
 	property var mainCalendar: null
 	property var mainTimer: null
 
-	ToolButton {
+	ButtonFlat {
 		id: btnBack
 		enabled: bNavButtonsEnabled && root.stackView.depth >= 2
 		anchors.left: parent.left
 		anchors.leftMargin: 5
 		visible: root.stackView.depth >= 2
 		anchors.verticalCenter: parent.verticalCenter
-		display: AbstractButton.TextBesideIcon
 		//text: root.stackView.depth > 2 ? qsTr("Back") : qsTr("Home")
-		text: qsTr("Back")
-		icon.source: "qrc:/images/"+lightIconFolder+"back.png"
-		icon.height: 20
-		icon.width: 20
+		text: qsTr("BACK")
+		imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 
 		onClicked: {
 			root.stackView.pop();
@@ -32,7 +30,7 @@ ToolBar {
 		}
 	}
 
-	ToolButton {
+	RoundButton {
 		id: btnSettings
 		anchors.right: parent.right
 		anchors.rightMargin: 5
@@ -42,7 +40,7 @@ ToolBar {
 		onClicked: mainMenu.open();
 	}
 
-	ToolButton {
+	RoundButton {
 		id: btnCalendar
 		anchors.right: btnSettings.left
 		anchors.rightMargin: 5
@@ -63,7 +61,7 @@ ToolBar {
 		}
 	}
 
-	ToolButton {
+	RoundButton {
 		id: btnTimer
 		anchors.right: btnCalendar.left
 		anchors.rightMargin: 5

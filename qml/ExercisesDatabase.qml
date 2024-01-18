@@ -20,6 +20,17 @@ Page {
 
 	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight, bool bAdd)
 
+	background: Rectangle {
+		color: primaryDarkColor
+		opacity: 0.7
+		Image {
+			anchors.fill: parent
+			source: "qrc:/images/app_logo.png"
+			fillMode: Image.PreserveAspectFit
+			opacity: 0.6
+		}
+	}
+
 	ScrollView {
 		id: scrollExercises
 		anchors.fill: parent
@@ -34,18 +45,19 @@ Page {
 
 			Label {
 				text: qsTr("Exercise:")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
-			TextField {
+			TPTextInput {
 				id: txtExerciseName
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
-				font.pixelSize: AppSettings.fontSizeText
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
-				font.bold: true
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
 					txtExerciseSubName.forceActiveFocus();
@@ -57,15 +69,16 @@ Page {
 
 			Label {
 				text: qsTr("Specifics:")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.leftMargin: 5
 			}
 
-			TextField {
+			TPTextInput {
 				id: txtExerciseSubName
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
-				font.bold: true
-				font.pixelSize: AppSettings.fontSizeText
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
@@ -80,18 +93,19 @@ Page {
 
 			Label {
 				text: qsTr("Muscular Group:")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
-			TextField {
+			TPTextInput {
 				id: txtMuscularGroup
 				readOnly: !bCanEdit
 				font.italic: bCanEdit
-				font.pixelSize: AppSettings.fontSizeText
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 10
-				font.bold: true
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
 					btnSaveExercise.clicked();
@@ -104,6 +118,9 @@ Page {
 			Label {
 				id: lblDefaults
 				text: qsTr("Optional defaults")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.minimumWidth: parent.width - 20
 				Layout.maximumWidth: parent.width - 20
 				Layout.leftMargin: 5
@@ -141,8 +158,8 @@ Page {
 				z: 0
 
 				background: Rectangle {
-					border.color: "transparent"
-					radius: 5
+					border.color: "white"
+					radius: 6
 				}
 
 				implicitHeight: gridLayout.implicitHeight + 10
@@ -160,6 +177,9 @@ Page {
 
 					Label {
 						text: qsTr("Sets: ")
+						color: "white"
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
 						Layout.row: 0
 						Layout.column: 0
 					}
@@ -176,6 +196,9 @@ Page {
 
 					Label {
 						text: qsTr("Reps: ")
+						color: "white"
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
 						Layout.row: 1
 						Layout.column: 0
 					}
@@ -192,6 +215,9 @@ Page {
 
 					Label {
 						text: qsTr("Weigth: ")
+						color: "white"
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
 						Layout.row: 2
 						Layout.column: 0
 					}
@@ -210,6 +236,9 @@ Page {
 
 			Label {
 				text: qsTr("Descriptive media:")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.bottomMargin: 10
 				Layout.topMargin: 10
 				Layout.leftMargin: 5

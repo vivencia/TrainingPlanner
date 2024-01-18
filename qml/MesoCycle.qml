@@ -59,15 +59,20 @@ Page {
 	}
 
 	header: ToolBar {
-		ToolButton {
+		height: btnManageMeso.height + 20
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
 			id: btnManageMeso
 			text: qsTr("Mesocycle Calendar")
 			font.bold: true
 			font.capitalization: Font.MixedCase
-			display: AbstractButton.TextBesideIcon
 			anchors.centerIn: parent
 			enabled: !bNewMeso && !bModified
-			icon.source: "qrc:/images/"+lightIconFolder+"edit-mesocycle.png"
+			imageSource: "qrc:/images/"+lightIconFolder+"edit-mesocycle.png"
 
 			onClicked: {
 				if (mesoCalendarObject === null)
@@ -353,6 +358,11 @@ Page {
 				padding: 0
 				spacing: 0
 
+				background: Rectangle {
+					border.color: "white"
+					radius: 6
+				}
+
 				ColumnLayout {
 					id: layoutSplit
 					anchors.fill: parent
@@ -371,7 +381,7 @@ Page {
 							x: chkPreserveOldCalendar.leftPadding
 							y: parent.height / 2 - height / 2
 							radius: 5
-							border.color: chkPreserveOldCalendar.down ? "#17a81a" : "#21be2b"
+							border.color: chkPreserveOldCalendar.down ? primaryDarkColor : primaryLightColor
 
 							Rectangle {
 								width: 14
@@ -379,7 +389,7 @@ Page {
 								x: 6
 								y: 6
 								radius: 2
-								color: chkPreserveOldCalendar.down ? "#17a81a" : "#21be2b"
+								color: chkPreserveOldCalendar.down ? primaryDarkColor : primaryLightColor
 								visible: chkPreserveOldCalendar.checked
 							}
 						}
@@ -390,6 +400,8 @@ Page {
 							verticalAlignment: Text.AlignVCenter
 							leftPadding: chkPreserveOldCalendar.indicator.width + chkPreserveOldCalendar.spacing
 							color: "white"
+							font.pixelSize: AppSettings.fontSizeText
+							font.bold: true
 						}
 
 						onClicked: {
@@ -400,7 +412,7 @@ Page {
 						}
 					} //CheckBox
 
-					RadioButton {
+					TPRadioButton {
 						id: optPreserveOldCalendar
 						text: qsTr("All of the old information")
 						Layout.fillWidth: true
@@ -408,7 +420,7 @@ Page {
 						checked: false
 					}
 
-					RadioButton {
+					TPRadioButton {
 						id: optPreserveOldCalendarUntilYesterday
 						text: qsTr("Only until yesterday")
 						Layout.fillWidth: true
@@ -739,17 +751,20 @@ Page {
 	footer: ToolBar {
 		id: mesoCycleToolBar
 		width: parent.width
+		height: 50
 
-		ToolButton {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
 			anchors.left: parent.left
 			anchors.verticalCenter: parent.verticalCenter
-			font.capitalization: Font.MixedCase
-			display: AbstractButton.TextUnderIcon
-			icon.source: "qrc:/images/"+lightIconFolder+"revert-day.png"
-			icon.height: 20
-			icon.width: 20
+			textUnderIcon: true
+			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
 			enabled: bModified
 
 			onClicked: {
@@ -791,16 +806,13 @@ Page {
 			}
 		} //btnRevert
 
-		ToolButton {
+		ButtonFlat {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
-			font.capitalization: Font.MixedCase
 			anchors.right: parent.right
 			anchors.verticalCenter: parent.verticalCenter
-			display: AbstractButton.TextUnderIcon
-			icon.source: "qrc:/images/"+lightIconFolder+"save-day.png"
-			icon.height: 20
-			icon.width: 20
+			textUnderIcon: true
+			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
 			enabled: bModified & bCanSave
 
 			onClicked: {

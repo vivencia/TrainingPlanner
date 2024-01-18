@@ -17,6 +17,7 @@ Page {
 		text: qsTr("  Training Program")
 		color: "white"
 		font.weight: Font.ExtraBold
+		font.pixelSize: AppSettings.titleFontSizePixelSize
 		icon.source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
 		font.styleName: "Semibold"
 		topPadding: 20
@@ -249,33 +250,33 @@ Page {
 footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
+		height: 50
 
-		ToolButton {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
 			id: btnAddOpenSchedule
+			text: qsTr("New open-ended schedule")
+			textUnderIcon: true
+			imageSource: "qrc:/images/"+lightIconFolder+"open-schedule.png"
 			anchors.left: parent.left
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.leftMargin: 5
-			text: qsTr("New open-ended schedule")
-			display: AbstractButton.TextUnderIcon
-			font.capitalization: Font.MixedCase
-			icon.source: "qrc:/images/"+darkIconFolder+"open-schedule.png"
-			icon.height: 20
-			icon.width: 20
 
 			onClicked: newAction(0);
 		}
 
-		ToolButton {
+		ButtonFlat {
 			id: btnAddMeso
+			text: qsTr("New Mesocycle")
+			imageSource: "qrc:/images/"+lightIconFolder+"mesocycle-add.png"
+			textUnderIcon: true
 			anchors.right: parent.right
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.rightMargin: 5
-			text: qsTr("New Mesocycle")
-			display: AbstractButton.TextUnderIcon
-			font.capitalization: Font.MixedCase
-			icon.source: "qrc:/images/"+darkIconFolder+"mesocycle-add.png"
-			icon.height: 20
-			icon.width: 20
 
 			onClicked: newAction(1);
 	} //ToolButton

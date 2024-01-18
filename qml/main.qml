@@ -129,6 +129,11 @@ ApplicationWindow {
 		id: navBar
 		stackView: stackView
 
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
 		Component.onCompleted: {
 			dateTimer.triggered();
 			backupTimer.triggered();
@@ -172,7 +177,7 @@ ApplicationWindow {
 		}
 
 		TabButton {
-			text: qsTr("  + Training Day")
+			text: qsTr("  + Day")
 			enabled: stackView.depth === 1 && currentMesoIdx >= 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
@@ -182,17 +187,51 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
-				let meso_name = initialPage.mainModel.get(currentMesoIdx).mesoName
-				let result = Database.getMesoCalendarDate(today);
+				const meso_name = initialPage.mainModel.get(currentMesoIdx).mesoName
+				var tday = 0, splitletter = 'A', mesoid = 0;
+				if (initialPage.mainModel.get(currentMesoIdx).realMeso) {
+					let calendar_info = Database.getMesoCalendarDate(today);
+					tday = calendar_info[0].mesoCalnDay;
+					splitletter = calendar_info[0].mesoCalSplit;
+					mesoid = calendar_info[0].mesoCalMesoId;
+				}
+				else {
+					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(currentMesoIdx).mesoId);
+					const mesosplit = meso_info[0].mesoSplit;
+					let day_info = Database.getMostRecentTrainingDay();
+					if (day.length > 0) {
+						tday = day_info[0].dayNumber + 1;
+						splitletter = getNextLetterInSplit(mesosplit, day_info[0].mesoCalSplit);
+						mesoid = day_info[0].mesoId;
+					}
+					else {
+						tday = 1;
+						splitletter = mesosplit.length > 0 ? mesosplit.charAt(0) : 'A';
+						mesoid = meso_info[0].mesoId;
+					}
+				}
 
 				stackView.push("TrainingDayInfo.qml", {
-					"mainDate": new Date(today),
-					"tDay": result[0].mesoCalnDay,
-					"splitLetter": result[0].mesoCalSplit,
-					"mesoName": meso_name,
-					"mesoId": result[0].mesoCalMesoId
+						"mainDate": new Date(today),
+						"tDay": tday,
+						"splitLetter": splitletter,
+						"mesoName": meso_name,
+						"mesoId": mesoid
 				});
 			}
 		}
+	}
+
+	function getNextLetterInSplit(mesosplit, currentletter) {
+		if (mesosplit.length > 0) {
+			const idx = mesosplit.indexOf(currentletter);
+			if (idx >= 0) {
+				++idx;
+				if (idx >= mesosplit.length)
+					idx = 0;
+				return mesosplit.charAt(idx);
+			}
+		}
+		return 'A';
 	}
 } //ApplicationWindow

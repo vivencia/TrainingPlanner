@@ -131,7 +131,7 @@ Frame {
 					rowSpacing: 2
 					columnSpacing: 2
 
-					RadioButton {
+					TPRadioButton {
 						id: optCurrentExercise
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
 						checked: index === currentModelIndex
@@ -173,10 +173,15 @@ Frame {
 						}
 
 						onPressed: (mouse) => { //relay the signal to the delegate
-							if (bCanEditExercise)
+							if (bCanEditExercise) {
+								mouse.accepted = true;
 								forceActiveFocus();
-							mouse.accepted = false;
+							}
+							else
+								mouse.accepted = false;
 						}
+
+						onPressAndHold: mouse.accepted = false;
 
 						onEditingFinished: {
 							exercisesListModel.setProperty(index, "exerciseName", text);

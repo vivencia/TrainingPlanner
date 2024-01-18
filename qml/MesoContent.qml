@@ -290,6 +290,11 @@ Page {
 	}
 
 	header: ToolBar {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
 		ColumnLayout {
 			anchors.fill: parent
 
@@ -470,6 +475,16 @@ Page {
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
 			width: calendar.width - 20
+
+			color: primaryDarkColor
+			opacity: 0.7
+			Image {
+				anchors.fill: parent
+				source: "qrc:/images/app_logo.png"
+				fillMode: Image.PreserveAspectFit
+				opacity: 0.6
+			}
+
 			Rectangle {
 				id: monthYearTitle
 				anchors {
@@ -481,6 +496,8 @@ Page {
 				Text {
 					anchors.centerIn: parent
 					text: calendar.monthsNames[model.monthNbr] + " " + model.yearNbr;
+					font.pixelSize: AppSettings.titleFontSizePixelSize
+					font.bold: true
 				}
 			}
 
@@ -496,7 +513,9 @@ Page {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					font.pixelSize: 0
+					color: "white"
+					font.bold: true
+					font.pixelSize: AppSettings.fontSize
 				}
 			}
 
@@ -513,6 +532,7 @@ Page {
 				property var daysSplitModel: model.daySplit
 
 				locale: Qt.locale(AppSettings.appLocale)
+
 				delegate: Rectangle {
 					id: dayEntry
 					height: calendar.cellSize
@@ -523,29 +543,34 @@ Page {
 					property bool bIsTrainingDay: false
 
 					Component.onCompleted: {
-						var colorValue = "white"; //Material.white is undefined
+						var colorValue = "transparent"; //Material.white is undefined
 						if ( enabled && highlighted )
 							return Material.primary;
 						else {
 							if ( monthGrid.year === model.year) {
 								if ( monthGrid.month === model.month ) {
-									if (monthGrid.daysSplitModel.get(model.day-1).isTrainingDay)
-										colorValue =  "blue";
+									if (monthGrid.daysSplitModel.get(model.day-1).isTrainingDay) {
+										colorValue =  "steelblue";
+										bIsTrainingDay = true;
+									}
 								}
 							}
+							bIsTrainingDay = false;
 						}
 						color = colorValue
-						bIsTrainingDay = colorValue !== "white"
 					}
+
 					Text {
 						anchors.centerIn: parent
 						text: monthGrid.month === model.month ? monthGrid.daysSplitModel.get(model.day-1).isTrainingDay ? model.day + "-" + monthGrid.daysSplitModel.get(model.day-1).daySplitLetter : model.day : model.day
-						font.pixelSize: 0
-						scale: highlighted ? 1.25 : 1
+						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
-						color: bIsTrainingDay ? "white" : "black"
+						color: "white"
+						font.bold: true
+						font.pixelSize: AppSettings.fontSize
 					}
+
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
@@ -583,6 +608,11 @@ Page {
 	} //ListView
 
 	footer: ToolBar {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
 		RowLayout {
 			anchors.fill: parent
 
@@ -592,6 +622,7 @@ Page {
 				text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
 						qsTr("Day is not part of the current mesocycle")
 				wrapMode: Text.WordWrap
+				font.pixelSize: AppSettings.fontSize
 			}
 
 			ToolButton {
@@ -599,6 +630,8 @@ Page {
 				display: AbstractButton.TextUnderIcon
 				text: qsTr("View Day")
 				font.capitalization: Font.MixedCase
+				font.pixelSize: AppSettings.fontSize
+				font.bold: true
 				icon.source: "qrc:/images/"+lightIconFolder+"day-info.png"
 				icon.height: 20
 				icon.width: 20

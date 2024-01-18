@@ -111,7 +111,7 @@ Column {
 
 		FontMetrics {
 			id: fontMetrics
-			font.family: txtFilter.font.family
+			font.family: listItem.font.family
 			font.pixelSize: AppSettings.fontSizeLists
 		}
 
@@ -199,9 +199,11 @@ Column {
 	Label {
 		Layout.leftMargin: 5
 		text: qsTr("Filter: ")
-		color: "black"
+		color: "white"
+		font.pixelSize: AppSettings.fontSizeText
+		font.bold: true
 	}
-	TextField {
+	TPTextInput {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesListModel.count > 0
@@ -210,7 +212,6 @@ Column {
 		Layout.maximumHeight: 30
 		Layout.topMargin: 5
 		clip: true
-		color: "black"
 
 		ToolButton {
 			id: btnClearText

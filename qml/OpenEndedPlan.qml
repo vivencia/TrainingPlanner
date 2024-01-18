@@ -93,7 +93,7 @@ Page {
 				showDate: calendarStartDate
 				initDate: minimumMesoStartDate
 				finalDate: maximumMesoEndDate
-				windowTitle: qsTr("Please select the initial date for the mesocycle ") + mesoName
+				windowTitle: qsTr("Please select the initial date for the program ") + mesoName
 				onDateSelected: function(date, nweek) {
 					if (bNewMeso || (date !== mesosModel.get(idxModel).mesoStartDate))
 						mesoStartDate = date;

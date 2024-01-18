@@ -237,7 +237,7 @@ QtObject {
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM mesocycles");
 			for (let i = 0; i < results.rows.length; i++) {
-				const bRealMeso = results.rows.item(i).meso_end_date !== 0;
+				var bRealMeso = results.rows.item(i).meso_end_date !== 0;
 				mesos.push({
 					"mesoId": results.rows.item(i).meso_id,
 					"mesoName": results.rows.item(i).meso_name,
@@ -258,15 +258,17 @@ QtObject {
 		let mesoinfo = [];
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM mesocycles WHERE meso_id=?", [mesoId]);
+			const bRealMeso = results.rows.item(0).meso_end_date !== 0;
 			mesoinfo.push({
 					"mesoId": mesoId,
 					"mesoName": results.rows.item(0).meso_name,
 					"mesoStartDate": results.rows.item(0).meso_start_date,
-					"mesoEndDate":results.rows.item(0).meso_end_date,
+					"mesoEndDate": bRealMeso ? new Date(results.rows.item(0).meso_end_date) : results.rows.item(0).meso_end_date,
 					"mesoNote": results.rows.item(0).meso_note,
 					"nWeeks": results.rows.item(0).meso_nweeks,
 					"mesoSplit": results.rows.item(0).meso_split,
-					"mesoDrugs": results.rows.item(0).meso_drugs
+					"mesoDrugs": results.rows.item(0).meso_drugs,
+					"realMeso": bRealMeso
 			});
 		});
 		return mesoinfo;
@@ -946,6 +948,29 @@ QtObject {
 						"dayNotes": row.notes
 					});
 				} while (--i >= 0);
+			}
+		});
+		return dayinfo;
+	}
+
+	function getMostRecentTrainingDay() {
+		let dayinfo = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT *,MAX(id) FROM training_day");
+			if(results.rows.length > 0) {
+				let row = results.rows.item(0);
+				dayinfo.push({
+					"dayId": row.id,
+					"dayDate": row.date,
+					"mesoId": row.meso_id,
+					"exercisesNames": row.exercises,
+					"dayNumber": row.day_number,
+					"daySplitLetter": row.split_letter,
+					"dayTimeIn": row.time_in,
+					"dayTimeOut": row.time_out,
+					"dayLocation": row.location,
+					"dayNotes": row.notes
+				});
 			}
 		});
 		return dayinfo;

@@ -4,6 +4,7 @@ import QtQuick.Controls
 TextField {
 	property string textColor: "white"
 	property string backgroundColor: "white"
+
 	id: control
 	font.pixelSize: AppSettings.fontSizeText
 	font.weight: Font.ExtraBold
@@ -16,8 +17,8 @@ TextField {
 	leftPadding: 5
 	topPadding: 0
 	bottomPadding: 0
-	rightPadding: 0
-	implicitWidth: fontMetrics.boundingRect(text).width
+	rightPadding: 5
+	implicitWidth: fontMetrics.boundingRect(text).width + 15
 	implicitHeight: fontMetrics.boundingRect(text).height + 10
 
 	FontMetrics {

@@ -26,7 +26,8 @@ Page {
 	property var exerciseSpriteList: []
 	property var mesoSplit
 	property var mesoSplitLetter
-	property var mesoTDay;
+	property var mesoTDay
+	property bool bRealMeso: true
 
 	property bool bStopBounce: false
 	property bool bNotScroll: true
@@ -41,8 +42,26 @@ Page {
 
 	signal mesoCalendarChanged()
 
+	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
+							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
+
+	background: Rectangle {
+		color: primaryDarkColor
+		opacity: 0.7
+		Image {
+			anchors.fill: parent
+			source: "qrc:/images/app_logo.png"
+			fillMode: Image.PreserveAspectFit
+			opacity: 0.6
+		}
+	}
+
 	onBModifiedChanged: {
 		bNavButtonsEnabled = !bModified;
+	}
+
+	ListModel {
+		id: cboModel
 	}
 
 	TimePicker {
@@ -106,7 +125,7 @@ Page {
 		ColumnLayout {
 			id: colMain
 			width: parent.width
-			spacing: 0
+			spacing: 10
 
 			anchors {
 				top: parent.top
@@ -125,7 +144,8 @@ Page {
 				wrapMode: Text.WordWrap
 				text: qsTr("Trainning day <b>#" + mesoTDay + "</b> of meso cycle <b>" + mesoName +
 						"</b>: <b>" + JSF.formatDateToDisplay(mainDate, AppSettings.appLocale) + "</b> Division: <b>" + mesoSplitLetter + "</b>")
-				font.pixelSize: AppSettings.fontSizeText
+				font.pixelSize: AppSettings.titleFontSizePixelSize
+				color: "white"
 			}
 
 			GridLayout {
@@ -137,49 +157,50 @@ Page {
 
 				Label {
 					text: qsTr("Training Division:")
+					color: "white"
+					font.pixelSize: AppSettings.fontSizeText
+					font.bold: true
 					Layout.row: 0
 					Layout.column: 0
 				}
-				RegularExpressionValidator {
-					id: regEx
-					regularExpression: new RegExp(/[A-FR]+/);
-				}
-				TextField {
-					id: txtSplitLetter
-					text: splitLetter
+
+				ComboBox {
+					id: cboSplitLetter
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
-					width: 40
-					maximumLength: 1
-					validator: regEx
-					Layout.maximumWidth: 40
-					Layout.row: 1
-					Layout.column: 0
+					textRole: "text"
+					valueRole: "value"
+					model: cboModel
+					//currentIndex: indexOfValue(splitLetter)
+					//displayText: cboModel.get(cboSplitLetter.indexOfValue(splitLetter)).text
+					enabled: model.count > 0
+					Layout.maximumWidth: 100
+					Layout.row: 0
+					Layout.column: 1
 
-					onTextEdited: {
-						if (acceptableInput) {
-							bModified = true;
-							splitLetter = text;
-						}
+					onActivated: (index) => {
+						bModified = true;
+						splitLetter = cboModel.get(index).value;
+						maybeResetPage();
 					}
 				} //txtSplitLetter
 
 				Label {
 					text: qsTr("Training Day #")
-					Layout.row: 0
-					Layout.column: 1
+					color: "white"
+					font.pixelSize: AppSettings.fontSizeText
+					font.bold: true
+					Layout.row: 1
+					Layout.column: 0
 				}
-				TextField {
+				TPTextInput {
 					id: txtTDay
 					text: tDay
 					width: 50
 					maximumLength: 3
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					validator: IntValidator { bottom: 0; top: 180; }
+					validator: IntValidator { bottom: 0; top: 365; }
 					inputMethodHints: Qt.ImhDigitsOnly
 					readOnly: splitLetter === 'R'
-					Layout.maximumWidth: 40
 					Layout.row: 1
 					Layout.column: 1
 
@@ -199,9 +220,14 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
-				visible: splitLetter !== mesoSplitLetter || tDay !== mesoTDay
+				visible: bRealMeso && (splitLetter !== mesoSplitLetter || tDay !== mesoTDay)
 				padding: 0
 				spacing: 0
+
+				background: Rectangle {
+					border.color: "white"
+					radius: 6
+				}
 
 				ColumnLayout {
 					id: layoutSplit
@@ -234,8 +260,11 @@ Page {
 							}
 						}
 
-						contentItem: Text {
+						contentItem: Label {
 							text: chkAdjustCalendar.text
+							color: "white"
+							font.pixelSize: AppSettings.fontSizeText
+							font.bold: true
 							wrapMode: Text.WordWrap
 							opacity: enabled ? 1.0 : 0.3
 							verticalAlignment: Text.AlignVCenter
@@ -248,14 +277,14 @@ Page {
 						}
 					} //CheckBox
 
-					RadioButton {
+					TPRadioButton {
 						id: optUpdateCalendarContinue
 						text: qsTr("Continue cycle from this division letter")
 						enabled: chkAdjustCalendar.checked
 						checked: false
 					}
 
-					RadioButton {
+					TPRadioButton {
 						id: optUpdateCalendarStartOver
 						text: qsTr("Start cycle over")
 						checked: false
@@ -266,14 +295,15 @@ Page {
 
 			Label {
 				text: qsTr("Location:")
+				color: "white"
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
 				Layout.leftMargin: 5
 			}
-			TextField {
+			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
 				text: location
-				font.bold: true
-				font.pixelSize: AppSettings.fontSizeText
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
@@ -286,61 +316,151 @@ Page {
 				}
 			}
 
-			RowLayout {
+			TPRadioButton {
+				id: optFreeTimeSession
+				text: qsTr("Open time training session")
+				checked: true
+				Layout.fillWidth: true
+
+				onClicked: {
+					frmOpenTime.visible = true;
+					frmConstrainedTime.visible = false;
+					optTimeConstrainedSession.checked = false;
+				}
+			}
+
+			Frame {
+				id: frmOpenTime
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
+				Layout.rightMargin: 20
 
-				Label {
-					id: lblInTime
-					text: qsTr("In time:")
+				background: Rectangle {
+					border.color: "white"
+					radius: 6
 				}
-				TextField {
-					id: txtInTime
-					text: timeIn !== "" ? timeIn : JSF.getTimeStringFromDateTime(todayFull)
-					readOnly: true
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					Layout.maximumWidth: txtInTime.text.contentWidth + 30
-					Layout.leftMargin: 5
-				}
-				RoundButton {
-					id: btnInTime
-					icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
-					onClicked: dlgTimeIn.open()
-				}
-			} //RowLayout
+				ColumnLayout {
+					anchors.fill: parent
 
-			RowLayout {
+					RowLayout {
+						Layout.fillWidth: true
+						Layout.leftMargin: 5
+
+						Label {
+							id: lblInTime
+							color: "white"
+							font.pixelSize: AppSettings.fontSizeText
+							font.bold: true
+							text: qsTr("In time:")
+						}
+						TPTextInput {
+							id: txtInTime
+							text: timeIn !== "" ? timeIn : JSF.getTimeStringFromDateTime(todayFull)
+							readOnly: true
+							Layout.leftMargin: 5
+						}
+						RoundButton {
+							id: btnInTime
+							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+
+							onClicked: dlgTimeIn.open()
+						}
+					} //RowLayout
+
+					RowLayout {
+						Layout.fillWidth: true
+						Layout.leftMargin: 5
+
+						Label {
+							id: lblOutTime
+							color: "white"
+							font.pixelSize: AppSettings.fontSizeText
+							font.bold: true
+							text: qsTr("Out time:")
+						}
+						TPTextInput {
+							id: txtOutTime
+							text: timeOut !== "" ? timeOut : JSF.getTimeStringFromDateTime(todayFull)
+							readOnly: true
+							Layout.leftMargin: 5
+						}
+
+						RoundButton {
+							id: btnOutTime
+							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+
+							onClicked: dlgTimeOut.open()
+						}
+					} // RowLayout
+				} //ColumnLayout
+			} //Frame
+
+			TPRadioButton {
+				id: optTimeConstrainedSession
+				text: qsTr("Time constrained session")
+				checked: false
+				Layout.fillWidth: true
+
+				onClicked: {
+					frmConstrainedTime.visible = true;
+					frmOpenTime.visible = false;
+					optFreeTimeSession.checked = false;
+				}
+			}
+
+			Frame {
+				id: frmConstrainedTime
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
+				Layout.rightMargin: 20
+				visible: false
 
-				Label {
-					id: lblOutTime
-					text: qsTr("Out time:")
+				background: Rectangle {
+					border.color: "white"
+					radius: 6
 				}
 
-				TextField {
-					id: txtOutTime
-					text: timeOut !== "" ? timeOut : JSF.getTimeStringFromDateTime(todayFull)
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					readOnly: true
-					Layout.maximumWidth: txtOutTime.text.contentWidth + 30
-					Layout.leftMargin: 5
-				}
+				ColumnLayout {
+					anchors.fill: parent
 
-				RoundButton {
-					id: btnOutTime
-					icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+					RowLayout {
+						Layout.fillWidth: true
+						Layout.leftMargin: 5
 
-					onClicked: dlgTimeOut.open()
-				}
-			} // Row
+						ButtonFlat {
+							id: btnTimeLength
+							text: qsTr("By duration")
+						}
+						ButtonFlat {
+							id: btnTimeHour
+							text: qsTr("By time of day")
+						}
+					} //RowLayout
+
+					RowLayout {
+						Layout.fillWidth: true
+						Layout.leftMargin: 5
+
+						Label {
+							text: qsTr("Alarm will be set to go off at:")
+							color: "white"
+							font.pixelSize: AppSettings.fontSizeText
+							font.bold: true
+						}
+						TPTextInput {
+							id: txtFinalHour
+						}
+					}
+				} //ColumnLayout
+			} //Frame
 
 			Label {
 				id: lblDayInfoTrainingNotes
 				text: qsTr("This training session considerations:")
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
+				color: "white"
 				Layout.leftMargin: 5
 			}
 			Flickable {
@@ -355,6 +475,7 @@ Page {
 					text: trainingNotes
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
+					color: "white"
 
 					onEditingFinished: {
 						if (text.length >= 4) {
@@ -370,7 +491,9 @@ Page {
 			Label {
 				id: lblExercisesStart
 				text: qsTr("--- EXERCISES ---")
-				font.bold: true
+				color: "white"
+				font.weight: Font.Black
+				font.pixelSize: AppSettings.titleFontSizePixelSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 2
 			}
@@ -379,6 +502,9 @@ Page {
 				id: grpIntent
 				label: Label {
 					text: qsTr("What do you want to do today?")
+					color: "white"
+					font.pixelSize: AppSettings.fontSizeText
+					font.bold: true
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.bottomMargin: 10
 				}
@@ -394,124 +520,53 @@ Page {
 					anchors.fill: parent
 					spacing: 0
 
-					RadioButton {
-						id: optMesoPlan
-						padding: 0
-						contentItem: Label {
-							text: qsTr("Use the standard exercises plan for the division ") + mesoSplitLetter + qsTr(" of the Mesocycle")
-							wrapMode: Text.WordWrap
-							font.pixelSize: AppSettings.fontSizeText
-							anchors.left: parent.left
-							anchors.leftMargin: 25
-							anchors.right: parent.right
-							anchors.rightMargin: 5
-						}
-
+					TPRadioButton {
+						id: optMesoPla
+						text: qsTr("Use the standard exercises plan for the division ") + splitLetter + qsTr(" of the Mesocycle")
 						visible: bHasMesoPlan
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						indicator: Rectangle {
-							implicitWidth: 20
-							implicitHeight: 20
-							x: 3
-							y: parent.height / 2 - height / 2
-							radius: 10
-							border.color: optMesoPlan.down ? primaryDarkColor : primaryLightColor
-
-							Rectangle {
-								width: 14
-								height: 14
-								x: 3
-								y: 3
-								radius: 7
-								color: optMesoPlan.down ? primaryDarkColor : primaryLightColor
-								visible: optMesoPlan.checked
-							}
-						}
-
 						onClicked: {
 							grpIntent.option = 0;
 						}
 					}
-					RadioButton {
+					TPRadioButton {
 						id: optPreviousDay
-						padding: 0
-						contentItem: Label {
-							text: qsTr("Base this session off the one from ") + JSF.formatDateToDisplay(previousDivisionDayDate, AppSettings.appLocale)
-							wrapMode: Text.WordWrap
-							font.pixelSize: AppSettings.fontSizeText
-							anchors.left: parent.left
-							anchors.leftMargin: 25
-							anchors.right: parent.right
-							anchors.rightMargin: 5
-						}
+						text: qsTr("Base this session off the one from ") + JSF.formatDateToDisplay(previousDivisionDayDate, AppSettings.appLocale)
 						visible: bHasPreviousDay
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						indicator: Rectangle {
-							implicitWidth: 20
-							implicitHeight: 20
-							x: 3
-							y: parent.height / 2 - height / 2
-							radius: 10
-							border.color: optPreviousDay.down ? primaryDarkColor : primaryLightColor
-
-							Rectangle {
-								width: 14
-								height: 14
-								x: 3
-								y: 3
-								radius: 7
-								color: optPreviousDay.down ? primaryDarkColor : primaryLightColor
-								visible: optPreviousDay.checked
-							}
-						}
-
 						onClicked: {
 							grpIntent.option = 1;
 						}
 					}
-					RadioButton {
+					TPRadioButton {
 						id: optEmptySession
-						padding: 0
-						contentItem: Label {
-							text: qsTr("Start an empty session")
-							font.pixelSize: AppSettings.fontSizeText
-							anchors.left: parent.left
-							anchors.leftMargin: 25
-							anchors.right: parent.right
-							anchors.rightMargin: 5
-						}
+						text: qsTr("Start an empty session")
 						visible: bHasMesoPlan || bHasPreviousDay
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						indicator: Rectangle {
-							implicitWidth: 20
-							implicitHeight: 20
-							x: 3
-							y: parent.height / 2 - height / 2
-							radius: 10
-							border.color: optEmptySession.down ? primaryDarkColor : primaryLightColor
-
-							Rectangle {
-								width: 14
-								height: 14
-								x: 3
-								y: 3
-								radius: 7
-								color: optEmptySession.down ? primaryDarkColor : primaryLightColor
-								visible: optEmptySession.checked
-							}
-						}
-
 						onClicked: {
 							grpIntent.option = 2;
+						}
+					}
+
+					TPRadioButton {
+						id: optContinueSession
+						text: qsTr("Just continue with the changes already made")
+						visible: bModified && (bHasMesoPlan || bHasPreviousDay)
+						width: parent.width
+						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+
+						onClicked: {
+							grpIntent.option = 3;
 						}
 					}
 
@@ -521,6 +576,14 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
+							if (mesoSplitLetter !== splitLetter) {
+								if (exercisesNames.length > 0) {
+									if (grpIntent.option !== 3) {
+										removeAllExerciseObjects();
+									}
+								}
+							}
+
 							switch (grpIntent.option) {
 								case 0: //use meso plan
 									bHasPreviousDay = false;
@@ -532,6 +595,10 @@ Page {
 									dayId = -1;
 								break;
 								case 2: //empty session
+									bHasPreviousDay = false;
+									bHasMesoPlan = false;
+								break;
+								case 3: //continue session
 									bHasPreviousDay = false;
 									bHasMesoPlan = false;
 								break;
@@ -604,13 +671,41 @@ Page {
 		}
 	}
 
+	function changeComboModel() {
+		if (cboModel.count > 0)
+			cboModel.clear();
+		if (mesoSplit.indexOf('A') !== -1)
+			cboModel.append(splitModel[0]);
+		if (mesoSplit.indexOf('B') !== -1)
+			cboModel.append(splitModel[1]);
+		if (mesoSplit.indexOf('C') !== -1)
+			cboModel.append(splitModel[2]);
+		if (mesoSplit.indexOf('D') !== -1)
+			cboModel.append(splitModel[3]);
+		if (mesoSplit.indexOf('E') !== -1)
+			cboModel.append(splitModel[4]);
+		if (mesoSplit.indexOf('F') !== -1)
+			cboModel.append(splitModel[5]);
+		if (mesoSplit.indexOf('R') !== -1)
+			cboModel.append(splitModel[6]);
+
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
+	}
+
+	function maybeResetPage() {
+		checkIfMesoPlanExists();
+		checkIfPreviousDayExists();
+	}
+
 	function loadOrCreateDayInfo() {
+		mesoSplitLetter = splitLetter;
+		mesoTDay = tDay;
 		let mesoinfo = Database.getMesoInfo(mesoId);
 		if ( mesoinfo.length > 0 ) {
 			mesoSplit = mesoinfo[0].mesoSplit;
+			bRealMeso = mesoinfo[0].realMeso;
+			changeComboModel();
 		}
-		mesoSplitLetter = splitLetter;
-		mesoTDay = tDay;
 		if (!loadTrainingDayInfo(mainDate)) {
 			checkIfMesoPlanExists();
 			checkIfPreviousDayExists();
@@ -696,7 +791,6 @@ Page {
 			location = dayInfoList[0].dayLocation;
 			trainingNotes = dayInfoList[0].dayNotes;
 			createExercisesFromList();
-			bModified = true;
 			return true;
 		}
 		return false;
@@ -830,6 +924,17 @@ Page {
 		}
 	}
 
+	function removeAllExerciseObjects() {
+		if (navButtons !== null)
+			navButtons.visible = false;
+		const len = exerciseSpriteList.length - 1;
+		for (var i = len; i >= 0; --i) {
+			exerciseSpriteList[i].Object.destroy();
+			exerciseSpriteList.pop();
+		}
+		exercisesNames = "";
+	}
+
 	function updateMesoCalendar() {
 		if (mesoSplitLetter !== splitLetter || mesoTDay !== tDay) {
 			var calendar_date_info;
@@ -919,21 +1024,23 @@ Page {
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
+		height: 50
 		visible: !bShowSimpleExercisesList
 
-		ToolButton {
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
 			id: btnSaveDay
 			enabled: bModified
+			text: qsTr("Log Day")
+			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			textUnderIcon: true
 			anchors.left: parent.left
 			anchors.leftMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
-			display: AbstractButton.TextUnderIcon
-			text: qsTr("Log Day")
-			font.capitalization: Font.MixedCase
-
-			icon.source: "qrc:/images/"+lightIconFolder+"save-day.png"
-			icon.height: 20
-			icon.width: 20
 
 			onClicked: {
 				if (location === "")
@@ -942,7 +1049,8 @@ Page {
 					trainingNotes = " ";
 				if (splitLetter === 'R')
 					tDay = 0;
-				updateMesoCalendar();
+				if (bRealMeso)
+					updateMesoCalendar();
 				if (dayId === -1) {
 					createDatabaseEntryForDay();
 					if (bHasMesoPlan || bHasPreviousDay)
@@ -957,43 +1065,30 @@ Page {
 			}
 		} //btnSaveDay
 
-		ToolButton {
+		ButtonFlat {
 			id: btnRevertDay
 			enabled: bModified
+			text: qsTr("Cancel alterations")
+			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
+			textUnderIcon: true
 			anchors.left: btnSaveDay.right
 			anchors.verticalCenter: parent.verticalCenter
-			display: AbstractButton.TextUnderIcon
-			text: qsTr("Cancel alterations")
-			font.capitalization: Font.MixedCase
-
-			icon.source: "qrc:/images/"+lightIconFolder+"revert-day.png"
-			icon.height: 20
-			icon.width: 20
 
 			onClicked: {
-				if (navButtons !== null)
-					navButtons.visible = false;
-				const len = exerciseSpriteList.length - 1;
-				for (var i = len; i >= 0; --i) {
-					exerciseSpriteList[i].Object.destroy();
-					exerciseSpriteList.pop();
-				}
+				removeAllExerciseObjects();
 				loadOrCreateDayInfo();
 				bModified = false;
 			}
 		} //btnRevertDay
 
-		ToolButton {
+		ButtonFlat {
 			id: btnAddExercise
+			text: qsTr("Add exercise")
+			enabled: !grpIntent.visible
+			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
+			textUnderIcon: true
 			anchors.right: parent.right
 			anchors.verticalCenter: parent.verticalCenter
-			text: qsTr("Add exercise")
-			font.capitalization: Font.MixedCase
-			display: AbstractButton.TextUnderIcon
-			icon.source: "qrc:/images/"+lightIconFolder+"exercises-add.png"
-			icon.width: 20
-			icon.height: 20
-			enabled: !grpIntent.visible
 
 			onClicked: {
 				hideFloatingButton(-1);

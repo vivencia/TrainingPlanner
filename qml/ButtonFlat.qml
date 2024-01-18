@@ -8,6 +8,8 @@ Rectangle {
 	property alias imageSize: buttonImage.height
 	property alias font: buttonText.font
 	property alias text: buttonText.text
+	property bool textUnderIcon: false
+
 	property string imageSource
 	property bool bPressed: false
 	property bool bEmitSignal: false
@@ -16,8 +18,8 @@ Rectangle {
 	border.color: "black"
 	radius: 10
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
-	implicitWidth: buttonText.contentWidth + (buttonImage.visible ? buttonImage.width + 10 : 10)
-	implicitHeight: buttonText.height + 10
+	implicitWidth: buttonText.contentWidth + (buttonImage.visible ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
+	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 15 : 10 : 10)
 
 	property double fillPosition: !anim.running
 
@@ -40,12 +42,22 @@ Rectangle {
 		id: buttonText
 		opacity: button.enabled ? 1.0 : 0.3
 		color: button.enabled ? "white" : "black"
-		anchors.verticalCenter: parent.verticalCenter
-		anchors.left: parent.left
-		anchors.leftMargin: 5
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pixelSize: AppSettings.titleFontSizePixelSize
+		padding: 0
+
+		Component.onCompleted: {
+			anchors.left = button.left;
+			anchors.leftMargin = 5;
+			if (!textUnderIcon)
+				anchors.verticalCenter = button.verticalCenter;
+			else {
+				anchors.horizontalCenter = button.horizontalCenter;
+				anchors.bottom = button.bottom;
+				anchors.bottomMargin = 2;
+			}
+		}
 	}
 
 	Image {
@@ -53,10 +65,29 @@ Rectangle {
 		height: 20
 		width: height
 		fillMode: Image.PreserveAspectFit
-		anchors.verticalCenter: parent.verticalCenter
 		mirror: false
 		source: imageSource
 		visible: imageSource.length > 1
+
+		Component.onCompleted: {
+			if (buttonText.text.length === 0) {
+				anchors.horizontalCenter = button.horizontalCenter
+				anchors.verticalCenter = button.verticalCenter
+			}
+			else {
+				if (!textUnderIcon) {
+					anchors.verticalCenter = button.verticalCenter;
+					anchors.left = buttonText.right
+					anchors.leftMargin = 2;
+				}
+				else {
+					anchors.top = button.top;
+					anchors.topMargin = 5;
+					anchors.horizontalCenter = button.horizontalCenter;
+					anchors.bottomMargin = 2;
+				}
+			}
+		}
 	}
 
 	MouseArea {
@@ -104,12 +135,5 @@ Rectangle {
 				button.clicked();
 			}
 		}
-	}
-
-	Component.onCompleted: {
-		if (buttonText.text.length === 0)
-			buttonImage.anchors.horizontalCenter = button.horizontalCenter
-		else
-			buttonImage.anchors.left = buttonText.right;
 	}
 } //Rectangle

@@ -12,7 +12,7 @@ Dialog {
 	width: mainwindow.width * 0.75
 	height: mainwindow.height * 0.30
 	x: 25
-	y: simpleTimer ? (mainwindow.height / 2) - (height / 2) : 0 // align vertically centered
+	y: simpleTimer ? (mainwindow.height - height) / 2 : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
@@ -60,10 +60,10 @@ Dialog {
 		onTriggered: {
 			if (!bForward) {
 				progressBar.value = progressBar.value - 1;
+				if (totalSecs <= 14 && !playSound.playing)
+					playSound.play();
 				if (secs > 0) {
 					--secs;
-					if (secs <= 14 && !playSound.playing)
-						playSound.play();
 				}
 				else if (secs === 0) {
 					if (mins > 0 ) {
@@ -248,7 +248,7 @@ Dialog {
 			x: chkTimer.leftPadding
 			y: chkTimer.height / 2 - height / 2
 			radius: 5
-			border.color: chkTimer.down ? primaryLightColor : paneBackgroundColor
+			border.color: chkTimer.down ? primaryDarkColor : primaryLightColor
 			opacity: 0.5
 
 			Rectangle {
@@ -257,7 +257,7 @@ Dialog {
 				x: 6
 				y: 6
 				radius: 2
-				color: chkTimer.down ? primaryLightColor : paneBackgroundColor
+				color: chkTimer.down ? primaryDarkColor : primaryLightColor
 				visible: chkTimer.checked
 				opacity: 0.5
 			}

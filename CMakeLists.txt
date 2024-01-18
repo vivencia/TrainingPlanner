@@ -98,6 +98,7 @@ set(trainingplanner_resource_files
 	"qml/FirstTimeHomePageTip.qml"
 	"qml/OpenEndedPlan.qml"
 	"qml/TPTextInput.qml"
+	"qml/TPRadioButton.qml"
 	"qml/qmldir"
 )
 
