@@ -1,28 +1,28 @@
 function getMonthFromDateString(strDate) {
 	var month_part = strDate.substr(4, 3);
 	if (month_part === qsTr("Jan"))
-        return 0;
+		return 0;
 	if (month_part === qsTr("Feb"))
-        return 1;
+		return 1;
 	if (month_part === qsTr("Mar"))
-        return 2;
+		return 2;
 	if (month_part === qsTr("Apr"))
-        return 3;
+		return 3;
 	if (month_part === qsTr("May"))
 		return 4;
 	if (month_part === qsTr("Jun"))
-        return 5;
+		return 5;
 	if (month_part === qsTr("Jul"))
-        return 6;
+		return 6;
 	if (month_part === qsTr("Aug"))
-        return 7;
+		return 7;
 	if (month_part === qsTr("Sep"))
-        return 8;
+		return 8;
 	if (month_part === qsTr("Oct"))
-        return 9;
+		return 9;
 	if (month_part === qsTr("Nov"))
-        return 10;
-    return 11;
+		return 10;
+	return 11;
 }
 
 function getYearFromDateString(strDate) {
@@ -32,57 +32,57 @@ function getYearFromDateString(strDate) {
 
 function getDayFromDateString(strDate) {
 	var day_part = strDate.substr(8, 2);
-    return parseInt(day_part);
+	return parseInt(day_part);
 }
 
 function getDateFromDateString(strDate) {
-    var newdate = new Date (getYearFromDateString(strDate), getMonthFromDateString(strDate), getDayFromDateString(strDate));
-    return newdate;
+	var newdate = new Date (getYearFromDateString(strDate), getMonthFromDateString(strDate), getDayFromDateString(strDate));
+	return newdate;
 }
 
 function weekNumber(date1) {
-    var startDate = new Date(date1.getFullYear(), 0, 1);
-    var days = Math.floor((date1 - startDate) /
-        (24 * 60 * 60 * 1000));
-    var n = Math.ceil(days / 7);
+	var startDate = new Date(date1.getFullYear(), 0, 1);
+	var days = Math.floor((date1 - startDate) /
+		(24 * 60 * 60 * 1000));
+	var n = Math.ceil(days / 7);
 	//console.log("Week number for date " + date1 + ": " + n)
-    return n;
+	return n;
 }
 
 function calculateNumberOfWeeks (week1, week2) {
-    var n;
-    //Every 6 years we have 53 week year
-    if ( week2 < week1 ) {
-        var totalWeeksInYear = new Date().year !== 2026 ? 52 : 53
-        n = (totalWeeksInYear - week1) + week2;
-    }
-    else
-        n = week2 - week1;
+	var n;
+	//Every 6 years we have 53 week year
+	if ( week2 < week1 ) {
+		var totalWeeksInYear = new Date().year !== 2026 ? 52 : 53
+		n = (totalWeeksInYear - week1) + week2;
+	}
+	else
+		n = week2 - week1;
 	//console.log("Number of weeks between (" + week1 + " and " + week2 + "): " + n+1)
 	return n+1; //+1 include current week
 }
 
 function getMonthTotalDays(month,year) {
-    switch (month) {
-        case 0:
-        case 2:
-        case 4:
-        case 6:
-        case 7:
-        case 9:
-        case 11:
-            return 31;
-        case 1:
-        case 5:
-        case 8:
-        case 10:
-            return 30;
-        case 1:
-            if (year % 4 === 0)
-                return 29;
-            else
-                return 28;
-    }
+	switch (month) {
+		case 0:
+		case 2:
+		case 4:
+		case 6:
+		case 7:
+		case 9:
+		case 11:
+			return 31;
+		case 1:
+		case 5:
+		case 8:
+		case 10:
+			return 30;
+		case 1:
+			if (year % 4 === 0)
+				return 29;
+			else
+				return 28;
+	}
 }
 
 function createFutureDate(currentDate, year, month, day) {
@@ -136,7 +136,7 @@ function formatDateToDisplay(date, locale) {
 	if (locale === "pt_BR") {
 		switch (Qt.platform.os) {
 			case "android":
-				return date.toLocaleString(locale).slice(0, 12);
+				return date.toLocaleString(locale).slice(0, 8);
 			case "linux":
 				return date.toLocaleString(locale).slice(0, 10);
 		}
@@ -206,40 +206,55 @@ function intTimeToStrTime(inttime) {
 	return inttime.toString();
 }
 
-function getTrainingDayNumber(selDate, startDate) {
-    //Number of days from the beginning of meso to the end of first month
-    var nday = getMonthTotalDays(startDate.getMonth(), startDate.getFullYear()) - startDate.getDate() + 1;
+function calculateTimeBetweenTimes(time1, time2) {
+	const hour1 = getHourOrMinutesFromStrTime(time1);
+	const min1 = getMinutesOrSeconsFromStrTime(time1);
+	const hour2 = getHourOrMinutesFromStrTime(time2);
+	const min2 = getMinutesOrSeconsFromStrTime(time2);
 
-    //Add to it the month's total number of days
-    var month;
-    if (selDate.getMonth() > startDate.getMonth()) {
-        for (month = startDate.getMonth() + 1; month < selDate.getMonth(); month++) {
-            nday += getMonthTotalDays (month, startDate.getYear());
-        }
-        //Add the days from the selected month
-        nday += selDate.getDate() + 1;
-    }
-    else if (selDate.getMonth() < startDate.getMonth()){
-        var endmonth = 11 + selDate.getMonth() + 1;
-        var year = startDate.getFullYear();
-        //Go to the end of the year
-        for (month = startDate.getMonth() + 1; month <= endmonth; month++) {
-            if (month <= 11)
-                nday += getMonthTotalDays (month, year);
-            //When end of year is reached, reset everything and start from month 0
-            else {
-                month = 0;
-                year++;
-                endmonth = selDate.getMonth();
-            }
-        }
-        //Add the days from the selected month
-        nday += selDate.getDate() + 1;
-    }
-    else { //Selected month is the start month
-        nday = (selDate.getDate() + 1) - startDate.getDate() + 1;
-    }
-    return nday;
+	var hour = hour2 - hour1;
+	var min = min2 - min1
+	if (min < 0) {
+		hour--;
+		min += 60;
+	}
+	return createStrTimeFromInts(hour, min);
+}
+
+function getTrainingDayNumber(selDate, startDate) {
+	//Number of days from the beginning of meso to the end of first month
+	var nday = getMonthTotalDays(startDate.getMonth(), startDate.getFullYear()) - startDate.getDate() + 1;
+
+	//Add to it the month's total number of days
+	var month;
+	if (selDate.getMonth() > startDate.getMonth()) {
+		for (month = startDate.getMonth() + 1; month < selDate.getMonth(); month++) {
+			nday += getMonthTotalDays (month, startDate.getYear());
+		}
+		//Add the days from the selected month
+		nday += selDate.getDate() + 1;
+	}
+	else if (selDate.getMonth() < startDate.getMonth()){
+		var endmonth = 11 + selDate.getMonth() + 1;
+		var year = startDate.getFullYear();
+		//Go to the end of the year
+		for (month = startDate.getMonth() + 1; month <= endmonth; month++) {
+			if (month <= 11)
+				nday += getMonthTotalDays (month, year);
+			//When end of year is reached, reset everything and start from month 0
+			else {
+				month = 0;
+				year++;
+				endmonth = selDate.getMonth();
+			}
+		}
+		//Add the days from the selected month
+		nday += selDate.getDate() + 1;
+	}
+	else { //Selected month is the start month
+		nday = (selDate.getDate() + 1) - startDate.getDate() + 1;
+	}
+	return nday;
 }
 
 function urlToPath(url) {

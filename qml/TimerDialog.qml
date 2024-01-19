@@ -27,6 +27,7 @@ Dialog {
 	property bool bJustMinsAndSecs: false
 	property bool bJustSecs: false
 	property bool simpleTimer: false
+	property bool timePickerOnly: false
 	property bool bRunning: false
 	property bool bPaused: false
 	property bool bForward: false
@@ -241,6 +242,7 @@ Dialog {
 		checked: bTimer
 		padding: 0
 		spacing: 0
+		visible: !timePickerOnly
 
 		indicator: Rectangle {
 			implicitWidth: 26
@@ -350,7 +352,7 @@ Dialog {
 				Layout.alignment: Text.AlignHCenter
 				Layout.leftMargin: 10
 
-				//Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -405,7 +407,7 @@ Dialog {
 				maximumLength: 2
 				Layout.maximumWidth: 30
 
-				//Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -453,6 +455,7 @@ Dialog {
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
 				font.bold: true
+				enabled: !timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
@@ -460,7 +463,7 @@ Dialog {
 				Layout.maximumWidth: 30
 				Layout.rightMargin: 10
 
-				//Keys.onPressed: (event) => processKeyEvents(event);
+				Keys.onPressed: (event) => processKeyEvents(event);
 
 				background: Rectangle {
 					color: "transparent"
@@ -499,6 +502,7 @@ Dialog {
 		anchors.horizontalCenter: parent.horizontalCenter
 		height: 20
 		width: recTimer.width
+		visible: !timePickerOnly
 
 		ProgressBar {
 			id: progressBar
@@ -535,6 +539,7 @@ Dialog {
 		ButtonFlat {
 			id: btnStartPause
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
+			visible: !timePickerOnly
 			width: 70
 			height: 30
 			text: qsTr("Start")
@@ -569,6 +574,7 @@ Dialog {
 		ButtonFlat {
 			id: btnReset
 			text: qsTr("Reset")
+			visible: !timePickerOnly
 			font.pixelSize: AppSettings.fontSizePixelSize
 			enabled: bRunning ? false : bPaused
 			width: 70
@@ -583,11 +589,12 @@ Dialog {
 
 		ButtonFlat {
 			id: btnUseTime
-			text: simpleTimer ? qsTr("Close") : qsTr("Use")
+			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
 			font.pixelSize: AppSettings.fontSizePixelSize
 			width: 70
 			height: 30
 			x: btnReset.x + btnReset.width + 2*btnStartPause.x
+
 			onClicked: {
 				var totalsecs = secs;
 				var totalmins = mins;
@@ -619,10 +626,15 @@ Dialog {
 							}
 						}
 					}
-					if ( totalhours > 0 )
-						useTime(JSF.intTimeToStrTime(totalhours) + ":" + JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
-					else
-						useTime(JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+					if (timePickerOnly) {
+						useTime(JSF.intTimeToStrTime(hours) + ":" + JSF.intTimeToStrTime(mins));
+					}
+					else {
+						if ( totalhours > 0 )
+							useTime(JSF.intTimeToStrTime(totalhours) + ":" + JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+						else
+							useTime(JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+					}
 				}
 				dlgTimer.close();
 				mainTimer.stopTimer(true);
@@ -669,8 +681,14 @@ Dialog {
 			break;
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
-				if (btnStartPause.enabled)
-					btnStartPause.clicked();
+				if (!timePickerOnly) {
+					if (btnStartPause.enabled)
+						btnStartPause.clicked();
+				}
+				else {
+					btnUseTime.clicked();
+				}
+
 			break;
 		}
 	}

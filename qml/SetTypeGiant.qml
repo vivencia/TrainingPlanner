@@ -55,7 +55,7 @@ Item {
 			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Giant set")
 			font.bold: true
 
-			ToolButton {
+			RoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right
@@ -89,6 +89,7 @@ Item {
 			Layout.leftMargin: 5
 			Layout.rightMargin: 5
 			Layout.topMargin: 0
+			visible: setNumber === 0
 			z: 1
 
 			background: Rectangle {
@@ -121,13 +122,12 @@ Item {
 				secondExerciseNameChanged(exerciseName2);
 			}
 
-			ToolButton {
+			RoundButton {
 				id: btnRemoveExercise2
 				anchors.left: txtExerciseName2.right
 				anchors.verticalCenter: txtExerciseName2.verticalCenter
 				height: 25
 				width: 25
-				visible: setNumber === 0
 
 				z: 2
 				Image {
@@ -140,14 +140,13 @@ Item {
 				}
 			} //btnRemoveExercise2
 
-			ToolButton {
+			RoundButton {
 				id: btnEditExercise2
 				anchors.left: btnRemoveExercise2.right
 				anchors.verticalCenter: txtExerciseName2.verticalCenter
 				height: 25
 				width: 25
 				z: 2
-				visible: setNumber === 0
 
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"edit.png"
@@ -188,78 +187,52 @@ Item {
 			}
 		}
 
-		Rectangle {
+		GridLayout {
 			Layout.fillWidth: true
-			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
+			Layout.leftMargin: setItem.width/6
+			rows: 5
+			columns: 2
+			columnSpacing: 15
+			rowSpacing: 5
 
 			Label {
 				id: lblExercise1
 				text: qsTr("Exercise 1")
 				width: setItem.width/2
 				font.bold: true
-
-				anchors {
-					left: parent.left
-					leftMargin: width/2 - implicitWidth/2
-					verticalCenter: parent.verticalCenter
-				}
+				Layout.row: 0
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
 			}
+
 			Label {
 				id: lblExercise2
 				text: qsTr("Exercise 2")
 				width: setItem.width/2
 				font.bold: true
-
-				anchors {
-					left: parent.horizontalCenter
-					leftMargin: width/2 - implicitWidth/2
-					verticalCenter: parent.verticalCenter
-				}
+				Layout.row: 0
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
 			}
-		}
-
-		Rectangle {
-			Layout.fillWidth: true
-			Layout.alignment: Qt.AlignCenter
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
 
 			Label {
-				text: qsTr("Reps/Weight") + AppSettings.weightUnit
-				width: setItem.width/2
-
-				anchors {
-					left: parent.left
-					leftMargin: width/2 - implicitWidth/2
-					verticalCenter: parent.verticalCenter
-				}
+				text: qsTr("Reps:")
+				Layout.row: 1
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
 			}
-			Label {
-				text: qsTr("Reps/Weight") + AppSettings.weightUnit
-				width: setItem.width/2
-
-				anchors {
-					left: parent.horizontalCenter
-					leftMargin: width/2 - implicitWidth/2
-					verticalCenter: parent.verticalCenter
-				}
-			}
-		}
-
-		RowLayout {
-			id: fldsLayout
-			Layout.fillWidth: true
-			spacing: 0
-
 			SetInputField {
 				id: txtNReps1
 				text: strReps1
 				type: SetInputField.Type.RepType
 				nSetNbr: setNumber
-				availableWidth: setItem.width/4 - 10
+				availableWidth: setItem.width/3
 				alternativeLabels: ["","","",""]
+				Layout.row: 2
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
 
 				onEnterOrReturnKeyPressed: {
 					txtNWeight1.forceActiveFocus();
@@ -269,29 +242,23 @@ Item {
 					onTextEdited: changeRep(0, str);
 				}
 			}
-			SetInputField {
-				id: txtNWeight1
-				text: strWeight1
-				type: SetInputField.Type.WeightType
-				nSetNbr: setNumber
-				availableWidth: setItem.width/4
-				alternativeLabels: ["","","",""]
 
-				onEnterOrReturnKeyPressed: {
-					txtNReps2.forceActiveFocus();
-				}
-
-				onValueChanged: (str, val) => {
-					changeWeight(0, str);
-				}
+			Label {
+				text: qsTr("Reps:")
+				Layout.row: 1
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
 			}
 			SetInputField {
 				id: txtNReps2
 				text: strReps2
 				type: SetInputField.Type.RepType
 				nSetNbr: setNumber
-				availableWidth: setItem.width/4 - 10
+				availableWidth: setItem.width/3
 				alternativeLabels: ["","","",""]
+				Layout.row: 2
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
 
 				onEnterOrReturnKeyPressed: {
 					txtNWeight2.forceActiveFocus();
@@ -301,13 +268,49 @@ Item {
 					onTextEdited: changeRep(1, str);
 				}
 			}
+
+			Label {
+				text: qsTr("Weight") + AppSettings.weightUnit + ":"
+				Layout.row: 3
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
+			}
+			SetInputField {
+				id: txtNWeight1
+				text: strWeight1
+				type: SetInputField.Type.WeightType
+				nSetNbr: setNumber
+				availableWidth: setItem.width/3
+				alternativeLabels: ["","","",""]
+				Layout.row: 4
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
+
+				onEnterOrReturnKeyPressed: {
+					txtNReps2.forceActiveFocus();
+				}
+
+				onValueChanged: (str, val) => {
+					changeWeight(0, str);
+				}
+			}
+
+			Label {
+				text: qsTr("Weight") + AppSettings.weightUnit + ":"
+				Layout.row: 3
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
+			}
 			SetInputField {
 				id: txtNWeight2
 				text: strWeight2
 				type: SetInputField.Type.WeightType
 				nSetNbr: setNumber
-				availableWidth: setItem.width/4
+				availableWidth: setItem.width/3
 				alternativeLabels: ["","","",""]
+				Layout.row: 4
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
 
 				onEnterOrReturnKeyPressed: {
 					txtSetNotes.forceActiveFocus();
@@ -317,7 +320,7 @@ Item {
 					changeWeight(1, str);
 				}
 			}
-		} //RowLayout
+		}
 
 		Label {
 			text: qsTr("Notes:")

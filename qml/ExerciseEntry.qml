@@ -162,7 +162,7 @@ Item {
 					exerciseEdited(thisObjectIdx, exerciseName);
 				}
 
-				ToolButton {
+				RoundButton {
 					id: btnFoldIcon
 					anchors.left: txtExerciseName.right
 					anchors.verticalCenter: txtExerciseName.verticalCenter
@@ -179,7 +179,7 @@ Item {
 					z: 1
 				}
 
-				ToolButton {
+				RoundButton {
 					id: btnRemoveExercise
 					anchors.left: btnFoldIcon.right
 					anchors.verticalCenter: txtExerciseName.verticalCenter
@@ -198,7 +198,7 @@ Item {
 					}
 				} //btnRemoveExercise
 
-				ToolButton {
+				RoundButton {
 					id: btnEditExercise
 					anchors.left: btnRemoveExercise.right
 					anchors.verticalCenter: parent.verticalCenter
@@ -254,7 +254,7 @@ Item {
 					textRole: "key"
 					valueRole: "idx"
 				}
-				ToolButton {
+				RoundButton {
 					id: btnAddSet
 
 					Image {

@@ -79,7 +79,7 @@ FocusScope {
 			}
 		}
 
-		ToolButton {
+		RoundButton {
 			id: btnIncreaseTime
 			padding: 0
 			spacing: 2
@@ -110,7 +110,7 @@ FocusScope {
 			}
 		}
 
-		ToolButton {
+		RoundButton {
 			id: btnDecrease
 			padding: 0
 			spacing: 2
@@ -191,7 +191,7 @@ FocusScope {
 			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
-			textColor: "black"
+			textColor: "white"
 
 			anchors {
 				left: btnDecrease.right
@@ -258,7 +258,7 @@ FocusScope {
 			}
 		} //TextInput
 
-		ToolButton {
+		RoundButton {
 			id: btnIncrease
 			padding: 0
 			spacing: 2
@@ -327,7 +327,7 @@ FocusScope {
 			}
 		}
 
-		ToolButton {
+		RoundButton {
 			id: btnDecreaseTime
 			padding: 0
 			spacing: 2
@@ -365,6 +365,7 @@ FocusScope {
 			visible: type === SetInputField.Type.TimeType
 			anchors {
 				left: nSetNbr >= 1 ? btnDecreaseTime.right : txtMain.right
+				leftMargin: 10
 				verticalCenter: parent.verticalCenter
 			}
 			font.pixelSize: AppSettings.fontSizeLists

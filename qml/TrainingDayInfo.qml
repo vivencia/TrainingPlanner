@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtMultimedia
 
 import "jsfunctions.js" as JSF
 
@@ -85,6 +86,123 @@ Page {
 			bModified = true;
 			hideFloatingButton(-1); //Day is finished
 			btnSaveDay.clicked();
+		}
+	}
+
+	TimerDialog {
+		id: dlgSessionLength
+		timePickerOnly: true
+		windowTitle: qsTr("Length of this training session")
+
+		onUseTime: (strtime) => {
+			timeIn = strtime;
+			timeOut = JSF.increaseStringTimeBy(JSF.getTimeStringFromDateTime(todayFull), timeIn);
+			bModified = true;
+			timerRestricted.init(timeOut);
+		}
+	}
+
+	TimePicker {
+		id: dlgTimeEndSession
+		hrsDisplay: JSF.getHourOrMinutesFromStrTime (JSF.getTimeStringFromDateTime(todayFull))
+		minutesDisplay: JSF.getMinutesOrSeconsFromStrTime (JSF.getTimeStringFromDateTime(todayFull))
+
+		onTimeSet: (hour, minutes) => {
+			timeOut = hour + ":" + minutes;
+			timeIn = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
+			bModified = true;
+			timerRestricted.init(timeOut);
+		}
+	}
+
+	SoundEffect {
+		id: playSound
+		source: "qrc:/sounds/timer-end.wav"
+	}
+
+	ToolTip {
+		id: tipTimeWarn
+		text: qsTr("Attention! <b>") + displayMin + qsTr("</b> minutes until end of training session!")
+		property string displayMin
+		property int nShow: 0
+		timeout: 20000
+		x: -10
+		y: -10
+		width: mainwindow.width
+		height: 50
+		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+
+		RoundButton {
+			id: btnMuteSound
+			anchors.right: parent.right
+			anchors.bottom: parent.bottom
+			onClicked: playSound.stop();
+
+			Image {
+				source: "qrc:/images/"+lightIconFolder+"sound-off.png"
+				width: 20
+				height: 20
+				fillMode: Image.PreserveAspectFit
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		onOpened: {
+			nShow++;
+		}
+	}
+
+	Timer {
+		id: timerRestricted
+		interval: 10000 //Every ten secons
+		repeat: true
+		property string finalHour
+		property string finalMin
+
+		onTriggered: {
+			const hour = JSF.getHourOrMinutesFromStrTime(JSF.getTimeStringFromDateTime(todayFull));
+			if (hour === finalHour) {
+				const min = JSF.getMinutesOrSeconsFromStrTime(JSF.getTimeStringFromDateTime(todayFull));
+				const timeLeft = parseInt(finalMin) - parseInt(min);
+				if (timeLeft <= 0) {
+					if (tipTimeWarn.nShow === 2) {
+						tipTimeWarn.displayMin = timeLeft.toString();
+						tipTimeWarn.timeout = 60000;
+						playSound.loops = 4;
+						playSound.play();
+						tipTimeWarn.open();
+						stop();
+					}
+				}
+				else if (timeLeft <= 5) {
+					if (tipTimeWarn.nShow === 1) {
+						tipTimeWarn.displayMin = timeLeft.toString();
+						playSound.play();
+						tipTimeWarn.open();
+					}
+				}
+				else if (timeLeft <= 15) {
+					if (tipTimeWarn.nShow === 0) {
+						tipTimeWarn.displayMin = timeLeft.toString();
+						playSound.play();
+						tipTimeWarn.open();
+					}
+				}
+			}
+		}
+
+		function init(finalTime) {
+			finalHour = JSF.getHourOrMinutesFromStrTime(finalTime);
+			finalMin = JSF.getMinutesOrSeconsFromStrTime(finalTime);
+			tipTimeWarn.nShow = 0;
+			tipTimeWarn.timeout = 20000;
+			start();
+		}
+
+		function stopTimer() {
+			stop();
+			playSound.stop();
 		}
 	}
 
@@ -366,7 +484,7 @@ Page {
 							id: btnInTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
-							onClicked: dlgTimeIn.open()
+							onClicked: dlgTimeIn.open();
 						}
 					} //RowLayout
 
@@ -392,7 +510,7 @@ Page {
 							id: btnOutTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 
-							onClicked: dlgTimeOut.open()
+							onClicked: dlgTimeOut.open();
 						}
 					} // RowLayout
 				} //ColumnLayout
@@ -429,30 +547,45 @@ Page {
 
 					RowLayout {
 						Layout.fillWidth: true
-						Layout.leftMargin: 5
+						Layout.leftMargin: 30
 
 						ButtonFlat {
 							id: btnTimeLength
 							text: qsTr("By duration")
+							Layout.alignment: Qt.AlignCenter
+							onClicked: dlgSessionLength.open();
 						}
 						ButtonFlat {
 							id: btnTimeHour
 							text: qsTr("By time of day")
+							Layout.alignment: Qt.AlignCenter
+							onClicked: dlgTimeEndSession.open();
 						}
 					} //RowLayout
 
-					RowLayout {
+					Label {
+						id: lblTimeRestrictedSession
+						text: qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(timeIn) + qsTr(" hour(s) and ") +
+									JSF.getMinutesOrSeconsFromStrTime(timeIn) + qsTr(" minutes</b> at <b>") + timeOut + "</b>"
+						wrapMode: Text.WordWrap
+						color: "white"
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
 						Layout.fillWidth: true
-						Layout.leftMargin: 5
+						Layout.maximumWidth: frmConstrainedTime.width
+						Layout.rightMargin: 5
+						Layout.alignment: Qt.AlignCenter
+						visible: timerRestricted.running
+					}
 
-						Label {
-							text: qsTr("Alarm will be set to go off at:")
-							color: "white"
-							font.pixelSize: AppSettings.fontSizeText
-							font.bold: true
-						}
-						TPTextInput {
-							id: txtFinalHour
+					ButtonFlat {
+						id: btnCancelTimeRestrictedTimer
+						text: qsTr("Unset alarm")
+						Layout.alignment: Qt.AlignCenter
+						visible: timerRestricted.running
+
+						onClicked: {
+							timerRestricted.stopTimer();
 						}
 					}
 				} //ColumnLayout
@@ -724,7 +857,7 @@ Page {
 
 	function getMesoPlan () {
 		let plan_info = [];
-		switch (mesoSplitLetter) {
+		switch (splitLetter) {
 			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
 			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
 			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;
@@ -744,7 +877,7 @@ Page {
 	}
 
 	function checkIfPreviousDayExists() {
-		let day_info = Database.getPreviousTrainingDayForDivision(mesoSplitLetter, tDay, mesoId);
+		let day_info = Database.getPreviousTrainingDayForDivision(splitLetter, tDay, mesoId);
 		for (var i = 0; i < day_info.length; ++i ) { //from the most recent to the oldest
 			if (day_info[i].exercisesNames) {
 				bHasPreviousDay = day_info[i].exercisesNames.length > 1;
@@ -776,7 +909,7 @@ Page {
 		console.log("Trying to load info for the day: ", tDate.toDateString(), tDate.getTime());
 		let dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
-			if (dayInfoList[0].exercisesNames === null) {//Day is saved but it is empty. Treat it as if it weren't saved then
+			if (!dayInfoList[0].exercisesNames) {//Day is saved but it is empty. Treat it as if it weren't saved then
 				Database.deleteTraingDay(dayInfoList[0].dayId);
 				return false;
 			}
@@ -1056,8 +1189,7 @@ Page {
 					updateMesoCalendar();
 				if (dayId === -1) {
 					createDatabaseEntryForDay();
-					if (bHasMesoPlan || bHasPreviousDay)
-						updateDayIdFromExercisesAndSets();
+					updateDayIdFromExercisesAndSets();
 				}
 				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 
@@ -1080,6 +1212,7 @@ Page {
 			onClicked: {
 				removeAllExerciseObjects();
 				loadOrCreateDayInfo();
+				optFreeTimeSession.clicked();
 				bModified = false;
 			}
 		} //btnRevertDay

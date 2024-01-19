@@ -118,4 +118,8 @@ Page {
 			}
 		} while (++idx < mesoSplit.length);
 	}
+
+	function closeSimpleExerciseList() {
+		bottomPane.shown = false;
+	}
 } //Page

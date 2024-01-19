@@ -47,7 +47,7 @@ Item {
 			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Drop set")
 			font.bold: true
 
-			ToolButton {
+			RoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right

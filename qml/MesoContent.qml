@@ -632,6 +632,7 @@ Page {
 				id: btnShowDayInfo
 				text: qsTr("View Day")
 				imageSource: "qrc:/images/"+lightIconFolder+"day-info.png"
+				textUnderIcon: true
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 
 				onClicked: {

@@ -54,5 +54,8 @@
         <file>images/point-down.png</file>
         <file>images/white/open-schedule.png</file>
         <file>images/black/open-schedule.png</file>
+        <file>images/white/edit-clear.png</file>
+        <file>images/black/sound-off.png</file>
+        <file>images/white/sound-off.png</file>
     </qresource>
 </RCC>

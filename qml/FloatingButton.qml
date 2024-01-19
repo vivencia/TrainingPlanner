@@ -4,7 +4,8 @@ import QtQuick.Controls
 
 Rectangle {
 	id: button
-	color: bHeld ? buttonText.color : paneBackgroundColor
+	color: paneBackgroundColor
+	opacity: bHeld ? 0.7 : 1
 	radius: width / 2
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
@@ -18,6 +19,7 @@ Rectangle {
 	property bool bHeld: false
 
 	signal buttonClicked(int settype)
+	property bool bEmitSignal: false
 
 	property int textAndImageSize: (bHasText ? buttonText.width + (bHasImage ? buttonImage.width: 0) : bHasImage ? buttonImage.width: 0)
 
@@ -86,7 +88,7 @@ Rectangle {
 
 		onClicked: (mouse) => {
 			if (!mouse.wasHeld)
-				buttonClicked(comboIndex);
+				bEmitSignal = true;
 		}
 
 		onReleased: {
@@ -96,6 +98,7 @@ Rectangle {
 		onPressed: (mouse) => {
 			prevPos = { x: mouse.x, y: mouse.y };
 			bHeld = true;
+			anim.start();
 		}
 
 		onPositionChanged: {
@@ -109,6 +112,35 @@ Rectangle {
 					}
 				}
 				prevPos = { x: mouseX, y: mouseY };
+			}
+		}
+	}
+
+	SequentialAnimation {
+		id: anim
+
+		// Expand the button
+		PropertyAnimation {
+			target: button
+			property: "scale"
+			to: 1.5
+			duration: 200
+			easing.type: Easing.InOutCubic
+		}
+
+		// Shrink back to normal
+		PropertyAnimation {
+			target: button
+			property: "scale"
+			to: 1.0
+			duration: 200
+			easing.type: Easing.InOutCubic
+		}
+
+		onFinished: {
+			if (bEmitSignal) {
+				bEmitSignal = false;
+				buttonClicked(comboIndex);
 			}
 		}
 	}

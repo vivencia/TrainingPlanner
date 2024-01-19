@@ -320,6 +320,7 @@ Popup {
 			anchors.right: parent.right
 			anchors.top: parent.top
 			anchors.topMargin: -10
+
 			onClicked: {
 				timePicker.useWorkTimes = !timePicker.useWorkTimes
 				timePicker.showHour(timePicker.hrsDisplay)
@@ -330,7 +331,9 @@ Popup {
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
 			anchors.right: parent.right
 			anchors.top: parent.top
-			anchors.topMargin: -15
+			anchors.topMargin: -5
+			anchors.rightMargin: 5
+
 			onClicked: {
 				timePicker.onlyQuartersAllowed = !timePicker.onlyQuartersAllowed
 				timePicker.showMinutes(timePicker.minutesDisplay)

@@ -181,7 +181,9 @@ Frame {
 								mouse.accepted = false;
 						}
 
-						onPressAndHold: mouse.accepted = false;
+						onPressAndHold: (mouse) => {
+							mouse.accepted = false;
+						}
 
 						onEditingFinished: {
 							exercisesListModel.setProperty(index, "exerciseName", text);
@@ -206,7 +208,7 @@ Frame {
 								bCanEditExercise = false;
 						}
 
-						ToolButton {
+						RoundButton {
 							id: btnEditExercise
 							padding: 10
 							anchors.left: txtExerciseName.right
@@ -219,6 +221,7 @@ Frame {
 								source: "qrc:/images/"+darkIconFolder+"edit.png"
 								anchors.verticalCenter: parent.verticalCenter
 								anchors.horizontalCenter: parent.horizontalCenter
+								fillMode: Image.PreserveAspectFit
 								height: 20
 								width: 20
 							}
@@ -385,7 +388,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: currentModelIndex === index ? "lightcoral" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+					color: currentModelIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
@@ -396,12 +399,14 @@ Frame {
 				}
 
 				swipe.right: Rectangle {
+					id: rec
 					width: parent.width
 					height: parent.height
 					clip: false
 					color: SwipeDelegate.pressed ? "#555" : "#666"
 					radius: 5
-					opacity: delegate.swipe.complete ? 1 : 0
+					opacity: Math.abs(delegate.swipe.position)
+					z: 2
 
 					Image {
 						source: "qrc:/images/"+lightIconFolder+"remove.png"
@@ -422,6 +427,7 @@ Frame {
 						anchors.leftMargin: 40
 						horizontalAlignment: Qt.AlignLeft
 						verticalAlignment: Qt.AlignVCenter
+						opacity: delegate.swipe.complete ? 1 : 0
 						Behavior on opacity { NumberAnimation { } }
 						z:2
 					}

@@ -50,7 +50,7 @@ Item {
 			Layout.column: 0
 			Layout.columnSpan: 2
 
-			ToolButton {
+			RoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.right

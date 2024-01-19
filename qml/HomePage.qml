@@ -279,7 +279,7 @@ footer: ToolBar {
 			anchors.rightMargin: 5
 
 			onClicked: newAction(1);
-	} //ToolButton
+		}
 } // footer
 
 	function newAction(opt) {

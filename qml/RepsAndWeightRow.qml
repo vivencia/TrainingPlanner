@@ -86,7 +86,7 @@ FocusScope {
 				}
 			}
 
-			ToolButton {
+			RoundButton {
 				id: btnInsertAnotherRow
 				width: 25
 				height: 25
@@ -107,7 +107,7 @@ FocusScope {
 				onClicked: addSubSet(rowIdx+1);
 			} //bntInsertAnotherRow
 
-			ToolButton {
+			RoundButton {
 				id: btnRemoveRow
 				width: 25
 				height: 25

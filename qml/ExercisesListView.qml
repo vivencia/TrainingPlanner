@@ -132,12 +132,15 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: curIndex === index ? "darkred" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+				color: curIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 			}
 			onClicked: {
 				if (index !== curIndex) {
 					curIndex = index;
 					displaySelectedExercise(index);
+				}
+				else {
+					closeSimpleExerciseList();
 				}
 			}
 
@@ -220,7 +223,7 @@ Column {
 			height: 20
 			width: 20
 			Image {
-				source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+				source: "qrc:/images/"+lightIconFolder+"edit-clear.png"
 				anchors.fill: parent
 				height: 20
 				width: 20
