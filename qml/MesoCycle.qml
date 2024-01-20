@@ -340,12 +340,12 @@ Page {
 				Keys.onReturnPressed: { //Alphanumeric keyboard
 					if (!paneTrainingSplit.shown)
 						btnTrainingSplit.clicked();
-					txtSplitA.forceActiveFocus();
+					JSF.moveFocusToNextField('0');
 				}
 				Keys.onEnterPressed: { //Numeric keyboard
 					if (!paneTrainingSplit.shown)
 						btnTrainingSplit.clicked();
-					txtSplitA.forceActiveFocus();
+					JSF.moveFocusToNextField('0');
 				}
 			}
 
@@ -462,6 +462,7 @@ Page {
 						Layout.row: 0
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitA.visible
 					}
 					TPTextInput {
 						id: txtSplitA
@@ -470,21 +471,22 @@ Page {
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('A') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
 								strSplitA = text;
 								bModified = true;
 								if (text.length >=3)
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							txtSplitB.forceActiveFocus();
+							JSF.moveFocusToNextField('A');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							txtSplitB.forceActiveFocus();
+							JSF.moveFocusToNextField('A');
 						}
 					}
 
@@ -494,6 +496,7 @@ Page {
 						Layout.row: 1
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitB.visible
 					}
 					TPTextInput {
 						id: txtSplitB
@@ -502,27 +505,22 @@ Page {
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('B') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
 								strSplitB = text;
 								bModified = true;
 								if (text.length >=3)
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							if (mesoSplit.indexOf('C') !== -1)
-								txtSplitC.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('B');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							if (mesoSplit.indexOf('C') !== -1)
-								txtSplitC.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('B');
 						}
 					}
 
@@ -531,36 +529,31 @@ Page {
 						Layout.row: 2
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitC.visible
 					}
 					TPTextInput {
 						id: txtSplitC
 						text: strSplitC
-						font.bold: true
 						Layout.row: 2
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('C') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
 								strSplitC = text;
 								bModified = true;
 								if (text.length >=3)
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							if (mesoSplit.indexOf('D') !== -1)
-								txtSplitD.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('C');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							if (mesoSplit.indexOf('D') !== -1)
-								txtSplitD.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('C');
 						}
 					}
 
@@ -569,36 +562,31 @@ Page {
 						Layout.row: 3
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitD.visible
 					}
 					TPTextInput {
 						id: txtSplitD
 						text: strSplitD
-						font.bold: true
 						Layout.row: 3
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('D') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
 								strSplitD = text;
 								bModified = true;
 								if (text.length >=3 )
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							if (mesoSplit.indexOf('E') !== -1)
-								txtSplitE.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('D');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							if (mesoSplit.indexOf('E') !== -1)
-								txtSplitE.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('D');
 						}
 					}
 
@@ -607,36 +595,31 @@ Page {
 						Layout.row: 4
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitE.visible
 					}
 					TPTextInput {
 						id: txtSplitE
 						text: strSplitE
-						font.bold: true
 						Layout.row: 4
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('E') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
 								strSplitE = text;
 								bModified = true;
 								if (text.length >=3 )
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							if (mesoSplit.indexOf('F') !== -1)
-								txtSplitF.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('E');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							if (mesoSplit.indexOf('F') !== -1)
-								txtSplitF.forceActiveFocus();
-							else
-								txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('E');
 						}
 					}
 
@@ -645,30 +628,31 @@ Page {
 						Layout.row: 5
 						Layout.column: 0
 						color: "white"
+						visible: txtSplitF.visible
 					}
 					TPTextInput {
 						id: txtSplitF
 						text: strSplitF
-						font.bold: true
 						Layout.row: 5
 						Layout.column: 1
 						Layout.fillWidth: true
 						Layout.rightMargin: 20
+						visible: mesoSplit.indexOf('F') !== -1
 
 						onEditingFinished: {
 							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
 								strSplitF = text;
 								bModified = true;
 								if (text.length >=3 )
-									checkWhetherCanCreatePlan();
+									JSF.checkWhetherCanCreatePlan();
 							}
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('F');
 						}
 						Keys.onEnterPressed: { //Numeric keyboard
-							txtMesoDrugs.forceActiveFocus();
+							JSF.moveFocusToNextField('F');
 						}
 					}
 
@@ -928,7 +912,7 @@ Page {
 
 		Component.onCompleted: {
 			bLoadCompleted = true;
-			checkWhetherCanCreatePlan();
+			JSF.checkWhetherCanCreatePlan();
 			if (bNewMeso)
 				txtMesoName.forceActiveFocus();
 		}
@@ -948,36 +932,6 @@ Page {
 			if (bshowpage)
 				mesoPropertiesPage.StackView.view.push(mesoCalendarObject);
 		}
-	}
-
-	function checkWhetherCanCreatePlan()
-	{
-		var ok = true;
-		if (mesoSplit.indexOf('A') !== -1) {
-			ok &= (txtSplitA.length > 1);
-			txtSplitA.cursorPosition = 0;
-		}
-		if (mesoSplit.indexOf('B') !== -1) {
-			ok &= (txtSplitB.length > 1);
-			txtSplitB.cursorPosition = 0;
-		}
-		if (mesoSplit.indexOf('C') !== -1) {
-			ok &= (txtSplitC.length > 1);
-			txtSplitC.cursorPosition = 0;
-		}
-		if (mesoSplit.indexOf('D') !== -1) {
-			ok &= (txtSplitD.length > 1);
-			txtSplitD.cursorPosition = 0;
-		}
-		if (mesoSplit.indexOf('E') !== -1) {
-			ok &= (txtSplitE.length > 1);
-			txtSplitE.cursorPosition = 0;
-		}
-		if (mesoSplit.indexOf('F') !== -1) {
-			ok &= (txtSplitF.length > 1);
-			txtSplitF.cursorPosition = 0;
-		}
-		btnCreateExercisePlan.enabled = ok;
 	}
 } //Page
 

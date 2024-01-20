@@ -12,6 +12,8 @@ Page {
 	property ListModel mainModel: mainMesosModel
 	property int currentMesoIndex
 	property date minimumStartDate;
+	property var firstTimeTip: null
+	property bool bFirstTime: false
 
 	header: IconLabel {
 		text: qsTr("  Training Program")
@@ -60,11 +62,18 @@ Page {
 				else {
 					var component = Qt.createComponent("FirstTimeHomePageTip.qml");
 					if (component.status === Component.Ready) {
-						var firstTimeTip = component.createObject(homePage, {});
+						firstTimeTip = component.createObject(homePage, { message:qsTr("Start here"), yPos:homePageToolBar.y - homePageToolBar.height, xPos:(homePage.width - width) / 2 });
 						firstTimeTip.visible = true;
 						firstTimeTip.startAnim();
+						homePage.StackView.activating.connect(pageActivation);
+						bFirstTime = true;
 					}
 				}
+			}
+
+			onCountChanged: {
+				if (count >= 1 && bFirstTime)
+					bFirstTime = false;
 			}
 		}
 
@@ -81,7 +90,7 @@ Page {
 			required property date mesoEndDate
 			required property int nWeeks
 			required property string mesoSplit
-			required property string mesoDrugs
+			property string mesoDrugs
 			required property bool realMeso
 
 			Rectangle {
@@ -201,8 +210,8 @@ Page {
 
 			background: Rectangle {
 				radius: 6
-				opacity: 0.7
-				color: primaryLightColor
+				opacity: 0.8
+				color: primaryColor
 			}
 
 			Column {
@@ -214,6 +223,8 @@ Page {
 				Label {
 					text: qsTr("Name: <b>") + mesoName + "</b>"
 					color: "white"
+					width: mesoDelegate.width
+					elide: Text.ElideRight
 				}
 				Label {
 					text: realMeso ?
@@ -283,6 +294,9 @@ footer: ToolBar {
 } // footer
 
 	function newAction(opt) {
+		if (firstTimeTip)
+			firstTimeTip.visible = false;
+
 		var startDate, endDate;
 		if (mainMesosModel.count === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
@@ -324,7 +338,9 @@ footer: ToolBar {
 				mesoStartDate: startDate,
 				minimumMesoStartDate: minimumStartDate,
 				maximumMesoEndDate: new Date(2026,11,31),
-				calendarStartDate: startDate
+				calendarStartDate: startDate,
+				bFirstTime: bFirstTime,
+				firstTimeTip: firstTimeTip
 			});
 		}
 	}
@@ -340,10 +356,9 @@ footer: ToolBar {
 			startDate = meso.mesoStartDate;
 		}
 
-		const weekOne = JSF.weekNumber(meso.mesoStartDate);
-		const weekTwo = JSF.weekNumber(meso.mesoEndDate);
-
 		if (meso.realMeso) {
+			const weekOne = JSF.weekNumber(meso.mesoStartDate);
+			const weekTwo = JSF.weekNumber(meso.mesoEndDate);
 
 			homePage.StackView.view.push("MesoCycle.qml", {
 				mesosModel: mainMesosModel,
@@ -396,5 +411,14 @@ footer: ToolBar {
 			}
 		}
 		minimumStartDate = new Date(year,month,day);
+	}
+
+	function pageActivation() {
+		if (firstTimeTip && mainMesosModel.count === 0) {
+			firstTimeTip.message = qsTr("Start here");
+			firstTimeTip.yPos = homePageToolBar.y;
+			firstTimeTip.xPos = (homePage.width - width) / 2;
+			firstTimeTip.visible = true;
+		}
 	}
 } //Page

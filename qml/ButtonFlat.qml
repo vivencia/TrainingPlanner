@@ -15,6 +15,7 @@ Rectangle {
 	property bool bEmitSignal: false
 	signal clicked();
 
+	focus: true
 	border.color: "black"
 	radius: 6
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
@@ -100,6 +101,7 @@ Rectangle {
 		onPressed: (mouse) => {
 			mouse.accepted = true;
 			bPressed = true;
+			button.forceActiveFocus();
 			anim.start();
 		}
 		onReleased: (mouse) => {

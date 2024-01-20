@@ -26,14 +26,12 @@ Rectangle {
 	implicitHeight: comboIndex <= 2 ? cboSetType.height : Math.max(buttonText.height, buttonImage.height) + 10;
 	implicitWidth: 50 + (comboIndex <= 2 ? cboSetType.width + textAndImageSize : textAndImageSize)
 
-	ComboBox {
+	TPComboBox {
 		id: cboSetType
-		model: [ { key:qsTr("Regular"), idx:0 }, { key:qsTr("Pyramid"), idx:1 }, { key:qsTr("Drop set"), idx:2 } ]
+		model: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop set"), value:2 } ]
 		width: 100
 		currentIndex: comboIndex
 		visible: comboIndex <= 2
-		textRole: "key"
-		valueRole: "idx"
 		z: 0
 
 		anchors {

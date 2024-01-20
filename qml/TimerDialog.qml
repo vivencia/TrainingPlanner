@@ -11,8 +11,8 @@ Dialog {
 	modal: false
 	width: mainwindow.width * 0.75
 	height: mainwindow.height * 0.30
-	x: 25
-	y: simpleTimer ? (mainwindow.height - height) / 2 : 0 // align vertically centered
+	x: (mainwindow.width - width) / 2
+	y: simpleTimer ? (mainwindow.height - height) / 2 - tabMain.height : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
@@ -25,7 +25,6 @@ Dialog {
 	property int origMins: 0
 	property int origSecs: 0
 	property bool bJustMinsAndSecs: false
-	property bool bJustSecs: false
 	property bool simpleTimer: false
 	property bool timePickerOnly: false
 	property bool bRunning: false
@@ -39,11 +38,6 @@ Dialog {
 	property string windowTitle
 
 	signal useTime(string time)
-
-	contentItem {
-		Keys.onPressed: (event) =>
-			processKeyEvents(event);
-	}
 
 	SoundEffect {
 		id: playSound
@@ -296,6 +290,7 @@ Dialog {
 			color: "darkred"
 			font.pixelSize: AppSettings.fontSizeLists
 			text: qsTr("Hours")
+			visible: !bJustMinsAndSecs
 		}
 		Label {
 			y: 10
@@ -310,6 +305,7 @@ Dialog {
 			color: "darkred"
 			font.pixelSize: AppSettings.fontSizeLists
 			text: qsTr("Seconds")
+			visible: !timePickerOnly
 		}
 	} // Rectangle recStrings
 
@@ -341,7 +337,7 @@ Dialog {
 				id: txtHours
 				text: JSF.intTimeToStrTime(hours)
 				color: enabled ? "black" : "gray"
-				enabled: !bJustMinsAndSecs && !bJustSecs
+				visible: !bJustMinsAndSecs
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
 				font.bold: true
@@ -391,13 +387,13 @@ Dialog {
 				font.bold: true
 				opacity: 0.6
 				color: "black"
+				visible: txtHours.visible
 			}
 
 			TextField {
 				id: txtMinutes
 				text: JSF.intTimeToStrTime(mins)
 				color: enabled ? "black" : "gray"
-				enabled: !bJustSecs
 				Layout.alignment: Text.AlignHCenter
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
@@ -430,10 +426,14 @@ Dialog {
 				onTextEdited: {
 					bInputOK = acceptableInput;
 					if (acceptableInput) {
-						if ( text.length === 2 ) {
+						if (text.length === 2) {
 							bTextChanged = true;
-							txtSecs.focus = true;
-							txtSecs.forceActiveFocus();
+							if (!timePickerOnly) {
+								txtSecs.focus = true;
+								txtSecs.forceActiveFocus();
+							}
+							else
+								btnUseTime.forceActiveFocus();
 						}
 					}
 				}
@@ -446,6 +446,7 @@ Dialog {
 				font.bold: true
 				opacity: 0.6
 				color: "black"
+				visible: txtSecs.visible
 			}
 
 			TextField {
@@ -455,7 +456,7 @@ Dialog {
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
 				font.bold: true
-				enabled: !timePickerOnly
+				visible: !timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
@@ -487,8 +488,7 @@ Dialog {
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
 							bTextChanged = true;
-							parent.focus = true;
-							parent.forceActiveFocus();
+							btnStartPause.forceActiveFocus();
 						}
 					}
 				}
@@ -682,10 +682,14 @@ Dialog {
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
 				if (!timePickerOnly) {
-					if (btnStartPause.enabled)
+					if (btnStartPause.enabled) {
+						btnStartPause.forceActiveFocus();
 						btnStartPause.clicked();
+					}
 				}
 				else {
+					bTextChanged = true;
+					btnUseTime.forceActiveFocus();
 					btnUseTime.clicked();
 				}
 

@@ -23,6 +23,7 @@ Page {
 	property string location
 	property string trainingNotes
 
+	property string sessionLength
 	property bool bModified: false
 	property var exerciseSpriteList: []
 	property var mesoSplit
@@ -95,8 +96,8 @@ Page {
 		windowTitle: qsTr("Length of this training session")
 
 		onUseTime: (strtime) => {
-			timeIn = strtime;
-			timeOut = JSF.increaseStringTimeBy(JSF.getTimeStringFromDateTime(todayFull), timeIn);
+			sessionLength = strtime;
+			timeOut = JSF.increaseStringTimeBy(JSF.getTimeStringFromDateTime(todayFull), sessionLength);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -109,7 +110,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			timeIn = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
+			sessionLength = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -122,30 +123,52 @@ Page {
 
 	ToolTip {
 		id: tipTimeWarn
-		text: qsTr("Attention! <b>") + displayMin + qsTr("</b> minutes until end of training session!")
+		text: qsTr("Attention! <b>") + displayMin + qsTr("</b> minute(s) until end of training session!")
 		property string displayMin
 		property int nShow: 0
-		timeout: 20000
-		x: -10
-		y: -10
-		width: mainwindow.width
+		timeout: 18000
+		x: 0
+		y: 0
+		width: mainwindow.width * 0.9
 		height: 50
 		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
-		RoundButton {
-			id: btnMuteSound
-			anchors.right: parent.right
-			anchors.bottom: parent.bottom
-			onClicked: playSound.stop();
+		contentItem: Text {
+			text: tipTimeWarn.text
+			wrapMode: Text.WordWrap
+			color: "white"
+			font.pixelSize: AppSettings.fontSizeText
+			width: parent.width - 40
 
-			Image {
-				source: "qrc:/images/"+lightIconFolder+"sound-off.png"
-				width: 20
-				height: 20
-				fillMode: Image.PreserveAspectFit
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
+			anchors {
+				left: parent.Left
+				leftMargin: 5
+				top: parent.top
+				topMargin: 5
 			}
+
+			RoundButton {
+				id: btnMuteSound
+				anchors.left: parent.right
+				anchors.leftMargin: -width/2
+				anchors.verticalCenter: parent.verticalCenter
+				onClicked: playSound.stop();
+
+				Image {
+					source: "qrc:/images/"+lightIconFolder+"sound-off.png"
+					width: 20
+					height: 20
+					fillMode: Image.PreserveAspectFit
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+				}
+			}
+		} //contentItem
+
+		background: Rectangle {
+			color: "black"
+			opacity: 0.6
+			radius: 8
 		}
 
 		onOpened: {
@@ -155,38 +178,47 @@ Page {
 
 	Timer {
 		id: timerRestricted
-		interval: 10000 //Every ten secons
+		interval: 20000 //Every twenty seconds
 		repeat: true
+		property bool complete: false
 		property string finalHour
 		property string finalMin
 
 		onTriggered: {
-			const hour = JSF.getHourOrMinutesFromStrTime(JSF.getTimeStringFromDateTime(todayFull));
+			const timeNow = JSF.getTimeStringFromDateTime(todayFull);
+			sessionLength = JSF.calculateTimeBetweenTimes(timeNow, timeOut);
+
+			const hour = JSF.getHourOrMinutesFromStrTime(timeNow);
 			if (hour === finalHour) {
-				const min = JSF.getMinutesOrSeconsFromStrTime(JSF.getTimeStringFromDateTime(todayFull));
+				const min = JSF.getMinutesOrSeconsFromStrTime(timeNow);
 				const timeLeft = parseInt(finalMin) - parseInt(min);
-				if (timeLeft <= 0) {
-					if (tipTimeWarn.nShow === 2) {
-						tipTimeWarn.displayMin = timeLeft.toString();
-						tipTimeWarn.timeout = 60000;
-						playSound.loops = 4;
-						playSound.play();
-						tipTimeWarn.open();
-						stop();
-					}
-				}
-				else if (timeLeft <= 5) {
-					if (tipTimeWarn.nShow === 1) {
-						tipTimeWarn.displayMin = timeLeft.toString();
-						playSound.play();
-						tipTimeWarn.open();
-					}
-				}
-				else if (timeLeft <= 15) {
-					if (tipTimeWarn.nShow === 0) {
-						tipTimeWarn.displayMin = timeLeft.toString();
-						playSound.play();
-						tipTimeWarn.open();
+				if (timeLeft <= 15) {
+					switch (tipTimeWarn.nShow) {
+						case 0:
+							tipTimeWarn.displayMin = timeLeft.toString();
+							playSound.play();
+							tipTimeWarn.open();
+						break;
+						case 1:
+							if (timeLeft <= 5) {
+								tipTimeWarn.displayMin = timeLeft.toString();
+								playSound.play();
+								if (tipTimeWarn.opened)
+									tipTimeWarn.close();
+								tipTimeWarn.open();
+							}
+						break;
+						case 2: {
+							if (timeLeft <= 1) {
+								tipTimeWarn.displayMin = timeLeft.toString();
+								tipTimeWarn.timeout = 60000;
+								playSound.loops = 4;
+								playSound.play();
+								tipTimeWarn.open();
+								stop();
+								complete = true;
+							}
+						}
 					}
 				}
 			}
@@ -197,6 +229,8 @@ Page {
 			finalMin = JSF.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
 			tipTimeWarn.timeout = 20000;
+			timeIn = JSF.getTimeStringFromDateTime(todayFull);
+			complete = false;
 			start();
 		}
 
@@ -282,16 +316,12 @@ Page {
 					Layout.column: 0
 				}
 
-				ComboBox {
+				TPComboBox {
 					id: cboSplitLetter
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					textRole: "text"
-					valueRole: "value"
 					model: cboModel
+					enabled: model.count > 0
 					//currentIndex: indexOfValue(splitLetter)
 					//displayText: cboModel.get(cboSplitLetter.indexOfValue(splitLetter)).text
-					enabled: model.count > 0
 					Layout.maximumWidth: 100
 					Layout.row: 0
 					Layout.column: 1
@@ -300,8 +330,8 @@ Page {
 						bModified = true;
 						splitLetter = cboModel.get(index).value;
 						maybeResetPage();
-					}
-				} //txtSplitLetter
+					}			
+				} //TPComboBox
 
 				Label {
 					text: qsTr("Training Day #")
@@ -439,6 +469,7 @@ Page {
 				id: optFreeTimeSession
 				text: qsTr("Open time training session")
 				checked: true
+				enabled: !timerRestricted.running
 				Layout.fillWidth: true
 
 				onClicked: {
@@ -552,12 +583,14 @@ Page {
 						ButtonFlat {
 							id: btnTimeLength
 							text: qsTr("By duration")
+							enabled: !timerRestricted.running
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgSessionLength.open();
 						}
 						ButtonFlat {
 							id: btnTimeHour
 							text: qsTr("By time of day")
+							enabled: !timerRestricted.running
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgTimeEndSession.open();
 						}
@@ -565,8 +598,9 @@ Page {
 
 					Label {
 						id: lblTimeRestrictedSession
-						text: qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(timeIn) + qsTr(" hour(s) and ") +
-									JSF.getMinutesOrSeconsFromStrTime(timeIn) + qsTr(" minutes</b> at <b>") + timeOut + "</b>"
+						text: timerRestricted.running ? qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
+									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
+									qsTr("Session time elapsed!")
 						wrapMode: Text.WordWrap
 						color: "white"
 						font.pixelSize: AppSettings.fontSizeText
@@ -575,7 +609,7 @@ Page {
 						Layout.maximumWidth: frmConstrainedTime.width
 						Layout.rightMargin: 5
 						Layout.alignment: Qt.AlignCenter
-						visible: timerRestricted.running
+						visible: timerRestricted.running || timerRestricted.complete
 					}
 
 					ButtonFlat {
@@ -900,6 +934,7 @@ Page {
 		const nsets = plan_info[0].splitNSets.split('|');
 		const nreps = plan_info[0].splitNReps.split('|');
 		const nweights = plan_info[0].splitNWeight.split('|');
+
 		for(var i = 0; i < exerciseSpriteList.length; ++i)
 			exerciseSpriteList[i].Object.createSetsFromPlan(nsets[i], types[i], nreps[i], nweights[i]);
 		bModified = true;

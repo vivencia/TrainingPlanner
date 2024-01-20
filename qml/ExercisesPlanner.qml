@@ -7,6 +7,19 @@ Page {
 	required property int mesoId
 	required property string mesoSplit
 
+	contentItem {
+		Keys.onPressed: (event) => {
+			switch (event.key) {
+				case Qt.Key_Back:
+					if (bottomPane.shown) {
+						event.accepted = true;
+						bottomPane.shown = false;
+					}
+				break;
+			}
+		}
+	}
+
 	SwipeView {
 		id: splitView
 		currentIndex: 0
@@ -55,7 +68,7 @@ Page {
 
 			ButtonFlat {
 				id: btnShowHideList
-				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+lightIconFolder+"fold-up.png"
+				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
 				imageSize: 60
 				onClicked: bottomPane.shown = !bottomPane.shown;
 				Layout.fillWidth: true

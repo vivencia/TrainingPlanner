@@ -67,6 +67,7 @@ Frame {
 			Layout.topMargin: 10
 			Layout.maximumWidth: parent.width - 20
 			font.bold: true
+			font.pixelSize: AppSettings.fontSizeTitle
 		}// Label lblMain
 
 		Label {
@@ -241,13 +242,11 @@ Frame {
 						width: listItem.width/3
 						wrapMode: Text.WordWrap
 					}
-					ComboBox {
+					TPComboBox {
 						id: cboSetType
 						model: setTypes
 						Layout.minimumWidth: 110
 						currentIndex: parseInt(setType);
-						textRole: "key"
-						valueRole: "idx"
 						Layout.row: 2
 						Layout.column: 1
 						Layout.rightMargin: 5
@@ -450,7 +449,11 @@ Frame {
 			Layout.topMargin: 10
 			enabled: bModified
 
-			onClicked: saveMesoDivisionPlan();
+			onClicked: {
+				if (bCanEditExercise)
+					btnEditExercise.clicked();
+				saveMesoDivisionPlan();
+			}
 		}
 	} //ColumnLayout
 

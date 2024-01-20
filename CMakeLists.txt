@@ -99,6 +99,7 @@ set(trainingplanner_resource_files
 	"qml/OpenEndedPlan.qml"
 	"qml/TPTextInput.qml"
 	"qml/TPRadioButton.qml"
+	"qml/TPComboBox.qml"
 	"qml/qmldir"
 )
 

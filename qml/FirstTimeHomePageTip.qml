@@ -3,9 +3,11 @@ import QtQuick.Controls
 
 ToolTip {
 	id: firstTimeTip
-	x: (homePage.width - width) / 2
-	y: initialPos
-	property int initialPos: 0
+	x: xPos
+	y: yPos
+	property int yPos
+	property int xPos
+	property string message
 
 	FontMetrics {
 		id: fontMetrics
@@ -13,14 +15,15 @@ ToolTip {
 		font.pixelSize: AppSettings.titleFontSizePixelSize
 	}
 
-	Component.onCompleted: {
-		const point = homePage.mapFromGlobal(homePageToolBar.x, homePageToolBar.y);
-		initialPos = point.y
-	}
+	/*onYPosChanged: {
+		const point = homePage.mapToGlobal(xPos,yPos);
+		firstTimeTip.x = point.x;
+		firstTimeTip.y = point.y;
+	}*/
 
 	contentItem: Text {
 		id: textPart
-		text: qsTr("Start here")
+		text: message
 		font.bold: true
 		font.pixelSize: AppSettings.titleFontSizePixelSize
 		color: "white"
@@ -58,16 +61,16 @@ ToolTip {
 
 		PropertyAnimation {
 			target: firstTimeTip
-			property: "initialPos"
-			to: firstTimeTip.initialPos - 20
+			property: "yPos"
+			to: firstTimeTip.yPos - 20
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
 
 		PropertyAnimation {
 			target: firstTimeTip
-			property: "initialPos"
-			to: firstTimeTip.initialPos + 10
+			property: "yPos"
+			to: firstTimeTip.yPos + 10
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}

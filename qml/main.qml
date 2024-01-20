@@ -65,8 +65,8 @@ ApplicationWindow {
 	property date today
 	property int currentMesoIdx: -1
 
-	property var setTypes: [ { key:qsTr("Regular"), idx:0 }, { key:qsTr("Pyramid"), idx:1 }, { key:qsTr("Drop Set"), idx:2 },
-							{ key:qsTr("Cluster Set"), idx:3 }, { key:qsTr("Giant Set"), idx:4 }, { key:qsTr("Myo Reps"), idx:5 } ]
+	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
 	Timer {
 		id: dateTimer
@@ -82,12 +82,14 @@ ApplicationWindow {
 
 				if ( initialPage.mainModel.count > 0 ) {
 					currentMesoIdx = initialPage.mainModel.count - 1;
-					do {
-						var mesoStartDate = initialPage.mainModel.get(currentMesoIdx).mesoStartDate;
-						var mesoEndDate = initialPage.mainModel.get(currentMesoIdx).mesoEndDate;
-						if (today >= mesoStartDate && today <= mesoEndDate)
-							break;
-					} while (--currentMesoIdx >= 0);
+					if (initialPage.mainModel.get(currentMesoIdx).realMeso) {
+						do {
+							var mesoStartDate = initialPage.mainModel.get(currentMesoIdx).mesoStartDate;
+							var mesoEndDate = initialPage.mainModel.get(currentMesoIdx).mesoEndDate;
+							if (today >= mesoStartDate && today <= mesoEndDate)
+								break;
+						} while (--currentMesoIdx >= 0);
+					}
 				}
 			}
 		}
@@ -199,7 +201,7 @@ ApplicationWindow {
 					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(currentMesoIdx).mesoId);
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
-					if (day.length > 0) {
+					if (day_info.length > 0) {
 						tday = day_info[0].dayNumber + 1;
 						splitletter = getNextLetterInSplit(mesosplit, day_info[0].mesoCalSplit);
 						mesoid = day_info[0].mesoId;

@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 TextField {
 	property string textColor: "white"
-	property string backgroundColor: "c3cad5"
+	property string backgroundColor: "#c3cad5"
 
 	id: control
 	font.pixelSize: AppSettings.fontSizeText
@@ -32,6 +32,6 @@ TextField {
 		border.color: "black"
 		color: backgroundColor
 		radius: 6
-		opacity: 0.5
+		opacity: 0.8
 	}
 }

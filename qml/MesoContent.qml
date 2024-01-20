@@ -623,7 +623,7 @@ Page {
 						qsTr("Day is not part of the current mesocycle")
 				color: "white"
 				wrapMode: Text.WordWrap
-				font.pixelSize: AppSettings.fontSize
+				font.pixelSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 				Layout.maximumWidth: parent.width / 2
 			}

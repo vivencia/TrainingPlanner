@@ -307,8 +307,9 @@ Popup {
 		ButtonFlat {
 			text: qsTr("Now")
 			anchors.top: parent.top
+			anchors.topMargin: -5
 			anchors.left: parent.left
-			anchors.leftMargin: 10
+			anchors.leftMargin: 5
 			onClicked: {
 				timePicker.setDisplay(JSF.getTimeStringFromDateTime(new Date()), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 			}
@@ -543,7 +544,7 @@ Popup {
 			anchors.top: parent.top
 			anchors.left: parent.left
 			anchors.leftMargin: 10
-			anchors.topMargin: -15
+			anchors.topMargin: -10
 			onClicked: {
 				timePicker.close();
 			}
@@ -554,7 +555,7 @@ Popup {
 			anchors.top: parent.top
 			anchors.right: parent.right
 			anchors.rightMargin: 10
-			anchors.topMargin: -15
+			anchors.topMargin: -10
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
 				timePicker.isOK = true;

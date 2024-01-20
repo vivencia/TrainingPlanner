@@ -246,13 +246,11 @@ Item {
 					text: qsTr("Set type: ")
 				}
 
-				ComboBox {
+				TPComboBox {
 					id: cboSetType
 					model: setTypes
 					Layout.minimumWidth: 140
 					currentIndex: setType
-					textRole: "key"
-					valueRole: "idx"
 				}
 				RoundButton {
 					id: btnAddSet

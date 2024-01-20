@@ -221,90 +221,106 @@ function calculateTimeBetweenTimes(time1, time2) {
 	return createStrTimeFromInts(hour, min);
 }
 
-function getTrainingDayNumber(selDate, startDate) {
-	//Number of days from the beginning of meso to the end of first month
-	var nday = getMonthTotalDays(startDate.getMonth(), startDate.getFullYear()) - startDate.getDate() + 1;
-
-	//Add to it the month's total number of days
-	var month;
-	if (selDate.getMonth() > startDate.getMonth()) {
-		for (month = startDate.getMonth() + 1; month < selDate.getMonth(); month++) {
-			nday += getMonthTotalDays (month, startDate.getYear());
-		}
-		//Add the days from the selected month
-		nday += selDate.getDate() + 1;
+function checkWhetherCanCreatePlan()
+	{
+	var ok = true;
+	if (mesoSplit.indexOf('A') !== -1) {
+		ok &= (txtSplitA.length > 1);
+		txtSplitA.cursorPosition = 0;
 	}
-	else if (selDate.getMonth() < startDate.getMonth()){
-		var endmonth = 11 + selDate.getMonth() + 1;
-		var year = startDate.getFullYear();
-		//Go to the end of the year
-		for (month = startDate.getMonth() + 1; month <= endmonth; month++) {
-			if (month <= 11)
-				nday += getMonthTotalDays (month, year);
-			//When end of year is reached, reset everything and start from month 0
-			else {
-				month = 0;
-				year++;
-				endmonth = selDate.getMonth();
-			}
-		}
-		//Add the days from the selected month
-		nday += selDate.getDate() + 1;
+	if (mesoSplit.indexOf('B') !== -1) {
+		ok &= (txtSplitB.length > 1);
+		txtSplitB.cursorPosition = 0;
 	}
-	else { //Selected month is the start month
-		nday = (selDate.getDate() + 1) - startDate.getDate() + 1;
+	if (mesoSplit.indexOf('C') !== -1) {
+		ok &= (txtSplitC.length > 1);
+		txtSplitC.cursorPosition = 0;
 	}
-	return nday;
+	if (mesoSplit.indexOf('D') !== -1) {
+		ok &= (txtSplitD.length > 1);
+		txtSplitD.cursorPosition = 0;
+	}
+	if (mesoSplit.indexOf('E') !== -1) {
+			ok &= (txtSplitE.length > 1);
+		txtSplitE.cursorPosition = 0;
+	}
+	if (mesoSplit.indexOf('F') !== -1) {
+		ok &= (txtSplitF.length > 1);
+		txtSplitF.cursorPosition = 0;
+	}
+	btnCreateExercisePlan.enabled = ok;
 }
 
-function urlToPath(url) {
-	var path
-	if (url.startsWith("file:///")) {
-		var k = url.charAt(9) === ':' ? 8 : 7
-		path = url.substring(k)
-	} else {
-		path = url
-	}
-	return decodeURIComponent(path);
-}
-
-function pathToLocalUrl(path) {
-	var str_path;
-	if (path.length <= 7)
-		str_path = "qrc:/images/no_image.jpg";
-	else {
-		if (!path.startsWith("qrc"))
-			str_path = "file://" + path;
-		else
-			str_path = path;
-	}
-	var url = new URL(str_path);
-	return url;
-}
-
-function toCompositeExerciseId(exercise1, exercise2) {
-	if (exercise2 > 0)
-		return exercise1 + exercise2 * 10000;
-	else
-		return exercise1;
-}
-
-function getExerciseIdFromCompositeExerciseId(idx, exerciseid) {
-	var ret;
-	switch (idx) {
-		case 0: //first id
-			if (exerciseid > 9999)
-				ret = exerciseid % 10000;
+function moveFocusToNextField(from) {
+	switch (from) {
+		case '0':
+			if (txtSplitA.visible)
+				txtSplitA.forceActiveFocus();
+			else if (txtSplitB.visible)
+				txtSplitB.forceActiveFocus();
+			else if (txtSplitC.visible)
+				txtSplitC.forceActiveFocus();
+			else if (txtSplitD.visible)
+				txtSplitD.forceActiveFocus();
+			else if (txtSplitE.visible)
+				txtSplitE.forceActiveFocus();
+			else if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
 			else
-				ret = exerciseid;
+				txtMesoDrugs.forceActiveFocus();
 		break;
-		case 1: //second id
-			if (exerciseid > 9999)
-				ret = Math.floor(exerciseid / 10000);
+		case 'A':
+			if (txtSplitB.visible)
+				txtSplitB.forceActiveFocus();
+			else if (txtSplitC.visible)
+				txtSplitC.forceActiveFocus();
+			else if (txtSplitD.visible)
+				txtSplitD.forceActiveFocus();
+			else if (txtSplitE.visible)
+				txtSplitE.forceActiveFocus();
+			else if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
 			else
-				ret = -1;
+				txtMesoDrugs.forceActiveFocus();
+		break;
+		case 'B':
+			if (txtSplitC.visible)
+				txtSplitC.forceActiveFocus();
+			else if (txtSplitD.visible)
+				txtSplitD.forceActiveFocus();
+			else if (txtSplitE.visible)
+				txtSplitE.forceActiveFocus();
+			else if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
+			else
+				txtMesoDrugs.forceActiveFocus();
+		break;
+		case 'C':
+			if (txtSplitD.visible)
+				txtSplitD.forceActiveFocus();
+			else if (txtSplitE.visible)
+				txtSplitE.forceActiveFocus();
+			else if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
+			else
+				txtMesoDrugs.forceActiveFocus();
+		break;
+		case 'D':
+			if (txtSplitE.visible)
+				txtSplitE.forceActiveFocus();
+			else if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
+			else
+				txtMesoDrugs.forceActiveFocus();
+		break;
+		case 'E':
+			if (txtSplitF.visible)
+				txtSplitF.forceActiveFocus();
+			else
+				txtMesoDrugs.forceActiveFocus();
+		break;
+		case 'F':
+			txtMesoDrugs.forceActiveFocus();
 		break;
 	}
-	return ret;
 }
-
