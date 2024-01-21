@@ -57,5 +57,6 @@
         <file>images/white/edit-clear.png</file>
         <file>images/black/sound-off.png</file>
         <file>images/white/sound-off.png</file>
+        <file>images/indicator.png</file>
     </qresource>
 </RCC>

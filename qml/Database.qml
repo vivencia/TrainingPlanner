@@ -258,7 +258,7 @@ QtObject {
 		let mesoinfo = [];
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM mesocycles WHERE meso_id=?", [mesoId]);
-			const bRealMeso = results.rows.item(0).meso_end_date !== -1;
+			const bRealMeso = results.rows.item(0).meso_end_date !== 0;
 			mesoinfo.push({
 					"mesoId": mesoId,
 					"mesoName": results.rows.item(0).meso_name,

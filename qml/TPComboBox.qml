@@ -7,7 +7,7 @@ ComboBox {
 	font.pixelSize: AppSettings.fontSizeText
 
 	property string textColor: "white"
-	property string backgroundColor: "#c3cad5"
+	property string backgroundColor: "black"//"#c3cad5"
 	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
 	textRole: "text"
@@ -72,7 +72,7 @@ ComboBox {
 		implicitHeight: control.implicitHeight
 		border.color: "black"
 		color: backgroundColor
-		opacity: 0.8
+		opacity: 0.5
 		border.width: control.visualFocus ? 2 : 1
 		radius: 6
 	}
@@ -103,7 +103,7 @@ ComboBox {
 		background: Rectangle {
 			border.color: "black"
 			color: backgroundColor
-			opacity: 0.8
+			opacity: 0.5
 			radius: 6
 		}
 	}

@@ -58,16 +58,14 @@ Page {
 				if (mesos.length !== 0) {
 					for (let meso of mesos)
 						append(meso);
+					pageActivation();
 				}
 				else {
-					var component = Qt.createComponent("FirstTimeHomePageTip.qml");
-					if (component.status === Component.Ready) {
-						firstTimeTip = component.createObject(homePage, { message:qsTr("Start here"), yPos:homePageToolBar.y - homePageToolBar.height, xPos:(homePage.width - width) / 2 });
-						firstTimeTip.visible = true;
-						firstTimeTip.startAnim();
-						homePage.StackView.activating.connect(pageActivation);
-						bFirstTime = true;
-					}
+					createFirstTimeTipComponent();
+					firstTimeTip.y = homePageToolBar.y;
+					firstTimeTip.x = (homePage.width-100)/2;
+					firstTimeTip.visible = true;
+					bFirstTime = true;
 				}
 			}
 
@@ -143,6 +141,7 @@ Page {
 								mainMesosModel.remove(mesoDelegate.index, 1);
 								dateTimer.triggered(); //Update tabBar and the meso model index it uses
 								accept();
+								pageActivation();
 							break;
 							case MessageDialog.No:
 								reject();
@@ -414,11 +413,43 @@ footer: ToolBar {
 	}
 
 	function pageActivation() {
-		if (firstTimeTip && mainMesosModel.count === 0) {
-			firstTimeTip.message = qsTr("Start here");
-			firstTimeTip.yPos = homePageToolBar.y;
-			firstTimeTip.xPos = (homePage.width - width) / 2;
-			firstTimeTip.visible = true;
+		let day_info = Database.getMostRecentTrainingDay();
+		const showTip = !day_info.exercisesNames;
+
+		if (mainMesosModel.count === 0 || showTip) {
+			if (firstTimeTip) {
+				firstTimeTip.message = qsTr("Start here");
+				firstTimeTip.visible = true;
+			}
+			else
+				createFirstTimeTipComponent();
+
+			if (mainMesosModel.count === 0) {
+				firstTimeTip.y = homePageToolBar.y;
+				firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
+				firstTimeTip.visible = true;
+			}
+			else {
+				if (showTip) {
+					firstTimeTip.y = homePageToolBar.y + homePageToolBar.height;
+					firstTimeTip.x = homePage.width-firstTimeTip.width;
+					firstTimeTip.visible = true;
+				}
+			}
+		}
+	}
+
+	function pageDeActivation() {
+		if (firstTimeTip)
+			firstTimeTip.visible = false;
+	}
+
+	function createFirstTimeTipComponent() {
+		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
+		if (component.status === Component.Ready) {
+			firstTimeTip = component.createObject(homePage, { message:qsTr("Start here") });
+			homePage.StackView.activating.connect(pageActivation);
+			homePage.StackView.onDeactivating.connect(pageDeActivation);
 		}
 	}
 } //Page

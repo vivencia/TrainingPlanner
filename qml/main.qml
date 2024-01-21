@@ -201,16 +201,17 @@ ApplicationWindow {
 					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(currentMesoIdx).mesoId);
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
-					if (day_info.length > 0) {
+					var bFirstTime = false;
+					if (day_info.exercisesNames) {
 						tday = day_info[0].dayNumber + 1;
 						splitletter = getNextLetterInSplit(mesosplit, day_info[0].mesoCalSplit);
-						mesoid = day_info[0].mesoId;
 					}
 					else {
 						tday = 1;
 						splitletter = mesosplit.length > 0 ? mesosplit.charAt(0) : 'A';
-						mesoid = meso_info[0].mesoId;
+						bFirstTime = true;
 					}
+					mesoid = meso_info[0].mesoId;
 				}
 
 				stackView.push("TrainingDayInfo.qml", {
@@ -218,7 +219,8 @@ ApplicationWindow {
 						"tDay": tday,
 						"splitLetter": splitletter,
 						"mesoName": meso_name,
-						"mesoId": mesoid
+						"mesoId": mesoid,
+						"bFirstTime": bFirstTime
 				});
 			}
 		}

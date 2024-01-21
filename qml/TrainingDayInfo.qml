@@ -30,6 +30,7 @@ Page {
 	property var mesoSplitLetter
 	property var mesoTDay
 	property bool bRealMeso: true
+	property bool bFirstTime: false
 
 	property bool bStopBounce: false
 	property bool bNotScroll: true
@@ -38,6 +39,7 @@ Page {
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
 	property var navButtons: null
+	property var firstTimeTip: null
 
 	property bool bShowSimpleExercisesList: false
 	property var exerciseEntryThatRequestedSimpleList: null
@@ -670,6 +672,19 @@ Page {
 
 			GroupBox {
 				id: grpIntent
+				property bool highlight: false
+
+				onHighlightChanged: {
+					if (highlight) {
+						recIntent.border.width = 2;
+						anim.start();
+					}
+					else {
+						recIntent.border.width = 1;
+						anim.stop();
+					}
+				}
+
 				label: Label {
 					text: qsTr("What do you want to do today?")
 					color: "white"
@@ -678,6 +693,36 @@ Page {
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.bottomMargin: 10
 				}
+
+				background: Rectangle {
+					id: recIntent
+					color: "transparent"
+					border.color: "white"
+					radius: 6
+				}
+
+				SequentialAnimation {
+					id: anim
+					loops: Animation.Infinite
+
+					ColorAnimation {
+						target: recIntent
+						property: "border.color"
+						from: "white"
+						to: "gold"
+						duration: 300
+						easing.type: Easing.InOutCubic
+					}
+					ColorAnimation {
+						target: recIntent
+						property: "border.color"
+						from: "gold"
+						to: "white"
+						duration: 300
+						easing.type: Easing.InOutCubic
+					}
+				}
+
 				visible: bHasMesoPlan || bHasPreviousDay
 				width: parent.width - 20
 				Layout.fillWidth: true
@@ -746,6 +791,7 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
+							highlight = false;
 							if (mesoSplitLetter !== splitLetter) {
 								if (exercisesNames.length > 0) {
 									if (grpIntent.option !== 3) {
@@ -773,6 +819,8 @@ Page {
 									bHasMesoPlan = false;
 								break;
 							}
+							if (grpIntent.option >=2 )
+								placeTipOnAddExercise();
 							grpIntent.visible = false;
 						}
 					}
@@ -807,6 +855,7 @@ Page {
 
 		Component.onCompleted: {
 			loadOrCreateDayInfo();
+			pageActivation();
 		}
 
 		function scrollToPos(y_pos) {
@@ -978,6 +1027,8 @@ Page {
 			strName1 += ' - ' + strName2;
 			addExercise(strName1);
 			strName2 = "";
+			if (bFirstTime && firstTimeTip)
+				firstTimeTip.visible = false;
 		}
 
 		var component;
@@ -1302,5 +1353,38 @@ Page {
 	function closeSimpleExerciseList() {
 		bShowSimpleExercisesList = false;
 		exerciseEntryThatRequestedSimpleList = null;
+	}
+
+	function createFirstTimeTipComponent() {
+		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
+		if (component.status === Component.Ready) {
+			firstTimeTip = component.createObject(trainingDayPage, { message:qsTr("Start here") });
+			trainingDayPage.StackView.activating.connect(pageActivation);
+			trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
+		}
+	}
+
+	function pageActivation() {
+		if (bFirstTime) {
+			if (grpIntent.visible) {
+				scrollTraining.setScrollBarPosition(1);
+				grpIntent.highlight = true;
+			}
+			else
+				placeTipOnAddExercise();
+		}
+	}
+
+	function pageDeActivation() {
+		if (firstTimeTip)
+			firstTimeTip.visible = false;
+	}
+
+	function placeTipOnAddExercise() {
+		if (!firstTimeTip)
+			createFirstTimeTipComponent();
+		firstTimeTip.y = dayInfoToolBar.y;
+		firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
+		firstTimeTip.visible = true;
 	}
 } // Page

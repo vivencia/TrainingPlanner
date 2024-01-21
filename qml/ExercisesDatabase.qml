@@ -247,9 +247,10 @@ Page {
 
 			ButtonFlat {
 				id: btnChooseMediaFromDevice
-				text: qsTr("Choose file")
+				text: qsTr("Choose media")
 				onClicked: chooseMediaFromDevice();
 				Layout.alignment: Qt.AlignCenter
+				enabled: bNew || bEdit
 			}
 		} // ColumnLayout
 	} // ScrollView

@@ -29,6 +29,7 @@ Page {
 	property bool bNewMeso: mesoId === -1
 	property bool bModified: false
 	property bool bFirstTime: false
+	property bool bEmptyPlan: false
 	property var firstTimeTip: null
 
 	background: Rectangle {
@@ -43,11 +44,11 @@ Page {
 	}
 
 	onBModifiedChanged: {
-		if (bLoadCompleted) {
+		if (bLoadCompleted && bModified) {
 			if (bFirstTime && firstTimeTip) {
 				firstTimeTip.message = qsTr("Click here");
-				firstTimeTip.yPos = mesoCycleToolBar.y;
-				firstTimeTip.xPos = openEndedPage.width;
+				firstTimeTip.y = mesoCycleToolBar.y;
+				firstTimeTip.x = openEndedPage.width - firstTimeTip.width;
 				firstTimeTip.visible = true;
 			}
 		}
@@ -167,6 +168,7 @@ Page {
 			Layout.minimumWidth: parent.width / 2
 			validator: regEx
 			text: mesoSplit
+			highlight: bFirstTime
 
 			onTextEdited: {
 				if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit))
@@ -203,6 +205,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('A') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
@@ -236,6 +239,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('B') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
@@ -270,6 +274,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('C') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
@@ -304,6 +309,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('D') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
@@ -338,6 +344,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('E') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
@@ -372,6 +379,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('F') !== -1
+				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
@@ -390,6 +398,7 @@ Page {
 				Layout.column: 0
 				Layout.columnSpan: 2
 				Layout.alignment: Qt.AlignCenter
+				highlight: bEmptyPlan
 
 				onClicked: {
 					openEndedPage.StackView.view.push("ExercisesPlanner.qml", { "mesoId":mesoId, "mesoSplit":mesoSplit });
@@ -458,8 +467,13 @@ Page {
 
 			onClicked: {
 				if (bFirstTime) {
-					firstTimeToolTip.text = qsTr("Click on HOME now!")
+					firstTimeToolTip.text = qsTr("Either click on HOME or on Exercises Planner to create a script for your training routine")
 					firstTimeTip.visible = false;
+					firstTimeTip.x = 0;
+					firstTimeTip.y = mesoCycleToolBar.y + mesoCycleToolBar.height;
+					firstTimeTip.visible = true;
+					bFirstTime = false;
+					bEmptyPlan = true;
 				}
 
 				if (mesoSplit.length === 0)
@@ -478,14 +492,14 @@ Page {
 					strSplitF = " ";
 				if (bNewMeso) {
 					mesoName = qsTr("Open Ended Training Schedule");
-					let results = Database.newMeso(mesoName, mesoStartDate.getTime(), 111, "##", 0, mesoSplit, "##");
+					let results = Database.newMeso(mesoName, mesoStartDate.getTime(), 0, "##", 0, mesoSplit, "##");
 					mesoId = parseInt(results.insertId);
 
 					mesosModel.append ({
 						mesoId: mesoId,
 						mesoName: mesoName,
 						mesoStartDate: mesoStartDate,
-						mesoEndDate: new Date(),
+						mesoEndDate: 0,
 						mesoNote: "##",
 						nWeeks: 0,
 						mesoSplit: mesoSplit,
@@ -537,6 +551,17 @@ Page {
 		Component.onCompleted: {
 			bLoadCompleted = true;
 			JSF.checkWhetherCanCreatePlan();
+
+			if (bFirstTime && firstTimeTip) {
+				firstTimeTip.message = qsTr("Click here");
+				firstTimeTip.y = mesoCycleToolBar.y;
+				firstTimeTip.x = openEndedPage.width;
+				firstTimeTip.visible = true;
+			}
+			else {
+				let plan_info = Database.getCompleteDivisionAForMeso(mesoId);
+				bEmptyPlan = !plan_info.splitExercises;
+			}
 		}
 	} //footer
 } //Page

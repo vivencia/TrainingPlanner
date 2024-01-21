@@ -36,6 +36,7 @@ qt_add_executable(trainingplanner
 	${SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
+
 )
 
 target_link_libraries(trainingplanner PUBLIC

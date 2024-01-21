@@ -3,11 +3,9 @@ import QtQuick.Controls
 
 ToolTip {
 	id: firstTimeTip
-	x: xPos
-	y: yPos
-	property int yPos
-	property int xPos
 	property string message
+	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+	visible: false
 
 	FontMetrics {
 		id: fontMetrics
@@ -15,11 +13,12 @@ ToolTip {
 		font.pixelSize: AppSettings.titleFontSizePixelSize
 	}
 
-	/*onYPosChanged: {
-		const point = homePage.mapToGlobal(xPos,yPos);
-		firstTimeTip.x = point.x;
-		firstTimeTip.y = point.y;
-	}*/
+	onVisibleChanged: {
+		if (visible)
+			anim.start();
+		else
+			anim.stop();
+	}
 
 	contentItem: Text {
 		id: textPart
@@ -61,22 +60,18 @@ ToolTip {
 
 		PropertyAnimation {
 			target: firstTimeTip
-			property: "yPos"
-			to: firstTimeTip.yPos - 20
+			property: "y"
+			to: firstTimeTip.y - 20
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
 
 		PropertyAnimation {
 			target: firstTimeTip
-			property: "yPos"
-			to: firstTimeTip.yPos + 10
+			property: "y"
+			to: firstTimeTip.y + 10
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
-	}
-
-	function startAnim() {
-		anim.start();
 	}
 } //ToolTip

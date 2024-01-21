@@ -9,6 +9,7 @@ Rectangle {
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property bool textUnderIcon: false
+	property bool highlight: false
 
 	property string imageSource
 	property bool bPressed: false
@@ -19,8 +20,19 @@ Rectangle {
 	border.color: "black"
 	radius: 6
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
-	implicitWidth: buttonText.contentWidth + (buttonImage.visible ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
-	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
+	implicitWidth: buttonText.width + (buttonImage.visible ? textUnderIcon ? 0 : buttonImage.width : 0)
+	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 0 : 0 : 0)
+
+	onHighlightChanged: {
+		if (highlight) {
+			button.border.width = 2;
+			anim2.start();
+		}
+		else {
+			button.border.width = 1;
+			anim2.stop();
+		}
+	}
 
 	property double fillPosition: !anim.running
 
@@ -45,12 +57,16 @@ Rectangle {
 		color: button.enabled ? "white" : "black"
 		font.weight: Font.ExtraBold
 		font.bold: true
-		font.pixelSize: AppSettings.titleFontSizePixelSize
-		padding: 0
+		font.pixelSize: AppSettings.fontSizeText
+		leftPadding: 5
+		topPadding: textUnderIcon ? 10 : 5
+		bottomPadding: 5
+		rightPadding: 5
+		width: fontMetrics.boundingRect(text).width + 10
+		height: fontMetrics.boundingRect("TM").height + 10
 
 		Component.onCompleted: {
 			anchors.left = button.left;
-			anchors.leftMargin = 5;
 			if (!textUnderIcon)
 				anchors.verticalCenter = button.verticalCenter;
 			else {
@@ -58,6 +74,12 @@ Rectangle {
 				anchors.bottom = button.bottom;
 				anchors.bottomMargin = 2;
 			}
+		}
+
+		FontMetrics {
+			id: fontMetrics
+			font.family: buttonText.font.family
+			font.pixelSize: AppSettings.fontSizeText
 		}
 	}
 
@@ -79,13 +101,13 @@ Rectangle {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
 					anchors.left = buttonText.right
-					anchors.leftMargin = 2;
+					anchors.leftMargin = 0;
 				}
 				else {
 					anchors.top = button.top;
 					anchors.topMargin = 5;
 					anchors.horizontalCenter = button.horizontalCenter;
-					anchors.bottomMargin = 5;
+					anchors.bottomMargin = 10;
 				}
 			}
 		}
@@ -136,6 +158,27 @@ Rectangle {
 				bEmitSignal = false;
 				button.clicked();
 			}
+		}
+	}
+
+	SequentialAnimation {
+		id: anim2
+		loops: Animation.Infinite
+
+		PropertyAnimation {
+			target: button
+			property: "border.color"
+			to: "gold"
+			duration: 300
+			easing.type: Easing.InOutCubic
+		}
+
+		PropertyAnimation {
+			target: button
+			property: "border.color"
+			to: "black"
+			duration: 300
+			easing.type: Easing.InOutCubic
 		}
 	}
 } //Rectangle

@@ -20,7 +20,6 @@ ToolBar {
 		anchors.leftMargin: 5
 		visible: root.stackView.depth >= 2
 		anchors.verticalCenter: parent.verticalCenter
-		//text: root.stackView.depth > 2 ? qsTr("Back") : qsTr("Home")
 		text: qsTr("BACK")
 		imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 

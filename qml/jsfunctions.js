@@ -267,7 +267,7 @@ function moveFocusToNextField(from) {
 			else if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'A':
 			if (txtSplitB.visible)
@@ -281,7 +281,7 @@ function moveFocusToNextField(from) {
 			else if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'B':
 			if (txtSplitC.visible)
@@ -293,7 +293,7 @@ function moveFocusToNextField(from) {
 			else if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'C':
 			if (txtSplitD.visible)
@@ -303,7 +303,7 @@ function moveFocusToNextField(from) {
 			else if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'D':
 			if (txtSplitE.visible)
@@ -311,16 +311,16 @@ function moveFocusToNextField(from) {
 			else if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'E':
 			if (txtSplitF.visible)
 				txtSplitF.forceActiveFocus();
 			else
-				txtMesoDrugs.forceActiveFocus();
+				btnCreateExercisePlan.forceActiveFocus();
 		break;
 		case 'F':
-			txtMesoDrugs.forceActiveFocus();
+			btnCreateExercisePlan.forceActiveFocus();
 		break;
 	}
 }
