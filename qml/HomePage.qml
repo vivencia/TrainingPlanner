@@ -164,6 +164,7 @@ Page {
 				property bool bFromRight
 
 				onClicked: {
+					currentMesoIndex = index;
 					showMeso();
 					swipeWidth = 0;
 					recRemoveMeso.visible = false;
@@ -247,13 +248,6 @@ Page {
 					color: "white"
 				}
 			}
-
-			Connections {
-				target: mesoDelegate
-				function onClicked() {
-					currentMesoIndex = index;
-				}
-			}
 		} //delegate
 	} //ListView
 
@@ -303,7 +297,10 @@ footer: ToolBar {
 			endDate = JSF.createFutureDate(startDate, 0, 2, 0);
 		}
 		else {
-			getMesoStartDate();
+			if (mainMesosModel.realMeso)
+				getMesoStartDate();
+			else
+				minimumStartDate = today;
 			startDate = minimumStartDate;
 			endDate = JSF.createFutureDate(minimumStartDate, 0, 2, 0);
 		}
@@ -397,7 +394,7 @@ footer: ToolBar {
 		var month = date.getMonth();
 		var year = date.getFullYear();
 
-		var daysToNextMonday = [1, 2, 3, 4, 5, 6, 0];
+		var daysToNextMonday = [1, 7, 6, 5, 4, 3, 2];
 		day = day + daysToNextMonday[date.getDay()]; //Always start at next monday
 
 		var totalDays = JSF.getMonthTotalDays(month, year);
@@ -413,8 +410,9 @@ footer: ToolBar {
 	}
 
 	function pageActivation() {
-		let day_info = Database.getMostRecentTrainingDay();
-		const showTip = !day_info.exercisesNames;
+		//mainMesosModel.count === 0 is a first iteration of tips
+		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
+		const showTip = mainMesosModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mainMesosModel.mesoId) : false;
 
 		if (mainMesosModel.count === 0 || showTip) {
 			if (firstTimeTip) {

@@ -189,19 +189,21 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
-				const meso_name = initialPage.mainModel.get(currentMesoIdx).mesoName
+				const mostRecentMeso = initialPage.mainModel.count - 1;
+				const meso_name = initialPage.mainModel.get(mostRecentMeso).mesoName
 				var tday = 0, splitletter = 'A', mesoid = 0;
-				if (initialPage.mainModel.get(currentMesoIdx).realMeso) {
+				var bFirstTime = false;
+
+				if (initialPage.mainModel.get(mostRecentMeso).realMeso) {
 					let calendar_info = Database.getMesoCalendarDate(today);
 					tday = calendar_info[0].mesoCalnDay;
 					splitletter = calendar_info[0].mesoCalSplit;
 					mesoid = calendar_info[0].mesoCalMesoId;
 				}
 				else {
-					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(currentMesoIdx).mesoId);
+					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(mostRecentMeso).mesoId);
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
-					var bFirstTime = false;
 					if (day_info.exercisesNames) {
 						tday = day_info[0].dayNumber + 1;
 						splitletter = getNextLetterInSplit(mesosplit, day_info[0].mesoCalSplit);

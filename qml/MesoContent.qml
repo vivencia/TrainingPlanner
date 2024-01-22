@@ -626,6 +626,7 @@ Page {
 				font.pixelSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 				Layout.maximumWidth: parent.width / 2
+				Layout.leftMargin: 5
 			}
 
 			ButtonFlat {
@@ -634,6 +635,7 @@ Page {
 				imageSource: "qrc:/images/"+lightIconFolder+"day-info.png"
 				textUnderIcon: true
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
+				Layout.rightMargin: 5
 
 				onClicked: {
 					var component = Qt.createComponent("TrainingDayInfo.qml");

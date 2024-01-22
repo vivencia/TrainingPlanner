@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 
 import "jsfunctions.js" as JSF
 
-Item {
+FocusScope {
 	id: exerciseItem
 	property ListModel exercicesModel
 	required property string exerciseName
@@ -17,7 +17,6 @@ Item {
 	property string exerciseName2
 	property int setType: 0
 	property int setNbr: -1
-	property var setObjectY: []
 	property var suggestedReps: []
 	property var suggestedSubSets: []
 	property var suggestedWeight: []
@@ -25,11 +24,12 @@ Item {
 	property var setNotes: []
 	property var setIds: []
 	property var btnFloat: null
+	property var lastSetObjectBeforeThisExercise: null
 
 	property int thisObjectIdx
 	signal exerciseRemoved(int ObjectIdx)
 	signal exerciseEdited(int objidx, string newname)
-	signal setAdded(bool bnewset, int sety, int setheight, int objidx)
+	signal setAdded(bool bnewset, int objidx, var setObject)
 	signal requestHideFloatingButtons(int except_idx)
 
 	property var setObjectList: []
@@ -168,6 +168,7 @@ Item {
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
+					padding: 5
 					Image {
 						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
 						anchors.verticalCenter: parent.verticalCenter
@@ -185,6 +186,7 @@ Item {
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
+					padding: 5
 					z: 2
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -204,6 +206,7 @@ Item {
 					anchors.verticalCenter: parent.verticalCenter
 					height: 25
 					width: 25
+					padding: 5
 					z: 2
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"edit.png"
@@ -391,9 +394,8 @@ Item {
 			sprite.setRemoved.connect(setRemoved);
 			sprite.setChanged.connect(setChanged);
 
-			if (setNbr >= 1) {
-				setObjectY[setNbr] = setObjectList[setNbr-1].Object.y + setObjectList[setNbr-1].Object.height;
-			}
+			if (setNbr >= 1)
+				setObjectList[setNbr-1].Object.nextObject = sprite;
 			else {
 				if (type === 4) { //Giant set
 					bCompositeExercise = true;
@@ -407,9 +409,8 @@ Item {
 				}
 				//else
 				//	exerciseName1 = exerciseName;
-				setObjectY[setNbr] = 0;
 			}
-			setAdded(bNewSet, setObjectY[setNbr], sprite.height, thisObjectIdx);
+			setAdded(bNewSet, thisObjectIdx, sprite);
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr++;
 		}
@@ -443,17 +444,13 @@ Item {
 			setObjectList[i].Object.destroy();
 		}
 		delete setObjectList;
-		delete setObjectY;
 		let newObjectList = new Array;
 		setObjectList = newObjectList;
-		let newObjectY = new Array;
-		setObjectY = newObjectY;
 		destroyFloatingAddSetButton ();
 	}
 
 	function setRemoved(nset) {
 		let newObjectList = new Array;
-		let newObjectY = new Array;
 		setObjectList[nset].Object.destroy();
 		setNbr--;
 
@@ -461,19 +458,14 @@ Item {
 			if (i >= nset) {
 				setObjectList[i].Object.bIsRemoving = true;
 				setObjectList[i].Object.setNumber = setObjectList[i].Object.setNumber - 1;
-				if (i < setObjectList.length - 1)
-					setObjectY[i+1] = setObjectY[i];
 			}
 			if (i !== nset) {
 				newObjectList[x] = setObjectList[i];
-				newObjectY[x] = setObjectY[i];
 				x++;
 			}
 		}
 		delete setObjectList;
-		delete setObjectY;
 		setObjectList = newObjectList;
-		setObjectY = newObjectY;
 		if (setObjectList.length === 0) { //setNbr === -1
 			destroyFloatingAddSetButton ();
 		}

@@ -12,8 +12,12 @@ Column {
 	property bool bFilterApplied: false
 	readonly property ListModel currentModel: lstExercises.model
 	readonly property ListModel tempModel: filterModel
+	property bool bMultipleSelection: false
+	property bool canDoMultipleSelection: false
 
-	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, int sets, real reps, real weight, string mediaPath)
+	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
+	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, int sets,
+									real reps, real weight, string mediaPath, int multipleSelectionOption)
 
 	ListModel {
 		id: filterModel
@@ -104,13 +108,14 @@ Column {
 				}
 				if (count > 0) {
 					curIndex = 0;
-					displaySelectedExercise(curIndex);
+					displaySelectedExercise(curIndex, 0);
 				}
 			}
 		} //model
 
 		delegate: SwipeDelegate {
 			id: delegate
+			property bool bSelected: false
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
@@ -132,15 +137,21 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: curIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+				color: !bMultipleSelection ? curIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5" :
+							bSelected ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 			}
 			onClicked: {
-				if (index !== curIndex) {
-					curIndex = index;
-					displaySelectedExercise(index);
+				if (!bMultipleSelection) {
+					if (index !== curIndex) {
+						curIndex = index;
+						displaySelectedExercise(index, 0);
+					}
+					else
+						closeSimpleExerciseList();
 				}
 				else {
-					closeSimpleExerciseList();
+					bSelected = !bSelected;
+					displaySelectedExercise(index, bSelected ? 2 : 1);
 				}
 			}
 
@@ -158,11 +169,7 @@ Column {
 				radius: 5
 
 				Image {
-					//font.family: "Fontello"
-					//text: delegate.swipe.complete ? "\ue805" // icon-cw-circled
-					//					 : "\ue801" // icon-cancel-circled-1
 					source: "qrc:/images/"+lightIconFolder+"remove.png"
-					//anchors.fill: parent
 					anchors.left: parent.left
 					anchors.leftMargin: 10
 					anchors.verticalCenter: parent.verticalCenter
@@ -204,6 +211,33 @@ Column {
 		color: "white"
 		font.pixelSize: AppSettings.fontSizeText
 		font.bold: true
+		width: parent.width - 25
+
+		RoundButton {
+			id: btnMultipleSelection
+			checkable: true
+			checked: false
+			visible: canDoMultipleSelection
+			width: 20
+			height: 20
+
+			Image {
+				source: "qrc:/images/" + darkIconFolder + "multi-selection.png"
+				width: 20
+				height: 20
+				anchors.fill: parent
+				fillMode: Image.PreserveAspectFit
+			}
+
+			anchors {
+				left: parent.right
+				verticalCenter: parent.verticalCenter
+			}
+
+			onCheckedChanged: {
+				bMultipleSelection = checked;
+			}
+		}
 	}
 	TPTextInput {
 		id: txtFilter
@@ -268,11 +302,11 @@ Column {
 		} //onTextChanged
 	} // txtFilter
 
-	function displaySelectedExercise(lstIdx) {
+	function displaySelectedExercise(lstIdx, multiple_opt) {
 		exerciseEntrySelected(currentModel.get(lstIdx).mainName, currentModel.get(lstIdx).subName,
 							currentModel.get(lstIdx).muscularGroup, currentModel.get(lstIdx).nSets,
 							currentModel.get(lstIdx).nReps, currentModel.get(lstIdx).nWeight,
-							currentModel.get(lstIdx).mediaPath);
+							currentModel.get(lstIdx).mediaPath, multiple_opt);
 	}
 
 	function removeExercise(removeIdx) {
@@ -305,7 +339,7 @@ Column {
 
 	function simulateMouseClick(new_index) {
 		if (new_index < currentModel.count) {
-			displaySelectedExercise(new_index);
+			displaySelectedExercise(new_index, 0);
 			lstExercises.positionViewAtIndex(new_index, ListView.Center);
 		}
 	}

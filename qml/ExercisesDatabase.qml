@@ -292,7 +292,7 @@ Page {
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
-				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
+				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
 					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
 				}
 			}

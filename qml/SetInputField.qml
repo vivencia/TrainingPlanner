@@ -190,7 +190,8 @@ FocusScope {
 			readOnly: type === SetInputField.Type.TimeType
 			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
 			padding: 0
-			focus: type !== SetInputField.Type.TimeType
+			//focus: type !== SetInputField.Type.TimeType
+			focus: true
 			textColor: "white"
 
 			anchors {
@@ -211,6 +212,10 @@ FocusScope {
 
 			onActiveFocusChanged: {
 				if(activeFocus) {
+					if (type === SetInputField.Type.TimeType) {
+						openTimerDialog();
+						return;
+					}
 					if (bClearInput) {
 						txtMain.clear();
 						bClearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
@@ -240,21 +245,11 @@ FocusScope {
 			}
 
 			MouseArea {
+				id: mousearea
 				anchors.fill: parent
 				enabled: type === SetInputField.Type.TimeType
 
-				onClicked: {
-					if (setNbr >=1) {
-						if (timerDialog === null) {
-							var component = Qt.createComponent("TimerDialog.qml");
-							timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false, windowTitle:windowTitle });
-							timerDialog.onUseTime.connect(timeChanged);
-						}
-						timerDialog.mins = JSF.getHourOrMinutesFromStrTime(txtMain.text);
-						timerDialog.secs = JSF.getMinutesOrSeconsFromStrTime(txtMain.text);
-						timerDialog.open();
-					}
-				}
+				onClicked: openTimerDialog();
 			}
 		} //TextInput
 
@@ -398,6 +393,19 @@ FocusScope {
 	function changeText(text, nbr) {
 		origText = text;
 		valueChanged(text, nbr);
+	}
+
+	function openTimerDialog() {
+		if (nSetNbr >=1) {
+			if (timerDialog === null) {
+				var component = Qt.createComponent("TimerDialog.qml");
+				timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false, windowTitle:windowTitle });
+				timerDialog.onUseTime.connect(timeChanged);
+			}
+			timerDialog.mins = JSF.getHourOrMinutesFromStrTime(txtMain.text);
+			timerDialog.secs = JSF.getMinutesOrSeconsFromStrTime(txtMain.text);
+			timerDialog.open();
+		}
 	}
 
 	Component.onCompleted: origText = text;

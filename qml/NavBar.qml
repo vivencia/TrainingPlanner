@@ -33,9 +33,16 @@ ToolBar {
 		id: btnSettings
 		anchors.right: parent.right
 		anchors.rightMargin: 5
-		icon.source: "qrc:/images/"+lightIconFolder+"menu.png"
-		icon.height: 20
-		icon.width: 20
+
+		Image {
+			source: "qrc:/images/"+darkIconFolder+"menu.png"
+			width: 20
+			height: 20
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+			fillMode: Image.PreserveAspectFit
+		}
+
 		onClicked: mainMenu.open();
 	}
 
@@ -43,9 +50,15 @@ ToolBar {
 		id: btnCalendar
 		anchors.right: btnSettings.left
 		anchors.rightMargin: 5
-		icon.source: "qrc:/images/"+lightIconFolder+"calendar.png"
-		icon.height: 20
-		icon.width: 20
+
+		Image {
+			source: "qrc:/images/"+darkIconFolder+"calendar.png"
+			width: 20
+			height: 20
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+			fillMode: Image.PreserveAspectFit
+		}
 
 		onClicked: {
 			if (mainCalendar === null) {
@@ -64,9 +77,15 @@ ToolBar {
 		id: btnTimer
 		anchors.right: btnCalendar.left
 		anchors.rightMargin: 5
-		icon.source: "qrc:/images/"+lightIconFolder+"time.png"
-		icon.height: 20
-		icon.width: 20
+
+		Image {
+			source: "qrc:/images/"+darkIconFolder+"time.png"
+			width: 20
+			height: 20
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+			fillMode: Image.PreserveAspectFit
+		}
 
 		onClicked: {
 			if (mainTimer === null) {

@@ -16,6 +16,7 @@ Item {
 	property int setSubSets: 0
 	property string setRestTime: "00:00"
 	property string setNotes: " "
+	property var nextObject: null
 
 	property string exerciseName2
 	property bool bIsRemoving: false
@@ -313,7 +314,10 @@ Item {
 				Layout.alignment: Qt.AlignCenter
 
 				onEnterOrReturnKeyPressed: {
-					txtSetNotes.forceActiveFocus();
+					if (nextObject !== null)
+						nextObject.forceActiveFocus()
+					else
+						txtSetNotes.forceActiveFocus();
 				}
 
 				onValueChanged: (str, val) => {

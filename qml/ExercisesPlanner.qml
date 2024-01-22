@@ -85,9 +85,10 @@ Page {
 				Layout.rightMargin: 5
 				Layout.maximumHeight: parent.height * 0.8
 				Layout.leftMargin: 5
+				canDoMultipleSelection: true
 
-				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
-					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight);
+				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
+					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
 				}
 			}
 		}

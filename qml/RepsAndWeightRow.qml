@@ -8,6 +8,7 @@ FocusScope {
 	required property int rowIdx
 	property int setNbr
 	property var nextRowObj: null
+	property var nextObject: null
 
 	property bool bBtnAddEnabled: true
 
@@ -77,6 +78,12 @@ FocusScope {
 			onEnterOrReturnKeyPressed: {
 				if (nextRowObj !== null)
 					nextRowObj.forceActiveFocus();
+				else {
+					if (nextObject !== null)
+						nextObject.forceActiveFocus()
+					else
+						txtSetNotes.forceActiveFocus();
+				}
 			}
 
 			onValueChanged: (str, val) => {

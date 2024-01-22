@@ -16,6 +16,7 @@ Item {
 	property int setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
+	property var nextObject: null
 
 	property bool bIsRemoving: false
 	property bool bUpdateLists
@@ -177,7 +178,7 @@ Item {
 			if (idx >= 1)
 				subSetAdded(Math.ceil(parseInt(getReps(idx-1)) * 0.8), Math.ceil(parseInt(getWeight(idx-1)) * 0.6));
 			rowSprite = component.createObject(subSetsLayout, {
-						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber
+						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
 			});
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
@@ -196,8 +197,11 @@ Item {
 		subSetList[idx].Object.destroy();
 		setSubSets--;
 		for( var i = 0, x = 0; i < subSetList.length; ++i ) {
-			if (i >= idx)
+			if (i >= idx) {
 				subSetList[i].Object.rowIdx--;
+				if (i === idx && i > 0)
+					subSetList[i-1].Object.nextRowObj = subSetList[i].Object;
+			}
 			if (i !== idx) {
 				subSetList[i].Object.bBtnAddEnabled = false;
 				newSubSetList[x] = subSetList[i];

@@ -429,6 +429,7 @@ Page {
 			textUnderIcon: true
 			enabled: bModified
 			anchors.left: parent.left
+			anchors.leftMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
@@ -463,6 +464,7 @@ Page {
 			textUnderIcon: true
 			enabled: bModified
 			anchors.right: parent.right
+			anchors.rightMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
@@ -499,7 +501,7 @@ Page {
 						mesoId: mesoId,
 						mesoName: mesoName,
 						mesoStartDate: mesoStartDate,
-						mesoEndDate: 0,
+						mesoEndDate: new Date(),
 						mesoNote: "##",
 						nWeeks: 0,
 						mesoSplit: mesoSplit,

@@ -16,6 +16,7 @@ Item {
 	property int setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
+	property var nextObject: null
 
 	property bool bIsRemoving: false
 
@@ -137,7 +138,10 @@ Item {
 			availableWidth: setItem.width
 
 			onEnterOrReturnKeyPressed: {
-				txtSetNotes.forceActiveFocus();
+				if (nextObject !== null)
+					nextObject.forceActiveFocus()
+				else
+					txtSetNotes.forceActiveFocus();
 			}
 
 			onValueChanged: (str, val) => {

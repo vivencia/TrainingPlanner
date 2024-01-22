@@ -242,7 +242,7 @@ QtObject {
 					"mesoId": results.rows.item(i).meso_id,
 					"mesoName": results.rows.item(i).meso_name,
 					"mesoStartDate": new Date(results.rows.item(i).meso_start_date),
-					"mesoEndDate": bRealMeso ? new Date(results.rows.item(i).meso_end_date) : results.rows.item(i).meso_end_date,
+					"mesoEndDate": bRealMeso ? new Date(results.rows.item(i).meso_end_date) : new Date(),
 					"mesoNote": results.rows.item(i).meso_note,
 					"nWeeks": results.rows.item(i).meso_nweeks,
 					"mesoSplit": results.rows.item(i).meso_split,
@@ -263,7 +263,7 @@ QtObject {
 					"mesoId": mesoId,
 					"mesoName": results.rows.item(0).meso_name,
 					"mesoStartDate": results.rows.item(0).meso_start_date,
-					"mesoEndDate": bRealMeso ? new Date(results.rows.item(0).meso_end_date) : results.rows.item(0).meso_end_date,
+					"mesoEndDate": bRealMeso ? new Date(results.rows.item(0).meso_end_date) : new Date(),
 					"mesoNote": results.rows.item(0).meso_note,
 					"nWeeks": results.rows.item(0).meso_nweeks,
 					"mesoSplit": results.rows.item(0).meso_split,
@@ -694,7 +694,7 @@ QtObject {
 		});
 	}
 
-	function checkCalendarForMesoExists(mesoId) {
+	function checkIfCalendarForMesoExists(mesoId) {
 		var ok = false;
 		db.transaction(function (tx) {
 			var res = tx.executeSql("SELECT count(*) as cnt FROM mesocycle_calendar where meso_id=?", [mesoId]);
@@ -923,6 +923,16 @@ QtObject {
 		db.transaction(function (tx) {
 			tx.executeSql("ALTER TABLE training_day ADD notes TEXT");
 		});
+	}
+
+	function isTrainingDayTableEmpty(mesoId) {
+		var ok = true;
+		db.transaction(function (tx) {
+			var res = tx.executeSql("SELECT count(*) as cnt FROM training_day where meso_id=?", [mesoId]);
+			if (res.rows.item(0).cnt > 0)
+				ok = false;
+		});
+		return ok;
 	}
 
 	function getPreviousTrainingDayForDivision(division, tday, mesoId) {

@@ -4,10 +4,12 @@ import QtQuick.Controls
 RadioButton {
 	id: control
 	padding: 0
+	property string textColor: "white"
+	property string indicatorColor: primaryLightColor
 
 	contentItem: Label {
 		text: control.text
-		color: "white"
+		color: textColor
 		wrapMode: Text.WordWrap
 		font.pixelSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
@@ -23,7 +25,7 @@ RadioButton {
 		x: 3
 		y: parent.height / 2 - height / 2
 		radius: 10
-		border.color: control.down ? primaryDarkColor : primaryLightColor
+		border.color: control.down ? primaryDarkColor : indicatorColor
 
 		Rectangle {
 			width: 14
@@ -31,7 +33,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.down ? primaryDarkColor : primaryLightColor
+			color: control.down ? primaryDarkColor : indicatorColor
 			visible: control.checked
 		}
 	}

@@ -747,6 +747,7 @@ Page {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
 			anchors.left: parent.left
+			anchors.leftMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
 			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
@@ -795,6 +796,7 @@ Page {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
 			anchors.right: parent.right
+			anchors.rightMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
@@ -875,7 +877,7 @@ Page {
 					Database.updateMesoNote(mesoId, mesoNote);
 
 					if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
-						if (Database.checkCalendarForMesoExists(mesoId)) {
+						if (Database.checkIfCalendarForMesoExists(mesoId)) {
 							if (mesoCalendarObject === null)
 								createMesoCalendarObject(false);
 							else {

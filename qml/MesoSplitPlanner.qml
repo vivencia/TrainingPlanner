@@ -135,6 +135,8 @@ Frame {
 					TPRadioButton {
 						id: optCurrentExercise
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
+						textColor: "black"
+						indicatorColor: "black"
 						checked: index === currentModelIndex
 						Layout.row: 0
 						Layout.column: 0
@@ -228,8 +230,7 @@ Frame {
 							}
 
 							onClicked: {
-								bottomPane.shown = !bCanEditExercise;
-								bCanEditExercise = !bCanEditExercise;
+								editButtonClicked();
 							}
 						} //ToolButton btnEditExercise
 					} //TextField
@@ -387,7 +388,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: currentModelIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+					color: currentModelIndex === index ? primaryLightColor : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
@@ -451,7 +452,7 @@ Frame {
 
 			onClicked: {
 				if (bCanEditExercise)
-					btnEditExercise.clicked();
+					editButtonClicked();
 				saveMesoDivisionPlan();
 			}
 		}
@@ -487,14 +488,47 @@ Frame {
 			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
 	}
 
-	function changeModel(name1, name2, nsets, nreps, nweight) {
+	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
 		if (bCanEditExercise) {
-			exercisesListModel.setProperty(currentModelIndex, "exerciseName", name1 + " - " + name2);
+			switch (multiplesel_opt) {
+				case 0: exercisesListModel.setProperty(currentModelIndex, "exerciseName", name1 + " - " + name2);
+				break;
+				case 1: removeExerciseFromName(currentModelIndex, name1 + " - " + name2);
+				break;
+				case 2: appendExerciseToName(currentModelIndex, name1 + " - " + name2);
+				break;
+			}
 			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets.toString());
 			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps.toString());
 			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight.toString());
 			bModified = true;
 		}
+	}
+
+	function removeExerciseFromName(index, name) {
+		var names = exercisesListModel.get(index).exerciseName.split('+');
+		var exercisesnames = "";
+		for (var i = 0; i < names.length; ++i) {
+			names[i] = names[i].trim();
+			if (names[i] === name)
+				continue;
+			exercisesnames += names[i] + " + ";
+		}
+		exercisesListModel.setProperty(index, "exerciseName", exercisesnames.slice(0, -3)); //remove the last ' + '
+	}
+
+	function appendExerciseToName(index, name) {
+		var exercisesnames = exercisesListModel.get(index).exerciseName;
+		if (exercisesnames.indexOf("...") !== -1)
+			exercisesnames = name;
+		else
+			exercisesnames += " + " + name;
+		exercisesListModel.setProperty(index, "exerciseName", exercisesnames);
+	}
+
+	function editButtonClicked() {
+		bottomPane.shown = !bCanEditExercise;
+		bCanEditExercise = !bCanEditExercise;
 	}
 
 	function saveMesoDivisionPlan() {

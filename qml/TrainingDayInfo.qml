@@ -1057,16 +1057,16 @@ Page {
 			console.log("not ready");
 	}
 
-	function addExerciseSet(bnewset, sety, setheight, exerciseObjIdx) {
+	function addExerciseSet(bnewset, exerciseObjIdx, setObject) {
 		if (bnewset) {
 			bModified = true;
 			bStopBounce = true;
 			scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height;
 			if (exerciseObjIdx === exerciseSpriteList.length-1) {
-				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height + setheight;
+				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height + setObject.height;
 			}
 			else {
-				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height - sety - setheight;
+				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height + setObject.y + setObject.height;
 			}
 			//console.log(exerciseSpriteList[exerciseObjIdx].Object.height);
 			//console.log(exerciseObjIdx);
@@ -1310,6 +1310,7 @@ Page {
 			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors.right: parent.right
+			anchors.rightMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
@@ -1338,7 +1339,7 @@ Page {
 			}
 		}
 
-		onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) => {
+		onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
 			if (exerciseEntryThatRequestedSimpleList)
 				exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName, subName);
 		}

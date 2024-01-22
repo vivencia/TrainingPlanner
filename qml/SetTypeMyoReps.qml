@@ -16,6 +16,7 @@ Item {
 	property int setSubSets: 0
 	property string setRestTime: "00:00"
 	property string setNotes: " "
+	property var nextObject: null
 
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
@@ -115,7 +116,10 @@ Item {
 			alternativeLabels: myoLabels
 
 			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
+				if (nextObject !== null)
+					nextObject.forceActiveFocus()
+				else
+					txtSetNotes.forceActiveFocus();
 			}
 
 			onValueChanged: (str, val) => {

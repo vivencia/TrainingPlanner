@@ -4,7 +4,7 @@ import QtQuick.Controls
 
 import "jsfunctions.js" as JSF
 
-Item {
+FocusScope {
 	id: setItem
 	property int setId
 	property int exerciseIdx
@@ -16,6 +16,7 @@ Item {
 	property int setSubSets: 0
 	property string setRestTime: "01:30"
 	property string setNotes: " "
+	property var nextObject: null
 
 	property bool bIsRemoving: false
 
@@ -70,6 +71,7 @@ Item {
 			nSetNbr: setNumber
 			text: setNumber !== 0 ? setRestTime : "00:00"
 			windowTitle: lblSetNumber.text
+			focus: setNumber !== 0
 
 			onValueChanged: (str, val) => {
 				setRestTime = str;
@@ -108,7 +110,10 @@ Item {
 			availableWidth: setItem.width
 
 			onEnterOrReturnKeyPressed: {
-				txtSetNotes.forceActiveFocus();
+				if (nextObject !== null)
+					nextObject.forceActiveFocus()
+				else
+					txtSetNotes.forceActiveFocus();
 			}
 
 			onValueChanged: (str, val) => {
