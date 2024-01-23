@@ -116,6 +116,7 @@ Rectangle {
 
 	SequentialAnimation {
 		id: anim
+		alwaysRunToEnd: true
 
 		// Expand the button
 		PropertyAnimation {

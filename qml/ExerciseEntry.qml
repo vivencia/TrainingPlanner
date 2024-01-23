@@ -112,13 +112,13 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: parent.width - 75
+				width: parent.width - 50
 				height: 60
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 				Layout.minimumHeight: height
 				Layout.maximumHeight: height
-				Layout.leftMargin: 5
+				Layout.leftMargin: 25
 				Layout.rightMargin: 5
 				Layout.topMargin: 0
 				z: 1
@@ -164,7 +164,7 @@ FocusScope {
 
 				RoundButton {
 					id: btnFoldIcon
-					anchors.left: txtExerciseName.right
+					anchors.right: txtExerciseName.left
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
@@ -182,7 +182,7 @@ FocusScope {
 
 				RoundButton {
 					id: btnRemoveExercise
-					anchors.left: btnFoldIcon.right
+					anchors.left: txtExerciseName.right
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
@@ -315,6 +315,7 @@ FocusScope {
 			case 5: cboSetType.model = [setTypes[5]];
 			break;
 		}
+		cboSetType.currentIndex = setType;
 	}
 
 	function destroyFloatingAddSetButton () {

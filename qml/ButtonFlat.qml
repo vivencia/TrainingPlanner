@@ -134,6 +134,7 @@ Rectangle {
 
 	SequentialAnimation {
 		id: anim
+		alwaysRunToEnd: true
 
 		// Expand the button
 		PropertyAnimation {
@@ -164,6 +165,7 @@ Rectangle {
 	SequentialAnimation {
 		id: anim2
 		loops: Animation.Infinite
+		alwaysRunToEnd: true
 
 		PropertyAnimation {
 			target: button

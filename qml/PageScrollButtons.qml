@@ -11,6 +11,7 @@ Rectangle {
 
 	property bool showUpButton: true
 	property bool showDownButton: true
+	property var currentButton: null
 	implicitHeight: btnUp.height + btnDown.height
 	implicitWidth: btnUp.width
 	color: "transparent"
@@ -22,8 +23,8 @@ Rectangle {
 		id: btnUp
 		source: "qrc:/images/"+darkIconFolder+"downward.png"
 		mirrorVertically: true
-		width: 40
-		height: 40
+		width: 30
+		height: 30
 		visible: showUpButton
 
 		anchors {
@@ -37,9 +38,8 @@ Rectangle {
 
 			onClicked: (mouse) => {
 				if (!mouse.wasHeld) {
-					scrollTo(0);
-					showUpButton = false;
-					showDownButton = true;
+					currentButton = btnUp;
+					anim.start();
 				}
 			}
 
@@ -69,8 +69,8 @@ Rectangle {
 	Image {
 		id: btnDown
 		source: "qrc:/images/"+darkIconFolder+"downward.png"
-		width: 40
-		height: 40
+		width: 30
+		height: 30
 		visible: showDownButton
 
 		anchors {
@@ -84,9 +84,8 @@ Rectangle {
 
 			onClicked: (mouse) => {
 				if (!mouse.wasHeld) {
-					scrollTo(1);
-					showUpButton = true;
-					showDownButton = false;
+					currentButton = btnDown;
+					anim.start();
 				}
 			}
 
@@ -113,6 +112,42 @@ Rectangle {
 				}
 			}
 		} //MouseArea
+	}
+
+	SequentialAnimation {
+		id: anim
+		alwaysRunToEnd: true
+
+		// Expand the button
+		PropertyAnimation {
+			target: currentButton
+			property: "scale"
+			to: 1.5
+			duration: 200
+			easing.type: Easing.InOutCubic
+		}
+
+		// Shrink back to normal
+		PropertyAnimation {
+			target: currentButton
+			property: "scale"
+			to: 1.0
+			duration: 200
+			easing.type: Easing.InOutCubic
+		}
+
+		onFinished: {
+			if (currentButton == btnUp) {
+				scrollTo(0);
+				showUpButton = false;
+				showDownButton = true;
+			}
+			else {
+				scrollTo(1);
+				showUpButton = true;
+				showDownButton = false;
+			}
+		}
 	}
 
 	Component.onCompleted: {

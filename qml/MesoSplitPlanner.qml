@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import "jsfunctions.js" as JSF
+
 Frame {
 	id: paneSplit
 	required property int divisionId
@@ -88,7 +90,7 @@ Frame {
 			onTextEdited: {
 				splitText = text;
 				bModified = true;
-				makeFilterString();
+				filterString = JSF.makeFilterString(splitText, AppSettings.appLocale);
 			}
 		}
 
@@ -460,7 +462,7 @@ Frame {
 
 	Component.onCompleted: {
 		lstSplitExercises.setModel(exercisesListModel);
-		makeFilterString();
+		filterString = JSF.makeFilterString(splitText, AppSettings.appLocale);
 
 		if (splitExercises.length === 0) {
 			appendNewExerciseToDivision();
@@ -534,6 +536,9 @@ Frame {
 	function saveMesoDivisionPlan() {
 		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
 		for (var i = 0; i < exercisesListModel.count; ++i) {
+			//Visually, the + sign is better than &. So we work with it on the GUI. We save with & because that's
+			//what's required by TrainingDayInfo. If not instances of ' + ' are found, the unmodified string is returned
+			exercisesListModel.get(i).exerciseName = exercisesListModel.get(i).exerciseName.replaceAll(" + ", '&');
 			exercises += exercisesListModel.get(i).exerciseName + '|';
 			types += exercisesListModel.get(i).setType + '|';
 			nsets += exercisesListModel.get(i).setsNumber + '|';
@@ -543,24 +548,6 @@ Frame {
 		Database.updateMesoDivisionComplete(divisionId, splitLetter, splitText,	exercises.slice(0, -1),
 					types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
 		bModified = false;
-	}
-
-	function makeFilterString() {
-		var words = splitText.split(' ');
-		for( var i = 0; i < words.length; ++i) {
-			if (words[i].length >= 3) {
-				if (AppSettings.appLocale === "pt_BR") {
-					if (words[i].charAt(words[i].length-1) === 's')
-						words[i] = words[i].slice(0, -1);
-				}
-				words[i] = words[i].replace(',', '');
-				words[i] = words[i].replace('.', '');
-				words[i] = words[i].replace('(', '');
-				words[i] = words[i].replace(')', '');
-				filterString += words[i].toLowerCase() + '|'; // | is here the OR bitwise operator
-			}
-		}
-		filterString = filterString.slice(0, -1);
 	}
 
 	function removeExercise(idx) {

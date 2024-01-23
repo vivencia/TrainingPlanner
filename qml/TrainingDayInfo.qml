@@ -24,6 +24,7 @@ Page {
 	property string trainingNotes
 
 	property string sessionLength
+	property string filterString: ""
 	property bool bModified: false
 	property var exerciseSpriteList: []
 	property var mesoSplit
@@ -911,6 +912,24 @@ Page {
 		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
 	}
 
+	onSplitLetterChanged: {
+		const meso_div_info = Database.getDivisionForMeso(mesoId);
+		filterString = "";
+		if (meso_div_info.lengh > 0) {
+			var splitText = "";
+			switch (splitLetter) {
+				case 'A': splitText = meso_div_info[0].splitA; break;
+				case 'B': splitText = meso_div_info[0].splitB; break;
+				case 'C': splitText = meso_div_info[0].splitC; break;
+				case 'D': splitText = meso_div_info[0].splitD; break;
+				case 'E': splitText = meso_div_info[0].splitE; break;
+				case 'F': splitText = meso_div_info[0].splitF; break;
+				default: return;
+			}
+			filterString = JSF.makeFilterString(splitText, AppSettings.appLocale);
+		}
+	}
+
 	function maybeResetPage() {
 		checkIfMesoPlanExists();
 		checkIfPreviousDayExists();
@@ -1324,14 +1343,24 @@ Page {
 		} // bntAddExercise
 	} //footer: ToolBar
 
-	ExercisesListView {
-		id: exercisesList
-		visible: bShowSimpleExercisesList
-		height: mainwindow.height * 0.4
+	ColumnLayout {
+		id: bottomPane
 		width: parent.width
-		anchors.left: parent.left
-		anchors.right: parent.right
-		anchors.bottom: parent.bottom
+		spacing: 0
+		visible: bShowSimpleExercisesList
+		height: shown ? parent.height * 0.5 : btnShowHideList.height
+
+		onVisibleChanged: {
+			shown = visible;
+		}
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
+
+		property bool shown: true
 
 		Behavior on height {
 			NumberAnimation {
@@ -1339,9 +1368,37 @@ Page {
 			}
 		}
 
-		onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
-			if (exerciseEntryThatRequestedSimpleList)
-				exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName, subName);
+		onShownChanged: {
+			if (shown)
+				exercisesList.setFilter(filterString);
+		}
+
+		ButtonFlat {
+			id: btnShowHideList
+			imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
+			imageSize: 60
+			onClicked: bottomPane.shown = !bottomPane.shown;
+			Layout.fillWidth: true
+			Layout.topMargin: 0
+			height: 10
+			width: bottomPane.width
+		}
+
+		ExercisesListView {
+			id: exercisesList
+			height: mainwindow.height * 0.8
+			Layout.fillWidth: true
+			Layout.topMargin: 0
+			Layout.alignment: Qt.AlignTop
+			Layout.rightMargin: 5
+			Layout.maximumHeight: parent.height * 0.8
+			Layout.leftMargin: 5
+			Layout.fillHeight: true
+
+			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
+				if (exerciseEntryThatRequestedSimpleList)
+					exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName, subName);
+			}
 		}
 	}
 

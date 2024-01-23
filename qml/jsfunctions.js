@@ -324,3 +324,22 @@ function moveFocusToNextField(from) {
 		break;
 	}
 }
+
+function makeFilterString(splittext, locale) {
+	var words = splittext.split(' ');
+	var filterString = "";
+	for( var i = 0; i < words.length; ++i) {
+		if (words[i].length >= 3) {
+			if (locale === "pt_BR") {
+				if (words[i].charAt(words[i].length-1) === 's')
+					words[i] = words[i].slice(0, -1);
+			}
+			words[i] = words[i].replace(',', '');
+			words[i] = words[i].replace('.', '');
+			words[i] = words[i].replace('(', '');
+			words[i] = words[i].replace(')', '');
+			filterString += words[i].toLowerCase() + '|'; // | is here the OR bitwise operator
+		}
+	}
+	return filterString.slice(0, -1);
+}

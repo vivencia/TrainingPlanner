@@ -192,7 +192,7 @@ Item {
 			Layout.fillWidth: true
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
-			Layout.leftMargin: setItem.width/6
+			Layout.leftMargin: setItem.width/5
 			rows: 5
 			columns: 2
 			columnSpacing: 15
