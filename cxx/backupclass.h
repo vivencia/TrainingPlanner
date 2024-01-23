@@ -9,7 +9,6 @@ class BackupClass : public QObject
 {
 
 Q_OBJECT
-QML_ELEMENT
 Q_PROPERTY( QStringList backupsList READ getBackupsList NOTIFY backupsListChanged )
 
 public:

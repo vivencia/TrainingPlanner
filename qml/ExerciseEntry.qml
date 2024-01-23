@@ -112,13 +112,13 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: parent.width - 50
+				width: parent.width - 70
 				height: 60
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 				Layout.minimumHeight: height
 				Layout.maximumHeight: height
-				Layout.leftMargin: 25
+				Layout.leftMargin: 45
 				Layout.rightMargin: 5
 				Layout.topMargin: 0
 				z: 1
@@ -162,9 +162,19 @@ FocusScope {
 					exerciseEdited(thisObjectIdx, exerciseName);
 				}
 
+				Label {
+					id: lblExerciseNumber
+					text: parseInt(thisObjectIdx + 1) + ":"
+					font.pixelSize: AppSettings.fontSizeText
+					anchors.right: txtExerciseName.left
+					anchors.verticalCenter: txtExerciseName.verticalCenter
+					width: 20
+					padding: 2
+				}
+
 				RoundButton {
 					id: btnFoldIcon
-					anchors.right: txtExerciseName.left
+					anchors.right: lblExerciseNumber.left
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					height: 25
 					width: 25
@@ -307,7 +317,8 @@ FocusScope {
 			case 1:
 			case 2:
 				cboSetType.model = [setTypes[0], setTypes[1], setTypes[2]];
-			break;
+				cboSetType.currentIndex = setType;
+				return;
 			case 3: cboSetType.model = [setTypes[3]];
 			break;
 			case 4: cboSetType.model = [setTypes[4]];
@@ -315,7 +326,7 @@ FocusScope {
 			case 5: cboSetType.model = [setTypes[5]];
 			break;
 		}
-		cboSetType.currentIndex = setType;
+		cboSetType.currentIndex = 0;
 	}
 
 	function destroyFloatingAddSetButton () {

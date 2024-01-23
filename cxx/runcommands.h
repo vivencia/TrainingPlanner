@@ -10,7 +10,6 @@ class RunCommands : public QObject
 {
 
 Q_OBJECT
-QML_ELEMENT
 Q_PROPERTY(QString dbFileName READ getDBFileName NOTIFY dbFileNameChanged)
 Q_PROPERTY(QString appPrivateDir READ getAppPrivateDir NOTIFY appPrivateDirChanged)
 

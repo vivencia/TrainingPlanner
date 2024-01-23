@@ -9,7 +9,7 @@ Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
-	width: mainwindow.width * 0.75
+	width: simpleTimer ? mainwindow.width * 0.75 : mainwindow.width
 	height: mainwindow.height * 0.30
 	x: (mainwindow.width - width) / 2
 	y: simpleTimer ? (mainwindow.height - height) / 2 - tabMain.height : 0 // align vertically centered
@@ -228,10 +228,8 @@ Dialog {
 		id: chkTimer
 		anchors.top: parent.top
 		anchors.left: parent.left
-		anchors.right: parent.right
-		anchors.leftMargin: 20
-		anchors.topMargin: 0
-		height: 40
+		anchors.leftMargin: 5
+		anchors.topMargin: -20
 		text: qsTr("Timer?")
 		checked: bTimer
 		padding: 0

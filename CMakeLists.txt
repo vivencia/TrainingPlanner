@@ -31,9 +31,59 @@ set( QM_FILES
     ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
 )
 
+set( QML_FILES
+    "qml/main.qml"
+    "qml/AppSettings.qml"
+    "qml/Database.qml"
+    "qml/FontSizePage.qml"
+    "qml/HomePage.qml"
+    "qml/NavBar.qml"
+    "qml/DatePicker.qml"
+    "qml/TimePicker.qml"
+    "qml/CalendarDialog.qml"
+    "qml/MesoCycle.qml"
+    "qml/MesoContent.qml"
+    "qml/jsfunctions.js"
+    "qml/ButtonFlat.qml"
+    "qml/ButtonIconActive.qml"
+    "qml/IconActive.qml"
+    "qml/ExerciseEntry.qml"
+    "qml/ExercisesDatabase.qml"
+    "qml/TimerDialog.qml"
+    "qml/SetTypeRegular.qml"
+    "qml/SetTypeCluster.qml"
+    "qml/SetTypeDrop.qml"
+    "qml/SetTypeGiant.qml"
+    "qml/SetTypeMyoReps.qml"
+    "qml/SetTypePyramid.qml"
+    "qml/DevSettingsPage.qml"
+    "qml/ThemeSettingsPage.qml"
+    "qml/RepsAndWeightRow.qml"
+    "qml/FloatingButton.qml"
+    "qml/MainMenu.qml"
+    "qml/MealsDayInfo.qml"
+    "qml/TrainingDayInfo.qml"
+    "qml/TrainingDayProgressDialog.qml"
+    "qml/SetInputField.qml"
+    "qml/LanguageSettingsPage.qml"
+    "qml/PageScrollButtons.qml"
+    "qml/ImageViewer.qml"
+    "qml/VideoPlayer.qml"
+    "qml/ExercisesPlanner.qml"
+    "qml/ExercisesListView.qml"
+    "qml/MesoSplitPlanner.qml"
+    "qml/TransparentButton.qml"
+    "qml/FirstTimeHomePageTip.qml"
+    "qml/OpenEndedPlan.qml"
+    "qml/TPTextInput.qml"
+    "qml/TPRadioButton.qml"
+    "qml/TPComboBox.qml"
+)
+
 qt_add_resources(${RESOURCE_FILES})
 qt_add_executable(trainingplanner
 	${SOURCES}
+	${QML_FILES}
 	${RESOURCE_FILES}
 	${QM_FILES}
 )
@@ -54,53 +104,8 @@ set(trainingplanner_resource_files
 	"images/app_icon.png"
 	"images/no_image.jpg"
 	"app_resources.qrc"
-	"qml/main.qml"
-	"qml/AppSettings.qml"
-	"qml/Database.qml"
-	"qml/FontSizePage.qml"
-	"qml/HomePage.qml"
-	"qml/NavBar.qml"
-	"qml/DatePicker.qml"
-	"qml/TimePicker.qml"
-	"qml/CalendarDialog.qml"
-	"qml/MesoCycle.qml"
-	"qml/MesoContent.qml"
-	"qml/jsfunctions.js"
-	"qml/ButtonFlat.qml"
-	"qml/ButtonIconActive.qml"
-	"qml/IconActive.qml"
-	"qml/ExerciseEntry.qml"
-	"qml/ExercisesDatabase.qml"
-	"qml/TimerDialog.qml"
-	"qml/SetTypeRegular.qml"
-	"qml/SetTypeCluster.qml"
-	"qml/SetTypeDrop.qml"
-	"qml/SetTypeGiant.qml"
-	"qml/SetTypeMyoReps.qml"
-	"qml/SetTypePyramid.qml"
-	"qml/DevSettingsPage.qml"
-	"qml/ThemeSettingsPage.qml"
-	"qml/RepsAndWeightRow.qml"
-	"qml/FloatingButton.qml"
-	"qml/MainMenu.qml"
-	"qml/MealsDayInfo.qml"
-	"qml/TrainingDayInfo.qml"
-	"qml/TrainingDayProgressDialog.qml"
-	"qml/SetInputField.qml"
-	"qml/LanguageSettingsPage.qml"
-	"qml/PageScrollButtons.qml"
-	"qml/ImageViewer.qml"
-	"qml/VideoPlayer.qml"
-	"qml/ExercisesPlanner.qml"
-	"qml/ExercisesListView.qml"
-	"qml/MesoSplitPlanner.qml"
-	"qml/TransparentButton.qml"
-	"qml/FirstTimeHomePageTip.qml"
-	"qml/OpenEndedPlan.qml"
-	"qml/TPTextInput.qml"
-	"qml/TPRadioButton.qml"
-	"qml/TPComboBox.qml"
 	"qml/qmldir"
+	${QML_FILES}
 )
 
 qt_add_resources(trainingplanner "trainingplanner" images.qrc sounds.qrc
@@ -109,6 +114,15 @@ qt_add_resources(trainingplanner "trainingplanner" images.qrc sounds.qrc
 	FILES
 	    ${trainingplanner_resource_files}
 )
+
+#qt_add_qml_module(trainingplanner
+#    URI "tp_qml"
+#    VERSION 1.0
+#    QML_FILES
+#	${QML_FILES}
+#    SOURCES
+#	${SOURCES}
+#)
 
 target_sources(trainingplanner_other_files
   PRIVATE

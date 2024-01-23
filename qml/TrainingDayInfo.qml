@@ -41,6 +41,8 @@ Page {
 	property int scrollBarPosition: 0
 	property var navButtons: null
 	property var firstTimeTip: null
+	property var timerDialog: null
+	property var timerDialogRequester: null
 
 	property bool bShowSimpleExercisesList: false
 	property var exerciseEntryThatRequestedSimpleList: null
@@ -242,6 +244,66 @@ Page {
 			playSound.stop();
 		}
 	}
+
+	ToolTip {
+		id: timerDlgToolTip
+		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+		visible: false
+		timeout: 5000
+		implicitWidth: parent.width - 20
+		implicitHeight: 80
+		x: 10
+		y: 0
+
+		contentItem: Text {
+			id: textPart
+			text: qsTr("Warning: You must close this window before attempting to open another timer!")
+			font.bold: true
+			font.pixelSize: AppSettings.titleFontSizePixelSize
+			color: "white"
+			wrapMode: Text.WordWrap
+			width: parent.width
+			height: parent.height
+
+			anchors {
+				left: parent.left
+				leftMargin: 10
+				rightMargin: 10
+				top: parent.top
+				topMargin: 10
+			}
+		}
+
+		background: Rectangle {
+			border.color: primaryDarkColor
+			border.width: 2
+			color: "black"
+			opacity: 0.7
+			radius: 6
+		}
+
+		SequentialAnimation {
+			loops: Animation.Infinite
+			running: timerDlgToolTip
+
+			ColorAnimation {
+				target: textPart
+				property: "color"
+				from: "white"
+				to: "darkred"
+				duration: 700
+				easing.type: Easing.InOutCubic
+			}
+			ColorAnimation {
+				target: textPart
+				property: "color"
+				from: "darkred"
+				to: "white"
+				duration: 700
+				easing.type: Easing.InOutCubic
+			}
+		}
+	} //ToolTip
 
 	ScrollView {
 		id: scrollTraining
@@ -673,6 +735,15 @@ Page {
 
 			GroupBox {
 				id: grpIntent
+				Layout.fillWidth: true
+				Layout.rightMargin: 10
+				Layout.leftMargin: 5
+				Layout.bottomMargin: 30
+				visible: bHasMesoPlan || bHasPreviousDay
+				width: parent.width - 20
+				spacing: 0
+				padding: 0
+				property int option
 				property bool highlight: false
 
 				onHighlightChanged: {
@@ -723,14 +794,6 @@ Page {
 						easing.type: Easing.InOutCubic
 					}
 				}
-
-				visible: bHasMesoPlan || bHasPreviousDay
-				width: parent.width - 20
-				Layout.fillWidth: true
-				Layout.bottomMargin: 30
-				property int option
-				spacing: 0
-				padding: 0
 
 				ColumnLayout {
 					anchors.fill: parent
@@ -854,11 +917,6 @@ Page {
 			}
 		}
 
-		Component.onCompleted: {
-			loadOrCreateDayInfo();
-			pageActivation();
-		}
-
 		function scrollToPos(y_pos) {
 			contentItem.contentY = y_pos;
 			if (navButtons === null) {
@@ -878,6 +936,18 @@ Page {
 				ScrollBar.vertical.setPosition(pos - ScrollBar.vertical.size/2);
 		}
 	} // ScrollView scrollTraining
+
+	Component.onDestruction: {
+		if (timerDialog !== null)
+			timerDialog.destroy();
+		if (navButtons !== null)
+			navButtons.destroy();
+	}
+
+	Component.onCompleted: {
+		loadOrCreateDayInfo();
+		pageActivation();
+	}
 
 	Timer {
 		id: bounceTimer
@@ -1063,6 +1133,8 @@ Page {
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
 			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
+			if (!bAdd)
+				exerciseSprite.bFoldPaneOnLoad = true;
 
 			bStopBounce = true;
 			scrollBarPosition = phantomItem.y - trainingDayPage.height + 2*exerciseSprite.height;
@@ -1160,9 +1232,37 @@ Page {
 			}
 			else
 				name = names[i];
-			gotExercise(name, name2, "0", "0", "0", false);
-			exerciseSpriteList[exerciseSpriteList.length-1].Object.bFoldPaneOnLoad = true;
+			//gotExercise(name, name2, "0", "0", "0", false);
+
+			function generateExerciseObject() {
+				var component;
+				var exerciseSprite;
+				component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous); //, Component.Asynchronous);
+
+				function finishCreation() {
+					var idx = exerciseSpriteList.length;
+					exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:name,
+							exerciseName1:name, exerciseName2:name2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
+					exerciseSpriteList.push({"Object" : exerciseSprite});
+					exerciseSprite.exerciseRemoved.connect(removeExercise);
+					exerciseSprite.exerciseEdited.connect(editExercise);
+					exerciseSprite.setAdded.connect(addExerciseSet);
+					exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
+					exerciseSprite.bFoldPaneOnLoad = true;
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+
+			generateExerciseObject();
 		}
+		scrollTraining.setScrollBarPosition(1);
+		if (navButtons !== null)
+			navButtons.visible = true;
+
 	}
 
 	function removeAllExerciseObjects() {
@@ -1444,5 +1544,32 @@ Page {
 		firstTimeTip.y = dayInfoToolBar.y;
 		firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
 		firstTimeTip.visible = true;
+	}
+
+	function requestTimerDialog(requester, message, mins, secs) {
+		if (timerDialog === null) {
+			var component = Qt.createComponent("TimerDialog.qml");
+			timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false });
+			timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
+			timerDialog.onClosed.connect(timerDialogClosed);
+		}
+		if (!timerDialog.visible) {
+			timerDialogRequester = requester;
+			timerDialog.windowTitle = message;
+			timerDialog.mins = mins;
+			timerDialog.secs = secs;
+			timerDialog.open();
+		}
+		else {
+			timerDlgToolTip.open();
+		}
+	}
+
+	function timerDialogUseButtonClicked(strTime) {
+		timerDialogRequester.timeChanged(strTime);
+	}
+
+	function timerDialogClosed() {
+		timerDialogRequester = null;
 	}
 } // Page

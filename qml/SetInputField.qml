@@ -13,7 +13,6 @@ FocusScope {
 	property string windowTitle
 	property var alternativeLabels: []
 	property bool bClearInput: true
-	property var timerDialog: null
 
 	signal valueChanged(string str, real value)
 	signal enterOrReturnKeyPressed()
@@ -360,17 +359,12 @@ FocusScope {
 			visible: type === SetInputField.Type.TimeType
 			anchors {
 				left: nSetNbr >= 1 ? btnDecreaseTime.right : txtMain.right
-				leftMargin: 10
+				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 			font.pixelSize: AppSettings.fontSizeLists
 			wrapMode: Text.WordWrap
 			width: availableWidth - x
-		}
-
-		Component.onDestruction: {
-			if (timerDialog !== null)
-				timerDialog.destroy();
 		}
 	} //Rectangle
 
@@ -397,14 +391,8 @@ FocusScope {
 
 	function openTimerDialog() {
 		if (nSetNbr >=1) {
-			if (timerDialog === null) {
-				var component = Qt.createComponent("TimerDialog.qml");
-				timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false, windowTitle:windowTitle });
-				timerDialog.onUseTime.connect(timeChanged);
-			}
-			timerDialog.mins = JSF.getHourOrMinutesFromStrTime(txtMain.text);
-			timerDialog.secs = JSF.getMinutesOrSeconsFromStrTime(txtMain.text);
-			timerDialog.open();
+			requestTimerDialog (this, windowTitle, JSF.getHourOrMinutesFromStrTime(txtMain.text),
+									JSF.getMinutesOrSeconsFromStrTime(txtMain.text))
 		}
 	}
 
