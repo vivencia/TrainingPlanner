@@ -32,7 +32,9 @@ Page {
 	property var mesoTDay
 	property bool bRealMeso: true
 	property bool bFirstTime: false
+	property int totalNumberOfExercises
 
+	property bool bLongTask: false
 	property bool bStopBounce: false
 	property bool bNotScroll: true
 	property bool bHasPreviousDay: false
@@ -61,6 +63,10 @@ Page {
 			fillMode: Image.PreserveAspectFit
 			opacity: 0.6
 		}
+	}
+
+	onTotalNumberOfExercisesChanged: {
+		bLongTask = totalNumberOfExercises > 0;
 	}
 
 	onBModifiedChanged: {
@@ -92,6 +98,9 @@ Page {
 			bModified = true;
 			hideFloatingButton(-1); //Day is finished
 			btnSaveDay.clicked();
+			sessionLength = JSF.calculateTimeBetweenTimes(timeIn, timeOut);
+			lblSessionLength.visible = true;
+			foldAllExercisesEntries("up");
 		}
 	}
 
@@ -305,6 +314,13 @@ Page {
 		}
 	} //ToolTip
 
+	BusyIndicator {
+		running: bLongTask
+		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+		x: (trainingDayPage.width - width) / 2;
+		y: (trainingDayPage.height - height) / 2;
+	}
+
 	ScrollView {
 		id: scrollTraining
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -326,8 +342,7 @@ Page {
 						navButtons.showUpButton = false;
 						navButtons.showDownButton = true;
 					}
-					else if (contentItem.contentY >= height + navBar.height) {
-					//else if (scrollBarPosition - contentItem.contentY <= 70) { //This number is arbitrary, but was chosen after reviewing debugging information
+					else if (Math.abs(contentItem.contentY - (phantomItem.y - lblExercisesStart.y)) < 50) {
 						navButtons.showUpButton = true;
 						navButtons.showDownButton = false;
 					}
@@ -385,8 +400,6 @@ Page {
 					id: cboSplitLetter
 					model: cboModel
 					enabled: model.count > 0
-					//currentIndex: indexOfValue(splitLetter)
-					//displayText: cboModel.get(cboSplitLetter.indexOfValue(splitLetter)).text
 					Layout.maximumWidth: 100
 					Layout.row: 0
 					Layout.column: 1
@@ -530,22 +543,8 @@ Page {
 				}
 			}
 
-			TPRadioButton {
-				id: optFreeTimeSession
-				text: qsTr("Open time training session")
-				checked: true
-				enabled: !timerRestricted.running
-				Layout.fillWidth: true
-
-				onClicked: {
-					frmOpenTime.visible = true;
-					frmConstrainedTime.visible = false;
-					optTimeConstrainedSession.checked = false;
-				}
-			}
-
 			Frame {
-				id: frmOpenTime
+				id: frmTrainingTime
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 20
@@ -558,6 +557,69 @@ Page {
 
 				ColumnLayout {
 					anchors.fill: parent
+
+					TPRadioButton {
+						id: optFreeTimeSession
+						text: qsTr("Open time training session")
+						checked: true
+						enabled: !timerRestricted.running
+						Layout.fillWidth: true
+					}
+					TPRadioButton {
+						id: optTimeConstrainedSession
+						text: qsTr("Time constrained session")
+						checked: false
+						Layout.fillWidth: true
+					}
+
+					RowLayout {
+						Layout.fillWidth: true
+						Layout.leftMargin: 30
+
+						ButtonFlat {
+							id: btnTimeLength
+							text: qsTr("By duration")
+							enabled: !timerRestricted.running
+							visible: optTimeConstrainedSession.checked
+							Layout.alignment: Qt.AlignCenter
+							onClicked: dlgSessionLength.open();
+						}
+						ButtonFlat {
+							id: btnTimeHour
+							text: qsTr("By time of day")
+							enabled: !timerRestricted.running
+							visible: optTimeConstrainedSession.checked
+							Layout.alignment: Qt.AlignCenter
+							onClicked: dlgTimeEndSession.open();
+						}
+					} //RowLayout
+
+					Label {
+						id: lblTimeRestrictedSession
+						text: timerRestricted.running ? qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
+									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
+									qsTr("Session time elapsed!")
+						wrapMode: Text.WordWrap
+						color: "white"
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
+						Layout.fillWidth: true
+						Layout.maximumWidth: frmTrainingTime.width
+						Layout.rightMargin: 5
+						Layout.alignment: Qt.AlignCenter
+						visible: timerRestricted.running || timerRestricted.complete
+					}
+
+					ButtonFlat {
+						id: btnCancelTimeRestrictedTimer
+						text: qsTr("Unset alarm")
+						Layout.alignment: Qt.AlignCenter
+						visible: timerRestricted.running
+
+						onClicked: {
+							timerRestricted.stopTimer();
+						}
+					}
 
 					RowLayout {
 						Layout.fillWidth: true
@@ -609,83 +671,18 @@ Page {
 							onClicked: dlgTimeOut.open();
 						}
 					} // RowLayout
-				} //ColumnLayout
-			} //Frame
-
-			TPRadioButton {
-				id: optTimeConstrainedSession
-				text: qsTr("Time constrained session")
-				checked: false
-				Layout.fillWidth: true
-
-				onClicked: {
-					frmConstrainedTime.visible = true;
-					frmOpenTime.visible = false;
-					optFreeTimeSession.checked = false;
-				}
-			}
-
-			Frame {
-				id: frmConstrainedTime
-				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 20
-				visible: false
-
-				background: Rectangle {
-					border.color: "white"
-					color: "transparent"
-					radius: 6
-				}
-
-				ColumnLayout {
-					anchors.fill: parent
-
-					RowLayout {
-						Layout.fillWidth: true
-						Layout.leftMargin: 30
-
-						ButtonFlat {
-							id: btnTimeLength
-							text: qsTr("By duration")
-							enabled: !timerRestricted.running
-							Layout.alignment: Qt.AlignCenter
-							onClicked: dlgSessionLength.open();
-						}
-						ButtonFlat {
-							id: btnTimeHour
-							text: qsTr("By time of day")
-							enabled: !timerRestricted.running
-							Layout.alignment: Qt.AlignCenter
-							onClicked: dlgTimeEndSession.open();
-						}
-					} //RowLayout
 
 					Label {
-						id: lblTimeRestrictedSession
-						text: timerRestricted.running ? qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
-									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
-									qsTr("Session time elapsed!")
+						id: lblSessionLength
+						text: qsTr("Total session length: <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
+									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>")
 						wrapMode: Text.WordWrap
 						color: "white"
 						font.pixelSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.fillWidth: true
-						Layout.maximumWidth: frmConstrainedTime.width
-						Layout.rightMargin: 5
-						Layout.alignment: Qt.AlignCenter
-						visible: timerRestricted.running || timerRestricted.complete
-					}
-
-					ButtonFlat {
-						id: btnCancelTimeRestrictedTimer
-						text: qsTr("Unset alarm")
-						Layout.alignment: Qt.AlignCenter
-						visible: timerRestricted.running
-
-						onClicked: {
-							timerRestricted.stopTimer();
-						}
+						Layout.maximumWidth: frmTrainingTime.width
+						visible: false
 					}
 				} //ColumnLayout
 			} //Frame
@@ -800,7 +797,7 @@ Page {
 					spacing: 0
 
 					TPRadioButton {
-						id: optMesoPla
+						id: optMesoPlan
 						text: qsTr("Use the standard exercises plan for the division ") + splitLetter + qsTr(" of the Mesocycle")
 						visible: bHasMesoPlan
 						width: parent.width
@@ -858,34 +855,27 @@ Page {
 							highlight = false;
 							if (mesoSplitLetter !== splitLetter) {
 								if (exercisesNames.length > 0) {
-									if (grpIntent.option !== 3) {
+									if (grpIntent.option !== 3)
 										removeAllExerciseObjects();
-									}
 								}
 							}
 
 							switch (grpIntent.option) {
 								case 0: //use meso plan
-									bHasPreviousDay = false;
 									loadTrainingDayInfoFromMesoPlan();
 								break;
 								case 1: //use previous day
-									bHasMesoPlan = false;
 									loadTrainingDayInfo(previousDivisionDayDate);
 									dayId = -1;
 								break;
 								case 2: //empty session
-									bHasPreviousDay = false;
-									bHasMesoPlan = false;
-								break;
 								case 3: //continue session
 									bHasPreviousDay = false;
 									bHasMesoPlan = false;
+									placeTipOnAddExercise();
 								break;
 							}
-							if (grpIntent.option >=2 )
-								placeTipOnAddExercise();
-							grpIntent.visible = false;
+							bHasPreviousDay = bHasMesoPlan = false;
 						}
 					}
 				}
@@ -919,12 +909,8 @@ Page {
 
 		function scrollToPos(y_pos) {
 			contentItem.contentY = y_pos;
-			if (navButtons === null) {
-				var component = Qt.createComponent("PageScrollButtons.qml");
-				navButtons = component.createObject(this, {});
-				navButtons.scrollTo.connect(setScrollBarPosition);
-				navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
-			}
+			if (!navButtons)
+				createNavButtons();
 			navButtons.visible = true;
 		}
 
@@ -945,8 +931,8 @@ Page {
 	}
 
 	Component.onCompleted: {
-		loadOrCreateDayInfo();
-		pageActivation();
+		trainingDayPage.StackView.activating.connect(pageActivation);
+		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 	}
 
 	Timer {
@@ -1027,25 +1013,21 @@ Page {
 		bModified = false;
 	}
 
-	function getMesoPlan () {
-		let plan_info = [];
+	function checkIfMesoPlanExists() {
 		switch (splitLetter) {
-			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
-			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
-			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;
-			case 'D': plan_info = Database.getCompleteDivisionDForMeso(mesoId); break;
-			case 'E': plan_info = Database.getCompleteDivisionEForMeso(mesoId); break;
-			case 'F': plan_info = Database.getCompleteDivisionFForMeso(mesoId); break;
+			case 'A': exercisesNames = Database.getExercisesFromDivisionAForMeso(mesoId); break;
+			case 'B': exercisesNames = Database.getExercisesFromDivisionBForMeso(mesoId); break;
+			case 'C': exercisesNames = Database.getExercisesFromDivisionCForMeso(mesoId); break;
+			case 'D': exercisesNames = Database.getExercisesFromDivisionDForMeso(mesoId); break;
+			case 'E': exercisesNames = Database.getExercisesFromDivisionEForMeso(mesoId); break;
+			case 'F': exercisesNames = Database.getExercisesFromDivisionFForMeso(mesoId); break;
 		}
-		return plan_info;
+		bHasMesoPlan = exercisesNames.length > 1;
 	}
 
-	function checkIfMesoPlanExists() {
-		let plan_info = getMesoPlan();
-		if (plan_info.length > 0) {
-			if (plan_info[0].splitExercises)
-				bHasMesoPlan = plan_info[0].splitExercises.length > 1;
-		}
+	function loadTrainingDayInfoFromMesoPlan() {
+		createExercisesFromList(false);
+		bModified = true;
 	}
 
 	function checkIfPreviousDayExists() {
@@ -1063,23 +1045,7 @@ Page {
 		}
 	}
 
-	function loadTrainingDayInfoFromMesoPlan() {
-		let plan_info = getMesoPlan();
-		exercisesNames = plan_info[0].splitExercises;
-		createExercisesFromList();
-
-		const types = plan_info[0].splitSetTypes.split('|');
-		const nsets = plan_info[0].splitNSets.split('|');
-		const nreps = plan_info[0].splitNReps.split('|');
-		const nweights = plan_info[0].splitNWeight.split('|');
-
-		for(var i = 0; i < exerciseSpriteList.length; ++i)
-			exerciseSpriteList[i].Object.createSetsFromPlan(nsets[i], types[i], nreps[i], nweights[i]);
-		bModified = true;
-	}
-
 	function loadTrainingDayInfo(tDate) {
-		console.log("Trying to load info for the day: ", tDate.toDateString(), tDate.getTime());
 		let dayInfoList = Database.getTrainingDay(tDate.getTime());
 		if (dayInfoList.length > 0) {
 			if (!dayInfoList[0].exercisesNames) {//Day is saved but it is empty. Treat it as if it weren't saved then
@@ -1099,10 +1065,55 @@ Page {
 			timeOut = dayInfoList[0].dayTimeOut;
 			location = dayInfoList[0].dayLocation;
 			trainingNotes = dayInfoList[0].dayNotes;
-			createExercisesFromList();
+			createExercisesFromList(true);
 			return true;
 		}
 		return false;
+	}
+
+	function createExercisesFromList(bFromList) {
+		const names = exercisesNames.split('|');
+		var sep, name, name2 = "";
+		totalNumberOfExercises = names.length;
+		for (var i = 0; i < names.length; ++i) {
+			sep = names[i].indexOf('&');
+			if (sep !== -1) { //Composite exercise
+				name = names[i].substring(0, sep);
+				name2 = names[i].substring(sep + 1, names[i].length);
+			}
+			else
+				name = names[i];
+			//gotExercise(name, name2, "0", "0", "0", false);
+
+			function generateExerciseObject() {
+				var component;
+				var exerciseSprite;
+				component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous);
+
+				function finishCreation() {
+					var idx = exerciseSpriteList.length;
+					exerciseSprite = component.createObject(colExercises, {
+							thisObjectIdx:idx, exerciseName:name, setBehaviour: bFromList ? 1 : 2,
+							exerciseName1:name, exerciseName2:name2, tDayId:dayId, bFoldPaneOnLoad:true,
+							stackViewObj:trainingDayPage.StackView.view, splitLetter:splitLetter
+					});
+					exerciseSprite.exerciseRemoved.connect(removeExercise);
+					exerciseSprite.exerciseEdited.connect(editExercise);
+					exerciseSprite.setAdded.connect(addExerciseSet);
+					exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
+					exerciseSpriteList.push({"Object" : exerciseSprite});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+
+			generateExerciseObject();
+		}
+		scrollTraining.setScrollBarPosition(1);
+		createNavButtons();
 	}
 
 	function updateDayIdFromExercisesAndSets() {
@@ -1137,9 +1148,7 @@ Page {
 				exerciseSprite.bFoldPaneOnLoad = true;
 
 			bStopBounce = true;
-			scrollBarPosition = phantomItem.y - trainingDayPage.height + 2*exerciseSprite.height;
-			if (scrollBarPosition >= 0)
-				scrollTraining.scrollToPos(scrollBarPosition);
+			scrollTraining.setScrollBarPosition(1);
 			bounceTimer.start();
 			if (navButtons !== null)
 				navButtons.visible = true;
@@ -1152,16 +1161,10 @@ Page {
 		if (bnewset) {
 			bModified = true;
 			bStopBounce = true;
-			scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height;
-			if (exerciseObjIdx === exerciseSpriteList.length-1) {
-				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height + setObject.height;
-			}
-			else {
-				scrollBarPosition = phantomItem.y - trainingDayPage.height + exerciseSpriteList[exerciseObjIdx].Object.height + setObject.y + setObject.height;
-			}
-			//console.log(exerciseSpriteList[exerciseObjIdx].Object.height);
-			//console.log(exerciseObjIdx);
-			//console.log(scrollBarPosition);
+			if (exerciseObjIdx === exerciseSpriteList.length-1)
+				scrollBarPosition = phantomItem.y;
+			else
+				scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
 		}
@@ -1219,50 +1222,6 @@ Page {
 		}
 		exercisesNames = exercisesNames.slice(0, -1);
 		bModified = true;
-	}
-
-	function createExercisesFromList() {
-		const names = exercisesNames.split('|');
-		var sep, name, name2 = "";
-		for (var i = 0; i < names.length; ++i) {
-			sep = names[i].indexOf('&');
-			if (sep !== -1) { //Composite exercise
-				name = names[i].substring(0, sep);
-				name2 = names[i].substring(sep + 1, names[i].length);
-			}
-			else
-				name = names[i];
-			//gotExercise(name, name2, "0", "0", "0", false);
-
-			function generateExerciseObject() {
-				var component;
-				var exerciseSprite;
-				component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous); //, Component.Asynchronous);
-
-				function finishCreation() {
-					var idx = exerciseSpriteList.length;
-					exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:name,
-							exerciseName1:name, exerciseName2:name2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
-					exerciseSpriteList.push({"Object" : exerciseSprite});
-					exerciseSprite.exerciseRemoved.connect(removeExercise);
-					exerciseSprite.exerciseEdited.connect(editExercise);
-					exerciseSprite.setAdded.connect(addExerciseSet);
-					exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
-					exerciseSprite.bFoldPaneOnLoad = true;
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-
-			generateExerciseObject();
-		}
-		scrollTraining.setScrollBarPosition(1);
-		if (navButtons !== null)
-			navButtons.visible = true;
-
 	}
 
 	function removeAllExerciseObjects() {
@@ -1362,6 +1321,11 @@ Page {
 		navButtons.showButtons();
 	}
 
+	function foldAllExercisesEntries(direction) {
+		for (var i = 0; i < exerciseSpriteList.length; ++i)
+			exerciseSpriteList[i].Object.bFoldPaneOnLoad = direction === "up";
+	}
+
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
@@ -1399,7 +1363,7 @@ Page {
 				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 
 				for (var i = 0; i < exerciseSpriteList.length; ++i)
-						exerciseSpriteList[i].Object.logSets();
+					exerciseSpriteList[i].Object.logSets();
 				bModified = false;
 				appDBModified = true;
 			}
@@ -1416,8 +1380,7 @@ Page {
 
 			onClicked: {
 				removeAllExerciseObjects();
-				loadOrCreateDayInfo();
-				optFreeTimeSession.clicked();
+				pageActivation();
 				bModified = false;
 			}
 		} //btnRevertDay
@@ -1517,12 +1480,11 @@ Page {
 		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
 		if (component.status === Component.Ready) {
 			firstTimeTip = component.createObject(trainingDayPage, { message:qsTr("Start here") });
-			trainingDayPage.StackView.activating.connect(pageActivation);
-			trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		}
 	}
 
 	function pageActivation() {
+		loadOrCreateDayInfo();
 		if (bFirstTime) {
 			if (grpIntent.visible) {
 				scrollTraining.setScrollBarPosition(1);
@@ -1539,11 +1501,13 @@ Page {
 	}
 
 	function placeTipOnAddExercise() {
-		if (!firstTimeTip)
-			createFirstTimeTipComponent();
-		firstTimeTip.y = dayInfoToolBar.y;
-		firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
-		firstTimeTip.visible = true;
+		if (bFirstTime) {
+			if (!firstTimeTip)
+				createFirstTimeTipComponent();
+			firstTimeTip.y = dayInfoToolBar.y;
+			firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
+			firstTimeTip.visible = true;
+		}
 	}
 
 	function requestTimerDialog(requester, message, mins, secs) {
@@ -1572,4 +1536,14 @@ Page {
 	function timerDialogClosed() {
 		timerDialogRequester = null;
 	}
+
+	function createNavButtons() {
+		if (navButtons === null) {
+			var component = Qt.createComponent("PageScrollButtons.qml");
+			navButtons = component.createObject(this, {});
+			navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
+			navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
+		}
+	}
+
 } // Page

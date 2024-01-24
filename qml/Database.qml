@@ -430,18 +430,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionAForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitA_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				result = results.rows.item(0).splitA_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionAForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitA,splitA_exercisesnames,splitA_exercisesset_types,
-					splitA_exercisesset_n,splitA_exercisesset_reps,splitA_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitA,splitA_exercisesset_types,splitA_exercisesset_n,
+					splitA_exercisesset_reps,splitA_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "A",
 					"splitText": divisionRow.splitA,
-					"splitExercises": divisionRow.splitA_exercisesnames,
 					"splitSetTypes": divisionRow.splitA_exercisesset_types,
 					"splitNSets": divisionRow.splitA_exercisesset_n,
 					"splitNReps": divisionRow.splitA_exercisesset_reps,
@@ -452,18 +461,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionBForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitB_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				 result = results.rows.item(0).splitB_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionBForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitB,splitB_exercisesnames,splitB_exercisesset_types,
-							 splitB_exercisesset_n,splitB_exercisesset_reps,splitB_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitB,splitB_exercisesset_types,splitB_exercisesset_n,
+				splitB_exercisesset_reps,splitB_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "B",
 					"splitText": divisionRow.splitB,
-					"splitExercises": divisionRow.splitB_exercisesnames,
 					"splitSetTypes": divisionRow.splitB_exercisesset_types,
 					"splitNSets": divisionRow.splitB_exercisesset_n,
 					"splitNReps": divisionRow.splitB_exercisesset_reps,
@@ -474,18 +492,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionCForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitC_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				result = results.rows.item(0).splitC_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionCForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitC,splitC_exercisesnames,splitC_exercisesset_types,
-							 splitC_exercisesset_n,splitC_exercisesset_reps,splitC_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitC,splitC_exercisesset_types,splitC_exercisesset_n,
+				splitC_exercisesset_reps,splitC_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "C",
 					"splitText": divisionRow.splitC,
-					"splitExercises": divisionRow.splitC_exercisesnames,
 					"splitSetTypes": divisionRow.splitC_exercisesset_types,
 					"splitNSets": divisionRow.splitC_exercisesset_n,
 					"splitNReps": divisionRow.splitC_exercisesset_reps,
@@ -496,18 +523,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionDForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitD_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				result = results.rows.item(0).splitD_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionDForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitD,splitD_exercisesnames,splitD_exercisesset_types,
-							 splitD_exercisesset_n,splitD_exercisesset_reps,splitD_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitD,splitD_exercisesset_types,splitD_exercisesset_n,
+				splitD_exercisesset_reps,splitD_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "D",
 					"splitText": divisionRow.splitD,
-					"splitExercises": divisionRow.splitD_exercisesnames,
 					"splitSetTypes": divisionRow.splitD_exercisesset_types,
 					"splitNSets": divisionRow.splitD_exercisesset_n,
 					"splitNReps": divisionRow.splitD_exercisesset_reps,
@@ -518,18 +554,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionEForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitE_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				result = results.rows.item(0).splitE_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionEForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitE,splitE_exercisesnames,splitE_exercisesset_types,
-							 splitE_exercisesset_n,splitE_exercisesset_reps,splitE_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitE,splitE_exercisesset_types,splitE_exercisesset_n,
+				splitE_exercisesset_reps,splitE_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "E",
 					"splitText": divisionRow.splitE,
-					"splitExercises": divisionRow.splitE_exercisesnames,
 					"splitSetTypes": divisionRow.splitE_exercisesset_types,
 					"splitNSets": divisionRow.splitE_exercisesset_n,
 					"splitNReps": divisionRow.splitE_exercisesset_reps,
@@ -540,18 +585,27 @@ QtObject {
 		return mesodivision;
 	}
 
+	function getExercisesFromDivisionFForMeso(mesoId) {
+		var result = "";
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT splitF_exercisesnames FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			if (results.rows.length > 0)
+				result = results.rows.item(0).splitF_exercisesnames;
+		});
+		return result;
+	}
+
 	function getCompleteDivisionFForMeso(mesoId) {
 		let mesodivision = [];
 		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT division_id,splitF,splitF_exercisesnames,splitF_exercisesset_types,
-							 splitF_exercisesset_n,splitF_exercisesset_reps,splitF_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
+			let results = tx.executeSql("SELECT division_id,splitF,splitF_exercisesset_types,splitF_exercisesset_n,
+				splitF_exercisesset_reps,splitF_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
 			for (let i = 0; i < results.rows.length; i++) {
 				let divisionRow = results.rows.item(i);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "F",
 					"splitText": divisionRow.splitF,
-					"splitExercises": divisionRow.splitF_exercisesnames,
 					"splitSetTypes": divisionRow.splitF_exercisesset_types,
 					"splitNSets": divisionRow.splitF_exercisesset_n,
 					"splitNReps": divisionRow.splitF_exercisesset_reps,

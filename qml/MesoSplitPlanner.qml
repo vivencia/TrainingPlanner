@@ -535,10 +535,12 @@ Frame {
 
 	function saveMesoDivisionPlan() {
 		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
+		const searchRegExp = /\ \+\ /g;
+		const replaceWith = '&';
 		for (var i = 0; i < exercisesListModel.count; ++i) {
 			//Visually, the + sign is better than &. So we work with it on the GUI. We save with & because that's
 			//what's required by TrainingDayInfo. If not instances of ' + ' are found, the unmodified string is returned
-			exercisesListModel.get(i).exerciseName = exercisesListModel.get(i).exerciseName.replaceAll(" + ", '&');
+			exercisesListModel.get(i).exerciseName = exercisesListModel.get(i).exerciseName.replace(searchRegExp, replaceWith);
 			exercises += exercisesListModel.get(i).exerciseName + '|';
 			types += exercisesListModel.get(i).setType + '|';
 			nsets += exercisesListModel.get(i).setsNumber + '|';

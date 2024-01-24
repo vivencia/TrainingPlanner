@@ -25,6 +25,7 @@ FocusScope {
 	property var setIds: []
 	property var btnFloat: null
 	property var lastSetObjectBeforeThisExercise: null
+	property string splitLetter
 
 	property int thisObjectIdx
 	signal exerciseRemoved(int ObjectIdx)
@@ -35,6 +36,7 @@ FocusScope {
 	property var setObjectList: []
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
+	property int setBehaviour: 0 //0: do no load sets, 1: load sets from database, 2: load sets from plan
 
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
@@ -112,7 +114,7 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: parent.width - 70
+				width: parent.width - 100
 				height: 60
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
@@ -288,7 +290,14 @@ FocusScope {
 			} // RowLayout
 		} // ColumnLayout layoutMain
 
-		Component.onCompleted: loadSetsFromDatabase();
+		Component.onCompleted: {
+			switch (setBehaviour) {
+				case 0:
+				break;
+				case 1: loadSetsFromDatabase(); break;
+				case 2: loadSetsFromMesoPlan(); break;
+			}
+		}
 
 		Component.onDestruction: {
 			for (var i = 0; i < setObjectList.length; ++i)
@@ -360,6 +369,25 @@ FocusScope {
 				changeComboModel();
 			}
 		}
+		totalNumberOfExercises--;
+	}
+
+	function loadSetsFromMesoPlan() {
+		let plan_info = [];
+		switch (splitLetter) {
+			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
+			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
+			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;
+			case 'D': plan_info = Database.getCompleteDivisionDForMeso(mesoId); break;
+			case 'E': plan_info = Database.getCompleteDivisionEForMeso(mesoId); break;
+			case 'F': plan_info = Database.getCompleteDivisionFForMeso(mesoId); break;
+		}
+		const types = plan_info[0].splitSetTypes.split('|');
+		const nsets = plan_info[0].splitNSets.split('|');
+		const nreps = plan_info[0].splitNReps.split('|');
+		const nweights = plan_info[0].splitNWeight.split('|');
+		createSetsFromPlan(nsets[thisObjectIdx], types[thisObjectIdx], nreps[thisObjectIdx], nweights[thisObjectIdx]);
+		totalNumberOfExercises--;
 	}
 
 	function createSetsFromPlan(nsets, type, nreps, nweight) {
