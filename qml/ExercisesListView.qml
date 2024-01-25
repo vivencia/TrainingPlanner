@@ -71,6 +71,7 @@ Column {
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
 		visible: exercisesListModel.count > 0
 		boundsBehavior: Flickable.StopAtBounds
+		focus: true
 
 		property int totalHeight
 		property int totalWidth
@@ -106,10 +107,10 @@ Column {
 					for (let exercise of exercises)
 						append(exercise);
 				}
-				if (count > 0) {
+				/*if (count > 0) {
 					curIndex = 0;
 					displaySelectedExercise(curIndex, 0);
-				}
+				}*/
 			}
 		} //model
 
@@ -143,16 +144,19 @@ Column {
 			onClicked: {
 				if (!bMultipleSelection) {
 					if (index !== curIndex) {
-						curIndex = index;
+						//curIndex = index;
 						displaySelectedExercise(index, 0);
 					}
-					else
+					else {
 						closeSimpleExerciseList();
+						return;
+					}
 				}
 				else {
 					bSelected = !bSelected;
 					displaySelectedExercise(index, bSelected ? 2 : 1);
 				}
+				this.forceActiveFocus();
 			}
 
 			Component.onCompleted: {
@@ -291,7 +295,7 @@ Column {
 					bFilterApplied = true;
 					lstExercises.setModel(filterModel);
 				}
-				simulateMouseClick(0);
+				//simulateMouseClick(0);
 			}
 			else {
 				if (bFilterApplied) {
@@ -303,6 +307,7 @@ Column {
 	} // txtFilter
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
+		curIndex = lstIdx;
 		exerciseEntrySelected(currentModel.get(lstIdx).mainName, currentModel.get(lstIdx).subName,
 							currentModel.get(lstIdx).muscularGroup, currentModel.get(lstIdx).nSets,
 							currentModel.get(lstIdx).nReps, currentModel.get(lstIdx).nWeight,
@@ -340,7 +345,7 @@ Column {
 	function simulateMouseClick(new_index) {
 		if (new_index < currentModel.count) {
 			displaySelectedExercise(new_index, 0);
-			lstExercises.positionViewAtIndex(new_index, ListView.Center);
+			lstExercises.positionViewAtIndex(new_index, ListView.Beginning);
 		}
 	}
 

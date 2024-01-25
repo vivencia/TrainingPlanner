@@ -401,7 +401,20 @@ Page {
 				highlight: bEmptyPlan
 
 				onClicked: {
-					openEndedPage.StackView.view.push("ExercisesPlanner.qml", { "mesoId":mesoId, "mesoSplit":mesoSplit });
+					for (var i = 0; i < mesoPlannerList.length; ++i) {
+						if (mesoPlannerList[i].mesoId === mesoId) {
+							openEndedPage.StackView.view.push(mesoPlannerList[i].Object, StackView.DontLoad);
+							break;
+						}
+					}
+					var component = Qt.createComponent("ExercisesPlanner.qml");
+					if (component.status === Component.Ready) {
+						var mesoPlannerObject = component.createObject(openEndedPage, {
+								"mesoId":mesoId, "mesoSplit":mesoSplit
+						});
+						mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
+						openEndedPage.StackView.view.push(mesoPlannerObject, StackView.DontLoad);
+					}
 				}
 			}
 		} //GridLayout

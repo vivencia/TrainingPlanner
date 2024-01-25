@@ -14,6 +14,7 @@ Page {
 	property date minimumStartDate;
 	property var firstTimeTip: null
 	property bool bFirstTime: false
+	property var mesocyclePages: []
 
 	header: IconLabel {
 		text: qsTr("  Training Program")
@@ -308,23 +309,32 @@ footer: ToolBar {
 		const weekTwo = JSF.weekNumber(endDate);
 
 		if (opt === 1) {
-			homePage.StackView.view.push("MesoCycle.qml",  {
-				mesosModel: mainMesosModel,
-				mesoId: -1,
-				mesoName: "Novo mesociclo",
-				mesoStartDate: startDate,
-				mesoEndDate: endDate,
-				mesoNote: "",
-				nWeeks: JSF.calculateNumberOfWeeks(weekOne, weekTwo),
-				mesoSplit:"ABCRDER",
-				mesoDrugs: " ",
-				minimumMesoStartDate: minimumStartDate,
-				maximumMesoEndDate: JSF.createFutureDate(startDate,0,6,0),
-				fixedMesoEndDate: endDate,
-				week1: weekOne,
-				week2: weekTwo,
-				calendarStartDate: startDate
-			});
+			if (mesocyclePage === null) {
+				var component = Qt.createComponent("MesoCycle.qml");
+				if (component.status === Component.Ready) {
+					mesocyclePage = component.createObject(this, {
+						mesosModel: mainMesosModel,
+						mesoId: -1,
+						mesoName: "Novo mesociclo",
+						mesoStartDate: startDate,
+						mesoEndDate: endDate,
+						mesoNote: "",
+						nWeeks: JSF.calculateNumberOfWeeks(weekOne, weekTwo),
+						mesoSplit:"ABCRDER",
+						mesoDrugs: " ",
+						minimumMesoStartDate: minimumStartDate,
+						maximumMesoEndDate: JSF.createFutureDate(startDate,0,6,0),
+						fixedMesoEndDate: endDate,
+						week1: weekOne,
+						week2: weekTwo,
+						calendarStartDate: startDate
+					});
+					homePage.StackView.view.push(mesocyclePage);
+				}
+			}
+			else {
+				homePage.StackView.view.push(mesocyclePage, StackView.DontLoad);
+			}
 		}
 		else {
 			homePage.StackView.view.push("OpenEndedPlan.qml", {
@@ -352,40 +362,58 @@ footer: ToolBar {
 			startDate = meso.mesoStartDate;
 		}
 
+		for (var i = 0; i < mesocyclePages.length; ++i) {
+			if (mesocyclePages[i].Object.mesoId === meso.mesoId) {
+				homePage.StackView.view.push(mesocyclePages[i].Object, StackView.DontLoad);
+				return;
+			}
+		}
+
+		var mesocyclePage = null;
+		var component = null;
+
 		if (meso.realMeso) {
 			const weekOne = JSF.weekNumber(meso.mesoStartDate);
 			const weekTwo = JSF.weekNumber(meso.mesoEndDate);
-
-			homePage.StackView.view.push("MesoCycle.qml", {
-				mesosModel: mainMesosModel,
-				idxModel: currentMesoIndex,
-				mesoId: meso.mesoId,
-				mesoName: meso.mesoName,
-				mesoStartDate: meso.mesoStartDate,
-				mesoEndDate: meso.mesoEndDate,
-				mesoNote: meso.mesoNote,
-				nWeeks: meso.nWeeks,
-				mesoSplit: meso.mesoSplit,
-				mesoDrugs: meso.mesoDrugs,
-				minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
-				maximumMesoEndDate: Database.getNextMesoStartDate(meso.mesoId),
-				week1: weekOne,
-				week2: weekTwo,
-				calendarStartDate: startDate
-			});
+			component = Qt.createComponent("MesoCycle.qml");
+			if (component.status === Component.Ready) {
+				mesocyclePage = component.createObject(this, {
+					mesosModel: mainMesosModel,
+					idxModel: currentMesoIndex,
+					mesoId: meso.mesoId,
+					mesoName: meso.mesoName,
+					mesoStartDate: meso.mesoStartDate,
+					mesoEndDate: meso.mesoEndDate,
+					mesoNote: meso.mesoNote,
+					nWeeks: meso.nWeeks,
+					mesoSplit: meso.mesoSplit,
+					mesoDrugs: meso.mesoDrugs,
+					minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
+					maximumMesoEndDate: Database.getNextMesoStartDate(meso.mesoId),
+					week1: weekOne,
+					week2: weekTwo,
+					calendarStartDate: startDate
+				});
+			}
 		}
 		else {
-			homePage.StackView.view.push("OpenEndedPlan.qml", {
-				mesosModel: mainMesosModel,
-				idxModel: currentMesoIndex,
-				mesoId: meso.mesoId,
-				mesoSplit: meso.mesoSplit,
-				mesoStartDate: meso.mesoStartDate,
-				minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
-				maximumMesoEndDate: new Date(2026,11,31),
-				calendarStartDate: startDate
-			});
+			component = Qt.createComponent("OpenEndedPlan.qml");
+			if (component.status === Component.Ready) {
+				mesocyclePage = component.createObject(this, {
+					mesosModel: mainMesosModel,
+					idxModel: currentMesoIndex,
+					mesoId: meso.mesoId,
+					mesoSplit: meso.mesoSplit,
+					mesoStartDate: meso.mesoStartDate,
+					minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
+					maximumMesoEndDate: new Date(2026,11,31),
+					calendarStartDate: startDate
+				});
+			}
 		}
+
+		mesocyclePages.push ({ "Object":mesocyclePage });
+		homePage.StackView.view.push(mesocyclePage, StackView.DontLoad);
 	}
 
 	function getMesoStartDate() {

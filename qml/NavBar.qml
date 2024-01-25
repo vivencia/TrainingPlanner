@@ -62,8 +62,7 @@ ToolBar {
 
 		onClicked: {
 			if (mainCalendar === null) {
-				var component;
-				component = Qt.createComponent("CalendarDialog.qml");
+				var component = Qt.createComponent("CalendarDialog.qml");
 				if (component.status === Component.Ready) {
 					mainCalendar = component.createObject(this, { showDate:today, simpleCalendar:true,
 						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
@@ -89,8 +88,7 @@ ToolBar {
 
 		onClicked: {
 			if (mainTimer === null) {
-				var component;
-				component = Qt.createComponent("TimerDialog.qml");
+				var component = Qt.createComponent("TimerDialog.qml");
 				if (component.status === Component.Ready) {
 					mainTimer = component.createObject(this, { simpleTimer:true });
 				}

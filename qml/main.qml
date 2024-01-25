@@ -60,10 +60,15 @@ ApplicationWindow {
 	property bool isLandscape: width > height
 	property bool bNavButtonsEnabled: true
 	property bool appDBModified: false
+	property bool bLongTask: false
 
 	property date todayFull
 	property date today
 	property int currentMesoIdx: -1
+
+	property var trainingDayInfoPages: []
+	property var mesoPlannerList: []
+	property var dbExercisesListPage: null
 
 	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -95,6 +100,14 @@ ApplicationWindow {
 		}
 	}
 
+	BusyIndicator {
+		id: busyIndicator
+		running: bLongTask
+		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+		x: (mainwindow.width - width) / 2;
+		y: (mainwindow.height - height) / 2;
+	}
+
 	Timer {
 		id: backupTimer
 		interval: 600000 //Every ten minutes
@@ -108,6 +121,12 @@ ApplicationWindow {
 			}
 			else
 				console.log("database not modified!!!");
+		}
+	}
+
+	onAfterSynchronizing: {
+		if (bLongTask) {
+			busyIndicator.visible = true;
 		}
 	}
 
@@ -189,6 +208,14 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
+				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
+					if (trainingDayInfoPages[i].Object.mainDate === new Date(today)) {
+						trainingDayInfoPages[i].Object.bAlreadyLoaded = true;
+						stackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
+						return;
+					}
+				}
+
 				const mostRecentMeso = initialPage.mainModel.count - 1;
 				const meso_name = initialPage.mainModel.get(mostRecentMeso).mesoName
 				var tday = 0, splitletter = 'A', mesoid = 0;
@@ -215,18 +242,18 @@ ApplicationWindow {
 					}
 					mesoid = meso_info[0].mesoId;
 				}
-
-				stackView.push("TrainingDayInfo.qml", {
-						"mainDate": new Date(today),
-						"tDay": tday,
-						"splitLetter": splitletter,
-						"mesoName": meso_name,
-						"mesoId": mesoid,
-						"bFirstTime": bFirstTime
-				});
-			}
-		}
-	}
+				var component = Qt.createComponent("TrainingDayInfo.qml");
+				if (component.status === Component.Ready) {
+					var trainingDayInfoPage = component.createObject(mainwindow, {
+						mainDate: new Date(today), tDay: tday, splitLetter: splitletter,
+						mesoName: meso_name, mesoId: mesoid, bFirstTime: bFirstTime
+					});
+					trainingDayInfoPages.push({ "Object":trainingDayInfoPage });
+					stackView.push(trainingDayInfoPage, StackView.DontLoad);
+				}
+			} //onClicked
+		} //TabButton
+	} //footer
 
 	function getNextLetterInSplit(mesosplit, currentletter) {
 		if (mesosplit.length > 0) {
@@ -239,5 +266,15 @@ ApplicationWindow {
 			}
 		}
 		return 'A';
+	}
+
+	function openDbExercisesListPage() {
+		if (!dbExercisesListPage) {
+			var component = Qt.createComponent("ExercisesDatabase.qml");
+			if (component.status === Component.Ready) {
+				dbExercisesListPage = component.createObject(mainwindow, {});
+			}
+		}
+		stackView.push(dbExercisesListPage, StackView.DontLoad);
 	}
 } //ApplicationWindow

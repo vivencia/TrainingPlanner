@@ -638,12 +638,22 @@ Page {
 				Layout.rightMargin: 5
 
 				onClicked: {
+					for (var i = 0; i < trainingDayInfoPages.length; ++i) {
+						if (trainingDayInfoPages[i].Object.mainDate.getTime() === calendar.dayInfoDate.getTime()) {
+							trainingDayInfoPages[i].Object.bAlreadyLoaded = true;
+							mesoContentPage.StackView.view.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
+							return;
+						}
+					}
 					var component = Qt.createComponent("TrainingDayInfo.qml");
 					if (component.status === Component.Ready) {
-						var dayObject = component.createObject(null, {mainDate: calendar.dayInfoDate,
-							tDay: trainingDay, splitLetter: splitLetter, mesoName: mesoName, mesoId: mesoId});
-						dayObject.mesoCalendarChanged.connect(databaseChanged);
-						mesoContentPage.StackView.view.push(dayObject);
+						var trainingDayInfoPage = component.createObject(null, {mainDate: calendar.dayInfoDate,
+								tDay: trainingDay, splitLetter: splitLetter, mesoName: mesoName, mesoId: mesoId,
+								bAlreadyLoaded:false
+						});
+						trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
+						trainingDayInfoPages.push({"Object" : trainingDayInfoPage});
+						mesoContentPage.StackView.view.push(trainingDayInfoPage, StackView.DontLoad);
 					}
 				}
 			}

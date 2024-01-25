@@ -89,7 +89,7 @@ Drawer {
 			id: btnSettingsExDB
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
-			onButtonClicked: { stackView.push("ExercisesDatabase.qml"); menuClicked(); }
+			onButtonClicked: { openDbExercisesListPage(); menuClicked(); }
 		}
 
 		TransparentButton {

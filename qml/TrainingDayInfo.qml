@@ -32,9 +32,9 @@ Page {
 	property var mesoTDay
 	property bool bRealMeso: true
 	property bool bFirstTime: false
+	property bool bAlreadyLoaded
 	property int totalNumberOfExercises
 
-	property bool bLongTask: false
 	property bool bStopBounce: false
 	property bool bNotScroll: true
 	property bool bHasPreviousDay: false
@@ -191,6 +191,29 @@ Page {
 	}
 
 	Timer {
+		id: loadTimer
+		interval: 1000
+		running: false
+		repeat: false
+		property int mOpt: 0
+
+		onTriggered: {
+			switch (mOpt) {
+				case 0:	loadTrainingDayInfoFromMesoPlan(); break;
+				case 1: loadTrainingDayInfo(previousDivisionDayDate); break;
+				case 2: loadOrCreateDayInfo(); break;
+			}
+		}
+
+		function init(opt) {
+			mOpt = opt;
+			bLongTask = true;
+			busyIndicator.visible = true;
+			start();
+		}
+	}
+
+	Timer {
 		id: timerRestricted
 		interval: 20000 //Every twenty seconds
 		repeat: true
@@ -314,13 +337,6 @@ Page {
 		}
 	} //ToolTip
 
-	BusyIndicator {
-		running: bLongTask
-		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-		x: (trainingDayPage.width - width) / 2;
-		y: (trainingDayPage.height - height) / 2;
-	}
-
 	ScrollView {
 		id: scrollTraining
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -374,8 +390,8 @@ Page {
 				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: qsTr("Trainning day <b>#" + mesoTDay + "</b> of meso cycle <b>" + mesoName +
-						"</b>: <b>" + JSF.formatDateToDisplay(mainDate, AppSettings.appLocale) + "</b> Division: <b>" + mesoSplitLetter + "</b>")
+				text: qsTr("Trainning day <b>#") + mesoTDay + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
+					JSF.formatDateToDisplay(mainDate, AppSettings.appLocale) + qsTr("</b> Division: <b>") + mesoSplitLetter + "</b>"
 				font.pixelSize: AppSettings.titleFontSizePixelSize
 				color: "white"
 			}
@@ -862,10 +878,10 @@ Page {
 
 							switch (grpIntent.option) {
 								case 0: //use meso plan
-									loadTrainingDayInfoFromMesoPlan();
+									loadTimer.init(0);
 								break;
 								case 1: //use previous day
-									loadTrainingDayInfo(previousDivisionDayDate);
+									loadTimer.init(1);
 									dayId = -1;
 								break;
 								case 2: //empty session
@@ -1001,6 +1017,7 @@ Page {
 			changeComboModel();
 		}
 		if (!loadTrainingDayInfo(mainDate)) {
+			bLongTask = false;
 			checkIfMesoPlanExists();
 			checkIfPreviousDayExists();
 		}
@@ -1083,18 +1100,15 @@ Page {
 			}
 			else
 				name = names[i];
-			//gotExercise(name, name2, "0", "0", "0", false);
 
-			function generateExerciseObject() {
-				var component;
-				var exerciseSprite;
-				component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous);
+			function generateExerciseObject(nName1, nName2) {
+				var component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous);
 
-				function finishCreation() {
-					var idx = exerciseSpriteList.length;
-					exerciseSprite = component.createObject(colExercises, {
-							thisObjectIdx:idx, exerciseName:name, setBehaviour: bFromList ? 1 : 2,
-							exerciseName1:name, exerciseName2:name2, tDayId:dayId, bFoldPaneOnLoad:true,
+				function finishCreation(Name1, Name2) {
+					const idx = exerciseSpriteList.length;
+					var exerciseSprite = component.createObject(colExercises, {
+							thisObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
+							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, bFoldPaneOnLoad:true,
 							stackViewObj:trainingDayPage.StackView.view, splitLetter:splitLetter
 					});
 					exerciseSprite.exerciseRemoved.connect(removeExercise);
@@ -1104,13 +1118,18 @@ Page {
 					exerciseSpriteList.push({"Object" : exerciseSprite});
 				}
 
+				function checkStatus() {
+					if (component.status === Component.Ready)
+						finishCreation(nName1, nName2);
+				}
+
 				if (component.status === Component.Ready)
-					finishCreation();
+					finishCreation(nName1, nName2);
 				else
-					component.statusChanged.connect(finishCreation);
+					component.statusChanged.connect(checkStatus);
 			}
 
-			generateExerciseObject();
+			generateExerciseObject(name, name2);
 		}
 		scrollTraining.setScrollBarPosition(1);
 		createNavButtons();
@@ -1122,14 +1141,12 @@ Page {
 		bModified = true;
 	}
 
-	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
-		if (bAdd) {
-			strName1 += ' - ' + strName2;
-			addExercise(strName1);
-			strName2 = "";
-			if (bFirstTime && firstTimeTip)
-				firstTimeTip.visible = false;
-		}
+	function gotExercise(strName1, strName2, sets, reps, weight) {
+		strName1 += ' - ' + strName2;
+		addExercise(strName1);
+		strName2 = "";
+		if (bFirstTime && firstTimeTip)
+			firstTimeTip.visible = false;
 
 		var component;
 		var exerciseSprite;
@@ -1144,11 +1161,11 @@ Page {
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
 			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
-			if (!bAdd)
-				exerciseSprite.bFoldPaneOnLoad = true;
 
 			bStopBounce = true;
-			scrollTraining.setScrollBarPosition(1);
+			//scrollTraining.setScrollBarPosition(1);
+			scrollBarPosition = phantomItem.y;
+			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
 			if (navButtons !== null)
 				navButtons.visible = true;
@@ -1400,8 +1417,9 @@ Page {
 				if (navButtons !== null)
 					navButtons.hideButtons();
 
-				var exercise = trainingDayPage.StackView.view.push("ExercisesDatabase.qml", { bChooseButtonEnabled: true });
-				exercise.exerciseChosen.connect(gotExercise);
+				openDbExercisesListPage();
+				dbExercisesListPage.bChooseButtonEnabled = true;
+				dbExercisesListPage.exerciseChosen.connect(gotExercise);
 			}
 		} // bntAddExercise
 	} //footer: ToolBar
@@ -1484,14 +1502,17 @@ Page {
 	}
 
 	function pageActivation() {
-		loadOrCreateDayInfo();
-		if (bFirstTime) {
-			if (grpIntent.visible) {
-				scrollTraining.setScrollBarPosition(1);
-				grpIntent.highlight = true;
+		if (!bAlreadyLoaded) {
+			loadTimer.init(2);
+			if (bFirstTime) {
+				if (grpIntent.visible) {
+					scrollTraining.setScrollBarPosition(1);
+					grpIntent.highlight = true;
+				}
+				else
+					placeTipOnAddExercise();
 			}
-			else
-				placeTipOnAddExercise();
+			bAlreadyLoaded = true;
 		}
 	}
 

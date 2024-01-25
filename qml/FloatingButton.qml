@@ -158,10 +158,12 @@ Rectangle {
 	}
 
 	function hideButtons() {
-		button.visible = false;
+		if (button)
+			button.visible = false;
 	}
 
 	function showButtons() {
-		button.visible = true;
+		if (button)
+			button.visible = true;
 	}
 }
