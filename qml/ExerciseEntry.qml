@@ -36,7 +36,7 @@ FocusScope {
 	property var setObjectList: []
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
-	property int setBehaviour: 0 //0: do no load sets, 1: load sets from database, 2: load sets from plan
+	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
 
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height

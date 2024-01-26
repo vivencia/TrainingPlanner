@@ -538,8 +538,9 @@ Page {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
-					property bool enabled: model.month === monthGrid.month
+					readonly property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
+					readonly property bool enabled: model.month === monthGrid.month
+					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
 					property bool bIsTrainingDay: false
 
 					Component.onCompleted: {
@@ -566,7 +567,7 @@ Page {
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
-						color: "white"
+						color: todayDate ? "red" : "white"
 						font.bold: true
 						font.pixelSize: AppSettings.fontSize
 					}
@@ -640,7 +641,6 @@ Page {
 				onClicked: {
 					for (var i = 0; i < trainingDayInfoPages.length; ++i) {
 						if (trainingDayInfoPages[i].Object.mainDate.getTime() === calendar.dayInfoDate.getTime()) {
-							trainingDayInfoPages[i].Object.bAlreadyLoaded = true;
 							mesoContentPage.StackView.view.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 							return;
 						}

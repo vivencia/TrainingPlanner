@@ -35,6 +35,11 @@ Dialog {
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
 	property bool bTempHide: false
+	property bool bWasSuspended: false
+	property date suspendedTime
+	property int suspendedHours;
+	property int suspendedMins;
+	property int suspendedSecs;
 	property string windowTitle
 
 	signal useTime(string time)
@@ -649,6 +654,10 @@ Dialog {
 		mainwindow.backButtonPressed.connect(maybeDestroy);
 		mainwindow.mainMenuOpened.connect(hideDlg);
 		mainwindow.mainMenuClosed.connect(showDlg);
+		if (Qt.platform.os === "android") {
+			mainwindow.appAboutToBeSuspended.connect(appSuspended);
+			mainwindow.appActive.connect(appActivated);
+		}
 	}
 
 	function maybeDestroy() {
@@ -692,6 +701,58 @@ Dialog {
 				}
 
 			break;
+		}
+	}
+
+	function appSuspended() {
+		if (bRunning) {
+			bWasSuspended = true;
+			suspendedTime = new Date();
+			suspendedHours = hours;
+			suspendedMins = mins;
+			suspendedSecs = secs;
+		}
+	}
+
+	function appActivated() {
+		if (bWasSuspended) {
+			bWasSuspended = false;
+			const now = new Date();
+			var correctedHours = 0, correctedMins = 0, correctedSecs = 0;
+			if (bTimer) {
+				correctedHours = suspendedHours - (now.getHours() - suspendedTime.getHours());
+				correctedMins = suspendedMins - (now.getMinutes() - suspendedTime.getMinutes());
+				correctedSecs = suspendedSecs - (now.getSeconds() - suspendedTime.getSeconds());
+				if (correctedSecs < 0) {
+					correctedSecs += 60;
+					correctedMins--;
+				}
+				if (correctedMins < 0) {
+					correctedMins += 60;
+					correctedHours--;
+				}
+				if (correctedHours < 0)
+					correctedHours = 0;
+			}
+			else {
+				correctedHours = suspendedHours + (now.getHours() - suspendedTime.getHours());
+				correctedMins = suspendedMins + (now.getMinutes() - suspendedTime.getMinutes());
+				correctedSecs = suspendedSecs + (now.getSeconds() - suspendedTime.getSeconds());
+				if (correctedSecs > 59) {
+					correctedSecs -= 59;
+					correctedMins++;
+				}
+				if (correctedMins > 59) {
+					correctedMins -= 59;
+					++correctedHours;
+				}
+			}
+			console.log("correctedHours:  " + correctedHours + "    hours:   " + hours);
+			console.log("correctedMins:  " + correctedMins + "   mins:   ", mins);
+			console.log("correctedSecs:  " + correctedSecs + "   secs:   ", secs);
+			hours = correctedHours;
+			mins = correctedMins;
+			secs = correctedSecs;
 		}
 	}
 } // Dialog

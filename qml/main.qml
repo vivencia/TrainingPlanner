@@ -16,6 +16,8 @@ ApplicationWindow {
 	signal backButtonPressed()
 	signal mainMenuOpened()
 	signal mainMenuClosed()
+	signal appAboutToBeSuspended()
+	signal appActive()
 
 	property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
 	property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
@@ -124,6 +126,25 @@ ApplicationWindow {
 		}
 	}
 
+/*case Qt.ApplicationSuspended: console.info("###########  Application Suspended ##############"); break;
+					case Qt.ApplicationHidden: console.info("###########  Application Hidden ##############"); break;
+					case Qt.ApplicationInactive: console.info("###########  Application Inactive ##############"); break;
+					case Qt.ApplicationActive: console.info("###########  Application Active ##############"); break;*/
+	Connections {
+		target: Qt.application;
+		function onStateChanged(inState) {
+			if (Qt.platform.os === "android") {
+				switch (inState) {
+					case Qt.ApplicationSuspended: break;
+					case Qt.ApplicationHidden: break;
+					case Qt.ApplicationInactive: appAboutToBeSuspended(); break;
+					case Qt.ApplicationActive: appActive(); break;
+				}
+				console.info("####  ", Qt.application.state);
+			}
+		}
+	}
+
 	onAfterSynchronizing: {
 		if (bLongTask) {
 			busyIndicator.visible = true;
@@ -210,7 +231,6 @@ ApplicationWindow {
 			onClicked: { // Use most current meso
 				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
 					if (trainingDayInfoPages[i].Object.mainDate === new Date(today)) {
-						trainingDayInfoPages[i].Object.bAlreadyLoaded = true;
 						stackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 						return;
 					}
@@ -242,6 +262,17 @@ ApplicationWindow {
 					}
 					mesoid = meso_info[0].mesoId;
 				}
+				/*Database.getAllTrainingDays(mesoid);
+				let res = Database.getPreviousTrainingDayForDivision(splitletter, tday, mesoid);
+				for( var x = 0; x < res.length; x++) {
+					console.info("%%%%%%%%%% ", res[x].dayId);
+					console.info("%%%%%%%%%% ", new Date(res[x].dayDate).toDateString());
+					console.info("%%%%%%%%%% ", res[x].exercisesNames);
+					console.info("%%%%%%%%%% ", res[x].dayNumber);
+					console.info("%%%%%%%%%% ", res[x].daySplitLetter);
+				}
+				return;*/
+
 				var component = Qt.createComponent("TrainingDayInfo.qml");
 				if (component.status === Component.Ready) {
 					var trainingDayInfoPage = component.createObject(mainwindow, {

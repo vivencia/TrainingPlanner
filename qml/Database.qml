@@ -938,6 +938,31 @@ QtObject {
 		return dayinfo;
 	}
 
+	function getAllTrainingDays(mesoId) {
+		let dayinfo = [];
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT * FROM training_day WHERE meso_id = " + mesoId);
+			for (let i = 0; i < results.rows.length; i++) {
+				let row = results.rows.item(i);
+					console.info();
+					console.info();
+					console.log("dayId    ", row.id);
+					console.log("dayDate   ", new Date(row.date).toDateString());
+					console.log("mesoId   ", row.meso_id);
+					console.log("exercisesNames   ", row.exercises);
+					console.log("dayNumber   ", row.day_number);
+					console.log("daySplitLetter   ", row.split_letter);
+					console.log("dayTimeIn   ", row.time_in);
+					console.log("dayTimeOut   ", row.time_out);
+					console.log("dayLocation   ", row.location);
+					console.log("dayNotes   ", row.notes);
+					console.info();
+					console.info();
+			}
+		});
+		return dayinfo;
+	}
+
 	function newTrainingDay(date, mesoId, exercisesNames, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
 		let results;
 		db.transaction(function (tx) {

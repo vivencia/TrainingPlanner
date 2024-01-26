@@ -41,7 +41,7 @@ Page {
 
 		ColumnLayout {
 			id: layoutMain
-			anchors.fill: parent
+			width: pageExercises.width
 
 			Label {
 				text: qsTr("Exercise:")
@@ -412,6 +412,9 @@ Page {
 
 	Component.onCompleted: {
 		pageExercises.StackView.activating.connect(pageActivation);
+		console.log(pageExercises.width);
+		console.log(scrollExercises.width);
+		console.log(layoutMain.width);
 	}
 
 	function pageActivation() {

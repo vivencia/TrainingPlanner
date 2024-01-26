@@ -77,7 +77,7 @@ Page {
 				if (mesocycleCalendarPage === null)
 					createMesoCalendarObject(true);
 				else
-					mesoPropertiesPage.StackView.view.push(mesoCalendarObject, StackView.DontLoad);
+					mesoPropertiesPage.StackView.view.push(mesocycleCalendarPage, StackView.DontLoad);
 			}
 		}
 	}

@@ -209,8 +209,9 @@ Rectangle {
 					height: cellSize
 					width: cellSize
 					radius: height * 0.5
-					property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
-					property bool enabled: model.month === monthGrid.month && isDateWithinRange(model.year, model.month, model.day)
+					readonly property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
+					readonly property bool enabled: model.month === monthGrid.month && isDateWithinRange(model.year, model.month, model.day)
+					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
 					color: enabled && highlighted ? paneBackgroundColor : "white"
 
 					Text {
@@ -221,7 +222,7 @@ Rectangle {
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
-						color: parent.highlighted ? "white" : "black"
+						color: todayDate ? "red" : parent.highlighted ? "white" : "black"
 					}
 					MouseArea {
 						anchors.fill: parent

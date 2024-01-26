@@ -39,6 +39,8 @@ Page {
 	property bool bNotScroll: true
 	property bool bHasPreviousDay: false
 	property bool bHasMesoPlan: false
+	property bool bHasMesoPlan_2: false
+	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
 	property var navButtons: null
@@ -70,7 +72,12 @@ Page {
 	}
 
 	onBModifiedChanged: {
-		bNavButtonsEnabled = !bModified;
+		bNavButtonsEnabled = !bModified;	
+	}
+
+	onBDayIsFinishedChanged : {
+		if (bDayIsFinished)
+			sessionLength = JSF.calculateTimeBetweenTimes(timeIn, timeOut);
 	}
 
 	ListModel {
@@ -97,9 +104,8 @@ Page {
 			timeOut = hour + ":" + minutes;
 			bModified = true;
 			hideFloatingButton(-1); //Day is finished
+			bDayIsFinished = true;
 			btnSaveDay.clicked();
-			sessionLength = JSF.calculateTimeBetweenTimes(timeIn, timeOut);
-			lblSessionLength.visible = true;
 			foldAllExercisesEntries("up");
 		}
 	}
@@ -192,7 +198,7 @@ Page {
 
 	Timer {
 		id: loadTimer
-		interval: 1000
+		interval: 500
 		running: false
 		repeat: false
 		property int mOpt: 0
@@ -698,7 +704,7 @@ Page {
 						font.bold: true
 						Layout.fillWidth: true
 						Layout.maximumWidth: frmTrainingTime.width
-						visible: false
+						visible: bDayIsFinished
 					}
 				} //ColumnLayout
 			} //Frame
@@ -735,6 +741,31 @@ Page {
 				ScrollBar.vertical: ScrollBar {}
 				ScrollBar.horizontal: ScrollBar {}
 			} //Flickable
+
+			ButtonFlat {
+				id: btnConvertToExercisePlanner
+				text: qsTr("Replace plan for this division with this day's training list")
+				Layout.alignment: Qt.AlignCenter
+				Layout.bottomMargin: 2
+				visible: bDayIsFinished && bHasMesoPlan_2
+
+				onClicked: {
+					/*var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
+					var exercisename = ""
+					const searchRegExp = /\ \+\ /g;
+					const replaceWith = '&';
+					for (var i = 0; i < exerciseSpriteList.count; ++i) {
+						exercisename = exerciseSpriteList[i].Object.exerciseName.replace(searchRegExp, replaceWith);
+						exercises += exercisename + '|';
+						types += exerciseSpriteList[i].Object.setType + '|';
+						nsets += exerciseSpriteList[i].Object.setObjectList.length.toString() + '|';
+						nreps += exerciseSpriteList[i].Object.setObjectList[0].setReps.toString() + '|';
+						nweights += exerciseSpriteList[i].Object.setObjectList[0].setReps.toString() + '|';
+					}
+					Database.updateMesoDivisionComplete(divisionId, splitLetter, splitText,	exercises.slice(0, -1),
+							types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));*/
+				}
+			}
 
 			Label {
 				id: lblExercisesStart
@@ -1016,7 +1047,8 @@ Page {
 			bRealMeso = mesoinfo[0].realMeso;
 			changeComboModel();
 		}
-		if (!loadTrainingDayInfo(mainDate)) {
+		bDayIsFinished = loadTrainingDayInfo(mainDate);
+		if (!bDayIsFinished) {
 			bLongTask = false;
 			checkIfMesoPlanExists();
 			checkIfPreviousDayExists();
@@ -1039,7 +1071,7 @@ Page {
 			case 'E': exercisesNames = Database.getExercisesFromDivisionEForMeso(mesoId); break;
 			case 'F': exercisesNames = Database.getExercisesFromDivisionFForMeso(mesoId); break;
 		}
-		bHasMesoPlan = exercisesNames.length > 1;
+		bHasMesoPlan_2 = bHasMesoPlan = exercisesNames.length > 1;
 	}
 
 	function loadTrainingDayInfoFromMesoPlan() {
@@ -1167,8 +1199,6 @@ Page {
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
-			if (navButtons !== null)
-				navButtons.visible = true;
 		}
 		else
 			console.log("not ready");
@@ -1334,9 +1364,9 @@ Page {
 		}
 	}
 
-	function maybeShowNavButtons() {
-		navButtons.showButtons();
-	}
+	//function maybeShowNavButtons() {
+	//	navButtons.showButtons();
+	//}
 
 	function foldAllExercisesEntries(direction) {
 		for (var i = 0; i < exerciseSpriteList.length; ++i)
@@ -1514,11 +1544,18 @@ Page {
 			}
 			bAlreadyLoaded = true;
 		}
+		else {
+			if (navButtons)
+				navButtons.visible = true;
+		}
 	}
 
 	function pageDeActivation() {
 		if (firstTimeTip)
 			firstTimeTip.visible = false;
+		if (navButtons)
+			navButtons.visible = false;
+		hideFloatingButton(-1);
 	}
 
 	function placeTipOnAddExercise() {
@@ -1563,7 +1600,7 @@ Page {
 			var component = Qt.createComponent("PageScrollButtons.qml");
 			navButtons = component.createObject(this, {});
 			navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-			navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
+			//navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
 		}
 	}
 
