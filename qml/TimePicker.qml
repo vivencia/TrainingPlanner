@@ -18,8 +18,6 @@ Popup {
 	Material.elevation: 6
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
-	background: Rectangle {color:cardAndDialogBackground}
-
 	contentItem {
 		Keys.onPressed: (event) => {
 			if (event.key === Qt.Key_Back) {
@@ -475,7 +473,7 @@ Popup {
 					minimumPointSize: 10
 					fontSizeMode: Text.Fit
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: outerButton.checked || outerButton.highlighted ? textOnPrimary : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? primaryColor : "black"
+					color: outerButton.checked || outerButton.highlighted ? "white" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? primaryColor : "black"
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					elide: Text.ElideRight

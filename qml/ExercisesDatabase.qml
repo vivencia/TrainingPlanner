@@ -7,6 +7,8 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: pageExercises
+	width: mainwindow.width
+	height: mainwindow.height
 
 	property string strMediaPath
 
@@ -130,7 +132,7 @@ Page {
 					anchors.left: lblDefaults.right
 					anchors.leftMargin: -20
 					anchors.verticalCenter: lblDefaults.verticalCenter
-					source: paneExerciseDefaults.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
+					source: paneExerciseDefaults.shown ? "qrc:/images/"+lightIconFolder+"fold-up.png" : "qrc:/images/"+lightIconFolder+"fold-down.png"
 					height: 20
 					width: 20
 					z: 0
@@ -145,7 +147,7 @@ Page {
 
 			Frame {
 				id: paneExerciseDefaults
-				property bool shown: false
+				property bool shown: true
 				visible: height > 0
 				height: shown ? implicitHeight : 0
 				Behavior on height {
@@ -163,76 +165,51 @@ Page {
 					radius: 6
 				}
 
-				implicitHeight: gridLayout.implicitHeight + 10
+				implicitHeight: colLayout.implicitHeight + 20
 				implicitWidth: layoutMain.width - 20
 				Layout.leftMargin: 5
 
-				GridLayout {
-					id: gridLayout
+				ColumnLayout {
+					id: colLayout
 					anchors.fill: parent
-					columns: 2
-					rows: 3
-					rowSpacing: 0
-					columnSpacing: 0
+					anchors.bottomMargin: 10
+					spacing: 2
 					enabled: bCanEdit
 
-					Label {
-						text: qsTr("Sets: ")
-						color: "white"
-						font.pixelSize: AppSettings.fontSizeText
-						font.bold: true
-						Layout.row: 0
-						Layout.column: 0
-					}
-					SpinBox {
-						id: spinSets
-						from: 0
-						to: 9
-						editable: true
-						Layout.row: 0
-						Layout.column: 1
-						font.bold: true
-						font.pixelSize: AppSettings.fontSizeText
+					SetInputField {
+						id: txtNSets
+						type: SetInputField.Type.SetType
+						availableWidth: parent.width*0.6
+						alternativeLabels: ["", "", "", qsTr("Sets:")]
+						Layout.alignment: Qt.AlignCenter
+
+						onEnterOrReturnKeyPressed: {
+							txtNReps.forceActiveFocus();
+						}
 					}
 
-					Label {
-						text: qsTr("Reps: ")
-						color: "white"
-						font.pixelSize: AppSettings.fontSizeText
-						font.bold: true
-						Layout.row: 1
-						Layout.column: 0
-					}
-					SpinBox {
-						id: spinReps
-						from: 0
-						to: 40
-						editable: true
-						Layout.row: 1
-						Layout.column: 1
-						font.bold: true
-						font.pixelSize: AppSettings.fontSizeText
+					SetInputField {
+						id: txtNReps
+						type: SetInputField.Type.RepType
+						availableWidth: parent.width*0.6
+						Layout.alignment: Qt.AlignCenter
+
+						onEnterOrReturnKeyPressed: {
+							txtNWeight.forceActiveFocus();
+						}
 					}
 
-					Label {
-						text: qsTr("Weigth: ")
-						color: "white"
-						font.pixelSize: AppSettings.fontSizeText
-						font.bold: true
-						Layout.row: 2
-						Layout.column: 0
+					SetInputField {
+						id: txtNWeight
+						type: SetInputField.Type.WeightType
+						availableWidth: parent.width*0.6
+						Layout.alignment: Qt.AlignCenter
+
+						onEnterOrReturnKeyPressed: {
+							btnChooseMediaFromDevice.forceActiveFocus();
+						}
 					}
-					SpinBox {
-						id: spinWeight
-						from: 1
-						to: 999
-						editable: true
-						Layout.row: 2
-						Layout.column: 1
-						font.bold: true
-						font.pixelSize: AppSettings.fontSizeText
-					}
-				} // GridLayout
+				} // ColumnLayout
 			} //Pane
 
 			Label {
@@ -259,9 +236,9 @@ Page {
 		txtExerciseName.text = exerciseName;
 		txtExerciseSubName.text = subName;
 		txtMuscularGroup.text = muscularGroup;
-		spinSets.value = sets;
-		spinReps.value = reps;
-		spinWeight.value = weight;
+		txtNSets.text = sets.toString();
+		txtNReps.text = reps.toString();
+		txtNWeight.text = weight.toString();
 		strMediaPath = mediaPath;
 		displaySelectedMedia();
 	}
@@ -365,20 +342,20 @@ Page {
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
 						if (bNew) {
-							let results = Database.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, spinSets.value,
-											spinReps.value, spinWeight.value, AppSettings.weightUnit, strMediaPath);
+							let results = Database.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, parseInt(txtNSets.text),
+											txtNReps.text*1, txtNWeight.text*1, AppSettings.weightUnit, strMediaPath);
 							exercisesList.appendModels(parseInt(results.insertId), txtExerciseName.text, txtExerciseSubName.text,
-											txtMuscularGroup.text, spinSets.value, spinReps.value, spinWeight.value,
+											txtMuscularGroup.text, parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1,
 											AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
 						}
 						else if (bEdit) {
 							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex).actualIndex;
 							exercisesList.updateModels(actualIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
-									spinSets.value, spinReps.value, spinWeight.value, strMediaPath);
+									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
 							const exerciseId = exercisesList.currentModel.get(exercisesList.curIndex).exerciseId;
 							Database.updateExercise(exerciseId, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
-									spinSets.value, spinReps.value, spinWeight.value, strMediaPath);
+									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
 							btnEditExercise.clicked();
 						}
 						bJustSaved = false;
@@ -412,9 +389,6 @@ Page {
 
 	Component.onCompleted: {
 		pageExercises.StackView.activating.connect(pageActivation);
-		console.log(pageExercises.width);
-		console.log(scrollExercises.width);
-		console.log(layoutMain.width);
 	}
 
 	function pageActivation() {

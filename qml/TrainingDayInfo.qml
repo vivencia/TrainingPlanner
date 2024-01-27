@@ -39,7 +39,6 @@ Page {
 	property bool bNotScroll: true
 	property bool bHasPreviousDay: false
 	property bool bHasMesoPlan: false
-	property bool bHasMesoPlan_2: false
 	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
@@ -742,30 +741,43 @@ Page {
 				ScrollBar.horizontal: ScrollBar {}
 			} //Flickable
 
-			ButtonFlat {
-				id: btnConvertToExercisePlanner
-				text: qsTr("Replace plan for this division with this day's training list")
-				Layout.alignment: Qt.AlignCenter
-				Layout.bottomMargin: 2
-				visible: bDayIsFinished && bHasMesoPlan_2
+			Frame {
+				Layout.fillWidth: true
+				Layout.leftMargin: 5
+				Layout.rightMargin: 20
+				visible: bDayIsFinished
 
-				onClicked: {
-					/*var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
-					var exercisename = ""
-					const searchRegExp = /\ \+\ /g;
-					const replaceWith = '&';
-					for (var i = 0; i < exerciseSpriteList.count; ++i) {
-						exercisename = exerciseSpriteList[i].Object.exerciseName.replace(searchRegExp, replaceWith);
-						exercises += exercisename + '|';
-						types += exerciseSpriteList[i].Object.setType + '|';
-						nsets += exerciseSpriteList[i].Object.setObjectList.length.toString() + '|';
-						nreps += exerciseSpriteList[i].Object.setObjectList[0].setReps.toString() + '|';
-						nweights += exerciseSpriteList[i].Object.setObjectList[0].setReps.toString() + '|';
-					}
-					Database.updateMesoDivisionComplete(divisionId, splitLetter, splitText,	exercises.slice(0, -1),
-							types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));*/
+				background: Rectangle {
+					border.color: "white"
+					color: "transparent"
+					radius: 6
 				}
-			}
+
+				ColumnLayout {
+					anchors.fill: parent
+
+					Label {
+						text: qsTr("Replace exercises plan for this division with this day's training list?")
+						wrapMode: Text.WordWrap
+						font.pixelSize: AppSettings.fontSizeText
+						font.bold: true
+						Layout.topMargin: 20
+						Layout.leftMargin: 5
+						color: "white"
+						Layout.fillWidth: true
+						width: parent.width - 5
+						Layout.bottomMargin: 2
+					}
+
+					ButtonFlat {
+						id: btnConvertToExercisePlanner
+						text: qsTr("Go")
+						Layout.alignment: Qt.AlignCenter
+						Layout.bottomMargin: 20
+						onClicked: convertDayToPlan();
+					}
+				}
+			} //Frame
 
 			Label {
 				id: lblExercisesStart
@@ -980,6 +992,8 @@ Page {
 	Component.onCompleted: {
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
+		if (Qt.platform.os === "android")
+			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
 	}
 
 	Timer {
@@ -1071,7 +1085,7 @@ Page {
 			case 'E': exercisesNames = Database.getExercisesFromDivisionEForMeso(mesoId); break;
 			case 'F': exercisesNames = Database.getExercisesFromDivisionFForMeso(mesoId); break;
 		}
-		bHasMesoPlan_2 = bHasMesoPlan = exercisesNames.length > 1;
+		bHasMesoPlan = exercisesNames.length > 1;
 	}
 
 	function loadTrainingDayInfoFromMesoPlan() {
@@ -1165,6 +1179,31 @@ Page {
 		}
 		scrollTraining.setScrollBarPosition(1);
 		createNavButtons();
+	}
+
+	function convertDayToPlan() {
+		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
+		var exercisename = ""
+		const searchRegExp = /\ \+\ /g;
+		const replaceWith = '&';
+		for (var i = 0; i < exerciseSpriteList.length; ++i) {
+			exercisename = exerciseSpriteList[i].Object.exerciseName.replace(searchRegExp, replaceWith);
+			exercises += exercisename + '|';
+			types += exerciseSpriteList[i].Object.setType + '|';
+			nsets += exerciseSpriteList[i].Object.setObjectList.length.toString() + '|';
+			if (exerciseSpriteList[i].Object.setObjectList[0].Object) {
+				nreps += exerciseSpriteList[i].Object.setObjectList[0].Object.setReps.toString() + '|';
+				nweights += exerciseSpriteList[i].Object.setObjectList[0].Object.setWeight.toString() + '|';
+			}
+			else { //no sets for some reason
+				nreps += '|';
+				nweights += '|';
+			}
+		}
+		const divisionId = Database.getDivisionIdForMeso(mesoId);
+		Database.updateMesoDivision_OnlyExercises(divisionId, splitLetter, exercises.slice(0, -1),
+				types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
+		btnConvertToExercisePlanner.enabled = false;
 	}
 
 	function updateDayIdFromExercisesAndSets() {
@@ -1604,4 +1643,8 @@ Page {
 		}
 	}
 
+	function aboutToBeSuspended() {
+		if (bModified)
+			btnSaveDay.clicked();
+	}
 } // Page

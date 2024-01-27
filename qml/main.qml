@@ -23,20 +23,8 @@ ApplicationWindow {
 	property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
 	property var colorPalette: AppSettings.themeStyleColorIndex === 2 ? darkPalette : lightPalette
 
-	property color dividerColor: colorPalette[0]
-	property color cardAndDialogBackground: colorPalette[1]
-	property real primaryTextOpacity: colorPalette[2]
-	property real secondaryTextOpacity: colorPalette[3]
-	property real dividerOpacity: colorPalette[4]
 	property real iconActiveOpacity: colorPalette[5]
 	property real iconInactiveOpacity: colorPalette[6]
-	property int isDarkTheme: colorPalette[8]
-	property color flatButtonTextColor: colorPalette[9]
-	property color popupTextColor: colorPalette[10]
-	property real toolBarActiveOpacity: colorPalette[11]
-	property real toolBarInactiveOpacity: colorPalette[12]
-	property color toastColor: colorPalette[13]
-	property real toastOpacity: colorPalette[14]
 	property color paneBackgroundColor: primaryDarkColor //"#c1d0ce"
 
 	property string lightIconFolder: darkPalette[7]
@@ -47,12 +35,8 @@ ApplicationWindow {
 	property color primaryLightColor: materialBlue[0]
 	property color primaryColor: materialBlue[1]
 	property color primaryDarkColor: materialBlue[2]
-	property color textOnPrimaryLight: materialBlue[3]
-	property color textOnPrimary: materialBlue[4]
-	property color textOnPrimaryDark: materialBlue[5]
-	property string iconOnPrimaryLightFolder: materialBlue[6]
-	property string iconOnPrimaryFolder: materialBlue[7]
-	property string iconOnPrimaryDarkFolder: materialBlue[8]
+	property color listEntryColor1: "#dce3f0"
+	property color listEntryColor2: "#c3cad5"
 
 	property var accentPalette: [materialBlue[1], materialBlue[4], materialBlue[7]]
 	property color accentColor: accentPalette[0]

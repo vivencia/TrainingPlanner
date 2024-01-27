@@ -55,6 +55,10 @@ Page {
 			id: mainMesosModel
 
 			Component.onCompleted: {
+				if (Qt.platform.os === "android") {
+					Database.updateSetsInfoTable();
+				}
+
 				let mesos = Database.getMesos();
 				if (mesos.length !== 0) {
 					for (let meso of mesos)
@@ -212,7 +216,7 @@ Page {
 			background: Rectangle {
 				radius: 6
 				opacity: 0.8
-				color: primaryColor
+				color: listEntryColor2
 			}
 
 			Column {

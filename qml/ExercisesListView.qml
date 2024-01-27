@@ -138,8 +138,8 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: !bMultipleSelection ? curIndex === index ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5" :
-							bSelected ? "cornflowerblue" : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+				color: !bMultipleSelection ? curIndex === index ? "cornflowerblue" : index % 2 === 0 ? listEntryColor1 : listEntryColor2 :
+							bSelected ? "cornflowerblue" : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 			onClicked: {
 				if (!bMultipleSelection) {
@@ -211,7 +211,7 @@ Column {
 
 	Label {
 		Layout.leftMargin: 5
-		text: qsTr("Filter: ")
+		text: qsTr("Search: ")
 		color: "white"
 		font.pixelSize: AppSettings.fontSizeText
 		font.bold: true

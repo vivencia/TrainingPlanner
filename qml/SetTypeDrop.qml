@@ -126,7 +126,7 @@ Item {
 
 	function getReps(idx) {
 		if (setReps.length > 0) {
-			const reps = setReps.split('|');
+			const reps = setReps.split('#');
 			return parseInt(reps[idx]);
 		}
 		return "10"; //Random default value
@@ -134,7 +134,7 @@ Item {
 
 	function getWeight(idx) {
 		if (setWeight.length > 0) {
-			const weights = setWeight.split('|');
+			const weights = setWeight.split('#');
 			return parseInt(weights[idx]);
 		}
 		return "100"; //Random default value
@@ -147,21 +147,21 @@ Item {
 			setWeight = newWeight.toString();
 		}
 		else {
-			setReps += '|' + newReps.toString();
-			setWeight += '|' + newWeight.toString();
+			setReps += '#' + newReps.toString();
+			setWeight += '#' + newWeight.toString();
 		}
 		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 	}
 
 	function removeSet(idx) {
-		const reps = setReps.split('|');
-		const weights = setWeight.split('|');
+		const reps = setReps.split('#');
+		const weights = setWeight.split('#');
 		setReps = "";
 		setWeight = "";
 		for(var i = 0; i < reps.length; ++i) { //Both arrays are always the same length
 			if (i !== idx) {
-				setReps += reps[i] + '|';
-				setWeight += weights[i] + '|';
+				setReps += reps[i] + '#';
+				setWeight += weights[i] + '#';
 			}
 		}
 		setRemoved(idx);
@@ -176,7 +176,7 @@ Item {
 		component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
 			if (idx >= 1)
-				subSetAdded(Math.ceil(parseInt(getReps(idx-1)) * 0.8), Math.ceil(parseInt(getWeight(idx-1)) * 0.6));
+				subSetAdded(Math.ceil((getReps(idx-1)*1) * 0.8), Math.ceil((getWeight(idx-1)*1) * 0.6));
 			rowSprite = component.createObject(subSetsLayout, {
 						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
 			});
@@ -214,18 +214,18 @@ Item {
 	}
 
 	function subSetChanged(idx, newreps, newweight) {
-		const reps = setReps.split('|');
-		const weights = setWeight.split('|');
+		const reps = setReps.split('#');
+		const weights = setWeight.split('#');
 		setReps = "";
 		setWeight = "";
 		for(var i = 0; i < reps.length; ++i) {
 			if (i !== idx) {
-				setReps += reps[i] + '|';
-				setWeight += weights[i] + '|';
+				setReps += reps[i] + '#';
+				setWeight += weights[i] + '#';
 			}
 			else {
-				setReps += newreps.toString() + '|';
-				setWeight += newweight.toString() + '|';
+				setReps += newreps.toString() + '#';
+				setWeight += newweight.toString() + '#';
 			}
 		}
 		setReps = setReps.slice(0, -1);
@@ -243,7 +243,6 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetTypeDropSet: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
 								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;

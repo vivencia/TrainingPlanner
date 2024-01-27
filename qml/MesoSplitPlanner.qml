@@ -22,6 +22,9 @@ Frame {
 	property bool bModified: false
 	property string filterString: ""
 
+	implicitWidth: parent.width
+	implicitHeight: splitLayout.height
+
 	clip: true
 	padding: 0
 	spacing: 0
@@ -129,7 +132,7 @@ Frame {
 				GridLayout {
 					id: contentsLayout
 					anchors.fill: parent
-					rows: 7
+					rows: 9
 					columns: 2
 					rowSpacing: 2
 					columnSpacing: 2
@@ -154,7 +157,7 @@ Frame {
 
 					TextField {
 						id: txtExerciseName
-						text: exerciseName
+						text: getExerciseName()
 						wrapMode: Text.WordWrap
 						readOnly: !bCanEditExercise
 						Layout.row: 1
@@ -280,7 +283,6 @@ Frame {
 						showLabel: false
 						Layout.row: 3
 						Layout.column: 1
-						Layout.rightMargin: 5
 						enabled: index === currentModelIndex
 
 						onValueChanged: (str, val) => {
@@ -289,7 +291,10 @@ Frame {
 						}
 
 						onEnterOrReturnKeyPressed: {
-							txtNReps.forceActiveFocus();
+							if (txtNReps.visible)
+								txtNReps.forceActiveFocus();
+							else
+								txtNReps1.forceActiveFocus();
 						}
 					}
 
@@ -298,13 +303,58 @@ Frame {
 						Layout.row: 4
 						Layout.column: 0
 						Layout.leftMargin: 5
-						width: listItem.width/2
+						width: cboSetType.currentIndex !== 4 ? listItem.width/2 : listItem.width
 						Layout.maximumWidth: width
 						wrapMode: Text.WordWrap
 					}
+
+					RowLayout {
+						Layout.row: 5
+						Layout.column: 0
+						Layout.columnSpan: 2
+						visible: cboSetType.currentIndex === 4
+
+						SetInputField {
+							id: txtNReps1
+							text: getReps(1)
+							type: SetInputField.Type.RepType
+							nSetNbr: 0
+							availableWidth: listItem.width*0.49
+							alternativeLabels: ["",qsTr("Exercise 1:"),"",""]
+							enabled: index === currentModelIndex
+							fontPixelSize: AppSettings.fontSizeText * 0.8
+
+							onValueChanged: (str, val) => {
+								changeRep(1, str);
+							}
+
+							onEnterOrReturnKeyPressed: {
+								txtNReps2.forceActiveFocus();
+							}
+						}
+						SetInputField {
+							id: txtNReps2
+							text: getReps(2)
+							type: SetInputField.Type.RepType
+							nSetNbr: 0
+							availableWidth: listItem.width*0.49
+							alternativeLabels: ["",qsTr("Exercise 2:"),"",""]
+							enabled: index === currentModelIndex
+							fontPixelSize: AppSettings.fontSizeText * 0.8
+
+							onValueChanged: (str, val) => {
+								changeRep(1, str);
+							}
+
+							onEnterOrReturnKeyPressed: {
+								txtNWeight1.forceActiveFocus();
+							}
+						}
+					} //RowLayout
+
 					SetInputField {
 						id: txtNReps
-						text: repsNumber
+						text: getReps(0)
 						type: SetInputField.Type.RepType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -313,6 +363,7 @@ Frame {
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: index === currentModelIndex
+						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "repsNumber", str);
@@ -326,16 +377,57 @@ Frame {
 
 					Label {
 						text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
-						Layout.row: 5
+						Layout.row: cboSetType.currentIndex !== 4 ? 5 : 6
 						Layout.column: 0
 						Layout.leftMargin: 5
 						width: listItem.width/2
 						Layout.maximumWidth: width
 						wrapMode: Text.WordWrap
 					}
+
+					RowLayout {
+						Layout.row: 7
+						Layout.column: 0
+						Layout.columnSpan: 2
+						visible: cboSetType.currentIndex === 4
+
+						SetInputField {
+							id: txtNWeight1
+							text: getWeight(1)
+							type: SetInputField.Type.WeightType
+							nSetNbr: 0
+							availableWidth: listItem.width*0.49
+							alternativeLabels: [qsTr("Exercise 1:"),"","",""]
+							enabled: index === currentModelIndex
+							fontPixelSize: AppSettings.fontSizeText * 0.8
+
+							onValueChanged: (str, val) => {
+								changeWeight(1, str);
+							}
+
+							onEnterOrReturnKeyPressed: {
+								txtNWeight2.forceActiveFocus();
+							}
+						}
+						SetInputField {
+							id: txtNWeight2
+							text: getWeight(2)
+							type: SetInputField.Type.WeightType
+							nSetNbr: 0
+							availableWidth: listItem.width*0.49
+							alternativeLabels: [qsTr("Exercise 2:"),"","",""]
+							enabled: index === currentModelIndex
+							fontPixelSize: AppSettings.fontSizeText * 0.8
+
+							onValueChanged: (str, val) => {
+								changeWeight(2, str);
+							}
+						}
+					} //RowLayout
+
 					SetInputField {
 						id: txtNWeight
-						text: weightValue
+						text: getWeight(0)
 						type: SetInputField.Type.WeightType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -344,6 +436,7 @@ Frame {
 						Layout.column: 1
 						Layout.rightMargin: 5
 						enabled: index === currentModelIndex
+						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
 							exercisesListModel.setProperty(index, "weightValue", str);
@@ -359,7 +452,7 @@ Frame {
 						font.bold: true
 						display: AbstractButton.TextBesideIcon
 						visible: index === exercisesListModel.count - 1
-						Layout.row: 6
+						Layout.row: cboSetType.currentIndex !== 4 ? 6 : 8
 						Layout.column: 0
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
@@ -378,6 +471,58 @@ Frame {
 					} //btnAddExercise
 				} //GridLayout
 
+				function getReps(n) {
+					var idx = repsNumber.indexOf('#')
+					switch (n) {
+						case 0:
+							if (idx !== -1) //Only for a DropSet that was converted from a TrainingDay
+								return repsNumber.substring(0, idx);
+							else
+								return repsNumber;
+						case 1:
+							return repsNumber.substring(0, idx);
+						case 2:
+							return repsNumber.substring(idx+1, repsNumber.length);
+					}
+				}
+
+				function getWeight(n) {
+					var idx = weightValue.indexOf('#')
+					switch (n) {
+						case 0:
+							if (idx !== -1) //Only for a DropSet that was converted from a TrainingDay
+								return weightValue.substring(0, idx);
+							else
+								return weightValue;
+						case 1:
+							return weightValue.substring(0, idx);
+						case 2:
+							return weightValue.substring(idx+1, weightValue.length);
+					}
+				}
+
+				function changeRep(n, newRep) {
+					const reps = repsNumber.split('#');
+					if (reps[n-1] !== newRep) {
+						reps[n-1] = newRep;
+						exercisesListModel.setProperty(index, "repsNumber", reps[0] + '#' + reps[1]);
+						bModified = true;
+					}
+				}
+
+				function changeWeight(n, newWeight) {
+					const weights = weightValue.split('#');
+					if (weights[n-1] !== newWeight) {
+						weights[n-1] = newWeight;
+						exercisesListModel.setProperty(index, "weightValue", weights[0] + '#' + weights[1]);
+						bModified = true;
+					}
+				}
+
+				function getExerciseName() {
+					return exerciseName.replace('&', " + ");
+				}
+
 				contentItem: Rectangle {
 					id: listItem
 					width: lstSplitExercises.width - 10
@@ -390,7 +535,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: currentModelIndex === index ? primaryLightColor : index % 2 === 0 ? "#dce3f0" : "#c3cad5"
+					color: currentModelIndex === index ? primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
@@ -482,12 +627,15 @@ Frame {
 			i++;
 		}
 		currentModelIndex = exercisesListModel.count - 1;
+
+		if (Qt.platform.os === "android")
+			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
 	}
 
 	function appendNewExerciseToDivision() {
 		currentModelIndex = exercisesListModel.count;
 		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
-			"setsNumber":"0", "repsNumber":"12", "weightValue":"20" } );
+			"setsNumber":"4", "repsNumber":"12", "weightValue":"20" } );
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
@@ -562,5 +710,10 @@ Frame {
 		}
 		currentModelIndex = idx;
 		bModified = true;
+	}
+
+	function aboutToBeSuspended() {
+		if (bModified)
+			btnSave.clicked();
 	}
 } //Page

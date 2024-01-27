@@ -157,7 +157,6 @@ FocusScope {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetTypeRegular: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
 								setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;

@@ -410,7 +410,7 @@ Page {
 					var component = Qt.createComponent("ExercisesPlanner.qml");
 					if (component.status === Component.Ready) {
 						var mesoPlannerObject = component.createObject(openEndedPage, {
-								"mesoId":mesoId, "mesoSplit":mesoSplit
+								"mesoId":mesoId, "mesoSplit":mesoSplit, "width":openEndedPage.width, "height":openEndedPage.height
 						});
 						mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
 						openEndedPage.StackView.view.push(mesoPlannerObject, StackView.DontLoad);

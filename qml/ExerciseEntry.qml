@@ -91,7 +91,7 @@ FocusScope {
 		z: 0
 
 		background: Rectangle {
-			color: thisObjectIdx % 2 === 0 ? "#dce3f0" : "#c3cad5"
+			color: thisObjectIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
 			border.color: "transparent"
 			opacity: 0.8
 			radius: 5
@@ -542,7 +542,6 @@ FocusScope {
 		setNotes[setNbr] = setNbr === 0 ? "  " : setNotes[setNbr-1];
 		switch (type) {
 			case 0: //Regular
-			case 4: //Giant
 				if (setNbr > 0) {
 					suggestedReps[setNbr] = suggestedReps[setNbr-1];
 					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
@@ -576,8 +575,8 @@ FocusScope {
 					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
 				}
 				else {
-					suggestedReps[0] = "15";
-					suggestedWeight[0] = "50";
+					suggestedReps[0] = "15#12#10";
+					suggestedWeight[0] = "50#40#30";
 					suggestedSubSets[0] = 3;
 					suggestedRestTimes[0] = "01:30";
 				}
@@ -595,6 +594,19 @@ FocusScope {
 					suggestedSubSets[0] = 4;
 					suggestedRestTimes[0] = "02:00";
 				}
+			break;
+			case 4: //Giant
+				if (setNbr > 0) {
+					suggestedReps[setNbr] = suggestedReps[setNbr-1];
+					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
+					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
+				}
+				else {
+					suggestedReps[0] = "12#12";
+					suggestedWeight[0] = "30#30";
+					suggestedRestTimes[0] = "01:30";
+				}
+				suggestedSubSets[setNbr] = 0;
 			break;
 			case 5: //Myo reps
 				if (setNbr > 0) {

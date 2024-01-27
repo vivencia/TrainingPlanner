@@ -6,13 +6,14 @@ import "jsfunctions.js" as JSF
 
 FocusScope {
 	required property int type
-	required property int nSetNbr
 	required property int availableWidth
+	property int nSetNbr
 	property bool showLabel: true
 	property alias text: txtMain.text
 	property string windowTitle
 	property var alternativeLabels: []
 	property bool bClearInput: true
+	property int fontPixelSize: AppSettings.fontSizeText
 
 	signal valueChanged(string str, real value)
 	signal enterOrReturnKeyPressed()
@@ -70,6 +71,9 @@ FocusScope {
 			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
 			padding: 0
 			visible: showLabel
+			font.bold: true
+			font.pixelSize: fontPixelSize
+			color: "black"
 
 			anchors {
 				left: parent.left
@@ -184,6 +188,7 @@ FocusScope {
 		TPTextInput {
 			id: txtMain
 			validator: validatorType[type]
+			fontPSize: fontPixelSize
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType

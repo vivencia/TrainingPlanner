@@ -6,6 +6,8 @@ Page {
 	id: pagePlanner
 	required property int mesoId
 	required property string mesoSplit
+	//width: mainwindow.width
+	//height: mainwindow.height
 
 	contentItem {
 		Keys.onPressed: (event) => {
@@ -120,7 +122,6 @@ Page {
 				default: continue;
 			}
 			var component = Qt.createComponent("MesoSplitPlanner.qml");
-			var firstObject;
 			if (component.status === Component.Ready) {
 				var object = component.createObject(splitView, { divisionId:results[0].divisionId,
 						mesoId:mesoId, splitLetter:results[0].splitLetter, splitText:results[0].splitText,

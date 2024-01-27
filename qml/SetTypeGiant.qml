@@ -355,17 +355,17 @@ Item {
 	} //ColumnLayout setLayout
 
 	function getVariables() {
-		var idx = setReps.indexOf('|')
+		var idx = setReps.indexOf('#')
 		if (idx === -1) {
-			setReps = "10|10"; //Random default values
+			setReps = "10#10"; //Random default values
 			idx = 2;
 		}
 		strReps1 = setReps.substring(0, idx);
 		strReps2 = setReps.substring(idx+1, setReps.length);
 
-		idx = setWeight.indexOf('|')
+		idx = setWeight.indexOf('#')
 		if (idx === -1) {
-			setWeight = "50|50"; //Random default values
+			setWeight = "50#50"; //Random default values
 			idx = 2;
 		}
 		strWeight1 = setWeight.substring(0, idx);
@@ -373,25 +373,25 @@ Item {
 	}
 
 	function changeRep(idx, newRep) {
-		const reps = setReps.split('|');
+		const reps = setReps.split('#');
 		if (reps[idx] !== newRep) {
 			if (idx === 0)
 				strReps1 = newRep
 			else
 				strReps2 = newRep
-			setReps = strReps1 + "|" + strReps2;
+			setReps = strReps1 + '#' + strReps2;
 			setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 		}
 	}
 
-	function changeWeight(idx, newRep) {
-		const weights = setWeight.split('|');
-		if (weights[idx] !== newRep) {
+	function changeWeight(idx, newWeight) {
+		const weights = setWeight.split('#');
+		if (weights[idx] !== newWeight) {
 			if (idx === 0)
-				strWeight1 = newRep;
+				strWeight1 = newWeight;
 			else
-				strWeight2 = newRep;
-			setWeight = strWeight1 + '|' + strWeight2;
+				strWeight2 = newWeight;
+			setWeight = strWeight1 + '#' + strWeight2;
 			setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 		}
 	}
@@ -416,7 +416,6 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
-			console.log("SetGiantDropSet: #" + setNumber.toString() + "  " + exerciseIdx.toString() + "   " + tDayId.toString());
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
 								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;

@@ -5,10 +5,11 @@ TextField {
 	property string textColor: "white"
 	property string backgroundColor: "black"//"#c3cad5"
 	property bool highlight: false
+	property int fontPSize: AppSettings.fontSizeText
 
 	id: control
-	font.pixelSize: AppSettings.fontSizeText
-	font.weight: Font.ExtraBold
+	font.pixelSize: fontPSize
+	font.weight: Font.Bold //Font.ExtraBold
 	color: textColor
 	wrapMode: Text.WordWrap
 	leftInset: 0
@@ -33,7 +34,7 @@ TextField {
 	FontMetrics {
 		id: fontMetrics
 		font.family: control.font.family
-		font.pixelSize: AppSettings.fontSizeText
+		font.pixelSize: fontPSize
 	}
 
 	background: Rectangle {
