@@ -7,8 +7,6 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: pageExercises
-	width: mainwindow.width
-	height: mainwindow.height
 
 	property string strMediaPath
 

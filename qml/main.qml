@@ -180,7 +180,6 @@ ApplicationWindow {
 
 		HomePage {
 			id: initialPage
-
 			Component.onCompleted: Database.init_database();
 		}
 
@@ -246,7 +245,7 @@ ApplicationWindow {
 					}
 					mesoid = meso_info[0].mesoId;
 				}
-				/*Database.getAllTrainingDays(mesoid);
+				Database.getAllTrainingDays(mesoid);
 				let res = Database.getPreviousTrainingDayForDivision(splitletter, tday, mesoid);
 				for( var x = 0; x < res.length; x++) {
 					console.info("%%%%%%%%%% ", res[x].dayId);
@@ -255,7 +254,7 @@ ApplicationWindow {
 					console.info("%%%%%%%%%% ", res[x].dayNumber);
 					console.info("%%%%%%%%%% ", res[x].daySplitLetter);
 				}
-				return;*/
+				return;
 
 				var component = Qt.createComponent("TrainingDayInfo.qml");
 				if (component.status === Component.Ready) {
@@ -287,7 +286,7 @@ ApplicationWindow {
 		if (!dbExercisesListPage) {
 			var component = Qt.createComponent("ExercisesDatabase.qml");
 			if (component.status === Component.Ready) {
-				dbExercisesListPage = component.createObject(mainwindow, {});
+				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
 			}
 		}
 		stackView.push(dbExercisesListPage, StackView.DontLoad);

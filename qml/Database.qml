@@ -963,7 +963,7 @@ QtObject {
 		return dayinfo;
 	}
 
-	/*function getAllTrainingDays(mesoId) {
+	function getAllTrainingDays(mesoId) {
 		let dayinfo = [];
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT * FROM training_day WHERE meso_id = " + mesoId);
@@ -986,7 +986,7 @@ QtObject {
 			}
 		});
 		return dayinfo;
-	}*/
+	}
 
 	function newTrainingDay(date, mesoId, exercisesNames, dayNumber, splitLetter, timeIn, timeOut, location, notes) {
 		let results;

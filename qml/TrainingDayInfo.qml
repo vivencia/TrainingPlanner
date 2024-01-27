@@ -68,6 +68,10 @@ Page {
 
 	onTotalNumberOfExercisesChanged: {
 		bLongTask = totalNumberOfExercises > 0;
+		if (!bLongTask) {
+			bHasPreviousDay = bHasMesoPlan = false;
+			dayId = -1;
+		}
 	}
 
 	onBModifiedChanged: {
@@ -925,7 +929,6 @@ Page {
 								break;
 								case 1: //use previous day
 									loadTimer.init(1);
-									dayId = -1;
 								break;
 								case 2: //empty session
 								case 3: //continue session
@@ -934,7 +937,6 @@ Page {
 									placeTipOnAddExercise();
 								break;
 							}
-							bHasPreviousDay = bHasMesoPlan = false;
 						}
 					}
 				}

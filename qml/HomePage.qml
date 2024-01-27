@@ -55,9 +55,9 @@ Page {
 			id: mainMesosModel
 
 			Component.onCompleted: {
-				if (Qt.platform.os === "android") {
-					Database.updateSetsInfoTable();
-				}
+				//if (Qt.platform.os === "android") {
+				//	Database.updateSetsInfoTable();
+				//}
 
 				let mesos = Database.getMesos();
 				if (mesos.length !== 0) {

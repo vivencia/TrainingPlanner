@@ -1,4 +1,4 @@
-#Version;1.5
+#Version;1.6
 Cadeira Extensora;amplitude total;pernas, quadríceps
 Cadeira Extensora;unilateral;pernas, quadríceps
 Cadeira Flexora;amplitude total;pernas, posterior
@@ -158,10 +158,10 @@ Remada Cavalinho;máquina, pegada supinada;costas
 Remada Cavalinho;máquina, pegada pronada;costas
 Abdominal Reto;parcial;abdômen
 Abdominal Reto;completo;abdômen
-Abdominal Inclinado;parcial, sem peso;abdômen
-Abdominal Inclinado;completo, sem peso;abdômen
-Abdominal Inclinado;parcial, com peso;abdômen
-Abdominal Inclinado;completo, com peso;abdômen
+Abdominal Declinado;parcial, sem peso;abdômen
+Abdominal Declinado;completo, sem peso;abdômen
+Abdominal Declinado;parcial, com peso;abdômen
+Abdominal Declinado;completo, com peso;abdômen
 Abdominal na Barra Paralela;sem peso;abdômen
 Abdominal na Barra Paralela;com peso;abdômen
 Abdominal na Barra Fixa;sem peso;abdômen
