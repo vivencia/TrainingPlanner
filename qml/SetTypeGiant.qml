@@ -19,7 +19,6 @@ Item {
 	property var nextObject: null
 
 	property string exerciseName2
-	property bool bIsRemoving: false
 	property bool bUpdateLists
 	property var subSetList: []
 	property var stackViewObj
@@ -37,15 +36,6 @@ Item {
 	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
-
-	onSetNumberChanged: { //This is changed in ExerciseEntry.qml when a set is removed
-		if (bIsRemoving) {
-			bIsRemoving = false;
-			if (setId > 0) {
-				Database.deleteSetFromSetsInfo(setId);
-			}
-		}
-	}
 
 	ColumnLayout {
 		id: setLayout

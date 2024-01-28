@@ -96,5 +96,12 @@ ToolBar {
 			mainTimer.open();
 		}
 	}
+
+	Component.onDestruction: {
+		if (mainCalendar !== null)
+			mainCalendar.destroy();
+		if (mainTimer !== null)
+			mainTimer.destroy();
+	}
 }
 

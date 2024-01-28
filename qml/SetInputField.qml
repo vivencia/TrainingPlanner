@@ -14,6 +14,10 @@ FocusScope {
 	property var alternativeLabels: []
 	property bool bClearInput: true
 	property int fontPixelSize: AppSettings.fontSizeText
+	property color borderColor: "darkblue"
+	property color labelColor: "black"
+	property color inputColor: "white"
+	property color backColor: "white"
 
 	signal valueChanged(string str, real value)
 	signal enterOrReturnKeyPressed()
@@ -63,8 +67,9 @@ FocusScope {
 
 	Rectangle {
 		anchors.fill: parent
-		border.color: "darkblue"
+		border.color: borderColor
 		radius: 6
+		color: backColor
 
 		Label {
 			id: lblMain
@@ -73,7 +78,7 @@ FocusScope {
 			visible: showLabel
 			font.bold: true
 			font.pixelSize: fontPixelSize
-			color: "black"
+			color: labelColor
 
 			anchors {
 				left: parent.left
@@ -196,7 +201,7 @@ FocusScope {
 			padding: 0
 			//focus: type !== SetInputField.Type.TimeType
 			focus: true
-			textColor: "white"
+			textColor: inputColor
 
 			anchors {
 				left: btnDecrease.right

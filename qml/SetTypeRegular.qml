@@ -18,8 +18,6 @@ FocusScope {
 	property string setNotes: " "
 	property var nextObject: null
 
-	property bool bIsRemoving: false
-
 	signal setRemoved(int nset)
 	signal setChanged(int nset, int reps, int weight, int subsets, string resttime, string setnotes)
 
@@ -27,15 +25,6 @@ FocusScope {
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
-
-	onSetNumberChanged: { //This is changed in ExerciseEntry.qml when a set is removed
-		if (bIsRemoving) {
-			bIsRemoving = false;
-			if (setId > 0) {
-				Database.deleteSetFromSetsInfo(setId);
-			}
-		}
-	}
 
 	ColumnLayout {
 		id: setLayout

@@ -144,6 +144,16 @@ ApplicationWindow {
 		});
 	}
 
+	Component.onDestruction: {
+		if (dbExercisesListPage !== null)
+			dbExercisesListPage.destroy();
+		var i = 0;
+		for (; i < trainingDayInfoPages.length; ++i)
+			trainingDayInfoPages[i].Object.destroy();
+		for (i = 0; i < mesoPlannerList.length; ++i)
+			mesoPlannerList[i].Object.destroy();
+	}
+
 	function androidBackKeyPressed() {
 		if (stackView.depth >= 2)
 			stackView.pop();
@@ -245,7 +255,7 @@ ApplicationWindow {
 					}
 					mesoid = meso_info[0].mesoId;
 				}
-				Database.getAllTrainingDays(mesoid);
+				/*Database.getAllTrainingDays(mesoid);
 				let res = Database.getPreviousTrainingDayForDivision(splitletter, tday, mesoid);
 				for( var x = 0; x < res.length; x++) {
 					console.info("%%%%%%%%%% ", res[x].dayId);
@@ -254,7 +264,7 @@ ApplicationWindow {
 					console.info("%%%%%%%%%% ", res[x].dayNumber);
 					console.info("%%%%%%%%%% ", res[x].daySplitLetter);
 				}
-				return;
+				return;*/
 
 				var component = Qt.createComponent("TrainingDayInfo.qml");
 				if (component.status === Component.Ready) {

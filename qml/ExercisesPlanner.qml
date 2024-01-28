@@ -6,8 +6,6 @@ Page {
 	id: pagePlanner
 	required property int mesoId
 	required property string mesoSplit
-	//width: mainwindow.width
-	//height: mainwindow.height
 
 	contentItem {
 		Keys.onPressed: (event) => {

@@ -27,6 +27,7 @@ Page {
 	property string filterString: ""
 	property bool bModified: false
 	property var exerciseSpriteList: []
+	property var setsToBeRemoved: []
 	property var mesoSplit
 	property var mesoSplitLetter
 	property var mesoTDay
@@ -67,8 +68,8 @@ Page {
 	}
 
 	onTotalNumberOfExercisesChanged: {
-		bLongTask = totalNumberOfExercises > 0;
-		if (!bLongTask) {
+		if (totalNumberOfExercises <= 0) {
+			bLongTask = false;
 			bHasPreviousDay = bHasMesoPlan = false;
 			dayId = -1;
 		}
@@ -759,6 +760,7 @@ Page {
 
 				ColumnLayout {
 					anchors.fill: parent
+					spacing: 0
 
 					Label {
 						text: qsTr("Replace exercises plan for this division with this day's training list?")
@@ -771,6 +773,7 @@ Page {
 						Layout.fillWidth: true
 						width: parent.width - 5
 						Layout.bottomMargin: 2
+						padding: 0
 					}
 
 					ButtonFlat {
@@ -1075,7 +1078,6 @@ Page {
 		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesNames,
 			tDay, splitLetter, txtInTime.text, txtOutTime.text, txtLocation.placeholderText, txtDayInfoTrainingNotes.text);
 		dayId = result.insertId;
-		bModified = false;
 	}
 
 	function checkIfMesoPlanExists() {
@@ -1139,8 +1141,9 @@ Page {
 	function createExercisesFromList(bFromList) {
 		const names = exercisesNames.split('|');
 		var sep, name, name2 = "";
-		totalNumberOfExercises = names.length;
-		for (var i = 0; i < names.length; ++i) {
+		const len = names.length;
+		totalNumberOfExercises = len
+		for (var i = 0; i < len; ++i) {
 			sep = names[i].indexOf('&');
 			if (sep !== -1) { //Composite exercise
 				name = names[i].substring(0, sep);
@@ -1179,7 +1182,7 @@ Page {
 
 			generateExerciseObject(name, name2);
 		}
-		scrollTraining.setScrollBarPosition(1);
+		scrollTraining.setScrollBarPosition(1); //Scroll to bottom
 		createNavButtons();
 	}
 
@@ -1211,7 +1214,6 @@ Page {
 	function updateDayIdFromExercisesAndSets() {
 		for( var i = 0; i < exerciseSpriteList.length; ++i )
 			exerciseSpriteList[i].Object.updateDayId(dayId);
-		bModified = true;
 	}
 
 	function gotExercise(strName1, strName2, sets, reps, weight) {
@@ -1233,10 +1235,10 @@ Page {
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
+			exerciseSprite.setWasRemoved.connect(delExerciseSet);
 			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
 
 			bStopBounce = true;
-			//scrollTraining.setScrollBarPosition(1);
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
@@ -1258,6 +1260,10 @@ Page {
 		}
 	}
 
+	function delExerciseSet(setid) {
+		setsToBeDeleted.push(setid);
+	}
+
 	function editExercise(exerciseIdx, newExerciseName) {
 		bModified = true;
 		if (exerciseIdx !== -1) {
@@ -1275,8 +1281,9 @@ Page {
 
 	function removeExercise(objidx) {
 		let newObjectList = new Array;
+		const len = exerciseSpriteList.length;
 
-		for( var i = 0, x = 0; i < exerciseSpriteList.length; ++i ) {
+		for( var i = 0, x = 0; i < len; ++i ) {
 			if (i === objidx) {
 				removeExerciseName(objidx);
 				exerciseSpriteList[objidx].Object.destroy();
@@ -1290,6 +1297,7 @@ Page {
 		}
 		delete exerciseSpriteList;
 		exerciseSpriteList = newObjectList;
+		bDayIsFinished = exerciseSpriteList.length > 0;
 		bModified = true;
 	}
 
@@ -1315,6 +1323,7 @@ Page {
 	function removeAllExerciseObjects() {
 		if (navButtons !== null)
 			navButtons.visible = false;
+		setsToBeRemoved = [];
 		const len = exerciseSpriteList.length - 1;
 		for (var i = len; i >= 0; --i) {
 			exerciseSpriteList[i].Object.destroy();
@@ -1450,7 +1459,11 @@ Page {
 				}
 				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 
-				for (var i = 0; i < exerciseSpriteList.length; ++i)
+				var i = 0;
+				for (; i < setsToBeRemoved.length; ++i)
+					Database.deleteSetFromSetsInfo(setsToBeRemoved[i]);
+				setsToBeRemoved = [];
+				for (i = 0; i < exerciseSpriteList.length; ++i)
 					exerciseSpriteList[i].Object.logSets();
 				bModified = false;
 				appDBModified = true;

@@ -21,23 +21,12 @@ Item {
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
 
-	property bool bIsRemoving: false
-
 	signal setRemoved(int nset)
 	signal setChanged(int nset, int reps, int weight, int subsets, string resttime, string setnotes)
 
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
-
-	onSetNumberChanged: { //This is changed in ExerciseEntry.qml when a set is removed
-		if (bIsRemoving) {
-			bIsRemoving = false;
-			if (setId > 0) {
-				Database.deleteSetFromSetsInfo(setId);
-			}
-		}
-	}
 
 	ColumnLayout {
 		id: setLayout

@@ -179,6 +179,9 @@ Page {
 						type: SetInputField.Type.SetType
 						availableWidth: parent.width*0.6
 						alternativeLabels: ["", "", "", qsTr("Sets:")]
+						backColor: "transparent"
+						borderColor: "transparent"
+						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: {
@@ -190,6 +193,9 @@ Page {
 						id: txtNReps
 						type: SetInputField.Type.RepType
 						availableWidth: parent.width*0.6
+						backColor: "transparent"
+						borderColor: "transparent"
+						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: {
@@ -201,6 +207,9 @@ Page {
 						id: txtNWeight
 						type: SetInputField.Type.WeightType
 						availableWidth: parent.width*0.6
+						backColor: "transparent"
+						borderColor: "transparent"
+						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: {

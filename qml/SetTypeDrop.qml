@@ -18,7 +18,6 @@ Item {
 	property string setNotes: " "
 	property var nextObject: null
 
-	property bool bIsRemoving: false
 	property bool bUpdateLists
 	property var subSetList: []
 
@@ -28,15 +27,6 @@ Item {
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
-
-	onSetNumberChanged: { //This is changed in ExerciseEntry.qml when a set is removed
-		if (bIsRemoving) {
-			bIsRemoving = false;
-			if (setId > 0) {
-				Database.deleteSetFromSetsInfo(setId);
-			}
-		}
-	}
 
 	ColumnLayout {
 		id: setLayout
@@ -118,7 +108,7 @@ Item {
 
 	Component.onCompleted: {
 		const nsubsets = setSubSets;
-		setSubSets = 0; //the value will be incremented in subSetAdded and return to its original value
+		setSubSets = 1; //the value will be incremented in subSetAdded and return to its original value
 		for (var i = 1; i <= nsubsets; ++i) {
 			addSubSet(i-1);
 		}
@@ -175,8 +165,10 @@ Item {
 		var rowSprite;
 		component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
-			if (idx >= 1)
+			if (idx >= 1) {
 				subSetAdded(Math.ceil((getReps(idx-1)*1) * 0.8), Math.ceil((getWeight(idx-1)*1) * 0.6));
+			}
+
 			rowSprite = component.createObject(subSetsLayout, {
 						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
 			});

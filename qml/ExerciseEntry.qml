@@ -31,6 +31,7 @@ FocusScope {
 	signal exerciseRemoved(int ObjectIdx)
 	signal exerciseEdited(int objidx, string newname)
 	signal setAdded(bool bnewset, int objidx, var setObject)
+	signal setWasRemoved(int setid)
 	signal requestHideFloatingButtons(int except_idx)
 
 	property var setObjectList: []
@@ -423,6 +424,8 @@ FocusScope {
 			if (bNewSet) {
 				setNbr++;
 				calculateSuggestedValues(type);
+				if (btnFloat !== null)
+					btnFloat.nextSetNbr++;
 			}
 			sprite = component.createObject(layoutMain, {
 								setId:setIds[setNbr], setNumber:setNbr, setReps:suggestedReps[setNbr],
@@ -443,16 +446,10 @@ FocusScope {
 					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
 					if (bNewSet)
 						exerciseName2 = qsTr("2: Add exercise");
-					//exerciseName1 = exerciseName;
-					//exerciseName += '&' + exerciseName2;
 					sprite.exerciseName2 = exerciseName2;
 				}
-				//else
-				//	exerciseName1 = exerciseName;
 			}
 			setAdded(bNewSet, thisObjectIdx, sprite);
-			if (btnFloat !== null)
-				btnFloat.nextSetNbr++;
 		}
 		else
 			console.log("not ready");
@@ -474,13 +471,15 @@ FocusScope {
 	}
 
 	function logSets() {
-		for( var i = 0; i < setObjectList.length; ++i )
+		const len = setObjectList.length;
+		for( var i = 0; i < len; ++i )
 			setObjectList[i].Object.logSet();
 	}
 
 	function removeAllSets() {
-		for( var i = 0; i < setObjectList.length; ++i ) {
-			setObjectList[i].Object.bIsRemoving = true;
+		const len = setObjectList.length;
+		for( var i = 0; i < len; ++i ) {
+			setObjectList[i].Object.removeSetFromDatabase();
 			setObjectList[i].Object.destroy();
 		}
 		delete setObjectList;
@@ -491,13 +490,14 @@ FocusScope {
 
 	function setRemoved(nset) {
 		let newObjectList = new Array;
+		setWasRemoved(setIds[nset]);
 		setObjectList[nset].Object.destroy();
 		setNbr--;
 
-		for(var i = 0, x = 0; i < setObjectList.length; ++i) {
+		const len = setObjectList.length;
+		for(var i = 0, x = 0; i < len; ++i) {
 			if (i >= nset) {
-				setObjectList[i].Object.bIsRemoving = true;
-				setObjectList[i].Object.setNumber = setObjectList[i].Object.setNumber - 1;
+				setObjectList[i].Object.setNumber--; // = setObjectList[i].Object.setNumber - 1;
 			}
 			if (i !== nset) {
 				newObjectList[x] = setObjectList[i];
@@ -517,7 +517,8 @@ FocusScope {
 	}
 
 	function updateSetsExerciseIndex() {
-		for(var i = 0, x = 0; i < setObjectList.length; ++i)
+		const len = setObjectList.length;
+		for(var i = 0, x = 0; i < len; ++i)
 			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
 	}
 

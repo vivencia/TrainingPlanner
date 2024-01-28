@@ -930,6 +930,11 @@ Page {
 			if (bNewMeso)
 				txtMesoName.forceActiveFocus();
 		}
+
+		Component.onDestruction: {
+			if (mesocycleCalendarPage !== null)
+				mesocycleCalendarPage.destroy();
+		}
 	} //footer
 
 	function isDateWithinMeso(date) {
