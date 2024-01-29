@@ -353,45 +353,11 @@ QtObject {
 		return results;
 	}
 
-	function updateMesoName(mesoId, mesoName) {
+	function updateMeso(mesoId, mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_name=? WHERE meso_id=?", [mesoName, mesoId]);
-		});
-	}
-
-	function updateMesoStartDate(mesoId, mesoStartDate) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_start_date=? WHERE meso_id=?", [mesoStartDate, mesoId]);
-		});
-	}
-
-	function updateMesoEndDate(mesoId, mesoEndDate) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_end_date=? WHERE meso_id=?", [mesoEndDate, mesoId]);
-		});
-	}
-
-	function updateMesoNote(mesoId, mesoNote) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_note=? WHERE meso_id=?", [mesoNote, mesoId]);
-		});
-	}
-
-	function updateMesonWeeks(mesoId, nWeeks) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_nweeks=? WHERE meso_id=?", [nWeeks, mesoId]);
-		});
-	}
-
-	function updateMesoSplit(mesoId, mesoSplit) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_split=? WHERE meso_id=?", [mesoSplit, mesoId]);
-		});
-	}
-
-	function updateMesoDrugs(mesoId, mesoDrugs) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycles set meso_drugs=? WHERE meso_id=?", [mesoDrugs, mesoId]);
+			tx.executeSql("UPDATE mesocycles set meso_name=?,meso_start_date=?,meso_end_date=?,meso_note=?,meso_nweeks=?,
+							meso_split=?,meso_drugs=? WHERE meso_id=?",
+							[mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs, mesoId]);
 		});
 	}
 
@@ -660,9 +626,10 @@ QtObject {
 		return results;
 	}
 
-	function updateMesoDivision(mesoID, split, splitField) {
+	function updateMesoDivision(mesoID, splitFieldA, splitFieldB, splitFieldC, splitFieldD, splitFieldE, splitFieldF) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycle_division SET split" + split + "=? WHERE meso_id=?", [splitField, mesoID]);
+			tx.executeSql("UPDATE mesocycle_division SET splitA=?,splitB=?,splitC=?,splitD=?,splitE=?,splitA=F WHERE meso_id=?",
+			[splitFieldA,splitFieldB,splitFieldC,splitFieldD,splitFieldE,splitFieldF, mesoID]);
 		});
 	}
 
@@ -1144,6 +1111,30 @@ QtObject {
 		return setsInfo;
 	}
 
+	function getAllSetsInfo() {
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT * FROM set_info");
+			for (let i = 0; i < results.rows.length; i++) {
+				let row = results.rows.item(i);
+				console.info();
+				console.info();
+				console.log("setId   ", row.id);
+				console.log("setTrainingdDayId   ", row.trainingday_id);
+				console.log("setExerciseIdx   ", row.trainingday_exercise_idx);
+				console.log("setType   ", row.type);
+				console.log("setNumber   ", row.number);
+				console.log("setReps   ", row.reps);
+				console.log("setWeight   ", row.weight);
+				console.log("setWeightUnit   ", row.weight_unit);
+				console.log("setSubSets   ", row.subsets);
+				console.log("setRestTime   ", row.resttime);
+				console.log("setNotes   ", row.note);
+				console.info();
+				console.info();
+			}
+		});
+	}
+
 	function updateSetsInfoTable() {
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT reps,weight FROM set_info WHERE id >=0");
@@ -1247,6 +1238,12 @@ QtObject {
 	function deleteSetFromSetsInfo(setId) {
 		db.transaction(function (tx) {
 			tx.executeSql("DELETE FROM set_info WHERE id=?", [setId]);
+		});
+	}
+
+	function deleteSets() {
+		db.transaction(function (tx) {
+			tx.executeSql("DELETE FROM set_info WHERE id>=213");
 		});
 	}
 

@@ -10,7 +10,6 @@ Drawer {
 	padding: 0
 	edge: Qt.LeftEdge
 	property bool bMenuClicked: false
-	clip: true
 
 	background: Rectangle {
 		gradient: Gradient {

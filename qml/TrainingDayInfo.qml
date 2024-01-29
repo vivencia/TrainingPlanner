@@ -56,22 +56,25 @@ Page {
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
 
+	Image {
+		anchors.fill: parent
+		source: "qrc:/images/app_logo.png"
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		opacity: 0.6
+	}
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-		Image {
-			anchors.fill: parent
-			source: "qrc:/images/app_logo.png"
-			fillMode: Image.PreserveAspectFit
-			opacity: 0.6
-		}
 	}
 
 	onTotalNumberOfExercisesChanged: {
 		if (totalNumberOfExercises <= 0) {
 			bLongTask = false;
-			bHasPreviousDay = bHasMesoPlan = false;
-			dayId = -1;
+			if (bHasPreviousDay || bHasMesoPlan) {
+				bHasPreviousDay = bHasMesoPlan = false;
+				dayId = -1;
+			}
 		}
 	}
 
@@ -134,7 +137,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			sessionLength = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
+			//sessionLength = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -202,7 +205,7 @@ Page {
 
 	Timer {
 		id: loadTimer
-		interval: 500
+		interval: 300
 		running: false
 		repeat: false
 		property int mOpt: 0
@@ -1076,7 +1079,7 @@ Page {
 
 	function createDatabaseEntryForDay() {
 		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesNames,
-			tDay, splitLetter, txtInTime.text, txtOutTime.text, txtLocation.placeholderText, txtDayInfoTrainingNotes.text);
+			tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 		dayId = result.insertId;
 	}
 
@@ -1120,7 +1123,7 @@ Page {
 				return false;
 			}
 			dayId = dayInfoList[0].dayId;
-			var tempMesoId = dayInfoList[0].mesoId;
+			const tempMesoId = dayInfoList[0].mesoId;
 			if (tempMesoId !== mesoId) {
 				//The information recorded for the day has a mesoId that refers to a mesocycle that does not
 				//match the passed mesoId. Since all the ways to get to this page must go through methods that check
@@ -1165,8 +1168,10 @@ Page {
 					exerciseSprite.exerciseRemoved.connect(removeExercise);
 					exerciseSprite.exerciseEdited.connect(editExercise);
 					exerciseSprite.setAdded.connect(addExerciseSet);
+					exerciseSprite.setWasRemoved.connect(delExerciseSet);
 					exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
 					exerciseSpriteList.push({"Object" : exerciseSprite});
+					totalNumberOfExercises--;
 				}
 
 				function checkStatus() {
@@ -1261,7 +1266,7 @@ Page {
 	}
 
 	function delExerciseSet(setid) {
-		setsToBeDeleted.push(setid);
+		setsToBeRemoved.push(setid);
 	}
 
 	function editExercise(exerciseIdx, newExerciseName) {
@@ -1457,7 +1462,8 @@ Page {
 					createDatabaseEntryForDay();
 					updateDayIdFromExercisesAndSets();
 				}
-				Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				else
+					Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 
 				var i = 0;
 				for (; i < setsToBeRemoved.length; ++i)
@@ -1634,6 +1640,7 @@ Page {
 			timerDialog.windowTitle = message;
 			timerDialog.mins = mins;
 			timerDialog.secs = secs;
+			timerDlgToolTip.close();
 			timerDialog.open();
 		}
 		else {

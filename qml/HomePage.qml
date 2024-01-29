@@ -27,15 +27,16 @@ Page {
 		bottomPadding: 20
 	}
 
+	Image {
+		anchors.fill: parent
+		source: "qrc:/images/app_logo.png"
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		opacity: 0.6
+	}
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-		Image {
-			anchors.fill: parent
-			source: "qrc:/images/app_logo.png"
-			fillMode: Image.PreserveAspectFit
-			opacity: 0.6
-		}
 	}
 
 	ListView {
@@ -43,7 +44,6 @@ Page {
 		anchors.fill: parent
 		anchors.leftMargin: 10
 		anchors.rightMargin: 10
-		clip: true
 		spacing: 10
 
 		ScrollBar.vertical: ScrollBar {

@@ -222,8 +222,12 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
+				//Database.deleteTraingDay(13);
+				//Database.deleteSets();
+				//Database.getAllSetsInfo();
+				//return;
 				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
-					if (trainingDayInfoPages[i].Object.mainDate === new Date(today)) {
+					if (trainingDayInfoPages[i].date === today.getTime()) {
 						stackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 						return;
 					}
@@ -269,10 +273,10 @@ ApplicationWindow {
 				var component = Qt.createComponent("TrainingDayInfo.qml");
 				if (component.status === Component.Ready) {
 					var trainingDayInfoPage = component.createObject(mainwindow, {
-						mainDate: new Date(today), tDay: tday, splitLetter: splitletter,
+						mainDate: today, tDay: tday, splitLetter: splitletter,
 						mesoName: meso_name, mesoId: mesoid, bFirstTime: bFirstTime
 					});
-					trainingDayInfoPages.push({ "Object":trainingDayInfoPage });
+					trainingDayInfoPages.push({ "date": today.getTime(), "Object":trainingDayInfoPage });
 					stackView.push(trainingDayInfoPage, StackView.DontLoad);
 				}
 			} //onClicked

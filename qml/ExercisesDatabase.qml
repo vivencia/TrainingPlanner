@@ -20,15 +20,16 @@ Page {
 
 	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight)
 
+	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
+		anchors.fill: parent
+		source: "qrc:/images/app_logo.png"
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		opacity: 0.6
+	}
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-		Image {
-			anchors.fill: parent
-			source: "qrc:/images/app_logo.png"
-			fillMode: Image.PreserveAspectFit
-			opacity: 0.6
-		}
 	}
 
 	ScrollView {

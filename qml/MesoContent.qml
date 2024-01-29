@@ -20,6 +20,14 @@ Page {
 	property bool bCanViewDay
 	property bool bCalendarInSyncWithMeso
 
+	Image {
+		anchors.fill: parent
+		source: "qrc:/images/app_logo.png"
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		opacity: 0.6
+	}
+
 	function refactoryDatabase(newStartDate, newEndDate, newSplit, bPreserveOldInfo, bPreserveOldInfoUntilToday) {
 		if (bCalendarInSyncWithMeso) return; //See comment under readDatabase()
 
@@ -475,15 +483,8 @@ Page {
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
 			width: calendar.width - 20
-
 			color: primaryDarkColor
 			opacity: 0.7
-			Image {
-				anchors.fill: parent
-				source: "qrc:/images/app_logo.png"
-				fillMode: Image.PreserveAspectFit
-				opacity: 0.6
-			}
 
 			Rectangle {
 				id: monthYearTitle
@@ -640,7 +641,7 @@ Page {
 
 				onClicked: {
 					for (var i = 0; i < trainingDayInfoPages.length; ++i) {
-						if (trainingDayInfoPages[i].Object.mainDate.getTime() === calendar.dayInfoDate.getTime()) {
+						if (trainingDayInfoPages[i].date === calendar.dayInfoDate.getTime()) {
 							mesoContentPage.StackView.view.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 							return;
 						}
@@ -652,7 +653,7 @@ Page {
 								bAlreadyLoaded:false
 						});
 						trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
-						trainingDayInfoPages.push({"Object" : trainingDayInfoPage});
+						trainingDayInfoPages.push({ "date":calendar.dayInfoDate.getTime(), "Object" : trainingDayInfoPage });
 						mesoContentPage.StackView.view.push(trainingDayInfoPage, StackView.DontLoad);
 					}
 				}

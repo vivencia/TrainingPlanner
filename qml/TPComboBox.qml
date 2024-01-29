@@ -84,7 +84,6 @@ ComboBox {
 		padding: 1
 
 		contentItem: ListView {
-			clip: true
 			implicitHeight: contentHeight
 			model: control.popup.visible ? control.delegateModel : null
 			currentIndex: control.highlightedIndex

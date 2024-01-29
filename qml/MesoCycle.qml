@@ -41,15 +41,16 @@ Page {
 	property bool bDate2Changed: false
 	property var mesocycleCalendarPage: null
 
+	Image {
+		anchors.fill: parent
+		source: "qrc:/images/app_logo.png"
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		opacity: 0.6
+	}
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-		Image {
-			anchors.fill: parent
-			source: "qrc:/images/app_logo.png"
-			fillMode: Image.PreserveAspectFit
-			opacity: 0.6
-		}
 	}
 
 	onBModifiedChanged: {
@@ -443,7 +444,6 @@ Page {
 						easing.type: Easing.InOutBack
 					}
 				}
-				clip: true
 				padding: 0
 
 				background: Rectangle {
@@ -874,19 +874,8 @@ Page {
 					createMesoCalendarObject(true);
 				}
 				else {
-					Database.updateMesoName(mesoId, mesoName);
-					Database.updateMesoStartDate(mesoId, mesoStartDate.getTime());
-					Database.updateMesoEndDate(mesoId, mesoEndDate.getTime());
-					Database.updateMesonWeeks(mesoId, nWeeks);
-					Database.updateMesoSplit(mesoId, mesoSplit);
-					Database.updateMesoDivision(mesoId,'A', strSplitA);
-					Database.updateMesoDivision(mesoId,'B', strSplitB);
-					Database.updateMesoDivision(mesoId,'C', strSplitC);
-					Database.updateMesoDivision(mesoId,'D', strSplitD);
-					Database.updateMesoDivision(mesoId,'E', strSplitE);
-					Database.updateMesoDivision(mesoId,'F', strSplitF);
-					Database.updateMesoDrugs(mesoId, mesoDrugs);
-					Database.updateMesoNote(mesoId, mesoNote);
+					Database.updateName(mesoId, mesoName, mesoStartDate.getTime(), mesoEndDate.getTime(), mesoNote, nWeeks, mesoSplit, mesoDrugs);
+					Database.updateMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
 
 					if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
 						if (Database.checkIfCalendarForMesoExists(mesoId)) {

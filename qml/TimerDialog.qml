@@ -747,9 +747,9 @@ Dialog {
 					++correctedHours;
 				}
 			}
-			console.log("correctedHours:  " + correctedHours + "    hours:   " + hours);
-			console.log("correctedMins:  " + correctedMins + "   mins:   ", mins);
-			console.log("correctedSecs:  " + correctedSecs + "   secs:   ", secs);
+			//console.log("correctedHours:  " + correctedHours + "    hours:   " + hours);
+			//console.log("correctedMins:  " + correctedMins + "   mins:   ", mins);
+			//console.log("correctedSecs:  " + correctedSecs + "   secs:   ", secs);
 			hours = correctedHours;
 			mins = correctedMins;
 			secs = correctedSecs;

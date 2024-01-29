@@ -79,7 +79,7 @@ FocusScope {
 
 	Frame {
 		id: paneExercise
-		property bool shown: !bFoldPaneOnLoad
+		property bool shown: false
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height
 		Behavior on height {
@@ -90,6 +90,13 @@ FocusScope {
 		clip: true
 		padding: 0
 		z: 0
+
+		onShownChanged: {
+			if (shown) {
+				if (setObjectList.length === 0)
+					createSets();
+			}
+		}
 
 		background: Rectangle {
 			color: thisObjectIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
@@ -291,15 +298,6 @@ FocusScope {
 			} // RowLayout
 		} // ColumnLayout layoutMain
 
-		Component.onCompleted: {
-			switch (setBehaviour) {
-				case 0:
-				break;
-				case 1: loadSetsFromDatabase(); break;
-				case 2: loadSetsFromMesoPlan(); break;
-			}
-		}
-
 		Component.onDestruction: {
 			for (var i = 0; i < setObjectList.length; ++i)
 				setObjectList[i].Object.destroy();
@@ -370,7 +368,6 @@ FocusScope {
 				changeComboModel();
 			}
 		}
-		totalNumberOfExercises--;
 	}
 
 	function loadSetsFromMesoPlan() {
@@ -388,7 +385,6 @@ FocusScope {
 		const nreps = plan_info[0].splitNReps.split('|');
 		const nweights = plan_info[0].splitNWeight.split('|');
 		createSetsFromPlan(nsets[thisObjectIdx], types[thisObjectIdx], nreps[thisObjectIdx], nweights[thisObjectIdx]);
-		totalNumberOfExercises--;
 	}
 
 	function createSetsFromPlan(nsets, type, nreps, nweight) {
@@ -406,10 +402,27 @@ FocusScope {
 		}
 	}
 
+	function createSets() {
+		switch (setBehaviour) {
+			case 0:
+			break;
+			case 1: loadSetsFromDatabase(); break;
+			case 2: loadSetsFromMesoPlan(); break;
+		}
+	}
+
 	function updateDayId(newDayId) {
 		tDayId = newDayId;
-		for(var i = 0; i < setObjectList.length; ++i) {
-			setObjectList[i].Object.updateTrainingDayId(tDayId);
+		const len = setObjectList.length;
+		//sets objects are created on demand(when shown). If they are not created until the day is saved, we need to do it now
+		//so that they can log their information for the day. If they had been created before saving, they will contain wrong tDayId, i.e.
+		//one that was either borrowed from another day or -1 when created from a meso plan. Before logging, we must set tDayId to the value
+		//obtained from inserting TrainingDay into the database
+		if (len === 0)
+			createSets();
+		else {
+			for(var i = 0; i < len; ++i)
+				setObjectList[i].Object.updateTrainingDayId(tDayId);
 		}
 	}
 
@@ -417,42 +430,48 @@ FocusScope {
 		const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
 			"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
 
-		var component;
-		var sprite;
-		component = Qt.createComponent(setTypePage[type]);
-		if (component.status === Component.Ready) {
-			if (bNewSet) {
-				setNbr++;
-				calculateSuggestedValues(type);
-				if (btnFloat !== null)
-					btnFloat.nextSetNbr++;
-			}
-			sprite = component.createObject(layoutMain, {
+		function generateSetObject(page) {
+			var component = Qt.createComponent(page, Component.Asynchronous);
+
+			function finishCreation() {
+				if (bNewSet) {
+					setNbr++;
+					calculateSuggestedValues(type);
+					if (btnFloat !== null)
+						btnFloat.nextSetNbr++;
+				}
+				var sprite = component.createObject(layoutMain, {
 								setId:setIds[setNbr], setNumber:setNbr, setReps:suggestedReps[setNbr],
 								setWeight:suggestedWeight[setNbr], setSubSets:suggestedSubSets[setNbr],
 								setRestTime:suggestedRestTimes[setNbr], setNotes:setNotes[setNbr], exerciseIdx:thisObjectIdx,
 								tDayId:tDayId
-			});
-			setObjectList.push({"Object" : sprite});
-			sprite.setRemoved.connect(setRemoved);
-			sprite.setChanged.connect(setChanged);
+				});
+				setObjectList.push({ "Object" : sprite });
+				sprite.setRemoved.connect(setRemoved);
+				sprite.setChanged.connect(setChanged);
 
-			if (setNbr >= 1)
-				setObjectList[setNbr-1].Object.nextObject = sprite;
-			else {
-				if (type === 4) { //Giant set
-					bCompositeExercise = true;
-					sprite.stackViewObj = stackViewObj;
-					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
-					if (bNewSet)
-						exerciseName2 = qsTr("2: Add exercise");
-					sprite.exerciseName2 = exerciseName2;
+				if (setNbr >= 1)
+					setObjectList[setNbr-1].Object.nextObject = sprite;
+				else {
+					if (type === 4) { //Giant set
+						bCompositeExercise = true;
+						sprite.stackViewObj = stackViewObj;
+						sprite.secondExerciseNameChanged.connect(compositeSetChanged);
+						if (bNewSet)
+							exerciseName2 = qsTr("2: Add exercise");
+						sprite.exerciseName2 = exerciseName2;
+					}
 				}
+				setAdded(bNewSet, thisObjectIdx, sprite);
 			}
-			setAdded(bNewSet, thisObjectIdx, sprite);
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
-		else
-			console.log("not ready");
+
+		generateSetObject(setTypePage[type]);
 	}
 
 	function setChanged(nset, nReps, nWeight, nSubSets, restTime, notes) {
@@ -489,31 +508,50 @@ FocusScope {
 	}
 
 	function setRemoved(nset) {
-		let newObjectList = new Array;
-		setWasRemoved(setIds[nset]);
+		const len = setObjectList.length;
+		const new_len = len - 1;
+		if (setIds[nset] !== -1)
+			setWasRemoved(setIds[nset]);
 		setObjectList[nset].Object.destroy();
 		setNbr--;
 
-		const len = setObjectList.length;
+		let newObjectList = new Array(new_len);
+		let newSuggestedReps = new Array(new_len);
+		let newSuggestedSubSets = new Array(new_len);
+		let newSuggestedWeight = new Array(new_len);
+		let newSuggestedRestTimes = new Array(new_len);
+		let newSetNotes = new Array(new_len);
+		let newSetIds = new Array(new_len);
+
 		for(var i = 0, x = 0; i < len; ++i) {
-			if (i >= nset) {
+			if (i >= nset)
 				setObjectList[i].Object.setNumber--; // = setObjectList[i].Object.setNumber - 1;
-			}
+
 			if (i !== nset) {
 				newObjectList[x] = setObjectList[i];
+				newSuggestedReps[x] = suggestedReps[i];
+				newSuggestedSubSets[x] = suggestedSubSets[i];
+				newSuggestedWeight[x] = suggestedWeight[i];
+				newSuggestedRestTimes[x] = suggestedRestTimes[i];
+				newSetNotes[x] = setNotes[i];
+				newSetIds[x] = setIds[i];
 				x++;
 			}
 		}
-		delete setObjectList;
-		setObjectList = newObjectList;
-		if (setObjectList.length === 0) { //setNbr === -1
+		delete setObjectList;		setObjectList = newObjectList;
+		delete suggestedReps;		suggestedReps = newSuggestedReps;
+		delete suggestedSubSets;	suggestedSubSets = newSuggestedSubSets;
+		delete suggestedWeight;		suggestedWeight = newSuggestedWeight;
+		delete setNotes;			setNotes = newSetNotes;
+		delete setIds;				setIds = newSetIds;
+
+		if (setObjectList.length === 0)
 			destroyFloatingAddSetButton ();
-		}
 		else {
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr--;
 		}
-		exerciseEdited(-1, "");
+		exerciseEdited(-1, ""); //Just to set bModified to true
 	}
 
 	function updateSetsExerciseIndex() {

@@ -25,7 +25,6 @@ Frame {
 	implicitWidth: parent.width
 	implicitHeight: splitLayout.height
 
-	clip: true
 	padding: 0
 	spacing: 0
 	Layout.leftMargin: 5
@@ -127,7 +126,6 @@ Frame {
 				padding: 0
 				implicitWidth: Math.max(lstSplitExercises.width, listItem.implicitWidth)
 				implicitHeight: listItem.height
-				clip: false
 
 				GridLayout {
 					id: contentsLayout
@@ -549,7 +547,6 @@ Frame {
 					id: rec
 					width: parent.width
 					height: parent.height
-					clip: false
 					color: SwipeDelegate.pressed ? "#555" : "#666"
 					radius: 5
 					opacity: Math.abs(delegate.swipe.position)

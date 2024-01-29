@@ -40,7 +40,6 @@ Page {
 		width: parent.width
 		height: shown ? parent.height * 0.5 : btnShowHideList.height
 		visible: height >= btnShowHideList.height
-		clip: true
 		spacing: 0
 		padding: 0
 		property bool shown: false

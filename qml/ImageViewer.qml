@@ -8,6 +8,7 @@ Image {
 
 	id: imagePreview
 	fillMode: Image.PreserveAspectFit
+	asynchronous: true
 	clip: true
 	source: imageSource
 	width: mainwindow.width * 0.7
