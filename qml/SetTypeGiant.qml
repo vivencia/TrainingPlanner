@@ -21,7 +21,6 @@ Item {
 	property string exerciseName2
 	property bool bUpdateLists
 	property var subSetList: []
-	property var stackViewObj
 
 	signal setRemoved(int nset)
 	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)

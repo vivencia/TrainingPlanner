@@ -78,7 +78,7 @@ Page {
 				if (mesocycleCalendarPage === null)
 					createMesoCalendarObject(true);
 				else
-					mesoPropertiesPage.StackView.view.push(mesocycleCalendarPage, StackView.DontLoad);
+					appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
 			}
 		}
 	}
@@ -666,20 +666,27 @@ Page {
 						onClicked: {
 							for (var i = 0; i < mesoPlannerList.length; ++i) {
 								if (mesoPlannerList[i].mesoId === mesoId) {
-									mesoPropertiesPage.StackView.view.push(mesoPlannerList[i].Object, StackView.DontLoad);
+									appStackView.push(mesoPlannerList[i].Object, StackView.DontLoad);
 									break;
 								}
 							}
-							var component = Qt.createComponent("ExercisesPlanner.qml");
-							if (component.status === Component.Ready) {
+
+							var component = Qt.createComponent("ExercisesPlanner.qml", Qt.Asynchronous);
+
+							function finishCreation() {
 								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
 										"mesoId":mesoId, "mesoSplit":mesoSplit, "width":mesoPropertiesPage.width, "height":mesoPropertiesPage.height
 								});
 								mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
-								mesoPropertiesPage.StackView.view.push(mesoPlannerObject, StackView.DontLoad);
+								appStackView.push(mesoPlannerObject, StackView.DontLoad);
 							}
-						}
-					}
+
+							if (component.status === Component.Ready)
+								finishCreation();
+							else
+								component.statusChanged.connect(finishCreation);
+						} //onClicked
+					} //ButtonFlat
 				} //GridLayout
 			} //Pane
 
@@ -887,7 +894,7 @@ Page {
 								mesocycleCalendarPage.mesoSplit = mesosModel.get(idxModel).mesoSplit;
 								mesocycleCalendarPage.mesoName = mesosModel.get(idxModel).mesoName;
 							}
-							mesoPropertiesPage.StackView.view.push(mesocycleCalendarPage);
+							appStackView.push(mesocycleCalendarPage);
 							mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 						}
@@ -931,15 +938,20 @@ Page {
 	}
 
 	function createMesoCalendarObject(bshowpage) {
-		var component = Qt.createComponent("MesoContent.qml");
-		if (component.status === Component.Ready) {
+		var component = Qt.createComponent("MesoContent.qml", Qt.Asynchronous);
+
+		function finishCreation() {
 			mesocycleCalendarPage = component.createObject(mesoPropertiesPage, {
 					mesoId: mesoId, mesoName: mesosModel.get(idxModel).mesoName, mesoStartDate: mesosModel.get(idxModel).mesoStartDate,
 					mesoEndDate: mesosModel.get(idxModel).mesoEndDate, mesoSplit: mesosModel.get(idxModel).mesoSplit, bVisualLoad: bshowpage
 			});
 			if (bshowpage)
-				mesoPropertiesPage.StackView.view.push(mesocycleCalendarPage, StackView.DontLoad);
+				appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
 		}
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 } //Page
 

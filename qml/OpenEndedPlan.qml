@@ -404,18 +404,24 @@ Page {
 				onClicked: {
 					for (var i = 0; i < mesoPlannerList.length; ++i) {
 						if (mesoPlannerList[i].mesoId === mesoId) {
-							openEndedPage.StackView.view.push(mesoPlannerList[i].Object, StackView.DontLoad);
+							appStackView.push(mesoPlannerList[i].Object, StackView.DontLoad);
 							break;
 						}
 					}
-					var component = Qt.createComponent("ExercisesPlanner.qml");
-					if (component.status === Component.Ready) {
+					var component = Qt.createComponent("ExercisesPlanner.qml", Qt.Asynchronous);
+
+					function finishCreation() {
 						var mesoPlannerObject = component.createObject(openEndedPage, {
 								"mesoId":mesoId, "mesoSplit":mesoSplit, "width":openEndedPage.width, "height":openEndedPage.height
 						});
 						mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
-						openEndedPage.StackView.view.push(mesoPlannerObject, StackView.DontLoad);
+						appStackView.push(mesoPlannerObject, StackView.DontLoad);
 					}
+
+					if (component.status === Component.Ready)
+						finishCreation();
+					else
+						component.statusChanged.connect(finishCreation);
 				}
 			}
 		} //GridLayout

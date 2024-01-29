@@ -427,10 +427,8 @@ Page {
 				imageViewer.destroy();
 				imageViewer = null;
 			}
-			if (videoViewer === null) {
-				var component = Qt.createComponent("VideoPlayer.qml");
-				videoViewer = component.createObject(layoutMain, { mediaSource:strMediaPath} );
-			}
+			if (videoViewer === null)
+				generateObject(1);
 			else
 				videoViewer.mediaSource = strMediaPath;
 		}
@@ -441,12 +439,29 @@ Page {
 				videoViewer.destroy();
 				videoViewer = null;
 			}
-			if (imageViewer === null) {
-				component = Qt.createComponent("ImageViewer.qml");
-				imageViewer = component.createObject(layoutMain, { imageSource:strMediaPath });
-			}
+			if (imageViewer === null)
+				generateObject(0);
 			else
-				imageViewer.imageSource = strMediaPath;
+				imageViewer.mediaSource = strMediaPath;
 		}
+	}
+
+	function generateObject(obj) {
+		var component = Qt.createComponent(obj === 0 ? "ImageViewer.qml" : "VideoPlayer.qml", Qt.Asynchronous);
+		function finishCreation(Obj) {
+			if (Obj === 0)
+				imageViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });
+			else
+				videoViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });
+		}
+
+		function checkStatus() {
+			if (component.status === Component.Ready)
+				finishCreation(obj);
+		}
+		if (component.status === Component.Ready)
+			finishCreation(obj);
+		else
+			component.statusChanged.connect(checkStatus);
 	}
 } // Page

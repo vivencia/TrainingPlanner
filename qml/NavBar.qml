@@ -9,22 +9,21 @@ ToolBar {
 	width: parent.width
 	height: 40
 
-	required property StackView stackView
 	property var mainCalendar: null
 	property var mainTimer: null
 
 	ButtonFlat {
 		id: btnBack
-		enabled: bNavButtonsEnabled && root.stackView.depth >= 2
+		enabled: bNavButtonsEnabled && appStackView.depth >= 2
 		anchors.left: parent.left
 		anchors.leftMargin: 5
-		visible: root.stackView.depth >= 2
+		visible: appStackView.depth >= 2
 		anchors.verticalCenter: parent.verticalCenter
 		text: qsTr("BACK")
 		imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 
 		onClicked: {
-			root.stackView.pop();
+			appStackView.pop();
 			backButtonPressed();
 		}
 	}
@@ -62,7 +61,7 @@ ToolBar {
 
 		onClicked: {
 			if (mainCalendar === null) {
-				var component = Qt.createComponent("CalendarDialog.qml");
+				var component = Qt.createComponent("CalendarDialog.qml", Qt.Asynchronous);
 				if (component.status === Component.Ready) {
 					mainCalendar = component.createObject(this, { showDate:today, simpleCalendar:true,
 						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
@@ -88,7 +87,7 @@ ToolBar {
 
 		onClicked: {
 			if (mainTimer === null) {
-				var component = Qt.createComponent("TimerDialog.qml");
+				var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
 				if (component.status === Component.Ready) {
 					mainTimer = component.createObject(this, { simpleTimer:true });
 				}

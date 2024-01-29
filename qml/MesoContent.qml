@@ -642,20 +642,31 @@ Page {
 				onClicked: {
 					for (var i = 0; i < trainingDayInfoPages.length; ++i) {
 						if (trainingDayInfoPages[i].date === calendar.dayInfoDate.getTime()) {
-							mesoContentPage.StackView.view.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
+							appStackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 							return;
 						}
 					}
-					var component = Qt.createComponent("TrainingDayInfo.qml");
-					if (component.status === Component.Ready) {
-						var trainingDayInfoPage = component.createObject(null, {mainDate: calendar.dayInfoDate,
+
+					function generateObject() {
+						var component = Qt.createComponent("TrainingDayInfo.qml", Qt.Asynchronous);
+
+						function finishCreation() {
+							var trainingDayInfoPage = component.createObject(null, {mainDate: calendar.dayInfoDate,
 								tDay: trainingDay, splitLetter: splitLetter, mesoName: mesoName, mesoId: mesoId,
 								bAlreadyLoaded:false
-						});
-						trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
-						trainingDayInfoPages.push({ "date":calendar.dayInfoDate.getTime(), "Object" : trainingDayInfoPage });
-						mesoContentPage.StackView.view.push(trainingDayInfoPage, StackView.DontLoad);
+							});
+							trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
+							trainingDayInfoPages.push({ "date":calendar.dayInfoDate.getTime(), "Object" : trainingDayInfoPage });
+							appStackView.push(trainingDayInfoPage, StackView.DontLoad);
+						}
+
+						if (component.status === Component.Ready)
+							finishCreation();
+						else
+							component.statusChanged.connect(finishCreation);
 					}
+
+					generateObject();
 				}
 			}
 		} // RowLayout
@@ -672,7 +683,8 @@ Page {
 		var i = 0;
 		while (i < model.length) {
 			var x = 0;
-			while (x < model[i].daySplit.length) {
+			var len2 = model[i].daySplit.length;
+			while (x < len2) {
 				var calDate = new Date(model[i].yearNbr, model[i].monthNbr, model[i].daySplit[x].dayNbr);
 				Database.newMesoCalendarEntry(mesoId, calDate.getTime(), model[i].daySplit[x].trainingDayNumber, model[i].daySplit[x].daySplitLetter);
 				++x;

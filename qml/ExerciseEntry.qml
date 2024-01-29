@@ -7,14 +7,16 @@ import "jsfunctions.js" as JSF
 
 FocusScope {
 	id: exerciseItem
-	property ListModel exercicesModel
+	Layout.fillWidth: true
+	implicitHeight: paneExercise.height
+
+	required property int thisObjectIdx
 	required property string exerciseName
 	required property int tDayId
-	required property var stackViewObj
-	property bool bFoldPaneOnLoad: false
+	required property string splitLetter
+	required property string exerciseName1
+	required property string exerciseName2
 
-	property string exerciseName1
-	property string exerciseName2
 	property int setType: 0
 	property int setNbr: -1
 	property var suggestedReps: []
@@ -23,24 +25,18 @@ FocusScope {
 	property var suggestedRestTimes: []
 	property var setNotes: []
 	property var setIds: []
-	property var btnFloat: null
-	property var lastSetObjectBeforeThisExercise: null
-	property string splitLetter
+	property var setObjectList: []
 
-	property int thisObjectIdx
+	property var btnFloat: null
+	property bool bCompositeExercise: false
+	property bool bFloatButtonVisible
+	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
+
 	signal exerciseRemoved(int ObjectIdx)
 	signal exerciseEdited(int objidx, string newname)
 	signal setAdded(bool bnewset, int objidx, var setObject)
 	signal setWasRemoved(int setid)
 	signal requestHideFloatingButtons(int except_idx)
-
-	property var setObjectList: []
-	property bool bCompositeExercise: false
-	property bool bFloatButtonVisible
-	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
-
-	Layout.fillWidth: true
-	implicitHeight: paneExercise.height
 
 	onBFloatButtonVisibleChanged: {
 		if (bFloatButtonVisible) {
@@ -307,15 +303,21 @@ FocusScope {
 	} //paneExercise
 
 	function createFloatingAddSetButton() {
-		var component;
-		component = Qt.createComponent("FloatingButton.qml");
-		if (component.status === Component.Ready) {
-			btnFloat = component.createObject(exerciseItem, {
+		function generateObject() {
+			var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
+			function finishCreation() {
+				btnFloat = component.createObject(exerciseItem, {
 						text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 2
-			});
-			btnFloat.buttonClicked.connect(addNewSet);
-			bFloatButtonVisible = true;
-			changeComboModel();
+				});
+				btnFloat.buttonClicked.connect(addNewSet);
+				bFloatButtonVisible = true;
+				changeComboModel();
+			}
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+			generateObject();
 		}
 	}
 
@@ -455,7 +457,6 @@ FocusScope {
 				else {
 					if (type === 4) { //Giant set
 						bCompositeExercise = true;
-						sprite.stackViewObj = stackViewObj;
 						sprite.secondExerciseNameChanged.connect(compositeSetChanged);
 						if (bNewSet)
 							exerciseName2 = qsTr("2: Add exercise");
@@ -498,12 +499,10 @@ FocusScope {
 	function removeAllSets() {
 		const len = setObjectList.length;
 		for( var i = 0; i < len; ++i ) {
-			setObjectList[i].Object.removeSetFromDatabase();
 			setObjectList[i].Object.destroy();
+			if (setIds[i] !== -1)
+				setWasRemoved(setIds[i]);
 		}
-		delete setObjectList;
-		let newObjectList = new Array;
-		setObjectList = newObjectList;
 		destroyFloatingAddSetButton ();
 	}
 
@@ -574,6 +573,10 @@ FocusScope {
 
 	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
 		changeExercise(strName1, strName2);
+	}
+
+	function foldUpSets() {
+		paneExercise.shown = false;
 	}
 
 	function calculateSuggestedValues(type) {

@@ -113,7 +113,7 @@ Page {
 			hideFloatingButton(-1); //Day is finished
 			bDayIsFinished = true;
 			btnSaveDay.clicked();
-			foldAllExercisesEntries("up");
+			foldUpAllExercisesEntries("up");
 		}
 	}
 
@@ -1162,8 +1162,7 @@ Page {
 					const idx = exerciseSpriteList.length;
 					var exerciseSprite = component.createObject(colExercises, {
 							thisObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
-							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, bFoldPaneOnLoad:true,
-							stackViewObj:trainingDayPage.StackView.view, splitLetter:splitLetter
+							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, splitLetter:splitLetter
 					});
 					exerciseSprite.exerciseRemoved.connect(removeExercise);
 					exerciseSprite.exerciseEdited.connect(editExercise);
@@ -1228,28 +1227,29 @@ Page {
 		if (bFirstTime && firstTimeTip)
 			firstTimeTip.visible = false;
 
-		var component;
-		var exerciseSprite;
-		component = Qt.createComponent("ExerciseEntry.qml");
+		var component = Qt.createComponent("ExerciseEntry.qml", Qt.Asynchronous);
 
-		if (component.status === Component.Ready) {
+		function finishCreation() {
 			var idx = exerciseSpriteList.length;
-			exerciseSprite = component.createObject(colExercises, {thisObjectIdx:idx, exerciseName:strName1,
-				exerciseName1:strName1, exerciseName2:strName2, tDayId:dayId, stackViewObj:trainingDayPage.StackView.view});
-			exerciseSpriteList.push({"Object" : exerciseSprite});
+			var exerciseSprite = component.createObject(colExercises, { thisObjectIdx:idx, exerciseName:strName1,
+				exerciseName1:strName1, exerciseName2:strName2, tDayId:dayId });
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
 			exerciseSprite.setWasRemoved.connect(delExerciseSet);
 			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
+			exerciseSpriteList.push({"Object" : exerciseSprite});
 
 			bStopBounce = true;
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
 		}
+
+		if (component.status === Component.Ready)
+			finishCreation();
 		else
-			console.log("not ready");
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function addExerciseSet(bnewset, exerciseObjIdx, setObject) {
@@ -1328,13 +1328,14 @@ Page {
 	function removeAllExerciseObjects() {
 		if (navButtons !== null)
 			navButtons.visible = false;
-		setsToBeRemoved = [];
 		const len = exerciseSpriteList.length - 1;
-		for (var i = len; i >= 0; --i) {
+		for (var i = len; i >= 0; --i)
 			exerciseSpriteList[i].Object.destroy();
-			exerciseSpriteList.pop();
-		}
+
+		exerciseSpriteList = [];
+		setsToBeRemoved = [];
 		exercisesNames = "";
+		bAlreadyLoaded = false;
 	}
 
 	function updateMesoCalendar() {
@@ -1399,15 +1400,19 @@ Page {
 	} // updateMesoCalendar()
 
 	function startProgressDialog(calid, splitidx, day, mesoenddate) {
-		var component;
-		var progressSprite;
-		component = Qt.createComponent("TrainingDayProgressDialog.qml");
+		var component = Qt.createComponent("TrainingDayProgressDialog.qml");
 
-		if (component.status === Component.Ready) {
-			progressSprite = component.createObject(trainingDayPage, {calId:calid, splitIdx:splitidx, tDay:day,
-							mesoSplit:mesoSplit, mesoEndDate:mesoenddate } );
+		function finishCreation() {
+			var progressSprite = component.createObject(trainingDayPage, {calId:calid, splitIdx:splitidx, tDay:day,
+				mesoSplit:mesoSplit, mesoEndDate:mesoenddate
+			});
 			progressSprite.init(qsTr("Updating calendar database. Please wait..."), 0, 30);
 		}
+
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function hideFloatingButton(except_idx) {
@@ -1419,13 +1424,10 @@ Page {
 		}
 	}
 
-	//function maybeShowNavButtons() {
-	//	navButtons.showButtons();
-	//}
-
-	function foldAllExercisesEntries(direction) {
-		for (var i = 0; i < exerciseSpriteList.length; ++i)
-			exerciseSpriteList[i].Object.bFoldPaneOnLoad = direction === "up";
+	function foldUpAllExercisesEntries() {
+		const len = exerciseSpriteList.length;
+		for (var i = 0; i < len; ++i)
+			exerciseSpriteList[i].Object.foldUpSets();
 	}
 
 	footer: ToolBar {
@@ -1486,9 +1488,9 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
+				bModified = false;
 				removeAllExerciseObjects();
 				pageActivation();
-				bModified = false;
 			}
 		} //btnRevertDay
 
@@ -1585,7 +1587,7 @@ Page {
 	}
 
 	function createFirstTimeTipComponent() {
-		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
+		var component = Qt.createComponent("FirstTimeHomePageTip.qml", Qt.Asynchronous);
 		if (component.status === Component.Ready) {
 			firstTimeTip = component.createObject(trainingDayPage, { message:qsTr("Start here") });
 		}
@@ -1630,7 +1632,7 @@ Page {
 
 	function requestTimerDialog(requester, message, mins, secs) {
 		if (timerDialog === null) {
-			var component = Qt.createComponent("TimerDialog.qml");
+			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
 			timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false });
 			timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
 			timerDialog.onClosed.connect(timerDialogClosed);
@@ -1658,10 +1660,9 @@ Page {
 
 	function createNavButtons() {
 		if (navButtons === null) {
-			var component = Qt.createComponent("PageScrollButtons.qml");
+			var component = Qt.createComponent("PageScrollButtons.qml", Qt.Asynchronous);
 			navButtons = component.createObject(this, {});
 			navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
-			//navButtons.backButtonWasPressed.connect(maybeShowNavButtons);
 		}
 	}
 

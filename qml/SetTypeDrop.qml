@@ -161,16 +161,14 @@ Item {
 	}
 
 	function addSubSet(idx) {
-		var component;
-		var rowSprite;
-		component = Qt.createComponent("RepsAndWeightRow.qml");
+		var component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
 			if (idx >= 1) {
 				subSetAdded(Math.ceil((getReps(idx-1)*1) * 0.8), Math.ceil((getWeight(idx-1)*1) * 0.6));
 			}
 
-			rowSprite = component.createObject(subSetsLayout, {
-						rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
+			var rowSprite = component.createObject(subSetsLayout, {
+				rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
 			});
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);

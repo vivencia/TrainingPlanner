@@ -43,7 +43,6 @@ ApplicationWindow {
 	property color textOnAccent: accentPalette[1]
 	property string iconOnAccentFolder: accentPalette[2]
 
-	property bool isLandscape: width > height
 	property bool bNavButtonsEnabled: true
 	property bool appDBModified: false
 	property bool bLongTask: false
@@ -55,6 +54,7 @@ ApplicationWindow {
 	property var trainingDayInfoPages: []
 	property var mesoPlannerList: []
 	property var dbExercisesListPage: null
+	readonly property var appStackView: stackView
 
 	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -136,12 +136,14 @@ ApplicationWindow {
 	}
 
 	Component.onCompleted: {
-		contentItem.Keys.pressed.connect( function(event) {
-			if (event.key === Qt.Key_Back) {
-				event.accepted = true;
-				androidBackKeyPressed();
-			}
-		});
+		if (Qt.platform.os === "android") {
+			contentItem.Keys.pressed.connect( function(event) {
+				if (event.key === Qt.Key_Back) {
+					event.accepted = true;
+					androidBackKeyPressed();
+				}
+			});
+		}
 	}
 
 	Component.onDestruction: {
@@ -155,15 +157,14 @@ ApplicationWindow {
 	}
 
 	function androidBackKeyPressed() {
-		if (stackView.depth >= 2)
-			stackView.pop();
+		if (appStackView.depth >= 2)
+			appStackView.pop();
 		else
 			close();
 	}
 
 	header: NavBar {
 		id: navBar
-		stackView: stackView
 
 		background: Rectangle {
 			color: primaryDarkColor
@@ -205,15 +206,15 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("HOME")
-			enabled: bNavButtonsEnabled && stackView.depth >= 2
+			enabled: bNavButtonsEnabled && appStackView.depth >= 2
 			onClicked: {
-				stackView.pop(stackView.get(0));
+				appStackView.pop(appStackView.get(0));
 			}
 		}
 
 		TabButton {
 			text: qsTr("  + Day")
-			enabled: stackView.depth === 1 && currentMesoIdx >= 0
+			enabled: appStackView.depth === 1 && currentMesoIdx >= 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
@@ -228,7 +229,7 @@ ApplicationWindow {
 				//return;
 				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
 					if (trainingDayInfoPages[i].date === today.getTime()) {
-						stackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
+						appStackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
 						return;
 					}
 				}
@@ -270,15 +271,21 @@ ApplicationWindow {
 				}
 				return;*/
 
-				var component = Qt.createComponent("TrainingDayInfo.qml");
-				if (component.status === Component.Ready) {
+				var component = Qt.createComponent("TrainingDayInfo.qml", Qt.Asynchronous);
+
+				function finishCreation() {
 					var trainingDayInfoPage = component.createObject(mainwindow, {
 						mainDate: today, tDay: tday, splitLetter: splitletter,
 						mesoName: meso_name, mesoId: mesoid, bFirstTime: bFirstTime
 					});
 					trainingDayInfoPages.push({ "date": today.getTime(), "Object":trainingDayInfoPage });
-					stackView.push(trainingDayInfoPage, StackView.DontLoad);
+					appStackView.push(trainingDayInfoPage, StackView.DontLoad);
 				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
 			} //onClicked
 		} //TabButton
 	} //footer
@@ -298,11 +305,17 @@ ApplicationWindow {
 
 	function openDbExercisesListPage() {
 		if (!dbExercisesListPage) {
-			var component = Qt.createComponent("ExercisesDatabase.qml");
-			if (component.status === Component.Ready) {
+			var component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
+
+			function finishCreation() {
 				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
 			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
-		stackView.push(dbExercisesListPage, StackView.DontLoad);
+		appStackView.push(dbExercisesListPage, StackView.DontLoad);
 	}
 } //ApplicationWindow
