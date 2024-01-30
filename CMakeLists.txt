@@ -17,6 +17,7 @@ set( SOURCES
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
+	cxx/graph.h cxx/graph.cpp
 )
 
 set( TRANSLATIONS_DIR
@@ -78,6 +79,7 @@ set( QML_FILES
     "qml/TPTextInput.qml"
     "qml/TPRadioButton.qml"
     "qml/TPComboBox.qml"
+    "qml/GraphicsViewer.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})
@@ -86,8 +88,6 @@ qt_add_executable(trainingplanner
 	${QML_FILES}
 	${RESOURCE_FILES}
 	${QM_FILES}
-
-
 )
 
 target_link_libraries(trainingplanner PUBLIC
@@ -125,6 +125,22 @@ qt_add_resources(trainingplanner "trainingplanner" images.qrc sounds.qrc
 #    SOURCES
 #	${SOURCES}
 #)
+
+list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/cxx")
+list(APPEND QML_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/qml")
+set(QML_IMPORT_PATH
+    ${QML_DIRS}
+)
+
+qt_add_qml_module(trainingplanner
+    URI "Graph"
+    VERSION 1.0
+    QML_FILES
+	qml/GraphicsViewer.qml
+    SOURCES
+	cxx/graph.h cxx/graph.cpp
+    DEPENDENCIES QtQuick
+)
 
 target_sources(trainingplanner_other_files
   PRIVATE

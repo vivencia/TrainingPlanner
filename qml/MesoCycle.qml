@@ -39,7 +39,9 @@ Page {
 	property bool bMesoSplitChanged: false
 	property bool bDate1Changed: false
 	property bool bDate2Changed: false
+
 	property var mesocycleCalendarPage: null
+	property var mesoStatisticsPage: null
 
 	Image {
 		anchors.fill: parent
@@ -60,6 +62,7 @@ Page {
 
 	header: ToolBar {
 		height: btnManageMeso.height + 20
+		enabled: !bNewMeso && !bModified
 		background: Rectangle {
 			color: primaryDarkColor
 			opacity: 0.7
@@ -67,11 +70,12 @@ Page {
 
 		ButtonFlat {
 			id: btnManageMeso
-			text: qsTr("Mesocycle Calendar")
-			font.bold: true
-			font.capitalization: Font.MixedCase
-			anchors.centerIn: parent
-			enabled: !bNewMeso && !bModified
+			text: qsTr("Calendar")
+			anchors {
+				left: parent.left
+				verticalCenter: parent.verticalCenter
+				leftMargin: 20
+			}
 			imageSource: "qrc:/images/"+lightIconFolder+"edit-mesocycle.png"
 
 			onClicked: {
@@ -79,6 +83,24 @@ Page {
 					createMesoCalendarObject(true);
 				else
 					appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+			}
+		}
+
+		ButtonFlat {
+			id: btnStatistics
+			text: qsTr("Statistics")
+			anchors {
+				right: parent.right
+				verticalCenter: parent.verticalCenter
+				rightMargin: 20
+			}
+			imageSource: "qrc:/images/"+lightIconFolder+"statistics.png"
+
+			onClicked: {
+				if (mesoStatisticsPage === null)
+					createMesoStatisticsObject();
+				else
+					appStackView.push(mesoStatisticsPage, StackView.DontLoad);
 			}
 		}
 	}
@@ -930,6 +952,8 @@ Page {
 		Component.onDestruction: {
 			if (mesocycleCalendarPage !== null)
 				mesocycleCalendarPage.destroy();
+			if (mesoStatisticsPage !== null)
+				mesoStatisticsPage.destroy();
 		}
 	} //footer
 
@@ -947,6 +971,21 @@ Page {
 			});
 			if (bshowpage)
 				appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+		}
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
+	}
+
+	function createMesoStatisticsObject() {
+		var component = Qt.createComponent("GraphicsViewer.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			mesoStatisticsPage = component.createObject(mesoPropertiesPage, {
+				width:homePage.width, height:homePage.height
+			});
+			appStackView.push(mesoStatisticsPage, StackView.DontLoad);
 		}
 		if (component.status === Component.Ready)
 			finishCreation();

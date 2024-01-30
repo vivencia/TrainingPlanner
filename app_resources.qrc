@@ -59,5 +59,7 @@
         <file>images/white/sound-off.png</file>
         <file>images/indicator.png</file>
         <file>images/black/multi-selection.png</file>
+        <file>images/black/statistics.png</file>
+        <file>images/white/statistics.png</file>
     </qresource>
 </RCC>

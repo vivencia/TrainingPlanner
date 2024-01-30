@@ -1162,7 +1162,7 @@ Page {
 					const idx = exerciseSpriteList.length;
 					var exerciseSprite = component.createObject(colExercises, {
 							thisObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
-							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, splitLetter:splitLetter
+							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, loadTDayId:dayId, splitLetter:splitLetter
 					});
 					exerciseSprite.exerciseRemoved.connect(removeExercise);
 					exerciseSprite.exerciseEdited.connect(editExercise);
@@ -1295,8 +1295,7 @@ Page {
 			}
 			else {
 				newObjectList[x] = exerciseSpriteList[i];
-				newObjectList[x].Object.thisObjectIdx = x;
-				newObjectList[x].Object.updateSetsExerciseIndex();
+				newObjectList[x].Object.updateSetsExerciseIndex(x);
 				x++;
 			}
 		}
@@ -1588,9 +1587,14 @@ Page {
 
 	function createFirstTimeTipComponent() {
 		var component = Qt.createComponent("FirstTimeHomePageTip.qml", Qt.Asynchronous);
-		if (component.status === Component.Ready) {
+		function finishCreation() {
 			firstTimeTip = component.createObject(trainingDayPage, { message:qsTr("Start here") });
 		}
+
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function pageActivation() {
@@ -1633,9 +1637,17 @@ Page {
 	function requestTimerDialog(requester, message, mins, secs) {
 		if (timerDialog === null) {
 			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
-			timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false });
-			timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
-			timerDialog.onClosed.connect(timerDialogClosed);
+
+			function finishCreation() {
+				timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false });
+				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
+				timerDialog.onClosed.connect(timerDialogClosed);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
 		if (!timerDialog.visible) {
 			timerDialogRequester = requester;
@@ -1661,8 +1673,16 @@ Page {
 	function createNavButtons() {
 		if (navButtons === null) {
 			var component = Qt.createComponent("PageScrollButtons.qml", Qt.Asynchronous);
-			navButtons = component.createObject(this, {});
-			navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
+
+			function finishCreation() {
+				navButtons = component.createObject(this, {});
+				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
 	}
 

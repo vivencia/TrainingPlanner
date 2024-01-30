@@ -11,7 +11,6 @@ class DbManager : public QObject
 {
 
 Q_OBJECT
-QML_ELEMENT
 
 public:
 	explicit DbManager(const QString& dbFileName, QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, float mostRecentListVersion);

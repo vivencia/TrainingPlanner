@@ -6,6 +6,12 @@ import "jsfunctions.js" as JSF
 
 FocusScope {
 	id: setItem
+	implicitHeight: setLayout.implicitHeight
+	Layout.fillWidth: true
+	Layout.leftMargin: 5
+	Layout.rightMargin: 5
+
+
 	property int setId
 	property int exerciseIdx
 	property int tDayId
@@ -16,15 +22,12 @@ FocusScope {
 	property int setSubSets: 0
 	property string setRestTime: "01:30"
 	property string setNotes: " "
+
+
 	property var nextObject: null
 
 	signal setRemoved(int nset)
 	signal setChanged(int nset, int reps, int weight, int subsets, string resttime, string setnotes)
-
-	implicitHeight: setLayout.implicitHeight
-	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
 
 	ColumnLayout {
 		id: setLayout

@@ -12,11 +12,12 @@ FocusScope {
 
 	required property int thisObjectIdx
 	required property string exerciseName
-	required property int tDayId
 	required property string splitLetter
 	required property string exerciseName1
 	required property string exerciseName2
 
+	property int tDayId: -1
+	property int loadTDayId: -1
 	property int setType: 0
 	property int setNbr: -1
 	property var suggestedReps: []
@@ -295,7 +296,8 @@ FocusScope {
 		} // ColumnLayout layoutMain
 
 		Component.onDestruction: {
-			for (var i = 0; i < setObjectList.length; ++i)
+			const len = setObjectList.length;
+			for (var i = 0; i < len; ++i)
 				setObjectList[i].Object.destroy();
 			delete setObjectList;
 			destroyFloatingAddSetButton();
@@ -303,22 +305,19 @@ FocusScope {
 	} //paneExercise
 
 	function createFloatingAddSetButton() {
-		function generateObject() {
-			var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
-			function finishCreation() {
-				btnFloat = component.createObject(exerciseItem, {
-						text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 2
-				});
-				btnFloat.buttonClicked.connect(addNewSet);
-				bFloatButtonVisible = true;
-				changeComboModel();
-			}
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-			generateObject();
+		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
+		function finishCreation() {
+			btnFloat = component.createObject(exerciseItem, {
+					text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 2
+			});
+			btnFloat.buttonClicked.connect(addNewSet);
+			bFloatButtonVisible = true;
+			changeComboModel();
 		}
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function changeComboModel() {
@@ -342,6 +341,7 @@ FocusScope {
 	function destroyFloatingAddSetButton () {
 		if (btnFloat !== null) {
 			btnFloat.destroy();
+			btnFloat = null;
 			cboSetType.model = setTypes;
 		}
 		bFloatButtonVisible = false;
@@ -353,9 +353,10 @@ FocusScope {
 	}
 
 	function loadSetsFromDatabase() {
-		let setsInfoList = Database.getSetsInfo(tDayId);
+		let setsInfoList = Database.getSetsInfo(loadTDayId);
 		var nset = 0;
-		for(var i = 0; i < setsInfoList.length; ++i) {
+		const len = setsInfoList.length;
+		for(var i = 0; i < len; ++i) {
 			if (thisObjectIdx === setsInfoList[i].setExerciseIdx) {
 				setNbr = setsInfoList[i].setNumber;
 				suggestedReps[nset] = setsInfoList[i].setReps;
@@ -413,47 +414,54 @@ FocusScope {
 		}
 	}
 
+	//sets objects are created on demand(when shown). If they are not created until the day is saved, we need to do it now
+	//so that they can log their information for the day. If they were created before saving, they will contain wrong tDayId, i.e.
+	//one that was either borrowed from another day or -1 when created from a meso plan. Before logging, we must set tDayId to the value
+	//obtained from inserting TrainingDay into the database
 	function updateDayId(newDayId) {
+		if (setObjectList.length === 0)
+			createSets();
 		tDayId = newDayId;
 		const len = setObjectList.length;
-		//sets objects are created on demand(when shown). If they are not created until the day is saved, we need to do it now
-		//so that they can log their information for the day. If they had been created before saving, they will contain wrong tDayId, i.e.
-		//one that was either borrowed from another day or -1 when created from a meso plan. Before logging, we must set tDayId to the value
-		//obtained from inserting TrainingDay into the database
-		if (len === 0)
+		for(var i = 0; i < len; ++i)
+			setObjectList[i].Object.updateTrainingDayId(tDayId);
+	}
+
+	function updateSetsExerciseIndex(newObjIndex) {
+		if (setObjectList.length === 0)
 			createSets();
-		else {
-			for(var i = 0; i < len; ++i)
-				setObjectList[i].Object.updateTrainingDayId(tDayId);
-		}
+		thisObjectIdx = newObjIndex;
+		const len = setObjectList.length;
+		for(var i = 0, x = 0; i < len; ++i)
+			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
 	}
 
 	function loadSetType(type, bNewSet) {
 		const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
 			"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
 
-		function generateSetObject(page) {
+		function generateSetObject(page, setnbr) {
 			var component = Qt.createComponent(page, Component.Asynchronous);
 
-			function finishCreation() {
+			function finishCreation(nset) {
 				if (bNewSet) {
-					setNbr++;
+					setNbr = nset + 1;
 					calculateSuggestedValues(type);
 					if (btnFloat !== null)
 						btnFloat.nextSetNbr++;
 				}
 				var sprite = component.createObject(layoutMain, {
-								setId:setIds[setNbr], setNumber:setNbr, setReps:suggestedReps[setNbr],
-								setWeight:suggestedWeight[setNbr], setSubSets:suggestedSubSets[setNbr],
-								setRestTime:suggestedRestTimes[setNbr], setNotes:setNotes[setNbr], exerciseIdx:thisObjectIdx,
+								setId:setIds[nset], setNumber:nset, setReps:suggestedReps[nset],
+								setWeight:suggestedWeight[nset], setSubSets:suggestedSubSets[nset],
+								setRestTime:suggestedRestTimes[nset], setNotes:setNotes[nset], exerciseIdx:thisObjectIdx,
 								tDayId:tDayId
 				});
 				setObjectList.push({ "Object" : sprite });
 				sprite.setRemoved.connect(setRemoved);
 				sprite.setChanged.connect(setChanged);
 
-				if (setNbr >= 1)
-					setObjectList[setNbr-1].Object.nextObject = sprite;
+				if (nset >= 1)
+					setObjectList[nset-1].Object.nextObject = sprite;
 				else {
 					if (type === 4) { //Giant set
 						bCompositeExercise = true;
@@ -466,13 +474,18 @@ FocusScope {
 				setAdded(bNewSet, thisObjectIdx, sprite);
 			}
 
+			function checkStatus() {
+				if (component.status === Component.Ready)
+					finishCreation(setnbr);
+			}
+
 			if (component.status === Component.Ready)
-				finishCreation();
+				finishCreation(setnbr);
 			else
-				component.statusChanged.connect(finishCreation);
+				component.statusChanged.connect(checkStatus);
 		}
 
-		generateSetObject(setTypePage[type]);
+		generateSetObject(setTypePage[type], setNbr);
 	}
 
 	function setChanged(nset, nReps, nWeight, nSubSets, restTime, notes) {
@@ -551,12 +564,6 @@ FocusScope {
 				btnFloat.nextSetNbr--;
 		}
 		exerciseEdited(-1, ""); //Just to set bModified to true
-	}
-
-	function updateSetsExerciseIndex() {
-		const len = setObjectList.length;
-		for(var i = 0, x = 0; i < len; ++i)
-			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
 	}
 
 	function changeExercise(name1, name2) {

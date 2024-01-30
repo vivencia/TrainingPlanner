@@ -343,7 +343,7 @@ footer: ToolBar {
 					appStackView.push(mesocyclePage);
 				}
 				else {
-					mesocyclePage = component.createObjec(homePage, {
+					mesocyclePage = component.createObject(homePage, {
 						mesosModel: mainMesosModel,
 						mesoId: -1,
 						mesoSplit: "ABC",
