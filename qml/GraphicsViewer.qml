@@ -6,7 +6,7 @@ import Graph
 Page {
 	id: pageGraphViewer
 
-	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
+	/*Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
 		anchors.fill: parent
 		source: "qrc:/images/app_logo.png"
 		fillMode: Image.PreserveAspectFit
@@ -16,7 +16,7 @@ Page {
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-	}
+	}*/
 
 	Graph {
 		id: graph

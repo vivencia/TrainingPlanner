@@ -36,7 +36,7 @@ int RunCommands::getFileType( const QString& filename )
 	#endif
 }
 
-float RunCommands::getExercisesListVersion()
+const QString RunCommands::getExercisesListVersion()
 {
 	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
@@ -48,14 +48,12 @@ float RunCommands::getExercisesListVersion()
 		if (lineLength < 0) return 0;
 		line = buf;
 		if (line.startsWith(QStringLiteral("#Vers"))) {
-			bool b_ok(false);
-			const float version = line.split(';').at(1).toFloat(&b_ok);
-			if (b_ok)
-				return version;
+			exercisesListFile.close();
+			return line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
 	}
-	return 0.0;
+	return "0";
 }
 
 QStringList RunCommands::getExercisesList()

@@ -18,5 +18,5 @@ Settings {
 	property int fontSizePixelSize
 	property int titleFontSizePixelSize
 	property int hugeFontSizePixelSize
-	property real exercisesListVersion
+	property string exercisesListVersion
 }

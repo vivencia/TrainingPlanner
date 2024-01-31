@@ -27,14 +27,13 @@ QtObject {
 						createExercisesTable();
 						createSetsInfoTable();
 						createTrainingDayTable();
-						if (AppSettings.exercisesListVersion === 0.0) { //First run. Insert exercises list into database
-							var exercisesList = runCmd.getExercisesList();
-							if (exercisesList.length > 0)
-								appDB.updateExercisesList(exercisesList);
-						}
 					}
 					//console.log(res.rows.item(0).name)
 			});
+			if (AppSettings.exercisesListVersion !== appDB.exercisesListVersion) {
+				appDB.updateExercisesList();
+				AppSettings.exercisesListVersion = appDB.exercisesListVersion;
+			}
 		} catch (error) {
 			console.log("Error opening database: " + error);
 		}

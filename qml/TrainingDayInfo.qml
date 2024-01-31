@@ -75,6 +75,8 @@ Page {
 				bHasPreviousDay = bHasMesoPlan = false;
 				dayId = -1;
 			}
+			scrollTraining.setScrollBarPosition(1); //Scroll to bottom
+			createNavButtons();
 		}
 	}
 
@@ -976,8 +978,6 @@ Page {
 
 		function scrollToPos(y_pos) {
 			contentItem.contentY = y_pos;
-			if (!navButtons)
-				createNavButtons();
 			navButtons.visible = true;
 		}
 
@@ -1186,8 +1186,6 @@ Page {
 
 			generateExerciseObject(name, name2);
 		}
-		scrollTraining.setScrollBarPosition(1); //Scroll to bottom
-		createNavButtons();
 	}
 
 	function convertDayToPlan() {
@@ -1241,6 +1239,8 @@ Page {
 			exerciseSpriteList.push({"Object" : exerciseSprite});
 
 			bStopBounce = true;
+			if (navButtons === null)
+				createNavButtons();
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
@@ -1639,7 +1639,7 @@ Page {
 			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				timerDialog = component.createObject(this, { bJustMinsAndSecs:true, simpleTimer:false });
+				timerDialog = component.createObject(trainingDayPage, { bJustMinsAndSecs:true, simpleTimer:false });
 				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
 				timerDialog.onClosed.connect(timerDialogClosed);
 			}
@@ -1675,7 +1675,7 @@ Page {
 			var component = Qt.createComponent("PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(this, {});
+				navButtons = component.createObject(trainingDayPage, {});
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
 			}
 

@@ -20,7 +20,7 @@ Rectangle {
 	border.color: "black"
 	radius: 6
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
-	implicitWidth: buttonText.width + (buttonImage.visible ? textUnderIcon ? 0 : buttonImage.width : 0)
+	implicitWidth: buttonText.width + (buttonImage.visible ? textUnderIcon ? 0 : buttonImage.width + 10 : 0)
 	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 0 : 0 : 0)
 
 	onHighlightChanged: {

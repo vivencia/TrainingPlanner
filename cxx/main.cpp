@@ -30,7 +30,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue( "fontSizePixelSize", qApp->font().pixelSize() );
 		settingsObj.setValue( "titleFontSizePixelSize", qApp->font().pixelSize() * 1.25 );
 		settingsObj.setValue( "hugeFontSizePixelSize", qApp->font().pixelSize() * 2 );
-		settingsObj.setValue( "exercisesListVersion", 0.0);
+		settingsObj.setValue( "exercisesListVersion", "0");
 		settingsObj.sync();
 	}
 }
@@ -50,32 +50,25 @@ int main(int argc, char *argv[])
 	trClass.selectLanguage();
 
 	QQmlApplicationEngine engine;
-	engine.rootContext()->setContextProperty("trClass", &trClass);
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
 	RunCommands runCmd;
-	const float actualListVersion ( appSettings.value("exercisesListVersion").toFloat() );
-	const float mostRecentListVersion ( runCmd.getExercisesListVersion() );
-	runCmd.searchForDatabaseFile(engine.offlineStoragePath());
-	DbManager db(runCmd.getDBFileName(), &appSettings, &engine, mostRecentListVersion);
-
-	if (actualListVersion != mostRecentListVersion)
-	{
-		//Let the QML side create the database. And in the first run it will update the exercises list.
-		//After that, it will be updated on the C++ side
-		if (!runCmd.getDBFileName().isEmpty())
-		{
-			//Should be here only when there is a program update with a list update. Otherwise, never
-			QStringList exercisesList( runCmd.getExercisesList() );
-			db.updateExercisesList(exercisesList);
-		}
+	const QString mostRecentListVersion ( runCmd.getExercisesListVersion() );
+	QString db_filename (appSettings.value("dbFileName").toString());
+	if (db_filename.isEmpty()) {
+		db_filename = runCmd.searchForDatabaseFile(engine.offlineStoragePath());
+		appSettings.setValue("dbFileName", db_filename);
+		appSettings.sync();
 	}
-	BackupClass backUpClass( runCmd.getDBFileName(), runCmd.getAppDir(runCmd.getDBFileName()) );
+	DbManager db(db_filename, &appSettings, &engine, mostRecentListVersion);
+	BackupClass backUpClass( db_filename, runCmd.getAppDir(db_filename) );
 
+	engine.rootContext()->setContextProperty("trClass", &trClass);
 	engine.rootContext()->setContextProperty("appDB", &db);
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);
 	engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
+
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(
 				&engine, &QQmlApplicationEngine::objectCreated, &app,

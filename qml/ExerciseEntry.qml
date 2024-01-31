@@ -445,7 +445,8 @@ FocusScope {
 
 			function finishCreation(nset) {
 				if (bNewSet) {
-					setNbr = nset + 1;
+					nset++;
+					setNbr = nset;
 					calculateSuggestedValues(type);
 					if (btnFloat !== null)
 						btnFloat.nextSetNbr++;
@@ -536,10 +537,10 @@ FocusScope {
 		let newSetIds = new Array(new_len);
 
 		for(var i = 0, x = 0; i < len; ++i) {
-			if (i >= nset)
-				setObjectList[i].Object.setNumber--; // = setObjectList[i].Object.setNumber - 1;
-
 			if (i !== nset) {
+				if (i > nset)
+					setObjectList[i].Object.setNumber--; // = setObjectList[i].Object.setNumber - 1;
+
 				newObjectList[x] = setObjectList[i];
 				newSuggestedReps[x] = suggestedReps[i];
 				newSuggestedSubSets[x] = suggestedSubSets[i];

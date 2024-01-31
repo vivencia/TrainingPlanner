@@ -17,7 +17,7 @@ public:
 	explicit RunCommands( QObject *parent = nullptr ) : QObject(parent) {}
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
-	float getExercisesListVersion();
+	const QString getExercisesListVersion();
 	Q_INVOKABLE QStringList getExercisesList();
 	Q_INVOKABLE QString searchForDatabaseFile( const QString& baseDir );
 	QString getAppDir(const QString& dbFile);

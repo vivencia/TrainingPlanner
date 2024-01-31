@@ -7,21 +7,51 @@
 #include <QSettings>
 #include <QQmlApplicationEngine>
 
+
+class dbWorkerThread;
+
 class DbManager : public QObject
 {
 
 Q_OBJECT
+Q_PROPERTY(QString exercisesListVersion READ exercisesListVersion CONSTANT FINAL)
 
 public:
-	explicit DbManager(const QString& dbFileName, QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, float mostRecentListVersion);
-	Q_INVOKABLE bool updateExercisesList(const QStringList& exercisesList);
-	void removePreviousListEntriesFromDB();
+	explicit DbManager(const QString& dbFilename, QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, const QString& mostRecentListVersion);
+	Q_INVOKABLE void updateExercisesList();
+
+	inline const QString exercisesListVersion() const { return m_exercisesListVersion; }
+
+private:
+	QString m_DBFileName;
+	QSettings* m_appSettings;
+	QQmlApplicationEngine* m_QMlEngine;
+	QString m_exercisesListVersion;
+};
+
+class dbWorkerThread : public QObject
+{
+Q_OBJECT
+
+public:
+	explicit dbWorkerThread(const QString& dbFileName, QSettings* appSettings);
+
+	inline void receiveParameter(const QStringList& qslist) { m_qslist = qslist; }
+	inline void receiveParameter(const QString& string) { m_string = string; }
+	void updateExercisesList();
+
+signals:
+	void gotResult ( const QString& info );
+	void done ();
 
 private:
 	QSqlDatabase mSqlLiteDB;
 	QSettings* m_appSettings;
-	QQmlApplicationEngine* m_QMlEngine;
-	float m_mostRecentListVersion;
+
+	QStringList m_qslist;
+	QString m_string;
+
+	void removePreviousListEntriesFromDB();
 };
 
 #endif // DBMANAGER_H

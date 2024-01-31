@@ -651,7 +651,7 @@ Page {
 						var component = Qt.createComponent("TrainingDayInfo.qml", Qt.Asynchronous);
 
 						function finishCreation() {
-							var trainingDayInfoPage = component.createObject(null, {mainDate: calendar.dayInfoDate,
+							var trainingDayInfoPage = component.createObject(mainwindow, {mainDate: calendar.dayInfoDate,
 								tDay: trainingDay, splitLetter: splitLetter, mesoName: mesoName, mesoId: mesoId,
 								bAlreadyLoaded:false
 							});

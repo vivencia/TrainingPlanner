@@ -63,7 +63,7 @@ ToolBar {
 			if (mainCalendar === null) {
 				var component = Qt.createComponent("CalendarDialog.qml", Qt.Asynchronous);
 				if (component.status === Component.Ready) {
-					mainCalendar = component.createObject(this, { showDate:today, simpleCalendar:true,
+					mainCalendar = component.createObject(mainwindow, { showDate:today, simpleCalendar:true,
 						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
 				}
 			}
@@ -89,7 +89,7 @@ ToolBar {
 			if (mainTimer === null) {
 				var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
 				if (component.status === Component.Ready) {
-					mainTimer = component.createObject(this, { simpleTimer:true });
+					mainTimer = component.createObject(mainwindow, { simpleTimer:true });
 				}
 			}
 			mainTimer.open();
