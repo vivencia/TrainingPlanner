@@ -273,6 +273,22 @@ QtObject {
 		return mesoinfo;
 	}
 
+	function getPreviousMesoId(currentMesoId) {
+		var previd = -1
+		db.transaction(function (tx) {
+			let results = tx.executeSql("SELECT * FROM mesocycles WHERE meso_id<?", [currentMesoId]);
+			const len = results.rows.length;
+			while (len > 0) {
+				if (results.rows.item(len-1).meso_id) {
+					previd = results.rows.item(len-1).meso_id;
+					break;
+				}
+				--len;
+			}
+		});
+		return previd;
+	}
+
 	function getPreviousMesoEndDate(mesoId) {
 		var nrecs;
 		db.transaction(function (tx) { //Unless the table is deleted, meso_id gets incremented every time a new record is saved
@@ -420,8 +436,8 @@ QtObject {
 		db.transaction(function (tx) {
 			let results = tx.executeSql("SELECT division_id,splitA,splitA_exercisesnames,splitA_exercisesset_types,splitA_exercisesset_n,
 					splitA_exercisesset_reps,splitA_exercisesset_weight FROM mesocycle_division WHERE meso_id=?", [mesoId]);
-			for (let i = 0; i < results.rows.length; i++) {
-				let divisionRow = results.rows.item(i);
+			if (results.rows.length > 0) {
+				let divisionRow = results.rows.item(0);
 				mesodivision.push({
 					"divisionId": divisionRow.division_id,
 					"splitLetter": "A",
@@ -627,7 +643,7 @@ QtObject {
 
 	function updateMesoDivision(mesoID, splitFieldA, splitFieldB, splitFieldC, splitFieldD, splitFieldE, splitFieldF) {
 		db.transaction(function (tx) {
-			tx.executeSql("UPDATE mesocycle_division SET splitA=?,splitB=?,splitC=?,splitD=?,splitE=?,splitA=F WHERE meso_id=?",
+			tx.executeSql("UPDATE mesocycle_division SET splitA=?,splitB=?,splitC=?,splitD=?,splitE=?,splitF=? WHERE meso_id=?",
 			[splitFieldA,splitFieldB,splitFieldC,splitFieldD,splitFieldE,splitFieldF, mesoID]);
 		});
 	}

@@ -118,16 +118,32 @@ Page {
 				break;
 				default: continue;
 			}
-			var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
-			if (component.status === Component.Ready) {
-				var object = component.createObject(splitView, { divisionId:results[0].divisionId,
-						mesoId:mesoId, splitLetter:results[0].splitLetter, splitText:results[0].splitText,
-						splitExercises:results[0].splitExercises, splitSetTypes:results[0].splitSetTypes,
-						splitNSets:results[0].splitNSets, splitNReps:results[0].splitNReps,
-						splitNWeight:results[0].splitNWeight
-				});
-				splitView.addItem(object);
+
+			function generateObject(data) {
+				var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
+
+				function finishCreation(Data) {
+					var object = component.createObject(splitView, { divisionId:Data[0].divisionId,
+						mesoId:mesoId, splitLetter:Data[0].splitLetter, splitText:Data[0].splitText,
+						splitExercises:Data[0].splitExercises, splitSetTypes:Data[0].splitSetTypes,
+						splitNSets:Data[0].splitNSets, splitNReps:Data[0].splitNReps,
+						splitNWeight:Data[0].splitNWeight
+					});
+					splitView.addItem(object);
+				}
+
+				function checkStatus() {
+					if (component.status === Component.Ready)
+						finishCreation(data);
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation(data);
+				else
+					component.statusChanged.connect(checkStatus);
 			}
+
+			generateObject(results);
 		} while (++idx < mesoSplit.length);
 	}
 

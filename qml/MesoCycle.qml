@@ -903,7 +903,7 @@ Page {
 					createMesoCalendarObject(true);
 				}
 				else {
-					Database.updateName(mesoId, mesoName, mesoStartDate.getTime(), mesoEndDate.getTime(), mesoNote, nWeeks, mesoSplit, mesoDrugs);
+					Database.updateMeso(mesoId, mesoName, mesoStartDate.getTime(), mesoEndDate.getTime(), mesoNote, nWeeks, mesoSplit, mesoDrugs);
 					Database.updateMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
 
 					if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {

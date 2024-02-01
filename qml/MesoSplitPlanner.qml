@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Dialogs
 
 import "jsfunctions.js" as JSF
 
@@ -10,6 +11,7 @@ Frame {
 	required property int mesoId
 	required property string splitLetter
 	required property string splitText
+
 	property string splitExercises
 	property string splitSetTypes
 	property string splitNSets
@@ -21,6 +23,9 @@ Frame {
 	property int seconds: 0
 	property bool bModified: false
 	property string filterString: ""
+
+	property string prevMesoName: ""
+	property int prevMesoId: -1
 
 	implicitWidth: parent.width
 	implicitHeight: splitLayout.height
@@ -54,6 +59,27 @@ Frame {
 			start();
 		}
 	} //Timer
+
+	MessageDialog {
+		id: msgDlgImport
+		modality: Qt.NonModal
+		text: qsTr("\nImport Exercises Plan?\n")
+		informativeText: qsTr("Import the exercises plan for training division <b>") + splitLetter +
+						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
+		buttons: MessageDialog.Yes | MessageDialog.No
+
+		onButtonClicked: function (button, role) {
+			switch (button) {
+				case MessageDialog.Yes:
+					accept();
+				break;
+				case MessageDialog.No:
+					reject();
+				break;
+			}
+		}
+	}
+
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -607,10 +633,20 @@ Frame {
 		filterString = JSF.makeFilterString(splitText, AppSettings.appLocale);
 
 		if (splitExercises.length === 0) {
-			appendNewExerciseToDivision();
-			return;
+			prevMesoId = Database.getPreviousMesoId(mesoId);
+			if (prevMesoId >= 0)
+				tryToLoadPreviousSplitPlanner();
+			else
+				appendNewExerciseToDivision();
 		}
+		else
+			loadInfoIntoModel();
 
+		if (Qt.platform.os === "android")
+			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+	}
+
+	function loadInfoIntoModel() {
 		const exercises = splitExercises.split('|');
 		const types = splitSetTypes.split('|');
 		const nsets = splitNSets.split('|');
@@ -624,9 +660,48 @@ Frame {
 			i++;
 		}
 		currentModelIndex = exercisesListModel.count - 1;
+	}
 
-		if (Qt.platform.os === "android")
-			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+	function tryToLoadPreviousSplitPlanner() {
+		var mesoinfo = Database.getMesoInfo(prevMesoId);
+		prevMesoName = mesoinfo[0].mesoName;
+		var exercisenames = "";
+		switch (splitLetter) {
+			case 'A': exercisenames = Database.getExercisesFromDivisionAForMeso(prevMesoId); break;
+			case 'B': exercisenames = Database.getExercisesFromDivisionBForMeso(prevMesoId); break;
+			case 'C': exercisenames = Database.getExercisesFromDivisionCForMeso(prevMesoId); break;
+			case 'D': exercisenames = Database.getExercisesFromDivisionDForMeso(prevMesoId); break;
+			case 'E': exercisenames = Database.getExercisesFromDivisionEForMeso(prevMesoId); break;
+			case 'F': exercisenames = Database.getExercisesFromDivisionFForMeso(prevMesoId); break;
+		}
+		if (exercisenames.length > 0) {
+			msgDlgImport.accepted.connect(loadPreviousSplitPlanner);
+			msgDlgImport.rejected.connect(appendNewExerciseToDivision);
+			msgDlgImport.open();
+		}
+		else
+			appendNewExerciseToDivision();
+	}
+
+	function loadPreviousSplitPlanner() {
+		var results = [];
+		switch (splitLetter) {
+			case 'A': results = Database.getCompleteDivisionAForMeso(prevMesoId); break;
+			case 'B': results = Database.getCompleteDivisionBForMeso(prevMesoId); break;
+			case 'C': results = Database.getCompleteDivisionCForMeso(prevMesoId); break;
+			case 'D': results = Database.getCompleteDivisionDForMeso(prevMesoId); break;
+			case 'E': results = Database.getCompleteDivisionEForMeso(prevMesoId); break;
+			case 'F': results = Database.getCompleteDivisionFForMeso(prevMesoId); break;
+		}
+		if (results.length > 0) {
+			splitExercises = results[0].splitExercises;
+			splitSetTypes = results[0].splitSetTypes;
+			splitNSets = results[0].splitNSets;
+			splitNReps = results[0].splitNReps;
+			splitNWeight = results[0].splitNWeight;
+			loadInfoIntoModel();
+			bModified = true;
+		}
 	}
 
 	function appendNewExerciseToDivision() {

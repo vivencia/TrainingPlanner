@@ -1162,7 +1162,7 @@ Page {
 					const idx = exerciseSpriteList.length;
 					var exerciseSprite = component.createObject(colExercises, {
 							thisObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
-							exerciseName1:Name1, exerciseName2:Name2, tDayId:dayId, loadTDayId:dayId, splitLetter:splitLetter
+							exerciseName1:Name1, exerciseName2:Name2, splitLetter:splitLetter, tDayId:dayId, loadTDayId:dayId
 					});
 					exerciseSprite.exerciseRemoved.connect(removeExercise);
 					exerciseSprite.exerciseEdited.connect(editExercise);
@@ -1230,7 +1230,7 @@ Page {
 		function finishCreation() {
 			var idx = exerciseSpriteList.length;
 			var exerciseSprite = component.createObject(colExercises, { thisObjectIdx:idx, exerciseName:strName1,
-				exerciseName1:strName1, exerciseName2:strName2, tDayId:dayId });
+				exerciseName1:strName1, exerciseName2:strName2, splitLetter:splitLetter, tDayId:dayId });
 			exerciseSprite.exerciseRemoved.connect(removeExercise);
 			exerciseSprite.exerciseEdited.connect(editExercise);
 			exerciseSprite.setAdded.connect(addExerciseSet);
