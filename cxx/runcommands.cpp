@@ -18,27 +18,28 @@ const QString RunCommands::getCorrectPath(const QUrl& url)
 int RunCommands::getFileType( const QString& filename )
 {
 	#ifdef Q_OS_ANDROID
-		if ( filename.contains("video%", Qt::CaseInsensitive))
+		if ( filename.contains(QStringLiteral("video%"), Qt::CaseInsensitive))
 			return 1;
-		else if ( filename.contains("image%", Qt::CaseInsensitive))
+		else if ( filename.contains(QStringLiteral("image%"), Qt::CaseInsensitive))
 			return 0;
 		else return -1;
 	#else
-		if ( filename.endsWith(".mp4", Qt::CaseInsensitive) ||
-			 filename.endsWith(".mkv", Qt::CaseInsensitive) ||
-			 filename.endsWith(".mov", Qt::CaseInsensitive) )
+		if ( filename.endsWith(QStringLiteral(".mp4"), Qt::CaseInsensitive) ||
+			 filename.endsWith(QStringLiteral(".mkv"), Qt::CaseInsensitive) ||
+			 filename.endsWith(QStringLiteral(".mov"), Qt::CaseInsensitive) )
 			return 1;
-		else if ( filename.endsWith(".png", Qt::CaseInsensitive) ||
-				 filename.endsWith(".jpg", Qt::CaseInsensitive) )
+		else if ( filename.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive) ||
+				 filename.endsWith(QStringLiteral(".jpg"), Qt::CaseInsensitive) )
 			return 0;
 		else
 			return -1;
 	#endif
 }
 
-const QString RunCommands::getExercisesListVersion()
+void RunCommands::getExercisesListVersion()
 {
-	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
+	m_exercisesListVersion = QStringLiteral("0");
+	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 	{
 		char buf[20] = { 0 };
@@ -47,19 +48,16 @@ const QString RunCommands::getExercisesListVersion()
 		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
 		if (lineLength < 0) return 0;
 		line = buf;
-		if (line.startsWith(QStringLiteral("#Vers"))) {
-			exercisesListFile.close();
-			return line.split(';').at(1).trimmed();
-		}
+		if (line.startsWith(QStringLiteral("#Vers")))
+			m_exercisesListVersion = line.split(';').at(1).trimmed();
 		exercisesListFile.close();
 	}
-	return "0";
 }
 
 QStringList RunCommands::getExercisesList()
 {
 	QStringList exercisesList;
-	QFile exercisesListFile( ":/extras/exerciseslist.lst" );
+	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
 	{
 		char buf[1024];
@@ -104,7 +102,7 @@ QString RunCommands::getAppDir(const QString& dbFile)
 {
 	if (!dbFile.isEmpty())
 	{
-		const int idx (dbFile.indexOf("Planner"));
+		const int idx (dbFile.indexOf(QStringLiteral("Planner")));
 		if (idx > 1)
 			m_appPrivateDir = dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
 	}

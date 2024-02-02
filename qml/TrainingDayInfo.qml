@@ -1161,7 +1161,7 @@ Page {
 				function finishCreation(Name1, Name2) {
 					const idx = exerciseSpriteList.length;
 					var exerciseSprite = component.createObject(colExercises, {
-							thisObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
+							thisObjectIdx:idx, loadObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
 							exerciseName1:Name1, exerciseName2:Name2, splitLetter:splitLetter, tDayId:dayId, loadTDayId:dayId
 					});
 					exerciseSprite.exerciseRemoved.connect(removeExercise);

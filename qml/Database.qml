@@ -30,9 +30,9 @@ QtObject {
 					}
 					//console.log(res.rows.item(0).name)
 			});
-			if (AppSettings.exercisesListVersion !== appDB.exercisesListVersion) {
+			if (AppSettings.exercisesListVersion !== runCmd.exercisesListVersion) {
 				appDB.updateExercisesList();
-				AppSettings.exercisesListVersion = appDB.exercisesListVersion;
+				AppSettings.exercisesListVersion = runCmd.exercisesListVersion;
 			}
 		} catch (error) {
 			console.log("Error opening database: " + error);
@@ -833,54 +833,6 @@ QtObject {
 									[mainName, subName, muscularGroup, nSets, nReps, nWeight, mediaPath, exerciseId]);
 		});
 		return results;
-	}
-
-	function updateExerciseMainName(exerciseId, newName) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set primary_name=? WHERE id=?", [newName, exerciseId]);
-		});
-	}
-
-	function updateExerciseSubName(exerciseId, newName) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set secondary_name=? WHERE id=?", [newName, exerciseId]);
-		});
-	}
-
-	function updateExerciseMuscularGroup(exerciseId, newGroup) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set muscular_group=? WHERE id=?", [newGroup, exerciseId]);
-		});
-	}
-
-	function updateExerciseSets(exerciseId, nSets) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set sets=? WHERE id=?", [nSets, exerciseId]);
-		});
-	}
-
-	function updateExerciseReps(exerciseId, nReps) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set reps=? WHERE id=?", [nReps, exerciseId]);
-		});
-	}
-
-	function updateExerciseWeight(exerciseId, nWeight) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set weight=? WHERE id=?", [nWeight, exerciseId]);
-		});
-	}
-
-	function updateExerciseWeightUnit(exerciseId, uWeight) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set weight_unit=? WHERE id=?", [uWeight, exerciseId]);
-		});
-	}
-
-	function updateExerciseMediaPath(exerciseId, mediaPath) {
-		db.transaction(function (tx) {
-			tx.executeSql("UPDATE exercises_table set media_path=? WHERE id=?", [mediaPath, exerciseId]);
-		});
 	}
 
 	function deleteExerciseFromExercises(exerciseId) {

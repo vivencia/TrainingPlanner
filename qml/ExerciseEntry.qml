@@ -17,7 +17,6 @@ FocusScope {
 	required property string exerciseName2
 
 	property int tDayId: -1
-	property int loadTDayId: -1
 	property int setType: 0
 	property int setNbr: -1
 	property var suggestedReps: []
@@ -25,9 +24,10 @@ FocusScope {
 	property var suggestedWeight: []
 	property var suggestedRestTimes: []
 	property var setNotes: []
-	property var setIds: []
 	property var setObjectList: []
 
+	property int loadTDayId: -1
+	property int loadObjectIdx: -1
 	property var btnFloat: null
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
@@ -357,14 +357,13 @@ FocusScope {
 		var nset = 0;
 		const len = setsInfoList.length;
 		for(var i = 0; i < len; ++i) {
-			if (thisObjectIdx === setsInfoList[i].setExerciseIdx) {
+			if (loadObjectIdx === setsInfoList[i].setExerciseIdx) {
 				setNbr = setsInfoList[i].setNumber;
 				suggestedReps[nset] = setsInfoList[i].setReps;
 				suggestedWeight[nset] = setsInfoList[i].setWeight;
 				suggestedSubSets[nset] = setsInfoList[i].setSubSets;
 				suggestedRestTimes[nset] = setsInfoList[i].setRestTime;
 				setNotes[nset] = setsInfoList[i].setNotes;
-				setIds[nset] = setsInfoList[i].setId;
 				loadSetType(setsInfoList[i].setType, false);
 				nset++;
 				setType = setsInfoList[i].setType;
@@ -387,7 +386,7 @@ FocusScope {
 		const nsets = plan_info[0].splitNSets.split('|');
 		const nreps = plan_info[0].splitNReps.split('|');
 		const nweights = plan_info[0].splitNWeight.split('|');
-		createSetsFromPlan(nsets[thisObjectIdx], types[thisObjectIdx], nreps[thisObjectIdx], nweights[thisObjectIdx]);
+		createSetsFromPlan(nsets[loadObjectIdx], types[loadObjectIdx], nreps[loadObjectIdx], nweights[loadObjectIdx]);
 	}
 
 	function createSetsFromPlan(nsets, type, nreps, nweight) {
@@ -419,21 +418,25 @@ FocusScope {
 	//one that was either borrowed from another day or -1 when created from a meso plan. Before logging, we must set tDayId to the value
 	//obtained from inserting TrainingDay into the database
 	function updateDayId(newDayId) {
+		tDayId = newDayId;
 		if (setObjectList.length === 0)
 			createSets();
-		tDayId = newDayId;
-		const len = setObjectList.length;
-		for(var i = 0; i < len; ++i)
-			setObjectList[i].Object.updateTrainingDayId(tDayId);
+		else {
+			const len = setObjectList.length;
+			for(var i = 0; i < len; ++i)
+				setObjectList[i].Object.updateTrainingDayId(tDayId);
+		}
 	}
 
 	function updateSetsExerciseIndex(newObjIndex) {
+		thisObjectIdx = newObjIndex;
 		if (setObjectList.length === 0)
 			createSets();
-		thisObjectIdx = newObjIndex;
-		const len = setObjectList.length;
-		for(var i = 0, x = 0; i < len; ++i)
-			setObjectList[i].Object.exerciseIdx = thisObjectIdx;
+		else {
+			const len = setObjectList.length;
+			for(var i = 0, x = 0; i < len; ++i)
+				setObjectList[i].Object.exerciseIdx = thisObjectIdx;
+		}
 	}
 
 	function loadSetType(type, bNewSet) {
@@ -452,10 +455,9 @@ FocusScope {
 						btnFloat.nextSetNbr++;
 				}
 				var sprite = component.createObject(layoutMain, {
-								setId:setIds[nset], setNumber:nset, setReps:suggestedReps[nset],
-								setWeight:suggestedWeight[nset], setSubSets:suggestedSubSets[nset],
-								setRestTime:suggestedRestTimes[nset], setNotes:setNotes[nset], exerciseIdx:thisObjectIdx,
-								tDayId:tDayId
+								setNumber:nset, setReps:suggestedReps[nset], setWeight:suggestedWeight[nset],
+								setSubSets:suggestedSubSets[nset], setRestTime:suggestedRestTimes[nset],
+								setNotes:setNotes[nset], exerciseIdx:thisObjectIdx, tDayId:tDayId
 				});
 				setObjectList.push({ "Object" : sprite });
 				sprite.setRemoved.connect(setRemoved);
@@ -513,9 +515,10 @@ FocusScope {
 	function removeAllSets() {
 		const len = setObjectList.length;
 		for( var i = 0; i < len; ++i ) {
+			var setid = setObjectList[i].Object.setId;
+			if (setid !== -1)
+				setWasRemoved(setid);
 			setObjectList[i].Object.destroy();
-			if (setIds[i] !== -1)
-				setWasRemoved(setIds[i]);
 		}
 		destroyFloatingAddSetButton ();
 	}
@@ -523,8 +526,9 @@ FocusScope {
 	function setRemoved(nset) {
 		const len = setObjectList.length;
 		const new_len = len - 1;
-		if (setIds[nset] !== -1)
-			setWasRemoved(setIds[nset]);
+		const setid = setObjectList[nset].Object.setId;
+		if (setid !== -1)
+			setWasRemoved(setid);
 		setObjectList[nset].Object.destroy();
 		setNbr--;
 
@@ -534,7 +538,6 @@ FocusScope {
 		let newSuggestedWeight = new Array(new_len);
 		let newSuggestedRestTimes = new Array(new_len);
 		let newSetNotes = new Array(new_len);
-		let newSetIds = new Array(new_len);
 
 		for(var i = 0, x = 0; i < len; ++i) {
 			if (i !== nset) {
@@ -547,7 +550,6 @@ FocusScope {
 				newSuggestedWeight[x] = suggestedWeight[i];
 				newSuggestedRestTimes[x] = suggestedRestTimes[i];
 				newSetNotes[x] = setNotes[i];
-				newSetIds[x] = setIds[i];
 				x++;
 			}
 		}
@@ -556,7 +558,6 @@ FocusScope {
 		delete suggestedSubSets;	suggestedSubSets = newSuggestedSubSets;
 		delete suggestedWeight;		suggestedWeight = newSuggestedWeight;
 		delete setNotes;			setNotes = newSetNotes;
-		delete setIds;				setIds = newSetIds;
 
 		if (setObjectList.length === 0)
 			destroyFloatingAddSetButton ();
@@ -588,7 +589,6 @@ FocusScope {
 	}
 
 	function calculateSuggestedValues(type) {
-		setIds[setNbr] = -1;
 		setNotes[setNbr] = setNbr === 0 ? "  " : setNotes[setNbr-1];
 		switch (type) {
 			case 0: //Regular

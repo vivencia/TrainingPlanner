@@ -54,14 +54,13 @@ int main(int argc, char *argv[])
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
 	RunCommands runCmd;
-	const QString mostRecentListVersion ( runCmd.getExercisesListVersion() );
 	QString db_filename (appSettings.value("dbFileName").toString());
 	if (db_filename.isEmpty()) {
 		db_filename = runCmd.searchForDatabaseFile(engine.offlineStoragePath());
 		appSettings.setValue("dbFileName", db_filename);
 		appSettings.sync();
 	}
-	DbManager db(db_filename, &appSettings, &engine, mostRecentListVersion);
+	DbManager db(db_filename, &appSettings, &engine);
 	BackupClass backUpClass( db_filename, runCmd.getAppDir(db_filename) );
 
 	engine.rootContext()->setContextProperty("trClass", &trClass);

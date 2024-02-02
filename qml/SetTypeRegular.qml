@@ -11,8 +11,7 @@ FocusScope {
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
 
-
-	property int setId
+	property int setId: -1
 	property int exerciseIdx
 	property int tDayId
 	property int setType: 0 //Constant
@@ -22,7 +21,6 @@ FocusScope {
 	property int setSubSets: 0
 	property string setRestTime: "01:30"
 	property string setNotes: " "
-
 
 	property var nextObject: null
 

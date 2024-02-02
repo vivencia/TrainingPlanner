@@ -6,7 +6,7 @@ import "jsfunctions.js" as JSF
 
 Item {
 	id: setItem
-	property int setId
+	property int setId: -1
 	property int exerciseIdx
 	property int tDayId
 	property int setType: 3 //Constant

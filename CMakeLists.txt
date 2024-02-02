@@ -18,6 +18,8 @@ set( SOURCES
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/graph.h cxx/graph.cpp
+	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
+	cxx/dbexerciseslist.h cxx/dbexerciseslist.cpp
 )
 
 set( TRANSLATIONS_DIR
