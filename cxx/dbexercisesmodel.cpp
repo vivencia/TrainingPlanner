@@ -25,9 +25,8 @@ void DBExercisesModel::setEntireList( const QStringList& newlist )
 		m_data.append(QStringList>(*itr));
 }
 
-QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
+const QString& DBExercisesModel::data(const uint row, int role) const
 {
-	const int row (index.row());
 	if( row >= 0 && row < m_data.count() )
 	{
 		switch(role) {
@@ -44,12 +43,11 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 				return m_data.at(row).at(role);
 		}
 	}
-	return QVariant();
+	return QString();
 }
 
-virtual bool DBExercisesModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool DBExercisesModel::setData(const uint row, const QString& value, int role)
 {
-	const int row (index.row());
 	if( row >= 0 && row < m_data.count() )
 	{
 		switch(role) {
@@ -63,7 +61,7 @@ virtual bool DBExercisesModel::setData(const QModelIndex &index, const QVariant 
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				m_data.at(row).replace(role, value.toString());
+				m_data.at(row).replace(role, value);
 				return true;
 		}
 	}

@@ -350,9 +350,9 @@ Page {
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
 						if (bNew) {
-							let results = Database.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, parseInt(txtNSets.text),
+							let results = appDB.newExercise(exercisesList.curIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, parseInt(txtNSets.text),
 											txtNReps.text*1, txtNWeight.text*1, AppSettings.weightUnit, strMediaPath);
-							exercisesList.appendModels(parseInt(results.insertId), txtExerciseName.text, txtExerciseSubName.text,
+							exercisesList.appendModels(exercisesList.currentModel.get(exercisesList.curIndex).exerciseId, txtExerciseName.text, txtExerciseSubName.text,
 											txtMuscularGroup.text, parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1,
 											AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
@@ -361,8 +361,7 @@ Page {
 							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex).actualIndex;
 							exercisesList.updateModels(actualIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
 									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
-							const exerciseId = exercisesList.currentModel.get(exercisesList.curIndex).exerciseId;
-							Database.updateExercise(exerciseId, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
+							appDB.updateExercise(exercisesList.curIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
 									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
 							btnEditExercise.clicked();
 						}

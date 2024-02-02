@@ -8,25 +8,51 @@
 #include <QSettings>
 #include <QQmlApplicationEngine>
 
+#include <functional>
+
 class DbManager : public QObject
 {
 
 Q_OBJECT
 
-public:
-	explicit DbManager(const QString& dbFilename, QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
+Q_PROPERTY(DBExercisesModel dbExercisesModel READ dbExercisesModel NOTIFY dbExercisesModelModified)
 
-	//--------------------EXERCISES TABLE---------------------------------
-	Q_INVOKABLE void getAllExercises();
-	Q_INVOKABLE void updateExercisesList();
-	Q_INVOKABLE void newExercise();
-	Q_INVOKABLE void updateExercise();
-	//--------------------EXERCISES TABLE---------------------------------
+public:
+	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
+	void runTaksInAnotherThread(const uint db_id, const bool bCanReceiveResult, const std::function<void ()> &task_func);
+	void getResult(const uint db_id, const OP_CODES op);
+
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	Q_INVOKABLE inline void getAllExercises() { runTaksInAnotherThread(0, true, [&] () { return dbExercisesList::getAllExercises(); }); }
+	Q_INVOKABLE void newExercise(const uint row, const QString& mainName, const QString& subName, const QString& muscularGroup,
+					 const qreal nSets, const qreal nReps, const qreal nWeight,
+					 const QString& uWeight, const QString& mediaPath);
+	Q_INVOKABLE void updateExercise(const uint row, const QString& mainName, const QString& subName, const QString& muscularGroup,
+					 const qreal nSets, const qreal nReps, const qreal nWeight,
+					 const QString& uWeight, const QString& mediaPath);
+	Q_INVOKABLE void removeExercise(const uint row);
+	void getExercisesListVersion();
+	inline const DBExercisesModel& dbExercisesModel() const { return m_dbExercisesModel; }
+
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+
+signals:
+	void dbExercisesModelModified();
 
 private:
-	QString m_DBFileName;
+	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
+	uint m_workingRow;
+
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	DBExercisesModel m_dbExercisesModel;
+	QString m_exercisesListVersion;
+	uint m_exercisesTableLastId;
+	uint m_exercisesLocked;
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+
+	void freeLocks(const int res);
 };
 
 #endif // DBMANAGER_H

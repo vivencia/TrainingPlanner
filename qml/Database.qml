@@ -30,10 +30,10 @@ QtObject {
 					}
 					//console.log(res.rows.item(0).name)
 			});
-			if (AppSettings.exercisesListVersion !== runCmd.exercisesListVersion) {
+			/*if (AppSettings.exercisesListVersion !== runCmd.exercisesListVersion) {
 				appDB.updateExercisesList();
 				AppSettings.exercisesListVersion = runCmd.exercisesListVersion;
-			}
+			}*/
 		} catch (error) {
 			console.log("Error opening database: " + error);
 		}

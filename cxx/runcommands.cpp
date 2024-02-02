@@ -36,43 +36,6 @@ int RunCommands::getFileType( const QString& filename )
 	#endif
 }
 
-void RunCommands::getExercisesListVersion()
-{
-	m_exercisesListVersion = QStringLiteral("0");
-	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
-	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
-	{
-		char buf[20] = { 0 };
-		qint64 lineLength;
-		QString line;
-		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
-		if (lineLength < 0) return 0;
-		line = buf;
-		if (line.startsWith(QStringLiteral("#Vers")))
-			m_exercisesListVersion = line.split(';').at(1).trimmed();
-		exercisesListFile.close();
-	}
-}
-
-QStringList RunCommands::getExercisesList()
-{
-	QStringList exercisesList;
-	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
-	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
-	{
-		char buf[1024];
-		qint64 lineLength;
-		do
-		{
-			lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
-			if (lineLength < 0) continue;
-			exercisesList.append(buf);
-		} while (!exercisesListFile.atEnd());
-		exercisesListFile.close();
-	}
-	return exercisesList;
-}
-
 QString RunCommands::searchForDatabaseFile( const QString& baseDir)
 {
 	QDir root (baseDir);

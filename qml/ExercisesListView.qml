@@ -69,7 +69,7 @@ Column {
 		clip: true
 		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-		visible: exercisesListModel.count > 0
+		visible: appDB.dbExercisesModel.count > 0
 		boundsBehavior: Flickable.StopAtBounds
 		focus: true
 
@@ -98,21 +98,22 @@ Column {
 			model = newmodel;
 		}
 
-		model: ListModel {
-			id: exercisesListModel
+		model: appDB.dbExercisesModel
+		//model: ListModel {
+		//	id: appDB.dbExercisesModel
 
-			Component.onCompleted: {
-				if (count === 0) {
-					let exercises = Database.getExercises();
-					for (let exercise of exercises)
-						append(exercise);
-				}
+		//	Component.onCompleted: {
+		//		if (count === 0) {
+		//			let exercises = Database.getExercises();
+		//			for (let exercise of exercises)
+		//				append(exercise);
+		//		}
 				/*if (count > 0) {
 					curIndex = 0;
 					displaySelectedExercise(curIndex, 0);
 				}*/
-			}
-		} //model
+		//	}
+		//} //model
 
 		delegate: SwipeDelegate {
 			id: delegate
@@ -246,7 +247,7 @@ Column {
 	TPTextInput {
 		id: txtFilter
 		readOnly: !mainItem.enabled
-		enabled: exercisesListModel.count > 0
+		enabled: appDB.dbExercisesModel.count > 0
 		width: parent.width
 		Layout.fillWidth: true
 		Layout.maximumHeight: 30
@@ -277,18 +278,18 @@ Column {
 			if (text.length >= 3) {
 				var regex = new RegExp(text, "i");
 				var bFound = false;
-				for(var i = 0; i < exercisesListModel.count; i++ ) {
+				for(var i = 0; i < appDB.dbExercisesModel.count; i++ ) {
 					//First look for muscular group
-					if (exercisesListModel.get(i).muscularGroup.match(regex))
+					if (appDB.dbExercisesModel.get(i).muscularGroup.match(regex))
 						bFound = true;
 					else {
-						if (exercisesListModel.get(i).mainName.match(regex))
+						if (appDB.dbExercisesModel.get(i).mainName.match(regex))
 							bFound = true;
 						else
 							bFound = false;
 					}
 					if (bFound) {
-						filterModel.newItem(i, exercisesListModel.get(i));
+						filterModel.newItem(i, appDB.dbExercisesModel.get(i));
 					}
 				}
 				if (!bFilterApplied) {
@@ -300,7 +301,7 @@ Column {
 			else {
 				if (bFilterApplied) {
 					bFilterApplied = false;
-					lstExercises.setModel(exercisesListModel);
+					lstExercises.setModel(appDB.dbExercisesModel);
 				}
 			}
 		} //onTextChanged
@@ -317,15 +318,14 @@ Column {
 	function removeExercise(removeIdx) {
 		const actualIndex = currentModel.get(removeIdx).actualIndex; //position of item in the main model
 		var i;
-		Database.deleteExerciseFromExercises(currentModel.get(actualIndex).exerciseId);
-		exercisesListModel.remove(actualIndex);
+		appDB.removeExercise(actualIndex);
 		if (bFilterApplied) {
 			filterModel.remove(removeIdx);
 			for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
 				filterModel.setProperty(i, "actualIndex", filterModel.get(i).actualIndex - 1);
 		}
-		for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
-				exercisesListModel.setProperty(i, "actualIndex", i);
+		for (i = actualIndex; i < appDB.dbExercisesModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
+				appDB.dbExercisesModel.setProperty(i, "actualIndex", i);
 		if (curIndex === removeIdx) {
 			if (curIndex >= currentModel.count)
 				curIndex--;
@@ -350,20 +350,6 @@ Column {
 	}
 
 	function appendModels(exerciseid, name1, name2, group, nsets, nreps, nweight, media) {
-		var actual_idx = exercisesListModel.count;
-		exercisesListModel.append ({
-			"exerciseId": exerciseid,
-			"mainName": name1,
-			"subName": name2,
-			"muscularGroup": group,
-			"nSets": nsets,
-			"nReps": nreps,
-			"nWeight": nweight,
-			"uWeight": AppSettings.weightUnit,
-			"mediaPath": media,
-			"actualIndex": actual_idx
-		});
-
 		if (bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
 			var regex = new RegExp(txtFilter.text, "i");
 			var bFound = false;
@@ -377,7 +363,7 @@ Column {
 					bFound = false;
 			}
 			if (bFound) {
-				filterModel.newItem(actual_idx, exercisesListModel.get(actual_idx));
+				filterModel.newItem(actual_idx, appDB.dbExercisesModel.get(actual_idx));
 				setCurrentIndex(filterModel.count - 1); //Make current the last item on the list
 			}
 		}
@@ -388,13 +374,6 @@ Column {
 	}
 
 	function updateModels(actual_idx, name1, name2, group, nsets, nreps, nweight, media) {
-		exercisesListModel.setProperty(actual_idx, "mainName", name1);
-		exercisesListModel.setProperty(actual_idx, "subName", name2);
-		exercisesListModel.setProperty(actual_idx, "muscularGroup", group);
-		exercisesListModel.setProperty(actual_idx, "nSets", nsets);
-		exercisesListModel.setProperty(actual_idx, "nReps", nreps);
-		exercisesListModel.setProperty(actual_idx, "nWeight", nweight);
-		exercisesListModel.setProperty(actual_idx, "mediaPath", media);
 		if (bFilterApplied) { //There is an active filter. The edited item is the current selected item on the list. Just update this item
 			filterModel.setProperty(curIndex, "mainName", name1);
 			filterModel.setProperty(curIndex, "subName", name2);
