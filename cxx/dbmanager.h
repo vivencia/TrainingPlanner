@@ -19,11 +19,10 @@ Q_PROPERTY(DBExercisesModel dbExercisesModel READ dbExercisesModel NOTIFY dbExer
 
 public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
-	void runTaksInAnotherThread(const uint db_id, const bool bCanReceiveResult, const std::function<void ()> &task_func);
-	void getResult(const uint db_id, const OP_CODES op);
+	void gotResult(const uint db_id, const OP_CODES op);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	Q_INVOKABLE inline void getAllExercises() { runTaksInAnotherThread(0, true, [&] () { return dbExercisesList::getAllExercises(); }); }
+	Q_INVOKABLE void getAllExercises();
 	Q_INVOKABLE void newExercise(const uint row, const QString& mainName, const QString& subName, const QString& muscularGroup,
 					 const qreal nSets, const qreal nReps, const qreal nWeight,
 					 const QString& uWeight, const QString& mediaPath);
@@ -48,7 +47,6 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	DBExercisesModel m_dbExercisesModel;
 	QString m_exercisesListVersion;
-	uint m_exercisesTableLastId;
 	uint m_exercisesLocked;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 

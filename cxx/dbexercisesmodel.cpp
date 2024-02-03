@@ -20,9 +20,9 @@ void DBExercisesModel::setEntireList( const QStringList& newlist )
 {
 	QStringList::const_iterator itr ( newlist.constBegin () );
 	const QStringList::const_iterator itr_end ( newlist.constEnd () );
-	m_data.reserve(new_list.count());
+	m_data.reserve(newlist.count());
 	for ( ; itr != itr_end; ++itr )
-		m_data.append(QStringList>(*itr));
+		m_data.append(static_cast<QStringList>(*itr));
 }
 
 const QString& DBExercisesModel::data(const uint row, int role) const
@@ -43,7 +43,7 @@ const QString& DBExercisesModel::data(const uint row, int role) const
 				return m_data.at(row).at(role);
 		}
 	}
-	return QString();
+	return QStringLiteral("");
 }
 
 bool DBExercisesModel::setData(const uint row, const QString& value, int role)
@@ -61,7 +61,7 @@ bool DBExercisesModel::setData(const uint row, const QString& value, int role)
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				m_data.at(row).replace(role, value);
+				m_data[row].replace(role, value);
 				return true;
 		}
 	}

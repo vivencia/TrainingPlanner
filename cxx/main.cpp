@@ -62,12 +62,12 @@ int main(int argc, char *argv[])
 		appSettings.sync();
 	}
 	DbManager db(&appSettings, &engine);
-	BackupClass backUpClass( db_filename, runCmd.getAppDir(db_filename) );
+	//BackupClass backUpClass( db_filepath, runCmd.getAppDir(db_filename) );
 
 	engine.rootContext()->setContextProperty("trClass", &trClass);
 	engine.rootContext()->setContextProperty("appDB", &db);
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);
-	engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
+	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
 
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(

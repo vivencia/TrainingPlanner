@@ -3,12 +3,16 @@
 
 #include <QThread>
 #include <QSqlQuery>
+#include <QSqlError>
+
+uint dbExercisesList::m_exercisesTableLastId(1000);
 
 dbExercisesList::dbExercisesList(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
 	: QObject(nullptr), m_appSettings(appSettings), m_model(model)
 {
-	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), QStringLiteral("db_worker_connection-%1").arg(qintptr(QThread::currentThreadId()), 0, 16) );
-	mSqlLiteDB.setDatabaseName(dbFilePath + DBFileName);
+	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"),
+							QStringLiteral("db_worker_connection-%1").arg(qintptr(QThread::currentThreadId()), 0, 16) );
+	mSqlLiteDB.setDatabaseName(dbFilePath + QStringLiteral("ExercisesList.db.sqlite"));
 }
 
 void dbExercisesList::createTable()
@@ -63,9 +67,13 @@ void dbExercisesList::getAllExercises()
 		{
 			for (i = 0; i < n_entries; ++i)
 				exercise_info.append(query.value(static_cast<int>(i)).toString());
-			m_model->appendList(exercise_list);
+			m_model->appendList(exercise_info);
 			exercise_info.clear();
 		} while ( query.next () );
+		const uint highest_id (m_model->data(m_model->count() - 1, DBExercisesModel::exerciseIdRole).toUInt());
+		if (highest_id > m_exercisesTableLastId)
+			m_exercisesTableLastId = highest_id;
+
 		emit gotResult(0, OP_READ); //id = 0: Exercises Database
 		emit done(0);
 		return;

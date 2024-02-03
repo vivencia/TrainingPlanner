@@ -94,7 +94,7 @@ ApplicationWindow {
 		y: (mainwindow.height - height) / 2;
 	}
 
-	Timer {
+	/*Timer {
 		id: backupTimer
 		interval: 600000 //Every ten minutes
 		running: true
@@ -108,7 +108,7 @@ ApplicationWindow {
 			else
 				console.log("database not modified!!!");
 		}
-	}
+	}*/
 
 /*case Qt.ApplicationSuspended: console.info("###########  Application Suspended ##############"); break;
 					case Qt.ApplicationHidden: console.info("###########  Application Hidden ##############"); break;
@@ -173,7 +173,7 @@ ApplicationWindow {
 
 		Component.onCompleted: {
 			dateTimer.triggered();
-			backupTimer.triggered();
+			//backupTimer.triggered();
 		}
 	}
 

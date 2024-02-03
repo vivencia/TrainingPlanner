@@ -8,22 +8,37 @@
 #include <QFileInfo>
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
-	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_workingRow(0), m_exercisesTableLastId(1000)
+	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_workingRow(0)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + dbExercisesList::DBFileName());
+
 	if (!f_info.isReadable())
 	{
 		//First time: initialize all databases
-		runTaksInAnotherThread(0, false, [&] () { return dbExercisesList::createTable(); });
+		dbExercisesList* db_exercises(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+		db_exercises->createTable();
+		delete db_exercises;
 	}
 
 	getExercisesListVersion();
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
-		runTaksInAnotherThread(0, false, [&] () { return dbExercisesList::updateExercisesList; });
+	{
+		m_exercisesLocked = 2;
+		QThread *thread = new QThread ();
+		dbExercisesList* worker(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+		connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
+		connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
+		connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
+		connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
+		connect ( thread, &QThread::started, worker, &dbExercisesList::updateExercisesList );
+		connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+		worker->moveToThread ( thread );
+		thread->start ();
+	}
 }
 
-void DbManager::getResult(const uint db_id, const OP_CODES op)
+void DbManager::gotResult(const uint db_id, const OP_CODES op)
 {
 	switch (db_id)
 	{
@@ -40,28 +55,6 @@ void DbManager::getResult(const uint db_id, const OP_CODES op)
 	}
 }
 
-void DbManager::runTaksInAnotherThread( const uint db_id, const bool bCanReceiveResult, const std::function<void ()> &task_func )
-{
-	QThread *thread = new QThread ();
-	QObject* worker(nullptr);
-
-	switch (db_id)
-	{
-		case 0:
-			worker = new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel);
-			connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
-			connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
-			if (bCanReceiveResult)
-				connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
-		break;
-	}
-	connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
-	connect ( thread, &QThread::started, worker, &task_func );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
-	thread->start ();
-}
-
 void DbManager::freeLocks(const int res)
 {
 	if ( res == 0 )
@@ -75,6 +68,21 @@ void DbManager::freeLocks(const int res)
 }
 
 //--------------------EXERCISES TABLE---------------------------------
+void DbManager::getAllExercises()
+{
+	QThread *thread = new QThread ();
+	dbExercisesList* worker(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+	connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
+	connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
+	connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
+	connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
+	connect ( thread, &QThread::started, worker, &dbExercisesList::getAllExercises );
+	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+	worker->moveToThread ( thread );
+	thread->start ();
+	dbExercisesList::setExercisesTableLastId(dbExercisesList::exercisesTableLastId() + 1);
+}
+
 void DbManager::newExercise( const uint row, const QString& mainName, const QString& subName, const QString& muscularGroup,
 					 const qreal nSets, const qreal nReps, const qreal nWeight,
 					 const QString& uWeight, const QString& mediaPath )
@@ -82,9 +90,19 @@ void DbManager::newExercise( const uint row, const QString& mainName, const QStr
 	if (m_exercisesLocked == 0) {
 		m_exercisesLocked = 2;
 		m_workingRow = row;
-		dbExercisesList::setData(m_exercisesTableLastId, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-		runTaksInAnotherThread(0, true, [&] () { return dbExercisesList::newExercise(); });
-		m_exercisesTableLastId++;
+		dbExercisesList::setData(QString::number(dbExercisesList::exercisesTableLastId()), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
+
+		QThread *thread = new QThread ();
+		dbExercisesList* worker(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+		connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
+		connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
+		connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
+		connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
+		connect ( thread, &QThread::started, worker, &dbExercisesList::newExercise );
+		connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+		worker->moveToThread ( thread );
+		thread->start ();
+		dbExercisesList::setExercisesTableLastId(dbExercisesList::exercisesTableLastId() + 1);
 	}
 }
 
@@ -96,7 +114,17 @@ void DbManager::updateExercise( const uint row, const QString& mainName, const Q
 		m_exercisesLocked = 2;
 		m_workingRow = row;
 		dbExercisesList::setData(m_dbExercisesModel.data(row, DBExercisesModel::exerciseIdRole), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-		runTaksInAnotherThread(0, true, [&] () { return dbExercisesList::updateExercise(); });
+
+		QThread *thread = new QThread ();
+		dbExercisesList* worker(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+		connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
+		connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
+		connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
+		connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
+		connect ( thread, &QThread::started, worker, &dbExercisesList::updateExercise );
+		connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+		worker->moveToThread ( thread );
+		thread->start ();
 	}
 }
 
@@ -106,7 +134,17 @@ void DbManager::removeExercise(const uint row)
 		m_exercisesLocked = 2;
 		m_workingRow = row;
 		dbExercisesList::setData(m_dbExercisesModel.data(row, DBExercisesModel::exerciseIdRole));
-		runTaksInAnotherThread(0, true, [&] () { return dbExercisesList::removeExercise(); });
+
+		QThread *thread = new QThread ();
+		dbExercisesList* worker(new dbExercisesList(m_DBFilePath, m_appSettings, &m_dbExercisesModel));
+		connect ( worker, &dbExercisesList::done, thread, &QThread::quit );
+		connect ( worker, &dbExercisesList::done, worker, &dbExercisesList::deleteLater );
+		connect ( worker, &dbExercisesList::gotResult, this, &DbManager::gotResult );
+		connect ( worker, &dbExercisesList::done, this, &DbManager::freeLocks );
+		connect ( thread, &QThread::started, worker, &dbExercisesList::removeExercise );
+		connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+		worker->moveToThread ( thread );
+		thread->start ();
 	}
 }
 
@@ -120,10 +158,12 @@ void DbManager::getExercisesListVersion()
 		qint64 lineLength;
 		QString line;
 		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
-		if (lineLength < 0) return 0;
-		line = buf;
-		if (line.startsWith(QStringLiteral("#Vers")))
-			m_exercisesListVersion = line.split(';').at(1).trimmed();
+		if (lineLength > 0)
+		{
+			line = buf;
+			if (line.startsWith(QStringLiteral("#Vers")))
+				m_exercisesListVersion = line.split(';').at(1).trimmed();
+		}
 		exercisesListFile.close();
 	}
 }

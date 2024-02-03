@@ -6,9 +6,15 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls
 find_package(Qt6 REQUIRED COMPONENTS )
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS)
 
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-DDEBUG DEBUG QT_DEBUG -g")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "QT_NO_DEBUG -O3 -march=native -fomit-frame-pointer -funroll-loops -Ofast")
+set(CMAKE_CXX_FLAGS_INIT "-DQT_USE_QSTRINGBUILDER -DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS -Werror -Wall -Wextra -pedantic -std=c++14 -finput-charset=UTF-8 -fexec-charset=UTF-8")
+
 set(CMAKE_AUTOMOC ON)
-set( CMAKE_VERBOSE_MAKEFILE on )
+set(CMAKE_VERBOSE_MAKEFILE on)
+set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
+
 set( RESOURCE_FILES app_resources.qrc )
 
 set( SOURCES
