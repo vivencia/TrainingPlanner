@@ -656,6 +656,15 @@ Page {
 								bAlreadyLoaded:false
 							});
 							trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
+
+							//Maximum of 3 pages loaded on memory. The latest page replace the earliest
+							if (trainingDayInfoPages.length === 3) {
+								trainingDayInfoPages[0].Object.destroy();
+								trainingDayInfoPages[0] = trainingDayInfoPages[1];
+								trainingDayInfoPages[1] = trainingDayInfoPages[2];
+								trainingDayInfoPages.pop();
+							}
+
 							trainingDayInfoPages.push({ "date":calendar.dayInfoDate.getTime(), "Object" : trainingDayInfoPage });
 							appStackView.push(trainingDayInfoPage, StackView.DontLoad);
 						}

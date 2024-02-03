@@ -405,12 +405,15 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
+			//console.log("Create Giant Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
 								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
+			//console.log("Update Giant Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
 			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
-} // Item
+	Component.onCompleted: setCreated[setNumber] = 1;
+} // FocusScope

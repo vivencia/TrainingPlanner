@@ -171,12 +171,16 @@ Item {
 			setNotes = " ";
 
 		if (setId < 0) {
+			//console.log("Create MyoReps Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
 								setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
+			//console.log("Update MyoReps Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
 			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(), setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
-} // Item
+
+	Component.onCompleted: setCreated[setNumber] = 1;
+} // FocusScope

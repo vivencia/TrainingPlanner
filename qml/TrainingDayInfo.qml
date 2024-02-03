@@ -101,6 +101,7 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
 			bModified = true;
+			bDayIsFinished = false;
 		}
 	}
 
@@ -139,7 +140,6 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			//sessionLength = JSF.calculateTimeBetweenTimes(JSF.getTimeStringFromDateTime(todayFull), timeOut);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -277,6 +277,7 @@ Page {
 		}
 
 		function init(finalTime) {
+			bDayIsFinished = false;
 			finalHour = JSF.getHourOrMinutesFromStrTime(finalTime);
 			finalMin = JSF.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
@@ -1193,7 +1194,8 @@ Page {
 		var exercisename = ""
 		const searchRegExp = /\ \+\ /g;
 		const replaceWith = '&';
-		for (var i = 0; i < exerciseSpriteList.length; ++i) {
+		const len = exerciseSpriteList.length;
+		for (var i = 0; i < len; ++i) {
 			exercisename = exerciseSpriteList[i].Object.exerciseName.replace(searchRegExp, replaceWith);
 			exercises += exercisename + '|';
 			types += exerciseSpriteList[i].Object.setType + '|';
@@ -1214,7 +1216,8 @@ Page {
 	}
 
 	function updateDayIdFromExercisesAndSets() {
-		for( var i = 0; i < exerciseSpriteList.length; ++i )
+		const len = exerciseSpriteList.length;
+		for( var i = 0; i < len; ++i )
 			exerciseSpriteList[i].Object.updateDayId(dayId);
 	}
 
@@ -1301,7 +1304,6 @@ Page {
 		}
 		delete exerciseSpriteList;
 		exerciseSpriteList = newObjectList;
-		bDayIsFinished = exerciseSpriteList.length > 0;
 		bModified = true;
 	}
 
@@ -1415,7 +1417,8 @@ Page {
 	}
 
 	function hideFloatingButton(except_idx) {
-		for (var x = 0; x < exerciseSpriteList.length; ++x) {
+		const len = exerciseSpriteList.length;
+		for (var x = 0; x < len; ++x) {
 			if (x !== except_idx) {
 				if (exerciseSpriteList[x].Object.bFloatButtonVisible)
 					exerciseSpriteList[x].Object.bFloatButtonVisible = false;
@@ -1470,6 +1473,7 @@ Page {
 				for (; i < setsToBeRemoved.length; ++i)
 					Database.deleteSetFromSetsInfo(setsToBeRemoved[i]);
 				setsToBeRemoved = [];
+				const len = exerciseSpriteList.length;
 				for (i = 0; i < exerciseSpriteList.length; ++i)
 					exerciseSpriteList[i].Object.logSets();
 				bModified = false;

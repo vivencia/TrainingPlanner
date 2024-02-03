@@ -147,12 +147,17 @@ FocusScope {
 			setNotes = " ";
 
 		if (setId < 0) {
+			//console.log("Create Regular Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
 			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
-								setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
+												setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
 			setId = result.insertId;
 		}
 		else {
-			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(), setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
+			//console.log("Update Regular Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
+			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(),
+									setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
 		}
 	}
-} // Item
+
+	Component.onCompleted: setCreated[setNumber] = 1;
+} // FocusScope

@@ -25,6 +25,7 @@ FocusScope {
 	property var suggestedRestTimes: []
 	property var setNotes: []
 	property var setObjectList: []
+	property var setCreated: []
 
 	property int loadTDayId: -1
 	property int loadObjectIdx: -1
@@ -51,6 +52,33 @@ FocusScope {
 				btnFloat.visible = false;
 			cboSetType.enabled = true;
 			btnAddSet.enabled = true;
+		}
+	}
+
+	Timer {
+		id: logSetsTimer
+		interval: 200
+		running: false
+		repeat: true
+
+		onTriggered: {
+			const len = setCreated.length;
+			var totalReady = 0;
+			for(var i = 0; i < len; ++i) {
+				switch(setCreated[i]) {
+					case 0:
+					break;
+					case 1:
+						setObjectList[i].Object.logSet();
+						setCreated[i] = 2;
+					break;
+					case 2:
+						totalReady++;
+					break;
+				}
+			}
+			if (totalReady === len)
+				stop();
 		}
 	}
 
@@ -284,7 +312,7 @@ FocusScope {
 					}
 					onClicked: {
 						setType = parseInt(cboSetType.currentValue);
-						loadSetType(setType, true);
+						createSetObject(setType, true);
 						requestHideFloatingButtons (thisObjectIdx);
 						if (btnFloat === null)
 							createFloatingAddSetButton();
@@ -349,22 +377,25 @@ FocusScope {
 
 	function addNewSet(type) {
 		setType = type;
-		loadSetType(type, true);
+		createSetObject(type, true);
 	}
 
 	function loadSetsFromDatabase() {
 		let setsInfoList = Database.getSetsInfo(loadTDayId);
 		var nset = 0;
 		const len = setsInfoList.length;
+		//console.log("ExerciseEntry::loadSetsFromDatabase - loadObjectIdx = ", loadObjectIdx);
+		//console.log("Creating " + len + " sets")
 		for(var i = 0; i < len; ++i) {
 			if (loadObjectIdx === setsInfoList[i].setExerciseIdx) {
+				setCreated[nset] = 0;
 				setNbr = setsInfoList[i].setNumber;
 				suggestedReps[nset] = setsInfoList[i].setReps;
 				suggestedWeight[nset] = setsInfoList[i].setWeight;
 				suggestedSubSets[nset] = setsInfoList[i].setSubSets;
 				suggestedRestTimes[nset] = setsInfoList[i].setRestTime;
 				setNotes[nset] = setsInfoList[i].setNotes;
-				loadSetType(setsInfoList[i].setType, false);
+				createSetObject(setsInfoList[i].setType, false);
 				nset++;
 				setType = setsInfoList[i].setType;
 				changeComboModel();
@@ -390,17 +421,21 @@ FocusScope {
 	}
 
 	function createSetsFromPlan(nsets, type, nreps, nweight) {
-		for(var i = 0; i < nsets; ++i) {
+		//console.log("ExerciseEntry::createSetsFromPlan - loadObjectIdx = ", loadObjectIdx);
+		//console.log("Creating " + nsets + " sets")
+		const _nsets = parseInt(nsets);
+		for(var i = 0; i < _nsets; ++i) {
+			setCreated[i] = 0;
 			setNbr = i;
 			setType = parseInt(type);
 			calculateSuggestedValues(parseInt(type));
 			if (i === 0) {
 				suggestedReps[0] = parseInt(nreps);
 				suggestedWeight[0] = parseInt(nweight);
-				if (type === "3")//ClusterSet
+				if (setType === 3)//ClusterSet
 					suggestedReps[0] /= 4;
 			}
-			loadSetType(parseInt(type), false);
+			createSetObject(setType, false);
 		}
 	}
 
@@ -439,7 +474,7 @@ FocusScope {
 		}
 	}
 
-	function loadSetType(type, bNewSet) {
+	function createSetObject(type, bNewSet) {
 		const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
 			"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
 
@@ -454,6 +489,7 @@ FocusScope {
 					if (btnFloat !== null)
 						btnFloat.nextSetNbr++;
 				}
+				//console.log("ExerciseEntry::createSetObject # " + nset + " - exerciseIdx = " + thisObjectIdx + "  - tDayId = " + tDayId);
 				var sprite = component.createObject(layoutMain, {
 								setNumber:nset, setReps:suggestedReps[nset], setWeight:suggestedWeight[nset],
 								setSubSets:suggestedSubSets[nset], setRestTime:suggestedRestTimes[nset],
@@ -507,9 +543,7 @@ FocusScope {
 	}
 
 	function logSets() {
-		const len = setObjectList.length;
-		for( var i = 0; i < len; ++i )
-			setObjectList[i].Object.logSet();
+		logSetsTimer.start();
 	}
 
 	function removeAllSets() {
