@@ -320,7 +320,6 @@ Page {
 					id:btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesList.curIndex >= 0
-					font.capitalization: Font.MixedCase
 
 					onClicked: {
 						if (!bEdit) {

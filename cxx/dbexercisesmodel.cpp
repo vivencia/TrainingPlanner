@@ -1,5 +1,12 @@
 #include "dbexercisesmodel.h"
 
+void db_exercisesmodel_swap ( DBExercisesModel& model1, DBExercisesModel& model2 )
+{
+	using std::swap;
+	swap (model1.m_data, model2.m_data);
+	swap (model1.m_roleNames, model2.m_roleNames);
+}
+
 DBExercisesModel::DBExercisesModel(QObject *parent)
 	: QAbstractListModel(parent)
 {
@@ -14,6 +21,18 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[uWeightRole] = "uWeight";
 	m_roleNames[mediaPathRole] = "mediaPath";
 	m_roleNames[actualIndexRole] = "actualIndex";
+}
+
+void DBExercisesModel::copy ( const DBExercisesModel& src_item )
+{
+	m_data = src_item.m_data;
+	m_roleNames = src_item.m_roleNames;
+}
+
+DBExercisesModel::~DBExercisesModel ()
+{
+	m_data.clear();
+	m_roleNames.clear();
 }
 
 void DBExercisesModel::setEntireList( const QStringList& newlist )

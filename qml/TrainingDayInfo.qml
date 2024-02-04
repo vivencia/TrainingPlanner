@@ -1672,6 +1672,7 @@ Page {
 
 	function timerDialogClosed() {
 		timerDialogRequester = null;
+		timerDlgToolTip.close();
 	}
 
 	function createNavButtons() {

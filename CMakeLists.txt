@@ -25,7 +25,7 @@ set( SOURCES
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/graph.h cxx/graph.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
-	cxx/dbexerciseslist.h cxx/dbexerciseslist.cpp
+	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
 )
 
 set( TRANSLATIONS_DIR

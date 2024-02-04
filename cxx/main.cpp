@@ -57,13 +57,13 @@ int main(int argc, char *argv[])
 	QString db_filepath (appSettings.value("dbFilePath").toString());
 	if (db_filepath.isEmpty()) {
 		db_filepath = runCmd.getAppDir(runCmd.searchForDatabaseFile(engine.offlineStoragePath()));
-		db_filepath.append("/");
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
 	}
 	DbManager db(&appSettings, &engine);
 	//BackupClass backUpClass( db_filepath, runCmd.getAppDir(db_filename) );
 
+	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	engine.rootContext()->setContextProperty("trClass", &trClass);
 	engine.rootContext()->setContextProperty("appDB", &db);
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);

@@ -175,14 +175,21 @@ FocusScope {
 							const idx = exerciseName1.indexOf(':');
 							exerciseName1 = exerciseName1.substring(idx + 1, exerciseName1.length).trim();
 						}
+						cursorPosition = text.length;
 					}
-					else
+					else {
+						cursorPosition = 0;
 						ensureVisible(0);
+					}
 				}
 
 				onActiveFocusChanged: {
-					if (activeFocus)
+					if (activeFocus) {
 						closeSimpleExerciseList();
+						cursorPosition = text.length;
+					}
+					else
+						cursorPosition = 0;
 				}
 
 				onEditingFinished: {

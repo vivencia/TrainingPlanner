@@ -1,7 +1,7 @@
 #ifndef DBMANAGER_H
 #define DBMANAGER_H
 
-#include "dbexerciseslist.h"
+#include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
 
 #include <QQmlEngine>
@@ -19,7 +19,7 @@ Q_PROPERTY(DBExercisesModel dbExercisesModel READ dbExercisesModel NOTIFY dbExer
 
 public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
-	void gotResult(const uint db_id, const OP_CODES op);
+	void gotResult(const dbExercisesList *dbObj, const OP_CODES op);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();

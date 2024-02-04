@@ -97,14 +97,21 @@ Item {
 				if (!readOnly) {
 					const idx = exerciseName2.indexOf(':'); //Remove the '2: ' from the name
 					exerciseName2 = exerciseName2.substring(idx + 1, exerciseName2.length).trim();
+					cursorPosition = text.length;
 				}
-				else
+				else {
+					cursorPosition = 0;
 					ensureVisible(0);
+				}
 			}
 
 			onActiveFocusChanged: {
-				if (activeFocus)
-					closeSimpleExerciseList();
+				if (activeFocus) {
+						closeSimpleExerciseList();
+						cursorPosition = text.length;
+					}
+					else
+						cursorPosition = 0;
 			}
 
 			onEditingFinished: {

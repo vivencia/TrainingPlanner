@@ -229,6 +229,8 @@ Frame {
 									bModified = true;
 								}
 							}
+							else
+								cursorPosition = 0;
 						}
 
 						onActiveFocusChanged: {
@@ -236,8 +238,10 @@ Frame {
 								bottomPane.shown = false;
 								cursorPosition = text.length;
 							}
-							else
+							else {
 								bCanEditExercise = false;
+								cursorPosition = 0;
+							}
 						}
 
 						RoundButton {
