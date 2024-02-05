@@ -11,8 +11,7 @@ Column {
 	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
-	readonly property ListModel currentModel: lstExercises.model
-	readonly property ListModel tempModel: filterModel
+	property DBExercisesModel currentModel: null
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
@@ -20,7 +19,11 @@ Column {
 	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, int sets,
 									real reps, real weight, string mediaPath, int multipleSelectionOption)
 
-	ListModel {
+	DBExercisesModel {
+		id: exercisesListModel
+	}
+
+	DBExercisesModel {
 		id: filterModel
 		property var foundIdxs: []
 
@@ -97,21 +100,8 @@ Column {
 
 		function setModel(newmodel) {
 			model = newmodel;
+			currentModel = model;
 		}
-
-		model: DBExercisesModel {
-			id: exercisesListModel
-
-			Component.onCompleted: {
-				if (count === 0) {
-
-				}
-				/*if (count > 0) {
-					curIndex = 0;
-					displaySelectedExercise(curIndex, 0);
-				}*/
-			}
-		} //model
 
 		delegate: SwipeDelegate {
 			id: delegate
@@ -304,6 +294,12 @@ Column {
 			}
 		} //onTextChanged
 	} // txtFilter
+
+	Component.onCompleted: {
+		appDB.pass_object(exercisesListModel);
+		appDB.getAllExercises();
+		lstExercises.setModel(exercisesListModel);
+	}
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
 		curIndex = lstIdx;

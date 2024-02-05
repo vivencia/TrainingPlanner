@@ -16,7 +16,7 @@ class dbExercisesList : public QObject
 Q_OBJECT
 
 public:
-	explicit dbExercisesList(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model);
+	explicit dbExercisesList(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
 
 	void createTable();
 	void getAllExercises();

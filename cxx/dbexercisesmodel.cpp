@@ -1,14 +1,7 @@
 #include "dbexercisesmodel.h"
 
-void db_exercisesmodel_swap ( DBExercisesModel& model1, DBExercisesModel& model2 )
-{
-	using std::swap;
-	swap (model1.m_data, model2.m_data);
-	swap (model1.m_roleNames, model2.m_roleNames);
-}
-
 DBExercisesModel::DBExercisesModel(QObject *parent)
-	: QAbstractListModel(parent)
+	: TPListModel(parent)
 {
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[exerciseIdRole] = "exerciseId";
@@ -23,30 +16,9 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[actualIndexRole] = "actualIndex";
 }
 
-void DBExercisesModel::copy ( const DBExercisesModel& src_item )
-{
-	m_data = src_item.m_data;
-	m_roleNames = src_item.m_roleNames;
-}
-
-DBExercisesModel::~DBExercisesModel ()
-{
-	m_data.clear();
-	m_roleNames.clear();
-}
-
-void DBExercisesModel::setEntireList( const QStringList& newlist )
-{
-	QStringList::const_iterator itr ( newlist.constBegin () );
-	const QStringList::const_iterator itr_end ( newlist.constEnd () );
-	m_data.reserve(newlist.count());
-	for ( ; itr != itr_end; ++itr )
-		m_data.append(static_cast<QStringList>(*itr));
-}
-
 const QString& DBExercisesModel::data(const uint row, int role) const
 {
-	if( row >= 0 && row < m_data.count() )
+	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
 			case exerciseIdRole:
@@ -59,7 +31,7 @@ const QString& DBExercisesModel::data(const uint row, int role) const
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				return m_data.at(row).at(role);
+				return m_modeldata.at(row).at(role-Qt::UserRole);
 		}
 	}
 	return QStringLiteral("");
@@ -67,7 +39,7 @@ const QString& DBExercisesModel::data(const uint row, int role) const
 
 bool DBExercisesModel::setData(const uint row, const QString& value, int role)
 {
-	if( row >= 0 && row < m_data.count() )
+	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
 			case exerciseIdRole:
@@ -80,7 +52,7 @@ bool DBExercisesModel::setData(const uint row, const QString& value, int role)
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				m_data[row].replace(role, value);
+				m_modeldata[row].replace(role, value);
 				return true;
 		}
 	}

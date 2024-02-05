@@ -26,6 +26,7 @@ set( SOURCES
 	cxx/graph.h cxx/graph.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
+	cxx/tplistmodel.h cxx/tplistmodel.cpp
 )
 
 set( TRANSLATIONS_DIR

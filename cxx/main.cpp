@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
 	//BackupClass backUpClass( db_filepath, runCmd.getAppDir(db_filename) );
 
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
+	//qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel&");
+	//qmlRegisterType<DBExercisesModel*>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel*");
 	engine.rootContext()->setContextProperty("trClass", &trClass);
 	engine.rootContext()->setContextProperty("appDB", &db);
 	engine.rootContext()->setContextProperty("runCmd", &runCmd);
