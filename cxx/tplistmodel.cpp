@@ -28,23 +28,25 @@ void TPListModel::setEntireList( const QStringList& newlist )
 		m_modeldata.append(static_cast<QStringList>(*itr));
 }
 
-const QString& TPListModel::data(const uint row, int role) const
+QVariant TPListModel::data(const QModelIndex &index, int role) const
 {
+	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		if (role == Qt::DisplayRole)
 			return m_modeldata.at(row).at(Qt::DisplayRole);
 	}
-	return QStringLiteral("");
+	return QVariant();
 }
 
-bool TPListModel::setData(const uint row, const QString& value, int role)
+bool TPListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		if (role == Qt::DisplayRole)
 		{
-			m_modeldata[row].replace(role, value);
+			m_modeldata[row].replace(role, value.toString());
 			return true;
 		}
 	}

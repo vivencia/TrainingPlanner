@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
-import com.vivenciasoftware.qmlcomponents
+//import com.vivenciasoftware.qmlcomponents
 
 Column {
 	id: mainItem
@@ -11,19 +11,16 @@ Column {
 	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
-	property DBExercisesModel currentModel: null
+	property var currentModel: exercisesListModel
+
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
 	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
-	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, int sets,
-									real reps, real weight, string mediaPath, int multipleSelectionOption)
+	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, string sets,
+									string reps, string weight, string mediaPath, int multipleSelectionOption)
 
-	DBExercisesModel {
-		id: exercisesListModel
-	}
-
-	DBExercisesModel {
+	ListModel {
 		id: filterModel
 		property var foundIdxs: []
 
@@ -98,9 +95,12 @@ Column {
 			}
 		}
 
+		model: exercisesListModel
+
 		function setModel(newmodel) {
 			model = newmodel;
-			currentModel = model;
+			currentModel = newmodel;
+			//lstExercises.model = model;
 		}
 
 		delegate: SwipeDelegate {
@@ -295,42 +295,41 @@ Column {
 		} //onTextChanged
 	} // txtFilter
 
-	Component.onCompleted: {
-		appDB.pass_object(exercisesListModel);
-		appDB.getAllExercises();
-		lstExercises.setModel(exercisesListModel);
-	}
-
 	function displaySelectedExercise(lstIdx, multiple_opt) {
 		curIndex = lstIdx;
-		exerciseEntrySelected(currentModel.get(lstIdx).mainName, currentModel.get(lstIdx).subName,
-							currentModel.get(lstIdx).muscularGroup, currentModel.get(lstIdx).nSets,
-							currentModel.get(lstIdx).nReps, currentModel.get(lstIdx).nWeight,
-							currentModel.get(lstIdx).mediaPath, multiple_opt);
+		exerciseEntrySelected(lstExercises.model.get(lstIdx, 1), lstExercises.model.get(lstIdx, 2),
+							lstExercises.model.get(lstIdx, 3), lstExercises.model.get(lstIdx, 4),
+							lstExercises.model.get(lstIdx, 5), lstExercises.model.get(lstIdx, 6),
+							lstExercises.model.get(lstIdx, 8), multiple_opt);
 	}
 
 	function removeExercise(removeIdx) {
-		const actualIndex = currentModel.get(removeIdx).actualIndex; //position of item in the main model
+		const actualIndex = lstExercises.model.getInt(removeIdx, 9); //position of item in the main model
 		var i;
-		Database.deleteExerciseFromExercises(currentModel.get(actualIndex).exerciseId);
-		exercisesListModel.remove(actualIndex);
-		if (bFilterApplied) {
-			filterModel.remove(removeIdx);
-			for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
-				filterModel.setProperty(i, "actualIndex", filterModel.get(i).actualIndex - 1);
-		}
-		for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
+
+		function readyToContinue() {
+			if (bFilterApplied) {
+				filterModel.remove(removeIdx);
+				for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
+					filterModel.setProperty(i, "actualIndex", filterModel.get(i).actualIndex - 1);
+			}
+			for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
 				exercisesListModel.setProperty(i, "actualIndex", i);
-		if (curIndex === removeIdx) {
-			if (curIndex >= currentModel.count)
-				curIndex--;
-			if (currentModel.count > 0)
-				simulateMouseClick(curIndex);
+			if (curIndex === removeIdx) {
+				if (curIndex >= lstExercises.model.count)
+					curIndex--;
+				if (lstExercises.model.count > 0)
+					simulateMouseClick(curIndex);
+			}
 		}
+
+		appDB.pass_object(lstExercises.model);
+		appDB.removeExercise(lstExercises.model.getInt(actualIndex, 0));
+		appDB.qmlReady.connect(readyToContinue);
 	}
 
 	function setCurrentIndex(newIdx) {
-		if (newIdx < currentModel.count) {
+		if (newIdx < lstExercises.model.count) {
 			curIndex = newIdx;
 			lstExercises.currentIndex = newIdx;
 			lstExercises.ensureVisible(lstExercises.currentItem);
@@ -338,7 +337,7 @@ Column {
 	}
 
 	function simulateMouseClick(new_index) {
-		if (new_index < currentModel.count) {
+		if (new_index < lstExercises.model.count) {
 			displaySelectedExercise(new_index, 0);
 			lstExercises.positionViewAtIndex(new_index, ListView.Beginning);
 		}

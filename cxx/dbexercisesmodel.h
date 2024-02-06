@@ -26,8 +26,9 @@ public:
 
 	explicit DBExercisesModel(QObject *parent = 0);
 
-	Q_INVOKABLE const QString& data(const uint row, int role) const;
-	Q_INVOKABLE bool setData(const uint row, const QString& value, int role);
+	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
+	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
+	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 };
 
 #endif // DBEXERCISESMODEL_H

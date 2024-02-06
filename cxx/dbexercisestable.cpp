@@ -5,19 +5,21 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFile>
+#include <QTime>
+#include <QMutexLocker>
 
-uint dbExercisesList::m_exercisesTableLastId(1000);
+uint dbExercisesTable::m_exercisesTableLastId(1000);
 
-dbExercisesList::dbExercisesList(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
+dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
 	: QObject(nullptr), m_appSettings(appSettings), m_model(model)
 {
-	const QString cnx_name (QStringLiteral("db_worker_connection-%1").arg(qintptr(QThread::currentThreadId()), 0, 16));
+	const QString cnx_name ( QStringLiteral("db_worker_connection-%1").arg(QTime::currentTime().toString(QStringLiteral("z"))) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
-void dbExercisesList::createTable()
+void dbExercisesTable::createTable()
 {
 	bool ret(false);
 	if (mSqlLiteDB.open())
@@ -29,9 +31,9 @@ void dbExercisesList::createTable()
 										"primary_name TEXT,"
 										"secondary_name TEXT,"
 										"muscular_group TEXT,"
-										"sets INTEGER,"
-										"reps REAL,"
-										"weight REAL,"
+										"sets TEXT,"
+										"reps TEXT,"
+										"weight TEXT,"
 										"weight_unit TEXT,"
 										"media_path TEXT,"
 										"from_list INTEGER"
@@ -51,7 +53,7 @@ void dbExercisesList::createTable()
 	emit done(ret);
 }
 
-void dbExercisesList::getAllExercises()
+void dbExercisesTable::getAllExercises()
 {
 	bool ret(false);
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
@@ -76,7 +78,8 @@ void dbExercisesList::getAllExercises()
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
-				const uint highest_id (m_model->data(m_model->count() - 1, DBExercisesModel::exerciseIdRole).toUInt());
+				QModelIndex index;
+				const uint highest_id (m_model->data(index.sibling(m_model->count() - 1, 0), DBExercisesModel::exerciseIdRole).toUInt());
 				if (highest_id > m_exercisesTableLastId)
 					m_exercisesTableLastId = highest_id;
 				emit gotResult(this, OP_READ);
@@ -95,7 +98,7 @@ void dbExercisesList::getAllExercises()
 	emit done(ret);
 }
 
-void dbExercisesList::updateExercisesList()
+void dbExercisesTable::updateExercisesList()
 {
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
@@ -142,23 +145,33 @@ void dbExercisesList::updateExercisesList()
 	emit done(ret);
 }
 
-void dbExercisesList::newExercise()
+void dbExercisesTable::newExercise()
 {
 	bool ret(false);
 	if (mSqlLiteDB.open())
 	{
+		m_data[0] = QString::number(m_exercisesTableLastId);
 		QSqlQuery query(mSqlLiteDB);
+		qDebug() << QStringLiteral(
+									"INSERT INTO exercises_table"
+									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
+									" VALUES(%1, \'%2\', \'%3\', %4, %5, %6, \'%7\', \'%8\', \'%9\', 0)")
+									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8));
+
 		query.prepare( QStringLiteral(
 									"INSERT INTO exercises_table"
 									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-									" VALUES(%1, \'%2\', \'%3\', %4, %5, %6, \'%7\', \'%8\', \'%9\', \'%10\')")
-									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3)).arg(m_data.at(4).toFloat())
-									.arg(m_data.at(5).toFloat()).arg(m_data.at(6).toFloat()).arg(m_data.at(7), m_data.at(8), m_data.at(9)) );
+									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
+									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8)) );
 		ret = query.exec();
+		m_data.clear();
 		mSqlLiteDB.close();
 	}
 	if (ret)
 	{
+		m_exercisesTableLastId++;
 		emit gotResult(this, OP_ADD);
 		qDebug() << "ExercisesList newExercise SUCCESS";
 	}
@@ -170,18 +183,24 @@ void dbExercisesList::newExercise()
 	emit done(ret);
 }
 
-void dbExercisesList::updateExercise()
+void dbExercisesTable::updateExercise()
 {
 	bool ret(false);
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		qDebug() << QStringLiteral(
+									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
+									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%10")
+									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
+										m_data.at(7), m_data.at(8)).arg(m_data.at(0).toInt());
 		query.prepare( QStringLiteral(
 									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-									"sets=%4, reps=%5, weight=%6, weight_unit=\'%7\', media_path=\'%8\', from_list=\'%9\' WHERE id=%10)")
-									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3)).arg(m_data.at(4).toFloat())
-									.arg(m_data.at(5).toFloat()).arg(m_data.at(6).toFloat()).arg(m_data.at(7), m_data.at(8), m_data.at(9)) );
+									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%10")
+									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
+										m_data.at(7), m_data.at(8)).arg(m_data.at(0).toInt()) );
 		ret = query.exec();
+		m_data.clear();
 		mSqlLiteDB.close();
 	}
 	if (ret)
@@ -197,7 +216,7 @@ void dbExercisesList::updateExercise()
 	emit done(ret);
 }
 
-void dbExercisesList::removeExercise()
+void dbExercisesTable::removeExercise()
 {
 	bool ret(false);
 	if (mSqlLiteDB.open())
@@ -205,6 +224,7 @@ void dbExercisesList::removeExercise()
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("DELETE FROM exercises_table WHERE id=?").arg(m_data.at(0).toInt()) );
 		ret = query.exec();
+		m_data.clear();
 		mSqlLiteDB.close();
 	}
 	if (ret)
@@ -220,22 +240,22 @@ void dbExercisesList::removeExercise()
 	emit done(ret);
 }
 
-void dbExercisesList::setData(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const qreal nSets, const qreal nReps, const qreal nWeight,
+void dbExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
+					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath)
 {
 	m_data.append(id);
 	m_data.append(mainName);
 	m_data.append(subName);
 	m_data.append(muscularGroup);
-	m_data.append(QString::number(nSets,'g', 1));
-	m_data.append(QString::number(nReps,'g', 1));
-	m_data.append(QString::number(nWeight,'g', 1));
+	m_data.append(nSets); //QString::number(nSets,'g', 1)
+	m_data.append(nReps);
+	m_data.append(nWeight);
 	m_data.append(uWeight);
 	m_data.append(mediaPath);
 }
 
-void dbExercisesList::removePreviousListEntriesFromDB()
+void dbExercisesTable::removePreviousListEntriesFromDB()
 {
 	int ret(0);
 	if (mSqlLiteDB.open())
@@ -251,7 +271,7 @@ void dbExercisesList::removePreviousListEntriesFromDB()
 	}
 }
 
-void dbExercisesList::getExercisesList()
+void dbExercisesTable::getExercisesList()
 {
 	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )

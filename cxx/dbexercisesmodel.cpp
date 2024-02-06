@@ -16,8 +16,9 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[actualIndexRole] = "actualIndex";
 }
 
-const QString& DBExercisesModel::data(const uint row, int role) const
+QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 {
+	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
@@ -32,13 +33,16 @@ const QString& DBExercisesModel::data(const uint row, int role) const
 			case mediaPathRole:
 			case actualIndexRole:
 				return m_modeldata.at(row).at(role-Qt::UserRole);
+			case Qt::DisplayRole:
+				return m_modeldata.at(row).at(index.column());
 		}
 	}
-	return QStringLiteral("");
+	return QVariant();
 }
 
-bool DBExercisesModel::setData(const uint row, const QString& value, int role)
+bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, int role)
 {
+	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
@@ -52,7 +56,7 @@ bool DBExercisesModel::setData(const uint row, const QString& value, int role)
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				m_modeldata[row].replace(role, value);
+				m_modeldata[row].replace(role, value.toString());
 				return true;
 		}
 	}

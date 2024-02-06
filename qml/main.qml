@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 ApplicationWindow {
 	id: mainwindow
@@ -163,6 +164,10 @@ ApplicationWindow {
 			close();
 	}
 
+	DBExercisesModel {
+		id:	exercisesListModel
+	}
+
 	header: NavBar {
 		id: navBar
 
@@ -316,15 +321,26 @@ ApplicationWindow {
 		if (!dbExercisesListPage) {
 			var component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
 
-			function finishCreation() {
-				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
+			function readyToCreate() {
+				console.log("waiting for component to be ready for creation")
+				appDB.qmlReady.disconnect(readyToCreate);
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
 			}
+			console.log("tooltip should appear now")
+			appDB.pass_object(exercisesListModel);
+			appDB.getAllExercises();
+			appDB.qmlReady.connect(readyToCreate);
 
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
+			function finishCreation() {
+				console.log("tooltip should disappear now")
+				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
+				appStackView.push(dbExercisesListPage, StackView.DontLoad);
+			}
 		}
-		appStackView.push(dbExercisesListPage, StackView.DontLoad);
+		else
+			appStackView.push(dbExercisesListPage, StackView.DontLoad);
 	}
 } //ApplicationWindow

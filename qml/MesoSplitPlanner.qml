@@ -724,9 +724,9 @@ Frame {
 				case 2: appendExerciseToName(currentModelIndex, name1 + " - " + name2);
 				break;
 			}
-			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets.toString());
-			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps.toString());
-			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight.toString());
+			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets);
+			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps);
+			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight);
 			bModified = true;
 		}
 	}

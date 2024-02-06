@@ -52,15 +52,16 @@ public:
 			emit currentRowChanged();
 		}
 	}
-
-	Q_INVOKABLE virtual const QString& data(const uint row, int role) const;
-	Q_INVOKABLE virtual bool setData(const uint row, const QString& value, int role);
+	Q_INVOKABLE const QString get(const uint row, const uint field) const { return m_modeldata.at(row).at(field); }
+	Q_INVOKABLE const int getInt(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toInt(); }
+	Q_INVOKABLE const float getFloat(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toFloat(); }
 
 public:
 	// QAbstractItemModel interface
+	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
 	inline virtual int rowCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return count(); }
-	inline virtual QVariant data(const QModelIndex &index, int role) const override { return QVariant(data(index.row(), role)); }
-	inline virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override { return setData(index.row(), value.toString(), role); }
+	virtual QVariant data(const QModelIndex &index, int role) const override;
+	virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
 signals:
 	void countChanged();

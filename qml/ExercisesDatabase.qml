@@ -244,9 +244,9 @@ Page {
 		txtExerciseName.text = exerciseName;
 		txtExerciseSubName.text = subName;
 		txtMuscularGroup.text = muscularGroup;
-		txtNSets.text = sets.toString();
-		txtNReps.text = reps.toString();
-		txtNWeight.text = weight.toString();
+		txtNSets.text = sets;
+		txtNReps.text = reps;
+		txtNWeight.text = weight;
 		strMediaPath = mediaPath;
 		displaySelectedMedia();
 	}
@@ -349,19 +349,18 @@ Page {
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
 						if (bNew) {
-							let results = appDB.newExercise(exercisesList.curIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, parseInt(txtNSets.text),
-											txtNReps.text*1, txtNWeight.text*1, AppSettings.weightUnit, strMediaPath);
-							exercisesList.appendModels(exercisesList.currentModel.get(exercisesList.curIndex).exerciseId, txtExerciseName.text, txtExerciseSubName.text,
-											txtMuscularGroup.text, parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1,
-											AppSettings.weightUnit, strMediaPath);
+							appDB.pass_object(exercisesListModel);
+							appDB.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
+											txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
 						}
 						else if (bEdit) {
-							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex).actualIndex;
-							exercisesList.updateModels(actualIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
-									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
-							appDB.updateExercise(exercisesList.curIndex, txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text,
-									parseInt(txtNSets.text), txtNReps.text*1, txtNWeight.text*1, strMediaPath);
+							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex, 9);
+							exercisesListModel.setCurrentRow(actualIndex);
+							appDB.pass_object(exercisesListModel);
+							appDB.updateExercise(exercisesList.currentModel.get(actualIndex, 0), txtExerciseName.text,
+													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
+													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnEditExercise.clicked();
 						}
 						bJustSaved = false;
@@ -375,9 +374,9 @@ Page {
 
 					onClicked: {
 						const curIndex = exercisesList.curIndex;
-						exerciseChosen(exercisesList.currentModel.get(curIndex).mainName, exercisesList.currentModel.get(curIndex).subName,
-									exercisesList.currentModel.get(curIndex).nSets,	exercisesList.currentModel.get(curIndex).nReps,
-									exercisesList.currentModel.get(curIndex).nWeight);
+						exerciseChosen(exercisesList.currentModel.get(curIndex, 1), exercisesList.currentModel.get(curIndex, 2),
+									exercisesList.currentModel.get(curIndex, 4), exercisesList.currentModel.get(curIndex, 5),
+									exercisesList.currentModel.get(curIndex, 6));
 						pageExercises.StackView.view.pop();
 					}
 				} //btnChooseExercise
