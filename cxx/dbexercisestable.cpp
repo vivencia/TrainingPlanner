@@ -11,17 +11,17 @@
 uint dbExercisesTable::m_exercisesTableLastId(1000);
 
 dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
-	: QObject(nullptr), m_appSettings(appSettings), m_model(model)
+	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
-	const QString cnx_name ( QStringLiteral("db_worker_connection-%1").arg(QTime::currentTime().toString(QStringLiteral("z"))) );
+	setObjectName( DBExercisesObjectName );
+	const QString cnx_name( QStringLiteral("db_worker_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
-	const QString dbname(dbFilePath + DBExercisesFileName);
-	mSqlLiteDB.setDatabaseName(dbname);
+	const QString dbname( dbFilePath + DBExercisesFileName );
+	mSqlLiteDB.setDatabaseName( dbname );
 }
 
 void dbExercisesTable::createTable()
 {
-	bool ret(false);
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
@@ -40,23 +40,22 @@ void dbExercisesTable::createTable()
 									")"
 								)
 		);
-		ret = query.exec();
+		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	if (!ret)
+	if (!m_result)
 	{
 		qDebug() << "ExercisesList createTable Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList createTable Driver error:  " << mSqlLiteDB.lastError().driverText();
 	}
 	else
 		qDebug() << "ExercisesList createTable SUCCESS";
-	emit done(ret);
 }
 
 void dbExercisesTable::getAllExercises()
 {
-	bool ret(false);
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
@@ -82,20 +81,22 @@ void dbExercisesTable::getAllExercises()
 				const uint highest_id (m_model->data(index.sibling(m_model->count() - 1, 0), DBExercisesModel::exerciseIdRole).toUInt());
 				if (highest_id > m_exercisesTableLastId)
 					m_exercisesTableLastId = highest_id;
-				emit gotResult(this, OP_READ);
-				ret = true;
+				m_opcode = OP_READ;
+				m_result = true;
 				mSqlLiteDB.close();
+				resultFunc(static_cast<TPDatabaseTable*>(this));
 			}
 		}
 	}
-	if (!ret)
+
+	if (!m_result)
 	{
 		qDebug() << "ExercisesList getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText();
 	}
 	else
 		qDebug() << "ExercisesList getAllExercises SUCCESS";
-	emit done(ret);
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void dbExercisesTable::updateExercisesList()
@@ -104,13 +105,14 @@ void dbExercisesTable::updateExercisesList()
 	if (m_ExercisesList.isEmpty())
 	{
 		qDebug() << "ExercisesList updateExercisesList m_ExercisesList is empty";
-		emit done(false);
+		m_result = false;
+		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
 
 	removePreviousListEntriesFromDB();
+	m_result = false;
 
-	bool ret(false);
 	if (mSqlLiteDB.open())
 	{
 		QStringList::const_iterator itr ( m_ExercisesList.constBegin () );
@@ -127,13 +129,19 @@ void dbExercisesTable::updateExercisesList()
 		{
 			fields = static_cast<QString>(*itr).split(';');
 			query.prepare(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
-			ret = query.exec();
+			query.exec();
 		}
+		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		mSqlLiteDB.close();
-		emit gotResult(this, OP_UPDATE_LIST);
+		if (m_result)
+		{
+			m_opcode = OP_UPDATE_LIST;
+			resultFunc(static_cast<TPDatabaseTable*>(this));
+		}
 	}
 	m_ExercisesList.clear();
-	if (!ret)
+
+	if (!m_result)
 	{
 		qDebug() << "ExercisesList updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText();
@@ -142,12 +150,12 @@ void dbExercisesTable::updateExercisesList()
 	{
 		qDebug() << "ExercisesList updateExercisesList success";
 	}
-	emit done(ret);
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void dbExercisesTable::newExercise()
 {
-	bool ret(false);
+	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		m_data[0] = QString::number(m_exercisesTableLastId);
@@ -165,79 +173,80 @@ void dbExercisesTable::newExercise()
 									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
 									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
 										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8)) );
-		ret = query.exec();
-		m_data.clear();
+		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	if (ret)
+	m_data.clear();
+
+	if (m_result)
 	{
-		m_exercisesTableLastId++;
-		emit gotResult(this, OP_ADD);
 		qDebug() << "ExercisesList newExercise SUCCESS";
+		m_opcode = OP_ADD;
+		m_exercisesTableLastId++;
+		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
 		qDebug() << "ExercisesList newExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList newExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
 	}
-	emit done(ret);
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void dbExercisesTable::updateExercise()
 {
-	bool ret(false);
+	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		qDebug() << QStringLiteral(
-									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%10")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
-										m_data.at(7), m_data.at(8)).arg(m_data.at(0).toInt());
 		query.prepare( QStringLiteral(
 									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
 									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%10")
 									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
 										m_data.at(7), m_data.at(8)).arg(m_data.at(0).toInt()) );
-		ret = query.exec();
-		m_data.clear();
+		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	if (ret)
+	m_data.clear();
+
+	if (m_result)
 	{
-		emit gotResult(this, OP_EDIT);
 		qDebug() << "ExercisesList updateExercise SUCCESS";
+		m_opcode = OP_EDIT;
+		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
 		qDebug() << "ExercisesList updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
 	}
-	emit done(ret);
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void dbExercisesTable::removeExercise()
 {
-	bool ret(false);
+	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("DELETE FROM exercises_table WHERE id=?").arg(m_data.at(0).toInt()) );
-		ret = query.exec();
-		m_data.clear();
+		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	if (ret)
+	m_data.clear();
+
+	if (m_result)
 	{
-		emit gotResult(this, OP_DEL);
 		qDebug() << "ExercisesList removeExercise SUCCESS";
+		m_opcode = OP_DEL;
+		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
 		qDebug() << "ExercisesList removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
 		qDebug() << "ExercisesList removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
 	}
-	emit done(ret);
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void dbExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,

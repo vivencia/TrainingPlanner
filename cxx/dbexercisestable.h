@@ -1,20 +1,20 @@
 #ifndef DBEXERCISESTABLE_H
 #define DBEXERCISESTABLE_H
 
+#include "tpdatabasetable.h"
 #include "dbexercisesmodel.h"
 
 #include <QObject>
-#include <QStringList>
-#include <QSqlDatabase>
 #include <QSettings>
-#include <QMutex>
 
-static const QString DBExercisesFileName (QStringLiteral("ExercisesList.db.sqlite"));
+static const QString DBExercisesFileName ( QStringLiteral("ExercisesList.db.sqlite") );
+static const QString DBExercisesObjectName ( QStringLiteral("Exercises") );
 static const uint EXERCISES_TABLE_ID = 0x0001;
 
-class dbExercisesTable : public QObject
+class DBExercisesModel;
+
+class dbExercisesTable : public TPDatabaseTable
 {
-Q_OBJECT
 
 public:
 	explicit dbExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
@@ -32,20 +32,9 @@ public:
 						const QString& nReps = QString(), const QString& nWeight = QString(),
 						const QString& uWeight = QString(), const QString& mediaPath = QString());
 
-	inline const QStringList& data () const { return m_data; }
-
-signals:
-	void gotResult (const dbExercisesTable* dbObj, const OP_CODES op);
-	void done (const int result);
-
 private:
-	QSqlDatabase mSqlLiteDB;
-	QSettings* m_appSettings;
-	QStringList m_data;
 	static uint m_exercisesTableLastId;
 	QStringList m_ExercisesList;
-	DBExercisesModel* m_model;
-	QMutex m_mutex;
 
 	void removePreviousListEntriesFromDB();
 	void getExercisesList();

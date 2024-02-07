@@ -1,17 +1,20 @@
 #include "dbmanager.h"
-#include "runcommands.h"
 #include "dbexercisestable.h"
+#include "dbexercisesmodel.h"
+#include "runcommands.h"
 
+#include <QSettings>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QThread>
 #include <QFileInfo>
+#include <QQmlApplicationEngine>
 #include <QQmlContext>
 
 static uint row(0);
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
-	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_model(nullptr), m_exercisesLocked(0)
+	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_model(nullptr)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -27,95 +30,89 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	getExercisesListVersion();
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
 	{
-		QThread *thread = new QThread ();
 		dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
-		connect ( worker, &dbExercisesTable::done, thread, &QThread::quit );
-		connect ( worker, &dbExercisesTable::done, worker, &dbExercisesTable::deleteLater );
-		connect ( worker, &dbExercisesTable::gotResult, this, &DbManager::gotResult );
-		connect ( worker, &dbExercisesTable::done, this, &DbManager::freeLocks );
-		connect ( thread, &QThread::started, worker, &dbExercisesTable::updateExercisesList );
-		connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-		worker->moveToThread ( thread );
-		startThread(thread);
+		createThread(worker);//[&] () { return worker->updateExercisesList(); } );
 	}
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 }
 
-void DbManager::gotResult(const dbExercisesTable* dbObj, const OP_CODES op)
+void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
-	switch (op)
+	if (dbObj->objectName() == DBExercisesObjectName)
 	{
-		case OP_ADD: if (m_model) m_model->appendList(dbObj->data()); break;
-		case OP_EDIT: if (m_model) m_model->updateList(dbObj->data(), m_model->currentRow()); break;
-		case OP_DEL: if (m_model) m_model->removeFromList(m_model->currentRow()); break;
-		case OP_UPDATE_LIST: m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion); break;
+		switch (static_cast<dbExercisesTable*>(dbObj)->opCode())
+		{
+			case OP_ADD: if (m_model) m_model->appendList(static_cast<dbExercisesTable*>(dbObj)->data()); break;
+			case OP_EDIT: if (m_model) m_model->updateList(static_cast<dbExercisesTable*>(dbObj)->data(), m_model->currentRow()); break;
+			case OP_DEL: if (m_model) m_model->removeFromList(m_model->currentRow()); break;
+			case OP_UPDATE_LIST: m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion); break;
+		}
 	}
-	m_exercisesLocked--;
-	if (m_exercisesLocked == 0)
-	{
-		emit databaseFree();
-		if (m_exercisesLocked == 0)
-			{
-				qDebug() << "freeLocks and calling qmlReady";
-				emit qmlReady();
-			}
-			else
-				qDebug() << "freeLocks but another lock is in place. Not calling qmlReady";
-	}
+	m_WorkerLock[dbObj->objectName()]--;
+	if (m_WorkerLock[dbObj->objectName()] == 0)
+		cleanUp(dbObj);
 }
 
-void DbManager::freeLocks(const bool res)
+void DbManager::freeLocks(TPDatabaseTable *dbObj)
 {
-	if (res)
+	if (dbObj->result())
 	{
-		m_exercisesLocked--;
-		if (m_exercisesLocked == 0)
-		{
-			emit databaseFree();
-			if (m_exercisesLocked == 0)
-			{
-				qDebug() << "freeLocks and calling qmlReady";
-				emit qmlReady();
-			}
-			else
-				qDebug() << "freeLocks but another lock is in place. Not calling qmlReady";
-		}
+		m_WorkerLock[dbObj->objectName()]--;
+		if (m_WorkerLock[dbObj->objectName()] == 0)
+			cleanUp(dbObj);
 	}
 	else
 	{
-		m_exercisesLocked = 0; //error: resources are not being used then
+		m_WorkerLock[dbObj->objectName()] = 0; //error: resources are not being used then
 	}
 }
 
-void DbManager::startThread(QThread* thread)
+void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 {
-	qDebug() << "starting thread: " << thread->isFinished();
+	qDebug() << "starting thread for " << dbObj->objectName();
 	if (!thread->isFinished())
 	{
-		m_exercisesLocked = 2;
+		m_WorkerLock[dbObj->objectName()] = 2;
 		thread->start();
 	}
 }
+
+void DbManager::cleanUp(TPDatabaseTable* dbObj)
+{
+	dbObj->disconnect();
+	dbObj->deleteLater();
+	dbObj->thread()->quit();
+	qDebug() << "calling databaseFree()";
+	emit databaseFree();
+	qDebug() << "calling qmlReady()";
+	emit qmlReady();
+}
+
+void DbManager::createThread(TPDatabaseTable* worker)
+{
+	worker->setCallbackForResultFunc( [&] (TPDatabaseTable* obj) { return gotResult(obj); } );
+	worker->setCallbackForDoneFunc( [&] (TPDatabaseTable* obj) { return freeLocks(obj); } );
+
+	QThread *thread = new QThread ();
+	connect ( thread, &QThread::started, worker, &TPDatabaseTable::execFunction );
+	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
+	worker->moveToThread ( thread );
+
+	if (m_WorkerLock[worker->objectName()] == 0)
+		startThread(thread, worker);
+	else
+	{
+		qDebug() << "Database  " << worker->objectName() << "  is busy. Waiting for it to be free";
+		connect( this, &DbManager::databaseFree, this, [&,thread, worker] () { return DbManager::startThread(thread, worker); } );
+	}
+}
+
 //--------------------EXERCISES TABLE---------------------------------
 void DbManager::getAllExercises()
 {
 	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
-	QThread *thread = new QThread ();
-	connect ( worker, &dbExercisesTable::done, thread, &QThread::quit );
-	connect ( worker, &dbExercisesTable::done, worker, &dbExercisesTable::deleteLater );
-	connect ( worker, &dbExercisesTable::gotResult, this, &DbManager::gotResult );
-	connect ( worker, &dbExercisesTable::done, this, &DbManager::freeLocks );
-	connect ( thread, &QThread::started, worker, &dbExercisesTable::getAllExercises );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
-
-	if (m_exercisesLocked == 0)
-		startThread(thread);
-	else
-	{
-		qDebug() << "waiting for database to be free";
-		connect( this, &DbManager::databaseFree, this, [&,thread] () { return DbManager::startThread(thread); } );
-	}
+	worker->setCallbackForExecFunc( [&] () { return worker->getAllExercises(); } );
+	createThread(worker);
 }
 
 void DbManager::newExercise( const QString& mainName, const QString& subName, const QString& muscularGroup,
@@ -124,20 +121,7 @@ void DbManager::newExercise( const QString& mainName, const QString& subName, co
 {
 	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(QStringLiteral("0"), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-
-	QThread *thread = new QThread ();
-	connect ( worker, &dbExercisesTable::done, thread, &QThread::quit );
-	connect ( worker, &dbExercisesTable::done, worker, &dbExercisesTable::deleteLater );
-	connect ( worker, &dbExercisesTable::gotResult, this, &DbManager::gotResult );
-	connect ( worker, &dbExercisesTable::done, this, &DbManager::freeLocks );
-	connect ( thread, &QThread::started, worker, &dbExercisesTable::newExercise );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
-
-	if (m_exercisesLocked == 0)
-		startThread(thread);
-	else
-		connect( this, &DbManager::databaseFree, this, [&,thread] () { return DbManager::startThread(thread); } );
+	createThread(worker);//, [&] () { worker->newExercise(); } );
 }
 
 void DbManager::updateExercise( const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
@@ -146,40 +130,14 @@ void DbManager::updateExercise( const QString& id, const QString& mainName, cons
 {
 	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-
-	QThread *thread = new QThread ();
-	connect ( worker, &dbExercisesTable::done, thread, &QThread::quit );
-	connect ( worker, &dbExercisesTable::done, worker, &dbExercisesTable::deleteLater );
-	connect ( worker, &dbExercisesTable::gotResult, this, &DbManager::gotResult );
-	connect ( worker, &dbExercisesTable::done, this, &DbManager::freeLocks );
-	connect ( thread, &QThread::started, worker, &dbExercisesTable::updateExercise );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
-
-	if (m_exercisesLocked == 0)
-		startThread(thread);
-	else
-		connect( this, &DbManager::databaseFree, this, [&,thread] () { return DbManager::startThread(thread); } );
+	createThread(worker);//[&] () { return worker->updateExercise(); } );
 }
 
 void DbManager::removeExercise(const QString& id)
 {
 	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id);
-
-	QThread *thread = new QThread ();
-	connect ( worker, &dbExercisesTable::done, thread, &QThread::quit );
-	connect ( worker, &dbExercisesTable::done, worker, &dbExercisesTable::deleteLater );
-	connect ( worker, &dbExercisesTable::gotResult, this, &DbManager::gotResult );
-	connect ( worker, &dbExercisesTable::done, this, &DbManager::freeLocks );
-	connect ( thread, &QThread::started, worker, &dbExercisesTable::removeExercise );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
-
-	if (m_exercisesLocked == 0)
-		startThread(thread);
-	else
-		connect( this, &DbManager::databaseFree, this, [&,thread] () { return DbManager::startThread(thread); } );
+	createThread(worker);//[&] () { return worker->removeExercise(); } );
 }
 
 void DbManager::getExercisesListVersion()

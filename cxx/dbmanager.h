@@ -2,14 +2,13 @@
 #define DBMANAGER_H
 
 #include "tplistmodel.h"
-#include "dbexercisestable.h"
-#include "dbexercisesmodel.h"
 
-#include <QQmlEngine>
-#include <QSettings>
-#include <QQmlApplicationEngine>
+#include <QObject>
+#include <QMap>
 
-#include <functional>
+class TPDatabaseTable;
+class QQmlApplicationEngine;
+class QSettings;
 
 class DbManager : public QObject
 {
@@ -18,7 +17,7 @@ Q_OBJECT
 
 public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
-	void gotResult(const dbExercisesTable *dbObj, const OP_CODES op);
+	void gotResult(TPDatabaseTable* dbObj);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
@@ -46,14 +45,16 @@ private:
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
 	TPListModel* m_model;
+	QMap<QString,uint> m_WorkerLock;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
-	uint m_exercisesLocked;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
-	void freeLocks(const bool res);
-	void startThread(QThread* thread);
+	void freeLocks(TPDatabaseTable* dbObj);
+	void startThread(QThread* thread, TPDatabaseTable* dbObj);
+	void cleanUp(TPDatabaseTable* dbObj);
+	void createThread(TPDatabaseTable* worker);
 };
 
 #endif // DBMANAGER_H

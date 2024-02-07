@@ -4,10 +4,6 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
-typedef enum {
-	OP_ADD = 0, OP_EDIT = 1, OP_DEL = 2, OP_READ = 3, OP_UPDATE_LIST = 4
-} OP_CODES;
-
 class TPListModel : public QAbstractListModel
 {
 
