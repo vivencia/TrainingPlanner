@@ -28,6 +28,36 @@ void TPListModel::setEntireList( const QStringList& newlist )
 		m_modeldata.append(static_cast<QStringList>(*itr));
 }
 
+void TPListModel::updateList (const QStringList& list, const int row)
+{
+	m_modeldata.replace(row, list);
+	emit dataChanged(index(row, 0), index(row, list.count()-1));
+}
+
+void TPListModel::removeFromList (const int row)
+{
+	beginRemoveRows(QModelIndex(), row, row);
+	m_modeldata.remove(row);
+	emit countChanged();
+	endRemoveRows();
+}
+
+void TPListModel::appendList(const QStringList& list)
+{
+	beginInsertRows(QModelIndex(), count(), count());
+	m_modeldata.append(list);
+	emit countChanged();
+	endInsertRows();
+}
+
+void TPListModel::clear()
+{
+	beginRemoveRows(QModelIndex(), 0, count()-1);
+	m_modeldata.clear();
+	emit countChanged();
+	endRemoveRows();
+}
+
 QVariant TPListModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());
@@ -47,6 +77,7 @@ bool TPListModel::setData(const QModelIndex &index, const QVariant &value, int r
 		if (role == Qt::DisplayRole)
 		{
 			m_modeldata[row].replace(role, value.toString());
+			emit dataChanged(index, index, QList<int>() << role);
 			return true;
 		}
 	}

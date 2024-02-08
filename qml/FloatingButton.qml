@@ -26,6 +26,24 @@ Rectangle {
 	implicitHeight: comboIndex <= 2 ? cboSetType.height : Math.max(buttonText.height, buttonImage.height) + 10;
 	implicitWidth: 50 + (comboIndex <= 2 ? cboSetType.width + textAndImageSize : textAndImageSize)
 
+	ToolButton {
+		id: btnClose
+		width: 20
+		height: 20
+
+		anchors {
+			left: parent.left
+			verticalCenter: parent.verticalCenter
+			leftMargin: 5
+		}
+		onClicked: bFloatButtonVisible = false;
+
+		Image {
+			anchors.fill: parent
+			source: "qrc:/images/"+lightIconFolder+"close.png";
+		}
+	}
+
 	TPComboBox {
 		id: cboSetType
 		model: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop set"), value:2 } ]
@@ -37,7 +55,7 @@ Rectangle {
 		anchors {
 			left: parent.left
 			verticalCenter: parent.verticalCenter
-			leftMargin: 25
+			leftMargin: 27
 		}
 
 		onActivated: { comboIndex = parseInt(cboSetType.currentValue); }
@@ -78,7 +96,7 @@ Rectangle {
 		anchors {
 			top: parent.top
 			bottom: parent.bottom
-			left: comboIndex <= 2 ? cboSetType.right : parent.left
+			left: comboIndex <= 2 ? cboSetType.right : btnClose.right
 			right: parent.right
 		}
 

@@ -164,10 +164,6 @@ ApplicationWindow {
 			close();
 	}
 
-	DBExercisesModel {
-		id:	exercisesListModel
-	}
-
 	header: NavBar {
 		id: navBar
 
@@ -184,6 +180,10 @@ ApplicationWindow {
 
 	MainMenu {
 		id: mainMenu
+	}
+
+	DBExercisesModel {
+		id:	exercisesListModel
 	}
 
 	Flickable {
@@ -321,6 +321,12 @@ ApplicationWindow {
 		if (!dbExercisesListPage) {
 			var component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
 
+			function finishCreation() {
+				console.log("tooltip should disappear now")
+				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
+				appStackView.push(dbExercisesListPage, StackView.DontLoad);
+			}
+
 			function readyToCreate() {
 				console.log("waiting for component to be ready for creation")
 				appDB.qmlReady.disconnect(readyToCreate);
@@ -330,15 +336,9 @@ ApplicationWindow {
 					component.statusChanged.connect(finishCreation);
 			}
 			console.log("tooltip should appear now")
+			appDB.qmlReady.connect(readyToCreate);
 			appDB.pass_object(exercisesListModel);
 			appDB.getAllExercises();
-			appDB.qmlReady.connect(readyToCreate);
-
-			function finishCreation() {
-				console.log("tooltip should disappear now")
-				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
-				appStackView.push(dbExercisesListPage, StackView.DontLoad);
-			}
 		}
 		else
 			appStackView.push(dbExercisesListPage, StackView.DontLoad);

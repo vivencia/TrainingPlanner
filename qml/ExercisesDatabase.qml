@@ -310,8 +310,6 @@ Page {
 							bCanEdit = false;
 							exercisesList.enabled = true;
 							text = qsTr("New");
-							if (!bJustSaved)
-								exercisesList.displaySelectedExercise(exercisesList.curIndex);
 						}
 					}
 				} //btnNewExercise
@@ -353,9 +351,11 @@ Page {
 							appDB.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 											txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
+							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
 						}
 						else if (bEdit) {
 							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex, 9);
+							console.log("Setting current row for Exercises model: " , actualIndex);
 							exercisesListModel.setCurrentRow(actualIndex);
 							appDB.pass_object(exercisesListModel);
 							appDB.updateExercise(exercisesList.currentModel.get(actualIndex, 0), txtExerciseName.text,

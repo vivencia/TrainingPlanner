@@ -54,7 +54,7 @@ private:
 	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);
-	void createThread(TPDatabaseTable* worker);
+	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
 };
 
 #endif // DBMANAGER_H

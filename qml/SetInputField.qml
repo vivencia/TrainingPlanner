@@ -88,11 +88,11 @@ FocusScope {
 		}
 
 		RoundButton {
-			id: btnIncreaseTime
+			id: btnDecreaseTime
 			padding: 0
 			spacing: 2
-			width: 25
-			height: 25
+			width: 20
+			height: 20
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
 
 			anchors {
@@ -103,17 +103,19 @@ FocusScope {
 			}
 
 			Image {
-				source: "qrc:/images/"+darkIconFolder+"plus.png"
+				source: "qrc:/images/"+darkIconFolder+"minus.png"
 				anchors.fill: parent
 			}
 
 			onClicked: {
-				var nbr = parseInt(JSF.getHourOrMinutesFromStrTime(txtMain.text));
-				if (nbr < 59)
-					nbr++;
+				var nbr = parseInt(JSF.getMinutesOrSeconsFromStrTime(txtMain.text));
+				if (nbr > 5)
+					nbr -= 5;
+				else if (nbr > 0)
+					nbr--
 				else
-					nbr = 0;
-				txtMain.text = JSF.intTimeToStrTime(nbr) + txtMain.text.substring(2, 5);
+					nbr = 59;
+				txtMain.text = txtMain.text.substring(0, 3) + JSF.intTimeToStrTime(nbr);
 				changeText(txtMain.text, nbr);
 			}
 		}
@@ -127,7 +129,7 @@ FocusScope {
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : true
 
 			anchors {
-				left: btnIncreaseTime.visible ? btnIncreaseTime.right : lblMain.visible ? lblMain.right : parent.left
+				left: btnDecreaseTime.visible ? btnDecreaseTime.right : lblMain.visible ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -147,9 +149,17 @@ FocusScope {
 						if (str === "")
 							nbr = 5;
 						else
-							nbr = parseFloat(str);
-						if (str.indexOf('.') === -1)
-							nbr -= 5;
+							nbr = str*1;
+
+						if (str.indexOf('.') === -1) {
+							if (nbr <= 40) {
+								nbr -= 2;
+								if (nbr % 2 !== 0)
+									nbr--;
+							}
+							else
+								nbr -= 5;
+						}
 						else
 							nbr -= 2.5
 					break;
@@ -289,8 +299,15 @@ FocusScope {
 				switch (type) {
 					case SetInputField.Type.WeightType:
 						nbr = str*1;
-						if (str.indexOf('.') === -1)
-							nbr += 5;
+						if (str.indexOf('.') === -1) {
+							if (nbr <= 40) {
+								nbr += 2;
+								if (nbr % 2 !== 0)
+									nbr++;
+							}
+							else
+								nbr += 5;
+						}
 						else
 							nbr += 2.5
 						if (nbr > 999.99)
@@ -332,11 +349,11 @@ FocusScope {
 		}
 
 		RoundButton {
-			id: btnDecreaseTime
+			id: btnIncreaseTime
 			padding: 0
 			spacing: 2
-			width: 20
-			height: 20
+			width: 25
+			height: 25
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
 
 			anchors {
@@ -347,19 +364,17 @@ FocusScope {
 			}
 
 			Image {
-				source: "qrc:/images/"+darkIconFolder+"minus.png"
+				source: "qrc:/images/"+darkIconFolder+"plus.png"
 				anchors.fill: parent
 			}
 
 			onClicked: {
-				var nbr = parseInt(JSF.getMinutesOrSeconsFromStrTime(txtMain.text));
-				if (nbr > 5)
-					nbr -= 5;
-				else if (nbr > 0)
-					nbr--
+				var nbr = parseInt(JSF.getHourOrMinutesFromStrTime(txtMain.text));
+				if (nbr < 59)
+					nbr++;
 				else
-					nbr = 59;
-				txtMain.text = txtMain.text.substring(0, 3) + JSF.intTimeToStrTime(nbr);
+					nbr = 0;
+				txtMain.text = JSF.intTimeToStrTime(nbr) + txtMain.text.substring(2, 5);
 				changeText(txtMain.text, nbr);
 			}
 		}
@@ -368,7 +383,7 @@ FocusScope {
 			text: nSetNbr >=1 ? qsTr("<- Leading to this set") : qsTr("<- Time before exercises is not computed")
 			visible: type === SetInputField.Type.TimeType
 			anchors {
-				left: nSetNbr >= 1 ? btnDecreaseTime.right : txtMain.right
+				left: nSetNbr >= 1 ? btnIncreaseTime.right : txtMain.right
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
@@ -401,7 +416,7 @@ FocusScope {
 
 	function openTimerDialog() {
 		if (nSetNbr >=1) {
-			requestTimerDialog (this, windowTitle, JSF.getHourOrMinutesFromStrTime(txtMain.text),
+			requestTimerDialog (this, qsTr("Time of rest until ") + windowTitle, JSF.getHourOrMinutesFromStrTime(txtMain.text),
 									JSF.getMinutesOrSeconsFromStrTime(txtMain.text))
 		}
 	}

@@ -18,6 +18,8 @@ dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSett
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBExercisesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
+	for(uint i(0); i < 10; i++)
+		m_data.append(QString());
 }
 
 void dbExercisesTable::createTable()
@@ -68,19 +70,21 @@ void dbExercisesTable::getAllExercises()
 			{
 				QStringList exercise_info;
 
-				const uint n_entries(10);
+				const uint n_entries(9);
 				uint i(0);
+				uint idx(0);
 				do
 				{
 					for (i = 0; i < n_entries; ++i)
 						exercise_info.append(query.value(static_cast<int>(i)).toString());
+					exercise_info.append(QString::number(idx++)); //actualIndex
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
-				QModelIndex index;
-				const uint highest_id (m_model->data(index.sibling(m_model->count() - 1, 0), DBExercisesModel::exerciseIdRole).toUInt());
-				if (highest_id > m_exercisesTableLastId)
-					m_exercisesTableLastId = highest_id;
+				QModelIndex index(m_model->index(m_model->count() - 1, 0));
+				const uint highest_id (static_cast<DBExercisesModel*>(m_model)->data(index, DBExercisesModel::exerciseIdRole).toUInt());
+				if (highest_id >= m_exercisesTableLastId)
+					m_exercisesTableLastId = highest_id + 1;
 				m_opcode = OP_READ;
 				m_result = true;
 				mSqlLiteDB.close();
@@ -158,31 +162,30 @@ void dbExercisesTable::newExercise()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		m_data[0] = QString::number(m_exercisesTableLastId);
+		m_data[0] = QString::number(m_exercisesTableLastId++);
+		m_data[9] = QString::number(m_model->count());
 		QSqlQuery query(mSqlLiteDB);
 		qDebug() << QStringLiteral(
 									"INSERT INTO exercises_table"
 									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-									" VALUES(%1, \'%2\', \'%3\', %4, %5, %6, \'%7\', \'%8\', \'%9\', 0)")
-									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
+									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
 										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8));
 
 		query.prepare( QStringLiteral(
 									"INSERT INTO exercises_table"
 									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
-									.arg(m_data.at(0).toInt()).arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
 										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	m_data.clear();
 
 	if (m_result)
 	{
 		qDebug() << "ExercisesList newExercise SUCCESS";
 		m_opcode = OP_ADD;
-		m_exercisesTableLastId++;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
@@ -201,13 +204,12 @@ void dbExercisesTable::updateExercise()
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral(
 									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%10")
+									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%9")
 									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
-										m_data.at(7), m_data.at(8)).arg(m_data.at(0).toInt()) );
+										m_data.at(7), m_data.at(8), m_data.at(0)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	m_data.clear();
 
 	if (m_result)
 	{
@@ -229,11 +231,10 @@ void dbExercisesTable::removeExercise()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM exercises_table WHERE id=?").arg(m_data.at(0).toInt()) );
+		query.prepare( QStringLiteral("DELETE FROM exercises_table WHERE id=") + m_data.at(0) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
-	m_data.clear();
 
 	if (m_result)
 	{
@@ -249,19 +250,19 @@ void dbExercisesTable::removeExercise()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath)
+void dbExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName,
+						const QString& muscularGroup, const QString& nSets, const QString& nReps,
+						const QString& nWeight, const QString& uWeight, const QString& mediaPath)
 {
-	m_data.append(id);
-	m_data.append(mainName);
-	m_data.append(subName);
-	m_data.append(muscularGroup);
-	m_data.append(nSets); //QString::number(nSets,'g', 1)
-	m_data.append(nReps);
-	m_data.append(nWeight);
-	m_data.append(uWeight);
-	m_data.append(mediaPath);
+	m_data[0] = id;
+	m_data[1] = mainName;
+	m_data[2] = subName;
+	m_data[3] = muscularGroup;
+	m_data[4] = nSets; //QString::number(nSets,'g', 1)
+	m_data[5] = nReps;
+	m_data[6] = nWeight;
+	m_data[7] = uWeight;
+	m_data[8] = mediaPath;
 }
 
 void dbExercisesTable::removePreviousListEntriesFromDB()

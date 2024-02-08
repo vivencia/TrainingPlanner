@@ -34,9 +34,10 @@ public:
 	virtual ~TPListModel () override;
 
 	Q_INVOKABLE void setEntireList( const QStringList& newlist );
-	Q_INVOKABLE void updateList (const QStringList& list, const int row) { m_modeldata.replace(row, list); }
-	Q_INVOKABLE void removeFromList (const int row) { m_modeldata.remove(row); emit countChanged(); }
-	Q_INVOKABLE void appendList(const QStringList& list) { m_modeldata.append(list); emit countChanged(); }
+	Q_INVOKABLE void updateList (const QStringList& list, const int row);
+	Q_INVOKABLE void removeFromList (const int row);
+	Q_INVOKABLE void appendList(const QStringList& list);
+	Q_INVOKABLE void clear();
 
 	Q_INVOKABLE inline uint count() const { return m_modeldata.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
@@ -48,9 +49,11 @@ public:
 			emit currentRowChanged();
 		}
 	}
+
 	Q_INVOKABLE const QString get(const uint row, const uint field) const { return m_modeldata.at(row).at(field); }
 	Q_INVOKABLE const int getInt(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toInt(); }
 	Q_INVOKABLE const float getFloat(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toFloat(); }
+	Q_INVOKABLE const QStringList getRow(const uint row) const { return m_modeldata.at(row); }
 
 public:
 	// QAbstractItemModel interface

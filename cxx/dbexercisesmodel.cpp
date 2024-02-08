@@ -57,6 +57,7 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case mediaPathRole:
 			case actualIndexRole:
 				m_modeldata[row].replace(role, value.toString());
+				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}
 	}

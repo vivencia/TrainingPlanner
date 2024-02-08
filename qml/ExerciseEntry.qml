@@ -85,6 +85,7 @@ FocusScope {
 	MessageDialog {
 		id: msgDlgRemove
 		text: qsTr("\n\nRemove Exercise?\n\n")
+		detailedText: exerciseName
 		informativeText: qsTr("This action cannot be undone.")
 		buttons: MessageDialog.Yes | MessageDialog.No
 

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
-//import com.vivenciasoftware.qmlcomponents
+import com.vivenciasoftware.qmlcomponents
 
 Column {
 	id: mainItem
@@ -20,7 +20,7 @@ Column {
 	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, string sets,
 									string reps, string weight, string mediaPath, int multipleSelectionOption)
 
-	ListModel {
+	DBExercisesModel {
 		id: filterModel
 		property var foundIdxs: []
 
@@ -29,7 +29,7 @@ Column {
 				if (foundIdxs[i] === origidx)
 					return;
 			}
-			filterModel.append(item);
+			filterModel.appendList(item);
 			foundIdxs.push(origidx);
 		}
 
@@ -100,7 +100,6 @@ Column {
 		function setModel(newmodel) {
 			model = newmodel;
 			currentModel = newmodel;
-			//lstExercises.model = model;
 		}
 
 		delegate: SwipeDelegate {
@@ -268,16 +267,16 @@ Column {
 				var bFound = false;
 				for(var i = 0; i < exercisesListModel.count; i++ ) {
 					//First look for muscular group
-					if (exercisesListModel.get(i).muscularGroup.match(regex))
+					if (exercisesListModel.get(i, 3).match(regex))
 						bFound = true;
 					else {
-						if (exercisesListModel.get(i).mainName.match(regex))
+						if (exercisesListModel.get(i, 1).match(regex))
 							bFound = true;
 						else
 							bFound = false;
 					}
 					if (bFound) {
-						filterModel.newItem(i, exercisesListModel.get(i));
+						filterModel.newItem(i, exercisesListModel.getRow(i));
 					}
 				}
 				if (!bFilterApplied) {
@@ -311,7 +310,7 @@ Column {
 			if (bFilterApplied) {
 				filterModel.remove(removeIdx);
 				for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
-					filterModel.setProperty(i, "actualIndex", filterModel.get(i).actualIndex - 1);
+					filterModel.setProperty(i, "actualIndex", filterModel.getInt(i, 9) - 1);
 			}
 			for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
 				exercisesListModel.setProperty(i, "actualIndex", i);
@@ -322,7 +321,7 @@ Column {
 					simulateMouseClick(curIndex);
 			}
 		}
-
+		exercisesListModel.setCurrentRow(actualIndex);
 		appDB.pass_object(lstExercises.model);
 		appDB.removeExercise(lstExercises.model.getInt(actualIndex, 0));
 		appDB.qmlReady.connect(readyToContinue);
@@ -344,20 +343,6 @@ Column {
 	}
 
 	function appendModels(exerciseid, name1, name2, group, nsets, nreps, nweight, media) {
-		var actual_idx = exercisesListModel.count;
-		exercisesListModel.append ({
-			"exerciseId": exerciseid,
-			"mainName": name1,
-			"subName": name2,
-			"muscularGroup": group,
-			"nSets": nsets,
-			"nReps": nreps,
-			"nWeight": nweight,
-			"uWeight": AppSettings.weightUnit,
-			"mediaPath": media,
-			"actualIndex": actual_idx
-		});
-
 		if (bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
 			var regex = new RegExp(txtFilter.text, "i");
 			var bFound = false;
@@ -371,7 +356,7 @@ Column {
 					bFound = false;
 			}
 			if (bFound) {
-				filterModel.newItem(actual_idx, exercisesListModel.get(actual_idx));
+				filterModel.newItem(actual_idx, exercisesListModel.getRow(actual_idx));
 				setCurrentIndex(filterModel.count - 1); //Make current the last item on the list
 			}
 		}
