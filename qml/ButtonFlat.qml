@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 Rectangle {
 	id: button
-	property alias textColor: buttonText.color
+	property color textColor: "white"
 	property alias imageMirror: buttonImage.mirror
 	property alias imageSize: buttonImage.height
 	property alias font: buttonText.font
@@ -54,7 +54,7 @@ Rectangle {
 	Label {
 		id: buttonText
 		opacity: button.enabled ? 1.0 : 0.3
-		color: button.enabled ? "white" : "black"
+		color: button.enabled ? textColor : "black"
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pixelSize: AppSettings.fontSizeText

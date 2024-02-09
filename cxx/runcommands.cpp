@@ -6,8 +6,10 @@
 
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
+	#ifdef DEBUG
 	qDebug() << "input url:  " << url;
 	qDebug() << "output string:  " << url.toString(QUrl::PreferLocalFile);
+	#endif
 	#ifdef Q_OS_ANDROID
 	return url.toString(QUrl::PreferLocalFile);
 	#else

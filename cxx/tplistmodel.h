@@ -4,6 +4,12 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
+#ifdef DEBUG
+#define MSG_OUT(message) qDebug() << message;
+#else
+#define MSG_OUT(message)
+#endif
+
 class TPListModel : public QAbstractListModel
 {
 
@@ -14,7 +20,7 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 
 public:
 
-	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent), m_currentRow(-1) {}
+	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent), m_currentRow(-1), bFilterApplied(false) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );
@@ -39,21 +45,15 @@ public:
 	Q_INVOKABLE void appendList(const QStringList& list);
 	Q_INVOKABLE void clear();
 
-	Q_INVOKABLE inline uint count() const { return m_modeldata.count(); }
+	Q_INVOKABLE inline uint count() const { return m_indexProxy.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
-	Q_INVOKABLE void setCurrentRow(const int row)
-	{
-		if (row >= -1 && row < m_modeldata.count())
-		{
-			m_currentRow = row;
-			emit currentRowChanged();
-		}
-	}
+	Q_INVOKABLE void setCurrentRow(const int row);
 
-	Q_INVOKABLE const QString get(const uint row, const uint field) const { return m_modeldata.at(row).at(field); }
-	Q_INVOKABLE const int getInt(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toInt(); }
-	Q_INVOKABLE const float getFloat(const uint row, const uint field) const { return m_modeldata.at(row).at(field).toFloat(); }
-	Q_INVOKABLE const QStringList getRow(const uint row) const { return m_modeldata.at(row); }
+	Q_INVOKABLE void setFilter(const QString& filter);
+	Q_INVOKABLE const QString get(const uint row, const uint field) const { return m_modeldata.at(m_indexProxy.at(row)).at(field); }
+	Q_INVOKABLE const int getInt(const uint row, const uint field) const { return m_modeldata.at(m_indexProxy.at(row)).at(field).toInt(); }
+	Q_INVOKABLE const float getFloat(const uint row, const uint field) const { return m_modeldata.at(m_indexProxy.at(row)).at(field).toFloat(); }
+	Q_INVOKABLE const QStringList getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 
 public:
 	// QAbstractItemModel interface
@@ -71,8 +71,10 @@ protected:
 	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
 
 	QList<QStringList> m_modeldata;
+	QList<uint> m_indexProxy;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
+	bool bFilterApplied;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
 	void copy ( const TPListModel& src_item );

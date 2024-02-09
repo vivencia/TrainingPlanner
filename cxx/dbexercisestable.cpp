@@ -18,7 +18,7 @@ dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSett
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBExercisesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < 10; i++)
+	for(uint i(0); i < 9; i++)
 		m_data.append(QString());
 }
 
@@ -47,11 +47,11 @@ void dbExercisesTable::createTable()
 	}
 	if (!m_result)
 	{
-		qDebug() << "ExercisesList createTable Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList createTable Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		qDebug() << "ExercisesList createTable SUCCESS";
+		MSG_OUT("ExercisesList createTable SUCCESS")
 }
 
 void dbExercisesTable::getAllExercises()
@@ -72,12 +72,10 @@ void dbExercisesTable::getAllExercises()
 
 				const uint n_entries(9);
 				uint i(0);
-				uint idx(0);
 				do
 				{
 					for (i = 0; i < n_entries; ++i)
 						exercise_info.append(query.value(static_cast<int>(i)).toString());
-					exercise_info.append(QString::number(idx++)); //actualIndex
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
@@ -95,11 +93,11 @@ void dbExercisesTable::getAllExercises()
 
 	if (!m_result)
 	{
-		qDebug() << "ExercisesList getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		qDebug() << "ExercisesList getAllExercises SUCCESS";
+		MSG_OUT("ExercisesList getAllExercises SUCCESS")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -108,7 +106,7 @@ void dbExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		qDebug() << "ExercisesList updateExercisesList m_ExercisesList is empty";
+		MSG_OUT("ExercisesList updateExercisesList m_ExercisesList is empty")
 		m_result = false;
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
@@ -132,8 +130,7 @@ void dbExercisesTable::updateExercisesList()
 		for ( ++itr; itr != itr_end; ++itr, ++idx ) //++itr: Jump over version number
 		{
 			fields = static_cast<QString>(*itr).split(';');
-			query.prepare(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
-			query.exec();
+			query.exec(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
 		}
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		mSqlLiteDB.close();
@@ -147,12 +144,12 @@ void dbExercisesTable::updateExercisesList()
 
 	if (!m_result)
 	{
-		qDebug() << "ExercisesList updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
 	{
-		qDebug() << "ExercisesList updateExercisesList success";
+		MSG_OUT("ExercisesList updateExercisesList SUCCESS")
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -165,13 +162,6 @@ void dbExercisesTable::newExercise()
 		m_data[0] = QString::number(m_exercisesTableLastId++);
 		m_data[9] = QString::number(m_model->count());
 		QSqlQuery query(mSqlLiteDB);
-		qDebug() << QStringLiteral(
-									"INSERT INTO exercises_table"
-									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
-									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8));
-
 		query.prepare( QStringLiteral(
 									"INSERT INTO exercises_table"
 									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
@@ -184,14 +174,14 @@ void dbExercisesTable::newExercise()
 
 	if (m_result)
 	{
-		qDebug() << "ExercisesList newExercise SUCCESS";
+		MSG_OUT("ExercisesList newExercise SUCCESS")
 		m_opcode = OP_ADD;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		qDebug() << "ExercisesList newExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList newExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList newExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -213,14 +203,14 @@ void dbExercisesTable::updateExercise()
 
 	if (m_result)
 	{
-		qDebug() << "ExercisesList updateExercise SUCCESS";
+		MSG_OUT("ExercisesList updateExercise SUCCESS");
 		m_opcode = OP_EDIT;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		qDebug() << "ExercisesList updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -238,14 +228,14 @@ void dbExercisesTable::removeExercise()
 
 	if (m_result)
 	{
-		qDebug() << "ExercisesList removeExercise SUCCESS";
+		MSG_OUT("ExercisesList removeExercise SUCCESS")
 		m_opcode = OP_DEL;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		qDebug() << "ExercisesList removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -276,8 +266,8 @@ void dbExercisesTable::removePreviousListEntriesFromDB()
 	}
 	if (!ret)
 	{
-		qDebug() << "ExercisesList removePreviousListEntriesFromDB Database error:  " << mSqlLiteDB.lastError().databaseText();
-		qDebug() << "ExercisesList removePreviousListEntriesFromDB Driver error:  " << mSqlLiteDB.lastError().driverText();
+		MSG_OUT("ExercisesList removePreviousListEntriesFromDB Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("ExercisesList removePreviousListEntriesFromDB Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 }
 

@@ -11,7 +11,6 @@ Column {
 	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
-	property var currentModel: exercisesListModel
 
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
@@ -19,27 +18,6 @@ Column {
 	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
 	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, string sets,
 									string reps, string weight, string mediaPath, int multipleSelectionOption)
-
-	DBExercisesModel {
-		id: filterModel
-		property var foundIdxs: []
-
-		function newItem(origidx, item) {
-			for (var i = 0; i < foundIdxs.length; ++i) {
-				if (foundIdxs[i] === origidx)
-					return;
-			}
-			filterModel.appendList(item);
-			foundIdxs.push(origidx);
-		}
-
-		function finish() {
-			filterModel.clear();
-			const len = foundIdxs.length;
-			for (var i = 0; i < len; ++i)
-				foundIdxs.pop();
-		}
-	} //ListModel
 
 	Timer {
 		id: undoTimer
@@ -96,11 +74,6 @@ Column {
 		}
 
 		model: exercisesListModel
-
-		function setModel(newmodel) {
-			model = newmodel;
-			currentModel = newmodel;
-		}
 
 		delegate: SwipeDelegate {
 			id: delegate
@@ -260,75 +233,38 @@ Column {
 			}
 		}
 
-		onTextChanged: {
-			filterModel.finish();
-			if (text.length >= 3) {
-				var regex = new RegExp(text, "i");
-				var bFound = false;
-				for(var i = 0; i < exercisesListModel.count; i++ ) {
-					//First look for muscular group
-					if (exercisesListModel.get(i, 3).match(regex))
-						bFound = true;
-					else {
-						if (exercisesListModel.get(i, 1).match(regex))
-							bFound = true;
-						else
-							bFound = false;
-					}
-					if (bFound) {
-						filterModel.newItem(i, exercisesListModel.getRow(i));
-					}
-				}
-				if (!bFilterApplied) {
-					bFilterApplied = true;
-					lstExercises.setModel(filterModel);
-				}
-				//simulateMouseClick(0);
-			}
-			else {
-				if (bFilterApplied) {
-					bFilterApplied = false;
-					lstExercises.setModel(exercisesListModel);
-				}
-			}
-		} //onTextChanged
+		onTextChanged: exercisesListModel.setFilter(text);
 	} // txtFilter
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
 		curIndex = lstIdx;
-		exerciseEntrySelected(lstExercises.model.get(lstIdx, 1), lstExercises.model.get(lstIdx, 2),
-							lstExercises.model.get(lstIdx, 3), lstExercises.model.get(lstIdx, 4),
-							lstExercises.model.get(lstIdx, 5), lstExercises.model.get(lstIdx, 6),
-							lstExercises.model.get(lstIdx, 8), multiple_opt);
+		exerciseEntrySelected(exercisesListModel.get(lstIdx, 1), exercisesListModel.get(lstIdx, 2),
+							exercisesListModel.get(lstIdx, 3), exercisesListModel.get(lstIdx, 4),
+							exercisesListModel.get(lstIdx, 5), exercisesListModel.get(lstIdx, 6),
+							exercisesListModel.get(lstIdx, 8), multiple_opt);
 	}
 
 	function removeExercise(removeIdx) {
-		const actualIndex = lstExercises.model.getInt(removeIdx, 9); //position of item in the main model
+		const actualIndex = exercisesListModel.getInt(removeIdx, 9); //position of item in the main model
 		var i;
 
 		function readyToContinue() {
-			if (bFilterApplied) {
-				filterModel.remove(removeIdx);
-				for (i = removeIdx; i < filterModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one for the filter model
-					filterModel.setProperty(i, "actualIndex", filterModel.getInt(i, 9) - 1);
-			}
-			for (i = actualIndex; i < exercisesListModel.count - 1; ++i ) //Decrease all the actualIndeces for all items after the removed one
-				exercisesListModel.setProperty(i, "actualIndex", i);
+			appDB.qmlReady.disconnect();
 			if (curIndex === removeIdx) {
-				if (curIndex >= lstExercises.model.count)
+				if (curIndex >= exercisesListModel.count)
 					curIndex--;
-				if (lstExercises.model.count > 0)
+				if (exercisesListModel.count > 0)
 					simulateMouseClick(curIndex);
 			}
 		}
 		exercisesListModel.setCurrentRow(actualIndex);
-		appDB.pass_object(lstExercises.model);
-		appDB.removeExercise(lstExercises.model.getInt(actualIndex, 0));
+		appDB.pass_object(exercisesListModel);
+		appDB.removeExercise(exercisesListModel.getInt(actualIndex, 0));
 		appDB.qmlReady.connect(readyToContinue);
 	}
 
 	function setCurrentIndex(newIdx) {
-		if (newIdx < lstExercises.model.count) {
+		if (newIdx < exercisesListModel.count) {
 			curIndex = newIdx;
 			lstExercises.currentIndex = newIdx;
 			lstExercises.ensureVisible(lstExercises.currentItem);
@@ -336,52 +272,9 @@ Column {
 	}
 
 	function simulateMouseClick(new_index) {
-		if (new_index < lstExercises.model.count) {
+		if (new_index < exercisesListModel.count) {
 			displaySelectedExercise(new_index, 0);
 			lstExercises.positionViewAtIndex(new_index, ListView.Beginning);
-		}
-	}
-
-	function appendModels(exerciseid, name1, name2, group, nsets, nreps, nweight, media) {
-		if (bFilterApplied) { //There is an active filter. Update the filterModel to reflect the changes
-			var regex = new RegExp(txtFilter.text, "i");
-			var bFound = false;
-			//First look for muscular group
-			if (group.text.match(regex))
-				bFound = true;
-			else {
-				if (name1.text.match(regex))
-					bFound = true;
-				else
-					bFound = false;
-			}
-			if (bFound) {
-				filterModel.newItem(actual_idx, exercisesListModel.getRow(actual_idx));
-				setCurrentIndex(filterModel.count - 1); //Make current the last item on the list
-			}
-		}
-		else {
-			setCurrentIndex(actual_idx); //Make current the last item on the list
-		}
-
-	}
-
-	function updateModels(actual_idx, name1, name2, group, nsets, nreps, nweight, media) {
-		exercisesListModel.setProperty(actual_idx, "mainName", name1);
-		exercisesListModel.setProperty(actual_idx, "subName", name2);
-		exercisesListModel.setProperty(actual_idx, "muscularGroup", group);
-		exercisesListModel.setProperty(actual_idx, "nSets", nsets);
-		exercisesListModel.setProperty(actual_idx, "nReps", nreps);
-		exercisesListModel.setProperty(actual_idx, "nWeight", nweight);
-		exercisesListModel.setProperty(actual_idx, "mediaPath", media);
-		if (bFilterApplied) { //There is an active filter. The edited item is the current selected item on the list. Just update this item
-			filterModel.setProperty(curIndex, "mainName", name1);
-			filterModel.setProperty(curIndex, "subName", name2);
-			filterModel.setProperty(curIndex, "muscularGroup", group);
-			filterModel.setProperty(curIndex, "nSets", nsets);
-			filterModel.setProperty(curIndex, "nReps", nreps);
-			filterModel.setProperty(curIndex, "nWeight", nweight);
-			filterModel.setProperty(curIndex, "mediaPath", media);
 		}
 	}
 

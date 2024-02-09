@@ -15,7 +15,7 @@ void TranslationClass::selectLanguage()
 {
 	const QString strLocale( mSettingsObj->value( "appLocale" ).toString() );
 	if ( strLocale != QStringLiteral( "en_US" ) ) {
-		if ( mTranslator->load( QString( "tplanner.%1.qm" ).arg(strLocale), QStringLiteral(":/translations/"), QStringLiteral("qm"))) {
+		if ( mTranslator->load( QStringLiteral( "tplanner.%1.qm" ).arg(strLocale), QStringLiteral(":/translations/"), QStringLiteral("qm"))) {
 			qApp->installTranslator ( mTranslator );
 			emit languageChanged();
 		}

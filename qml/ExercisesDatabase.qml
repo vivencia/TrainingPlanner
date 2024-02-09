@@ -354,11 +354,10 @@ Page {
 							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
 						}
 						else if (bEdit) {
-							const actualIndex = exercisesList.currentModel.get(exercisesList.curIndex, 9);
-							console.log("Setting current row for Exercises model: " , actualIndex);
-							exercisesListModel.setCurrentRow(actualIndex);
+							console.log("Setting current row for Exercises model: " , exercisesList.curIndex);
+							exercisesListModel.setCurrentRow(exercisesList.curIndex);
 							appDB.pass_object(exercisesListModel);
-							appDB.updateExercise(exercisesList.currentModel.get(actualIndex, 0), txtExerciseName.text,
+							appDB.updateExercise(exercisesListModel.get(exercisesList.curIndex, 0), txtExerciseName.text,
 													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnEditExercise.clicked();
@@ -374,9 +373,9 @@ Page {
 
 					onClicked: {
 						const curIndex = exercisesList.curIndex;
-						exerciseChosen(exercisesList.currentModel.get(curIndex, 1), exercisesList.currentModel.get(curIndex, 2),
-									exercisesList.currentModel.get(curIndex, 4), exercisesList.currentModel.get(curIndex, 5),
-									exercisesList.currentModel.get(curIndex, 6));
+						exerciseChosen(exercisesListModel.get(curIndex, 1), exercisesListModel.get(curIndex, 2),
+									exercisesListModel.get(curIndex, 4), exercisesListModel.get(curIndex, 5),
+									exercisesListModel.get(curIndex, 6));
 						pageExercises.StackView.view.pop();
 					}
 				} //btnChooseExercise

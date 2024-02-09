@@ -5,18 +5,21 @@ void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
 	using std::swap;
 	swap (model1.m_modeldata, model2.m_modeldata);
 	swap (model1.m_roleNames, model2.m_roleNames);
+	swap (model1.m_indexProxy, model2.m_indexProxy);
 }
 
 void TPListModel::copy ( const TPListModel& src_item )
 {
 	m_modeldata = src_item.m_modeldata;
 	m_roleNames = src_item.m_roleNames;
+	m_indexProxy = src_item.m_indexProxy;
 }
 
 TPListModel::~TPListModel ()
 {
 	m_modeldata.clear();
 	m_roleNames.clear();
+	m_indexProxy.clear();
 }
 
 void TPListModel::setEntireList( const QStringList& newlist )
@@ -24,13 +27,18 @@ void TPListModel::setEntireList( const QStringList& newlist )
 	QStringList::const_iterator itr ( newlist.constBegin () );
 	const QStringList::const_iterator itr_end ( newlist.constEnd () );
 	m_modeldata.reserve(newlist.count());
-	for ( ; itr != itr_end; ++itr )
+	m_indexProxy.reserve(newlist.count());
+	for ( uint idx(0); itr != itr_end; ++itr, ++idx )
+	{
 		m_modeldata.append(static_cast<QStringList>(*itr));
+		m_indexProxy.append(idx);
+	}
 }
 
 void TPListModel::updateList (const QStringList& list, const int row)
 {
-	m_modeldata.replace(row, list);
+	const uint actual_row(m_indexProxy.at(row));
+	m_modeldata.replace(actual_row, list);
 	emit dataChanged(index(row, 0), index(row, list.count()-1));
 }
 
@@ -38,6 +46,9 @@ void TPListModel::removeFromList (const int row)
 {
 	beginRemoveRows(QModelIndex(), row, row);
 	m_modeldata.remove(row);
+	m_indexProxy.remove(row);
+	for( uint i (row); i < m_modeldata.count(); ++i )
+		m_indexProxy[i] = i-1;
 	emit countChanged();
 	endRemoveRows();
 }
@@ -46,6 +57,7 @@ void TPListModel::appendList(const QStringList& list)
 {
 	beginInsertRows(QModelIndex(), count(), count());
 	m_modeldata.append(list);
+	m_indexProxy.append(m_modeldata.count() - 1);
 	emit countChanged();
 	endInsertRows();
 }
@@ -54,8 +66,68 @@ void TPListModel::clear()
 {
 	beginRemoveRows(QModelIndex(), 0, count()-1);
 	m_modeldata.clear();
+	m_indexProxy.clear();
 	emit countChanged();
 	endRemoveRows();
+}
+
+void TPListModel::setCurrentRow(const int row)
+{
+	if (row >= -1 && row < m_indexProxy.count())
+	{
+		m_currentRow = row;
+		emit currentRowChanged();
+	}
+}
+
+void TPListModel::setFilter(const QString &filter)
+{
+	if ( filter.length() >=3 )
+	{
+		QList<QStringList>::const_iterator lst_itr ( m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator lst_itrend ( m_modeldata.constEnd());
+		uint idx(0);
+		bool bFound(false), bFirst(true);
+
+		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
+		{
+			//First look for musculaGroup
+			bFound = static_cast<QStringList>(*lst_itr).at(3).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+			if (!bFound)
+			{
+				//Now look for mainName
+				bFound = static_cast<QStringList>(*lst_itr).at(1).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+			}
+			if (bFound)
+			{
+				if (bFirst)
+				{
+					bFirst = false;
+					beginRemoveRows(QModelIndex(), 0, count()-1);
+					m_indexProxy.clear();
+					endRemoveRows();
+				}
+				beginInsertRows(QModelIndex(), count(), count());
+				m_indexProxy.append(idx);
+				endInsertRows();
+			}
+		}
+		bFilterApplied = m_indexProxy.count() != m_modeldata.count();
+	}
+	else
+	{
+		if (bFilterApplied)
+		{
+			bFilterApplied = false;
+			beginRemoveRows(QModelIndex(), 0, count()-1);
+			m_indexProxy.clear();
+			endRemoveRows();
+			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
+			for( uint i (0); i < m_modeldata.count(); ++i )
+				m_indexProxy.append(i);
+			endInsertRows();
+		}
+	}
 }
 
 QVariant TPListModel::data(const QModelIndex &index, int role) const

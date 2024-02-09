@@ -32,6 +32,7 @@ FocusScope {
 	property var btnFloat: null
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
+	property bool bSetsLoaded: false
 	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
 
 	signal exerciseRemoved(int ObjectIdx)
@@ -62,6 +63,8 @@ FocusScope {
 		repeat: true
 
 		onTriggered: {
+			if (bSetsLoaded)
+				stop();
 			const len = setCreated.length;
 			var totalReady = 0;
 			for(var i = 0; i < len; ++i) {
@@ -77,8 +80,7 @@ FocusScope {
 					break;
 				}
 			}
-			if (totalReady === len)
-				stop();
+			bSetsLoaded = totalReady === len;
 		}
 	}
 
@@ -119,8 +121,11 @@ FocusScope {
 
 		onShownChanged: {
 			if (shown) {
-				if (setObjectList.length === 0)
+				if (!bSetsLoaded)
+				{
+					bSetsLoaded = true;
 					createSets();
+				}
 			}
 		}
 
@@ -602,7 +607,11 @@ FocusScope {
 		delete setNotes;			setNotes = newSetNotes;
 
 		if (setObjectList.length === 0)
+		{
 			destroyFloatingAddSetButton ();
+			cboSetType.model = setTypes;
+			setType = 0;
+		}
 		else {
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr--;

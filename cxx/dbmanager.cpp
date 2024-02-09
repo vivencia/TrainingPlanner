@@ -70,7 +70,7 @@ void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 {
 	if (!thread->isFinished())
 	{
-		qDebug() << "starting thread for " << dbObj->objectName();
+		MSG_OUT("starting thread for " << dbObj->objectName())
 		m_WorkerLock[dbObj->objectName()] = 2;
 		thread->start();
 	}
@@ -81,9 +81,9 @@ void DbManager::cleanUp(TPDatabaseTable* dbObj)
 	dbObj->disconnect();
 	dbObj->deleteLater();
 	dbObj->thread()->quit();
-	qDebug() << "calling databaseFree()";
+	MSG_OUT("calling databaseFree()")
 	emit databaseFree();
-	qDebug() << "calling qmlReady()";
+	MSG_OUT("calling qmlReady()")
 	emit qmlReady();
 }
 
@@ -101,7 +101,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 		startThread(thread, worker);
 	else
 	{
-		qDebug() << "Database  " << worker->objectName() << "  is busy. Waiting for it to be free";
+		MSG_OUT("Database  " << worker->objectName() << "  is busy. Waiting for it to be free")
 		connect( this, &DbManager::databaseFree, this, [&,thread, worker] () { return DbManager::startThread(thread, worker); } );
 	}
 }
@@ -126,7 +126,7 @@ void DbManager::updateExercise( const QString& id, const QString& mainName, cons
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath )
 {
-	qDebug() << "Updating exercise id: " << id;
+	MSG_OUT("Updating exercise id: " << id)
 	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { return worker->updateExercise(); } );
