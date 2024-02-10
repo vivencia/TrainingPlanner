@@ -3,7 +3,6 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs
 
 import "jsfunctions.js" as JSF
 
@@ -55,10 +54,6 @@ Page {
 			id: mainMesosModel
 
 			Component.onCompleted: {
-				//if (Qt.platform.os === "android") {
-				//	Database.updateSetsInfoTable();
-				//}
-
 				let mesos = Database.getMesos();
 				if (mesos.length !== 0) {
 					for (let meso of mesos)
@@ -129,32 +124,26 @@ Page {
 
 					MouseArea {
 						anchors.fill: parent
-						onClicked: msgDlg.open();
+						onClicked: msgDlg.show(parent.y + parent.height);
 					}
 				}
 
-				MessageDialog {
+				TPBalloonTip {
 					id: msgDlg
-					text: qsTr("\n\nRemove Mesocycle?\n\n")
-					informativeText: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
-					buttons: MessageDialog.Yes | MessageDialog.No
+					title: qsTr("Remove Mesocycle?")
+					message: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
+					button1Text: qsTr("Yes")
+					button2Text: qsTr("No")
+					imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-					onButtonClicked: function (button, role) {
-						switch (button) {
-							case MessageDialog.Yes:
-								Database.deleteMeso(mesoId);
-								mainMesosModel.remove(mesoDelegate.index, 1);
-								dateTimer.triggered(); //Update tabBar and the meso model index it uses
-								accept();
-								pageActivation();
-							break;
-							case MessageDialog.No:
-								reject();
-							break;
-						}
+					onButton1Clicked: {
+						Database.deleteMeso(mesoId);
+						mainMesosModel.remove(mesoDelegate.index, 1);
+						dateTimer.triggered(); //Update tabBar and the meso model index it uses
+						pageActivation();
 					}
 
-					onRejected: recRemoveMeso.visible = false;
+					onButton2Clicked: recRemoveMeso.visible = false;
 				}
 			} //Rectangle recRemoveMeso
 
@@ -256,7 +245,7 @@ Page {
 		} //delegate
 	} //ListView
 
-footer: ToolBar {
+	footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
 		height: 55
@@ -289,7 +278,7 @@ footer: ToolBar {
 
 			onClicked: newAction(1);
 		}
-} // footer
+	} // footer
 
 	function newAction(opt) {
 		if (firstTimeTip)

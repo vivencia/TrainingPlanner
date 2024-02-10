@@ -20,7 +20,8 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 
 public:
 
-	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent), m_currentRow(-1), bFilterApplied(false) {}
+	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent),
+		m_currentRow(-1), bFilterApplied(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );
@@ -75,6 +76,8 @@ protected:
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
 	bool bFilterApplied;
+	uint filterSearch_Field1;
+	uint filterSearch_Field2;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
 	void copy ( const TPListModel& src_item );

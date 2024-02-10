@@ -91,13 +91,10 @@ void TPListModel::setFilter(const QString &filter)
 
 		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
 		{
-			//First look for musculaGroup
-			bFound = static_cast<QStringList>(*lst_itr).at(3).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+			bFound = static_cast<QStringList>(*lst_itr).at(filterSearch_Field1).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
 			if (!bFound)
-			{
-				//Now look for mainName
-				bFound = static_cast<QStringList>(*lst_itr).at(1).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
-			}
+				bFound = static_cast<QStringList>(*lst_itr).at(filterSearch_Field2).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+
 			if (bFound)
 			{
 				if (bFirst)

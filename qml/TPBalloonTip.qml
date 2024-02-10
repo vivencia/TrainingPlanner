@@ -8,6 +8,14 @@ Popup {
 	property string button1Text: ""
 	property string button2Text: ""
 	property string imageSource: ""
+	property bool highlightMessage: false
+
+	property int finalXPos: 0
+	property int finalYPos: 0
+	property int startYPos: 0
+
+	signal button1Clicked();
+	signal button2Clicked();
 
 	id: balloon
 	closePolicy: Popup.NoAutoClose
@@ -16,22 +24,64 @@ Popup {
 	spacing: 0
 	padding: 0
 	width: mainwindow.width * 0.7
-	height: mainwindow.height * 0.4
+	height: lblTitle.height + lblMessage.height + Math.max(btn1.height, btn2.height) + 10
 
 	background: Rectangle {
 		border.color: "black"
 		color: "white"
-		opacity: 0.7
 		radius: 7
 	}
 
+	NumberAnimation {
+		id: alternateCloseTransition
+		target: balloon
+		alwaysRunToEnd: true
+		running: false
+		property: "x"
+		from: x
+		to: finalXPos
+		duration: 500
+		easing.type: Easing.InOutCubic
+	}
+
 	enter: Transition {
-		NumberAnimation { properties: "x,y"; from: -300; to: 150 }
+		NumberAnimation {
+			property: "y"
+			from: startYPos
+			to: finalYPos
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
+		NumberAnimation {
+			property: "opacity"
+			from: 0
+			to: 1
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
+	}
+
+	exit: Transition {
+		id: closeTransition
+		NumberAnimation {
+			property: "y"
+			from: finalYPos
+			to: startYPos
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
+		NumberAnimation {
+			property: "opacity"
+			from: 1
+			to: 0
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
 	}
 
 	FontMetrics {
 		id: fontMetrics
-		font.family: textPart.font.family
+		font.family: lblMessage.font.family
 		font.pixelSize: AppSettings.titleFontSizePixelSize
 	}
 
@@ -61,14 +111,12 @@ Popup {
 		fillMode: Image.PreserveAspectFit
 		asynchronous: true
 		visible: imageSource.length > 0
-		width: 100
-		height: 100
+		width: 50
+		height: 50
 
 		anchors {
 			left: parent.left
 			top: lblTitle.visible ? lblTitle.bottom : parent.top
-			leftMargin: 10
-			topMargin: 5
 		}
 	}
 
@@ -77,10 +125,11 @@ Popup {
 		text: message
 		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
-		font.pixelSize: AppSettings.titleFontSizePixelSize
+		horizontalAlignment: Text.AlignJustify
+		font.pixelSize: AppSettings.fontSizeText
 		font.weight: Font.Medium
 		width: imgElement.visible ? parent.width - imgElement.width - 20 : parent.width - 20
-		height: fontMetrics.boundingRect(message).width > width ? 60 : 30
+		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
 		visible: message.length > 0
 		padding: 0
 
@@ -92,18 +141,42 @@ Popup {
 		}
 	}
 
+	SequentialAnimation {
+		loops: Animation.Infinite
+		running: highlightMessage
+
+		ColorAnimation {
+			target: lblMessage
+			property: "color"
+			from: "white"
+			to: "darkred"
+			duration: 700
+			easing.type: Easing.InOutCubic
+		}
+		ColorAnimation {
+			target: lblMessage
+			property: "color"
+			from: "darkred"
+			to: "white"
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
+	}
+
 	ButtonFlat {
 		id: btn1
 		text: button1Text
 		visible: button1Text.length > 0
+		anchors.bottom: parent.bottom
+		anchors.bottomMargin: 10
+
+		onClicked: {
+			button1Clicked();
+			balloon.close();
+		}
 
 		Component.onCompleted: {
-			if (lblMessage.visible)
-				anchors.verticalCenter = parent.verticalCenter;
-			else
-				anchors.top = lblMessage.top;
-
-			if (btn2.visible) {
+			if (button2Text.length > 0) {
 				anchors.left = parent.left;
 				anchors.leftMargin = (parent.width - width - btn2.width) / 3;
 			}
@@ -116,19 +189,80 @@ Popup {
 		id: btn2
 		text: button2Text
 		visible: button2Text.length > 0
+		anchors.bottom: parent.bottom
+		anchors.bottomMargin: 10
+
+		onClicked: {
+			button2Clicked();
+			balloon.close();
+		}
 
 		Component.onCompleted: {
-			if (lblMessage.visible)
-				anchors.verticalCenter = parent.verticalCenter;
-			else
-				anchors.top = lblMessage.top;
-
-			if (btn1.visible) {
+			if (button1Text.length > 0) {
 				anchors.right = parent.right;
 				anchors.rightMargin = (parent.width - width - btn1.width) / 3;
 			}
 			else
 				anchors.horizontalCenter = parent.horizontalCenter;
 		}
+	}
+
+	MouseArea {
+		id: mouseArea
+		property var prevPos
+		z: 1
+
+		onPressed: (mouse) => {
+			prevPos = { x: mouse.x, y: mouse.y };
+		}
+		onPositionChanged: {
+			const deltaX = mouseX - prevPos.x;
+			if ( Math.abs(deltaX) >= 10) {
+				x += deltaX;
+				if (deltaX > 0)
+					finalXPos = mainwindow.width + 300;
+				else
+					finalXPos = -300;
+				closeTransition.enabled = false;
+				alternateCloseTransition.start();
+				balloon.close();
+			}
+			prevPos = { x: mouseX, y: mouseY };
+		}
+
+		Component.onCompleted: {
+			if (button1Text.length === 0 && button2Text.length === 0)
+				anchors.fill = parent;
+			else {
+				anchors.left = parent.left;
+				anchors.right = parent.right;
+				anchors.top = parent.top;
+				anchors.bottom = btn1.top;
+			}
+		}
+	}
+
+	Timer {
+		id: hideTimer
+		running: false
+		repeat: false
+
+		onTriggered: balloon.close();
+	}
+
+	function show(ypos) {
+		balloon.x = (mainwindow.width - width) / 2;
+		balloon.y = finalYPos = ypos;
+		if ( ypos < mainwindow.height / 2)
+			startYPos = -300;
+		else
+			startYPos = mainwindow.height + 300;
+		balloon.open();
+	}
+
+	function showTimed(timeout, ypos) {
+		hideTimer.interval = timeout;
+		hideTimer.start();
+		show(ypos);
 	}
 }

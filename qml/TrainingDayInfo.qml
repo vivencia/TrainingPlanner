@@ -150,59 +150,27 @@ Page {
 		source: "qrc:/sounds/timer-end.wav"
 	}
 
-	ToolTip {
+	TPBalloonTip {
 		id: tipTimeWarn
-		text: qsTr("Attention! <b>") + displayMin + qsTr("</b> minute(s) until end of training session!")
+		title: qsTr("Attention!")
+		message: "</b>" + displayMin + qsTr("</b> minute(s) until end of training session!")
+		imageSource: "qrc:/images/"+darkIconFolder+"sound-off.png"
+		button1Text: qsTr("OK")
+
 		property string displayMin
 		property int nShow: 0
-		timeout: 18000
-		x: 0
-		y: 0
-		width: mainwindow.width * 0.9
-		height: 50
-		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
-		contentItem: Text {
-			text: tipTimeWarn.text
-			wrapMode: Text.WordWrap
-			color: "white"
-			font.pixelSize: AppSettings.fontSizeText
-			width: parent.width - 40
+		onOpened: nShow++;
+		onButton1Clicked: playSound.stop();
+	}
 
-			anchors {
-				left: parent.Left
-				leftMargin: 5
-				top: parent.top
-				topMargin: 5
-			}
-
-			RoundButton {
-				id: btnMuteSound
-				anchors.left: parent.right
-				anchors.leftMargin: -width/2
-				anchors.verticalCenter: parent.verticalCenter
-				onClicked: playSound.stop();
-
-				Image {
-					source: "qrc:/images/"+lightIconFolder+"sound-off.png"
-					width: 20
-					height: 20
-					fillMode: Image.PreserveAspectFit
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-				}
-			}
-		} //contentItem
-
-		background: Rectangle {
-			color: "black"
-			opacity: 0.6
-			radius: 8
-		}
-
-		onOpened: {
-			nShow++;
-		}
+	TPBalloonTip {
+		id: timerDlgMessage
+		title: qsTr("Attention!")
+		message: qsTr("Only one timer window can be opened at a time!")
+		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
+		button1Text: qsTr("OK")
+		highlightMessage: true
 	}
 
 	Timer {
@@ -249,7 +217,7 @@ Page {
 						case 0:
 							tipTimeWarn.displayMin = timeLeft.toString();
 							playSound.play();
-							tipTimeWarn.open();
+							tipTimeWarn.showTimed(18000, 0);
 						break;
 						case 1:
 							if (timeLeft <= 5) {
@@ -257,16 +225,15 @@ Page {
 								playSound.play();
 								if (tipTimeWarn.opened)
 									tipTimeWarn.close();
-								tipTimeWarn.open();
+								tipTimeWarn.showTimed(18000, 0);
 							}
 						break;
 						case 2: {
 							if (timeLeft <= 1) {
 								tipTimeWarn.displayMin = timeLeft.toString();
-								tipTimeWarn.timeout = 60000;
 								playSound.loops = 4;
 								playSound.play();
-								tipTimeWarn.open();
+								tipTimeWarn.showTimed(60000, 0);
 								stop();
 								complete = true;
 							}
@@ -292,66 +259,6 @@ Page {
 			playSound.stop();
 		}
 	}
-
-	ToolTip {
-		id: timerDlgToolTip
-		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-		visible: false
-		timeout: 5000
-		implicitWidth: parent.width - 20
-		implicitHeight: 80
-		x: 10
-		y: 0
-
-		contentItem: Text {
-			id: textPart
-			text: qsTr("Warning: You must close this window before attempting to open another timer!")
-			font.bold: true
-			font.pixelSize: AppSettings.titleFontSizePixelSize
-			color: "white"
-			wrapMode: Text.WordWrap
-			width: parent.width
-			height: parent.height
-
-			anchors {
-				left: parent.left
-				leftMargin: 10
-				rightMargin: 10
-				top: parent.top
-				topMargin: 10
-			}
-		}
-
-		background: Rectangle {
-			border.color: primaryDarkColor
-			border.width: 2
-			color: "black"
-			opacity: 0.7
-			radius: 6
-		}
-
-		SequentialAnimation {
-			loops: Animation.Infinite
-			running: timerDlgToolTip
-
-			ColorAnimation {
-				target: textPart
-				property: "color"
-				from: "white"
-				to: "darkred"
-				duration: 700
-				easing.type: Easing.InOutCubic
-			}
-			ColorAnimation {
-				target: textPart
-				property: "color"
-				from: "darkred"
-				to: "white"
-				duration: 700
-				easing.type: Easing.InOutCubic
-			}
-		}
-	} //ToolTip
 
 	ScrollView {
 		id: scrollTraining
@@ -1658,11 +1565,11 @@ Page {
 			timerDialog.windowTitle = message;
 			timerDialog.mins = mins;
 			timerDialog.secs = secs;
-			timerDlgToolTip.close();
+			timerDlgMessage.close();
 			timerDialog.open();
 		}
 		else {
-			timerDlgToolTip.open();
+			timerDlgMessage.openTimed(5000, 0);
 		}
 	}
 
@@ -1672,7 +1579,7 @@ Page {
 
 	function timerDialogClosed() {
 		timerDialogRequester = null;
-		timerDlgToolTip.close();
+		timerDlgMessage.close();
 	}
 
 	function createNavButtons() {

@@ -24,16 +24,11 @@ QtObject {
 						createMesoTable();
 						createMesoDivisionTable();
 						createMesoCalendarTable();
-						createExercisesTable();
 						createSetsInfoTable();
 						createTrainingDayTable();
 					}
 					//console.log(res.rows.item(0).name)
 			});
-			/*if (AppSettings.exercisesListVersion !== runCmd.exercisesListVersion) {
-				appDB.updateExercisesList();
-				AppSettings.exercisesListVersion = runCmd.exercisesListVersion;
-			}*/
 		} catch (error) {
 			console.log("Error opening database: " + error);
 		}
@@ -110,54 +105,6 @@ QtObject {
 			)`);
 		});
 	}
-
-	function createExercisesTable() {
-		db.transaction(function (tx) {
-			tx.executeSql(`CREATE TABLE IF NOT EXISTS exercises_table (
-				id INTEGER PRIMARY KEY,
-				primary_name TEXT CHECK(primary_name != ''),
-				secondary_name TEXT,
-				muscular_group TEXT,
-				sets INTEGER,
-				reps REAL,
-				weight REAL,
-				weight_unit TEXT,
-				media_path TEXT,
-				from_list INTEGER
-			)`);
-		});
-	}
-
-	/*function updateExercisesTable() {
-		db.transaction(function (tx) {
-			tx.executeSql(`CREATE TABLE IF NOT EXISTS exercises_table2 (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				primary_name TEXT CHECK(primary_name != ''),
-				secondary_name TEXT CHECK(secondary_name != ''),
-				muscular_group TEXT,
-				sets INTEGER,
-				reps REAL,
-				weight REAL,
-				weight_unit TEXT,
-				media_path TEXT
-			)`);
-		});
-
-		let exercises = getExercises();
-		for (var i = 0; i < exercises.length; i++) {
-			db.transaction(function (tx) {
-			tx.executeSql("INSERT INTO exercises_table2
-						(primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path) VALUES(?,?,?,?,?,?,?,?)",
-						[exercises[i].mainName, exercises[i].subName, " ", exercises[i].nSets, exercises[i].nReps,
-						exercises[i].nWeight, "kg(s)", exercises[i].mediaPath]);
-			});
-		}
-
-		removeExercisesTable();
-		db.transaction(function (tx) {
-			tx.executeSql("ALTER TABLE `exercises_table2` RENAME TO `exercises_table`");
-		});
-	}*/
 
 	function createSetsInfoTable() {
 		db.transaction(function (tx) {
@@ -790,90 +737,6 @@ QtObject {
 		});
 	}
 
-	function getExercises() {
-		let exercises = [];
-		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT * FROM exercises_table");
-			for (let i = 0; i < results.rows.length; i++) {
-				let row = results.rows.item(i);
-				if (row.id > 1000)
-					exercisesTableLastId = row.id;
-				exercises.push({
-					"exerciseId": row.id,
-					"mainName": row.primary_name,
-					"subName": row.secondary_name,
-					"muscularGroup": row.muscular_group,
-					"nSets": row.sets,
-					"nReps": row.reps,
-					"nWeight": row.weight,
-					"uWeight": row.weight_unit,
-					"mediaPath": row.media_path,
-					"actualIndex": i
-				});
-			}
-		});
-		return exercises;
-	}
-
-	function newExercise(mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath) {
-		let results;
-		db.transaction(function (tx) {
-			results = tx.executeSql("INSERT INTO exercises_table
-							(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list) VALUES(?,?,?,?,?,?,?,?,?,?)",
-							[++exercisesTableLastId, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath,0]);
-		});
-		return results;
-	}
-
-	function updateExercise(exerciseId, mainName, subName, muscularGroup, nSets, nReps, nWeight, mediaPath) {
-		let results;
-		db.transaction(function (tx) {
-			results = tx.executeSql("UPDATE exercises_table SET primary_name=?, secondary_name=?, muscular_group=?,
-									sets=?, reps=?, weight=?, media_path=? WHERE id=?",
-									[mainName, subName, muscularGroup, nSets, nReps, nWeight, mediaPath, exerciseId]);
-		});
-		return results;
-	}
-
-	function deleteExerciseFromExercises(exerciseId) {
-		db.transaction(function (tx) {
-			tx.executeSql("DELETE FROM exercises_table WHERE id=?", [exerciseId]);
-		});
-	}
-
-	function removeExercisesTable() {
-		db.transaction(function (tx) {
-			tx.executeSql("DROP TABLE exercises_table");
-		});
-	}
-
-	function getExercise(exerciseId) {
-		if (!exerciseId)
-			return;
-
-		let exercise = [];
-		db.transaction(function (tx) {
-			let results = tx.executeSql("SELECT * FROM exercises_table WHERE id = " + exerciseId);
-			for (let i = 0; i < results.rows.length; i++) {
-				let row = results.rows.item(i);
-
-				exercise.push({
-					"exerciseId": row.id,
-					"exercisePName": row.primary_name,
-					"exerciseSName": row.secondary_name,
-					"exerciseMuscularGroup": row.muscular_group,
-					"exerciseSets": row.sets,
-					"exerciseReps": row.reps,
-					"exerciseWeight": row.weight,
-					"exerciseUnitWeight": row.weight_unit,
-					"exerciseNotes": row.notes,
-					"exerciseMedia": row.media
-				});
-			}
-		});
-		return exercise;
-	}
-
 	function getTrainingDay(date) {
 		let dayinfo = [];
 		db.transaction(function (tx) {
@@ -1060,6 +923,11 @@ QtObject {
 			let results = tx.executeSql("SELECT * FROM set_info WHERE trainingday_id = " + tdayId);
 			for (let i = 0; i < results.rows.length; i++) {
 				let row = results.rows.item(i);
+				if (row.number < 0) {
+					deleteSetFromSetsInfo(row.id);
+					continue;
+				}
+
 				setsInfo.push({
 					"setId": row.id,
 					"setTrainingdDayId": row.trainingday_id,

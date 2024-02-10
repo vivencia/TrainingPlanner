@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Dialogs
 
 import "jsfunctions.js" as JSF
 
@@ -60,26 +59,15 @@ Frame {
 		}
 	} //Timer
 
-	MessageDialog {
+	TPBalloonTip {
 		id: msgDlgImport
-		modality: Qt.NonModal
-		text: qsTr("\nImport Exercises Plan?\n")
-		informativeText: qsTr("Import the exercises plan for training division <b>") + splitLetter +
+		title: qsTr("Import Exercises Plan?")
+		message: qsTr("Import the exercises plan for training division <b>") + splitLetter +
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
-		buttons: MessageDialog.Yes | MessageDialog.No
-
-		onButtonClicked: function (button, role) {
-			switch (button) {
-				case MessageDialog.Yes:
-					accept();
-				break;
-				case MessageDialog.No:
-					reject();
-				break;
-			}
-		}
-	}
-
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+	} //TPBalloonTip
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -679,9 +667,9 @@ Frame {
 			case 'F': exercisenames = Database.getExercisesFromDivisionFForMeso(prevMesoId); break;
 		}
 		if (exercisenames.length > 0) {
-			msgDlgImport.accepted.connect(loadPreviousSplitPlanner);
-			msgDlgImport.rejected.connect(appendNewExerciseToDivision);
-			msgDlgImport.open();
+			msgDlgImport.button1Clicked.connect(loadPreviousSplitPlanner);
+			msgDlgImport.button2Clicked.connect(appendNewExerciseToDivision);
+			msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
 		}
 		else
 			appendNewExerciseToDivision();

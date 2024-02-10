@@ -74,6 +74,7 @@ FocusScope {
 					case 1:
 						setObjectList[i].Object.logSet();
 						setCreated[i] = 2;
+						bSetsLoaded = true;
 					break;
 					case 2:
 						totalReady++;
@@ -84,26 +85,20 @@ FocusScope {
 		}
 	}
 
-	MessageDialog {
+	TPBalloonTip {
 		id: msgDlgRemove
-		text: qsTr("\n\nRemove Exercise?\n\n")
-		detailedText: exerciseName
-		informativeText: qsTr("This action cannot be undone.")
-		buttons: MessageDialog.Yes | MessageDialog.No
+		title: qsTr("Remove Exercise? ") + exerciseName
+		message: qsTr("This action cannot be undone.")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-		onButtonClicked: function (button, role) {
-			switch (button) {
-				case MessageDialog.Yes:
-					accept();
-					removeAllSets();
-					exerciseRemoved(thisObjectIdx);
-				break;
-				case MessageDialog.No:
-					reject();
-				break;
-			}
+		onButton1Clicked: {
+			accept();
+			removeAllSets();
+			exerciseRemoved(thisObjectIdx);
 		}
-	} //MessageDialog
+	} //TPBalloonTip
 
 	Frame {
 		id: paneExercise
@@ -253,9 +248,7 @@ FocusScope {
 						width: 20
 					}
 
-					onClicked: {
-						msgDlgRemove.open();
-					}
+					onClicked: msgDlgRemove.show(exerciseItem.y)
 				} //btnRemoveExercise
 
 				RoundButton {
@@ -395,25 +388,36 @@ FocusScope {
 
 	function loadSetsFromDatabase() {
 		let setsInfoList = Database.getSetsInfo(loadTDayId);
-		var nset = 0;
 		const len = setsInfoList.length;
 		//console.log("ExerciseEntry::loadSetsFromDatabase - loadObjectIdx = ", loadObjectIdx);
 		//console.log("Creating " + len + " sets")
 		for(var i = 0; i < len; ++i) {
 			if (loadObjectIdx === setsInfoList[i].setExerciseIdx) {
-				setCreated[nset] = 0;
+				var bSame = false;
+				for(var x = 0; x < i; x++) {
+					if (setsInfoList[x].setExerciseIdx === loadObjectIdx) {
+						if (setsInfoList[x].setNumber === setsInfoList[i].setNumber) {
+							Database.deleteSetFromSetsInfo(setsInfoList[i].setId);
+							bSame = true;
+							break;
+						}
+					}
+				}
+				if (bSame)
+					continue;
 				setNbr = setsInfoList[i].setNumber;
-				suggestedReps[nset] = setsInfoList[i].setReps;
-				suggestedWeight[nset] = setsInfoList[i].setWeight;
-				suggestedSubSets[nset] = setsInfoList[i].setSubSets;
-				suggestedRestTimes[nset] = setsInfoList[i].setRestTime;
-				setNotes[nset] = setsInfoList[i].setNotes;
-				createSetObject(setsInfoList[i].setType, false);
-				nset++;
+				setCreated[setNbr] = 0;
+				suggestedReps[setNbr] = setsInfoList[i].setReps;
+				suggestedWeight[setNbr] = setsInfoList[i].setWeight;
+				suggestedSubSets[setNbr] = setsInfoList[i].setSubSets;
+				suggestedRestTimes[setNbr] = setsInfoList[i].setRestTime;
+				setNotes[setNbr] = setsInfoList[i].setNotes;
 				setType = setsInfoList[i].setType;
-				changeComboModel();
+				createSetObject(setType, false);
 			}
 		}
+		if (setNbr >= 0)
+			changeComboModel();
 	}
 
 	function loadSetsFromMesoPlan() {

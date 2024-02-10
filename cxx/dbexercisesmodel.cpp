@@ -14,6 +14,9 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[uWeightRole] = "uWeight";
 	m_roleNames[mediaPathRole] = "mediaPath";
 	m_roleNames[actualIndexRole] = "actualIndex";
+
+	filterSearch_Field1 = 3; //First look for muscularGroup
+	filterSearch_Field2 = 1; //Then look for mainName
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
