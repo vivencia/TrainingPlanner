@@ -111,7 +111,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	}
 }
 
-//--------------------EXERCISES TABLE---------------------------------
+//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
@@ -131,7 +131,6 @@ void DbManager::updateExercise( const QString& id, const QString& mainName, cons
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath )
 {
-	MSG_OUT("Updating exercise id: " << id)
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { return worker->updateExercise(); } );
@@ -163,4 +162,69 @@ void DbManager::getExercisesListVersion()
 		exercisesListFile.close();
 	}
 }
-//--------------------EXERCISES TABLE---------------------------------
+//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
+void DbManager::getAllMesocycles()
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	createThread(worker, [worker] () { worker->getAllMesocycles(); } );
+}
+
+void DbManager::getMesoInfo(const uint meso_id)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->addExecArg(meso_id);
+	createThread(worker, [worker] () { worker->getMesoInfo(); } );
+}
+
+void DbManager::getPreviousMesoId(const uint current_meso_id)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->addExecArg(current_meso_id);
+	createThread(worker, [worker] () { worker->getPreviousMesoId(); } );
+}
+
+void DbManager::getPreviousMesoEndDate(const uint current_meso_id)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->addExecArg(current_meso_id);
+	createThread(worker, [worker] () { worker->getPreviousMesoEndDate(); } );
+}
+
+void DbManager::getNextMesoStartDate(const uint meso_id)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->addExecArg(meso_id);
+	createThread(worker, [worker] () { worker->getNextMesoStartDate(); } );
+}
+
+void DbManager::getLastMesoEndDate()
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	createThread(worker, [worker] () { worker->getLastMesoEndDate(); } );
+}
+
+void DbManager::newMesocycle(const QString& mesoName, const QString& mesoStartDate, const QString& mesoEndDate, const QString& mesoNote,
+						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->setData(QString(), mesoName, mesoStartDate, mesoEndDate, mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
+	createThread(worker, [worker] () { worker->newMesocycle(); } );
+}
+
+void DbManager::updateMesocycle(const QString& id, const QString& mesoName, const QString& mesoStartDate, const QString& mesoEndDate, const QString& mesoNote,
+						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	worker->setData(id, mesoName, mesoStartDate, mesoEndDate, mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
+	createThread(worker, [worker] () { worker->updateMesocycle(); } );
+}
+
+void DbManager::removeMesocycle(const QString& id)
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
+	worker->setData(id);
+	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
+}
+//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
