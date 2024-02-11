@@ -87,14 +87,13 @@ FocusScope {
 
 	TPBalloonTip {
 		id: msgDlgRemove
-		title: qsTr("Remove Exercise? ") + exerciseName
-		message: qsTr("This action cannot be undone.")
+		title: qsTr("Remove Exercise")
+		message: exerciseName + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
 		onButton1Clicked: {
-			accept();
 			removeAllSets();
 			exerciseRemoved(thisObjectIdx);
 		}

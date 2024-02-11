@@ -12,6 +12,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql LinguistTools)
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID QT_USE_QSTRINGBUILDER QT_USE_FAST_CONCATENATION QT_USE_FAST_OPERATOR_PLUS DEBUG)
+add_compile_options(-std=c++20 -Werror -Wall -Wextra -pedantic)
 
 set( RESOURCE_FILES app_resources.qrc )
 
@@ -22,10 +23,12 @@ set( SOURCES
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/graph.h cxx/graph.cpp
-	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
-	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
-	cxx/tplistmodel.h cxx/tplistmodel.cpp
 	cxx/tpdatabasetable.h
+	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
+	cxx/dbmesocylestable.h cxx/dbmesocylestable.cpp
+	cxx/tplistmodel.h cxx/tplistmodel.cpp
+	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
+	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 )
 
 set( TRANSLATIONS_DIR

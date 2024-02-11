@@ -1,7 +1,10 @@
 #include "dbmanager.h"
+#include "runcommands.h"
+
 #include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
-#include "runcommands.h"
+#include "dbmesocylestable.h"
+#include "dbmesocyclesmodel.h"
 
 #include <QSettings>
 #include <QSqlQuery>
@@ -9,8 +12,6 @@
 #include <QThread>
 #include <QFileInfo>
 #include <QQmlApplicationEngine>
-
-static uint row(0);
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_model(nullptr)
@@ -21,15 +22,18 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	if (!f_info.isReadable())
 	{
 		//First time: initialize all databases
-		dbExercisesTable* db_exercises(new dbExercisesTable(m_DBFilePath, m_appSettings));
+		DBExercisesTable* db_exercises(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		db_exercises->createTable();
 		delete db_exercises;
+		DBMesocyclesTable* db_mesos(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
+		db_mesos->createTable();
+		delete db_mesos;
 	}
 
 	getExercisesListVersion();
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
 	{
-		dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
+		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		createThread(worker, [worker] () { return worker->updateExercisesList(); } );
 	}
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
@@ -39,10 +43,11 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
 	if (dbObj->objectName() == DBExercisesObjectName)
 	{
-		switch (static_cast<dbExercisesTable*>(dbObj)->opCode())
+		switch (static_cast<DBExercisesTable*>(dbObj)->opCode())
 		{
-			case OP_ADD: if (m_model) m_model->appendList(static_cast<dbExercisesTable*>(dbObj)->data()); break;
-			case OP_EDIT: if (m_model) m_model->updateList(static_cast<dbExercisesTable*>(dbObj)->data(), m_model->currentRow()); break;
+			case OP_NULL: case OP_READ: break;
+			case OP_ADD: if (m_model) m_model->appendList(static_cast<DBExercisesTable*>(dbObj)->data()); break;
+			case OP_EDIT: if (m_model) m_model->updateList(static_cast<DBExercisesTable*>(dbObj)->data(), m_model->currentRow()); break;
 			case OP_DEL: if (m_model) m_model->removeFromList(m_model->currentRow()); break;
 			case OP_UPDATE_LIST: m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion); break;
 		}
@@ -109,7 +114,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 //--------------------EXERCISES TABLE---------------------------------
 void DbManager::getAllExercises()
 {
-	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
 	createThread(worker, [worker] () { worker->getAllExercises(); } );
 }
 
@@ -117,7 +122,7 @@ void DbManager::newExercise( const QString& mainName, const QString& subName, co
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath )
 {
-	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
 	worker->setData(QStringLiteral("0"), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { worker->newExercise(); } );
 }
@@ -127,14 +132,14 @@ void DbManager::updateExercise( const QString& id, const QString& mainName, cons
 					 const QString& uWeight, const QString& mediaPath )
 {
 	MSG_OUT("Updating exercise id: " << id)
-	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { return worker->updateExercise(); } );
 }
 
 void DbManager::removeExercise(const QString& id)
 {
-	dbExercisesTable* worker(new dbExercisesTable(m_DBFilePath, m_appSettings));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 	worker->setData(id);
 	createThread(worker, [worker] () { return worker->removeExercise(); } );
 }

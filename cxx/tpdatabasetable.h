@@ -22,8 +22,8 @@ public:
 		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
 
 	inline const QStringList& data () const { return m_data; }
-	inline const OP_CODES opCode() const { return m_opcode; }
-	inline const bool result() const { return m_result; }
+	inline OP_CODES opCode() const { return m_opcode; }
+	inline bool result() const { return m_result; }
 
 	inline void setCallbackForExecFunc( const std::function<void (void)>& func ) { execFunc = func; }
 	inline void setCallbackForResultFunc( const std::function<void (TPDatabaseTable*)>& func ) { resultFunc = func; }
@@ -31,11 +31,14 @@ public:
 
 	inline void execFunction() { execFunc(); }
 
+	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
+
 protected:
 	QSqlDatabase mSqlLiteDB;
 	QSettings* m_appSettings;
 	QStringList m_data;
 	TPListModel* m_model;
+	QList<QVariant> m_execArgs;
 
 	bool m_result;
 	OP_CODES m_opcode;

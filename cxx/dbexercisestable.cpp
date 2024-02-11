@@ -1,16 +1,14 @@
 #include "dbexercisestable.h"
 #include "runcommands.h"
 
-#include <QThread>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFile>
 #include <QTime>
-#include <QMutexLocker>
 
-uint dbExercisesTable::m_exercisesTableLastId(1000);
+uint DBExercisesTable::m_exercisesTableLastId(1000);
 
-dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
+DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	setObjectName( DBExercisesObjectName );
@@ -22,7 +20,7 @@ dbExercisesTable::dbExercisesTable(const QString& dbFilePath, QSettings* appSett
 		m_data.append(QString());
 }
 
-void dbExercisesTable::createTable()
+void DBExercisesTable::createTable()
 {
 	if (mSqlLiteDB.open())
 	{
@@ -47,14 +45,14 @@ void dbExercisesTable::createTable()
 	}
 	if (!m_result)
 	{
-		MSG_OUT("ExercisesList createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		MSG_OUT("ExercisesList createTable SUCCESS")
+		MSG_OUT("DBExercisesTable createTable SUCCESS")
 }
 
-void dbExercisesTable::getAllExercises()
+void DBExercisesTable::getAllExercises()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
@@ -85,28 +83,28 @@ void dbExercisesTable::getAllExercises()
 					m_exercisesTableLastId = highest_id + 1;
 				m_opcode = OP_READ;
 				m_result = true;
-				mSqlLiteDB.close();
 				resultFunc(static_cast<TPDatabaseTable*>(this));
 			}
 		}
+		mSqlLiteDB.close();
 	}
 
 	if (!m_result)
 	{
-		MSG_OUT("ExercisesList getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		MSG_OUT("ExercisesList getAllExercises SUCCESS")
+		MSG_OUT("DBExercisesTable getAllExercises SUCCESS")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::updateExercisesList()
+void DBExercisesTable::updateExercisesList()
 {
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		MSG_OUT("ExercisesList updateExercisesList m_ExercisesList is empty")
+		MSG_OUT("DBExercisesTable updateExercisesList m_ExercisesList is empty")
 		m_result = false;
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
@@ -144,17 +142,17 @@ void dbExercisesTable::updateExercisesList()
 
 	if (!m_result)
 	{
-		MSG_OUT("ExercisesList updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
 	{
-		MSG_OUT("ExercisesList updateExercisesList SUCCESS")
+		MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::newExercise()
+void DBExercisesTable::newExercise()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
@@ -174,19 +172,19 @@ void dbExercisesTable::newExercise()
 
 	if (m_result)
 	{
-		MSG_OUT("ExercisesList newExercise SUCCESS")
+		MSG_OUT("DBExercisesTable newExercise SUCCESS")
 		m_opcode = OP_ADD;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		MSG_OUT("ExercisesList newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList newExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable newExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::updateExercise()
+void DBExercisesTable::updateExercise()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
@@ -203,19 +201,19 @@ void dbExercisesTable::updateExercise()
 
 	if (m_result)
 	{
-		MSG_OUT("ExercisesList updateExercise SUCCESS");
+		MSG_OUT("DBExercisesTable updateExercise SUCCESS");
 		m_opcode = OP_EDIT;
 		resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		MSG_OUT("ExercisesList updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::removeExercise()
+void DBExercisesTable::removeExercise()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
@@ -228,19 +226,19 @@ void dbExercisesTable::removeExercise()
 
 	if (m_result)
 	{
-		MSG_OUT("ExercisesList removeExercise SUCCESS")
+		MSG_OUT("DBExercisesTable removeExercise SUCCESS")
 		m_opcode = OP_DEL;
-		resultFunc(static_cast<TPDatabaseTable*>(this));
+			resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
-		MSG_OUT("ExercisesList removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void dbExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName,
+void DBExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName,
 						const QString& muscularGroup, const QString& nSets, const QString& nReps,
 						const QString& nWeight, const QString& uWeight, const QString& mediaPath)
 {
@@ -255,7 +253,7 @@ void dbExercisesTable::setData(const QString& id, const QString& mainName, const
 	m_data[8] = mediaPath;
 }
 
-void dbExercisesTable::removePreviousListEntriesFromDB()
+void DBExercisesTable::removePreviousListEntriesFromDB()
 {
 	int ret(0);
 	if (mSqlLiteDB.open())
@@ -266,12 +264,12 @@ void dbExercisesTable::removePreviousListEntriesFromDB()
 	}
 	if (!ret)
 	{
-		MSG_OUT("ExercisesList removePreviousListEntriesFromDB Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("ExercisesList removePreviousListEntriesFromDB Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBExercisesTable removePreviousListEntriesFromDB Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable removePreviousListEntriesFromDB Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 }
 
-void dbExercisesTable::getExercisesList()
+void DBExercisesTable::getExercisesList()
 {
 	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
 	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )

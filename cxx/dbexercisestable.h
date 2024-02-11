@@ -13,11 +13,11 @@ static const uint EXERCISES_TABLE_ID = 0x0001;
 
 class DBExercisesModel;
 
-class dbExercisesTable : public TPDatabaseTable
+class DBExercisesTable : public TPDatabaseTable
 {
 
 public:
-	explicit dbExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
+	explicit DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
 
 	void createTable();
 	void getAllExercises();
@@ -26,7 +26,7 @@ public:
 	void updateExercise();
 	void removeExercise();
 
-	//Call before starting a thread that execs newExercise() and updateExercise()
+	//Call before starting a thread
 	void setData(const QString& id, const QString& mainName = QString(), const QString& subName = QString(),
 						const QString& muscularGroup = QString(), const QString& nSets = QString(),
 						const QString& nReps = QString(), const QString& nWeight = QString(),
