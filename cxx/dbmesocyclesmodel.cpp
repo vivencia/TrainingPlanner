@@ -12,6 +12,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	m_roleNames[mesoWeeksRole] = "mesoWeeks";
 	m_roleNames[mesoSplitRole] = "mesoSplit";
 	m_roleNames[mesoDrugsRole] = "mesoDrugs";
+	m_roleNames[realMesoRole] = "realMeso";
 }
 
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
@@ -21,14 +22,18 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 	{
 		switch(role) {
 			case mesoIdRole:
-			case mesoNameRole:
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
 			case mesoStartDateRole:
 			case mesoEndDateRole:
+				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
+			case mesoNameRole:
 			case mesoNoteRole:
 			case mesoWeeksRole:
 			case mesoSplitRole:
 			case mesoDrugsRole:
-				return m_modeldata.at(row).at(role-Qt::UserRole);
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
+			case realMesoRole:
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)) == QStringLiteral("1");
 			case Qt::DisplayRole:
 				return m_modeldata.at(row).at(index.column());
 		}
@@ -50,6 +55,7 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 			case mesoWeeksRole:
 			case mesoSplitRole:
 			case mesoDrugsRole:
+			case realMesoRole:
 				m_modeldata[row].replace(role, value.toString());
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;

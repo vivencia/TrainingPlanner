@@ -20,6 +20,7 @@ public:
 		mesoWeeksRole = Qt::UserRole+5,
 		mesoSplitRole = Qt::UserRole+6,
 		mesoDrugsRole = Qt::UserRole+7,
+		realMesoRole = Qt::UserRole+8,
 	};
 
 	explicit DBMesocyclesModel(QObject *parent = 0);

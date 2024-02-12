@@ -55,7 +55,7 @@ void TPListModel::removeFromList (const int row)
 
 void TPListModel::appendList(const QStringList& list)
 {
-	beginInsertRows(QModelIndex(), count(), count());
+	beginInsertRows(QModelIndex(), count(), count() + list.count());
 	m_modeldata.append(list);
 	m_indexProxy.append(m_modeldata.count() - 1);
 	emit countChanged();

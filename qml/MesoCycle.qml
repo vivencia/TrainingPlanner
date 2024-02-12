@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import com.vivenciasoftware.qmlcomponents
 
 import "jsfunctions.js" as JSF
 
 Page {
 	id: mesoPropertiesPage
-	required property ListModel mesosModel
 	required property int mesoId
 
 	property int idxModel
@@ -157,7 +157,7 @@ Page {
 				onTextEdited: {
 					if (text.length >= 5) {
 						if (!bNewMeso) {
-							if (text !== mesosModel.get(idxModel).mesoName)
+							if (text !== mesocyclesListModel.get(idxModel, 1))
 								mesoName = text;
 						}
 						else
@@ -208,7 +208,7 @@ Page {
 					finalDate: maximumMesoEndDate
 					windowTitle: qsTr("Please select the initial date for the mesocycle ") + mesoName
 					onDateSelected: function(date, nweek) {
-						if (bNewMeso || (date !== mesosModel.get(idxModel).mesoStartDate)) {
+						if ( bNewMeso || (date !== mesocyclesListModel.getDate(idxModel, 2)) ) {
 							mesoStartDate = date;
 							week1 = nweek;
 							nWeeks = JSF.calculateNumberOfWeeks(week1, week2);
@@ -260,7 +260,7 @@ Page {
 					finalDate: maximumMesoEndDate
 					windowTitle: qsTr("Please select the end date for the mesocycle ") + mesoName
 					onDateSelected: function(date, nweek) {
-						if (bNewMeso || (date !== mesosModel.get(idxModel).mesoEndDate)) {
+						if ( bNewMeso || (date !== mesocyclesListModel.getDate(idxModel, 3)) ) {
 							mesoEndDate = date;
 							week2 = nweek;
 							nWeeks = JSF.calculateNumberOfWeeks(week1, week2);
@@ -343,7 +343,7 @@ Page {
 				}
 
 				onTextEdited: {
-					if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit)) {
+					if ( bNewMeso || (text !== mesocyclesListModel.get(idxModel, 6)) ) {
 						if (text.indexOf('R') === -1) {
 							bCanSave = false;
 						}
@@ -732,7 +732,7 @@ Page {
 					color: "white"
 
 					onEditingFinished: {
-						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoDrugs)) {
+						if ( bNewMeso || (text !== mesocyclesListModel.get(idxModel, 7)) ) {
 							mesoDrugs = text;
 							bModified = true;
 						}
@@ -762,7 +762,7 @@ Page {
 					color: "white"
 
 					onEditingFinished: {
-						if (bNewMeso || (text !== mesosModel.get(idxModel).mesoNote)) {
+						if ( bNewMeso || (text !== mesocyclesListModel.get(idxModel,5)) ) {
 							mesoNote = text;
 							bModified = true;
 						}
@@ -796,13 +796,13 @@ Page {
 
 			onClicked: {
 				if (!bNewMeso) {
-					mesoPropertiesPage.mesoName = mesosModel.get(idxModel).mesoName;
-					mesoPropertiesPage.mesoStartDate = mesosModel.get(idxModel).mesoStartDate;
-					mesoPropertiesPage.mesoEndDate = mesosModel.get(idxModel).mesoEndDate;
-					mesoPropertiesPage.nWeeks = mesosModel.get(idxModel).nWeeks;
-					mesoPropertiesPage.mesoSplit = mesosModel.get(idxModel).mesoSplit;
-					mesoPropertiesPage.mesoDrugs = mesosModel.get(idxModel).mesoDrugs;
-					mesoPropertiesPage.mesoNote = mesosModel.get(idxModel).mesoNote;
+					mesoName = mesocyclesListModel.get(idxModel, 1);
+					mesoStartDate = mesocyclesListModel.get(idxModel, 2);
+					mesoEndDate = mesocyclesListModel.get(idxModel, 3);
+					mesoNote = mesocyclesListModel.get(idxModel, 4);
+					nWeeks = mesocyclesListModel.get(idxModel, 5);
+					mesoSplit = mesocyclesListModel.get(idxModel, 6);
+					mesoDrugs = mesocyclesListModel.get(idxModel, 7);
 					strSplitA = divisionModel.get(idxDivision).splitA;
 					strSplitB = divisionModel.get(idxDivision).splitB;
 					strSplitC = divisionModel.get(idxDivision).splitC;
@@ -811,13 +811,13 @@ Page {
 					strSplitF = divisionModel.get(idxDivision).splitF;
 				}
 				else {
-					mesoPropertiesPage.mesoName = "Novo mesociclo";
-					mesoPropertiesPage.mesoStartDate = calendarStartDate;
-					mesoPropertiesPage.mesoEndDate = fixedMesoEndDate;
-					mesoPropertiesPage.nWeeks = JSF.calculateNumberOfWeeks(calendarStartDate.getDay(), fixedMesoEndDate.getDay());
-					mesoPropertiesPage.mesoSplit = "ABCRDER";
-					mesoPropertiesPage.mesoDrugs = " ";
-					mesoPropertiesPage.mesoNote = " ";
+					mesoName = "Novo mesociclo";
+					mesoStartDate = calendarStartDate;
+					mesoEndDate = fixedMesoEndDate;
+					nWeeks = JSF.calculateNumberOfWeeks(calendarStartDate.getDay(), fixedMesoEndDate.getDay());
+					mesoSplit = "ABCRDER";
+					mesoDrugs = " ";
+					mesoNote = " ";
 					strSplitA = " ";
 					strSplitB = " ";
 					strSplitC = " ";
@@ -844,49 +844,19 @@ Page {
 			enabled: bModified & bCanSave
 
 			onClicked: {
-				if (mesoName.length === 0)
-					mesoName = "Novo Mesociclo";
-				if (mesoNote.length === 0)
-					mesoNote = " ";
-				if (mesoDrugs.length === 0)
-					mesoDrugs = " ";
-				if (mesoSplit.length === 0)
-					mesoSplit = " ";
-				if (strSplitA.length === 0)
-					strSplitA = " ";
-				if (strSplitB.length === 0)
-					strSplitB = " ";
-				if (strSplitC.length === 0)
-					strSplitC = " ";
-				if (strSplitD.length === 0)
-					strSplitD = " ";
-				if (strSplitE.length === 0)
-					strSplitE = " ";
-				if (strSplitF.length === 0)
-					strSplitF = " ";
 				if (bNewMeso) {
-					let results = Database.newMeso(mesoName, mesoStartDate.getTime(), mesoEndDate.getTime(), mesoNote,
-									   nWeeks, mesoSplit, mesoDrugs);
-					mesoId = parseInt(results.insertId);
 
-					mesosModel.append ({
-						mesoId: mesoId,
-						mesoName: mesoName,
-						mesoStartDate: mesoStartDate,
-						mesoEndDate: mesoEndDate,
-						mesoNote: mesoNote,
-						nWeeks: nWeeks,
-						mesoSplit: mesoSplit,
-						mesoDrugs: mesoDrugs,
-						minimumMesoStartDate: minimumMesoStartDate,
-						maximumMesoEndDate: maximumMesoEndDate,
-						week1: week1,
-						week2: week2
-					});
+					function getMesoId() {
+						appDB.qmlReady.disconnect(getMesoId);
+						mesoId = appDB.insertId();
+					}
 
-					idxModel = mesosModel.count - 1;
+					appDB.pass_object(mesocyclesListModel);
+					appDB.qmlReady.connect(getMesoId);
+					appDB.newMesocycle(mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs);
+					idxModel = mesocyclesListModel.count - 1;
 
-					let results2 = Database.newMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
+					/*let results2 = Database.newMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
 					divisionModel.append({
 						"divisionId": parseInt(results2.insertId),
 						"mesoId": parseInt(mesoId),
@@ -896,45 +866,41 @@ Page {
 						"splitD": strSplitD,
 						"splitE": strSplitE,
 						"splitF": strSplitF
-					});
+					});*/
 
 					bNewMeso = false;
 					dateTimer.triggered(); //Update tabBar and the meso model index it uses
 					createMesoCalendarObject(true);
 				}
 				else {
-					Database.updateMeso(mesoId, mesoName, mesoStartDate.getTime(), mesoEndDate.getTime(), mesoNote, nWeeks, mesoSplit, mesoDrugs);
-					Database.updateMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
+					mesocyclesListModel.setCurrentRow(idxModel);
+					appDB.pass_object(mesocyclesListModel);
+					appDB.updateMesocycle(mesoId, mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs);
+					//Database.updateMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
 
 					if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
 						if (Database.checkIfCalendarForMesoExists(mesoId)) {
 							if (mesocycleCalendarPage === null)
 								createMesoCalendarObject(false);
 							else {
-								mesocycleCalendarPage.mesoStartDate = mesosModel.get(idxModel).mesoStartDate;
-								mesocycleCalendarPage.mesoEndDate = mesosModel.get(idxModel).mesoEndDate;
-								mesocycleCalendarPage.mesoSplit = mesosModel.get(idxModel).mesoSplit;
-								mesocycleCalendarPage.mesoName = mesosModel.get(idxModel).mesoName;
+								mesocycleCalendarPage.mesoStartDate = mesocyclesListModel.getDate(idxModel, 2);
+								mesocycleCalendarPage.mesoEndDate = mesocyclesListModel.getDate(idxModel, 3);
+								mesocycleCalendarPage.mesoSplit = mesocyclesListModel.get(idxModel, 6);
+								mesocycleCalendarPage.mesoName = mesocyclesListModel.get(idxModel, 1);
 							}
 							appStackView.push(mesocycleCalendarPage);
 							mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 						}
 					}
-
-					mesosModel.setProperty(idxModel, "mesoName", mesoName);
-					mesosModel.setProperty(idxModel, "mesoStartDate", mesoStartDate);
-					mesosModel.setProperty(idxModel, "mesoEndDate", mesoEndDate);
-					mesosModel.setProperty(idxModel, "mesonWeeks", nWeeks)
-					mesosModel.setProperty(idxModel, "mesoSplit", mesoSplit);
 					divisionModel.setProperty(idxDivision, "splitA", strSplitA);
 					divisionModel.setProperty(idxDivision, "splitB", strSplitB);
 					divisionModel.setProperty(idxDivision, "splitC", strSplitC);
 					divisionModel.setProperty(idxDivision, "splitD", strSplitD);
 					divisionModel.setProperty(idxDivision, "splitE", strSplitE);
 					divisionModel.setProperty(idxDivision, "splitF", strSplitF);
-					mesosModel.setProperty(idxModel, "mesoDrugs", mesoDrugs);
-					mesosModel.setProperty(idxModel, "mesoNote", mesoNote);
+					mesocyclesListModel.setProperty(idxModel, "mesoDrugs", mesoDrugs);
+					mesocyclesListModel.setProperty(idxModel, "mesoNote", mesoNote);
 				}
 				bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 				appDBModified = true;
@@ -966,8 +932,8 @@ Page {
 
 		function finishCreation() {
 			mesocycleCalendarPage = component.createObject(mesoPropertiesPage, {
-					mesoId: mesoId, mesoName: mesosModel.get(idxModel).mesoName, mesoStartDate: mesosModel.get(idxModel).mesoStartDate,
-					mesoEndDate: mesosModel.get(idxModel).mesoEndDate, mesoSplit: mesosModel.get(idxModel).mesoSplit, bVisualLoad: bshowpage
+					mesoId: mesoId, mesoName: mesocyclesListModel.get(idxModel, 1), mesoStartDate: mesocyclesListModel.getDate(idxModel, 2),
+					mesoEndDate: mesocyclesListModel.getDate(idxModel, 3), mesoSplit: mesocyclesListModel.get(idxModel, 6), bVisualLoad: bshowpage
 			});
 			if (bshowpage)
 				appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
@@ -993,4 +959,3 @@ Page {
 			component.statusChanged.connect(finishCreation);
 	}
 } //Page
-

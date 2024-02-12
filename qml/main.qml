@@ -55,6 +55,7 @@ ApplicationWindow {
 	property var trainingDayInfoPages: []
 	property var mesoPlannerList: []
 	property var dbExercisesListPage: null
+	property var homePage: null
 	readonly property var appStackView: stackView
 
 	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
@@ -72,12 +73,12 @@ ApplicationWindow {
 				todayFull = newdate; //This includes the time of object creation
 				today = new Date(todayFull.getFullYear(), todayFull.getMonth(), todayFull.getDate()); //Normalized date of today with time always set to 0
 
-				if ( initialPage.mainModel.count > 0 ) {
-					currentMesoIdx = initialPage.mainModel.count - 1;
-					if (initialPage.mainModel.get(currentMesoIdx).realMeso) {
+				if ( DBMesocyclesModel.count > 0 ) {
+					currentMesoIdx = DBMesocyclesModel.count - 1;
+					if (DBMesocyclesModel.get(currentMesoIdx).realMeso) {
 						do {
-							var mesoStartDate = initialPage.mainModel.get(currentMesoIdx).mesoStartDate;
-							var mesoEndDate = initialPage.mainModel.get(currentMesoIdx).mesoEndDate;
+							var mesoStartDate = DBMesocyclesModel.get(currentMesoIdx, 2);
+							var mesoEndDate = DBMesocyclesModel.get(currentMesoIdx, 3)
 							if (today >= mesoStartDate && today <= mesoEndDate)
 								break;
 						} while (--currentMesoIdx >= 0);
@@ -186,6 +187,30 @@ ApplicationWindow {
 		id:	exercisesListModel
 	}
 
+	DBMesocyclesModel {
+		id: mesocyclesListModel
+
+		Component.onCompleted: {
+			var component = Qt.createComponent("HomePage.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				homePage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
+				stackView.initialItem = Qt.binding(function() { return homePage; })
+			}
+
+			function readyToCreate() {
+				appDB.qmlReady.disconnect(readyToCreate);
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			appDB.qmlReady.connect(readyToCreate);
+			appDB.pass_object(mesocyclesListModel);
+			appDB.getAllMesocycles();
+		}
+	}
+
 	Flickable {
 		width: parent.width
 		height: parent.height
@@ -194,15 +219,15 @@ ApplicationWindow {
 
 		ScrollIndicator.vertical: ScrollIndicator {}
 
-		HomePage {
-			id: initialPage
-			Component.onCompleted: Database.init_database();
-		}
+		//HomePage {
+		//	id: initialPage
+			//Component.onCompleted: Database.init_database();
+		//}
 
 		StackView {
 			id: stackView
 			anchors.fill: parent
-			initialItem: initialPage
+			//initialItem: initialPage
 		}
 	}
 
@@ -239,19 +264,19 @@ ApplicationWindow {
 					}
 				}
 
-				const mostRecentMeso = initialPage.mainModel.count - 1;
-				const meso_name = initialPage.mainModel.get(mostRecentMeso).mesoName
+				const mostRecentMeso = DBMesocyclesModel.count - 1;
+				const meso_name = DBMesocyclesModel.get(mostRecentMeso).mesoName
 				var tday = 0, splitletter = 'A', mesoid = 0;
 				var bFirstTime = false;
 
-				if (initialPage.mainModel.get(mostRecentMeso).realMeso) {
+				if (DBMesocyclesModel.get(mostRecentMeso).realMeso) {
 					let calendar_info = Database.getMesoCalendarDate(today);
 					tday = calendar_info[0].mesoCalnDay;
 					splitletter = calendar_info[0].mesoCalSplit;
 					mesoid = calendar_info[0].mesoCalMesoId;
 				}
 				else {
-					let meso_info = Database.getMesoInfo(initialPage.mainModel.get(mostRecentMeso).mesoId);
+					let meso_info = Database.getMesoInfo(DBMesocyclesModel.get(mostRecentMeso).mesoId);
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
 					if (day_info.exercisesNames) {
@@ -323,7 +348,7 @@ ApplicationWindow {
 
 			function finishCreation() {
 				console.log("tooltip should disappear now")
-				dbExercisesListPage = component.createObject(mainwindow, { "width":initialPage.width, "height":initialPage.height });
+				dbExercisesListPage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
 				appStackView.push(dbExercisesListPage, StackView.DontLoad);
 			}
 

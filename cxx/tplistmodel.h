@@ -3,6 +3,7 @@
 
 #include <QAbstractListModel>
 #include <QQmlEngine>
+#include <QDate>
 
 #ifdef DEBUG
 #define MSG_OUT(message) qDebug() << message;
@@ -55,6 +56,7 @@ public:
 	Q_INVOKABLE const QString get(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)); }
 	Q_INVOKABLE int getInt(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toInt(); }
 	Q_INVOKABLE float getFloat(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toFloat(); }
+	Q_INVOKABLE QDate getDate(const uint row, const uint field) const { return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong()); }
 	Q_INVOKABLE const QStringList getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 
 public:

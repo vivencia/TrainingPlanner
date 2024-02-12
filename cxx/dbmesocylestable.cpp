@@ -62,7 +62,7 @@ void DBMesocyclesTable::getAllMesocycles()
 			{
 				QStringList meso_info;
 
-				const uint n_entries(7);
+				const uint n_entries(8);
 				uint i(0);
 				do
 				{
@@ -72,12 +72,10 @@ void DBMesocyclesTable::getAllMesocycles()
 					m_model->appendList(meso_info);
 					meso_info.clear();
 				} while ( query.next () );
-				m_opcode = OP_READ;
-				m_result = true;
-				resultFunc(static_cast<TPDatabaseTable*>(this));
 			}
 		}
 		mSqlLiteDB.close();
+		m_result = true;
 	}
 
 	if (!m_result)
@@ -87,6 +85,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -105,18 +104,16 @@ void DBMesocyclesTable::getMesoInfo()
 		{
 			if (query.first ())
 			{
-				QStringList meso_info;
+				m_data.clear();
 				const uint n_entries(7);
 				for (uint i(0); i < n_entries; ++i)
-					meso_info.append(query.value(static_cast<int>(i)).toString());
-				meso_info.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
-				m_model->appendList(meso_info);
-				m_opcode = OP_READ;
+					m_data.append(query.value(static_cast<int>(i)).toString());
+				m_data.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
 				m_result = true;
-				mSqlLiteDB.close();
-				resultFunc(static_cast<TPDatabaseTable*>(this));
+				m_opcode = OP_READ;
 			}
 		}
+		mSqlLiteDB.close();
 	}
 
 	if (!m_result)
@@ -126,6 +123,7 @@ void DBMesocyclesTable::getMesoInfo()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getMesoInfo meso_id " << meso_id << "  SUCCESS")
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -143,16 +141,13 @@ void DBMesocyclesTable::getPreviousMesoId()
 		{
 			if (query.last ())
 			{
-				QStringList meso_info;
-				//Get all the info, even if the caller will not need them. Sometimes it will be used, other not, but I want only one function for this command
-				const uint n_entries(7);
+				m_data.clear();
+				const uint n_entries(8);
 				for (uint i(0); i < n_entries; ++i)
-					meso_info.append(query.value(static_cast<int>(i)).toString());
-				meso_info.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
-				m_model->appendList(meso_info);
+					m_data.append(query.value(static_cast<int>(i)).toString());
+				m_data.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
 				m_opcode = OP_READ;
 				m_result = true;
-				resultFunc(static_cast<TPDatabaseTable*>(this));
 			}
 		}
 		mSqlLiteDB.close();
@@ -165,6 +160,7 @@ void DBMesocyclesTable::getPreviousMesoId()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getPreviousMesoId current_meso_id " << current_meso_id << "  SUCCESS")
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -182,23 +178,21 @@ void DBMesocyclesTable::getNextMesoStartDate()
 		{
 			if (query.last ())
 			{
-				QStringList meso_info;
-				meso_info.append("");
-				meso_info.append("");
+				m_data.clear();
+				m_data.append("");
+				m_data.append("");
 
 				//This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
 				if (query.value(0).toUInt() == meso_id)
 				{
 					QDate futureDate(QDate::currentDate().addMonths(6));
-					meso_info.append(QString::number(futureDate.toJulianDay()));
+					m_data.append(QString::number(futureDate.toJulianDay()));
 				}
 				else
-					meso_info.append(query.value(1).toString());
-
-				m_model->appendList(meso_info);
+					m_data.append(query.value(1).toString());
 				m_opcode = OP_READ;
 				m_result = true;
-				resultFunc(static_cast<TPDatabaseTable*>(this));
+
 			}
 		}
 		mSqlLiteDB.close();
@@ -211,6 +205,7 @@ void DBMesocyclesTable::getNextMesoStartDate()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getNextMesoStartDate current_meso_id " << meso_id << "  SUCCESS")
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -227,15 +222,13 @@ void DBMesocyclesTable::getLastMesoEndDate()
 		{
 			if (query.first ())
 			{
-				QStringList meso_info;
-				meso_info.append("");
-				meso_info.append("");
-				meso_info.append("");
-				meso_info.append(query.value(0).toString());
-				m_model->appendList(meso_info);
+				m_data.clear();
+				m_data.append("");
+				m_data.append("");
+				m_data.append("");
+				m_data.append(query.value(0).toString());
 				m_opcode = OP_READ;
 				m_result = true;
-				resultFunc(static_cast<TPDatabaseTable*>(this));
 			}
 		}
 		mSqlLiteDB.close();
@@ -248,6 +241,7 @@ void DBMesocyclesTable::getLastMesoEndDate()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getLastMesoEndDate SUCCESS")
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -265,21 +259,23 @@ void DBMesocyclesTable::newMesocycle()
 										m_data.at(6), m_data.at(7)) );
 		m_result = query.exec();
 		if (m_result)
+		{
+			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
 			m_data[0] = query.lastInsertId().toString();
+			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
+			if (m_model)
+				m_model->appendList(m_data);
+			m_opcode = OP_ADD;
+		}
 		mSqlLiteDB.close();
 	}
 
-	if (m_result)
-	{
-		MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
-		m_opcode = OP_ADD;
-		resultFunc(static_cast<TPDatabaseTable*>(this));
-	}
-	else
+	if (!m_result)
 	{
 		MSG_OUT("DBMesocyclesTable newMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable newMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -301,14 +297,15 @@ void DBMesocyclesTable::updateMesocycle()
 	if (m_result)
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
-		m_opcode = OP_ADD;
-		resultFunc(static_cast<TPDatabaseTable*>(this));
+		if (m_model)
+			m_model->updateList(m_data, m_model->currentRow());
 	}
 	else
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable updateMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -325,15 +322,16 @@ void DBMesocyclesTable::removeMesocycle()
 
 	if (m_result)
 	{
+		if (m_model)
+			m_model->removeFromList(m_model->currentRow());
 		MSG_OUT("DBExercisesTable removeMesocycle SUCCESS")
-		m_opcode = OP_DEL;
-			resultFunc(static_cast<TPDatabaseTable*>(this));
 	}
 	else
 	{
 		MSG_OUT("DBMesocyclesTable removeMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable removeMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
+	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

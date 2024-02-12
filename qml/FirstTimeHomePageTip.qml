@@ -4,6 +4,7 @@ import QtQuick.Controls
 ToolTip {
 	id: firstTimeTip
 	property string message
+	property bool showTwoImages: false
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	visible: false
 
@@ -20,6 +21,35 @@ ToolTip {
 			anim.stop();
 	}
 
+	Image {
+		id: img1
+		source: "qrc:/images/point-down.png"
+		height: 30
+		width: 30
+		fillMode: Image.PreserveAspectFit
+
+		anchors {
+			left: textPart.right
+			leftMargin: -5
+			verticalCenter: parent.verticalCenter
+		}
+	}
+
+	Image {
+		id: img2
+		source: "qrc:/images/point-down.png"
+		height: 30
+		width: 30
+		fillMode: Image.PreserveAspectFit
+		visible: showTwoImages
+
+		anchors {
+			right: textPart.left
+			rightMargin: -5
+			verticalCenter: parent.verticalCenter
+		}
+	}
+
 	contentItem: Text {
 		id: textPart
 		text: message
@@ -29,7 +59,9 @@ ToolTip {
 		width: fontMetrics.boundingRect(text).width + 10
 		height: fontMetrics.boundingRect(text).height + 5
 		anchors {
-			left: parent.left
+			leftMargin: showTwoImages ? 40 : 5
+			rightMargin: 40
+			horizontalCenter: parent.horizontalCenter
 			verticalCenter: parent.verticalCenter
 		}
 	}
@@ -40,18 +72,6 @@ ToolTip {
 		color: primaryDarkColor
 		opacity: 0.7
 		radius: 7
-	}
-
-	Image {
-		source: "qrc:/images/point-down.png"
-		height: 30
-		width: 30
-		fillMode: Image.PreserveAspectFit
-
-		anchors {
-			left: textPart.right
-			verticalCenter: parent.verticalCenter
-		}
 	}
 
 	SequentialAnimation {

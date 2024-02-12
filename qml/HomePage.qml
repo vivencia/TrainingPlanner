@@ -8,7 +8,6 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: homePage
-	property ListModel mainModel: mainMesosModel
 	property int currentMesoIndex
 	property date minimumStartDate;
 	property var firstTimeTip: null
@@ -50,46 +49,18 @@ Page {
 			active: ScrollBar.AsNeeded
 		}
 
-		model: ListModel {
-			id: mainMesosModel
+		model: mesocyclesListModel
 
-			Component.onCompleted: {
-				let mesos = Database.getMesos();
-				if (mesos.length !== 0) {
-					for (let meso of mesos)
-						append(meso);
-					pageActivation();
-				}
-				else {
-					createFirstTimeTipComponent();
-					firstTimeTip.y = homePageToolBar.y;
-					firstTimeTip.x = (homePage.width-100)/2;
-					firstTimeTip.visible = true;
-					bFirstTime = true;
-				}
-			}
 
-			onCountChanged: {
+			/*onCountChanged: {
 				if (count >= 1 && bFirstTime)
 					bFirstTime = false;
-			}
-		}
+			}*/
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
 			width: ListView.view.width
 			height: mesoContent.implicitHeight
-
-			required property int index
-			required property int mesoId
-			required property string mesoName
-			required property string mesoNote
-			required property date mesoStartDate
-			required property date mesoEndDate
-			required property int nWeeks
-			required property string mesoSplit
-			property string mesoDrugs
-			required property bool realMeso
 
 			Rectangle {
 				id: recRemoveMeso
@@ -138,7 +109,7 @@ Page {
 
 					onButton1Clicked: {
 						Database.deleteMeso(mesoId);
-						mainMesosModel.remove(mesoDelegate.index, 1);
+						mesocyclesListModel.remove(mesoDelegate.index, 1);
 						dateTimer.triggered(); //Update tabBar and the meso model index it uses
 						pageActivation();
 					}
@@ -233,7 +204,7 @@ Page {
 					color: "white"
 				}
 				Label {
-					text: qsTr("Weeks in mesocycle: <b>") + nWeeks.toString() + "</b>"
+					text: qsTr("Weeks in mesocycle: <b>") + mesoWeeks + "</b>"
 					color: "white"
 					visible: realMeso
 				}
@@ -244,6 +215,18 @@ Page {
 			}
 		} //delegate
 	} //ListView
+
+	Component.onCompleted: {
+		if (mesocyclesListModel.count !== 0)
+			pageActivation();
+		else {
+			createFirstTimeTipComponent();
+			firstTimeTip.y = homePageToolBar.y;
+			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
+			firstTimeTip.visible = true;
+			bFirstTime = true;
+		}
+	}
 
 	footer: ToolBar {
 		id: homePageToolBar
@@ -285,13 +268,13 @@ Page {
 			firstTimeTip.visible = false;
 
 		var startDate, endDate;
-		if (mainMesosModel.count === 0) {
+		if (mesocyclesListModel.count === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
 			startDate = today;
 			endDate = JSF.createFutureDate(startDate, 0, 2, 0);
 		}
 		else {
-			if (mainMesosModel.realMeso)
+			if (mesocyclesListModel.realMeso)
 				getMesoStartDate();
 			else
 				minimumStartDate = today;
@@ -313,7 +296,6 @@ Page {
 
 				if (Opt === 1) {
 					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mainMesosModel,
 						mesoId: -1,
 						mesoName: "Novo mesociclo",
 						mesoStartDate: startDate,
@@ -333,7 +315,6 @@ Page {
 				}
 				else {
 					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mainMesosModel,
 						mesoId: -1,
 						mesoSplit: "ABC",
 						mesoStartDate: startDate,
@@ -363,14 +344,13 @@ Page {
 	}
 
 	function showMeso() {
-		let meso = mainMesosModel.get(currentMesoIndex);
 		var startDate;
 		if (currentMesoIndex === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
 			startDate = today;
 		}
 		else {
-			startDate = meso.mesoStartDate;
+			startDate = mesocyclesListModel.mesoStartDate;
 		}
 
 		for (var i = 0; i < mesocyclePages.length; ++i) {
@@ -394,18 +374,18 @@ Page {
 				var mesocyclePage = null;
 				if (meso.realMeso) {
 					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mainMesosModel,
+						mesosModel: mesocyclesListModel,
 						idxModel: currentMesoIndex,
-						mesoId: meso.mesoId,
-						mesoName: meso.mesoName,
-						mesoStartDate: meso.mesoStartDate,
-						mesoEndDate: meso.mesoEndDate,
-						mesoNote: meso.mesoNote,
-						nWeeks: meso.nWeeks,
-						mesoSplit: meso.mesoSplit,
-						mesoDrugs: meso.mesoDrugs,
-						minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
-						maximumMesoEndDate: Database.getNextMesoStartDate(meso.mesoId),
+						mesoId: mesocyclesListModel.mesoId,
+						mesoName: mesocyclesListModel.mesoName,
+						mesoStartDate: mesocyclesListModel.mesoStartDate,
+						mesoEndDate: mesocyclesListModel.mesoEndDate,
+						mesoNote: mesocyclesListModel.mesoNote,
+						nWeeks: mesocyclesListModel.mesoWeeks,
+						mesoSplit: mesocyclesListModel.mesoSplit,
+						mesoDrugs: mesocyclesListModel.mesoDrugs,
+						minimumMesoStartDate: appDB.getPreviousMesoEndDate(mesocyclesListModel.mesoId),
+						maximumMesoEndDate: appDB.getNextMesoStartDate(mesocyclesListModel.mesoId),
 						week1: weekOne,
 						week2: weekTwo,
 						calendarStartDate: startDate
@@ -413,7 +393,7 @@ Page {
 				}
 				else {
 					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mainMesosModel,
+						mesosModel: mesocyclesListModel,
 						idxModel: currentMesoIndex,
 						mesoId: meso.mesoId,
 						mesoSplit: meso.mesoSplit,
@@ -457,11 +437,11 @@ Page {
 	}
 
 	function pageActivation() {
-		//mainMesosModel.count === 0 is a first iteration of tips
+		//mesocyclesListModel.count === 0 is a first iteration of tips
 		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
-		const showTip = mainMesosModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mainMesosModel.mesoId) : false;
+		const showTip = mesocyclesListModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesListModel.mesoId) : false;
 
-		if (mainMesosModel.count === 0 || showTip) {
+		if (mesocyclesListModel.count === 0 || showTip) {
 			if (firstTimeTip) {
 				firstTimeTip.message = qsTr("Start here");
 				firstTimeTip.visible = true;
@@ -469,7 +449,7 @@ Page {
 			else
 				createFirstTimeTipComponent();
 
-			if (mainMesosModel.count === 0) {
+			if (mesocyclesListModel.count === 0) {
 				firstTimeTip.y = homePageToolBar.y;
 				firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
 				firstTimeTip.visible = true;
@@ -492,7 +472,7 @@ Page {
 	function createFirstTimeTipComponent() {
 		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
 		if (component.status === Component.Ready) {
-			firstTimeTip = component.createObject(homePage, { message:qsTr("Start here") });
+			firstTimeTip = component.createObject(homePage, { message:qsTr("Start either here or here"), showTwoImages: true });
 			homePage.StackView.activating.connect(pageActivation);
 			homePage.StackView.onDeactivating.connect(pageDeActivation);
 		}
