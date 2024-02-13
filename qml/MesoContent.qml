@@ -375,7 +375,6 @@ Page {
 				else {
 					running = false;
 					dlgProgressIndicator.close ();
-					appDBModified = true;
 				}
 			}
 		}

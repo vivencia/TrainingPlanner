@@ -45,17 +45,14 @@ ApplicationWindow {
 	property string iconOnAccentFolder: accentPalette[2]
 
 	property bool bNavButtonsEnabled: true
-	property bool appDBModified: false
 	property bool bLongTask: false
 
 	property date todayFull
 	property date today
-	property int currentMesoIdx: -1
 
 	property var trainingDayInfoPages: []
 	property var mesoPlannerList: []
 	property var dbExercisesListPage: null
-	property var homePage: null
 	readonly property var appStackView: stackView
 
 	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
@@ -72,18 +69,6 @@ ApplicationWindow {
 			if (newdate != todayFull) {
 				todayFull = newdate; //This includes the time of object creation
 				today = new Date(todayFull.getFullYear(), todayFull.getMonth(), todayFull.getDate()); //Normalized date of today with time always set to 0
-
-				if ( DBMesocyclesModel.count > 0 ) {
-					currentMesoIdx = DBMesocyclesModel.count - 1;
-					if (DBMesocyclesModel.get(currentMesoIdx).realMeso) {
-						do {
-							var mesoStartDate = DBMesocyclesModel.get(currentMesoIdx, 2);
-							var mesoEndDate = DBMesocyclesModel.get(currentMesoIdx, 3)
-							if (today >= mesoStartDate && today <= mesoEndDate)
-								break;
-						} while (--currentMesoIdx >= 0);
-					}
-				}
 			}
 		}
 	}
@@ -191,21 +176,11 @@ ApplicationWindow {
 		id: mesocyclesListModel
 
 		Component.onCompleted: {
-			var component = Qt.createComponent("HomePage.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				homePage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
-				stackView.initialItem = Qt.binding(function() { return homePage; })
+			function readyToProceed() {
+				appDB.qmlReady.disconnect(readyToProceed);
+				homePage.setModel();
 			}
-
-			function readyToCreate() {
-				appDB.qmlReady.disconnect(readyToCreate);
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			appDB.qmlReady.connect(readyToCreate);
+			appDB.qmlReady.connect(readyToProceed);
 			appDB.pass_object(mesocyclesListModel);
 			appDB.getAllMesocycles();
 		}
@@ -219,15 +194,14 @@ ApplicationWindow {
 
 		ScrollIndicator.vertical: ScrollIndicator {}
 
-		//HomePage {
-		//	id: initialPage
-			//Component.onCompleted: Database.init_database();
-		//}
+		HomePage {
+			id: homePage
+		}
 
 		StackView {
 			id: stackView
 			anchors.fill: parent
-			//initialItem: initialPage
+			initialItem: homePage
 		}
 	}
 
@@ -244,7 +218,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("  + Day")
-			enabled: appStackView.depth === 1 && currentMesoIdx >= 0
+			enabled: appStackView.depth === 1 && mesocyclesListModel.count() > 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
@@ -264,19 +238,19 @@ ApplicationWindow {
 					}
 				}
 
-				const mostRecentMeso = DBMesocyclesModel.count - 1;
-				const meso_name = DBMesocyclesModel.get(mostRecentMeso).mesoName
+				const mostRecentMeso = mesocyclesListModel.count - 1;
+				const meso_name = mesocyclesListModel.get(mostRecentMeso, 1);
 				var tday = 0, splitletter = 'A', mesoid = 0;
 				var bFirstTime = false;
 
-				if (DBMesocyclesModel.get(mostRecentMeso).realMeso) {
+				if (mesocyclesListModel.get(mostRecentMeso, 8) === "1") {
 					let calendar_info = Database.getMesoCalendarDate(today);
 					tday = calendar_info[0].mesoCalnDay;
 					splitletter = calendar_info[0].mesoCalSplit;
 					mesoid = calendar_info[0].mesoCalMesoId;
 				}
 				else {
-					let meso_info = Database.getMesoInfo(DBMesocyclesModel.get(mostRecentMeso).mesoId);
+					let meso_info = Database.getMesoInfo(mesocyclesListModel.getInt(mostRecentMeso, 0));
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
 					if (day_info.exercisesNames) {

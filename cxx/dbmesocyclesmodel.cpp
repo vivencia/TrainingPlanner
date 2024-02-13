@@ -63,3 +63,73 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 	}
 	return false;
 }
+
+QStringList DBMesocyclesModel::getMesoInfo(const int mesoid) const
+{
+	if (mesoid >= 0)
+	{
+		for(uint x(0); x < count(); ++x)
+		{
+			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
+				return getRow(x);
+		}
+	}
+	return QStringList();
+}
+
+int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
+{
+	if (current_mesoid >= 0)
+	{
+		for(uint x(0); x < count(); ++x)
+		{
+			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == current_mesoid)
+			{
+				if (x > 0)
+					return static_cast<QString>(m_modeldata.at(m_indexProxy.at(x-1)).at(0)).toInt();
+			}
+		}
+	}
+	return -1;
+}
+
+QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
+{
+	if (current_mesoid >= 0)
+	{
+		for(uint x(0); x < count(); ++x)
+		{
+			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == current_mesoid)
+			{
+				if (x > 0)
+					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(x-1)).at(3)).toLongLong());
+			}
+		}
+	}
+	// 1 or 0 meso records = no previous meso. The first meso can start anywhere in 2024
+	return QDate(2024, 1, 1);
+}
+
+QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
+{
+	if (mesoid >= 0)
+	{
+		for(uint x(0); x < count(); ++x)
+		{
+			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
+			{
+				if (x + 1 < count())
+					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(x+1)).at(2)).toLongLong());
+			}
+		}
+	}
+	 //This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
+	return QDate::currentDate().addMonths(6);
+}
+
+QDate DBMesocyclesModel::getLastMesoEndDate() const
+{
+	if ( count() > 0)
+		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.last()).at(3)).toLongLong());
+	return QDate::currentDate();
+}

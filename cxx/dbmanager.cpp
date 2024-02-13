@@ -184,40 +184,6 @@ void DbManager::getAllMesocycles()
 	createThread(worker, [worker] () { worker->getAllMesocycles(); } );
 }
 
-void DbManager::getMesoInfo(const uint meso_id)
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
-	worker->addExecArg(meso_id);
-	createThread(worker, [worker] () { worker->getMesoInfo(); } );
-}
-
-void DbManager::getPreviousMesoId(const uint current_meso_id)
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
-	worker->addExecArg(current_meso_id);
-	createThread(worker, [worker] () { worker->getPreviousMesoId(); } );
-}
-
-void DbManager::getPreviousMesoEndDate(const uint current_meso_id)
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
-	worker->addExecArg(current_meso_id);
-	createThread(worker, [worker] () { worker->getPreviousMesoEndDate(); } );
-}
-
-void DbManager::getNextMesoStartDate(const uint meso_id)
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
-	worker->addExecArg(meso_id);
-	createThread(worker, [worker] () { worker->getNextMesoStartDate(); } );
-}
-
-void DbManager::getLastMesoEndDate()
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
-	createThread(worker, [worker] () { worker->getLastMesoEndDate(); } );
-}
-
 void DbManager::newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
 						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
 {

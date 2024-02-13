@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	RunCommands runCmd;
+	RunCommands runCmd(&appSettings);
 	QString db_filepath (appSettings.value("dbFilePath").toString());
 	if (db_filepath.isEmpty()) {
 		db_filepath = runCmd.getAppDir(runCmd.searchForDatabaseFile(engine.offlineStoragePath()));

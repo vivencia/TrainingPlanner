@@ -14,6 +14,7 @@ static const uint MESOCYCLES_TABLE_ID = 0x0002;
 class DBMesocyclesTable : public TPDatabaseTable
 {
 
+
 public:
 	explicit DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model = nullptr);
 

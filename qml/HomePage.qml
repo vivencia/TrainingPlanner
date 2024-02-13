@@ -8,7 +8,7 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: homePage
-	property int currentMesoIndex
+	property int currentMesoIndex: -1
 	property date minimumStartDate;
 	property var firstTimeTip: null
 	property bool bFirstTime: false
@@ -48,14 +48,6 @@ Page {
 			policy: ScrollBar.AsNeeded
 			active: ScrollBar.AsNeeded
 		}
-
-		model: mesocyclesListModel
-
-
-			/*onCountChanged: {
-				if (count >= 1 && bFirstTime)
-					bFirstTime = false;
-			}*/
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
@@ -110,7 +102,6 @@ Page {
 					onButton1Clicked: {
 						Database.deleteMeso(mesoId);
 						mesocyclesListModel.remove(mesoDelegate.index, 1);
-						dateTimer.triggered(); //Update tabBar and the meso model index it uses
 						pageActivation();
 					}
 
@@ -193,13 +184,13 @@ Page {
 				}
 				Label {
 					text: realMeso ?
-							qsTr("Start of mesocycle: <b>") + JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale) + "</b>" :
-							qsTr("Program start date: <b>") + JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale) + "</b>"
+							qsTr("Start of mesocycle: <b>") + runCmd.formatDate(mesoStartDate) + "</b>" :
+							qsTr("Program start date: <b>") + runCmd.formatDate(mesoStartDate) + "</b>"
 					color: "white"
 				}
 				Label {
 					text: realMeso ?
-							qsTr("End of mesocycle: <b>") + JSF.formatDateToDisplay(mesoEndDate, AppSettings.appLocale) + "</b>" :
+							qsTr("End of mesocycle: <b>") + runCmd.formatDate(mesoEndDate) + "</b>" :
 							qsTr("Open-ended program - no end date set")
 					color: "white"
 				}
@@ -215,18 +206,6 @@ Page {
 			}
 		} //delegate
 	} //ListView
-
-	Component.onCompleted: {
-		if (mesocyclesListModel.count !== 0)
-			pageActivation();
-		else {
-			createFirstTimeTipComponent();
-			firstTimeTip.y = homePageToolBar.y;
-			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
-			firstTimeTip.visible = true;
-			bFirstTime = true;
-		}
-	}
 
 	footer: ToolBar {
 		id: homePageToolBar
@@ -263,6 +242,22 @@ Page {
 		}
 	} // footer
 
+	function setModel() {
+		mesosListView.model = mesocyclesListModel;
+		homePage.StackView.activating.connect(pageActivation);
+		homePage.StackView.onDeactivating.connect(pageDeActivation);
+
+		if (mesocyclesListModel.count !== 0)
+			pageActivation();
+		else {
+			createFirstTimeTipComponent();
+			firstTimeTip.y = homePageToolBar.y;
+			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
+			firstTimeTip.visible = true;
+			bFirstTime = true;
+		}
+	}
+
 	function newAction(opt) {
 		if (firstTimeTip)
 			firstTimeTip.visible = false;
@@ -271,18 +266,16 @@ Page {
 		if (mesocyclesListModel.count === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
 			startDate = today;
-			endDate = JSF.createFutureDate(startDate, 0, 2, 0);
+			endDate = runCmd.createFutureDate(startDate, 0, 2, 0);
 		}
 		else {
 			if (mesocyclesListModel.realMeso)
-				getMesoStartDate();
+				minimumStartDate = runCmd.getMesoStartDate(mesocyclesListModel.getLastMesoEndDate());
 			else
 				minimumStartDate = today;
 			startDate = minimumStartDate;
-			endDate = JSF.createFutureDate(minimumStartDate, 0, 2, 0);
+			endDate = runCmd.createFutureDate(minimumStartDate, 0, 2, 0);
 		}
-		const weekOne = JSF.weekNumber(startDate);
-		const weekTwo = JSF.weekNumber(endDate);
 
 		function generateObject(_opt) {
 			var component;
@@ -295,28 +288,22 @@ Page {
 				var mesocyclePage;
 
 				if (Opt === 1) {
-					mesocyclePage = component.createObject(homePage, {
+					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						mesoId: -1,
-						mesoName: "Novo mesociclo",
+						idxModel: -1,
 						mesoStartDate: startDate,
 						mesoEndDate: endDate,
-						mesoNote: "",
-						nWeeks: JSF.calculateNumberOfWeeks(weekOne, weekTwo),
-						mesoSplit:"ABCRDER",
-						mesoDrugs: " ",
 						minimumMesoStartDate: minimumStartDate,
-						maximumMesoEndDate: JSF.createFutureDate(startDate,0,6,0),
+						maximumMesoEndDate: runCmd.createFutureDate(startDate,0,6,0),
 						fixedMesoEndDate: endDate,
-						week1: weekOne,
-						week2: weekTwo,
 						calendarStartDate: startDate
 					});
 					appStackView.push(mesocyclePage);
 				}
 				else {
-					mesocyclePage = component.createObject(homePage, {
+					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						mesoId: -1,
-						mesoSplit: "ABC",
+						idxModel: -1,
 						mesoStartDate: startDate,
 						minimumMesoStartDate: minimumStartDate,
 						maximumMesoEndDate: new Date(2026,11,31),
@@ -344,17 +331,10 @@ Page {
 	}
 
 	function showMeso() {
-		var startDate;
-		if (currentMesoIndex === 0) {
-			minimumStartDate = new Date(2023, 0, 2); //first monday of year
-			startDate = today;
-		}
-		else {
-			startDate = mesocyclesListModel.mesoStartDate;
-		}
+		const mesoid = mesocyclesListModel.getInt(currentMesoIndex, 0)
 
 		for (var i = 0; i < mesocyclePages.length; ++i) {
-			if (mesocyclePages[i].Object.mesoId === meso.mesoId) {
+			if (mesocyclePages[i].Object.mesoId === mesoid) {
 				appStackView.push(mesocyclePages[i].Object, StackView.DontLoad);
 				return;
 			}
@@ -362,45 +342,34 @@ Page {
 
 		function generateObject() {
 			var component;
-			const weekOne = JSF.weekNumber(meso.mesoStartDate);
-			const weekTwo = JSF.weekNumber(meso.mesoEndDate);
 
-			if (meso.realMeso)
+			if (mesocyclesListModel.get(currentMesoIndex,8) === "1")
 				component = Qt.createComponent("MesoCycle.qml", Qt.Asynchronous);
 			else
 				component = Qt.createComponent("OpenEndedPlan.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				var mesocyclePage = null;
-				if (meso.realMeso) {
-					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mesocyclesListModel,
+				if (mesocyclesListModel.get(currentMesoIndex,8) === "1") {
+					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						idxModel: currentMesoIndex,
-						mesoId: mesocyclesListModel.mesoId,
-						mesoName: mesocyclesListModel.mesoName,
-						mesoStartDate: mesocyclesListModel.mesoStartDate,
-						mesoEndDate: mesocyclesListModel.mesoEndDate,
-						mesoNote: mesocyclesListModel.mesoNote,
-						nWeeks: mesocyclesListModel.mesoWeeks,
-						mesoSplit: mesocyclesListModel.mesoSplit,
-						mesoDrugs: mesocyclesListModel.mesoDrugs,
-						minimumMesoStartDate: appDB.getPreviousMesoEndDate(mesocyclesListModel.mesoId),
-						maximumMesoEndDate: appDB.getNextMesoStartDate(mesocyclesListModel.mesoId),
-						week1: weekOne,
-						week2: weekTwo,
-						calendarStartDate: startDate
+						mesoId: mesoid,
+						mesoStartDate: mesocyclesListModel.getDate(currentMesoIndex,2),
+						mesoEndDate: mesocyclesListModel.getDate(currentMesoIndex, 3),
+						minimumMesoStartDate: mesocyclesListModel.getPreviousMesoEndDate(mesoid),
+						maximumMesoEndDate: mesocyclesListModel.getNextMesoStartDate(mesoid),
+						calendarStartDate: mesocyclesListModel.getDate(currentMesoIndex, 2)
+
 					});
 				}
 				else {
-					mesocyclePage = component.createObject(homePage, {
-						mesosModel: mesocyclesListModel,
+					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						idxModel: currentMesoIndex,
-						mesoId: meso.mesoId,
-						mesoSplit: meso.mesoSplit,
-						mesoStartDate: meso.mesoStartDate,
-						minimumMesoStartDate: Database.getPreviousMesoEndDate(meso.mesoId),
+						mesoId: mesoid,
+						mesoStartDate: mesocyclesListModel.getDate(currentMesoIndex,2),
+						minimumMesoStartDate: mesocyclesListModel.getPreviousMesoEndDate(mesoid),
 						maximumMesoEndDate: new Date(2026,11,31),
-						calendarStartDate: startDate
+						calendarStartDate: mesocyclesListModel.getDate(currentMesoIndex, 2)
 					});
 				}
 				mesocyclePages.push ({ "Object":mesocyclePage });
@@ -415,31 +384,10 @@ Page {
 		generateObject();
 	}
 
-	function getMesoStartDate() {
-		var date = Database.getLastMesoEndDate();
-		var day = date.getDate();
-		var month = date.getMonth();
-		var year = date.getFullYear();
-
-		var daysToNextMonday = [1, 7, 6, 5, 4, 3, 2];
-		day = day + daysToNextMonday[date.getDay()]; //Always start at next monday
-
-		var totalDays = JSF.getMonthTotalDays(month, year);
-		if (day > totalDays) {
-			day -= totalDays;
-			month++;
-			if (month > 11) {
-				month = 0;
-				year++;
-			}
-		}
-		minimumStartDate = new Date(year,month,day);
-	}
-
 	function pageActivation() {
 		//mesocyclesListModel.count === 0 is a first iteration of tips
 		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
-		const showTip = mesocyclesListModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesListModel.mesoId) : false;
+		const showTip = false; // mesocyclesListModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesListModel.mesoId) : false;
 
 		if (mesocyclesListModel.count === 0 || showTip) {
 			if (firstTimeTip) {
@@ -473,8 +421,6 @@ Page {
 		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
 		if (component.status === Component.Ready) {
 			firstTimeTip = component.createObject(homePage, { message:qsTr("Start either here or here"), showTwoImages: true });
-			homePage.StackView.activating.connect(pageActivation);
-			homePage.StackView.onDeactivating.connect(pageDeActivation);
 		}
 	}
 } //Page

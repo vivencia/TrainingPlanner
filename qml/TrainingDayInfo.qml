@@ -1384,7 +1384,6 @@ Page {
 				for (i = 0; i < exerciseSpriteList.length; ++i)
 					exerciseSpriteList[i].Object.logSets();
 				bModified = false;
-				appDBModified = true;
 			}
 		} //btnSaveDay
 

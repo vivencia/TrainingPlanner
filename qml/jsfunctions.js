@@ -221,8 +221,7 @@ function calculateTimeBetweenTimes(time1, time2) {
 	return createStrTimeFromInts(hour, min);
 }
 
-function checkWhetherCanCreatePlan()
-	{
+function checkWhetherCanCreatePlan() {
 	var ok = true;
 	if (mesoSplit.indexOf('A') !== -1) {
 		ok &= (txtSplitA.length > 1);

@@ -544,7 +544,6 @@ Page {
 					});
 
 					bNewMeso = false;
-					dateTimer.triggered(); //Update tabBar and the meso model index it uses
 				}
 				else {
 					Database.updateMeso(mesoId, mesoName, mesoStartDate.getTime(), 0, "##", 0, mesoSplit, "##");
@@ -559,7 +558,6 @@ Page {
 					divisionModel.setProperty(idxDivision, "splitE", strSplitE);
 					divisionModel.setProperty(idxDivision, "splitF", strSplitF);
 				}
-				appDBModified = true;
 				bModified = false;
 			} //onClicked
 		} //btnSaveMeso

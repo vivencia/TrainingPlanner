@@ -53,11 +53,38 @@ public:
 
 	Q_INVOKABLE void setFilter(const QString& filter);
 	//Q_INVOKABLE void set(const uint row, const uint field, const QString& value) { m_modeldata.at[m_indexProxy.at(row)][field] = value; }
-	Q_INVOKABLE const QString get(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)); }
-	Q_INVOKABLE int getInt(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toInt(); }
-	Q_INVOKABLE float getFloat(const uint row, const uint field) const { return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toFloat(); }
-	Q_INVOKABLE QDate getDate(const uint row, const uint field) const { return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong()); }
-	Q_INVOKABLE const QStringList getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
+
+	Q_INVOKABLE const QString get(const uint row, const uint field) const
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
+		else
+			return QString();
+	}
+
+	Q_INVOKABLE int getInt(const uint row, const uint field) const
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toInt();
+		else
+			return -1;
+	}
+
+	Q_INVOKABLE float getFloat(const uint row, const uint field) const
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toFloat();
+		else
+			return -1.0;
+	}
+
+	Q_INVOKABLE QDate getDate(const uint row, const uint field) const
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
+		else
+			return QDate::currentDate();
+	}
 
 public:
 	// QAbstractItemModel interface
@@ -73,6 +100,7 @@ signals:
 protected:
 	// return the roles mapping to be used by QML
 	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
+	inline const QStringList& getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 
 	QList<QStringList> m_modeldata;
 	QList<uint> m_indexProxy;

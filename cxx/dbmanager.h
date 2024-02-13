@@ -36,11 +36,6 @@ public:
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllMesocycles();
-	Q_INVOKABLE void getMesoInfo(const uint meso_id);
-	Q_INVOKABLE void getPreviousMesoId(const uint current_meso_id);
-	Q_INVOKABLE void getPreviousMesoEndDate(const uint current_meso_id);
-	Q_INVOKABLE void getNextMesoStartDate(const uint meso_id);
-	Q_INVOKABLE void getLastMesoEndDate();
 	Q_INVOKABLE void newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
 						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void updateMesocycle(const QString& id, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,

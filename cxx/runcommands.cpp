@@ -3,6 +3,8 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QDir>
+#include <QSettings>
+#include <QLocale>
 
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
@@ -72,4 +74,47 @@ QString RunCommands::getAppDir(const QString& dbFile)
 			m_appPrivateDir = dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
 	}
 	return m_appPrivateDir;
+}
+
+const QString RunCommands::formatDate(const QDate& date) const
+{
+	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+	{
+		QLocale locale(QStringLiteral("pt_BR"));
+		return locale.toString(date, QStringLiteral("ddd d/M/yy"));
+	}
+	return date.toString(Qt::TextDate);
+}
+
+uint RunCommands::calculateNumberOfWeeks(const uint week1, const uint week2) const
+{
+	uint n(0);
+	//Every 6 years we have a 53 week year
+	if ( week2 < week1 ) {
+		const uint totalWeeksInYear (QDate::currentDate().year() != 2026 ? 52 : 53);
+		n = (totalWeeksInYear - week1) + week2;
+	}
+	else
+		n = week2 - week1;
+	return n+1; //+1 include current week
+}
+
+QDate RunCommands::getMesoStartDate(const QDate& lastMesoEndDate) const
+{
+	const uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
+	const QDate date (lastMesoEndDate);
+	return date.addDays(daysToNextMonday[date.dayOfWeek()]);
+}
+
+QDate RunCommands::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const
+{
+	QDate newDate(date);
+	if (days > 0)
+		newDate = newDate.addDays(days);
+	if (months > 0)
+		newDate = newDate.addMonths(months);
+	if (years > 0)
+		newDate = newDate.addYears(years);
+	qDebug() << "createFutureDate: in " << date.toString("d 'de' MMMM 'de' yyyy") << "  out  " << newDate.toString("d 'de' MMMM 'de' yyyy");
+	return newDate;
 }

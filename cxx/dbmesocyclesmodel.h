@@ -29,6 +29,11 @@ public:
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
+	Q_INVOKABLE QStringList getMesoInfo(const int mesoid) const;
+	Q_INVOKABLE int getPreviousMesoId(const int current_mesoid) const;
+	Q_INVOKABLE QDate getPreviousMesoEndDate(const int current_mesoid) const;
+	Q_INVOKABLE QDate getNextMesoStartDate(const int mesoid) const;
+	Q_INVOKABLE QDate getLastMesoEndDate() const;
 };
 
 #endif // DBMESOCYCLESMODEL_H
