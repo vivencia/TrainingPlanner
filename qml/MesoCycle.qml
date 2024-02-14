@@ -891,13 +891,26 @@ Page {
 					mesoId: mesoId, mesoName: mesocyclesListModel.get(idxModel, 1), mesoStartDate: mesocyclesListModel.getDate(idxModel, 2),
 					mesoEndDate: mesocyclesListModel.getDate(idxModel, 3), mesoSplit: mesocyclesListModel.get(idxModel, 6), bVisualLoad: bshowpage
 			});
+			mesocycleCalendarPage.setModel(mesosCalendarModel);
 			if (bshowpage)
 				appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
 		}
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
+
+		function readyToProceed() {
+			appDB.qmlReady.disconnect(readyToProceed);
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		if (mesosCalendarModel.getMesoId() === mesoId)
+			readyToProceed(); //already loaded
+		else {
+			mesosCalendarModel.clear();
+			appDB.qmlReady.connect(readyToProceed);
+			appDB.pass_object(mesosCalendarModel);
+			appDB.getMesoCalendar(mesoId);
+		}
 	}
 
 	function createMesoStatisticsObject() {

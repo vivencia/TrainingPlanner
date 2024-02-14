@@ -186,6 +186,10 @@ ApplicationWindow {
 		}
 	}
 
+	DBMesoCalendarModel {
+		id: mesosCalendarModel
+	}
+
 	Flickable {
 		width: parent.width
 		height: parent.height
@@ -218,7 +222,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("  + Day")
-			enabled: appStackView.depth === 1 && mesocyclesListModel.count() > 0
+			enabled: appStackView.depth === 1 && mesocyclesListModel.count > 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
@@ -227,10 +231,6 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
-				//Database.deleteTraingDay(13);
-				//Database.deleteSets();
-				//Database.getAllSetsInfo();
-				//return;
 				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
 					if (trainingDayInfoPages[i].date === today.getTime()) {
 						appStackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);

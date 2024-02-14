@@ -9,6 +9,7 @@
 class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QSettings;
+class DBMesoCalendarModel;
 
 class DbManager : public QObject
 {
@@ -42,6 +43,14 @@ public:
 					const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void removeMesocycle(const QString& id);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
+
+	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
+	Q_INVOKABLE void getMesoCalendar(const int meso_id);
+	Q_INVOKABLE void createMesoCalendar();
+	Q_INVOKABLE void newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
+	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
+	Q_INVOKABLE void deleteMesoCalendar(const uint id);
+	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 signals:
 	void qmlReady();

@@ -5,6 +5,8 @@
 #include "dbexercisesmodel.h"
 #include "dbmesocylestable.h"
 #include "dbmesocyclesmodel.h"
+#include "dbmesocalendartable.h"
+#include "dbmesocalendarmodel.h"
 
 #include <QSettings>
 #include <QSqlQuery>
@@ -28,6 +30,9 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 		DBMesocyclesTable* db_mesos(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		db_mesos->createTable();
 		delete db_mesos;
+		DBMesoCalendarTable* db_cal(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		db_cal->createTable();
+		delete db_cal;
 	}
 
 	getExercisesListVersion();
@@ -40,6 +45,7 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	//QML type registration
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -209,3 +215,42 @@ void DbManager::removeMesocycle(const QString& id)
 	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
+void DbManager::getMesoCalendar(const int meso_id)
+{
+	if (meso_id >= 0)
+	{
+		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+		worker->addExecArg(meso_id);
+		createThread(worker, [worker] () { worker->getMesoCalendar(); } );
+	}
+}
+
+void DbManager::createMesoCalendar()
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
+}
+
+void DbManager::newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit)
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	worker->setData(QString(), QString::number(mesoId), QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
+	createThread(worker, [worker] () { worker->newMesoCalendarEntry(); } );
+}
+
+void DbManager::updateMesoCalendarEntry(const uint id, const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit)
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	worker->setData(QString::number(id), QString::number(mesoId), QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
+	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
+}
+
+void DbManager::deleteMesoCalendar(const uint id)
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	worker->setData(QString::number(id));
+	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
+}
+//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

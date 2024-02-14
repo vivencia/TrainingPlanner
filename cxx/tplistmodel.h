@@ -16,6 +16,7 @@ class TPListModel : public QAbstractListModel
 
 Q_OBJECT
 QML_ELEMENT
+
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
 
@@ -86,7 +87,8 @@ public:
 			return QDate::currentDate();
 	}
 
-public:
+	inline const QStringList& getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
+
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
 	inline virtual int rowCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return count(); }
@@ -100,7 +102,6 @@ signals:
 protected:
 	// return the roles mapping to be used by QML
 	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
-	inline const QStringList& getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 
 	QList<QStringList> m_modeldata;
 	QList<uint> m_indexProxy;

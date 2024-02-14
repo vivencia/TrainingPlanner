@@ -25,6 +25,12 @@ void DBExercisesTable::createTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 		query.prepare( QStringLiteral(
 									"CREATE TABLE IF NOT EXISTS exercises_table ("
 										"id INTEGER PRIMARY KEY,"
@@ -120,6 +126,13 @@ void DBExercisesTable::updateExercisesList()
 
 		QStringList fields;
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
 		const QString query_cmd( QStringLiteral(
 								"INSERT INTO exercises_table "
@@ -127,6 +140,7 @@ void DBExercisesTable::updateExercisesList()
 								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)") );
 
 		uint idx ( 0 );
+		mSqlLiteDB.transaction();
 		if (!m_model)
 		{
 			for ( ++itr; itr != itr_end; ++itr, ++idx ) //++itr: Jump over version number
@@ -147,6 +161,7 @@ void DBExercisesTable::updateExercisesList()
 								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << QStringLiteral("1") );
 			}
 		}
+		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		m_opcode = OP_UPDATE_LIST;
 		mSqlLiteDB.close();
