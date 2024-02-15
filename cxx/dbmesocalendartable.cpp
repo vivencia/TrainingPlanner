@@ -1,4 +1,5 @@
 #include "dbmesocalendartable.h"
+#include "dbmesocalendarmodel.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -68,6 +69,8 @@ void DBMesoCalendarTable::getMesoCalendar()
 				QStringList mesocal_info;
 				int month(-1), dbmonth(-1);
 				QString strMonth, strYear;
+				uint day(1);
+
 				do
 				{
 					dbmonth = query.value(5).toInt();
@@ -79,12 +82,32 @@ void DBMesoCalendarTable::getMesoCalendar()
 						{
 							m_model->appendList(mesocal_info);
 							mesocal_info.clear();
+							day = 1;
+						}
+						else
+						{
+							const uint firstDayOfMeso(query.value(6).toUInt());
+							if (firstDayOfMeso > 1)
+							{
+								//Fill the model with info that reflects that these month days are not part of the meso
+								for( ; day < firstDayOfMeso; ++day)
+									mesocal_info.append( QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
+							}
 						}
 					}
 					month = dbmonth;
 					mesocal_info.append(query.value(0).toString() + ',' + mesoId + ',' + query.value(2).toString() + ',' +
-										query.value(3).toString() + ',' + strYear + ',' + strMonth + ',' + query.value(6).toString());
+										query.value(3).toString() + ',' + strYear + ',' + strMonth);
+					day++;
 				} while (query.next ());
+				if (!mesocal_info.isEmpty()) //The days of the last month
+				{
+					const uint lastDayOfMonth( QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth() );
+					//Fill the model with info that reflects that these month days are not part of the meso
+					for( ; day <= lastDayOfMonth; ++day)
+						mesocal_info.append( QStringLiteral("-1, -1, -1, 'N',") + strYear + ',' + strMonth);
+					m_model->appendList(mesocal_info);
+				}
 			}
 		}
 		mSqlLiteDB.close();
@@ -128,8 +151,11 @@ void DBMesoCalendarTable::createMesoCalendar()
 				for (x = 0; x < m_model->getRow(i).count(); ++x, ++n)
 				{
 					day_info = m_model->get(i, x).split(',');
-					queryValues += QLatin1Char('(') + day_info.at(1) + ",\'" + day_info.at(2) + "\'," + day_info.at(3) + ',' +
-										day_info.at(4) + ',' + day_info.at(5) + ',' + QString::number(x+1) + QStringLiteral("),");
+					if (day_info.at(1) != QStringLiteral("-1"))
+					{
+						queryValues += QLatin1Char('(') + day_info.at(1) + ",\'" + day_info.at(2) + "\'," + day_info.at(3) + ',' +
+									day_info.at(4) + ',' + day_info.at(5) + ',' + QString::number(x+1) + QStringLiteral("),");
+					}
 				}
 				if (n >= 50)
 				{
@@ -138,6 +164,11 @@ void DBMesoCalendarTable::createMesoCalendar()
 					queryValues.clear();
 					n = 0;
 				}
+			}
+			if (!queryValues.isEmpty())
+			{
+				queryValues.chop(1);
+				query.exec(queryStart + queryValues);
 			}
 			m_result = mSqlLiteDB.commit();
 		}

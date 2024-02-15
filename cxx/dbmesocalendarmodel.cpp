@@ -60,6 +60,47 @@ bool DBMesoCalendarModel::setData(const QModelIndex &index, const QVariant& valu
 	return false;
 }
 
+int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt();
+		}
+	}
+	return -1;
+}
+
+QString DBMesoCalendarModel::getSplit(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+			{
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(3);
+			}
+		}
+	}
+	return QStringLiteral("N");
+}
+
+bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt() > 0;
+		}
+	}
+	return false;
+}
+
 void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit)
 {
 	const QString mesoid( QString::number(mesoId) );
@@ -75,6 +116,7 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 	uint year( startDate.year() );
 	uint firstDay( startDate.day() );
 	uint lastDay(0);
+	uint day(1);
 
 	QStringList month_info;
 	QString strMonth, strYear;
@@ -90,7 +132,13 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 		strMonth = QString::number(month);
 		lastDay = i == nMonths - 1 ? endDate.day() : QDate(year, month, 1).daysInMonth();
 
-		for(uint day(firstDay); day <= lastDay; day++ ) {
+		if (firstDay > 1)
+		{
+			for( ; day < firstDay; ++day)
+				month_info.append(QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
+			firstDay = 0;
+		}
+		for( ; day <= lastDay; day++ ) {
 			if (strSplit.at(splitIdx) != QLatin1Char('R'))
 			{
 				++trainingDayNumberTotal;
@@ -99,15 +147,26 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 			else
 				trainingDayNumber = 0;
 
-			month_info.append(QStringLiteral("-1,") + mesoid + ',' + strSplit.at(splitIdx) + ',' +
-								QString::number(trainingDayNumber)  + ',' +	strYear + ',' + strMonth);
+			month_info.append(QStringLiteral("-1,") + mesoid + ',' + QString::number(trainingDayNumber) + ',' +
+								strSplit.at(splitIdx) + ',' +	strYear + ',' + strMonth);
 			splitIdx++;
 			if (splitIdx == strSplit.length())
 				splitIdx = 0;
 		}
+		if (i < nMonths - 1)
+		{
+			appendList(month_info);
+			month_info.clear();
+			day = 1;
+		}
+	}
+	day = lastDay + 1;
+	lastDay = QDate(year, month, 1).daysInMonth();
+	if (day < lastDay)
+	{
+		for( ; day <= lastDay; ++day)
+			month_info.append(QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
 		appendList(month_info);
-		month_info.clear();
-		firstDay = 1;
 	}
 }
 

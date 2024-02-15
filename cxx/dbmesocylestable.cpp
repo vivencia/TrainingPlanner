@@ -1,4 +1,5 @@
 #include "dbmesocylestable.h"
+#include "dbmesocyclesmodel.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -324,7 +325,7 @@ void DBMesocyclesTable::removeMesocycle()
 	{
 		if (m_model)
 			m_model->removeFromList(m_model->currentRow());
-		MSG_OUT("DBExercisesTable removeMesocycle SUCCESS")
+		MSG_OUT("DBMesocyclesTable removeMesocycle SUCCESS")
 	}
 	else
 	{

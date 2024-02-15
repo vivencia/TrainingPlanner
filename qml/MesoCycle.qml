@@ -20,13 +20,6 @@ Page {
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
 	property string mesoSplit: mesocyclesListModel.get(idxModel, 6)
-	property int idxDivision: 0
-	property string strSplitA: " "
-	property string strSplitB: " "
-	property string strSplitC: " "
-	property string strSplitD: " "
-	property string strSplitE: " "
-	property string strSplitF: " "
 
 	property bool bLoadCompleted: false
 	property bool bNewMeso: mesoId === -1
@@ -266,7 +259,7 @@ Page {
 			}
 
 			TPTextInput {
-				id: txtMesonWeeks
+				id: txtMesoNWeeks
 				text: mesocyclesListModel.get(idxModel, 5)
 				width: txtMesoEndDate.width
 				Layout.alignment: Qt.AlignLeft
@@ -457,7 +450,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitA
-						text: strSplitA
+						text: mesoSplitModel.get(idxModel, 2)
 						Layout.row: 0
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -465,8 +458,7 @@ Page {
 						visible: mesoSplit.indexOf('A') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
-								strSplitA = text;
+							if ( text !== mesoSplitModel.get(idxModel, 2) ) {
 								bModified = true;
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
@@ -491,7 +483,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitB
-						text: strSplitB
+						text: mesoSplitModel.get(idxModel, 3)
 						Layout.row: 1
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -499,8 +491,7 @@ Page {
 						visible: mesoSplit.indexOf('B') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
-								strSplitB = text;
+							if ( text !== mesoSplitModel.get(idxModel, 3) ) {
 								bModified = true;
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
@@ -524,7 +515,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitC
-						text: strSplitC
+						text: mesoSplitModel.get(idxModel, 4)
 						Layout.row: 2
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -532,8 +523,7 @@ Page {
 						visible: mesoSplit.indexOf('C') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
-								strSplitC = text;
+							if ( text !== mesoSplitModel.get(idxModel, 4) ) {
 								bModified = true;
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
@@ -557,7 +547,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitD
-						text: strSplitD
+						text: mesoSplitModel.get(idxModel, 5)
 						Layout.row: 3
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -565,8 +555,7 @@ Page {
 						visible: mesoSplit.indexOf('D') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
-								strSplitD = text;
+							if ( text !== mesoSplitModel.get(idxModel, 5) ) {
 								bModified = true;
 								if (text.length >=3 )
 									JSF.checkWhetherCanCreatePlan();
@@ -590,7 +579,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitE
-						text: strSplitE
+						text: mesoSplitModel.get(idxModel, 6)
 						Layout.row: 4
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -598,8 +587,7 @@ Page {
 						visible: mesoSplit.indexOf('E') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
-								strSplitE = text;
+							if ( text !== mesoSplitModel.get(idxModel, 6) ) {
 								bModified = true;
 								if (text.length >=3 )
 									JSF.checkWhetherCanCreatePlan();
@@ -623,7 +611,7 @@ Page {
 					}
 					TPTextInput {
 						id: txtSplitF
-						text: strSplitF
+						text: mesoSplitModel.get(idxModel, 7)
 						Layout.row: 5
 						Layout.column: 1
 						Layout.fillWidth: true
@@ -631,8 +619,7 @@ Page {
 						visible: mesoSplit.indexOf('F') !== -1
 
 						onEditingFinished: {
-							if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
-								strSplitF = text;
+							if ( text !== mesoSplitModel.get(idxModel, 7) ) {
 								bModified = true;
 								if (text.length >=3 )
 									JSF.checkWhetherCanCreatePlan();
@@ -779,31 +766,31 @@ Page {
 					txtMesoName.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 1) });
 					mesoStartDate = mesocyclesListModel.getDate(idxModel, 2);
 					mesoEndDate = mesocyclesListModel.getDate(idxModel, 3);
-					txtMesoNotes = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 4) });
-					txtMesonWeeks = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 5) });
-					txtMesoSplit = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 6) });
-					txtMesoDrugs = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 7) });
-					strSplitA = divisionModel.get(idxDivision).splitA;
-					strSplitB = divisionModel.get(idxDivision).splitB;
-					strSplitC = divisionModel.get(idxDivision).splitC;
-					strSplitD = divisionModel.get(idxDivision).splitD;
-					strSplitE = divisionModel.get(idxDivision).splitE;
-					strSplitF = divisionModel.get(idxDivision).splitF;
+					txtMesoNotes.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 4) });
+					txtMesoNWeeks.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 5) });
+					txtMesoSplit.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 6) });
+					txtMesoDrugs.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 7) });
+					txtSplitA.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 2) });
+					txtSplitB.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 3) });
+					txtSplitC.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 4) });
+					txtSplitD.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 5) });
+					txtSplitE.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 6) });
+					txtSplitF.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 7) });
 				}
 				else {
-					txtMesoName.text = "Novo mesociclo";
 					mesoStartDate = calendarStartDate;
 					mesoEndDate = fixedMesoEndDate;
-					txtMesonWeeks.text = runCmd.calculateNumberOfWeeks(calendarStartDate, fixedMesoEndDate);
-					txtMesoSplit.text = "ABCRDER";
-					txtMesoDrugs.text = "";
-					txtMesoNotes.text = "";
-					strSplitA = " ";
-					strSplitB = " ";
-					strSplitC = " ";
-					strSplitD = " ";
-					strSplitE = " ";
-					strSplitF = " ";
+					txtMesoName.clear();
+					txtMesoNWeeks.clear(); //runCmd.calculateNumberOfWeeks(calendarStartDate, fixedMesoEndDate);
+					txtMesoSplit.clear();
+					txtMesoDrugs.clear();
+					txtMesoNotes.clear();
+					txtSplitA.clear();
+					txtSplitB.clear();
+					txtSplitC.clear();
+					txtSplitD.clear();
+					txtSplitE.clear();
+					txtSplitF.clear();
 				}
 
 				bModified = false;
@@ -829,35 +816,26 @@ Page {
 					function getMesoId() {
 						appDB.qmlReady.disconnect(getMesoId);
 						mesoId = appDB.insertId();
+						appDB.pass_object(mesoSplitModel);
+						appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 					}
 
 					appDB.pass_object(mesocyclesListModel);
 					appDB.qmlReady.connect(getMesoId);
-					appDB.newMesocycle(mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs);
+					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 					idxModel = mesocyclesListModel.count - 1;
-
-					/*let results2 = Database.newMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
-					divisionModel.append({
-						"divisionId": parseInt(results2.insertId),
-						"mesoId": parseInt(mesoId),
-						"splitA": strSplitA,
-						"splitB": strSplitB,
-						"splitC": strSplitC,
-						"splitD": strSplitD,
-						"splitE": strSplitE,
-						"splitF": strSplitF
-					});*/
-
 					bNewMeso = false;
 					createMesoCalendarObject(true);
 				}
 				else {
 					mesocyclesListModel.setCurrentRow(idxModel);
 					appDB.pass_object(mesocyclesListModel);
-					appDB.updateMesocycle(mesoId, mesoName, mesoStartDate, mesoEndDate, mesoNote, nWeeks, mesoSplit, mesoDrugs);
-					//Database.updateMesoDivision(mesoId, strSplitA, strSplitB, strSplitC, strSplitD, strSplitE, strSplitF);
+					appDB.updateMesocycle(mesoId, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
+					mesoSplitModel.setCurrentRow(idxModel);
+					appDB.pass_object(mesoSplitModel);
+					appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
-					if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
+					/*if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
 						if (Database.checkIfCalendarForMesoExists(mesoId)) {
 							if (mesocycleCalendarPage === null)
 								createMesoCalendarObject(false);
@@ -871,7 +849,7 @@ Page {
 							mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 						}
-					}
+					}*/
 				}
 				bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 				bModified = false;
@@ -889,7 +867,8 @@ Page {
 		function finishCreation() {
 			mesocycleCalendarPage = component.createObject(mesoPropertiesPage, {
 					mesoId: mesoId, mesoName: mesocyclesListModel.get(idxModel, 1), mesoStartDate: mesocyclesListModel.getDate(idxModel, 2),
-					mesoEndDate: mesocyclesListModel.getDate(idxModel, 3), mesoSplit: mesocyclesListModel.get(idxModel, 6), bVisualLoad: bshowpage
+					mesoEndDate: mesocyclesListModel.getDate(idxModel, 3), mesoSplit: mesocyclesListModel.get(idxModel, 6),
+					idxModel: idxModel, bVisualLoad: bshowpage
 			});
 			mesocycleCalendarPage.setModel(mesosCalendarModel);
 			if (bshowpage)

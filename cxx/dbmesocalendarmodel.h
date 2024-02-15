@@ -32,32 +32,22 @@ public:
 
 	Q_INVOKABLE void createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit);
 
-	Q_INVOKABLE int getId(const uint day) const
-	{	return day < m_indexProxy.count() ? dayInfo(day).at(0).toInt() : -1;	}
-
 	Q_INVOKABLE int getMesoId() const
-	{	return count() > 0 ? dayInfo(0).at(1).toInt() : -1;	}
+	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(1).toUInt() : -1;	}
 
-	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const
-	{	return dayInfo(month, day).at(2).toInt();	}
-
-	Q_INVOKABLE QLatin1Char getSplit(const uint month, const uint day) const
-	{	return QLatin1Char(dayInfo(month, day).at(3).toLatin1().constData()[0]);	}
-
-	Q_INVOKABLE uint getMonth(const uint month) const
-	{	return dayInfo(month).at(5).toInt();	}
-
-	Q_INVOKABLE uint getYear(const uint month) const
-	{	return dayInfo(month).at(4).toInt();	}
-
-	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const
-	{	return (QLatin1Char(dayInfo(month, day).at(3).toLatin1().constData()[0]) != QLatin1Char('R'));	}
-
-private:
-	inline const QStringList dayInfo(const uint month, const uint day = 0) const
+	Q_INVOKABLE uint getMonth(const uint index) const
 	{
-		return static_cast<QString>(m_modeldata.at(m_indexProxy.at(month)).at(day)).split(',');
+		return static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(5).toUInt() - 1;
 	}
+
+	Q_INVOKABLE uint getYear(const uint index) const
+	{
+		return static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(4).toUInt();
+	}
+
+	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
+	Q_INVOKABLE QString getSplit(const uint month, const uint day) const;
+	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
 };
 
 #endif // DBMESOCALENDARMODEL_H

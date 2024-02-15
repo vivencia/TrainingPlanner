@@ -5,6 +5,8 @@
 #include "dbexercisesmodel.h"
 #include "dbmesocylestable.h"
 #include "dbmesocyclesmodel.h"
+#include "dbmesosplittable.h"
+#include "dbmesosplitmodel.h"
 #include "dbmesocalendartable.h"
 #include "dbmesocalendarmodel.h"
 
@@ -30,6 +32,9 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 		DBMesocyclesTable* db_mesos(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		db_mesos->createTable();
 		delete db_mesos;
+		DBMesoSplitTable* db_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
+		db_split->createTable();
+		delete db_split;
 		DBMesoCalendarTable* db_cal(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
 		db_cal->createTable();
 		delete db_cal;
@@ -45,6 +50,7 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	//QML type registration
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 }
 
@@ -215,6 +221,41 @@ void DbManager::removeMesocycle(const QString& id)
 	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
+void DbManager::getMesoSplit(const int meso_id)
+{
+	if (meso_id >= 0)
+	{
+		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+		worker->addExecArg(meso_id);
+		createThread(worker, [worker] () { worker->getMesoSplit(); } );
+	}
+}
+
+void DbManager::newMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB, const QString& splitC,
+								const QString& splitD, const QString& splitE, const QString& splitF)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->setData(QString::number(meso_id), splitA, splitB, splitC, splitD, splitE, splitF);
+	createThread(worker, [worker] () { worker->newMesoSplit(); } );
+}
+
+void DbManager::updateMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB, const QString& splitC,
+								const QString& splitD, const QString& splitE, const QString& splitF)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->setData(QString::number(meso_id), splitA, splitB, splitC, splitD, splitE, splitF);
+	createThread(worker, [worker] () { worker->updateMesoSplit(); } );
+}
+
+void DbManager::removeMesoSplit(const uint meso_id)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->setData(QString::number(meso_id));
+	createThread(worker, [worker] () { return worker->removeMesoSplit(); } );
+}
+//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DbManager::getMesoCalendar(const int meso_id)

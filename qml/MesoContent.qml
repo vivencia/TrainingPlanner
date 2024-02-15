@@ -10,6 +10,7 @@ Page {
 	required property date mesoStartDate
 	required property date mesoEndDate
 	required property string mesoSplit
+	required property int idxModel
 	required property bool bVisualLoad
 
 	property var calendarModel: null
@@ -101,7 +102,7 @@ Page {
 
 				Text {
 					anchors.centerIn: parent
-					//text: calendar.monthsNames[calendarModel.getMonth(index)] + " " + calendarModel.getYear(index);
+					text: calendar.monthsNames[calendarModel.getMonth(index)] + " " + calendarModel.getYear(index);
 					font.pixelSize: AppSettings.titleFontSizePixelSize
 					font.bold: true
 				}
@@ -139,24 +140,23 @@ Page {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					readonly property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
-					readonly property bool enabled: model.month === monthGrid.month
+					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
 					property bool bIsTrainingDay: false
 
 					Component.onCompleted: {
-						var colorValue = "transparent"; //Material.white is undefined
-						if ( enabled && highlighted )
+						var colorValue = "transparent";
+						if ( highlighted )
 							return Material.primary;
 						else {
-							if ( monthGrid.year === model.year) {
+							//if ( monthGrid.year === model.year) {
 								if ( monthGrid.month === model.month ) {
-									//if (calendarModel.isTrainingDay(model.day-1)) {
-									//	colorValue =  "steelblue";
-									//	bIsTrainingDay = true;
-									//}
+									if (calendarModel.isTrainingDay(model.month+1, model.day-1)) {
+										colorValue =  listEntryColor2;
+										bIsTrainingDay = true;
+									}
 								}
-							}
+							//}
 							bIsTrainingDay = false;
 						}
 						color = colorValue
@@ -164,7 +164,7 @@ Page {
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? calendarModel.isTrainingDay(model.month, model.day-1) ? model.day + "-" + calendarModel.getSplit(model.month, model.day-1) : model.day : model.day
+						text: monthGrid.month === model.month ? calendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + calendarModel.getSplit(model.month+1, model.day-1) : model.day : model.day
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
@@ -193,8 +193,8 @@ Page {
 								}
 							}
 							if (btnShowDayInfo.enabled) {
-								splitLetter = calendarModel.daySplitLetter(model.day-1);
-								trainingDay = calendarModel.getTrainingDay(model.day-1);
+								splitLetter = calendarModel.getSplit(model.month+1, model.day-1);
+								trainingDay = calendarModel.getTrainingDay(model.month+1, model.day-1);
 								getDivisionContent(splitLetter);
 							}
 							calendar.currentDay = model.day;
@@ -296,17 +296,13 @@ Page {
 	} // footer: ToolBar
 
 	function getDivisionContent(splitletter) {
-		let result = Database.getDivisionForMeso(mesoId);
-
-		if (result) {
-			switch (splitletter) {
-				case 'A': splitContent = result[0].splitA; break;
-				case 'B': splitContent = result[0].splitB; break;
-				case 'C': splitContent = result[0].splitC; break;
-				case 'D': splitContent = result[0].splitD; break;
-				case 'E': splitContent = result[0].splitE; break;
-				case 'F': splitContent = result[0].splitF; break;
-			}
+		switch (splitletter) {
+			case 'A': splitContent = mesoSplitModel.get(idxModel, 2); break;
+			case 'B': splitContent = mesoSplitModel.get(idxModel, 3); break;
+			case 'C': splitContent = mesoSplitModel.get(idxModel, 4); break;
+			case 'D': splitContent = mesoSplitModel.get(idxModel, 5); break;
+			case 'E': splitContent = mesoSplitModel.get(idxModel, 6); break;
+			case 'F': splitContent = mesoSplitModel.get(idxModel, 7); break;
 		}
 	}
 } //Page

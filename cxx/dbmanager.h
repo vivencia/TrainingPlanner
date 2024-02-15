@@ -9,7 +9,6 @@
 class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QSettings;
-class DBMesoCalendarModel;
 
 class DbManager : public QObject
 {
@@ -26,11 +25,11 @@ public:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
 	Q_INVOKABLE void newExercise(const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath);
+									const QString& nSets, const QString& nReps, const QString& nWeight,
+									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void updateExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath);
+									const QString& nSets, const QString& nReps, const QString& nWeight,
+									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	void getExercisesListVersion();
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -38,11 +37,21 @@ public:
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllMesocycles();
 	Q_INVOKABLE void newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
-						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
+									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void updateMesocycle(const QString& id, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
-					const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
+									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void removeMesocycle(const QString& id);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
+
+	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
+	Q_INVOKABLE void getMesoSplit(const int meso_id);
+	Q_INVOKABLE void newMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB, const QString& splitC,
+									const QString& splitD, const QString& splitE, const QString& splitF);
+	Q_INVOKABLE void updateMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB,
+										const QString& splitC, const QString& splitD,
+										const QString& splitE, const QString& splitF);
+	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
+	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getMesoCalendar(const int meso_id);

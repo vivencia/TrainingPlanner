@@ -27,12 +27,13 @@ set( SOURCES
 	cxx/tpdatabasetable.h
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
 	cxx/dbmesocylestable.h cxx/dbmesocylestable.cpp
-	#cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
+	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
+	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
 )
 

@@ -1,4 +1,5 @@
 #include "dbexercisestable.h"
+#include "dbexercisesmodel.h"
 #include "runcommands.h"
 
 #include <QSqlQuery>

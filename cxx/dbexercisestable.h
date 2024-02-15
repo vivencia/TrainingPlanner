@@ -2,10 +2,11 @@
 #define DBEXERCISESTABLE_H
 
 #include "tpdatabasetable.h"
-#include "dbexercisesmodel.h"
 
 #include <QObject>
 #include <QSettings>
+
+class DBExercisesModel;
 
 static const QString DBExercisesFileName ( QStringLiteral("ExercisesList.db.sqlite") );
 static const QString DBExercisesObjectName ( QStringLiteral("Exercises") );

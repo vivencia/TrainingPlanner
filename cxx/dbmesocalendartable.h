@@ -2,10 +2,11 @@
 #define DBMESOCALENDARTABLE_H
 
 #include "tpdatabasetable.h"
-#include "dbmesocalendarmodel.h"
 
 #include <QObject>
 #include <QSettings>
+
+class DBMesoCalendarModel;
 
 static const QString DBMesoCalendarFileName ( QStringLiteral("MesoCalendar.db.sqlite") );
 static const QString DBMesoCalendarObjectName ( QStringLiteral("MesoCalendar") );

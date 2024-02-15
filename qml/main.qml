@@ -172,6 +172,10 @@ ApplicationWindow {
 		id:	exercisesListModel
 	}
 
+	DBMesoSplitModel {
+		id:	mesoSplitModel
+	}
+
 	DBMesocyclesModel {
 		id: mesocyclesListModel
 
@@ -179,6 +183,8 @@ ApplicationWindow {
 			function readyToProceed() {
 				appDB.qmlReady.disconnect(readyToProceed);
 				homePage.setModel();
+				appDB.pass_object(mesoSplitModel);
+				appDB.getMesoSplit(mesocyclesListModel.getInt(mesocyclesListModel.count-1, 0));
 			}
 			appDB.qmlReady.connect(readyToProceed);
 			appDB.pass_object(mesocyclesListModel);
