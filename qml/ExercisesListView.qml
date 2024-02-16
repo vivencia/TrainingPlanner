@@ -73,8 +73,6 @@ Column {
 			}
 		}
 
-		model: exercisesListModel
-
 		delegate: SwipeDelegate {
 			id: delegate
 			property bool bSelected: false
@@ -235,6 +233,16 @@ Column {
 
 		onTextChanged: exercisesListModel.setFilter(text);
 	} // txtFilter
+
+	function setModel(model) {
+		function readyToProceed() {
+			appDB.qmlReady.disconnect(readyToCreate);
+			lstExercises.model = model;
+		}
+
+		if (model.count === 0)
+			loadExercises();
+	}
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
 		curIndex = lstIdx;

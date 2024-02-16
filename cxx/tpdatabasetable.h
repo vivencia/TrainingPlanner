@@ -11,7 +11,7 @@
 #include <functional>
 
 typedef enum {
-	OP_NULL = 0, OP_ADD = 1, OP_EDIT = 2, OP_DEL = 3, OP_READ = 4, OP_UPDATE_LIST = 5
+	OP_NULL = 0, OP_ADD = 1, OP_EDIT = 2, OP_DEL = 3, OP_READ = 4, OP_UPDATE_LIST = 5, OP_DELETE_TABLE = 6
 } OP_CODES;
 
 class TPDatabaseTable : public QObject
@@ -20,6 +20,8 @@ class TPDatabaseTable : public QObject
 public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
 		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
+
+	void createTable() {}
 
 	inline const QStringList& data () const { return m_data; }
 	inline OP_CODES opCode() const { return m_opcode; }

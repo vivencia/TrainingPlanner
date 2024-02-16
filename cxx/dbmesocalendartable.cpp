@@ -4,12 +4,13 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QTime>
+#include <QFile>
 
 DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	setObjectName( DBMesoCalendarObjectName );
-	const QString cnx_name( QStringLiteral("db_worker_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
+	const QString cnx_name( QStringLiteral("db_mesocal_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoCalendarFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
@@ -56,8 +57,9 @@ void DBMesoCalendarTable::getMesoCalendar()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		QSqlQuery query(mSqlLiteDB);
 		const QString mesoId(m_execArgs.at(0).toString());
+
+		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
 		query.prepare( QStringLiteral("SELECT * FROM mesocycles_calendar_table WHERE meso_id=") + mesoId );
 
@@ -135,8 +137,8 @@ void DBMesoCalendarTable::createMesoCalendar()
 		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
 		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		//query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		//query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 		if (mSqlLiteDB.transaction())
 		{
 			const QString queryStart(QStringLiteral(
@@ -148,7 +150,7 @@ void DBMesoCalendarTable::createMesoCalendar()
 
 			for (uint i(0), x(0); i < m_model->count(); ++i)
 			{
-				for (x = 0; x < m_model->getRow(i).count(); ++x, ++n)
+				for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
 				{
 					day_info = m_model->get(i, x).split(',');
 					if (day_info.at(1) != QStringLiteral("-1"))
@@ -271,6 +273,25 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	{
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	resultFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
+void DBMesoCalendarTable::deleteMesoCalendarTable()
+{
+	QFile mDBFile(mSqlLiteDB.databaseName());
+	m_result = mDBFile.remove();
+	if (m_result)
+	{
+		if (m_model)
+			m_model->clear();
+		m_opcode = OP_DELETE_TABLE;
+		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable SUCCESS")
+	}
+	else
+	{
+		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable error: Could not remove file " << mDBFile.fileName())
 	}
 	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));

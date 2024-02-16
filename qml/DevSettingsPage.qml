@@ -62,24 +62,6 @@ Page {
 						if (checked) optChosen = 5;
 					}
 				}
-				RadioButton {
-					id: optUpdateExercisesTable
-					checked: false
-					text: qsTr("Update exercises table")
-
-					onCheckedChanged: {
-						if (checked) optChosen = 6;
-					}
-				}
-				RadioButton {
-					id: optUpdateSetsTable
-					checked: false
-					text: qsTr("Update sets table")
-
-					onCheckedChanged: {
-						if (checked) optChosen = 7;
-					}
-				}
 			} //Column Layout
 		} //Frame
 
@@ -94,34 +76,30 @@ Page {
 			onClicked: {
 				switch (optChosen) {
 					case 1:
-						Database.removeMesoTable();
-						Database.removeMesoDivisionTable();
-						Database.createMesoTable();
-						Database.createMesoDivisionTable();
+						appDB.pass_object(mesocyclesModel);
+						appDB.deleteMesocyclesTable();
+						appDB.pass_object(mesoSplitModel);
+						appDB.deleteMesoSplitTable();
+						appDB.pass_object(mesosCalendarModel);
+						appDB.deleteMesoCalendarTable();
+
+						initMesocycles();
 					break;
 					case 2:
-						Database.removeMesoCalendarTable();
-						Database.createMesoCalendarTable();
+						appDB.pass_object(mesosCalendarModel);
+						appDB.deleteMesoCalendarTable();
 					break;
 					case 3:
-						Database.removeExercisesTable();
-						Database.createExercisesTable();
+						appDB.pass_object(exercisesListModel);
+						appDB.deleteExercisesTable();
 					break;
 					case 4:
-						Database.removeSetsInfoTable();
-						Database.createSetsInfoTable();
+						//Database.removeSetsInfoTable();
+						//Database.createSetsInfoTable();
 					break;
 					case 5:
-						Database.removeTrainingDayTable();
-						Database.createTrainingDayTable();
-					break;
-					case 6:
-						Database.updateExercisesTable();
-						Database.createExercisesTable();
-					break;
-					case 7:
-						Database.updateSetsInfoTable();
-						Database.createSetsInfoTable();
+						//Database.removeTrainingDayTable();
+						//Database.createTrainingDayTable();
 					break;
 				}
 				optChosen = 0;

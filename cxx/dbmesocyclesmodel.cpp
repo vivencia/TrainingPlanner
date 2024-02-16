@@ -71,7 +71,7 @@ QStringList DBMesocyclesModel::getMesoInfo(const int mesoid) const
 		for(uint x(0); x < count(); ++x)
 		{
 			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
-				return getRow(x);
+				return getRow_const(x);
 		}
 	}
 	return QStringList();

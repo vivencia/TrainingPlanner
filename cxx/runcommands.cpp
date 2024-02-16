@@ -78,12 +78,16 @@ QString RunCommands::getAppDir(const QString& dbFile)
 
 const QString RunCommands::formatDate(const QDate& date) const
 {
-	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+	if (date.isValid())
 	{
-		QLocale locale(QStringLiteral("pt_BR"));
-		return locale.toString(date, QStringLiteral("ddd d/M/yy"));
+		if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+		{
+			QLocale locale(QStringLiteral("pt_BR"));
+			return locale.toString(date, QStringLiteral("ddd d/M/yy"));
+		}
+		return date.toString(Qt::TextDate);
 	}
-	return date.toString(Qt::TextDate);
+	return QString();
 }
 
 uint RunCommands::calculateNumberOfWeeks(const uint week1, const uint week2) const
@@ -115,6 +119,6 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 		newDate = newDate.addMonths(months);
 	if (years > 0)
 		newDate = newDate.addYears(years);
-	qDebug() << "createFutureDate: in " << date.toString("d 'de' MMMM 'de' yyyy") << "  out  " << newDate.toString("d 'de' MMMM 'de' yyyy");
+	//qDebug() << "createFutureDate: in " << date.toString("d 'de' MMMM 'de' yyyy") << "  out  " << newDate.toString("d 'de' MMMM 'de' yyyy");
 	return newDate;
 }

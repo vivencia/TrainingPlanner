@@ -84,10 +84,11 @@ public:
 		if (row >= 0 && row < m_indexProxy.count())
 			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
 		else
-			return QDate::currentDate();
+			return QDate();
 	}
 
-	inline const QStringList& getRow(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
+	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
+	inline QStringList& getRow(const uint row) { return m_modeldata[m_indexProxy.at(row)]; }
 
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }

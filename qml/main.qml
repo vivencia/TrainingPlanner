@@ -150,6 +150,26 @@ ApplicationWindow {
 			close();
 	}
 
+	function initMesocycles() {
+
+		function readyToProceed() {
+			appDB.qmlReady.disconnect(readyToProceed);
+			homePage.setModel();
+			appDB.pass_object(mesoSplitModel);
+			appDB.getMesoSplit(mesocyclesModel.getInt(mesocyclesModel.count-1, 0));
+		}
+
+		appDB.qmlReady.connect(readyToProceed);
+		appDB.pass_object(mesocyclesModel);
+		appDB.getAllMesocycles();
+	}
+
+	function loadExercises() {
+		appDB.qmlReady.connect(readyToProceed);
+		appDB.pass_object(exercisesListModel);
+		appDB.getAllExercises();
+	}
+
 	header: NavBar {
 		id: navBar
 
@@ -177,19 +197,8 @@ ApplicationWindow {
 	}
 
 	DBMesocyclesModel {
-		id: mesocyclesListModel
-
-		Component.onCompleted: {
-			function readyToProceed() {
-				appDB.qmlReady.disconnect(readyToProceed);
-				homePage.setModel();
-				appDB.pass_object(mesoSplitModel);
-				appDB.getMesoSplit(mesocyclesListModel.getInt(mesocyclesListModel.count-1, 0));
-			}
-			appDB.qmlReady.connect(readyToProceed);
-			appDB.pass_object(mesocyclesListModel);
-			appDB.getAllMesocycles();
-		}
+		id: mesocyclesModel
+		Component.onCompleted: initMesocycles();
 	}
 
 	DBMesoCalendarModel {
@@ -228,7 +237,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("  + Day")
-			enabled: appStackView.depth === 1 && mesocyclesListModel.count > 0
+			enabled: appStackView.depth === 1 && mesocyclesModel.count > 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
@@ -244,19 +253,19 @@ ApplicationWindow {
 					}
 				}
 
-				const mostRecentMeso = mesocyclesListModel.count - 1;
-				const meso_name = mesocyclesListModel.get(mostRecentMeso, 1);
+				const mostRecentMeso = mesocyclesModel.count - 1;
+				const meso_name = mesocyclesModel.get(mostRecentMeso, 1);
 				var tday = 0, splitletter = 'A', mesoid = 0;
 				var bFirstTime = false;
 
-				if (mesocyclesListModel.get(mostRecentMeso, 8) === "1") {
+				if (mesocyclesModel.get(mostRecentMeso, 8) === "1") {
 					let calendar_info = Database.getMesoCalendarDate(today);
 					tday = calendar_info[0].mesoCalnDay;
 					splitletter = calendar_info[0].mesoCalSplit;
 					mesoid = calendar_info[0].mesoCalMesoId;
 				}
 				else {
-					let meso_info = Database.getMesoInfo(mesocyclesListModel.getInt(mostRecentMeso, 0));
+					let meso_info = Database.getMesoInfo(mesocyclesModel.getInt(mostRecentMeso, 0));
 					const mesosplit = meso_info[0].mesoSplit;
 					let day_info = Database.getMostRecentTrainingDay();
 					if (day_info.exercisesNames) {
@@ -323,29 +332,43 @@ ApplicationWindow {
 	}
 
 	function openDbExercisesListPage() {
-		if (!dbExercisesListPage) {
-			var component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
+		var option;
+		var component;
+		function finishCreation() {
+			console.log("tooltip should disappear now")
+			dbExercisesListPage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
+			appStackView.push(dbExercisesListPage, StackView.DontLoad);
+		}
 
-			function finishCreation() {
-				console.log("tooltip should disappear now")
-				dbExercisesListPage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
-				appStackView.push(dbExercisesListPage, StackView.DontLoad);
-			}
-
-			function readyToCreate() {
-				console.log("waiting for component to be ready for creation")
-				appDB.qmlReady.disconnect(readyToCreate);
+		function readyToProceed() {
+			appDB.qmlReady.disconnect(readyToCreate);
+			if (option === 0)
+			{
 				if (component.status === Component.Ready)
 					finishCreation();
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			console.log("tooltip should appear now")
-			appDB.qmlReady.connect(readyToCreate);
-			appDB.pass_object(exercisesListModel);
-			appDB.getAllExercises();
+			else
+				appStackView.push(dbExercisesListPage, StackView.DontLoad);
 		}
-		else
-			appStackView.push(dbExercisesListPage, StackView.DontLoad);
+
+		if (!dbExercisesListPage) {
+			component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
+			option = 0;
+			if (exercisesListModel.count === 0) {
+				console.log("tooltip should appear now")
+				loadExercises();
+			}
+		}
+		else {
+			option = 1;
+			if (exercisesListModel.count === 0) {
+				console.log("tooltip should appear now")
+				loadExercises();
+			}
+			else
+				readyToProceed();
+		}
 	}
 } //ApplicationWindow

@@ -18,7 +18,7 @@ class DBMesocyclesTable : public TPDatabaseTable
 public:
 	explicit DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model = nullptr);
 
-	void createTable();
+	virtual void createTable();
 	void getAllMesocycles();
 	void getMesoInfo();
 	void getPreviousMesoId();
@@ -29,6 +29,7 @@ public:
 	void newMesocycle();
 	void updateMesocycle();
 	void removeMesocycle();
+	void deleteMesocyclesTable();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mesoName = QString(), const QString& mesoStartDate = QString(),

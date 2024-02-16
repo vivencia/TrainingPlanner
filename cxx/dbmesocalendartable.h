@@ -18,12 +18,13 @@ class DBMesoCalendarTable : public TPDatabaseTable
 public:
 	explicit DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model = nullptr);
 
-	void createTable();
+	virtual void createTable();
 	void getMesoCalendar();
 	void createMesoCalendar();
 	void newMesoCalendarEntry();
 	void updateMesoCalendarEntry();
 	void removeMesoCalendar();
+	void deleteMesoCalendarTable();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mesoId = QString(), const QString& calDate = QString(),

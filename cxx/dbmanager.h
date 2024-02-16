@@ -31,6 +31,7 @@ public:
 									const QString& nSets, const QString& nReps, const QString& nWeight,
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
+	Q_INVOKABLE void deleteExercisesTable();
 	void getExercisesListVersion();
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
@@ -41,6 +42,7 @@ public:
 	Q_INVOKABLE void updateMesocycle(const QString& id, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
 									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void removeMesocycle(const QString& id);
+	Q_INVOKABLE void deleteMesocyclesTable();
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -51,6 +53,10 @@ public:
 										const QString& splitC, const QString& splitD,
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
+	Q_INVOKABLE void deleteMesoSplitTable();
+	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, QLatin1Char splitLetter);
+	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_id, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
+							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -59,6 +65,7 @@ public:
 	Q_INVOKABLE void newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void deleteMesoCalendar(const uint id);
+	Q_INVOKABLE void deleteMesoCalendarTable();
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 signals:

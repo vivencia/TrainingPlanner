@@ -20,12 +20,13 @@ class DBExercisesTable : public TPDatabaseTable
 public:
 	explicit DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
 
-	void createTable();
+	virtual void createTable();
 	void getAllExercises();
 	void updateExercisesList();
 	void newExercise();
 	void updateExercise();
 	void removeExercise();
+	void deleteExercisesTable();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mainName = QString(), const QString& subName = QString(),

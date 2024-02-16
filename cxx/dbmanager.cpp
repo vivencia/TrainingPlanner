@@ -25,16 +25,27 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 
 	if (!f_info.isReadable())
 	{
-		//First time: initialize all databases
 		DBExercisesTable* db_exercises(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		db_exercises->createTable();
 		delete db_exercises;
+	}
+	f_info.setFile(m_DBFilePath + DBMesocyclesFileName);
+	if (!f_info.isReadable())
+	{
 		DBMesocyclesTable* db_mesos(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		db_mesos->createTable();
 		delete db_mesos;
+	}
+	f_info.setFile(m_DBFilePath + DBMesoSplitFileName);
+	if (!f_info.isReadable())
+	{
 		DBMesoSplitTable* db_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
 		db_split->createTable();
 		delete db_split;
+	}
+	f_info.setFile(m_DBFilePath + DBMesoCalendarFileName);
+	if (!f_info.isReadable())
+	{
 		DBMesoCalendarTable* db_cal(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
 		db_cal->createTable();
 		delete db_cal;
@@ -58,21 +69,26 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
 	if (dbObj->result())
 	{
-		if (dbObj->objectName() == DBExercisesObjectName)
+		if (dbObj->opCode() == OP_DELETE_TABLE)
+			dbObj->createTable();
+		else
 		{
-			if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
-				m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
-		}
-		else if (dbObj->objectName() == DBMesocyclesObjectName)
-		{
-			switch (static_cast<DBMesocyclesTable*>(dbObj)->opCode())
+			if (dbObj->objectName() == DBExercisesObjectName)
 			{
-				case OP_READ:
-					m_result = static_cast<DBMesocyclesTable*>(dbObj)->data();
-				break;
-				case OP_ADD:
-					m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
-				break;
+				if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
+					m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
+			}
+			else if (dbObj->objectName() == DBMesocyclesObjectName)
+			{
+				switch (static_cast<DBMesocyclesTable*>(dbObj)->opCode())
+				{
+					case OP_READ:
+						m_result = static_cast<DBMesocyclesTable*>(dbObj)->data();
+					break;
+					case OP_ADD:
+						m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
+					break;
+				}
 			}
 		}
 	}
@@ -168,6 +184,12 @@ void DbManager::removeExercise(const QString& id)
 	createThread(worker, [worker] () { return worker->removeExercise(); } );
 }
 
+void DbManager::deleteExercisesTable()
+{
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	createThread(worker, [worker] () { return worker->deleteExercisesTable(); } );
+}
+
 void DbManager::getExercisesListVersion()
 {
 	m_exercisesListVersion = QStringLiteral("0");
@@ -220,6 +242,12 @@ void DbManager::removeMesocycle(const QString& id)
 	worker->setData(id);
 	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
 }
+
+void DbManager::deleteMesocyclesTable()
+{
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	createThread(worker, [worker] () { return worker->deleteMesocyclesTable(); } );
+}
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -254,6 +282,28 @@ void DbManager::removeMesoSplit(const uint meso_id)
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->setData(QString::number(meso_id));
 	createThread(worker, [worker] () { return worker->removeMesoSplit(); } );
+}
+
+void DbManager::deleteMesoSplitTable()
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
+}
+
+void DbManager::getCompleteMesoSplit(const uint meso_id, QLatin1Char splitLetter)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->addExecArg(meso_id);
+	worker->addExecArg(splitLetter);
+	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
+}
+
+void DbManager::updateMesoSplitComplete(const uint meso_id, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
+							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->setDataComplete(QString::number(meso_id), splitLetter, splitGroup, exercises, types, nsets, nreps, nweights);
+	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
@@ -293,5 +343,11 @@ void DbManager::deleteMesoCalendar(const uint id)
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
 	worker->setData(QString::number(id));
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
+}
+
+void DbManager::deleteMesoCalendarTable()
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	createThread(worker, [worker] () { return worker->deleteMesoCalendarTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

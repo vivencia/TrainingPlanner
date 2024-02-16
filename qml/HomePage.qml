@@ -101,7 +101,7 @@ Page {
 
 					onButton1Clicked: {
 						Database.deleteMeso(mesoId);
-						mesocyclesListModel.remove(mesoDelegate.index, 1);
+						mesocyclesModel.remove(mesoDelegate.index, 1);
 						pageActivation();
 					}
 
@@ -243,11 +243,11 @@ Page {
 	} // footer
 
 	function setModel() {
-		mesosListView.model = mesocyclesListModel;
+		mesosListView.model = mesocyclesModel;
 		homePage.StackView.activating.connect(pageActivation);
 		homePage.StackView.onDeactivating.connect(pageDeActivation);
 
-		if (mesocyclesListModel.count !== 0)
+		if (mesocyclesModel.count !== 0)
 			pageActivation();
 		else {
 			createFirstTimeTipComponent();
@@ -263,14 +263,14 @@ Page {
 			firstTimeTip.visible = false;
 
 		var startDate, endDate;
-		if (mesocyclesListModel.count === 0) {
+		if (mesocyclesModel.count === 0) {
 			minimumStartDate = new Date(2023, 0, 2); //first monday of year
 			startDate = today;
 			endDate = runCmd.createFutureDate(startDate, 0, 2, 0);
 		}
 		else {
-			if (mesocyclesListModel.realMeso)
-				minimumStartDate = runCmd.getMesoStartDate(mesocyclesListModel.getLastMesoEndDate());
+			if (mesocyclesModel.realMeso)
+				minimumStartDate = runCmd.getMesoStartDate(mesocyclesModel.getLastMesoEndDate());
 			else
 				minimumStartDate = today;
 			startDate = minimumStartDate;
@@ -331,7 +331,7 @@ Page {
 	}
 
 	function showMeso() {
-		const mesoid = mesocyclesListModel.getInt(currentMesoIndex, 0)
+		const mesoid = mesocyclesModel.getInt(currentMesoIndex, 0)
 
 		for (var i = 0; i < mesocyclePages.length; ++i) {
 			if (mesocyclePages[i].Object.mesoId === mesoid) {
@@ -343,22 +343,22 @@ Page {
 		function generateObject() {
 			var component;
 
-			if (mesocyclesListModel.get(currentMesoIndex,8) === "1")
+			if (mesocyclesModel.get(currentMesoIndex,8) === "1")
 				component = Qt.createComponent("MesoCycle.qml", Qt.Asynchronous);
 			else
 				component = Qt.createComponent("OpenEndedPlan.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				var mesocyclePage = null;
-				if (mesocyclesListModel.get(currentMesoIndex,8) === "1") {
+				if (mesocyclesModel.get(currentMesoIndex,8) === "1") {
 					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						idxModel: currentMesoIndex,
 						mesoId: mesoid,
-						mesoStartDate: mesocyclesListModel.getDate(currentMesoIndex,2),
-						mesoEndDate: mesocyclesListModel.getDate(currentMesoIndex, 3),
-						minimumMesoStartDate: mesocyclesListModel.getPreviousMesoEndDate(mesoid),
-						maximumMesoEndDate: mesocyclesListModel.getNextMesoStartDate(mesoid),
-						calendarStartDate: mesocyclesListModel.getDate(currentMesoIndex, 2)
+						mesoStartDate: mesocyclesModel.getDate(currentMesoIndex,2),
+						mesoEndDate: mesocyclesModel.getDate(currentMesoIndex, 3),
+						minimumMesoStartDate: mesocyclesModel.getPreviousMesoEndDate(mesoid),
+						maximumMesoEndDate: mesocyclesModel.getNextMesoStartDate(mesoid),
+						calendarStartDate: mesocyclesModel.getDate(currentMesoIndex, 2)
 
 					});
 				}
@@ -366,10 +366,10 @@ Page {
 					mesocyclePage = component.createObject(mainwindow, { width: homePage.width, height: homePage.height,
 						idxModel: currentMesoIndex,
 						mesoId: mesoid,
-						mesoStartDate: mesocyclesListModel.getDate(currentMesoIndex,2),
-						minimumMesoStartDate: mesocyclesListModel.getPreviousMesoEndDate(mesoid),
+						mesoStartDate: mesocyclesModel.getDate(currentMesoIndex,2),
+						minimumMesoStartDate: mesocyclesModel.getPreviousMesoEndDate(mesoid),
 						maximumMesoEndDate: new Date(2026,11,31),
-						calendarStartDate: mesocyclesListModel.getDate(currentMesoIndex, 2)
+						calendarStartDate: mesocyclesModel.getDate(currentMesoIndex, 2)
 					});
 				}
 				mesocyclePages.push ({ "Object":mesocyclePage });
@@ -385,11 +385,11 @@ Page {
 	}
 
 	function pageActivation() {
-		//mesocyclesListModel.count === 0 is a first iteration of tips
+		//mesocyclesModel.count === 0 is a first iteration of tips
 		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
-		const showTip = false; // mesocyclesListModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesListModel.mesoId) : false;
+		const showTip = false; // mesocyclesModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesModel.mesoId) : false;
 
-		if (mesocyclesListModel.count === 0 || showTip) {
+		if (mesocyclesModel.count === 0 || showTip) {
 			if (firstTimeTip) {
 				firstTimeTip.message = qsTr("Start here");
 				firstTimeTip.visible = true;
@@ -397,7 +397,7 @@ Page {
 			else
 				createFirstTimeTipComponent();
 
-			if (mesocyclesListModel.count === 0) {
+			if (mesocyclesModel.count === 0) {
 				firstTimeTip.y = homePageToolBar.y;
 				firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
 				firstTimeTip.visible = true;

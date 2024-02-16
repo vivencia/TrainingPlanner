@@ -89,6 +89,8 @@ Page {
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
 					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
 				}
+
+				Component.onCompleted: setModel(exercisesListModel);
 			}
 		}
 	} //footer: ToolBar

@@ -4,12 +4,13 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QTime>
+#include <QFile>
 
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	setObjectName( DBMesocyclesObjectName );
-	const QString cnx_name( QStringLiteral("db_worker_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
+	const QString cnx_name( QStringLiteral("db_meso_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesocyclesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
@@ -331,6 +332,25 @@ void DBMesocyclesTable::removeMesocycle()
 	{
 		MSG_OUT("DBMesocyclesTable removeMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable removeMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	resultFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
+void DBMesocyclesTable::deleteMesocyclesTable()
+{
+	QFile mDBFile(mSqlLiteDB.databaseName());
+	m_result = mDBFile.remove();
+	if (m_result)
+	{
+		if (m_model)
+			m_model->clear();
+		m_opcode = OP_DELETE_TABLE;
+		MSG_OUT("DBMesocyclesTable deleteMesocyclesTable SUCCESS")
+	}
+	else
+	{
+		MSG_OUT("DBMesocyclesTable deleteMesocyclesTable error: Could not remove file " << mDBFile.fileName())
 	}
 	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));

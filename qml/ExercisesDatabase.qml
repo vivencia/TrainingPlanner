@@ -280,6 +280,8 @@ Page {
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
 					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
 				}
+
+				Component.onCompleted: setModel(exercisesListModel);
 			}
 
 			RowLayout {

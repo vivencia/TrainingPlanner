@@ -19,15 +19,16 @@ Page {
 	property int week2: 1
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
-	property string mesoSplit: mesocyclesListModel.get(idxModel, 6)
+	property string mesoSplit: mesocyclesModel.get(idxModel, 6)
+
+	property bool bMesoNameOK: false
+	property bool bStartDateChanged: false
+	property bool bEndDateChanged: false
+	property bool bMesoSplitOK: false
 
 	property bool bLoadCompleted: false
 	property bool bNewMeso: mesoId === -1
 	property bool bModified: false
-	property bool bCanSave: true
-	property bool bMesoSplitChanged: false
-	property bool bDate1Changed: false
-	property bool bDate2Changed: false
 
 	property var mesocycleCalendarPage: null
 	property var mesoStatisticsPage: null
@@ -70,8 +71,21 @@ Page {
 			onClicked: {
 				if (mesocycleCalendarPage === null)
 					createMesoCalendarObject(true);
-				else
-					appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+				else {
+					function readyToProceed() {
+						appDB.qmlReady.disconnect(readyToProceed);
+						appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+					}
+
+					if (mesosCalendarModel.getMesoId() === mesoId)
+						readyToProceed();
+					else {
+						mesosCalendarModel.clear();
+						appDB.qmlReady.connect(readyToProceed);
+						appDB.pass_object(mesosCalendarModel);
+						appDB.getMesoCalendar(mesoId);
+					}
+				}
 			}
 		}
 
@@ -115,7 +129,7 @@ Page {
 			}
 			TPTextInput {
 				id: txtMesoName
-				text: mesocyclesListModel.get(idxModel, 1);
+				text: mesocyclesModel.get(idxModel, 1);
 				Layout.alignment: Qt.AlignHCenter
 				Layout.minimumWidth: parent.width / 2
 				Layout.maximumWidth: parent.width - 20
@@ -124,14 +138,14 @@ Page {
 
 				onTextEdited: {
 					if (text.length >= 5) {
-						if (text !== mesocyclesListModel.get(idxModel, 1)) {
-							bCanSave = true;
+						if (text !== mesocyclesModel.get(idxModel, 1)) {
+							bMesoNameOK = true;
 							bModified = true;
 						}
 					}
 					else
-						bCanSave = false;
-					ToolTip.visible = !bCanSave;
+						bMesoNameOK = false;
+					ToolTip.visible = !bMesoNameOK;
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -158,11 +172,12 @@ Page {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: runCmd.formatDate(mesoStartDate)
+				text: runCmd.formatDate(mesocyclesModel.getDate(idxModel, 2))
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
+				ToolTip.text: qsTr("A start date for the mesocycle is necessary")
 
 				CalendarDialog {
 					id: caldlg
@@ -170,15 +185,19 @@ Page {
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
 					windowTitle: qsTr("Please select the initial date for the mesocycle ") + txtMesoName.text
+
+					onOpenedChanged: txtMesoStartDate.ToolTip.visible = !bStartDateChanged;
+
 					onDateSelected: function(date, nweek) {
-						if ( date !== mesocyclesListModel.getDate(idxModel, 2) ) {
+						if ( date !== mesocyclesModel.getDate(idxModel, 2) ) {
 							mesoStartDate = date;
+							txtMesoStartDate.text = runCmd.formatDate(mesoStartDate);
 							week1 = nweek;
-							nWeeks = runCmd.calculateNumberOfWeeks(week1, week2);
-							bDate1Changed = true;
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(week1, week2);
+							bStartDateChanged = true;
 						}
 						else
-							bDate1Changed = false;
+							bStartDateChanged = false;
 
 						if (bNewMeso)
 							caldlg2.open();
@@ -205,11 +224,12 @@ Page {
 			}
 			TPTextInput {
 				id: txtMesoEndDate
-				text: runCmd.formatDate(mesoEndDate)
+				text: runCmd.formatDate(mesocyclesModel.getDate(idxModel, 3))
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
+				ToolTip.text: qsTr("An end date for the mesocycle is necessary")
 
 				Keys.onReturnPressed: {
 					if (btnSaveMeso.enabled)
@@ -222,15 +242,19 @@ Page {
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
 					windowTitle: qsTr("Please select the end date for the mesocycle ") + txtMesoName.text
+
+					onOpenedChanged: txtMesoEndDate.ToolTip.visible = !bEndDateChanged;
+
 					onDateSelected: function(date, nweek) {
-						if ( date !== mesocyclesListModel.getDate(idxModel, 3)) {
+						if ( date !== mesocyclesModel.getDate(idxModel, 3)) {
 							mesoEndDate = date;
+							txtMesoEndDate.text = runCmd.formatDate(mesoEndDate);
 							week2 = nweek;
-							nWeeks = runCmd.calculateNumberOfWeeks(week1, week2);
-							bDate2Changed = true;
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(week1, week2);
+							bEndDateChanged = true;
 						}
 						else
-							bDate2Changed = false;
+							bEndDateChanged = false;
 
 						txtMesoSplit.forceActiveFocus();
 					}
@@ -260,7 +284,7 @@ Page {
 
 			TPTextInput {
 				id: txtMesoNWeeks
-				text: mesocyclesListModel.get(idxModel, 5)
+				text: mesocyclesModel.get(idxModel, 5)
 				width: txtMesoEndDate.width
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -285,7 +309,7 @@ Page {
 			}
 			TPTextInput {
 				id: txtMesoSplit
-				text: mesocyclesListModel.get(idxModel, 6)
+				text: mesocyclesModel.get(idxModel, 6)
 				validator: regEx
 				width: txtMesoStartDate.width
 				Layout.alignment: Qt.AlignLeft
@@ -306,20 +330,19 @@ Page {
 				}
 
 				onTextEdited: {
-					if ( text !== mesocyclesListModel.get(idxModel, 6) ) {
+					if ( text !== mesocyclesModel.get(idxModel, 6) ) {
 						if (text.indexOf('R') === -1) {
-							bCanSave = false;
+							bMesoSplitOK = false;
 						}
 						else {
-							bCanSave = true;
+							bMesoSplitOK = true;
 							mesoSplit = text;
-							bMesoSplitChanged = true;
 						}
 					}
 					else
-						bMesoSplitChanged = false;
+						bMesoSplitOK = false;
+					ToolTip.visible = !bMesoSplitOK;
 					bModified = true;
-					ToolTip.visible = !bCanSave;
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -339,7 +362,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 5
-				visible: !bNewMeso & (bDate1Changed | bDate2Changed | bMesoSplitChanged)
+				visible: !bNewMeso & (bStartDateChanged || bEndDateChanged || bMesoSplitOK)
 				padding: 0
 				spacing: 0
 
@@ -685,11 +708,11 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtMesoDrugs
-					text: mesocyclesListModel.get(idxModel, 7)
+					text: mesocyclesModel.get(idxModel, 7)
 					color: "white"
 
 					onEditingFinished: {
-						if ( text !== mesocyclesListModel.get(idxModel, 7) )
+						if ( text !== mesocyclesModel.get(idxModel, 7) )
 							bModified = true;
 					}
 				}
@@ -713,11 +736,11 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
-					text: mesocyclesListModel.get(idxModel, 4)
+					text: mesocyclesModel.get(idxModel, 4)
 					color: "white"
 
 					onEditingFinished: {
-						if ( text !== mesocyclesListModel.get(idxModel, 4) )
+						if ( text !== mesocyclesModel.get(idxModel, 4) )
 							bModified = true;
 					}
 				}
@@ -763,13 +786,13 @@ Page {
 
 			onClicked: {
 				if (!bNewMeso) {
-					txtMesoName.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 1) });
-					mesoStartDate = mesocyclesListModel.getDate(idxModel, 2);
-					mesoEndDate = mesocyclesListModel.getDate(idxModel, 3);
-					txtMesoNotes.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 4) });
-					txtMesoNWeeks.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 5) });
-					txtMesoSplit.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 6) });
-					txtMesoDrugs.text = Qt.binding(function() { return mesocyclesListModel.get(idxModel, 7) });
+					txtMesoName.text = Qt.binding(function() { return mesocyclesModel.get(idxModel, 1) });
+					mesoStartDate = mesocyclesModel.getDate(idxModel, 2);
+					mesoEndDate = mesocyclesModel.getDate(idxModel, 3);
+					txtMesoNotes.text = Qt.binding(function() { return mesocyclesModel.get(idxModel, 4) });
+					txtMesoNWeeks.text = Qt.binding(function() { return mesocyclesModel.get(idxModel, 5) });
+					txtMesoSplit.text = Qt.binding(function() { return mesocyclesModel.get(idxModel, 6) });
+					txtMesoDrugs.text = Qt.binding(function() { return mesocyclesModel.get(idxModel, 7) });
 					txtSplitA.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 2) });
 					txtSplitB.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 3) });
 					txtSplitC.text = Qt.binding(function() { return mesoSplitModel.get(idxModel, 4) });
@@ -794,9 +817,7 @@ Page {
 				}
 
 				bModified = false;
-				bDate1Changed = false;
-				bDate2Changed = false;
-				bMesoSplitChanged = false;
+				bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
 			}
 		} //btnRevert
 
@@ -808,7 +829,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
-			enabled: bModified & bCanSave
+			enabled: bNewMeso ? bMesoNameOK && bStartDateChanged && bEndDateChanged && bMesoSplitOK : bModified
 
 			onClicked: {
 				if (bNewMeso) {
@@ -818,40 +839,44 @@ Page {
 						mesoId = appDB.insertId();
 						appDB.pass_object(mesoSplitModel);
 						appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+						bNewMeso = false;
+						createMesoCalendarObject(true);
 					}
 
-					appDB.pass_object(mesocyclesListModel);
+					appDB.pass_object(mesocyclesModel);
 					appDB.qmlReady.connect(getMesoId);
 					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
-					idxModel = mesocyclesListModel.count - 1;
-					bNewMeso = false;
-					createMesoCalendarObject(true);
+					idxModel = mesocyclesModel.count - 1;
 				}
 				else {
-					mesocyclesListModel.setCurrentRow(idxModel);
-					appDB.pass_object(mesocyclesListModel);
-					appDB.updateMesocycle(mesoId, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
-					mesoSplitModel.setCurrentRow(idxModel);
-					appDB.pass_object(mesoSplitModel);
-					appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+					function canProceed() {
+						appDB.qmlReady.disconnect(canProceed);
+						mesoSplitModel.setCurrentRow(idxModel);
+						appDB.pass_object(mesoSplitModel);
+						appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
-					/*if (bDate1Changed || bDate2Changed || bMesoSplitChanged) {
-						if (Database.checkIfCalendarForMesoExists(mesoId)) {
-							if (mesocycleCalendarPage === null)
-								createMesoCalendarObject(false);
-							else {
-								mesocycleCalendarPage.mesoStartDate = mesocyclesListModel.getDate(idxModel, 2);
-								mesocycleCalendarPage.mesoEndDate = mesocyclesListModel.getDate(idxModel, 3);
-								mesocycleCalendarPage.mesoSplit = mesocyclesListModel.get(idxModel, 6);
-								mesocycleCalendarPage.mesoName = mesocyclesListModel.get(idxModel, 1);
+						/*if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+							if (Database.checkIfCalendarForMesoExists(mesoId)) {
+								if (mesocycleCalendarPage === null)
+									createMesoCalendarObject(false);
+								else {
+									mesocycleCalendarPage.mesoStartDate = mesocyclesModel.getDate(idxModel, 2);
+									mesocycleCalendarPage.mesoEndDate = mesocyclesModel.getDate(idxModel, 3);
+									mesocycleCalendarPage.mesoSplit = mesocyclesModel.get(idxModel, 6);
+									mesocycleCalendarPage.mesoName = mesocyclesModel.get(idxModel, 1);
+								}
+								appStackView.push(mesocycleCalendarPage);
+								mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							}
-							appStackView.push(mesocycleCalendarPage);
-							mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
-							bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
-						}
-					}*/
+						}*/
+						bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+					}
+
+					mesocyclesModel.setCurrentRow(idxModel);
+					appDB.pass_object(mesocyclesModel);
+					appDB.qmlReady.connect(canProceed);
+					appDB.updateMesocycle(mesoId, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 				}
-				bDate1Changed = bDate2Changed = bMesoSplitChanged = false;
 				bModified = false;
 			} //onClicked
 		} //btnSaveMeso
@@ -866,8 +891,8 @@ Page {
 
 		function finishCreation() {
 			mesocycleCalendarPage = component.createObject(mesoPropertiesPage, {
-					mesoId: mesoId, mesoName: mesocyclesListModel.get(idxModel, 1), mesoStartDate: mesocyclesListModel.getDate(idxModel, 2),
-					mesoEndDate: mesocyclesListModel.getDate(idxModel, 3), mesoSplit: mesocyclesListModel.get(idxModel, 6),
+					mesoId: mesoId, mesoName: mesocyclesModel.get(idxModel, 1), mesoStartDate: mesocyclesModel.getDate(idxModel, 2),
+					mesoEndDate: mesocyclesModel.getDate(idxModel, 3), mesoSplit: mesocyclesModel.get(idxModel, 6),
 					idxModel: idxModel, bVisualLoad: bshowpage
 			});
 			mesocycleCalendarPage.setModel(mesosCalendarModel);
