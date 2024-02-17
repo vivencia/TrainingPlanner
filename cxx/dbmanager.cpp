@@ -305,6 +305,21 @@ void DbManager::updateMesoSplitComplete(const uint meso_id, QLatin1Char splitLet
 	worker->setDataComplete(QString::number(meso_id), splitLetter, splitGroup, exercises, types, nsets, nreps, nweights);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
+
+bool DbManager::previousMesoHasPlan(const uint prev_meso_id, QLatin1Char splitLetter) const
+{
+	DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
+	return meso_split->mesoHasPlan(QString::number(prev_meso_id), splitLetter);
+}
+
+void DbManager::loadSplitFromPreviousMeso(const uint meso_id, const uint prev_meso_id, QLatin1Char splitLetter)
+{
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	worker->addExecArg(prev_meso_id);
+	worker->addExecArg(splitLetter);
+	worker->addExecArg(meso_id);
+	createThread(worker, [worker] () { worker->loadFromPreviousPlan(); } );
+}
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

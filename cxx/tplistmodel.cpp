@@ -127,6 +127,32 @@ void TPListModel::setFilter(const QString &filter)
 	}
 }
 
+QString TPListModel::makeFilterString(const QString& text) const
+{
+	QString filterStr;
+	QStringList words(text.split(QLatin1Char(' ')));
+	if ( words.count() > 0)
+	{
+		QStringList::iterator itr(words.begin());
+		QStringList::iterator itr_end(words.end());
+
+		do
+		{
+			if (!filterStr.isEmpty())
+				filterStr.append(QLatin1Char('|'));
+			if (static_cast<QString>(*itr).endsWith(QLatin1Char('s'), Qt::CaseInsensitive) )
+				static_cast<QString>(*itr).chop(1);
+			static_cast<QString>(*itr).remove(QLatin1Char(','));
+			static_cast<QString>(*itr).remove(QLatin1Char('.'));
+			static_cast<QString>(*itr).remove(QLatin1Char('('));
+			static_cast<QString>(*itr).remove(QLatin1Char(')'));
+			static_cast<QString>(*itr).toLower();
+			filterStr.append(static_cast<QString>(*itr));
+		} while (++itr != itr_end);
+	}
+	return filterStr;
+}
+
 QVariant TPListModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());

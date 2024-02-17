@@ -1,6 +1,6 @@
 #include "dbmesosplitmodel.h"
 
-DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
+/*DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	: TPListModel{parent}
 {
 	// Set names to the role name hash container (QHash<int, QByteArray>)
@@ -57,4 +57,35 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 		}
 	}
 	return false;
+}*/
+
+void DBMesoSplitModel::setWorkingSplit(const uint mesoIdx, QLatin1Char splitLetter)
+{
+	m_currentIndex = mesoIdx;
+	switch (splitLetter)
+	{
+		case 'A': m_fldExercises = 8; break;
+		case 'B': m_fldExercises = 13; break;
+		case 'C': m_fldExercises = 18; break;
+		case 'D': m_fldExercises = 23; break;
+		case 'E': m_fldExercises = 28; break;
+		case 'F': m_fldExercises = 33; break;
+	}
+}
+
+void DBMesoSplitModel::replaceString(QString& oldString, const QString& newString, const uint n, QLatin1Char sep)
+{
+	uint idx(0);
+	uint next_idx(0);
+	uint count(0);
+	while (count < n)
+	{
+		idx = oldString.indexOf(sep, idx, Qt::CaseInsensitive );
+		count++;
+		idx++;
+	}
+	next_idx = oldString.indexOf(sep, idx, Qt::CaseInsensitive );
+	if (next_idx < 0)
+		next_idx = oldString.length();
+	oldString.replace(idx, next_idx - idx, newString);
 }

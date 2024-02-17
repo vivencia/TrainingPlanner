@@ -53,7 +53,14 @@ public:
 	Q_INVOKABLE void setCurrentRow(const int row);
 
 	Q_INVOKABLE void setFilter(const QString& filter);
+	Q_INVOKABLE QString makeFilterString(const QString& text) const;
 	//Q_INVOKABLE void set(const uint row, const uint field, const QString& value) { m_modeldata.at[m_indexProxy.at(row)][field] = value; }
+
+	inline void set(const uint row, const uint field, const QString& value)
+	{
+		m_modeldata[row].replace(field, value);
+		emit dataChanged(index(row), index(row), QList<int>() << Qt::UserRole + field);
+	}
 
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{

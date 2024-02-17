@@ -64,17 +64,17 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 	return false;
 }
 
-QStringList DBMesocyclesModel::getMesoInfo(const int mesoid) const
+QString DBMesocyclesModel::getMesoInfo(const int mesoid, const int role) const
 {
 	if (mesoid >= 0)
 	{
 		for(uint x(0); x < count(); ++x)
 		{
 			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
-				return getRow_const(x);
+				return data(index(x), role);
 		}
 	}
-	return QStringList();
+	return QVariant();
 }
 
 int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const

@@ -341,7 +341,7 @@ ApplicationWindow {
 		}
 
 		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToCreate);
+			appDB.qmlReady.disconnect(readyToProceed);
 			if (option === 0)
 			{
 				if (component.status === Component.Ready)

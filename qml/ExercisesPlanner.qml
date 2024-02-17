@@ -5,6 +5,7 @@ import QtQuick.Controls
 Page {
 	id: pagePlanner
 	required property int mesoId
+	required property int mesoIdx
 	required property string mesoSplit
 
 	contentItem {
@@ -25,6 +26,10 @@ Page {
 		currentIndex: 0
 		anchors.fill: parent
 		interactive: !bottomPane.shown
+
+		onCurrentItemChanged:
+			mesoSplitModel.setWorkingSplit(mesoIdx, currentItem.splitLetter);
+
 	} //SwipeView
 
 	PageIndicator {
@@ -97,55 +102,29 @@ Page {
 
 	Component.onCompleted: {
 		var idx = 0;
-		let results = [];
+		var splitLetter;
 		do {
-			switch (mesoSplit.charAt(idx)) {
-				case 'A':
-					results = Database.getCompleteDivisionAForMeso(mesoId);
-				break;
-				case 'B':
-					results = Database.getCompleteDivisionBForMeso(mesoId);
-				break;
-				case 'C':
-					results = Database.getCompleteDivisionCForMeso(mesoId);
-				break;
-				case 'D':
-					results = Database.getCompleteDivisionDForMeso(mesoId);
-				break;
-				case 'E':
-					results = Database.getCompleteDivisionEForMeso(mesoId);
-				break;
-				case 'F':
-					results = Database.getCompleteDivisionFForMeso(mesoId);
-				break;
-				default: continue;
+			splitLetter = mesoSplit.charAt(idx);
+
+			function finishCreation(splitletter) {
+				var object = component.createObject(splitView, { mesoId:mesoId, mesoIdx:mesoIdx, splitLetter:splitletter });
+				splitView.addItem(object);
 			}
 
-			function generateObject(data) {
-				var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
-
-				function finishCreation(Data) {
-					var object = component.createObject(splitView, { divisionId:Data[0].divisionId,
-						mesoId:mesoId, splitLetter:Data[0].splitLetter, splitText:Data[0].splitText,
-						splitExercises:Data[0].splitExercises, splitSetTypes:Data[0].splitSetTypes,
-						splitNSets:Data[0].splitNSets, splitNReps:Data[0].splitNReps,
-						splitNWeight:Data[0].splitNWeight
-					});
-					splitView.addItem(object);
-				}
-
-				function checkStatus() {
-					if (component.status === Component.Ready)
-						finishCreation(data);
-				}
-
+			function checkStatus() {
+				appDB.qmlReady.disconnect(checkStatus);
 				if (component.status === Component.Ready)
-					finishCreation(data);
+					finishCreation(splitLetter);
 				else
 					component.statusChanged.connect(checkStatus);
 			}
 
-			generateObject(results);
+			if (splitLetter !== 'R') {
+				var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
+				appDB.qmlReady.connect(checkStatus);
+				appDB.pass_object(mesoSplitModel);
+				appDB.getCompleteMesoSplit(mesoId, splitLetter);
+			}
 		} while (++idx < mesoSplit.length);
 	}
 

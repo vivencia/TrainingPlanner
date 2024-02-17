@@ -677,7 +677,7 @@ Page {
 
 							function finishCreation() {
 								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
-										"mesoId":mesoId, "mesoSplit":mesoSplit, "width":mesoPropertiesPage.width, "height":mesoPropertiesPage.height
+										mesoId:mesoId, mesoIdx:idxModel, mesoSplit:mesoSplit, width:mesoPropertiesPage.width, height:mesoPropertiesPage.height
 								});
 								mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
 								appStackView.push(mesoPlannerObject, StackView.DontLoad);
