@@ -20,12 +20,6 @@ public:
 
 	virtual void createTable();
 	void getAllMesocycles();
-	void getMesoInfo();
-	void getPreviousMesoId();
-	//The caller will sort out the info it needs. In this case, the previous meso will be loaded entirely and the caller will use whatever fields it needs
-	void getPreviousMesoEndDate() { getPreviousMesoId(); }
-	void getNextMesoStartDate();
-	void getLastMesoEndDate();
 	void newMesocycle();
 	void updateMesocycle();
 	void removeMesocycle();

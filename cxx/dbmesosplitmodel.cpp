@@ -59,20 +59,6 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }*/
 
-void DBMesoSplitModel::setWorkingSplit(const uint mesoIdx, QLatin1Char splitLetter)
-{
-	m_currentIndex = mesoIdx;
-	switch (splitLetter.toLatin1())
-	{
-		case 'A': m_muscularGroup = 2; m_fldExercises = 8; break;
-		case 'B': m_muscularGroup = 3; m_fldExercises = 13; break;
-		case 'C': m_muscularGroup = 4; m_fldExercises = 18; break;
-		case 'D': m_muscularGroup = 5; m_fldExercises = 23; break;
-		case 'E': m_muscularGroup = 6; m_fldExercises = 28; break;
-		case 'F': m_muscularGroup = 7; m_fldExercises = 33; break;
-	}
-}
-
 void DBMesoSplitModel::replaceString(QString& oldString, const QString& newString, const uint n, const bool bReplace, QLatin1Char sep)
 {
 	uint idx(0);

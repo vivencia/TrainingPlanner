@@ -165,7 +165,6 @@ ApplicationWindow {
 	}
 
 	function loadExercises() {
-		appDB.qmlReady.connect(readyToProceed);
 		appDB.pass_object(exercisesListModel);
 		appDB.getAllExercises();
 	}
@@ -353,6 +352,7 @@ ApplicationWindow {
 				appStackView.push(dbExercisesListPage, StackView.DontLoad);
 		}
 
+		appDB.qmlReady.connect(readyToProceed);
 		if (!dbExercisesListPage) {
 			component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
 			option = 0;

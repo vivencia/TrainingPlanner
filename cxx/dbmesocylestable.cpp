@@ -91,162 +91,6 @@ void DBMesocyclesTable::getAllMesocycles()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesocyclesTable::getMesoInfo()
-{
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
-	m_result = false;
-	const uint meso_id (m_execArgs.at(0).toUInt());
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT * FROM mesocycles_table WHERE id=") + QString::number(meso_id) );
-
-		if (query.exec())
-		{
-			if (query.first ())
-			{
-				m_data.clear();
-				const uint n_entries(7);
-				for (uint i(0); i < n_entries; ++i)
-					m_data.append(query.value(static_cast<int>(i)).toString());
-				m_data.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
-				m_result = true;
-				m_opcode = OP_READ;
-			}
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable getMesoInfo meso_id " << meso_id << "  Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable getMesoInfo meso_id " << meso_id << "  Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable getMesoInfo meso_id " << meso_id << "  SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesocyclesTable::getPreviousMesoId()
-{
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
-	m_result = false;
-	const uint current_meso_id (m_execArgs.at(0).toUInt());
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT * FROM mesocycles_table WHERE id<") + QString::number(current_meso_id));
-		if (query.exec())
-		{
-			if (query.last ())
-			{
-				m_data.clear();
-				const uint n_entries(8);
-				for (uint i(0); i < n_entries; ++i)
-					m_data.append(query.value(static_cast<int>(i)).toString());
-				m_data.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
-				m_opcode = OP_READ;
-				m_result = true;
-			}
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable getPreviousMesoId current_meso_id " << current_meso_id << "  Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable getPreviousMesoId current_meso_id " << current_meso_id << "  Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable getPreviousMesoId current_meso_id " << current_meso_id << "  SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesocyclesTable::getNextMesoStartDate()
-{
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
-	m_result = false;
-	const uint meso_id (m_execArgs.at(0).toUInt());
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT id,meso_start_date FROM mesocycles_table WHERE id>=") + QString::number(meso_id));
-		if (query.exec())
-		{
-			if (query.last ())
-			{
-				m_data.clear();
-				m_data.append("");
-				m_data.append("");
-
-				//This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
-				if (query.value(0).toUInt() == meso_id)
-				{
-					QDate futureDate(QDate::currentDate().addMonths(6));
-					m_data.append(QString::number(futureDate.toJulianDay()));
-				}
-				else
-					m_data.append(query.value(1).toString());
-				m_opcode = OP_READ;
-				m_result = true;
-
-			}
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable getNextMesoStartDate current_meso_id " << meso_id << "  Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable getNextMesoStartDate current_meso_id " << meso_id << "  Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable getNextMesoStartDate current_meso_id " << meso_id << "  SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesocyclesTable::getLastMesoEndDate()
-{
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT meso_end_date,MAX(id) FROM mesocycles_table"));
-		if (query.exec())
-		{
-			if (query.first ())
-			{
-				m_data.clear();
-				m_data.append("");
-				m_data.append("");
-				m_data.append("");
-				m_data.append(query.value(0).toString());
-				m_opcode = OP_READ;
-				m_result = true;
-			}
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable getLastMesoEndDate Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable getLastMesoEndDate Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable getLastMesoEndDate SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesocyclesTable::newMesocycle()
 {
 	m_result = false;
@@ -300,7 +144,10 @@ void DBMesocyclesTable::updateMesocycle()
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
 		if (m_model)
+		{
+			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 			m_model->updateList(m_data, m_model->currentRow());
+		}
 	}
 	else
 	{

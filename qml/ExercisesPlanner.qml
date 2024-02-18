@@ -108,7 +108,7 @@ Page {
 			var component;
 
 			function finishCreation() {
-				var splitletter = component.objectName();
+				var splitletter = component.objectName;
 				var object = component.createObject(splitView, { mesoId:mesoId, mesoIdx:mesoIdx, splitLetter:splitletter });
 				splitView.addItem(object);
 			}
@@ -123,7 +123,7 @@ Page {
 
 			if (splitLetter !== 'R') {
 				component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
-				component.setObjectName(splitLetter);
+				component.objectName = splitLetter;
 				appDB.qmlReady.connect(checkStatus);
 				appDB.pass_object(mesoSplitModel);
 				appDB.getCompleteMesoSplit(mesoId, splitLetter);

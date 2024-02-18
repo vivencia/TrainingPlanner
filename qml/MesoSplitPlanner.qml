@@ -4,7 +4,6 @@ import QtQuick.Controls
 
 Frame {
 	id: paneSplit
-	required property int divisionId
 	required property int mesoId
 	required property int mesoIdx
 	required property string splitLetter
@@ -574,7 +573,10 @@ Frame {
 		}
 
 		if (exercisesListModel.count === 0)
+		{
+			appDB.qmlReady.connect(readyToProceed);
 			loadExercises();
+		}
 		else
 			readyToProceed();
 

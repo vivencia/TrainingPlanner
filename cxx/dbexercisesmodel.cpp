@@ -37,12 +37,12 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 			case actualIndexRole:
 				if (!bFilterApplied)
 				{
-					MSG_OUT("NO filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(row).at(role-Qt::UserRole))
+					//MSG_OUT("NO filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(row).at(role-Qt::UserRole))
 					return m_modeldata.at(row).at(role-Qt::UserRole);
 				}
 				else
 				{
-					MSG_OUT("Filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole))
+					//MSG_OUT("Filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole))
 					return m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole);
 				}
 			case Qt::DisplayRole:

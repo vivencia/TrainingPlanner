@@ -236,12 +236,14 @@ Column {
 
 	function setModel(model) {
 		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToCreate);
+			appDB.qmlReady.disconnect(readyToProceed);
 			lstExercises.model = model;
 		}
 
-		if (model.count === 0)
+		if (model.count === 0) {
+			appDB.qmlReady.connect(readyToProceed);
 			loadExercises();
+		}
 	}
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {

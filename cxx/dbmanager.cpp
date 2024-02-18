@@ -290,11 +290,11 @@ void DbManager::deleteMesoSplitTable()
 	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
 }
 
-void DbManager::getCompleteMesoSplit(const uint meso_id, QLatin1Char splitLetter)
+void DbManager::getCompleteMesoSplit(const uint meso_id, const QString& splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(meso_id);
-	worker->addExecArg(splitLetter.toLatin1());
+	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
 }
 
