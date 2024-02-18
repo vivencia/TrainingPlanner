@@ -105,8 +105,10 @@ Page {
 		var splitLetter;
 		do {
 			splitLetter = mesoSplit.charAt(idx);
+			var component;
 
-			function finishCreation(splitletter) {
+			function finishCreation() {
+				var splitletter = component.objectName();
 				var object = component.createObject(splitView, { mesoId:mesoId, mesoIdx:mesoIdx, splitLetter:splitletter });
 				splitView.addItem(object);
 			}
@@ -114,13 +116,14 @@ Page {
 			function checkStatus() {
 				appDB.qmlReady.disconnect(checkStatus);
 				if (component.status === Component.Ready)
-					finishCreation(splitLetter);
+					finishCreation();
 				else
-					component.statusChanged.connect(checkStatus);
+					component.statusChanged.connect(finishCreation);
 			}
 
 			if (splitLetter !== 'R') {
-				var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
+				component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
+				component.setObjectName(splitLetter);
 				appDB.qmlReady.connect(checkStatus);
 				appDB.pass_object(mesoSplitModel);
 				appDB.getCompleteMesoSplit(mesoId, splitLetter);

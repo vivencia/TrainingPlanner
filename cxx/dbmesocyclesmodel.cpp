@@ -64,7 +64,7 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 	return false;
 }
 
-QString DBMesocyclesModel::getMesoInfo(const int mesoid, const int role) const
+QVariant DBMesocyclesModel::getMesoInfo(const int mesoid, const int role) const
 {
 	if (mesoid >= 0)
 	{

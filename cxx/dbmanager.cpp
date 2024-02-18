@@ -294,15 +294,15 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, QLatin1Char splitLetter
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(meso_id);
-	worker->addExecArg(splitLetter);
+	worker->addExecArg(splitLetter.toLatin1());
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
 }
 
-void DbManager::updateMesoSplitComplete(const uint meso_id, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
-							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights)
+void DbManager::updateMesoSplitComplete(const uint meso_idx, QLatin1Char splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
-	worker->setDataComplete(QString::number(meso_id), splitLetter, splitGroup, exercises, types, nsets, nreps, nweights);
+	worker->addExecArg(meso_idx);
+	worker->addExecArg(splitLetter.toLatin1());
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
 
@@ -316,7 +316,7 @@ void DbManager::loadSplitFromPreviousMeso(const uint meso_id, const uint prev_me
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(prev_meso_id);
-	worker->addExecArg(splitLetter);
+	worker->addExecArg(splitLetter.toLatin1());
 	worker->addExecArg(meso_id);
 	createThread(worker, [worker] () { worker->loadFromPreviousPlan(); } );
 }

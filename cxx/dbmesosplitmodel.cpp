@@ -62,18 +62,18 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 void DBMesoSplitModel::setWorkingSplit(const uint mesoIdx, QLatin1Char splitLetter)
 {
 	m_currentIndex = mesoIdx;
-	switch (splitLetter)
+	switch (splitLetter.toLatin1())
 	{
-		case 'A': m_fldExercises = 8; break;
-		case 'B': m_fldExercises = 13; break;
-		case 'C': m_fldExercises = 18; break;
-		case 'D': m_fldExercises = 23; break;
-		case 'E': m_fldExercises = 28; break;
-		case 'F': m_fldExercises = 33; break;
+		case 'A': m_muscularGroup = 2; m_fldExercises = 8; break;
+		case 'B': m_muscularGroup = 3; m_fldExercises = 13; break;
+		case 'C': m_muscularGroup = 4; m_fldExercises = 18; break;
+		case 'D': m_muscularGroup = 5; m_fldExercises = 23; break;
+		case 'E': m_muscularGroup = 6; m_fldExercises = 28; break;
+		case 'F': m_muscularGroup = 7; m_fldExercises = 33; break;
 	}
 }
 
-void DBMesoSplitModel::replaceString(QString& oldString, const QString& newString, const uint n, QLatin1Char sep)
+void DBMesoSplitModel::replaceString(QString& oldString, const QString& newString, const uint n, const bool bReplace, QLatin1Char sep)
 {
 	uint idx(0);
 	uint next_idx(0);
@@ -87,5 +87,41 @@ void DBMesoSplitModel::replaceString(QString& oldString, const QString& newStrin
 	next_idx = oldString.indexOf(sep, idx, Qt::CaseInsensitive );
 	if (next_idx < 0)
 		next_idx = oldString.length();
-	oldString.replace(idx, next_idx - idx, newString);
+	if (bReplace)
+		oldString.replace(idx, next_idx - idx, newString);
+	else
+		oldString.insert(next_idx - 1, sep == fieldSep ? QLatin1Char('&') + newString : sep + newString);
+}
+
+void DBMesoSplitModel::insertString(QString& string, const QString& newString, const uint n, QLatin1Char sep)
+{
+	uint idx(0);
+	uint count(0);
+	while (count < n)
+	{
+		idx = string.indexOf(sep, idx, Qt::CaseInsensitive );
+		count++;
+		idx++;
+	}
+	if (count == n)
+		idx = string.length();
+	string.insert(idx, idx > 0 ? newString + sep : newString);
+}
+
+void DBMesoSplitModel::removeString(QString& string, const uint n, QLatin1Char sep)
+{
+	uint idx(1);
+	uint next_idx(0);
+	uint count(0);
+	while (count < n)
+	{
+		idx = string.indexOf(sep, idx, Qt::CaseInsensitive );
+		count++;
+		idx++;
+	}
+	next_idx = string.indexOf(sep, idx, Qt::CaseInsensitive );
+	--idx;
+	if (next_idx < 0)
+		next_idx = string.length();
+	string.remove(idx, next_idx - idx);
 }

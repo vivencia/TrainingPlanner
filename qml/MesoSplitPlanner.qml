@@ -8,10 +8,8 @@ Frame {
 	required property int mesoId
 	required property int mesoIdx
 	required property string splitLetter
-	required property string splitText
 
 	property bool bCanEditExercise: false
-	property int currentModelIndex: 0
 	property int seconds: 0
 	property bool bModified: false
 	property string filterString: ""
@@ -26,10 +24,6 @@ Frame {
 	spacing: 0
 	Layout.leftMargin: 5
 
-	ListModel {
-		id: exercisesListModel
-	}
-
 	Timer {
 		id: undoTimer
 		interval: 1000
@@ -38,7 +32,17 @@ Frame {
 		onTriggered: {
 			if ( seconds === 0 ) {
 				undoTimer.stop();
-				removeExercise(idxToRemove);
+				mesoSplitModel.removeExercise(idxToRemove);
+				mesoSplitModel.removeSetType(idxToRemove);
+				mesoSplitModel.removeSetsNumber(idxToRemove);
+				mesoSplitModel.removeReps(idxToRemove);
+				mesoSplitModel.removeWeight(idxToRemove);
+				if (idxToRemove > 0)
+					--idxToRemove;
+				if (mesoSplitModel.count === 0)
+					appendNewExerciseToDivision();
+				mesoSplitModel.currentEntry = idxToRemove;
+				bModified = true;
 			}
 			else {
 				seconds = seconds - 1000;
@@ -91,7 +95,7 @@ Frame {
 
 		TextField {
 			id: txtSplit
-			text: splitText
+			text: mesoSplitModel.getMuscularGroup(mesoSplitModel.currentEntry)
 			font.pixelSize: AppSettings.fontSizeText
 			Layout.fillWidth: true
 			Layout.leftMargin: 5
@@ -99,9 +103,9 @@ Frame {
 			font.bold: true
 
 			onTextEdited: {
-				splitText = text;
+				mesoSplitModel.changeMuscularGroup(text, mesoSplitModel.currentEntry);
 				bModified = true;
-				filterString = exercisesListModel.makeFilterString(splitText);
+				filterString = exercisesListModel.makeFilterString(text);
 			}
 		}
 
@@ -201,14 +205,14 @@ Frame {
 						}
 
 						onEditingFinished: {
-							mesoSplitModel.changeExercise(index, text);
+							mesoSplitModel.changeExercise(text, index);
 							bModified = true;
 						}
 
 						onTextChanged: {
 							if (bCanEditExercise) {
 								if (bottomPane.shown) {
-									mesoSplitModel.changeExercise(index, text);
+									mesoSplitModel.changeExercise(text, index);
 									bModified = true;
 								}
 							}
@@ -270,7 +274,7 @@ Frame {
 						enabled: index === mesoSplitModel.currentEntry
 
 						onActivated: (index) => {
-							mesoSplitModel.changeSetType(mesoSplitModel.currentEntry, index);
+							mesoSplitModel.changeSetType(index, mesoSplitModel.currentEntry);
 							txtNSets.forceActiveFocus();
 							bModified = true;
 						}
@@ -297,7 +301,7 @@ Frame {
 						enabled: index === mesoSplitModel.currentEntry
 
 						onValueChanged: (str, val) => {
-							mesoSplitModel.changeSetsNumber(index, str);
+							mesoSplitModel.changeSetsNumber(str, index);
 							bModified = true;
 						}
 
@@ -327,7 +331,7 @@ Frame {
 
 						SetInputField {
 							id: txtNReps1
-							text: mesoSplitModel.getReps(index, 0)
+							text: mesoSplitModel.getReps(0, index)
 							type: SetInputField.Type.RepType
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
@@ -336,7 +340,7 @@ Frame {
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
-								mesoSplitModel.changeReps(index, 0, str);
+								mesoSplitModel.changeReps(0, str, index);
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -345,7 +349,7 @@ Frame {
 						}
 						SetInputField {
 							id: txtNReps2
-							text: mesoSplitModel.getReps(index, 1)
+							text: mesoSplitModel.getReps(1, index)
 							type: SetInputField.Type.RepType
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
@@ -354,7 +358,7 @@ Frame {
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
-								mesoSplitModel.changeReps(index, 1, str);
+								mesoSplitModel.changeReps(1, str, index);
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -365,7 +369,7 @@ Frame {
 
 					SetInputField {
 						id: txtNReps
-						text: mesoSplitModel.getReps(index, 0)
+						text: mesoSplitModel.getReps(0, index)
 						type: SetInputField.Type.RepType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -377,7 +381,7 @@ Frame {
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
-							mesoSplitModel.changeReps(index, 0, str);
+							mesoSplitModel.changeReps(0, str, index);
 							bModified = true;
 						}
 
@@ -404,7 +408,7 @@ Frame {
 
 						SetInputField {
 							id: txtNWeight1
-							text: mesoSplitModel.getWeight(index, 0)
+							text: mesoSplitModel.getWeight(0, index)
 							type: SetInputField.Type.WeightType
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
@@ -413,7 +417,7 @@ Frame {
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
-								mesoSplitModel.changeWeight(index, 0, str);
+								mesoSplitModel.changeWeight(0, str, index);
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -422,7 +426,7 @@ Frame {
 						}
 						SetInputField {
 							id: txtNWeight2
-							text: mesoSplitModel.getWeight(index, 1)
+							text: mesoSplitModel.getWeight(1, index)
 							type: SetInputField.Type.WeightType
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
@@ -431,7 +435,7 @@ Frame {
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
-								mesoSplitModel.changeWeight(index, 1, str);
+								mesoSplitModel.changeWeight(1, str, index);
 							}
 						}
 					} //RowLayout
@@ -450,7 +454,7 @@ Frame {
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
-							mesoSplitModel.changeWeight(index, 0, str);
+							mesoSplitModel.changeWeight(0, str, index);
 							bModified = true;
 						}
 					}
@@ -462,7 +466,7 @@ Frame {
 						font.capitalization: Font.MixedCase
 						font.bold: true
 						display: AbstractButton.TextBesideIcon
-						visible: index === exercisesListModel.count - 1
+						visible: index === mesoSplitModel.nEntries - 1
 						Layout.row: cboSetType.currentIndex !== 4 ? 6 : 8
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -556,7 +560,9 @@ Frame {
 			onClicked: {
 				if (bCanEditExercise)
 					editButtonClicked();
-				saveMesoDivisionPlan();
+				appDB.pass_object(mesoSplitModel);
+				appDB.updateMesoSplitComplete(mesoIdx, splitLetter);
+				bModified = false;
 			}
 		}
 	} //ColumnLayout
@@ -565,7 +571,6 @@ Frame {
 		function readyToProceed() {
 			appDB.qmlReady.disconnect(readyToProceed);
 			lstSplitExercises.setModel(exercisesListModel);
-			filterString = exercisesListModel.makeFilterString(splitText);
 		}
 
 		if (exercisesListModel.count === 0)
@@ -579,97 +584,39 @@ Frame {
 				if (appDB.previousMesoHasPlan(prevMesoId, splitLetter)) {
 					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
 					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
+					mesoSplitModel.currentEntry = 0;
 				}
 			}
-			else {
-				mesoSplitModel.changeExercise
+			else
 				appendNewExerciseToDivision();
-			}
 		}
-		mesoSplitModel.currentEntry = mesoSplitModel.count - 1;
 
 		if (Qt.platform.os === "android")
 			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
 	}
 
 	function appendNewExerciseToDivision() {
-		currentModelIndex = exercisesListModel.count;
-		exercisesListModel.append ( {"exerciseName":qsTr("Choose exercise..."), "setType":"0",
-			"setsNumber":"4", "repsNumber":"12", "weightValue":"20" } );
+		mesoSplitModel.setCurrentEntry(mesoSplitModel.nEntries);
+		mesoSplitModel.addExercise(qsTr("Choose exercise..."), mesoSplitModel.currentEntry);
+		mesoSplitModel.addType("0", mesoSplitModel.currentEntry);
+		mesoSplitModel.addSetsNumber("4", mesoSplitModel.currentEntry);
+		mesoSplitModel.addReps("12", mesoSplitModel.currentEntry);
+		mesoSplitModel.addWeight("20", mesoSplitModel.currentEntry);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
 		if (bCanEditExercise) {
-			switch (multiplesel_opt) {
-				case 0: exercisesListModel.setProperty(currentModelIndex, "exerciseName", name1 + " - " + name2);
-				break;
-				case 1: removeExerciseFromName(currentModelIndex, name1 + " - " + name2);
-				break;
-				case 2: appendExerciseToName(currentModelIndex, name1 + " - " + name2);
-				break;
-			}
-			exercisesListModel.setProperty(currentModelIndex, "setsNumber", nsets);
-			exercisesListModel.setProperty(currentModelIndex, "repsNumber", nreps);
-			exercisesListModel.setProperty(currentModelIndex, "weightValue", nweight);
+			mesoSplitModel.changeExercise(name1 + " - " + name2, mesoSplitModel.currentEntry, multiplesel_opt !== 2);
+			mesoSplitModel.changeSetsNumber(nsets, mesoSplitModel.currentEntry, multiplesel_opt !== 2 );
+			mesoSplitModel.changeReps(nreps, mesoSplitModel.currentEntry, multiplesel_opt !== 2);
+			mesoSplitModel.changeWeight(nweight, mesoSplitModel.currentEntry, multiplesel_opt !== 2);
 			bModified = true;
 		}
-	}
-
-	function removeExerciseFromName(index, name) {
-		var names = exercisesListModel.get(index).exerciseName.split('+');
-		var exercisesnames = "";
-		for (var i = 0; i < names.length; ++i) {
-			names[i] = names[i].trim();
-			if (names[i] === name)
-				continue;
-			exercisesnames += names[i] + " + ";
-		}
-		exercisesListModel.setProperty(index, "exerciseName", exercisesnames.slice(0, -3)); //remove the last ' + '
-	}
-
-	function appendExerciseToName(index, name) {
-		var exercisesnames = exercisesListModel.get(index).exerciseName;
-		if (exercisesnames.indexOf("...") !== -1)
-			exercisesnames = name;
-		else
-			exercisesnames += " + " + name;
-		exercisesListModel.setProperty(index, "exerciseName", exercisesnames);
 	}
 
 	function editButtonClicked() {
 		bottomPane.shown = !bCanEditExercise;
 		bCanEditExercise = !bCanEditExercise;
-	}
-
-	function saveMesoDivisionPlan() {
-		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
-		const searchRegExp = /\ \+\ /g;
-		const replaceWith = '&';
-		for (var i = 0; i < exercisesListModel.count; ++i) {
-			//Visually, the + sign is better than &. So we work with it on the GUI. We save with & because that's
-			//what's required by TrainingDayInfo. If not instances of ' + ' are found, the unmodified string is returned
-			exercisesListModel.get(i).exerciseName = exercisesListModel.get(i).exerciseName.replace(searchRegExp, replaceWith);
-			exercises += exercisesListModel.get(i).exerciseName + '|';
-			types += exercisesListModel.get(i).setType + '|';
-			nsets += exercisesListModel.get(i).setsNumber + '|';
-			nreps += exercisesListModel.get(i).repsNumber + '|';
-			nweights += exercisesListModel.get(i).weightValue + '|';
-		}
-		Database.updateMesoDivisionComplete(divisionId, splitLetter, splitText,	exercises.slice(0, -1),
-					types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
-		bModified = false;
-	}
-
-	function removeExercise(idx) {
-		exercisesListModel.remove(idx);
-		if (idx === exercisesListModel.count) {
-			if (idx > 0)
-				--idx;
-			else //No more items
-				appendNewExerciseToDivision();
-		}
-		currentModelIndex = idx;
-		bModified = true;
 	}
 
 	function aboutToBeSuspended() {

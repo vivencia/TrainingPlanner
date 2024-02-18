@@ -55,8 +55,7 @@ public:
 	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
 	Q_INVOKABLE void deleteMesoSplitTable();
 	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, QLatin1Char splitLetter);
-	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_id, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
-							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights);
+	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_idx, QLatin1Char splitLetter);
 	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, QLatin1Char splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint meso_id, const uint prev_meso_id, QLatin1Char splitLetter);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------

@@ -29,7 +29,7 @@ public:
 	};*/
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr) : TPListModel{parent},
-			m_currentIndex(0), m_fldExercises(0), m_currentEntry(-1), m_nEntries(0) {}
+			m_currentIndex(0), m_fldExercises(0), m_muscularGroup(0), m_currentEntry(-1), m_nEntries(0) {}
 
 	int currentEntry() const { return m_currentEntry; }
 	void setCurrentEntry(const int current_idx) { m_currentEntry = current_idx; }
@@ -43,58 +43,107 @@ public:
 		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises)).split(fieldSep).count();
 	}
 
+	Q_INVOKABLE QString getMuscularGroup(const uint n) const
+	{
+		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_muscularGroup)).split(fieldSep).at(n);
+	}
+	Q_INVOKABLE void changeMuscularGroup(const QString& newMuscularGroup, const uint n, const bool bReplace = true)
+	{
+		replaceString(m_modeldata[m_currentIndex][m_muscularGroup], newMuscularGroup, n, bReplace);
+	}
+
 	Q_INVOKABLE QString getExercise(const uint n) const
 	{
 		QString exercise(static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises)).split(fieldSep).at(n));
 		return exercise.replace(QLatin1Char('&'), QStringLiteral(" + "));
 	}
-	Q_INVOKABLE void changeExercise(const uint n, const QString& newExercise) const
+	Q_INVOKABLE void changeExercise(const QString& newExercise, const uint n, const bool bReplace = true)
 	{
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises]), newExercise, n);
+		replaceString(m_modeldata[m_currentIndex][m_fldExercises], newExercise, n, bReplace);
 	}
-	Q_INVOKABLE void addExercise(const QString& newExercise, const uint n = m_nEntries) const
+	Q_INVOKABLE void addExercise(const QString& newExercise, const uint n)
 	{
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises]), newExercise, n);
+		insertString(m_modeldata[m_currentIndex][m_fldExercises], newExercise, n);
+		m_nEntries++;
+		emit nEntriesChanged();
+	}
+	Q_INVOKABLE void removeExercise(const uint n)
+	{
+		removeString(m_modeldata[m_currentIndex][m_fldExercises], n);
+		m_nEntries--;
+		emit nEntriesChanged();
 	}
 
 	Q_INVOKABLE inline uint getSetType(const uint n) const
 	{
 		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+1)).split(fieldSep).at(n).toUInt();
 	}
-	Q_INVOKABLE void changeSetType(const uint n, const uint newSetType) const
+	Q_INVOKABLE void changeSetType(const uint newSetType, const uint n, const bool bReplace = true)
 	{
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises+1]), QString::number(newSetType), n);
+		replaceString(m_modeldata[m_currentIndex][m_fldExercises+1], QString::number(newSetType), n, bReplace);
+	}
+	Q_INVOKABLE void addSetType(const uint newSetType, const uint n)
+	{
+		insertString(m_modeldata[m_currentIndex][m_fldExercises+1], QString::number(newSetType), n);
+	}
+	Q_INVOKABLE void removeSetType(const uint n)
+	{
+		removeString(m_modeldata[m_currentIndex][m_fldExercises+1], n);
 	}
 
-	Q_INVOKABLE inline QString getSetsNumber(const uint n) const
+	Q_INVOKABLE inline QString getSetsNumber(const uint n)
 	{
 		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+2)).split(fieldSep).at(n);
 	}
-	Q_INVOKABLE void changeSetsNumber(const uint n, const QString& newSetsNumber) const
+	Q_INVOKABLE void changeSetsNumber(const QString& newSetsNumber, const uint n, const bool bReplace = true)
 	{
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises+2]), newSetsNumber, n);
+		replaceString(m_modeldata[m_currentIndex][m_fldExercises+2], newSetsNumber, n, bReplace);
+	}
+	Q_INVOKABLE void addSetsNumber(const QString& newSetsNumber, const uint n)
+	{
+		insertString(m_modeldata[m_currentIndex][m_fldExercises+2], newSetsNumber, n);
+	}
+	Q_INVOKABLE void removeSetsNumber(const uint n)
+	{
+		removeString(m_modeldata[m_currentIndex][m_fldExercises+2], n);
 	}
 
-	Q_INVOKABLE inline QString getReps(const uint n, const uint subSet) const
+	Q_INVOKABLE inline QString getReps(const uint subSet, const uint n) const
 	{
 		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+3)).split(fieldSep).at(n).split(subSetSep).at(subSet);
 	}
-	Q_INVOKABLE void changeReps(const uint n, const uint subSet, const QString& newReps) const
+	Q_INVOKABLE void changeReps(const uint subSet, const QString& newReps, const uint n, const bool bReplace = true)
 	{
-		QString newRepsNumber(static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+3)).split(fieldSep).at(n));
-		replaceString(newRepsNumber, newReps, subSet, subSetSep);
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises+3]), newRepsNumber, n);
+		QString newRepsNumber(m_modeldata.at(m_currentIndex).at(m_fldExercises+3).split(fieldSep).at(n));
+		replaceString(newRepsNumber, newReps, subSet, bReplace, subSetSep);
+		replaceString(m_modeldata[m_currentIndex][m_fldExercises+3], newRepsNumber, n, bReplace);
+	}
+	Q_INVOKABLE void addReps(const QString& newReps, const uint n)
+	{
+		insertString(m_modeldata[m_currentIndex][m_fldExercises+3], newReps, n);
+	}
+	Q_INVOKABLE void removeReps(const uint n)
+	{
+		removeString(m_modeldata[m_currentIndex][m_fldExercises+3], n);
 	}
 
-	Q_INVOKABLE inline QString getWeight(const uint n, const uint subSet) const
+	Q_INVOKABLE inline QString getWeight(const uint subSet, const uint n) const
 	{
 		return static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+4)).split(fieldSep).at(n).split(subSetSep).at(subSet);
 	}
-	Q_INVOKABLE void changeWeigth(const uint n, const uint subSet, const QString& newWeight) const
+	Q_INVOKABLE void changeWeigth(const uint subSet, const QString& newWeight, const uint n, const bool bReplace = true)
 	{
 		QString newWeightNumber(static_cast<QString>(m_modeldata.at(m_currentIndex).at(m_fldExercises+4)).split(fieldSep).at(n));
-		replaceString(newWeightNumber, newWeight, subSet, subSetSep);
-		replaceString(static_cast<QString>(m_modeldata.at[m_currentIndex][m_fldExercises+4]), newWeightNumber, n);
+		replaceString(newWeightNumber, newWeight, subSet, bReplace, subSetSep);
+		replaceString(m_modeldata[m_currentIndex][m_fldExercises+4], newWeightNumber, n, bReplace);
+	}
+	Q_INVOKABLE void addWeight(const QString& newWeight, const uint n)
+	{
+		insertString(m_modeldata[m_currentIndex][m_fldExercises+4], newWeight, n);
+	}
+	Q_INVOKABLE void removeWeight(const uint n)
+	{
+		removeString(m_modeldata[m_currentIndex][m_fldExercises+4], n);
 	}
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 37; }
@@ -107,10 +156,13 @@ signals:
 private:
 	uint m_currentIndex;
 	uint m_fldExercises;
+	uint m_muscularGroup;
 	int m_currentEntry;
 	uint m_nEntries;
 
-	void replaceString(QString& oldString, const QString& newString, const uint n, QLatin1Char sep = fieldSep);
+	void replaceString(QString& oldString, const QString& newString, const uint n, const bool bReplace = true, QLatin1Char sep = fieldSep);
+	void insertString(QString& string, const QString& newString, const uint n, QLatin1Char sep = fieldSep);
+	void removeString(QString& string, const uint n, QLatin1Char sep = fieldSep);
 };
 
 #endif // DBMESOSPLITMODEL_H

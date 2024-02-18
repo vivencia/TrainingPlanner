@@ -26,7 +26,7 @@ public:
 	void deleteMesoSplitTable();
 	void getCompleteMesoSplit();
 	void updateMesoSplitComplete();
-	bool mesoHasPlan(const QString& mesoId, QLatin1Char splitLetter) const;
+	bool mesoHasPlan(const QString& mesoId, QLatin1Char splitLetter);
 	void loadFromPreviousPlan();
 
 	//Call before starting a thread
