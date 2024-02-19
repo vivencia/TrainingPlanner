@@ -295,7 +295,7 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const QString& splitLet
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(meso_id);
 	worker->addExecArg(splitLetter);
-	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
+	worker->getCompleteMesoSplit();
 }
 
 void DbManager::updateMesoSplitComplete(const uint meso_idx, QLatin1Char splitLetter)

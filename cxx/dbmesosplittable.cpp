@@ -7,7 +7,7 @@
 #include <QFile>
 
 DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model)), mb_emitNow(true)
+	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	setObjectName( DBMesoSplitObjectName );
 	const QString cnx_name( QStringLiteral("db_mesosplit_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
@@ -234,6 +234,7 @@ void DBMesoSplitTable::deleteMesoSplitTable()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+//This function is never run in a separate thread
 void DBMesoSplitTable::getCompleteMesoSplit()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
@@ -241,7 +242,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	if (mSqlLiteDB.open())
 	{
 		const QString mesoId(m_execArgs.at(0).toString());
-		const QLatin1Char splitLetter(static_cast<char>(m_execArgs.at(1).toInt()));
+		const char splitLetter(static_cast<char>(m_execArgs.at(1).toString().toStdString().c_str()[0]));
 
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
@@ -277,7 +278,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 				}
 
 				uint next_i(0);
-				switch (splitLetter.toLatin1())
+				switch (splitLetter)
 				{
 					case 'A': next_i = 8; break;
 					case 'B': next_i = 13; break;
@@ -296,6 +297,9 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 
 				for (i = next_i; i < n_entries; ++i)
 					split_info[i] = query.value(static_cast<int>(i)).toString();
+
+				m_model->appendList(split_info);
+				static_cast<DBMesoSplitModel*>(m_model)->appendMesoInfo();
 			}
 		}
 		mSqlLiteDB.close();
@@ -309,12 +313,6 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	}
 	else
 		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
-
-	if (mb_emitNow)
-	{
-		resultFunc(static_cast<TPDatabaseTable*>(this));
-		doneFunc(static_cast<TPDatabaseTable*>(this));
-	}
 }
 
 void DBMesoSplitTable::updateMesoSplitComplete()
@@ -381,7 +379,6 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, QLatin1Char splitLette
 
 void DBMesoSplitTable::loadFromPreviousPlan()
 {
-	mb_emitNow = false;
 	getCompleteMesoSplit();
 	if (m_result)
 	{

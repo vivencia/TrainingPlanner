@@ -70,7 +70,7 @@ QVariant DBMesocyclesModel::getMesoInfo(const int mesoid, const int role) const
 	{
 		for(uint x(0); x < count(); ++x)
 		{
-			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
+			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == mesoid)
 				return data(index(x), role);
 		}
 	}
@@ -83,10 +83,10 @@ int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 	{
 		for(uint x(0); x < count(); ++x)
 		{
-			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == current_mesoid)
+			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == current_mesoid)
 			{
 				if (x > 0)
-					return static_cast<QString>(m_modeldata.at(m_indexProxy.at(x-1)).at(0)).toInt();
+					return static_cast<QString>(m_modeldata.at(x-1).at(0)).toInt();
 			}
 		}
 	}
@@ -99,10 +99,10 @@ QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
 	{
 		for(uint x(0); x < count(); ++x)
 		{
-			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == current_mesoid)
+			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == current_mesoid)
 			{
 				if (x > 0)
-					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(x-1)).at(3)).toLongLong());
+					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x-1).at(3)).toLongLong());
 			}
 		}
 	}
@@ -116,10 +116,10 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 	{
 		for(uint x(0); x < count(); ++x)
 		{
-			if (static_cast<QString>(m_modeldata.at(m_indexProxy.at(x)).at(0)).toInt() == mesoid)
+			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == mesoid)
 			{
 				if (x + 1 < count())
-					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(x+1)).at(2)).toLongLong());
+					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x+1).at(2)).toLongLong());
 			}
 		}
 	}
@@ -130,6 +130,6 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
 	if ( count() > 0)
-		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.last()).at(3)).toLongLong());
+		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.last().at(3)).toLongLong());
 	return QDate::currentDate();
 }

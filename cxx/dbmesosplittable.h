@@ -34,9 +34,6 @@ public:
 					const QString& splitD = QString(), const QString& splitE = QString(), const QString& splitF = QString());
 	void setDataComplete(const QString& mesoId, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
 							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights);
-
-private:
-	bool mb_emitNow;
 };
 
 #endif // DBMESOSPLITTABLE_H
