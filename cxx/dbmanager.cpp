@@ -16,6 +16,8 @@
 #include <QThread>
 #include <QFileInfo>
 #include <QQmlApplicationEngine>
+#include <QQuickItem>
+#include <QQmlComponent>
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_model(nullptr), m_insertid(0)
@@ -290,35 +292,83 @@ void DbManager::deleteMesoSplitTable()
 	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
 }
 
-void DbManager::getCompleteMesoSplit(const uint meso_id, const QString& splitLetter)
+void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit, QObject* swipeView)
+{
+	QString::const_iterator itr(mesoSplit.constBegin());
+	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	QString createdSplits;
+	DBMesoSplitModel* splitModel(nullptr);
+	m_numberOfSplitObjects = 0;
+	m_CompletedSplitObjects = 0;
+	do {
+		if (createdSplits.indexOf(static_cast<QString>(*itr)) == -1)
+		{
+			m_numberOfSplitObjects++;
+			createdSplits.append(static_cast<QChar>(*itr));
+			splitModel = new DBMesoSplitModel(swipeView);
+			m_splitModels.insert(static_cast<QChar>(*itr).cell(), splitModel);
+			m_splitComponents.insert(static_cast<QChar>(*itr).cell(), new QQmlComponent(m_QMlEngine, QUrl::fromLocalFile("qrc:/MesoSplitPlanner.qml"), QQmlComponent::Asynchronous));
+			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
+			worker->addExecArg(meso_id);
+			worker->addExecArg(static_cast<QChar>(*itr));
+			connect( this, &DbManager::qmlReady, this, [&] () { return DbManager::createMesoSlitPlanner(meso_id, meso_idx, swipeView); } );
+			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+		}
+	} while (++itr != itr_end);
+}
+
+void DbManager::createMesoSlitPlanner(const uint meso_id, const uint meso_idx, QObject* swipeView)
+{
+	if (m_CompletedSplitObjects == m_numberOfSplitObjects)
+		return;
+
+	QMapIterator<uchar,DBMesoSplitModel*> i(m_splitModels);
+	i.toFront();
+	while (i.hasNext()) {
+		qDebug() << "Component  " << i.value()->count();
+		/*if (i.value()->isReady())
+		{
+			if (m_splitModels.value(i.key())->count() > 0)
+			{
+				qDebug() << "Component  " << i.value()->objectName() << "  is ready";
+				QObject *object(i.value()->create(m_QMlEngine->rootContext()));
+				QQuickItem *item(qobject_cast<QQuickItem*>(object));
+				// Set the parent of our created qml rect
+				item->setParentItem((QQuickItem*)swipeView);
+				QMetaObject::invokeMethod(swipeView, "addItem", Q_ARG(QVariant, QVariant::fromValue(item)));
+				item->setProperty("mesoId", meso_id);
+				item->setProperty("mesoIdx", meso_idx);
+				item->setProperty("splitLetter", i.key());
+				item->setProperty("splitModel", QVariant::fromValue(m_splitModels.value(i.key())));
+				++m_CompletedSplitObjects;
+			}
+		}
+		else
+			qDebug() << "Component  " << i.value()->objectName() << "  is not ready";*/
+		i.next();
+	}
+}
+
+void DbManager::updateMesoSplitComplete(const uint meso_id, const QString& splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(meso_id);
 	worker->addExecArg(splitLetter);
-	worker->getCompleteMesoSplit();
-}
-
-void DbManager::updateMesoSplitComplete(const uint meso_idx, QLatin1Char splitLetter)
-{
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
-	worker->addExecArg(meso_idx);
-	worker->addExecArg(splitLetter.toLatin1());
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
 
-bool DbManager::previousMesoHasPlan(const uint prev_meso_id, QLatin1Char splitLetter) const
+bool DbManager::previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const
 {
 	DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
-	return meso_split->mesoHasPlan(QString::number(prev_meso_id), splitLetter);
+	return meso_split->mesoHasPlan(QString::number(prev_meso_id), splitLetter.toStdString().c_str()[0]);
 }
 
-void DbManager::loadSplitFromPreviousMeso(const uint meso_id, const uint prev_meso_id, QLatin1Char splitLetter)
+void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
 	worker->addExecArg(prev_meso_id);
-	worker->addExecArg(splitLetter.toLatin1());
-	worker->addExecArg(meso_id);
-	createThread(worker, [worker] () { worker->loadFromPreviousPlan(); } );
+	worker->addExecArg(splitLetter);
+	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 

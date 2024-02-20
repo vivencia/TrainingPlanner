@@ -97,62 +97,7 @@ Page {
 	} //footer: ToolBar
 
 	Component.onCompleted: {
-		var idx = 0;
-		var splitLetter;
-		do {
-			splitLetter = mesoSplit.charAt(idx);
-			if (splitLetter === 'R') continue;
-
-			var component = Qt.createComponent("MesoSplitPlanner.qml", Qt.Asynchronous);
-
-			function finishCreation(Component) {
-				var splitletter = Component.objectName;
-				console.log("finishCreation   ", splitletter)
-				var object = Component.createObject(splitView, { mesoId:mesoId, mesoIdx:mesoIdx, splitLetter:splitletter });
-				splitView.addItem(object);
-			}
-
-			function checkStatusA() {
-				console.log("checkStatusA: component", component.objectName);
-				finishCreation(component);
-			}
-			function checkStatusB() {
-				console.log("checkStatusB: component", component.objectName);
-				finishCreation(component);
-			}
-			function checkStatusC() {
-				console.log("checkStatusC: component", component.objectName);
-				finishCreation(component);
-			}
-			function checkStatusD() {
-				console.log("checkStatusD: component", component.objectName);
-				finishCreation(component);
-			}
-			function checkStatusE() {
-				console.log("checkStatusE: component", component.objectName);
-				finishCreation(component);
-			}
-			function checkStatusF() {
-				console.log("checkStatusF: component", component.objectName);
-				finishCreation(component);
-			}
-
-			appDB.pass_object(mesoSplitModel);
-			appDB.getCompleteMesoSplit(mesoId, splitLetter);
-			component.objectName = splitLetter;
-			if (component.status === Component.Ready)
-				finishCreation(component);
-			else {
-				switch (splitLetter) {
-					case 'A': component.statusChanged.connect(checkStatusA); break;
-					case 'B': component.statusChanged.connect(checkStatusB); break;
-					case 'C': component.statusChanged.connect(checkStatusC); break;
-					case 'D': component.statusChanged.connect(checkStatusD); break;
-					case 'E': component.statusChanged.connect(checkStatusE); break;
-					case 'F': component.statusChanged.connect(checkStatusF); break;
-				}
-			}
-		} while (++idx < mesoSplit.length);
+		appDB.getCompleteMesoSplit(mesoId, mesoIdx, mesoSplit, splitView);
 	}
 
 	function closeSimpleExerciseList() {

@@ -3,14 +3,18 @@
 
 #include <QSqlQuery>
 #include <QSqlError>
-#include <QTime>
 #include <QFile>
 
+#include <random>
+
 DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model)), mb_emitNow(true)
 {
+	std::minstd_rand gen(std::random_device{}());
+	std::uniform_real_distribution<double> dist(0, 1);
+
 	setObjectName( DBMesoSplitObjectName );
-	const QString cnx_name( QStringLiteral("db_mesosplit_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
+	const QString cnx_name( QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoSplitFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
@@ -33,45 +37,42 @@ void DBMesoSplitTable::createTable()
 									"CREATE TABLE IF NOT EXISTS mesocycles_splits ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
-										"splitA TEXT,"
-										"splitB TEXT,"
-										"splitC TEXT,"
-										"splitD TEXT,"
-										"splitE TEXT,"
-										"splitF TEXT,"
-										"splitA_exercisesnames TEXT,"
-										"splitA_exercisesset_types TEXT,"
-										"splitA_exercisesset_n TEXT,"
-										"splitA_exercisesset_reps TEXT,"
-										"splitA_exercisesset_weight TEXT,"
-										"splitB_exercisesnames TEXT,"
-										"splitB_exercisesset_types TEXT,"
-										"splitB_exercisesset_n TEXT,"
-										"splitB_exercisesset_reps TEXT,"
-										"splitB_exercisesset_weight TEXT,"
-										"splitC_exercisesnames TEXT,"
-										"splitC_exercisesset_types TEXT,"
-										"splitC_exercisesset_n TEXT,"
-										"splitC_exercisesset_reps TEXT,"
-										"splitC_exercisesset_weight TEXT,"
-										"splitD_exercisesnames TEXT,"
-										"splitD_exercisesset_types TEXT,"
-										"splitD_exercisesset_n TEXT,"
-										"splitD_exercisesset_reps TEXT,"
-										"splitD_exercisesset_weight TEXT,"
-										"splitE_exercisesnames TEXT,"
-										"splitE_exercisesset_types TEXT,"
-										"splitE_exercisesset_n TEXT,"
-										"splitE_exercisesset_reps TEXT,"
-										"splitE_exercisesset_weight TEXT,"
-										"splitF_exercisesnames TEXT,"
-										"splitF_exercisesset_types TEXT,"
-										"splitF_exercisesset_n TEXT,"
-										"splitF_exercisesset_reps TEXT,"
-										"splitF_exercisesset_weight TEXT"
-									")"
-								)
-		);
+										"splitA TEXT "", "
+										"splitB TEXT DEFAULT "", "
+										"splitC TEXT DEFAULT "", "
+										"splitD TEXT DEFAULT "", "
+										"splitE TEXT DEFAULT "", "
+										"splitF TEXT DEFAULT "", "
+										"splitA_exercisesnames TEXT DEFAULT "", "
+										"splitA_exercisesset_types TEXT DEFAULT "", "
+										"splitA_exercisesset_n TEXT DEFAULT "", "
+										"splitA_exercisesset_reps TEXT DEFAULT "", "
+										"splitA_exercisesset_weight TEXT DEFAULT "", "
+										"splitB_exercisesnames TEXT DEFAULT "", "
+										"splitB_exercisesset_types TEXT DEFAULT "", "
+										"splitB_exercisesset_n TEXT DEFAULT "", "
+										"splitB_exercisesset_reps TEXT DEFAULT "", "
+										"splitB_exercisesset_weight TEXT DEFAULT "", "
+										"splitC_exercisesnames TEXT DEFAULT "", "
+										"splitC_exercisesset_types TEXT DEFAULT "", "
+										"splitC_exercisesset_n TEXT DEFAULT "", "
+										"splitC_exercisesset_reps TEXT DEFAULT "", "
+										"splitC_exercisesset_weight TEXT DEFAULT "", "
+										"splitD_exercisesnames TEXT DEFAULT "", "
+										"splitD_exercisesset_types TEXT DEFAULT "", "
+										"splitD_exercisesset_n TEXT DEFAULT "", "
+										"splitD_exercisesset_reps TEXT DEFAULT "", "
+										"splitD_exercisesset_weight TEXT DEFAULT "", "
+										"splitE_exercisesnames TEXT DEFAULT "", "
+										"splitE_exercisesset_types TEXT DEFAULT "", "
+										"splitE_exercisesset_n TEXT DEFAULT "", "
+										"splitE_exercisesset_reps TEXT DEFAULT "", "
+										"splitE_exercisesset_weight TEXT DEFAULT "", "
+										"splitF_exercisesnames TEXT DEFAULT "", "
+										"splitF_exercisesset_types TEXT DEFAULT "", "
+										"splitF_exercisesset_n TEXT DEFAULT "", "
+										"splitF_exercisesset_reps TEXT DEFAULT "", "
+										"splitF_exercisesset_weight TEXT DEFAULT "")" ));
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -234,14 +235,13 @@ void DBMesoSplitTable::deleteMesoSplitTable()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-//This function is never run in a separate thread
 void DBMesoSplitTable::getCompleteMesoSplit()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QString mesoId(m_execArgs.at(0).toString());
+		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
 		const char splitLetter(static_cast<char>(m_execArgs.at(1).toString().toStdString().c_str()[0]));
 
 		QSqlQuery query(mSqlLiteDB);
@@ -253,53 +253,34 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 		{
 			if (query.first ())
 			{
-				QStringList split_info;
-				for (uint meso(0); meso < m_model->count(); ++meso)
-				{
-					if (m_model->getRow(meso).at(1) == mesoId )
-					{
-						split_info = m_model->getRow(meso);
-						break;
-					}
-				}
-
-				uint n_entries(8);
-				uint i(0);
-				if (split_info.isEmpty())
-				{
-					split_info.reserve(38);
-					for (i = 0; i < n_entries; ++i)
-						split_info.append(query.value(static_cast<int>(i)).toString());
-				}
-				else
-				{
-					for (i = 0; i < n_entries; ++i)
-						split_info[i] = query.value(static_cast<int>(i)).toString();
-				}
-
-				uint next_i(0);
+				uint start_i(0);
 				switch (splitLetter)
 				{
-					case 'A': next_i = 8; break;
-					case 'B': next_i = 13; break;
-					case 'C': next_i = 18; break;
-					case 'D': next_i = 23; break;
-					case 'E': next_i = 28; break;
-					case 'F': next_i = 33; break;
+					case 'A': start_i = 8; break;
+					case 'B': start_i = 13; break;
+					case 'C': start_i = 18; break;
+					case 'D': start_i = 23; break;
+					case 'E': start_i = 28; break;
+					case 'F': start_i = 33; break;
 				}
-				n_entries = next_i + 5;
 
-				if (split_info.count() == 8)
+				const QStringList exercises(query.value(static_cast<int>(start_i)).toString().split('|'));
+				const QStringList setstypes(query.value(static_cast<int>(start_i+1)).toString().split('|'));
+				const QStringList setsnumber(query.value(static_cast<int>(start_i+2)).toString().split('|'));
+				const QStringList setsreps(query.value(static_cast<int>(start_i+3)).toString().split('|'));
+				const QStringList setsweight(query.value(static_cast<int>(start_i+4)).toString().split('|'));
+
+				QStringList split_info;
+				for(uint i(0); i < exercises.count(); ++i)
 				{
-					for (; i < 38; ++i)
-						split_info.append(QString());
+					split_info.append(exercises.at(i));
+					split_info.append(setstypes.at(i));
+					split_info.append(setsnumber.at(i));
+					split_info.append(setsreps.at(i));
+					split_info.append(setsweight.at(i));
+					m_model->appendList(split_info);
+					split_info.clear();
 				}
-
-				for (i = next_i; i < n_entries; ++i)
-					split_info[i] = query.value(static_cast<int>(i)).toString();
-
-				m_model->appendList(split_info);
-				static_cast<DBMesoSplitModel*>(m_model)->appendMesoInfo();
 			}
 		}
 		mSqlLiteDB.close();
@@ -313,6 +294,12 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	}
 	else
 		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
+
+	if (mb_emitNow)
+	{
+		resultFunc(static_cast<TPDatabaseTable*>(this));
+		doneFunc(static_cast<TPDatabaseTable*>(this));
+	}
 }
 
 void DBMesoSplitTable::updateMesoSplitComplete()
@@ -320,26 +307,33 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const uint idx(m_execArgs.at(0).toUInt());
-		const QLatin1Char splitLetter(static_cast<char>(m_execArgs.at(1).toInt()));
-		uint fldExercises(0), muscularGroup(0);
-		switch (splitLetter.toLatin1())
+		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
+		const char splitLetter(static_cast<char>(m_execArgs.at(1).toString().toStdString().c_str()[0]));
+
+		QString exercises;
+		QString setstypes;
+		QString setsnumber;
+		QString setsreps;
+		QString setsweight;
+		for(uint i(0); i < m_model->count(); ++i)
 		{
-			case 'A': muscularGroup = 2; fldExercises = 8; break;
-			case 'B': muscularGroup = 3; fldExercises = 13; break;
-			case 'C': muscularGroup = 4; fldExercises = 18; break;
-			case 'D': muscularGroup = 5; fldExercises = 23; break;
-			case 'E': muscularGroup = 6; fldExercises = 28; break;
-			case 'F': muscularGroup = 7; fldExercises = 33; break;
+			exercises += m_model->getFast(i, 0) + QLatin1Char('|');
+			setstypes += m_model->getFast(i, 1) + QLatin1Char('|');
+			setsnumber += m_model->getFast(i, 2) + QLatin1Char('|');
+			setsreps += m_model->getFast(i, 3) + QLatin1Char('|');
+			setsweight += m_model->getFast(i, 4) + QLatin1Char('|');
 		}
+		exercises.chop(1);
+		setstypes.chop(1);
+		setsnumber.chop(1);
+		setsreps.chop(1);
+		setsweight.chop(1);
 
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("UPDATE mesocycles_splits SET split%1=\'%2\', split%1_exercisesnames=\'%3\',"
-									 "split%1_exercisesset_types=\'%4\', split%1_exercisesset_n=\'%5\',"
-									"split%1_exercisesset_reps=\'%6\', split%1_exercisesset_weight=\'%7\' WHERE meso_id=%8")
-									.arg(splitLetter).arg(m_model->get(idx, muscularGroup), m_model->get(idx, fldExercises), m_model->get(idx, fldExercises+1),
-									m_model->get(idx, fldExercises+2), m_model->get(idx, fldExercises+ 3), m_model->get(idx, fldExercises + 4),
-									m_model->get(idx, 1)) );
+		query.prepare( QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\',"
+									 "split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\',"
+									"split%1_exercisesset_reps=\'%5\', split%1_exercisesset_weight=\'%6\' WHERE meso_id=%7")
+									.arg(splitLetter).arg(exercises, setstypes, setsnumber, setsreps, setsweight, mesoId) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -355,7 +349,7 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, QLatin1Char splitLetter)
+bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const char splitLetter)
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
@@ -375,41 +369,6 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, QLatin1Char splitLette
 		mSqlLiteDB.close();
 	}
 	return m_result;
-}
-
-void DBMesoSplitTable::loadFromPreviousPlan()
-{
-	getCompleteMesoSplit();
-	if (m_result)
-	{
-		uint idx_src(0), idx_dst(0);
-		const QString meso_id( m_execArgs.at(2).toString() );
-		const QString prev_meso_id( m_execArgs.at(0).toString() );
-
-		for (uint i(0); i < m_model->count(); ++i)
-		{
-			if (m_model->getRow(i).at(1) == meso_id )
-				idx_dst = i;
-			else if (m_model->getRow(i).at(1) == prev_meso_id )
-				idx_src = i;
-		}
-
-		const QLatin1Char splitLetter(static_cast<char>(m_execArgs.at(1).toInt()));
-		uint fld_begin(0);
-		switch (splitLetter.toLatin1())
-		{
-			case 'A': fld_begin = 8; break;
-			case 'B': fld_begin = 13; break;
-			case 'C': fld_begin = 18; break;
-			case 'D': fld_begin = 23; break;
-			case 'E': fld_begin = 28; break;
-			case 'F': fld_begin = 33; break;
-		}
-		for (uint i(fld_begin); i < fld_begin+5; ++i)
-			m_model->set(idx_dst, i, m_model->get(idx_src, i));
-	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoSplitTable::setData(const QString& mesoId, const QString& splitA, const QString& splitB, const QString& splitC,

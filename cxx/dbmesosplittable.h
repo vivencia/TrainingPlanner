@@ -26,14 +26,16 @@ public:
 	void deleteMesoSplitTable();
 	void getCompleteMesoSplit();
 	void updateMesoSplitComplete();
-	bool mesoHasPlan(const QString& mesoId, QLatin1Char splitLetter);
-	void loadFromPreviousPlan();
+	bool mesoHasPlan(const QString& mesoId, const char splitLetter);
 
 	//Call before starting a thread
 	void setData(const QString& mesoId, const QString& splitA = QString(), const QString& splitB = QString(), const QString& splitC = QString(),
 					const QString& splitD = QString(), const QString& splitE = QString(), const QString& splitF = QString());
 	void setDataComplete(const QString& mesoId, QLatin1Char splitLetter, const QString& splitGroup, const QString& exercises,
 							const QString& types, const QString& nsets, const QString& nreps, const QString& nweights);
+
+private:
+	bool mb_emitNow;
 };
 
 #endif // DBMESOSPLITTABLE_H

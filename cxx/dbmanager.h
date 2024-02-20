@@ -9,6 +9,7 @@
 class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QSettings;
+class DBMesoSplitModel;
 
 class DbManager : public QObject
 {
@@ -54,10 +55,11 @@ public:
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
 	Q_INVOKABLE void deleteMesoSplitTable();
-	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, const QString& splitLetter);
-	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_idx, QLatin1Char splitLetter);
-	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, QLatin1Char splitLetter) const;
-	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint meso_id, const uint prev_meso_id, QLatin1Char splitLetter);
+	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit, QObject* swipeView);
+	void createMesoSlitPlanner(const uint meso_id, const uint meso_idx, QObject* swipeView);
+	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_id, const QString& splitLetter);
+	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const;
+	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -86,6 +88,12 @@ private:
 	QString m_exercisesListVersion;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
+	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
+	QMap<uchar,QQmlComponent*> m_splitComponents;
+	QMap<uchar,DBMesoSplitModel*> m_splitModels;
+	uint m_CompletedSplitObjects;
+	uint m_numberOfSplitObjects;
+	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);

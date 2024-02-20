@@ -146,7 +146,7 @@ QString TPListModel::makeFilterString(const QString& text) const
 			static_cast<QString>(*itr).remove(QLatin1Char('.'));
 			static_cast<QString>(*itr).remove(QLatin1Char('('));
 			static_cast<QString>(*itr).remove(QLatin1Char(')'));
-			static_cast<QString>(*itr).toLower();
+			static_cast<QString>(*itr) = static_cast<QString>(*itr).toLower();
 			filterStr.append(static_cast<QString>(*itr));
 		} while (++itr != itr_end);
 	}

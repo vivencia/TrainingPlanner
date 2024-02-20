@@ -62,6 +62,11 @@ public:
 		emit dataChanged(index(row), index(row), QList<int>() << Qt::UserRole + field);
 	}
 
+	inline const QString& getFast(const uint row, const uint field) const
+	{
+		return m_modeldata.at(row).at(field);
+	}
+
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{
 		if (row >= 0 && row < m_indexProxy.count())
