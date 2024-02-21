@@ -26,7 +26,12 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case exerciseName1Role:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-7)).split('&').at(0);
 			case exerciseName2Role:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-8)).split('&').at(1);
+			{
+				if (static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-8)).indexOf('&') != -1)
+					return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-8)).split('&').at(1);
+				else
+					return QString();
+			}
 			case setsNumberRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
 			case setsReps1Role:
@@ -34,7 +39,12 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).split('#').at(0);
 			case setsReps2Role:
 			case setsWeight2Role:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-1)).split('#').at(1);
+			{
+				if (static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf('#') != -1)
+					return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).split('#').at(1);
+				else
+					return QString();
+			}
 			case setTypeRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
 			case Qt::DisplayRole:

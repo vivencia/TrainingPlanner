@@ -234,13 +234,13 @@ Column {
 		onTextChanged: exercisesListModel.setFilter(text);
 	} // txtFilter
 
-	function setModel(model) {
+	Component.onCompleted: {
 		function readyToProceed() {
 			appDB.qmlReady.disconnect(readyToProceed);
-			lstExercises.model = model;
+			lstExercises.model = exercisesListModel;
 		}
 
-		if (model.count === 0) {
+		if (exercisesListModel.count === 0) {
 			appDB.qmlReady.connect(readyToProceed);
 			loadExercises();
 		}

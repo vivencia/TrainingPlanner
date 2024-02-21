@@ -9,8 +9,8 @@ import com.vivenciasoftware.qmlcomponents
 ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
-	width: 300
-	height: 640
+	width: windowWidth
+	height: windowHeight
 	visible: true
 	title: "Training Planner"
 
@@ -20,7 +20,7 @@ ApplicationWindow {
 	signal appAboutToBeSuspended()
 	signal appActive()
 
-	property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
+	/*property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
 	property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
 	property var colorPalette: AppSettings.themeStyleColorIndex === 2 ? darkPalette : lightPalette
 
@@ -30,7 +30,7 @@ ApplicationWindow {
 
 	property string lightIconFolder: darkPalette[7]
 	property string darkIconFolder: lightPalette[7]
-//	property var colorStyle: [Material.System, Material.Light, Material.Dark]
+	property var colorStyle: [Material.System, Material.Light, Material.Dark]
 
 	property var materialBlue: ["#BBDEFB", "#25b5f3", "#1976D2", "#000000", "#FFFFFF", "#FFFFFF", "black", "white", "white"]
 	property color primaryLightColor: materialBlue[0]
@@ -42,7 +42,7 @@ ApplicationWindow {
 	property var accentPalette: [materialBlue[1], materialBlue[4], materialBlue[7]]
 	property color accentColor: accentPalette[0]
 	property color textOnAccent: accentPalette[1]
-	property string iconOnAccentFolder: accentPalette[2]
+	property string iconOnAccentFolder: accentPalette[2]*/
 
 	property bool bNavButtonsEnabled: true
 	property bool bLongTask: false
@@ -150,20 +150,6 @@ ApplicationWindow {
 			close();
 	}
 
-	function initMesocycles() {
-
-		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToProceed);
-			homePage.setModel();
-			appDB.pass_object(mesoSplitModel);
-			appDB.getMesoSplit(mesocyclesModel.getInt(mesocyclesModel.count-1, 0));
-		}
-
-		appDB.qmlReady.connect(readyToProceed);
-		appDB.pass_object(mesocyclesModel);
-		appDB.getAllMesocycles();
-	}
-
 	function loadExercises() {
 		appDB.pass_object(exercisesListModel);
 		appDB.getAllExercises();
@@ -187,7 +173,7 @@ ApplicationWindow {
 		id: mainMenu
 	}
 
-	DBExercisesModel {
+	/*DBExercisesModel {
 		id:	exercisesListModel
 	}
 
@@ -204,6 +190,10 @@ ApplicationWindow {
 		id: mesosCalendarModel
 	}
 
+	DBMesoSplitModel {
+		id: mesosplitmodel
+	}*/
+
 	Flickable {
 		width: parent.width
 		height: parent.height
@@ -215,6 +205,14 @@ ApplicationWindow {
 		HomePage {
 			id: homePage
 		}
+
+		/*MesoSplitPlanner {
+			id: mesoSplit
+			mesoId: 1
+			mesoIdx: 0
+			splitLetter: "A"
+			splitModel: mesosplitmodel
+		}*/
 
 		StackView {
 			id: stackView

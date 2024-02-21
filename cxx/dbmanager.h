@@ -5,11 +5,13 @@
 
 #include <QObject>
 #include <QMap>
+#include <QQmlComponent>
 
 class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QSettings;
 class DBMesoSplitModel;
+class RunCommands;
 
 class DbManager : public QObject
 {
@@ -17,7 +19,7 @@ class DbManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine);
+	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
@@ -55,8 +57,8 @@ public:
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
 	Q_INVOKABLE void deleteMesoSplitTable();
-	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit, QObject* swipeView);
-	void createMesoSlitPlanner(const uint meso_id, const uint meso_idx, QObject* swipeView);
+	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit);
+	void createMesoSlitPlanner();
 	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_id, const QString& splitLetter);
 	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
@@ -79,6 +81,7 @@ private:
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
+	RunCommands* m_runCommands;
 	TPListModel* m_model;
 	QMap<QString,uint> m_WorkerLock;
 	uint m_insertid;

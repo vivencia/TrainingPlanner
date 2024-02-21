@@ -60,15 +60,7 @@ int main(int argc, char *argv[])
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
 	}
-	DbManager db(&appSettings, &engine);
-	//BackupClass backUpClass( db_filepath, runCmd.getAppDir(db_filename) );
-
-	//qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel&");
-	//qmlRegisterType<DBExercisesModel*>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel*");
-	engine.rootContext()->setContextProperty("trClass", &trClass);
-	engine.rootContext()->setContextProperty("appDB", &db);
-	engine.rootContext()->setContextProperty("runCmd", &runCmd);
-	//engine.rootContext()->setContextProperty("backUpClass", &backUpClass);
+	DbManager db(&appSettings, &engine, &runCmd);
 
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(

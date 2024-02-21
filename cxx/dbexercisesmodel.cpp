@@ -35,7 +35,7 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				if (!bFilterApplied)
+				if (!m_bFilterApplied)
 				{
 					//MSG_OUT("NO filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(row).at(role-Qt::UserRole))
 					return m_modeldata.at(row).at(role-Qt::UserRole);
@@ -68,7 +68,7 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case uWeightRole:
 			case mediaPathRole:
 			case actualIndexRole:
-				if (!bFilterApplied)
+				if (!m_bFilterApplied)
 					m_modeldata[row].replace(role, value.toString());
 				else
 					m_modeldata[m_indexProxy.at(row)].replace(role, value.toString());

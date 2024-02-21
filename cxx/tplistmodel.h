@@ -23,7 +23,7 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 public:
 
 	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent),
-		m_currentRow(-1), bFilterApplied(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
+		m_currentRow(-1), m_bFilterApplied(false),  m_bReady(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );
@@ -102,6 +102,9 @@ public:
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 	inline QStringList& getRow(const uint row) { return m_modeldata[m_indexProxy.at(row)]; }
 
+	inline const bool isReady() const { return m_bReady; }
+	inline void setReady(const bool bready) { m_bReady = bready; }
+
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
 	inline virtual int rowCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return count(); }
@@ -120,7 +123,7 @@ protected:
 	QList<uint> m_indexProxy;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
-	bool bFilterApplied;
+	bool m_bFilterApplied, m_bReady;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
 

@@ -19,7 +19,7 @@ Image {
             calculatePath()
         }
     }
-    opacity: iconActiveOpacity
+	opacity: 1
     function calculatePath() {
         var path = "qrc:/images/"+currentIconFolder
         switch(imageSize) {

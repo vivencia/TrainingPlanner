@@ -242,13 +242,16 @@ Page {
 		}
 	} // footer
 
-	function setModel() {
+	Component.onCompleted: {
 		mesosListView.model = mesocyclesModel;
 		homePage.StackView.activating.connect(pageActivation);
 		homePage.StackView.onDeactivating.connect(pageDeActivation);
 
-		if (mesocyclesModel.count !== 0)
+		if (mesocyclesModel.count !== 0) {
+			appDB.pass_object(mesoSplitModel);
+			appDB.getMesoSplit(mesocyclesModel.getInt(mesocyclesModel.count-1, 0));
 			pageActivation();
+		}
 		else {
 			createFirstTimeTipComponent();
 			firstTimeTip.y = homePageToolBar.y;

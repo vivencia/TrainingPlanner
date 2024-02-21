@@ -87,8 +87,8 @@ void DBMesocyclesTable::getAllMesocycles()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	//resultFunc(static_cast<TPDatabaseTable*>(this));
+	//doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesocyclesTable::newMesocycle()

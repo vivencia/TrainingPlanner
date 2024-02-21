@@ -285,6 +285,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 		}
 		mSqlLiteDB.close();
 		m_result = true;
+		m_model->setReady(true);
 	}
 
 	if (!m_result)

@@ -23,6 +23,7 @@ Page {
 
 	SwipeView {
 		id: splitView
+		objectName: "splitSwipeView"
 		currentIndex: 0
 		anchors.fill: parent
 		interactive: !bottomPane.shown
@@ -90,14 +91,12 @@ Page {
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
 					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
 				}
-
-				Component.onCompleted: setModel(exercisesListModel);
 			}
 		}
 	} //footer: ToolBar
 
 	Component.onCompleted: {
-		appDB.getCompleteMesoSplit(mesoId, mesoIdx, mesoSplit, splitView);
+		appDB.getCompleteMesoSplit(mesoId, mesoIdx, mesoSplit);
 	}
 
 	function closeSimpleExerciseList() {

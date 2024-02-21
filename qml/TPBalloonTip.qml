@@ -23,7 +23,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	width: mainwindow.width * 0.7
+	width: windowWidth * 0.7
 	height: lblTitle.height + lblMessage.height + Math.max(btn1.height, btn2.height) + 10
 
 	background: Rectangle {

@@ -17,10 +17,10 @@
 #include <QFileInfo>
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
-#include <QQmlComponent>
+#include <QQmlContext>
 
-DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
-	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_model(nullptr), m_insertid(0)
+DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
+	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands), m_model(nullptr), m_insertid(0)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -65,6 +65,35 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine)
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
+
+	DBMesocyclesModel* mesocyclesModel(new DBMesocyclesModel(this));
+	pass_object(mesocyclesModel);
+	getAllMesocycles();
+
+	DBExercisesModel* exercisesListModel(new DBExercisesModel(this));
+	DBMesoSplitModel* mesoSplitModel(new DBMesoSplitModel(this));
+	DBMesoCalendarModel* mesosCalendarModel(new DBMesoCalendarModel(this));
+
+	//Root context properties. MainWindow app properties
+	QList<QQmlContext::PropertyPair> properties;
+	properties.append(QQmlContext::PropertyPair{ "appDB", QVariant::fromValue(this) });
+	properties.append(QQmlContext::PropertyPair{ "runCmd", QVariant::fromValue(m_runCommands) });
+	properties.append(QQmlContext::PropertyPair{ "mesocyclesModel", QVariant::fromValue(mesocyclesModel) });
+	properties.append(QQmlContext::PropertyPair{ "mesoSplitModel", QVariant::fromValue(mesoSplitModel) });
+	properties.append(QQmlContext::PropertyPair{ "mesosCalendarModel", QVariant::fromValue(mesosCalendarModel) });
+	properties.append(QQmlContext::PropertyPair{ "exercisesListModel", QVariant::fromValue(exercisesListModel) });
+	properties.append(QQmlContext::PropertyPair{ "windowHeight", 640 });
+	properties.append(QQmlContext::PropertyPair{ "windowWidth", 300 });
+	properties.append(QQmlContext::PropertyPair{ "primaryLightColor", QVariant(QColor(187, 222, 251)) });
+	properties.append(QQmlContext::PropertyPair{ "primaryColor", QVariant(QColor(37, 181, 243)) });
+	properties.append(QQmlContext::PropertyPair{ "primaryDarkColor", QVariant(QColor(25, 118, 210)) });
+	properties.append(QQmlContext::PropertyPair{ "listEntryColor1", QVariant(QColor(220, 227, 240)) });
+	properties.append(QQmlContext::PropertyPair{ "listEntryColor2", QVariant(QColor(195, 202, 213)) });
+	properties.append(QQmlContext::PropertyPair{ "lightIconFolder", QStringLiteral("white/") });
+	properties.append(QQmlContext::PropertyPair{ "darkIconFolder", QStringLiteral("black/") });
+	properties.append(QQmlContext::PropertyPair{ "paneBackgroundColor", QVariant(QColor(25, 118, 210)) });
+	properties.append(QQmlContext::PropertyPair{ "accentColor", QVariant(QColor(37, 181, 243)) });
+	m_QMlEngine->rootContext()->setContextProperties(properties);
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -217,7 +246,8 @@ void DbManager::getExercisesListVersion()
 void DbManager::getAllMesocycles()
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
-	createThread(worker, [worker] () { worker->getAllMesocycles(); } );
+	worker->getAllMesocycles();
+	delete worker;
 }
 
 void DbManager::newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
@@ -292,7 +322,7 @@ void DbManager::deleteMesoSplitTable()
 	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
 }
 
-void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit, QObject* swipeView)
+void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit)
 {
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
@@ -301,51 +331,56 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 	m_numberOfSplitObjects = 0;
 	m_CompletedSplitObjects = 0;
 	do {
-		if (createdSplits.indexOf(static_cast<QString>(*itr)) == -1)
+		if (static_cast<QChar>(*itr) == QChar('R')) continue;
+		if (createdSplits.indexOf(static_cast<QChar>(*itr)) == -1)
 		{
 			m_numberOfSplitObjects++;
 			createdSplits.append(static_cast<QChar>(*itr));
-			splitModel = new DBMesoSplitModel(swipeView);
+			splitModel = new DBMesoSplitModel(this);
+			splitModel->setProperty("mesoId", meso_id);
+			splitModel->setProperty("mesoIdx", meso_idx);
 			m_splitModels.insert(static_cast<QChar>(*itr).cell(), splitModel);
-			m_splitComponents.insert(static_cast<QChar>(*itr).cell(), new QQmlComponent(m_QMlEngine, QUrl::fromLocalFile("qrc:/MesoSplitPlanner.qml"), QQmlComponent::Asynchronous));
+
+			QQmlComponent* component( new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous));
+			connect(component, &QQmlComponent::statusChanged, this,
+				[&](QQmlComponent::Status status) { if (status == QQmlComponent::Ready) return DbManager::createMesoSlitPlanner(); } );
+			m_splitComponents.insert(static_cast<QChar>(*itr).cell(), component);
+
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
 			worker->addExecArg(meso_id);
 			worker->addExecArg(static_cast<QChar>(*itr));
-			connect( this, &DbManager::qmlReady, this, [&] () { return DbManager::createMesoSlitPlanner(meso_id, meso_idx, swipeView); } );
+
+			connect( this, &DbManager::qmlReady, this, &DbManager::createMesoSlitPlanner );
 			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
 		}
 	} while (++itr != itr_end);
 }
 
-void DbManager::createMesoSlitPlanner(const uint meso_id, const uint meso_idx, QObject* swipeView)
+void DbManager::createMesoSlitPlanner()
 {
 	if (m_CompletedSplitObjects == m_numberOfSplitObjects)
 		return;
 
-	QMapIterator<uchar,DBMesoSplitModel*> i(m_splitModels);
+	QMapIterator<uchar,QQmlComponent*> i(m_splitComponents);
 	i.toFront();
 	while (i.hasNext()) {
-		qDebug() << "Component  " << i.value()->count();
-		/*if (i.value()->isReady())
+		i.next();
+		if (i.value()->isReady())
 		{
-			if (m_splitModels.value(i.key())->count() > 0)
+			if (m_splitModels.value(i.key())->isReady())
 			{
-				qDebug() << "Component  " << i.value()->objectName() << "  is ready";
-				QObject *object(i.value()->create(m_QMlEngine->rootContext()));
-				QQuickItem *item(qobject_cast<QQuickItem*>(object));
-				// Set the parent of our created qml rect
-				item->setParentItem((QQuickItem*)swipeView);
-				QMetaObject::invokeMethod(swipeView, "addItem", Q_ARG(QVariant, QVariant::fromValue(item)));
-				item->setProperty("mesoId", meso_id);
-				item->setProperty("mesoIdx", meso_idx);
-				item->setProperty("splitLetter", i.key());
-				item->setProperty("splitModel", QVariant::fromValue(m_splitModels.value(i.key())));
+				QQuickItem* parent (static_cast<QQuickItem*>(static_cast<QObject*>(m_QMlEngine->rootObjects().at(0))->findChild<QObject*>((QStringLiteral("splitSwipeView")))));
+				QVariantMap properties;
+				properties.insert("mesoId", i.value()->property("mesoId").toUInt());
+				properties.insert("mesoIdx", i.value()->property("mesoIdx").toUInt());
+				properties.insert("splitLetter", QString(QChar(i.key())));
+				properties.insert("splitModel", QVariant::fromValue(m_splitModels.value(i.key())));
+				QQuickItem* item (static_cast<QQuickItem*>(i.value()->createWithInitialProperties(properties, m_QMlEngine->rootContext())));
+				item->setParentItem(parent);
+				QMetaObject::invokeMethod(parent, "insertItem", Q_ARG(int, static_cast<int>(i.key()) - static_cast<int>('A')), Q_ARG(QVariant,  QVariant::fromValue(item)));
 				++m_CompletedSplitObjects;
 			}
 		}
-		else
-			qDebug() << "Component  " << i.value()->objectName() << "  is not ready";*/
-		i.next();
 	}
 }
 
@@ -360,7 +395,9 @@ void DbManager::updateMesoSplitComplete(const uint meso_id, const QString& split
 bool DbManager::previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const
 {
 	DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
-	return meso_split->mesoHasPlan(QString::number(prev_meso_id), splitLetter.toStdString().c_str()[0]);
+	const bool ret(meso_split->mesoHasPlan(QString::number(prev_meso_id), splitLetter.toStdString().c_str()[0]));
+	delete meso_split;
+	return ret;
 }
 
 void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter)

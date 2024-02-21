@@ -55,7 +55,7 @@ void TPListModel::removeFromList (const int row)
 
 void TPListModel::appendList(const QStringList& list)
 {
-	beginInsertRows(QModelIndex(), count(), count() + list.count());
+	beginInsertRows(QModelIndex(), count(), count());
 	m_modeldata.append(list);
 	m_indexProxy.append(m_modeldata.count() - 1);
 	emit countChanged();
@@ -109,13 +109,13 @@ void TPListModel::setFilter(const QString &filter)
 				endInsertRows();
 			}
 		}
-		bFilterApplied = m_indexProxy.count() != m_modeldata.count();
+		m_bFilterApplied = m_indexProxy.count() != m_modeldata.count();
 	}
 	else
 	{
-		if (bFilterApplied)
+		if (m_bFilterApplied)
 		{
-			bFilterApplied = false;
+			m_bFilterApplied = false;
 			beginRemoveRows(QModelIndex(), 0, count()-1);
 			m_indexProxy.clear();
 			endRemoveRows();

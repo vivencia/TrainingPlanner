@@ -18,7 +18,7 @@ Frame {
 	property string prevMesoName: ""
 	property int prevMesoId: -1
 
-	implicitWidth: parent.width
+	implicitWidth: windowWidth
 	implicitHeight: splitLayout.height
 
 	padding: 0
@@ -38,7 +38,7 @@ Frame {
 					--idxToRemove;
 				if (splitModel.count === 0)
 					appendNewExerciseToDivision();
-				splitModel.setCurrentRow(idxToRemove);
+				splitModel.setsplitModel.currentRow(idxToRemove);
 				bModified = true;
 			}
 			else {
@@ -129,9 +129,7 @@ Frame {
 				active: true; visible: lstSplitExercises.totalHeight > lstSplitExercises.height
 			}
 
-			function setModel(newmodel) {
-				model = newmodel
-			}
+			model: splitModel
 
 			delegate: SwipeDelegate {
 				id: delegate
@@ -153,7 +151,7 @@ Frame {
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
 						textColor: "black"
 						indicatorColor: "black"
-						checked: index === mesoSplitModel.currentEntry(splitLetter)
+						checked: index === splitModel.currentRow
 						Layout.row: 0
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -238,7 +236,7 @@ Frame {
 							anchors.top: txtExerciseName.top
 							height: 25
 							width: 25
-							enabled: index === currentRow
+							enabled: index === splitModel.currentRow
 
 							Image {
 								source: "qrc:/images/"+darkIconFolder+"edit.png"
@@ -267,11 +265,11 @@ Frame {
 						id: cboSetType
 						model: setTypes
 						Layout.minimumWidth: 110
-						currentIndex: setType;
+						currentIndex: setType
 						Layout.row: 2
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: model.index === splitModel.currentRow
+						enabled: index === splitModel.currentRow
 
 						onActivated: (index) => {
 							setType = index;
@@ -298,7 +296,7 @@ Frame {
 						showLabel: false
 						Layout.row: 3
 						Layout.column: 1
-						enabled: index === currentRow
+						enabled: index === splitModel.currentRow
 
 						onValueChanged: (str, val) => {
 							setsNumber = str;
@@ -336,7 +334,7 @@ Frame {
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: ["",qsTr("Exercise 1:"),"",""]
-							enabled: index === mesoSplitModel.currentEntry(splitLetter)
+							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
@@ -354,7 +352,7 @@ Frame {
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: ["",qsTr("Exercise 2:"),"",""]
-							enabled: index === mesoSplitModel.currentEntry(splitLetter)
+							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
@@ -377,7 +375,7 @@ Frame {
 						Layout.row: 4
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: index === mesoSplitModel.currentEntry(splitLetter)
+						enabled: index === splitModel.currentRow
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
@@ -413,7 +411,7 @@ Frame {
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: [qsTr("Exercise 1:"),"","",""]
-							enabled: index === mesoSplitModel.currentEntry(splitLetter)
+							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
@@ -431,7 +429,7 @@ Frame {
 							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: [qsTr("Exercise 2:"),"","",""]
-							enabled: index === mesoSplitModel.currentEntry(splitLetter)
+							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
 							onValueChanged: (str, val) => {
@@ -450,7 +448,7 @@ Frame {
 						Layout.row: 5
 						Layout.column: 1
 						Layout.rightMargin: 5
-						enabled: index === mesoSplitModel.currentEntry(splitLetter)
+						enabled: index === splitModel.currentRow
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
@@ -466,7 +464,7 @@ Frame {
 						font.capitalization: Font.MixedCase
 						font.bold: true
 						display: AbstractButton.TextBesideIcon
-						visible: index === mesoSplitModel.nEntries(splitLetter) - 1
+						visible: index === splitModel.count - 1
 						Layout.row: cboSetType.currentIndex !== 4 ? 6 : 8
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -568,34 +566,23 @@ Frame {
 	} //ColumnLayout
 
 	Component.onCompleted: {
-		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToProceed);
-			lstSplitExercises.setModel(exercisesListModel);
-		}
+		if (Qt.platform.os === "android")
+			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+	}
 
-		if (exercisesListModel.count === 0)
-		{
-			appDB.qmlReady.connect(readyToProceed);
-			loadExercises();
-		}
-		else
-			readyToProceed();
-
+	function init() {
 		if (splitModel.count === 0) {
 			prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
 			if (prevMesoId >= 0) {
 				if (appDB.previousMesoHasPlan(prevMesoId, splitLetter)) {
 					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
 					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
-					splitModel.setCurrentRow(0);
+					splitModel.currentRow = 0;
 				}
 			}
 			else
 				appendNewExerciseToDivision();
 		}
-
-		if (Qt.platform.os === "android")
-			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
 	}
 
 	function appendNewExerciseToDivision() {
