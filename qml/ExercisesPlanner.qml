@@ -4,6 +4,7 @@ import QtQuick.Controls
 
 Page {
 	id: pagePlanner
+	objectName: "exercisesPlanner"
 	required property int mesoId
 	required property int mesoIdx
 	required property string mesoSplit
@@ -24,9 +25,11 @@ Page {
 	SwipeView {
 		id: splitView
 		objectName: "splitSwipeView"
-		currentIndex: 0
+		currentIndex: -1
 		anchors.fill: parent
 		interactive: !bottomPane.shown
+
+		onCurrentIndexChanged: currentItem.init();
 	} //SwipeView
 
 	PageIndicator {
@@ -97,6 +100,10 @@ Page {
 
 	Component.onCompleted: {
 		appDB.getCompleteMesoSplit(mesoId, mesoIdx, mesoSplit);
+	}
+
+	function showHideExercisesPane(show: bool) {
+		bottomPane.shown = show;
 	}
 
 	function closeSimpleExerciseList() {

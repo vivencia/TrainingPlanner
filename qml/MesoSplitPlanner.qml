@@ -9,6 +9,9 @@ Frame {
 	required property int mesoIdx
 	required property string splitLetter
 	required property DBMesoSplitModel splitModel
+	required property Item parentItem
+
+	signal requestExercisesPaneAction(int id, var show, Item parent)
 
 	property bool bCanEditExercise: false
 	property int seconds: 0
@@ -17,6 +20,9 @@ Frame {
 
 	property string prevMesoName: ""
 	property int prevMesoId: -1
+	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
+
 
 	implicitWidth: windowWidth
 	implicitHeight: splitLayout.height
@@ -263,7 +269,7 @@ Frame {
 					}
 					TPComboBox {
 						id: cboSetType
-						model: setTypes
+						model: setTypesModel
 						Layout.minimumWidth: 110
 						currentIndex: setType
 						Layout.row: 2
@@ -636,7 +642,7 @@ Frame {
 	}
 
 	function editButtonClicked() {
-		bottomPane.shown = !bCanEditExercise;
+		requestExercisesPaneAction(0, !bCanEditExercise, parentItem);
 		bCanEditExercise = !bCanEditExercise;
 	}
 

@@ -9,6 +9,7 @@
 
 class TPDatabaseTable;
 class QQmlApplicationEngine;
+class QQuickItem;
 class QSettings;
 class DBMesoSplitModel;
 class RunCommands;
@@ -73,6 +74,9 @@ public:
 	Q_INVOKABLE void deleteMesoCalendarTable();
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
+public slots:
+	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
+
 signals:
 	void qmlReady();
 	void databaseFree();
@@ -87,6 +91,8 @@ private:
 	uint m_insertid;
 	QStringList m_result;
 
+	QQuickItem* m_qmlObjectParent;
+	QQuickItem* m_qmlObjectContainer;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -94,9 +100,9 @@ private:
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 	QMap<uchar,QQmlComponent*> m_splitComponents;
 	QMap<uchar,DBMesoSplitModel*> m_splitModels;
-	uint m_CompletedSplitObjects;
-	uint m_numberOfSplitObjects;
+	QVariantMap m_splitProperties;
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
+
 	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);

@@ -52,7 +52,7 @@ bool DBMesoCalendarModel::setData(const QModelIndex &index, const QVariant& valu
 			case mesoCalNDayRole:
 			case mesoCalDateRole:
 			case mesoCalSplitRole:
-				m_modeldata[row].replace(role, value.toString());
+				m_modeldata[row][role-Qt::UserRole] = value.toString();
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}

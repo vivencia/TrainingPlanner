@@ -69,9 +69,9 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case mediaPathRole:
 			case actualIndexRole:
 				if (!m_bFilterApplied)
-					m_modeldata[row].replace(role, value.toString());
+					m_modeldata[row][role-Qt::UserRole] = value.toString();
 				else
-					m_modeldata[m_indexProxy.at(row)].replace(role, value.toString());
+					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toString();
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}

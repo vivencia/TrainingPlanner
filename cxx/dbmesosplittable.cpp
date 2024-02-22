@@ -264,11 +264,11 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 					case 'F': start_i = 33; break;
 				}
 
-				const QStringList exercises(query.value(static_cast<int>(start_i)).toString().split('|'));
-				const QStringList setstypes(query.value(static_cast<int>(start_i+1)).toString().split('|'));
-				const QStringList setsnumber(query.value(static_cast<int>(start_i+2)).toString().split('|'));
-				const QStringList setsreps(query.value(static_cast<int>(start_i+3)).toString().split('|'));
-				const QStringList setsweight(query.value(static_cast<int>(start_i+4)).toString().split('|'));
+				const QStringList exercises(query.value(static_cast<int>(start_i)).toString().split('|', Qt::SkipEmptyParts));
+				const QStringList setstypes(query.value(static_cast<int>(start_i+1)).toString().split('|', Qt::SkipEmptyParts));
+				const QStringList setsnumber(query.value(static_cast<int>(start_i+2)).toString().split('|', Qt::SkipEmptyParts));
+				const QStringList setsreps(query.value(static_cast<int>(start_i+3)).toString().split('|', Qt::SkipEmptyParts));
+				const QStringList setsweight(query.value(static_cast<int>(start_i+4)).toString().split('|', Qt::SkipEmptyParts));
 
 				QStringList split_info;
 				for(uint i(0); i < exercises.count(); ++i)

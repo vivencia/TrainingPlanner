@@ -55,9 +55,6 @@ ApplicationWindow {
 	property var dbExercisesListPage: null
 	readonly property var appStackView: stackView
 
-	property var setTypes: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
-
 	Timer {
 		id: dateTimer
 		interval: 30000
