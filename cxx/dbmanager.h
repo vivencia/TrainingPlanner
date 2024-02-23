@@ -98,9 +98,12 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	QMap<uchar,QQmlComponent*> m_splitComponents;
-	QMap<uchar,DBMesoSplitModel*> m_splitModels;
+	QMap<QChar,QQmlComponent*> m_splitComponents;
+	QMap<QChar,QQuickItem*> m_splitItems;
+	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
+	uint m_lastUsedSplitMesoID;
+	QString m_createdSplits;
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	void freeLocks(TPDatabaseTable* dbObj);

@@ -666,21 +666,13 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
-							for (var i = 0; i < mesoPlannerList.length; ++i) {
-								if (mesoPlannerList[i].mesoId === mesoId) {
-									appStackView.push(mesoPlannerList[i].Object, StackView.DontLoad);
-									break;
-								}
-							}
-
 							var component = Qt.createComponent("ExercisesPlanner.qml", Qt.Asynchronous);
 
 							function finishCreation() {
 								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
 										mesoId:mesoId, mesoIdx:idxModel, mesoSplit:mesoSplit, width:mesoPropertiesPage.width, height:mesoPropertiesPage.height
 								});
-								mesoPlannerList.push({ "mesoId": mesoId, "Object":mesoPlannerObject });
-								appStackView.push(mesoPlannerObject, StackView.DontLoad);
+								appStackView.push(mesoPlannerObject);
 							}
 
 							if (component.status === Component.Ready)

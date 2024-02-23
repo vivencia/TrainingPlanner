@@ -3,7 +3,6 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "jsfunctions.js" as JSF
 import com.vivenciasoftware.qmlcomponents
 
 ApplicationWindow {
@@ -20,30 +19,6 @@ ApplicationWindow {
 	signal appAboutToBeSuspended()
 	signal appActive()
 
-	/*property var darkPalette: ["#FFFFFF", "#424242", "1.0", "0.70", "0.12", "1.0", "0.3", "white/", "1", "#FFFFFF", "#FFFFFF", "1.0", "0.7", "Darkgrey", "0.9"]
-	property var lightPalette: ["#000000", "#FFFFFF", "0.87", "0.54", "0.12", "0.54", "0.26", "black/", "0", "#424242", "#424242", "1.0", "0.7", "#323232", "0.75"]
-	property var colorPalette: AppSettings.themeStyleColorIndex === 2 ? darkPalette : lightPalette
-
-	property real iconActiveOpacity: colorPalette[5]
-	property real iconInactiveOpacity: colorPalette[6]
-	property color paneBackgroundColor: primaryDarkColor //"#c1d0ce"
-
-	property string lightIconFolder: darkPalette[7]
-	property string darkIconFolder: lightPalette[7]
-	property var colorStyle: [Material.System, Material.Light, Material.Dark]
-
-	property var materialBlue: ["#BBDEFB", "#25b5f3", "#1976D2", "#000000", "#FFFFFF", "#FFFFFF", "black", "white", "white"]
-	property color primaryLightColor: materialBlue[0]
-	property color primaryColor: materialBlue[1]
-	property color primaryDarkColor: materialBlue[2]
-	property color listEntryColor1: "#dce3f0"
-	property color listEntryColor2: "#c3cad5"
-
-	property var accentPalette: [materialBlue[1], materialBlue[4], materialBlue[7]]
-	property color accentColor: accentPalette[0]
-	property color textOnAccent: accentPalette[1]
-	property string iconOnAccentFolder: accentPalette[2]*/
-
 	property bool bNavButtonsEnabled: true
 	property bool bLongTask: false
 
@@ -51,7 +26,6 @@ ApplicationWindow {
 	property date today
 
 	property var trainingDayInfoPages: []
-	property var mesoPlannerList: []
 	property var dbExercisesListPage: null
 	readonly property var appStackView: stackView
 
@@ -136,8 +110,6 @@ ApplicationWindow {
 		var i = 0;
 		for (; i < trainingDayInfoPages.length; ++i)
 			trainingDayInfoPages[i].Object.destroy();
-		for (i = 0; i < mesoPlannerList.length; ++i)
-			mesoPlannerList[i].Object.destroy();
 	}
 
 	function androidBackKeyPressed() {
@@ -170,27 +142,6 @@ ApplicationWindow {
 		id: mainMenu
 	}
 
-	/*DBExercisesModel {
-		id:	exercisesListModel
-	}
-
-	DBMesoSplitModel {
-		id:	mesoSplitModel
-	}
-
-	DBMesocyclesModel {
-		id: mesocyclesModel
-		Component.onCompleted: initMesocycles();
-	}
-
-	DBMesoCalendarModel {
-		id: mesosCalendarModel
-	}
-
-	DBMesoSplitModel {
-		id: mesosplitmodel
-	}*/
-
 	Flickable {
 		width: parent.width
 		height: parent.height
@@ -203,7 +154,10 @@ ApplicationWindow {
 			id: homePage
 		}
 
-		/*MesoSplitPlanner {
+		/*DBMesoSplitModel {
+			id: mesosplitmodel
+		}
+		MesoSplitPlanner {
 			id: mesoSplit
 			mesoId: 1
 			mesoIdx: 0
@@ -214,7 +168,7 @@ ApplicationWindow {
 		StackView {
 			id: stackView
 			anchors.fill: parent
-			initialItem: homePage
+			initialItem: homePage//mesoSplit
 		}
 	}
 

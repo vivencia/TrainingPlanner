@@ -113,7 +113,7 @@ Column {
 				}
 				else {
 					bSelected = !bSelected;
-					displaySelectedExercise(index, bSelected ? 2 : 1);
+					displaySelectedExercise(index, bSelected ? 1 : 2);
 				}
 				this.forceActiveFocus();
 			}
@@ -183,6 +183,7 @@ Column {
 			visible: canDoMultipleSelection
 			width: 20
 			height: 20
+			focus: false
 
 			Image {
 				source: "qrc:/images/" + darkIconFolder + "multi-selection.png"

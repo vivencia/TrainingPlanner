@@ -20,7 +20,8 @@
 #include <QQmlContext>
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
-	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands), m_model(nullptr), m_insertid(0)
+	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
+		m_model(nullptr), m_insertid(0), m_lastUsedSplitMesoID(0)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -183,6 +184,16 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	}
 }
 
+void DbManager::receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject)
+{
+	switch(id)
+	{
+		case 0:
+			QMetaObject::invokeMethod(qmlObject, "showHideExercisesPane", Q_ARG(bool, param.toBool()));
+		break;
+	}
+}
+
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
@@ -326,31 +337,50 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 {
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	QChar splitLetter;
 	QString createdSplits;
 	DBMesoSplitModel* splitModel(nullptr);
 
-	m_qmlObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("exercisesPlanner")));
-	m_qmlObjectContainer = m_qmlObjectParent->findChild<QQuickItem*>((QStringLiteral("splitSwipeView")));
+	if (meso_id != m_lastUsedSplitMesoID)
+	{
+		m_lastUsedSplitMesoID = meso_id;
+		m_createdSplits.clear();
+		m_splitProperties.clear();
+		m_splitComponents.clear();
+		m_splitModels.clear();
+		m_splitItems.clear();
 
-	m_splitProperties.insert("mesoId", meso_id);
-	m_splitProperties.insert("mesoIdx", meso_idx);
-	m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlObjectParent));
-	m_splitProperties.insert("splitLetter", QString(QChar('A')));
-	m_splitProperties.insert("splitModel", QVariant());
+		m_qmlObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("exercisesPlanner")));
+		m_qmlObjectContainer = m_qmlObjectParent->findChild<QQuickItem*>((QStringLiteral("splitSwipeView")));
+		m_splitProperties.insert("mesoId", meso_id);
+		m_splitProperties.insert("mesoIdx", meso_idx);
+		m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlObjectParent));
+		m_splitProperties.insert("splitLetter", QString(QChar('A')));
+		m_splitProperties.insert("splitModel", QVariant());
+	}
 
 	do {
-		if (static_cast<QChar>(*itr) == QChar('R')) continue;
+		splitLetter = static_cast<QChar>(*itr);
+		if (splitLetter == QChar('R'))
+			continue;
 
-		if (createdSplits.indexOf(static_cast<QChar>(*itr)) == -1)
+		if (m_splitItems.value(splitLetter) != nullptr )
 		{
-			createdSplits.append(static_cast<QChar>(*itr));
+			QMetaObject::invokeMethod(m_qmlObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(splitLetter.cell()) - static_cast<int>('A')),
+				Q_ARG(QQuickItem*, m_splitItems.value(splitLetter)));
+			continue;
+		}
+
+		if (createdSplits.indexOf(splitLetter) == -1)
+		{
+			createdSplits.append(splitLetter);
 			splitModel = new DBMesoSplitModel(this);
-			m_splitModels.insert(static_cast<QChar>(*itr).cell(), splitModel);
+			m_splitModels.insert(splitLetter, splitModel);
 
 			QQmlComponent* component( new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous));
 			connect(component, &QQmlComponent::statusChanged, this,
 				[&](QQmlComponent::Status status) { if (status == QQmlComponent::Ready) return DbManager::createMesoSlitPlanner(); } );
-			m_splitComponents.insert(static_cast<QChar>(*itr).cell(), component);
+			m_splitComponents.insert(splitLetter, component);
 
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
 			worker->addExecArg(meso_id);
@@ -363,8 +393,7 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 
 void DbManager::createMesoSlitPlanner()
 {
-	static QString createdSplits;
-	QMapIterator<uchar,QQmlComponent*> i(m_splitComponents);
+	QMapIterator<QChar,QQmlComponent*> i(m_splitComponents);
 	i.toFront();
 	while (i.hasNext()) {
 		i.next();
@@ -372,30 +401,21 @@ void DbManager::createMesoSlitPlanner()
 		{
 			if (m_splitModels.value(i.key())->isReady())
 			{
-				if (createdSplits.indexOf(static_cast<QChar>(i.key())) == -1)
+				if (m_createdSplits.indexOf(i.key()) == -1)
 				{
-					createdSplits.append(static_cast<QChar>(i.key()));
-					m_splitProperties["splitLetter"] = QString(static_cast<QChar>(i.key()));
+					m_createdSplits.append(i.key());
+					m_splitProperties["splitLetter"] = QString(i.key());
 					m_splitProperties["splitModel"] = QVariant::fromValue(m_splitModels.value(i.key()));
 					QQuickItem* item (static_cast<QQuickItem*>(i.value()->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
-					QQmlEngine::setObjectOwnership(item, QQmlEngine::JavaScriptOwnership);
 					item->setParentItem(m_qmlObjectParent);
 					item->setParent(m_qmlObjectParent);
 					connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
-					QMetaObject::invokeMethod(m_qmlObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key()) - static_cast<int>('A')), Q_ARG(QQuickItem*, item));
+					QMetaObject::invokeMethod(m_qmlObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
+						Q_ARG(QQuickItem*, item));
+					m_splitItems.insert(i.key(), item);
 				}
 			}
 		}
-	}
-}
-
-void DbManager::receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject)
-{
-	switch(id)
-	{
-		case 0:
-			QMetaObject::invokeMethod(qmlObject, "showHideExercisesPane", Q_ARG(bool, param.toBool()));
-		break;
 	}
 }
 

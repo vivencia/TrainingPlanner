@@ -214,19 +214,13 @@ Frame {
 						}
 
 						onTextChanged: {
-							if (bCanEditExercise) {
-								if (bottomPane.shown) {
-									exerciseName = text;
-									bModified = true;
-								}
-							}
-							else
+							if (!bCanEditExercise)
 								cursorPosition = 0;
 						}
 
 						onActiveFocusChanged: {
 							if (activeFocus) {
-								bottomPane.shown = false;
+								requestExercisesPaneAction(0, false, parentItem);
 								cursorPosition = text.length;
 							}
 							else {
@@ -345,6 +339,7 @@ Frame {
 
 							onValueChanged: (str, val) => {
 								setsReps1 = str;
+								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -363,6 +358,7 @@ Frame {
 
 							onValueChanged: (str, val) => {
 								setsReps2 = str;
+								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -373,7 +369,7 @@ Frame {
 
 					SetInputField {
 						id: txtNReps
-						text: setsReps1
+						text: setsReps
 						type: SetInputField.Type.RepType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -385,7 +381,7 @@ Frame {
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
-							setsReps1 = str;
+							setsReps = str;
 							bModified = true;
 						}
 
@@ -422,6 +418,7 @@ Frame {
 
 							onValueChanged: (str, val) => {
 								setsWeight1 = str;
+								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -440,13 +437,14 @@ Frame {
 
 							onValueChanged: (str, val) => {
 								setsWeight2 = str;
+								bModified = true;
 							}
 						}
 					} //RowLayout
 
 					SetInputField {
 						id: txtNWeight
-						text: setsWeight1
+						text: setsWeight
 						type: SetInputField.Type.WeightType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -458,7 +456,7 @@ Frame {
 						visible: cboSetType.currentIndex !== 4
 
 						onValueChanged: (str, val) => {
-							setsWeight1 = str;
+							setsWeight = str;
 							bModified = true;
 						}
 					}
@@ -598,45 +596,7 @@ Frame {
 	property int lastAdded: 0
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
 		if (bCanEditExercise) {
-			if (multiplesel_opt === 0) {
-				splitModel.exerciseName = name1 + " - " + name2;
-				splitModel.setsReps1 = nreps;
-				splitModel.setsWeight1 = nweight;
-			}
-			else {
-				if ( multiplesel_opt === 2) { //add
-					switch (lastAdded) {
-						case 0:
-							splitModel.exerciseName1 = name1 + " - " + name2;
-							splitModel.setsReps1 = nreps;
-							splitModel.setsWeight1 = nweight;
-							lastAdded = 1;
-						break;
-						case 1:
-							splitModel.exerciseName2 = name1 + " - " + name2;
-							splitModel.setsReps2 = nreps;
-							splitModel.setsWeight2 = nweight;
-							lastAdded = 0;
-						break;
-					}
-				}
-				else { //remove
-					if (splitModel.exerciseName1.indexOf(name1 + " - " + name2) !== -1) {
-						splitModel.exerciseName1 = splitModel.exerciseName2;
-						splitModel.setsReps1 = splitModel.setsReps2;
-						splitModel.setsWeight1 = splitModel.setsWeight2;
-						splitModel.exerciseName2 = "";
-						splitModel.setsReps2 = "";
-						splitModel.setsWeight2 = "";
-					}
-					else if (splitModel.exerciseName2.indexOf(name1 + " - " + name2) !== -1) {
-						splitModel.exerciseName2 = "";
-						splitModel.setsReps2 = "";
-						splitModel.setsWeight2 = "";
-					}
-				}
-			}
-			splitModel.setsNumber = nsets;
+			splitModel.changeExercise(name1, name2, nsets, nreps, nweight, multiplesel_opt);
 			bModified = true;
 		}
 	}
