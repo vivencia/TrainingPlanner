@@ -19,7 +19,7 @@ FocusScope {
 	property color inputColor: "white"
 	property color backColor: "white"
 
-	signal valueChanged(string str, real value)
+	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
 
 	implicitWidth: availableWidth
@@ -115,8 +115,8 @@ FocusScope {
 					nbr--
 				else
 					nbr = 59;
-				txtMain.text = txtMain.text.substring(0, 3) + JSF.intTimeToStrTime(nbr);
-				changeText(txtMain.text, nbr);
+				const strRet = txtMain.text.substring(0, 3) + JSF.intTimeToStrTime(nbr);
+				changeText(strRet);
 			}
 		}
 
@@ -192,11 +192,9 @@ FocusScope {
 				}
 				if (nbr < 0)
 					return;
-				if (type !== SetInputField.Type.TimeType) {
-					txtMain.text = nbr.toString();
+				if (type !== SetInputField.Type.TimeType)
 					bClearInput = false;
-				}
-				changeText(txtMain.text, nbr);
+				changeText(nbr.toString());
 			}
 		}
 
@@ -340,11 +338,9 @@ FocusScope {
 						txtMain.text = str;
 					break;
 				}
-				if (type !== SetInputField.Type.TimeType) {
-					txtMain.text = nbr.toString();
+				if (type !== SetInputField.Type.TimeType)
 					bClearInput = false;
-				}
-				changeText(txtMain.text, nbr);
+				changeText(nbr.toString());
 			}
 		}
 
@@ -374,8 +370,8 @@ FocusScope {
 					nbr++;
 				else
 					nbr = 0;
-				txtMain.text = JSF.intTimeToStrTime(nbr) + txtMain.text.substring(2, 5);
-				changeText(txtMain.text, nbr);
+				const strRet = JSF.intTimeToStrTime(nbr) + txtMain.text.substring(2, 5);
+				changeText(strRet);
 			}
 		}
 
@@ -404,14 +400,13 @@ FocusScope {
 	}
 
 	function timeChanged(strTime) {
-		txtMain.text = strTime;
-		changeText(strTime, 0);
+		changeText(strTime);
 		enterOrReturnKeyPressed();
 	}
 
-	function changeText(text, nbr) {
+	function changeText(text) {
 		origText = text;
-		valueChanged(text, nbr);
+		valueChanged(text);
 	}
 
 	function openTimerDialog() {

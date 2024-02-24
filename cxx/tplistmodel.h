@@ -11,7 +11,8 @@
 #define MSG_OUT(message)
 #endif
 
-static const QLatin1Char record_separator(30);
+static const QLatin1Char record_separator(29);
+static const QLatin1Char subrecord_separator(30);
 
 class TPListModel : public QAbstractListModel
 {

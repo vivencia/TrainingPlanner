@@ -195,13 +195,13 @@ Frame {
 							cboSetType.forceActiveFocus();
 						}
 
-						onPressed: (mouse) => { //relay the signal to the delegate
+						onPressed: (mouse) => {
 							if (bCanEditExercise) {
 								mouse.accepted = true;
 								forceActiveFocus();
 							}
 							else
-								mouse.accepted = false;
+								mouse.accepted = false; //relay the signal to the delegate
 						}
 
 						onPressAndHold: (mouse) => {
@@ -274,6 +274,7 @@ Frame {
 						onActivated: (index) => {
 							setType = index;
 							txtNSets.forceActiveFocus();
+							parentItem.bEnableMultipleSelection = setType === 4;
 							bModified = true;
 						}
 					}
@@ -298,7 +299,7 @@ Frame {
 						Layout.column: 1
 						enabled: index === splitModel.currentRow
 
-						onValueChanged: (str, val) => {
+						onValueChanged: (str) => {
 							setsNumber = str;
 							bModified = true;
 						}
@@ -337,7 +338,7 @@ Frame {
 							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
-							onValueChanged: (str, val) => {
+							onValueChanged: (str) => {
 								setsReps1 = str;
 								bModified = true;
 							}
@@ -356,7 +357,7 @@ Frame {
 							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
-							onValueChanged: (str, val) => {
+							onValueChanged: (str) => {
 								setsReps2 = str;
 								bModified = true;
 							}
@@ -369,7 +370,7 @@ Frame {
 
 					SetInputField {
 						id: txtNReps
-						text: setsReps
+						text: setsReps1
 						type: SetInputField.Type.RepType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -380,8 +381,8 @@ Frame {
 						enabled: index === splitModel.currentRow
 						visible: cboSetType.currentIndex !== 4
 
-						onValueChanged: (str, val) => {
-							setsReps = str;
+						onValueChanged: (str) => {
+							setsReps1 = str;
 							bModified = true;
 						}
 
@@ -416,7 +417,7 @@ Frame {
 							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
-							onValueChanged: (str, val) => {
+							onValueChanged: (str) => {
 								setsWeight1 = str;
 								bModified = true;
 							}
@@ -435,7 +436,7 @@ Frame {
 							enabled: index === splitModel.currentRow
 							fontPixelSize: AppSettings.fontSizeText * 0.8
 
-							onValueChanged: (str, val) => {
+							onValueChanged: (str) => {
 								setsWeight2 = str;
 								bModified = true;
 							}
@@ -444,7 +445,7 @@ Frame {
 
 					SetInputField {
 						id: txtNWeight
-						text: setsWeight
+						text: setsWeight1
 						type: SetInputField.Type.WeightType
 						nSetNbr: 0
 						availableWidth: listItem.width / 3
@@ -455,8 +456,8 @@ Frame {
 						enabled: index === splitModel.currentRow
 						visible: cboSetType.currentIndex !== 4
 
-						onValueChanged: (str, val) => {
-							setsWeight = str;
+						onValueChanged: (str) => {
+							setsWeight1 = str;
 							bModified = true;
 						}
 					}
@@ -505,8 +506,10 @@ Frame {
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
 
-				onClicked:
+				onClicked: {
 					splitModel.currentRow = index;
+					parentItem.bEnableMultipleSelection = setType === 4;
+				}
 
 				swipe.right: Rectangle {
 					id: rec

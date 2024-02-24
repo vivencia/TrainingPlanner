@@ -9,6 +9,8 @@
 #include "dbmesosplitmodel.h"
 #include "dbmesocalendartable.h"
 #include "dbmesocalendarmodel.h"
+#include "dbtrainingdaytable.h"
+#include "dbtrainingdaymodel.h"
 
 #include <QSettings>
 #include <QSqlQuery>
@@ -53,6 +55,13 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 		db_cal->createTable();
 		delete db_cal;
 	}
+	f_info.setFile(m_DBFilePath + DBTrainingDayFileName);
+	if (!f_info.isReadable())
+	{
+		DBTrainingDayTable* db_tday(new DBTrainingDayTable(m_DBFilePath, m_appSettings));
+		db_tday->createTable();
+		delete db_tday;
+	}
 
 	getExercisesListVersion();
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
@@ -66,14 +75,15 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
+	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
 
-	DBMesocyclesModel* mesocyclesModel(new DBMesocyclesModel(this));
+	mesocyclesModel = new DBMesocyclesModel(this);
 	pass_object(mesocyclesModel);
 	getAllMesocycles();
 
-	DBExercisesModel* exercisesListModel(new DBExercisesModel(this));
-	DBMesoSplitModel* mesoSplitModel(new DBMesoSplitModel(this));
-	DBMesoCalendarModel* mesosCalendarModel(new DBMesoCalendarModel(this));
+	exercisesListModel = new DBExercisesModel(this);
+	mesoSplitModel  = new DBMesoSplitModel(this);
+	mesosCalendarModel = new DBMesoCalendarModel(this);
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties;
@@ -95,6 +105,14 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 	properties.append(QQmlContext::PropertyPair{ "paneBackgroundColor", QVariant(QColor(25, 118, 210)) });
 	properties.append(QQmlContext::PropertyPair{ "accentColor", QVariant(QColor(37, 181, 243)) });
 	m_QMlEngine->rootContext()->setContextProperties(properties);
+}
+
+DbManager::~DbManager()
+{
+	delete mesocyclesModel;
+	delete exercisesListModel;
+	delete mesoSplitModel;
+	delete mesosCalendarModel;
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -488,3 +506,58 @@ void DbManager::deleteMesoCalendarTable()
 	createThread(worker, [worker] () { return worker->deleteMesoCalendarTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+void DbManager::getTrainingDay(const QDate& date)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
+}
+
+void DbManager::getTrainingDayExercises(const QDate& date)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
+}
+
+void DbManager::newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString(), QString::number(meso_id), QString::number(date.toJulianDay()), QString::number(trainingDayNumber),
+						splitLetter, timeIn, timeOut, location, notes);
+	createThread(worker, [worker] () { return worker->newTrainingDay(); } );
+}
+
+void DbManager::updateTrainingDay(const uint id, const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString::number(id), QString::number(meso_id), QString::number(date.toJulianDay()), QString::number(trainingDayNumber),
+						splitLetter, timeIn, timeOut, location, notes);
+	createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
+}
+
+void DbManager::updateTrainingDayExercises(const uint id, const QString& exercisesNames, const QString& setsTypes, const QString& restTimes,
+												const QString& subSets, const QString& reps, const QString& weights)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString::number(id), exercisesNames, setsTypes, restTimes, subSets, reps, weights);
+	createThread(worker, [worker] () { return worker->updateTrainingDayExercises(); } );
+}
+
+void DbManager::removeTrainingDay(const uint id)
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	worker->setData(QString::number(id));
+	createThread(worker, [worker] () { return worker->removeTrainingDay(); } );
+}
+
+void DbManager::deleteTrainingDayTable()
+{
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	createThread(worker, [worker] () { return worker->deleteTrainingDayTable(); } );
+}
+//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

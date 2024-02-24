@@ -11,15 +11,15 @@ Item {
 	property int tDayId
 	property int setType: 3 //Constant
 	property int setNumber
-	property real setReps
-	property real setWeight
-	property int setSubSets
+	property string setReps
+	property string setWeight
+	property string setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
 	property var nextObject: null
 
 	signal setRemoved(int nset)
-	signal setChanged(int nset, int reps, int weight, int subsets, string resttime, string setnotes)
+	signal setChanged(int nset, string reps, string weight, string subsets, string resttime, string setnotes)
 
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
@@ -71,7 +71,7 @@ Item {
 			text: setNumber !== 0 ? setRestTime : "00:00"
 			windowTitle: lblSetNumber.text
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 			}
@@ -92,9 +92,9 @@ Item {
 				txtNReps.forceActiveFocus();
 			}
 
-			onValueChanged: (str, val) => {
-				if (val !== setSubSets) {
-					setSubSets = val;
+			onValueChanged: (str) => {
+				if (str !== setSubSets) {
+					setSubSets = str;
 					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 				}
 			}
@@ -111,9 +111,9 @@ Item {
 				txtNWeight.forceActiveFocus();
 			}
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				if (val !== setReps) {
-					setReps = val;
+					setReps = str;
 					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 				}
 			}
@@ -133,9 +133,9 @@ Item {
 					txtSetNotes.forceActiveFocus();
 			}
 
-			onValueChanged: (str, val) => {
-				if (val !== setWeight) {
-					setWeight = val;
+			onValueChanged: (str) => {
+				if (str !== setWeight) {
+					setWeight = str;
 					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 				}
 			}

@@ -13,7 +13,7 @@ Item {
 	property int setNumber
 	property string setReps
 	property string setWeight
-	property int setSubSets: 0
+	property string setSubSets: "0"
 	property string setRestTime: "00:00"
 	property string setNotes: " "
 	property var nextObject: null
@@ -23,7 +23,7 @@ Item {
 	property var subSetList: []
 
 	signal setRemoved(int nset)
-	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)
+	signal setChanged(int nset, string reps, string weight, string subsets, string resttime, string setnotes)
 	signal secondExerciseNameChanged(string new_exercisename)
 
 	property string strReps1
@@ -174,7 +174,7 @@ Item {
 			text: setNumber !== 0 ? setRestTime : "00:00"
 			windowTitle: lblSetNumber.text
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 			}
@@ -235,7 +235,7 @@ Item {
 					txtNWeight1.forceActiveFocus();
 				}
 
-				onValueChanged: (str, val) => {
+				onValueChanged: (str) => {
 					onTextEdited: changeRep(0, str);
 				}
 			}
@@ -261,7 +261,7 @@ Item {
 					txtNWeight2.forceActiveFocus();
 				}
 
-				onValueChanged: (str, val) => {
+				onValueChanged: (str) => {
 					onTextEdited: changeRep(1, str);
 				}
 			}
@@ -287,7 +287,7 @@ Item {
 					txtNReps2.forceActiveFocus();
 				}
 
-				onValueChanged: (str, val) => {
+				onValueChanged: (str) => {
 					changeWeight(0, str);
 				}
 			}
@@ -316,7 +316,7 @@ Item {
 						txtSetNotes.forceActiveFocus();
 				}
 
-				onValueChanged: (str, val) => {
+				onValueChanged: (str) => {
 					changeWeight(1, str);
 				}
 			}

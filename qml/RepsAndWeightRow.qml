@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 FocusScope {
-	required property int nReps
-	required property int nWeight
+	required property string nReps
+	required property string nWeight
 	required property int rowIdx
 	property int setNbr
 	property var nextRowObj: null
@@ -12,7 +12,7 @@ FocusScope {
 
 	property bool bBtnAddEnabled: true
 
-	signal changeSubSet(int id, int reps, int weight)
+	signal changeSubSet(int id, string reps, string weight)
 	signal addSubSet(int id)
 	signal delSubSet(int id)
 
@@ -36,7 +36,7 @@ FocusScope {
 		}
 		SetInputField {
 			id: txtNReps
-			text: nReps.toString()
+			text: nReps
 			type: SetInputField.Type.RepType
 			nSetNbr: setNbr
 			showLabel: false
@@ -50,9 +50,9 @@ FocusScope {
 				txtNWeight.forceActiveFocus();
 			}
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				if (val !== nReps) {
-					nReps = val;
+					nReps = str;
 					changeSubSet(rowIdx, nReps, nWeight);
 				}
 			}
@@ -66,7 +66,7 @@ FocusScope {
 		}
 		SetInputField {
 			id: txtNWeight
-			text: nWeight.toString()
+			text: nWeight
 			type: SetInputField.Type.WeightType
 			nSetNbr: setNbr
 			showLabel: false
@@ -86,9 +86,9 @@ FocusScope {
 				}
 			}
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				if (val !== nWeight) {
-					nWeight = val;
+					nWeight = str;
 					changeSubSet(rowIdx, nReps, nWeight);
 				}
 			}

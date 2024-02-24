@@ -29,12 +29,14 @@ set( SOURCES
 	cxx/dbmesocylestable.h cxx/dbmesocylestable.cpp
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
+	cxx/dbtrainingdaytable.h cxx/dbtrainingdaytable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
 	cxx/dbmesocyclesmodel.h cxx/dbmesocyclesmodel.cpp
 	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
+	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
 )
 
 set( TRANSLATIONS_DIR

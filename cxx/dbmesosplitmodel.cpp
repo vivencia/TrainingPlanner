@@ -43,13 +43,13 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case setsWeight1Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(record_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).left(idx-1) : QString();
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).left(idx-1) : m_modeldata.at(row).at(role-Qt::UserRole-2);
 			}
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(record_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).mid(idx+1) : QString();
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).mid(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-4);
 			}
 			case setTypeRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
@@ -79,7 +79,7 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 				if (idx == -1)
 					m_modeldata[row][exerciseNameRole-Qt::UserRole] = value.toString();
 				else
-					static_cast<QString>(m_modeldata[row][exerciseNameRole-Qt::UserRole]).replace(0, idx-1, value.toString());
+					m_modeldata[row][exerciseNameRole-Qt::UserRole].replace(0, idx-1, value.toString());
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);
 				emit dataChanged(index, index, QList<int>() << exerciseName1Role);
 			}
@@ -89,11 +89,11 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(record_separator));
 				if (idx == -1)
 					m_modeldata[row][exerciseNameRole-Qt::UserRole] =
-						static_cast<QString>(m_modeldata[row][exerciseNameRole-Qt::UserRole]) += QString(record_separator) + value.toString();
+						m_modeldata[row][exerciseNameRole-Qt::UserRole] += QString(record_separator) + value.toString();
 				else
 				{
-					static_cast<QString>(m_modeldata[row][exerciseNameRole-Qt::UserRole]).truncate(idx);
-					static_cast<QString>(m_modeldata[row][exerciseNameRole-Qt::UserRole]).append(value.toString());
+					m_modeldata[row][exerciseNameRole-Qt::UserRole].truncate(idx);
+					m_modeldata[row][exerciseNameRole-Qt::UserRole].append(value.toString());
 				}
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);
 				emit dataChanged(index, index, QList<int>() << exerciseName2Role);
@@ -104,10 +104,9 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(record_separator));
 				if (idx == -1)
-					m_modeldata[row][role-Qt::UserRole-2] =
-						static_cast<QString>(m_modeldata[row][role-Qt::UserRole-2]) += QString(record_separator) + value.toString();
+					m_modeldata[row][role-Qt::UserRole-2] += QString(record_separator) + value.toString();
 				else
-					static_cast<QString>(m_modeldata[row][role-Qt::UserRole-2]).replace(0, idx-1, value.toString());
+					m_modeldata[row][role-Qt::UserRole-2].replace(0, idx-1, value.toString());
 				emit dataChanged(index, index, QList<int>() << role-2);
 				emit dataChanged(index, index, QList<int>() << role);
 			}
@@ -117,10 +116,9 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(record_separator));
 				if (idx == -1)
-					m_modeldata[row][role-Qt::UserRole-4] =
-						static_cast<QString>(m_modeldata[row][role-Qt::UserRole-4]) += QString(record_separator) + value.toString();
+					m_modeldata[row][role-Qt::UserRole-4] += QString(record_separator) + value.toString();
 				else
-					static_cast<QString>(m_modeldata[row][role-Qt::UserRole-4]).replace(0, idx-1, value.toString());
+					m_modeldata[row][role-Qt::UserRole-4].replace(0, idx-1, value.toString());
 				emit dataChanged(index, index, QList<int>() << role-4);
 				emit dataChanged(index, index, QList<int>() << role);
 			}

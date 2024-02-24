@@ -13,7 +13,7 @@ Item {
 	property int setNumber
 	property string setReps
 	property string setWeight
-	property int setSubSets
+	property string setSubSets
 	property string setRestTime: "00:00"
 	property string setNotes: " "
 	property var nextObject: null
@@ -22,7 +22,7 @@ Item {
 	property var subSetList: []
 
 	signal setRemoved(int nset)
-	signal setChanged(int nset, string reps, string weight, int subsets, string resttime, string setnotes)
+	signal setChanged(int nset, string reps, string weight, instringt subsets, string resttime, string setnotes)
 
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
@@ -64,7 +64,7 @@ Item {
 			text: setNumber !== 0 ? setRestTime : "00:00"
 			windowTitle: lblSetNumber.text
 
-			onValueChanged: (str, val) => {
+			onValueChanged: (str) => {
 				setRestTime = str;
 				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
 			}
@@ -107,8 +107,8 @@ Item {
 	} // setLayout
 
 	Component.onCompleted: {
-		const nsubsets = setSubSets;
-		setSubSets = 1; //the value will be incremented in subSetAdded and return to its original value
+		const nsubsets = parseInt(setSubSets);
+		setSubSets = "1"; //the value will be incremented in subSetAdded and return to its original value
 		for (var i = 1; i <= nsubsets; ++i) {
 			addSubSet(i-1);
 		}
@@ -185,7 +185,7 @@ Item {
 	function removeSubSet(idx) {
 		let newSubSetList = new Array;
 		subSetList[idx].Object.destroy();
-		setSubSets--;
+		setSubSets = (parseInt(setSubSets)--).toString();
 		for( var i = 0, x = 0; i < subSetList.length; ++i ) {
 			if (i >= idx) {
 				subSetList[i].Object.rowIdx--;

@@ -12,6 +12,9 @@ class QQmlApplicationEngine;
 class QQuickItem;
 class QSettings;
 class DBMesoSplitModel;
+class DBMesocyclesModel;
+class DBExercisesModel;
+class DBMesoCalendarModel;
 class RunCommands;
 
 class DbManager : public QObject
@@ -21,6 +24,7 @@ Q_OBJECT
 
 public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
+	~DbManager();
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
@@ -74,6 +78,19 @@ public:
 	Q_INVOKABLE void deleteMesoCalendarTable();
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
+	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+	Q_INVOKABLE void getTrainingDay(const QDate& date);
+	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
+	Q_INVOKABLE void newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
+	Q_INVOKABLE void updateTrainingDay(const uint id, const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
+	Q_INVOKABLE void updateTrainingDayExercises(const uint id, const QString& exercisesNames, const QString& setsTypes, const QString& restTimes,
+												const QString& subSets, const QString& reps, const QString& weights);
+	Q_INVOKABLE void removeTrainingDay(const uint id);
+	Q_INVOKABLE void deleteTrainingDayTable();
+	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+
 public slots:
 	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
 
@@ -93,6 +110,12 @@ private:
 
 	QQuickItem* m_qmlObjectParent;
 	QQuickItem* m_qmlObjectContainer;
+
+	DBMesocyclesModel* mesocyclesModel;
+	DBExercisesModel* exercisesListModel;
+	DBMesoSplitModel* mesoSplitModel;
+	DBMesoCalendarModel* mesosCalendarModel;
+
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
