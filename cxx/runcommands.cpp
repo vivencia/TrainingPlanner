@@ -122,3 +122,84 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 	//qDebug() << "createFutureDate: in " << date.toString("d 'de' MMMM 'de' yyyy") << "  out  " << newDate.toString("d 'de' MMMM 'de' yyyy");
 	return newDate;
 }
+
+QString RunCommands::getStrHourFromTime(const QTime& time) const
+{
+	const int hour(time.hour());
+	QString ret(QString::number(hour));
+	if (hour < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+QString RunCommands::getStrHourFromTime(const QDateTime& time) const
+{
+	const int hour(time.time().hour());
+	QString ret(QString::number(hour));
+	if (hour < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+QString RunCommands::getStrMinFromTime(const QTime& time) const
+{
+	const int min(time.minute());
+	QString ret(QString::number(min));
+	if (min < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+QString RunCommands::getStrMinFromTime(const QDateTime& time) const
+{
+	const int min(time.time().minute());
+	QString ret(QString::number(min));
+	if (min < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+QString RunCommands::formatTime(const QDateTime& time) const
+{
+	return time.toString(QStringLiteral("hh:mm"));
+}
+
+QString RunCommands::formatFutureTime(const QDateTime& time, const uint hours, const uint mins) const
+{
+	QDateTime newTime(time.addSecs(mins*60 + hours*3600));
+	return newTime.toString(QStringLiteral("hh:mm"));
+}
+
+QString RunCommands::formatFutureTime(const QDateTime& time, const QTime& addTime) const
+{
+	QDateTime newTime(time.addSecs(addTime.minute()*60 + addTime.hour()*3600));
+	return newTime.toString(QStringLiteral("hh:mm"));
+}
+
+QString RunCommands::getHourOrMinutesFromStrTime(const QString& strTime) const
+{
+	const int idx(strTime.indexOf(':'));
+	return idx > 1 ? strTime.left(idx) : QString();
+}
+
+QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
+{
+	const int idx(strTime.indexOf(':'));
+	return idx > 1 ? strTime.mid(idx+1) : QString();
+}
+
+QTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const
+{
+	const QTime time1(QTime::fromString(strTime1, QStringLiteral("hh:mm")));
+	QTime time2(QTime::fromString(strTime2, QStringLiteral("hh:mm")));
+
+	int hour(time2.hour() - time1.hour());
+	int min (time2.minute() - time1.minute());
+	if (min < 0) {
+		hour--;
+		min += 60;
+	}
+
+	time2.setHMS(hour, min, 0);
+	return time2;
+}

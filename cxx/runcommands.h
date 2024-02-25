@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QUrl>
-#include <QDate>
+#include <QDateTime>
 
 class QSettings;
 
@@ -33,6 +33,17 @@ public:
 	Q_INVOKABLE uint calculateNumberOfWeeks(const uint week1, const uint week2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
+
+	Q_INVOKABLE QString getStrHourFromTime(const QTime& time) const;
+	Q_INVOKABLE QString getStrMinFromTime(const QTime& time) const;
+	Q_INVOKABLE QString getStrHourFromTime(const QDateTime& time) const;
+	Q_INVOKABLE QString getStrMinFromTime(const QDateTime& time) const;
+	Q_INVOKABLE QString formatTime(const QDateTime& time) const;
+	Q_INVOKABLE QString formatFutureTime(const QDateTime& time, const uint hours, const uint mins) const;
+	Q_INVOKABLE QString formatFutureTime(const QDateTime& time, const QTime& addTime) const;
+	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString& strTime) const;
+	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
+	Q_INVOKABLE QTime calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const;
 
 signals:
 	void dbFileNameChanged();

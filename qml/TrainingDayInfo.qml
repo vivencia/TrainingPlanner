@@ -5,32 +5,33 @@ import QtQuick.Dialogs
 import QtMultimedia
 
 import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: trainingDayPage
 	title: "trainingPage"
 
 	required property date mainDate //dayDate
-	required property int tDay //dayNumber
-	required property string splitLetter //daySplitLetter
 	required property string mesoName
+	required property int modelIdx
+	required property DBTrainingDayModel dayModel
 
 	property int dayId: -1
 	property int mesoId
 	property string exercisesNames
+	property string tDay
+	property string splitLetter
 	property string timeIn
 	property string timeOut
 	property string location
 	property string trainingNotes
 
-	property string sessionLength
+	property time sessionLength
 	property string filterString: ""
 	property bool bModified: false
 	property var exerciseSpriteList: []
 	property var setsToBeRemoved: []
 	property var mesoSplit
-	property var mesoSplitLetter
-	property var mesoTDay
 	property bool bRealMeso: true
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
@@ -86,7 +87,7 @@ Page {
 
 	onBDayIsFinishedChanged : {
 		if (bDayIsFinished)
-			sessionLength = JSF.calculateTimeBetweenTimes(timeIn, timeOut);
+			sessionLength = runCmd.calculateTimeBetweenTimes(timeIn, timeOut);
 	}
 
 	ListModel {
@@ -95,8 +96,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeIn
-		hrsDisplay: JSF.getHourOrMinutesFromStrTime (txtInTime.text)
-		minutesDisplay: JSF.getMinutesOrSeconsFromStrTime (txtInTime.text)
+		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtInTime.text)
+		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtInTime.text)
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
@@ -107,8 +108,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeOut
-		hrsDisplay: JSF.getHourOrMinutesFromStrTime (txtOutTime.text)
-		minutesDisplay: JSF.getMinutesOrSeconsFromStrTime (txtOutTime.text)
+		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtOutTime.text)
+		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtOutTime.text)
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -127,7 +128,7 @@ Page {
 
 		onUseTime: (strtime) => {
 			sessionLength = strtime;
-			timeOut = JSF.increaseStringTimeBy(JSF.getTimeStringFromDateTime(todayFull), sessionLength);
+			timeOut = runCmd.formatFutureTime(todayFull, sessionLength);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -135,8 +136,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: JSF.getHourOrMinutesFromStrTime (JSF.getTimeStringFromDateTime(todayFull))
-		minutesDisplay: JSF.getMinutesOrSeconsFromStrTime (JSF.getTimeStringFromDateTime(todayFull))
+		hrsDisplay: runCmd.getStrHourFromTime(todayFull)
+		minutesDisplay: runCmd.getStrMinFromTime(todayFull)
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -313,8 +314,8 @@ Page {
 				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: qsTr("Trainning day <b>#") + mesoTDay + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
-					JSF.formatDateToDisplay(mainDate, AppSettings.appLocale) + qsTr("</b> Division: <b>") + mesoSplitLetter + "</b>"
+				text: qsTr("Trainning day <b>#") + dayModel.trainingDay() + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
+					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + dayModel.splitLetter() + "</b>"
 				font.pixelSize: AppSettings.titleFontSizePixelSize
 				color: "white"
 			}
@@ -371,7 +372,7 @@ Page {
 
 					onTextEdited: {
 						if ( text !== "") {
-							if (parseInt(text) !== mesoTDay) {
+							if (text !== dayModel.trainingDay()) {
 								bModified = true;
 								tDay = text;
 							}
@@ -385,7 +386,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
-				visible: bRealMeso && (splitLetter !== mesoSplitLetter || tDay !== mesoTDay)
+				visible: bRealMeso && (splitLetter !== dayModel.splitLetter() || tDay !== dayModel.trainingDay())
 				padding: 0
 				spacing: 0
 
@@ -469,7 +470,7 @@ Page {
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
-				text: location
+				text: dayModel.location()
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
@@ -535,8 +536,8 @@ Page {
 
 					Label {
 						id: lblTimeRestrictedSession
-						text: timerRestricted.running ? qsTr("Alarm will be set to go off in <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
-									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
+						text: timerRestricted.running ? qsTr("Alarm will be set to go off in <b>") + runCmd.getStrHourFromTime(sessionLength) + qsTr(" hour(s) and ") +
+									runCmd.getStrMinFromTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
 									qsTr("Session time elapsed!")
 						wrapMode: Text.WordWrap
 						color: "white"
@@ -573,7 +574,7 @@ Page {
 						}
 						TPTextInput {
 							id: txtInTime
-							text: timeIn !== "" ? timeIn : JSF.getTimeStringFromDateTime(todayFull)
+							text: timeIn !== "" ? timeIn : runCmd.formatTime(todayFull)
 							readOnly: true
 							Layout.leftMargin: 5
 						}
@@ -598,7 +599,7 @@ Page {
 						}
 						TPTextInput {
 							id: txtOutTime
-							text: timeOut !== "" ? timeOut : JSF.getTimeStringFromDateTime(todayFull)
+							text: timeOut !== "" ? timeOut : runCmd.formatFutureTime(todayFull, 1, 30)
 							readOnly: true
 							Layout.leftMargin: 5
 						}
@@ -613,8 +614,8 @@ Page {
 
 					Label {
 						id: lblSessionLength
-						text: qsTr("Total session length: <b>") + JSF.getHourOrMinutesFromStrTime(sessionLength) + qsTr(" hour(s) and ") +
-									JSF.getMinutesOrSeconsFromStrTime(sessionLength) + qsTr(" minute(s)</b>")
+						text: qsTr("Total session length: <b>") + runCmd.getStrHourFromTime(sessionLength) + qsTr(" hour(s) and ") +
+									runCmd.getStrMinFromTime(sessionLength) + qsTr(" minute(s)</b>")
 						wrapMode: Text.WordWrap
 						color: "white"
 						font.pixelSize: AppSettings.fontSizeText
@@ -643,7 +644,7 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
-					text: trainingNotes
+					text: dayModel.notes()
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
 					color: "white"
@@ -789,7 +790,7 @@ Page {
 					}
 					TPRadioButton {
 						id: optPreviousDay
-						text: qsTr("Base this session off the one from ") + JSF.formatDateToDisplay(previousDivisionDayDate, AppSettings.appLocale)
+						text: qsTr("Base this session off the one from ") + runCmd.formatDate(previousDivisionDayDate)
 						visible: bHasPreviousDay
 						width: parent.width
 						Layout.fillWidth: true
@@ -832,7 +833,7 @@ Page {
 
 						onClicked: {
 							highlight = false;
-							if (mesoSplitLetter !== splitLetter) {
+							if (dayModel.splitLetter() !== splitLetter) {
 								if (exercisesNames.length > 0) {
 									if (grpIntent.option !== 3)
 										removeAllExerciseObjects();
@@ -942,7 +943,7 @@ Page {
 		if (mesoSplit.indexOf('R') !== -1)
 			cboModel.append(splitModel[6]);
 
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(dayModel.splitLetter());
 	}
 
 	onSplitLetterChanged: {
@@ -969,8 +970,6 @@ Page {
 	}
 
 	function loadOrCreateDayInfo() {
-		mesoSplitLetter = splitLetter;
-		mesoTDay = tDay;
 		let mesoinfo = Database.getMesoInfo(mesoId);
 		if ( mesoinfo.length > 0 ) {
 			mesoSplit = mesoinfo[0].mesoSplit;
@@ -1247,7 +1246,7 @@ Page {
 	}
 
 	function updateMesoCalendar() {
-		if (mesoSplitLetter !== splitLetter || mesoTDay !== tDay) {
+		if (dayModel.splitLetter() !== splitLetter || dayModel.trainingDay() !== tDay) {
 			var calendar_date_info;
 			var cal_id;
 			calendar_date_info = Database.getMesoCalendarDate(mainDate);
@@ -1258,7 +1257,7 @@ Page {
 				//If in the old calendar, day was R or the user did not explicitly change tDay, go back
 				//in date until we find a suitable training day. This will be starting training day if the user
 				//wants to modify the rest of the calendar, or simply the continuation from the previous training day if not
-				if (mesoSplitLetter === 'R' || tDay === mesoTDay) {
+				if (dayModel.splitLetter() === 'R' || tDay === dayModel.trainingDay()) {
 					//Find a suitable training day to continue
 					var prevdate = JSF.getPreviousDate(mainDate);
 					//Find the first training day before mainDate that is not a rest day;
@@ -1300,11 +1299,11 @@ Page {
 				} // chkAdjustCalendar.checked = true
 
 				//Hide the frame for adjustments
-				mesoSplitLetter = splitLetter;
-				mesoTDay = tDay;
+				dayModel.splitLetter() = splitLetter;
+				dayModel.trainingDay() = tDay;
 				mesoCalendarChanged(); //Signals MesoContent.qml to reread from the database
 			} //calendar_date_info.length > 0
-		} //mesoSplitLetter !== splitLetter
+		} //dayModel.splitLetter() !== splitLetter
 	} // updateMesoCalendar()
 
 	function startProgressDialog(calid, splitidx, day, mesoenddate) {
