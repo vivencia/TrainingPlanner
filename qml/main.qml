@@ -27,7 +27,7 @@ ApplicationWindow {
 
 	property var trainingDayInfoPages: []
 	property var dbExercisesListPage: null
-	readonly property var appStackView: stackView
+	readonly property StackView appStackView: stackView
 
 	Timer {
 		id: dateTimer

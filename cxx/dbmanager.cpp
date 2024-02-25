@@ -368,11 +368,11 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 		m_splitModels.clear();
 		m_splitItems.clear();
 
-		m_qmlObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("exercisesPlanner")));
-		m_qmlObjectContainer = m_qmlObjectParent->findChild<QQuickItem*>((QStringLiteral("splitSwipeView")));
+		m_qmlSplitObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("exercisesPlanner")));
+		m_qmlSplitObjectContainer = m_qmlSplitObjectParent->findChild<QQuickItem*>((QStringLiteral("splitSwipeView")));
 		m_splitProperties.insert("mesoId", meso_id);
 		m_splitProperties.insert("mesoIdx", meso_idx);
-		m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlObjectParent));
+		m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlSplitObjectParent));
 		m_splitProperties.insert("splitLetter", QString(QChar('A')));
 		m_splitProperties.insert("splitModel", QVariant());
 	}
@@ -384,7 +384,7 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 
 		if (m_splitItems.value(splitLetter) != nullptr )
 		{
-			QMetaObject::invokeMethod(m_qmlObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(splitLetter.cell()) - static_cast<int>('A')),
+			QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(splitLetter.cell()) - static_cast<int>('A')),
 				Q_ARG(QQuickItem*, m_splitItems.value(splitLetter)));
 			continue;
 		}
@@ -425,10 +425,11 @@ void DbManager::createMesoSlitPlanner()
 					m_splitProperties["splitLetter"] = QString(i.key());
 					m_splitProperties["splitModel"] = QVariant::fromValue(m_splitModels.value(i.key()));
 					QQuickItem* item (static_cast<QQuickItem*>(i.value()->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
-					item->setParentItem(m_qmlObjectParent);
-					item->setParent(m_qmlObjectParent);
+					m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+					item->setParentItem(m_qmlSplitObjectParent);
+					item->setParent(m_qmlSplitObjectParent);
 					connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
-					QMetaObject::invokeMethod(m_qmlObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
+					QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
 						Q_ARG(QQuickItem*, item));
 					m_splitItems.insert(i.key(), item);
 				}
@@ -508,11 +509,59 @@ void DbManager::deleteMesoCalendarTable()
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-void DbManager::getTrainingDay(const QDate& date)
+void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickItem* stackViewer)
 {
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	if (m_tDayObjects.isEmpty())
+	{
+		m_qmltDayObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("mainWindow")));
+		m_qmltDayObjectContainer = stackViewer;
+		m_tDayModel = new DBTrainingDayModel(this);
+	}
+	else
+	{
+		if (m_tDayObjects.contains(date))
+		{
+			const uint modelidx(m_tDayObjects.value(date));
+			m_tDayModel->setCurrentRow(modelidx);
+			QMetaObject::invokeMethod(m_qmltDayObjectContainer, "push", Q_ARG(QQuickItem*, m_tDayPages.at(modelidx)));
+			return;
+		}
+	}
+
+	m_tDayObjects[date] = m_tDayModel->count();
+	m_tDayProperties.insert("mesoId", mesocyclesModel->getFast(meso_idx, 0).toUInt());
+	m_tDayProperties.insert("mesoIdx", meso_idx);
+	m_tDayProperties.insert("mainDate", date);
+	m_tDayProperties.insert("dayModel", QVariant::fromValue(m_tDayModel));
+	m_tDayProperties.insert("modelIdx", m_tDayModel->count());
+
+	m_tDayModel->setReady(false);
+	m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+	connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+					{ if (status == QQmlComponent::Ready) return DbManager::createTrainingDayPage(); } );
+
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_tDayModel));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	connect( this, &DbManager::qmlReady, this, &DbManager::createTrainingDayPage );
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
+}
+
+void DbManager::createTrainingDayPage()
+{
+	if (m_tDayModel->isReady())
+	{
+		if (m_tDayComponent->status() == QQmlComponent::Ready)
+		{
+			m_tDayModel->setCurrentRow(m_tDayModel->count()-1);
+			QQuickItem* item (static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
+			m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+			item->setParentItem(m_qmltDayObjectParent);
+			item->setParent(m_qmltDayObjectParent);
+			connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
+			QMetaObject::invokeMethod(m_qmltDayObjectContainer, "push", Q_ARG(QQuickItem*, item));
+			m_tDayPages.append(item);
+		}
+	}
 }
 
 void DbManager::getTrainingDayExercises(const QDate& date)

@@ -84,6 +84,7 @@ void DBTrainingDayTable::getTrainingDay()
 				for (i = 0; i < n_entries; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				m_model->appendList(split_info);
+				m_model->setReady(true);
 			}
 		}
 		mSqlLiteDB.close();

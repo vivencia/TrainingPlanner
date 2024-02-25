@@ -123,6 +123,11 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 	return newDate;
 }
 
+QDate RunCommands::getDayBefore(const QDate& date) const
+{
+	return date.addDays(-1);
+}
+
 QString RunCommands::getStrHourFromTime(const QTime& time) const
 {
 	const int hour(time.hour());

@@ -33,6 +33,7 @@ public:
 	Q_INVOKABLE uint calculateNumberOfWeeks(const uint week1, const uint week2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
+	Q_INVOKABLE QDate getDayBefore(const QDate& date) const;
 
 	Q_INVOKABLE QString getStrHourFromTime(const QTime& time) const;
 	Q_INVOKABLE QString getStrMinFromTime(const QTime& time) const;

@@ -15,6 +15,7 @@ class DBMesoSplitModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
 class DBMesoCalendarModel;
+class DBTrainingDayModel;
 class RunCommands;
 
 class DbManager : public QObject
@@ -79,7 +80,8 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getTrainingDay(const QDate& date);
+	Q_INVOKABLE void getTrainingDay(const uint meso_id, const QDate& date, QQuickItem* stackViewer);
+	void createTrainingDayPage();
 	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
 	Q_INVOKABLE void newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
@@ -108,9 +110,6 @@ private:
 	uint m_insertid;
 	QStringList m_result;
 
-	QQuickItem* m_qmlObjectParent;
-	QQuickItem* m_qmlObjectContainer;
-
 	DBMesocyclesModel* mesocyclesModel;
 	DBExercisesModel* exercisesListModel;
 	DBMesoSplitModel* mesoSplitModel;
@@ -127,7 +126,20 @@ private:
 	QVariantMap m_splitProperties;
 	uint m_lastUsedSplitMesoID;
 	QString m_createdSplits;
+	QQuickItem* m_qmlSplitObjectParent;
+	QQuickItem* m_qmlSplitObjectContainer;
+
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
+
+	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+	QMap<QDate,uint> m_tDayObjects;
+	DBTrainingDayModel* m_tDayModel;
+	QList<QQuickItem*> m_tDayPages;
+	QQmlComponent* m_tDayComponent;
+	QVariantMap m_tDayProperties;
+	QQuickItem* m_qmltDayObjectParent;
+	QQuickItem* m_qmltDayObjectContainer;
+	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);

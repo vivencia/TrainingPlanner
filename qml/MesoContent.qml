@@ -250,42 +250,7 @@ Page {
 				Layout.rightMargin: 5
 
 				onClicked: {
-					for (var i = 0; i < trainingDayInfoPages.length; ++i) {
-						if (trainingDayInfoPages[i].date === calendar.dayInfoDate.getTime()) {
-							appStackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
-							return;
-						}
-					}
-
-					function generateObject() {
-						var component = Qt.createComponent("TrainingDayInfo.qml", Qt.Asynchronous);
-
-						function finishCreation() {
-							var trainingDayInfoPage = component.createObject(mainwindow, {mainDate: calendar.dayInfoDate,
-								tDay: trainingDay, splitLetter: splitLetter, mesoName: mesoName, mesoId: mesoId,
-								bAlreadyLoaded:false
-							});
-							trainingDayInfoPage.mesoCalendarChanged.connect(databaseChanged);
-
-							//Maximum of 3 pages loaded on memory. The latest page replace the earliest
-							if (trainingDayInfoPages.length === 3) {
-								trainingDayInfoPages[0].Object.destroy();
-								trainingDayInfoPages[0] = trainingDayInfoPages[1];
-								trainingDayInfoPages[1] = trainingDayInfoPages[2];
-								trainingDayInfoPages.pop();
-							}
-
-							trainingDayInfoPages.push({ "date":calendar.dayInfoDate.getTime(), "Object" : trainingDayInfoPage });
-							appStackView.push(trainingDayInfoPage, StackView.DontLoad);
-						}
-
-						if (component.status === Component.Ready)
-							finishCreation();
-						else
-							component.statusChanged.connect(finishCreation);
-					}
-
-					generateObject();
+					appDB.getTrainingDay(idxModel, calendar.dayInfoDate, appStackView);
 				}
 			}
 		} // RowLayout

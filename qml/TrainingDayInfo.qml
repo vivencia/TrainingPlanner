@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtMultimedia
 
-import "jsfunctions.js" as JSF
 import com.vivenciasoftware.qmlcomponents
 
 Page {
@@ -12,7 +11,8 @@ Page {
 	title: "trainingPage"
 
 	required property date mainDate //dayDate
-	required property string mesoName
+	required property int mesoId
+	required property int mesoIdx
 	required property int modelIdx
 	required property DBTrainingDayModel dayModel
 
@@ -1259,7 +1259,7 @@ Page {
 				//wants to modify the rest of the calendar, or simply the continuation from the previous training day if not
 				if (dayModel.splitLetter() === 'R' || tDay === dayModel.trainingDay()) {
 					//Find a suitable training day to continue
-					var prevdate = JSF.getPreviousDate(mainDate);
+					var prevdate = runCmd.getDayBefore(mainDate);
 					//Find the first training day before mainDate that is not a rest day;
 					while ( (calendar_date_info = Database.getMesoCalendarDate(prevdate)) !== null) {
 						//console.log(prevdate.toDateString());
@@ -1268,7 +1268,7 @@ Page {
 							tDay = calendar_date_info[0].mesoCalnDay + 1;
 							break;
 						}
-						prevdate = JSF.getPreviousDate(prevdate);
+						prevdate = runCmd.getDayBefore(prevdate);
 					}
 				}
 				//Update this day
