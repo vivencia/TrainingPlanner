@@ -26,8 +26,9 @@ Q_OBJECT
 public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
 	~DbManager();
+
 	void gotResult(TPDatabaseTable* dbObj);
-	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
+	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
 
@@ -41,6 +42,8 @@ public:
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable();
+	Q_INVOKABLE void openExercisesListPage();
+	void createExercisesListPage();
 	void getExercisesListVersion();
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
@@ -81,7 +84,7 @@ public:
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getTrainingDay(const uint meso_id, const QDate& date, QQuickItem* stackViewer);
-	void createTrainingDayPage();
+	void createTrainingDayPage(const int exec_id = -1);
 	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
 	Q_INVOKABLE void newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
@@ -97,10 +100,12 @@ public slots:
 	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
 
 signals:
-	void qmlReady();
+	void qmlReady(uint exec_id);
 	void databaseFree();
+	void getQmlObject(QQuickItem* item);
 
 private:
+	uint m_execId;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
@@ -117,6 +122,8 @@ private:
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
+	QQuickItem* m_exercisesPage;
+	QQmlComponent* m_exercisesComponent;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -137,7 +144,6 @@ private:
 	QList<QQuickItem*> m_tDayPages;
 	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
-	QQuickItem* m_qmltDayObjectParent;
 	QQuickItem* m_qmltDayObjectContainer;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

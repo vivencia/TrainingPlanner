@@ -128,29 +128,11 @@ QDate RunCommands::getDayBefore(const QDate& date) const
 	return date.addDays(-1);
 }
 
-QString RunCommands::getStrHourFromTime(const QTime& time) const
-{
-	const int hour(time.hour());
-	QString ret(QString::number(hour));
-	if (hour < 10)
-		ret.prepend('0');
-	return ret;
-}
-
 QString RunCommands::getStrHourFromTime(const QDateTime& time) const
 {
 	const int hour(time.time().hour());
 	QString ret(QString::number(hour));
 	if (hour < 10)
-		ret.prepend('0');
-	return ret;
-}
-
-QString RunCommands::getStrMinFromTime(const QTime& time) const
-{
-	const int min(time.minute());
-	QString ret(QString::number(min));
-	if (min < 10)
 		ret.prepend('0');
 	return ret;
 }
@@ -175,9 +157,10 @@ QString RunCommands::formatFutureTime(const QDateTime& time, const uint hours, c
 	return newTime.toString(QStringLiteral("hh:mm"));
 }
 
-QString RunCommands::formatFutureTime(const QDateTime& time, const QTime& addTime) const
+QString RunCommands::formatFutureTime(const QDateTime& time, const QDateTime& addTime) const
 {
-	QDateTime newTime(time.addSecs(addTime.minute()*60 + addTime.hour()*3600));
+	QTime addtime(addTime.time());
+	QTime newTime(time.addSecs(addtime.minute()*60 + addtime.hour()*3600).time());
 	return newTime.toString(QStringLiteral("hh:mm"));
 }
 
@@ -193,7 +176,7 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-QTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const
+QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const
 {
 	const QTime time1(QTime::fromString(strTime1, QStringLiteral("hh:mm")));
 	QTime time2(QTime::fromString(strTime2, QStringLiteral("hh:mm")));
@@ -206,5 +189,5 @@ QTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QStr
 	}
 
 	time2.setHMS(hour, min, 0);
-	return time2;
+	return QDateTime(QDate(), time2);
 }

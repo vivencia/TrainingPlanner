@@ -27,7 +27,7 @@ ApplicationWindow {
 
 	property var trainingDayInfoPages: []
 	property var dbExercisesListPage: null
-	readonly property StackView appStackView: stackView
+	property StackView appStackView: stackView
 
 	Timer {
 		id: dateTimer
@@ -52,26 +52,6 @@ ApplicationWindow {
 		y: (mainwindow.height - height) / 2;
 	}
 
-	/*Timer {
-		id: backupTimer
-		interval: 600000 //Every ten minutes
-		running: true
-		repeat: true
-
-		onTriggered: {
-			if (appDBModified) {
-				backUpClass.doBackUp();
-				console.log("database modified!!!!");
-			}
-			else
-				console.log("database not modified!!!");
-		}
-	}*/
-
-/*case Qt.ApplicationSuspended: console.info("###########  Application Suspended ##############"); break;
-					case Qt.ApplicationHidden: console.info("###########  Application Hidden ##############"); break;
-					case Qt.ApplicationInactive: console.info("###########  Application Inactive ##############"); break;
-					case Qt.ApplicationActive: console.info("###########  Application Active ##############"); break;*/
 	Connections {
 		target: Qt.application;
 		function onStateChanged(inState) {
@@ -119,11 +99,6 @@ ApplicationWindow {
 			close();
 	}
 
-	function loadExercises() {
-		appDB.pass_object(exercisesListModel);
-		appDB.getAllExercises();
-	}
-
 	header: NavBar {
 		id: navBar
 
@@ -134,7 +109,6 @@ ApplicationWindow {
 
 		Component.onCompleted: {
 			dateTimer.triggered();
-			//backupTimer.triggered();
 		}
 	}
 
@@ -154,21 +128,23 @@ ApplicationWindow {
 			id: homePage
 		}
 
-		/*DBMesoSplitModel {
-			id: mesosplitmodel
+		/*DBTrainingDayModel {
+			id: tdaymodel
+			currentRow: 0
 		}
-		MesoSplitPlanner {
-			id: mesoSplit
+		TrainingDayInfo {
+			id: tDayInfo
 			mesoId: 1
 			mesoIdx: 0
-			splitLetter: "A"
-			splitModel: mesosplitmodel
+			modelIdx: 0
+			mainDate: new Date()
+			dayModel: tdaymodel
 		}*/
 
 		StackView {
 			id: stackView
 			anchors.fill: parent
-			initialItem: homePage//mesoSplit
+			initialItem: homePage//tDayInfo
 		}
 	}
 
@@ -277,47 +253,5 @@ ApplicationWindow {
 			}
 		}
 		return 'A';
-	}
-
-	function openDbExercisesListPage() {
-		var option;
-		var component;
-		function finishCreation() {
-			console.log("tooltip should disappear now")
-			dbExercisesListPage = component.createObject(mainwindow, { "width":mainwindow.width, "height":mainwindow.height });
-			appStackView.push(dbExercisesListPage, StackView.DontLoad);
-		}
-
-		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToProceed);
-			if (option === 0)
-			{
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			else
-				appStackView.push(dbExercisesListPage, StackView.DontLoad);
-		}
-
-		appDB.qmlReady.connect(readyToProceed);
-		if (!dbExercisesListPage) {
-			component = Qt.createComponent("ExercisesDatabase.qml", Qt.Asynchronous);
-			option = 0;
-			if (exercisesListModel.count === 0) {
-				console.log("tooltip should appear now")
-				loadExercises();
-			}
-		}
-		else {
-			option = 1;
-			if (exercisesListModel.count === 0) {
-				console.log("tooltip should appear now")
-				loadExercises();
-			}
-			else
-				readyToProceed();
-		}
 	}
 } //ApplicationWindow

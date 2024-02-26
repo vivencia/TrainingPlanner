@@ -19,11 +19,12 @@
 #include <QFileInfo>
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
+#include <QQuickWindow>
 #include <QQmlContext>
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
-	: QObject (nullptr), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
-		m_model(nullptr), m_insertid(0), m_lastUsedSplitMesoID(0)
+	: QObject (nullptr), m_execId(0), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
+		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr), m_lastUsedSplitMesoID(0)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -87,23 +88,23 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties;
-	properties.append(QQmlContext::PropertyPair{ "appDB", QVariant::fromValue(this) });
-	properties.append(QQmlContext::PropertyPair{ "runCmd", QVariant::fromValue(m_runCommands) });
-	properties.append(QQmlContext::PropertyPair{ "mesocyclesModel", QVariant::fromValue(mesocyclesModel) });
-	properties.append(QQmlContext::PropertyPair{ "mesoSplitModel", QVariant::fromValue(mesoSplitModel) });
-	properties.append(QQmlContext::PropertyPair{ "mesosCalendarModel", QVariant::fromValue(mesosCalendarModel) });
-	properties.append(QQmlContext::PropertyPair{ "exercisesListModel", QVariant::fromValue(exercisesListModel) });
-	properties.append(QQmlContext::PropertyPair{ "windowHeight", 640 });
-	properties.append(QQmlContext::PropertyPair{ "windowWidth", 300 });
-	properties.append(QQmlContext::PropertyPair{ "primaryLightColor", QVariant(QColor(187, 222, 251)) });
-	properties.append(QQmlContext::PropertyPair{ "primaryColor", QVariant(QColor(37, 181, 243)) });
-	properties.append(QQmlContext::PropertyPair{ "primaryDarkColor", QVariant(QColor(25, 118, 210)) });
-	properties.append(QQmlContext::PropertyPair{ "listEntryColor1", QVariant(QColor(220, 227, 240)) });
-	properties.append(QQmlContext::PropertyPair{ "listEntryColor2", QVariant(QColor(195, 202, 213)) });
-	properties.append(QQmlContext::PropertyPair{ "lightIconFolder", QStringLiteral("white/") });
-	properties.append(QQmlContext::PropertyPair{ "darkIconFolder", QStringLiteral("black/") });
-	properties.append(QQmlContext::PropertyPair{ "paneBackgroundColor", QVariant(QColor(25, 118, 210)) });
-	properties.append(QQmlContext::PropertyPair{ "accentColor", QVariant(QColor(37, 181, 243)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appDB"), QVariant::fromValue(this) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("runCmd"), QVariant::fromValue(m_runCommands) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesosCalendarModel"), QVariant::fromValue(mesosCalendarModel) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowHeight"), 640 });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowWidth"), 300 });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryLightColor"), QVariant(QColor(187, 222, 251)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryColor"), QVariant(QColor(37, 181, 243)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryDarkColor"), QVariant(QColor(25, 118, 210)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor1"), QVariant(QColor(220, 227, 240)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor2"), QVariant(QColor(195, 202, 213)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("lightIconFolder"), QStringLiteral("white/") });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("darkIconFolder"), QStringLiteral("black/") });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("paneBackgroundColor"), QVariant(QColor(25, 118, 210)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("accentColor"), QVariant(QColor(37, 181, 243)) });
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 }
 
@@ -113,6 +114,7 @@ DbManager::~DbManager()
 	delete exercisesListModel;
 	delete mesoSplitModel;
 	delete mesosCalendarModel;
+	delete m_exercisesPage;
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -180,13 +182,14 @@ void DbManager::cleanUp(TPDatabaseTable* dbObj)
 	MSG_OUT("calling databaseFree()")
 	emit databaseFree();
 	MSG_OUT("calling qmlReady()")
-	emit qmlReady();
+	emit qmlReady(dbObj->execId());
 }
 
 void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
 {
 	worker->setCallbackForResultFunc( [&] (TPDatabaseTable* obj) { return gotResult(obj); } );
 	worker->setCallbackForDoneFunc( [&] (TPDatabaseTable* obj) { return freeLocks(obj); } );
+	worker->setExecId(m_execId);
 
 	QThread *thread = new QThread ();
 	connect ( thread, &QThread::started, worker, execFunc );
@@ -248,6 +251,44 @@ void DbManager::deleteExercisesTable()
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
 	createThread(worker, [worker] () { return worker->deleteExercisesTable(); } );
+}
+
+void DbManager::openExercisesListPage()
+{
+	if (m_exercisesPage != nullptr)
+	{
+		emit getQmlObject(m_exercisesPage);
+		return;
+	}
+
+	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
+	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+					{ if (status == QQmlComponent::Ready) return DbManager::createExercisesListPage(); } );
+
+	exercisesListModel->setReady(exercisesListModel->count() != 0);
+	if (!exercisesListModel->isReady())
+	{
+		exercisesListModel->setReady(false);
+		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+		connect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
+		createThread(worker, [worker] () { return worker->getAllExercises(); } );
+	}
+}
+
+void DbManager::createExercisesListPage()
+{
+	if (exercisesListModel->isReady())
+	{
+		if (m_exercisesComponent->status() == QQmlComponent::Ready)
+		{
+			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->create(m_QMlEngine->rootContext()));
+			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
+			QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
+			m_exercisesPage->setParentItem(parent->contentItem());
+			m_exercisesPage->setParent(parent);
+			emit getQmlObject(m_exercisesPage);
+		}
+	}
 }
 
 void DbManager::getExercisesListVersion()
@@ -368,8 +409,8 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 		m_splitModels.clear();
 		m_splitItems.clear();
 
-		m_qmlSplitObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("exercisesPlanner")));
-		m_qmlSplitObjectContainer = m_qmlSplitObjectParent->findChild<QQuickItem*>((QStringLiteral("splitSwipeView")));
+		m_qmlSplitObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("exercisesPlanner"));
+		m_qmlSplitObjectContainer = m_qmlSplitObjectParent->findChild<QQuickItem*>(QStringLiteral("splitSwipeView"));
 		m_splitProperties.insert("mesoId", meso_id);
 		m_splitProperties.insert("mesoIdx", meso_idx);
 		m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlSplitObjectParent));
@@ -513,7 +554,6 @@ void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickIte
 {
 	if (m_tDayObjects.isEmpty())
 	{
-		m_qmltDayObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>((QStringLiteral("mainWindow")));
 		m_qmltDayObjectContainer = stackViewer;
 		m_tDayModel = new DBTrainingDayModel(this);
 	}
@@ -523,7 +563,7 @@ void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickIte
 		{
 			const uint modelidx(m_tDayObjects.value(date));
 			m_tDayModel->setCurrentRow(modelidx);
-			QMetaObject::invokeMethod(m_qmltDayObjectContainer, "push", Q_ARG(QQuickItem*, m_tDayPages.at(modelidx)));
+			emit getQmlObject(m_tDayPages.at(modelidx));
 			return;
 		}
 	}
@@ -540,14 +580,17 @@ void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickIte
 	connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
 					{ if (status == QQmlComponent::Ready) return DbManager::createTrainingDayPage(); } );
 
+	m_execId = 1000;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_tDayModel));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	connect( this, &DbManager::qmlReady, this, &DbManager::createTrainingDayPage );
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
 }
 
-void DbManager::createTrainingDayPage()
+void DbManager::createTrainingDayPage(const int exec_id)
 {
+	if (exec_id >= 0 && exec_id != 1000)
+		return;
 	if (m_tDayModel->isReady())
 	{
 		if (m_tDayComponent->status() == QQmlComponent::Ready)
@@ -555,11 +598,10 @@ void DbManager::createTrainingDayPage()
 			m_tDayModel->setCurrentRow(m_tDayModel->count()-1);
 			QQuickItem* item (static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
 			m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-			item->setParentItem(m_qmltDayObjectParent);
-			item->setParent(m_qmltDayObjectParent);
-			connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
-			QMetaObject::invokeMethod(m_qmltDayObjectContainer, "push", Q_ARG(QQuickItem*, item));
+			item->setParentItem(m_qmltDayObjectContainer);
+			item->setParent(m_qmltDayObjectContainer);
 			m_tDayPages.append(item);
+			emit getQmlObject(item);
 		}
 	}
 }

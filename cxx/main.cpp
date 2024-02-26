@@ -4,11 +4,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml/qqmlextensionplugin.h>
-#include <QtQuickControls2/qquickstyle.h>
 #include <QSettings>
 #include <QQmlContext>
 #include <QQuickStyle>
-#include <QStandardPaths>
 
 #include "translationclass.h"
 #include "backupclass.h"
@@ -63,15 +61,13 @@ int main(int argc, char *argv[])
 	DbManager db(&appSettings, &engine, &runCmd);
 
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
-	QObject::connect(
-				&engine, &QQmlApplicationEngine::objectCreated, &app,
-				[url](QObject *obj, const QUrl &objUrl) {
-		if (!obj && url == objUrl)
-			QCoreApplication::exit(-1);
-	});
-	engine.addImportPath(":/");
+	QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+					&app, [url](QObject *obj, const QUrl &objUrl) { if (!obj && url == objUrl) QCoreApplication::exit(-1); });
+	engine.addImportPath(QStringLiteral(":/"));
 	engine.load(url);
 	if (engine.rootObjects().isEmpty())
 		return -1;
+	engine.rootContext()->setContextProperty(QStringLiteral("mainwindow"), QVariant::fromValue(engine.rootObjects().at(0)));
+
 	return app.exec();
 }

@@ -91,6 +91,7 @@ void DBExercisesTable::getAllExercises()
 				m_result = true;
 			}
 		}
+		m_model->setReady(true);
 		mSqlLiteDB.close();
 	}
 

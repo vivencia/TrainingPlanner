@@ -9,6 +9,8 @@ import com.vivenciasoftware.qmlcomponents
 Page {
 	id: trainingDayPage
 	title: "trainingPage"
+	width: windowWidth
+	//height: parentItem.height
 
 	required property date mainDate //dayDate
 	required property int mesoId
@@ -17,7 +19,6 @@ Page {
 	required property DBTrainingDayModel dayModel
 
 	property int dayId: -1
-	property int mesoId
 	property string exercisesNames
 	property string tDay
 	property string splitLetter
@@ -26,13 +27,17 @@ Page {
 	property string location
 	property string trainingNotes
 
-	property time sessionLength
+	property string mesoSplit
+	property string mesoName
+	property bool bRealMeso: true
+
+
+	property date sessionLength
 	property string filterString: ""
 	property bool bModified: false
 	property var exerciseSpriteList: []
 	property var setsToBeRemoved: []
-	property var mesoSplit
-	property bool bRealMeso: true
+
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
 	property int totalNumberOfExercises
@@ -128,7 +133,7 @@ Page {
 
 		onUseTime: (strtime) => {
 			sessionLength = strtime;
-			timeOut = runCmd.formatFutureTime(todayFull, sessionLength);
+			timeOut = runCmd.formatFutureTime(mainwindow.todayFull, sessionLength);
 			bModified = true;
 			timerRestricted.init(timeOut);
 		}
@@ -136,8 +141,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getStrHourFromTime(todayFull)
-		minutesDisplay: runCmd.getStrMinFromTime(todayFull)
+		hrsDisplay: runCmd.getStrHourFromTime(mainwindow.todayFull)
+		minutesDisplay: runCmd.getStrMinFromTime(mainwindow.todayFull)
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -206,7 +211,7 @@ Page {
 		property string finalMin
 
 		onTriggered: {
-			const timeNow = JSF.getTimeStringFromDateTime(todayFull);
+			const timeNow = JSF.getTimeStringFromDateTime(mainwindow.todayFull);
 			sessionLength = JSF.calculateTimeBetweenTimes(timeNow, timeOut);
 
 			const hour = JSF.getHourOrMinutesFromStrTime(timeNow);
@@ -250,7 +255,7 @@ Page {
 			finalMin = JSF.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
 			tipTimeWarn.timeout = 20000;
-			timeIn = JSF.getTimeStringFromDateTime(todayFull);
+			timeIn = JSF.getTimeStringFromDateTime(mainwindow.todayFull);
 			complete = false;
 			start();
 		}
@@ -266,7 +271,7 @@ Page {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
-		contentWidth: availableWidth //stops bouncing to the sides
+		contentWidth: trainingDayPage.width //stops bouncing to the sides
 		contentHeight: colMain.height + colExercises.implicitHeight
 		anchors.fill: parent
 
@@ -347,7 +352,11 @@ Page {
 					onActivated: (index) => {
 						bModified = true;
 						splitLetter = cboModel.get(index).value;
-						maybeResetPage();
+						if (splitLetter === 'R')
+							tDay = "0";
+						else
+							tDay = txtTDay.text;
+						//maybeResetPage();
 					}			
 				} //TPComboBox
 
@@ -361,7 +370,7 @@ Page {
 				}
 				TPTextInput {
 					id: txtTDay
-					text: tDay
+					text: dayModel.trainingDay() === "" ? tDay : dayModel.trainingDay()
 					width: 50
 					maximumLength: 3
 					validator: IntValidator { bottom: 0; top: 365; }
@@ -383,12 +392,13 @@ Page {
 
 			Frame {
 				id: frmMesoSplitAdjust
-				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				visible: bRealMeso && (splitLetter !== dayModel.splitLetter() || tDay !== dayModel.trainingDay())
 				padding: 0
 				spacing: 0
+				width: windowWidth - 20
+				height: 200
 
 				background: Rectangle {
 					border.color: "white"
@@ -405,14 +415,14 @@ Page {
 						id: chkAdjustCalendar
 						text: qsTr("Adjust meso calendar from the next day till the end?")
 						checked: false
-						Layout.maximumWidth: frmMesoSplitAdjust.width
+						Layout.maximumWidth: parent.width - 10
 						Layout.leftMargin: 5
 
 						indicator: Rectangle {
 							implicitWidth: 26
 							implicitHeight: 26
 							x: chkAdjustCalendar.leftPadding
-							y: parent.height / 2 - height / 2
+							y: (parent.height-height) / 2
 							radius: 5
 							border.color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
 
@@ -574,7 +584,7 @@ Page {
 						}
 						TPTextInput {
 							id: txtInTime
-							text: timeIn !== "" ? timeIn : runCmd.formatTime(todayFull)
+							text: timeIn !== "" ? timeIn : runCmd.formatTime(mainwindow.todayFull)
 							readOnly: true
 							Layout.leftMargin: 5
 						}
@@ -599,7 +609,7 @@ Page {
 						}
 						TPTextInput {
 							id: txtOutTime
-							text: timeOut !== "" ? timeOut : runCmd.formatFutureTime(todayFull, 1, 30)
+							text: timeOut !== "" ? timeOut : runCmd.formatFutureTime(mainwindow.todayFull, 1, 30)
 							readOnly: true
 							Layout.leftMargin: 5
 						}
@@ -907,6 +917,7 @@ Page {
 	}
 
 	Component.onCompleted: {
+		console.log("onCompleted")
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		if (Qt.platform.os === "android")
@@ -943,25 +954,21 @@ Page {
 		if (mesoSplit.indexOf('R') !== -1)
 			cboModel.append(splitModel[6]);
 
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(dayModel.splitLetter());
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(dayModel.splitLetter() === "" ? splitLetter : dayModel.splitLetter());
 	}
 
 	onSplitLetterChanged: {
-		const meso_div_info = Database.getDivisionForMeso(mesoId);
-		filterString = "";
-		if (meso_div_info.lengh > 0) {
-			var splitText = "";
-			switch (splitLetter) {
-				case 'A': splitText = meso_div_info[0].splitA; break;
-				case 'B': splitText = meso_div_info[0].splitB; break;
-				case 'C': splitText = meso_div_info[0].splitC; break;
-				case 'D': splitText = meso_div_info[0].splitD; break;
-				case 'E': splitText = meso_div_info[0].splitE; break;
-				case 'F': splitText = meso_div_info[0].splitF; break;
-				default: return;
-			}
-			filterString = JSF.makeFilterString(splitText, AppSettings.appLocale);
+		var splitText;
+		switch (splitLetter) {
+			case 'A': splitText = mesoSplitModel.get(mesoIdx, 2); break;
+			case 'B': splitText = mesoSplitModel.get(mesoIdx, 3); break;
+			case 'C': splitText = mesoSplitModel.get(mesoIdx, 4); break;
+			case 'D': splitText = mesoSplitModel.get(mesoIdx, 5); break;
+			case 'E': splitText = mesoSplitModel.get(mesoIdx, 6); break;
+			case 'F': splitText = mesoSplitModel.get(mesoIdx, 7); break;
+			default: return;
 		}
+		filterString = exercisesListModel.makeFilterString(splitText);
 	}
 
 	function maybeResetPage() {
@@ -970,24 +977,12 @@ Page {
 	}
 
 	function loadOrCreateDayInfo() {
-		let mesoinfo = Database.getMesoInfo(mesoId);
-		if ( mesoinfo.length > 0 ) {
-			mesoSplit = mesoinfo[0].mesoSplit;
-			bRealMeso = mesoinfo[0].realMeso;
-			changeComboModel();
-		}
 		bDayIsFinished = loadTrainingDayInfo(mainDate);
 		if (!bDayIsFinished) {
 			bLongTask = false;
 			checkIfMesoPlanExists();
 			checkIfPreviousDayExists();
 		}
-	}
-
-	function createDatabaseEntryForDay() {
-		let result = Database.newTrainingDay(mainDate.getTime(), mesoId, exercisesNames,
-			tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
-		dayId = result.insertId;
 	}
 
 	function checkIfMesoPlanExists() {
@@ -1245,66 +1240,7 @@ Page {
 		bAlreadyLoaded = false;
 	}
 
-	function updateMesoCalendar() {
-		if (dayModel.splitLetter() !== splitLetter || dayModel.trainingDay() !== tDay) {
-			var calendar_date_info;
-			var cal_id;
-			calendar_date_info = Database.getMesoCalendarDate(mainDate);
-			if (calendar_date_info.length > 0) {
-				cal_id = calendar_date_info[0].mesoCalId;
-				Database.updateMesoCalendarDaySplit(cal_id, splitLetter);
 
-				//If in the old calendar, day was R or the user did not explicitly change tDay, go back
-				//in date until we find a suitable training day. This will be starting training day if the user
-				//wants to modify the rest of the calendar, or simply the continuation from the previous training day if not
-				if (dayModel.splitLetter() === 'R' || tDay === dayModel.trainingDay()) {
-					//Find a suitable training day to continue
-					var prevdate = runCmd.getDayBefore(mainDate);
-					//Find the first training day before mainDate that is not a rest day;
-					while ( (calendar_date_info = Database.getMesoCalendarDate(prevdate)) !== null) {
-						//console.log(prevdate.toDateString());
-						//console.log(calendar_date_info[0].mesoCalSplit);
-						if (calendar_date_info[0].mesoCalSplit !== 'R') {
-							tDay = calendar_date_info[0].mesoCalnDay + 1;
-							break;
-						}
-						prevdate = runCmd.getDayBefore(prevdate);
-					}
-				}
-				//Update this day
-				Database.updateMesoCalendarTrainingDay(cal_id, tDay);
-				if (chkAdjustCalendar.checked) {
-					var split_idx;
-					var tday;
-					var splitletter;
-					if (optUpdateCalendarContinue.checked) {
-						split_idx = mesoSplit.indexOf(splitLetter);
-						split_idx++;
-						if (split_idx >= mesoSplit.length)
-							split_idx = 0;
-
-						tday = tDay + 1; //tDay of the next day in calendar
-					}
-					else { //Start all over
-						Database.updateMesoCalendarTrainingDay(cal_id, splitLetter === 'R' ? 0 : 1); //Update this day
-						split_idx = 0;
-						tday = splitLetter === 'R' ? 1 : 2; //tDay of the next day in calendar
-					}
-
-					let result = Database.getMesoInfo(mesoId);
-					if (result.length === 1) {
-						const mesoenddate = new Date(result[0].mesoEndDate);
-						startProgressDialog(cal_id, split_idx, tday, mesoenddate);
-					}
-				} // chkAdjustCalendar.checked = true
-
-				//Hide the frame for adjustments
-				dayModel.splitLetter() = splitLetter;
-				dayModel.trainingDay() = tDay;
-				mesoCalendarChanged(); //Signals MesoContent.qml to reread from the database
-			} //calendar_date_info.length > 0
-		} //dayModel.splitLetter() !== splitLetter
-	} // updateMesoCalendar()
 
 	function startProgressDialog(calid, splitidx, day, mesoenddate) {
 		var component = Qt.createComponent("TrainingDayProgressDialog.qml");
@@ -1360,28 +1296,34 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				if (location === "")
-					location = txtLocation.placeholderText;
-				if (trainingNotes === "")
-					trainingNotes = " ";
-				if (splitLetter === 'R')
-					tDay = 0;
-				if (bRealMeso)
-					updateMesoCalendar();
+				//if (bRealMeso)
+				//	updateMesoCalendar();
 				if (dayId === -1) {
-					createDatabaseEntryForDay();
-					updateDayIdFromExercisesAndSets();
-				}
-				else
-					Database.updateTrainingDay(dayId, exercisesNames, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					var id;
+					function continueSave(_id) {
+						if (_id === id) {
+							appDB.qmlReady.disconnect(continueSave);
+							dayId = appDB.insertId();
+							//updateDayIdFromExercisesAndSets();
+						}
+					}
 
-				var i = 0;
+					id = appDB.pass_object(dayModel);
+					appDB.qmlReady.connect(continueSave);
+					appDB.newTrainingDay(mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				}
+				else {
+					appDB.pass_object(dayModel);
+					appDB.updateTrainingDay(dayId, mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+				}
+
+				/*var i = 0;
 				for (; i < setsToBeRemoved.length; ++i)
 					Database.deleteSetFromSetsInfo(setsToBeRemoved[i]);
 				setsToBeRemoved = [];
 				const len = exerciseSpriteList.length;
 				for (i = 0; i < exerciseSpriteList.length; ++i)
-					exerciseSpriteList[i].Object.logSets();
+					exerciseSpriteList[i].Object.logSets();*/
 				bModified = false;
 			}
 		} //btnSaveDay
@@ -1417,9 +1359,15 @@ Page {
 				if (navButtons !== null)
 					navButtons.hideButtons();
 
-				openDbExercisesListPage();
-				dbExercisesListPage.bChooseButtonEnabled = true;
-				dbExercisesListPage.exerciseChosen.connect(gotExercise);
+				function pushOntoStackView(object) {
+					appDB.getQmlObject.disconnect(pushOntoStackView);
+					object.bChooseButtonEnabled = true;
+					object.exerciseChosen.connect(gotExercise);
+					mainwindow.appStackView.push(object, StackView.DontLoad);
+				}
+
+				appDB.getQmlObject.connect(pushOntoStackView);
+				appDB.openExercisesListPage();
 			}
 		} // bntAddExercise
 	} //footer: ToolBar
@@ -1451,7 +1399,7 @@ Page {
 
 		onShownChanged: {
 			if (shown)
-				exercisesList.setFilter(filterString);
+				exercisesListModel.setFilter(filterString);
 		}
 
 		ButtonFlat {
@@ -1507,6 +1455,11 @@ Page {
 	}
 
 	function pageActivation() {
+		mesoName = mesocyclesModel.get(mesoIdx, 1);
+		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
+		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
+		changeComboModel();
+		return;
 		if (!bAlreadyLoaded) {
 			loadTimer.init(2);
 			if (bFirstTime) {

@@ -48,7 +48,7 @@ Column {
 		clip: true
 		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-		visible: exercisesListModel.count > 0
+		//visible: exercisesListModel.count > 0
 		boundsBehavior: Flickable.StopAtBounds
 		focus: true
 
@@ -236,15 +236,21 @@ Column {
 	} // txtFilter
 
 	Component.onCompleted: {
-		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToProceed);
-			lstExercises.model = exercisesListModel;
+		var id;
+		function readyToProceed(_id) {
+			if (_id === id) {
+				appDB.qmlReady.disconnect(readyToProceed);
+				lstExercises.model = exercisesListModel;
+			}
 		}
 
 		if (exercisesListModel.count === 0) {
+			id = appDB.pass_object(exercisesListModel);
 			appDB.qmlReady.connect(readyToProceed);
-			loadExercises();
+			appDB.getAllExercises();
 		}
+		else
+			lstExercises.model = exercisesListModel;
 	}
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {

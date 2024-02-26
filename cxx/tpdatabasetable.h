@@ -19,10 +19,11 @@ class TPDatabaseTable : public QObject
 
 public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
-		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
+		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL), m_execId(0) {}
 
 	void createTable() {}
-
+	inline void setExecId(const uint exec_id) { m_execId = exec_id; }
+	inline const uint execId() const { return m_execId; }
 	inline const QStringList& data () const { return m_data; }
 	inline OP_CODES opCode() const { return m_opcode; }
 	inline bool result() const { return m_result; }
@@ -44,6 +45,7 @@ protected:
 
 	bool m_result;
 	OP_CODES m_opcode;
+	uint m_execId;
 
 	std::function<void (void)> execFunc;
 	std::function<void (TPDatabaseTable*)> resultFunc;

@@ -64,7 +64,7 @@ Page {
 
 		onShownChanged: {
 			if (shown)
-				exercisesList.setFilter(splitView.currentItem.filterString);
+				exercisesListModel.setFilter(splitView.currentItem.filterString);
 		}
 
 		ColumnLayout {

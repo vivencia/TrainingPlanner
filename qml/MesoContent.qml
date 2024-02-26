@@ -164,7 +164,7 @@ Page {
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? calendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + calendarModel.getSplit(model.month+1, model.day-1) : model.day : model.day
+						text: monthGrid.month === model.month ? calendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + calendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
@@ -250,6 +250,14 @@ Page {
 				Layout.rightMargin: 5
 
 				onClicked: {
+					function pushOntoStackView(object) {
+						appDB.getQmlObject.disconnect(pushOntoStackView);
+						object.tDay = trainingDay;
+						object.splitLetter = splitLetter;
+						appStackView.push(object, StackView.DontLoad);
+					}
+
+					appDB.getQmlObject.connect(pushOntoStackView);
 					appDB.getTrainingDay(idxModel, calendar.dayInfoDate, appStackView);
 				}
 			}

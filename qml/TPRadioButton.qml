@@ -1,9 +1,12 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 RadioButton {
 	id: control
 	padding: 0
+	Layout.fillWidth: true
+
 	property string textColor: "white"
 	property string indicatorColor: primaryLightColor
 

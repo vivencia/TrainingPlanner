@@ -72,17 +72,20 @@ Page {
 				if (mesocycleCalendarPage === null)
 					createMesoCalendarObject(true);
 				else {
-					function readyToProceed() {
-						appDB.qmlReady.disconnect(readyToProceed);
-						appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+					var id;
+					function readyToProceed(_id) {
+						if (_id === id) {
+							appDB.qmlReady.disconnect(readyToProceed);
+							appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+						}
 					}
 
 					if (mesosCalendarModel.getMesoId() === mesoId)
-						readyToProceed();
+						readyToProceed(id);
 					else {
 						mesosCalendarModel.clear();
 						appDB.qmlReady.connect(readyToProceed);
-						appDB.pass_object(mesosCalendarModel);
+						id = appDB.pass_object(mesosCalendarModel);
 						appDB.getMesoCalendar(mesoId);
 					}
 				}
@@ -424,7 +427,6 @@ Page {
 					TPRadioButton {
 						id: optPreserveOldCalendar
 						text: qsTr("All of the old information")
-						Layout.fillWidth: true
 						enabled: chkPreserveOldCalendar.checked
 						checked: false
 					}
@@ -432,7 +434,6 @@ Page {
 					TPRadioButton {
 						id: optPreserveOldCalendarUntilYesterday
 						text: qsTr("Only until yesterday")
-						Layout.fillWidth: true
 						checked: false
 						enabled: chkPreserveOldCalendar.checked && isDateWithinMeso(today)
 					}
@@ -824,28 +825,32 @@ Page {
 			enabled: bNewMeso ? bMesoNameOK && bStartDateChanged && bEndDateChanged && bMesoSplitOK : bModified
 
 			onClicked: {
+				var id;
 				if (bNewMeso) {
 
-					function getMesoId() {
-						appDB.qmlReady.disconnect(getMesoId);
-						mesoId = appDB.insertId();
-						appDB.pass_object(mesoSplitModel);
-						appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
-						bNewMeso = false;
-						createMesoCalendarObject(true);
+					function getMesoId(_id) {
+						if (_id === id) {
+							appDB.qmlReady.disconnect(getMesoId);
+							mesoId = appDB.insertId();
+							appDB.pass_object(mesoSplitModel);
+							appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+							bNewMeso = false;
+							createMesoCalendarObject(true);
+						}
 					}
 
 					appDB.pass_object(mesocyclesModel);
-					appDB.qmlReady.connect(getMesoId);
+					id = appDB.qmlReady.connect(getMesoId);
 					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 					idxModel = mesocyclesModel.count - 1;
 				}
 				else {
-					function canProceed() {
-						appDB.qmlReady.disconnect(canProceed);
-						mesoSplitModel.setCurrentRow(idxModel);
-						appDB.pass_object(mesoSplitModel);
-						appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+					function canProceed(_id) {
+						if (_id === id) {
+							appDB.qmlReady.disconnect(canProceed);
+							mesoSplitModel.setCurrentRow(idxModel);
+							appDB.pass_object(mesoSplitModel);
+							appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
 						/*if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
 							if (Database.checkIfCalendarForMesoExists(mesoId)) {
@@ -861,11 +866,12 @@ Page {
 								mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							}
 						}*/
-						bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+							bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+						}
 					}
 
 					mesocyclesModel.setCurrentRow(idxModel);
-					appDB.pass_object(mesocyclesModel);
+					id = appDB.pass_object(mesocyclesModel);
 					appDB.qmlReady.connect(canProceed);
 					appDB.updateMesocycle(mesoId, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 				}

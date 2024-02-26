@@ -7,7 +7,7 @@
 
 #include <random>
 
-static const uint n_entries(8);
+static const uint n_entries(9);
 
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* appSettings, DBTrainingDayModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
@@ -84,11 +84,11 @@ void DBTrainingDayTable::getTrainingDay()
 				for (i = 0; i < n_entries; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				m_model->appendList(split_info);
-				m_model->setReady(true);
 			}
 		}
 		mSqlLiteDB.close();
 		m_result = true;
+		m_model->setReady(true);
 	}
 
 	if (!m_result)
