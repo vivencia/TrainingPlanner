@@ -28,20 +28,35 @@ void DBTrainingDayModel::appendExercisesList(const QStringList& list)
 
 QString DBTrainingDayModel::exerciseName() const
 {
-	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	QString name(m_workingExercise.key());
-	return idx != -1 ? name.replace(subrecord_separator, QStringLiteral(" + ")) : m_workingExercise.key();
+	if (m_ExerciseData.count() > 0)
+	{
+		const int idx(m_workingExercise.key().indexOf(subrecord_separator));
+		QString name(m_workingExercise.key());
+		return idx != -1 ? name.replace(subrecord_separator, QStringLiteral(" + ")) : m_workingExercise.key();
+	}
+	return QString();
 }
 
 void DBTrainingDayModel::setExerciseName(const QString& name)
 {
+	const QString key(m_workingExercise.key());
 	m_workingExercise = m_ExerciseData.insert(name, m_workingExercise.value());
+	m_ExerciseData.remove(key);
+}
+
+void DBTrainingDayModel::newExerciseName(const QString& new_exercise)
+{
+	m_workingExercise = m_ExerciseData.insert(new_exercise, QStringList());
 }
 
 QString DBTrainingDayModel::exerciseName1() const
 {
-	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	return idx != -1 ? m_workingExercise.key().left(idx -1) : m_workingExercise.key();
+	if (m_ExerciseData.count() > 0)
+	{
+		const int idx(m_workingExercise.key().indexOf(subrecord_separator));
+		return idx != -1 ? QStringLiteral("1: ") + m_workingExercise.key().left(idx -1) : m_workingExercise.key();
+	}
+	return QString();
 }
 
 void DBTrainingDayModel::setExerciseName1(const QString& name1)
@@ -52,13 +67,13 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1)
 		new_name1 = name1 + subrecord_separator + m_workingExercise.key().mid(idx+1);
 	else
 		new_name1 = name1;
-	m_workingExercise = m_ExerciseData.insert(new_name1, m_workingExercise.value());
+	setExerciseName(name1);
 }
 
 QString DBTrainingDayModel::exerciseName2() const
 {
 	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	return idx != -1 ? m_workingExercise.key().mid(idx+1) : QString();
+	return idx != -1 ? QStringLiteral("2: ") + m_workingExercise.key().mid(idx+1) : QString();
 }
 
 void DBTrainingDayModel::setExerciseName2(const QString& name2)
@@ -69,13 +84,17 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2)
 		new_name2 = m_workingExercise.key().left(idx) + subrecord_separator + name2;
 	else
 		new_name2 = subrecord_separator + name2;
-	m_workingExercise = m_ExerciseData.insert(new_name2, m_workingExercise.value());
+	setExerciseName(new_name2);
 }
 
-QString DBTrainingDayModel::setType(const uint set_number) const
+uint DBTrainingDayModel::setType(const uint set_number) const
 {
-	const QStringList sets_info(m_workingExercise.value().at(0).split(record_separator));
-	return set_number < sets_info.count() ? sets_info.at(set_number) : QString();
+	if ((*m_workingExercise).count() > 0)
+	{
+		const QStringList sets_info((*m_workingExercise).at(0).split(record_separator));
+		return set_number < sets_info.count() ? sets_info.at(set_number).toUInt() : 0;
+	}
+	return 0;
 }
 
 void DBTrainingDayModel::setSetType(const uint set_number, const uint new_type)

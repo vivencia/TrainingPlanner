@@ -250,10 +250,12 @@ Page {
 				Layout.rightMargin: 5
 
 				onClicked: {
-					function pushOntoStackView(object) {
+					function pushOntoStackView(object, bfirsttime) {
+						if (bfirsttime) {
+							object.tDay = trainingDay;
+							object.splitLetter = splitLetter;
+						}
 						appDB.getQmlObject.disconnect(pushOntoStackView);
-						object.tDay = trainingDay;
-						object.splitLetter = splitLetter;
 						appStackView.push(object, StackView.DontLoad);
 					}
 

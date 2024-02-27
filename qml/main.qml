@@ -138,13 +138,13 @@ ApplicationWindow {
 			mesoIdx: 0
 			modelIdx: 0
 			mainDate: new Date()
-			dayModel: tdaymodel
+			tDayModel: tdaymodel
 		}*/
 
 		StackView {
 			id: stackView
 			anchors.fill: parent
-			initialItem: homePage//tDayInfo
+			initialItem: homePage //tDayInfo
 		}
 	}
 

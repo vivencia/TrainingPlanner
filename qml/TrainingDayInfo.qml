@@ -16,7 +16,7 @@ Page {
 	required property int mesoId
 	required property int mesoIdx
 	required property int modelIdx
-	required property DBTrainingDayModel dayModel
+	required property DBTrainingDayModel tDayModel
 
 	property int dayId: -1
 	property string exercisesNames
@@ -86,9 +86,9 @@ Page {
 		}
 	}
 
-	onBModifiedChanged: {
-		bNavButtonsEnabled = !bModified;	
-	}
+	//onBModifiedChanged: {
+	//	bNavButtonsEnabled = !bModified;
+	//}
 
 	onBDayIsFinishedChanged : {
 		if (bDayIsFinished)
@@ -319,8 +319,8 @@ Page {
 				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: qsTr("Trainning day <b>#") + dayModel.trainingDay() + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
-					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + dayModel.splitLetter() + "</b>"
+				text: qsTr("Trainning day <b>#") + tDayModel.trainingDay() + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
+					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + tDayModel.splitLetter() + "</b>"
 				font.pixelSize: AppSettings.titleFontSizePixelSize
 				color: "white"
 			}
@@ -370,7 +370,7 @@ Page {
 				}
 				TPTextInput {
 					id: txtTDay
-					text: dayModel.trainingDay() === "" ? tDay : dayModel.trainingDay()
+					text: tDayModel.trainingDay() === "" ? tDay : tDayModel.trainingDay()
 					width: 50
 					maximumLength: 3
 					validator: IntValidator { bottom: 0; top: 365; }
@@ -381,7 +381,7 @@ Page {
 
 					onTextEdited: {
 						if ( text !== "") {
-							if (text !== dayModel.trainingDay()) {
+							if (text !== tDayModel.trainingDay()) {
 								bModified = true;
 								tDay = text;
 							}
@@ -394,7 +394,7 @@ Page {
 				id: frmMesoSplitAdjust
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
-				visible: bRealMeso && (splitLetter !== dayModel.splitLetter() || tDay !== dayModel.trainingDay())
+				visible: bRealMeso && (splitLetter !== tDayModel.splitLetter() || tDay !== tDayModel.trainingDay())
 				padding: 0
 				spacing: 0
 				width: windowWidth - 20
@@ -480,7 +480,7 @@ Page {
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
-				text: dayModel.location()
+				text: tDayModel.location()
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
@@ -654,7 +654,7 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
-					text: dayModel.notes()
+					text: tDayModel.notes()
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
 					color: "white"
@@ -843,7 +843,7 @@ Page {
 
 						onClicked: {
 							highlight = false;
-							if (dayModel.splitLetter() !== splitLetter) {
+							if (tDayModel.splitLetter() !== splitLetter) {
 								if (exercisesNames.length > 0) {
 									if (grpIntent.option !== 3)
 										removeAllExerciseObjects();
@@ -881,6 +881,16 @@ Page {
 				right:parent.right
 				top: colMain.bottom
 			}
+
+			/*DBTrainingDayModel {
+				id: tModel
+			}
+
+			ExerciseEntry {
+				id: exercise1
+				thisObjectIdx: 0
+				tDayModel: tModel
+			}*/
 		}
 
 		Item {
@@ -954,7 +964,7 @@ Page {
 		if (mesoSplit.indexOf('R') !== -1)
 			cboModel.append(splitModel[6]);
 
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(dayModel.splitLetter() === "" ? splitLetter : dayModel.splitLetter());
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ? splitLetter : tDayModel.splitLetter());
 	}
 
 	onSplitLetterChanged: {
@@ -1122,25 +1132,14 @@ Page {
 			exerciseSpriteList[i].Object.updateDayId(dayId);
 	}
 
-	function gotExercise(strName1, strName2, sets, reps, weight) {
-		strName1 += ' - ' + strName2;
-		addExercise(strName1);
-		strName2 = "";
-		if (bFirstTime && firstTimeTip)
-			firstTimeTip.visible = false;
-
-		var component = Qt.createComponent("ExerciseEntry.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			var idx = exerciseSpriteList.length;
-			var exerciseSprite = component.createObject(colExercises, { thisObjectIdx:idx, exerciseName:strName1,
-				exerciseName1:strName1, exerciseName2:strName2, splitLetter:splitLetter, tDayId:dayId });
-			exerciseSprite.exerciseRemoved.connect(removeExercise);
-			exerciseSprite.exerciseEdited.connect(editExercise);
-			exerciseSprite.setAdded.connect(addExerciseSet);
-			exerciseSprite.setWasRemoved.connect(delExerciseSet);
-			exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
-			exerciseSpriteList.push({"Object" : exerciseSprite});
+	function gotExercise(strName1, strName2) {
+		function readyToProceed(object) {
+			appDB.getQmlObject.disconnect(readyToProceed);
+			object.exerciseRemoved.connect(removeExercise);
+			object.exerciseEdited.connect(editExercise);
+			object.setAdded.connect(addExerciseSet);
+			object.setWasRemoved.connect(delExerciseSet);
+			object.requestHideFloatingButtons.connect(hideFloatingButton);
 
 			bStopBounce = true;
 			if (navButtons === null)
@@ -1148,12 +1147,11 @@ Page {
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
+			return;
 		}
 
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
+		appDB.getQmlObject.connect(readyToProceed);
+		appDB.createExerciseObject(strName1 + " - " + strName2, colExercises, modelIdx);
 	}
 
 	function addExerciseSet(bnewset, exerciseObjIdx, setObject) {
@@ -1173,19 +1171,8 @@ Page {
 		setsToBeRemoved.push(setid);
 	}
 
-	function editExercise(exerciseIdx, newExerciseName) {
+	function editExercise(exerciseIdx) {
 		bModified = true;
-		if (exerciseIdx !== -1) {
-			const names = exercisesNames.split('|');
-			exercisesNames = "";
-			for (var i = 0; i < names.length; ++i) {
-				if (i !== exerciseIdx)
-					exercisesNames += names[i] + '|';
-				else
-					exercisesNames += newExerciseName + '|';
-			}
-			exercisesNames = exercisesNames.slice(0, -1);
-		}
 	}
 
 	function removeExercise(objidx) {
@@ -1308,12 +1295,12 @@ Page {
 						}
 					}
 
-					id = appDB.pass_object(dayModel);
+					id = appDB.pass_object(tDayModel);
 					appDB.qmlReady.connect(continueSave);
 					appDB.newTrainingDay(mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				}
 				else {
-					appDB.pass_object(dayModel);
+					appDB.pass_object(tDayModel);
 					appDB.updateTrainingDay(dayId, mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				}
 
@@ -1359,10 +1346,12 @@ Page {
 				if (navButtons !== null)
 					navButtons.hideButtons();
 
-				function pushOntoStackView(object) {
+				function pushOntoStackView(object, bfirsttime) {
+					if (bfirsttime) {
+						object.bChooseButtonEnabled = true;
+						object.exerciseChosen.connect(gotExercise);
+					}
 					appDB.getQmlObject.disconnect(pushOntoStackView);
-					object.bChooseButtonEnabled = true;
-					object.exerciseChosen.connect(gotExercise);
 					mainwindow.appStackView.push(object, StackView.DontLoad);
 				}
 

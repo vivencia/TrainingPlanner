@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
 
-import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 FocusScope {
 	id: exerciseItem
@@ -11,10 +11,7 @@ FocusScope {
 	implicitHeight: paneExercise.height
 
 	required property int thisObjectIdx
-	required property string exerciseName
-	required property string splitLetter
-	required property string exerciseName1
-	required property string exerciseName2
+	required property DBTrainingDayModel tDayModel
 
 	property int tDayId: -1
 	property int setType: 0
@@ -36,10 +33,13 @@ FocusScope {
 	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
 
 	signal exerciseRemoved(int ObjectIdx)
-	signal exerciseEdited(int objidx, string newname)
+	signal exerciseEdited(int objidx)
 	signal setAdded(bool bnewset, int objidx, var setObject)
 	signal setWasRemoved(int setid)
 	signal requestHideFloatingButtons(int except_idx)
+
+	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
 	onBFloatButtonVisibleChanged: {
 		if (bFloatButtonVisible) {
@@ -88,7 +88,7 @@ FocusScope {
 	TPBalloonTip {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise")
-		message: exerciseName + qsTr("? This action cannot be undone.")
+		message: tDayModel.exerciseName() + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -142,7 +142,7 @@ FocusScope {
 
 			TextField {
 				id: txtExerciseName
-				text: exerciseName1
+				text: tDayModel.exerciseName1()
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
@@ -170,13 +170,8 @@ FocusScope {
 				}
 
 				onReadOnlyChanged: {
-					if (!readOnly) {
-						if (bCompositeExercise) { //Remove the '1: ' from the name
-							const idx = exerciseName1.indexOf(':');
-							exerciseName1 = exerciseName1.substring(idx + 1, exerciseName1.length).trim();
-						}
+					if (!readOnly)
 						cursorPosition = text.length;
-					}
 					else {
 						cursorPosition = 0;
 						ensureVisible(0);
@@ -192,16 +187,9 @@ FocusScope {
 						cursorPosition = 0;
 				}
 
-				onEditingFinished: {
-					if (!bCompositeExercise) {
-						exerciseName1 = text;
-						exerciseName = exerciseName1;
-					}
-					else {
-						exerciseName1 = "1: " + text;
-						exerciseName = exerciseName1 + '&' + exerciseName2;
-					}
-					exerciseEdited(thisObjectIdx, exerciseName);
+				onEditingFinished:{
+					tDayModel.setExerciseName1(text);
+					exerciseEdited(thisObjectIdx);
 				}
 
 				Label {
@@ -301,9 +289,9 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					model: setTypes
+					model: setTypesModel
 					Layout.minimumWidth: 140
-					currentIndex: setType
+					currentIndex: tDayModel.setType(thisObjectIdx)
 				}
 				RoundButton {
 					id: btnAddSet
@@ -316,7 +304,7 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						setType = parseInt(cboSetType.currentValue);
+						tDayModel.setSetType(thisObjectIdx, cboSetType.currentValue);
 						createSetObject(setType, true);
 						requestHideFloatingButtons (thisObjectIdx);
 						if (btnFloat === null)
@@ -337,6 +325,10 @@ FocusScope {
 		}
 	} //paneExercise
 
+	Component.onCompleted: {
+		tDayModel.exercisesBegin();
+	}
+
 	function createFloatingAddSetButton() {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
@@ -354,18 +346,18 @@ FocusScope {
 	}
 
 	function changeComboModel() {
-		switch (setType) {
+		switch (tDayModel.setType(thisObjectIdx)) {
 			case 0:
 			case 1:
 			case 2:
-				cboSetType.model = [setTypes[0], setTypes[1], setTypes[2]];
+				cboSetType.model = [setTypesModel[0], setTypesModel[1], setTypesModel[2]];
 				cboSetType.currentIndex = setType;
 				return;
-			case 3: cboSetType.model = [setTypes[3]];
+			case 3: cboSetType.model = [setTypesModel[3]];
 			break;
-			case 4: cboSetType.model = [setTypes[4]];
+			case 4: cboSetType.model = [setTypesModel[4]];
 			break;
-			case 5: cboSetType.model = [setTypes[5]];
+			case 5: cboSetType.model = [setTypesModel[5]];
 			break;
 		}
 		cboSetType.currentIndex = 0;
@@ -421,7 +413,7 @@ FocusScope {
 
 	function loadSetsFromMesoPlan() {
 		let plan_info = [];
-		switch (splitLetter) {
+		switch (tDayModel.splitLetter()) {
 			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
 			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
 			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;

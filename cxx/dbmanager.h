@@ -94,6 +94,9 @@ public:
 												const QString& subSets, const QString& reps, const QString& weights);
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
+
+	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
+	void createExerciseObject_part2();
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
@@ -102,7 +105,7 @@ public slots:
 signals:
 	void qmlReady(uint exec_id);
 	void databaseFree();
-	void getQmlObject(QQuickItem* item);
+	void getQmlObject(QQuickItem* item, const bool bFirstTime);
 
 private:
 	uint m_execId;
@@ -135,16 +138,19 @@ private:
 	QString m_createdSplits;
 	QQuickItem* m_qmlSplitObjectParent;
 	QQuickItem* m_qmlSplitObjectContainer;
-
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	QMap<QDate,uint> m_tDayObjects;
-	DBTrainingDayModel* m_tDayModel;
+	QList<DBTrainingDayModel*> m_tDayModels;
 	QList<QQuickItem*> m_tDayPages;
 	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
 	QQuickItem* m_qmltDayObjectContainer;
+
+	QVariantMap m_tDayExerciseEntryProperties;
+	QList<QQuickItem*> m_tDayExercises;
+	QQmlComponent* m_tDayExercisesComponent;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	void freeLocks(TPDatabaseTable* dbObj);
