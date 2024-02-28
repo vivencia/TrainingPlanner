@@ -626,11 +626,10 @@ void DbManager::updateTrainingDay(const uint id, const uint meso_id, const QDate
 	createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
 }
 
-void DbManager::updateTrainingDayExercises(const uint id, const QString& exercisesNames, const QString& setsTypes, const QString& restTimes,
-												const QString& subSets, const QString& reps, const QString& weights)
+void DbManager::updateTrainingDayExercises(const uint id)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
-	worker->setData(QString::number(id), exercisesNames, setsTypes, restTimes, subSets, reps, weights);
+	worker->addExecArg(id);
 	createThread(worker, [worker] () { return worker->updateTrainingDayExercises(); } );
 }
 
@@ -649,27 +648,32 @@ void DbManager::deleteTrainingDayTable()
 
 void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx)
 {
+	m_tDayModels[modelIdx]->newExerciseName(exerciseName);
 	if (m_tDayExerciseEntryProperties.isEmpty())
 	{
 		m_tDayExerciseEntryProperties.insert("parentLayout", QVariant::fromValue(parentLayout));
 		m_tDayExerciseEntryProperties.insert("tDayModel", QVariant::fromValue(m_tDayModels.at(modelIdx)));
-	}
-	m_tDayExerciseEntryProperties.insert("thisObjectIdx", m_tDayExercises.count());
 
-	m_tDayModels[modelIdx]->newExerciseName(exerciseName);
-	m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
-	connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
+		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
 					{ if (status == QQmlComponent::Ready) return DbManager::createExerciseObject_part2(); } );
-	qDebug() << m_tDayExercisesComponent->status();
-	qDebug() << m_tDayExercisesComponent->errorString();
-	for (uint i(0); i < m_tDayExercisesComponent->errors().count(); ++i)
-		qDebug() << m_tDayExercisesComponent->errors().at(i).description();
+	}
+	else
+		createExerciseObject_part2();
 }
 
 void DbManager::createExerciseObject_part2()
 {
+	if (m_tDayExercisesComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_tDayExercisesComponent->errorString();
+		for (uint i(0); i < m_tDayExercisesComponent->errors().count(); ++i)
+			qDebug() << m_tDayExercisesComponent->errors().at(i).description();
+	}
+
 	if (m_tDayExercisesComponent->status() == QQmlComponent::Ready)
 	{
+		m_tDayExerciseEntryProperties.insert("thisObjectIdx", m_tDayExercises.count());
 		QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, m_QMlEngine->rootContext())));
 		m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);

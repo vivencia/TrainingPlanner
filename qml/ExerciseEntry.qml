@@ -13,6 +13,7 @@ FocusScope {
 	required property int thisObjectIdx
 	required property DBTrainingDayModel tDayModel
 
+	property var parentLayout
 	property int tDayId: -1
 	property int setType: 0
 	property int setNbr: -1
@@ -488,24 +489,19 @@ FocusScope {
 
 		function generateSetObject(page, setnbr) {
 			var component = Qt.createComponent(page, Component.Asynchronous);
-
-			function finishCreation(nset) {
-				if (bNewSet) {
-					nset++;
-					setNbr = nset;
-					calculateSuggestedValues(type);
-					if (btnFloat !== null)
-						btnFloat.nextSetNbr++;
+			if (bNewSet) {
+				nset++;
+				setNbr = nset;
+				calculateSuggestedValues(type);
+				if (btnFloat !== null)
+					btnFloat.nextSetNbr++;
 				}
-				//console.log("ExerciseEntry::createSetObject # " + nset + " - exerciseIdx = " + thisObjectIdx + "  - tDayId = " + tDayId);
-				var sprite = component.createObject(layoutMain, {
-								setNumber:nset, setReps:suggestedReps[nset], setWeight:suggestedWeight[nset],
-								setSubSets:suggestedSubSets[nset], setRestTime:suggestedRestTimes[nset],
-								setNotes:setNotes[nset], exerciseIdx:thisObjectIdx, tDayId:tDayId
-				});
+			appDB.newSet(nset, type, suggestedRestTimes[nset], suggestedSubSets[nset], suggestedReps[nset], suggestedWeight[nset], setNotes[nset]);
+
+			function finishCreation(nset) {	
+				var sprite = component.createObject(layoutMain, { tDayMode:tDayModel,  setNumber:nset });
 				setObjectList.push({ "Object" : sprite });
 				sprite.setRemoved.connect(setRemoved);
-				sprite.setChanged.connect(setChanged);
 
 				if (nset >= 1)
 					setObjectList[nset-1].Object.nextObject = sprite;

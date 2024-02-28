@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 FocusScope {
 	id: setItem
@@ -11,21 +11,12 @@ FocusScope {
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
 
-	property int setId: -1
-	property int exerciseIdx
-	property int tDayId
-	property int setType: 0 //Constant
-	property int setNumber
-	property string setReps
-	property string setWeight
-	property string setSubSets: "0"
-	property string setRestTime: "01:30"
-	property string setNotes: " "
+	required property DBTrainingDayModel tDayModel
+	required property int setNumber
+	readonly property int setType: 0 //Constant
 
+	signal setRemoved(int set_number)
 	property var nextObject: null
-
-	signal setRemoved(int nset)
-	signal setChanged(int nset, string reps, string weight, string subsets, string resttime, string setnotes)
 
 	ColumnLayout {
 		id: setLayout
@@ -50,7 +41,10 @@ FocusScope {
 					height: 20
 					width: 20
 				}
-				onClicked: setRemoved(setNumber);
+				onClicked: {
+					if (tDayModel.removeSet(setNumber))
+						setRemoved(setNumber);
+				}
 			}
 		}
 
@@ -59,13 +53,12 @@ FocusScope {
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
 			nSetNbr: setNumber
-			text: setNumber !== 0 ? setRestTime : "00:00"
+			text: setNumber !== 0 ? tDayModel.setRestTime(setNumber) : "00:00"
 			windowTitle: lblSetNumber.text
 			focus: setNumber !== 0
 
 			onValueChanged: (str) => {
-				setRestTime = str;
-				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
+				tDayModel.setSetRestTime(setNumber, str)
 			}
 
 			onEnterOrReturnKeyPressed: {
@@ -75,7 +68,7 @@ FocusScope {
 
 		SetInputField {
 			id: txtNReps
-			text: setReps.toString()
+			text: tDayModel.setReps(setNumber)
 			type: SetInputField.Type.RepType
 			nSetNbr: setNumber
 			availableWidth: setItem.width
@@ -85,16 +78,13 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				if (str !== setReps) {
-					setReps = str;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+				tDayModel.setSetReps(setNumber, str);
 			}
 		}
 
 		SetInputField {
 			id: txtNWeight
-			text: setWeight.toString()
+			text: tDayModel.setWeight(setNumber)
 			type: SetInputField.Type.WeightType
 			nSetNbr: setNumber
 			availableWidth: setItem.width
@@ -107,10 +97,7 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				if (str !== setWeight) {
-					setWeight = str;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+				tDayModel.setSetWeight(setNumber, str);
 			}
 		}
 
@@ -121,7 +108,7 @@ FocusScope {
 		}
 		TextField {
 			id: txtSetNotes
-			text: setNotes
+			text: tDayModel.setNotes(setNumber)
 			font.bold: true
 			Layout.fillWidth: true
 			Layout.leftMargin: 10
@@ -129,35 +116,8 @@ FocusScope {
 			padding: 0
 
 			onTextEdited: {
-				if (text.length > 4) {
-					setNotes = text;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+				tDayModel.setSetNotes(text);
 			}
 		}
 	} // setLayout
-
-	function updateTrainingDayId(newTDayId) {
-		tDayId = newTDayId;
-		setId = -1; //Force a new DB entry to be created when set is logged
-	}
-
-	function logSet() {
-		if (setNotes === "")
-			setNotes = " ";
-
-		if (setId < 0) {
-			//console.log("Create Regular Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
-												setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
-			setId = result.insertId;
-		}
-		else {
-			//console.log("Update Regular Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(),
-									setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
-		}
-	}
-
-	Component.onCompleted: setCreated[setNumber] = 1;
 } // FocusScope

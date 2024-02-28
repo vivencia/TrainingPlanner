@@ -90,8 +90,7 @@ public:
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
 	Q_INVOKABLE void updateTrainingDay(const uint id, const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
-	Q_INVOKABLE void updateTrainingDayExercises(const uint id, const QString& exercisesNames, const QString& setsTypes, const QString& restTimes,
-												const QString& subSets, const QString& reps, const QString& weights);
+	Q_INVOKABLE void updateTrainingDayExercises(const uint id);
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
 

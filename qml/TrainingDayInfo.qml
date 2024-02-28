@@ -654,7 +654,7 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
-					text: tDayModel.notes()
+					text: tDayModel.dayNotes()
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
 					color: "white"
@@ -1147,6 +1147,7 @@ Page {
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
+			bModified = true;
 			return;
 		}
 
@@ -1302,15 +1303,8 @@ Page {
 				else {
 					appDB.pass_object(tDayModel);
 					appDB.updateTrainingDay(dayId, mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					appDB.updateTrainingDayExercises(dayId);
 				}
-
-				/*var i = 0;
-				for (; i < setsToBeRemoved.length; ++i)
-					Database.deleteSetFromSetsInfo(setsToBeRemoved[i]);
-				setsToBeRemoved = [];
-				const len = exerciseSpriteList.length;
-				for (i = 0; i < exerciseSpriteList.length; ++i)
-					exerciseSpriteList[i].Object.logSets();*/
 				bModified = false;
 			}
 		} //btnSaveDay

@@ -12,6 +12,7 @@ QML_ELEMENT
 public:
 	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent} { exercisesBegin(); }
 	void appendExercisesList(const QStringList& list);
+	void getSaveInfo(QStringList& data) const;
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }
 	Q_INVOKABLE const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(1).toInt(): -1; }
@@ -34,8 +35,8 @@ public:
 	Q_INVOKABLE QString location() const { return count() == 1 ? m_modeldata.at(0).at(7) : QString(); }
 	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][7] = location; }
 
-	Q_INVOKABLE QString notes() const { return count() == 1 ? m_modeldata.at(0).at(8) : QString(); }
-	Q_INVOKABLE void setNotes(const QString& notes) { m_modeldata[0][8] = notes; }
+	Q_INVOKABLE QString dayNotes() const { return count() == 1 ? m_modeldata.at(0).at(8) : QString(); }
+	Q_INVOKABLE void setDayNotes(const QString& day_notes) { m_modeldata[0][8] = day_notes; }
 
 	Q_INVOKABLE bool exercisesOK() const { return m_workingExercise != m_ExerciseData.constEnd(); }
 	Q_INVOKABLE void exercisesBegin() { m_workingExercise = m_ExerciseData.constBegin(); }
@@ -54,6 +55,10 @@ public:
 	Q_INVOKABLE QString exerciseName2() const;
 	Q_INVOKABLE void setExerciseName2(const QString& name2);
 
+	Q_INVOKABLE void newSet(const uint set_number, const uint type, const QString& resttime,
+					const QString& subsets, const QString& reps, const QString& weight, const QString& notes);
+	Q_INVOKABLE bool removeSet(const uint set_number);
+
 	Q_INVOKABLE uint setType(const uint set_number) const;
 	Q_INVOKABLE void setSetType(const uint set_number, const uint new_type);
 
@@ -69,6 +74,9 @@ public:
 	Q_INVOKABLE QString setWeight(const uint set_number) const;
 	Q_INVOKABLE void setSetWeight(const uint set_number, const QString& new_weight);
 
+	Q_INVOKABLE QString setNotes(const uint set_number) const;
+	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes);
+
 	Q_INVOKABLE QString setReps(const uint set_number, const uint subset) const;
 	Q_INVOKABLE void setSetReps(const uint set_number, const uint subset, const QString& new_reps);
 
@@ -78,8 +86,6 @@ public:
 private:
 	QHash<QString,QStringList> m_ExerciseData;
 	QHash<QString,QStringList>::const_iterator m_workingExercise;
-
-	const QString fillSubSets(const QString& subSetInfo, const uint subset, const QString& value);
 };
 
 Q_DECLARE_METATYPE(DBTrainingDayModel*)

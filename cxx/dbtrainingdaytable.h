@@ -32,7 +32,7 @@ public:
 				const QString& splitLetter = QString(), const QString& timeIn = QString(), const QString& timeOut = QString(),
 				const QString& location = QString(), const QString& notes = QString());
 	void setExercisesData(const QString& id, const QString& exercises_names, const QString& sets_types, const QString& rest_times, const QString& sub_sets,
-							const QString& reps, const QString& weights);
+							const QString& reps, const QString& weights, const QString& notes);
 };
 
 #endif // DBTRAININGDAYTABLE_H

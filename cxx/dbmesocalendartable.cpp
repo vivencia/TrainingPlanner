@@ -27,8 +27,8 @@ void DBMesoCalendarTable::createTable()
 		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
 		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		//query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		//query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 		m_result = query.exec( QStringLiteral(
 									"CREATE TABLE IF NOT EXISTS mesocycles_calendar_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"

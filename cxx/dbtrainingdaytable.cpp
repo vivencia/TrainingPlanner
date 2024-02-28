@@ -35,6 +35,7 @@ void DBTrainingDayTable::createTable()
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		query.prepare( QStringLiteral(
 									"CREATE TABLE IF NOT EXISTS training_day_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -46,12 +47,13 @@ void DBTrainingDayTable::createTable()
 										"time_out TEXT,"
 										"location TEXT,"
 										"notes TEXT,"
-										"exercises TEXT DEFAULT "","
-										"setstypes TEXT DEFAULT "","
-										"setsresttimes TEXT DEFAULT "","
-										"setssubsets TEXT DEFAULT "","
-										"setsreps TEXT DEFAULT "","
-										"setsweights TEXT DEFAULT "")" ));
+										"exercises TEXT DEFAULT \"\","
+										"setstypes TEXT DEFAULT \"\","
+										"setsresttimes TEXT DEFAULT \"\","
+										"setssubsets TEXT DEFAULT \"\","
+										"setsreps TEXT DEFAULT \"\","
+										"setsweights TEXT DEFAULT \"\","
+										"setsnotes TEXT DEFAULT \"\")" ));
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -111,7 +113,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights "
+		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
 										"FROM training_day_table WHERE date=") + m_data[2] );
 
 		if (query.exec())
@@ -120,7 +122,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 			{
 				QStringList split_info;
 				uint i(0);
-				for (i = 0; i < n_entries-2; ++i)
+				for (i = 0; i < n_entries-1; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				static_cast<DBTrainingDayModel*>(m_model)->appendExercisesList(split_info);
 			}
@@ -209,12 +211,21 @@ void DBTrainingDayTable::updateTrainingDayExercises()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
+		static_cast<DBTrainingDayModel*>(m_model)->getSaveInfo(m_data);
+
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		query.prepare( QStringLiteral(
 									"UPDATE training_day_table SET exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\' WHERE id=%7")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(8)) );
+									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
+									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+										m_data.at(5), m_data.at(6), QString::number(m_execArgs.at(0).toUInt())) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -291,18 +302,4 @@ void DBTrainingDayTable::setData(const QString& id, const QString& mesoId, const
 	m_data[6] = timeOut;
 	m_data[7] = location;
 	m_data[8] = notes;
-}
-
-void DBTrainingDayTable::setExercisesData(const QString& id, const QString& exercisesNames, const QString& setsTypes, const QString& restTimes, const QString& subSets,
-							const QString& reps, const QString& weights)
-{
-	m_data[0] = id;
-	m_data[1] = exercisesNames;
-	m_data[2] = setsTypes;
-	m_data[3] = restTimes;
-	m_data[4] = subSets;
-	m_data[5] = reps;
-	m_data[6] = weights;
-	m_data[7] = QString();
-	m_data[8] = QString();
 }
