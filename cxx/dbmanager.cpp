@@ -521,6 +521,11 @@ void DbManager::createMesoCalendar()
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
 }
 
+void DbManager::createMesoCalendarPage(const int exec_id = -1)
+{
+
+}
+
 void DbManager::newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
@@ -648,7 +653,7 @@ void DbManager::deleteTrainingDayTable()
 
 void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx)
 {
-	m_tDayModels[modelIdx]->newExerciseName(exerciseName);
+	m_tDayModels[modelIdx]->newExercise(exerciseName, m_tDayModels[modelIdx]->exercisesNumber());
 	if (m_tDayExerciseEntryProperties.isEmpty())
 	{
 		m_tDayExerciseEntryProperties.insert("parentLayout", QVariant::fromValue(parentLayout));
@@ -657,6 +662,14 @@ void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* pa
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
 					{ if (status == QQmlComponent::Ready) return DbManager::createExerciseObject_part2(); } );
+		#ifdef DEBUG
+		if (m_tDayExercisesComponent->status() == QQmlComponent::Error)
+		{
+			qDebug() << m_tDayExercisesComponent->errorString();
+			for (uint i(0); i < m_tDayExercisesComponent->errors().count(); ++i)
+				qDebug() << m_tDayExercisesComponent->errors().at(i).description();
+		}
+		#endif
 	}
 	else
 		createExerciseObject_part2();
@@ -664,12 +677,14 @@ void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* pa
 
 void DbManager::createExerciseObject_part2()
 {
+	#ifdef DEBUG
 	if (m_tDayExercisesComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_tDayExercisesComponent->errorString();
 		for (uint i(0); i < m_tDayExercisesComponent->errors().count(); ++i)
 			qDebug() << m_tDayExercisesComponent->errors().at(i).description();
 	}
+	#endif
 
 	if (m_tDayExercisesComponent->status() == QQmlComponent::Ready)
 	{

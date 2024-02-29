@@ -155,7 +155,7 @@ void DBMesoCalendarTable::createMesoCalendar()
 					day_info = m_model->get(i, x).split(',');
 					if (day_info.at(1) != QStringLiteral("-1"))
 					{
-						queryValues += QLatin1Char('(') + day_info.at(1) + ",\'" + day_info.at(2) + "\'," + day_info.at(3) + ',' +
+						queryValues += '(' + day_info.at(1) + ',' + day_info.at(2) + QStringLiteral(",\'") + day_info.at(3) + QStringLiteral("\',") +
 									day_info.at(4) + ',' + day_info.at(5) + ',' + QString::number(x+1) + QStringLiteral("),");
 					}
 				}

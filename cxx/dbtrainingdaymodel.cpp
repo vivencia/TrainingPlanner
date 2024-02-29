@@ -1,301 +1,344 @@
 #include "dbtrainingdaymodel.h"
 
-void DBTrainingDayModel::appendExercisesList(const QStringList& list)
+void DBTrainingDayModel::fromDataBase(const QStringList& list)
 {
-	const QStringList exercises_names(list.at(0).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList setstypes(list.at(1).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList resttimes(list.at(2).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList subsets(list.at(3).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList reps(list.at(4).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList weights(list.at(5).split(record_separator, Qt::SkipEmptyParts));
-	const QStringList notes(list.at(6).split(record_separator, Qt::SkipEmptyParts));
+	const QStringList exercises_names(list.at(0).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList setstypes(list.at(1).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList resttimes(list.at(2).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList subsets(list.at(3).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList reps(list.at(4).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList weights(list.at(5).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList notes(list.at(6).split(record_separator2, Qt::SkipEmptyParts));
 
-	const uint n_sets(setstypes.count());
-	QStringList setsInfo;
-	QStringList::const_iterator itr(exercises_names.constBegin());
-	const QStringList::const_iterator itr_end(exercises_names.constEnd());
-
-	while (itr != itr_end)
+	for(uint i(0); i < exercises_names.count(); ++i)
 	{
-		for(uint i(0); i < n_sets; ++i)
-		{
-			setsInfo << setstypes.at(i) << resttimes.at(i) << subsets.at(i) << reps.at(i) << weights.at(i) << notes.at(i);
-			m_ExerciseData.insert(*itr, setsInfo);
-			setsInfo.clear();
-			++itr;
-		}
+		m_ExerciseData.append(new exerciseEntry);
+		m_ExerciseData[i]->name = exercises_names.at(i);
+		m_ExerciseData[i]->type = setstypes.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->resttime = resttimes.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->subsets = subsets.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->reps = reps.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->weight = weights.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->notes = notes.at(i).split(record_separator, Qt::SkipEmptyParts);
+		m_ExerciseData[i]->nsets = m_ExerciseData.at(i)->type.count();
 	}
 }
 
 void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 {
-	QHash<QString,QStringList>::const_iterator itr(m_ExerciseData.constBegin());
-	const QHash<QString,QStringList>::const_iterator itr_end(m_ExerciseData.constEnd());
-	while (itr != itr_end)
+	for(uint i(0); i < m_ExerciseData.count(); ++i)
 	{
-		data[0].append(itr.key() + record_separator);
-		data[1].append((*itr).at(0));
-		data[2].append((*itr).at(1));
-		data[3].append((*itr).at(2));
-		data[4].append((*itr).at(3));
-		data[5].append((*itr).at(4));
-		data[6].append((*itr).at(5));
-		++itr;
+		data[0].append(m_ExerciseData.at(i)->name + record_separator2);
+		for(uint x(0); x < m_ExerciseData.at(i)->nsets; ++x)
+		{
+			data[1].append(m_ExerciseData.at(i)->type.at(x) + record_separator);
+			data[2].append(m_ExerciseData.at(i)->resttime.at(x) + record_separator);
+			data[3].append(m_ExerciseData.at(i)->subsets.at(x) + record_separator);
+			data[4].append(m_ExerciseData.at(i)->reps.at(x) + record_separator);
+			data[5].append(m_ExerciseData.at(i)->weight.at(x) + record_separator);
+			data[6].append(m_ExerciseData.at(i)->notes.at(x) + record_separator);
+		}
+		data[1].append(record_separator2);
+		data[2].append(record_separator2);
+		data[3].append(record_separator2);
+		data[4].append(record_separator2);
+		data[5].append(record_separator2);
+		data[6].append(record_separator2);
 	}
 }
 
-QString DBTrainingDayModel::exerciseName() const
+QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 {
-	if (m_ExerciseData.count() > 0)
+	return (exercise_idx < m_ExerciseData.count()) ? m_ExerciseData.at(exercise_idx)->name : QString();
+}
+
+void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+		m_ExerciseData[exercise_idx]->name = new_name;
+}
+
+void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx)
+{
+	const uint total(m_ExerciseData.count());
+	const int n(idx - total);
+	if (n >= 0)
 	{
-		const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-		QString name(m_workingExercise.key());
-		return idx != -1 ? name.replace(subrecord_separator, QStringLiteral(" + ")) : m_workingExercise.key();
+		for(uint i(0); i <= n; ++i)
+			m_ExerciseData.append(new exerciseEntry);
+	}
+	m_ExerciseData[idx]->name = new_exercise;
+}
+
+QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
+		return idx != -1 ? QStringLiteral("1: ") + m_ExerciseData.at(exercise_idx)->name.left(idx-1) : m_ExerciseData.at(exercise_idx)->name;
 	}
 	return QString();
 }
 
-void DBTrainingDayModel::setExerciseName(const QString& name)
+void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exercise_idx)
 {
-	const QString key(m_workingExercise.key());
-	m_workingExercise = m_ExerciseData.insert(name, m_workingExercise.value());
-	m_ExerciseData.remove(key);
-}
-
-void DBTrainingDayModel::newExerciseName(const QString& new_exercise)
-{
-	m_workingExercise = m_ExerciseData.insert(new_exercise, QStringList());
-}
-
-QString DBTrainingDayModel::exerciseName1() const
-{
-	if (m_ExerciseData.count() > 0)
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-		return idx != -1 ? QStringLiteral("1: ") + m_workingExercise.key().left(idx -1) : m_workingExercise.key();
+		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
+		QString new_name1;
+		if (idx != -1)
+			new_name1 = name1 + subrecord_separator + m_ExerciseData.at(exercise_idx)->name.mid(idx+1);
+		else
+			new_name1 = name1;
+		m_ExerciseData[exercise_idx]->name = new_name1;
+	}
+}
+
+QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
+		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : QString();
 	}
 	return QString();
 }
 
-void DBTrainingDayModel::setExerciseName1(const QString& name1)
+void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exercise_idx)
 {
-	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	QString new_name1;
-	if (idx != -1)
-		new_name1 = name1 + subrecord_separator + m_workingExercise.key().mid(idx+1);
-	else
-		new_name1 = name1;
-	setExerciseName(name1);
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
+		QString new_name2;
+		if (idx != -1)
+			new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + subrecord_separator + name2;
+		else
+			new_name2 = subrecord_separator + name2;
+		m_ExerciseData[exercise_idx]->name = new_name2;
+	}
 }
 
-QString DBTrainingDayModel::exerciseName2() const
-{
-	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	return idx != -1 ? QStringLiteral("2: ") + m_workingExercise.key().mid(idx+1) : QString();
-}
-
-void DBTrainingDayModel::setExerciseName2(const QString& name2)
-{
-	const int idx(m_workingExercise.key().indexOf(subrecord_separator));
-	QString new_name2;
-	if (idx != -1)
-		new_name2 = m_workingExercise.key().left(idx) + subrecord_separator + name2;
-	else
-		new_name2 = subrecord_separator + name2;
-	setExerciseName(new_name2);
-}
-
-void DBTrainingDayModel::newSet(const uint set_number, const uint type, const QString& resttime,
+void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type, const QString& resttime,
 					const QString& subsets, const QString& reps, const QString& weight, const QString& notes)
 {
-	const uint n_sets(setsNumber());
-	const QString str_type(QString::number(type));
-
-	if (set_number >= n_sets)
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		const uint n(set_number-n_sets+1);
-		QHash<QString,QStringList>::iterator workingExercise(m_ExerciseData.find(m_workingExercise.key()));
-		for(uint i(0); i < n; ++i)
+		const uint total(m_ExerciseData.at(exercise_idx)->type.count());
+		const int n(set_number - total);
+		const QString strType(QString::number(type));
+		if (n >= 0)
 		{
-			(*workingExercise)[0].append(str_type + record_separator);
-			(*workingExercise)[1].append(resttime + record_separator);
-			(*workingExercise)[2].append(subsets + record_separator);
-			(*workingExercise)[3].append(reps + record_separator);
-			(*workingExercise)[4].append(weight + record_separator);
-			(*workingExercise)[5].append(notes + record_separator);
+			for(uint i(0); i <= n; ++i)
+			{
+				m_ExerciseData[exercise_idx]->type.append(strType);
+				m_ExerciseData[exercise_idx]->resttime.append(resttime);
+				m_ExerciseData[exercise_idx]->subsets.append(subsets);
+				m_ExerciseData[exercise_idx]->reps.append(reps);
+				m_ExerciseData[exercise_idx]->weight.append(weight);
+				m_ExerciseData[exercise_idx]->notes.append(notes);
+			}
+			m_ExerciseData[exercise_idx]->nsets += n;
 		}
 	}
 }
 
-bool DBTrainingDayModel::removeSet(const uint set_number)
+bool DBTrainingDayModel::removeSet(const uint set_number, const uint exercise_idx)
 {
-	if (set_number < setsNumber())
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		(*m_workingExercise)[0].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		(*m_workingExercise)[1].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		(*m_workingExercise)[2].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		(*m_workingExercise)[3].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		(*m_workingExercise)[4].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		(*m_workingExercise)[5].split(record_separator, Qt::SkipEmptyParts).remove(set_number);
-		return true;
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+		{
+			m_ExerciseData[exercise_idx]->type.remove(set_number);
+			m_ExerciseData[exercise_idx]->resttime.remove(set_number);
+			m_ExerciseData[exercise_idx]->subsets.remove(set_number);
+			m_ExerciseData[exercise_idx]->reps.remove(set_number);
+			m_ExerciseData[exercise_idx]->weight.remove(set_number);
+			m_ExerciseData[exercise_idx]->notes.remove(set_number);
+			m_ExerciseData[exercise_idx]->nsets--;
+			return true;
+		}
 	}
 	return false;
 }
 
-uint DBTrainingDayModel::setType(const uint set_number) const
+uint DBTrainingDayModel::setType(const uint set_number, const uint exercise_idx) const
 {
-	if ((*m_workingExercise).count() > 0)
-		return !(*m_workingExercise).at(0).isEmpty() ?
-			(*m_workingExercise).at(0).split(record_separator, Qt::SkipEmptyParts).at(set_number).toUInt() : 0;
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->type.at(set_number).toUInt();
+	}
 	return 0;
 }
 
-void DBTrainingDayModel::setSetType(const uint set_number, const uint new_type)
+void DBTrainingDayModel::setSetType(const uint set_number, const uint new_type, const uint exercise_idx)
 {
-	QStringList setTypeList(m_workingExercise.value().at(0).split(record_separator));
-	setTypeList[set_number] = QString::number(new_type);
-	m_ExerciseData[m_workingExercise.key()][0] = setTypeList.join(record_separator);
-}
-
-QString DBTrainingDayModel::setRestTime(const uint set_number) const
-{
-	if ((*m_workingExercise).count() > 0)
-		return !(*m_workingExercise).at(1).isEmpty() ?
-			(*m_workingExercise).at(1).split(record_separator, Qt::SkipEmptyParts).at(set_number) : QString();
-	return QString();
-}
-
-void DBTrainingDayModel::setSetRestTime(const uint set_number, const QString& new_time)
-{
-	QStringList setRestTimeList(m_workingExercise.value().at(1).split(record_separator));
-	setRestTimeList[set_number] = new_time;
-	m_ExerciseData[m_workingExercise.key()][1] = setRestTimeList.join(record_separator);
-}
-
-QString DBTrainingDayModel::setSubSets(const uint set_number) const
-{
-	if ((*m_workingExercise).count() > 0)
-		return !(*m_workingExercise).at(2).isEmpty() ?
-			(*m_workingExercise).at(2).split(record_separator, Qt::SkipEmptyParts).at(set_number) : QString();
-	return QString();
-}
-
-void DBTrainingDayModel::setSetSubSets(const uint set_number, const QString& new_subsets)
-{
-	QStringList setSubSetList(m_workingExercise.value().at(2).split(record_separator));
-	setSubSetList[set_number] = new_subsets;
-	m_ExerciseData[m_workingExercise.key()][2] = setSubSetList.join(record_separator);
-}
-
-QString DBTrainingDayModel::setReps(const uint set_number) const
-{
-	if ((*m_workingExercise).count() > 0)
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (!(*m_workingExercise).at(3).isEmpty())
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->type[set_number] = QString::number(new_type);
+	}
+}
+
+QString DBTrainingDayModel::setRestTime(const uint set_number, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->resttime.at(set_number);
+	}
+	return QString();
+}
+
+void DBTrainingDayModel::setSetRestTime(const uint set_number, const QString& new_time, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->resttime[set_number] = new_time;
+	}
+}
+
+QString DBTrainingDayModel::setSubSets(const uint set_number, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->subsets.at(set_number);
+	}
+	return QString();
+}
+
+void DBTrainingDayModel::setSetSubSets(const uint set_number, const QString& new_subsets, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->subsets[set_number] = new_subsets;
+	}
+}
+
+QString DBTrainingDayModel::setReps(const uint set_number, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->reps.at(set_number);
+	}
+	return QString();
+}
+
+void DBTrainingDayModel::setSetReps(const uint set_number, const QString& new_reps, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->reps[set_number] = new_reps;
+	}
+}
+
+QString DBTrainingDayModel::setWeight(const uint set_number, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->weight.at(set_number);
+	}
+	return QString();
+}
+
+void DBTrainingDayModel::setSetWeight(const uint set_number, const QString& new_weight, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->weight[set_number] = new_weight;
+	}
+}
+
+QString DBTrainingDayModel::setNotes(const uint set_number, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			return m_ExerciseData[exercise_idx]->notes.at(set_number);
+	}
+	return QString();
+}
+
+void DBTrainingDayModel::setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+			m_ExerciseData[exercise_idx]->notes[set_number] = new_notes;
+	}
+}
+
+QString DBTrainingDayModel::setReps(const uint set_number, const uint subset, const uint exercise_idx) const
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		{
-			QString reps( (*m_workingExercise).at(3).split(record_separator, Qt::SkipEmptyParts).at(set_number) );
-			const int idx(reps.indexOf(subrecord_separator));
-			return idx != -1 ? reps.left(idx-1) : reps;
+			const QStringList subSetReps(m_ExerciseData[exercise_idx]->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			if (subset < subSetReps.count())
+				return subSetReps.at(subset);
 		}
 	}
 	return QString();
 }
 
-void DBTrainingDayModel::setSetReps(const uint set_number, const QString& new_reps)
+void DBTrainingDayModel::setSetReps(const uint set_number, const uint subset, const QString& new_reps, const uint exercise_idx)
 {
-	QStringList setRepsList(m_workingExercise.value().at(3).split(record_separator));
-	setRepsList[set_number] = new_reps;
-	m_ExerciseData[m_workingExercise.key()][3] = setRepsList.join(record_separator);
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+		{
+			QStringList subSetReps(m_ExerciseData[exercise_idx]->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			const uint total(subSetReps.count());
+			const int n(subset - total);
+			if (n >= 0)
+			{
+				for(uint i(0); i <= n; ++i)
+					subSetReps.append(new_reps + subrecord_separator);
+			}
+			subSetReps[subset] = new_reps;
+			m_ExerciseData[exercise_idx]->reps[set_number] = subSetReps.join(subrecord_separator);
+		}
+	}
 }
 
-QString DBTrainingDayModel::setWeight(const uint set_number) const
+QString DBTrainingDayModel::setWeight(const uint set_number, const uint subset, const uint exercise_idx) const
 {
-	if ((*m_workingExercise).count() > 0)
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (!(*m_workingExercise).at(4).isEmpty())
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		{
-			QString reps( (*m_workingExercise).at(4).split(record_separator, Qt::SkipEmptyParts).at(set_number) );
-			const int idx(reps.indexOf(subrecord_separator));
-			return idx != -1 ? reps.left(idx-1) : reps;
+			const QStringList subSetWeight(m_ExerciseData[exercise_idx]->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			if (subset < subSetWeight.count())
+				return subSetWeight.at(subset);
 		}
 	}
 	return QString();
 }
 
-void DBTrainingDayModel::setSetWeight(const uint set_number, const QString& new_weight)
+void DBTrainingDayModel::setSetWeight(const uint set_number, const uint subset, const QString& new_weight, const uint exercise_idx)
 {
-	QStringList setWeightList(m_workingExercise.value().at(4).split(record_separator));
-	setWeightList[set_number] = new_weight;
-	m_ExerciseData[m_workingExercise.key()][4] = setWeightList.join(record_separator);
-}
-
-QString DBTrainingDayModel::setNotes(const uint set_number) const
-{
-	if ((*m_workingExercise).count() > 0)
-		return !(*m_workingExercise).at(5).isEmpty() ?
-			(*m_workingExercise).at(5).split(record_separator, Qt::SkipEmptyParts).at(set_number) : QString();
-	return QString();
-}
-
-void DBTrainingDayModel::setSetNotes(const uint set_number, const QString& new_notes)
-{
-	QStringList setNotesList(m_workingExercise.value().at(5).split(record_separator));
-	setNotesList[set_number] = new_notes;
-	m_ExerciseData[m_workingExercise.key()][5] = setNotesList.join(record_separator);
-}
-
-QString DBTrainingDayModel::setReps(const uint set_number, const uint subset) const
-{
-	if ((*m_workingExercise).count() > 0)
+	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (!(*m_workingExercise).at(3).isEmpty())
+		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		{
-			const QString reps( (*m_workingExercise).at(3).split(record_separator, Qt::SkipEmptyParts).at(set_number) );
-			const QStringList subset_info(reps.split(subrecord_separator, Qt::SkipEmptyParts));
-			if (subset < subset_info.count())
-				return subset_info.at(subset);
+			QStringList subSetWeight(m_ExerciseData[exercise_idx]->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			const uint total(subSetWeight.count());
+			const int n(subset - total);
+			if (n >= 0)
+			{
+				for(uint i(0); i <= n; ++i)
+					subSetWeight.append(new_weight + subrecord_separator);
+			}
+			subSetWeight[subset] = new_weight;
+			m_ExerciseData[exercise_idx]->weight[set_number] = subSetWeight.join(subrecord_separator);
 		}
-	}
-	return QString();
-}
-
-void DBTrainingDayModel::setSetReps(const uint set_number, const uint subset, const QString& new_reps)
-{
-	QStringList setRepsList(m_workingExercise.value().at(3).split(record_separator));
-	if (set_number < setRepsList.count())
-	{
-		QStringList subreps(setRepsList.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
-		if (subset < subreps.count())
-			subreps[subset] = new_reps;
-		setRepsList[set_number] = subreps.join(subrecord_separator);
-		m_ExerciseData[m_workingExercise.key()][3] = setRepsList.join(record_separator);
-	}
-}
-
-QString DBTrainingDayModel::setWeight(const uint set_number, const uint subset) const
-{
-	if ((*m_workingExercise).count() > 0)
-	{
-		if (!(*m_workingExercise).at(4).isEmpty())
-		{
-			const QString reps( (*m_workingExercise).at(4).split(record_separator, Qt::SkipEmptyParts).at(set_number) );
-			const QStringList subset_info(reps.split(subrecord_separator, Qt::SkipEmptyParts));
-			if (subset < subset_info.count())
-				return subset_info.at(subset);
-		}
-	}
-	return QString();
-}
-
-void DBTrainingDayModel::setSetWeight(const uint set_number, const uint subset, const QString& new_weight)
-{
-	QStringList setWeightsList(m_workingExercise.value().at(4).split(record_separator));
-	if (set_number < setWeightsList.count())
-	{
-		QStringList subweights(setWeightsList.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
-		if (subset < subweights.count())
-			subweights[subset] = new_weight;
-		setWeightsList[set_number] = subweights.join(subrecord_separator);
-		m_ExerciseData[m_workingExercise.key()][4] = setWeightsList.join(record_separator);
 	}
 }

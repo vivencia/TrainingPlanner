@@ -25,8 +25,6 @@ ApplicationWindow {
 	property date todayFull
 	property date today
 
-	property var trainingDayInfoPages: []
-	property var dbExercisesListPage: null
 	property StackView appStackView: stackView
 
 	Timer {
@@ -82,14 +80,6 @@ ApplicationWindow {
 				}
 			});
 		}
-	}
-
-	Component.onDestruction: {
-		if (dbExercisesListPage !== null)
-			dbExercisesListPage.destroy();
-		var i = 0;
-		for (; i < trainingDayInfoPages.length; ++i)
-			trainingDayInfoPages[i].Object.destroy();
 	}
 
 	function androidBackKeyPressed() {
@@ -170,88 +160,32 @@ ApplicationWindow {
 			}
 
 			onClicked: { // Use most current meso
-				for (var i = 0; i < trainingDayInfoPages.length; ++i) {
-					if (trainingDayInfoPages[i].date === today.getTime()) {
-						appStackView.push(trainingDayInfoPages[i].Object, StackView.DontLoad);
-						return;
+				function pushOntoStackView(object, bfirsttime) {
+					if (bfirsttime) {
+						object.tDay = mesosCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+						object.splitLetter = mesosCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
 					}
+					appDB.getQmlObject.disconnect(pushOntoStackView);
+					appStackView.push(object, StackView.DontLoad);
 				}
 
-				const mostRecentMeso = mesocyclesModel.count - 1;
-				const meso_name = mesocyclesModel.get(mostRecentMeso, 1);
-				var tday = 0, splitletter = 'A', mesoid = 0;
-				var bFirstTime = false;
-
-				if (mesocyclesModel.get(mostRecentMeso, 8) === "1") {
-					let calendar_info = Database.getMesoCalendarDate(today);
-					tday = calendar_info[0].mesoCalnDay;
-					splitletter = calendar_info[0].mesoCalSplit;
-					mesoid = calendar_info[0].mesoCalMesoId;
+				function readyToProceed()
+				{
+					appDB.qmlReady.disconnect(readyToProceed);
+					appDB.getQmlObject.connect(pushOntoStackView);
+					appDB.getTrainingDay(mesocyclesModel.count -1, today, appStackView);
 				}
+
+				const mesoId = mesocyclesModel.getInt(mesocyclesModel.count -1, 0);
+				if (mesosCalendarModel.getMesoId() === mesoId)
+					readyToProceed(); //already loaded
 				else {
-					let meso_info = Database.getMesoInfo(mesocyclesModel.getInt(mostRecentMeso, 0));
-					const mesosplit = meso_info[0].mesoSplit;
-					let day_info = Database.getMostRecentTrainingDay();
-					if (day_info.exercisesNames) {
-						tday = day_info[0].dayNumber + 1;
-						splitletter = getNextLetterInSplit(mesosplit, day_info[0].mesoCalSplit);
-					}
-					else {
-						tday = 1;
-						splitletter = mesosplit.length > 0 ? mesosplit.charAt(0) : 'A';
-						bFirstTime = true;
-					}
-					mesoid = meso_info[0].mesoId;
+					mesosCalendarModel.clear();
+					appDB.qmlReady.connect(readyToProceed);
+					appDB.pass_object(mesosCalendarModel);
+					appDB.getMesoCalendar(mesoId);
 				}
-				/*Database.getAllTrainingDays(mesoid);
-				let res = Database.getPreviousTrainingDayForDivision(splitletter, tday, mesoid);
-				for( var x = 0; x < res.length; x++) {
-					console.info("%%%%%%%%%% ", res[x].dayId);
-					console.info("%%%%%%%%%% ", new Date(res[x].dayDate).toDateString());
-					console.info("%%%%%%%%%% ", res[x].exercisesNames);
-					console.info("%%%%%%%%%% ", res[x].dayNumber);
-					console.info("%%%%%%%%%% ", res[x].daySplitLetter);
-				}
-				return;*/
-
-				var component = Qt.createComponent("TrainingDayInfo.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					var trainingDayInfoPage = component.createObject(mainwindow, {
-						mainDate: today, tDay: tday, splitLetter: splitletter,
-						mesoName: meso_name, mesoId: mesoid, bFirstTime: bFirstTime
-					});
-
-					//Maximum of 3 pages loaded on memory. The latest page replace the earliest
-					if (trainingDayInfoPages.length === 3) {
-						trainingDayInfoPages[0].Object.destroy();
-						trainingDayInfoPages[0] = trainingDayInfoPages[1];
-						trainingDayInfoPages[1] = trainingDayInfoPages[2];
-						trainingDayInfoPages.pop();
-					}
-
-					trainingDayInfoPages.push({ "date": today.getTime(), "Object":trainingDayInfoPage });
-					appStackView.push(trainingDayInfoPage, StackView.DontLoad);
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
 			} //onClicked
 		} //TabButton
 	} //footer
-
-	function getNextLetterInSplit(mesosplit, currentletter) {
-		if (mesosplit.length > 0) {
-			const idx = mesosplit.indexOf(currentletter);
-			if (idx >= 0) {
-				++idx;
-				if (idx >= mesosplit.length)
-					idx = 0;
-				return mesosplit.charAt(idx);
-			}
-		}
-		return 'A';
-	}
 } //ApplicationWindow

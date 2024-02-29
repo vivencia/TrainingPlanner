@@ -89,7 +89,7 @@ FocusScope {
 	TPBalloonTip {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise")
-		message: tDayModel.exerciseName() + qsTr("? This action cannot be undone.")
+		message: tDayModel.exerciseName(thisObjectIdx) + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -102,7 +102,7 @@ FocusScope {
 
 	Frame {
 		id: paneExercise
-		property bool shown: false
+		property bool shown: tDayModel.setsNumber(thisObjectIdx) === 0
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height
 		Behavior on height {
@@ -143,7 +143,7 @@ FocusScope {
 
 			TextField {
 				id: txtExerciseName
-				text: tDayModel.exerciseName1()
+				text: tDayModel.exerciseName1(thisObjectIdx)
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
@@ -189,7 +189,7 @@ FocusScope {
 				}
 
 				onEditingFinished:{
-					tDayModel.setExerciseName1(text);
+					tDayModel.setExerciseName1(text, thisObjectIdx);
 					exerciseEdited(thisObjectIdx);
 				}
 
@@ -292,7 +292,7 @@ FocusScope {
 					id: cboSetType
 					model: setTypesModel
 					Layout.minimumWidth: 140
-					currentIndex: tDayModel.setType(thisObjectIdx)
+					currentIndex: tDayModel.setType(0, thisObjectIdx)
 				}
 				RoundButton {
 					id: btnAddSet
@@ -305,7 +305,7 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						tDayModel.setSetType(thisObjectIdx, cboSetType.currentValue);
+						tDayModel.setSetType(0, cboSetType.currentValue, thisObjectIdx);
 						createSetObject(setType, true);
 						requestHideFloatingButtons (thisObjectIdx);
 						if (btnFloat === null)
@@ -325,10 +325,6 @@ FocusScope {
 			destroyFloatingAddSetButton();
 		}
 	} //paneExercise
-
-	Component.onCompleted: {
-		tDayModel.exercisesBegin();
-	}
 
 	function createFloatingAddSetButton() {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
@@ -490,13 +486,13 @@ FocusScope {
 		function generateSetObject(page, setnbr) {
 			var component = Qt.createComponent(page, Component.Asynchronous);
 			if (bNewSet) {
-				nset++;
-				setNbr = nset;
+				setnbr++;
+				setNbr = setnbr;
 				calculateSuggestedValues(type);
 				if (btnFloat !== null)
 					btnFloat.nextSetNbr++;
-				}
-			appDB.newSet(nset, type, suggestedRestTimes[nset], suggestedSubSets[nset], suggestedReps[nset], suggestedWeight[nset], setNotes[nset]);
+			}
+			appDB.newSet(setnbr, type, suggestedRestTimes[setnbr], suggestedSubSets[setnbr], suggestedReps[setnbr], suggestedWeight[setnbr], setNotes[setnbr]);
 
 			function finishCreation(nset) {	
 				var sprite = component.createObject(layoutMain, { tDayMode:tDayModel,  setNumber:nset });

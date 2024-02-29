@@ -12,7 +12,8 @@
 #endif
 
 static const QLatin1Char record_separator(29);
-static const QLatin1Char subrecord_separator(30);
+static const QLatin1Char record_separator2(30);
+static const QLatin1Char subrecord_separator(31);
 
 class TPListModel : public QAbstractListModel
 {

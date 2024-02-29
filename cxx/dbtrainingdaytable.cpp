@@ -124,7 +124,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 				uint i(0);
 				for (i = 0; i < n_entries-1; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
-				static_cast<DBTrainingDayModel*>(m_model)->appendExercisesList(split_info);
+				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(split_info);
 			}
 		}
 		mSqlLiteDB.close();
