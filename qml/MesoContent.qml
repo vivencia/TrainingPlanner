@@ -6,21 +6,17 @@ import com.vivenciasoftware.qmlcomponents
 Page {
 	id: mesoContentPage
 	required property int mesoId
-	required property string mesoName
-	required property date mesoStartDate
-	required property date mesoEndDate
-	required property string mesoSplit
-	required property int idxModel
-	required property bool bVisualLoad
+	required property int mesoIdx
 
-	property var calendarModel: null
+	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
+	readonly property date mesoStartDate: mesocyclesModel.getDate(mesoIdx, 2)
+	readonly property date mesoEndDate: mesocyclesModel.getDate(mesoIdx, 3)
+	readonly property date _today: new Date()
 
 	property string splitLetter
 	property string trainingDay
 	property string splitContent
-	property bool bReloadDatabase;
 	property bool bCanViewDay
-	property bool bCalendarInSyncWithMeso
 
 	Image {
 		anchors.fill: parent
@@ -102,7 +98,7 @@ Page {
 
 				Text {
 					anchors.centerIn: parent
-					text: calendar.monthsNames[calendarModel.getMonth(index)] + " " + calendarModel.getYear(index);
+					text: calendar.monthsNames[mesosCalendarModel.getMonth(index)] + " " + mesosCalendarModel.getYear(index);
 					font.pixelSize: AppSettings.titleFontSizePixelSize
 					font.bold: true
 				}
@@ -128,8 +124,8 @@ Page {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(AppSettings.appLocale)
-				month: calendarModel.getMonth(index)
-				year: calendarModel.getYear(index)
+				month: mesosCalendarModel.getMonth(index)
+				year: mesosCalendarModel.getYear(index)
 				spacing: 0
 				anchors.top: weekTitles.bottom
 				width: parent.width
@@ -141,7 +137,7 @@ Page {
 					width: calendar.cellSize
 					radius: height * 0.5
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
-					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
+					readonly property bool todayDate: model.year === _today.getFullYear() && model.month === _today.getMonth() && model.day === _today.getDate()
 					property bool bIsTrainingDay: false
 
 					Component.onCompleted: {
@@ -151,7 +147,7 @@ Page {
 						else {
 							//if ( monthGrid.year === model.year) {
 								if ( monthGrid.month === model.month ) {
-									if (calendarModel.isTrainingDay(model.month+1, model.day-1)) {
+									if (mesosCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
 										colorValue =  listEntryColor2;
 										bIsTrainingDay = true;
 									}
@@ -164,7 +160,7 @@ Page {
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? calendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + calendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
+						text: monthGrid.month === model.month ? mesosCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesosCalendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
@@ -193,8 +189,8 @@ Page {
 								}
 							}
 							if (btnShowDayInfo.enabled) {
-								splitLetter = calendarModel.getSplit(model.month+1, model.day-1);
-								trainingDay = calendarModel.getTrainingDay(model.month+1, model.day-1);
+								splitLetter = mesosCalendarModel.getSplit(model.month+1, model.day-1);
+								trainingDay = mesosCalendarModel.getTrainingDay(model.month+1, model.day-1);
 								getDivisionContent(splitLetter);
 							}
 							calendar.currentDay = model.day;
@@ -208,16 +204,6 @@ Page {
 			} //MonthGrid
 		} //delegate: Rectangle
 	} //ListView
-
-	function setModel(model) {
-		if (model.count === 0) {
-			model.createModel(mesoId, mesoStartDate, mesoEndDate, mesoSplit);
-			appDB.pass_object(model);
-			appDB.createMesoCalendar();
-		}
-		calendarModel = model;
-		calendar.model = model;
-	}
 
 	footer: ToolBar {
 		width: parent.width
@@ -250,17 +236,17 @@ Page {
 				Layout.rightMargin: 5
 
 				onClicked: {
-					function pushOntoStackView(object, bfirsttime) {
+					function pushTDayOntoStackView(object, bfirsttime) {
 						if (bfirsttime) {
 							object.tDay = trainingDay;
 							object.splitLetter = splitLetter;
 						}
-						appDB.getQmlObject.disconnect(pushOntoStackView);
-						appStackView.push(object, StackView.DontLoad);
+						appDB.getQmlObject.disconnect(pushTDayOntoStackView);
+						appDB.appStackView().push(object, StackView.DontLoad);
 					}
 
-					appDB.getQmlObject.connect(pushOntoStackView);
-					appDB.getTrainingDay(idxModel, calendar.dayInfoDate, appStackView);
+					appDB.getQmlObject.connect(pushTDayOntoStackView);
+					appDB.getTrainingDay(mesoIdx, calendar.dayInfoDate);
 				}
 			}
 		} // RowLayout
@@ -270,14 +256,18 @@ Page {
 		//}
 	} // footer: ToolBar
 
+	function setModel() {
+		calendar.model = mesosCalendarModel;
+	}
+
 	function getDivisionContent(splitletter) {
 		switch (splitletter) {
-			case 'A': splitContent = mesoSplitModel.get(idxModel, 2); break;
-			case 'B': splitContent = mesoSplitModel.get(idxModel, 3); break;
-			case 'C': splitContent = mesoSplitModel.get(idxModel, 4); break;
-			case 'D': splitContent = mesoSplitModel.get(idxModel, 5); break;
-			case 'E': splitContent = mesoSplitModel.get(idxModel, 6); break;
-			case 'F': splitContent = mesoSplitModel.get(idxModel, 7); break;
+			case 'A': splitContent = mesoSplitModel.get(mesoIdx, 2); break;
+			case 'B': splitContent = mesoSplitModel.get(mesoIdx, 3); break;
+			case 'C': splitContent = mesoSplitModel.get(mesoIdx, 4); break;
+			case 'D': splitContent = mesoSplitModel.get(mesoIdx, 5); break;
+			case 'E': splitContent = mesoSplitModel.get(mesoIdx, 6); break;
+			case 'F': splitContent = mesoSplitModel.get(mesoIdx, 7); break;
 		}
 	}
 } //Page

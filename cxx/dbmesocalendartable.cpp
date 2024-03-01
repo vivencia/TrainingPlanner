@@ -112,6 +112,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 				}
 			}
 		}
+		m_model->setReady(true);
 		mSqlLiteDB.close();
 		m_result = true;
 	}

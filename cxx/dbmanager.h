@@ -31,6 +31,8 @@ public:
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
+	Q_INVOKABLE void setAppStackView(QQuickItem* stackView) { m_appStackView = stackView; }
+	Q_INVOKABLE QQuickItem* appStackView() const { return m_appStackView; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -76,7 +78,8 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getMesoCalendar(const int meso_id);
 	Q_INVOKABLE void createMesoCalendar();
-	void createMesoCalendarPage(const int exec_id = -1);
+	Q_INVOKABLE void createMesoCalendarPage(const uint meso_id, const uint meso_idx);
+	void createMesoCalendarPage_part2();
 	Q_INVOKABLE void newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void deleteMesoCalendar(const uint id);
@@ -84,7 +87,7 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getTrainingDay(const uint meso_id, const QDate& date, QQuickItem* stackViewer);
+	Q_INVOKABLE void getTrainingDay(const uint meso_id, const QDate& date);
 	void createTrainingDayPage(const int exec_id = -1);
 	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
 	Q_INVOKABLE void newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
@@ -117,6 +120,7 @@ private:
 	QMap<QString,uint> m_WorkerLock;
 	uint m_insertid;
 	QStringList m_result;
+	QQuickItem* m_appStackView;
 
 	DBMesocyclesModel* mesocyclesModel;
 	DBExercisesModel* exercisesListModel;
@@ -130,7 +134,7 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	QMap<QChar,QQmlComponent*> m_splitComponents;
+	QQmlComponent* m_splitComponent;
 	QMap<QChar,QQuickItem*> m_splitItems;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
@@ -140,13 +144,19 @@ private:
 	QQuickItem* m_qmlSplitObjectContainer;
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
+	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
+	QQmlComponent* m_calComponent;
+	QQuickItem* m_calPage;
+	QVariantMap m_calProperties;
+	uint m_lastUsedCalMesoID;
+	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
+
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	QMap<QDate,uint> m_tDayObjects;
 	QList<DBTrainingDayModel*> m_tDayModels;
 	QList<QQuickItem*> m_tDayPages;
 	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
-	QQuickItem* m_qmltDayObjectContainer;
 
 	QVariantMap m_tDayExerciseEntryProperties;
 	QList<QQuickItem*> m_tDayExercises;

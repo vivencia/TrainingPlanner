@@ -71,6 +71,11 @@ public:
 		return m_modeldata.at(row).at(field);
 	}
 
+	inline const QDate getDateFast(const uint row, const uint field) const
+	{
+		return QDate::fromJulianDay(m_modeldata.at(row).at(field).toLongLong());
+	}
+
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{
 		if (row >= 0 && row < m_indexProxy.count())

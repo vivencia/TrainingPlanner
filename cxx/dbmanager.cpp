@@ -24,7 +24,8 @@
 
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
 	: QObject (nullptr), m_execId(0), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
-		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr), m_lastUsedSplitMesoID(0)
+		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr), m_splitComponent(nullptr), m_lastUsedSplitMesoID(0),
+		m_calPage(nullptr), m_calComponent(nullptr), m_lastUsedCalMesoID(0), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -281,6 +282,7 @@ void DbManager::createExercisesListPage()
 	{
 		if (m_exercisesComponent->status() == QQmlComponent::Ready)
 		{
+			disconnect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
 			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->create(m_QMlEngine->rootContext()));
 			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 			QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
@@ -405,17 +407,23 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 		m_lastUsedSplitMesoID = meso_id;
 		m_createdSplits.clear();
 		m_splitProperties.clear();
-		m_splitComponents.clear();
 		m_splitModels.clear();
 		m_splitItems.clear();
 
 		m_qmlSplitObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("exercisesPlanner"));
 		m_qmlSplitObjectContainer = m_qmlSplitObjectParent->findChild<QQuickItem*>(QStringLiteral("splitSwipeView"));
-		m_splitProperties.insert("mesoId", meso_id);
-		m_splitProperties.insert("mesoIdx", meso_idx);
-		m_splitProperties.insert("parentItem", QVariant::fromValue(m_qmlSplitObjectParent));
-		m_splitProperties.insert("splitLetter", QString(QChar('A')));
-		m_splitProperties.insert("splitModel", QVariant());
+		m_splitProperties.insert(QStringLiteral("mesoId"), meso_id);
+		m_splitProperties.insert(QStringLiteral("mesoIdx"), meso_idx);
+		m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_qmlSplitObjectParent));
+		m_splitProperties.insert(QStringLiteral("splitLetter"), QString(QChar('A')));
+		m_splitProperties.insert(QStringLiteral("splitModel"), QVariant());
+	}
+
+	if (m_splitComponent == nullptr)
+	{
+		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
+			connect(m_splitComponent, &QQmlComponent::statusChanged, this,
+				[&](QQmlComponent::Status status) { if (status == QQmlComponent::Ready) return DbManager::createMesoSlitPlanner(); } );
 	}
 
 	do {
@@ -436,11 +444,6 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 			splitModel = new DBMesoSplitModel(this);
 			m_splitModels.insert(splitLetter, splitModel);
 
-			QQmlComponent* component( new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous));
-			connect(component, &QQmlComponent::statusChanged, this,
-				[&](QQmlComponent::Status status) { if (status == QQmlComponent::Ready) return DbManager::createMesoSlitPlanner(); } );
-			m_splitComponents.insert(splitLetter, component);
-
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
 			worker->addExecArg(meso_id);
 			worker->addExecArg(static_cast<QChar>(*itr));
@@ -452,23 +455,23 @@ void DbManager::getCompleteMesoSplit(const uint meso_id, const uint meso_idx, co
 
 void DbManager::createMesoSlitPlanner()
 {
-	QMapIterator<QChar,QQmlComponent*> i(m_splitComponents);
-	i.toFront();
-	while (i.hasNext()) {
-		i.next();
-		if (i.value()->isReady())
-		{
-			if (m_splitModels.value(i.key())->isReady())
+	if (m_splitComponent->status() == QQmlComponent::Ready )
+	{
+		QMapIterator<QChar,DBMesoSplitModel*> i(m_splitModels);
+		i.toFront();
+		while (i.hasNext()) {
+			i.next();
+			if (i.value()->isReady())
 			{
 				if (m_createdSplits.indexOf(i.key()) == -1)
 				{
+					disconnect( this, &DbManager::qmlReady, this, &DbManager::createMesoSlitPlanner );
 					m_createdSplits.append(i.key());
-					m_splitProperties["splitLetter"] = QString(i.key());
-					m_splitProperties["splitModel"] = QVariant::fromValue(m_splitModels.value(i.key()));
-					QQuickItem* item (static_cast<QQuickItem*>(i.value()->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
+					m_splitProperties[QStringLiteral("splitLetter")] = QString(i.key());
+					m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(m_splitModels.value(i.key()));
+					QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
 					m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 					item->setParentItem(m_qmlSplitObjectParent);
-					item->setParent(m_qmlSplitObjectParent);
 					connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
 					QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
 						Q_ARG(QQuickItem*, item));
@@ -521,9 +524,78 @@ void DbManager::createMesoCalendar()
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
 }
 
-void DbManager::createMesoCalendarPage(const int exec_id = -1)
+void DbManager::createMesoCalendarPage(const uint meso_id, const uint meso_idx)
 {
+	if (meso_id != m_lastUsedCalMesoID)
+	{
+		m_lastUsedCalMesoID = meso_id;
+		if (m_calPage != nullptr)
+		{
+			delete m_calPage;
+			m_calPage = nullptr;
+		}
+		if (mesosCalendarModel->getMesoId() != meso_id)
+			mesosCalendarModel->clear();
+		if (mesosCalendarModel->count() == 0)
+		{
+			m_model = static_cast<TPListModel*>(mesosCalendarModel);
+			connect( this, &DbManager::qmlReady, this, &DbManager::createMesoCalendarPage_part2 );
+			getMesoCalendar(meso_id);
+		}
+	}
+	if (m_calComponent == nullptr)
+	{
+		m_calProperties.insert(QStringLiteral("mesoId"), meso_id);
+		m_calProperties.insert(QStringLiteral("mesoIdx"), meso_idx);
 
+		m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoContent.qml"_qs), QQmlComponent::Asynchronous, m_appStackView);
+		connect(m_calComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+					{ if (status == QQmlComponent::Ready) return DbManager::createMesoCalendarPage_part2(); } );
+		#ifdef DEBUG
+		if (m_calComponent->status() == QQmlComponent::Error)
+		{
+			qDebug() << m_calComponent->errorString();
+			for (uint i(0); i < m_calComponent->errors().count(); ++i)
+				qDebug() << m_calComponent->errors().at(i).description();
+		}
+		#endif
+	}
+	else
+		createMesoCalendarPage_part2();
+
+}
+
+void DbManager::createMesoCalendarPage_part2()
+{
+	#ifdef DEBUG
+	if (m_calComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_calComponent->errorString();
+		for (uint i(0); i < m_calComponent->errors().count(); ++i)
+			qDebug() << m_calComponent->errors().at(i).description();
+	}
+	#endif
+	if (m_calPage == nullptr)
+	{
+		if (m_calComponent->status() == QQmlComponent::Ready && mesosCalendarModel->isReady())
+		{
+			disconnect( this, &DbManager::qmlReady, this, &DbManager::createMesoCalendarPage_part2 );
+			if (mesosCalendarModel->count() == 0)
+			{
+				uint mesoIdx(m_calProperties.value(QStringLiteral("mesoIdx")).toUInt());
+				mesosCalendarModel->createModel( m_calProperties.value(QStringLiteral("mesoId")).toUInt(), mesocyclesModel->getDateFast(mesoIdx, 2),
+									mesocyclesModel->getDateFast(mesoIdx, 3), mesocyclesModel->getFast(mesoIdx, 6) );
+				createMesoCalendar();
+			}
+
+			m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, m_QMlEngine->rootContext()));
+			m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
+			m_calPage->setParentItem(m_appStackView);
+			emit getQmlObject(m_calPage, true);
+		}
+	}
+	else
+		emit getQmlObject(m_calPage, true);
 }
 
 void DbManager::newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit)
@@ -555,7 +627,7 @@ void DbManager::deleteMesoCalendarTable()
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickItem* stackViewer)
+void DbManager::getTrainingDay(const uint meso_idx, const QDate& date)
 {
 	if (m_tDayObjects.contains(date))
 	{
@@ -565,21 +637,23 @@ void DbManager::getTrainingDay(const uint meso_idx, const QDate& date, QQuickIte
 	}
 
 	DBTrainingDayModel* tDayModel(nullptr);
-	m_qmltDayObjectContainer = stackViewer;
 	tDayModel = new DBTrainingDayModel(this);
 	m_tDayModels.append(tDayModel);
 
 	m_tDayObjects[date] = m_tDayModels.count();
-	m_tDayProperties.insert("mesoId", mesocyclesModel->getFast(meso_idx, 0).toUInt());
-	m_tDayProperties.insert("mesoIdx", meso_idx);
-	m_tDayProperties.insert("mainDate", date);
-	m_tDayProperties.insert("modelIdx", m_tDayModels.count()-1);
-	m_tDayProperties.insert("tDayModel", QVariant::fromValue(tDayModel));
+	m_tDayProperties.insert(QStringLiteral("mesoId"), mesocyclesModel->getFast(meso_idx, 0).toUInt());
+	m_tDayProperties.insert(QStringLiteral("mesoIdx"), meso_idx);
+	m_tDayProperties.insert(QStringLiteral("mainDate"), date);
+	m_tDayProperties.insert(QStringLiteral("modelIdx"), m_tDayModels.count()-1);
+	m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(tDayModel));
 
 	tDayModel->setReady(false);
-	m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
-	connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+	if (m_tDayComponent == nullptr)
+	{
+		m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+		connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
 					{ if (status == QQmlComponent::Ready) return DbManager::createTrainingDayPage(); } );
+	}
 
 	m_execId = 1000;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tDayModel));
@@ -596,10 +670,10 @@ void DbManager::createTrainingDayPage(const int exec_id)
 	{
 		if (m_tDayComponent->status() == QQmlComponent::Ready)
 		{
+			disconnect( this, &DbManager::qmlReady, this, &DbManager::createTrainingDayPage );
 			QQuickItem* item (static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
 			m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-			item->setParentItem(m_qmltDayObjectContainer);
-			item->setParent(m_qmltDayObjectContainer);
+			item->setParentItem(m_appStackView);
 			m_tDayPages.append(item);
 			emit getQmlObject(item, true);
 		}
@@ -654,10 +728,10 @@ void DbManager::deleteTrainingDayTable()
 void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx)
 {
 	m_tDayModels[modelIdx]->newExercise(exerciseName, m_tDayModels[modelIdx]->exercisesNumber());
-	if (m_tDayExerciseEntryProperties.isEmpty())
+	if (m_tDayExercisesComponent == nullptr)
 	{
-		m_tDayExerciseEntryProperties.insert("parentLayout", QVariant::fromValue(parentLayout));
-		m_tDayExerciseEntryProperties.insert("tDayModel", QVariant::fromValue(m_tDayModels.at(modelIdx)));
+		m_tDayExerciseEntryProperties.insert(QStringLiteral("parentLayout"), QVariant::fromValue(parentLayout));
+		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_tDayModels.at(modelIdx)));
 
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
@@ -688,12 +762,11 @@ void DbManager::createExerciseObject_part2()
 
 	if (m_tDayExercisesComponent->status() == QQmlComponent::Ready)
 	{
-		m_tDayExerciseEntryProperties.insert("thisObjectIdx", m_tDayExercises.count());
+		m_tDayExerciseEntryProperties.insert(QStringLiteral("thisObjectIdx"), m_tDayExercises.count());
 		QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, m_QMlEngine->rootContext())));
 		m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-		QQuickItem* parent(m_tDayExerciseEntryProperties.value("parentLayout").value<QQuickItem*>());
-		//QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
+		QQuickItem* parent(m_tDayExerciseEntryProperties.value(QStringLiteral("parentLayout")).value<QQuickItem*>());
 		item->setParentItem(parent);
 		m_tDayExercises.append(item);
 		emit getQmlObject(item, true);

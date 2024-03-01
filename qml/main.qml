@@ -80,6 +80,7 @@ ApplicationWindow {
 				}
 			});
 		}
+		appDB.setAppStackView(appStackView);
 	}
 
 	function androidBackKeyPressed() {
@@ -133,6 +134,7 @@ ApplicationWindow {
 
 		StackView {
 			id: stackView
+			objectName: "appStackView"
 			anchors.fill: parent
 			initialItem: homePage //tDayInfo
 		}

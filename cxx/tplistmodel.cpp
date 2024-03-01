@@ -67,6 +67,7 @@ void TPListModel::clear()
 	beginRemoveRows(QModelIndex(), 0, count()-1);
 	m_modeldata.clear();
 	m_indexProxy.clear();
+	setReady(false);
 	emit countChanged();
 	endRemoveRows();
 }

@@ -833,7 +833,7 @@ Page {
 							appDB.qmlReady.disconnect(getMesoId);
 							mesoId = appDB.insertId();
 							appDB.pass_object(mesoSplitModel);
-							appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+							appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 							bNewMeso = false;
 							createMesoCalendarObject(true);
 						}
@@ -848,9 +848,14 @@ Page {
 					function canProceed(_id) {
 						if (_id === id) {
 							appDB.qmlReady.disconnect(canProceed);
-							mesoSplitModel.setCurrentRow(idxModel);
 							appDB.pass_object(mesoSplitModel);
-							appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+							if (mesoSplitModel.count === 0)
+								appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
+							else
+							{
+								mesoSplitModel.setCurrentRow(idxModel);
+								appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+							}
 
 						/*if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
 							if (Database.checkIfCalendarForMesoExists(mesoId)) {
@@ -885,34 +890,14 @@ Page {
 	}
 
 	function createMesoCalendarObject(bshowpage) {
-		var component = Qt.createComponent("MesoContent.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			mesocycleCalendarPage = component.createObject(mesoPropertiesPage, {
-					mesoId: mesoId, mesoName: mesocyclesModel.get(idxModel, 1), mesoStartDate: mesocyclesModel.getDate(idxModel, 2),
-					mesoEndDate: mesocyclesModel.getDate(idxModel, 3), mesoSplit: mesocyclesModel.get(idxModel, 6),
-					idxModel: idxModel, bVisualLoad: bshowpage
-			});
-			mesocycleCalendarPage.setModel(mesosCalendarModel);
-			if (bshowpage)
-				appStackView.push(mesocycleCalendarPage, StackView.DontLoad);
+		function pushCalendarOntoStackView(object) {
+			appDB.getQmlObject.disconnect(pushCalendarOntoStackView);
+			object.setModel();
+			appStackView.push(object, StackView.DontLoad);
 		}
 
-		function readyToProceed() {
-			appDB.qmlReady.disconnect(readyToProceed);
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		if (mesosCalendarModel.getMesoId() === mesoId)
-			readyToProceed(); //already loaded
-		else {
-			mesosCalendarModel.clear();
-			appDB.qmlReady.connect(readyToProceed);
-			appDB.pass_object(mesosCalendarModel);
-			appDB.getMesoCalendar(mesoId);
-		}
+		appDB.getQmlObject.connect(pushCalendarOntoStackView);
+		appDB.createMesoCalendarPage(mesoId, idxModel);
 	}
 
 	function createMesoStatisticsObject() {
