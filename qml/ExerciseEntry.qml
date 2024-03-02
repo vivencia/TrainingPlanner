@@ -306,7 +306,7 @@ FocusScope {
 					}
 					onClicked: {
 						tDayModel.setSetType(0, cboSetType.currentValue, thisObjectIdx);
-						createSetObject(setType, true);
+						createSetObject(cboSetType.currentIndex);
 						requestHideFloatingButtons (thisObjectIdx);
 						if (btnFloat === null)
 							createFloatingAddSetButton();
@@ -343,7 +343,7 @@ FocusScope {
 	}
 
 	function changeComboModel() {
-		switch (tDayModel.setType(thisObjectIdx)) {
+		switch (tDayModel.setType(0, thisObjectIdx)) {
 			case 0:
 			case 1:
 			case 2:
@@ -364,14 +364,14 @@ FocusScope {
 		if (btnFloat !== null) {
 			btnFloat.destroy();
 			btnFloat = null;
-			cboSetType.model = setTypes;
+			cboSetType.model = setTypesModel;
 		}
 		bFloatButtonVisible = false;
 	}
 
 	function addNewSet(type) {
 		setType = type;
-		createSetObject(type, true);
+		createSetObject(type);
 	}
 
 	function loadSetsFromDatabase() {
@@ -479,52 +479,42 @@ FocusScope {
 		}
 	}
 
-	function createSetObject(type, bNewSet) {
+	function createSetObject(type) {
 		const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
 			"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
+		var component;
 
-		function generateSetObject(page, setnbr) {
-			var component = Qt.createComponent(page, Component.Asynchronous);
-			if (bNewSet) {
-				setnbr++;
-				setNbr = setnbr;
-				calculateSuggestedValues(type);
-				if (btnFloat !== null)
-					btnFloat.nextSetNbr++;
-			}
-			appDB.newSet(setnbr, type, suggestedRestTimes[setnbr], suggestedSubSets[setnbr], suggestedReps[setnbr], suggestedWeight[setnbr], setNotes[setnbr]);
+		function finishCreation() {
+			var sprite = component.createObject(layoutMain, { tDayModel:tDayModel, exerciseIdx:thisObjectIdx, setNumber:setNbr });
+			setObjectList.push({ "Object" : sprite });
+			sprite.setRemoved.connect(setRemoved);
 
-			function finishCreation(nset) {	
-				var sprite = component.createObject(layoutMain, { tDayMode:tDayModel,  setNumber:nset });
-				setObjectList.push({ "Object" : sprite });
-				sprite.setRemoved.connect(setRemoved);
-
-				if (nset >= 1)
-					setObjectList[nset-1].Object.nextObject = sprite;
-				else {
-					if (type === 4) { //Giant set
-						bCompositeExercise = true;
-						sprite.secondExerciseNameChanged.connect(compositeSetChanged);
-						if (bNewSet)
-							exerciseName2 = qsTr("2: Add exercise");
-						sprite.exerciseName2 = exerciseName2;
-					}
+			if (setNbr >= 1)
+				setObjectList[setNbr-1].Object.nextObject = sprite;
+			else {
+				if (type === 4) { //Giant set
+					bCompositeExercise = true;
+					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
+					sprite.exerciseName2 = qsTr("Add exercise");
 				}
-				setAdded(bNewSet, thisObjectIdx, sprite);
 			}
-
-			function checkStatus() {
-				if (component.status === Component.Ready)
-					finishCreation(setnbr);
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation(setnbr);
-			else
-				component.statusChanged.connect(checkStatus);
+			setAdded(true, thisObjectIdx, sprite);
 		}
 
-		generateSetObject(setTypePage[type], setNbr);
+		function checkStatus() {
+			if (component.status === Component.Ready)
+				finishCreation();
+		}
+
+		component = Qt.createComponent(setTypePage[type], Component.Asynchronous);
+		setNbr++;
+		if (btnFloat !== null)
+			btnFloat.nextSetNbr++;
+		tDayModel.newSet(thisObjectIdx, setNbr, type);
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(checkStatus);
 	}
 
 	function setChanged(nset, nReps, nWeight, nSubSets, restTime, notes) {

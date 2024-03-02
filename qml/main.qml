@@ -80,7 +80,7 @@ ApplicationWindow {
 				}
 			});
 		}
-		appDB.setAppStackView(appStackView);
+		appDB.setMainQMLProperties(mainwindow, appStackView);
 	}
 
 	function androidBackKeyPressed() {
@@ -175,7 +175,7 @@ ApplicationWindow {
 				{
 					appDB.qmlReady.disconnect(readyToProceed);
 					appDB.getQmlObject.connect(pushOntoStackView);
-					appDB.getTrainingDay(mesocyclesModel.count -1, today, appStackView);
+					appDB.getTrainingDay(mesocyclesModel.count -1, today);
 				}
 
 				const mesoId = mesocyclesModel.getInt(mesocyclesModel.count -1, 0);

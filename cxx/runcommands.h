@@ -38,6 +38,7 @@ public:
 	Q_INVOKABLE QString getStrHourFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString getStrMinFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString formatTime(const QDateTime& time) const;
+	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
 	Q_INVOKABLE QString formatFutureTime(const QDateTime& time, const uint hours, const uint mins) const;
 	Q_INVOKABLE QString formatFutureTime(const QDateTime& time, const QDateTime& addTime) const;
 	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString& strTime) const;

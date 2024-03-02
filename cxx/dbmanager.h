@@ -10,6 +10,7 @@
 class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QQuickItem;
+class QQuickWindow;
 class QSettings;
 class DBMesoSplitModel;
 class DBMesocyclesModel;
@@ -31,7 +32,7 @@ public:
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
-	Q_INVOKABLE void setAppStackView(QQuickItem* stackView) { m_appStackView = stackView; }
+	Q_INVOKABLE void setMainQMLProperties(QQuickWindow* mainwindow, QQuickItem* stackView);
 	Q_INVOKABLE QQuickItem* appStackView() const { return m_appStackView; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------

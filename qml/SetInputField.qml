@@ -2,11 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "jsfunctions.js" as JSF
-
 FocusScope {
 	required property int type
 	required property int availableWidth
+
 	property int nSetNbr
 	property bool showLabel: true
 	property alias text: txtMain.text
@@ -18,6 +17,18 @@ FocusScope {
 	property color labelColor: "black"
 	property color inputColor: "white"
 	property color backColor: "white"
+
+	property var timerDialog: null
+	property var timerDialogRequester: null
+
+	TPBalloonTip {
+		id: timerDlgMessage
+		title: qsTr("Attention!")
+		message: qsTr("Only one timer window can be opened at a time!")
+		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
+		button1Text: qsTr("OK")
+		highlightMessage: true
+	}
 
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
@@ -88,11 +99,11 @@ FocusScope {
 		}
 
 		RoundButton {
-			id: btnDecreaseTime
+			id: btnIncreaseMinutes
 			padding: 0
 			spacing: 2
-			width: 20
-			height: 20
+			width: 25
+			height: 25
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
 
 			anchors {
@@ -103,20 +114,12 @@ FocusScope {
 			}
 
 			Image {
-				source: "qrc:/images/"+darkIconFolder+"minus.png"
+				source: "qrc:/images/"+darkIconFolder+"plus.png"
 				anchors.fill: parent
 			}
 
 			onClicked: {
-				var nbr = parseInt(JSF.getMinutesOrSeconsFromStrTime(txtMain.text));
-				if (nbr > 5)
-					nbr -= 5;
-				else if (nbr > 0)
-					nbr--
-				else
-					nbr = 59;
-				const strRet = txtMain.text.substring(0, 3) + JSF.intTimeToStrTime(nbr);
-				changeText(strRet);
+				changeText(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
 			}
 		}
 
@@ -129,7 +132,7 @@ FocusScope {
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : true
 
 			anchors {
-				left: btnDecreaseTime.visible ? btnDecreaseTime.right : lblMain.visible ? lblMain.right : parent.left
+				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -181,19 +184,12 @@ FocusScope {
 						nbr--;
 					break;
 					case SetInputField.Type.TimeType:
-						nbr = parseInt(JSF.getHourOrMinutesFromStrTime(str));
-						if (nbr > 0)
-							nbr--;
-						else
-							nbr = 59;
-						str = JSF.intTimeToStrTime(nbr) + str.substring(2, 5);
-						txtMain.text = str;
-					break;
+						changeText(runCmd.addTimeToStrTime(txtMain.text, -1, 0));
+					return;
 				}
 				if (nbr < 0)
 					return;
-				if (type !== SetInputField.Type.TimeType)
-					bClearInput = false;
+				bClearInput = false;
 				changeText(nbr.toString());
 			}
 		}
@@ -327,29 +323,22 @@ FocusScope {
 							return;
 					break;
 					case SetInputField.Type.TimeType:
-						nbr = parseInt(JSF.getMinutesOrSeconsFromStrTime(str));
-						if (nbr < 55)
-							nbr += 5;
-						else if ( nbr < 59)
-							nbr++;
-						else
-							nbr = 0;
-						str = str.substring(0, 3) + JSF.intTimeToStrTime(nbr);
-						txtMain.text = str;
-					break;
+						const secs = parseInt(str.substring(3, 5));
+						nbr = secs < 55 ? 5 : 1;
+						changeText(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
+					return;
 				}
-				if (type !== SetInputField.Type.TimeType)
-					bClearInput = false;
+				bClearInput = false;
 				changeText(nbr.toString());
 			}
 		}
 
 		RoundButton {
-			id: btnIncreaseTime
+			id: btnDecreaseSeconds
 			padding: 0
 			spacing: 2
-			width: 25
-			height: 25
+			width: 20
+			height: 20
 			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
 
 			anchors {
@@ -360,18 +349,14 @@ FocusScope {
 			}
 
 			Image {
-				source: "qrc:/images/"+darkIconFolder+"plus.png"
+				source: "qrc:/images/"+darkIconFolder+"minus.png"
 				anchors.fill: parent
 			}
 
 			onClicked: {
-				var nbr = parseInt(JSF.getHourOrMinutesFromStrTime(txtMain.text));
-				if (nbr < 59)
-					nbr++;
-				else
-					nbr = 0;
-				const strRet = JSF.intTimeToStrTime(nbr) + txtMain.text.substring(2, 5);
-				changeText(strRet);
+				const secs = parseInt(txtMain.text.substring(3, 5));
+				const nbr = secs > 5 ? -5 : -1;
+				changeText(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
 			}
 		}
 
@@ -379,7 +364,7 @@ FocusScope {
 			text: nSetNbr >=1 ? qsTr("<- Leading to this set") : qsTr("<- Time before exercises is not computed")
 			visible: type === SetInputField.Type.TimeType
 			anchors {
-				left: nSetNbr >= 1 ? btnIncreaseTime.right : txtMain.right
+				left: nSetNbr >= 1 ? btnDecreaseSeconds.right : txtMain.right
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
@@ -388,6 +373,11 @@ FocusScope {
 			width: availableWidth - x
 		}
 	} //Rectangle
+
+	Component.onDestruction: {
+		if (timerDialog !== null)
+			timerDialog.destroy();
+	}
 
 	function sanitizeText(text) {
 		if (text.indexOf(',') !== -1)
@@ -409,11 +399,42 @@ FocusScope {
 		valueChanged(text);
 	}
 
-	function openTimerDialog() {
-		if (nSetNbr >=1) {
-			requestTimerDialog (this, qsTr("Time of rest until ") + windowTitle, JSF.getHourOrMinutesFromStrTime(txtMain.text),
-									JSF.getMinutesOrSeconsFromStrTime(txtMain.text))
+	function openTimerDialog(requester, mins, secs) {
+		if (nSetNbr < 1) return;
+
+		if (timerDialog === null) {
+			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				timerDialog = component.createObject(appMainWindow, { bJustMinsAndSecs:true, simpleTimer:false });
+				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
+				timerDialog.onClosed.connect(timerDialogClosed);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
+		if (!timerDialog.visible) {
+			timerDialogRequester = this;
+			timerDialog.windowTitle = qsTr("Time of rest until ") + windowTitle;
+			timerDialog.mins = parseInt(txtMain.text.substring(0, 2));
+			timerDialog.secs = parseInt(txtMain.text.substring(3, 5));
+			timerDlgMessage.close();
+			timerDialog.open();
+		}
+		else
+			timerDlgMessage.openTimed(5000, 0);
+	}
+
+	function timerDialogUseButtonClicked(strTime) {
+		timerDialogRequester.timeChanged(strTime);
+	}
+
+	function timerDialogClosed() {
+		timerDialogRequester = null;
+		timerDlgMessage.close();
 	}
 
 	Component.onCompleted: origText = text;

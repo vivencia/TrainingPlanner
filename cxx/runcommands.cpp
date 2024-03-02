@@ -151,6 +151,33 @@ QString RunCommands::formatTime(const QDateTime& time) const
 	return time.toString(QStringLiteral("hh:mm"));
 }
 
+QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
+{
+	int secs(QStringView{strTime}.mid(3, 2).toUInt());
+	int mins(QStringView{strTime}.left(2).toUInt());
+
+	secs += addsecs;
+	if (secs > 59)
+	{
+		secs -= 60;
+		mins++;
+	}
+	else if (secs < 0)
+	{
+		secs += 60;
+		mins--;
+	}
+	mins += addmins;
+	if (mins < 0)
+	{
+		mins = 0;
+		secs = 0;
+	}
+	QString ret(mins <=9 ? QChar('0') + QString::number(mins) : QString::number(mins));
+	ret += QChar(':') + (secs <=9 ? QChar('0') + QString::number(secs) : QString::number(secs));
+	return ret;
+}
+
 QString RunCommands::formatFutureTime(const QDateTime& time, const uint hours, const uint mins) const
 {
 	QDateTime newTime(time.addSecs(mins*60 + hours*3600));

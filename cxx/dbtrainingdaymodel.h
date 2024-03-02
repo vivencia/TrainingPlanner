@@ -55,6 +55,7 @@ public:
 
 	Q_INVOKABLE void newSet(const uint exercise_idx, const uint set_number, const uint type, const QString& resttime,
 					const QString& subsets, const QString& reps, const QString& weight, const QString& notes);
+	Q_INVOKABLE void newSet(const uint exercise_idx, const uint set_number, const uint type);
 	Q_INVOKABLE bool removeSet(const uint set_number, const uint exercise_idx);
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;

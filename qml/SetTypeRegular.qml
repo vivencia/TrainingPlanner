@@ -12,6 +12,7 @@ FocusScope {
 	Layout.rightMargin: 5
 
 	required property DBTrainingDayModel tDayModel
+	required property int exerciseIdx
 	required property int setNumber
 	readonly property int setType: 0 //Constant
 
@@ -42,7 +43,7 @@ FocusScope {
 					width: 20
 				}
 				onClicked: {
-					if (tDayModel.removeSet(setNumber))
+					if (tDayModel.removeSet(setNumber, exerciseIdx))
 						setRemoved(setNumber);
 				}
 			}
@@ -53,22 +54,25 @@ FocusScope {
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
 			nSetNbr: setNumber
-			text: setNumber !== 0 ? tDayModel.setRestTime(setNumber) : "00:00"
 			windowTitle: lblSetNumber.text
 			focus: setNumber !== 0
 
 			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, str)
+				tDayModel.setSetRestTime(setNumber, str, exerciseIdx)
+				text = str;
 			}
 
 			onEnterOrReturnKeyPressed: {
 				txtNReps.forceActiveFocus();
 			}
+
+			Component.onCompleted: {
+				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
+			}
 		}
 
 		SetInputField {
 			id: txtNReps
-			text: tDayModel.setReps(setNumber)
 			type: SetInputField.Type.RepType
 			nSetNbr: setNumber
 			availableWidth: setItem.width
@@ -78,13 +82,17 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				tDayModel.setSetReps(setNumber, str);
+				tDayModel.setSetReps(setNumber, str, exerciseIdx);
+				text = str;
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setReps(setNumber, exerciseIdx);
 			}
 		}
 
 		SetInputField {
 			id: txtNWeight
-			text: tDayModel.setWeight(setNumber)
 			type: SetInputField.Type.WeightType
 			nSetNbr: setNumber
 			availableWidth: setItem.width
@@ -97,7 +105,12 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				tDayModel.setSetWeight(setNumber, str);
+				tDayModel.setSetWeight(setNumber, str, exerciseIdx);
+				text = str;
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setWeight(setNumber, exerciseIdx);
 			}
 		}
 
@@ -108,7 +121,6 @@ FocusScope {
 		}
 		TextField {
 			id: txtSetNotes
-			text: tDayModel.setNotes(setNumber)
 			font.bold: true
 			Layout.fillWidth: true
 			Layout.leftMargin: 10
@@ -116,7 +128,11 @@ FocusScope {
 			padding: 0
 
 			onTextEdited: {
-				tDayModel.setSetNotes(text);
+				tDayModel.setSetNotes(text, exerciseIdx);
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setNotes(setNumber, exerciseIdx);
 			}
 		}
 	} // setLayout

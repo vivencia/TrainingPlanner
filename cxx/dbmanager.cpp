@@ -118,6 +118,12 @@ DbManager::~DbManager()
 	delete m_exercisesPage;
 }
 
+void DbManager::setMainQMLProperties(QQuickWindow* mainwindow, QQuickItem* stackView)
+{
+	m_QMlEngine->rootContext()->setContextProperty(QStringLiteral("appMainWindow"), mainwindow);
+	m_appStackView = stackView;
+}
+
 void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
 	if (dbObj->result())

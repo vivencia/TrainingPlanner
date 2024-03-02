@@ -51,8 +51,6 @@ Page {
 	property int scrollBarPosition: 0
 	property var navButtons: null
 	property var firstTimeTip: null
-	property var timerDialog: null
-	property var timerDialogRequester: null
 
 	property bool bShowSimpleExercisesList: false
 	property var exerciseEntryThatRequestedSimpleList: null
@@ -168,15 +166,6 @@ Page {
 
 		onOpened: nShow++;
 		onButton1Clicked: playSound.stop();
-	}
-
-	TPBalloonTip {
-		id: timerDlgMessage
-		title: qsTr("Attention!")
-		message: qsTr("Only one timer window can be opened at a time!")
-		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
-		button1Text: qsTr("OK")
-		highlightMessage: true
 	}
 
 	Timer {
@@ -920,8 +909,6 @@ Page {
 	} // ScrollView scrollTraining
 
 	Component.onDestruction: {
-		if (timerDialog !== null)
-			timerDialog.destroy();
 		if (navButtons !== null)
 			navButtons.destroy();
 	}
@@ -1477,43 +1464,6 @@ Page {
 			firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
 			firstTimeTip.visible = true;
 		}
-	}
-
-	function requestTimerDialog(requester, message, mins, secs) {
-		if (timerDialog === null) {
-			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				timerDialog = component.createObject(trainingDayPage, { bJustMinsAndSecs:true, simpleTimer:false });
-				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
-				timerDialog.onClosed.connect(timerDialogClosed);
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		if (!timerDialog.visible) {
-			timerDialogRequester = requester;
-			timerDialog.windowTitle = message;
-			timerDialog.mins = mins;
-			timerDialog.secs = secs;
-			timerDlgMessage.close();
-			timerDialog.open();
-		}
-		else {
-			timerDlgMessage.openTimed(5000, 0);
-		}
-	}
-
-	function timerDialogUseButtonClicked(strTime) {
-		timerDialogRequester.timeChanged(strTime);
-	}
-
-	function timerDialogClosed() {
-		timerDialogRequester = null;
-		timerDlgMessage.close();
 	}
 
 	function createNavButtons() {
