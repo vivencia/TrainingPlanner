@@ -35,6 +35,7 @@ public:
 	inline void execFunction() { execFunc(); }
 
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
+	inline TPListModel* model() const { return m_model; }
 
 protected:
 	QSqlDatabase mSqlLiteDB;

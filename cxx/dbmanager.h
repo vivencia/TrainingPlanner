@@ -32,7 +32,7 @@ public:
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
-	Q_INVOKABLE void setMainQMLProperties(QQuickWindow* mainwindow, QQuickItem* stackView);
+	Q_INVOKABLE void setAppStackView(QQuickItem* stackview) { m_appStackView = stackview; }
 	Q_INVOKABLE QQuickItem* appStackView() const { return m_appStackView; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -100,11 +100,13 @@ public:
 	Q_INVOKABLE void deleteTrainingDayTable();
 
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
-	void createExerciseObject_part2();
+	void createExerciseObject_part2(const int object_idx = -1);
+	void createExercisesObjects(const DBTrainingDayModel* model);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
 	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
+	void requestTimerDialog(QQuickItem* requester, const QVariant& args, const QVariant& date);
 
 signals:
 	void qmlReady(uint exec_id);

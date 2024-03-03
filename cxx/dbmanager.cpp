@@ -118,12 +118,6 @@ DbManager::~DbManager()
 	delete m_exercisesPage;
 }
 
-void DbManager::setMainQMLProperties(QQuickWindow* mainwindow, QQuickItem* stackView)
-{
-	m_QMlEngine->rootContext()->setContextProperty(QStringLiteral("appMainWindow"), mainwindow);
-	m_appStackView = stackView;
-}
-
 void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
 	if (dbObj->result())
@@ -146,6 +140,19 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					break;
 					case OP_ADD:
 						m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
+					break;
+				}
+			}
+			else if (dbObj->objectName() == DBTrainingDayObjectName)
+			{
+				switch (static_cast<DBTrainingDayTable*>(dbObj)->opCode())
+				{
+					case OP_READ:
+					{
+						DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(static_cast<DBTrainingDayTable*>(dbObj)->model()));
+						if (model->exercisesNumber() > 0)
+							createExercisesObjects(model);
+					}
 					break;
 				}
 			}
@@ -222,6 +229,12 @@ void DbManager::receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject)
 	}
 }
 
+void DbManager::requestTimerDialog(QQuickItem* requester, const QVariant& args, const QVariant& date)
+{
+	const QVariantList strargs(args.toList());
+	QMetaObject::invokeMethod(m_tDayPages.at(m_tDayObjects.value(date.toDate())), "requestTimerDialog", Q_ARG(QVariant, QVariant::fromValue(requester)),
+		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
+}
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
@@ -642,18 +655,17 @@ void DbManager::getTrainingDay(const uint meso_idx, const QDate& date)
 		return;
 	}
 
-	DBTrainingDayModel* tDayModel(nullptr);
-	tDayModel = new DBTrainingDayModel(this);
+	m_tDayObjects[date] = m_tDayModels.count();
+	DBTrainingDayModel* tDayModel(new DBTrainingDayModel(this));
+	tDayModel->setReady(false);
 	m_tDayModels.append(tDayModel);
 
-	m_tDayObjects[date] = m_tDayModels.count();
 	m_tDayProperties.insert(QStringLiteral("mesoId"), mesocyclesModel->getFast(meso_idx, 0).toUInt());
 	m_tDayProperties.insert(QStringLiteral("mesoIdx"), meso_idx);
 	m_tDayProperties.insert(QStringLiteral("mainDate"), date);
 	m_tDayProperties.insert(QStringLiteral("modelIdx"), m_tDayModels.count()-1);
 	m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(tDayModel));
 
-	tDayModel->setReady(false);
 	if (m_tDayComponent == nullptr)
 	{
 		m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
@@ -688,7 +700,7 @@ void DbManager::createTrainingDayPage(const int exec_id)
 
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, static_cast<DBTrainingDayModel*>(m_model)));
+	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_tDayModels.at(m_tDayObjects.value(date))));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
 }
@@ -755,7 +767,7 @@ void DbManager::createExerciseObject(const QString& exerciseName, QQuickItem* pa
 		createExerciseObject_part2();
 }
 
-void DbManager::createExerciseObject_part2()
+void DbManager::createExerciseObject_part2(const int object_idx)
 {
 	#ifdef DEBUG
 	if (m_tDayExercisesComponent->status() == QQmlComponent::Error)
@@ -766,16 +778,33 @@ void DbManager::createExerciseObject_part2()
 	}
 	#endif
 
-	if (m_tDayExercisesComponent->status() == QQmlComponent::Ready)
-	{
-		m_tDayExerciseEntryProperties.insert(QStringLiteral("thisObjectIdx"), m_tDayExercises.count());
-		QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("thisObjectIdx"), object_idx >= 0 ? object_idx : m_tDayExercises.count());
+	QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, m_QMlEngine->rootContext())));
-		m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-		QQuickItem* parent(m_tDayExerciseEntryProperties.value(QStringLiteral("parentLayout")).value<QQuickItem*>());
-		item->setParentItem(parent);
-		m_tDayExercises.append(item);
-		emit getQmlObject(item, true);
+	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	QQuickItem* parent(m_tDayExerciseEntryProperties.value(QStringLiteral("parentLayout")).value<QQuickItem*>());
+	item->setParentItem(parent);
+	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&,const QVariant&)), this,
+						SLOT(requestTimerDialog(QQuickItem*,const QVariant&,const QVariant&)) );
+	m_tDayExercises.append(item);
+	emit getQmlObject(item, true);
+}
+
+void DbManager::createExercisesObjects(const DBTrainingDayModel* model)
+{
+	if (m_tDayExercisesComponent == nullptr)
+	{
+		QQuickItem* parentLayout(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
+		m_tDayExerciseEntryProperties.insert(QStringLiteral("parentLayout"), QVariant::fromValue(parentLayout));
+		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(model));
+
+		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
+		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+					{ if (status == QQmlComponent::Ready) return DbManager::createExercisesObjects(model); } );
+	}
+	else {
+		for(uint i(0); i < model->exercisesNumber(); ++i)
+			createExerciseObject_part2(i);
 	}
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

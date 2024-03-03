@@ -172,22 +172,8 @@ Page {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							if (model.year <= mesoStartDate.getFullYear()) {
-								if (model.month <= mesoStartDate.getMonth()) {
-									if (model.month === mesoStartDate.getMonth())
-										btnShowDayInfo.enabled = model.day >= mesoStartDate.getDate();
-									else
-										btnShowDayInfo.enabled = false;
-								}
-							}
-							if (model.year >= mesoEndDate.getFullYear()) {
-								if (model.month >= mesoEndDate.getMonth()) {
-									if (model.month === mesoEndDate.getMonth())
-										btnShowDayInfo.enabled = model.day <= mesoEndDate.getDate();
-									else
-										btnShowDayInfo.enabled = false;
-								}
-							}
+							btnShowDayInfo.enabled = mesosCalendarModel.isTrainingDay(model.month+1, model.day-1);
+
 							if (btnShowDayInfo.enabled) {
 								splitLetter = mesosCalendarModel.getSplit(model.month+1, model.day-1);
 								trainingDay = mesosCalendarModel.getTrainingDay(model.month+1, model.day-1);
@@ -234,6 +220,7 @@ Page {
 				textUnderIcon: true
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 				Layout.rightMargin: 5
+				enabled: false
 
 				onClicked: {
 					function pushTDayOntoStackView(object, bfirsttime) {

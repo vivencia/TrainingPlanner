@@ -38,6 +38,7 @@ FocusScope {
 	signal setAdded(bool bnewset, int objidx, var setObject)
 	signal setWasRemoved(int setid)
 	signal requestHideFloatingButtons(int except_idx)
+	signal requestTimerDialogSignal(Item requester, var args, var tdaydate)
 
 	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -616,90 +617,8 @@ FocusScope {
 		paneExercise.shown = false;
 	}
 
-	function calculateSuggestedValues(type) {
-		setNotes[setNbr] = setNbr === 0 ? "  " : setNotes[setNbr-1];
-		switch (type) {
-			case 0: //Regular
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1];
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
-				}
-				else {
-					suggestedReps[0] = 12;
-					suggestedWeight[0] = 30;
-					suggestedRestTimes[0] = "01:30";
-				}
-				suggestedSubSets[setNbr] = 0;
-			break;
-			case 1: //Pyramid
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1] - 3;
-					suggestedWeight[setNbr] = Math.floor(suggestedWeight[setNbr-1] * 1.2);
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
-				}
-				else {
-					suggestedReps[0] = 15;
-					suggestedWeight[0] = 20;
-					suggestedRestTimes[0] = "01:30";
-				}
-				suggestedSubSets[setNbr] = 0;
-			break;
-			case 2: //DropSet
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1];
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedSubSets[setNbr] = suggestedSubSets[setNbr-1];
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
-				}
-				else {
-					suggestedReps[0] = "15#12#10";
-					suggestedWeight[0] = "50#40#30";
-					suggestedSubSets[0] = 3;
-					suggestedRestTimes[0] = "01:30";
-				}
-			break;
-			case 3: //Cluster set
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1];
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedSubSets[setNbr] = suggestedSubSets[setNbr-1];
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "01:00");
-				}
-				else {
-					suggestedReps[0] = 6;
-					suggestedWeight[0] = 40;
-					suggestedSubSets[0] = 4;
-					suggestedRestTimes[0] = "02:00";
-				}
-			break;
-			case 4: //Giant
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1];
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
-				}
-				else {
-					suggestedReps[0] = "12#12";
-					suggestedWeight[0] = "30#30";
-					suggestedRestTimes[0] = "01:30";
-				}
-				suggestedSubSets[setNbr] = 0;
-			break;
-			case 5: //Myo reps
-				if (setNbr > 0) {
-					suggestedReps[setNbr] = suggestedReps[setNbr-1];
-					suggestedWeight[setNbr] = suggestedWeight[setNbr-1];
-					suggestedSubSets[setNbr] = suggestedSubSets[setNbr-1] + 1;
-					suggestedRestTimes[setNbr] = JSF.increaseStringTimeBy(suggestedRestTimes[setNbr-1], "00:30");
-				}
-				else {
-					suggestedReps[0] = 6;
-					suggestedWeight[0] = 100;
-					suggestedSubSets[0] = 0;
-					suggestedRestTimes[0] = "02:30";
-				}
-			break;
-		}
+	function requestTimer(requester, message, mins, secs) {
+		var args = [message, mins, secs];
+		requestTimerDialogSignal(requester, args, tDayModel.date());
 	}
 } //Item

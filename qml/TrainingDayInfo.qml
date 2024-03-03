@@ -51,6 +51,8 @@ Page {
 	property int scrollBarPosition: 0
 	property var navButtons: null
 	property var firstTimeTip: null
+	property var timerDialog: null
+	property var timerDialogRequester: null
 
 	property bool bShowSimpleExercisesList: false
 	property var exerciseEntryThatRequestedSimpleList: null
@@ -117,10 +119,13 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			bModified = true;
-			hideFloatingButton(-1); //Day is finished
-			bDayIsFinished = true;
-			btnSaveDay.clicked();
-			foldUpAllExercisesEntries("up");
+			if (tDayModel.exercisesNumber() > 0)
+			{
+				hideFloatingButton(-1); //Day is finished
+				bDayIsFinished = true;
+				btnSaveDay.clicked();
+				foldUpAllExercisesEntries("up");
+			}
 		}
 	}
 
@@ -166,6 +171,15 @@ Page {
 
 		onOpened: nShow++;
 		onButton1Clicked: playSound.stop();
+	}
+
+	TPBalloonTip {
+		id: timerDlgMessage
+		title: qsTr("Attention!")
+		message: qsTr("Only one timer window can be opened at a time!")
+		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
+		button1Text: qsTr("OK")
+		highlightMessage: true
 	}
 
 	Timer {
@@ -573,9 +587,14 @@ Page {
 						}
 						TPTextInput {
 							id: txtInTime
-							text: timeIn !== "" ? timeIn : runCmd.formatTime(mainwindow.todayFull)
+							text: timeIn
 							readOnly: true
 							Layout.leftMargin: 5
+
+							Component.onCompleted: {
+								 if (timeIn.length === 0)
+									timeIn = runCmd.formatTime(mainwindow.todayFull);
+							}
 						}
 						RoundButton {
 							id: btnInTime
@@ -598,9 +617,14 @@ Page {
 						}
 						TPTextInput {
 							id: txtOutTime
-							text: timeOut !== "" ? timeOut : runCmd.formatFutureTime(mainwindow.todayFull, 1, 30)
+							text: timeOut
 							readOnly: true
 							Layout.leftMargin: 5
+
+							Component.onCompleted: {
+								 if (timeOut.length === 0)
+									timeOut = runCmd.formatFutureTime(mainwindow.todayFull, 1, 30);
+							}
 						}
 
 						RoundButton {
@@ -861,6 +885,7 @@ Page {
 
 		ColumnLayout {
 			id: colExercises
+			objectName: "tDayExercisesLayout"
 			width: parent.width
 
 			anchors {
@@ -909,12 +934,25 @@ Page {
 	} // ScrollView scrollTraining
 
 	Component.onDestruction: {
+		if (timerDialog !== null)
+			timerDialog.destroy();
 		if (navButtons !== null)
 			navButtons.destroy();
 	}
 
 	Component.onCompleted: {
-		console.log("onCompleted")
+		function verifyExercises() {
+			appDB.qmlReady.disconnect(verifyExercises);
+			if (tDayModel.exercisesNumber() === 0) {
+				console.log("Offer options to load from previous day or meso plan")
+			}
+		}
+
+		appDB.qmlReady.connect(verifyExercises);
+		appDB.getTrainingDayExercises(mainDate);
+		mesoName = mesocyclesModel.get(mesoIdx, 1);
+		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
+		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		if (Qt.platform.os === "android")
@@ -1279,7 +1317,7 @@ Page {
 						if (_id === id) {
 							appDB.qmlReady.disconnect(continueSave);
 							dayId = appDB.insertId();
-							//updateDayIdFromExercisesAndSets();
+							appDB.updateTrainingDayExercises(dayId);
 						}
 					}
 
@@ -1425,9 +1463,6 @@ Page {
 	}
 
 	function pageActivation() {
-		mesoName = mesocyclesModel.get(mesoIdx, 1);
-		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
-		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		changeComboModel();
 		return;
 		if (!bAlreadyLoaded) {
@@ -1464,6 +1499,43 @@ Page {
 			firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
 			firstTimeTip.visible = true;
 		}
+	}
+
+	function requestTimerDialog(requester, message, mins, secs) {
+		if (timerDialog === null) {
+			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				timerDialog = component.createObject(trainingDayPage, { bJustMinsAndSecs:true, simpleTimer:false });
+				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
+				timerDialog.onClosed.connect(timerDialogClosed);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		if (!timerDialog.visible) {
+			timerDialogRequester = requester;
+			timerDialog.windowTitle = message;
+			timerDialog.mins = mins;
+			timerDialog.secs = secs;
+			timerDlgMessage.close();
+			timerDialog.open();
+		}
+		else {
+			timerDlgMessage.openTimed(5000, 0);
+		}
+	}
+
+	function timerDialogUseButtonClicked(strTime) {
+		timerDialogRequester.timeChanged(strTime);
+	}
+
+	function timerDialogClosed() {
+		timerDialogRequester = null;
+		timerDlgMessage.close();
 	}
 
 	function createNavButtons() {

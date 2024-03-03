@@ -113,6 +113,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
+		qDebug() << m_data[2];
 		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
 										"FROM training_day_table WHERE date=") + m_data[2] );
 
@@ -125,6 +126,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 				for (i = 0; i < n_entries-1; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(split_info);
+				m_opcode = OP_READ;
 			}
 		}
 		mSqlLiteDB.close();
@@ -182,6 +184,13 @@ void DBTrainingDayTable::updateTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		query.prepare( QStringLiteral(
 									"UPDATE training_day_table SET meso_id=%1, date=%2, day_number=\'%3\', "
 									"split_letter=\'%4\', time_in=\'%5\', time_out=\'%6\', location=\'%7\', notes=\'%8\' WHERE id=%9")
@@ -225,7 +234,7 @@ void DBTrainingDayTable::updateTrainingDayExercises()
 									"UPDATE training_day_table SET exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
 									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
 									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-										m_data.at(5), m_data.at(6), QString::number(m_execArgs.at(0).toUInt())) );
+										m_data.at(5), m_data.at(6), QString::number(static_cast<DBTrainingDayModel*>(m_model)->id())) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -233,8 +242,6 @@ void DBTrainingDayTable::updateTrainingDayExercises()
 	if (m_result)
 	{
 		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises SUCCESS")
-		if (m_model)
-			m_model->updateList(m_data, m_model->currentRow());
 	}
 	else
 	{

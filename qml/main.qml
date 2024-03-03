@@ -80,7 +80,7 @@ ApplicationWindow {
 				}
 			});
 		}
-		appDB.setMainQMLProperties(mainwindow, appStackView);
+		appDB.setAppStackView(appStackView);
 	}
 
 	function androidBackKeyPressed() {

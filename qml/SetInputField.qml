@@ -18,18 +18,6 @@ FocusScope {
 	property color inputColor: "white"
 	property color backColor: "white"
 
-	property var timerDialog: null
-	property var timerDialogRequester: null
-
-	TPBalloonTip {
-		id: timerDlgMessage
-		title: qsTr("Attention!")
-		message: qsTr("Only one timer window can be opened at a time!")
-		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
-		button1Text: qsTr("OK")
-		highlightMessage: true
-	}
-
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
 
@@ -374,11 +362,6 @@ FocusScope {
 		}
 	} //Rectangle
 
-	Component.onDestruction: {
-		if (timerDialog !== null)
-			timerDialog.destroy();
-	}
-
 	function sanitizeText(text) {
 		if (text.indexOf(',') !== -1)
 			text = text.replace(',', '.');
@@ -399,42 +382,10 @@ FocusScope {
 		valueChanged(text);
 	}
 
-	function openTimerDialog(requester, mins, secs) {
-		if (nSetNbr < 1) return;
 
-		if (timerDialog === null) {
-			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				timerDialog = component.createObject(appMainWindow, { bJustMinsAndSecs:true, simpleTimer:false });
-				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
-				timerDialog.onClosed.connect(timerDialogClosed);
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		if (!timerDialog.visible) {
-			timerDialogRequester = this;
-			timerDialog.windowTitle = qsTr("Time of rest until ") + windowTitle;
-			timerDialog.mins = parseInt(txtMain.text.substring(0, 2));
-			timerDialog.secs = parseInt(txtMain.text.substring(3, 5));
-			timerDlgMessage.close();
-			timerDialog.open();
-		}
-		else
-			timerDlgMessage.openTimed(5000, 0);
-	}
-
-	function timerDialogUseButtonClicked(strTime) {
-		timerDialogRequester.timeChanged(strTime);
-	}
-
-	function timerDialogClosed() {
-		timerDialogRequester = null;
-		timerDlgMessage.close();
+	function openTimerDialog() {
+		if (nSetNbr >=1)
+			requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
 	}
 
 	Component.onCompleted: origText = text;
