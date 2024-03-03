@@ -8,7 +8,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: trainingDayPage
-	title: "trainingPage"
+	objectName: "trainingPage"
 	width: windowWidth
 	//height: parentItem.height
 
@@ -483,16 +483,18 @@ Page {
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
-				text: tDayModel.location()
+				text: location
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
 
 				onTextEdited: {
-					if (text.length >= 4) {
-						bModified = true;
-						location = text;
-					}
+					bModified = true;
+					location = text;
+				}
+
+				Component.onCompleted: {
+					location = tDayModel.location();
 				}
 			}
 
@@ -592,6 +594,7 @@ Page {
 							Layout.leftMargin: 5
 
 							Component.onCompleted: {
+								 timeIn = tDayModel.timeIn();
 								 if (timeIn.length === 0)
 									timeIn = runCmd.formatTime(mainwindow.todayFull);
 							}
@@ -622,7 +625,8 @@ Page {
 							Layout.leftMargin: 5
 
 							Component.onCompleted: {
-								 if (timeOut.length === 0)
+								timeOut = tDayModel.timeOut();
+								if (timeOut.length === 0)
 									timeOut = runCmd.formatFutureTime(mainwindow.todayFull, 1, 30);
 							}
 						}
@@ -667,16 +671,18 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
-					text: tDayModel.dayNotes()
+					text: trainingNotes
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
 					color: "white"
 
 					onEditingFinished: {
-						if (text.length >= 4) {
-							bModified = true;
-							trainingNotes = text;
-						}
+						bModified = true;
+						trainingNotes = text;
+					}
+
+					Component.onCompleted: {
+						trainingNotes = tDayModel.dayNotes();
 					}
 				}
 				ScrollBar.vertical: ScrollBar {}
@@ -941,15 +947,6 @@ Page {
 	}
 
 	Component.onCompleted: {
-		function verifyExercises() {
-			appDB.qmlReady.disconnect(verifyExercises);
-			if (tDayModel.exercisesNumber() === 0) {
-				console.log("Offer options to load from previous day or meso plan")
-			}
-		}
-
-		appDB.qmlReady.connect(verifyExercises);
-		appDB.getTrainingDayExercises(mainDate);
 		mesoName = mesocyclesModel.get(mesoIdx, 1);
 		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
@@ -1463,6 +1460,15 @@ Page {
 	}
 
 	function pageActivation() {
+		function verifyExercises() {
+			appDB.qmlReady.disconnect(verifyExercises);
+			if (tDayModel.exercisesNumber() === 0) {
+				console.log("Offer options to load from previous day or meso plan")
+			}
+		}
+
+		appDB.qmlReady.connect(verifyExercises);
+		appDB.getTrainingDayExercises(mainDate);
 		changeComboModel();
 		return;
 		if (!bAlreadyLoaded) {

@@ -794,12 +794,13 @@ void DbManager::createExercisesObjects(const DBTrainingDayModel* model)
 {
 	if (m_tDayExercisesComponent == nullptr)
 	{
-		QQuickItem* parentLayout(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
+		QQuickItem* parentLayout(static_cast<QQuickItem*>(m_tDayPages.at(m_tDayObjects.value(model->date())))->
+						findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
 		m_tDayExerciseEntryProperties.insert(QStringLiteral("parentLayout"), QVariant::fromValue(parentLayout));
 		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(model));
 
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
-		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status status)
+		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&,model](QQmlComponent::Status status)
 					{ if (status == QQmlComponent::Ready) return DbManager::createExercisesObjects(model); } );
 	}
 	else {

@@ -325,6 +325,31 @@ FocusScope {
 			delete setObjectList;
 			destroyFloatingAddSetButton();
 		}
+
+		Component.onCompleted: {
+			const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
+				"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
+			var component;
+			for (var i = 0; i < tDayModel.setsNumber(thisObjectIdx); ++i) {
+
+				function finishCreation() {
+					var sprite = component.createObject(layoutMain, { tDayModel:tDayModel, exerciseIdx:thisObjectIdx, setNumber:setNbr });
+					setObjectList.push({ "Object" : sprite });
+					sprite.setRemoved.connect(setRemoved);
+
+					if (setNbr >= 1)
+						setObjectList[setNbr-1].Object.nextObject = sprite;
+					setAdded(true, thisObjectIdx, sprite);
+				}
+
+				setNbr++;
+				component = Qt.createComponent(setTypePage[tDayModel.setType(setNbr, thisObjectIdx)]);
+				if (btnFloat !== null)
+					btnFloat.nextSetNbr++;
+				if (component.status === Component.Ready)
+					finishCreation();
+			}
+		}
 	} //paneExercise
 
 	function createFloatingAddSetButton() {
