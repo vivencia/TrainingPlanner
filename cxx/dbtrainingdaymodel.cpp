@@ -68,6 +68,7 @@ void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx
 			m_ExerciseData.append(new exerciseEntry);
 	}
 	m_ExerciseData[idx]->name = new_exercise;
+	setTDayModified(true);
 }
 
 QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
@@ -91,6 +92,7 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exerc
 		else
 			new_name1 = name1;
 		m_ExerciseData[exercise_idx]->name = new_name1;
+		setTDayModified(true);
 	}
 }
 
@@ -99,7 +101,7 @@ QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : QString();
+		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : tr("Add exercise...");
 	}
 	return QString();
 }
@@ -115,30 +117,7 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 		else
 			new_name2 = subrecord_separator + name2;
 		m_ExerciseData[exercise_idx]->name = new_name2;
-	}
-}
-
-void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type, const QString& resttime,
-					const QString& subsets, const QString& reps, const QString& weight, const QString& notes)
-{
-	if (exercise_idx < m_ExerciseData.count())
-	{
-		const uint total(m_ExerciseData.at(exercise_idx)->type.count());
-		const int n(set_number - total);
-		const QString strType(QString::number(type));
-		if (n >= 0)
-		{
-			for(uint i(0); i <= n; ++i)
-			{
-				m_ExerciseData[exercise_idx]->type.append(strType);
-				m_ExerciseData[exercise_idx]->resttime.append(resttime);
-				m_ExerciseData[exercise_idx]->subsets.append(subsets);
-				m_ExerciseData[exercise_idx]->reps.append(reps);
-				m_ExerciseData[exercise_idx]->weight.append(weight);
-				m_ExerciseData[exercise_idx]->notes.append(notes);
-			}
-			m_ExerciseData[exercise_idx]->nsets += n;
-		}
+		setTDayModified(true);
 	}
 }
 
@@ -169,6 +148,8 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 		if (n >= 1)
 		{
 			m_ExerciseData[exercise_idx]->nsets += n;
+			setTDayModified(true);
+
 			for(uint i(0); i < n; ++i)
 			{
 				m_ExerciseData[exercise_idx]->notes.append(!m_ExerciseData.at(exercise_idx)->notes.isEmpty() ? m_ExerciseData.at(exercise_idx)->notes.last() : QString());
@@ -288,6 +269,7 @@ bool DBTrainingDayModel::removeSet(const uint set_number, const uint exercise_id
 			m_ExerciseData[exercise_idx]->weight.remove(set_number);
 			m_ExerciseData[exercise_idx]->notes.remove(set_number);
 			m_ExerciseData[exercise_idx]->nsets--;
+			setTDayModified(true);
 			return true;
 		}
 	}
@@ -299,17 +281,17 @@ uint DBTrainingDayModel::setType(const uint set_number, const uint exercise_idx)
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->type.at(set_number).toUInt();
+			return m_ExerciseData.at(exercise_idx)->type.at(set_number).toUInt();
 	}
 	return 0;
 }
 
 void DBTrainingDayModel::setSetType(const uint set_number, const uint new_type, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->type[set_number] = QString::number(new_type);
+		m_ExerciseData[exercise_idx]->type[set_number] = QString::number(new_type);
+		setTDayModified(true);
 	}
 }
 
@@ -318,17 +300,17 @@ QString DBTrainingDayModel::setRestTime(const uint set_number, const uint exerci
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->resttime.at(set_number);
+			return m_ExerciseData.at(exercise_idx)->resttime.at(set_number);
 	}
 	return QString();
 }
 
 void DBTrainingDayModel::setSetRestTime(const uint set_number, const QString& new_time, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->resttime[set_number] = new_time;
+		m_ExerciseData[exercise_idx]->resttime[set_number] = new_time;
+		setTDayModified(true);
 	}
 }
 
@@ -336,18 +318,31 @@ QString DBTrainingDayModel::setSubSets(const uint set_number, const uint exercis
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->subsets.at(set_number);
+		if (set_number < m_ExerciseData.at(exercise_idx)->subsets.count())
+			return m_ExerciseData.at(exercise_idx)->subsets.at(set_number);
 	}
 	return QString();
 }
 
+void DBTrainingDayModel::newSetSubSet(const uint exercise_idx, const uint set_number)
+{
+	if (set_number < m_ExerciseData.at(exercise_idx)->subsets.count())
+	{
+		m_ExerciseData[exercise_idx]->subsets[set_number] = QString::number(m_ExerciseData.at(exercise_idx)->subsets.at(set_number).toUInt() + 1);
+		m_ExerciseData[exercise_idx]->reps[set_number].append(QString::number(
+			m_ExerciseData.at(exercise_idx)->reps.last().split(subrecord_separator, Qt::SkipEmptyParts).last().toUInt() - 2) + subrecord_separator);
+		m_ExerciseData[exercise_idx]->weight[set_number].append(QString::number(
+			m_ExerciseData.at(exercise_idx)->weight.last().split(subrecord_separator, Qt::SkipEmptyParts).last().toUInt() - 10) + subrecord_separator);
+		setTDayModified(true);
+	}
+}
+
 void DBTrainingDayModel::setSetSubSets(const uint set_number, const QString& new_subsets, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->subsets.count())
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->subsets[set_number] = new_subsets;
+		m_ExerciseData.at(exercise_idx)->subsets[set_number] = new_subsets;
+		setTDayModified(true);
 	}
 }
 
@@ -356,17 +351,17 @@ QString DBTrainingDayModel::setReps(const uint set_number, const uint exercise_i
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->reps.at(set_number);
+			return m_ExerciseData.at(exercise_idx)->reps.at(set_number);
 	}
 	return QString();
 }
 
 void DBTrainingDayModel::setSetReps(const uint set_number, const QString& new_reps, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->reps[set_number] = new_reps;
+		m_ExerciseData[exercise_idx]->reps[set_number] = new_reps;
+		setTDayModified(true);
 	}
 }
 
@@ -375,17 +370,17 @@ QString DBTrainingDayModel::setWeight(const uint set_number, const uint exercise
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->weight.at(set_number);
+			return m_ExerciseData.at(exercise_idx)->weight.at(set_number);
 	}
 	return QString();
 }
 
 void DBTrainingDayModel::setSetWeight(const uint set_number, const QString& new_weight, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->weight[set_number] = new_weight;
+		m_ExerciseData[exercise_idx]->weight[set_number] = new_weight;
+		setTDayModified(true);
 	}
 }
 
@@ -393,18 +388,18 @@ QString DBTrainingDayModel::setNotes(const uint set_number, const uint exercise_
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			return m_ExerciseData[exercise_idx]->notes.at(set_number);
+		if (set_number < m_ExerciseData.at(exercise_idx)->notes.count())
+			return m_ExerciseData.at(exercise_idx)->notes.at(set_number);
 	}
 	return QString();
 }
 
 void DBTrainingDayModel::setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->notes.count())
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
-			m_ExerciseData[exercise_idx]->notes[set_number] = new_notes;
+		m_ExerciseData[exercise_idx]->notes[set_number] = new_notes;
+		setTDayModified(true);
 	}
 }
 
@@ -414,7 +409,7 @@ QString DBTrainingDayModel::setReps(const uint set_number, const uint subset, co
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		{
-			const QStringList subSetReps(m_ExerciseData[exercise_idx]->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			const QStringList subSetReps(m_ExerciseData.at(exercise_idx)->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
 			if (subset < subSetReps.count())
 				return subSetReps.at(subset);
 		}
@@ -424,21 +419,19 @@ QString DBTrainingDayModel::setReps(const uint set_number, const uint subset, co
 
 void DBTrainingDayModel::setSetReps(const uint set_number, const uint subset, const QString& new_reps, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+		QStringList subSetReps(m_ExerciseData.at(exercise_idx)->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+		const uint total(subSetReps.count());
+		const int n(subset - total);
+		if (n >= 0)
 		{
-			QStringList subSetReps(m_ExerciseData[exercise_idx]->reps.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
-			const uint total(subSetReps.count());
-			const int n(subset - total);
-			if (n >= 0)
-			{
-				for(uint i(0); i <= n; ++i)
-					subSetReps.append(new_reps + subrecord_separator);
-			}
-			subSetReps[subset] = new_reps;
-			m_ExerciseData[exercise_idx]->reps[set_number] = subSetReps.join(subrecord_separator);
+			for(uint i(0); i <= n; ++i)
+				subSetReps.append(new_reps + subrecord_separator);
 		}
+		subSetReps[subset] = new_reps;
+		m_ExerciseData[exercise_idx]->reps[set_number] = subSetReps.join(subrecord_separator);
+		setTDayModified(true);
 	}
 }
 
@@ -448,7 +441,7 @@ QString DBTrainingDayModel::setWeight(const uint set_number, const uint subset, 
 	{
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		{
-			const QStringList subSetWeight(m_ExerciseData[exercise_idx]->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+			const QStringList subSetWeight(m_ExerciseData.at(exercise_idx)->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
 			if (subset < subSetWeight.count())
 				return subSetWeight.at(subset);
 		}
@@ -458,20 +451,18 @@ QString DBTrainingDayModel::setWeight(const uint set_number, const uint subset, 
 
 void DBTrainingDayModel::setSetWeight(const uint set_number, const uint subset, const QString& new_weight, const uint exercise_idx)
 {
-	if (exercise_idx < m_ExerciseData.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
+		QStringList subSetWeight(m_ExerciseData.at(exercise_idx)->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
+		const uint total(subSetWeight.count());
+		const int n(subset - total);
+		if (n >= 0)
 		{
-			QStringList subSetWeight(m_ExerciseData[exercise_idx]->weight.at(set_number).split(subrecord_separator, Qt::SkipEmptyParts));
-			const uint total(subSetWeight.count());
-			const int n(subset - total);
-			if (n >= 0)
-			{
-				for(uint i(0); i <= n; ++i)
-					subSetWeight.append(new_weight + subrecord_separator);
-			}
-			subSetWeight[subset] = new_weight;
-			m_ExerciseData[exercise_idx]->weight[set_number] = subSetWeight.join(subrecord_separator);
+			for(uint i(0); i <= n; ++i)
+				subSetWeight.append(new_weight + subrecord_separator);
 		}
+		subSetWeight[subset] = new_weight;
+		m_ExerciseData[exercise_idx]->weight[set_number] = subSetWeight.join(subrecord_separator);
+		setTDayModified(true);
 	}
 }

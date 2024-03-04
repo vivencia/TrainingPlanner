@@ -53,28 +53,28 @@ FocusScope {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
-			nSetNbr: setNumber
 			windowTitle: lblSetNumber.text
 			focus: setNumber !== 0
+			timeSetFirstSet: setNumber === 0;
+			timeSetNotFirstSet: setNumber > 0;
 
 			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, str, exerciseIdx)
+				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
 				text = str;
-			}
-
-			onEnterOrReturnKeyPressed: {
-				txtNReps.forceActiveFocus();
 			}
 
 			Component.onCompleted: {
 				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
+			}
+
+			onEnterOrReturnKeyPressed: {
+				txtNReps.forceActiveFocus();
 			}
 		}
 
 		SetInputField {
 			id: txtNReps
 			type: SetInputField.Type.RepType
-			nSetNbr: setNumber
 			availableWidth: setItem.width
 
 			onEnterOrReturnKeyPressed: {
@@ -94,7 +94,6 @@ FocusScope {
 		SetInputField {
 			id: txtNWeight
 			type: SetInputField.Type.WeightType
-			nSetNbr: setNumber
 			availableWidth: setItem.width
 
 			onEnterOrReturnKeyPressed: {

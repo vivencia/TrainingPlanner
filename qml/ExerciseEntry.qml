@@ -517,13 +517,6 @@ FocusScope {
 
 			if (setNbr >= 1)
 				setObjectList[setNbr-1].Object.nextObject = sprite;
-			else {
-				if (type === 4) { //Giant set
-					bCompositeExercise = true;
-					sprite.secondExerciseNameChanged.connect(compositeSetChanged);
-					sprite.exerciseName2 = qsTr("Add exercise");
-				}
-			}
 			setAdded(true, thisObjectIdx, sprite);
 		}
 
@@ -541,25 +534,6 @@ FocusScope {
 			finishCreation();
 		else
 			component.statusChanged.connect(checkStatus);
-	}
-
-	function setChanged(nset, nReps, nWeight, nSubSets, restTime, notes) {
-		suggestedReps[nset] = nReps;
-		suggestedWeight[nset] = nWeight;
-		suggestedSubSets[nset] = nSubSets;
-		suggestedRestTimes[nset] = restTime;
-		setNotes[nset] = notes;
-		exerciseEdited(-1, "");
-	}
-
-	function compositeSetChanged(newexercise2name) {
-		exerciseName2 = newexercise2name;
-		exerciseName = exerciseName1 + '&' + exerciseName2;
-		exerciseEdited(thisObjectIdx, exerciseName);
-	}
-
-	function logSets() {
-		logSetsTimer.start();
 	}
 
 	function removeAllSets() {
@@ -619,23 +593,6 @@ FocusScope {
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr--;
 		}
-		exerciseEdited(-1, ""); //Just to set bModified to true
-	}
-
-	function changeExercise(name1, name2) {
-		if (!bCompositeExercise) {
-			exerciseName1 = name1 + ' - ' + name2;
-			exerciseName = exerciseName1;
-		}
-		else {
-			exerciseName1 = "1: " + name1 + ' - ' + name2;
-			exerciseName = exerciseName1 + '&' + exerciseName2;
-		}
-		exerciseEdited(thisObjectIdx, exerciseName);
-	}
-
-	function gotExercise(strName1, strName2, sets, reps, weight, bAdd) {
-		changeExercise(strName1, strName2);
 	}
 
 	function foldUpSets() {

@@ -2,18 +2,18 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import com.vivenciasoftware.qmlcomponents
+
 FocusScope {
-	required property string nReps
-	required property string nWeight
+	required property DBTrainingDayModel tDayModel
 	required property int rowIdx
-	property int setNbr
+
 	property var nextRowObj: null
 	property var nextObject: null
 
 	property bool bBtnAddEnabled: true
 
-	signal changeSubSet(int id, string reps, string weight)
-	signal addSubSet(int id)
+	signal addSubSet(int id, bool bnew)
 	signal delSubSet(int id)
 
 	Layout.fillWidth: true
@@ -36,9 +36,7 @@ FocusScope {
 		}
 		SetInputField {
 			id: txtNReps
-			text: nReps
 			type: SetInputField.Type.RepType
-			nSetNbr: setNbr
 			showLabel: false
 			availableWidth: mainRow.width/3
 			focus: true // makes FocusScope choose this Item to give focus to
@@ -46,15 +44,17 @@ FocusScope {
 			Layout.row: 1
 			Layout.column: 0
 
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
+			onValueChanged: (str) => {
+				tDayModel.setSetReps(setNumber, rowIdx, str, exerciseIdx);
+				text = str;
 			}
 
-			onValueChanged: (str) => {
-				if (val !== nReps) {
-					nReps = str;
-					changeSubSet(rowIdx, nReps, nWeight);
-				}
+			Component.onCompleted: {
+				text = tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
+			}
+
+			onEnterOrReturnKeyPressed: {
+				txtNWeight.forceActiveFocus();
 			}
 		}
 
@@ -66,9 +66,7 @@ FocusScope {
 		}
 		SetInputField {
 			id: txtNWeight
-			text: nWeight
 			type: SetInputField.Type.WeightType
-			nSetNbr: setNbr
 			showLabel: false
 			availableWidth: mainRow.width/3
 			Layout.alignment: Qt.AlignCenter
@@ -87,10 +85,12 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				if (val !== nWeight) {
-					nWeight = str;
-					changeSubSet(rowIdx, nReps, nWeight);
-				}
+				tDayModel.setSetWeight(setNumber, rowIdx, str, exerciseIdx);
+				text = str;
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
 			}
 
 			RoundButton {
@@ -111,7 +111,7 @@ FocusScope {
 					height: 20
 				}
 
-				onClicked: addSubSet(rowIdx+1);
+				onClicked: addSubSet(rowIdx+1, true);
 			} //bntInsertAnotherRow
 
 			RoundButton {

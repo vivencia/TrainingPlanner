@@ -162,8 +162,8 @@ void DBTrainingDayTable::newTrainingDay()
 		{
 			MSG_OUT("DBTrainingDayTable newTrainingDay SUCCESS")
 			m_data[0] = query.lastInsertId().toString();
-			if (m_model)
-				m_model->appendList(m_data);
+			m_model->appendList(m_data);
+			static_cast<DBTrainingDayModel*>(m_model)->setTDayModified(false);
 			m_opcode = OP_ADD;
 		}
 		mSqlLiteDB.close();
@@ -203,8 +203,8 @@ void DBTrainingDayTable::updateTrainingDay()
 	if (m_result)
 	{
 		MSG_OUT("DBTrainingDayTable updateTrainingDay SUCCESS")
-		if (m_model)
-			m_model->updateList(m_data, m_model->currentRow());
+		m_model->updateList(m_data, m_model->currentRow());
+		static_cast<DBTrainingDayModel*>(m_model)->setTDayModified(false);
 	}
 	else
 	{
@@ -241,6 +241,7 @@ void DBTrainingDayTable::updateTrainingDayExercises()
 
 	if (m_result)
 	{
+		static_cast<DBTrainingDayModel*>(m_model)->setTDayModified(false);
 		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises SUCCESS")
 	}
 	else

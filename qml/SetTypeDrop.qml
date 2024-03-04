@@ -2,31 +2,24 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 Item {
 	id: setItem
-	property int setId: -1
-	property int exerciseIdx
-	property int tDayId
-	property int setType: 2 //Constant
-	property int setNumber
-	property string setReps
-	property string setWeight
-	property string setSubSets
-	property string setRestTime: "00:00"
-	property string setNotes: " "
-	property var nextObject: null
-
-	property bool bUpdateLists
-	property var subSetList: []
-
-	signal setRemoved(int nset)
-	signal setChanged(int nset, string reps, string weight, instringt subsets, string resttime, string setnotes)
-
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
+
+	required property DBTrainingDayModel tDayModel
+	required property int exerciseIdx
+	required property int setNumber
+	readonly property int setType: 0 //Constant
+
+	signal setRemoved(int set_number)
+	property var nextObject: null
+
+	property int nSubSets: 0
+	property var subSetList: []
 
 	ColumnLayout {
 		id: setLayout
@@ -52,7 +45,10 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: setRemoved(setNumber);
+				onClicked: {
+					if (tDayModel.removeSet(setNumber, exerciseIdx))
+						setRemoved(setNumber);
+				}
 			}
 		}
 
@@ -60,13 +56,18 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
-			nSetNbr: setNumber
-			text: setNumber !== 0 ? setRestTime : "00:00"
+			focus: setNumber !== 0
+			timeSetFirstSet: setNumber === 0;
+			timeSetNotFirstSet: setNumber > 0;
 			windowTitle: lblSetNumber.text
 
 			onValueChanged: (str) => {
-				setRestTime = str;
-				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
+				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				text = str;
+			}
+
+			Component.onCompleted: {
+				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
 			}
 
 			onEnterOrReturnKeyPressed: {
@@ -89,7 +90,6 @@ Item {
 		}
 		TextField {
 			id: txtSetNotes
-			text: setNotes
 			font.bold: true
 			readOnly: false
 			Layout.fillWidth: true
@@ -98,98 +98,48 @@ Item {
 			padding: 0
 
 			onTextEdited: {
-				if (text.length > 4) {
-					setNotes = text;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+				tDayModel.setSetNotes(text, exerciseIdx);
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setNotes(setNumber, exerciseIdx);
 			}
 		}
 	} // setLayout
 
 	Component.onCompleted: {
-		const nsubsets = parseInt(setSubSets);
-		setSubSets = "1"; //the value will be incremented in subSetAdded and return to its original value
-		for (var i = 1; i <= nsubsets; ++i) {
-			addSubSet(i-1);
-		}
+		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);
+		for (var i = 0; i < nsubsets; ++i)
+			addSubSet(i, false);
 	}
 
-	function getReps(idx) {
-		if (setReps.length > 0) {
-			const reps = setReps.split('#');
-			return parseInt(reps[idx]);
-		}
-		return "10"; //Random default value
-	}
+	function addSubSet(idx, bNew) {
+		nSubSets++;
+		if (bNew)
+			tDayModel.newSetSubSet(exerciseIdx, setNumber);
 
-	function getWeight(idx) {
-		if (setWeight.length > 0) {
-			const weights = setWeight.split('#');
-			return parseInt(weights[idx]);
-		}
-		return "100"; //Random default value
-	}
-
-	function subSetAdded(newReps, newWeight) {
-		setSubSets++;
-		if (setReps.length === 0) {
-			setReps = newReps.toString();
-			setWeight = newWeight.toString();
-		}
-		else {
-			setReps += '#' + newReps.toString();
-			setWeight += '#' + newWeight.toString();
-		}
-		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-	}
-
-	function removeSet(idx) {
-		const reps = setReps.split('#');
-		const weights = setWeight.split('#');
-		setReps = "";
-		setWeight = "";
-		for(var i = 0; i < reps.length; ++i) { //Both arrays are always the same length
-			if (i !== idx) {
-				setReps += reps[i] + '#';
-				setWeight += weights[i] + '#';
-			}
-		}
-		setRemoved(idx);
-		setReps = setReps.slice(0, -1);
-		setWeight = setWeight.slice(0, -1);
-		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-	}
-
-	function addSubSet(idx) {
 		var component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
-			if (idx >= 1) {
-				subSetAdded(Math.ceil((getReps(idx-1)*1) * 0.8), Math.ceil((getWeight(idx-1)*1) * 0.6));
-			}
-
-			var rowSprite = component.createObject(subSetsLayout, {
-				rowIdx:idx, nReps:getReps(idx), nWeight:getWeight(idx), setNbr:setNumber, nextObject:nextObject
-			});
+			var rowSprite = component.createObject(subSetsLayout, { tDayModel:tDayModel, rowIdx:idx, nextObject:nextObject });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
 			rowSprite.addSubSet.connect(addSubSet);
-			rowSprite.changeSubSet.connect(subSetChanged);
 
 			if (idx >= 1) {
 				subSetList[idx-1].Object.bBtnAddEnabled = false;
 				subSetList[idx-1].Object.nextRowObj = rowSprite;
 			}
 		}
+		else
+			console.log(component.errorString());
 	}
 
 	function removeSubSet(idx) {
 		let newSubSetList = new Array;
-		subSetList[idx].Object.destroy();
-		setSubSets = (parseInt(setSubSets)--).toString();
 		for( var i = 0, x = 0; i < subSetList.length; ++i ) {
-			if (i >= idx) {
+			if (i > idx) {
 				subSetList[i].Object.rowIdx--;
-				if (i === idx && i > 0)
+				if (i > 0)
 					subSetList[i-1].Object.nextRowObj = subSetList[i].Object;
 			}
 			if (i !== idx) {
@@ -198,51 +148,12 @@ Item {
 				x++;
 			}
 		}
+		subSetList[idx].Object.destroy();
 		delete subSetList;
 		subSetList = newSubSetList;
 		subSetList[subSetList.length-1].Object.bBtnAddEnabled = true;
+		nSubSets++;
+		if (bNew)
+			tDayModel.setSetSubSets(setNumber, nSubSets.toString(), exerciseIdx);
 	}
-
-	function subSetChanged(idx, newreps, newweight) {
-		const reps = setReps.split('#');
-		const weights = setWeight.split('#');
-		setReps = "";
-		setWeight = "";
-		for(var i = 0; i < reps.length; ++i) {
-			if (i !== idx) {
-				setReps += reps[i] + '#';
-				setWeight += weights[i] + '#';
-			}
-			else {
-				setReps += newreps.toString() + '#';
-				setWeight += newweight.toString() + '#';
-			}
-		}
-		setReps = setReps.slice(0, -1);
-		setWeight = setWeight.slice(0, -1);
-		setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-	}
-
-	function updateTrainingDayId(newTDayId) {
-		tDayId = newTDayId;
-		setId = -1; //Force a new DB entry to be created when set is logged
-	}
-
-	function logSet() {
-		if (setNotes === "")
-			setNotes = " ";
-
-		if (setId < 0) {
-			//console.log("Create Drop Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps,
-								setWeight, AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
-			setId = result.insertId;
-		}
-		else {
-			//console.log("Update Drop Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps, setWeight, setSubSets.toString(), setRestTime, setNotes);
-		}
-	}
-
-	Component.onCompleted: setCreated[setNumber] = 1;
 } // FocusScope

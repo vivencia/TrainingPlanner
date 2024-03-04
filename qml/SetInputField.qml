@@ -6,11 +6,13 @@ FocusScope {
 	required property int type
 	required property int availableWidth
 
-	property int nSetNbr
 	property bool showLabel: true
 	property alias text: txtMain.text
 	property string windowTitle
 	property var alternativeLabels: []
+	property bool timeSetFirstSet: false
+	property bool timeSetNotFirstSet: false
+
 	property bool bClearInput: true
 	property int fontPixelSize: AppSettings.fontSizeText
 	property color borderColor: "darkblue"
@@ -92,7 +94,7 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
+			visible: timeSetNotFirstSet
 
 			anchors {
 				left: lblMain.visible ? lblMain.right : parent.left
@@ -117,7 +119,7 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : true
+			visible: !timeSetFirstSet
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
@@ -260,7 +262,7 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : true
+			visible: !timeSetFirstSet
 
 			anchors {
 				left: txtMain.right
@@ -327,7 +329,7 @@ FocusScope {
 			spacing: 2
 			width: 20
 			height: 20
-			visible: type === SetInputField.Type.TimeType ? nSetNbr >= 1 : false
+			visible: timeSetNotFirstSet
 
 			anchors {
 				left: btnIncrease.right
@@ -349,10 +351,10 @@ FocusScope {
 		}
 
 		Label {
-			text: nSetNbr >=1 ? qsTr("<- Leading to this set") : qsTr("<- Time before exercises is not computed")
+			text: timeSetFirstSet ? qsTr("<- Time before exercises is not computed") : qsTr("<- Leading to this set")
 			visible: type === SetInputField.Type.TimeType
 			anchors {
-				left: nSetNbr >= 1 ? btnDecreaseSeconds.right : txtMain.right
+				left: btnDecreaseSeconds.visible ? btnDecreaseSeconds.right : txtMain.right
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
@@ -384,7 +386,7 @@ FocusScope {
 
 
 	function openTimerDialog() {
-		if (nSetNbr >=1)
+		if (timeSetNotFirstSet)
 			requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
 	}
 

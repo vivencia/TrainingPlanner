@@ -102,6 +102,7 @@ public:
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
 	void createExerciseObject_part2(const int object_idx = -1);
 	void createExercisesObjects(const DBTrainingDayModel* model);
+	void createSetObject(const QString& page, const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
@@ -161,9 +162,16 @@ private:
 	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
 
+	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	QVariantMap m_tDayExerciseEntryProperties;
 	QList<QQuickItem*> m_tDayExercises;
 	QQmlComponent* m_tDayExercisesComponent;
+	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
+
+	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
+	QQmlComponent* m_setComponent[6];
+	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
+
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	void freeLocks(TPDatabaseTable* dbObj);

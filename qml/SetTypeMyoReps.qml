@@ -2,31 +2,24 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-import "jsfunctions.js" as JSF
+import com.vivenciasoftware.qmlcomponents
 
 Item {
 	id: setItem
-	property int setId: -1
-	property int exerciseIdx
-	property int tDayId
-	property int setType: 5 //Constant
-	property int setNumber
-	property string setReps
-	property string setWeight
-	property string setSubSets: "0"
-	property string setRestTime: "00:00"
-	property string setNotes: " "
+	implicitHeight: setLayout.implicitHeight
+	Layout.fillWidth: true
+	Layout.leftMargin: 5
+
+	required property DBTrainingDayModel tDayModel
+	required property int exerciseIdx
+	required property int setNumber
+	readonly property int setType: 0 //Constant
+
+	signal setRemoved(int set_number)
 	property var nextObject: null
 
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
-
-	signal setRemoved(int nset)
-	signal setChanged(int nset, string reps, string weight, string subsets, string resttime, string setnotes)
-
-	implicitHeight: setLayout.implicitHeight
-	Layout.fillWidth: true
-	Layout.leftMargin: 5
 
 	ColumnLayout {
 		id: setLayout
@@ -54,7 +47,10 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: setRemoved(setNumber);
+				onClicked: {
+					if (tDayModel.removeSet(setNumber, exerciseIdx))
+						setRemoved(setNumber);
+				}
 			}
 		}
 
@@ -62,15 +58,19 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
-			nSetNbr: setNumber
-			text: setNumber !== 0 ? setRestTime : "00:00"
+			focus: setNumber !== 0
+			timeSetFirstSet: setNumber === 0;
+			timeSetNotFirstSet: setNumber > 0;
 			windowTitle: lblSetNumber.text
 
 			onValueChanged: (str) => {
-				setRestTime = str;
-				setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
+				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				text = str;
 			}
 
+			Component.onCompleted: {
+				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
+			}
 			onEnterOrReturnKeyPressed: {
 				txtNSubSets.forceActiveFocus();
 			}
@@ -78,31 +78,48 @@ Item {
 
 		SetInputField {
 			id: txtNSubSets
-			text: setSubSets
 			type: SetInputField.Type.SetType
-			nSetNbr: setNumber
 			availableWidth: setItem.width
 			alternativeLabels: myoLabels
+
+			onValueChanged: (str) => {
+				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				text = str;
+			}
 
 			onEnterOrReturnKeyPressed: {
 				txtNReps.forceActiveFocus();
 			}
 
-			onValueChanged: (str) => {
-				if (str !== setSubSets) {
-					setSubSets = str;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+			Component.onCompleted: {
+				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
 			}
 		}
 
 		SetInputField {
 			id: txtNReps
-			text: setReps.toString()
 			type: SetInputField.Type.RepType
-			nSetNbr: setNumber
 			availableWidth: setItem.width
 			alternativeLabels: myoLabels
+
+			onEnterOrReturnKeyPressed: {
+				txtNWeight.forceActiveFocus();
+			}
+
+			onValueChanged: (str) => {
+				tDayModel.setSetReps(setNumber, str, exerciseIdx);
+				text = str;
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setReps(setNumber, exerciseIdx);
+			}
+		}
+
+		SetInputField {
+			id: txtNWeight
+			type: SetInputField.Type.WeightType
+			availableWidth: setItem.width
 
 			onEnterOrReturnKeyPressed: {
 				if (nextObject !== null)
@@ -112,29 +129,12 @@ Item {
 			}
 
 			onValueChanged: (str) => {
-				if (str !== setReps) {
-					setReps = str;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
-			}
-		}
-
-		SetInputField {
-			id: txtNWeight
-			text: setWeight.toString()
-			type: SetInputField.Type.WeightType
-			nSetNbr: setNumber
-			availableWidth: setItem.width
-
-			onEnterOrReturnKeyPressed: {
-				txtSetNotes.forceActiveFocus();
+				tDayModel.setSetWeight(setNumber, str, exerciseIdx);
+				text = str;
 			}
 
-			onValueChanged: (str, val) => {
-				if (val !== setWeight) {
-					setWeight = val;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+			Component.onCompleted: {
+				text = tDayModel.setWeight(setNumber, exerciseIdx);
 			}
 		}
 
@@ -145,7 +145,6 @@ Item {
 		}
 		TextField {
 			id: txtSetNotes
-			text: setNotes
 			font.bold: true
 			Layout.fillWidth: true
 			Layout.leftMargin: 10
@@ -153,34 +152,12 @@ Item {
 			padding: 0
 
 			onTextEdited: {
-				if (text.length > 4) {
-					setNotes = text;
-					setChanged(setNumber, setReps, setWeight, setSubSets, setRestTime, setNotes);
-				}
+				tDayModel.setSetNotes(text, exerciseIdx);
+			}
+
+			Component.onCompleted: {
+				text = tDayModel.setNotes(setNumber, exerciseIdx);
 			}
 		}
 	} // setLayout
-
-	function updateTrainingDayId(newTDayId) {
-		tDayId = newTDayId;
-		setId = -1; //Force a new DB entry to be created when set is logged
-	}
-
-	function logSet() {
-		if (setNotes === "")
-			setNotes = " ";
-
-		if (setId < 0) {
-			//console.log("Create MyoReps Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			let result = Database.newSetInfo(tDayId, exerciseIdx, setType, setNumber, setReps.toString(),
-								setWeight.toString(), AppSettings.weightUnit, setSubSets, setRestTime, setNotes);
-			setId = result.insertId;
-		}
-		else {
-			//console.log("Update MyoReps Set# " + setNumber + " - tDayId = " + tDayId + " -1 exerciseIdx = " + exerciseIdx);
-			Database.updateSetInfo(setId, exerciseIdx, setNumber, setReps.toString(), setWeight.toString(), setSubSets.toString(), setRestTime, setNotes);
-		}
-	}
-
-	Component.onCompleted: setCreated[setNumber] = 1;
 } // FocusScope

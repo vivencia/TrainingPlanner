@@ -22,6 +22,10 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
+static const QStringList setTypePages(QStringList() << QStringLiteral("SetTypeRegular.qml") << QStringLiteral("SetTypePyramid.qml") <<
+				QStringLiteral("SetTypeDrop.qml") << QStringLiteral("SetTypeCluster.qml") <<
+				QStringLiteral("SetTypeGiant.qml") << QStringLiteral("SetTypeMyoReps.qml"));
+
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
 	: QObject (nullptr), m_execId(0), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
 		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr), m_splitComponent(nullptr), m_lastUsedSplitMesoID(0),
@@ -805,7 +809,16 @@ void DbManager::createExercisesObjects(const DBTrainingDayModel* model)
 	}
 	else {
 		for(uint i(0); i < model->exercisesNumber(); ++i)
+		{
 			createExerciseObject_part2(i);
+			for (uint x(0); x < model->setsNumber(i); ++x)
+				createSetObject(setTypePages[model->setType(x, i)], x, i);
+		}
 	}
+}
+
+void DbManager::createSetObject(const QString& page, const uint set_number, const uint exercise_idx)
+{
+
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

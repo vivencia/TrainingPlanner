@@ -30,11 +30,10 @@ Page {
 	property string mesoSplit
 	property string mesoName
 	property bool bRealMeso: true
-
+	property bool bModified: tDayModel.tDayModified
 
 	property date sessionLength
 	property string filterString: ""
-	property bool bModified: false
 	property var exerciseSpriteList: []
 	property var setsToBeRemoved: []
 
@@ -86,10 +85,6 @@ Page {
 		}
 	}
 
-	//onBModifiedChanged: {
-	//	bNavButtonsEnabled = !bModified;
-	//}
-
 	onBDayIsFinishedChanged : {
 		if (bDayIsFinished)
 			sessionLength = runCmd.calculateTimeBetweenTimes(timeIn, timeOut);
@@ -106,7 +101,6 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
-			bModified = true;
 			bDayIsFinished = false;
 		}
 	}
@@ -118,7 +112,6 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			bModified = true;
 			if (tDayModel.exercisesNumber() > 0)
 			{
 				hideFloatingButton(-1); //Day is finished
@@ -137,7 +130,6 @@ Page {
 		onUseTime: (strtime) => {
 			sessionLength = strtime;
 			timeOut = runCmd.formatFutureTime(mainwindow.todayFull, sessionLength);
-			bModified = true;
 			timerRestricted.init(timeOut);
 		}
 	}
@@ -149,7 +141,6 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			bModified = true;
 			timerRestricted.init(timeOut);
 		}
 	}
@@ -353,7 +344,6 @@ Page {
 					Layout.column: 1
 
 					onActivated: (index) => {
-						bModified = true;
 						splitLetter = cboModel.get(index).value;
 						if (splitLetter === 'R')
 							tDay = "0";
@@ -385,7 +375,6 @@ Page {
 					onTextEdited: {
 						if ( text !== "") {
 							if (text !== tDayModel.trainingDay()) {
-								bModified = true;
 								tDay = text;
 							}
 						}
@@ -489,7 +478,6 @@ Page {
 				Layout.leftMargin: 5
 
 				onTextEdited: {
-					bModified = true;
 					location = text;
 				}
 
@@ -677,7 +665,6 @@ Page {
 					color: "white"
 
 					onEditingFinished: {
-						bModified = true;
 						trainingNotes = text;
 					}
 
@@ -1031,7 +1018,6 @@ Page {
 
 	function loadTrainingDayInfoFromMesoPlan() {
 		createExercisesFromList(false);
-		bModified = true;
 	}
 
 	function checkIfPreviousDayExists() {
@@ -1148,19 +1134,9 @@ Page {
 		btnConvertToExercisePlanner.enabled = false;
 	}
 
-	function updateDayIdFromExercisesAndSets() {
-		const len = exerciseSpriteList.length;
-		for( var i = 0; i < len; ++i )
-			exerciseSpriteList[i].Object.updateDayId(dayId);
-	}
-
 	function gotExercise(strName1, strName2) {
 		function readyToProceed(object) {
 			appDB.getQmlObject.disconnect(readyToProceed);
-			object.exerciseRemoved.connect(removeExercise);
-			object.exerciseEdited.connect(editExercise);
-			object.setAdded.connect(addExerciseSet);
-			object.setWasRemoved.connect(delExerciseSet);
 			object.requestHideFloatingButtons.connect(hideFloatingButton);
 
 			bStopBounce = true;
@@ -1169,7 +1145,6 @@ Page {
 			scrollBarPosition = phantomItem.y;
 			scrollTraining.scrollToPos(scrollBarPosition);
 			bounceTimer.start();
-			bModified = true;
 			return;
 		}
 
@@ -1179,7 +1154,6 @@ Page {
 
 	function addExerciseSet(bnewset, exerciseObjIdx, setObject) {
 		if (bnewset) {
-			bModified = true;
 			bStopBounce = true;
 			if (exerciseObjIdx === exerciseSpriteList.length-1)
 				scrollBarPosition = phantomItem.y;
@@ -1193,64 +1167,6 @@ Page {
 	function delExerciseSet(setid) {
 		setsToBeRemoved.push(setid);
 	}
-
-	function editExercise(exerciseIdx) {
-		bModified = true;
-	}
-
-	function removeExercise(objidx) {
-		let newObjectList = new Array;
-		const len = exerciseSpriteList.length;
-
-		for( var i = 0, x = 0; i < len; ++i ) {
-			if (i === objidx) {
-				removeExerciseName(objidx);
-				exerciseSpriteList[objidx].Object.destroy();
-			}
-			else {
-				newObjectList[x] = exerciseSpriteList[i];
-				newObjectList[x].Object.updateSetsExerciseIndex(x);
-				x++;
-			}
-		}
-		delete exerciseSpriteList;
-		exerciseSpriteList = newObjectList;
-		bModified = true;
-	}
-
-	function addExercise(exercisename) {
-		if (exercisesNames.length > 0)
-			exercisesNames += '|' + exercisename;
-		else
-			exercisesNames = exercisename;
-		bModified = true;
-	}
-
-	function removeExerciseName(exerciseIdx) {
-		const names = exercisesNames.split('|');
-		exercisesNames = "";
-		for (var i = 0; i < names.length; ++i) {
-			if (i !== exerciseIdx)
-				exercisesNames += names[i] + '|';
-		}
-		exercisesNames = exercisesNames.slice(0, -1);
-		bModified = true;
-	}
-
-	function removeAllExerciseObjects() {
-		if (navButtons !== null)
-			navButtons.visible = false;
-		const len = exerciseSpriteList.length - 1;
-		for (var i = len; i >= 0; --i)
-			exerciseSpriteList[i].Object.destroy();
-
-		exerciseSpriteList = [];
-		setsToBeRemoved = [];
-		exercisesNames = "";
-		bAlreadyLoaded = false;
-	}
-
-
 
 	function startProgressDialog(calid, splitidx, day, mesoenddate) {
 		var component = Qt.createComponent("TrainingDayProgressDialog.qml");
@@ -1327,7 +1243,6 @@ Page {
 					appDB.updateTrainingDay(dayId, mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 					appDB.updateTrainingDayExercises(dayId);
 				}
-				bModified = false;
 			}
 		} //btnSaveDay
 
@@ -1341,7 +1256,6 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				bModified = false;
 				removeAllExerciseObjects();
 				pageActivation();
 			}
