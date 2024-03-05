@@ -1224,13 +1224,12 @@ Page {
 			onClicked: {
 				//if (bRealMeso)
 				//	updateMesoCalendar();
-				if (dayId === -1) {
+				if (tDayModel.id() === -1) {
 					var id;
 					function continueSave(_id) {
 						if (_id === id) {
 							appDB.qmlReady.disconnect(continueSave);
-							dayId = appDB.insertId();
-							appDB.updateTrainingDayExercises(dayId);
+							appDB.updateTrainingDayExercises(tDayModel.id());
 						}
 					}
 
@@ -1240,8 +1239,8 @@ Page {
 				}
 				else {
 					appDB.pass_object(tDayModel);
-					appDB.updateTrainingDay(dayId, mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
-					appDB.updateTrainingDayExercises(dayId);
+					appDB.updateTrainingDay(tDayModel.id(), mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					appDB.updateTrainingDayExercises(tDayModel.id());
 				}
 			}
 		} //btnSaveDay
@@ -1345,20 +1344,15 @@ Page {
 
 			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
 				if (exerciseEntryThatRequestedSimpleList)
-					exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName, subName);
+					exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName + " - " + subName);
 			}
 		}
 	}
 
-	function requestSimpleExerciseList(object) {
-		bShowSimpleExercisesList = true;
-		exerciseEntryThatRequestedSimpleList = object;
-		scrollTraining.setScrollBarPosition(1);
-	}
-
-	function closeSimpleExerciseList() {
-		bShowSimpleExercisesList = false;
-		exerciseEntryThatRequestedSimpleList = null;
+	function requestSimpleExerciseList(object, visible) {
+		bShowSimpleExercisesList = visible;
+		exerciseEntryThatRequestedSimpleList = visible ? object : null;
+		//scrollTraining.setScrollBarPosition(1);
 	}
 
 	function createFirstTimeTipComponent() {

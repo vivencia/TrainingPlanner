@@ -101,7 +101,7 @@ QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : tr("Add exercise...");
+		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : QString();
 	}
 	return QString();
 }

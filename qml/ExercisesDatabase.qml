@@ -3,8 +3,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 
-import "jsfunctions.js" as JSF
-
 Page {
 	id: pageExercises
 

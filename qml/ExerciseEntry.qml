@@ -10,8 +10,8 @@ FocusScope {
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
 
-	required property int thisObjectIdx
 	required property DBTrainingDayModel tDayModel
+	required property int thisObjectIdx
 
 	property var parentLayout
 	property int tDayId: -1
@@ -39,6 +39,7 @@ FocusScope {
 	signal setWasRemoved(int setid)
 	signal requestHideFloatingButtons(int except_idx)
 	signal requestTimerDialogSignal(Item requester, var args, var tdaydate)
+	signal requestSimpleExercisesList(Item requester, var bVisible, var tdaydate)
 
 	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -139,6 +140,7 @@ FocusScope {
 
 		ColumnLayout {
 			id: layoutMain
+			objectName: "exerciseSetsLayout"
 			anchors.fill: parent
 			spacing: 0
 
@@ -189,9 +191,8 @@ FocusScope {
 						cursorPosition = 0;
 				}
 
-				onEditingFinished:{
+				onEditingFinished: {
 					tDayModel.setExerciseName1(text, thisObjectIdx);
-					exerciseEdited(thisObjectIdx);
 				}
 
 				Label {
@@ -257,14 +258,8 @@ FocusScope {
 					}
 
 					onClicked: {
-						if (txtExerciseName.readOnly) {
-							txtExerciseName.readOnly = false;
-							requestSimpleExerciseList(exerciseItem);
-						}
-						else {
-							txtExerciseName.readOnly = true;
-							closeSimpleExerciseList();
-						}
+						txtExerciseName.readOnly = !txtExerciseName.readOnly;
+						requestExercisesList(exerciseItem, !txtExerciseName.readOnly);
 					}
 				}
 
@@ -317,38 +312,25 @@ FocusScope {
 				}
 			} // RowLayout
 		} // ColumnLayout layoutMain
-
 		Component.onDestruction: {
-			const len = setObjectList.length;
-			for (var i = 0; i < len; ++i)
-				setObjectList[i].Object.destroy();
-			delete setObjectList;
 			destroyFloatingAddSetButton();
 		}
 
 		Component.onCompleted: {
-			const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
-				"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
-			var component;
-			for (var i = 0; i < tDayModel.setsNumber(thisObjectIdx); ++i) {
+			function setObjectCreated(object) {
+				appDB.getSetObject.disconnect(setObjectCreated);
+				object.setRemoved.connect(setRemoved);
 
-				function finishCreation() {
-					var sprite = component.createObject(layoutMain, { tDayModel:tDayModel, exerciseIdx:thisObjectIdx, setNumber:setNbr });
-					setObjectList.push({ "Object" : sprite });
-					sprite.setRemoved.connect(setRemoved);
-
-					if (setNbr >= 1)
-						setObjectList[setNbr-1].Object.nextObject = sprite;
-					setAdded(true, thisObjectIdx, sprite);
-				}
-
-				setNbr++;
-				component = Qt.createComponent(setTypePage[tDayModel.setType(setNbr, thisObjectIdx)]);
+				//if (setNbr >= 1)
+				//	setObjectList[setNbr-1].Object.nextObject = sprite;
+				setNbr = tDayModel.setsNumber(thisObjectIdx);
+				setAdded(true, thisObjectIdx, object);
 				if (btnFloat !== null)
 					btnFloat.nextSetNbr++;
-				if (component.status === Component.Ready)
-					finishCreation();
 			}
+
+			if (tDayModel.setsNumber(thisObjectIdx) > 0)
+				appDB.getSetObject.connect(setObjectCreated);
 		}
 	} //paneExercise
 
@@ -393,6 +375,12 @@ FocusScope {
 			cboSetType.model = setTypesModel;
 		}
 		bFloatButtonVisible = false;
+	}
+
+	function changeExercise(newname)
+	{
+		txtExerciseName.text = newname;
+		tDayModel.setExerciseName1(newname, thisObjectIdx);
 	}
 
 	function addNewSet(type) {
@@ -506,34 +494,21 @@ FocusScope {
 	}
 
 	function createSetObject(type) {
-		const setTypePage = ["SetTypeRegular.qml", "SetTypePyramid.qml",
-			"SetTypeDrop.qml", "SetTypeCluster.qml", "SetTypeGiant.qml", "SetTypeMyoReps.qml"];
-		var component;
+		function setObjectCreated(object) {
+			appDB.getSetObject.disconnect(setObjectCreated);
+			object.setRemoved.connect(setRemoved);
 
-		function finishCreation() {
-			var sprite = component.createObject(layoutMain, { tDayModel:tDayModel, exerciseIdx:thisObjectIdx, setNumber:setNbr });
-			setObjectList.push({ "Object" : sprite });
-			sprite.setRemoved.connect(setRemoved);
-
-			if (setNbr >= 1)
-				setObjectList[setNbr-1].Object.nextObject = sprite;
-			setAdded(true, thisObjectIdx, sprite);
+			//if (setNbr >= 1)
+			//	setObjectList[setNbr-1].Object.nextObject = sprite;
+			setAdded(true, thisObjectIdx, object);
+			if (btnFloat !== null)
+				btnFloat.nextSetNbr++;
 		}
 
-		function checkStatus() {
-			if (component.status === Component.Ready)
-				finishCreation();
-		}
-
-		component = Qt.createComponent(setTypePage[type], Component.Asynchronous);
 		setNbr++;
-		if (btnFloat !== null)
-			btnFloat.nextSetNbr++;
-		tDayModel.newSet(thisObjectIdx, setNbr, type);
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(checkStatus);
+		appDB.getSetObject.connect(setObjectCreated);
+		tDayModel.newSet(thisObjectIdx, setNbr, cboSetType.currentIndex);
+		appDB.createSetObject(cboSetType.currentIndex, setNbr, thisObjectIdx, tDayModel);
 	}
 
 	function removeAllSets() {
@@ -602,5 +577,9 @@ FocusScope {
 	function requestTimer(requester, message, mins, secs) {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args, tDayModel.date());
+	}
+
+	function requestExercisesList(requester, visible) {
+		requestSimpleExercisesList(requester, visible, tDayModel.date());
 	}
 } //Item

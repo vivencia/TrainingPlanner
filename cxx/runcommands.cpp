@@ -128,6 +128,14 @@ QDate RunCommands::getDayBefore(const QDate& date) const
 	return date.addDays(-1);
 }
 
+QString RunCommands::intTimeToStrTime(const uint time) const
+{
+	QString ret(QString::number(time));
+	if (time < 10)
+		ret.prepend('0');
+	return ret;
+}
+
 QString RunCommands::getStrHourFromTime(const QDateTime& time) const
 {
 	const int hour(time.time().hour());

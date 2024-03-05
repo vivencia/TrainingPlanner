@@ -4,8 +4,6 @@
 import QtQuick
 import QtQuick.Controls
 
-import "jsfunctions.js" as JSF
-
 Page {
 	id: homePage
 	property int currentMesoIndex: -1

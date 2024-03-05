@@ -82,8 +82,11 @@ Item {
 				txtRestTime.forceActiveFocus();
 			}
 
-			Component.onCompleted:
+			Component.onCompleted: {
 				text = tDayModel.exerciseName2(exerciseIdx);
+				if (text.length === 0)
+					text = qsTr("Add exercise...");
+			}
 
 			onReadOnlyChanged: {
 				if (!readOnly) {
@@ -99,7 +102,7 @@ Item {
 
 			onActiveFocusChanged: {
 				if (activeFocus) {
-					closeSimpleExerciseList();
+					requestExercisesList(setItem, false);
 					cursorPosition = text.length;
 				}
 				else
@@ -146,14 +149,8 @@ Item {
 				}
 
 				onClicked: {
-					if (txtExerciseName2.readOnly) {
-						txtExerciseName2.readOnly = false;
-						requestSimpleExerciseList(setItem);
-					}
-					else {
-						txtExerciseName2.readOnly = true;
-						closeSimpleExerciseList();
-					}
+					txtExerciseName2.readOnly = !txtExerciseName2.readOnly;
+					requestExercisesList(setItem, !txtExerciseName2.readOnly);
 				}
 			} //btnEditExercise2
 		} //txtExerciseName2
@@ -355,4 +352,10 @@ Item {
 			}
 		}
 	} //ColumnLayout setLayout
+
+	function changeExercise(newname)
+	{
+		txtExerciseName2.text = newname;
+		tDayModel.setExerciseName2(newname, exerciseIdx);
+	}
 } // FocusScope

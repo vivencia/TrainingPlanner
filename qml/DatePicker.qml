@@ -2,8 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-import "jsfunctions.js" as JSF
-
 Rectangle {
 	id: root
 	clip: true
@@ -11,7 +9,6 @@ Rectangle {
 	width: cellSize * 8
 
 	property date selectedDate: displayDate
-	property int weekNbr: JSF.weekNumber(selectedDate);
 	property bool justCalendar: false
 	property string calendarWindowTitle
 
@@ -113,7 +110,7 @@ Rectangle {
 			verticalAlignment: Text.AlignVCenter
 			font.pixelSize: height * 0.5
 			font.bold: true
-			text: calendar.weekNames[calendar.week].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
+			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
 			color: "white"
 			opacity: yearsList.visible ? 0.7 : 1
 			MouseArea {
@@ -147,10 +144,10 @@ Rectangle {
 			to: endDate
 		}
 
-		property int currentDay: displayDate.getDate()
-		property int currentMonth: displayDate.getMonth()
-		property int currentYear: displayDate.getFullYear()
-		property int week: displayDate.getDay()
+		property int currentDay
+		property int currentMonth
+		property int currentYear
+		property int dayOfWeek
 		property var months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
 									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
 									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
@@ -209,10 +206,11 @@ Rectangle {
 					height: cellSize
 					width: cellSize
 					radius: height * 0.5
-					readonly property bool highlighted: enabled && model.day === calendar.currentDay && model.month === calendar.currentMonth
-					readonly property bool enabled: model.month === monthGrid.month && isDateWithinRange(model.year, model.month, model.day)
+					enabled: model.month === monthGrid.month
+					color: highlighted ? paneBackgroundColor : "white"
+
+					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
-					color: enabled && highlighted ? paneBackgroundColor : "white"
 
 					Text {
 						anchors.centerIn: parent
@@ -227,11 +225,11 @@ Rectangle {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							selectedDate = JSF.getNextDate(model.date);
-							calendar.currentDay = selectedDate.getDate();
-							calendar.currentMonth = selectedDate.getMonth();
-							calendar.week = selectedDate.getDay();
-							calendar.currentYear = selectedDate.getFullYear();
+							selectedDate = new Date(model.year, model.month, model.day);
+							calendar.currentYear = model.year;
+							calendar.currentMonth = model.month;
+							calendar.currentDay = model.day;
+							calendar.dayOfWeek = selectedDate.getDay();
 						}
 					}
 				} // delegate: Rectangle
@@ -276,8 +274,7 @@ Rectangle {
 						nmonth = endDate.getMonth();
 						nday = endDate.getDate();
 					}
-					var newDate = new Date(nyear, nmonth, nday)
-					setDate(newDate);
+					setDate(new Date(nyear, nmonth, nday));
 					yearsList.hide();
 				}
 			}
@@ -333,7 +330,7 @@ Rectangle {
 					anchors.fill: parent
 					onClicked: {
 						if (!justCalendar)
-							okClicked(selectedDate, weekNbr);
+							okClicked(selectedDate, selectedDate.getDate());
 						else
 							cancelClicked();
 					}
@@ -362,20 +359,13 @@ Rectangle {
 		}
 	}
 
-	function isDateWithinRange(year, month, day) {
-		if (!justCalendar) {
-			var date = new Date(year, month, day);
-			return (date >= startDate) && (date <= endDate)
-		}
-		return true;
-	}
-
 	function setDate(newDate) {
-		calendar.currentIndex = calendarModel.indexOf(newDate);
+		selectedDate = newDate;
+		calendar.currentIndex = calendarModel.indexOf(selectedDate);
 		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
-		calendar.currentYear = newDate.getFullYear();
-		calendar.currentMonth = newDate.getMonth();
-		calendar.currentDay = newDate.getDate();
-		calendar.week = newDate.getDay();
+		calendar.currentDay = displayDate.getDate();
+		calendar.currentMonth = displayDate.getMonth();
+		calendar.currentYear = displayDate.getFullYear();
+		calendar.dayOfWeek = displayDate.getDay();
 	}
 }

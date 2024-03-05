@@ -119,7 +119,7 @@ Page {
 
 		TPTextInput {
 			id: txtMesoStartDate
-			text: JSF.formatDateToDisplay(mesoStartDate, AppSettings.appLocale)
+			text: runCmd.formatDate(mesocyclesModel.getDate(idxModel, 2))
 			Layout.fillWidth: false
 			Layout.leftMargin: 5
 			Layout.minimumWidth: parent.width / 2

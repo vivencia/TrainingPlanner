@@ -54,7 +54,6 @@ set( QM_FILES
 set( QML_FILES
     "qml/main.qml"
     "qml/AppSettings.qml"
-    "qml/Database.qml"
     "qml/FontSizePage.qml"
     "qml/HomePage.qml"
     "qml/NavBar.qml"

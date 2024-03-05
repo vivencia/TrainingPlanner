@@ -3,8 +3,6 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
 
-import "jsfunctions.js" as JSF
-
 Page {
 	id: mealsDayPage
 	title: "mealsPage"

@@ -26,7 +26,7 @@ public:
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
 	Q_INVOKABLE const QString formatDate(const QDate& date) const;
-	Q_INVOKABLE inline uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
+	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
 	{
 		return calculateNumberOfWeeks(date1.weekNumber(), date2.weekNumber());
 	}
@@ -35,6 +35,7 @@ public:
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
 	Q_INVOKABLE QDate getDayBefore(const QDate& date) const;
 
+	Q_INVOKABLE QString intTimeToStrTime(const uint time) const;
 	Q_INVOKABLE QString getStrHourFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString getStrMinFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString formatTime(const QDateTime& time) const;

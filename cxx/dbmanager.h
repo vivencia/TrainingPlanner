@@ -101,18 +101,21 @@ public:
 
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
 	void createExerciseObject_part2(const int object_idx = -1);
-	void createExercisesObjects(const DBTrainingDayModel* model);
-	void createSetObject(const QString& page, const uint set_number, const uint exercise_idx);
+	void createExercisesObjects(DBTrainingDayModel* model);
+	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, DBTrainingDayModel* model);
+	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
 	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args, const QVariant& date);
+	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& date);
 
 signals:
 	void qmlReady(uint exec_id);
 	void databaseFree();
 	void getQmlObject(QQuickItem* item, const bool bFirstTime);
+	void getSetObject(QQuickItem* setObject);
 
 private:
 	uint m_execId;
@@ -169,7 +172,10 @@ private:
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	QQmlComponent* m_setComponent[6];
+	QQmlComponent* m_setComponents[6];
+	QMap<uint,QList<QQuickItem*>> m_setObjects;
+	QList<uint> m_setCounter;
+	QVariantMap m_setObjectProperties;
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

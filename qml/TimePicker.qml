@@ -4,8 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Controls.Material
 
-import "jsfunctions.js" as JSF
-
 Popup {
 	id: timePicker
 	closePolicy: Popup.CloseOnPressOutside
@@ -309,7 +307,7 @@ Popup {
 			anchors.left: parent.left
 			anchors.leftMargin: 5
 			onClicked: {
-				timePicker.setDisplay(JSF.getTimeStringFromDateTime(new Date()), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
+				timePicker.setDisplay(runCmd.formatTime(today), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 			}
 		}
 

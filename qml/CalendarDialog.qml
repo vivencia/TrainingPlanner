@@ -37,7 +37,7 @@ Popup {
 		calendarWindowTitle: windowTitle
 
 		Component.onCompleted: {
-			datePickerControl.setDate (showDate);
+			datePickerControl.setDate(showDate);
 		}
 
 		onOkClicked: (selDate, nWeek) => {

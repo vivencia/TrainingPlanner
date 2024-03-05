@@ -29,7 +29,8 @@ static const QStringList setTypePages(QStringList() << QStringLiteral("SetTypeRe
 DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
 	: QObject (nullptr), m_execId(0), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
 		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr), m_splitComponent(nullptr), m_lastUsedSplitMesoID(0),
-		m_calPage(nullptr), m_calComponent(nullptr), m_lastUsedCalMesoID(0), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr)
+		m_calPage(nullptr), m_calComponent(nullptr), m_lastUsedCalMesoID(0), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
+		m_setComponents{nullptr}
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -239,6 +240,13 @@ void DbManager::requestTimerDialog(QQuickItem* requester, const QVariant& args, 
 	QMetaObject::invokeMethod(m_tDayPages.at(m_tDayObjects.value(date.toDate())), "requestTimerDialog", Q_ARG(QVariant, QVariant::fromValue(requester)),
 		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
 }
+
+void DbManager::requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& date)
+{
+	QMetaObject::invokeMethod(m_tDayPages.at(m_tDayObjects.value(date.toDate())), "requestSimpleExerciseList",
+		Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible));
+}
+
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
@@ -790,11 +798,13 @@ void DbManager::createExerciseObject_part2(const int object_idx)
 	item->setParentItem(parent);
 	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&,const QVariant&)), this,
 						SLOT(requestTimerDialog(QQuickItem*,const QVariant&,const QVariant&)) );
+	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&, const QVariant&)) );
 	m_tDayExercises.append(item);
 	emit getQmlObject(item, true);
 }
 
-void DbManager::createExercisesObjects(const DBTrainingDayModel* model)
+void DbManager::createExercisesObjects(DBTrainingDayModel* model)
 {
 	if (m_tDayExercisesComponent == nullptr)
 	{
@@ -812,13 +822,57 @@ void DbManager::createExercisesObjects(const DBTrainingDayModel* model)
 		{
 			createExerciseObject_part2(i);
 			for (uint x(0); x < model->setsNumber(i); ++x)
-				createSetObject(setTypePages[model->setType(x, i)], x, i);
+				createSetObject(model->setType(x, i), x, i, model);
 		}
 	}
 }
 
-void DbManager::createSetObject(const QString& page, const uint set_number, const uint exercise_idx)
+void DbManager::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, DBTrainingDayModel* model)
 {
+	if (m_setComponents[set_type] == nullptr)
+	{
+		QQuickItem* parentLayout(static_cast<QQuickItem*>(m_tDayExercises.at(exercise_idx))->
+						findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
 
+		m_setObjectProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(model));
+		m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
+		m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
+
+		uint i(0);
+		QList<QQuickItem*> lst;
+		for(i = 0; i < model->setsNumber(exercise_idx); ++i)
+			lst.append(nullptr);
+		m_setObjects[exercise_idx] = lst;
+		m_setCounter.append(i);
+
+		m_setComponents[set_type] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type]), QQmlComponent::Asynchronous, parentLayout);
+		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
+					{ if (status == QQmlComponent::Ready) return DbManager::createSetObject_part2(set_type,set_number,exercise_idx); } );
+		#ifdef DEBUG
+		if (m_setComponents[set_type]->status() == QQmlComponent::Error)
+		{
+			qDebug() << m_setComponents[set_type]->errorString();
+			for (uint i(0); i < m_setComponents[set_type]->errors().count(); ++i)
+				qDebug() << m_setComponents[set_type]->errors().at(i).description();
+		}
+		#endif
+	}
+}
+
+void DbManager::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx)
+{
+	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type]->
+								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
+	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	QQuickItem* parent(static_cast<QQuickItem*>(m_tDayExercises.at(exercise_idx))->
+								findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
+	item->setParentItem(parent);
+	m_setObjects[exercise_idx][set_number] = item;
+	if (--m_setCounter[exercise_idx] == 0)
+	{
+		const uint n(m_setObjects.value(exercise_idx).count());
+		for (uint i(0); i < n; ++i) //notify object creation orderly
+			emit getSetObject(m_setObjects.value(exercise_idx).at(i));
+	}
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

@@ -3,8 +3,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
 
-import "jsfunctions.js" as JSF
-
 Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
@@ -338,7 +336,7 @@ Dialog {
 			}
 			TextField {
 				id: txtHours
-				text: JSF.intTimeToStrTime(hours)
+				text: runCmd.intTimeToStrTime(hours)
 				color: enabled ? "black" : "gray"
 				visible: !bJustMinsAndSecs
 				focus: true
@@ -360,7 +358,7 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtHours.clear();
-						placeholderText = JSF.intTimeToStrTime(hours);
+						placeholderText = runCmd.intTimeToStrTime(hours);
 						origHours = hours;
 					}
 					else {
@@ -395,7 +393,7 @@ Dialog {
 
 			TextField {
 				id: txtMinutes
-				text: JSF.intTimeToStrTime(mins)
+				text: runCmd.intTimeToStrTime(mins)
 				color: enabled ? "black" : "gray"
 				Layout.alignment: Text.AlignHCenter
 				focus: true
@@ -415,7 +413,7 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtMinutes.clear();
-						placeholderText = JSF.intTimeToStrTime(mins);
+						placeholderText = runCmd.intTimeToStrTime(mins);
 						origMins = mins;
 					}
 					else {
@@ -454,7 +452,7 @@ Dialog {
 
 			TextField {
 				id: txtSecs
-				text: JSF.intTimeToStrTime(secs)
+				text: runCmd.intTimeToStrTime(secs)
 				color: "black"
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
@@ -476,7 +474,7 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtSecs.clear();
-						placeholderText = JSF.intTimeToStrTime(secs);
+						placeholderText = runCmd.intTimeToStrTime(secs);
 						origSecs = secs;
 					}
 					else {
@@ -630,13 +628,13 @@ Dialog {
 						}
 					}
 					if (timePickerOnly) {
-						useTime(JSF.intTimeToStrTime(hours) + ":" + JSF.intTimeToStrTime(mins));
+						useTime(runCmd.intTimeToStrTime(hours) + ":" + runCmd.intTimeToStrTime(mins));
 					}
 					else {
 						if ( totalhours > 0 )
-							useTime(JSF.intTimeToStrTime(totalhours) + ":" + JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+							useTime(runCmd.intTimeToStrTime(totalhours) + ":" + runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
 						else
-							useTime(JSF.intTimeToStrTime(totalmins) + ":" + JSF.intTimeToStrTime(totalsecs));
+							useTime(runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
 					}
 				}
 				dlgTimer.close();
