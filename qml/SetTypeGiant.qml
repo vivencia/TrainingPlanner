@@ -7,9 +7,9 @@ import com.vivenciasoftware.qmlcomponents
 Item {
 	id: setItem
 	implicitHeight: setLayout.implicitHeight
-	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
+	Layout.rightMargin: 5
 
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx

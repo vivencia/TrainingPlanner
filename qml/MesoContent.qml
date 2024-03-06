@@ -98,7 +98,7 @@ Page {
 
 				Text {
 					anchors.centerIn: parent
-					text: calendar.monthsNames[mesosCalendarModel.getMonth(index)] + " " + mesosCalendarModel.getYear(index);
+					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
 					font.pixelSize: AppSettings.titleFontSizePixelSize
 					font.bold: true
 				}
@@ -124,8 +124,8 @@ Page {
 			MonthGrid {
 				id: monthGrid
 				locale: Qt.locale(AppSettings.appLocale)
-				month: mesosCalendarModel.getMonth(index)
-				year: mesosCalendarModel.getYear(index)
+				month: mesoCalendarModel.getMonth(index)
+				year: mesoCalendarModel.getYear(index)
 				spacing: 0
 				anchors.top: weekTitles.bottom
 				width: parent.width
@@ -147,7 +147,7 @@ Page {
 						else {
 							//if ( monthGrid.year === model.year) {
 								if ( monthGrid.month === model.month ) {
-									if (mesosCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
+									if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
 										colorValue =  listEntryColor2;
 										bIsTrainingDay = true;
 									}
@@ -160,7 +160,7 @@ Page {
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? mesosCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesosCalendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
+						text: monthGrid.month === model.month ? mesoCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesoCalendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
@@ -172,11 +172,11 @@ Page {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							btnShowDayInfo.enabled = mesosCalendarModel.isTrainingDay(model.month+1, model.day-1);
+							btnShowDayInfo.enabled = mesoCalendarModel.isTrainingDay(model.month+1, model.day-1);
 
 							if (btnShowDayInfo.enabled) {
-								splitLetter = mesosCalendarModel.getSplit(model.month+1, model.day-1);
-								trainingDay = mesosCalendarModel.getTrainingDay(model.month+1, model.day-1);
+								splitLetter = mesoCalendarModel.getSplit(model.month+1, model.day-1);
+								trainingDay = mesoCalendarModel.getTrainingDay(model.month+1, model.day-1);
 								getDivisionContent(splitLetter);
 							}
 							calendar.currentDay = model.day;
@@ -244,7 +244,7 @@ Page {
 	} // footer: ToolBar
 
 	function setModel() {
-		calendar.model = mesosCalendarModel;
+		calendar.model = mesoCalendarModel;
 	}
 
 	function getDivisionContent(splitletter) {

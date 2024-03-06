@@ -80,13 +80,13 @@ Page {
 						}
 					}
 
-					if (mesosCalendarModel.getMesoId() === mesoId)
+					if (mesoCalendarModel.getMesoId() === mesoId)
 						readyToProceed(id);
 					else {
-						mesosCalendarModel.clear();
+						mesoCalendarModel.clear();
 						appDB.qmlReady.connect(readyToProceed);
-						id = appDB.pass_object(mesosCalendarModel);
-						appDB.getMesoCalendar(mesoId);
+						id = appDB.pass_object(mesoCalendarModel);
+						appDB.getMesoCalendar();
 					}
 				}
 			}
@@ -833,7 +833,7 @@ Page {
 							appDB.qmlReady.disconnect(getMesoId);
 							mesoId = appDB.insertId();
 							appDB.pass_object(mesoSplitModel);
-							appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
+							appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 							bNewMeso = false;
 							createMesoCalendarObject(true);
 						}
@@ -850,11 +850,11 @@ Page {
 							appDB.qmlReady.disconnect(canProceed);
 							appDB.pass_object(mesoSplitModel);
 							if (mesoSplitModel.count === 0)
-								appDB.newMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
+								appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 							else
 							{
 								mesoSplitModel.setCurrentRow(idxModel);
-								appDB.updateMesoSplit(mesoId, txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+								appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 							}
 
 						/*if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
@@ -878,7 +878,7 @@ Page {
 					mesocyclesModel.setCurrentRow(idxModel);
 					id = appDB.pass_object(mesocyclesModel);
 					appDB.qmlReady.connect(canProceed);
-					appDB.updateMesocycle(mesoId, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
+					appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 				}
 				bModified = false;
 			} //onClicked

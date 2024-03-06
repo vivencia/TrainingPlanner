@@ -164,8 +164,8 @@ ApplicationWindow {
 			onClicked: { // Use most current meso
 				function pushOntoStackView(object, bfirsttime) {
 					if (bfirsttime) {
-						object.tDay = mesosCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object.splitLetter = mesosCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
+						object.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+						object.splitLetter = mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
 					}
 					appDB.getQmlObject.disconnect(pushOntoStackView);
 					appStackView.push(object, StackView.DontLoad);
@@ -178,14 +178,13 @@ ApplicationWindow {
 					appDB.getTrainingDay(mesocyclesModel.count -1, today);
 				}
 
-				const mesoId = mesocyclesModel.getInt(mesocyclesModel.count -1, 0);
-				if (mesosCalendarModel.getMesoId() === mesoId)
+				if (mesoCalendarModel.getMesoId() === mesoId)
 					readyToProceed(); //already loaded
 				else {
-					mesosCalendarModel.clear();
+					mesoCalendarModel.clear();
 					appDB.qmlReady.connect(readyToProceed);
-					appDB.pass_object(mesosCalendarModel);
-					appDB.getMesoCalendar(mesoId);
+					appDB.pass_object(mesoCalendarModel);
+					appDB.getMesoCalendar();
 				}
 			} //onClicked
 		} //TabButton

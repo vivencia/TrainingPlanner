@@ -12,12 +12,13 @@ class QQmlApplicationEngine;
 class QQuickItem;
 class QQuickWindow;
 class QSettings;
-class DBMesoSplitModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
+class DBMesoSplitModel;
 class DBMesoCalendarModel;
 class DBTrainingDayModel;
 class RunCommands;
+class TPMesocycleClass;
 
 class DbManager : public QObject
 {
@@ -28,6 +29,7 @@ public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
 	~DbManager();
 
+	void setWorkingMeso(const uint mesoId, const uint mesoIdx);
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
@@ -54,70 +56,62 @@ public:
 	Q_INVOKABLE void getAllMesocycles();
 	Q_INVOKABLE void newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
 									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
-	Q_INVOKABLE void updateMesocycle(const QString& id, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
+	Q_INVOKABLE void updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
 									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
-	Q_INVOKABLE void removeMesocycle(const QString& id);
+	Q_INVOKABLE void removeMesocycle();
 	Q_INVOKABLE void deleteMesocyclesTable();
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getMesoSplit(const int meso_id);
-	Q_INVOKABLE void newMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB, const QString& splitC,
+	Q_INVOKABLE void getMesoSplit();
+	Q_INVOKABLE void newMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
 									const QString& splitD, const QString& splitE, const QString& splitF);
-	Q_INVOKABLE void updateMesoSplit(const uint meso_id, const QString& splitA, const QString& splitB,
-										const QString& splitC, const QString& splitD,
+	Q_INVOKABLE void updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC, const QString& splitD,
 										const QString& splitE, const QString& splitF);
-	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
+	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable();
-	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_id, const uint meso_idx, const QString& mesoSplit);
-	void createMesoSlitPlanner();
-	Q_INVOKABLE void updateMesoSplitComplete(const uint meso_id, const QString& splitLetter);
+	Q_INVOKABLE void getCompleteMesoSplit(const QString& mesoSplit);
+	Q_INVOKABLE void updateMesoSplitComplete(const QString& splitLetter);
 	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getMesoCalendar(const int meso_id);
+	Q_INVOKABLE void getMesoCalendar();
 	Q_INVOKABLE void createMesoCalendar();
-	Q_INVOKABLE void createMesoCalendarPage(const uint meso_id, const uint meso_idx);
-	void createMesoCalendarPage_part2();
-	Q_INVOKABLE void newMesoCalendarEntry(const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
-	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const uint mesoId, const QDate& calDate, const uint calNDay, const QString& calSplit);
+	Q_INVOKABLE void newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
+	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void deleteMesoCalendar(const uint id);
 	Q_INVOKABLE void deleteMesoCalendarTable();
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getTrainingDay(const uint meso_id, const QDate& date);
-	void createTrainingDayPage(const int exec_id = -1);
+	Q_INVOKABLE void getTrainingDay(const QDate& date);
 	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
-	Q_INVOKABLE void newTrainingDay(const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+	Q_INVOKABLE void newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
-	Q_INVOKABLE void updateTrainingDay(const uint id, const uint meso_id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
+	Q_INVOKABLE void updateTrainingDay(const uint id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
 	Q_INVOKABLE void updateTrainingDayExercises(const uint id);
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
 
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
-	void createExerciseObject_part2(const int object_idx = -1);
-	void createExercisesObjects(DBTrainingDayModel* model);
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, DBTrainingDayModel* model);
-	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
 	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
-	void requestTimerDialog(QQuickItem* requester, const QVariant& args, const QVariant& date);
-	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& date);
 
 signals:
-	void qmlReady(uint exec_id);
+	void databaseReady(uint exec_id);
 	void databaseFree();
-	void getQmlObject(QQuickItem* item, const bool bFirstTime);
-	void getSetObject(QQuickItem* setObject);
+	void getItem(QQuickItem* item, const uint id);
 
 private:
+	uint m_MesoId;
+	uint m_MesoIdx;
+	QString m_MesoIdStr;
 	uint m_execId;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
@@ -128,57 +122,18 @@ private:
 	uint m_insertid;
 	QStringList m_result;
 	QQuickItem* m_appStackView;
+	QList<TPMesocycleClass*> m_MesoManager;
 
 	DBMesocyclesModel* mesocyclesModel;
-	DBExercisesModel* exercisesListModel;
 	DBMesoSplitModel* mesoSplitModel;
-	DBMesoCalendarModel* mesosCalendarModel;
+	DBMesoCalendarModel* mesoCalendarModel;
+	DBExercisesModel* exercisesListModel;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
 	QQuickItem* m_exercisesPage;
 	QQmlComponent* m_exercisesComponent;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-
-	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	QQmlComponent* m_splitComponent;
-	QMap<QChar,QQuickItem*> m_splitItems;
-	QMap<QChar,DBMesoSplitModel*> m_splitModels;
-	QVariantMap m_splitProperties;
-	uint m_lastUsedSplitMesoID;
-	QString m_createdSplits;
-	QQuickItem* m_qmlSplitObjectParent;
-	QQuickItem* m_qmlSplitObjectContainer;
-	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-
-	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-	QQmlComponent* m_calComponent;
-	QQuickItem* m_calPage;
-	QVariantMap m_calProperties;
-	uint m_lastUsedCalMesoID;
-	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-
-	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-	QMap<QDate,uint> m_tDayObjects;
-	QList<DBTrainingDayModel*> m_tDayModels;
-	QList<QQuickItem*> m_tDayPages;
-	QQmlComponent* m_tDayComponent;
-	QVariantMap m_tDayProperties;
-
-	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	QVariantMap m_tDayExerciseEntryProperties;
-	QList<QQuickItem*> m_tDayExercises;
-	QQmlComponent* m_tDayExercisesComponent;
-	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-
-	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	QQmlComponent* m_setComponents[6];
-	QMap<uint,QList<QQuickItem*>> m_setObjects;
-	QList<uint> m_setCounter;
-	QVariantMap m_setObjectProperties;
-	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-
-	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);

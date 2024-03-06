@@ -1235,11 +1235,11 @@ Page {
 
 					id = appDB.pass_object(tDayModel);
 					appDB.qmlReady.connect(continueSave);
-					appDB.newTrainingDay(mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					appDB.newTrainingDay(mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				}
 				else {
 					appDB.pass_object(tDayModel);
-					appDB.updateTrainingDay(tDayModel.id(), mesoId, mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					appDB.updateTrainingDay(tDayModel.id(), mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 					appDB.updateTrainingDayExercises(tDayModel.id());
 				}
 			}

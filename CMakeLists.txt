@@ -22,6 +22,7 @@ set( SOURCES
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
+	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/graph.h cxx/graph.cpp
 
 	cxx/tpdatabasetable.h

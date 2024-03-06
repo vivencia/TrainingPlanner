@@ -247,7 +247,7 @@ Page {
 
 		if (mesocyclesModel.count !== 0) {
 			appDB.pass_object(mesoSplitModel);
-			appDB.getMesoSplit(mesocyclesModel.getInt(mesocyclesModel.count-1, 0));
+			appDB.getMesoSplit();
 			pageActivation();
 		}
 		else {

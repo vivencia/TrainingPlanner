@@ -13,7 +13,6 @@ FocusScope {
 	required property DBTrainingDayModel tDayModel
 	required property int thisObjectIdx
 
-	property var parentLayout
 	property int tDayId: -1
 	property int setType: 0
 	property int setNbr: -1

@@ -26,7 +26,7 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 
 public:
 
-	explicit TPListModel(QObject *parent = 0) : QAbstractListModel(parent),
+	explicit TPListModel(QObject *parent = nullptr) : QAbstractListModel(parent),
 		m_currentRow(-1), m_bFilterApplied(false),  m_bReady(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{

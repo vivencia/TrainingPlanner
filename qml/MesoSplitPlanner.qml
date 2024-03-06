@@ -566,7 +566,7 @@ Frame {
 				if (bCanEditExercise)
 					editButtonClicked();
 				appDB.pass_object(splitModel);
-				appDB.updateMesoSplitComplete(mesoId, splitLetter);
+				appDB.updateMesoSplitComplete(splitLetter);
 				bModified = false;
 			}
 		}
