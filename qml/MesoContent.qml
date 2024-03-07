@@ -7,6 +7,7 @@ Page {
 	id: mesoContentPage
 	required property int mesoId
 	required property int mesoIdx
+	required property DBMesoCalendarModel mesoCalendarModel
 
 	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
 	readonly property date mesoStartDate: mesocyclesModel.getDate(mesoIdx, 2)
@@ -223,16 +224,14 @@ Page {
 				enabled: false
 
 				onClicked: {
-					function pushTDayOntoStackView(object, bfirsttime) {
-						if (bfirsttime) {
-							object.tDay = trainingDay;
-							object.splitLetter = splitLetter;
-						}
-						appDB.getQmlObject.disconnect(pushTDayOntoStackView);
+					function pushTDayOntoStackView(object, id) {
+						appDB.getItem.disconnect(pushTDayOntoStackView);
+						object.tDay = trainingDay;
+						object.splitLetter = splitLetter;
 						appDB.appStackView().push(object, StackView.DontLoad);
 					}
 
-					appDB.getQmlObject.connect(pushTDayOntoStackView);
+					appDB.getItem.connect(pushTDayOntoStackView);
 					appDB.getTrainingDay(mesoIdx, calendar.dayInfoDate);
 				}
 			}

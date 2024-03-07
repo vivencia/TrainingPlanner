@@ -57,7 +57,8 @@ public:
 
 	Q_INVOKABLE QString exerciseName(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const QString& new_name, const uint exercise_idx);
-	Q_INVOKABLE void newExercise(const QString& new_exercise, const uint idx);
+	void newExercise(const QString& new_exercise, const uint idx);
+	void removeExercise(const uint exercise_idx);
 
 	Q_INVOKABLE QString exerciseName1(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName1(const QString& name1, const uint exercise_idx);
@@ -65,8 +66,8 @@ public:
 	Q_INVOKABLE QString exerciseName2(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
 
-	Q_INVOKABLE void newSet(const uint exercise_idx, const uint set_number, const uint type);
-	Q_INVOKABLE bool removeSet(const uint set_number, const uint exercise_idx);
+	void newSet(const uint exercise_idx, const uint set_number, const uint type);
+	bool removeSet(const uint set_number, const uint exercise_idx);
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetType(const uint set_number, const uint new_type, const uint exercise_idx);

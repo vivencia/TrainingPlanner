@@ -29,7 +29,7 @@ public:
 	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
 	~DbManager();
 
-	void setWorkingMeso(const uint mesoId, const uint mesoIdx);
+	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
@@ -54,6 +54,8 @@ public:
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllMesocycles();
+	Q_INVOKABLE void getMesocycle(const uint meso_idx);
+	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name);
 	Q_INVOKABLE void newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
 									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
@@ -96,8 +98,10 @@ public:
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
 
-	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, QQuickItem* parentLayout, const uint modelIdx);
-	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, DBTrainingDayModel* model);
+	Q_INVOKABLE void createExerciseObject(const QString& exerciseName);
+	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
+	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
+	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 public slots:
@@ -109,7 +113,7 @@ signals:
 	void getItem(QQuickItem* item, const uint id);
 
 private:
-	uint m_MesoId;
+	int m_MesoId;
 	uint m_MesoIdx;
 	QString m_MesoIdStr;
 	uint m_execId;
@@ -126,7 +130,6 @@ private:
 
 	DBMesocyclesModel* mesocyclesModel;
 	DBMesoSplitModel* mesoSplitModel;
-	DBMesoCalendarModel* mesoCalendarModel;
 	DBExercisesModel* exercisesListModel;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------

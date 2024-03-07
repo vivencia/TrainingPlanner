@@ -16,7 +16,6 @@ FocusScope {
 	required property int setNumber
 	readonly property int setType: 0 //Constant
 
-	signal setRemoved(int set_number)
 	property var nextObject: null
 
 	ColumnLayout {
@@ -43,8 +42,7 @@ FocusScope {
 					width: 20
 				}
 				onClicked: {
-					if (tDayModel.removeSet(setNumber, exerciseIdx))
-						setRemoved(setNumber);
+					appDB.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
 		}

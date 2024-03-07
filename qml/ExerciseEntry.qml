@@ -11,31 +11,20 @@ FocusScope {
 	implicitHeight: paneExercise.height
 
 	required property DBTrainingDayModel tDayModel
-	required property int thisObjectIdx
+	required property int exerciseIdx
 
 	property int tDayId: -1
 	property int setType: 0
 	property int setNbr: -1
-	property var suggestedReps: []
-	property var suggestedSubSets: []
-	property var suggestedWeight: []
-	property var suggestedRestTimes: []
-	property var setNotes: []
-	property var setObjectList: []
-	property var setCreated: []
 
-	property int loadTDayId: -1
-	property int loadObjectIdx: -1
 	property var btnFloat: null
 	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
-	property bool bSetsLoaded: false
 	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
 
 	signal exerciseRemoved(int ObjectIdx)
 	signal exerciseEdited(int objidx)
-	signal setAdded(bool bnewset, int objidx, var setObject)
-	signal setWasRemoved(int setid)
+	signal setAdded(int objidx, var setObject)
 	signal requestHideFloatingButtons(int except_idx)
 	signal requestTimerDialogSignal(Item requester, var args, var tdaydate)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var tdaydate)
@@ -58,52 +47,22 @@ FocusScope {
 		}
 	}
 
-	Timer {
-		id: logSetsTimer
-		interval: 200
-		running: false
-		repeat: true
-
-		onTriggered: {
-			if (bSetsLoaded)
-				stop();
-			const len = setCreated.length;
-			var totalReady = 0;
-			for(var i = 0; i < len; ++i) {
-				switch(setCreated[i]) {
-					case 0:
-					break;
-					case 1:
-						setObjectList[i].Object.logSet();
-						setCreated[i] = 2;
-						bSetsLoaded = true;
-					break;
-					case 2:
-						totalReady++;
-					break;
-				}
-			}
-			bSetsLoaded = totalReady === len;
-		}
-	}
-
 	TPBalloonTip {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise")
-		message: tDayModel.exerciseName(thisObjectIdx) + qsTr("? This action cannot be undone.")
+		message: tDayModel.exerciseName(exerciseIdx) + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
 		onButton1Clicked: {
-			removeAllSets();
-			exerciseRemoved(thisObjectIdx);
+			appDB.removeExerciseObject(exerciseIdx);
 		}
 	} //TPBalloonTip
 
 	Frame {
 		id: paneExercise
-		property bool shown: tDayModel.setsNumber(thisObjectIdx) === 0
+		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height
 		Behavior on height {
@@ -115,18 +74,8 @@ FocusScope {
 		padding: 0
 		z: 0
 
-		onShownChanged: {
-			if (shown) {
-				if (!bSetsLoaded)
-				{
-					bSetsLoaded = true;
-					createSets();
-				}
-			}
-		}
-
 		background: Rectangle {
-			color: thisObjectIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
+			color: exerciseIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
 			border.color: "transparent"
 			opacity: 0.8
 			radius: 5
@@ -145,7 +94,7 @@ FocusScope {
 
 			TextField {
 				id: txtExerciseName
-				text: tDayModel.exerciseName1(thisObjectIdx)
+				text: tDayModel.exerciseName1(exerciseIdx)
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
@@ -191,12 +140,12 @@ FocusScope {
 				}
 
 				onEditingFinished: {
-					tDayModel.setExerciseName1(text, thisObjectIdx);
+					tDayModel.setExerciseName1(text, exerciseIdx);
 				}
 
 				Label {
 					id: lblExerciseNumber
-					text: parseInt(thisObjectIdx + 1) + ":"
+					text: parseInt(exerciseIdx + 1) + ":"
 					font.pixelSize: AppSettings.fontSizeText
 					anchors.right: txtExerciseName.left
 					anchors.verticalCenter: txtExerciseName.verticalCenter
@@ -287,7 +236,7 @@ FocusScope {
 					id: cboSetType
 					model: setTypesModel
 					Layout.minimumWidth: 140
-					currentIndex: tDayModel.setType(0, thisObjectIdx)
+					currentIndex: tDayModel.setType(0, exerciseIdx)
 				}
 				RoundButton {
 					id: btnAddSet
@@ -300,9 +249,9 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						tDayModel.setSetType(0, cboSetType.currentValue, thisObjectIdx);
+						tDayModel.setSetType(0, cboSetType.currentValue, exerciseIdx);
 						createSetObject(cboSetType.currentIndex);
-						requestHideFloatingButtons (thisObjectIdx);
+						requestHideFloatingButtons (exerciseIdx);
 						if (btnFloat === null)
 							createFloatingAddSetButton();
 						else
@@ -313,23 +262,6 @@ FocusScope {
 		} // ColumnLayout layoutMain
 		Component.onDestruction: {
 			destroyFloatingAddSetButton();
-		}
-
-		Component.onCompleted: {
-			function setObjectCreated(object) {
-				appDB.getSetObject.disconnect(setObjectCreated);
-				object.setRemoved.connect(setRemoved);
-
-				//if (setNbr >= 1)
-				//	setObjectList[setNbr-1].Object.nextObject = sprite;
-				setNbr = tDayModel.setsNumber(thisObjectIdx);
-				setAdded(true, thisObjectIdx, object);
-				if (btnFloat !== null)
-					btnFloat.nextSetNbr++;
-			}
-
-			if (tDayModel.setsNumber(thisObjectIdx) > 0)
-				appDB.getSetObject.connect(setObjectCreated);
 		}
 	} //paneExercise
 
@@ -350,7 +282,7 @@ FocusScope {
 	}
 
 	function changeComboModel() {
-		switch (tDayModel.setType(0, thisObjectIdx)) {
+		switch (tDayModel.setType(0, exerciseIdx)) {
 			case 0:
 			case 1:
 			case 2:
@@ -379,7 +311,7 @@ FocusScope {
 	function changeExercise(newname)
 	{
 		txtExerciseName.text = newname;
-		tDayModel.setExerciseName1(newname, thisObjectIdx);
+		tDayModel.setExerciseName1(newname, exerciseIdx);
 	}
 
 	function addNewSet(type) {
@@ -387,186 +319,20 @@ FocusScope {
 		createSetObject(type);
 	}
 
-	function loadSetsFromDatabase() {
-		let setsInfoList = Database.getSetsInfo(loadTDayId);
-		const len = setsInfoList.length;
-		//console.log("ExerciseEntry::loadSetsFromDatabase - loadObjectIdx = ", loadObjectIdx);
-		//console.log("Creating " + len + " sets")
-		for(var i = 0; i < len; ++i) {
-			if (loadObjectIdx === setsInfoList[i].setExerciseIdx) {
-				var bSame = false;
-				for(var x = 0; x < i; x++) {
-					if (setsInfoList[x].setExerciseIdx === loadObjectIdx) {
-						if (setsInfoList[x].setNumber === setsInfoList[i].setNumber) {
-							Database.deleteSetFromSetsInfo(setsInfoList[i].setId);
-							bSame = true;
-							break;
-						}
-					}
-				}
-				if (bSame)
-					continue;
-				setNbr = setsInfoList[i].setNumber;
-				setCreated[setNbr] = 0;
-				suggestedReps[setNbr] = setsInfoList[i].setReps;
-				suggestedWeight[setNbr] = setsInfoList[i].setWeight;
-				suggestedSubSets[setNbr] = setsInfoList[i].setSubSets;
-				suggestedRestTimes[setNbr] = setsInfoList[i].setRestTime;
-				setNotes[setNbr] = setsInfoList[i].setNotes;
-				setType = setsInfoList[i].setType;
-				createSetObject(setType, false);
-			}
-		}
-		if (setNbr >= 0)
-			changeComboModel();
-	}
-
-	function loadSetsFromMesoPlan() {
-		let plan_info = [];
-		switch (tDayModel.splitLetter()) {
-			case 'A': plan_info = Database.getCompleteDivisionAForMeso(mesoId); break;
-			case 'B': plan_info = Database.getCompleteDivisionBForMeso(mesoId); break;
-			case 'C': plan_info = Database.getCompleteDivisionCForMeso(mesoId); break;
-			case 'D': plan_info = Database.getCompleteDivisionDForMeso(mesoId); break;
-			case 'E': plan_info = Database.getCompleteDivisionEForMeso(mesoId); break;
-			case 'F': plan_info = Database.getCompleteDivisionFForMeso(mesoId); break;
-		}
-		const types = plan_info[0].splitSetTypes.split('|');
-		const nsets = plan_info[0].splitNSets.split('|');
-		const nreps = plan_info[0].splitNReps.split('|');
-		const nweights = plan_info[0].splitNWeight.split('|');
-		createSetsFromPlan(nsets[loadObjectIdx], types[loadObjectIdx], nreps[loadObjectIdx], nweights[loadObjectIdx]);
-	}
-
-	function createSetsFromPlan(nsets, type, nreps, nweight) {
-		//console.log("ExerciseEntry::createSetsFromPlan - loadObjectIdx = ", loadObjectIdx);
-		//console.log("Creating " + nsets + " sets")
-		const _nsets = parseInt(nsets);
-		for(var i = 0; i < _nsets; ++i) {
-			setCreated[i] = 0;
-			setNbr = i;
-			setType = parseInt(type);
-			calculateSuggestedValues(parseInt(type));
-			if (i === 0) {
-				suggestedReps[0] = parseInt(nreps);
-				suggestedWeight[0] = parseInt(nweight);
-				if (setType === 3)//ClusterSet
-					suggestedReps[0] /= 4;
-			}
-			createSetObject(setType, false);
-		}
-	}
-
-	function createSets() {
-		switch (setBehaviour) {
-			case 0:
-			break;
-			case 1: loadSetsFromDatabase(); break;
-			case 2: loadSetsFromMesoPlan(); break;
-		}
-	}
-
-	//sets objects are created on demand(when shown). If they are not created until the day is saved, we need to do it now
-	//so that they can log their information for the day. If they were created before saving, they will contain wrong tDayId, i.e.
-	//one that was either borrowed from another day or -1 when created from a meso plan. Before logging, we must set tDayId to the value
-	//obtained from inserting TrainingDay into the database
-	function updateDayId(newDayId) {
-		tDayId = newDayId;
-		if (setObjectList.length === 0)
-			createSets();
-		else {
-			const len = setObjectList.length;
-			for(var i = 0; i < len; ++i)
-				setObjectList[i].Object.updateTrainingDayId(tDayId);
-		}
-	}
-
-	function updateSetsExerciseIndex(newObjIndex) {
-		thisObjectIdx = newObjIndex;
-		if (setObjectList.length === 0)
-			createSets();
-		else {
-			const len = setObjectList.length;
-			for(var i = 0, x = 0; i < len; ++i)
-				setObjectList[i].Object.exerciseIdx = thisObjectIdx;
-		}
-	}
-
 	function createSetObject(type) {
 		function setObjectCreated(object) {
-			appDB.getSetObject.disconnect(setObjectCreated);
-			object.setRemoved.connect(setRemoved);
+			appDB.getItem.disconnect(setObjectCreated);
 
 			//if (setNbr >= 1)
 			//	setObjectList[setNbr-1].Object.nextObject = sprite;
-			setAdded(true, thisObjectIdx, object);
+			setAdded(true, exerciseIdx, object);
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr++;
 		}
 
 		setNbr++;
-		appDB.getSetObject.connect(setObjectCreated);
-		tDayModel.newSet(thisObjectIdx, setNbr, cboSetType.currentIndex);
-		appDB.createSetObject(cboSetType.currentIndex, setNbr, thisObjectIdx, tDayModel);
-	}
-
-	function removeAllSets() {
-		const len = setObjectList.length;
-		for( var i = 0; i < len; ++i ) {
-			var setid = setObjectList[i].Object.setId;
-			if (setid !== -1)
-				setWasRemoved(setid);
-			setObjectList[i].Object.destroy();
-		}
-		destroyFloatingAddSetButton ();
-	}
-
-	function setRemoved(nset) {
-		const len = setObjectList.length;
-		const new_len = len - 1;
-		const setid = setObjectList[nset].Object.setId;
-		if (setid !== -1)
-			setWasRemoved(setid);
-		setObjectList[nset].Object.destroy();
-		setNbr--;
-
-		let newObjectList = new Array(new_len);
-		let newSuggestedReps = new Array(new_len);
-		let newSuggestedSubSets = new Array(new_len);
-		let newSuggestedWeight = new Array(new_len);
-		let newSuggestedRestTimes = new Array(new_len);
-		let newSetNotes = new Array(new_len);
-
-		for(var i = 0, x = 0; i < len; ++i) {
-			if (i !== nset) {
-				if (i > nset)
-					setObjectList[i].Object.setNumber--; // = setObjectList[i].Object.setNumber - 1;
-
-				newObjectList[x] = setObjectList[i];
-				newSuggestedReps[x] = suggestedReps[i];
-				newSuggestedSubSets[x] = suggestedSubSets[i];
-				newSuggestedWeight[x] = suggestedWeight[i];
-				newSuggestedRestTimes[x] = suggestedRestTimes[i];
-				newSetNotes[x] = setNotes[i];
-				x++;
-			}
-		}
-		delete setObjectList;		setObjectList = newObjectList;
-		delete suggestedReps;		suggestedReps = newSuggestedReps;
-		delete suggestedSubSets;	suggestedSubSets = newSuggestedSubSets;
-		delete suggestedWeight;		suggestedWeight = newSuggestedWeight;
-		delete setNotes;			setNotes = newSetNotes;
-
-		if (setObjectList.length === 0)
-		{
-			destroyFloatingAddSetButton ();
-			cboSetType.model = setTypes;
-			setType = 0;
-		}
-		else {
-			if (btnFloat !== null)
-				btnFloat.nextSetNbr--;
-		}
+		appDB.getItem.connect(setObjectCreated);
+		appDB.createSetObject(cboSetType.currentIndex, setNbr, exerciseIdx);
 	}
 
 	function foldUpSets() {

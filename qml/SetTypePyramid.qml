@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	readonly property int setType: 1 //Constant
 
-	signal setRemoved(int set_number)
 	property var nextObject: null
 
 	ColumnLayout {
@@ -41,8 +40,7 @@ Item {
 					width: 25
 				}
 				onClicked: {
-					if (tDayModel.removeSet(setNumber, exerciseIdx))
-						setRemoved(setNumber);
+					appDB.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
 		}

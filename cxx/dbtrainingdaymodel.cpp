@@ -55,7 +55,10 @@ QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exercise_idx)
 {
 	if (exercise_idx < m_ExerciseData.count())
+	{
 		m_ExerciseData[exercise_idx]->name = new_name;
+		setTDayModified(true);
+	}
 }
 
 void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx)
@@ -69,6 +72,16 @@ void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx
 	}
 	m_ExerciseData[idx]->name = new_exercise;
 	setTDayModified(true);
+}
+
+void DBTrainingDayModel::removeExercise(const uint exercise_idx)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		delete m_ExerciseData[exercise_idx];
+		m_ExerciseData.remove(exercise_idx);
+		setTDayModified(true);
+	}
 }
 
 QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const

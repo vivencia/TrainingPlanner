@@ -6,10 +6,13 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: openEndedPage
-	required property ListModel mesosModel
-	required property int mesoId
+	width: windowWidth
 
-	property int idxModel
+	required property int mesoId
+	required property int idxModel
+	required property date mesoStartDate
+	required property date mesoEndDate
+
 	property string mesoName
 	property date mesoStartDate
 	property string mesoSplit

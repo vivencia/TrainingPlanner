@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	readonly property int setType: 0 //Constant
 
-	signal setRemoved(int set_number)
 	property var nextObject: null
 
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
@@ -48,8 +47,7 @@ Item {
 					width: 20
 				}
 				onClicked: {
-					if (tDayModel.removeSet(setNumber, exerciseIdx))
-						setRemoved(setNumber);
+					appDB.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
 		}

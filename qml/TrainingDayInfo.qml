@@ -10,7 +10,6 @@ Page {
 	id: trainingDayPage
 	objectName: "trainingPage"
 	width: windowWidth
-	//height: parentItem.height
 
 	required property date mainDate //dayDate
 	required property int mesoId
@@ -34,13 +33,9 @@ Page {
 
 	property date sessionLength
 	property string filterString: ""
-	property var exerciseSpriteList: []
-	property var setsToBeRemoved: []
 
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
-	property int totalNumberOfExercises
-
 	property bool bStopBounce: false
 	property bool bNotScroll: true
 	property bool bHasPreviousDay: false
@@ -71,18 +66,6 @@ Page {
 	background: Rectangle {
 		color: primaryDarkColor
 		opacity: 0.7
-	}
-
-	onTotalNumberOfExercisesChanged: {
-		if (totalNumberOfExercises <= 0) {
-			bLongTask = false;
-			if (bHasPreviousDay || bHasMesoPlan) {
-				bHasPreviousDay = bHasMesoPlan = false;
-				dayId = -1;
-			}
-			scrollTraining.setScrollBarPosition(1); //Scroll to bottom
-			createNavButtons();
-		}
 	}
 
 	onBDayIsFinishedChanged : {
@@ -990,154 +973,11 @@ Page {
 		filterString = exercisesListModel.makeFilterString(splitText);
 	}
 
-	function maybeResetPage() {
-		checkIfMesoPlanExists();
-		checkIfPreviousDayExists();
-	}
-
-	function loadOrCreateDayInfo() {
-		bDayIsFinished = loadTrainingDayInfo(mainDate);
-		if (!bDayIsFinished) {
-			bLongTask = false;
-			checkIfMesoPlanExists();
-			checkIfPreviousDayExists();
-		}
-	}
-
-	function checkIfMesoPlanExists() {
-		switch (splitLetter) {
-			case 'A': exercisesNames = Database.getExercisesFromDivisionAForMeso(mesoId); break;
-			case 'B': exercisesNames = Database.getExercisesFromDivisionBForMeso(mesoId); break;
-			case 'C': exercisesNames = Database.getExercisesFromDivisionCForMeso(mesoId); break;
-			case 'D': exercisesNames = Database.getExercisesFromDivisionDForMeso(mesoId); break;
-			case 'E': exercisesNames = Database.getExercisesFromDivisionEForMeso(mesoId); break;
-			case 'F': exercisesNames = Database.getExercisesFromDivisionFForMeso(mesoId); break;
-		}
-		bHasMesoPlan = exercisesNames.length > 1;
-	}
-
-	function loadTrainingDayInfoFromMesoPlan() {
-		createExercisesFromList(false);
-	}
-
-	function checkIfPreviousDayExists() {
-		let day_info = Database.getPreviousTrainingDayForDivision(splitLetter, tDay, mesoId);
-		for (var i = 0; i < day_info.length; ++i ) { //from the most recent to the oldest
-			if (day_info[i].exercisesNames) {
-				bHasPreviousDay = day_info[i].exercisesNames.length > 1;
-				if (bHasPreviousDay) {
-					previousDivisionDayDate = new Date(day_info[i].dayDate);
-					break;
-				}
-			}
-			if (!bHasPreviousDay)
-				Database.deleteTraingDay(day_info[i].dayId); //remove empty day from DB
-		}
-	}
-
-	function loadTrainingDayInfo(tDate) {
-		let dayInfoList = Database.getTrainingDay(tDate.getTime());
-		if (dayInfoList.length > 0) {
-			if (!dayInfoList[0].exercisesNames) {//Day is saved but it is empty. Treat it as if it weren't saved then
-				Database.deleteTraingDay(dayInfoList[0].dayId);
-				return false;
-			}
-			dayId = dayInfoList[0].dayId;
-			const tempMesoId = dayInfoList[0].mesoId;
-			if (tempMesoId !== mesoId) {
-				//The information recorded for the day has a mesoId that refers to a mesocycle that does not
-				//match the passed mesoId. Since all the ways to get to this page must go through methods that check
-				//the valilidy of a mesoId, the stored mesoId is wrong and must be replaced
-				Database.updateTrainingDay_MesoId(dayId, mesoId);
-			}
-			exercisesNames = dayInfoList[0].exercisesNames;
-			timeIn = dayInfoList[0].dayTimeIn;
-			timeOut = dayInfoList[0].dayTimeOut;
-			location = dayInfoList[0].dayLocation;
-			trainingNotes = dayInfoList[0].dayNotes;
-			createExercisesFromList(true);
-			return true;
-		}
-		return false;
-	}
-
-	function createExercisesFromList(bFromList) {
-		const names = exercisesNames.split('|');
-		var sep, name, name2 = "";
-		const len = names.length;
-		totalNumberOfExercises = len
-		for (var i = 0; i < len; ++i) {
-			sep = names[i].indexOf('&');
-			if (sep !== -1) { //Composite exercise
-				name = names[i].substring(0, sep);
-				name2 = names[i].substring(sep + 1, names[i].length);
-			}
-			else
-				name = names[i];
-
-			function generateExerciseObject(nName1, nName2) {
-				var component = Qt.createComponent("ExerciseEntry.qml", Component.Asynchronous);
-
-				function finishCreation(Name1, Name2) {
-					const idx = exerciseSpriteList.length;
-					var exerciseSprite = component.createObject(colExercises, {
-							thisObjectIdx:idx, loadObjectIdx:idx, exerciseName:Name1, setBehaviour: bFromList ? 1 : 2,
-							exerciseName1:Name1, exerciseName2:Name2, splitLetter:splitLetter, tDayId:dayId, loadTDayId:dayId
-					});
-					exerciseSprite.exerciseRemoved.connect(removeExercise);
-					exerciseSprite.exerciseEdited.connect(editExercise);
-					exerciseSprite.setAdded.connect(addExerciseSet);
-					exerciseSprite.setWasRemoved.connect(delExerciseSet);
-					exerciseSprite.requestHideFloatingButtons.connect(hideFloatingButton);
-					exerciseSpriteList.push({"Object" : exerciseSprite});
-					totalNumberOfExercises--;
-				}
-
-				function checkStatus() {
-					if (component.status === Component.Ready)
-						finishCreation(nName1, nName2);
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation(nName1, nName2);
-				else
-					component.statusChanged.connect(checkStatus);
-			}
-
-			generateExerciseObject(name, name2);
-		}
-	}
-
-	function convertDayToPlan() {
-		var exercises = "", types = "", nsets = "", nreps = "",nweights = "";
-		var exercisename = ""
-		const searchRegExp = /\ \+\ /g;
-		const replaceWith = '&';
-		const len = exerciseSpriteList.length;
-		for (var i = 0; i < len; ++i) {
-			exercisename = exerciseSpriteList[i].Object.exerciseName.replace(searchRegExp, replaceWith);
-			exercises += exercisename + '|';
-			types += exerciseSpriteList[i].Object.setType + '|';
-			nsets += exerciseSpriteList[i].Object.setObjectList.length.toString() + '|';
-			if (exerciseSpriteList[i].Object.setObjectList[0].Object) {
-				nreps += exerciseSpriteList[i].Object.setObjectList[0].Object.setReps.toString() + '|';
-				nweights += exerciseSpriteList[i].Object.setObjectList[0].Object.setWeight.toString() + '|';
-			}
-			else { //no sets for some reason
-				nreps += '|';
-				nweights += '|';
-			}
-		}
-		const divisionId = Database.getDivisionIdForMeso(mesoId);
-		Database.updateMesoDivision_OnlyExercises(divisionId, splitLetter, exercises.slice(0, -1),
-				types.slice(0, -1), nsets.slice(0, -1), nreps.slice(0, -1), nweights.slice(0, -1));
-		btnConvertToExercisePlanner.enabled = false;
-	}
-
 	function gotExercise(strName1, strName2) {
-		function readyToProceed(object) {
-			appDB.getQmlObject.disconnect(readyToProceed);
+		function readyToProceed(object, id) {
+			appDB.getItem.disconnect(readyToProceed);
 			object.requestHideFloatingButtons.connect(hideFloatingButton);
+			object.setAdded.connect(exerciseSetAdded);
 
 			bStopBounce = true;
 			if (navButtons === null)
@@ -1148,40 +988,18 @@ Page {
 			return;
 		}
 
-		appDB.getQmlObject.connect(readyToProceed);
+		appDB.getItem.connect(readyToProceed);
 		appDB.createExerciseObject(strName1 + " - " + strName2, colExercises, modelIdx);
 	}
 
-	function addExerciseSet(bnewset, exerciseObjIdx, setObject) {
-		if (bnewset) {
-			bStopBounce = true;
-			if (exerciseObjIdx === exerciseSpriteList.length-1)
-				scrollBarPosition = phantomItem.y;
-			else
-				scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
-			scrollTraining.scrollToPos(scrollBarPosition);
-			bounceTimer.start();
-		}
-	}
-
-	function delExerciseSet(setid) {
-		setsToBeRemoved.push(setid);
-	}
-
-	function startProgressDialog(calid, splitidx, day, mesoenddate) {
-		var component = Qt.createComponent("TrainingDayProgressDialog.qml");
-
-		function finishCreation() {
-			var progressSprite = component.createObject(trainingDayPage, {calId:calid, splitIdx:splitidx, tDay:day,
-				mesoSplit:mesoSplit, mesoEndDate:mesoenddate
-			});
-			progressSprite.init(qsTr("Updating calendar database. Please wait..."), 0, 30);
-		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
+	function exerciseSetAdded(exerciseObjIdx, setObject) {
+		bStopBounce = true;
+		if (exerciseObjIdx === exerciseSpriteList.length-1)
+			scrollBarPosition = phantomItem.y;
 		else
-			component.statusChanged.connect(finishCreation);
+			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
+		scrollTraining.scrollToPos(scrollBarPosition);
+		bounceTimer.start();
 	}
 
 	function hideFloatingButton(except_idx) {
@@ -1192,12 +1010,6 @@ Page {
 					exerciseSpriteList[x].Object.bFloatButtonVisible = false;
 			}
 		}
-	}
-
-	function foldUpAllExercisesEntries() {
-		const len = exerciseSpriteList.length;
-		for (var i = 0; i < len; ++i)
-			exerciseSpriteList[i].Object.foldUpSets();
 	}
 
 	footer: ToolBar {

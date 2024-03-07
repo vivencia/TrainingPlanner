@@ -161,31 +161,29 @@ ApplicationWindow {
 				anchors.verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: { // Use most current meso
-				function pushOntoStackView(object, bfirsttime) {
-					if (bfirsttime) {
-						object.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object.splitLetter = mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
+			onClicked: {
+				var id;
+				var calendarPage;
+				function pushOntoStackView(object2, _id2) {
+					if (id !== _id2) {
+						appDB.getItem.disconnect(pushOntoStackView);
+						object2.tDay = calendarPage.mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+						object2.splitLetter = calendarPage.mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
+						appStackView.push(object, StackView.DontLoad);
 					}
-					appDB.getQmlObject.disconnect(pushOntoStackView);
-					appStackView.push(object, StackView.DontLoad);
 				}
 
-				function readyToProceed()
+				function readyToProceed(object, _id)
 				{
-					appDB.qmlReady.disconnect(readyToProceed);
-					appDB.getQmlObject.connect(pushOntoStackView);
-					appDB.getTrainingDay(mesocyclesModel.count -1, today);
+					appDB.getItem.disconnect(readyToProceed);
+					id = _id;
+					calendarPage = object;
+					appDB.getItem.connect(pushOntoStackView);
+					appDB.getTrainingDay(today);
 				}
 
-				if (mesoCalendarModel.getMesoId() === mesoId)
-					readyToProceed(); //already loaded
-				else {
-					mesoCalendarModel.clear();
-					appDB.qmlReady.connect(readyToProceed);
-					appDB.pass_object(mesoCalendarModel);
-					appDB.getMesoCalendar();
-				}
+				appDB.getItem.connect(readyToProceed);
+				appDB.getMesoCalendar();
 			} //onClicked
 		} //TabButton
 	} //footer
