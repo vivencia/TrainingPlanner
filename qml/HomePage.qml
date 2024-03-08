@@ -239,47 +239,42 @@ Page {
 	} // footer
 
 	Component.onCompleted: {
-		mesosListView.model = mesocyclesModel;
 		homePage.StackView.activating.connect(pageActivation);
 		homePage.StackView.onDeactivating.connect(pageDeActivation);
-
-		if (mesocyclesModel.count !== 0) {
-			appDB.pass_object(mesoSplitModel);
-			appDB.getMesoSplit();
-			pageActivation();
-		}
-		else {
-			createFirstTimeTipComponent();
-			firstTimeTip.y = homePageToolBar.y;
-			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
-			firstTimeTip.visible = true;
-			bFirstTime = true;
-		}
 	}
 
 	function newAction(opt) {
 		function pushPageOntoStack(object, id)
 		{
-			appDB.itemReady.disconnect(pushPageOntoStack);
+			appDB.getItem.disconnect(pushPageOntoStack);
 			appStackView.push(object, StackView.DontLoad);
 		}
 
-		appDB.itemReady.connect(pushPageOntoStack);
+		appDB.getItem.connect(pushPageOntoStack);
 		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"));
 	}
 
 	function showMeso() {
 		function pushPageOntoStack(object, id)
 		{
-			appDB.itemReady.disconnect(pushPageOntoStack);
+			appDB.getItem.disconnect(pushPageOntoStack);
 			appStackView.push(object, StackView.DontLoad);
 		}
 
-		appDB.itemReady.connect(pushPageOntoStack);
+		appDB.getItem.connect(pushPageOntoStack);
 		appDB.getMesocycle(currentMesoIndex);
 	}
 
 	function pageActivation() {
+		mesosListView.model = mesocyclesModel;
+		if (mesocyclesModel.count === 0) {
+			createFirstTimeTipComponent();
+			firstTimeTip.y = homePageToolBar.y;
+			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
+			firstTimeTip.visible = true;
+			bFirstTime = true;
+		}
+
 		//mesocyclesModel.count === 0 is a first iteration of tips
 		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
 		const showTip = false; // mesocyclesModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesModel.mesoId) : false;

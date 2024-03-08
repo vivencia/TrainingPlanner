@@ -47,19 +47,21 @@ int main(int argc, char *argv[])
 	TranslationClass trClass( appSettings );
 	trClass.selectLanguage();
 
-	QQmlApplicationEngine engine;
-
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
 	RunCommands runCmd(&appSettings);
 	QString db_filepath (appSettings.value("dbFilePath").toString());
-	if (db_filepath.isEmpty()) {
-		db_filepath = runCmd.getAppDir(runCmd.searchForDatabaseFile(engine.offlineStoragePath()));
+	if (db_filepath.isEmpty())
+	{
+		QQmlApplicationEngine* tempEngine(new QQmlApplicationEngine());
+		db_filepath = runCmd.getAppDir(runCmd.searchForDatabaseFile(tempEngine->offlineStoragePath()));
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
+		delete tempEngine;
 	}
-	DbManager db(&appSettings, &engine, &runCmd);
+	DbManager db(&appSettings, &runCmd);
 
+	QQmlApplicationEngine engine;
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
 					&app, [url](QObject *obj, const QUrl &objUrl) { if (!obj && url == objUrl) QCoreApplication::exit(-1); });
@@ -67,7 +69,7 @@ int main(int argc, char *argv[])
 	engine.load(url);
 	if (engine.rootObjects().isEmpty())
 		return -1;
-	engine.rootContext()->setContextProperty(QStringLiteral("mainwindow"), QVariant::fromValue(engine.rootObjects().at(0)));
+	db.setQmlEngine(&engine);
 
 	return app.exec();
 }

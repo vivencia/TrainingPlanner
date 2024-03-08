@@ -5,11 +5,16 @@ import QtQuick.Controls
 Page {
 	id: pagePlanner
 	objectName: "exercisesPlanner"
+	width: windowWidth
+	height: windowHeight
+
 	required property int mesoId
 	required property int mesoIdx
 	required property string mesoSplit
 
 	property bool bEnableMultipleSelection: false
+	property bool bShowSimpleExercisesList: false
+	property var pageThatRequestedSimpleList: null
 
 	contentItem {
 		Keys.onPressed: (event) => {
@@ -46,10 +51,16 @@ Page {
 		id: bottomPane
 		width: parent.width
 		height: shown ? parent.height * 0.5 : btnShowHideList.height
-		visible: height >= btnShowHideList.height
+		visible: bShowSimpleExercisesList
 		spacing: 0
 		padding: 0
 		property bool shown: false
+
+		onVisibleChanged: {
+			shown = visible;
+			if (shown)
+				exercisesListModel.setFilter(pageThatRequestedSimpleList.filterString);
+		}
 
 		Behavior on height {
 			NumberAnimation {
@@ -60,11 +71,6 @@ Page {
 		background: Rectangle {
 			opacity: 0.3
 			color: paneBackgroundColor
-		}
-
-		onShownChanged: {
-			if (shown)
-				exercisesListModel.setFilter(splitView.currentItem.filterString);
 		}
 
 		ColumnLayout {
@@ -94,18 +100,20 @@ Page {
 				canDoMultipleSelection: bEnableMultipleSelection
 
 				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
-					splitView.currentItem.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
+					if (pageThatRequestedSimpleList !== null)
+						pageThatRequestedSimpleList.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
 				}
 			}
 		}
 	} //footer: ToolBar
 
 	Component.onCompleted: {
-		appDB.getCompleteMesoSplit(mesoId, mesoIdx, mesoSplit);
+		appDB.getCompleteMesoSplit(mesoSplit);
 	}
 
-	function showHideExercisesPane(show: bool) {
-		bottomPane.shown = show;
+	function requestSimpleExerciseList(object, visible) {
+		pageThatRequestedSimpleList = visible ? object : null;
+		bShowSimpleExercisesList = visible;
 	}
 
 	function closeSimpleExerciseList() {

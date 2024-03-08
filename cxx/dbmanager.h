@@ -26,9 +26,10 @@ class DbManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DbManager(QSettings* appSettigs, QQmlApplicationEngine* QMlEngine, RunCommands* runcommands);
+	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands);
 	~DbManager();
 
+	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
@@ -103,9 +104,6 @@ public:
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
-
-public slots:
-	void receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject);
 
 signals:
 	void databaseReady(uint exec_id);

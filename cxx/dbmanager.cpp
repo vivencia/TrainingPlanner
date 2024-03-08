@@ -24,8 +24,8 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
-DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_execId(0), m_appSettings(appSettings), m_QMlEngine(QMlEngine), m_runCommands(runcommands),
+DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_execId(0), m_appSettings(appSettings), m_runCommands(runcommands),
 		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
@@ -72,6 +72,11 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		createThread(worker, [worker] () { return worker->updateExercisesList(); } );
 	}
+}
+
+void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
+{
+	m_QMlEngine = QMlEngine;
 
 	//QML type registration
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
@@ -87,6 +92,7 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 	exercisesListModel = new DBExercisesModel(this);
 	mesoSplitModel  = new DBMesoSplitModel(this);
 
+	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties;
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appDB"), QVariant::fromValue(this) });
@@ -105,7 +111,11 @@ DbManager::DbManager(QSettings* appSettings, QQmlApplicationEngine *QMlEngine, R
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("darkIconFolder"), QStringLiteral("black/") });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("paneBackgroundColor"), QVariant(QColor(25, 118, 210)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("accentColor"), QVariant(QColor(37, 181, 243)) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(mainWindow) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appStackView"), QVariant::fromValue(mainWindow->findChild<QQuickItem*>("appStackView")) });
 	m_QMlEngine->rootContext()->setContextProperties(properties);
+
+	QMetaObject::invokeMethod(mainWindow, "init");
 }
 
 DbManager::~DbManager()
@@ -134,8 +144,9 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 		if (!bFound)
 		{
 			TPMesocycleClass* newMeso(new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, this));
+			newMeso->setMesocycleModel(mesocyclesModel);
 			m_MesoManager.append(newMeso);
-			connect(newMeso, SIGNAL(itemReady(QQuickItem*,uint)), this, SLOT(&DbManager::getItem(QQuickItem*,uint)));
+			connect(newMeso, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
 		m_MesoId = mesoId;
 		m_MesoIdx = mesoIdx;
@@ -247,16 +258,6 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	}
 }
 
-void DbManager::receiveQMLSignal(int id, QVariant param, QQuickItem* qmlObject)
-{
-	switch(id)
-	{
-		case 0:
-			QMetaObject::invokeMethod(qmlObject, "showHideExercisesPane", Q_ARG(bool, param.toBool()));
-		break;
-	}
-}
-
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
@@ -302,18 +303,12 @@ void DbManager::openExercisesListPage()
 		emit getItem(m_exercisesPage, 89676);
 		return;
 	}
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+	connect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
+	createThread(worker, [worker] () { return worker->getAllExercises(); } );
 
 	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
-	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, &DbManager::createExercisesListPage);
-
-	exercisesListModel->setReady(exercisesListModel->count() != 0);
-	if (!exercisesListModel->isReady())
-	{
-		exercisesListModel->setReady(false);
-		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-		connect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
-		createThread(worker, [worker] () { return worker->getAllExercises(); } );
-	}
+	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExercisesListPage(); });
 }
 
 void DbManager::createExercisesListPage()
@@ -327,14 +322,16 @@ void DbManager::createExercisesListPage()
 		return;
 	}
 	#endif
-	if (exercisesListModel->isReady())
+	if (exercisesListModel->isReady() && m_exercisesComponent->status() == QQmlComponent::Ready)
 	{
-		disconnect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
-		m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->create(m_QMlEngine->rootContext()));
-		m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-		QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
-		m_exercisesPage->setParentItem(parent->contentItem());
-		emit getItem(m_exercisesPage, 999);
+		if (m_exercisesPage == nullptr)
+		{
+			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->create(m_QMlEngine->rootContext()));
+			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
+			QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
+			m_exercisesPage->setParentItem(parent->contentItem());
+			emit getItem(m_exercisesPage, 999);
+		}
 	}
 }
 

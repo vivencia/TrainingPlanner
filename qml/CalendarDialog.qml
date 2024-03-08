@@ -5,28 +5,27 @@ import QtQuick.Controls
 Popup {
     id: calendarPopup
 	closePolicy: simpleCalendar ? Popup.CloseOnPressOutside : Popup.NoAutoClose
+	width: datePickerControl.width + 20
+	height: datePickerControl.height + 20
+	topMargin: 10
+	bottomMargin: 10
+	leftMargin: 10
+	rightMargin: 10
+	// Centered position
+	x: (windowWidth - width) / 2 // horizontally centered
+	y: (windowHeight - height) / 2 // vertically centered
+	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+	modal: true
+	focus: true
 
-	signal dateSelected(date selDate, int nweek)
 	required property date showDate
 	required property date initDate
 	required property date finalDate
+
 	property bool simpleCalendar: false
 	property string windowTitle
 
-	width: datePickerControl.width + 20
-	height: datePickerControl.height + 20
-    topMargin: 10
-    bottomMargin: 10
-    leftMargin: 10
-    rightMargin: 10
-    // Centered position
-	x: parent.x + (parent.width / 2) - (width / 2) // align horizontally centered
-    y: parent.y + (parent.height / 2) - (height / 2) // align vertically centered
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-
-    modal: true
-    focus: true
-    clip: true
+	signal dateSelected(date selDate, int nweek)
 
 	DatePicker {
 		id: datePickerControl

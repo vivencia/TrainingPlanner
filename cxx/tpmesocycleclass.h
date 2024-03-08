@@ -102,7 +102,7 @@ public:
 
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
-	void requestExercisesList(QQuickItem* requester, const QVariant& visible);
+	void requestExercisesList(QQuickItem* requester, const QVariant& visible, int id);
 
 signals:
 	void itemReady(QQuickItem* item, const uint id);

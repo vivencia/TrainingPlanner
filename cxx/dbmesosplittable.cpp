@@ -340,7 +340,10 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	}
 
 	if (m_result)
+	{
+		static_cast<DBMesoSplitModel*>(m_model)->setSplitModified(false);
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete SUCCESS")
+	}
 	else
 	{
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())

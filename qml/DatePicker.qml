@@ -8,14 +8,15 @@ Rectangle {
 	height: cellSize * ( justCalendar ? 11 : 12.5 )
 	width: cellSize * 8
 
-	property date selectedDate: displayDate
-	property bool justCalendar: false
-	property string calendarWindowTitle
-
 	required property date displayDate
 	required property date startDate
 	required property date endDate
 
+	property date selectedDate: displayDate
+	property bool justCalendar: false
+	property string calendarWindowTitle
+
+	property date thisDay
 	property double mm: Screen.pixelDensity
 	property double cellSize: mm * 7
 	property int fontSizePx: cellSize * 0.32
@@ -31,6 +32,7 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
+		thisDay = new Date();
 		root.forceActiveFocus();
 	}
 
@@ -210,7 +212,7 @@ Rectangle {
 					color: highlighted ? paneBackgroundColor : "white"
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
-					readonly property bool todayDate: model.year === todayFull.getFullYear() && model.month === todayFull.getMonth() && model.day === todayFull.getDate()
+					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
 
 					Text {
 						anchors.centerIn: parent

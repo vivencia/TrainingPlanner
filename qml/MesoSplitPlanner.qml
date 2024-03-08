@@ -11,11 +11,7 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property Item parentItem
 
-	signal requestExercisesPaneAction(int id, var show, Item parent)
-
-	property bool bCanEditExercise: false
-	property int seconds: 0
-	property bool bModified: false
+	property bool bModified: splitModel.splitModified
 	property string filterString: ""
 
 	property string prevMesoName: ""
@@ -23,6 +19,7 @@ Frame {
 	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
+	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
 
 	implicitWidth: windowWidth
 	implicitHeight: splitLayout.height
@@ -45,7 +42,6 @@ Frame {
 				if (splitModel.count === 0)
 					appendNewExerciseToDivision();
 				splitModel.setsplitModel.currentRow(idxToRemove);
-				bModified = true;
 			}
 			else {
 				seconds = seconds - 1000;
@@ -110,7 +106,6 @@ Frame {
 
 			onTextEdited: {
 				mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
-				bModified = true;
 				filterString = exercisesListModel.makeFilterString(text);
 			}
 		}
@@ -174,7 +169,7 @@ Frame {
 						id: txtExerciseName
 						text: exerciseName
 						wrapMode: Text.WordWrap
-						readOnly: !bCanEditExercise
+						readOnly: true
 						Layout.row: 1
 						Layout.column: 0
 						Layout.columnSpan: 2
@@ -191,12 +186,11 @@ Frame {
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
-							bCanEditExercise = false;
 							cboSetType.forceActiveFocus();
 						}
 
 						onPressed: (mouse) => {
-							if (bCanEditExercise) {
+							if (!readOnly) {
 								mouse.accepted = true;
 								forceActiveFocus();
 							}
@@ -208,23 +202,24 @@ Frame {
 							mouse.accepted = false;
 						}
 
-						onEditingFinished: {
-							exerciseName = text;
-							bModified = true;
-						}
-
-						onTextChanged: {
-							if (!bCanEditExercise)
+						onReadOnlyChanged: {
+							if (!readOnly) {
+								cursorPosition = text.length;
+								exerciseName = text;
+							}
+							else {
 								cursorPosition = 0;
+								ensureVisible(0);
+							}
+							requestSimpleExercisesList(paneSplit, !readOnly, 0);
 						}
 
 						onActiveFocusChanged: {
 							if (activeFocus) {
-								requestExercisesPaneAction(0, false, parentItem);
 								cursorPosition = text.length;
 							}
 							else {
-								bCanEditExercise = false;
+								readOnly = false;
 								cursorPosition = 0;
 							}
 						}
@@ -248,7 +243,7 @@ Frame {
 							}
 
 							onClicked: {
-								editButtonClicked();
+								txtExerciseName.readOnly = !txtExerciseName.readOnly;
 							}
 						} //ToolButton btnEditExercise
 					} //TextField
@@ -275,7 +270,6 @@ Frame {
 							setType = index;
 							txtNSets.forceActiveFocus();
 							parentItem.bEnableMultipleSelection = setType === 4;
-							bModified = true;
 						}
 					}
 
@@ -292,7 +286,6 @@ Frame {
 						id: txtNSets
 						text: setsNumber
 						type: SetInputField.Type.SetType
-						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
 						Layout.row: 3
@@ -301,7 +294,6 @@ Frame {
 
 						onValueChanged: (str) => {
 							setsNumber = str;
-							bModified = true;
 						}
 
 						onEnterOrReturnKeyPressed: {
@@ -332,7 +324,6 @@ Frame {
 							id: txtNReps1
 							text: setsReps1
 							type: SetInputField.Type.RepType
-							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: ["",qsTr("Exercise 1:"),"",""]
 							enabled: index === splitModel.currentRow
@@ -340,7 +331,6 @@ Frame {
 
 							onValueChanged: (str) => {
 								setsReps1 = str;
-								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -351,7 +341,6 @@ Frame {
 							id: txtNReps2
 							text: setsReps2
 							type: SetInputField.Type.RepType
-							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: ["",qsTr("Exercise 2:"),"",""]
 							enabled: index === splitModel.currentRow
@@ -359,7 +348,6 @@ Frame {
 
 							onValueChanged: (str) => {
 								setsReps2 = str;
-								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -372,7 +360,6 @@ Frame {
 						id: txtNReps
 						text: setsReps1
 						type: SetInputField.Type.RepType
-						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
 						Layout.row: 4
@@ -383,7 +370,6 @@ Frame {
 
 						onValueChanged: (str) => {
 							setsReps1 = str;
-							bModified = true;
 						}
 
 						onEnterOrReturnKeyPressed: {
@@ -411,7 +397,6 @@ Frame {
 							id: txtNWeight1
 							text: setsWeight1
 							type: SetInputField.Type.WeightType
-							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: [qsTr("Exercise 1:"),"","",""]
 							enabled: index === splitModel.currentRow
@@ -419,7 +404,6 @@ Frame {
 
 							onValueChanged: (str) => {
 								setsWeight1 = str;
-								bModified = true;
 							}
 
 							onEnterOrReturnKeyPressed: {
@@ -430,7 +414,6 @@ Frame {
 							id: txtNWeight2
 							text: setsWeight2
 							type: SetInputField.Type.WeightType
-							nSetNbr: 0
 							availableWidth: listItem.width*0.49
 							alternativeLabels: [qsTr("Exercise 2:"),"","",""]
 							enabled: index === splitModel.currentRow
@@ -438,7 +421,6 @@ Frame {
 
 							onValueChanged: (str) => {
 								setsWeight2 = str;
-								bModified = true;
 							}
 						}
 					} //RowLayout
@@ -447,7 +429,6 @@ Frame {
 						id: txtNWeight
 						text: setsWeight1
 						type: SetInputField.Type.WeightType
-						nSetNbr: 0
 						availableWidth: listItem.width / 3
 						showLabel: false
 						Layout.row: 5
@@ -458,7 +439,6 @@ Frame {
 
 						onValueChanged: (str) => {
 							setsWeight1 = str;
-							bModified = true;
 						}
 					}
 
@@ -563,11 +543,9 @@ Frame {
 			enabled: bModified
 
 			onClicked: {
-				if (bCanEditExercise)
-					editButtonClicked();
+				txtExerciseName.readOnly = true;
 				appDB.pass_object(splitModel);
 				appDB.updateMesoSplitComplete(splitLetter);
-				bModified = false;
 			}
 		}
 	} //ColumnLayout
@@ -598,15 +576,7 @@ Frame {
 
 	property int lastAdded: 0
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
-		if (bCanEditExercise) {
 			splitModel.changeExercise(name1, name2, nsets, nreps, nweight, multiplesel_opt);
-			bModified = true;
-		}
-	}
-
-	function editButtonClicked() {
-		requestExercisesPaneAction(0, !bCanEditExercise, parentItem);
-		bCanEditExercise = !bCanEditExercise;
 	}
 
 	function aboutToBeSuspended() {

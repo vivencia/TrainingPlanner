@@ -7,7 +7,6 @@ Page {
 	id: pageExercises
 
 	property string strMediaPath
-
 	property bool bCanEdit: false
 	property bool bNew: false
 	property bool bEdit: false

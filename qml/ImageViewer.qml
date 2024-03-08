@@ -11,8 +11,8 @@ Image {
 	asynchronous: true
 	clip: true
 	source: mediaSource
-	width: mainwindow.width * 0.7
-	height: mainwindow.width * 0.9
+	width: windiwWidth * 0.7
+	height: windowHeight * 0.4
 	Layout.margins: 10
 	Layout.alignment: Qt.AlignCenter
 	Layout.maximumHeight: height

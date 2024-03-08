@@ -88,7 +88,16 @@ Drawer {
 			id: btnSettingsExDB
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
-			onButtonClicked: { openDbExercisesListPage(); menuClicked(); }
+			onButtonClicked: {
+				function pushExercisesPageOntoStack(object, id) {
+					appDB.getItem.disconnect(pushExercisesPageOntoStack);
+					appStackView.push(object, stackView.DontLoad);
+					menuClicked();
+				}
+
+				appDB.getItem.connect(pushExercisesPageOntoStack);
+				appDB.openExercisesListPage();
+			}
 		}
 
 		TransparentButton {

@@ -27,7 +27,7 @@ FocusScope {
 	signal setAdded(int objidx, var setObject)
 	signal requestHideFloatingButtons(int except_idx)
 	signal requestTimerDialogSignal(Item requester, var args, var tdaydate)
-	signal requestSimpleExercisesList(Item requester, var bVisible, var tdaydate)
+	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
 
 	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -122,25 +122,24 @@ FocusScope {
 				}
 
 				onReadOnlyChanged: {
-					if (!readOnly)
+					if (!readOnly) {
 						cursorPosition = text.length;
+						tDayModel.setExerciseName1(text, exerciseIdx);
+					}
 					else {
 						cursorPosition = 0;
 						ensureVisible(0);
 					}
+					requestSimpleExercisesList(paneSplit, !readOnly, 1);
 				}
 
 				onActiveFocusChanged: {
-					if (activeFocus) {
-						closeSimpleExerciseList();
+					if (activeFocus)
 						cursorPosition = text.length;
-					}
-					else
+					else {
+						readOnly = false;
 						cursorPosition = 0;
-				}
-
-				onEditingFinished: {
-					tDayModel.setExerciseName1(text, exerciseIdx);
+					}
 				}
 
 				Label {
@@ -207,7 +206,6 @@ FocusScope {
 
 					onClicked: {
 						txtExerciseName.readOnly = !txtExerciseName.readOnly;
-						requestExercisesList(exerciseItem, !txtExerciseName.readOnly);
 					}
 				}
 
@@ -345,6 +343,6 @@ FocusScope {
 	}
 
 	function requestExercisesList(requester, visible) {
-		requestSimpleExercisesList(requester, visible, tDayModel.date());
+		requestSimpleExercisesList(requester, visible);
 	}
 } //Item

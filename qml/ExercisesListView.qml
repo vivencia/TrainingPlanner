@@ -239,14 +239,14 @@ Column {
 		var id;
 		function readyToProceed(_id) {
 			if (_id === id) {
-				appDB.qmlReady.disconnect(readyToProceed);
+				appDB.databaseReady.disconnect(readyToProceed);
 				lstExercises.model = exercisesListModel;
 			}
 		}
 
 		if (exercisesListModel.count === 0) {
 			id = appDB.pass_object(exercisesListModel);
-			appDB.qmlReady.connect(readyToProceed);
+			appDB.databaseReady.connect(readyToProceed);
 			appDB.getAllExercises();
 		}
 		else

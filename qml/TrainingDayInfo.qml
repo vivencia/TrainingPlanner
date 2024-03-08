@@ -1040,13 +1040,13 @@ Page {
 					var id;
 					function continueSave(_id) {
 						if (_id === id) {
-							appDB.qmlReady.disconnect(continueSave);
+							appDB.databaseReady.disconnect(continueSave);
 							appDB.updateTrainingDayExercises(tDayModel.id());
 						}
 					}
 
 					id = appDB.pass_object(tDayModel);
-					appDB.qmlReady.connect(continueSave);
+					appDB.databaseReady.connect(continueSave);
 					appDB.newTrainingDay(mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 				}
 				else {
@@ -1108,6 +1108,7 @@ Page {
 		spacing: 0
 		visible: bShowSimpleExercisesList
 		height: shown ? parent.height * 0.5 : btnShowHideList.height
+		property bool shown: true
 
 		onVisibleChanged: {
 			shown = visible;
@@ -1118,8 +1119,6 @@ Page {
 			right: parent.right
 			bottom: parent.bottom
 		}
-
-		property bool shown: true
 
 		Behavior on height {
 			NumberAnimation {

@@ -37,9 +37,9 @@ void TPMesocycleClass::requestTimerDialog(QQuickItem* requester, const QVariant&
 		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
 }
 
-void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVariant& visible)
+void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVariant& visible, int id)
 {
-	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestSimpleExerciseList",
+	QMetaObject::invokeMethod(id == 0 ? m_qmlSplitObjectParent : m_CurrenttDayPage, "requestSimpleExerciseList",
 					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible));
 }
 
@@ -49,26 +49,26 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	if (!m_mesoProperties.isEmpty())
 		return;
 
-	m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-	m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_splitProperties.insert(QStringLiteral("mesoStartDate"), m_MesocyclesModel->getDate(m_MesoIdx, 2));
-	m_splitProperties.insert(QStringLiteral("mesoEndDate"), m_MesocyclesModel->getDate(m_MesoIdx, 3));
-	m_splitProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
-	m_splitProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
-	m_splitProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
+	m_mesoProperties.insert(QStringLiteral("mesoId"), m_MesoId);
+	m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+	m_mesoProperties.insert(QStringLiteral("mesoStartDate"), m_MesocyclesModel->getDate(m_MesoIdx, 2));
+	m_mesoProperties.insert(QStringLiteral("mesoEndDate"), m_MesocyclesModel->getDate(m_MesoIdx, 3));
+	m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
+	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
+	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
 
 	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
 	if (m_mesoComponent == nullptr)
 	{
 		m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
 					QQmlComponent::Asynchronous);
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
-			return TPMesocycleClass::createMesoSplitPage_part2(); } );
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return TPMesocycleClass::createMesocyclePage_part2(); } );
 	}
 }
 
 void TPMesocycleClass::createMesocyclePage_part2()
 {
+	m_MesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, m_QMlEngine->rootContext()));
 	#ifdef DEBUG
 	if (m_mesoComponent->status() == QQmlComponent::Error)
 	{
@@ -78,7 +78,6 @@ void TPMesocycleClass::createMesocyclePage_part2()
 		return;
 	}
 	#endif
-	m_MesoPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, m_QMlEngine->rootContext()));
 	m_QMlEngine->setObjectOwnership(m_MesoPage, QQmlEngine::CppOwnership);
 	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
 	m_MesoPage->setParentItem(parent);
@@ -91,7 +90,7 @@ void TPMesocycleClass::createMesoSplitPage()
 {
 	if (m_splitComponent == nullptr)
 	{
-		m_qmlSplitObjectParent = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("exercisesPlanner"));
+		m_qmlSplitObjectParent = m_MesoPage->findChild<QQuickItem*>(QStringLiteral("exercisesPlanner"));
 		m_qmlSplitObjectContainer = m_qmlSplitObjectParent->findChild<QQuickItem*>(QStringLiteral("splitSwipeView"));
 		m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 		m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
@@ -130,7 +129,8 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 				QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
 				m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 				item->setParentItem(m_qmlSplitObjectParent);
-				connect(item, SIGNAL(requestExercisesPaneAction(int,QVariant,QQuickItem*)), this, SLOT(receiveQMLSignal(int,QVariant,QQuickItem*)) );
+				connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
 				QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
 					Q_ARG(QQuickItem*, item));
 				m_splitPages.insert(i.key(), item);
@@ -257,8 +257,8 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	item->setParentItem(parentLayout);
 	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
 						SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
-	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&)) );
+	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const uint)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const uint)) );
 	m_tDayExercises.append(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }

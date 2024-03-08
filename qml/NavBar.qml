@@ -63,7 +63,7 @@ ToolBar {
 			if (mainCalendar === null) {
 				var component = Qt.createComponent("CalendarDialog.qml", Qt.Asynchronous);
 				if (component.status === Component.Ready) {
-					mainCalendar = component.createObject(mainwindow, { showDate:today, simpleCalendar:true,
+					mainCalendar = component.createObject(mainwindow, { showDate:new Date(), simpleCalendar:true,
 						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
 				}
 			}

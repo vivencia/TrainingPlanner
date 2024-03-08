@@ -3,13 +3,11 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import com.vivenciasoftware.qmlcomponents
-
 ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
-	width: windowWidth
-	height: windowHeight
+	width: 300
+	height: 640
 	visible: true
 	title: "Training Planner"
 
@@ -21,26 +19,13 @@ ApplicationWindow {
 
 	property bool bNavButtonsEnabled: true
 	property bool bLongTask: false
-
-	property date todayFull
-	property date today
-
 	property StackView appStackView: stackView
 
-	Timer {
-		id: dateTimer
-		interval: 30000
-		running: true
-		repeat: true
-
-		onTriggered: {
-			const newdate = new Date();
-			if (newdate != todayFull) {
-				todayFull = newdate; //This includes the time of object creation
-				today = new Date(todayFull.getFullYear(), todayFull.getMonth(), todayFull.getDate()); //Normalized date of today with time always set to 0
-			}
-		}
-	}
+	readonly property color primaryLightColor: "#BBDEFB"
+	readonly property color primaryColor: "#25b5f3"
+	readonly property color primaryDarkColor: "#1976D2"
+	readonly property string lightIconFolder: "white/"
+	readonly property string darkIconFolder: "black/"
 
 	BusyIndicator {
 		id: busyIndicator
@@ -80,7 +65,6 @@ ApplicationWindow {
 				}
 			});
 		}
-		appDB.setAppStackView(appStackView);
 	}
 
 	function androidBackKeyPressed() {
@@ -96,10 +80,6 @@ ApplicationWindow {
 		background: Rectangle {
 			color: primaryDarkColor
 			opacity: 0.7
-		}
-
-		Component.onCompleted: {
-			dateTimer.triggered();
 		}
 	}
 
@@ -153,7 +133,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("  + Day")
-			enabled: appStackView.depth === 1 && mesocyclesModel.count > 0
+			enabled: appStackView.depth === 1 //&& mesocyclesModel.count > 0
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
@@ -162,6 +142,7 @@ ApplicationWindow {
 			}
 
 			onClicked: {
+				const today = new Date();
 				var id;
 				var calendarPage;
 				function pushOntoStackView(object2, _id2) {
@@ -187,4 +168,12 @@ ApplicationWindow {
 			} //onClicked
 		} //TabButton
 	} //footer
+
+	function init() {
+		if (mesocyclesModel.count !== 0) {
+			appDB.pass_object(mesoSplitModel);
+			appDB.getMesoSplit();
+		}
+		homePage.pageActivation();
+	}
 } //ApplicationWindow

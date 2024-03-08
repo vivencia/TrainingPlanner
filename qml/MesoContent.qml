@@ -5,6 +5,9 @@ import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: mesoContentPage
+	width: windowWidth
+	height: windowHeight
+
 	required property int mesoId
 	required property int mesoIdx
 	required property DBMesoCalendarModel mesoCalendarModel
@@ -12,7 +15,7 @@ Page {
 	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
 	readonly property date mesoStartDate: mesocyclesModel.getDate(mesoIdx, 2)
 	readonly property date mesoEndDate: mesocyclesModel.getDate(mesoIdx, 3)
-	readonly property date _today: new Date()
+	property date _today
 
 	property string splitLetter
 	property string trainingDay
@@ -237,13 +240,14 @@ Page {
 			}
 		} // RowLayout
 
-		//Component.onCompleted: {
-		//	mesoContentPage.StackView.activating.connect(pageActivation);
-		//}
+		Component.onCompleted: {
+			mesoContentPage.StackView.activating.connect(pageActivation);
+		}
 	} // footer: ToolBar
 
-	function setModel() {
+	function pageActivation() {
 		calendar.model = mesoCalendarModel;
+		_today = new Date();
 	}
 
 	function getDivisionContent(splitletter) {
