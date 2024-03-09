@@ -236,6 +236,8 @@ void DbManager::cleanUp(TPDatabaseTable* dbObj)
 	emit databaseFree();
 	MSG_OUT("calling databaseReady()")
 	emit databaseReady(dbObj->execId());
+	disconnect(this, &DbManager::databaseFree, this, nullptr);
+	disconnect(this, &DbManager::databaseReady, this, nullptr);
 }
 
 void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
@@ -532,16 +534,19 @@ void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-void DbManager::getMesoCalendar()
+void DbManager::getMesoCalendar(const bool bCreatePage)
 {
-	if (m_MesoManager.at(m_MesoIdx)->getCalendarPage() != nullptr)
+	if (bCreatePage)
 	{
-		emit getItem(m_MesoManager.at(m_MesoIdx)->getCalendarPage(), 12345);
-		return;
+		if (m_MesoManager.at(m_MesoIdx)->getCalendarPage() != nullptr)
+		{
+			emit getItem(m_MesoManager.at(m_MesoIdx)->getCalendarPage(), 12345);
+			return;
+		}
+		connect( this, &DbManager::databaseReady, this, [&](uint) { return m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage(); } );
 	}
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->getCalendarModel()));
 	worker->addExecArg(m_MesoId);
-	connect( this, &DbManager::databaseReady, this, [&](uint) { return m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage(); } );
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
 

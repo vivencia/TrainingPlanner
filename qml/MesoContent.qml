@@ -5,8 +5,6 @@ import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: mesoContentPage
-	width: windowWidth
-	height: windowHeight
 
 	required property int mesoId
 	required property int mesoIdx
@@ -21,6 +19,7 @@ Page {
 	property string trainingDay
 	property string splitContent
 	property bool bCanViewDay
+	property bool bAlreadyLoaded: false
 
 	Image {
 		anchors.fill: parent
@@ -82,7 +81,7 @@ Page {
 		property int currentDay
 		property int currentMonth
 		property int currentYear
-		property var monthsNames: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
+		readonly property var monthsNames: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
 									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
 									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
 
@@ -176,17 +175,7 @@ Page {
 					MouseArea {
 						anchors.fill: parent
 						onClicked: {
-							btnShowDayInfo.enabled = mesoCalendarModel.isTrainingDay(model.month+1, model.day-1);
-
-							if (btnShowDayInfo.enabled) {
-								splitLetter = mesoCalendarModel.getSplit(model.month+1, model.day-1);
-								trainingDay = mesoCalendarModel.getTrainingDay(model.month+1, model.day-1);
-								getDivisionContent(splitLetter);
-							}
-							calendar.currentDay = model.day;
-							calendar.currentMonth = model.month;
-							calendar.currentYear = model.year;
-							calendar.dayInfoDate = new Date(model.year, model.month, model.day);
+							selectDay(model.year, model.month, model.day);
 						}
 					}
 
@@ -208,7 +197,7 @@ Page {
 
 			Label {
 				text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
-						qsTr("Day is not part of the current mesocycle")
+						qsTr("Selected day is not part of the current mesocycle")
 				color: "white"
 				wrapMode: Text.WordWrap
 				font.pixelSize: AppSettings.fontSizeLists
@@ -231,23 +220,45 @@ Page {
 						appDB.getItem.disconnect(pushTDayOntoStackView);
 						object.tDay = trainingDay;
 						object.splitLetter = splitLetter;
-						appDB.appStackView().push(object, StackView.DontLoad);
+						appStackView.push(object, StackView.DontLoad);
 					}
 
 					appDB.getItem.connect(pushTDayOntoStackView);
-					appDB.getTrainingDay(mesoIdx, calendar.dayInfoDate);
+					appDB.getTrainingDay(calendar.dayInfoDate);
 				}
 			}
 		} // RowLayout
-
-		Component.onCompleted: {
-			mesoContentPage.StackView.activating.connect(pageActivation);
-		}
 	} // footer: ToolBar
 
+	Component.onCompleted: {
+		mesoContentPage.StackView.activating.connect(pageActivation);
+	}
+
 	function pageActivation() {
-		calendar.model = mesoCalendarModel;
 		_today = new Date();
+		if (!bAlreadyLoaded) {
+			calendar.model = mesoCalendarModel;
+			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
+			bAlreadyLoaded = true;
+		}
+	}
+
+	//Javascript date values differ from QDate's and TP's.
+	//Month: JS 0-11 TP: 1-12
+	//Date: JS 1-31 TP:0-30
+	function selectDay(year, month, day) {
+		btnShowDayInfo.enabled = mesoCalendarModel.isTrainingDay(month+1, day-1);
+
+		if (btnShowDayInfo.enabled) {
+			splitLetter = mesoCalendarModel.getSplit(month+1, day-1);
+			trainingDay = mesoCalendarModel.getTrainingDay(month+1, day-1);
+			getDivisionContent(splitLetter);
+		}
+		calendar.currentDay = day;
+		calendar.currentMonth = month;
+		calendar.currentYear = year;
+		calendar.dayInfoDate = new Date(year, month, day);
+		console.log(calendar.dayInfoDate.toDateString());
 	}
 
 	function getDivisionContent(splitletter) {

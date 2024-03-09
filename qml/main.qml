@@ -148,23 +148,22 @@ ApplicationWindow {
 				function pushOntoStackView(object2, _id2) {
 					if (id !== _id2) {
 						appDB.getItem.disconnect(pushOntoStackView);
-						object2.tDay = calendarPage.mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object2.splitLetter = calendarPage.mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
-						appStackView.push(object, StackView.DontLoad);
+						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+						object2.splitLetter = mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
+						appStackView.push(object2, StackView.DontLoad);
 					}
 				}
 
-				function readyToProceed(object, _id)
+				function readyToProceed(_id)
 				{
-					appDB.getItem.disconnect(readyToProceed);
+					appDB.databaseReady.disconnect(readyToProceed);
 					id = _id;
-					calendarPage = object;
 					appDB.getItem.connect(pushOntoStackView);
 					appDB.getTrainingDay(today);
 				}
 
-				appDB.getItem.connect(readyToProceed);
-				appDB.getMesoCalendar();
+				appDB.databaseReady.connect(readyToProceed);
+				appDB.getMesoCalendar(false);
 			} //onClicked
 		} //TabButton
 	} //footer

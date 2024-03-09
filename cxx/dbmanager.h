@@ -35,8 +35,6 @@ public:
 	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
-	Q_INVOKABLE void setAppStackView(QQuickItem* stackview) { m_appStackView = stackview; }
-	Q_INVOKABLE QQuickItem* appStackView() const { return m_appStackView; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -80,7 +78,7 @@ public:
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getMesoCalendar();
+	Q_INVOKABLE void getMesoCalendar(const bool bCreatePage = true);
 	Q_INVOKABLE void createMesoCalendar();
 	Q_INVOKABLE void newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit);
@@ -123,7 +121,6 @@ private:
 	QMap<QString,uint> m_WorkerLock;
 	uint m_insertid;
 	QStringList m_result;
-	QQuickItem* m_appStackView;
 	QList<TPMesocycleClass*> m_MesoManager;
 
 	DBMesocyclesModel* mesocyclesModel;

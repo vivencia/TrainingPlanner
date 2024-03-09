@@ -14,7 +14,6 @@ Page {
 	required property date mainDate //dayDate
 	required property int mesoId
 	required property int mesoIdx
-	required property int modelIdx
 	required property DBTrainingDayModel tDayModel
 
 	property int dayId: -1
@@ -119,8 +118,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getStrHourFromTime(mainwindow.todayFull)
-		minutesDisplay: runCmd.getStrMinFromTime(mainwindow.todayFull)
+		hrsDisplay: runCmd.getStrHourFromTime(new Date())
+		minutesDisplay: runCmd.getStrMinFromTime(new Date())
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -567,7 +566,7 @@ Page {
 							Component.onCompleted: {
 								 timeIn = tDayModel.timeIn();
 								 if (timeIn.length === 0)
-									timeIn = runCmd.formatTime(mainwindow.todayFull);
+									timeIn = runCmd.formatTime(new Date());
 							}
 						}
 						RoundButton {
@@ -598,7 +597,7 @@ Page {
 							Component.onCompleted: {
 								timeOut = tDayModel.timeOut();
 								if (timeOut.length === 0)
-									timeOut = runCmd.formatFutureTime(mainwindow.todayFull, 1, 30);
+									timeOut = runCmd.formatFutureTime(new Date(), 1, 30);
 							}
 						}
 
@@ -989,7 +988,7 @@ Page {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		appDB.createExerciseObject(strName1 + " - " + strName2, colExercises, modelIdx);
+		appDB.createExerciseObject(strName1 + " - " + strName2);
 	}
 
 	function exerciseSetAdded(exerciseObjIdx, setObject) {
@@ -1179,15 +1178,6 @@ Page {
 	}
 
 	function pageActivation() {
-		function verifyExercises() {
-			appDB.qmlReady.disconnect(verifyExercises);
-			if (tDayModel.exercisesNumber() === 0) {
-				console.log("Offer options to load from previous day or meso plan")
-			}
-		}
-
-		appDB.qmlReady.connect(verifyExercises);
-		appDB.getTrainingDayExercises(mainDate);
 		changeComboModel();
 		return;
 		if (!bAlreadyLoaded) {
