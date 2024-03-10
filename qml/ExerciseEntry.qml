@@ -26,7 +26,6 @@ FocusScope {
 	signal exerciseEdited(int objidx)
 	signal setAdded(int objidx, var setObject)
 	signal requestHideFloatingButtons(int except_idx)
-	signal requestTimerDialogSignal(Item requester, var args, var tdaydate)
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
 
 	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
@@ -267,7 +266,7 @@ FocusScope {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
 			btnFloat = component.createObject(exerciseItem, {
-					text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 2
+					text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 1
 			});
 			btnFloat.buttonClicked.connect(addNewSet);
 			bFloatButtonVisible = true;
@@ -320,10 +319,7 @@ FocusScope {
 	function createSetObject(type) {
 		function setObjectCreated(object) {
 			appDB.getItem.disconnect(setObjectCreated);
-
-			//if (setNbr >= 1)
-			//	setObjectList[setNbr-1].Object.nextObject = sprite;
-			setAdded(true, exerciseIdx, object);
+			setAdded(exerciseIdx, object);
 			if (btnFloat !== null)
 				btnFloat.nextSetNbr++;
 		}
@@ -335,11 +331,6 @@ FocusScope {
 
 	function foldUpSets() {
 		paneExercise.shown = false;
-	}
-
-	function requestTimer(requester, message, mins, secs) {
-		var args = [message, mins, secs];
-		requestTimerDialogSignal(requester, args, tDayModel.date());
 	}
 
 	function requestExercisesList(requester, visible) {

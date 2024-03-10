@@ -13,11 +13,12 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	readonly property int setType: 0 //Constant
 
 	property var nextObject: null
 	property int nSubSets: 0
 	property var subSetList: []
+
+	signal requestTimerDialogSignal(Item requester, var args)
 
 	ColumnLayout {
 		id: setLayout
@@ -152,5 +153,10 @@ Item {
 		nSubSets++;
 		if (bNew)
 			tDayModel.setSetSubSets(setNumber, nSubSets.toString(), exerciseIdx);
+	}
+
+	function requestTimer(requester, message, mins, secs) {
+		var args = [message, mins, secs];
+		requestTimerDialogSignal(requester, args);
 	}
 } // FocusScope

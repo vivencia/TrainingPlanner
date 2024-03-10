@@ -153,7 +153,6 @@ private:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	QQmlComponent* m_setComponents[6];
 	QMap<uint,QList<QQuickItem*>> m_setObjects;
-	QList<uint> m_setCounter;
 	QVariantMap m_setObjectProperties;
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 

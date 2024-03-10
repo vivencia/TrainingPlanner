@@ -113,7 +113,6 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
-		qDebug() << m_data[2];
 		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
 										"FROM training_day_table WHERE date=") + m_data[2] );
 

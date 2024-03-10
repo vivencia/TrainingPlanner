@@ -220,6 +220,7 @@ FocusScope {
 						return;
 					}
 					if (bClearInput) {
+						origText = text;
 						txtMain.clear();
 						bClearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
 					}
@@ -380,15 +381,11 @@ FocusScope {
 	}
 
 	function changeText(text) {
-		origText = text;
 		valueChanged(text);
 	}
-
 
 	function openTimerDialog() {
 		if (timeSetNotFirstSet)
 			requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
 	}
-
-	Component.onCompleted: origText = text;
 } //FocusScope

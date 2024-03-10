@@ -7,10 +7,10 @@ import QtQuick.Controls.Material
 Popup {
 	id: timePicker
 	closePolicy: Popup.CloseOnPressOutside
-	width: mainwindow.width * 0.75
-	height: mainwindow.height * 0.55
-	x: (mainwindow.width - width) / 2
-	y: (mainwindow.height - height) / 2
+	width: windowWidth * 0.75
+	height: windowHeight * 0.55
+	x: (windowWidth - width) / 2
+	y: (windowHeight - height) / 2
 	modal: true
 	focus: true
 	Material.elevation: 6

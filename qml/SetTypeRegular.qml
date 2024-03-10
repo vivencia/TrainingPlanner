@@ -14,9 +14,9 @@ FocusScope {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	readonly property int setType: 0 //Constant
 
 	property var nextObject: null
+	signal requestTimerDialogSignal(Item requester, var args)
 
 	ColumnLayout {
 		id: setLayout
@@ -133,4 +133,9 @@ FocusScope {
 			}
 		}
 	} // setLayout
+
+	function requestTimer(requester, message, mins, secs) {
+		var args = [message, mins, secs];
+		requestTimerDialogSignal(requester, args);
+	}
 } // FocusScope

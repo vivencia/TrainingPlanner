@@ -13,9 +13,9 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	readonly property int setType: 0 //Constant
 
 	property var nextObject: null
+	signal requestTimerDialogSignal(Item requester, var args)
 
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
@@ -158,4 +158,9 @@ Item {
 			}
 		}
 	} // setLayout
+
+	function requestTimer(requester, message, mins, secs) {
+		var args = [message, mins, secs];
+		requestTimerDialogSignal(requester, args);
+	}
 } // FocusScope

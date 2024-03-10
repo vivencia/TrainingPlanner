@@ -78,7 +78,7 @@ public:
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getMesoCalendar(const bool bCreatePage = true);
+	Q_INVOKABLE void getMesoCalendar(const bool bCreatePage);
 	Q_INVOKABLE void createMesoCalendar();
 	Q_INVOKABLE void newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit);
@@ -88,7 +88,8 @@ public:
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getTrainingDay(const QDate& date);
-	Q_INVOKABLE void getTrainingDayExercises(const QDate& date);
+	void getTrainingDayExercises(const QDate& date);
+	void verifyTDayOptions(const QDate& date);
 	Q_INVOKABLE void newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
 	Q_INVOKABLE void updateTrainingDay(const uint id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
@@ -126,6 +127,7 @@ private:
 	DBMesocyclesModel* mesocyclesModel;
 	DBMesoSplitModel* mesoSplitModel;
 	DBExercisesModel* exercisesListModel;
+	DBMesoCalendarModel* mesoCalendarModel;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;

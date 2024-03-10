@@ -163,8 +163,8 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		x = mainwindow.width/2 - implicitWidth/2;
-		y = mainwindow.height * 0.5 - implicitHeight;
+		x = (windowWidth - implicitWidth)/2;
+		y = windowHeight * 0.5 - implicitHeight;
 		mainwindow.backButtonPressed.connect(maybeDestroy);
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);

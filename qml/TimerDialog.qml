@@ -7,10 +7,10 @@ Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
-	width: simpleTimer ? mainwindow.width * 0.75 : mainwindow.width
-	height: mainwindow.height * 0.30
-	x: (mainwindow.width - width) / 2
-	y: simpleTimer ? (mainwindow.height - height) / 2 - tabMain.height : 0 // align vertically centered
+	width: simpleTimer ? windowWidth * 0.75 : windowWidth
+	height: windowHeight * 0.30
+	x: (windowWidth - width) / 2
+	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0

@@ -16,8 +16,6 @@ Page {
 	required property int mesoIdx
 	required property DBTrainingDayModel tDayModel
 
-	property int dayId: -1
-	property string exercisesNames
 	property string tDay
 	property string splitLetter
 	property string timeIn
@@ -96,7 +94,7 @@ Page {
 			timeOut = hour + ":" + minutes;
 			if (tDayModel.exercisesNumber() > 0)
 			{
-				hideFloatingButton(-1); //Day is finished
+				//hideFloatingButton(-1); //Day is finished
 				bDayIsFinished = true;
 				btnSaveDay.clicked();
 				foldUpAllExercisesEntries("up");
@@ -326,12 +324,24 @@ Page {
 					Layout.column: 1
 
 					onActivated: (index) => {
+						const splitletter = tDayModel.splitLetter();
+						if (splitletter !== "") {
+							if (splitletter !== cboModel.get(index).value)
+								frmMesoSplitAdjust.visible = true;
+							else {
+								frmMesoSplitAdjust.visible = txtTDay.text !== tDayModel.trainingDay();
+								return;
+							}
+						}
+						else {
+							if (splitLetter === cboModel.get(index).value)
+								return;
+						}
 						splitLetter = cboModel.get(index).value;
 						if (splitLetter === 'R')
 							tDay = "0";
 						else
 							tDay = txtTDay.text;
-						//maybeResetPage();
 					}			
 				} //TPComboBox
 
@@ -345,7 +355,7 @@ Page {
 				}
 				TPTextInput {
 					id: txtTDay
-					text: tDayModel.trainingDay() === "" ? tDay : tDayModel.trainingDay()
+					text: tDay
 					width: 50
 					maximumLength: 3
 					validator: IntValidator { bottom: 0; top: 365; }
@@ -355,11 +365,24 @@ Page {
 					Layout.column: 1
 
 					onTextEdited: {
-						if ( text !== "") {
-							if (text !== tDayModel.trainingDay()) {
-								tDay = text;
+						if ( text === "") {
+							text = tDay;
+							return;
+						}
+						const tday = tDayModel.trainingDay();
+						if (tday !== "") {
+							if (text !== tday)
+								frmMesoSplitAdjust.visible = true;
+							else {
+								frmMesoSplitAdjust.visible = cboSplitLetter.currentText !== tDayModel.splitLetter();
+								return;
 							}
 						}
+						else {
+							if (text == tDay)
+								return;
+						}
+						tDay = text;
 					}
 				} //txtTDay
 			} //GridLayout
@@ -368,7 +391,7 @@ Page {
 				id: frmMesoSplitAdjust
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
-				visible: bRealMeso && (splitLetter !== tDayModel.splitLetter() || tDay !== tDayModel.trainingDay())
+				visible: false
 				padding: 0
 				spacing: 0
 				width: windowWidth - 20
@@ -993,7 +1016,7 @@ Page {
 
 	function exerciseSetAdded(exerciseObjIdx, setObject) {
 		bStopBounce = true;
-		if (exerciseObjIdx === exerciseSpriteList.length-1)
+		if (exerciseObjIdx === tDayModel.exercisesNumber() - 1)
 			scrollBarPosition = phantomItem.y;
 		else
 			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
@@ -1002,6 +1025,7 @@ Page {
 	}
 
 	function hideFloatingButton(except_idx) {
+		return;
 		const len = exerciseSpriteList.length;
 		for (var x = 0; x < len; ++x) {
 			if (x !== except_idx) {
@@ -1082,20 +1106,19 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				hideFloatingButton(-1);
+				//hideFloatingButton(-1);
 				if (navButtons !== null)
 					navButtons.hideButtons();
 
-				function pushOntoStackView(object, bfirsttime) {
-					if (bfirsttime) {
-						object.bChooseButtonEnabled = true;
+				function openTDayExercisesPage(object, id) {
+					appDB.getItem.disconnect(openTDayExercisesPage);
+					if (id === 999) //999 first time creation
 						object.exerciseChosen.connect(gotExercise);
-					}
-					appDB.getQmlObject.disconnect(pushOntoStackView);
-					mainwindow.appStackView.push(object, StackView.DontLoad);
+					object.bChooseButtonEnabled = true;
+					appStackView.push(object, StackView.DontLoad);
 				}
 
-				appDB.getQmlObject.connect(pushOntoStackView);
+				appDB.getItem.connect(openTDayExercisesPage);
 				appDB.openExercisesListPage();
 			}
 		} // bntAddExercise
@@ -1143,7 +1166,7 @@ Page {
 
 		ExercisesListView {
 			id: exercisesList
-			height: mainwindow.height * 0.8
+			height: windowHeight * 0.8
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 			Layout.alignment: Qt.AlignTop
@@ -1179,6 +1202,7 @@ Page {
 
 	function pageActivation() {
 		changeComboModel();
+
 		return;
 		if (!bAlreadyLoaded) {
 			loadTimer.init(2);
@@ -1203,7 +1227,7 @@ Page {
 			firstTimeTip.visible = false;
 		if (navButtons)
 			navButtons.visible = false;
-		hideFloatingButton(-1);
+		//hideFloatingButton(-1);
 	}
 
 	function placeTipOnAddExercise() {
@@ -1240,7 +1264,7 @@ Page {
 			timerDialog.open();
 		}
 		else {
-			timerDlgMessage.openTimed(5000, 0);
+			//timerDlgMessage.openTimed(5000, 0); TODO
 		}
 	}
 

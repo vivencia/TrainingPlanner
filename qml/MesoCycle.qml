@@ -77,7 +77,7 @@ Page {
 				}
 
 				appDB.getItem.connect(readyToProceed);
-				appDB.getMesoCalendar();
+				appDB.getMesoCalendar(true);
 			}
 		}
 

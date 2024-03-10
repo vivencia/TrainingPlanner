@@ -153,7 +153,7 @@ uint TPMesocycleClass::createMesoCalendarPage()
 					{ return createMesoCalendarPage_part2(); } );
 	}
 	else
-
+		createMesoCalendarPage_part2();
 	return calPageCreateId;
 }
 
@@ -203,26 +203,23 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 
 void TPMesocycleClass::createTrainingDayPage_part2()
 {
-	if (m_tDayModels.last()->isReady())
+	QQuickItem* item (static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
+	#ifdef DEBUG
+	if (m_tDayComponent->status() == QQmlComponent::Error)
 	{
-		QQuickItem* item (static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
-		#ifdef DEBUG
-		if (m_tDayComponent->status() == QQmlComponent::Error)
-		{
-			qDebug() << m_tDayComponent->errorString();
-			for (uint i(0); i < m_tDayComponent->errors().count(); ++i)
-				qDebug() << m_tDayComponent->errors().at(i).description();
-			return;
-		}
-		#endif
-		m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-		QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
-		item->setParentItem(parent);
-		m_CurrenttDayPage = item;
-		m_CurrenttDayModel = m_tDayModels.last();
-		m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), item);
-		emit itemReady(item, tDayCreateId);
+		qDebug() << m_tDayComponent->errorString();
+		for (uint i(0); i < m_tDayComponent->errors().count(); ++i)
+			qDebug() << m_tDayComponent->errors().at(i).description();
+		return;
 	}
+	#endif
+	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
+	item->setParentItem(parent);
+	m_CurrenttDayPage = item;
+	m_CurrenttDayModel = m_tDayModels.last();
+	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), item);
+	emit itemReady(item, tDayCreateId);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
@@ -260,10 +257,8 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	QQuickItem* parentLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
 	item->setParentItem(parentLayout);
-	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
-						SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
-	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const uint)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const uint)) );
+	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
 	m_tDayExercises.append(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }
@@ -308,17 +303,10 @@ void TPMesocycleClass::removeExercise(const uint exercise_idx)
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 void TPMesocycleClass::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx)
 {
-	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
-	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
-
 	if (!m_setObjects.contains(exercise_idx))
 	{
-		uint i(0);
 		QList<QQuickItem*> lst;
-		for(i = 0; i < m_CurrenttDayModel->setsNumber(exercise_idx); ++i)
-			lst.append(nullptr);
-		m_setObjects[exercise_idx] = lst;
-		m_setCounter.append(i);
+		m_setObjects.insert(exercise_idx, lst);
 	}
 
 	if (m_setComponents[set_type] == nullptr)
@@ -328,15 +316,15 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 						findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
 
 		m_setComponents[set_type] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type]), QQmlComponent::Asynchronous, parentLayout);
-		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status)
-					{ return createSetObject_part2(set_type, set_number, exercise_idx); });
 	}
-	else
-		createSetObject_part2(set_type, set_number, exercise_idx);
+	connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
+		{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
 }
 
 void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx)
 {
+	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
+	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type]->
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 	#ifdef DEBUG
@@ -353,13 +341,17 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	QQuickItem* parent(static_cast<QQuickItem*>(m_tDayExercises.at(exercise_idx))->
 								findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
 	item->setParentItem(parent);
-	m_setObjects[exercise_idx][set_number] = item;
-	if (--m_setCounter[exercise_idx] == 0)
+	if (set_number > 0)
 	{
-		const uint n(m_setObjects.value(exercise_idx).count());
-		for (uint i(0); i < n; ++i) //notify object creation orderly
-			emit itemReady(m_setObjects.value(exercise_idx).at(i), tDaySetCreateId);
+		m_setObjects[exercise_idx].last()->setProperty("nextObject", QVariant::fromValue(item));
+		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
+						SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	}
+	m_setObjects[exercise_idx].append(item);
+
+	const uint n(m_setObjects.value(exercise_idx).count());
+	for (uint i(0); i < n; ++i) //notify object creation orderly
+		emit itemReady(m_setObjects.value(exercise_idx).at(i), tDaySetCreateId);
 }
 
 void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)

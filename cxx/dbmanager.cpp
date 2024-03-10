@@ -91,6 +91,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	exercisesListModel = new DBExercisesModel(this);
 	mesoSplitModel  = new DBMesoSplitModel(this);
+	mesoCalendarModel = new DBMesoCalendarModel(this);
 
 	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
 	//Root context properties. MainWindow app properties
@@ -100,6 +101,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoCalendarModel"), QVariant::fromValue(mesoCalendarModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowHeight"), 640 });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowWidth"), 300 });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryLightColor"), QVariant(QColor(187, 222, 251)) });
@@ -120,9 +122,10 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 DbManager::~DbManager()
 {
-	delete mesocyclesModel;
-	delete exercisesListModel;
+	delete mesoCalendarModel;
 	delete mesoSplitModel;
+	delete exercisesListModel;
+	delete mesocyclesModel;
 	delete m_exercisesPage;
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
@@ -536,6 +539,7 @@ void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DbManager::getMesoCalendar(const bool bCreatePage)
 {
+	DBMesoCalendarModel* calModel(mesoCalendarModel);
 	if (bCreatePage)
 	{
 		if (m_MesoManager.at(m_MesoIdx)->getCalendarPage() != nullptr)
@@ -544,8 +548,9 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 			return;
 		}
 		connect( this, &DbManager::databaseReady, this, [&](uint) { return m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage(); } );
+		calModel = m_MesoManager.at(m_MesoIdx)->getCalendarModel();
 	}
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->getCalendarModel()));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, calModel));
 	worker->addExecArg(m_MesoId);
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
@@ -598,14 +603,21 @@ void DbManager::getTrainingDay(const QDate& date)
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date](uint) { return m_MesoManager.at(m_MesoIdx)->createTrainingDayPage(date); } );
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
+	connect(m_MesoManager.at(m_MesoIdx), &TPMesocycleClass::itemReady, this, [&,date] (QQuickItem*,const uint) { return getTrainingDayExercises(date); });
 }
 
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&](uint) { return m_MesoManager.at(m_MesoIdx)->createExercisesObjects(); } );
+	connect( this, &DbManager::databaseReady, this, [&,date](uint) { return verifyTDayOptions(date); } );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
+	disconnect(m_MesoManager.at(m_MesoIdx), &TPMesocycleClass::itemReady, this, nullptr);
+}
+
+void DbManager::verifyTDayOptions(const QDate& date)
+{
+	m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
 }
 
 void DbManager::newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
