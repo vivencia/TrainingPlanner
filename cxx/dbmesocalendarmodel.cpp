@@ -73,7 +73,7 @@ int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 	return -1;
 }
 
-QString DBMesoCalendarModel::getSplit(const uint month, const uint day) const
+QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) const
 {
 	for( uint i(0); i < m_modeldata.count(); ++i)
 	{

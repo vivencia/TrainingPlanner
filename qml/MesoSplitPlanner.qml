@@ -559,7 +559,7 @@ Frame {
 		if (splitModel.count === 0) {
 			prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
 			if (prevMesoId >= 0) {
-				if (appDB.previousMesoHasPlan(prevMesoId, splitLetter)) {
+				if (appDB.mesoHasPlan(prevMesoId, splitLetter)) {
 					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
 					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
 					splitModel.currentRow = 0;

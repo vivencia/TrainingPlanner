@@ -21,6 +21,7 @@ public:
 	virtual void createTable();
 	void getTrainingDay();
 	void getTrainingDayExercises();
+	void getPreviousTrainingDays();
 	void newTrainingDay();
 	void updateTrainingDay();
 	void updateTrainingDayExercises();
@@ -33,6 +34,9 @@ public:
 				const QString& location = QString(), const QString& notes = QString());
 	void setExercisesData(const QString& id, const QString& exercises_names, const QString& sets_types, const QString& rest_times, const QString& sub_sets,
 							const QString& reps, const QString& weights, const QString& notes);
+
+private:
+	QString formatDate(const uint julianDay) const;
 };
 
 #endif // DBTRAININGDAYTABLE_H

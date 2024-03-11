@@ -26,6 +26,8 @@ public:
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
 	Q_INVOKABLE const QString formatDate(const QDate& date) const;
+	QDate getDateFromStrDate(const QString& strDate) const;
+
 	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
 	{
 		return calculateNumberOfWeeks(date1.weekNumber(), date2.weekNumber());

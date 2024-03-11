@@ -73,7 +73,7 @@ public:
 	Q_INVOKABLE void deleteMesoSplitTable();
 	Q_INVOKABLE void getCompleteMesoSplit(const QString& mesoSplit);
 	Q_INVOKABLE void updateMesoSplitComplete(const QString& splitLetter);
-	Q_INVOKABLE bool previousMesoHasPlan(const uint prev_meso_id, const QString& splitLetter) const;
+	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
@@ -89,7 +89,8 @@ public:
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getTrainingDay(const QDate& date);
 	void getTrainingDayExercises(const QDate& date);
-	void verifyTDayOptions(const QDate& date);
+	Q_INVOKABLE void verifyTDayOptions(const QDate& date, const QString& splitLetter = QString());
+	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
 							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
 	Q_INVOKABLE void updateTrainingDay(const uint id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
@@ -97,7 +98,6 @@ public:
 	Q_INVOKABLE void updateTrainingDayExercises(const uint id);
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
-
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
@@ -107,6 +107,7 @@ public:
 signals:
 	void databaseReady(uint exec_id);
 	void databaseFree();
+	void getPage(QQuickItem* item, const uint id);
 	void getItem(QQuickItem* item, const uint id);
 
 private:

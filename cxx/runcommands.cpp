@@ -83,11 +83,46 @@ const QString RunCommands::formatDate(const QDate& date) const
 		if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
 		{
 			QLocale locale(QStringLiteral("pt_BR"));
-			return locale.toString(date, QStringLiteral("ddd d/M/yy"));
+			return locale.toString(date, QStringLiteral("ddd d/M/yyyy"));
 		}
 		return date.toString(Qt::TextDate);
 	}
 	return QString();
+}
+
+QDate RunCommands::getDateFromStrDate(const QString& strDate) const
+{
+	const QStringView strdate(strDate);
+	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+	{
+		const int spaceIdx(strdate.indexOf(' '));
+		const int fSlashIdx(strdate.indexOf('/'));
+		const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
+		const uint day(strdate.mid(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
+		const uint month(strdate.mid(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());
+		const uint year(strdate.right(4).toUInt());
+		const QDate date(year, month, day);
+		return date;
+	}
+	else
+	{
+		static const QString months[12] = {u"Jan"_qs,u"Feb"_qs,u"Mar"_qs,u"Apr"_qs,u"May"_qs,
+		u"Jun"_qs,u"Jul"_qs,u"Aug"_qs,u"Sep"_qs,u"Oct"_qs,u"Nov"_qs,u"Dez"_qs };
+		const QStringView strMonth(strdate.mid(4, 3));
+		uint i(0);
+		for(; i < 12; ++ i)
+		{
+			if (months[i] == strMonth) break;
+		}
+		const uint month(i);
+		const uint year(strdate.right(4).toUInt());
+
+		const int spaceIdx(strdate.indexOf(' '));
+		const int spaceIdx2(strdate.indexOf(' ', spaceIdx+1));
+		const uint day(strdate.mid(spaceIdx+1, spaceIdx2-spaceIdx-1).toUInt());
+		const QDate date(year, month, day);
+		return date;
+	}
 }
 
 uint RunCommands::calculateNumberOfWeeks(const uint week1, const uint week2) const

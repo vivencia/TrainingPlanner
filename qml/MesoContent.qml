@@ -163,7 +163,7 @@ Page {
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? mesoCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesoCalendarModel.getSplit(model.month+1, model.day-1) : model.day : ""
+						text: monthGrid.month === model.month ? mesoCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
@@ -217,13 +217,13 @@ Page {
 
 				onClicked: {
 					function pushTDayOntoStackView(object, id) {
-						appDB.getItem.disconnect(pushTDayOntoStackView);
+						appDB.getPage.disconnect(pushTDayOntoStackView);
 						object.tDay = trainingDay;
 						object.splitLetter = splitLetter;
 						appStackView.push(object, StackView.DontLoad);
 					}
 
-					appDB.getItem.connect(pushTDayOntoStackView);
+					appDB.getPage.connect(pushTDayOntoStackView);
 					appDB.getTrainingDay(calendar.dayInfoDate);
 				}
 			}
@@ -250,7 +250,7 @@ Page {
 		btnShowDayInfo.enabled = mesoCalendarModel.isTrainingDay(month+1, day-1);
 
 		if (btnShowDayInfo.enabled) {
-			splitLetter = mesoCalendarModel.getSplit(month+1, day-1);
+			splitLetter = mesoCalendarModel.getSplitLetter(month+1, day-1);
 			trainingDay = mesoCalendarModel.getTrainingDay(month+1, day-1);
 			getDivisionContent(splitLetter);
 		}
@@ -258,7 +258,6 @@ Page {
 		calendar.currentMonth = month;
 		calendar.currentYear = year;
 		calendar.dayInfoDate = new Date(year, month, day);
-		console.log(calendar.dayInfoDate.toDateString());
 	}
 
 	function getDivisionContent(splitletter) {

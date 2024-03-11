@@ -27,6 +27,9 @@ Page {
 	property string mesoName
 	property bool bRealMeso: true
 	property bool bModified: tDayModel.tDayModified
+	property var previousTDays: []
+	property bool bHasPreviousTDays: false
+	property bool bHasMesoPlan: false
 
 	property date sessionLength
 	property string filterString: ""
@@ -35,8 +38,7 @@ Page {
 	property bool bAlreadyLoaded
 	property bool bStopBounce: false
 	property bool bNotScroll: true
-	property bool bHasPreviousDay: false
-	property bool bHasMesoPlan: false
+
 	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
@@ -52,6 +54,11 @@ Page {
 
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
+
+	onPreviousTDaysChanged: {
+		cboPreviousTDaysDates.model = previousTDays;
+		bHasPreviousTDays = previousTDays.length > 0;
+	}
 
 	Image {
 		anchors.fill: parent
@@ -97,7 +104,6 @@ Page {
 				//hideFloatingButton(-1); //Day is finished
 				bDayIsFinished = true;
 				btnSaveDay.clicked();
-				foldUpAllExercisesEntries("up");
 			}
 		}
 	}
@@ -341,7 +347,10 @@ Page {
 						if (splitLetter === 'R')
 							tDay = "0";
 						else
+						{
 							tDay = txtTDay.text;
+							appDB.verifyTDayOptions(mainDate, splitLetter);
+						}
 					}			
 				} //TPComboBox
 
@@ -737,7 +746,7 @@ Page {
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 30
-				visible: bHasMesoPlan || bHasPreviousDay
+				visible: bHasMesoPlan || bHasPreviousTDays
 				width: parent.width - 20
 				spacing: 0
 				padding: 0
@@ -754,6 +763,8 @@ Page {
 						anim.stop();
 					}
 				}
+
+				onOptionChanged: btnChooseIntent.enabled = true;
 
 				label: Label {
 					text: qsTr("What do you want to do today?")
@@ -794,7 +805,11 @@ Page {
 				}
 
 				ColumnLayout {
-					anchors.fill: parent
+					anchors {
+						fill: parent
+						leftMargin: 5
+						rightMargin: 5
+					}
 					spacing: 0
 
 					TPRadioButton {
@@ -809,10 +824,11 @@ Page {
 							grpIntent.option = 0;
 						}
 					}
+
 					TPRadioButton {
 						id: optPreviousDay
-						text: qsTr("Base this session off the one from ") + runCmd.formatDate(previousDivisionDayDate)
-						visible: bHasPreviousDay
+						text: qsTr("Base this session off the one from the one the days in the list below")
+						visible: bHasPreviousTDays
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
@@ -821,10 +837,20 @@ Page {
 							grpIntent.option = 1;
 						}
 					}
+
+					TPComboBox {
+						id: cboPreviousTDaysDates
+						textRole: ""
+						visible: bHasPreviousTDays
+						enabled: optPreviousDay.checked
+						width: parent.width
+						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+					}
+
 					TPRadioButton {
 						id: optEmptySession
-						text: qsTr("Start an empty session")
-						visible: bHasMesoPlan || bHasPreviousDay
+						text: qsTr("Start a new session")
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
@@ -834,43 +860,24 @@ Page {
 						}
 					}
 
-					TPRadioButton {
-						id: optContinueSession
-						text: qsTr("Just continue with the changes already made")
-						visible: bModified && (bHasMesoPlan || bHasPreviousDay)
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-
-						onClicked: {
-							grpIntent.option = 3;
-						}
-					}
-
 					ButtonFlat {
 						id: btnChooseIntent
 						text: qsTr("Begin")
+						enabled: false
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
 							highlight = false;
-							if (tDayModel.splitLetter() !== splitLetter) {
-								if (exercisesNames.length > 0) {
-									if (grpIntent.option !== 3)
-										removeAllExerciseObjects();
-								}
-							}
 
 							switch (grpIntent.option) {
 								case 0: //use meso plan
-									loadTimer.init(0);
+									appDB.loadExercisesFromMesoPlan();
 								break;
 								case 1: //use previous day
-									loadTimer.init(1);
+									appDB.loadExercisesFromDate(cboPreviousTDaysDates.currentText);
 								break;
 								case 2: //empty session
-								case 3: //continue session
-									bHasPreviousDay = false;
+									bHasPreviousTDays = false;
 									bHasMesoPlan = false;
 									placeTipOnAddExercise();
 								break;
@@ -1111,14 +1118,14 @@ Page {
 					navButtons.hideButtons();
 
 				function openTDayExercisesPage(object, id) {
-					appDB.getItem.disconnect(openTDayExercisesPage);
+					appDB.getPage.disconnect(openTDayExercisesPage);
 					if (id === 999) //999 first time creation
 						object.exerciseChosen.connect(gotExercise);
 					object.bChooseButtonEnabled = true;
 					appStackView.push(object, StackView.DontLoad);
 				}
 
-				appDB.getItem.connect(openTDayExercisesPage);
+				appDB.getPage.connect(openTDayExercisesPage);
 				appDB.openExercisesListPage();
 			}
 		} // bntAddExercise

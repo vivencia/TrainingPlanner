@@ -46,7 +46,7 @@ public:
 	}
 
 	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
-	Q_INVOKABLE QString getSplit(const uint month, const uint day) const;
+	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
 	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
 };
 

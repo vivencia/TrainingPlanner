@@ -147,9 +147,9 @@ ApplicationWindow {
 				var calendarPage;
 				function pushOntoStackView(object2, _id2) {
 					if (id !== _id2) {
-						appDB.getItem.disconnect(pushOntoStackView);
+						appDB.getPage.disconnect(pushOntoStackView);
 						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object2.splitLetter = mesoCalendarModel.getSplit(today.getMonth() + 1, today.getDate() - 1);
+						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
 						appStackView.push(object2, StackView.DontLoad);
 					}
 				}
@@ -158,7 +158,7 @@ ApplicationWindow {
 				{
 					appDB.databaseReady.disconnect(readyToProceed);
 					id = _id;
-					appDB.getItem.connect(pushOntoStackView);
+					appDB.getPage.connect(pushOntoStackView);
 					appDB.getTrainingDay(today);
 				}
 

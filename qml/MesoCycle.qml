@@ -72,11 +72,11 @@ Page {
 			onClicked: {
 				var id;
 				function readyToProceed(object, id) {
-					appDB.getItem.disconnect(readyToProceed);
+					appDB.getPage.disconnect(readyToProceed);
 					appStackView.push(object, StackView.DontLoad);
 				}
 
-				appDB.getItem.connect(readyToProceed);
+				appDB.getPage.connect(readyToProceed);
 				appDB.getMesoCalendar(true);
 			}
 		}

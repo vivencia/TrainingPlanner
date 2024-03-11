@@ -18,13 +18,12 @@ static const QStringList setTypePages(QStringList() << QStringLiteral("qrc:/qml/
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_splitComponent(nullptr),
-		m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr)
+		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr)
 {}
 
 TPMesocycleClass::~TPMesocycleClass()
 {
 	if (m_splitComponent) delete m_splitComponent;
-	if (m_mesosCalendarModel) delete m_mesosCalendarModel;
 	if (m_calComponent) delete m_calComponent;
 	if (m_tDayComponent) delete m_tDayComponent;
 	if (m_mesoComponent) delete m_mesoComponent;
@@ -81,7 +80,7 @@ void TPMesocycleClass::createMesocyclePage_part2()
 	m_QMlEngine->setObjectOwnership(m_MesoPage, QQmlEngine::CppOwnership);
 	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
 	m_MesoPage->setParentItem(parent);
-	emit itemReady(m_MesoPage, mesoPageCreateId);
+	emit pageReady(m_MesoPage, mesoPageCreateId);
 }
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
@@ -174,7 +173,7 @@ void TPMesocycleClass::createMesoCalendarPage_part2()
 		m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 		QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
 		m_calPage->setParentItem(parent);
-		emit itemReady(m_calPage, calPageCreateId);
+		emit pageReady(m_calPage, calPageCreateId);
 	}
 }
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -219,7 +218,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	m_CurrenttDayPage = item;
 	m_CurrenttDayModel = m_tDayModels.last();
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), item);
-	emit itemReady(item, tDayCreateId);
+	emit pageReady(item, tDayCreateId);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------

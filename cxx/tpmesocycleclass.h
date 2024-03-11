@@ -53,13 +53,7 @@ public:
 	uint createMesoCalendarPage();
 	void createMesoCalendarPage_part2();
 
-	inline DBMesoCalendarModel* getCalendarModel()
-	{
-		if (m_mesosCalendarModel == nullptr)
-			m_mesosCalendarModel = new DBMesoCalendarModel(this);
-		return m_mesosCalendarModel;
-	}
-
+	inline void setMesoCalendarModel(DBMesoCalendarModel* model) { m_mesosCalendarModel = model; }
 	inline QQuickItem* getCalendarPage() const { return m_calPage; }
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
@@ -105,6 +99,7 @@ public slots:
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, int id);
 
 signals:
+	void pageReady(QQuickItem* item, const uint id);
 	void itemReady(QQuickItem* item, const uint id);
 
 private:

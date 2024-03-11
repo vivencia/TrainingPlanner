@@ -143,6 +143,57 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+QString DBTrainingDayTable::formatDate(const uint julianDay) const
+{
+	const QDate date(QDate::fromJulianDay(julianDay));
+	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+	{
+		QLocale locale(QStringLiteral("pt_BR"));
+		return locale.toString(date, QStringLiteral("ddd d/M/yyyy"));
+	}
+	return date.toString(Qt::TextDate);
+}
+
+void DBTrainingDayTable::getPreviousTrainingDays()
+{
+	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	m_result = false;
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		query.setForwardOnly( true );
+		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE split_letter=\'%1\' AND date<%2")
+							.arg(m_data[0], m_data[1]));
+
+		if (query.exec())
+		{
+			if (query.first ())
+			{
+				QStringList dates;
+				do {
+				if (!query.value(0).toString().isEmpty())
+					dates.append(formatDate(query.value(1).toUInt()));
+				} while (query.next());
+				static_cast<DBTrainingDayModel*>(m_model)->appendList(dates);
+			}
+		}
+		m_opcode = OP_READ;
+		mSqlLiteDB.close();
+		m_result = true;
+	}
+
+	if (!m_result)
+	{
+		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	else
+		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays SUCCESS")
+
+	resultFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void DBTrainingDayTable::newTrainingDay()
 {
 	m_result = false;

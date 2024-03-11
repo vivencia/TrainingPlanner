@@ -246,22 +246,22 @@ Page {
 	function newAction(opt) {
 		function pushPageOntoStack(object, id)
 		{
-			appDB.getItem.disconnect(pushPageOntoStack);
+			appDB.getPage.disconnect(pushPageOntoStack);
 			appStackView.push(object, StackView.DontLoad);
 		}
 
-		appDB.getItem.connect(pushPageOntoStack);
+		appDB.getPage.connect(pushPageOntoStack);
 		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"));
 	}
 
 	function showMeso() {
 		function pushPageOntoStack(object, id)
 		{
-			appDB.getItem.disconnect(pushPageOntoStack);
+			appDB.getPage.disconnect(pushPageOntoStack);
 			appStackView.push(object, StackView.DontLoad);
 		}
 
-		appDB.getItem.connect(pushPageOntoStack);
+		appDB.getPage.connect(pushPageOntoStack);
 		appDB.getMesocycle(currentMesoIndex);
 	}
 

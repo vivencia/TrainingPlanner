@@ -90,12 +90,12 @@ Drawer {
 			text: qsTr("Exercises Database")
 			onButtonClicked: {
 				function pushExercisesPageOntoStack(object, id) {
-					appDB.getItem.disconnect(pushExercisesPageOntoStack);
+					appDB.getPage.disconnect(pushExercisesPageOntoStack);
 					appStackView.push(object, stackView.DontLoad);
 					menuClicked();
 				}
 
-				appDB.getItem.connect(pushExercisesPageOntoStack);
+				appDB.getPage.connect(pushExercisesPageOntoStack);
 				appDB.openExercisesListPage();
 			}
 		}
