@@ -8,6 +8,7 @@ import "jsfunctions.js" as JSF
 Page {
 	id: mesoPropertiesPage
 	width: windowWidth
+	height: windowHeight
 
 	required property int mesoId
 	required property int mesoIdx

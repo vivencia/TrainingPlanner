@@ -242,33 +242,22 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	if (mSqlLiteDB.open())
 	{
 		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
-		const char splitLetter(static_cast<char>(m_execArgs.at(1).toString().toStdString().c_str()[0]));
+		const QChar splitLetter(m_execArgs.at(1).toChar());
 
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT id, meso_id, split%1, split%1_exercisesnames, split%1_exercisesset_types, split%1_exercisesset_n,"
+		query.prepare( QStringLiteral("SELECT split%1_exercisesnames, split%1_exercisesset_types, split%1_exercisesset_n,"
 				"split%1_exercisesset_reps, split%1_exercisesset_weight FROM mesocycles_splits WHERE meso_id=%2").arg(splitLetter).arg(mesoId) );
 
 		if (query.exec())
 		{
 			if (query.first ())
 			{
-				uint start_i(0);
-				switch (splitLetter)
-				{
-					case 'A': start_i = 8; break;
-					case 'B': start_i = 13; break;
-					case 'C': start_i = 18; break;
-					case 'D': start_i = 23; break;
-					case 'E': start_i = 28; break;
-					case 'F': start_i = 33; break;
-				}
-
-				const QStringList exercises(query.value(static_cast<int>(start_i)).toString().split('|', Qt::SkipEmptyParts));
-				const QStringList setstypes(query.value(static_cast<int>(start_i+1)).toString().split('|', Qt::SkipEmptyParts));
-				const QStringList setsnumber(query.value(static_cast<int>(start_i+2)).toString().split('|', Qt::SkipEmptyParts));
-				const QStringList setsreps(query.value(static_cast<int>(start_i+3)).toString().split('|', Qt::SkipEmptyParts));
-				const QStringList setsweight(query.value(static_cast<int>(start_i+4)).toString().split('|', Qt::SkipEmptyParts));
+				const QStringList exercises(query.value(0).toString().split(record_separator, Qt::SkipEmptyParts));
+				const QStringList setstypes(query.value(1).toString().split(record_separator, Qt::SkipEmptyParts));
+				const QStringList setsnumber(query.value(2).toString().split(record_separator, Qt::SkipEmptyParts));
+				const QStringList setsreps(query.value(3).toString().split(record_separator, Qt::SkipEmptyParts));
+				const QStringList setsweight(query.value(4).toString().split(record_separator, Qt::SkipEmptyParts));
 
 				QStringList split_info;
 				for(uint i(0); i < exercises.count(); ++i)
@@ -309,7 +298,7 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	if (mSqlLiteDB.open())
 	{
 		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
-		const char splitLetter(static_cast<char>(m_execArgs.at(1).toString().toStdString().c_str()[0]));
+		const QString splitLetter(m_execArgs.at(1).toString());
 
 		QString exercises;
 		QString setstypes;
@@ -318,23 +307,18 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		QString setsweight;
 		for(uint i(0); i < m_model->count(); ++i)
 		{
-			exercises += m_model->getFast(i, 0) + QLatin1Char('|');
-			setstypes += m_model->getFast(i, 1) + QLatin1Char('|');
-			setsnumber += m_model->getFast(i, 2) + QLatin1Char('|');
-			setsreps += m_model->getFast(i, 3) + QLatin1Char('|');
-			setsweight += m_model->getFast(i, 4) + QLatin1Char('|');
+			exercises += m_model->getFast(i, 0) + record_separator;
+			setstypes += m_model->getFast(i, 1) + record_separator;
+			setsnumber += m_model->getFast(i, 2) + record_separator;
+			setsreps += m_model->getFast(i, 3) + record_separator;
+			setsweight += m_model->getFast(i, 4) + record_separator;
 		}
-		exercises.chop(1);
-		setstypes.chop(1);
-		setsnumber.chop(1);
-		setsreps.chop(1);
-		setsweight.chop(1);
 
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\',"
 									 "split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\',"
 									"split%1_exercisesset_reps=\'%5\', split%1_exercisesset_weight=\'%6\' WHERE meso_id=%7")
-									.arg(splitLetter).arg(exercises, setstypes, setsnumber, setsreps, setsweight, mesoId) );
+									.arg(splitLetter, exercises, setstypes, setsnumber, setsreps, setsweight, mesoId) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -353,7 +337,7 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const char splitLetter)
+bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLetter)
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
@@ -362,7 +346,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const char splitLetter
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
 		query.prepare( QStringLiteral("SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2")
-									.arg(splitLetter).arg(mesoId) );
+									.arg(splitLetter, mesoId) );
 		m_result = query.exec();
 		if (m_result)
 		{

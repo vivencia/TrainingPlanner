@@ -213,7 +213,6 @@ void DBTrainingDayTable::newTrainingDay()
 			m_data[0] = query.lastInsertId().toString();
 			m_model->appendList(m_data);
 			static_cast<DBTrainingDayModel*>(m_model)->setTDayModified(false);
-			m_opcode = OP_ADD;
 		}
 		mSqlLiteDB.close();
 	}

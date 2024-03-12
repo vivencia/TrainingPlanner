@@ -144,7 +144,7 @@ Frame {
 					anchors.fill: parent
 					rows: 9
 					columns: 2
-					rowSpacing: 2
+					rowSpacing: 0
 					columnSpacing: 2
 
 					TPRadioButton {
@@ -464,7 +464,8 @@ Frame {
 								btnEditExercise.clicked();
 
 							appendNewExerciseToDivision();
-							lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Beginning);
+							lstSplitExercises.currentIndex = splitModel.currentRow;
+							lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
 						}
 					} //btnAddExercise
 				} //GridLayout
@@ -472,7 +473,7 @@ Frame {
 				contentItem: Rectangle {
 					id: listItem
 					width: lstSplitExercises.width - 10
-					height: (contentsLayout.rows + 1) * 40
+					height: (contentsLayout.rows + 1) * 30
 					border.color: "transparent"
 					color: "transparent"
 					radius: 5
@@ -543,7 +544,6 @@ Frame {
 			enabled: bModified
 
 			onClicked: {
-				txtExerciseName.readOnly = true;
 				appDB.pass_object(splitModel);
 				appDB.updateMesoSplitComplete(splitLetter);
 			}
@@ -568,6 +568,7 @@ Frame {
 			else
 				appendNewExerciseToDivision();
 		}
+		filterString = exercisesListModel.makeFilterString(txtSplit.text);
 	}
 
 	function appendNewExerciseToDivision() {

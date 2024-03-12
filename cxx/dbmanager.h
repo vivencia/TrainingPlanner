@@ -32,7 +32,7 @@ public:
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void gotResult(TPDatabaseTable* dbObj);
-	Q_INVOKABLE uint pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); return ++m_execId; }
+	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
 	Q_INVOKABLE const QStringList result() const { return m_result; }
 
@@ -105,7 +105,7 @@ public:
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 signals:
-	void databaseReady(uint exec_id);
+	void databaseReady();
 	void databaseFree();
 	void getPage(QQuickItem* item, const uint id);
 	void getItem(QQuickItem* item, const uint id);
@@ -114,7 +114,6 @@ private:
 	int m_MesoId;
 	uint m_MesoIdx;
 	QString m_MesoIdStr;
-	uint m_execId;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;

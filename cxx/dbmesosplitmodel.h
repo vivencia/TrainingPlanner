@@ -59,6 +59,7 @@ public:
 	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 	{
 		appendList(QStringList() << exercise_name << QString::number(settype) << sets << reps << weight);
+		setCurrentRow(count() - 1);
 	}
 	Q_INVOKABLE void removeExercise(const uint index) { removeFromList(index); }
 

@@ -109,7 +109,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				changeText(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
+				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
 			}
 		}
 
@@ -174,13 +174,13 @@ FocusScope {
 						nbr--;
 					break;
 					case SetInputField.Type.TimeType:
-						changeText(runCmd.addTimeToStrTime(txtMain.text, -1, 0));
+						valueChanged(runCmd.addTimeToStrTime(txtMain.text, -1, 0));
 					return;
 				}
 				if (nbr < 0)
 					return;
 				bClearInput = false;
-				changeText(nbr.toString());
+				valueChanged(nbr.toString());
 			}
 		}
 
@@ -232,20 +232,8 @@ FocusScope {
 			}
 
 			onTextEdited: {
-				if (acceptableInput) {
-					var nbr;
-					switch (type) {
-						case SetInputField.Type.WeightType:
-						case SetInputField.Type.RepType:
-							nbr = parseFloat(text);
-						break;
-						case SetInputField.Type.SetType:
-						case SetInputField.Type.TimeType:
-							nbr = parseInt(text);
-						break;
-					}
-					changeText(text, nbr);
-				}
+				if (acceptableInput)
+					valueChanged(sanitizeText(text));
 			}
 
 			MouseArea {
@@ -316,11 +304,11 @@ FocusScope {
 					case SetInputField.Type.TimeType:
 						const secs = parseInt(str.substring(3, 5));
 						nbr = secs < 55 ? 5 : 1;
-						changeText(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
+						valueChanged(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
 					return;
 				}
 				bClearInput = false;
-				changeText(nbr.toString());
+				valueChanged(nbr.toString());
 			}
 		}
 
@@ -347,7 +335,7 @@ FocusScope {
 			onClicked: {
 				const secs = parseInt(txtMain.text.substring(3, 5));
 				const nbr = secs > 5 ? -5 : -1;
-				changeText(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
+				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
 			}
 		}
 
@@ -376,12 +364,8 @@ FocusScope {
 	}
 
 	function timeChanged(strTime) {
-		changeText(strTime);
+		valueChanged(strTime);
 		enterOrReturnKeyPressed();
-	}
-
-	function changeText(text) {
-		valueChanged(text);
 	}
 
 	function openTimerDialog() {

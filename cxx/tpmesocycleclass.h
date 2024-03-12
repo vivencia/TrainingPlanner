@@ -47,6 +47,7 @@ public:
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
+	void pushSplitPage(const QChar& splitLetter) const;
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------

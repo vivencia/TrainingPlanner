@@ -33,10 +33,10 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 		{
 			data[1].append(m_ExerciseData.at(i)->type.at(x) + record_separator);
 			data[2].append(m_ExerciseData.at(i)->resttime.at(x) + record_separator);
-			data[3].append(m_ExerciseData.at(i)->subsets.at(x) + record_separator);
+			data[3].append((x < m_ExerciseData.at(i)->subsets.count() ? m_ExerciseData.at(i)->subsets.at(x) : QString()) + record_separator);
 			data[4].append(m_ExerciseData.at(i)->reps.at(x) + record_separator);
 			data[5].append(m_ExerciseData.at(i)->weight.at(x) + record_separator);
-			data[6].append(m_ExerciseData.at(i)->notes.at(x) + record_separator);
+			data[6].append((x < m_ExerciseData.at(i)->notes.count() ? m_ExerciseData.at(i)->notes.at(x) : QString()) + record_separator);
 		}
 		data[1].append(record_separator2);
 		data[2].append(record_separator2);

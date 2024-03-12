@@ -44,11 +44,10 @@ Column {
 	ListView {
 		id: lstExercises
 		width: parent.width
-		height: parent.height * 0.80
+		height: parent.height * 0.75
 		clip: true
 		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-		//visible: exercisesListModel.count > 0
 		boundsBehavior: Flickable.StopAtBounds
 		focus: true
 
@@ -62,6 +61,7 @@ Column {
 		}
 
 		function ensureVisible(item) {
+			if (!item) return;
 			var ypos = item.mapToItem(contentItem, 0, 0).y
 			var ext = item.height + ypos
 			if ( ypos < contentY // begins before
@@ -102,12 +102,10 @@ Column {
 			}
 			onClicked: {
 				if (!bMultipleSelection) {
-					if (index !== curIndex) {
-						//curIndex = index;
+					if (index !== curIndex)
 						displaySelectedExercise(index, 0);
-					}
 					else {
-						closeSimpleExerciseList();
+						hideSimpleExerciseList();
 						return;
 					}
 				}
@@ -140,8 +138,6 @@ Column {
 					height: 20
 					opacity: 2 * -delegate.swipe.position
 					z:2
-					//color: Material.color(delegate.swipe.complete ? Material.Green : Material.Red, Material.Shade200)
-					//Behavior on color { ColorAnimation { } }
 				}
 
 				Label {
@@ -236,17 +232,14 @@ Column {
 	} // txtFilter
 
 	Component.onCompleted: {
-		var id;
-		function readyToProceed(_id) {
-			if (_id === id) {
-				appDB.databaseReady.disconnect(readyToProceed);
-				lstExercises.model = exercisesListModel;
-			}
+		function setModel() {
+			appDB.databaseReady.disconnect(setModel);
+			lstExercises.model = exercisesListModel;
 		}
 
 		if (exercisesListModel.count === 0) {
-			id = appDB.pass_object(exercisesListModel);
-			appDB.databaseReady.connect(readyToProceed);
+			appDB.pass_object(exercisesListModel);
+			appDB.databaseReady.connect(setModel);
 			appDB.getAllExercises();
 		}
 		else
@@ -267,7 +260,7 @@ Column {
 		var i;
 
 		function readyToContinue() {
-			appDB.qmlReady.disconnect();
+			appDB.databaseReady.disconnect(readyToContinue);
 			if (curIndex === removeIdx) {
 				if (curIndex >= exercisesListModel.count)
 					curIndex--;
@@ -276,9 +269,8 @@ Column {
 			}
 		}
 		exercisesListModel.setCurrentRow(actualIndex);
-		appDB.pass_object(exercisesListModel);
 		appDB.removeExercise(exercisesListModel.getInt(actualIndex, 0));
-		appDB.qmlReady.connect(readyToContinue);
+		appDB.databaseReady.connect(readyToContinue);
 	}
 
 	function setCurrentIndex(newIdx) {
@@ -299,5 +291,6 @@ Column {
 	function setFilter(strFilter) {
 		txtFilter.text = strFilter;
 		txtFilter.textChanged();
+		setCurrentIndex(-1);
 	}
 }

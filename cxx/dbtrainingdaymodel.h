@@ -29,6 +29,8 @@ public:
 	}
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }
+	inline void setId(const int new_id) { m_modeldata[0][0] = QString::number(new_id); }
+
 	Q_INVOKABLE const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(1).toInt(): -1; }
 
 	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(0).at(2).toLongLong()) : QDate::currentDate(); }

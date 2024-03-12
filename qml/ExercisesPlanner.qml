@@ -59,7 +59,7 @@ Page {
 		onVisibleChanged: {
 			shown = visible;
 			if (shown)
-				exercisesListModel.setFilter(pageThatRequestedSimpleList.filterString);
+				exercisesList.setFilter(pageThatRequestedSimpleList.filterString);
 		}
 
 		Behavior on height {
@@ -95,7 +95,7 @@ Page {
 				Layout.topMargin: 5
 				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
-				Layout.maximumHeight: parent.height * 0.8
+				Layout.maximumHeight: parent.height - btnShowHideList.height
 				Layout.leftMargin: 5
 				canDoMultipleSelection: bEnableMultipleSelection
 
@@ -116,7 +116,7 @@ Page {
 		bShowSimpleExercisesList = visible;
 	}
 
-	function closeSimpleExerciseList() {
+	function hideSimpleExerciseList() {
 		bottomPane.shown = false;
 	}
 } //Page

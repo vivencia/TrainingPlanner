@@ -1066,7 +1066,7 @@ Page {
 			onClicked: {
 				//if (bRealMeso)
 				//	updateMesoCalendar();
-				if (tDayModel.id() === -1) {
+				if (tDayModel.id() === -1) { //TODO TODO
 					var id;
 					function continueSave(_id) {
 						if (_id === id) {
@@ -1157,7 +1157,7 @@ Page {
 
 		onShownChanged: {
 			if (shown)
-				exercisesListModel.setFilter(filterString);
+				exercisesList.setFilter(filterString);
 		}
 
 		ButtonFlat {
@@ -1192,7 +1192,10 @@ Page {
 	function requestSimpleExerciseList(object, visible) {
 		bShowSimpleExercisesList = visible;
 		exerciseEntryThatRequestedSimpleList = visible ? object : null;
-		//scrollTraining.setScrollBarPosition(1);
+	}
+
+	function hideSimpleExerciseList() {
+		bottomPane.shown = false;
 	}
 
 	function createFirstTimeTipComponent() {

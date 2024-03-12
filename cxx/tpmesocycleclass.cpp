@@ -137,6 +137,13 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 		}
 	}
 }
+
+void TPMesocycleClass::pushSplitPage(const QChar& splitLetter) const
+{
+	QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem",
+					Q_ARG(int, static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A')),
+					Q_ARG(QQuickItem*, m_splitPages.value(splitLetter)));
+}
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
