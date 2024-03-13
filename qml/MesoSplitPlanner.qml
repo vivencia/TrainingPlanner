@@ -11,7 +11,6 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property Item parentItem
 
-	property bool bModified: splitModel.splitModified
 	property string filterString: ""
 
 	property string prevMesoName: ""
@@ -139,13 +138,10 @@ Frame {
 				implicitWidth: Math.max(lstSplitExercises.width, listItem.implicitWidth)
 				implicitHeight: listItem.height
 
-				GridLayout {
+				ColumnLayout {
 					id: contentsLayout
 					anchors.fill: parent
-					rows: 9
-					columns: 2
-					rowSpacing: 0
-					columnSpacing: 2
+					spacing: 2
 
 					TPRadioButton {
 						id: optCurrentExercise
@@ -153,9 +149,6 @@ Frame {
 						textColor: "black"
 						indicatorColor: "black"
 						checked: index === splitModel.currentRow
-						Layout.row: 0
-						Layout.column: 0
-						Layout.columnSpan: 2
 						Layout.minimumWidth: parent.width - 40
 						Layout.maximumWidth: parent.width - 40
 						width: parent.width - 40
@@ -170,9 +163,6 @@ Frame {
 						text: exerciseName
 						wrapMode: Text.WordWrap
 						readOnly: true
-						Layout.row: 1
-						Layout.column: 0
-						Layout.columnSpan: 2
 						Layout.leftMargin: 5
 						Layout.minimumWidth: parent.width - 40
 						Layout.maximumWidth: parent.width - 40
@@ -219,7 +209,7 @@ Frame {
 								cursorPosition = text.length;
 							}
 							else {
-								readOnly = false;
+								readOnly = true;
 								cursorPosition = 0;
 							}
 						}
@@ -248,86 +238,131 @@ Frame {
 						} //ToolButton btnEditExercise
 					} //TextField
 
-					Label {
-						text: qsTr("Set Type:")
-						Layout.row: 2
-						Layout.column: 0
+					RowLayout {
 						Layout.leftMargin: 5
-						width: listItem.width/3
-						wrapMode: Text.WordWrap
-					}
-					TPComboBox {
-						id: cboSetType
-						model: setTypesModel
-						Layout.minimumWidth: 110
-						currentIndex: setType
-						Layout.row: 2
-						Layout.column: 1
-						Layout.rightMargin: 5
-						enabled: index === splitModel.currentRow
+						Layout.fillWidth: true
 
-						onActivated: (index) => {
-							setType = index;
-							txtNSets.forceActiveFocus();
-							parentItem.bEnableMultipleSelection = setType === 4;
+						Label {
+							text: qsTr("Set Type:")
+							wrapMode: Text.WordWrap
+							Layout.minimumWidth: listItem.width/2
+						}
+						TPComboBox {
+							id: cboSetType
+							model: setTypesModel
+							currentIndex: setType
+							enabled: index === splitModel.currentRow
+							Layout.minimumWidth: 110
+							Layout.rightMargin: 5
+
+							onActivated: (index) => {
+								setType = index;
+								txtNSets.forceActiveFocus();
+								parentItem.bEnableMultipleSelection = setType === 4;
+							}
 						}
 					}
 
-					Label {
-						text: qsTr("Number of Sets:")
-						Layout.row: 3
-						Layout.column: 0
+					RowLayout {
 						Layout.leftMargin: 5
-						width: listItem.width/2
-						Layout.maximumWidth: width
-						wrapMode: Text.WordWrap
-					}
-					SetInputField {
-						id: txtNSets
-						text: setsNumber
-						type: SetInputField.Type.SetType
-						availableWidth: listItem.width / 3
-						showLabel: false
-						Layout.row: 3
-						Layout.column: 1
-						enabled: index === splitModel.currentRow
+						Layout.fillWidth: true
 
-						onValueChanged: (str) => {
-							setsNumber = str;
+						Label {
+							text: qsTr("Number of Sets:")
+							wrapMode: Text.WordWrap
+							Layout.minimumWidth: listItem.width/2
+						}
+						SetInputField {
+							id: txtNSets
+							text: setsNumber
+							type: SetInputField.Type.SetType
+							availableWidth: listItem.width / 3
+							showLabel: false
+							enabled: index === splitModel.currentRow
+
+							onValueChanged: (str) => {
+								setsNumber = str;
+							}
+
+							onEnterOrReturnKeyPressed: {
+								if (txtNReps.visible)
+									txtNReps.forceActiveFocus();
+								else
+									txtNReps1.forceActiveFocus();
+							}
+						}
+					}
+
+					RowLayout {
+						visible: cboSetType.currentIndex === 4
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
+						Layout.topMargin: 15
+						Layout.bottomMargin: 10
+
+						Label {
+							text: qsTr("Exercise 1")
+							font.bold: true
+							Layout.alignment: Qt.AlignCenter
+							Layout.leftMargin: listItem.width/6
+						}
+						Label {
+							text: qsTr("Exercise 2")
+							font.bold: true
+							Layout.alignment: Qt.AlignRight
+							Layout.leftMargin: listItem.width/6
+						}
+					}
+
+					RowLayout {
+						visible: cboSetType.currentIndex !== 4
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
+
+						Label {
+							text: qsTr("Baseline number of reps:")
+							wrapMode: Text.WordWrap
+							Layout.maximumWidth: listItem.width/2
 						}
 
-						onEnterOrReturnKeyPressed: {
-							if (txtNReps.visible)
-								txtNReps.forceActiveFocus();
-							else
-								txtNReps1.forceActiveFocus();
+						SetInputField {
+							id: txtNReps
+							text: setsReps1
+							type: SetInputField.Type.RepType
+							availableWidth: listItem.width/3
+							showLabel: false
+							enabled: index === splitModel.currentRow
+							Layout.rightMargin: 5
+
+							onValueChanged: (str) => {
+								setsReps1 = str;
+							}
+
+							onEnterOrReturnKeyPressed: {
+								txtNWeight.forceActiveFocus();
+							}
 						}
 					}
 
 					Label {
 						text: qsTr("Baseline number of reps:")
-						Layout.row: 4
-						Layout.column: 0
-						Layout.leftMargin: 5
-						width: cboSetType.currentIndex !== 4 ? listItem.width/2 : listItem.width
-						Layout.maximumWidth: width
 						wrapMode: Text.WordWrap
+						visible: cboSetType.currentIndex === 4
+						Layout.leftMargin: 5
 					}
 
 					RowLayout {
-						Layout.row: 5
-						Layout.column: 0
-						Layout.columnSpan: 2
 						visible: cboSetType.currentIndex === 4
 
 						SetInputField {
 							id: txtNReps1
 							text: setsReps1
 							type: SetInputField.Type.RepType
-							availableWidth: listItem.width*0.49
-							alternativeLabels: ["",qsTr("Exercise 1:"),"",""]
+							availableWidth: listItem.width/3
+							showLabel: false
 							enabled: index === splitModel.currentRow
-							fontPixelSize: AppSettings.fontSizeText * 0.8
+							Layout.alignment: Qt.AlignCenter
+							Layout.leftMargin: listItem.width/6
 
 							onValueChanged: (str) => {
 								setsReps1 = str;
@@ -341,10 +376,11 @@ Frame {
 							id: txtNReps2
 							text: setsReps2
 							type: SetInputField.Type.RepType
-							availableWidth: listItem.width*0.49
-							alternativeLabels: ["",qsTr("Exercise 2:"),"",""]
+							availableWidth: listItem.width/3
+							showLabel: false
 							enabled: index === splitModel.currentRow
-							fontPixelSize: AppSettings.fontSizeText * 0.8
+							Layout.alignment: Qt.AlignRight
+							Layout.rightMargin: listItem.width/6
 
 							onValueChanged: (str) => {
 								setsReps2 = str;
@@ -356,39 +392,40 @@ Frame {
 						}
 					} //RowLayout
 
-					SetInputField {
-						id: txtNReps
-						text: setsReps1
-						type: SetInputField.Type.RepType
-						availableWidth: listItem.width / 3
-						showLabel: false
-						Layout.row: 4
-						Layout.column: 1
-						Layout.rightMargin: 5
-						enabled: index === splitModel.currentRow
+					RowLayout {
 						visible: cboSetType.currentIndex !== 4
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
 
-						onValueChanged: (str) => {
-							setsReps1 = str;
+						Label {
+							text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
+							wrapMode: Text.WordWrap
+							Layout.minimumWidth: listItem.width/2
 						}
 
-						onEnterOrReturnKeyPressed: {
-							txtNWeight.forceActiveFocus();
+						SetInputField {
+							id: txtNWeight
+							text: setsWeight1
+							type: SetInputField.Type.WeightType
+							availableWidth: listItem.width / 3
+							showLabel: false
+							enabled: index === splitModel.currentRow
+							visible: cboSetType.currentIndex !== 4
+
+							onValueChanged: (str) => {
+								setsWeight1 = str;
+							}
 						}
 					}
 
 					Label {
 						text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
-						Layout.row: cboSetType.currentIndex !== 4 ? 5 : 6
-						Layout.column: 0
-						Layout.leftMargin: 5
-						width: listItem.width/2
-						Layout.maximumWidth: width
 						wrapMode: Text.WordWrap
+						visible: cboSetType.currentIndex === 4
 					}
 
 					RowLayout {
-						Layout.row: 7
+						Layout.row: 8
 						Layout.column: 0
 						Layout.columnSpan: 2
 						visible: cboSetType.currentIndex === 4
@@ -397,10 +434,11 @@ Frame {
 							id: txtNWeight1
 							text: setsWeight1
 							type: SetInputField.Type.WeightType
-							availableWidth: listItem.width*0.49
-							alternativeLabels: [qsTr("Exercise 1:"),"","",""]
+							availableWidth: listItem.width/3
+							showLabel: false
 							enabled: index === splitModel.currentRow
-							fontPixelSize: AppSettings.fontSizeText * 0.8
+							Layout.alignment: Qt.AlignCenter
+							Layout.leftMargin: listItem.width/6
 
 							onValueChanged: (str) => {
 								setsWeight1 = str;
@@ -414,33 +452,17 @@ Frame {
 							id: txtNWeight2
 							text: setsWeight2
 							type: SetInputField.Type.WeightType
-							availableWidth: listItem.width*0.49
-							alternativeLabels: [qsTr("Exercise 2:"),"","",""]
+							availableWidth: listItem.width/3
+							showLabel: false
 							enabled: index === splitModel.currentRow
-							fontPixelSize: AppSettings.fontSizeText * 0.8
+							Layout.alignment: Qt.AlignRight
+							Layout.rightMargin: listItem.width/6
 
 							onValueChanged: (str) => {
 								setsWeight2 = str;
 							}
 						}
 					} //RowLayout
-
-					SetInputField {
-						id: txtNWeight
-						text: setsWeight1
-						type: SetInputField.Type.WeightType
-						availableWidth: listItem.width / 3
-						showLabel: false
-						Layout.row: 5
-						Layout.column: 1
-						Layout.rightMargin: 5
-						enabled: index === splitModel.currentRow
-						visible: cboSetType.currentIndex !== 4
-
-						onValueChanged: (str) => {
-							setsWeight1 = str;
-						}
-					}
 
 					ToolButton {
 						id: btnAddExercise
@@ -450,9 +472,6 @@ Frame {
 						font.bold: true
 						display: AbstractButton.TextBesideIcon
 						visible: index === splitModel.count - 1
-						Layout.row: cboSetType.currentIndex !== 4 ? 6 : 8
-						Layout.column: 0
-						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
 						Layout.minimumWidth: 150
 						icon.source: "qrc:/images/"+darkIconFolder+"add-new.png"
@@ -468,15 +487,18 @@ Frame {
 							lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
 						}
 					} //btnAddExercise
-				} //GridLayout
+				} //ColumnLayout
 
 				contentItem: Rectangle {
 					id: listItem
 					width: lstSplitExercises.width - 10
-					height: (contentsLayout.rows + 1) * 30
 					border.color: "transparent"
 					color: "transparent"
 					radius: 5
+
+					Component.onCompleted: { //Each layout row(9) * 32(height per row) + 32(extra space)
+						height = cboSetType.currentIndex !== 4 ? 320 : 420;
+					}
 				}
 
 				background: Rectangle {
@@ -541,7 +563,7 @@ Frame {
 			text: qsTr("Save Plan for division ") + splitLetter
 			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: 10
-			enabled: bModified
+			enabled: splitModel.splitModified
 
 			onClicked: {
 				appDB.pass_object(splitModel);
@@ -581,7 +603,7 @@ Frame {
 	}
 
 	function aboutToBeSuspended() {
-		if (bModified)
+		if (splitModel.splitModified)
 			btnSave.clicked();
 	}
 } //Page

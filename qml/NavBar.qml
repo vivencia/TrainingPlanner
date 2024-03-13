@@ -14,7 +14,7 @@ ToolBar {
 
 	ButtonFlat {
 		id: btnBack
-		enabled: bNavButtonsEnabled && appStackView.depth >= 2
+		enabled: appStackView.depth >= 2
 		anchors.left: parent.left
 		anchors.leftMargin: 5
 		visible: appStackView.depth >= 2

@@ -285,6 +285,7 @@ void TPMesocycleClass::createExercisesObjects()
 			createExerciseObject_part2(i);
 			for (uint x(0); x < m_CurrenttDayModel->setsNumber(i); ++x)
 				createSetObject(m_CurrenttDayModel->setType(x, i), x, i);
+			m_tDayExercises[i]->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
 		}
 	}
 }
@@ -295,12 +296,12 @@ void TPMesocycleClass::removeExercise(const uint exercise_idx)
 	{
 		for(uint i(exercise_idx+1); i < m_tDayExercises.count(); ++i)
 		{
-			static_cast<QQuickItem*>(m_tDayExercises[i])->setProperty("exerciseIdx", i-1);
+			m_tDayExercises[i]->setProperty("exerciseIdx", i-1);
 			for(uint x(0); x < m_setObjects.value(i).count(); ++x)
 				m_setObjects[i][x]->setProperty("exerciseIdx", i-1);
 		}
 		m_CurrenttDayModel->removeExercise(exercise_idx);
-		delete m_tDayExercises[exercise_idx];
+		m_tDayExercises[exercise_idx]->deleteLater();
 		m_tDayExercises.remove(exercise_idx);
 	}
 }
@@ -354,10 +355,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 						SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	}
 	m_setObjects[exercise_idx].append(item);
-
-	const uint n(m_setObjects.value(exercise_idx).count());
-	for (uint i(0); i < n; ++i) //notify object creation orderly
-		emit itemReady(m_setObjects.value(exercise_idx).at(i), tDaySetCreateId);
+	emit itemReady(m_setObjects.value(exercise_idx).at(set_number), tDaySetCreateId);
 }
 
 void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)
@@ -367,8 +365,9 @@ void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)
 		for(uint x(set_number+1); x < m_setObjects.value(exercise_idx).count(); ++x)
 			m_setObjects[exercise_idx][x]->setProperty("set_number", x-1);
 		m_CurrenttDayModel->removeSet(set_number, exercise_idx);
-		delete m_setObjects[exercise_idx][set_number];
-		m_setObjects.remove(set_number);
+		m_setObjects[exercise_idx][set_number]->deleteLater();
+		m_setObjects[exercise_idx].remove(set_number);
+		m_tDayExercises[exercise_idx]->setProperty("setNbr", m_setObjects.value(exercise_idx).count());
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

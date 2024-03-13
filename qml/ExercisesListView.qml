@@ -61,16 +61,19 @@ Column {
 		}
 
 		function ensureVisible(item) {
-			if (!item) return;
-			var ypos = item.mapToItem(contentItem, 0, 0).y
-			var ext = item.height + ypos
-			if ( ypos < contentY // begins before
-				|| ypos > contentY + height // begins after
-				|| ext < contentY // ends before
-				|| ext > contentY + height) { // ends after
-				// don't exceed bounds
-				contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height))
+			if (item) {
+				const ypos = item.mapToItem(contentItem, 0, 0).y;
+				const ext = item.height + ypos
+				if ( ypos < contentY // begins before
+					|| ypos > contentY + height // begins after
+					|| ext < contentY // ends before
+					|| ext > contentY + height) { // ends after
+					// don't exceed bounds
+					contentY = Math.max(0, Math.min(ypos - height + item.height, contentHeight - height));
+				}
 			}
+			else
+				contentY = 0;
 		}
 
 		delegate: SwipeDelegate {
@@ -216,6 +219,7 @@ Column {
 			anchors.verticalCenter: txtFilter.verticalCenter
 			height: 20
 			width: 20
+
 			Image {
 				source: "qrc:/images/"+lightIconFolder+"edit-clear.png"
 				anchors.fill: parent
@@ -228,7 +232,11 @@ Column {
 			}
 		}
 
-		onTextChanged: exercisesListModel.setFilter(text);
+		onTextChanged: {
+			lstExercises.currentIndex = -1;
+			lstExercises.ensureVisible(null);
+			exercisesListModel.setFilter(text);
+		}
 	} // txtFilter
 
 	Component.onCompleted: {

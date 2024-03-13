@@ -14,16 +14,11 @@ FocusScope {
 	required property int exerciseIdx
 
 	property int tDayId: -1
-	property int setType: 0
 	property int setNbr: -1
 
 	property var btnFloat: null
-	property bool bCompositeExercise: false
 	property bool bFloatButtonVisible
-	property int setBehaviour: 0 //0: do not load sets, 1: load sets from database, 2: load sets from plan
 
-	signal exerciseRemoved(int ObjectIdx)
-	signal exerciseEdited(int objidx)
 	signal setAdded(int objidx, var setObject)
 	signal requestHideFloatingButtons(int except_idx)
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
@@ -246,6 +241,8 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
+						console.log(setNbr);
+						return;
 						tDayModel.setSetType(0, cboSetType.currentValue, exerciseIdx);
 						createSetObject(cboSetType.currentIndex);
 						requestHideFloatingButtons (exerciseIdx);
@@ -266,9 +263,9 @@ FocusScope {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
 			btnFloat = component.createObject(exerciseItem, {
-					text:qsTr("Add set"), image:"add-new.png", comboIndex:setType, nextSetNbr: setNbr + 1
+					text:qsTr("Add set"), image:"add-new.png", comboIndex:tDayModel.setType(setNbr, exerciseIdx), nextSetNbr: setNbr + 1
 			});
-			btnFloat.buttonClicked.connect(addNewSet);
+			btnFloat.buttonClicked.connect(createSetObject);
 			bFloatButtonVisible = true;
 			changeComboModel();
 		}
@@ -284,7 +281,7 @@ FocusScope {
 			case 1:
 			case 2:
 				cboSetType.model = [setTypesModel[0], setTypesModel[1], setTypesModel[2]];
-				cboSetType.currentIndex = setType;
+				cboSetType.currentIndex = tDayModel.setType(0, exerciseIdx);
 				return;
 			case 3: cboSetType.model = [setTypesModel[3]];
 			break;
@@ -309,11 +306,6 @@ FocusScope {
 	{
 		txtExerciseName.text = newname;
 		tDayModel.setExerciseName1(newname, exerciseIdx);
-	}
-
-	function addNewSet(type) {
-		setType = type;
-		createSetObject(type);
 	}
 
 	function createSetObject(type) {

@@ -508,7 +508,7 @@ void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
 
 		if (m_MesoManager.at(m_MesoIdx)->getSplitPage(splitLetter) != nullptr)
 		{
-			m_MesoManager.at(m_MesoIdx)->pushSplitPage(splitLetter);
+			emit getPage(m_MesoManager.at(m_MesoIdx)->getSplitPage(splitLetter), static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A'));
 			continue;
 		}
 
@@ -657,8 +657,30 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 		return m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
 	} );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });
+	QMetaObject::invokeMethod(m_MesoManager.at(m_MesoIdx)->currenttDayPage(), "createNavButtons");
 	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasMesoPlan", false);
 	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasPreviousTDays", false);
+}
+
+void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
+{
+	const QChar splitletter(splitLetter.at(0));
+	if (!m_MesoManager.at(m_MesoIdx)->getSplitModel(splitletter)->isReady())
+	{
+		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->getSplitModel(splitletter)));
+		worker->addExecArg(m_MesoId);
+		worker->addExecArg(splitLetter.at(0));
+		connect( this, &DbManager::databaseReady, this, [&,splitLetter] { return loadExercisesFromMesoPlan(splitLetter); } );
+		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+	}
+	else
+	{
+		QMetaObject::invokeMethod(m_MesoManager.at(m_MesoIdx)->currenttDayPage(), "createNavButtons");
+		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->convertMesoModelToTDayModel(m_MesoManager.at(m_MesoIdx)->getSplitModel(splitletter));
+		m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasMesoPlan", false);
+		m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasPreviousTDays", false);
+		m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
+	}
 }
 
 void DbManager::newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,

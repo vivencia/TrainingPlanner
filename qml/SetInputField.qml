@@ -231,7 +231,7 @@ FocusScope {
 				}
 			}
 
-			onTextEdited: {
+			onEditingFinished: {
 				if (acceptableInput)
 					valueChanged(sanitizeText(text));
 			}

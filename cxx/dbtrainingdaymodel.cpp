@@ -1,4 +1,7 @@
 #include "dbtrainingdaymodel.h"
+#include "dbmesosplitmodel.h"
+
+#include <QtMath>
 
 void DBTrainingDayModel::fromDataBase(const QStringList& list)
 {
@@ -45,6 +48,26 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 		data[5].append(record_separator2);
 		data[6].append(record_separator2);
 	}
+}
+
+void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitModel)
+{
+	for(uint i(0); i < splitModel->count(); ++i)
+	{
+		m_ExerciseData.append(new exerciseEntry);
+		m_ExerciseData[i]->name = splitModel->getRow_const(i).at(0);
+		m_ExerciseData[i]->type.append(splitModel->getRow_const(i).at(1));
+		m_ExerciseData[i]->nsets = 1;
+		m_ExerciseData[i]->reps.append(splitModel->getRow_const(i).at(3));
+		m_ExerciseData[i]->weight.append(splitModel->getRow_const(i).at(4));
+		m_ExerciseData[i]->resttime.append(u"02:30"_qs);
+		m_ExerciseData[i]->subsets.append(u"0"_qs);
+		m_ExerciseData[i]->notes.append(QString());
+
+		const uint type(splitModel->getRow_const(i).at(1).toUInt());
+		newSet(i, splitModel->getRow_const(i).at(2).toUInt() - 1, type);
+	}
+	setTDayModified(true);
 }
 
 QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
@@ -188,7 +211,7 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 						{
 							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
 							m_ExerciseData[exercise_idx]->reps.append(QString::number(m_ExerciseData.at(exercise_idx)->reps.last().toUInt() - 3));
-							m_ExerciseData[exercise_idx]->weight.append(QString::number(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 1.2));
+							m_ExerciseData[exercise_idx]->weight.append(QString::number(qFloor(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 1.2)));
 						}
 						else
 						{

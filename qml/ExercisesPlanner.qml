@@ -108,6 +108,11 @@ Page {
 	} //footer: ToolBar
 
 	Component.onCompleted: {
+		function insertSplitPage(page, idx) {
+			splitView.insertItem(idx, page);
+		}
+
+		appDB.getPage.connect(insertSplitPage);
 		appDB.getCompleteMesoSplit(mesoSplit);
 	}
 

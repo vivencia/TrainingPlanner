@@ -17,7 +17,6 @@ ApplicationWindow {
 	signal appAboutToBeSuspended()
 	signal appActive()
 
-	property bool bNavButtonsEnabled: true
 	property bool bLongTask: false
 	property StackView appStackView: stackView
 
@@ -26,14 +25,6 @@ ApplicationWindow {
 	readonly property color primaryDarkColor: "#1976D2"
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
-
-	BusyIndicator {
-		id: busyIndicator
-		running: bLongTask
-		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-		x: (mainwindow.width - width) / 2;
-		y: (mainwindow.height - height) / 2;
-	}
 
 	Connections {
 		target: Qt.application;
@@ -125,7 +116,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("HOME")
-			enabled: bNavButtonsEnabled && appStackView.depth >= 2
+			enabled: appStackView.depth >= 2
 			onClicked: {
 				appStackView.pop(appStackView.get(0));
 			}

@@ -81,7 +81,7 @@ Item {
 			alternativeLabels: myoLabels
 
 			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				tDayModel.setSetSubSets(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
@@ -90,7 +90,7 @@ Item {
 			}
 
 			Component.onCompleted: {
-				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
+				text = tDayModel.setSubSets(setNumber, exerciseIdx);
 			}
 		}
 

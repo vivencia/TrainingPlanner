@@ -61,6 +61,7 @@ public:
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 	uint createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
+	void convertMesoPlanToTDayExercises(DBMesoSplitModel* splitModel);
 
 	inline DBTrainingDayModel* gettDayModel(const QDate& date)
 	{

@@ -24,16 +24,16 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 	{
 		switch(role) {
 			case exerciseNameRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).replace(record_separator, QStringLiteral(" + "));
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).replace(subrecord_separator, QStringLiteral(" + "));
 			case exerciseName1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
 				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx-1) : QString();
 			}
 			case exerciseName2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(record_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).mid(idx+1) : QString();
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).sliced(idx+1) : QString();
 			}
 			case setsNumberRole:
 			case setsRepsRole:
@@ -42,14 +42,14 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case setsReps1Role:
 			case setsWeight1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(subrecord_separator));
 				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).left(idx-1) : m_modeldata.at(row).at(role-Qt::UserRole-2);
 			}
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(record_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).mid(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-4);
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(subrecord_separator));
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-4);
 			}
 			case setTypeRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
@@ -75,7 +75,7 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			break;
 			case exerciseName1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
 				if (idx == -1)
 					m_modeldata[row][exerciseNameRole-Qt::UserRole] = value.toString();
 				else
@@ -86,10 +86,10 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			break;
 			case exerciseName2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
 				if (idx == -1)
 					m_modeldata[row][exerciseNameRole-Qt::UserRole] =
-						m_modeldata[row][exerciseNameRole-Qt::UserRole] += record_separator + value.toString();
+						m_modeldata[row][exerciseNameRole-Qt::UserRole] += subrecord_separator + value.toString();
 				else
 				{
 					m_modeldata[row][exerciseNameRole-Qt::UserRole].truncate(idx);
@@ -102,7 +102,7 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			case setsReps1Role:
 			case setsWeight1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-2)).indexOf(subrecord_separator));
 				if (idx == -1)
 					m_modeldata[row][role-Qt::UserRole-2] = value.toString();
 				else
@@ -114,11 +114,12 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(record_separator));
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(subrecord_separator));
 				if (idx == -1)
-					m_modeldata[row][role-Qt::UserRole-4] += record_separator + value.toString();
+					m_modeldata[row][role-Qt::UserRole-4] += subrecord_separator + value.toString();
 				else
-					m_modeldata[row][role-Qt::UserRole-4].replace(0, idx-1, value.toString());
+					m_modeldata[row][role-Qt::UserRole-4].replace(idx+1, m_modeldata.at(row).at(role-Qt::UserRole-4).length() - idx - 1, value.toString());
+				qDebug() << m_modeldata.at(row).at(role-Qt::UserRole-4).sliced(idx+1);
 				emit dataChanged(index, index, QList<int>() << role-4);
 				emit dataChanged(index, index, QList<int>() << role);
 			}

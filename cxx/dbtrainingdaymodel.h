@@ -3,6 +3,8 @@
 
 #include "tplistmodel.h"
 
+class DBMesoSplitModel;
+
 class DBTrainingDayModel : public TPListModel
 {
 
@@ -17,6 +19,7 @@ public:
 
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
+	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
 
 	bool tDayModified() const { return m_tDayModified; }
 	void setTDayModified(const bool bModified)

@@ -47,11 +47,6 @@ Page {
 		opacity: 0.7
 	}
 
-	onBModifiedChanged: {
-		if (bLoadCompleted)
-			bNavButtonsEnabled = !bModified;
-	}
-
 	header: ToolBar {
 		height: btnManageMeso.height + 20
 		enabled: !bNewMeso && !bModified
@@ -699,8 +694,9 @@ Page {
 							bModified = true;
 					}
 				}
-				ScrollBar.vertical: ScrollBar { id: vBar}
-				ScrollBar.horizontal: ScrollBar { id: hBar }
+				Component.onCompleted: vBar.position = 0
+				ScrollBar.vertical: ScrollBar { id: vBar }
+				ScrollBar.horizontal: ScrollBar {}
 			}
 
 			Label {
@@ -727,7 +723,9 @@ Page {
 							bModified = true;
 					}
 				}
-				ScrollBar.vertical: ScrollBar {}
+
+				Component.onCompleted: vBar2.position = 0
+				ScrollBar.vertical: ScrollBar { id: vBar2 }
 				ScrollBar.horizontal: ScrollBar {}
 			}
 		} //ColumnLayout

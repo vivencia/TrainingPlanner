@@ -260,7 +260,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 				const QStringList setsweight(query.value(4).toString().split(record_separator, Qt::SkipEmptyParts));
 
 				QStringList split_info;
-				for(uint i(0); i < exercises.count(); ++i)
+				for(uint i(0); i < setsnumber.count(); ++i)
 				{
 					split_info.append(exercises.at(i));
 					split_info.append(setstypes.at(i));

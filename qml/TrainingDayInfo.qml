@@ -37,7 +37,6 @@ Page {
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
 	property bool bStopBounce: false
-	property bool bNotScroll: true
 
 	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
@@ -157,29 +156,6 @@ Page {
 		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
 		button1Text: qsTr("OK")
 		highlightMessage: true
-	}
-
-	Timer {
-		id: loadTimer
-		interval: 300
-		running: false
-		repeat: false
-		property int mOpt: 0
-
-		onTriggered: {
-			switch (mOpt) {
-				case 0:	loadTrainingDayInfoFromMesoPlan(); break;
-				case 1: loadTrainingDayInfo(previousDivisionDayDate); break;
-				case 2: loadOrCreateDayInfo(); break;
-			}
-		}
-
-		function init(opt) {
-			mOpt = opt;
-			bLongTask = true;
-			busyIndicator.visible = true;
-			start();
-		}
 	}
 
 	Timer {
@@ -821,7 +797,7 @@ Page {
 						Layout.alignment: Qt.AlignLeft
 
 						onClicked: {
-							grpIntent.option = 0;
+							grpIntent.option = 1;
 						}
 					}
 
@@ -834,7 +810,7 @@ Page {
 						Layout.alignment: Qt.AlignLeft
 
 						onClicked: {
-							grpIntent.option = 1;
+							grpIntent.option = 2;
 						}
 					}
 
@@ -856,7 +832,7 @@ Page {
 						Layout.alignment: Qt.AlignLeft
 
 						onClicked: {
-							grpIntent.option = 2;
+							grpIntent.option = 3;
 						}
 					}
 
@@ -870,13 +846,13 @@ Page {
 							highlight = false;
 
 							switch (grpIntent.option) {
-								case 0: //use meso plan
-									appDB.loadExercisesFromMesoPlan();
+								case 1: //use meso plan
+									appDB.loadExercisesFromMesoPlan(splitLetter);
 								break;
-								case 1: //use previous day
+								case 2: //use previous day
 									appDB.loadExercisesFromDate(cboPreviousTDaysDates.currentText);
 								break;
-								case 2: //empty session
+								case 3: //empty session
 									bHasPreviousTDays = false;
 									bHasMesoPlan = false;
 									placeTipOnAddExercise();
@@ -930,7 +906,6 @@ Page {
 		}
 
 		function setScrollBarPosition(pos) {
-			bNotScroll = true;
 			if (pos === 0)
 				ScrollBar.vertical.setPosition(0);
 			else
@@ -963,7 +938,6 @@ Page {
 
 		onTriggered: {
 			bStopBounce = false;
-			bNotScroll = false;
 		}
 	}
 
@@ -1215,7 +1189,6 @@ Page {
 
 		return;
 		if (!bAlreadyLoaded) {
-			loadTimer.init(2);
 			if (bFirstTime) {
 				if (grpIntent.visible) {
 					scrollTraining.setScrollBarPosition(1);
