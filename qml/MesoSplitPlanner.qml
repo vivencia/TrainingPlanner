@@ -569,6 +569,7 @@ Frame {
 			onClicked: {
 				appDB.pass_object(splitModel);
 				appDB.updateMesoSplitComplete(splitLetter);
+				requestSimpleExercisesList(null, false, 0);
 			}
 		}
 	} //ColumnLayout

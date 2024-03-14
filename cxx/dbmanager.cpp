@@ -14,6 +14,7 @@
 #include "dbtrainingdaytable.h"
 #include "dbtrainingdaymodel.h"
 
+#include <QGuiApplication>
 #include <QSettings>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -559,6 +560,19 @@ void DbManager::createMesoCalendar()
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
+}
+
+void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
+								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday)
+{
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	worker->addExecArg(m_MesoId);
+	worker->addExecArg(newStartDate);
+	worker->addExecArg(newEndDate);
+	worker->addExecArg(newSplit);
+	worker->addExecArg(bPreserveOldInfo);
+	worker->addExecArg(bPreserveOldInfoUntilToday);
+	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
 void DbManager::newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)

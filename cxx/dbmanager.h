@@ -79,6 +79,8 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getMesoCalendar(const bool bCreatePage);
 	Q_INVOKABLE void createMesoCalendar();
+	Q_INVOKABLE void changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
+								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
 	Q_INVOKABLE void newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void deleteMesoCalendar(const uint id);

@@ -27,10 +27,9 @@ public:
 	explicit DBMesoCalendarModel(QObject *parent = 0);
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
-	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
-	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-
 	Q_INVOKABLE void createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit);
+	void changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
+								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
 
 	Q_INVOKABLE int getMesoId() const
 	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(1).toUInt() : -1;	}

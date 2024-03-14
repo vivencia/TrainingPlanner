@@ -254,6 +254,15 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+void DBMesoCalendarTable::changeMesoCalendar()
+{
+	static_cast<DBMesoCalendarModel*>(m_model)->changeModel(m_execArgs.at(0).toUInt(), m_execArgs.at(1).toDate(),
+			m_execArgs.at(2).toDate(), m_execArgs.at(3).toString(), m_execArgs.at(4).toBool(), m_execArgs.at(5).toBool());
+	m_data[0] = QString::number(m_execArgs.at(0).toUInt());
+	removeMesoCalendar();
+	createMesoCalendar();
+}
+
 void DBMesoCalendarTable::removeMesoCalendar()
 {
 	m_result = false;

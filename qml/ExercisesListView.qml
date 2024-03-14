@@ -11,13 +11,20 @@ Column {
 	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
-
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
 	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
 	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, string sets,
 									string reps, string weight, string mediaPath, int multipleSelectionOption)
+
+	//When the list is shared among several objects, if a previous object requested multiple selection and the current
+	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
+	//the new object does not encounter a list that is doing multiple selection but the button to control it is not visisble
+	onCanDoMultipleSelectionChanged: {
+		if (!canDoMultipleSelection)
+			bMultipleSelection = false;
+	}
 
 	Timer {
 		id: undoTimer

@@ -14,52 +14,6 @@ DBMesoCalendarModel::DBMesoCalendarModel(QObject *parent)
 	m_roleNames[isTrainingDayRole] = "isTrainingDay";
 }
 
-QVariant DBMesoCalendarModel::data(const QModelIndex &index, int role) const
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			case mesoCalIdRole:
-			case mesoCalMesoIdRole:
-			case mesoCalNDayRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
-			case mesoCalDateRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
-			case mesoCalSplitRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
-			case monthNbrRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong()).month() - 1;
-			case yearNbrRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong()).year();
-			case isTrainingDayRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)) != QStringLiteral("R");
-			case Qt::DisplayRole:
-				return m_modeldata.at(row).at(index.column());
-		}
-	}
-	return QVariant();
-}
-
-bool DBMesoCalendarModel::setData(const QModelIndex &index, const QVariant& value, int role)
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			case mesoCalIdRole:
-			case mesoCalMesoIdRole:
-			case mesoCalNDayRole:
-			case mesoCalDateRole:
-			case mesoCalSplitRole:
-				m_modeldata[row][role-Qt::UserRole] = value.toString();
-				emit dataChanged(index, index, QList<int>() << role);
-				return true;
-		}
-	}
-	return false;
-}
-
 int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 {
 	for( uint i(0); i < m_modeldata.count(); ++i)
@@ -170,122 +124,70 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 	}
 }
 
-/*
- * function refactoryDatabase(newStartDate, newEndDate, newSplit, bPreserveOldInfo, bPreserveOldInfoUntilToday) {
-		if (bCalendarInSyncWithMeso) return; //See comment under readDatabase()
+void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
+								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday)
+{
+	if (!bPreserveOldInfo)
+	{
+		clear();
+		createModel(mesoId, newStartDate, newEndDate, newSplit);
+		return;
+	}
 
-		console.log(newStartDate.toDateString() + "    " + mesoStartDate.toDateString());
-		console.log(newEndDate.toDateString() + "    " + mesoEndDate.toDateString());
-		console.log(newSplit + "    " + mesoSplit);
+	uint day(0);
+	for(; day < m_modeldata.at(0).count(); ++day)
+	{
+		if (m_modeldata.at(0).at(day).split(',').at(2).toInt() > 0)
+			break;
+	}
+	const uint old_firstday(day);
+	const uint old_firstmonth(m_modeldata.at(0).at(0).split(',').at(4).toUInt());
+	const uint old_firsyear(m_modeldata.at(0).at(0).split(',').at(5).toUInt());
 
-		//First, populate the Array as if starting a new calendar
-		let old_monthsmodel = [];
-		let monthsmodel = getMesoMonths(newStartDate, newEndDate, newSplit);
-		if (bPreserveOldInfo) { //preserve old calendar info (splitLetter and trainingDay)
-			old_monthsmodel = getMesoMonths(mesoStartDate, mesoEndDate, mesoSplit);
-			var i = 0, x = 0, iz = 0, xz = 0;
-			var startyear, startmonth, startday;
-			var bFound = false;
-			var bInitialPaddingAccounted = false;
+	QList<QStringList> oldInfo;
+	const QDate today(QDate::currentDate());
+	const uint old_lastmonth(bPreserveOldInfoUntilToday ? today.month() : m_modeldata.last().at(0).split(',').at(4).toUInt());
+	const uint old_lastyear(bPreserveOldInfoUntilToday ? today.year() : m_modeldata.last().at(0).split(',').at(5).toUInt());
 
-			if (newStartDate <= mesoStartDate) { //If newStartDate and mesoStartDate are the same, the = sign could be in either of these conditionals
-				//New meso will start earlier than the old one. Navigate through current model until we reach the old one start date
-				startyear = mesoStartDate.getFullYear();
-				startmonth = mesoStartDate.getMonth();
-				startday = mesoStartDate.getDate();
-			}
-			else if (newStartDate > mesoStartDate) {
-				//New meso will start later than the old one. Cannot copy old date into days that do not exis anymore. Navigate
-				//through the old model until we reach the start date of the new model
-				startyear = newStartDate.getFullYear();
-				startmonth = newStartDate.getMonth();
-				startday = newStartDate.getDate();
-			}
-
-			for(i = 0; i < monthsmodel.length && bFound === false; i++) {
-				if (monthsmodel[i].yearNbr === startyear) {
-					if (monthsmodel[i].monthNbr === startmonth) {
-						while ( iz < monthsmodel[i].daySplit.length ) {
-							if (monthsmodel[i].daySplit[iz].dayNbr === startday) {
-								bFound = true;
-								break;
-							}
-							iz++;
-						}
-					}
-				}
-			}
-			if (bFound) {
-				--i; //the increment happens before the conditional checking after the first iteration
-				bFound = false;
-			}
-
-			//Navigate through the old info until we find the right start date. The model for the month might include padding information to fill
-			//the whole month (before startday and after end day) not only the meso included dates
-			for(x = 0; x < old_monthsmodel.length && bFound === false; x++) {
-				if (old_monthsmodel[x].yearNbr === startyear) {
-					if (old_monthsmodel[x].monthNbr === startmonth) {
-						while ( xz < old_monthsmodel[x].daySplit.length ) {
-							if (monthsmodel[x].daySplit[xz].dayNbr === startday) {
-								bFound = true;
-								break;
-							}
-							xz++;
-						}
-					}
-				}
-			}
-			if (bFound) --x;
-
-			var enddate;
-			if (bPreserveOldInfoUntilToday) //preserve old info only until the day before the updating of the meso
-				enddate = JSF.getPreviousDate(today);
-			else
-				enddate = mesoEndDate; //preserve all the old info.
-			if (enddate > newEndDate) // The new meso might be shorter than the old and even end before today
-				enddate = newEndDate;
-
-			const endyear = enddate.getFullYear();
-			const endmonth = enddate.getMonth();
-			const endday = enddate.getDate();
-
-			while (i < monthsmodel.length) { // => Start copying old information into new. i is either 0 or found in the iterations above. z too
-				while ( iz < monthsmodel[i].daySplit.length ) {
-					//console.log("Prev info: " + monthsmodel[i].yearNbr + "/" + monthsmodel[i].monthNbr + "/" + monthsmodel[i].daySplit[iz].dayNbr);
-					//console.log(monthsmodel[i].daySplit[iz].daySplitLetter);
-					monthsmodel[i].daySplit[iz].daySplitLetter = old_monthsmodel[x].daySplit[xz].daySplitLetter;
-					monthsmodel[i].daySplit[iz].isTrainingDay = old_monthsmodel[x].daySplit[xz].isTrainingDay;
-					monthsmodel[i].daySplit[iz].trainingDayNumber = old_monthsmodel[x].daySplit[xz].trainingDayNumber;
-					//console.log("New info: " + monthsmodel[i].yearNbr + "/" + monthsmodel[i].monthNbr + "/" + monthsmodel[i].daySplit[iz].dayNbr);
-					//console.log(monthsmodel[i].daySplit[iz].daySplitLetter);
-					xz++;
-					if (xz >= old_monthsmodel[x].daySplit.length)
+	uint i(0);
+	for(; i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() <= old_lastyear)
+		{
+			if (m_modeldata.at(i).at(0).split(',').at(4).toUInt() <= old_lastmonth)
+			{
+				day = i == 0 ? old_firstday : 0;
+				for(; day < m_modeldata.at(i).count(); ++day)
+				{
+					if (m_modeldata.at(i).at(day).split(',').at(2).toInt() <= 0)
 						break;
-					iz++;
-					if (monthsmodel[i].daySplit[iz].dayNbr > endday) {
-						if (monthsmodel[i].monthNbr >= endmonth) {
-							if (monthsmodel[i].yearNbr >= endyear) {
-								x = old_monthsmodel.length; //just to force another break below and leave the loops
-								break;
-							}
-						}
-					}
 				}
-				x++;
-				if (x >= old_monthsmodel.length) break;
-				i++;
-				iz = xz = 0;
+				oldInfo.append(QStringList());
+				for(uint x(0); x < day; ++x)
+					oldInfo.last().append(m_modeldata.at(i).at(x));
 			}
 		}
-
-		Database.deleteMesoCalendar(mesoId);
-		//saveModelToDatabase(monthsmodel);
-		dlgProgressIndicator.months_arr = monthsmodel;
-		dlgProgressIndicator.meso_id = mesoId;
-		dlgProgressIndicator.open();
-		dlgProgressIndicator.init("Creating database. Please wait...", 0, 50);
-		mesoMonthsModel.clear();
-		for (let newmonth of monthsmodel)
-			mesoMonthsModel.append(newmonth);
 	}
-	*/
+	const uint old_lastday(bPreserveOldInfoUntilToday ? today.day() : day);
+
+	clear();
+	createModel(mesoId, newStartDate, newEndDate, newSplit);
+
+	uint year(0), month(0), y(0), lastday(0);
+	for(i = 0; i < m_modeldata.count(); ++i)
+	{
+		year = m_modeldata.at(i).at(0).split(',').at(5).toUInt();
+		if (year >= old_firsyear && year <= old_lastyear)
+		{
+			month = m_modeldata.at(i).at(0).split(',').at(4).toUInt();
+			if (month >= old_firstmonth && month <= old_lastmonth)
+			{
+				day = i == 0 ? old_firstday : 0;
+				lastday = i < m_modeldata.count() - 1 ? m_modeldata.at(i).count() : old_lastday;
+				for(; day < lastday; ++day)
+					m_modeldata[i][day] = oldInfo.at(y).at(day);
+				y++;
+			}
+		}
+	}
+}

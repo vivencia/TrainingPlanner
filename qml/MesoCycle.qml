@@ -820,21 +820,10 @@ Page {
 								appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 							}
 
-						/*if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
-							if (Database.checkIfCalendarForMesoExists(mesoId)) {
-								if (mesocycleCalendarPage === null)
-									createMesoCalendarObject(false);
-								else {
-									mesocycleCalendarPage.mesoStartDate = mesocyclesModel.getDate(mesoIdx, 2);
-									mesocycleCalendarPage.mesoEndDate = mesocyclesModel.getDate(mesoIdx, 3);
-									mesocycleCalendarPage.mesoSplit = mesocyclesModel.get(mesoIdx, 6);
-									mesocycleCalendarPage.mesoName = mesocyclesModel.get(mesoIdx, 1);
-								}
-								appStackView.push(mesocycleCalendarPage);
-								mesocycleCalendarPage.refactoryDatabase(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+							if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+								appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+								bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 							}
-						}*/
-							bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 						}
 					}
 

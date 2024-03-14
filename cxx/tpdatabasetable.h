@@ -40,7 +40,7 @@ protected:
 	QSettings* m_appSettings;
 	QStringList m_data;
 	TPListModel* m_model;
-	QList<QVariant> m_execArgs;
+	QVariantList m_execArgs;
 
 	bool m_result;
 	OP_CODES m_opcode;
