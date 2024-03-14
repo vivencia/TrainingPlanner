@@ -1,5 +1,7 @@
 #include "tplistmodel.h"
 
+#include <QRegularExpression>
+
 void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
 {
 	using std::swap;
@@ -90,11 +92,12 @@ void TPListModel::setFilter(const QString &filter)
 		uint idx(0);
 		bool bFound(false), bFirst(true);
 
+		const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
 		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
 		{
-			bFound = static_cast<QStringList>(*lst_itr).at(filterSearch_Field1).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+			bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field1)).hasMatch();
 			if (!bFound)
-				bFound = static_cast<QStringList>(*lst_itr).at(filterSearch_Field2).indexOf(filter, 0, Qt::CaseInsensitive) != -1;
+				bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field2)).hasMatch();
 
 			if (bFound)
 			{
@@ -130,25 +133,28 @@ void TPListModel::setFilter(const QString &filter)
 
 QString TPListModel::makeFilterString(const QString& text) const
 {
-	QString filterStr;
-	QStringList words(text.split(QLatin1Char(' ')));
+	QString filterStr(text);
+	filterStr = filterStr.replace(',', ' ').simplified();
+	const QStringList words(filterStr.split(' '));
+
 	if ( words.count() > 0)
 	{
-		QStringList::iterator itr(words.begin());
-		QStringList::iterator itr_end(words.end());
+		QStringList::const_iterator itr(words.begin());
+		const QStringList::const_iterator itr_end(words.end());
+		filterStr.clear();
 
 		do
 		{
+			if(static_cast<QString>(*itr).length() < 3)
+				continue;
 			if (!filterStr.isEmpty())
-				filterStr.append(QLatin1Char('|'));
-			if (static_cast<QString>(*itr).endsWith(QLatin1Char('s'), Qt::CaseInsensitive) )
-				static_cast<QString>(*itr).chop(1);
-			static_cast<QString>(*itr).remove(QLatin1Char(','));
-			static_cast<QString>(*itr).remove(QLatin1Char('.'));
-			static_cast<QString>(*itr).remove(QLatin1Char('('));
-			static_cast<QString>(*itr).remove(QLatin1Char(')'));
-			static_cast<QString>(*itr) = static_cast<QString>(*itr).toLower();
-			filterStr.append(static_cast<QString>(*itr));
+				filterStr.append('|');
+			filterStr.append(static_cast<QString>(*itr).toLower());
+			if (filterStr.endsWith('s', Qt::CaseInsensitive) )
+				filterStr.chop(1);
+			filterStr.remove('.');
+			filterStr.remove('(');
+			filterStr.remove(')');
 		} while (++itr != itr_end);
 	}
 	return filterStr;

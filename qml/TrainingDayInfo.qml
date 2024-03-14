@@ -1071,7 +1071,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				removeAllExerciseObjects();
+				//TODO
 				pageActivation();
 			}
 		} //btnRevertDay

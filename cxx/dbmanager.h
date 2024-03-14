@@ -34,7 +34,6 @@ public:
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
-	Q_INVOKABLE const QStringList result() const { return m_result; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -122,7 +121,6 @@ private:
 	TPListModel* m_model;
 	QMap<QString,uint> m_WorkerLock;
 	uint m_insertid;
-	QStringList m_result;
 	QList<TPMesocycleClass*> m_MesoManager;
 
 	DBMesocyclesModel* mesocyclesModel;

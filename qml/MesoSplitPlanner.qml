@@ -323,6 +323,7 @@ Frame {
 							text: qsTr("Baseline number of reps:")
 							wrapMode: Text.WordWrap
 							Layout.maximumWidth: listItem.width/2
+							Layout.minimumWidth: listItem.width/2
 						}
 
 						SetInputField {

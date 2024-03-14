@@ -136,9 +136,9 @@ ApplicationWindow {
 				const today = new Date();
 				var id;
 				var calendarPage;
-				function pushOntoStackView(object2, _id2) {
+				function pushTDayOntoStackView(object2, _id2) {
 					if (id !== _id2) {
-						appDB.getPage.disconnect(pushOntoStackView);
+						appDB.getPage.disconnect(pushTDayOntoStackView);
 						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
 						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
 						appStackView.push(object2, StackView.DontLoad);
@@ -149,7 +149,7 @@ ApplicationWindow {
 				{
 					appDB.databaseReady.disconnect(readyToProceed);
 					id = _id;
-					appDB.getPage.connect(pushOntoStackView);
+					appDB.getPage.connect(pushTDayOntoStackView);
 					appDB.getTrainingDay(today);
 				}
 

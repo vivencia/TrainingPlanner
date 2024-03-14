@@ -102,8 +102,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoCalendarModel"), QVariant::fromValue(mesoCalendarModel) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowHeight"), 552 }); //mainwindow.height: 640 - footer.height - header.height
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowWidth"), 300 });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryLightColor"), QVariant(QColor(187, 222, 251)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryColor"), QVariant(QColor(37, 181, 243)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryDarkColor"), QVariant(QColor(25, 118, 210)) });
@@ -114,7 +112,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("paneBackgroundColor"), QVariant(QColor(25, 118, 210)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("accentColor"), QVariant(QColor(37, 181, 243)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(mainWindow) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appStackView"), QVariant::fromValue(mainWindow->findChild<QQuickItem*>("appStackView")) });
+
+	QQuickItem* appStackView(mainWindow->findChild<QQuickItem*>("appStackView"));
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appStackView"), QVariant::fromValue(appStackView) });
+
+	QQuickItem* contentItem(appStackView->parentItem());
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowHeight"), contentItem->height() }); //mainwindow.height: 640 - footer.height - header.height
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowWidth"), contentItem->width() });
+
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(mainWindow, "init");
@@ -160,59 +165,41 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
-	if (dbObj->result() && dbObj->opCode() != OP_NULL)
+	if (!dbObj->result()) return;
+
+	switch (static_cast<DBMesocyclesTable*>(dbObj)->opCode())
 	{
-		if (dbObj->opCode() == OP_DELETE_TABLE)
+		default:
+		break;
+		case OP_DELETE_TABLE:
 			dbObj->createTable();
-		else
-		{
-			if (dbObj->objectName() == DBExercisesObjectName)
+		break;
+		case OP_UPDATE_LIST:
+			if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
+				m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
+		break;
+		case OP_ADD:
+			if (dbObj->objectName() == DBMesocyclesObjectName)
+				m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
+		break;
+		case OP_READ:
+			if (dbObj->objectName() == DBMesoCalendarObjectName)
 			{
-				if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
-					m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
-			}
-			else if (dbObj->objectName() == DBMesocyclesObjectName)
-			{
-				switch (static_cast<DBMesocyclesTable*>(dbObj)->opCode())
+				if (mesoCalendarModel->count() == 0)
 				{
-					case OP_READ:
-						m_result = static_cast<DBMesocyclesTable*>(dbObj)->data();
-					break;
-					case OP_ADD:
-						m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
-					break;
-				}
-			}
-			else if (dbObj->objectName() == DBMesoCalendarObjectName)
-			{
-				switch (static_cast<DBMesoCalendarTable*>(dbObj)->opCode())
-				{
-					case OP_READ:
-					{
-						DBMesoCalendarModel* model(static_cast<DBMesoCalendarModel*>(static_cast<DBMesoCalendarTable*>(dbObj)->model()));
-						if (model->count() == 0)
-						{
-							model->createModel( m_MesoId, mesocyclesModel->getDateFast(m_MesoIdx, 2),
-									mesocyclesModel->getDateFast(m_MesoIdx, 3), mesocyclesModel->getFast(m_MesoIdx, 6) );
-							createMesoCalendar();
-						}
-					}
+					mesoCalendarModel->createModel( m_MesoId, mesocyclesModel->getDateFast(m_MesoIdx, 2),
+							mesocyclesModel->getDateFast(m_MesoIdx, 3), mesocyclesModel->getFast(m_MesoIdx, 6) );
+					createMesoCalendar();
 				}
 			}
 			else if (dbObj->objectName() == DBTrainingDayObjectName)
 			{
-				switch (static_cast<DBTrainingDayTable*>(dbObj)->opCode())
-				{
-					case OP_READ:
-					{
-						DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(static_cast<DBTrainingDayTable*>(dbObj)->model()));
-						m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("previousTDays", tempModel->count() > 0 ?
-							QVariant::fromValue(tempModel->getRow_const(0)) : QVariant::fromValue(QVariantList()));
-						delete tempModel;
-					}
-				}
+				DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(static_cast<DBTrainingDayTable*>(dbObj)->model()));
+				m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("previousTDays", tempModel->count() > 0 ?
+					QVariant::fromValue(tempModel->getRow_const(0)) : QVariant::fromValue(QVariantList()));
+				delete tempModel;
 			}
-		}
+		break;
 	}
 
 	m_WorkerLock[dbObj->objectName()]--;
@@ -379,8 +366,9 @@ void DbManager::getAllMesocycles()
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
 	worker->getAllMesocycles();
-	const uint current_meso_idx(mesocyclesModel->count()-1);
-	setWorkingMeso(mesocyclesModel->getInt(current_meso_idx, 0), current_meso_idx );
+	const int current_meso_idx(mesocyclesModel->count()-1);
+	if (current_meso_idx >= 0)
+		setWorkingMeso(mesocyclesModel->getInt(static_cast<uint>(current_meso_idx), 0), static_cast<uint>(current_meso_idx));
 	delete worker;
 }
 
@@ -569,34 +557,34 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 
 void DbManager::createMesoCalendar()
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
 }
 
 void DbManager::newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->setData(QString(), m_MesoIdStr, QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
 	createThread(worker, [worker] () { worker->newMesoCalendarEntry(); } );
 }
 
 void DbManager::updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->setData(QString::number(id), m_MesoIdStr, QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
 void DbManager::deleteMesoCalendar(const uint id)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->setData(QString::number(id));
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
 }
 
 void DbManager::deleteMesoCalendarTable()
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, static_cast<DBMesoCalendarModel*>(m_model)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	createThread(worker, [worker] () { return worker->deleteMesoCalendarTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

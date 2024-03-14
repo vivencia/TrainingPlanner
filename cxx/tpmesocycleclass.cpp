@@ -17,7 +17,7 @@ static const QStringList setTypePages(QStringList() << QStringLiteral("qrc:/qml/
 				QStringLiteral("qrc:/qml/SetTypeGiant.qml") << QStringLiteral("qrc:/qml/SetTypeMyoReps.qml"));
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_splitComponent(nullptr),
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_splitComponent(nullptr),
 		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr)
 {}
 
@@ -45,24 +45,23 @@ void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVarian
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
-	if (!m_mesoProperties.isEmpty())
-		return;
-
-	m_mesoProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-	m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_mesoProperties.insert(QStringLiteral("mesoStartDate"), m_MesocyclesModel->getDate(m_MesoIdx, 2));
-	m_mesoProperties.insert(QStringLiteral("mesoEndDate"), m_MesocyclesModel->getDate(m_MesoIdx, 3));
-	m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
-	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
-	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
-
-	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
 	if (m_mesoComponent == nullptr)
 	{
+		m_mesoProperties.insert(QStringLiteral("mesoId"), m_MesoId);
+		m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+		m_mesoProperties.insert(QStringLiteral("mesoStartDate"), m_MesocyclesModel->getDate(m_MesoIdx, 2));
+		m_mesoProperties.insert(QStringLiteral("mesoEndDate"), m_MesocyclesModel->getDate(m_MesoIdx, 3));
+		m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
+		m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
+		m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
+
+		const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
 		m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
 					QQmlComponent::Asynchronous);
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return TPMesocycleClass::createMesocyclePage_part2(); } );
 	}
+	else
+		createMesocyclePage_part2();
 }
 
 void TPMesocycleClass::createMesocyclePage_part2()
