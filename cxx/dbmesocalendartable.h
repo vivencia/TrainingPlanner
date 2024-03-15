@@ -21,15 +21,13 @@ public:
 	virtual void createTable();
 	void getMesoCalendar();
 	void createMesoCalendar();
-	void newMesoCalendarEntry();
 	void updateMesoCalendarEntry();
 	void changeMesoCalendar();
 	void removeMesoCalendar();
 	void deleteMesoCalendarTable();
 
 	//Call before starting a thread
-	void setData(const QString& id, const QString& mesoId = QString(), const QString& calDate = QString(),
-						const QString& calNDay = QString(), const QString& calSplit = QString());
+	void setData(const QString& mesoId, const QString& calNDay, const QString& calSplit);
 };
 
 #endif // DBMESOCALENDARTABLE_H

@@ -25,7 +25,7 @@ Popup {
 	property bool simpleCalendar: false
 	property string windowTitle
 
-	signal dateSelected(date selDate, int nweek)
+	signal dateSelected(date selDate)
 
 	DatePicker {
 		id: datePickerControl
@@ -39,8 +39,8 @@ Popup {
 			datePickerControl.setDate(showDate);
 		}
 
-		onOkClicked: (selDate, nWeek) => {
-			dateSelected(selDate, nWeek)
+		onOkClicked: (selDate) => {
+			dateSelected(selDate)
 			calendarPopup.close()
 		}
 		onCancelClicked: {

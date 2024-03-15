@@ -76,21 +76,16 @@ Page {
 			onClicked: {
 				switch (optChosen) {
 					case 1:
-						appDB.pass_object(mesocyclesModel);
 						appDB.deleteMesocyclesTable();
-						appDB.pass_object(mesoSplitModel);
 						appDB.deleteMesoSplitTable();
-						appDB.pass_object(mesoCalendarModel);
 						appDB.deleteMesoCalendarTable();
 
 						initMesocycles();
 					break;
 					case 2:
-						appDB.pass_object(mesoCalendarModel);
 						appDB.deleteMesoCalendarTable();
 					break;
 					case 3:
-						appDB.pass_object(exercisesListModel);
 						appDB.deleteExercisesTable();
 					break;
 					case 4:

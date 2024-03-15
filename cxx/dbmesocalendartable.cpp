@@ -193,49 +193,26 @@ void DBMesoCalendarTable::createMesoCalendar()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoCalendarTable::newMesoCalendarEntry()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
-									"INSERT INTO mesocycles_calendar_table "
-									"(meso_id, cal_date, training_day, training_split)"
-									" VALUES(%1, %2, %3, \'%4\')")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4)) );
-		m_result = query.exec();
-		if (m_result)
-		{
-			MSG_OUT("DBMesoCalendarTable newMesoCalendarEntry SUCCESS")
-			m_data[0] = query.lastInsertId().toString();
-			if (m_model)
-				m_model->appendList(m_data);
-			m_opcode = OP_ADD;
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoCalendarTable newMesoCalendarEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoCalendarTable newMesoCalendarEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesoCalendarTable::updateMesoCalendarEntry()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
+		const QDate date(m_execArgs.at(0).toDate());
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
-									"UPDATE mesocycles_calendar_table SET meso_id=%1, cal_date=%2, training_day=%3, "
-									"training_split=\'%4\' WHERE id=%5")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(0)) );
-		m_result = query.exec();
+		query.prepare( QStringLiteral("SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3").arg(
+				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())) );
+		if (query.exec())
+		{
+			query.first();
+			const QString strId(query.value(0).toString());
+			query.finish();
+			query.prepare( QStringLiteral(
+									"UPDATE mesocycles_calendar_table SET meso_id=%1, training_day=%2, "
+									"training_split=\'%3\' WHERE id=%4")
+									.arg(m_data.at(0), m_data.at(1), m_data.at(2), strId) );
+			m_result = query.exec();
+		}
 		mSqlLiteDB.close();
 	}
 
@@ -258,7 +235,6 @@ void DBMesoCalendarTable::changeMesoCalendar()
 {
 	static_cast<DBMesoCalendarModel*>(m_model)->changeModel(m_execArgs.at(0).toUInt(), m_execArgs.at(1).toDate(),
 			m_execArgs.at(2).toDate(), m_execArgs.at(3).toString(), m_execArgs.at(4).toBool(), m_execArgs.at(5).toBool());
-	m_data[0] = QString::number(m_execArgs.at(0).toUInt());
 	removeMesoCalendar();
 	createMesoCalendar();
 }
@@ -269,15 +245,14 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE id=") + m_data.at(0) );
+		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + QString::number(m_execArgs.at(0).toUInt()) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
 
 	if (m_result)
 	{
-		if (m_model)
-			m_model->removeFromList(m_model->currentRow());
+		m_model->clear();
 		MSG_OUT("DBExercisesTable removeMesoCalendar SUCCESS")
 	}
 	else
@@ -295,8 +270,7 @@ void DBMesoCalendarTable::deleteMesoCalendarTable()
 	m_result = mDBFile.remove();
 	if (m_result)
 	{
-		if (m_model)
-			m_model->clear();
+		m_model->clear();
 		m_opcode = OP_DELETE_TABLE;
 		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable SUCCESS")
 	}
@@ -308,11 +282,9 @@ void DBMesoCalendarTable::deleteMesoCalendarTable()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoCalendarTable::setData(const QString& id, const QString& mesoId, const QString& calDate, const QString& calNDay, const QString& calSplit)
+void DBMesoCalendarTable::setData(const QString& mesoId, const QString& calNDay, const QString& calSplit)
 {
-	m_data[0] = id;
-	m_data[1] = mesoId;
-	m_data[2] = calDate;
-	m_data[3] = calNDay;
-	m_data[4] = calSplit;
+	m_data[0] = mesoId;
+	m_data[1] = calNDay;
+	m_data[2] = calSplit;
 }

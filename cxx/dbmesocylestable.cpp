@@ -87,8 +87,6 @@ void DBMesocyclesTable::getAllMesocycles()
 	}
 	else
 		MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
-	//resultFunc(static_cast<TPDatabaseTable*>(this));
-	//doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesocyclesTable::newMesocycle()
@@ -109,8 +107,7 @@ void DBMesocyclesTable::newMesocycle()
 			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
 			m_data[0] = query.lastInsertId().toString();
 			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-			if (m_model)
-				m_model->appendList(m_data);
+			m_model->updateList(m_data, m_execArgs.at(0).toUInt());
 			m_opcode = OP_ADD;
 		}
 		mSqlLiteDB.close();
@@ -143,11 +140,8 @@ void DBMesocyclesTable::updateMesocycle()
 	if (m_result)
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
-		if (m_model)
-		{
-			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-			m_model->updateList(m_data, m_model->currentRow());
-		}
+		m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
+		m_model->updateList(m_data, m_execArgs.at(0).toUInt());
 	}
 	else
 	{
@@ -171,8 +165,7 @@ void DBMesocyclesTable::removeMesocycle()
 
 	if (m_result)
 	{
-		if (m_model)
-			m_model->removeFromList(m_model->currentRow());
+		m_model->removeFromList(m_execArgs.at(0).toUInt());
 		MSG_OUT("DBMesocyclesTable removeMesocycle SUCCESS")
 	}
 	else

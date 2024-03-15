@@ -344,7 +344,6 @@ Page {
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
 						if (bNew) {
-							appDB.pass_object(exercisesListModel);
 							appDB.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 											txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
@@ -353,7 +352,6 @@ Page {
 						else if (bEdit) {
 							console.log("Setting current row for Exercises model: " , exercisesList.curIndex);
 							exercisesListModel.setCurrentRow(exercisesList.curIndex);
-							appDB.pass_object(exercisesListModel);
 							appDB.updateExercise(exercisesListModel.get(exercisesList.curIndex, 0), txtExerciseName.text,
 													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);

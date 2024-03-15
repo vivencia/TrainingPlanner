@@ -18,8 +18,6 @@ Page {
 	property date minimumMesoStartDate
 	property date maximumMesoEndDate
 	property date fixedMesoEndDate //Used on newMeso to revert data to the original value gathered from HomePage
-	property int week1: 0
-	property int week2: 1
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
 	property string mesoSplit: mesocyclesModel.get(mesoIdx, 6)
@@ -130,7 +128,6 @@ Page {
 							bModified = true;
 					}
 					ToolTip.visible = !bMesoNameOK;
-					console.log("########################  bMesoNameOK = ", bMesoNameOK);
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -169,21 +166,23 @@ Page {
 					showDate: calendarStartDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
-					windowTitle: qsTr("Please select the initial date for the mesocycle ") + txtMesoName.text
+					windowTitle: bNewMeso ? qsTr("Please select the initial date for the mesocycle ") + txtMesoName.text : ""
 
-					onOpenedChanged: txtMesoStartDate.ToolTip.visible = !bStartDateChanged;
+					onOpenedChanged: {
+						if (bNewMeso && !opened)
+							txtMesoStartDate.ToolTip.visible = !bStartDateChanged;
+					}
 
-					onDateSelected: function(date, nweek) {
+					onDateSelected: function(date) {
 						bStartDateChanged = date !== mesocyclesModel.getDate(mesoIdx, 2);
 						if (bStartDateChanged) {
 							mesoStartDate = date;
-							week1 = nweek;
 							txtMesoStartDate.text = runCmd.formatDate(mesoStartDate);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(week1, week2);
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesoStartDate, mesoEndDate);
+							bModified = true;
 						}
 						if (bNewMeso)
 							caldlg2.open();
-						console.log("######################## bStartDateChanged = ", bStartDateChanged);
 					}
 				}
 
@@ -224,19 +223,21 @@ Page {
 					showDate: mesoEndDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
-					windowTitle: qsTr("Please select the end date for the mesocycle ") + txtMesoName.text
+					windowTitle: bNewMeso ? qsTr("Please select the end date for the mesocycle ") + txtMesoName.text : ""
 
-					onOpenedChanged: txtMesoEndDate.ToolTip.visible = !bEndDateChanged;
+					onOpenedChanged: {
+						if (bNewMeso && !opened)
+							txtMesoEndDate.ToolTip.visible = !bEndDateChanged;
+					}
 
-					onDateSelected: function(date, nweek) {
+					onDateSelected: function(date) {
 						bEndDateChanged = date !== mesocyclesModel.getDate(mesoIdx, 3);
 						if (bEndDateChanged) {
 							mesoEndDate = date;
-							week2 = nweek;
 							txtMesoEndDate.text = runCmd.formatDate(mesoEndDate);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(week1, week2);
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesoStartDate, mesoEndDate);
+							bModified = true;
 						}
-						console.log("######################## bEndDateChanged = ", bEndDateChanged);
 						txtMesoSplit.forceActiveFocus();
 					}
 				}
@@ -790,47 +791,30 @@ Page {
 			enabled: bNewMeso ? bMesoNameOK && bStartDateChanged && bEndDateChanged : bModified
 
 			onClicked: {
-				var id;
 				if (bNewMeso) {
-					function getMesoId(_id) {
-						if (_id === id) {
-							appDB.databaseReady.disconnect(getMesoId);
-							mesoId = appDB.insertId();
-							appDB.pass_object(mesoSplitModel);
-							appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-							bNewMeso = false;
-						}
+					function getMesoId() {
+						appDB.databaseReady.disconnect(getMesoId);
+						mesoId = appDB.insertId();
+						appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
+						bNewMeso = false;
 					}
 
-					appDB.pass_object(mesocyclesModel);
-					id = appDB.databaseReady.connect(getMesoId);
+					appDB.databaseReady.connect(getMesoId);
 					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 					mesoIdx = mesocyclesModel.count - 1;
 				}
 				else {
-					function canProceed(_id) {
-						if (_id === id) {
-							appDB.databaseReady.disconnect(canProceed);
-							appDB.pass_object(mesoSplitModel);
-							if (mesoSplitModel.count === 0)
-								appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-							else
-							{
-								mesoSplitModel.setCurrentRow(mesoIdx);
-								appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
-							}
+					//function canProceed() {
+					//	appDB.databaseReady.disconnect(canProceed);
+					//	appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
-							if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
-								appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
-								bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
-							}
+						if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+							appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+							bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 						}
-					}
-
-					mesocyclesModel.setCurrentRow(mesoIdx);
-					id = appDB.pass_object(mesocyclesModel);
-					appDB.databaseReady.connect(canProceed);
-					appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
+					//}
+					//appDB.databaseReady.connect(canProceed);
+					//appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 				}
 				bModified = false;
 			} //onClicked

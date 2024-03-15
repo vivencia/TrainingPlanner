@@ -28,11 +28,7 @@ public:
 	Q_INVOKABLE const QString formatDate(const QDate& date) const;
 	QDate getDateFromStrDate(const QString& strDate) const;
 
-	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
-	{
-		return calculateNumberOfWeeks(date1.weekNumber(), date2.weekNumber());
-	}
-	Q_INVOKABLE uint calculateNumberOfWeeks(const uint week1, const uint week2) const;
+	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
 	Q_INVOKABLE QDate getDayBefore(const QDate& date) const;

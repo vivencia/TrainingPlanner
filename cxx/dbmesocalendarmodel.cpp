@@ -141,34 +141,40 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 			break;
 	}
 	const uint old_firstday(day);
-	const uint old_firstmonth(m_modeldata.at(0).at(0).split(',').at(4).toUInt());
-	const uint old_firsyear(m_modeldata.at(0).at(0).split(',').at(5).toUInt());
+	const uint old_firstmonth(m_modeldata.at(0).at(0).split(',').at(5).toUInt());
+	const uint old_firsyear(m_modeldata.at(0).at(0).split(',').at(4).toUInt());
 
 	QList<QStringList> oldInfo;
 	const QDate today(QDate::currentDate());
-	const uint old_lastmonth(bPreserveOldInfoUntilToday ? today.month() : m_modeldata.last().at(0).split(',').at(4).toUInt());
-	const uint old_lastyear(bPreserveOldInfoUntilToday ? today.year() : m_modeldata.last().at(0).split(',').at(5).toUInt());
+	const uint old_lastmonth(bPreserveOldInfoUntilToday ? today.month() : m_modeldata.last().at(0).split(',').at(5).toUInt());
+	const uint old_lastyear(bPreserveOldInfoUntilToday ? today.year() : m_modeldata.last().at(0).split(',').at(4).toUInt());
 
 	uint i(0);
 	for(; i < m_modeldata.count(); ++i)
 	{
-		if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() <= old_lastyear)
+		if (m_modeldata.at(i).at(0).split(',').at(4).toUInt() <= old_lastyear)
 		{
-			if (m_modeldata.at(i).at(0).split(',').at(4).toUInt() <= old_lastmonth)
+			if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() <= old_lastmonth)
 			{
-				day = i == 0 ? old_firstday : 0;
-				for(; day < m_modeldata.at(i).count(); ++day)
+				if (i == m_modeldata.count() -1 )
 				{
-					if (m_modeldata.at(i).at(day).split(',').at(2).toInt() <= 0)
-						break;
+					for(day = 0; day < m_modeldata.at(i).count(); ++day)
+					{
+						if (m_modeldata.at(i).at(day).split(',').at(1).toInt() == -1)
+							break;
+					}
 				}
+				else
+					day = m_modeldata.at(i).count();
+
 				oldInfo.append(QStringList());
-				for(uint x(0); x < day; ++x)
+				uint x(i == 0 ? old_firstday : 0);
+				for(; x < day; ++x)
 					oldInfo.last().append(m_modeldata.at(i).at(x));
 			}
 		}
 	}
-	const uint old_lastday(bPreserveOldInfoUntilToday ? today.day() : day);
+	const uint old_lastday(bPreserveOldInfoUntilToday ? today.day() - 1 : day);
 
 	clear();
 	createModel(mesoId, newStartDate, newEndDate, newSplit);
@@ -176,10 +182,10 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 	uint year(0), month(0), y(0), lastday(0);
 	for(i = 0; i < m_modeldata.count(); ++i)
 	{
-		year = m_modeldata.at(i).at(0).split(',').at(5).toUInt();
+		year = m_modeldata.at(i).at(0).split(',').at(4).toUInt();
 		if (year >= old_firsyear && year <= old_lastyear)
 		{
-			month = m_modeldata.at(i).at(0).split(',').at(4).toUInt();
+			month = m_modeldata.at(i).at(0).split(',').at(5).toUInt();
 			if (month >= old_firstmonth && month <= old_lastmonth)
 			{
 				day = i == 0 ? old_firstday : 0;

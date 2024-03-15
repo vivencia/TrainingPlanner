@@ -144,8 +144,7 @@ void DBMesoSplitTable::newMesoSplit()
 		{
 			MSG_OUT("DBMesoSplitTable newMesoSplit SUCCESS")
 			m_data[0] = query.lastInsertId().toString();
-			if (m_model)
-				m_model->appendList(m_data);
+			m_model->appendList(m_data);
 			m_opcode = OP_ADD;
 		}
 		mSqlLiteDB.close();
@@ -178,8 +177,7 @@ void DBMesoSplitTable::updateMesoSplit()
 	if (m_result)
 	{
 		MSG_OUT("DBMesoSplitTable updateMesoSplit SUCCESS")
-		if (m_model)
-			m_model->updateList(m_data, m_model->currentRow());
+		m_model->updateList(m_data, m_execArgs.at(0).toUInt());
 	}
 	else
 	{
@@ -203,8 +201,7 @@ void DBMesoSplitTable::removeMesoSplit()
 
 	if (m_result)
 	{
-		if (m_model)
-			m_model->removeFromList(m_model->currentRow());
+		m_model->removeFromList(m_execArgs.at(0).toUInt());
 		MSG_OUT("DBMesoSplitTable removeMesoSplit SUCCESS")
 	}
 	else

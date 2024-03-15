@@ -21,7 +21,7 @@ Rectangle {
 	property double cellSize: mm * 7
 	property int fontSizePx: cellSize * 0.32
 
-	signal okClicked(date selDate, int nbrWeek)
+	signal okClicked(date selDate)
 	signal cancelClicked
 
 	Keys.onPressed: (event) => {
@@ -39,7 +39,7 @@ Rectangle {
 	Rectangle {
 		id: windowTitelBar
 		color: primaryLightColor
-		visible: !justCalendar
+		visible: calendarWindowTitle.length > 0
 		width: parent.width
 		height: lblTitle.contentHeight + 10
 
@@ -150,10 +150,10 @@ Rectangle {
 		property int currentMonth
 		property int currentYear
 		property int dayOfWeek
-		property var months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
+		readonly property var months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
 									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
 									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
-		property var weekNames: [qsTr("Sunday"), qsTr("Monday"), qsTr("Tuesday"), qsTr("Wednesday"),
+		readonly property var weekNames: [qsTr("Sunday"), qsTr("Monday"), qsTr("Tuesday"), qsTr("Wednesday"),
 									qsTr("Thursday"), qsTr("Friday"), qsTr("Saturday")]
 
 		delegate: Rectangle {
@@ -332,7 +332,7 @@ Rectangle {
 					anchors.fill: parent
 					onClicked: {
 						if (!justCalendar)
-							okClicked(selectedDate, selectedDate.getDate());
+							okClicked(selectedDate);
 						else
 							cancelClicked();
 					}

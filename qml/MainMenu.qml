@@ -89,7 +89,7 @@ Drawer {
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
 			onButtonClicked: {
-				function pushExercisesPageOntoStack(object, id) {
+				function pushExercisesPageOntoStack(object) {
 					appDB.getPage.disconnect(pushExercisesPageOntoStack);
 					appStackView.push(object, stackView.DontLoad);
 					menuClicked();

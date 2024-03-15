@@ -372,85 +372,47 @@ Page {
 				} //txtTDay
 			} //GridLayout
 
-			Frame {
-				id: frmMesoSplitAdjust
+			CheckBox {
+				id: chkAdjustCalendar
+				text: qsTr("Re-adjust meso calendar from this day?")
+				checked: false
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
+				Layout.fillWidth: true
 				visible: false
 				padding: 0
 				spacing: 0
-				width: windowWidth - 20
-				height: 200
 
-				background: Rectangle {
-					border.color: "white"
-					color: "transparent"
-					radius: 6
+				indicator: Rectangle {
+					implicitWidth: 26
+					implicitHeight: 26
+					x: chkAdjustCalendar.leftPadding
+					y: (parent.height-height) / 2
+					radius: 5
+					border.color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
+
+					Rectangle {
+						width: 14
+						height: 14
+						x: 6
+						y: 6
+						radius: 2
+						color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
+						visible: chkAdjustCalendar.checked
+					}
 				}
 
-				ColumnLayout {
-					id: layoutSplit
-					anchors.fill: parent
-					spacing: 0
-
-					CheckBox {
-						id: chkAdjustCalendar
-						text: qsTr("Adjust meso calendar from the next day till the end?")
-						checked: false
-						Layout.maximumWidth: parent.width - 10
-						Layout.leftMargin: 5
-
-						indicator: Rectangle {
-							implicitWidth: 26
-							implicitHeight: 26
-							x: chkAdjustCalendar.leftPadding
-							y: (parent.height-height) / 2
-							radius: 5
-							border.color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
-
-							Rectangle {
-								width: 14
-								height: 14
-								x: 6
-								y: 6
-								radius: 2
-								color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
-								visible: chkAdjustCalendar.checked
-							}
-						}
-
-						contentItem: Label {
-							text: chkAdjustCalendar.text
-							color: "white"
-							font.pixelSize: AppSettings.fontSizeText
-							font.bold: true
-							wrapMode: Text.WordWrap
-							opacity: enabled ? 1.0 : 0.3
-							verticalAlignment: Text.AlignVCenter
-							leftPadding: chkAdjustCalendar.indicator.width + chkAdjustCalendar.spacing
-						}
-
-						onClicked: {
-							if (checked)
-								optUpdateCalendarContinue.checked = true;
-						}
-					} //CheckBox
-
-					TPRadioButton {
-						id: optUpdateCalendarContinue
-						text: qsTr("Continue cycle from this division letter")
-						enabled: chkAdjustCalendar.checked
-						checked: false
-					}
-
-					TPRadioButton {
-						id: optUpdateCalendarStartOver
-						text: qsTr("Start cycle over")
-						checked: false
-						enabled: chkAdjustCalendar.checked
-					}
-				} // ColumnLayout
-			} //Frame
+				contentItem: Label {
+					text: chkAdjustCalendar.text
+					color: "white"
+					font.pixelSize: AppSettings.fontSizeText
+					font.bold: true
+					wrapMode: Text.WordWrap
+					opacity: enabled ? 1.0 : 0.3
+					verticalAlignment: Text.AlignVCenter
+					leftPadding: chkAdjustCalendar.indicator.width + chkAdjustCalendar.spacing
+				}
+			} //CheckBox
 
 			Label {
 				text: qsTr("Location:")
@@ -1038,9 +1000,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				//if (bRealMeso)
-				//	updateMesoCalendar();
-				if (tDayModel.id() === -1) { //TODO TODO
+				if (tDayModel.id() === -1) {
 					var id;
 					function continueSave(_id) {
 						if (_id === id) {
@@ -1057,6 +1017,17 @@ Page {
 					appDB.pass_object(tDayModel);
 					appDB.updateTrainingDay(tDayModel.id(), mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 					appDB.updateTrainingDayExercises(tDayModel.id());
+					if (bRealMeso && chkAdjustCalendar.visible)
+					{
+						if (!chkAdjustCalendar.checked)
+							appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
+						else {
+							var newMesoSplit = mesoSplit;
+							newMesoSplit.replace(splitLetter, "");
+							newMesoSplit.padStart(newMesoSplit.length+1, splitLetter);
+							appDB.changeMesoCalendar(mainDate, mesocyclesModel.get(mesoIdx, 3), mesoSplit, true, true);
+						}
+					}
 				}
 			}
 		} //btnSaveDay

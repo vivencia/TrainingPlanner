@@ -134,36 +134,30 @@ ApplicationWindow {
 
 			onClicked: {
 				const today = new Date();
-				var id;
 				var calendarPage;
-				function pushTDayOntoStackView(object2, _id2) {
-					if (id !== _id2) {
-						appDB.getPage.disconnect(pushTDayOntoStackView);
-						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
-						appStackView.push(object2, StackView.DontLoad);
-					}
+				function pushTDayOntoStackView(object2) {
+					appDB.getPage.disconnect(pushTDayOntoStackView);
+					object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+					object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
+					appStackView.push(object2, StackView.DontLoad);
 				}
 
-				function readyToProceed(_id)
+				function mesoCalendarOK()
 				{
-					appDB.databaseReady.disconnect(readyToProceed);
-					id = _id;
+					appDB.databaseReady.disconnect(mesoCalendarOK);
 					appDB.getPage.connect(pushTDayOntoStackView);
 					appDB.getTrainingDay(today);
 				}
 
-				appDB.databaseReady.connect(readyToProceed);
+				appDB.databaseReady.connect(mesoCalendarOK);
 				appDB.getMesoCalendar(false);
 			} //onClicked
 		} //TabButton
 	} //footer
 
 	function init() {
-		if (mesocyclesModel.count !== 0) {
-			appDB.pass_object(mesoSplitModel);
+		if (mesocyclesModel.count !== 0)
 			appDB.getMesoSplit();
-		}
 		homePage.pageActivation();
 	}
 } //ApplicationWindow

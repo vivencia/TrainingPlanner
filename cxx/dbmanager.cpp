@@ -267,7 +267,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	createThread(worker, [worker] () { worker->getAllExercises(); } );
 }
 
@@ -275,7 +275,7 @@ void DbManager::newExercise( const QString& mainName, const QString& subName, co
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath )
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	worker->setData(QStringLiteral("0"), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { worker->newExercise(); } );
 }
@@ -284,7 +284,7 @@ void DbManager::updateExercise( const QString& id, const QString& mainName, cons
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
 					 const QString& uWeight, const QString& mediaPath )
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
 	createThread(worker, [worker] () { return worker->updateExercise(); } );
 }
@@ -298,7 +298,7 @@ void DbManager::removeExercise(const QString& id)
 
 void DbManager::deleteExercisesTable()
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, static_cast<DBExercisesModel*>(m_model)));
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	createThread(worker, [worker] () { return worker->deleteExercisesTable(); } );
 }
 
@@ -417,7 +417,8 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name)
 void DbManager::newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
 						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
+	worker->addExecArg(m_MesoIdx);
 	worker->setData(QString(), mesoName, QString::number(mesoStartDate.toJulianDay()), QString::number(mesoEndDate.toJulianDay()),
 						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
 	createThread(worker, [worker] () { worker->newMesocycle(); } );
@@ -426,7 +427,8 @@ void DbManager::newMesocycle(const QString& mesoName, const QDate& mesoStartDate
 void DbManager::updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
 				const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
+	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr, mesoName, QString::number(mesoStartDate.toJulianDay()), QString::number(mesoEndDate.toJulianDay()),
 						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
 	createThread(worker, [worker] () { worker->updateMesocycle(); } );
@@ -434,14 +436,15 @@ void DbManager::updateMesocycle(const QString& mesoName, const QDate& mesoStartD
 
 void DbManager::removeMesocycle()
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
+	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr);
 	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
 }
 
 void DbManager::deleteMesocyclesTable()
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	createThread(worker, [worker] () { return worker->deleteMesocyclesTable(); } );
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -449,7 +452,7 @@ void DbManager::deleteMesocyclesTable()
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 void DbManager::getMesoSplit()
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	worker->addExecArg(m_MesoId);
 	createThread(worker, [worker] () { worker->getMesoSplit(); } );
 }
@@ -457,7 +460,7 @@ void DbManager::getMesoSplit()
 void DbManager::newMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
 								const QString& splitD, const QString& splitE, const QString& splitF)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
 	createThread(worker, [worker] () { worker->newMesoSplit(); } );
 }
@@ -465,21 +468,23 @@ void DbManager::newMesoSplit(const QString& splitA, const QString& splitB, const
 void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
 								const QString& splitD, const QString& splitE, const QString& splitF)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
+	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
 	createThread(worker, [worker] () { worker->updateMesoSplit(); } );
 }
 
 void DbManager::removeMesoSplit()
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
+	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr);
 	createThread(worker, [worker] () { return worker->removeMesoSplit(); } );
 }
 
 void DbManager::deleteMesoSplitTable()
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
 }
 
@@ -551,9 +556,14 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 		m_MesoManager.at(m_MesoIdx)->setMesoCalendarModel(mesoCalendarModel);
 		connect( this, &DbManager::databaseReady, this, [&] { return m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage(); } );
 	}
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->addExecArg(m_MesoId);
-	createThread(worker, [worker] () { worker->getMesoCalendar(); });
+	if (!mesoCalendarModel->isReady())
+	{
+		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+		worker->addExecArg(m_MesoId);
+		createThread(worker, [worker] () { worker->getMesoCalendar(); });
+	}
+	else
+		emit databaseReady();
 }
 
 void DbManager::createMesoCalendar()
@@ -565,6 +575,15 @@ void DbManager::createMesoCalendar()
 void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday)
 {
+	if (!mesoCalendarModel->isReady())
+	{
+		connect(this, &DbManager::databaseReady, this, [&,newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday] ()
+		{
+			return changeMesoCalendar(newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday);
+		});
+		getMesoCalendar(false);
+		return;
+	}
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->addExecArg(m_MesoId);
 	worker->addExecArg(newStartDate);
@@ -575,24 +594,18 @@ void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEn
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
-void DbManager::newMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)
+void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->setData(QString(), m_MesoIdStr, QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
-	createThread(worker, [worker] () { worker->newMesoCalendarEntry(); } );
-}
-
-void DbManager::updateMesoCalendarEntry(const uint id, const QDate& calDate, const uint calNDay, const QString& calSplit)
-{
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->setData(QString::number(id), m_MesoIdStr, QString::number(calDate.toJulianDay()), QString::number(calNDay), calSplit);
+	worker->addExecArg(calDate);
+	worker->setData(m_MesoIdStr, QString::number(calNDay), calSplit);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
-void DbManager::deleteMesoCalendar(const uint id)
+void DbManager::removeMesoCalendar(const uint meso_id)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->setData(QString::number(id));
+	worker->addExecArg(meso_id);
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
 }
 

@@ -253,7 +253,6 @@ Column {
 		}
 
 		if (exercisesListModel.count === 0) {
-			appDB.pass_object(exercisesListModel);
 			appDB.databaseReady.connect(setModel);
 			appDB.getAllExercises();
 		}
