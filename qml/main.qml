@@ -36,7 +36,6 @@ ApplicationWindow {
 					case Qt.ApplicationInactive: appAboutToBeSuspended(); break;
 					case Qt.ApplicationActive: appActive(); break;
 				}
-				console.info("####  ", Qt.application.state);
 			}
 		}
 	}
@@ -90,24 +89,11 @@ ApplicationWindow {
 			id: homePage
 		}
 
-		/*DBTrainingDayModel {
-			id: tdaymodel
-			currentRow: 0
-		}
-		TrainingDayInfo {
-			id: tDayInfo
-			mesoId: 1
-			mesoIdx: 0
-			modelIdx: 0
-			mainDate: new Date()
-			tDayModel: tdaymodel
-		}*/
-
 		StackView {
 			id: stackView
 			objectName: "appStackView"
 			anchors.fill: parent
-			initialItem: homePage //tDayInfo
+			initialItem: homePage
 		}
 	}
 
@@ -135,17 +121,19 @@ ApplicationWindow {
 			onClicked: {
 				const today = new Date();
 				var calendarPage;
-				function pushTDayOntoStackView(object2) {
-					appDB.getPage.disconnect(pushTDayOntoStackView);
-					object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-					object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
-					appStackView.push(object2, StackView.DontLoad);
+				function pushTDayOntoMainStackView(object2, id) {
+					if (id === 70) {
+						appDB.getPage.disconnect(pushTDayOntoMainStackView);
+						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
+						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
+						appStackView.push(object2, StackView.DontLoad);
+					}
 				}
 
 				function mesoCalendarOK()
 				{
 					appDB.databaseReady.disconnect(mesoCalendarOK);
-					appDB.getPage.connect(pushTDayOntoStackView);
+					appDB.getPage.connect(pushTDayOntoMainStackView);
 					appDB.getTrainingDay(today);
 				}
 

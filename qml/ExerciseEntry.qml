@@ -160,7 +160,7 @@ FocusScope {
 						height: 20
 						width: 20
 					}
-					onClicked: paneExercise.shown = !paneExercise.shown
+					onClicked: paneExerciseShowHide()
 					z: 1
 				}
 
@@ -208,7 +208,7 @@ FocusScope {
 					anchors.right: txtExerciseName.right
 					anchors.top: txtExerciseName.top
 					anchors.bottom: txtExerciseName.bottom
-					onClicked: paneExercise.shown = !paneExercise.shown
+					onClicked: paneExerciseShowHide()
 					enabled: txtExerciseName.readOnly
 					z:1
 				}
@@ -241,8 +241,6 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						console.log(setNbr);
-						return;
 						tDayModel.setSetType(0, cboSetType.currentValue, exerciseIdx);
 						createSetObject(cboSetType.currentIndex);
 						requestHideFloatingButtons (exerciseIdx);
@@ -321,8 +319,10 @@ FocusScope {
 		appDB.createSetObject(cboSetType.currentIndex, setNbr, exerciseIdx);
 	}
 
-	function foldUpSets() {
-		paneExercise.shown = false;
+	function paneExerciseShowHide() {
+		paneExercise.shown = !paneExercise.shown
+		if (paneExercise.shown)
+			appDB.createSetObjects(exerciseIdx);
 	}
 
 	function requestExercisesList(requester, visible) {

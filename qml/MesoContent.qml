@@ -5,14 +5,15 @@ import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: mesoContentPage
+	objectName: "mesoCalendarPage"
+	width: windowWidth
+	height: windowHeight
 
 	required property int mesoId
 	required property int mesoIdx
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
-	readonly property date mesoStartDate: mesocyclesModel.getDate(mesoIdx, 2)
-	readonly property date mesoEndDate: mesocyclesModel.getDate(mesoIdx, 3)
 	property date _today
 
 	property string splitLetter
@@ -51,7 +52,8 @@ Page {
 				id: lbl2
 				color: "white"
 				wrapMode: Text.WordWrap
-				text: qsTr("from  <b>") + runCmd.formatDate(mesoStartDate) + qsTr("</b>  through  <b>") + runCmd.formatDate(mesoEndDate) + "</b>"
+				text: qsTr("from  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2)) +
+						qsTr("</b>  through  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3)) + "</b>"
 				font.pixelSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
@@ -217,10 +219,12 @@ Page {
 
 				onClicked: {
 					function pushTDayOntoStackView(object, id) {
-						appDB.getPage.disconnect(pushTDayOntoStackView);
-						object.tDay = trainingDay;
-						object.splitLetter = splitLetter;
-						appStackView.push(object, StackView.DontLoad);
+						if (id === 70) {
+							appDB.getPage.disconnect(pushTDayOntoStackView);
+							object.tDay = trainingDay;
+							object.splitLetter = splitLetter;
+							appStackView.push(object, StackView.DontLoad);
+						}
 					}
 
 					appDB.getPage.connect(pushTDayOntoStackView);

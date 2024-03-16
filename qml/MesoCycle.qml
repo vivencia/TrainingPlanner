@@ -7,6 +7,7 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: mesoPropertiesPage
+	objectName: "mesoPage"
 	width: windowWidth
 	height: windowHeight
 
@@ -65,8 +66,10 @@ Page {
 			onClicked: {
 				var id;
 				function calendarPageReady(object, id) {
-					appDB.getPage.disconnect(calendarPageReady);
-					appStackView.push(object, StackView.DontLoad);
+					if (id === 35) {
+						appDB.getPage.disconnect(calendarPageReady);
+						appStackView.push(object, StackView.DontLoad);
+					}
 				}
 
 				appDB.getPage.connect(calendarPageReady);
@@ -400,7 +403,7 @@ Page {
 
 					TPRadioButton {
 						id: optPreserveOldCalendarUntilYesterday
-						text: qsTr("Only until yesterday")
+						text: qsTr("Up until yesterday - ") + runCmd.formatDate(runCmd.getDayBefore(new Date()));
 						checked: false
 						enabled: chkPreserveOldCalendar.checked //&& isDateWithinMeso(today)
 					}

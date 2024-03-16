@@ -155,7 +155,7 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 			TPMesocycleClass* newMeso(new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, this));
 			newMeso->setMesocycleModel(mesocyclesModel);
 			m_MesoManager.append(newMeso);
-			connect(newMeso, SIGNAL(pageReady(QQuickItem*,uint)), this, SIGNAL(getPage(QQuickItem*,uint)));
+			connect(newMeso, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
 			connect(newMeso, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
 		m_MesoId = mesoId;
@@ -204,7 +204,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 	}
 
 	m_WorkerLock[dbObj->objectName()]--;
-	if (m_WorkerLock[dbObj->objectName()] == 0)
+	if (m_WorkerLock[dbObj->objectName()] <= 0)
 		cleanUp(dbObj);
 }
 
@@ -213,7 +213,7 @@ void DbManager::freeLocks(TPDatabaseTable *dbObj)
 	if (dbObj->result())
 	{
 		m_WorkerLock[dbObj->objectName()]--;
-		if (m_WorkerLock[dbObj->objectName()] == 0)
+		if (m_WorkerLock[dbObj->objectName()] <= 0)
 			cleanUp(dbObj);
 	}
 	else
@@ -234,6 +234,7 @@ void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 
 void DbManager::cleanUp(TPDatabaseTable* dbObj)
 {
+	MSG_OUT("cleanUp: " << dbObj->objectName());
 	dbObj->disconnect();
 	dbObj->deleteLater();
 	dbObj->thread()->quit();
@@ -255,12 +256,22 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
 	worker->moveToThread ( thread );
 
-	if (m_WorkerLock[worker->objectName()] == 0)
+	if (m_WorkerLock[worker->objectName()] <= 0)
 		startThread(thread, worker);
 	else
 	{
-		MSG_OUT("Database  " << worker->objectName() << "  is busy. Waiting for it to be free")
+		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << m_WorkerLock[worker->objectName()])
 		connect( this, &DbManager::databaseFree, this, [&,thread, worker] () { return DbManager::startThread(thread, worker); } );
+	}
+}
+
+void DbManager::bridge(QQuickItem* item, const uint id) {
+	MSG_OUT("bridge  id " << id)
+	MSG_OUT("bridge item " << item->objectName())
+	if (id == m_expectedPageId)
+	{
+		emit getPage(item, id);
+		emit internalSignal(id);
 	}
 }
 
@@ -380,9 +391,10 @@ void DbManager::getMesocycle(const uint meso_idx)
 
 	if (m_MesoManager.at(m_MesoIdx)->getMesoPage() != nullptr)
 	{
-		emit getPage(m_MesoManager.at(m_MesoIdx)->getMesoPage(), 54321);
+		emit getPage(m_MesoManager.at(m_MesoIdx)->getMesoPage(), mesoPageCreateId);
 		return;
 	}
+	m_expectedPageId = mesoPageCreateId;
 	m_MesoManager.at(m_MesoIdx)->createMesocyclePage();
 }
 
@@ -550,20 +562,24 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 	{
 		if (m_MesoManager.at(m_MesoIdx)->getCalendarPage() != nullptr)
 		{
-			emit getPage(m_MesoManager.at(m_MesoIdx)->getCalendarPage(), 12345);
+			emit getPage(m_MesoManager.at(m_MesoIdx)->getCalendarPage(), calPageCreateId);
 			return;
 		}
 		m_MesoManager.at(m_MesoIdx)->setMesoCalendarModel(mesoCalendarModel);
-		connect( this, &DbManager::databaseReady, this, [&] { return m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage(); } );
 	}
 	if (!mesoCalendarModel->isReady())
 	{
 		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 		worker->addExecArg(m_MesoId);
 		createThread(worker, [worker] () { worker->getMesoCalendar(); });
+		if (bCreatePage)
+			connect( this, &DbManager::databaseReady, this, [&,bCreatePage] { return getMesoCalendar(bCreatePage); } );
 	}
 	else
-		emit databaseReady();
+	{
+		m_expectedPageId = calPageCreateId;
+		m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage();
+	}
 }
 
 void DbManager::createMesoCalendar()
@@ -622,25 +638,25 @@ void DbManager::getTrainingDay(const QDate& date)
 	if (m_MesoManager.at(m_MesoIdx)->gettDayPage(date) != nullptr)
 	{
 		m_MesoManager.at(m_MesoIdx)->setCurrenttDay(date);
-		emit getPage(m_MesoManager.at(m_MesoIdx)->gettDayPage(date), static_cast<uint>(date.toJulianDay()));
+		emit getPage(m_MesoManager.at(m_MesoIdx)->gettDayPage(date), tDayPageCreateId);
 		return;
 	}
 
+	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->gettDayModel(date)));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return m_MesoManager.at(m_MesoIdx)->createTrainingDayPage(date); } );
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
-	connect(m_MesoManager.at(m_MesoIdx), &TPMesocycleClass::pageReady, this, [&,date] (QQuickItem*,const uint) { return getTrainingDayExercises(date); });
+	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id ) { if (id == tDayPageCreateId) return getTrainingDayExercises(date); });
 }
 
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
+	disconnect(this, &DbManager::internalSignal, this, nullptr);
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); } );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
-	disconnect(m_MesoManager.at(m_MesoIdx), &TPMesocycleClass::pageReady, this, nullptr);
-	connect(m_MesoManager.at(m_MesoIdx), SIGNAL(pageReady(QQuickItem*,uint)), this, SIGNAL(getPage(QQuickItem*,uint)));
 }
 
 void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
@@ -750,6 +766,16 @@ void DbManager::createSetObject(const uint set_type, const uint set_number, cons
 {
 	m_MesoManager.at(m_MesoIdx)->currenttDayModel()->newSet(exercise_idx, set_number, set_type);
 	m_MesoManager.at(m_MesoIdx)->createSetObject(set_type, set_number, exercise_idx);
+}
+
+void DbManager::createSetObjects(const uint exercise_idx)
+{
+	if (!m_MesoManager.at(m_MesoIdx)->setsLoaded(exercise_idx))
+	{
+		const uint nsets(m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setsNumber(exercise_idx));
+		for (uint i(0); i < nsets; ++i)
+			m_MesoManager.at(m_MesoIdx)->createSetObject(m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setType(i, exercise_idx), i, exercise_idx);
+	}
 }
 
 void DbManager::removeSetObject(const uint set_number, const uint exercise_idx)

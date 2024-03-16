@@ -6,12 +6,6 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
-static const uint mesoPageCreateId(175);
-static const uint calPageCreateId(35);
-static const uint tDayCreateId(70);
-static const uint tDayExerciseCreateId(105);
-static const uint tDaySetCreateId(140);
-
 static const QStringList setTypePages(QStringList() << QStringLiteral("qrc:/qml/SetTypeRegular.qml") << QStringLiteral("qrc:/qml/SetTypePyramid.qml") <<
 				QStringLiteral("qrc:/qml/SetTypeDrop.qml") << QStringLiteral("qrc:/qml/SetTypeCluster.qml") <<
 				QStringLiteral("qrc:/qml/SetTypeGiant.qml") << QStringLiteral("qrc:/qml/SetTypeMyoReps.qml"));
@@ -190,7 +184,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 	if (!m_tDayPages.contains(date))
 	{
 		m_tDayProperties.insert(QStringLiteral("mainDate"), date);
-		m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(gettDayModel(date)));
+		m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 
 		if (m_tDayComponent == nullptr)
 		{
@@ -203,7 +197,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 		else
 			createTrainingDayPage_part2();
 	}
-	return tDayCreateId;
+	return tDayPageCreateId;
 }
 
 void TPMesocycleClass::createTrainingDayPage_part2()
@@ -222,9 +216,8 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
 	item->setParentItem(parent);
 	m_CurrenttDayPage = item;
-	m_CurrenttDayModel = m_tDayModels.last();
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), item);
-	emit pageReady(item, tDayCreateId);
+	emit pageReady(item, tDayPageCreateId);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
@@ -282,8 +275,6 @@ void TPMesocycleClass::createExercisesObjects()
 		for(uint i(0); i < m_CurrenttDayModel->exercisesNumber(); ++i)
 		{
 			createExerciseObject_part2(i);
-			for (uint x(0); x < m_CurrenttDayModel->setsNumber(i); ++x)
-				createSetObject(m_CurrenttDayModel->setType(x, i), x, i);
 			m_tDayExercises[i]->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
 		}
 	}

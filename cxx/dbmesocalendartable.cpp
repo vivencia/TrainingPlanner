@@ -251,10 +251,7 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	}
 
 	if (m_result)
-	{
-		m_model->clear();
 		MSG_OUT("DBExercisesTable removeMesoCalendar SUCCESS")
-	}
 	else
 	{
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())

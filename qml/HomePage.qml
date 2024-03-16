@@ -246,8 +246,10 @@ Page {
 	function newAction(opt) {
 		function pushPageOntoStack(object, id)
 		{
-			appDB.getPage.disconnect(pushPageOntoStack);
-			appStackView.push(object, StackView.DontLoad);
+			if (id === 175) {
+				appDB.getPage.disconnect(pushPageOntoStack);
+				appStackView.push(object, StackView.DontLoad);
+			}
 		}
 
 		appDB.getPage.connect(pushPageOntoStack);
@@ -255,13 +257,15 @@ Page {
 	}
 
 	function showMeso() {
-		function pushPageOntoStack(object, id)
+		function pushMesoPageOntoStack(object, id)
 		{
-			appDB.getPage.disconnect(pushPageOntoStack);
-			appStackView.push(object, StackView.DontLoad);
+			if (id === 175) {
+				appDB.getPage.disconnect(pushMesoPageOntoStack);
+				appStackView.push(object, StackView.DontLoad);
+			}
 		}
 
-		appDB.getPage.connect(pushPageOntoStack);
+		appDB.getPage.connect(pushMesoPageOntoStack);
 		appDB.getMesocycle(currentMesoIndex);
 	}
 

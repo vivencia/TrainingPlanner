@@ -8,7 +8,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: trainingDayPage
-	objectName: "trainingPage"
+	objectName: "trainingDayPage"
 	width: windowWidth
 
 	required property date mainDate //dayDate
@@ -275,8 +275,8 @@ Page {
 				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: qsTr("Trainning day <b>#") + tDayModel.trainingDay() + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
-					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + tDayModel.splitLetter() + "</b>"
+				text: qsTr("Trainning day <b>#") + tDay + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
+					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + splitLetter + "</b>"
 				font.pixelSize: AppSettings.titleFontSizePixelSize
 				color: "white"
 			}

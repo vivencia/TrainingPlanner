@@ -15,6 +15,12 @@ class QQmlComponent;
 class QQuickItem;
 class QQuickWindow;
 
+static const uint mesoPageCreateId(175);
+static const uint calPageCreateId(35);
+static const uint tDayPageCreateId(70);
+static const uint tDayExerciseCreateId(105);
+static const uint tDaySetCreateId(140);
+
 class TPMesocycleClass : public QObject
 {
 
@@ -67,12 +73,14 @@ public:
 	{
 		if (!m_tDayModels.contains(date))
 			m_tDayModels.insert(date, new DBTrainingDayModel(this));
-		return m_tDayModels.value(date);
+		m_CurrenttDayModel = m_tDayModels.value(date);
+		return m_CurrenttDayModel;
 	}
 	inline QQuickItem* gettDayPage(const QDate& date) const { return m_tDayPages.value(date); }
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	inline void setCurrenttDay(const QDate& date) { m_CurrenttDayModel = m_tDayModels.value(date); m_CurrenttDayPage = m_tDayPages.value(date); }
+	inline bool setsLoaded(const uint exercise_idx) const { return m_setObjects.contains(exercise_idx) ;}
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	uint createExerciseObject(const QString& exerciseName);

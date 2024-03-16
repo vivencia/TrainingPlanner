@@ -156,7 +156,7 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 		{
 			if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() <= old_lastmonth)
 			{
-				if (i == m_modeldata.count() -1 )
+				if (i == m_modeldata.count() - 1)
 				{
 					for(day = 0; day < m_modeldata.at(i).count(); ++day)
 					{
@@ -188,10 +188,11 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 			month = m_modeldata.at(i).at(0).split(',').at(5).toUInt();
 			if (month >= old_firstmonth && month <= old_lastmonth)
 			{
-				day = i == 0 ? old_firstday : 0;
-				lastday = i < m_modeldata.count() - 1 ? m_modeldata.at(i).count() : old_lastday;
-				for(; day < lastday; ++day)
-					m_modeldata[i][day] = oldInfo.at(y).at(day);
+				day = y == 0 ? old_firstday : 0;
+				lastday = y < oldInfo.count() - 1 ? oldInfo.at(y).count() : old_lastday;
+				uint x(0);
+				for(; x < lastday; ++day, ++x)
+					m_modeldata[i][day] = oldInfo.at(y).at(x);
 				y++;
 			}
 		}

@@ -36,12 +36,12 @@ public:
 
 	Q_INVOKABLE uint getMonth(const uint index) const
 	{
-		return static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(5).toUInt() - 1;
+		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(5).toUInt() - 1 : 0;
 	}
 
 	Q_INVOKABLE uint getYear(const uint index) const
 	{
-		return static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(4).toUInt();
+		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(4).toUInt() : 0;
 	}
 
 	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;

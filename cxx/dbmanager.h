@@ -102,6 +102,7 @@ public:
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
+	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
@@ -110,17 +111,22 @@ signals:
 	void databaseFree();
 	void getPage(QQuickItem* item, const uint id);
 	void getItem(QQuickItem* item, const uint id);
+	void internalSignal(const uint id);
+
+public slots:
+	void bridge(QQuickItem* item, const uint id);
 
 private:
 	int m_MesoId;
 	uint m_MesoIdx;
+	uint m_expectedPageId;
 	QString m_MesoIdStr;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
 	RunCommands* m_runCommands;
 	TPListModel* m_model;
-	QMap<QString,uint> m_WorkerLock;
+	QMap<QString,int> m_WorkerLock;
 	uint m_insertid;
 	QList<TPMesocycleClass*> m_MesoManager;
 
