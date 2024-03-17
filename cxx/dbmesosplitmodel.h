@@ -20,7 +20,6 @@ Q_PROPERTY(QString setsReps2 READ setsReps2 WRITE setSetsReps2 FINAL)
 Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight FINAL)
 Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1 FINAL)
 Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2 FINAL)
-Q_PROPERTY(bool splitModified READ splitModified WRITE setSplitModified NOTIFY splitModifiedChanged)
 
 public:
 	enum RoleNames {
@@ -38,16 +37,6 @@ public:
 	};
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr);
-
-	bool splitModified() const { return m_splitModified; }
-	void setSplitModified(const bool bModified)
-	{
-		if (m_splitModified != bModified)
-		{
-			m_splitModified = bModified;
-			emit splitModifiedChanged();
-		}
-	}
 
 	QString exerciseName() const { return data(index(currentRow(), 0), exerciseNameRole).toString(); }
 	void setExerciseName(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseNameRole); }
@@ -90,12 +79,8 @@ public:
 	Q_INVOKABLE void changeExercise(const QString& name1, const QString& name2, const QString& sets,
 						const QString& reps, const QString& weight, const uint operation);
 
-signals:
-	void splitModifiedChanged();
-
 private:
 	uint m_nextAddedExercisePos;
-	bool m_splitModified;
 };
 
 Q_DECLARE_METATYPE(DBMesoSplitModel*)

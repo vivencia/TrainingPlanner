@@ -57,7 +57,7 @@ Rectangle {
 		color: button.enabled ? textColor : "black"
 		font.weight: Font.ExtraBold
 		font.bold: true
-		font.pixelSize: AppSettings.fontSizeText
+		font.pixelSize: AppSettings.fontSizeText*0.9
 		leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
@@ -74,6 +74,7 @@ Rectangle {
 				anchors.bottom = button.bottom;
 				anchors.bottomMargin = 2;
 			}
+
 		}
 
 		FontMetrics {
@@ -86,7 +87,7 @@ Rectangle {
 	Image {
 		id: buttonImage
 		height: 20
-		width: height
+		width: 20
 		fillMode: Image.PreserveAspectFit
 		mirror: false
 		source: imageSource

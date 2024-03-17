@@ -11,17 +11,6 @@ Page {
 	property var firstTimeTip: null
 	property bool bFirstTime: false
 
-	header: IconLabel {
-		text: qsTr("  Training Program")
-		color: "white"
-		font.weight: Font.ExtraBold
-		font.pixelSize: AppSettings.titleFontSizePixelSize
-		icon.source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
-		font.styleName: "Semibold"
-		topPadding: 20
-		bottomPadding: 20
-	}
-
 	Image {
 		anchors.fill: parent
 		source: "qrc:/images/app_logo.png"
@@ -34,11 +23,48 @@ Page {
 		opacity: 0.7
 	}
 
+	header: ToolBar {
+		topPadding: 20
+		bottomPadding: 20
+		height: 60
+
+		background: Rectangle {
+			opacity: 0
+		}
+
+		Label {
+			text: qsTr("Training Program")
+			color: "white"
+			font.weight: Font.ExtraBold
+			font.pixelSize: AppSettings.fontSizeTitle
+			wrapMode: Text.WordWrap
+			anchors {
+				left: parent.left
+				leftMargin: 65
+				top: parent.top
+				right: parent.right
+				rightMargin: 5
+			}
+		}
+
+		Image {
+			source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
+			width: 50
+			height: 50
+			anchors {
+				left: parent.left
+				leftMargin: 10
+				verticalCenter: parent.verticalCenter
+			}
+		}
+	}
+
 	ListView {
 		id: mesosListView
 		anchors.fill: parent
 		anchors.leftMargin: 10
 		anchors.rightMargin: 10
+		anchors.topMargin: 40
 		spacing: 10
 
 		ScrollBar.vertical: ScrollBar {

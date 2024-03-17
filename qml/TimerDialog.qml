@@ -576,7 +576,6 @@ Dialog {
 			id: btnReset
 			text: qsTr("Reset")
 			visible: !timePickerOnly
-			font.pixelSize: AppSettings.fontSizePixelSize
 			enabled: bRunning ? false : bPaused
 			width: 70
 			height: 30
@@ -591,7 +590,6 @@ Dialog {
 		ButtonFlat {
 			id: btnUseTime
 			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
-			font.pixelSize: AppSettings.fontSizePixelSize
 			width: 70
 			height: 30
 			x: btnReset.x + btnReset.width + 2*btnStartPause.x

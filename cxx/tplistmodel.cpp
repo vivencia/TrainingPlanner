@@ -24,19 +24,6 @@ TPListModel::~TPListModel ()
 	m_indexProxy.clear();
 }
 
-void TPListModel::setEntireList( const QStringList& newlist )
-{
-	QStringList::const_iterator itr ( newlist.constBegin () );
-	const QStringList::const_iterator itr_end ( newlist.constEnd () );
-	m_modeldata.reserve(newlist.count());
-	m_indexProxy.reserve(newlist.count());
-	for ( uint idx(0); itr != itr_end; ++itr, ++idx )
-	{
-		m_modeldata.append(static_cast<QStringList>(*itr));
-		m_indexProxy.append(idx);
-	}
-}
-
 void TPListModel::updateList (const QStringList& list, const int row)
 {
 	const uint actual_row(m_indexProxy.at(row));
@@ -70,6 +57,7 @@ void TPListModel::clear()
 	m_modeldata.clear();
 	m_indexProxy.clear();
 	setReady(false);
+	setModified(true);
 	emit countChanged();
 	endRemoveRows();
 }
@@ -80,6 +68,32 @@ void TPListModel::setCurrentRow(const int row)
 	{
 		m_currentRow = row;
 		emit currentRowChanged();
+	}
+}
+
+void TPListModel::moveRow(const uint from, const uint to)
+{
+	if (from < count() && to < count())
+	{
+		const QModelIndex sourceParent(index(from < to ? from : to, 0));
+		const QModelIndex destinationParent(index(to > from ? to : from, 0));
+		const QStringList tempList(m_modeldata.at(from));
+		if (to > from)
+		{
+			for(uint i(from); i < to; ++i)
+				m_modeldata[i] = m_modeldata.at(i+1);
+		}
+		else
+		{
+			for(uint i(from); i > to; --i)
+				m_modeldata[i] = m_modeldata.at(i-1);
+		}
+		m_modeldata[to] = tempList;
+		QList<int> roles;
+		for (uint role(0); role < m_roleNames.count(); ++role)
+			roles.append(Qt::UserRole+role);
+		emit dataChanged(sourceParent, destinationParent, roles);
+		setModified(true);
 	}
 }
 
@@ -158,30 +172,4 @@ QString TPListModel::makeFilterString(const QString& text) const
 		} while (++itr != itr_end);
 	}
 	return filterStr;
-}
-
-QVariant TPListModel::data(const QModelIndex &index, int role) const
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		if (role == Qt::DisplayRole)
-			return m_modeldata.at(row).at(Qt::DisplayRole);
-	}
-	return QVariant();
-}
-
-bool TPListModel::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		if (role == Qt::DisplayRole)
-		{
-			m_modeldata[row].replace(role, value.toString());
-			emit dataChanged(index, index, QList<int>() << role);
-			return true;
-		}
-	}
-	return false;
 }

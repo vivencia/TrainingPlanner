@@ -23,6 +23,7 @@ QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
+Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 
@@ -46,7 +47,16 @@ public:
 
 	virtual ~TPListModel () override;
 
-	Q_INVOKABLE void setEntireList( const QStringList& newlist );
+	bool modified() const { return m_bModified; }
+	void setModified(const bool bModified)
+	{
+		if (m_bModified != bModified)
+		{
+			m_bModified = bModified;
+			emit modifiedChanged();
+		}
+	}
+
 	Q_INVOKABLE void updateList (const QStringList& list, const int row);
 	Q_INVOKABLE void removeFromList (const int row);
 	Q_INVOKABLE void appendList(const QStringList& list);
@@ -55,16 +65,11 @@ public:
 	Q_INVOKABLE inline uint count() const { return m_indexProxy.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
 	Q_INVOKABLE void setCurrentRow(const int row);
+	Q_INVOKABLE void moveRow(const uint from, const uint to);
 
 	Q_INVOKABLE void setFilter(const QString& filter);
 	Q_INVOKABLE QString makeFilterString(const QString& text) const;
 	//Q_INVOKABLE void set(const uint row, const uint field, const QString& value) { m_modeldata.at[m_indexProxy.at(row)][field] = value; }
-
-	inline void set(const uint row, const uint field, const QString& value)
-	{
-		m_modeldata[row].replace(field, value);
-		emit dataChanged(index(row), index(row), QList<int>() << Qt::UserRole + field);
-	}
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{
@@ -117,12 +122,13 @@ public:
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
 	inline virtual int rowCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return count(); }
-	virtual QVariant data(const QModelIndex &index, int role) const override;
-	virtual bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+	inline virtual QVariant data(const QModelIndex &, int) const override { return QVariant(); }
+	inline virtual bool setData(const QModelIndex &, const QVariant &, int) override { return false; }
 
 signals:
 	void countChanged();
 	void currentRowChanged();
+	void modifiedChanged();
 
 protected:
 	// return the roles mapping to be used by QML
@@ -132,7 +138,7 @@ protected:
 	QList<uint> m_indexProxy;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
-	bool m_bFilterApplied, m_bReady;
+	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
 

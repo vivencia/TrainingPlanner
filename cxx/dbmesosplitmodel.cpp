@@ -127,7 +127,7 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			default: return false;
 		}
 		emit dataChanged(index, index, QList<int>() << role);
-		setSplitModified(true);
+		setModified(true);
 		return true;
 	}
 	return false;

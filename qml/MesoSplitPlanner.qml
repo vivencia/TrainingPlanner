@@ -12,6 +12,7 @@ Frame {
 	required property Item parentItem
 
 	property string filterString: ""
+	property int removalSecs: 0
 
 	property string prevMesoName: ""
 	property int prevMesoId: -1
@@ -33,17 +34,17 @@ Frame {
 		property int idxToRemove
 
 		onTriggered: {
-			if ( seconds === 0 ) {
+			if ( removalSecs === 0 ) {
 				undoTimer.stop();
 				splitModel.removeExercise(idxToRemove);
 				if (idxToRemove > 0)
 					--idxToRemove;
 				if (splitModel.count === 0)
 					appendNewExerciseToDivision();
-				splitModel.setsplitModel.currentRow(idxToRemove);
+				splitModel.setCurrentRow(idxToRemove);
 			}
 			else {
-				seconds = seconds - 1000;
+				removalSecs = removalSecs - 1000;
 				start();
 			}
 		}
@@ -149,12 +150,49 @@ Frame {
 						textColor: "black"
 						indicatorColor: "black"
 						checked: index === splitModel.currentRow
-						Layout.minimumWidth: parent.width - 40
-						Layout.maximumWidth: parent.width - 40
-						width: parent.width - 40
+						width: parent.width
 
 						onClicked: {
 							splitModel.currentRow = index;
+						}
+
+						RoundButton {
+							id: btnMoveExerciseUp
+							anchors.right: btnMoveExerciseDown.left
+							anchors.verticalCenter: parent.verticalCenter
+							height: 30
+							width: 30
+							padding: 5
+							enabled: index > 0
+
+							Image {
+								source: "qrc:/images/"+darkIconFolder+"up.png"
+								anchors.verticalCenter: parent.verticalCenter
+								anchors.horizontalCenter: parent.horizontalCenter
+								height: 25
+								width: 25
+							}
+
+							onClicked: splitModel.moveRow(index,index-1);
+						}
+						RoundButton {
+							id: btnMoveExerciseDown
+							anchors.right: parent.right
+							anchors.verticalCenter: parent.verticalCenter
+							height: 30
+							width: 30
+							padding: 5
+							enabled: index < splitModel.count-1
+
+							Image {
+								source: "qrc:/images/"+darkIconFolder+"down.png"
+								anchors.verticalCenter: parent.verticalCenter
+								anchors.horizontalCenter: parent.horizontalCenter
+								height: 25
+								width: 25
+							}
+
+							onClicked: splitModel.moveRow(index,index+1);
 						}
 					}
 
@@ -464,30 +502,6 @@ Frame {
 							}
 						}
 					} //RowLayout
-
-					ToolButton {
-						id: btnAddExercise
-						height: 25
-						text: qsTr("Add exercise")
-						font.capitalization: Font.MixedCase
-						font.bold: true
-						display: AbstractButton.TextBesideIcon
-						visible: index === splitModel.count - 1
-						Layout.alignment: Qt.AlignCenter
-						Layout.minimumWidth: 150
-						icon.source: "qrc:/images/"+darkIconFolder+"add-new.png"
-						icon.width: 25
-						icon.height: 25
-
-						onClicked: {
-							if (btnEditExercise.enabled)
-								btnEditExercise.clicked();
-
-							appendNewExerciseToDivision();
-							lstSplitExercises.currentIndex = splitModel.currentRow;
-							lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
-						}
-					} //btnAddExercise
 				} //ColumnLayout
 
 				contentItem: Rectangle {
@@ -536,7 +550,7 @@ Frame {
 					}
 
 					Label {
-						text: qsTr("Removing in " + seconds/1000 + "s")
+						text: qsTr("Removing in " + removalSecs/1000 + "s")
 						color: "white"
 						padding: 5
 						anchors.fill: parent
@@ -553,31 +567,12 @@ Frame {
 				} //swipe.right
 
 				swipe.onCompleted: {
-					seconds = 4000;
+					removalSecs = 4000;
 					undoTimer.init(index);
 				}
 			} //delegate: SwipeDelegate
 		} //ListView
-
-		ButtonFlat {
-			id: btnSave
-			text: qsTr("Save Plan for division ") + splitLetter
-			Layout.alignment: Qt.AlignCenter
-			Layout.topMargin: 10
-			enabled: splitModel.splitModified
-
-			onClicked: {
-				appDB.pass_object(splitModel);
-				appDB.updateMesoSplitComplete(splitLetter);
-				requestSimpleExercisesList(null, false, 0);
-			}
-		}
 	} //ColumnLayout
-
-	Component.onCompleted: {
-		if (Qt.platform.os === "android")
-			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
-	}
 
 	function init() {
 		if (splitModel.count === 0) {
@@ -595,17 +590,13 @@ Frame {
 		filterString = exercisesListModel.makeFilterString(txtSplit.text);
 	}
 
-	function appendNewExerciseToDivision() {
-		splitModel.addExercise(qsTr("Choose exercise..."), 0, "4", "12", "20");
-	}
-
-	property int lastAdded: 0
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
 			splitModel.changeExercise(name1, name2, nsets, nreps, nweight, multiplesel_opt);
 	}
 
-	function aboutToBeSuspended() {
-		if (splitModel.splitModified)
-			btnSave.clicked();
+	function appendNewExerciseToDivision() {
+		splitModel.addExercise(qsTr("Choose exercise..."), 0, "4", "12", "20");
+		lstSplitExercises.currentIndex = splitModel.currentRow;
+		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
 	}
 } //Page

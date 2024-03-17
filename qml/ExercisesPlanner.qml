@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import com.vivenciasoftware.qmlcomponents
+
 Page {
 	id: pagePlanner
 	objectName: "exercisesPlanner"
@@ -15,6 +17,8 @@ Page {
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
 	property var pageThatRequestedSimpleList: null
+
+	property alias currentPage: splitView.currentItem
 
 	contentItem {
 		Keys.onPressed: (event) => {
@@ -47,19 +51,93 @@ Page {
 		visible: !bottomPane.shown
 	}
 
+	function requestSimpleExerciseList(object, visible) {
+		pageThatRequestedSimpleList = visible ? object : null;
+		bShowSimpleExercisesList = visible;
+	}
+
+	function hideSimpleExerciseList() {
+		bottomPane.shown = false;
+	}
+
+	function aboutToBeSuspended() {
+		if (currentPage.splitModel.splitModified)
+			btnSave.clicked();
+	}
+
 	footer: ToolBar {
+		id: splitToolBar
+		width: parent.width
+		height: 55
+		visible: !bShowSimpleExercisesList
+
+		background: Rectangle {
+			color: primaryDarkColor
+			opacity: 0.7
+		}
+
+		ButtonFlat {
+			id: btnSave
+			text: qsTr("Save")
+			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			textUnderIcon: true
+			enabled: currentPage ? currentPage.splitModel.modified : false
+			anchors.left: parent.left
+			anchors.leftMargin: 5
+			anchors.verticalCenter: parent.verticalCenter
+
+			onClicked: {
+				appDB.pass_object(currentPage.splitModel);
+				appDB.updateMesoSplitComplete(currentPage.splitLetter);
+				requestSimpleExercisesList(null, false, 0);
+			}
+		}
+
+		ButtonFlat {
+			id: btnClearPlan
+			text: qsTr("Clear")
+			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
+			textUnderIcon: true
+			enabled: currentPage ? currentPage.splitModel.count > 0 : false
+			anchors.left: btnSave.right
+			anchors.verticalCenter: parent.verticalCenter
+
+			onClicked: {
+				currentPage.splitModel.clear();
+				currentPage.appendNewExerciseToDivision();
+				requestSimpleExercisesList(null, false, 0);
+			}
+		}
+
+		ButtonFlat {
+			id: btnAddExercise
+			text: qsTr("Add exercise")
+			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
+			textUnderIcon: true
+			anchors.right: parent.right
+			anchors.rightMargin: 5
+			anchors.verticalCenter: parent.verticalCenter
+
+			onClicked: currentPage.appendNewExerciseToDivision();
+		} //btnAddExercise
+	}
+
+	ColumnLayout {
 		id: bottomPane
 		width: parent.width
-		height: shown ? parent.height * 0.5 : btnShowHideList.height
-		visible: bShowSimpleExercisesList
 		spacing: 0
-		padding: 0
-		property bool shown: false
+		visible: bShowSimpleExercisesList
+		height: shown ? parent.height * 0.5 : btnShowHideList.height
+		property bool shown: true
 
 		onVisibleChanged: {
 			shown = visible;
-			if (shown)
-				exercisesList.setFilter(pageThatRequestedSimpleList.filterString);
+		}
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
 		}
 
 		Behavior on height {
@@ -68,44 +146,33 @@ Page {
 			}
 		}
 
-		background: Rectangle {
-			opacity: 0.3
-			color: paneBackgroundColor
+		ButtonFlat {
+			id: btnShowHideList
+			imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
+			imageSize: 60
+			onClicked: bottomPane.shown = !bottomPane.shown;
+			Layout.fillWidth: true
+			Layout.topMargin: 0
+			height: 10
+			width: bottomPane.width
 		}
 
-		ColumnLayout {
-			width: parent.width
-			height: parent.height
-			spacing: 0
+		ExercisesListView {
+			id: exercisesList
+			Layout.fillWidth: true
+			Layout.topMargin: 5
+			Layout.alignment: Qt.AlignTop
+			Layout.rightMargin: 5
+			Layout.maximumHeight: parent.height - btnShowHideList.height
+			Layout.leftMargin: 5
+			canDoMultipleSelection: bEnableMultipleSelection
 
-			ButtonFlat {
-				id: btnShowHideList
-				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
-				imageSize: 60
-				onClicked: bottomPane.shown = !bottomPane.shown;
-				Layout.fillWidth: true
-				Layout.topMargin: 0
-				height: 10
-				width: bottomPane.width
-			}
-
-			ExercisesListView {
-				id: exercisesList
-				Layout.fillWidth: true
-				Layout.topMargin: 5
-				Layout.alignment: Qt.AlignTop
-				Layout.rightMargin: 5
-				Layout.maximumHeight: parent.height - btnShowHideList.height
-				Layout.leftMargin: 5
-				canDoMultipleSelection: bEnableMultipleSelection
-
-				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
-					if (pageThatRequestedSimpleList !== null)
-						pageThatRequestedSimpleList.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
-				}
+			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection_option) => {
+				if (pageThatRequestedSimpleList !== null)
+					pageThatRequestedSimpleList.changeModel(exerciseName, subName, sets, reps, weight, multipleSelection_option);
 			}
 		}
-	} //footer: ToolBar
+	} //ColumnLayout bottomPane
 
 	Component.onCompleted: {
 		function insertSplitPage(page, idx) {
@@ -114,14 +181,7 @@ Page {
 
 		appDB.getPage.connect(insertSplitPage);
 		appDB.getCompleteMesoSplit(mesoSplit);
-	}
-
-	function requestSimpleExerciseList(object, visible) {
-		pageThatRequestedSimpleList = visible ? object : null;
-		bShowSimpleExercisesList = visible;
-	}
-
-	function hideSimpleExerciseList() {
-		bottomPane.shown = false;
+		if (Qt.platform.os === "android")
+			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
 	}
 } //Page

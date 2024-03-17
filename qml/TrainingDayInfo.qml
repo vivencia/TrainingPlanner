@@ -26,7 +26,7 @@ Page {
 	property string mesoSplit
 	property string mesoName
 	property bool bRealMeso: true
-	property bool bModified: tDayModel.tDayModified
+	readonly property bool bModified: tDayModel.modified
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
@@ -87,6 +87,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
+			tDayModel.modified = true;
 			bDayIsFinished = false;
 		}
 	}
@@ -98,6 +99,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
+			tDayModel.modified = true;
 			if (tDayModel.exercisesNumber() > 0)
 			{
 				//hideFloatingButton(-1); //Day is finished
@@ -277,7 +279,7 @@ Page {
 				wrapMode: Text.WordWrap
 				text: qsTr("Trainning day <b>#") + tDay + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
 					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + splitLetter + "</b>"
-				font.pixelSize: AppSettings.titleFontSizePixelSize
+				font.pixelSize: AppSettings.fontSizeTitle
 				color: "white"
 			}
 
@@ -307,18 +309,13 @@ Page {
 
 					onActivated: (index) => {
 						const splitletter = tDayModel.splitLetter();
-						if (splitletter !== "") {
-							if (splitletter !== cboModel.get(index).value)
-								frmMesoSplitAdjust.visible = true;
-							else {
-								frmMesoSplitAdjust.visible = txtTDay.text !== tDayModel.trainingDay();
-								return;
-							}
-						}
+						if (splitletter !== cboModel.get(index).value)
+							chkAdjustCalendar.visible = true;
 						else {
-							if (splitLetter === cboModel.get(index).value)
-								return;
+							chkAdjustCalendar.visible = txtTDay.text !== tDayModel.trainingDay();
+							return;
 						}
+
 						splitLetter = cboModel.get(index).value;
 						if (splitLetter === 'R')
 							tDay = "0";
@@ -327,6 +324,7 @@ Page {
 							tDay = txtTDay.text;
 							appDB.verifyTDayOptions(mainDate, splitLetter);
 						}
+						tDayModel.modified = true;
 					}			
 				} //TPComboBox
 
@@ -357,9 +355,9 @@ Page {
 						const tday = tDayModel.trainingDay();
 						if (tday !== "") {
 							if (text !== tday)
-								frmMesoSplitAdjust.visible = true;
+								chkAdjustCalendar.visible = true;
 							else {
-								frmMesoSplitAdjust.visible = cboSplitLetter.currentText !== tDayModel.splitLetter();
+								chkAdjustCalendar.visible = cboSplitLetter.currentText !== tDayModel.splitLetter();
 								return;
 							}
 						}
@@ -368,6 +366,7 @@ Page {
 								return;
 						}
 						tDay = text;
+						tDayModel.modified = true;
 					}
 				} //txtTDay
 			} //GridLayout
@@ -431,6 +430,7 @@ Page {
 
 				onTextEdited: {
 					location = text;
+					tDayModel.modified = true;
 				}
 
 				Component.onCompleted: {
@@ -618,6 +618,7 @@ Page {
 
 					onEditingFinished: {
 						trainingNotes = text;
+						tDayModel.modified = true;
 					}
 
 					Component.onCompleted: {
@@ -673,7 +674,7 @@ Page {
 				text: qsTr("--- EXERCISES ---")
 				color: "white"
 				font.weight: Font.Black
-				font.pixelSize: AppSettings.titleFontSizePixelSize
+				font.pixelSize: AppSettings.fontSizeTitle
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 2
 			}

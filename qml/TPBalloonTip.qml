@@ -82,7 +82,7 @@ Popup {
 	FontMetrics {
 		id: fontMetrics
 		font.family: lblMessage.font.family
-		font.pixelSize: AppSettings.titleFontSizePixelSize
+		font.pixelSize: AppSettings.fontSizeTitle
 	}
 
 	Label {
@@ -90,7 +90,7 @@ Popup {
 		text: title
 		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
-		font.pixelSize: AppSettings.titleFontSizePixelSize
+		font.pixelSize: AppSettings.fontSizeTitle
 		font.weight: Font.Black
 		width: parent.width - 20
 		height: 30

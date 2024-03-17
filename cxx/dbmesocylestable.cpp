@@ -108,6 +108,7 @@ void DBMesocyclesTable::newMesocycle()
 			m_data[0] = query.lastInsertId().toString();
 			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 			m_model->updateList(m_data, m_execArgs.at(0).toUInt());
+			m_model->setModified(false);
 			m_opcode = OP_ADD;
 		}
 		mSqlLiteDB.close();
@@ -142,6 +143,7 @@ void DBMesocyclesTable::updateMesocycle()
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
 		m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 		m_model->updateList(m_data, m_execArgs.at(0).toUInt());
+		m_model->setModified(false);
 	}
 	else
 	{

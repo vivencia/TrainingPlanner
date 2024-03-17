@@ -15,8 +15,5 @@ Settings {
 	property int fontSizeLists
 	property int fontSizeText
 	property int fontSizeTitle
-	property int fontSizePixelSize
-	property int titleFontSizePixelSize
-	property int hugeFontSizePixelSize
 	property string exercisesListVersion
 }

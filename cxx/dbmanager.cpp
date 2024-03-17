@@ -683,8 +683,7 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] {
-		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setId(-1);
-		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setTDayModified(true);
+		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setModified(true);
 		return m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
 	} );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });

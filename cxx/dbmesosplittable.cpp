@@ -322,7 +322,7 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 
 	if (m_result)
 	{
-		static_cast<DBMesoSplitModel*>(m_model)->setSplitModified(false);
+		m_model->setModified(false);
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete SUCCESS")
 	}
 	else

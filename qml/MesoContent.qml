@@ -104,7 +104,7 @@ Page {
 				Text {
 					anchors.centerIn: parent
 					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
-					font.pixelSize: AppSettings.titleFontSizePixelSize
+					font.pixelSize: AppSettings.fontSizeTitle
 					font.bold: true
 				}
 			}

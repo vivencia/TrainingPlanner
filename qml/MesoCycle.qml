@@ -807,17 +807,17 @@ Page {
 					mesoIdx = mesocyclesModel.count - 1;
 				}
 				else {
-					//function canProceed() {
-					//	appDB.databaseReady.disconnect(canProceed);
-					//	appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+					function canProceed() {
+						appDB.databaseReady.disconnect(canProceed);
+						appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
 						if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
 							appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 						}
-					//}
-					//appDB.databaseReady.connect(canProceed);
-					//appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
+					}
+					appDB.databaseReady.connect(canProceed);
+					appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 				}
 				bModified = false;
 			} //onClicked

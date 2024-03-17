@@ -11,7 +11,7 @@ ToolTip {
 	FontMetrics {
 		id: fontMetrics
 		font.family: textPart.font.family
-		font.pixelSize: AppSettings.titleFontSizePixelSize
+		font.pixelSize: AppSettings.fontSizeTitle
 	}
 
 	onVisibleChanged: {
@@ -54,7 +54,7 @@ ToolTip {
 		id: textPart
 		text: message
 		font.bold: true
-		font.pixelSize: AppSettings.titleFontSizePixelSize
+		font.pixelSize: AppSettings.fontSizeTitle
 		color: "white"
 		width: fontMetrics.boundingRect(text).width + 10
 		height: fontMetrics.boundingRect(text).height + 5

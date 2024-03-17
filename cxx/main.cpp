@@ -25,9 +25,6 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue( "fontSizeLists", 9 );
 		settingsObj.setValue( "fontSizeText", 12 );
 		settingsObj.setValue( "fontSizeTitle", 21 );
-		settingsObj.setValue( "fontSizePixelSize", qApp->font().pixelSize() );
-		settingsObj.setValue( "titleFontSizePixelSize", qApp->font().pixelSize() * 1.25 );
-		settingsObj.setValue( "hugeFontSizePixelSize", qApp->font().pixelSize() * 2 );
 		settingsObj.setValue( "exercisesListVersion", "0");
 		settingsObj.sync();
 	}

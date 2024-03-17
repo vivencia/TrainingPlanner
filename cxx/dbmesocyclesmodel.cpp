@@ -57,6 +57,7 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 			case mesoDrugsRole:
 			case realMesoRole:
 				m_modeldata[row][role-Qt::UserRole] = value.toString();
+				setModified(true);
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}

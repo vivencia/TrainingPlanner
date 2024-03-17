@@ -61,5 +61,11 @@
         <file>images/black/multi-selection.png</file>
         <file>images/black/statistics.png</file>
         <file>images/white/statistics.png</file>
+        <file>images/black/clear.png</file>
+        <file>images/white/clear.png</file>
+        <file>images/black/up.png</file>
+        <file>images/white/up.png</file>
+        <file>images/black/down.png</file>
+        <file>images/white/down.png</file>
     </qresource>
 </RCC>
