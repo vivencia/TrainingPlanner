@@ -10,8 +10,6 @@ FocusScope {
 	property alias text: txtMain.text
 	property string windowTitle
 	property var alternativeLabels: []
-	property bool timeSetFirstSet: false
-	property bool timeSetNotFirstSet: false
 
 	property bool bClearInput: true
 	property int fontPixelSize: AppSettings.fontSizeText
@@ -94,7 +92,7 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: timeSetNotFirstSet
+			visible: type === SetInputField.Type.TimeType
 
 			anchors {
 				left: lblMain.visible ? lblMain.right : parent.left
@@ -119,7 +117,6 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: !timeSetFirstSet
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
@@ -251,7 +248,6 @@ FocusScope {
 			spacing: 2
 			width: 25
 			height: 25
-			visible: !timeSetFirstSet
 
 			anchors {
 				left: txtMain.right
@@ -318,7 +314,7 @@ FocusScope {
 			spacing: 2
 			width: 20
 			height: 20
-			visible: timeSetNotFirstSet
+			visible: type === SetInputField.Type.TimeType
 
 			anchors {
 				left: btnIncrease.right
@@ -340,7 +336,7 @@ FocusScope {
 		}
 
 		Label {
-			text: timeSetFirstSet ? qsTr("<- Time before exercises is not computed") : qsTr("<- Leading to this set")
+			text: qsTr("<- Leading to this set")
 			visible: type === SetInputField.Type.TimeType
 			anchors {
 				left: btnDecreaseSeconds.visible ? btnDecreaseSeconds.right : txtMain.right
@@ -369,7 +365,6 @@ FocusScope {
 	}
 
 	function openTimerDialog() {
-		if (timeSetNotFirstSet)
-			requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
+		requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
 	}
 } //FocusScope

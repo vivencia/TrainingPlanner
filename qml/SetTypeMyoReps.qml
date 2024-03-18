@@ -56,22 +56,16 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
-			focus: setNumber !== 0
-			timeSetFirstSet: setNumber === 0;
-			timeSetNotFirstSet: setNumber > 0;
 			windowTitle: lblSetNumber.text
+			visible: setNumber > 0
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
-			}
-			onEnterOrReturnKeyPressed: {
-				txtNSubSets.forceActiveFocus();
-			}
+			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNSubSets.forceActiveFocus();
 		}
 
 		SetInputField {

@@ -41,9 +41,7 @@ FocusScope {
 					height: 20
 					width: 20
 				}
-				onClicked: {
-					appDB.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: appDB.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
 
@@ -52,22 +50,15 @@ FocusScope {
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
-			focus: setNumber !== 0
-			timeSetFirstSet: setNumber === 0;
-			timeSetNotFirstSet: setNumber > 0;
+			visible: setNumber > 0
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
-			}
-
-			onEnterOrReturnKeyPressed: {
-				txtNReps.forceActiveFocus();
-			}
+			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNSubSets.forceActiveFocus();
 		}
 
 		SetInputField {

@@ -251,7 +251,7 @@ void DBTrainingDayTable::updateTrainingDay()
 	if (m_result)
 	{
 		MSG_OUT("DBTrainingDayTable updateTrainingDay SUCCESS")
-		m_model->updateList(m_data, m_model->currentRow());
+		m_model->updateList(m_data, 0); //each training day uses its own model, therefore only one row: 0
 		m_model->setModified(false);
 	}
 	else

@@ -154,22 +154,15 @@ Item {
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
-			focus: setNumber !== 0
-			timeSetFirstSet: setNumber === 0;
-			timeSetNotFirstSet: setNumber > 0;
+			visible: setNumber > 0
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			onEnterOrReturnKeyPressed: {
-				txtNReps1.forceActiveFocus();
-			}
-
-			Component.onCompleted: {
-				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
-			}
+			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 		}
 
 		GridLayout {

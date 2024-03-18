@@ -52,8 +52,9 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 		const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
 		m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
 					QQmlComponent::Asynchronous);
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return TPMesocycleClass::createMesocyclePage_part2(); } );
 	}
+	if (m_mesoComponent->status() != QQmlComponent::Ready)
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return TPMesocycleClass::createMesocyclePage_part2(); } );
 	else
 		createMesocyclePage_part2();
 }
@@ -87,12 +88,13 @@ void TPMesocycleClass::createMesoSplitPage()
 		m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 		m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 		m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_qmlSplitObjectParent));
-		m_splitProperties.insert(QStringLiteral("splitModel"), QVariant());
 
 		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
-				return TPMesocycleClass::createMesoSplitPage_part2(); } );
 	}
+	if (m_splitComponent->status() != QQmlComponent::Ready)
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createMesoSplitPage_part2(); } );
+	else
+		createMesoSplitPage_part2();
 }
 
 void TPMesocycleClass::createMesoSplitPage_part2()
@@ -148,9 +150,10 @@ uint TPMesocycleClass::createMesoCalendarPage()
 		m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 		m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_mesosCalendarModel));
 		m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
+	}
+	if (m_calComponent->status() != QQmlComponent::Ready)
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 					{ return createMesoCalendarPage_part2(); } );
-	}
 	else
 		createMesoCalendarPage_part2();
 	return calPageCreateId;
@@ -192,8 +195,9 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 
 			m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
-			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createTrainingDayPage_part2(); } );
 		}
+		if (m_tDayComponent->status() != QQmlComponent::Ready)
+			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createTrainingDayPage_part2(); } );
 		else
 			createTrainingDayPage_part2();
 	}
@@ -230,8 +234,9 @@ uint TPMesocycleClass::createExerciseObject(const QString& exerciseName)
 		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
-		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExerciseObject_part2(); } );
 	}
+	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
+		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExerciseObject_part2(); } );
 	else
 		createExerciseObject_part2();
 	return tDayExerciseCreateId;
@@ -269,7 +274,10 @@ void TPMesocycleClass::createExercisesObjects()
 		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
-		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExercisesObjects(); } );
+		if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
+			connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExercisesObjects(); } );
+		else
+			createExercisesObjects();
 	}
 	else {
 		for(uint i(0); i < m_CurrenttDayModel->exercisesNumber(); ++i)
@@ -314,8 +322,11 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 
 		m_setComponents[set_type] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type]), QQmlComponent::Asynchronous, parentLayout);
 	}
-	connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
-		{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
+	if (m_setComponents[set_type]->status() != QQmlComponent::Ready)
+		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
+			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
+	else
+		createSetObject_part2(set_type, set_number, exercise_idx);
 }
 
 void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx)

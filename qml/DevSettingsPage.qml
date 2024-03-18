@@ -44,24 +44,6 @@ Page {
 						if (checked) optChosen = 3;
 					}
 				}
-				RadioButton {
-					id: optDelSets
-					checked: false
-					text: qsTr("Delete Sets Table")
-
-					onCheckedChanged: {
-						if (checked) optChosen = 4;
-					}
-				}
-				RadioButton {
-					id: optDelDay
-					checked: false
-					text: qsTr("Delete Day Info Table")
-
-					onCheckedChanged: {
-						if (checked) optChosen = 5;
-					}
-				}
 			} //Column Layout
 		} //Frame
 
@@ -79,22 +61,12 @@ Page {
 						appDB.deleteMesocyclesTable();
 						appDB.deleteMesoSplitTable();
 						appDB.deleteMesoCalendarTable();
-
-						initMesocycles();
 					break;
 					case 2:
 						appDB.deleteMesoCalendarTable();
 					break;
 					case 3:
 						appDB.deleteExercisesTable();
-					break;
-					case 4:
-						//Database.removeSetsInfoTable();
-						//Database.createSetsInfoTable();
-					break;
-					case 5:
-						//Database.removeTrainingDayTable();
-						//Database.createTrainingDayTable();
 					break;
 				}
 				optChosen = 0;

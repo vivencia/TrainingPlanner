@@ -137,8 +137,12 @@ ApplicationWindow {
 					appDB.getTrainingDay(today);
 				}
 
-				appDB.databaseReady.connect(mesoCalendarOK);
-				appDB.getMesoCalendar(false);
+				if (mesoCalendarModel.count > 0)
+					mesoCalendarOK();
+				else {
+					appDB.databaseReady.connect(mesoCalendarOK);
+					appDB.getMesoCalendar(false);
+				}
 			} //onClicked
 		} //TabButton
 	} //footer

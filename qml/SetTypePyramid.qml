@@ -50,22 +50,16 @@ Item {
 			type: SetInputField.Type.TimeType
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
-			focus: setNumber !== 0
-			timeSetFirstSet: setNumber === 0;
-			timeSetNotFirstSet: setNumber > 0;
+			visible: setNumber > 0
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			onEnterOrReturnKeyPressed: {
-				txtNReps.forceActiveFocus();
-			}
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 
-			Component.onCompleted: {
-				text = setNumber !== 0 ? tDayModel.setRestTime(setNumber, exerciseIdx) : "00:00";
-			}
+			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
 		}
 
 		SetInputField {
@@ -73,18 +67,13 @@ Item {
 			type: SetInputField.Type.RepType
 			availableWidth: setItem.width
 
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetReps(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setReps(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNSubSets.forceActiveFocus();
 		}
 
 		SetInputField {

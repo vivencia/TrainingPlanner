@@ -212,17 +212,16 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 									"training_split=\'%3\' WHERE id=%4")
 									.arg(m_data.at(0), m_data.at(1), m_data.at(2), strId) );
 			m_result = query.exec();
+			if (m_result)
+			{
+				static_cast<DBMesoCalendarModel*>(m_model)->updateDay(date, m_data.at(1), m_data.at(2));
+				MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry SUCCESS")
+			}
 		}
 		mSqlLiteDB.close();
 	}
 
-	if (m_result)
-	{
-		MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry SUCCESS")
-		if (m_model)
-			m_model->updateList(m_data, m_model->currentRow());
-	}
-	else
+	if (!m_result)
 	{
 		MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry Driver error:  " << mSqlLiteDB.lastError().driverText())

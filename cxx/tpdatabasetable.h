@@ -21,7 +21,7 @@ public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
 		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
 
-	void createTable() {}
+	virtual void createTable() = 0;
 	inline const QStringList& data () const { return m_data; }
 	inline OP_CODES opCode() const { return m_opcode; }
 	inline bool result() const { return m_result; }

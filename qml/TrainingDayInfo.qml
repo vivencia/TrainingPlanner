@@ -25,6 +25,7 @@ Page {
 
 	property string mesoSplit
 	property string mesoName
+	property string splitText
 	property bool bRealMeso: true
 	readonly property bool bModified: tDayModel.modified
 	property var previousTDays: []
@@ -277,8 +278,7 @@ Page {
 				Layout.leftMargin: 5
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: qsTr("Trainning day <b>#") + tDay + qsTr("</b> of <b>") + mesoName + "</b>: <b>" +
-					runCmd.formatDate(mainDate) + qsTr("</b> Division: <b>") + splitLetter + "</b>"
+				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
 				font.pixelSize: AppSettings.fontSizeTitle
 				color: "white"
 			}
@@ -309,21 +309,17 @@ Page {
 
 					onActivated: (index) => {
 						const splitletter = tDayModel.splitLetter();
-						if (splitletter !== cboModel.get(index).value)
-							chkAdjustCalendar.visible = true;
-						else {
-							chkAdjustCalendar.visible = txtTDay.text !== tDayModel.trainingDay();
-							return;
-						}
+						chkAdjustCalendar.visible = splitletter !== cboModel.get(index).value;
 
 						splitLetter = cboModel.get(index).value;
 						if (splitLetter === 'R')
 							tDay = "0";
 						else
 						{
-							tDay = txtTDay.text;
-							appDB.verifyTDayOptions(mainDate, splitLetter);
+							if (tDay === "0")
+								tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
 						}
+						appDB.verifyTDayOptions(mainDate, splitLetter);
 						tDayModel.modified = true;
 					}			
 				} //TPComboBox
@@ -333,6 +329,7 @@ Page {
 					color: "white"
 					font.pixelSize: AppSettings.fontSizeText
 					font.bold: true
+					visible: splitLetter !== 'R'
 					Layout.row: 1
 					Layout.column: 0
 				}
@@ -340,34 +337,10 @@ Page {
 					id: txtTDay
 					text: tDay
 					width: 50
-					maximumLength: 3
-					validator: IntValidator { bottom: 0; top: 365; }
-					inputMethodHints: Qt.ImhDigitsOnly
-					readOnly: splitLetter === 'R'
+					visible: splitLetter !== 'R'
+					readOnly: true
 					Layout.row: 1
 					Layout.column: 1
-
-					onTextEdited: {
-						if ( text === "") {
-							text = tDay;
-							return;
-						}
-						const tday = tDayModel.trainingDay();
-						if (tday !== "") {
-							if (text !== tday)
-								chkAdjustCalendar.visible = true;
-							else {
-								chkAdjustCalendar.visible = cboSplitLetter.currentText !== tDayModel.splitLetter();
-								return;
-							}
-						}
-						else {
-							if (text == tDay)
-								return;
-						}
-						tDay = text;
-						tDayModel.modified = true;
-					}
 				} //txtTDay
 			} //GridLayout
 
@@ -419,11 +392,13 @@ Page {
 				font.pixelSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
+				visible: splitLetter !== 'R'
 			}
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
 				text: location
+				visible: splitLetter !== 'R'
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
@@ -440,6 +415,7 @@ Page {
 
 			Frame {
 				id: frmTrainingTime
+				visible: splitLetter !== 'R'
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 20
@@ -599,10 +575,12 @@ Page {
 				text: qsTr("This training session considerations:")
 				font.pixelSize: AppSettings.fontSizeText
 				font.bold: true
+				visible: splitLetter !== 'R'
 				color: "white"
 				Layout.leftMargin: 5
 			}
 			Flickable {
+				visible: splitLetter !== 'R'
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
@@ -675,6 +653,7 @@ Page {
 				color: "white"
 				font.weight: Font.Black
 				font.pixelSize: AppSettings.fontSizeTitle
+				visible: splitLetter !== 'R'
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 2
 			}
@@ -839,16 +818,6 @@ Page {
 				right:parent.right
 				top: colMain.bottom
 			}
-
-			/*DBTrainingDayModel {
-				id: tModel
-			}
-
-			ExerciseEntry {
-				id: exercise1
-				thisObjectIdx: 0
-				tDayModel: tModel
-			}*/
 		}
 
 		Item {
@@ -926,7 +895,6 @@ Page {
 	}
 
 	onSplitLetterChanged: {
-		var splitText;
 		switch (splitLetter) {
 			case 'A': splitText = mesoSplitModel.get(mesoIdx, 2); break;
 			case 'B': splitText = mesoSplitModel.get(mesoIdx, 3); break;
@@ -983,7 +951,7 @@ Page {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 55
-		visible: !bShowSimpleExercisesList
+		visible: !bottomPane.shown
 
 		background: Rectangle {
 			color: primaryDarkColor
@@ -1018,17 +986,13 @@ Page {
 					appDB.pass_object(tDayModel);
 					appDB.updateTrainingDay(tDayModel.id(), mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
 					appDB.updateTrainingDayExercises(tDayModel.id());
-					if (bRealMeso && chkAdjustCalendar.visible)
-					{
-						if (!chkAdjustCalendar.checked)
-							appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
-						else {
-							var newMesoSplit = mesoSplit;
-							newMesoSplit.replace(splitLetter, "");
-							newMesoSplit.padStart(newMesoSplit.length+1, splitLetter);
-							appDB.changeMesoCalendar(mainDate, mesocyclesModel.get(mesoIdx, 3), mesoSplit, true, true);
-						}
-					}
+				}
+				if (bRealMeso && chkAdjustCalendar.visible)
+				{
+					if (!chkAdjustCalendar.checked)
+						appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
+					else
+						mesoCalendarModel.updateModel(mesoSplit, mainDate, splitLetter, tDay);
 				}
 			}
 		} //btnSaveDay
@@ -1051,7 +1015,7 @@ Page {
 		ButtonFlat {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			enabled: !grpIntent.visible
+			enabled: splitLetter !== 'R' && !grpIntent.visible
 			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors.right: parent.right

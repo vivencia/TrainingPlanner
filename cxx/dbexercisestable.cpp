@@ -289,8 +289,7 @@ void DBExercisesTable::deleteExercisesTable()
 	m_result = mDBFile.remove();
 	if (m_result)
 	{
-		if (m_model)
-			m_model->clear();
+		m_model->clear();
 		m_opcode = OP_DELETE_TABLE;
 		MSG_OUT("DBExercisesTable deleteExercisesTable SUCCESS")
 	}

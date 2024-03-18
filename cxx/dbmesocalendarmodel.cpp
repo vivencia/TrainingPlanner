@@ -14,47 +14,6 @@ DBMesoCalendarModel::DBMesoCalendarModel(QObject *parent)
 	m_roleNames[isTrainingDayRole] = "isTrainingDay";
 }
 
-int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
-{
-	for( uint i(0); i < m_modeldata.count(); ++i)
-	{
-		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
-		{
-			if (day < m_modeldata.at(i).count())
-				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt();
-		}
-	}
-	return -1;
-}
-
-QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) const
-{
-	for( uint i(0); i < m_modeldata.count(); ++i)
-	{
-		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
-		{
-			if (day < m_modeldata.at(i).count())
-			{
-				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(3);
-			}
-		}
-	}
-	return QStringLiteral("N");
-}
-
-bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
-{
-	for( uint i(0); i < m_modeldata.count(); ++i)
-	{
-		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
-		{
-			if (day < m_modeldata.at(i).count())
-				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt() > 0;
-		}
-	}
-	return false;
-}
-
 void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit)
 {
 	const QString mesoid( QString::number(mesoId) );
@@ -197,4 +156,122 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 			}
 		}
 	}
+}
+
+void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay)
+{
+	const uint year(startDate.year());
+	const uint month(startDate.month()-1);
+	uint day(startDate.day()-1);
+	int idx(mesoSplit.indexOf(splitLetter));
+	uint tday(tDay.toUInt());
+	if (tday == 0)
+		tday = getLastTrainingDayBeforeDate(startDate);
+
+	for(uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(0).split(',').at(4).toUInt() == year)
+		{
+			if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() == month)
+			{
+				QStringList monthInfo(m_modeldata.at(i));
+				QStringList dayInfo;
+				do {
+					for(; day < monthInfo.count(); ++day)
+					{
+						dayInfo = monthInfo.at(day).split(',');
+						if (mesoSplit.at(idx) == u"R"_qs)
+							dayInfo[2] = u"0"_qs;
+						else
+							dayInfo[2] = QString::number(++tday);
+						dayInfo[3] = mesoSplit.at(idx);
+						m_modeldata[i][day] = dayInfo.join(',');
+						if (++idx >= mesoSplit.length())
+							idx = 0;
+					}
+				} while(++i < m_modeldata.count());
+				break;
+			}
+		}
+	}
+}
+
+void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter)
+{
+	const uint year(date.year());
+	const uint month(date.month()-1);
+	const uint day(date.day()-1);
+
+	for(uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(0).split(',').at(4).toUInt() == year)
+		{
+			if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() == month)
+			{
+				const QStringList dayInfo(m_modeldata.at(i).at(day).split(','));
+				m_modeldata[i][day] = dayInfo.at(0) + ',' + dayInfo.at(1) + ',' + tDay + ',' + splitLetter + ',' + dayInfo.at(4) + ',' + dayInfo.at(5);
+			}
+		}
+	}
+}
+
+int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt();
+		}
+	}
+	return -1;
+}
+
+QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+			{
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(3);
+			}
+		}
+	}
+	return QStringLiteral("N");
+}
+
+bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
+{
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(5).toUInt() == month)
+		{
+			if (day < m_modeldata.at(i).count())
+				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(2).toInt() > 0;
+		}
+	}
+	return false;
+}
+
+uint DBMesoCalendarModel::getLastTrainingDayBeforeDate(const QDate& date) const
+{
+	int month(date.month());
+	int day(date.day());
+	int tday(0);
+	do {
+		tday = getTrainingDay(month, day-1);
+		if (tday > 0)
+			return tday;
+		if (--day < 0)
+		{
+			if (--month < 0)
+				return 0;
+			QDate newDate(date.year(), month, 1);
+			day = newDate.daysInMonth();
+		}
+	} while (tday != -1);
+	return 0;
 }

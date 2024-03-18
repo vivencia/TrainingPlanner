@@ -242,8 +242,6 @@ void DbManager::cleanUp(TPDatabaseTable* dbObj)
 	emit databaseFree();
 	MSG_OUT("calling databaseReady()");
 	emit databaseReady();
-	disconnect(this, &DbManager::databaseFree, this, nullptr);
-	disconnect(this, &DbManager::databaseReady, this, nullptr);
 }
 
 void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
@@ -261,7 +259,8 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	else
 	{
 		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << m_WorkerLock[worker->objectName()])
-		connect( this, &DbManager::databaseFree, this, [&,thread, worker] () { return DbManager::startThread(thread, worker); } );
+		connect( this, &DbManager::databaseFree, this, [&,thread, worker] () {
+			return DbManager::startThread(thread, worker); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	}
 }
 
@@ -321,11 +320,12 @@ void DbManager::openExercisesListPage()
 		return;
 	}
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	connect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage );
+	connect( this, &DbManager::databaseFree, this, &DbManager::createExercisesListPage, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getAllExercises(); } );
 
 	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
-	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExercisesListPage(); });
+	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
+		return createExercisesListPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 }
 
 void DbManager::createExercisesListPage()
@@ -524,7 +524,8 @@ void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->getSplitModel(splitLetter)));
 			worker->addExecArg(m_MesoId);
 			worker->addExecArg(static_cast<QChar>(*itr));
-			connect( this, &DbManager::databaseReady, this, [&] { return m_MesoManager.at(m_MesoIdx)->createMesoSplitPage(); } );
+			connect( this, &DbManager::databaseReady, this, [&] { return m_MesoManager.at(m_MesoIdx)->createMesoSplitPage(); },
+						static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
 		}
 	} while (++itr != itr_end);
@@ -540,10 +541,14 @@ void DbManager::updateMesoSplitComplete(const QString& splitLetter)
 
 bool DbManager::mesoHasPlan(const uint meso_id, const QString& splitLetter) const
 {
-	DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
-	const bool ret(meso_split->mesoHasPlan(QString::number(meso_id), splitLetter));
-	delete meso_split;
-	return ret;
+	if (splitLetter != u"R"_qs)
+	{
+		DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
+		const bool ret(meso_split->mesoHasPlan(QString::number(meso_id), splitLetter));
+		delete meso_split;
+		return ret;
+	}
+	return false;
 }
 
 void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter)
@@ -558,6 +563,16 @@ void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DbManager::getMesoCalendar(const bool bCreatePage)
 {
+	if (!mesoCalendarModel->isReady())
+	{
+		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+		worker->addExecArg(m_MesoId);
+		if (bCreatePage)
+			connect( this, &DbManager::databaseReady, this, [&,bCreatePage] {
+				return getMesoCalendar(bCreatePage); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		createThread(worker, [worker] () { worker->getMesoCalendar(); });
+		return;
+	}
 	if (bCreatePage)
 	{
 		if (m_MesoManager.at(m_MesoIdx)->getCalendarPage() != nullptr)
@@ -566,17 +581,6 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 			return;
 		}
 		m_MesoManager.at(m_MesoIdx)->setMesoCalendarModel(mesoCalendarModel);
-	}
-	if (!mesoCalendarModel->isReady())
-	{
-		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-		worker->addExecArg(m_MesoId);
-		createThread(worker, [worker] () { worker->getMesoCalendar(); });
-		if (bCreatePage)
-			connect( this, &DbManager::databaseReady, this, [&,bCreatePage] { return getMesoCalendar(bCreatePage); } );
-	}
-	else
-	{
 		m_expectedPageId = calPageCreateId;
 		m_MesoManager.at(m_MesoIdx)->createMesoCalendarPage();
 	}
@@ -596,7 +600,7 @@ void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEn
 		connect(this, &DbManager::databaseReady, this, [&,newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday] ()
 		{
 			return changeMesoCalendar(newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday);
-		});
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(false);
 		return;
 	}
@@ -645,17 +649,19 @@ void DbManager::getTrainingDay(const QDate& date)
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->gettDayModel(date)));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] { return m_MesoManager.at(m_MesoIdx)->createTrainingDayPage(date); } );
+	connect( this, &DbManager::databaseReady, this, [&,date] { return m_MesoManager.at(m_MesoIdx)->createTrainingDayPage(date); },
+			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id )
+		{ if (id == tDayPageCreateId) return getTrainingDayExercises(date); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
-	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id ) { if (id == tDayPageCreateId) return getTrainingDayExercises(date); });
 }
 
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
-	disconnect(this, &DbManager::internalSignal, this, nullptr);
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
 	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); } );
+	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); },
+		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
 }
 
@@ -668,13 +674,16 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 	}
 
 	const QString splitletter(splitLetter.isEmpty() ? mesoCalendarModel->getSplitLetter(date.month(), date.day()-1) : splitLetter);
-	if (splitletter >= u"A"_qs && splitletter <= u"F"_qs)
-		m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasMesoPlan", mesoHasPlan(m_MesoId, splitletter));
+	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasMesoPlan", mesoHasPlan(m_MesoId, splitletter));
 
-	DBTrainingDayModel* tempModel(new DBTrainingDayModel(this));
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tempModel));
-	worker->setData(splitletter, QString::number(date.toJulianDay()));
-	createThread(worker, [worker] () { return worker->getPreviousTrainingDays(); } );
+	if (splitletter >= u"A"_qs && splitletter <= u"F"_qs)
+	{
+		DBTrainingDayModel* tempModel(new DBTrainingDayModel(this));
+		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tempModel));
+		worker->setData(splitletter, QString::number(date.toJulianDay()));
+		createThread(worker, [worker] () { return worker->getPreviousTrainingDays(); } );
+	}
+	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 }
 
 void DbManager::loadExercisesFromDate(const QString& strDate)
@@ -685,7 +694,7 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 	connect( this, &DbManager::databaseReady, this, [&,date] {
 		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setModified(true);
 		return m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
-	} );
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });
 	QMetaObject::invokeMethod(m_MesoManager.at(m_MesoIdx)->currenttDayPage(), "createNavButtons");
 	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasMesoPlan", false);
@@ -700,7 +709,8 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->getSplitModel(splitletter)));
 		worker->addExecArg(m_MesoId);
 		worker->addExecArg(splitLetter.at(0));
-		connect( this, &DbManager::databaseReady, this, [&,splitLetter] { return loadExercisesFromMesoPlan(splitLetter); } );
+		connect( this, &DbManager::databaseReady, this, [&,splitLetter] { return loadExercisesFromMesoPlan(splitLetter); },
+				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
 	}
 	else

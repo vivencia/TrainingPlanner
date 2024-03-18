@@ -124,7 +124,7 @@ FocusScope {
 						cursorPosition = 0;
 						ensureVisible(0);
 					}
-					requestSimpleExercisesList(paneSplit, !readOnly, 1);
+					requestSimpleExercisesList(exerciseItem, !readOnly, 1);
 				}
 
 				onActiveFocusChanged: {
