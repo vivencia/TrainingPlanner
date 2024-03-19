@@ -438,7 +438,7 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name)
 		(bRealMeso ? QString::number(m_runCommands->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
 		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs) );
 	mesocyclesModel->appendList(mesoInfo);
-	setWorkingMeso(-1, m_MesoIdx+1);
+	setWorkingMeso(-1, mesocyclesModel->count() - 1);
 	m_expectedPageId = mesoPageCreateId;
 	m_MesoManager.at(m_MesoIdx)->createMesocyclePage(minimumStartDate, bRealMeso ?
 			m_runCommands->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);

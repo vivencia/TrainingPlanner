@@ -121,7 +121,7 @@ public slots:
 
 private:
 	int m_MesoId;
-	uint m_MesoIdx;
+	int m_MesoIdx;
 	uint m_expectedPageId;
 	QString m_MesoIdStr;
 	QString m_DBFilePath;
