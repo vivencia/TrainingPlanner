@@ -167,6 +167,7 @@ void DBMesocyclesTable::removeMesocycle()
 
 	if (m_result)
 	{
+		m_opcode = OP_DEL;
 		m_model->removeFromList(m_execArgs.at(0).toUInt());
 		MSG_OUT("DBMesocyclesTable removeMesocycle SUCCESS")
 	}

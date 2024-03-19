@@ -7,8 +7,8 @@ import QtQuick.Controls.Material
 Popup {
 	id: timePicker
 	closePolicy: Popup.CloseOnPressOutside
-	width: windowWidth * 0.75
-	height: windowHeight * 0.55
+	width: windowWidth * 0.78
+	height: windowHeight * 0.60
 	x: (windowWidth - width) / 2
 	y: (windowHeight - height) / 2
 	modal: true

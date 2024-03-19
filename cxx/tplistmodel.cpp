@@ -33,13 +33,16 @@ void TPListModel::updateList (const QStringList& list, const int row)
 
 void TPListModel::removeFromList (const int row)
 {
-	beginRemoveRows(QModelIndex(), row, row);
-	m_modeldata.remove(row);
-	m_indexProxy.remove(row);
-	for( uint i (row); i < m_modeldata.count(); ++i )
-		m_indexProxy[i] = i-1;
-	emit countChanged();
-	endRemoveRows();
+	if (row < count())
+	{
+		beginRemoveRows(QModelIndex(), row, row);
+		m_modeldata.remove(row);
+		m_indexProxy.remove(row);
+		for( uint i (row); i < m_modeldata.count(); ++i )
+			m_indexProxy[i] = i-1;
+		emit countChanged();
+		endRemoveRows();
+	}
 }
 
 void TPListModel::appendList(const QStringList& list)

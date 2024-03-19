@@ -14,32 +14,14 @@ FocusScope {
 	required property int exerciseIdx
 
 	property int tDayId: -1
-	property int setNbr: -1
-
-	property var btnFloat: null
-	property bool bFloatButtonVisible
+	property int setNbr: 0
 
 	signal setAdded(int objidx, var setObject)
-	signal requestHideFloatingButtons(int except_idx)
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
+	signal requestFloatingButton(var exerciseidx)
 
-	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
-
-	onBFloatButtonVisibleChanged: {
-		if (bFloatButtonVisible) {
-			if (btnFloat !== null)
-				btnFloat.visible = true;
-			cboSetType.enabled = false;
-			btnAddSet.enabled = false;
-		}
-		else {
-			if (btnFloat !== null)
-				btnFloat.visible = false;
-			cboSetType.enabled = true;
-			btnAddSet.enabled = true;
-		}
-	}
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -95,10 +77,6 @@ FocusScope {
 				wrapMode: Text.WordWrap
 				width: parent.width - 100
 				height: 60
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
-				Layout.minimumHeight: height
-				Layout.maximumHeight: height
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
 				Layout.topMargin: 0
@@ -125,6 +103,11 @@ FocusScope {
 						ensureVisible(0);
 					}
 					requestSimpleExercisesList(exerciseItem, !readOnly, 1);
+				}
+
+				onTextChanged: {
+					if (readOnly)
+						ensureVisible(0);
 				}
 
 				onActiveFocusChanged: {
@@ -198,9 +181,7 @@ FocusScope {
 						width: 20
 					}
 
-					onClicked: {
-						txtExerciseName.readOnly = !txtExerciseName.readOnly;
-					}
+					onClicked: txtExerciseName.readOnly = !txtExerciseName.readOnly;
 				}
 
 				MouseArea {
@@ -214,15 +195,15 @@ FocusScope {
 				}
 			} //txtExerciseName
 
+			Label {
+				text: qsTr("Set type: ")
+			}
+
 			RowLayout {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
 				spacing: 1
-
-				Label {
-					text: qsTr("Set type: ")
-				}
 
 				TPComboBox {
 					id: cboSetType
@@ -230,6 +211,7 @@ FocusScope {
 					Layout.minimumWidth: 140
 					currentIndex: tDayModel.setType(0, exerciseIdx)
 				}
+
 				RoundButton {
 					id: btnAddSet
 
@@ -242,63 +224,25 @@ FocusScope {
 					}
 					onClicked: {
 						tDayModel.setSetType(0, cboSetType.currentValue, exerciseIdx);
-						createSetObject(cboSetType.currentIndex);
-						requestHideFloatingButtons (exerciseIdx);
-						if (btnFloat === null)
-							createFloatingAddSetButton();
-						else
-							bFloatButtonVisible = true;
+						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text));
+						requestFloatingButton(exerciseIdx);
 					}
+				}
+
+				SetInputField {
+					id: txtNSets
+					text: "1"
+					type: SetInputField.Type.SetType
+					availableWidth: layoutMain.width / 3
+					showLabel: false
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged: (str)=> text = str;
 				}
 			} // RowLayout
 		} // ColumnLayout layoutMain
-		Component.onDestruction: {
-			destroyFloatingAddSetButton();
-		}
 	} //paneExercise
-
-	function createFloatingAddSetButton() {
-		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
-		function finishCreation() {
-			btnFloat = component.createObject(exerciseItem, {
-					text:qsTr("Add set"), image:"add-new.png", comboIndex:tDayModel.setType(setNbr, exerciseIdx), nextSetNbr: setNbr + 1
-			});
-			btnFloat.buttonClicked.connect(createSetObject);
-			bFloatButtonVisible = true;
-			changeComboModel();
-		}
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
-	function changeComboModel() {
-		switch (tDayModel.setType(0, exerciseIdx)) {
-			case 0:
-			case 1:
-			case 2:
-				cboSetType.model = [setTypesModel[0], setTypesModel[1], setTypesModel[2]];
-				cboSetType.currentIndex = tDayModel.setType(0, exerciseIdx);
-				return;
-			case 3: cboSetType.model = [setTypesModel[3]];
-			break;
-			case 4: cboSetType.model = [setTypesModel[4]];
-			break;
-			case 5: cboSetType.model = [setTypesModel[5]];
-			break;
-		}
-		cboSetType.currentIndex = 0;
-	}
-
-	function destroyFloatingAddSetButton () {
-		if (btnFloat !== null) {
-			btnFloat.destroy();
-			btnFloat = null;
-			cboSetType.model = setTypesModel;
-		}
-		bFloatButtonVisible = false;
-	}
 
 	function changeExercise(newname)
 	{
@@ -306,17 +250,18 @@ FocusScope {
 		tDayModel.setExerciseName1(newname, exerciseIdx);
 	}
 
-	function createSetObject(type) {
+	function createSetObject(type, n) {
 		function setObjectCreated(object) {
 			appDB.getItem.disconnect(setObjectCreated);
 			setAdded(exerciseIdx, object);
-			if (btnFloat !== null)
-				btnFloat.nextSetNbr++;
 		}
 
-		setNbr++;
-		appDB.getItem.connect(setObjectCreated);
-		appDB.createSetObject(cboSetType.currentIndex, setNbr, exerciseIdx);
+		for(var i = setNbr; i < setNbr + n; ++i)
+		{
+			appDB.getItem.connect(setObjectCreated);
+			appDB.createSetObject(type, i, exerciseIdx);
+		}
+		setNbr += n;
 	}
 
 	function paneExerciseShowHide() {

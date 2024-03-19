@@ -31,6 +31,7 @@ public:
 
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
+	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
 	Q_INVOKABLE uint insertId() const { return m_insertid; }
@@ -81,8 +82,9 @@ public:
 	Q_INVOKABLE void createMesoCalendar();
 	Q_INVOKABLE void changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
+	Q_INVOKABLE void updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay);
 	Q_INVOKABLE void updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
-	Q_INVOKABLE void removeMesoCalendar(const uint meso_id);
+	Q_INVOKABLE void removeMesoCalendar();
 	Q_INVOKABLE void deleteMesoCalendarTable();
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
@@ -101,6 +103,7 @@ public:
 	Q_INVOKABLE void deleteTrainingDayTable();
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
+	Q_INVOKABLE QQuickItem* getExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);

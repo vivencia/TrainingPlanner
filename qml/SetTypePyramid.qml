@@ -72,7 +72,7 @@ Item {
 				text = str;
 			}
 
-			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
 			onEnterOrReturnKeyPressed: txtNSubSets.forceActiveFocus();
 		}
 
@@ -88,7 +88,7 @@ Item {
 					txtSetNotes.forceActiveFocus();
 			}
 
-			onValueChanged: (str, str) => {
+			onValueChanged: (str) => {
 				tDayModel.setSetWeight(setNumber, str, exerciseIdx);
 				text = str;
 			}

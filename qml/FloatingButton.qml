@@ -1,6 +1,7 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+
+import com.vivenciasoftware.qmlcomponents
 
 Rectangle {
 	id: button
@@ -8,6 +9,9 @@ Rectangle {
 	opacity: bHeld ? 0.7 : 1
 	radius: width / 2
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+
+	required property DBTrainingDayModel tDayModel
+	property int exerciseIdx
 
 	property string text
 	property string image
@@ -18,10 +22,13 @@ Rectangle {
 
 	property bool bHeld: false
 
-	signal buttonClicked(int settype)
+	signal buttonClicked(int settype, int exerciseidx)
 	property bool bEmitSignal: false
 
 	property int textAndImageSize: (bHasText ? buttonText.width + (bHasImage ? buttonImage.width: 0) : bHasImage ? buttonImage.width: 0)
+
+	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
 	implicitHeight: comboIndex <= 2 ? cboSetType.height : Math.max(buttonText.height, buttonImage.height) + 10;
 	implicitWidth: 50 + (comboIndex <= 2 ? cboSetType.width + textAndImageSize : textAndImageSize)
@@ -46,7 +53,7 @@ Rectangle {
 
 	TPComboBox {
 		id: cboSetType
-		model: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop set"), value:2 } ]
+		model: setTypesModel
 		width: 100
 		currentIndex: comboIndex
 		visible: comboIndex <= 2
@@ -58,13 +65,11 @@ Rectangle {
 			leftMargin: 27
 		}
 
-		onActivated: { comboIndex = parseInt(cboSetType.currentValue); }
-		//onActivated: (index) => { comboIndex = index; }
+		onActivated: { comboIndex = cboSetType.currentValue; }
 	}
 
 	Text {
 		id: buttonText
-		text: nextSetNbr >=2 ? button.text + " #" + nextSetNbr.toString() : button.text
 		color: "white"
 		padding: 0
 		visible: bHasText
@@ -157,7 +162,7 @@ Rectangle {
 		onFinished: {
 			if (bEmitSignal) {
 				bEmitSignal = false;
-				buttonClicked(comboIndex);
+				buttonClicked(comboIndex, exerciseIdx);
 			}
 		}
 	}
@@ -168,6 +173,10 @@ Rectangle {
 		mainwindow.backButtonPressed.connect(maybeDestroy);
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);
+	}
+
+	function updateDisplayText() {
+		buttonText.text = button.text + " #" + (tDayModel.setsNumber(exerciseIdx) + 1).toString();
 	}
 
 	function maybeDestroy() {

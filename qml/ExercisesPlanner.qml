@@ -51,7 +51,7 @@ Page {
 		visible: !bottomPane.shown
 	}
 
-	function requestSimpleExerciseList(object, visible) {
+	function requestSimpleExercisesList(object, visible) {
 		pageThatRequestedSimpleList = visible ? object : null;
 		bShowSimpleExercisesList = visible;
 	}
@@ -89,7 +89,7 @@ Page {
 			onClicked: {
 				appDB.pass_object(currentPage.splitModel);
 				appDB.updateMesoSplitComplete(currentPage.splitLetter);
-				requestSimpleExercisesList(null, false, 0);
+				requestSimpleExercisesList(null, false);
 			}
 		}
 
@@ -105,7 +105,7 @@ Page {
 			onClicked: {
 				currentPage.splitModel.clear();
 				currentPage.appendNewExerciseToDivision();
-				requestSimpleExercisesList(null, false, 0);
+				requestSimpleExercisesList(null, false);
 			}
 		}
 

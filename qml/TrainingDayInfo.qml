@@ -42,6 +42,7 @@ Page {
 	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
+	property var btnFloat: null
 	property var navButtons: null
 	property var firstTimeTip: null
 	property var timerDialog: null
@@ -894,59 +895,6 @@ Page {
 		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ? splitLetter : tDayModel.splitLetter());
 	}
 
-	onSplitLetterChanged: {
-		switch (splitLetter) {
-			case 'A': splitText = mesoSplitModel.get(mesoIdx, 2); break;
-			case 'B': splitText = mesoSplitModel.get(mesoIdx, 3); break;
-			case 'C': splitText = mesoSplitModel.get(mesoIdx, 4); break;
-			case 'D': splitText = mesoSplitModel.get(mesoIdx, 5); break;
-			case 'E': splitText = mesoSplitModel.get(mesoIdx, 6); break;
-			case 'F': splitText = mesoSplitModel.get(mesoIdx, 7); break;
-			default: return;
-		}
-		filterString = exercisesListModel.makeFilterString(splitText);
-	}
-
-	function gotExercise(strName1, strName2) {
-		function readyToProceed(object, id) {
-			appDB.getItem.disconnect(readyToProceed);
-			object.requestHideFloatingButtons.connect(hideFloatingButton);
-			object.setAdded.connect(exerciseSetAdded);
-
-			bStopBounce = true;
-			if (navButtons === null)
-				createNavButtons();
-			scrollBarPosition = phantomItem.y;
-			scrollTraining.scrollToPos(scrollBarPosition);
-			bounceTimer.start();
-			return;
-		}
-
-		appDB.getItem.connect(readyToProceed);
-		appDB.createExerciseObject(strName1 + " - " + strName2);
-	}
-
-	function exerciseSetAdded(exerciseObjIdx, setObject) {
-		bStopBounce = true;
-		if (exerciseObjIdx === tDayModel.exercisesNumber() - 1)
-			scrollBarPosition = phantomItem.y;
-		else
-			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
-		scrollTraining.scrollToPos(scrollBarPosition);
-		bounceTimer.start();
-	}
-
-	function hideFloatingButton(except_idx) {
-		return;
-		const len = exerciseSpriteList.length;
-		for (var x = 0; x < len; ++x) {
-			if (x !== except_idx) {
-				if (exerciseSpriteList[x].Object.bFloatButtonVisible)
-					exerciseSpriteList[x].Object.bFloatButtonVisible = false;
-			}
-		}
-	}
-
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
@@ -992,7 +940,7 @@ Page {
 					if (!chkAdjustCalendar.checked)
 						appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
 					else
-						mesoCalendarModel.updateModel(mesoSplit, mainDate, splitLetter, tDay);
+						appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter, tDay);
 				}
 			}
 		} //btnSaveDay
@@ -1023,9 +971,10 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				//hideFloatingButton(-1);
 				if (navButtons !== null)
 					navButtons.hideButtons();
+				if (btnFloat)
+					btnFloat.visible = false;
 
 				function openTDayExercisesPage(object, id) {
 					appDB.getPage.disconnect(openTDayExercisesPage);
@@ -1099,7 +1048,76 @@ Page {
 		}
 	}
 
-	function requestSimpleExerciseList(object, visible) {
+	onSplitLetterChanged: {
+		switch (splitLetter) {
+			case 'A': splitText = mesoSplitModel.get(mesoIdx, 2); break;
+			case 'B': splitText = mesoSplitModel.get(mesoIdx, 3); break;
+			case 'C': splitText = mesoSplitModel.get(mesoIdx, 4); break;
+			case 'D': splitText = mesoSplitModel.get(mesoIdx, 5); break;
+			case 'E': splitText = mesoSplitModel.get(mesoIdx, 6); break;
+			case 'F': splitText = mesoSplitModel.get(mesoIdx, 7); break;
+			default: return;
+		}
+		filterString = exercisesListModel.makeFilterString(splitText);
+	}
+
+	function gotExercise(strName1, strName2) {
+		function readyToProceed(object, id) {
+			appDB.getItem.disconnect(readyToProceed);
+			object.setAdded.connect(exerciseSetAdded);
+
+			bStopBounce = true;
+			if (navButtons === null)
+				createNavButtons();
+			scrollBarPosition = phantomItem.y;
+			scrollTraining.scrollToPos(scrollBarPosition);
+			bounceTimer.start();
+			return;
+		}
+
+		appDB.getItem.connect(readyToProceed);
+		appDB.createExerciseObject(strName1 + " - " + strName2);
+	}
+
+	function exerciseSetAdded(exerciseObjIdx, setObject) {
+		bStopBounce = true;
+		if (exerciseObjIdx === tDayModel.exercisesNumber() - 1)
+			scrollBarPosition = phantomItem.y;
+		else
+			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
+		scrollTraining.scrollToPos(scrollBarPosition);
+		bounceTimer.start();
+	}
+
+	function createFloatingAddSetButton(exerciseIdx) {
+		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
+		function finishCreation() {
+			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"), image:"add-new.png", exerciseIdx:exerciseIdx, tDayModel:tDayModel });
+			btnFloat.updateDisplayText();
+			btnFloat.buttonClicked.connect(createNewSet);
+			btnFloat.visible = true;
+		}
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
+	}
+
+	function requestFloatingButton(exerciseIdx: int) {
+		if (btnFloat === null)
+			createFloatingAddSetButton(exerciseIdx);
+		else {
+			btnFloat.exerciseIdx = exerciseIdx;
+			btnFloat.updateDisplayText();
+			btnFloat.visible = true;
+		}
+	}
+
+	function createNewSet(settype, exerciseidx) {
+		appDB.getExerciseObject(exerciseidx).createSetObject(settype, 1);
+	}
+
+	function requestSimpleExercisesList(object, visible) {
 		bShowSimpleExercisesList = visible;
 		exerciseEntryThatRequestedSimpleList = visible ? object : null;
 	}
@@ -1118,35 +1136,6 @@ Page {
 			finishCreation();
 		else
 			component.statusChanged.connect(finishCreation);
-	}
-
-	function pageActivation() {
-		changeComboModel();
-
-		return;
-		if (!bAlreadyLoaded) {
-			if (bFirstTime) {
-				if (grpIntent.visible) {
-					scrollTraining.setScrollBarPosition(1);
-					grpIntent.highlight = true;
-				}
-				else
-					placeTipOnAddExercise();
-			}
-			bAlreadyLoaded = true;
-		}
-		else {
-			if (navButtons)
-				navButtons.visible = true;
-		}
-	}
-
-	function pageDeActivation() {
-		if (firstTimeTip)
-			firstTimeTip.visible = false;
-		if (navButtons)
-			navButtons.visible = false;
-		//hideFloatingButton(-1);
 	}
 
 	function placeTipOnAddExercise() {
@@ -1210,6 +1199,36 @@ Page {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
+	}
+
+	function pageActivation() {
+		changeComboModel();
+
+		return;
+		if (!bAlreadyLoaded) {
+			if (bFirstTime) {
+				if (grpIntent.visible) {
+					scrollTraining.setScrollBarPosition(1);
+					grpIntent.highlight = true;
+				}
+				else
+					placeTipOnAddExercise();
+			}
+			bAlreadyLoaded = true;
+		}
+		else {
+			if (navButtons)
+				navButtons.visible = true;
+		}
+	}
+
+	function pageDeActivation() {
+		if (firstTimeTip)
+			firstTimeTip.visible = false;
+		if (navButtons)
+			navButtons.visible = false;
+		if (btnFloat)
+			btnFloat.visible = false;
 	}
 
 	function aboutToBeSuspended() {

@@ -144,7 +144,7 @@ QDate RunCommands::getMesoStartDate(const QDate& lastMesoEndDate) const
 {
 	const uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
 	const QDate date (lastMesoEndDate);
-	return date.addDays(daysToNextMonday[date.dayOfWeek()]);
+	return date.addDays(daysToNextMonday[date.dayOfWeek()-1]);
 }
 
 QDate RunCommands::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const

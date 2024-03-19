@@ -17,9 +17,7 @@ FocusScope {
 	signal delSubSet(int id)
 
 	Layout.fillWidth: true
-
-	implicitHeight: 40
-	implicitWidth: mainRow.width
+	height: 40
 
 	GridLayout {
 		id: mainRow

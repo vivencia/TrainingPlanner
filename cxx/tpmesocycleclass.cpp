@@ -32,8 +32,13 @@ void TPMesocycleClass::requestTimerDialog(QQuickItem* requester, const QVariant&
 
 void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVariant& visible, int id)
 {
-	QMetaObject::invokeMethod(id == 0 ? m_qmlSplitObjectParent : m_CurrenttDayPage, "requestSimpleExerciseList",
+	QMetaObject::invokeMethod(id == 0 ? m_qmlSplitObjectParent : m_CurrenttDayPage, "requestSimpleExercisesList",
 					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible));
+}
+
+void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx)
+{
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestFloatingButton", Q_ARG(int, exercise_idx.toInt()));
 }
 
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -262,6 +267,7 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	item->setParentItem(parentLayout);
 	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
+	connect( item, SIGNAL(requestFloatingButton(const QVariant&)), this, SLOT(requestFloatingButton(const QVariant&)) );
 	m_tDayExercises.append(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }

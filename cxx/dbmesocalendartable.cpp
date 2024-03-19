@@ -238,13 +238,21 @@ void DBMesoCalendarTable::changeMesoCalendar()
 	createMesoCalendar();
 }
 
+void DBMesoCalendarTable::updateMesoCalendar()
+{
+	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(0).toString(), m_execArgs.at(1).toDate(),
+										m_execArgs.at(2).toString(), m_execArgs.at(3).toString());
+	removeMesoCalendar();
+	createMesoCalendar();
+}
+
 void DBMesoCalendarTable::removeMesoCalendar()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + QString::number(m_execArgs.at(0).toUInt()) );
+		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + m_execArgs.at(0).toString() );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}

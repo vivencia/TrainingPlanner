@@ -23,7 +23,7 @@ Page {
 
 	property string mesoSplit: mesocyclesModel.get(mesoIdx, 6)
 
-	property bool bMesoNameOK: false
+	property bool bMesoNameOK: true
 	property bool bStartDateChanged: false
 	property bool bEndDateChanged: false
 	property bool bMesoSplitChanged: false
@@ -335,7 +335,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 5
-				visible: !bNewMeso & (bStartDateChanged || bEndDateChanged || bMesoSplitChanged)
+				visible: bNewMeso ? false : bStartDateChanged || bEndDateChanged || bMesoSplitChanged
 				padding: 0
 				spacing: 0
 
@@ -720,6 +720,7 @@ Page {
 		JSF.checkWhetherCanCreatePlan();
 		if (bNewMeso)
 			txtMesoName.forceActiveFocus();
+		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
 	}
 
 	Component.onDestruction: {
@@ -791,7 +792,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
-			enabled: bNewMeso ? bMesoNameOK && bStartDateChanged && bEndDateChanged : bModified
+			enabled: bNewMeso ? bMesoNameOK : bModified
 
 			onClicked: {
 				if (bNewMeso) {
@@ -805,13 +806,14 @@ Page {
 					appDB.databaseReady.connect(getMesoId);
 					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
 					mesoIdx = mesocyclesModel.count - 1;
+					bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 				}
 				else {
 					function canProceed() {
 						appDB.databaseReady.disconnect(canProceed);
 						appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
 
-						if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+						if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
 							appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 							bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 						}
@@ -837,5 +839,10 @@ Page {
 			finishCreation();
 		else
 			component.statusChanged.connect(finishCreation);
+	}
+
+	function pageDeActivation() {
+		if (bNewMeso)
+			appDB.removeMesocycle();
 	}
 } //Page

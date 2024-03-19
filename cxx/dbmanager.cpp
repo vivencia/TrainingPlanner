@@ -164,6 +164,19 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 	}
 }
 
+void DbManager::removeWorkingMeso()
+{
+	delete m_MesoManager.at(m_MesoIdx);
+	m_MesoManager.remove(m_MesoIdx);
+	if (m_MesoIdx > 0)
+	{
+		--m_MesoIdx;
+		setWorkingMeso(m_MesoManager.at(m_MesoIdx)->mesoId(), m_MesoIdx);
+	}
+	else
+		m_MesoId = -2;
+}
+
 void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
 	if (!dbObj->result()) return;
@@ -200,6 +213,10 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					QVariant::fromValue(tempModel->getRow_const(0)) : QVariant::fromValue(QVariantList()));
 				delete tempModel;
 			}
+		break;
+		case OP_DEL:
+			if (dbObj->objectName() == DBMesocyclesObjectName)
+				removeWorkingMeso();
 		break;
 	}
 
@@ -421,7 +438,8 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name)
 		(bRealMeso ? QString::number(m_runCommands->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
 		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs) );
 	mesocyclesModel->appendList(mesoInfo);
-	setWorkingMeso(-1, 0);
+	setWorkingMeso(-1, m_MesoIdx+1);
+	m_expectedPageId = mesoPageCreateId;
 	m_MesoManager.at(m_MesoIdx)->createMesocyclePage(minimumStartDate, bRealMeso ?
 			m_runCommands->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);
 }
@@ -448,10 +466,20 @@ void DbManager::updateMesocycle(const QString& mesoName, const QDate& mesoStartD
 
 void DbManager::removeMesocycle()
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	worker->addExecArg(m_MesoIdx);
-	worker->setData(m_MesoIdStr);
-	createThread(worker, [worker] () { return worker->removeMesocycle(); } );
+	if (mesocyclesModel->getInt(m_MesoIdx, 0) == -1)
+	{
+		mesocyclesModel->removeFromList(m_MesoIdx);
+		removeWorkingMeso();
+	}
+	else
+	{
+		removeMesoCalendar();
+		removeMesoSplit();
+		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
+		worker->addExecArg(m_MesoIdx);
+		worker->setData(m_MesoIdStr);
+		createThread(worker, [worker] () { return worker->removeMesocycle(); } );
+	}
 }
 
 void DbManager::deleteMesocyclesTable()
@@ -614,6 +642,25 @@ void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEn
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
+void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay)
+{
+	if (!mesoCalendarModel->isReady())
+	{
+		connect(this, &DbManager::databaseReady, this, [&,mesoSplit,startDate,splitLetter,tDay] ()
+		{
+			return updateMesoCalendarModel(mesoSplit,startDate,splitLetter,tDay);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		getMesoCalendar(false);
+		return;
+	}
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	worker->addExecArg(mesoSplit);
+	worker->addExecArg(startDate);
+	worker->addExecArg(splitLetter);
+	worker->addExecArg(tDay);
+	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
+}
+
 void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
@@ -622,10 +669,10 @@ void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
-void DbManager::removeMesoCalendar(const uint meso_id)
+void DbManager::removeMesoCalendar()
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->addExecArg(meso_id);
+	worker->addExecArg(m_MesoIdStr);
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
 }
 
@@ -769,6 +816,11 @@ void DbManager::createExerciseObject(const QString& exerciseName)
 void DbManager::removeExerciseObject(const uint exercise_idx)
 {
 	m_MesoManager.at(m_MesoIdx)->removeExercise(exercise_idx);
+}
+
+QQuickItem* DbManager::getExerciseObject(const uint exercise_idx)
+{
+	return m_MesoManager.at(m_MesoIdx)->getExerciseObject(exercise_idx);
 }
 
 void DbManager::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx)

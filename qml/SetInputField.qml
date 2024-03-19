@@ -334,19 +334,6 @@ FocusScope {
 				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
 			}
 		}
-
-		Label {
-			text: qsTr("<- Leading to this set")
-			visible: type === SetInputField.Type.TimeType
-			anchors {
-				left: btnDecreaseSeconds.visible ? btnDecreaseSeconds.right : txtMain.right
-				leftMargin: 5
-				verticalCenter: parent.verticalCenter
-			}
-			font.pixelSize: AppSettings.fontSizeLists
-			wrapMode: Text.WordWrap
-			width: availableWidth - x
-		}
 	} //Rectangle
 
 	function sanitizeText(text) {

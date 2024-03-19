@@ -23,6 +23,7 @@ public:
 	void createMesoCalendar();
 	void updateMesoCalendarEntry();
 	void changeMesoCalendar();
+	void updateMesoCalendar();
 	void removeMesoCalendar();
 	void deleteMesoCalendarTable();
 

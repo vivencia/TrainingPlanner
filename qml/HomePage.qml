@@ -122,10 +122,7 @@ Page {
 					button2Text: qsTr("No")
 					imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-					onButton1Clicked: {
-						mesocyclesModel.remove(mesoDelegate.index, 1);
-						pageActivation();
-					}
+					onButton1Clicked: appDB.removeMesocycle();
 
 					onButton2Clicked: recRemoveMeso.visible = false;
 				}

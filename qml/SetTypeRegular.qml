@@ -66,18 +66,13 @@ FocusScope {
 			type: SetInputField.Type.RepType
 			availableWidth: setItem.width
 
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetReps(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setReps(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 		}
 
 		SetInputField {

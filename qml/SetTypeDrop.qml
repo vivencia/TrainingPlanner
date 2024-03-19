@@ -111,7 +111,7 @@ Item {
 
 		var component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
-			var rowSprite = component.createObject(subSetsLayout, { tDayModel:tDayModel, rowIdx:idx, nextObject:nextObject });
+			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx, nextObject:nextObject });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
 			rowSprite.addSubSet.connect(addSubSet);
