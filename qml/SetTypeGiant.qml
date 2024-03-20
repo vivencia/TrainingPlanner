@@ -301,8 +301,6 @@ Item {
 				onEnterOrReturnKeyPressed: {
 					if (nextObject !== null)
 						nextObject.forceActiveFocus()
-					else
-						txtSetNotes.forceActiveFocus();
 				}
 
 				onValueChanged: (str) => {
@@ -319,24 +317,42 @@ Item {
 		Label {
 			text: qsTr("Notes:")
 			Layout.topMargin: 10
-			padding: 0
+			Layout.fillWidth: true
+			padding: 10
+
+			RoundButton {
+				id: btnShowHideNotes
+				anchors.right: parent.right
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.rightMargin: 20
+				width: 25
+				height: 25
+
+				Image {
+					id: img
+					source: "qrc:/images/"+darkIconFolder+"down.png"
+					width: 20
+					height: 20
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+				}
+
+				onClicked: {
+					txtSetNotes.visible = !txtSetNotes.visible;
+					img.source = txtSetNotes.visible ? "qrc:/images/"+darkIconFolder+"up.png" : "qrc:/images/"+darkIconFolder+"down.png"
+				}
+			}
 		}
 		TextField {
 			id: txtSetNotes
-			font.bold: true
-			readOnly: false
 			Layout.fillWidth: true
 			Layout.leftMargin: 10
 			Layout.rightMargin: 10
 			padding: 0
+			visible: false
 
-			onTextEdited: {
-				tDayModel.setSetNotes(text, exerciseIdx);
-			}
-
-			Component.onCompleted: {
-				text = tDayModel.setNotes(setNumber, exerciseIdx);
-			}
+			onTextEdited: tDayModel.setSetNotes(text, exerciseIdx);
+			Component.onCompleted: text = tDayModel.setNotes(setNumber, exerciseIdx);
 		}
 	} //ColumnLayout setLayout
 

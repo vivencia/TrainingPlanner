@@ -104,8 +104,9 @@ Page {
 			tDayModel.modified = true;
 			if (tDayModel.exercisesNumber() > 0)
 			{
-				//hideFloatingButton(-1); //Day is finished
 				bDayIsFinished = true;
+				if (btnFloat)
+					btnFloat.visible = false;
 				btnSaveDay.clicked();
 			}
 		}
@@ -1061,7 +1062,7 @@ Page {
 		filterString = exercisesListModel.makeFilterString(splitText);
 	}
 
-	function gotExercise(strName1, strName2) {
+	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {
 		function readyToProceed(object, id) {
 			appDB.getItem.disconnect(readyToProceed);
 			object.setAdded.connect(exerciseSetAdded);
@@ -1076,7 +1077,7 @@ Page {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		appDB.createExerciseObject(strName1 + " - " + strName2);
+		appDB.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
 	}
 
 	function exerciseSetAdded(exerciseObjIdx, setObject) {
@@ -1089,10 +1090,11 @@ Page {
 		bounceTimer.start();
 	}
 
-	function createFloatingAddSetButton(exerciseIdx) {
+	function createFloatingAddSetButton(exerciseIdx, settype) {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
-			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"), image:"add-new.png", exerciseIdx:exerciseIdx, tDayModel:tDayModel });
+			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"),
+					image:"add-new.png", exerciseIdx:exerciseIdx, tDayModel:tDayModel, comboIndex:settype });
 			btnFloat.updateDisplayText();
 			btnFloat.buttonClicked.connect(createNewSet);
 			btnFloat.visible = true;
@@ -1103,18 +1105,19 @@ Page {
 			component.statusChanged.connect(finishCreation);
 	}
 
-	function requestFloatingButton(exerciseIdx: int) {
+	function requestFloatingButton(exerciseIdx: int, settype: int) {
 		if (btnFloat === null)
-			createFloatingAddSetButton(exerciseIdx);
+			createFloatingAddSetButton(exerciseIdx, settype);
 		else {
 			btnFloat.exerciseIdx = exerciseIdx;
+			btnFloat.comboIndex = settype;
 			btnFloat.updateDisplayText();
 			btnFloat.visible = true;
 		}
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		appDB.getExerciseObject(exerciseidx).createSetObject(settype, 1);
+		appDB.getExerciseObject(exerciseidx).createSetObject(settype, 1, "", "");
 	}
 
 	function requestSimpleExercisesList(object, visible) {

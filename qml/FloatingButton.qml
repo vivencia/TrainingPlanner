@@ -18,7 +18,6 @@ Rectangle {
 	property bool bHasText: text.length > 1
 	property bool bHasImage: image.length > 1
 	property int comboIndex
-	property int nextSetNbr: 0
 
 	property bool bHeld: false
 
@@ -30,8 +29,8 @@ Rectangle {
 	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
-	implicitHeight: comboIndex <= 2 ? cboSetType.height : Math.max(buttonText.height, buttonImage.height) + 10;
-	implicitWidth: 50 + (comboIndex <= 2 ? cboSetType.width + textAndImageSize : textAndImageSize)
+	height: Math.max(buttonText.height, buttonImage.height) + 10;
+	width: cboSetType.width + textAndImageSize + 50
 
 	ToolButton {
 		id: btnClose
@@ -43,7 +42,7 @@ Rectangle {
 			verticalCenter: parent.verticalCenter
 			leftMargin: 5
 		}
-		onClicked: bFloatButtonVisible = false;
+		onClicked: button.visible = false;
 
 		Image {
 			anchors.fill: parent
@@ -56,7 +55,6 @@ Rectangle {
 		model: setTypesModel
 		width: 100
 		currentIndex: comboIndex
-		visible: comboIndex <= 2
 		z: 0
 
 		anchors {
@@ -76,7 +74,7 @@ Rectangle {
 		z: 0
 
 		anchors {
-			left: comboIndex <= 2 ? cboSetType.right : parent.left
+			left: cboSetType.right
 			verticalCenter: parent.verticalCenter
 			leftMargin: 5
 		}
@@ -101,7 +99,7 @@ Rectangle {
 		anchors {
 			top: parent.top
 			bottom: parent.bottom
-			left: comboIndex <= 2 ? cboSetType.right : btnClose.right
+			left: cboSetType.right
 			right: parent.right
 		}
 
@@ -168,20 +166,14 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		x = (windowWidth - implicitWidth)/2;
-		y = windowHeight * 0.5 - implicitHeight;
-		mainwindow.backButtonPressed.connect(maybeDestroy);
+		x = 10;
+		y = windowHeight * 0.5 - height;
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);
 	}
 
 	function updateDisplayText() {
 		buttonText.text = button.text + " #" + (tDayModel.setsNumber(exerciseIdx) + 1).toString();
-	}
-
-	function maybeDestroy() {
-		if (button && button.visible)
-			button.destroy();
 	}
 
 	function hideButtons() {

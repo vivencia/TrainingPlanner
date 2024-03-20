@@ -56,15 +56,9 @@ void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitMode
 	{
 		m_ExerciseData.append(new exerciseEntry);
 		m_ExerciseData[i]->name = splitModel->getRow_const(i).at(0);
-		m_ExerciseData[i]->type.append(splitModel->getRow_const(i).at(1));
-		m_ExerciseData[i]->nsets = 1;
-		m_ExerciseData[i]->reps.append(splitModel->getRow_const(i).at(3));
-		m_ExerciseData[i]->weight.append(splitModel->getRow_const(i).at(4));
-		m_ExerciseData[i]->resttime.append(u"02:30"_qs);
-		m_ExerciseData[i]->subsets.append(u"0"_qs);
-		m_ExerciseData[i]->notes.append(QString());
 
 		const uint type(splitModel->getRow_const(i).at(1).toUInt());
+		newFirstSet(i, type, splitModel->getRow_const(i).at(3), splitModel->getRow_const(i).at(4));
 		newSet(i, splitModel->getRow_const(i).at(2).toUInt() - 1, type);
 	}
 	setModified(true);
@@ -174,6 +168,63 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 	return ret;
 }
 
+void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight)
+{
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		const QString strType(QString::number(type));
+		m_ExerciseData[exercise_idx]->nsets = 1;
+		setModified(true);
+		m_ExerciseData[exercise_idx]->notes.append(QString());
+		m_ExerciseData[exercise_idx]->type.append(strType);
+
+		switch (type) {
+			case 0: //Regular
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
+				m_ExerciseData[exercise_idx]->reps.append(nReps);
+				m_ExerciseData[exercise_idx]->weight.append(nWeight);
+				m_ExerciseData[exercise_idx]->subsets.append(QString());
+			break;
+			case 1: //Pyramid
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
+				m_ExerciseData[exercise_idx]->reps.append(nReps);
+				m_ExerciseData[exercise_idx]->weight.append(nWeight);
+				m_ExerciseData[exercise_idx]->subsets.append(QString());
+			break;
+			case 2: //DropSet
+			{
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
+				m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("3"));
+				const uint nreps(nReps.toUInt());
+				m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator + QString::number(nreps - 3) +
+												subrecord_separator + QString::number(nreps - 6) + subrecord_separator);
+				const uint nweight(nWeight.toUInt());
+				m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator + QString::number(nweight - 10) +
+												subrecord_separator + QString::number(nweight - 20) + subrecord_separator);
+			}
+			break;
+			case 3: //ClusterSet
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("02:00"));
+				m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("4"));
+				m_ExerciseData[exercise_idx]->reps.append(nReps);
+				m_ExerciseData[exercise_idx]->weight.append(nWeight);
+			break;
+			case 4: //GiantSet
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
+				m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator + nReps + subrecord_separator);
+				m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator + nWeight + subrecord_separator);
+				m_ExerciseData[exercise_idx]->subsets.append(QString());
+			break;
+			case 5: //MyoReps
+				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("02:30"));
+				m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("0"));
+				m_ExerciseData[exercise_idx]->reps.append(nReps);
+				m_ExerciseData[exercise_idx]->weight.append(nWeight);
+			break;
+		}
+	}
+}
+
 void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type)
 {
 	if (exercise_idx < m_ExerciseData.count())
@@ -188,103 +239,44 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 
 			for(uint i(0); i < n; ++i)
 			{
-				m_ExerciseData[exercise_idx]->notes.append(!m_ExerciseData.at(exercise_idx)->notes.isEmpty() ? m_ExerciseData.at(exercise_idx)->notes.last() : QString());
+				m_ExerciseData[exercise_idx]->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
 				m_ExerciseData[exercise_idx]->type.append(strType);
 				switch (type) {
 					case 0: //Regular
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
-							m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
-							m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("12"));
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("30"));
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
+						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
+						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
 						m_ExerciseData[exercise_idx]->subsets.append(QString());
 					break;
 					case 1: //Pyramid
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
-							m_ExerciseData[exercise_idx]->reps.append(QString::number(m_ExerciseData.at(exercise_idx)->reps.last().toUInt() - 3));
-							m_ExerciseData[exercise_idx]->weight.append(QString::number(qFloor(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 1.2)));
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("15"));
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("20"));
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
+						m_ExerciseData[exercise_idx]->reps.append(QString::number(m_ExerciseData.at(exercise_idx)->reps.last().toUInt() - 3));
+						m_ExerciseData[exercise_idx]->weight.append(QString::number(qFloor(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 1.2)));
 						m_ExerciseData[exercise_idx]->subsets.append(QString());
 					break;
 					case 2: //DropSet
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
-							m_ExerciseData[exercise_idx]->subsets.append(m_ExerciseData.at(exercise_idx)->subsets.last());
-							m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
-							m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-							m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("3"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("15") + subrecord_separator + QStringLiteral("12")
-												+ subrecord_separator + QStringLiteral("10") + subrecord_separator);
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("40") + subrecord_separator + QStringLiteral("30")
-												+ subrecord_separator + QStringLiteral("20") + subrecord_separator);
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
+						m_ExerciseData[exercise_idx]->subsets.append(m_ExerciseData.at(exercise_idx)->subsets.last());
+						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
+						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
 					break;
 					case 3: //ClusterSet
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 0));
-							m_ExerciseData[exercise_idx]->subsets.append(m_ExerciseData.at(exercise_idx)->subsets.last());
-							m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
-							m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("02:00"));
-							m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("4"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("6"));
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("40"));
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 0));
+						m_ExerciseData[exercise_idx]->subsets.append(m_ExerciseData.at(exercise_idx)->subsets.last());
+						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
+						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
 					break;
 					case 4: //GiantSet
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
-							m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
-							m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("15") + subrecord_separator + QStringLiteral("15") + subrecord_separator);
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("30") + subrecord_separator + QStringLiteral("30") + subrecord_separator);
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
+						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
+						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
 						m_ExerciseData[exercise_idx]->subsets.append(QString());
 					break;
 					case 5: //MyoReps
-						if (!m_ExerciseData.at(exercise_idx)->reps.isEmpty())
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 30));
-							m_ExerciseData[exercise_idx]->subsets.append(QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toUInt() + 1));
-							m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
-							m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						}
-						else
-						{
-							m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("02:30"));
-							m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("0"));
-							m_ExerciseData[exercise_idx]->reps.append(QStringLiteral("15"));
-							m_ExerciseData[exercise_idx]->weight.append(QStringLiteral("100"));
-						}
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 30));
+						m_ExerciseData[exercise_idx]->subsets.append(QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toUInt() + 1));
+						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
+						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
 					break;
 				}
 			}

@@ -31,6 +31,7 @@ public:
 	~TPMesocycleClass();
 
 	inline int mesoId() const { return m_MesoId; }
+	inline void setMesoId(const int new_mesoid) { m_MesoId = new_mesoid; }
 	inline uint mesoIdx() const { return m_MesoIdx; }
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -60,8 +61,8 @@ public:
 	uint createMesoCalendarPage();
 	void createMesoCalendarPage_part2();
 
-	inline void setMesoCalendarModel(DBMesoCalendarModel* model) { m_mesosCalendarModel = model; }
 	inline QQuickItem* getCalendarPage() const { return m_calPage; }
+	inline void setMesoCalendarModel(DBMesoCalendarModel* model) { m_mesosCalendarModel = model; }
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
@@ -83,7 +84,7 @@ public:
 	inline bool setsLoaded(const uint exercise_idx) const { return m_setObjects.contains(exercise_idx) ;}
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	uint createExerciseObject(const QString& exerciseName);
+	uint createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
 	void createExerciseObject_part2(const int object_idx = -1);
 	void createExercisesObjects();
 
@@ -107,7 +108,7 @@ public:
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, int id);
-	void requestFloatingButton(const QVariant& exercise_idx);
+	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);

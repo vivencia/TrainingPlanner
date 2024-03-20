@@ -12,7 +12,7 @@ static const QStringList setTypePages(QStringList() << QStringLiteral("qrc:/qml/
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_splitComponent(nullptr),
-		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr)
+		m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr)
 {}
 
 TPMesocycleClass::~TPMesocycleClass()
@@ -36,9 +36,9 @@ void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVarian
 					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible));
 }
 
-void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx)
+void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type)
 {
-	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestFloatingButton", Q_ARG(int, exercise_idx.toInt()));
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestFloatingButton", Q_ARG(int, exercise_idx.toInt()), Q_ARG(int, set_type.toInt()));
 }
 
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -230,7 +230,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-uint TPMesocycleClass::createExerciseObject(const QString& exerciseName)
+uint TPMesocycleClass::createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight)
 {
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exercisesNumber());
 	if (m_tDayExercisesComponent == nullptr)
@@ -240,6 +240,9 @@ uint TPMesocycleClass::createExerciseObject(const QString& exerciseName)
 
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous, parentLayout);
 	}
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExerciseObject_part2(); } );
 	else
@@ -267,7 +270,8 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	item->setParentItem(parentLayout);
 	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
-	connect( item, SIGNAL(requestFloatingButton(const QVariant&)), this, SLOT(requestFloatingButton(const QVariant&)) );
+	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&)), this,
+						SLOT(requestFloatingButton(const QVariant&,const QVariant&)) );
 	m_tDayExercises.append(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }

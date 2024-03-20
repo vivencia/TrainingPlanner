@@ -15,7 +15,7 @@ Page {
 	property var imageViewer: null
 	property var videoViewer: null
 
-	signal exerciseChosen(string strName1, string strName2, int nSets, real nReps, real nWeight)
+	signal exerciseChosen(string strName1, string strName2, string nSets, string nReps, string nWeight)
 
 	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
 		anchors.fill: parent
@@ -182,9 +182,8 @@ Page {
 						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
-						onEnterOrReturnKeyPressed: {
-							txtNReps.forceActiveFocus();
-						}
+						onValueChanged: (str) => text = str;
+						onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 					}
 
 					SetInputField {
@@ -196,9 +195,8 @@ Page {
 						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
-						onEnterOrReturnKeyPressed: {
-							txtNWeight.forceActiveFocus();
-						}
+						onValueChanged: (str) => text = str;
+						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 					}
 
 					SetInputField {
@@ -210,9 +208,8 @@ Page {
 						labelColor: "white"
 						Layout.alignment: Qt.AlignCenter
 
-						onEnterOrReturnKeyPressed: {
-							btnChooseMediaFromDevice.forceActiveFocus();
-						}
+						onValueChanged: (str) => text = str;
+						onEnterOrReturnKeyPressed: btnChooseMediaFromDevice.forceActiveFocus();
 					}
 				} // ColumnLayout
 			} //Pane

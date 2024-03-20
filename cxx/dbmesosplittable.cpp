@@ -108,10 +108,10 @@ void DBMesoSplitTable::getMesoSplit()
 				for (i = 0; i < n_entries; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				m_model->appendList(split_info);
+				m_result = true;
 			}
 		}
 		mSqlLiteDB.close();
-		m_result = true;
 	}
 
 	if (!m_result)

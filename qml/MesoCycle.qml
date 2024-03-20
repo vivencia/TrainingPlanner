@@ -798,7 +798,6 @@ Page {
 				if (bNewMeso) {
 					function getMesoId() {
 						appDB.databaseReady.disconnect(getMesoId);
-						mesoId = appDB.insertId();
 						appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 						bNewMeso = false;
 					}

@@ -77,8 +77,6 @@ FocusScope {
 				else {
 					if (nextObject !== null)
 						nextObject.forceActiveFocus()
-					else
-						txtSetNotes.forceActiveFocus();
 				}
 			}
 

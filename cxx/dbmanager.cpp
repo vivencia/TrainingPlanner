@@ -27,7 +27,7 @@
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings), m_runCommands(runcommands),
-		m_model(nullptr), m_insertid(0), m_exercisesPage(nullptr)
+		m_model(nullptr), m_exercisesPage(nullptr)
 {
 	m_DBFilePath = m_appSettings->value("dbFilePath").toString();
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
@@ -86,13 +86,11 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
 
-	mesocyclesModel = new DBMesocyclesModel(this);
-	pass_object(mesocyclesModel);
-	getAllMesocycles();
-
 	exercisesListModel = new DBExercisesModel(this);
 	mesoSplitModel  = new DBMesoSplitModel(this);
 	mesoCalendarModel = new DBMesoCalendarModel(this);
+	mesocyclesModel = new DBMesocyclesModel(this);
+	getAllMesocycles();
 
 	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
 	//Root context properties. MainWindow app properties
@@ -158,6 +156,7 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 			connect(newMeso, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
 			connect(newMeso, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
+		mesoCalendarModel->clear();
 		m_MesoId = mesoId;
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
@@ -194,7 +193,12 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 		break;
 		case OP_ADD:
 			if (dbObj->objectName() == DBMesocyclesObjectName)
-				m_insertid = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
+			{
+				m_MesoId = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
+				m_MesoManager.at(m_MesoIdx)->setMesoId(m_MesoId);
+				m_MesoManager.at(m_MesoIdx)->getMesoPage()->setProperty("mesoId", m_MesoId);
+				m_MesoIdStr = QString::number(m_MesoId);
+			}
 		break;
 		case OP_READ:
 			if (dbObj->objectName() == DBMesoCalendarObjectName)
@@ -393,7 +397,7 @@ void DbManager::getExercisesListVersion()
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DbManager::getAllMesocycles()
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, static_cast<DBMesocyclesModel*>(m_model)));
+	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
 	const int current_meso_idx(mesocyclesModel->count()-1);
 	if (current_meso_idx >= 0)
@@ -808,9 +812,9 @@ void DbManager::deleteTrainingDayTable()
 	createThread(worker, [worker] () { return worker->deleteTrainingDayTable(); } );
 }
 
-void DbManager::createExerciseObject(const QString& exerciseName)
+void DbManager::createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight)
 {
-	m_MesoManager.at(m_MesoIdx)->createExerciseObject(exerciseName);
+	m_MesoManager.at(m_MesoIdx)->createExerciseObject(exerciseName, nSets, nReps, nWeight);
 }
 
 void DbManager::removeExerciseObject(const uint exercise_idx)
@@ -823,9 +827,12 @@ QQuickItem* DbManager::getExerciseObject(const uint exercise_idx)
 	return m_MesoManager.at(m_MesoIdx)->getExerciseObject(exercise_idx);
 }
 
-void DbManager::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx)
+void DbManager::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const QString& nReps, const QString& nWeight)
 {
-	m_MesoManager.at(m_MesoIdx)->currenttDayModel()->newSet(exercise_idx, set_number, set_type);
+	if (set_number == 0)
+		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
+	else
+		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->newSet(exercise_idx, set_number, set_type);
 	m_MesoManager.at(m_MesoIdx)->createSetObject(set_type, set_number, exercise_idx);
 }
 

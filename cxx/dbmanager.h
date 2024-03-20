@@ -34,7 +34,6 @@ public:
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
-	Q_INVOKABLE uint insertId() const { return m_insertid; }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -101,10 +100,11 @@ public:
 	Q_INVOKABLE void updateTrainingDayExercises(const uint id);
 	Q_INVOKABLE void removeTrainingDay(const uint id);
 	Q_INVOKABLE void deleteTrainingDayTable();
-	Q_INVOKABLE void createExerciseObject(const QString& exerciseName);
+	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE QQuickItem* getExerciseObject(const uint exercise_idx);
-	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
+	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
+										const QString& nReps = QString(), const QString& nWeight = QString());
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
@@ -130,7 +130,6 @@ private:
 	RunCommands* m_runCommands;
 	TPListModel* m_model;
 	QMap<QString,int> m_WorkerLock;
-	uint m_insertid;
 	QList<TPMesocycleClass*> m_MesoManager;
 
 	DBMesocyclesModel* mesocyclesModel;

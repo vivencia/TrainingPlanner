@@ -15,10 +15,13 @@ FocusScope {
 
 	property int tDayId: -1
 	property int setNbr: 0
+	property string nSets
+	property string nReps
+	property string nWeight
 
 	signal setAdded(int objidx, var setObject)
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
-	signal requestFloatingButton(var exerciseidx)
+	signal requestFloatingButton(var exerciseidx, var settype)
 
 	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
@@ -60,7 +63,7 @@ FocusScope {
 		Layout.fillWidth: true
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: parent.width
-		width: parent.width
+		width: windowWidth - 10
 
 		ColumnLayout {
 			id: layoutMain
@@ -75,7 +78,7 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: parent.width - 100
+				width: windowWidth - 100
 				height: 60
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
@@ -195,6 +198,30 @@ FocusScope {
 				}
 			} //txtExerciseName
 
+
+				SetInputField {
+					id: txtNReps
+					text: nReps
+					type: SetInputField.Type.RepType
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged:(str)=> nReps = str;
+					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+				}
+
+				SetInputField {
+					id: txtNWeight
+					text: nWeight
+					type: SetInputField.Type.WeightType
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged:(str)=> nWeight = str;
+				}
+
 			Label {
 				text: qsTr("Set type: ")
 			}
@@ -223,15 +250,15 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						tDayModel.setSetType(0, cboSetType.currentValue, exerciseIdx);
-						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text));
-						requestFloatingButton(exerciseIdx);
+						tDayModel.setSetType(0, cboSetType.currentIndex, exerciseIdx);
+						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
+						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
 					}
 				}
 
 				SetInputField {
 					id: txtNSets
-					text: "1"
+					text: nSets
 					type: SetInputField.Type.SetType
 					availableWidth: layoutMain.width / 3
 					showLabel: false
@@ -250,7 +277,7 @@ FocusScope {
 		tDayModel.setExerciseName1(newname, exerciseIdx);
 	}
 
-	function createSetObject(type, n) {
+	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {
 		function setObjectCreated(object) {
 			appDB.getItem.disconnect(setObjectCreated);
 			setAdded(exerciseIdx, object);
@@ -259,7 +286,7 @@ FocusScope {
 		for(var i = setNbr; i < setNbr + n; ++i)
 		{
 			appDB.getItem.connect(setObjectCreated);
-			appDB.createSetObject(type, i, exerciseIdx);
+			appDB.createSetObject(type, i, exerciseIdx, nreps, nweight);
 		}
 		setNbr += n;
 	}
