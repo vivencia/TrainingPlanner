@@ -580,14 +580,39 @@ Page {
 				visible: splitLetter !== 'R'
 				color: "white"
 				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				RoundButton {
+					id: btnShowHideNotes
+					anchors.right: parent.right
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.rightMargin: 20
+					width: 25
+					height: 25
+
+					Image {
+						id: img
+						source: "qrc:/images/"+darkIconFolder+"down.png"
+						width: 20
+						height: 20
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+					}
+
+					onClicked: {
+						trainingNotesField.visible = !trainingNotesField.visible;
+						img.source = trainingNotesField.visible ? "qrc:/images/"+darkIconFolder+"up.png" : "qrc:/images/"+darkIconFolder+"down.png"
+					}
+				}
 			}
 			Flickable {
-				visible: splitLetter !== 'R'
+				id: trainingNotesField
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				height: Math.min(contentHeight, 60)
 				contentHeight: txtDayInfoTrainingNotes.implicitHeight
+				visible: false
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
@@ -601,9 +626,7 @@ Page {
 						tDayModel.modified = true;
 					}
 
-					Component.onCompleted: {
-						trainingNotes = tDayModel.dayNotes();
-					}
+					Component.onCompleted: trainingNotes = tDayModel.dayNotes();
 				}
 				ScrollBar.vertical: ScrollBar {}
 				ScrollBar.horizontal: ScrollBar {}
