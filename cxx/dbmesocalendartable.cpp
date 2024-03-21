@@ -240,8 +240,8 @@ void DBMesoCalendarTable::changeMesoCalendar()
 
 void DBMesoCalendarTable::updateMesoCalendar()
 {
-	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(0).toString(), m_execArgs.at(1).toDate(),
-										m_execArgs.at(2).toString(), m_execArgs.at(3).toString());
+	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(1).toString(), m_execArgs.at(2).toDate(),
+										m_execArgs.at(3).toString(), m_execArgs.at(4).toString());
 	removeMesoCalendar();
 	createMesoCalendar();
 }

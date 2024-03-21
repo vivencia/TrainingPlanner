@@ -363,8 +363,11 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	{
 		m_setObjects[exercise_idx].last()->setProperty("nextObject", QVariant::fromValue(item));
 		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
-						SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
+					SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	}
+	if (set_type == 4)
+		connect( item, SIGNAL(requestSimpleExercisesListFromSet(QQuickItem*,const QVariant&,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
 	m_setObjects[exercise_idx].append(item);
 	emit itemReady(m_setObjects.value(exercise_idx).at(set_number), tDaySetCreateId);
 }

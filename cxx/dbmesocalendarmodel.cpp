@@ -161,7 +161,7 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay)
 {
 	const uint year(startDate.year());
-	const uint month(startDate.month()-1);
+	const uint month(startDate.month());
 	uint day(startDate.day()-1);
 	int idx(mesoSplit.indexOf(splitLetter));
 	uint tday(tDay.toUInt());
@@ -183,7 +183,7 @@ void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& sta
 						if (mesoSplit.at(idx) == u"R"_qs)
 							dayInfo[2] = u"0"_qs;
 						else
-							dayInfo[2] = QString::number(++tday);
+							dayInfo[2] = QString::number(tday++);
 						dayInfo[3] = mesoSplit.at(idx);
 						m_modeldata[i][day] = dayInfo.join(',');
 						if (++idx >= mesoSplit.length())

@@ -166,7 +166,7 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		x = 10;
+		x = 0;
 		y = windowHeight * 0.5 - height;
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);

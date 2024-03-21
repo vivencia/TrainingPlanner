@@ -193,7 +193,12 @@ QString RunCommands::getStrMinFromTime(const QDateTime& time) const
 
 QString RunCommands::formatTime(const QDateTime& time) const
 {
-	return time.toString(QStringLiteral("hh:mm"));
+	return time.toString(u"hh:mm"_qs);
+}
+
+QString RunCommands::getCurrentTime() const
+{
+	return QTime::currentTime().toString(u"hh:mm"_qs);
 }
 
 QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
@@ -223,23 +228,37 @@ QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins,
 	return ret;
 }
 
-QString RunCommands::formatFutureTime(const QDateTime& time, const uint hours, const uint mins) const
+QString RunCommands::formatFutureTime(const uint hours, const uint mins) const
 {
-	QDateTime newTime(time.addSecs(mins*60 + hours*3600));
-	return newTime.toString(QStringLiteral("hh:mm"));
+	return addToTime(QTime::currentTime(), hours, mins);
 }
 
-QString RunCommands::formatFutureTime(const QDateTime& time, const QDateTime& addTime) const
+QString RunCommands::formatFutureTime(const QDateTime& addTime) const
 {
-	QTime addtime(addTime.time());
-	QTime newTime(time.addSecs(addtime.minute()*60 + addtime.hour()*3600).time());
-	return newTime.toString(QStringLiteral("hh:mm"));
+	const QTime time(addTime.time());
+	return addToTime(QTime::currentTime(), time.minute(), time.hour());
+}
+
+QString RunCommands::addToTime(const QString& origTime, const uint hours, const uint mins) const
+{
+	const QTime time(origTime.left(2).toUInt(), origTime.right(2).toUInt());
+	return addToTime(time, hours, mins);
 }
 
 QString RunCommands::getHourOrMinutesFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.left(idx) : QString();
+}
+
+QString RunCommands::getHourFromCurrentTime() const
+{
+	return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs));
+}
+
+QString RunCommands::getMinutesFromCurrentTime() const
+{
+	return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs));
 }
 
 QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
@@ -250,8 +269,8 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 
 QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const
 {
-	const QTime time1(QTime::fromString(strTime1, QStringLiteral("hh:mm")));
-	QTime time2(QTime::fromString(strTime2, QStringLiteral("hh:mm")));
+	const QTime time1(QTime::fromString(strTime1, u"hh:mm"_qs));
+	QTime time2(QTime::fromString(strTime2, u"hh:mm"_qs));
 
 	int hour(time2.hour() - time1.hour());
 	int min (time2.minute() - time1.minute());
@@ -262,4 +281,9 @@ QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const 
 
 	time2.setHMS(hour, min, 0);
 	return QDateTime(QDate(), time2);
+}
+
+QDateTime RunCommands::calculateTimeRemaing(const QString& strFinalTime) const
+{
+	return calculateTimeBetweenTimes(QTime::currentTime().toString(u"hh:mm"_qs), strFinalTime);
 }

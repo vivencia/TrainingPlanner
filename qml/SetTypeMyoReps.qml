@@ -131,12 +131,11 @@ Item {
 		Label {
 			text: qsTr("Notes:")
 			Layout.topMargin: 10
-			Layout.fillWidth: true
-			padding: 10
+			bottomPadding: 10
 
 			RoundButton {
 				id: btnShowHideNotes
-				anchors.right: parent.right
+				anchors.left: parent.right
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.rightMargin: 20
 				width: 25

@@ -89,6 +89,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
+			timeOut = runCmd.addToTime(timeIn, parseInt(hour), parseInt(minutes));
 			tDayModel.modified = true;
 			bDayIsFinished = false;
 		}
@@ -119,15 +120,15 @@ Page {
 
 		onUseTime: (strtime) => {
 			sessionLength = strtime;
-			timeOut = runCmd.formatFutureTime(mainwindow.todayFull, sessionLength);
+			timeOut = runCmd.formatFutureTime(sessionLength);
 			timerRestricted.init(timeOut);
 		}
 	}
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getStrHourFromTime(new Date())
-		minutesDisplay: runCmd.getStrMinFromTime(new Date())
+		hrsDisplay: runCmd.getCurrentTime()
+		minutesDisplay: runCmd.getCurrentTime()
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -172,12 +173,10 @@ Page {
 		property string finalMin
 
 		onTriggered: {
-			const timeNow = JSF.getTimeStringFromDateTime(mainwindow.todayFull);
-			sessionLength = JSF.calculateTimeBetweenTimes(timeNow, timeOut);
-
-			const hour = JSF.getHourOrMinutesFromStrTime(timeNow);
+			sessionLength = runCmd.calculateTimeRemaing(timeOut);
+			const hour = runCmd.getHourFromCurrentTime();
 			if (hour === finalHour) {
-				const min = JSF.getMinutesOrSeconsFromStrTime(timeNow);
+				const min = runCmd.getMinutesFromCurrentTime();
 				const timeLeft = parseInt(finalMin) - parseInt(min);
 				if (timeLeft <= 15) {
 					switch (tipTimeWarn.nShow) {
@@ -195,7 +194,7 @@ Page {
 								tipTimeWarn.showTimed(18000, 0);
 							}
 						break;
-						case 2: {
+						case 2:
 							if (timeLeft <= 1) {
 								tipTimeWarn.displayMin = timeLeft.toString();
 								playSound.loops = 4;
@@ -204,7 +203,7 @@ Page {
 								stop();
 								complete = true;
 							}
-						}
+						break;
 					}
 				}
 			}
@@ -212,11 +211,11 @@ Page {
 
 		function init(finalTime) {
 			bDayIsFinished = false;
-			finalHour = JSF.getHourOrMinutesFromStrTime(finalTime);
-			finalMin = JSF.getMinutesOrSeconsFromStrTime(finalTime);
+			finalHour = runCmd.getHourOrMinutesFromStrTime(finalTime);
+			finalMin = runCmd.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
 			tipTimeWarn.timeout = 20000;
-			timeIn = JSF.getTimeStringFromDateTime(mainwindow.todayFull);
+			timeIn = runCmd.getCurrentTime();
 			complete = false;
 			start();
 		}
@@ -514,7 +513,7 @@ Page {
 							Component.onCompleted: {
 								 timeIn = tDayModel.timeIn();
 								 if (timeIn.length === 0)
-									timeIn = runCmd.formatTime(new Date());
+									timeIn = runCmd.getCurrentTime();
 							}
 						}
 						RoundButton {
@@ -545,7 +544,7 @@ Page {
 							Component.onCompleted: {
 								timeOut = tDayModel.timeOut();
 								if (timeOut.length === 0)
-									timeOut = runCmd.formatFutureTime(new Date(), 1, 30);
+									timeOut = runCmd.formatFutureTime(1, 30);
 							}
 						}
 
@@ -580,11 +579,10 @@ Page {
 				visible: splitLetter !== 'R'
 				color: "white"
 				Layout.leftMargin: 5
-				Layout.fillWidth: true
 
 				RoundButton {
 					id: btnShowHideNotes
-					anchors.right: parent.right
+					anchors.left: parent.right
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.rightMargin: 20
 					width: 25
@@ -965,6 +963,7 @@ Page {
 						appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
 					else
 						appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter, tDay);
+					chkAdjustCalendar.visible = false;
 				}
 			}
 		} //btnSaveDay
@@ -1197,9 +1196,8 @@ Page {
 			timerDlgMessage.close();
 			timerDialog.open();
 		}
-		else {
-			//timerDlgMessage.openTimed(5000, 0); TODO
-		}
+		else
+			timerDlgMessage.showTimed(5000, 0);
 	}
 
 	function timerDialogUseButtonClicked(strTime) {

@@ -11,6 +11,7 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property Item parentItem
 
+	property bool bAlreadyLoaded: false
 	property string filterString: ""
 	property int removalSecs: 0
 
@@ -575,19 +576,22 @@ Frame {
 	} //ColumnLayout
 
 	function init() {
-		if (splitModel.count === 0) {
-			prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
-			if (prevMesoId >= 0) {
-				if (appDB.mesoHasPlan(prevMesoId, splitLetter)) {
-					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
-					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
-					splitModel.currentRow = 0;
+		if (!bAlreadyLoaded) {
+			if (splitModel.count === 0) {
+				prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
+				if (prevMesoId >= 0) {
+					if (appDB.mesoHasPlan(prevMesoId, splitLetter)) {
+						prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
+						msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
+						splitModel.currentRow = 0;
+					}
 				}
+				else
+					appendNewExerciseToDivision();
 			}
-			else
-				appendNewExerciseToDivision();
+			filterString = exercisesListModel.makeFilterString(txtSplit.text);
+			bAlreadyLoaded = true;
 		}
-		filterString = exercisesListModel.makeFilterString(txtSplit.text);
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {

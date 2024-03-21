@@ -55,7 +55,7 @@ FocusScope {
 
 	IntValidator {
 		id: val_set
-		bottom: 0
+		bottom: 1
 		top: 9
 	}
 
@@ -168,6 +168,8 @@ FocusScope {
 							nbr = 1;
 						else
 							nbr = parseInt(str);
+						if (nbr <= 1)
+							return;
 						nbr--;
 					break;
 					case SetInputField.Type.TimeType:
@@ -293,9 +295,9 @@ FocusScope {
 					break;
 					case SetInputField.Type.SetType:
 						nbr = parseInt(str);
-						nbr++;
-						if (nbr > 9)
+						if (nbr >= 9)
 							return;
+						nbr++;
 					break;
 					case SetInputField.Type.TimeType:
 						const secs = parseInt(str.substring(3, 5));

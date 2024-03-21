@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Page {
 	id: homePage
@@ -26,35 +27,31 @@ Page {
 	header: ToolBar {
 		topPadding: 20
 		bottomPadding: 20
+		leftPadding: 10
+		rightPadding: 10
 		height: 60
 
 		background: Rectangle {
 			opacity: 0
 		}
 
-		Label {
-			text: qsTr("Training Program")
-			color: "white"
-			font.weight: Font.ExtraBold
-			font.pixelSize: AppSettings.fontSizeTitle
-			wrapMode: Text.WordWrap
-			anchors {
-				left: parent.left
-				leftMargin: 65
-				top: parent.top
-				right: parent.right
-				rightMargin: 5
-			}
-		}
+		RowLayout {
+			anchors.fill: parent
 
-		Image {
-			source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
-			width: 50
-			height: 50
-			anchors {
-				left: parent.left
-				leftMargin: 10
-				verticalCenter: parent.verticalCenter
+			Image {
+				source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
+				width: 50
+				height: 50
+				Layout.alignment: Qt.AlignCenter
+			}
+
+			Label {
+				text: qsTr("Training Program")
+				color: "white"
+				font.weight: Font.ExtraBold
+				font.pixelSize: AppSettings.fontSizeTitle
+				wrapMode: Text.WordWrap
+				Layout.alignment: Qt.AlignCenter
 			}
 		}
 	}

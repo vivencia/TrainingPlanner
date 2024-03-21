@@ -130,8 +130,10 @@ Page {
 		height: shown ? parent.height * 0.5 : btnShowHideList.height
 		property bool shown: true
 
-		onVisibleChanged: {
-			shown = visible;
+		onVisibleChanged: shown = visible;
+		onShownChanged: {
+			if (shown)
+				exercisesList.setFilter(filterString);
 		}
 
 		anchors {

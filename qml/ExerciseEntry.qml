@@ -78,7 +78,7 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: windowWidth - 100
+				width: windowWidth - 75
 				height: 60
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
@@ -235,12 +235,36 @@ FocusScope {
 				TPComboBox {
 					id: cboSetType
 					model: setTypesModel
-					Layout.minimumWidth: 140
+					Layout.minimumWidth: 120
 					currentIndex: tDayModel.setType(0, exerciseIdx)
+
+					onActivated: (index)=> {
+						switch(index) {
+							case 2: nSets = "1"; break; //DropSet
+							case 3: nSets = "2"; break; //ClusterSet
+							case 5: nSets = "3"; break; //MyoReps
+							default: break;
+						}
+					}
+				}
+
+				SetInputField {
+					id: txtNSets
+					text: nSets
+					type: SetInputField.Type.SetType
+					availableWidth: layoutMain.width / 3
+					alternativeLabels: ["","","",qsTr("sets #:")]
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged: (str)=> text = str;
 				}
 
 				RoundButton {
 					id: btnAddSet
+					width: 30
+					height: 30
+					Layout.leftMargin: 20
 
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"add-new.png";
@@ -254,18 +278,6 @@ FocusScope {
 						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
 					}
-				}
-
-				SetInputField {
-					id: txtNSets
-					text: nSets
-					type: SetInputField.Type.SetType
-					availableWidth: layoutMain.width / 3
-					showLabel: false
-					backColor: "transparent"
-					borderColor: "transparent"
-
-					onValueChanged: (str)=> text = str;
 				}
 			} // RowLayout
 		} // ColumnLayout layoutMain
@@ -295,9 +307,5 @@ FocusScope {
 		paneExercise.shown = !paneExercise.shown
 		if (paneExercise.shown)
 			appDB.createSetObjects(exerciseIdx);
-	}
-
-	function requestExercisesList(requester, visible) {
-		requestSimpleExercisesList(requester, visible);
 	}
 } //Item

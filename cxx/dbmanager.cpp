@@ -658,6 +658,7 @@ void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& s
 		return;
 	}
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	worker->addExecArg(m_MesoId); //needed for DBMesoCalendarTable::removeMesoCalendar()
 	worker->addExecArg(mesoSplit);
 	worker->addExecArg(startDate);
 	worker->addExecArg(splitLetter);

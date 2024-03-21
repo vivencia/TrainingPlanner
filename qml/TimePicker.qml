@@ -306,9 +306,7 @@ Popup {
 			anchors.topMargin: -5
 			anchors.left: parent.left
 			anchors.leftMargin: 5
-			onClicked: {
-				timePicker.setDisplay(runCmd.formatTime(today), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
-			}
+			onClicked: timePicker.setDisplay(runCmd.getCurrentTime(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
 		ButtonIconActive {
@@ -539,19 +537,17 @@ Popup {
 			text: qsTr("Cancel")
 			anchors.top: parent.top
 			anchors.left: parent.left
-			anchors.leftMargin: 10
-			anchors.topMargin: -10
-			onClicked: {
-				timePicker.close();
-			}
+			anchors.leftMargin: 5
+			//anchors.topMargin: -10
+			onClicked: timePicker.close();
 		}
 
 		ButtonFlat {
 			text: qsTr("OK")
 			anchors.top: parent.top
 			anchors.right: parent.right
-			anchors.rightMargin: 10
-			anchors.topMargin: -10
+			anchors.rightMargin: 5
+			//anchors.topMargin: -10
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
 				timePicker.isOK = true;

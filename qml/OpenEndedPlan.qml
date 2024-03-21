@@ -6,7 +6,9 @@ import "jsfunctions.js" as JSF
 
 Page {
 	id: openEndedPage
+	objectName: "openEndedPage"
 	width: windowWidth
+	height: windowHeight
 
 	required property int mesoId
 	required property int idxModel

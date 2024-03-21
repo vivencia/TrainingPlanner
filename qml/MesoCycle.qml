@@ -768,7 +768,7 @@ Page {
 					mesoStartDate = calendarStartDate;
 					mesoEndDate = fixedMesoEndDate;
 					txtMesoName.clear();
-					txtMesoNWeeks.clear(); //runCmd.calculateNumberOfWeeks(calendarStartDate, fixedMesoEndDate);
+					txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(calendarStartDate, fixedMesoEndDate);
 					txtMesoSplit.clear();
 					txtMesoDrugs.clear();
 					txtMesoNotes.clear();

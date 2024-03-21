@@ -17,6 +17,7 @@ Item {
 
 	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
+	signal requestSimpleExercisesListFromSet(Item setrequester, var bVisible, int id)
 
 	ColumnLayout {
 		id: setLayout
@@ -53,12 +54,9 @@ Item {
 			font.pixelSize: AppSettings.fontSizeText
 			readOnly: true
 			wrapMode: Text.WordWrap
-			width: setItem.width - 75
-			height: 60
+			width: windowWidth - 75
 			Layout.minimumWidth: width
-			Layout.maximumWidth: width
-			Layout.minimumHeight: height
-			Layout.maximumHeight: height
+			height: 60
 			Layout.leftMargin: 5
 			Layout.rightMargin: 5
 			Layout.topMargin: 0
@@ -92,20 +90,24 @@ Item {
 					cursorPosition = 0;
 					ensureVisible(0);
 				}
+				requestSimpleExercisesListFromSet(setItem, !readOnly, 1);
+			}
+
+			onTextChanged: {
+				if (readOnly)
+					ensureVisible(0);
 			}
 
 			onActiveFocusChanged: {
-				if (activeFocus) {
-					requestExercisesList(setItem, false);
+				if (activeFocus)
 					cursorPosition = text.length;
-				}
-				else
+				else {
+					readOnly = false;
 					cursorPosition = 0;
+				}
 			}
 
-			onEditingFinished: {
-				tDayModel.setExerciseName2(text, exerciseIdx);
-			}
+			onEditingFinished: tDayModel.setExerciseName2(text, exerciseIdx);
 
 			RoundButton {
 				id: btnRemoveExercise2
@@ -142,10 +144,7 @@ Item {
 					width: 20
 				}
 
-				onClicked: {
-					txtExerciseName2.readOnly = !txtExerciseName2.readOnly;
-					requestExercisesList(setItem, !txtExerciseName2.readOnly);
-				}
+				onClicked: txtExerciseName2.readOnly = !txtExerciseName2.readOnly;
 			} //btnEditExercise2
 		} //txtExerciseName2
 
@@ -169,11 +168,11 @@ Item {
 			Layout.fillWidth: true
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
-			Layout.leftMargin: setItem.width/5
 			rows: 5
 			columns: 2
 			columnSpacing: 15
 			rowSpacing: 5
+			Layout.leftMargin: setItem.width/7
 
 			Label {
 				id: lblExercise1
@@ -205,23 +204,18 @@ Item {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				availableWidth: setItem.width/3
-				alternativeLabels: ["","","",""]
+				showLabel: false
 				Layout.row: 2
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
-
-				onEnterOrReturnKeyPressed: {
-					txtNWeight1.forceActiveFocus();
-				}
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, 0, str, exerciseIdx);
 					text = str;
 				}
 
-				Component.onCompleted: {
-					text = tDayModel.setReps(setNumber, 0, exerciseIdx);
-				}
+				Component.onCompleted: text = tDayModel.setReps(setNumber, 0, exerciseIdx);
+				onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 			}
 
 			Label {
@@ -234,23 +228,18 @@ Item {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
 				availableWidth: setItem.width/3
-				alternativeLabels: ["","","",""]
+				showLabel: false
 				Layout.row: 2
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
-
-				onEnterOrReturnKeyPressed: {
-					txtNWeight2.forceActiveFocus();
-				}
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, 1, str, exerciseIdx);
 					text = str;
 				}
 
-				Component.onCompleted: {
-					text = tDayModel.setReps(setNumber, 1, exerciseIdx);
-				}
+				Component.onCompleted: text = tDayModel.setReps(setNumber, 1, exerciseIdx);
+				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 			}
 
 			Label {
@@ -264,23 +253,18 @@ Item {
 				text: strWeight1
 				type: SetInputField.Type.WeightType
 				availableWidth: setItem.width/3
-				alternativeLabels: ["","","",""]
+				showLabel: false
 				Layout.row: 4
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
-
-				onEnterOrReturnKeyPressed: {
-					txtNReps2.forceActiveFocus();
-				}
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, 0, str, exerciseIdx);
 					text = str;
 				}
 
-				Component.onCompleted: {
-					text = tDayModel.setWeight(setNumber, 0, exerciseIdx);
-				}
+				Component.onCompleted: text = tDayModel.setWeight(setNumber, 0, exerciseIdx);
+				onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 			}
 
 			Label {
@@ -293,7 +277,7 @@ Item {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
 				availableWidth: setItem.width/3
-				alternativeLabels: ["","","",""]
+				showLabel: false
 				Layout.row: 4
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
@@ -308,21 +292,18 @@ Item {
 					text = str;
 				}
 
-				Component.onCompleted: {
-					text = tDayModel.setWeight(setNumber, 1, exerciseIdx);
-				}
+				Component.onCompleted: text = tDayModel.setWeight(setNumber, 1, exerciseIdx);
 			}
 		}
 
 		Label {
 			text: qsTr("Notes:")
 			Layout.topMargin: 10
-			Layout.fillWidth: true
-			padding: 10
+			bottomPadding: 10
 
 			RoundButton {
 				id: btnShowHideNotes
-				anchors.right: parent.right
+				anchors.left: parent.right
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.rightMargin: 20
 				width: 25
