@@ -89,7 +89,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
-			timeOut = runCmd.addToTime(timeIn, parseInt(hour), parseInt(minutes));
+			timeOut = runCmd.addToTime(timeIn, 1, 30);
 			tDayModel.modified = true;
 			bDayIsFinished = false;
 		}

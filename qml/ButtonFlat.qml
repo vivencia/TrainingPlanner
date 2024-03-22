@@ -10,6 +10,7 @@ Rectangle {
 	property alias text: buttonText.text
 	property bool textUnderIcon: false
 	property bool highlight: false
+	property bool fixedSize: false
 
 	property string imageSource
 	property bool bPressed: false
@@ -20,8 +21,8 @@ Rectangle {
 	border.color: "black"
 	radius: 6
 	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
-	implicitWidth: buttonText.width + (buttonImage.visible ? textUnderIcon ? 0 : buttonImage.width + 10 : 0)
-	implicitHeight: buttonText.height + (buttonImage.visible ? textUnderIcon ? buttonImage.height + 0 : 0 : 0)
+	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
+	implicitHeight: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 
 	onHighlightChanged: {
 		if (highlight) {
@@ -34,8 +35,30 @@ Rectangle {
 		}
 	}
 
-	property double fillPosition: !anim.running
+	FontMetrics {
+		id: fontMetrics
+		font.family: buttonText.font.family
+		font.pixelSize: AppSettings.fontSizeText
+	}
 
+	Component.onCompleted: {
+		AppSettings.appFontSizeChanged.connect(resizeButton);
+		resizeButton();
+	}
+
+	function resizeButton() {
+		if (!fixedSize) {
+			const fwidth = fontMetrics.boundingRect(text).width;
+			buttonText.width = fwidth + 5
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10);
+
+			const fheight = fontMetrics.boundingRect("TM").height;
+			buttonText.height = fheight + 10
+			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
+		}
+	}
+
+	property double fillPosition: !anim.running
 	Behavior on fillPosition {
 		NumberAnimation {
 			id: flash
@@ -62,25 +85,19 @@ Rectangle {
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
 		rightPadding: 5
-		width: fontMetrics.boundingRect(text).width + 10
-		height: fontMetrics.boundingRect("TM").height + 10
 
 		Component.onCompleted: {
-			anchors.left = button.left;
-			if (!textUnderIcon)
+			if (!textUnderIcon) {
 				anchors.verticalCenter = button.verticalCenter;
+				if (imageSource.length === 0)
+					anchors.horizontalCenter = button.horizontalCenter;
+			}
 			else {
 				anchors.horizontalCenter = button.horizontalCenter;
 				anchors.bottom = button.bottom;
 				anchors.bottomMargin = 2;
 			}
 
-		}
-
-		FontMetrics {
-			id: fontMetrics
-			font.family: buttonText.font.family
-			font.pixelSize: AppSettings.fontSizeText
 		}
 	}
 

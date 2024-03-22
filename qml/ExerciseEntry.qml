@@ -224,6 +224,7 @@ FocusScope {
 
 			Label {
 				text: qsTr("Set type: ")
+				font.bold: true
 			}
 
 			RowLayout {

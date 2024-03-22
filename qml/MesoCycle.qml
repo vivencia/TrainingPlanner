@@ -630,6 +630,7 @@ Page {
 
 					ButtonFlat {
 						id: btnCreateExercisePlan
+						objectName: "fererer"
 						text: qsTr("Exercises Planner")
 						Layout.row: 6
 						Layout.column: 0

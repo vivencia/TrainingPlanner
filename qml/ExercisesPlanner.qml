@@ -82,6 +82,9 @@ Page {
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.modified : false
+			fixedSize: true
+			width: 80
+			height: btnAddExercise.height
 			anchors.left: parent.left
 			anchors.leftMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
@@ -99,6 +102,9 @@ Page {
 			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.count > 0 : false
+			fixedSize: true
+			width: 80
+			height: btnAddExercise.height
 			anchors.left: btnSave.right
 			anchors.verticalCenter: parent.verticalCenter
 

@@ -6,6 +6,8 @@ pragma Singleton
 import Qt.labs.settings
 
 Settings {
+	signal appFontSizeChanged()
+
 	property string appLocale
 	property string weightUnit
 	property string themeStyle
@@ -16,4 +18,6 @@ Settings {
 	property int fontSizeText
 	property int fontSizeTitle
 	property string exercisesListVersion
+
+	onFontSizeChanged: appFontSizeChanged();
 }

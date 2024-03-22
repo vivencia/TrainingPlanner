@@ -537,14 +537,16 @@ Dialog {
 		height: 40
 		width: parent.width
 
+		RowLayout {
+			anchors.fill: parent
+
 		ButtonFlat {
 			id: btnStartPause
+			text: qsTr("Start")
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
 			visible: !timePickerOnly
-			width: 70
-			height: 30
-			text: qsTr("Start")
-			x: ((parent.width / 3) - width ) / 2
+			Layout.leftMargin: 20
+			//x: ((parent.width / 3) - width ) / 2
 
 			onClicked: {
 				playSound.stop();
@@ -577,9 +579,8 @@ Dialog {
 			text: qsTr("Reset")
 			visible: !timePickerOnly
 			enabled: bRunning ? false : bPaused
-			width: 70
-			height: 30
-			x: (parent.width / 3) + btnStartPause.x
+			//x: (parent.width / 3) + btnStartPause.x
+
 			onClicked: {
 				mainTimer.stopTimer(true);
 				playSound.stop();
@@ -590,9 +591,7 @@ Dialog {
 		ButtonFlat {
 			id: btnUseTime
 			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
-			width: 70
-			height: 30
-			x: btnReset.x + btnReset.width + 2*btnStartPause.x
+			//x: btnReset.x + btnReset.width + 2*btnStartPause.x
 
 			onClicked: {
 				var totalsecs = secs;
@@ -641,7 +640,7 @@ Dialog {
 			}
 		}
 	} // recButtons
-
+	}
 	onClosed: {
 		playSound.stop();
 	}
