@@ -148,31 +148,30 @@ void TPListModel::setFilter(const QString &filter)
 	}
 }
 
-QString TPListModel::makeFilterString(const QString& text) const
+void TPListModel::makeFilterString(const QString& text)
 {
-	QString filterStr(text);
-	filterStr = filterStr.replace(',', ' ').simplified();
-	const QStringList words(filterStr.split(' '));
+	m_filterString = text;
+	m_filterString = m_filterString.replace(',', ' ').simplified();
+	const QStringList words(m_filterString.split(' '));
 
 	if ( words.count() > 0)
 	{
 		QStringList::const_iterator itr(words.begin());
 		const QStringList::const_iterator itr_end(words.end());
-		filterStr.clear();
+		m_filterString.clear();
 
 		do
 		{
 			if(static_cast<QString>(*itr).length() < 3)
 				continue;
-			if (!filterStr.isEmpty())
-				filterStr.append('|');
-			filterStr.append(static_cast<QString>(*itr).toLower());
-			if (filterStr.endsWith('s', Qt::CaseInsensitive) )
-				filterStr.chop(1);
-			filterStr.remove('.');
-			filterStr.remove('(');
-			filterStr.remove(')');
+			if (!m_filterString.isEmpty())
+				m_filterString.append('|');
+			m_filterString.append(static_cast<QString>(*itr).toLower());
+			if (m_filterString.endsWith('s', Qt::CaseInsensitive) )
+				m_filterString.chop(1);
+			m_filterString.remove('.');
+			m_filterString.remove('(');
+			m_filterString.remove(')');
 		} while (++itr != itr_end);
 	}
-	return filterStr;
 }

@@ -133,8 +133,8 @@ Item {
 
 		Label {
 			text: qsTr("Notes:")
-			Layout.topMargin: 10
-			bottomPadding: 10
+			Layout.bottomMargin: 10
+			font.bold: true
 
 			RoundButton {
 				id: btnShowHideNotes
@@ -162,9 +162,9 @@ Item {
 		TextField {
 			id: txtSetNotes
 			Layout.fillWidth: true
-			Layout.leftMargin: 10
-			Layout.rightMargin: 10
-			padding: 0
+			Layout.leftMargin: 5
+			Layout.rightMargin: 5
+			Layout.bottomMargin: 10
 			visible: false
 
 			onTextEdited: tDayModel.setSetNotes(text, exerciseIdx);

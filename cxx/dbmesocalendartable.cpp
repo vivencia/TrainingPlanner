@@ -125,7 +125,6 @@ void DBMesoCalendarTable::getMesoCalendar()
 	}
 	else
 		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -189,7 +188,6 @@ void DBMesoCalendarTable::createMesoCalendar()
 		MSG_OUT("DBMesoCalendarTable createMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable createMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -226,7 +224,6 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 		MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -264,7 +261,6 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -282,7 +278,6 @@ void DBMesoCalendarTable::deleteMesoCalendarTable()
 	{
 		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable error: Could not remove file " << mDBFile.fileName())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

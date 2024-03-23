@@ -196,7 +196,7 @@ QString RunCommands::formatTime(const QDateTime& time) const
 	return time.toString(u"hh:mm"_qs);
 }
 
-QString RunCommands::getCurrentTime() const
+QString RunCommands::getCurrentTimeString() const
 {
 	return QTime::currentTime().toString(u"hh:mm"_qs);
 }
@@ -286,4 +286,18 @@ QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const 
 QDateTime RunCommands::calculateTimeRemaing(const QString& strFinalTime) const
 {
 	return calculateTimeBetweenTimes(QTime::currentTime().toString(u"hh:mm"_qs), strFinalTime);
+}
+
+QDateTime RunCommands::updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const
+{
+	//If I don't put this line of code here, that does nothing but print to cout, the code fails. Don't know why
+	qDebug() << timeOfSuspension.time().second();
+	const QTime diffTime(QTime::currentTime().hour() - timeOfSuspension.time().hour(),
+						 QTime::currentTime().minute() - timeOfSuspension.time().minute(),
+						 QTime::currentTime().second() - timeOfSuspension.time().second());
+	//qDebug() << "Suspended for  " << diffTime.toString("hh:mm:ss");
+	if (bTimer)
+		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(0 - QTime(0, 0, 0).secsTo(diffTime)));
+	else
+		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(QTime(0, 0, 0).secsTo(diffTime)));
 }

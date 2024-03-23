@@ -101,7 +101,6 @@ void DBTrainingDayTable::getTrainingDay()
 	else
 		MSG_OUT("DBTrainingDayTable getTrainingDay SUCCESS")
 
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -139,7 +138,6 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	else
 		MSG_OUT("DBTrainingDayTable getTrainingDayExercises SUCCESS")
 
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -190,7 +188,6 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 	else
 		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays SUCCESS")
 
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -222,7 +219,6 @@ void DBTrainingDayTable::newTrainingDay()
 		MSG_OUT("DBTrainingDayTable newTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable newTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -259,7 +255,6 @@ void DBTrainingDayTable::updateTrainingDay()
 		MSG_OUT("DBTrainingDayTable updateTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable updateTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -297,7 +292,6 @@ void DBTrainingDayTable::updateTrainingDayExercises()
 		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -323,7 +317,6 @@ void DBTrainingDayTable::removeTrainingDay()
 		MSG_OUT("DBTrainingDayTable removeTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable removeTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -339,10 +332,8 @@ void DBTrainingDayTable::deleteTrainingDayTable()
 		MSG_OUT("DBTrainingDayTable deleteTrainingDayTable SUCCESS")
 	}
 	else
-	{
 		MSG_OUT("DBTrainingDayTable deleteTrainingDayTable error: Could not remove file " << mDBFile.fileName())
-	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
+
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

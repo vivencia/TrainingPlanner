@@ -102,7 +102,6 @@ void DBExercisesTable::getAllExercises()
 	}
 	else
 		MSG_OUT("DBExercisesTable getAllExercises SUCCESS")
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -113,7 +112,6 @@ void DBExercisesTable::updateExercisesList()
 	{
 		MSG_OUT("DBExercisesTable updateExercisesList m_ExercisesList is empty")
 		m_result = false;
-		resultFunc(static_cast<TPDatabaseTable*>(this));
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
@@ -179,7 +177,6 @@ void DBExercisesTable::updateExercisesList()
 	{
 		MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -217,7 +214,6 @@ void DBExercisesTable::newExercise()
 		MSG_OUT("DBExercisesTable newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBExercisesTable newExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -250,7 +246,6 @@ void DBExercisesTable::updateExercise()
 		MSG_OUT("DBExercisesTable updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBExercisesTable updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -279,7 +274,6 @@ void DBExercisesTable::removeExercise()
 		MSG_OUT("DBExercisesTable removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBExercisesTable removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -297,7 +291,6 @@ void DBExercisesTable::deleteExercisesTable()
 	{
 		MSG_OUT("DBExercisesTable deleteExercisesTable error: Could not remove file " << mDBFile.fileName())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

@@ -27,7 +27,6 @@ public:
 	inline bool result() const { return m_result; }
 
 	inline void setCallbackForExecFunc( const std::function<void (void)>& func ) { execFunc = func; }
-	inline void setCallbackForResultFunc( const std::function<void (TPDatabaseTable*)>& func ) { resultFunc = func; }
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
 	inline void execFunction() { execFunc(); }
@@ -46,7 +45,6 @@ protected:
 	OP_CODES m_opcode;
 
 	std::function<void (void)> execFunc;
-	std::function<void (TPDatabaseTable*)> resultFunc;
 	std::function<void (TPDatabaseTable*)> doneFunc;
 };
 

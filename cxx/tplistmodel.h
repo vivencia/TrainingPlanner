@@ -68,8 +68,8 @@ public:
 	Q_INVOKABLE void moveRow(const uint from, const uint to);
 
 	Q_INVOKABLE void setFilter(const QString& filter);
-	Q_INVOKABLE QString makeFilterString(const QString& text) const;
-	//Q_INVOKABLE void set(const uint row, const uint field, const QString& value) { m_modeldata.at[m_indexProxy.at(row)][field] = value; }
+	Q_INVOKABLE void makeFilterString(const QString& text);
+	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{
@@ -141,6 +141,7 @@ protected:
 	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
+	QString m_filterString;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
 	void copy ( const TPListModel& src_item );

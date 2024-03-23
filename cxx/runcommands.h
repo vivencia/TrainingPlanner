@@ -37,7 +37,7 @@ public:
 	Q_INVOKABLE QString getStrHourFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString getStrMinFromTime(const QDateTime& time) const;
 	Q_INVOKABLE QString formatTime(const QDateTime& time) const;
-	Q_INVOKABLE QString getCurrentTime() const;
+	Q_INVOKABLE QString getCurrentTimeString() const;
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
 	Q_INVOKABLE QString formatFutureTime(const uint hours, const uint mins) const;
 	Q_INVOKABLE QString formatFutureTime(const QDateTime& addTime) const;
@@ -46,8 +46,10 @@ public:
 	Q_INVOKABLE QString getHourFromCurrentTime() const;
 	Q_INVOKABLE QString getMinutesFromCurrentTime() const;
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
+	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
 	Q_INVOKABLE QDateTime calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const;
 	Q_INVOKABLE QDateTime calculateTimeRemaing(const QString& strFinalTime) const;
+	Q_INVOKABLE QDateTime updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const;
 
 signals:
 	void dbFileNameChanged();

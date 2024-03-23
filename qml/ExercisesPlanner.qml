@@ -51,20 +51,6 @@ Page {
 		visible: !bottomPane.shown
 	}
 
-	function requestSimpleExercisesList(object, visible) {
-		pageThatRequestedSimpleList = visible ? object : null;
-		bShowSimpleExercisesList = visible;
-	}
-
-	function hideSimpleExerciseList() {
-		bottomPane.shown = false;
-	}
-
-	function aboutToBeSuspended() {
-		if (currentPage.splitModel.splitModified)
-			btnSave.clicked();
-	}
-
 	footer: ToolBar {
 		id: splitToolBar
 		width: parent.width
@@ -138,8 +124,10 @@ Page {
 
 		onVisibleChanged: shown = visible;
 		onShownChanged: {
-			if (shown)
-				exercisesList.setFilter(filterString);
+			if (shown) {
+				exercisesList.setFilter();
+				exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
+			}
 		}
 
 		anchors {
@@ -191,5 +179,19 @@ Page {
 		appDB.getCompleteMesoSplit(mesoSplit);
 		if (Qt.platform.os === "android")
 			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+	}
+
+	function requestSimpleExercisesList(object, visible) {
+		pageThatRequestedSimpleList = visible ? object : null;
+		bShowSimpleExercisesList = visible;
+	}
+
+	function hideSimpleExerciseList() {
+		bottomPane.shown = false;
+	}
+
+	function aboutToBeSuspended() {
+		if (currentPage.splitModel.splitModified)
+			btnSave.clicked();
 	}
 } //Page

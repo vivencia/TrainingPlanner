@@ -122,7 +122,6 @@ void DBMesoSplitTable::getMesoSplit()
 	else
 		MSG_OUT("DBMesoSplitTable getMesoSplit SUCCESS")
 
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -155,7 +154,6 @@ void DBMesoSplitTable::newMesoSplit()
 		MSG_OUT("DBMesoSplitTable newMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable newMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -184,7 +182,6 @@ void DBMesoSplitTable::updateMesoSplit()
 		MSG_OUT("DBMesoSplitTable updateMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable updateMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -209,7 +206,6 @@ void DBMesoSplitTable::removeMesoSplit()
 		MSG_OUT("DBMesoSplitTable removeMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable removeMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -228,7 +224,6 @@ void DBMesoSplitTable::deleteMesoSplitTable()
 	{
 		MSG_OUT("DBMesoSplitTable deleteMesoSplitTable error: Could not remove file " << mDBFile.fileName())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -283,10 +278,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
 
 	if (mb_emitNow)
-	{
-		resultFunc(static_cast<TPDatabaseTable*>(this));
 		doneFunc(static_cast<TPDatabaseTable*>(this));
-	}
 }
 
 void DBMesoSplitTable::updateMesoSplitComplete()
@@ -330,7 +322,6 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

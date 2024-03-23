@@ -33,7 +33,6 @@ Page {
 	property bool bHasMesoPlan: false
 
 	property date sessionLength
-	property string filterString: ""
 
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
@@ -127,8 +126,8 @@ Page {
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getCurrentTime()
-		minutesDisplay: runCmd.getCurrentTime()
+		hrsDisplay: runCmd.getCurrentTimeString()
+		minutesDisplay: runCmd.getCurrentTimeString()
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -215,7 +214,7 @@ Page {
 			finalMin = runCmd.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
 			tipTimeWarn.timeout = 20000;
-			timeIn = runCmd.getCurrentTime();
+			timeIn = runCmd.getCurrentTimeString();
 			complete = false;
 			start();
 		}
@@ -513,7 +512,7 @@ Page {
 							Component.onCompleted: {
 								 timeIn = tDayModel.timeIn();
 								 if (timeIn.length === 0)
-									timeIn = runCmd.getCurrentTime();
+									timeIn = runCmd.getCurrentTimeString();
 							}
 						}
 						RoundButton {
@@ -1039,7 +1038,7 @@ Page {
 
 		onShownChanged: {
 			if (shown)
-				exercisesList.setFilter(filterString);
+				exercisesList.setFilter();
 		}
 
 		ButtonFlat {
@@ -1081,7 +1080,7 @@ Page {
 			case 'F': splitText = mesoSplitModel.get(mesoIdx, 7); break;
 			default: return;
 		}
-		filterString = exercisesListModel.makeFilterString(splitText);
+		exercisesListModel.makeFilterString(splitText);
 	}
 
 	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {

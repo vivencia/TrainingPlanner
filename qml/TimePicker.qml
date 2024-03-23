@@ -306,7 +306,7 @@ Popup {
 			anchors.topMargin: -5
 			anchors.left: parent.left
 			anchors.leftMargin: 5
-			onClicked: timePicker.setDisplay(runCmd.getCurrentTime(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
+			onClicked: timePicker.setDisplay(runCmd.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
 		ButtonIconActive {

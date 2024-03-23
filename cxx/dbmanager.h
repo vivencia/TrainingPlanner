@@ -111,7 +111,6 @@ public:
 
 signals:
 	void databaseReady();
-	void databaseFree();
 	void getPage(QQuickItem* item, const uint id);
 	void getItem(QQuickItem* item, const uint id);
 	void internalSignal(const uint id);
@@ -143,7 +142,6 @@ private:
 	QQmlComponent* m_exercisesComponent;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
-	void freeLocks(TPDatabaseTable* dbObj);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);

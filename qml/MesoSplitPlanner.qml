@@ -12,7 +12,6 @@ Frame {
 	required property Item parentItem
 
 	property bool bAlreadyLoaded: false
-	property string filterString: ""
 	property int removalSecs: 0
 
 	property string prevMesoName: ""
@@ -107,7 +106,7 @@ Frame {
 
 			onTextEdited: {
 				mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
-				filterString = exercisesListModel.makeFilterString(text);
+				exercisesListModel.makeFilterString(text);
 			}
 		}
 
@@ -153,8 +152,10 @@ Frame {
 						checked: index === splitModel.currentRow
 						width: parent.width
 
-						onClicked: {
-							splitModel.currentRow = index;
+						onClicked: splitModel.currentRow = index;
+						onCheckedChanged: {
+							if (checked)
+								parentItem.bEnableMultipleSelection = setType === 4;
 						}
 
 						RoundButton {
@@ -295,9 +296,12 @@ Frame {
 							Layout.rightMargin: 5
 
 							onActivated: (index) => {
+								setListItemHeight(lstSplitExercises.currentItem, index);
 								setType = index;
 								txtNSets.forceActiveFocus();
 								parentItem.bEnableMultipleSelection = setType === 4;
+								if (txtExerciseName.text === qsTr("Choose exercise..."))
+									exerciseName = (qsTr("Choose exercises..."));
 							}
 						}
 					}
@@ -319,9 +323,7 @@ Frame {
 							showLabel: false
 							enabled: index === splitModel.currentRow
 
-							onValueChanged: (str) => {
-								setsNumber = str;
-							}
+							onValueChanged: (str) => setsNumber = str;
 
 							onEnterOrReturnKeyPressed: {
 								if (txtNReps.visible)
@@ -374,13 +376,8 @@ Frame {
 							enabled: index === splitModel.currentRow
 							Layout.rightMargin: 5
 
-							onValueChanged: (str) => {
-								setsReps1 = str;
-							}
-
-							onEnterOrReturnKeyPressed: {
-								txtNWeight.forceActiveFocus();
-							}
+							onValueChanged: (str) => setsReps1 = str;
+							onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 						}
 					}
 
@@ -404,14 +401,10 @@ Frame {
 							Layout.alignment: Qt.AlignCenter
 							Layout.leftMargin: listItem.width/6
 
-							onValueChanged: (str) => {
-								setsReps1 = str;
-							}
-
-							onEnterOrReturnKeyPressed: {
-								txtNReps2.forceActiveFocus();
-							}
+							onValueChanged: (str) => setsReps1 = str;
+							onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 						}
+
 						SetInputField {
 							id: txtNReps2
 							text: setsReps2
@@ -422,13 +415,8 @@ Frame {
 							Layout.alignment: Qt.AlignRight
 							Layout.rightMargin: listItem.width/6
 
-							onValueChanged: (str) => {
-								setsReps2 = str;
-							}
-
-							onEnterOrReturnKeyPressed: {
-								txtNWeight1.forceActiveFocus();
-							}
+							onValueChanged: (str) => setsReps2 = str;
+							onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 						}
 					} //RowLayout
 
@@ -452,9 +440,7 @@ Frame {
 							enabled: index === splitModel.currentRow
 							visible: cboSetType.currentIndex !== 4
 
-							onValueChanged: (str) => {
-								setsWeight1 = str;
-							}
+							onValueChanged: (str) => setsWeight1 = str;
 						}
 					}
 
@@ -480,14 +466,10 @@ Frame {
 							Layout.alignment: Qt.AlignCenter
 							Layout.leftMargin: listItem.width/6
 
-							onValueChanged: (str) => {
-								setsWeight1 = str;
-							}
-
-							onEnterOrReturnKeyPressed: {
-								txtNWeight2.forceActiveFocus();
-							}
+							onValueChanged: (str) => setsWeight1 = str;
+							onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 						}
+
 						SetInputField {
 							id: txtNWeight2
 							text: setsWeight2
@@ -498,9 +480,7 @@ Frame {
 							Layout.alignment: Qt.AlignRight
 							Layout.rightMargin: listItem.width/6
 
-							onValueChanged: (str) => {
-								setsWeight2 = str;
-							}
+							onValueChanged: (str) => setsWeight2 = str;
 						}
 					} //RowLayout
 				} //ColumnLayout
@@ -513,7 +493,7 @@ Frame {
 					radius: 5
 
 					Component.onCompleted: { //Each layout row(9) * 32(height per row) + 32(extra space)
-						height = cboSetType.currentIndex !== 4 ? 320 : 420;
+						setListItemHeight(this, cboSetType.currentIndex);
 					}
 				}
 
@@ -589,9 +569,13 @@ Frame {
 				else
 					appendNewExerciseToDivision();
 			}
-			filterString = exercisesListModel.makeFilterString(txtSplit.text);
+			exercisesListModel.makeFilterString(txtSplit.text);
 			bAlreadyLoaded = true;
 		}
+	}
+
+	function setListItemHeight(item, settype) {
+		item.height = settype !== 4 ? 320 : 420;
 	}
 
 	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {

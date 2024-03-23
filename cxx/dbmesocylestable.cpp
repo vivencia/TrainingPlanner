@@ -119,7 +119,6 @@ void DBMesocyclesTable::newMesocycle()
 		MSG_OUT("DBMesocyclesTable newMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable newMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -150,7 +149,6 @@ void DBMesocyclesTable::updateMesocycle()
 		MSG_OUT("DBMesocyclesTable updateMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable updateMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -176,7 +174,6 @@ void DBMesocyclesTable::removeMesocycle()
 		MSG_OUT("DBMesocyclesTable removeMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable removeMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -192,10 +189,8 @@ void DBMesocyclesTable::deleteMesocyclesTable()
 		MSG_OUT("DBMesocyclesTable deleteMesocyclesTable SUCCESS")
 	}
 	else
-	{
 		MSG_OUT("DBMesocyclesTable deleteMesocyclesTable error: Could not remove file " << mDBFile.fileName())
-	}
-	resultFunc(static_cast<TPDatabaseTable*>(this));
+
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

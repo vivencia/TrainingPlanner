@@ -119,7 +119,6 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 					m_modeldata[row][role-Qt::UserRole-4] += subrecord_separator + value.toString();
 				else
 					m_modeldata[row][role-Qt::UserRole-4].replace(idx+1, m_modeldata.at(row).at(role-Qt::UserRole-4).length() - idx - 1, value.toString());
-				qDebug() << m_modeldata.at(row).at(role-Qt::UserRole-4).sliced(idx+1);
 				emit dataChanged(index, index, QList<int>() << role-4);
 				emit dataChanged(index, index, QList<int>() << role);
 			}

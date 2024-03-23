@@ -86,6 +86,7 @@ Rectangle {
 		bottomPadding: 5
 		rightPadding: 5
 
+		onTextChanged: resizeButton();
 		Component.onCompleted: {
 			if (!textUnderIcon) {
 				anchors.verticalCenter = button.verticalCenter;
@@ -97,7 +98,6 @@ Rectangle {
 				anchors.bottom = button.bottom;
 				anchors.bottomMargin = 2;
 			}
-
 		}
 	}
 

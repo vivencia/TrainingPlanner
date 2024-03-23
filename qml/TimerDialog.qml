@@ -35,9 +35,7 @@ Dialog {
 	property bool bTempHide: false
 	property bool bWasSuspended: false
 	property date suspendedTime
-	property int suspendedHours;
-	property int suspendedMins;
-	property int suspendedSecs;
+	property date suspendedTimer
 	property string windowTitle
 
 	signal useTime(string time)
@@ -545,8 +543,7 @@ Dialog {
 			text: qsTr("Start")
 			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
 			visible: !timePickerOnly
-			Layout.leftMargin: 20
-			//x: ((parent.width / 3) - width ) / 2
+			Layout.leftMargin: 10
 
 			onClicked: {
 				playSound.stop();
@@ -579,7 +576,6 @@ Dialog {
 			text: qsTr("Reset")
 			visible: !timePickerOnly
 			enabled: bRunning ? false : bPaused
-			//x: (parent.width / 3) + btnStartPause.x
 
 			onClicked: {
 				mainTimer.stopTimer(true);
@@ -591,9 +587,11 @@ Dialog {
 		ButtonFlat {
 			id: btnUseTime
 			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
-			//x: btnReset.x + btnReset.width + 2*btnStartPause.x
 
 			onClicked: {
+				appSuspended();
+				appResumed();
+				return;
 				var totalsecs = secs;
 				var totalmins = mins;
 				var totalhours = hours;
@@ -651,7 +649,7 @@ Dialog {
 		mainwindow.mainMenuClosed.connect(showDlg);
 		if (Qt.platform.os === "android") {
 			mainwindow.appAboutToBeSuspended.connect(appSuspended);
-			mainwindow.appActive.connect(appActivated);
+			mainwindow.appActive.connect(appResumed);
 		}
 	}
 
@@ -702,52 +700,18 @@ Dialog {
 	function appSuspended() {
 		if (bRunning) {
 			bWasSuspended = true;
-			suspendedTime = new Date();
-			suspendedHours = hours;
-			suspendedMins = mins;
-			suspendedSecs = secs;
+			suspendedTimer = new Date(2024, 1, 1, hours, mins, secs);
+			suspendedTime = runCmd.getCurrentTime();
 		}
 	}
 
-	function appActivated() {
+	function appResumed() {
 		if (bWasSuspended) {
 			bWasSuspended = false;
-			const now = new Date();
-			var correctedHours = 0, correctedMins = 0, correctedSecs = 0;
-			if (bTimer) {
-				correctedHours = suspendedHours - (now.getHours() - suspendedTime.getHours());
-				correctedMins = suspendedMins - (now.getMinutes() - suspendedTime.getMinutes());
-				correctedSecs = suspendedSecs - (now.getSeconds() - suspendedTime.getSeconds());
-				if (correctedSecs < 0) {
-					correctedSecs += 60;
-					correctedMins--;
-				}
-				if (correctedMins < 0) {
-					correctedMins += 60;
-					correctedHours--;
-				}
-				if (correctedHours < 0)
-					correctedHours = 0;
-			}
-			else {
-				correctedHours = suspendedHours + (now.getHours() - suspendedTime.getHours());
-				correctedMins = suspendedMins + (now.getMinutes() - suspendedTime.getMinutes());
-				correctedSecs = suspendedSecs + (now.getSeconds() - suspendedTime.getSeconds());
-				if (correctedSecs > 59) {
-					correctedSecs -= 59;
-					correctedMins++;
-				}
-				if (correctedMins > 59) {
-					correctedMins -= 59;
-					++correctedHours;
-				}
-			}
-			//console.log("correctedHours:  " + correctedHours + "    hours:   " + hours);
-			//console.log("correctedMins:  " + correctedMins + "   mins:   ", mins);
-			//console.log("correctedSecs:  " + correctedSecs + "   secs:   ", secs);
-			hours = correctedHours;
-			mins = correctedMins;
-			secs = correctedSecs;
+			const correctedTimer = runCmd.updateTimer(suspendedTime, suspendedTimer, bTimer);
+			hours = correctedTimer.getHours();
+			mins = correctedTimer.getMinutes();
+			secs = correctedTimer.getSeconds();
 		}
 	}
 } // Dialog

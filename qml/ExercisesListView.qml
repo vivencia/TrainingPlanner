@@ -302,8 +302,8 @@ Column {
 		}
 	}
 
-	function setFilter(strFilter) {
-		txtFilter.text = strFilter;
+	function setFilter() {
+		txtFilter.text = exercisesListModel.getFilter();
 		txtFilter.textChanged();
 		setCurrentIndex(-1);
 	}
