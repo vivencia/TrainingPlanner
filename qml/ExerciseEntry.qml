@@ -13,6 +13,7 @@ FocusScope {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 
+	property bool bNewExercise: false
 	property int tDayId: -1
 	property int setNbr: 0
 	property string nSets
@@ -43,7 +44,7 @@ FocusScope {
 		id: paneExercise
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height
+		height: shown ? implicitHeight : txtExerciseName.height + 10
 		Behavior on height {
 			NumberAnimation {
 				easing.type: Easing.InOutBack
@@ -78,7 +79,7 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: windowWidth - 75
+				width: windowWidth - 90
 				height: 60
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
@@ -187,6 +188,26 @@ FocusScope {
 					onClicked: txtExerciseName.readOnly = !txtExerciseName.readOnly;
 				}
 
+				RoundButton {
+					id: btnClearText
+					anchors.left: btnEditExercise.left
+					anchors.top: btnEditExercise.bottom
+					height: 20
+					width: 20
+					visible: !txtExerciseName.readOnly
+
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+						anchors.fill: parent
+						height: 20
+						width: 20
+					}
+					onClicked: {
+						txtExerciseName.clear();
+						txtExerciseName.forceActiveFocus();
+					}
+				}
+
 				MouseArea {
 					anchors.left: txtExerciseName.left
 					anchors.right: txtExerciseName.right
@@ -198,29 +219,30 @@ FocusScope {
 				}
 			} //txtExerciseName
 
+			SetInputField {
+				id: txtNReps
+				text: nReps
+				type: SetInputField.Type.RepType
+				availableWidth: layoutMain.width / 2
+				backColor: "transparent"
+				borderColor: "transparent"
+				visible: bNewExercise
 
-				SetInputField {
-					id: txtNReps
-					text: nReps
-					type: SetInputField.Type.RepType
-					availableWidth: layoutMain.width / 2
-					backColor: "transparent"
-					borderColor: "transparent"
+				onValueChanged:(str)=> nReps = str;
+				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+			}
 
-					onValueChanged:(str)=> nReps = str;
-					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-				}
+			SetInputField {
+				id: txtNWeight
+				text: nWeight
+				type: SetInputField.Type.WeightType
+				availableWidth: layoutMain.width / 2
+				backColor: "transparent"
+				borderColor: "transparent"
+				visible: bNewExercise
 
-				SetInputField {
-					id: txtNWeight
-					text: nWeight
-					type: SetInputField.Type.WeightType
-					availableWidth: layoutMain.width / 2
-					backColor: "transparent"
-					borderColor: "transparent"
-
-					onValueChanged:(str)=> nWeight = str;
-				}
+				onValueChanged:(str)=> nWeight = str;
+			}
 
 			Label {
 				text: qsTr("Set type: ")
@@ -257,8 +279,9 @@ FocusScope {
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
+					visible: bNewExercise
 
-					onValueChanged: (str)=> text = str;
+					onValueChanged: (str)=> nSets = str;
 				}
 
 				RoundButton {
@@ -278,6 +301,7 @@ FocusScope {
 						tDayModel.setSetType(0, cboSetType.currentIndex, exerciseIdx);
 						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
+						bNewExercise = false;
 					}
 				}
 			} // RowLayout

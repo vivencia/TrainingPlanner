@@ -146,6 +146,26 @@ Item {
 
 				onClicked: txtExerciseName2.readOnly = !txtExerciseName2.readOnly;
 			} //btnEditExercise2
+
+			RoundButton {
+				id: btnClearText
+				anchors.left: btnEditExercise.left
+				anchors.top: btnEditExercise.bottom
+				height: 20
+				width: 20
+				visible: !txtExerciseName.readOnly
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+					anchors.fill: parent
+					height: 20
+					width: 20
+				}
+				onClicked: {
+					txtExerciseName2.clear();
+					txtExerciseName2.forceActiveFocus();
+				}
+			}
 		} //txtExerciseName2
 
 		SetInputField {

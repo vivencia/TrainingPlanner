@@ -272,10 +272,28 @@ Frame {
 								width: 20
 							}
 
-							onClicked: {
-								txtExerciseName.readOnly = !txtExerciseName.readOnly;
-							}
+							onClicked: txtExerciseName.readOnly = !txtExerciseName.readOnly;
 						} //ToolButton btnEditExercise
+
+						RoundButton {
+							id: btnClearText
+							anchors.left: btnEditExercise.left
+							anchors.top: btnEditExercise.bottom
+							height: 20
+							width: 20
+							visible: !txtExerciseName.readOnly
+
+							Image {
+								source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+								anchors.fill: parent
+								height: 20
+								width: 20
+							}
+							onClicked: {
+								txtExerciseName.clear();
+								txtExerciseName.forceActiveFocus();
+							}
+						}
 					} //TextField
 
 					RowLayout {

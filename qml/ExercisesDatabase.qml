@@ -347,7 +347,6 @@ Page {
 							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
 						}
 						else if (bEdit) {
-							console.log("Setting current row for Exercises model: " , exercisesList.curIndex);
 							exercisesListModel.setCurrentRow(exercisesList.curIndex);
 							appDB.updateExercise(exercisesListModel.get(exercisesList.curIndex, 0), txtExerciseName.text,
 													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,

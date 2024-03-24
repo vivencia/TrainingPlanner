@@ -589,9 +589,6 @@ Dialog {
 			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
 
 			onClicked: {
-				appSuspended();
-				appResumed();
-				return;
 				var totalsecs = secs;
 				var totalmins = mins;
 				var totalhours = hours;

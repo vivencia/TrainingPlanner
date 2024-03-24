@@ -368,8 +368,9 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	if (set_type == 4)
 		connect( item, SIGNAL(requestSimpleExercisesListFromSet(QQuickItem*,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
+	emit itemReady(item, tDaySetCreateId);
 	m_setObjects[exercise_idx].append(item);
-	emit itemReady(m_setObjects.value(exercise_idx).at(set_number), tDaySetCreateId);
+	getExerciseObject(exercise_idx)->setProperty("nSets", "1"); //After any set added, by default, set the number of sets to be added afterwards as one at a time
 }
 
 void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)

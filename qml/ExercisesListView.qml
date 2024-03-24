@@ -262,7 +262,6 @@ Column {
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
 		curIndex = lstIdx;
-		//exercisesListModel.emitSelected(lstIdx, multipleopt);
 		exerciseEntrySelected(exercisesListModel.get(lstIdx, 1), exercisesListModel.get(lstIdx, 2),
 							exercisesListModel.get(lstIdx, 3), exercisesListModel.get(lstIdx, 4),
 							exercisesListModel.get(lstIdx, 5), exercisesListModel.get(lstIdx, 6),
