@@ -75,7 +75,6 @@ set( QML_FILES
     "qml/SetTypeDrop.qml"
     "qml/SetTypeGiant.qml"
     "qml/SetTypeMyoReps.qml"
-    "qml/SetTypePyramid.qml"
     "qml/DevSettingsPage.qml"
     "qml/ThemeSettingsPage.qml"
     "qml/RepsAndWeightRow.qml"

@@ -587,6 +587,7 @@ Dialog {
 		ButtonFlat {
 			id: btnUseTime
 			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				var totalsecs = secs;
@@ -698,7 +699,9 @@ Dialog {
 		if (bRunning) {
 			bWasSuspended = true;
 			suspendedTimer = new Date(2024, 1, 1, hours, mins, secs);
+			console.log("############## suspendedTimer", suspendedTimer.toTimeString());
 			suspendedTime = runCmd.getCurrentTime();
+			console.log("############## suspendedTime", suspendedTime.toTimeString());
 		}
 	}
 
@@ -706,6 +709,7 @@ Dialog {
 		if (bWasSuspended) {
 			bWasSuspended = false;
 			const correctedTimer = runCmd.updateTimer(suspendedTime, suspendedTimer, bTimer);
+			console.log("############## correctedTimer", correctedTimer.toTimeString());
 			hours = correctedTimer.getHours();
 			mins = correctedTimer.getMinutes();
 			secs = correctedTimer.getSeconds();

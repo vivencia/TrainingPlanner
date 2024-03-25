@@ -110,7 +110,7 @@ public:
 		if (row >= 0 && row < m_indexProxy.count())
 			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
 		else
-			return QDate();
+			return QDate::currentDate();
 	}
 
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }

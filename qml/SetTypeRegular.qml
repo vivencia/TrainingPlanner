@@ -14,8 +14,10 @@ FocusScope {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
+	required property string setType
 
 	property var nextObject: null
+
 	signal requestTimerDialogSignal(Item requester, var args)
 
 	ColumnLayout {
@@ -24,7 +26,7 @@ FocusScope {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Regular set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
 			font.bold: true
 
 			RoundButton {

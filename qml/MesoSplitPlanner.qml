@@ -13,11 +13,8 @@ Frame {
 
 	property bool bAlreadyLoaded: false
 	property int removalSecs: 0
-
 	property string prevMesoName: ""
 	property int prevMesoId: -1
-	property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
 
@@ -307,7 +304,7 @@ Frame {
 						}
 						TPComboBox {
 							id: cboSetType
-							model: setTypesModel
+							model: mainwindow.setTypesModel
 							currentIndex: setType
 							enabled: index === splitModel.currentRow
 							Layout.minimumWidth: 110

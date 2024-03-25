@@ -160,11 +160,6 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 	return newDate;
 }
 
-QDate RunCommands::getDayBefore(const QDate& date) const
-{
-	return date.addDays(-1);
-}
-
 QString RunCommands::intTimeToStrTime(const uint time) const
 {
 	QString ret(QString::number(time));
@@ -189,16 +184,6 @@ QString RunCommands::getStrMinFromTime(const QDateTime& time) const
 	if (min < 10)
 		ret.prepend('0');
 	return ret;
-}
-
-QString RunCommands::formatTime(const QDateTime& time) const
-{
-	return time.toString(u"hh:mm"_qs);
-}
-
-QString RunCommands::getCurrentTimeString() const
-{
-	return QTime::currentTime().toString(u"hh:mm"_qs);
 }
 
 QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
@@ -228,15 +213,10 @@ QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins,
 	return ret;
 }
 
-QString RunCommands::formatFutureTime(const uint hours, const uint mins) const
-{
-	return addToTime(QTime::currentTime(), hours, mins);
-}
-
 QString RunCommands::formatFutureTime(const QDateTime& addTime) const
 {
 	const QTime time(addTime.time());
-	return addToTime(QTime::currentTime(), time.minute(), time.hour());
+	return addToTime(QTime::currentTime(), time.hour(), time.minute());
 }
 
 QString RunCommands::addToTime(const QString& origTime, const uint hours, const uint mins) const
@@ -249,16 +229,6 @@ QString RunCommands::getHourOrMinutesFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.left(idx) : QString();
-}
-
-QString RunCommands::getHourFromCurrentTime() const
-{
-	return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs));
-}
-
-QString RunCommands::getMinutesFromCurrentTime() const
-{
-	return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs));
 }
 
 QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
@@ -280,12 +250,7 @@ QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const 
 	}
 
 	time2.setHMS(hour, min, 0);
-	return QDateTime(QDate(), time2);
-}
-
-QDateTime RunCommands::calculateTimeRemaing(const QString& strFinalTime) const
-{
-	return calculateTimeBetweenTimes(QTime::currentTime().toString(u"hh:mm"_qs), strFinalTime);
+	return QDateTime(QDate::currentDate(), time2);
 }
 
 QDateTime RunCommands::updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const

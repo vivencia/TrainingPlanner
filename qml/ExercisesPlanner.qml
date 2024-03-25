@@ -76,6 +76,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
+				console.log("##################  btnSave.clicked()")
 				appDB.pass_object(currentPage.splitModel);
 				appDB.updateMesoSplitComplete(currentPage.splitLetter);
 				requestSimpleExercisesList(null, false);
@@ -191,7 +192,7 @@ Page {
 	}
 
 	function aboutToBeSuspended() {
-		if (currentPage.splitModel.splitModified)
+		if (currentPage.splitModel.modified)
 			btnSave.clicked();
 	}
 } //Page

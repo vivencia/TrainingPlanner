@@ -14,10 +14,10 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
+	required property string setType
 
 	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
-	signal requestSimpleExercisesListFromSet(Item setrequester, var bVisible, int id)
 
 	ColumnLayout {
 		id: setLayout
@@ -25,7 +25,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Giant set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
 			font.bold: true
 
 			RoundButton {
@@ -42,131 +42,9 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: {
-					appDB.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: appDB.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
-
-		TextField {
-			id: txtExerciseName2
-			font.bold: true
-			font.pixelSize: AppSettings.fontSizeText
-			readOnly: true
-			wrapMode: Text.WordWrap
-			width: windowWidth - 75
-			Layout.minimumWidth: width
-			height: 60
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
-			Layout.topMargin: 0
-			visible: setNumber === 0
-			z: 1
-
-			background: Rectangle {
-				color: txtExerciseName2.readOnly ? "transparent" : "white"
-				border.color: txtExerciseName2.readOnly ? "transparent" : "black"
-				radius: 5
-			}
-
-			Keys.onReturnPressed: { //Alphanumeric keyboard
-				btnEditExercise2.clicked();
-				txtRestTime.forceActiveFocus();
-			}
-
-			Component.onCompleted: {
-				text = tDayModel.exerciseName2(exerciseIdx);
-				if (text.length === 0)
-					text = qsTr("Add exercise...");
-			}
-
-			onReadOnlyChanged: {
-				if (!readOnly) {
-					const idx = text.indexOf(':'); //Remove the '2: ' from the name
-					text = text.substring(idx + 1, text.length).trim();
-					cursorPosition = text.length;
-				}
-				else {
-					cursorPosition = 0;
-					ensureVisible(0);
-				}
-				requestSimpleExercisesListFromSet(setItem, !readOnly, 1);
-			}
-
-			onTextChanged: {
-				if (readOnly)
-					ensureVisible(0);
-			}
-
-			onActiveFocusChanged: {
-				if (activeFocus)
-					cursorPosition = text.length;
-				else {
-					readOnly = false;
-					cursorPosition = 0;
-				}
-			}
-
-			onEditingFinished: tDayModel.setExerciseName2(text, exerciseIdx);
-
-			RoundButton {
-				id: btnRemoveExercise2
-				anchors.left: txtExerciseName2.right
-				anchors.verticalCenter: txtExerciseName2.verticalCenter
-				height: 25
-				width: 25
-
-				z: 2
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"remove.png"
-					anchors.fill: parent
-				}
-
-				onClicked: {
-					txtExerciseName2.text = qsTr("Add exercise...");
-					tDayModel.setExerciseName2(txtExerciseName2.text, exerciseIdx);
-				}
-			} //btnRemoveExercise2
-
-			RoundButton {
-				id: btnEditExercise2
-				anchors.left: btnRemoveExercise2.right
-				anchors.verticalCenter: txtExerciseName2.verticalCenter
-				height: 25
-				width: 25
-				z: 2
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"edit.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
-
-				onClicked: txtExerciseName2.readOnly = !txtExerciseName2.readOnly;
-			} //btnEditExercise2
-
-			RoundButton {
-				id: btnClearText
-				anchors.left: btnEditExercise.left
-				anchors.top: btnEditExercise.bottom
-				height: 20
-				width: 20
-				visible: !txtExerciseName.readOnly
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-					anchors.fill: parent
-					height: 20
-					width: 20
-				}
-				onClicked: {
-					txtExerciseName2.clear();
-					txtExerciseName2.forceActiveFocus();
-				}
-			}
-		} //txtExerciseName2
 
 		SetInputField {
 			id: txtRestTime
@@ -184,39 +62,49 @@ Item {
 			onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 		}
 
+		RowLayout {
+			Layout.fillWidth: true
+
+			Label {
+				id: lblExercise1
+				text: tDayModel.exerciseName1(exerciseIdx)
+				width: setItem.width/2
+				font.bold: true
+				wrapMode: Text.WordWrap
+				Layout.row: 0
+				Layout.column: 0
+				Layout.alignment: Qt.AlignCenter
+				Layout.maximumWidth: width
+				Layout.minimumWidth: width
+			}
+
+			Label {
+				id: lblExercise2
+				text: tDayModel.exerciseName2(exerciseIdx)
+				width: setItem.width/2
+				font.bold: true
+				wrapMode: Text.WordWrap
+				Layout.row: 0
+				Layout.column: 1
+				Layout.alignment: Qt.AlignCenter
+				Layout.maximumWidth: width
+				Layout.minimumWidth: width
+			}
+		}
+
 		GridLayout {
 			Layout.fillWidth: true
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
-			rows: 5
+			rows: 4
 			columns: 2
 			columnSpacing: 15
 			rowSpacing: 5
 			Layout.leftMargin: setItem.width/7
 
 			Label {
-				id: lblExercise1
-				text: qsTr("Exercise 1")
-				width: setItem.width/2
-				font.bold: true
-				Layout.row: 0
-				Layout.column: 0
-				Layout.alignment: Qt.AlignCenter
-			}
-
-			Label {
-				id: lblExercise2
-				text: qsTr("Exercise 2")
-				width: setItem.width/2
-				font.bold: true
-				Layout.row: 0
-				Layout.column: 1
-				Layout.alignment: Qt.AlignCenter
-			}
-
-			Label {
 				text: qsTr("Reps:")
-				Layout.row: 1
+				Layout.row: 0
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
 			}
@@ -225,7 +113,7 @@ Item {
 				type: SetInputField.Type.RepType
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.row: 2
+				Layout.row: 1
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
 
@@ -240,7 +128,7 @@ Item {
 
 			Label {
 				text: qsTr("Reps:")
-				Layout.row: 1
+				Layout.row: 0
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
 			}
@@ -249,7 +137,7 @@ Item {
 				type: SetInputField.Type.RepType
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.row: 2
+				Layout.row: 1
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
 
@@ -264,7 +152,7 @@ Item {
 
 			Label {
 				text: qsTr("Weight") + AppSettings.weightUnit + ":"
-				Layout.row: 3
+				Layout.row: 2
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
 			}
@@ -274,7 +162,7 @@ Item {
 				type: SetInputField.Type.WeightType
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.row: 4
+				Layout.row: 3
 				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
 
@@ -289,7 +177,7 @@ Item {
 
 			Label {
 				text: qsTr("Weight") + AppSettings.weightUnit + ":"
-				Layout.row: 3
+				Layout.row: 2
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
 			}
@@ -298,7 +186,7 @@ Item {
 				type: SetInputField.Type.WeightType
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.row: 4
+				Layout.row: 3
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
 

@@ -9,6 +9,7 @@ Popup {
 	property string button2Text: ""
 	property string imageSource: ""
 	property bool highlightMessage: false
+	property int startYPosition: 0
 
 	property int finalXPos: 0
 	property int finalYPos: 0
@@ -246,8 +247,28 @@ Popup {
 		id: hideTimer
 		running: false
 		repeat: false
+		property bool bCloseOnFinished
 
-		onTriggered: balloon.close();
+		onTriggered: {
+			if (bCloseOnFinished)
+				balloon.close();
+			else
+				balloon.show(startYPosition);
+		}
+
+		function delayedOpen(timeout) {
+			bCloseOnFinished = false;
+			interval = timeout;
+			start();
+			balloon.show(startYPos);
+		}
+
+		function openTimed(timeout) {
+			bCloseOnFinished = true;
+			interval = timeout;
+			start();
+			balloon.show(startYPos);
+		}
 	}
 
 	function show(ypos) {
@@ -261,8 +282,12 @@ Popup {
 	}
 
 	function showTimed(timeout, ypos) {
-		hideTimer.interval = timeout;
-		hideTimer.start();
-		show(ypos);
+		startYPos = ypos;
+		hideTimer.openTimed(timeout);
+	}
+
+	function showLate(timeout, ypos) {
+		startYPos = ypos;
+		hideTimer.delayedOpen(timeout);
 	}
 }

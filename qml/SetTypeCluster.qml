@@ -13,6 +13,7 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
+	required property string setType
 
 	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -23,7 +24,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Cluster set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
 			font.bold: true
 
 			RoundButton {
@@ -40,9 +41,7 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: {
-					appDB.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: appDB.removeSetObject(setNumber, exerciseIdx);
 			}
 
 			Label {
@@ -78,18 +77,13 @@ Item {
 			type: SetInputField.Type.SetType
 			availableWidth: setItem.width
 
-			onEnterOrReturnKeyPressed: {
-				txtNReps.forceActiveFocus();
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetSubSets(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setSubSets(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setSubSets(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 		}
 
 		SetInputField {
@@ -97,18 +91,13 @@ Item {
 			type: SetInputField.Type.RepType
 			availableWidth: setItem.width
 
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetReps(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setReps(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 		}
 
 		SetInputField {
@@ -126,9 +115,7 @@ Item {
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setWeight(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 		}
 
 		Label {

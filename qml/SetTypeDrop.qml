@@ -13,6 +13,7 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
+	required property string setType
 
 	property var nextObject: null
 	property int nSubSets: 0
@@ -27,7 +28,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Drop set")
+			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
 			font.bold: true
 
 			RoundButton {

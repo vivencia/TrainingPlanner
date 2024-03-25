@@ -160,7 +160,7 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE split_letter=\'%1\' AND date<%2")
+		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE split_letter=\'%1\' AND date<%2 LIMIT 10")
 							.arg(m_data[0], m_data[1]));
 
 		if (query.exec())

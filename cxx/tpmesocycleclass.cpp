@@ -6,9 +6,9 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
-static const QStringList setTypePages(QStringList() << QStringLiteral("qrc:/qml/SetTypeRegular.qml") << QStringLiteral("qrc:/qml/SetTypePyramid.qml") <<
-				QStringLiteral("qrc:/qml/SetTypeDrop.qml") << QStringLiteral("qrc:/qml/SetTypeCluster.qml") <<
-				QStringLiteral("qrc:/qml/SetTypeGiant.qml") << QStringLiteral("qrc:/qml/SetTypeMyoReps.qml"));
+static const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs << u"qrc:/qml/SetTypeRegular.qml"_qs <<
+				u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeCluster.qml"_qs <<
+				u"qrc:/qml/SetTypeGiant.qml"_qs << u"qrc:/qml/SetTypeMyoReps.qml"_qs << u"qrc:/qml/SetTypeRegular.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_splitComponent(nullptr),
@@ -343,6 +343,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 {
 	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
 	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
+	m_setObjectProperties.insert(QStringLiteral("setType"), set_type);
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type]->
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 	#ifdef DEBUG
@@ -365,9 +366,6 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
 					SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	}
-	if (set_type == 4)
-		connect( item, SIGNAL(requestSimpleExercisesListFromSet(QQuickItem*,const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
 	emit itemReady(item, tDaySetCreateId);
 	m_setObjects[exercise_idx].append(item);
 	getExerciseObject(exercise_idx)->setProperty("nSets", "1"); //After any set added, by default, set the number of sets to be added afterwards as one at a time
@@ -378,11 +376,13 @@ void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)
 	if (exercise_idx < m_tDayExercises.count())
 	{
 		for(uint x(set_number+1); x < m_setObjects.value(exercise_idx).count(); ++x)
-			m_setObjects[exercise_idx][x]->setProperty("set_number", x-1);
+			m_setObjects[exercise_idx][x]->setProperty("setNumber", x-1);
 		m_CurrenttDayModel->removeSet(set_number, exercise_idx);
 		m_setObjects[exercise_idx][set_number]->deleteLater();
 		m_setObjects[exercise_idx].remove(set_number);
 		m_tDayExercises[exercise_idx]->setProperty("setNbr", m_setObjects.value(exercise_idx).count());
+		if (m_setObjects.value(exercise_idx).count() == 0)
+			m_tDayExercises[exercise_idx]->setProperty("bNewExercise", true);
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

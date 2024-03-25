@@ -13,6 +13,7 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
+	required property string setType
 
 	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -26,7 +27,7 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + qsTr("  -  Myo Reps")
+			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
 			font.bold: true
 			Layout.row: 0
 			Layout.column: 0

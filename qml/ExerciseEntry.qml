@@ -24,9 +24,6 @@ FocusScope {
 	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
 	signal requestFloatingButton(var exerciseidx, var settype)
 
-	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
-
 	TPBalloonTip {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise")
@@ -79,7 +76,9 @@ FocusScope {
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
-				width: windowWidth - 90
+				width: windowWidth - 110
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
 				height: 60
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
@@ -257,7 +256,7 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					model: setTypesModel
+					model: mainwindow.setTypesModel
 					Layout.minimumWidth: 120
 					currentIndex: tDayModel.setType(0, exerciseIdx)
 

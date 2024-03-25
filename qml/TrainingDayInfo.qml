@@ -118,7 +118,7 @@ Page {
 		windowTitle: qsTr("Length of this training session")
 
 		onUseTime: (strtime) => {
-			sessionLength = strtime;
+			sessionLength = runCmd.timeFromStrTime(strtime);
 			timeOut = runCmd.formatFutureTime(sessionLength);
 			timerRestricted.init(timeOut);
 		}
@@ -143,7 +143,7 @@ Page {
 	TPBalloonTip {
 		id: tipTimeWarn
 		title: qsTr("Attention!")
-		message: "</b>" + displayMin + qsTr("</b> minute(s) until end of training session!")
+		message: "<b>" + displayMin + qsTr("</b> minute(s) until end of training session!")
 		imageSource: "qrc:/images/"+darkIconFolder+"sound-off.png"
 		button1Text: qsTr("OK")
 
@@ -165,7 +165,7 @@ Page {
 
 	Timer {
 		id: timerRestricted
-		interval: 20000 //Every twenty seconds
+		interval: 60000 //Every one minute
 		repeat: true
 		property bool complete: false
 		property string finalHour
@@ -213,7 +213,6 @@ Page {
 			finalHour = runCmd.getHourOrMinutesFromStrTime(finalTime);
 			finalMin = runCmd.getMinutesOrSeconsFromStrTime(finalTime);
 			tipTimeWarn.nShow = 0;
-			tipTimeWarn.timeout = 20000;
 			timeIn = runCmd.getCurrentTimeString();
 			complete = false;
 			start();
@@ -518,6 +517,7 @@ Page {
 						RoundButton {
 							id: btnInTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+							enabled: !timerRestricted.running
 
 							onClicked: dlgTimeIn.open();
 						}
@@ -550,6 +550,7 @@ Page {
 						RoundButton {
 							id: btnOutTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+							enabled: !timerRestricted.running
 
 							onClicked: dlgTimeOut.open();
 						}
@@ -966,21 +967,6 @@ Page {
 				}
 			}
 		} //btnSaveDay
-
-		ButtonFlat {
-			id: btnRevertDay
-			enabled: bModified
-			text: qsTr("Cancel alterations")
-			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
-			textUnderIcon: true
-			anchors.left: btnSaveDay.right
-			anchors.verticalCenter: parent.verticalCenter
-
-			onClicked: {
-				//TODO
-				pageActivation();
-			}
-		} //btnRevertDay
 
 		ButtonFlat {
 			id: btnAddExercise

@@ -175,21 +175,17 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 		const QString strType(QString::number(type));
 		m_ExerciseData[exercise_idx]->nsets = 1;
 		setModified(true);
-		m_ExerciseData[exercise_idx]->notes.append(QString());
+		m_ExerciseData[exercise_idx]->notes.append(u" "_qs);
 		m_ExerciseData[exercise_idx]->type.append(strType);
 
 		switch (type) {
 			case 0: //Regular
-				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-				m_ExerciseData[exercise_idx]->reps.append(nReps);
-				m_ExerciseData[exercise_idx]->weight.append(nWeight);
-				m_ExerciseData[exercise_idx]->subsets.append(QString());
-			break;
 			case 1: //Pyramid
+			case 6: //Reverse Pyramid
 				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
 				m_ExerciseData[exercise_idx]->reps.append(nReps);
 				m_ExerciseData[exercise_idx]->weight.append(nWeight);
-				m_ExerciseData[exercise_idx]->subsets.append(QString());
+				m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 			break;
 			case 2: //DropSet
 			{
@@ -213,11 +209,11 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
 				m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator + nReps + subrecord_separator);
 				m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator + nWeight + subrecord_separator);
-				m_ExerciseData[exercise_idx]->subsets.append(QString());
+				m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 			break;
 			case 5: //MyoReps
 				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("02:30"));
-				m_ExerciseData[exercise_idx]->subsets.append(QStringLiteral("0"));
+				m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 				m_ExerciseData[exercise_idx]->reps.append(nReps);
 				m_ExerciseData[exercise_idx]->weight.append(nWeight);
 			break;
@@ -246,13 +242,13 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
 						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
 						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						m_ExerciseData[exercise_idx]->subsets.append(QString());
+						m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 					break;
 					case 1: //Pyramid
 						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
 						m_ExerciseData[exercise_idx]->reps.append(QString::number(m_ExerciseData.at(exercise_idx)->reps.last().toUInt() - 3));
 						m_ExerciseData[exercise_idx]->weight.append(QString::number(qFloor(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 1.2)));
-						m_ExerciseData[exercise_idx]->subsets.append(QString());
+						m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 					break;
 					case 2: //DropSet
 						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
@@ -270,13 +266,19 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
 						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
 						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
-						m_ExerciseData[exercise_idx]->subsets.append(QString());
+						m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 					break;
 					case 5: //MyoReps
 						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 30));
 						m_ExerciseData[exercise_idx]->subsets.append(QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toUInt() + 1));
 						m_ExerciseData[exercise_idx]->reps.append(m_ExerciseData.at(exercise_idx)->reps.last());
 						m_ExerciseData[exercise_idx]->weight.append(m_ExerciseData.at(exercise_idx)->weight.last());
+					break;
+					case 6: //Reverse Pyramid
+						m_ExerciseData[exercise_idx]->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
+						m_ExerciseData[exercise_idx]->reps.append(QString::number(m_ExerciseData.at(exercise_idx)->reps.last().toUInt() + 5));
+						m_ExerciseData[exercise_idx]->weight.append(QString::number(qFloor(m_ExerciseData.at(exercise_idx)->weight.last().toUInt() * 0.2)));
+						m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 					break;
 				}
 			}
