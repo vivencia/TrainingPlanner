@@ -28,7 +28,7 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case exerciseName1Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx-1) : QString();
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx) : QString();
 			}
 			case exerciseName2Role:
 			{
@@ -67,11 +67,12 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 	{
 		switch(role) {
 			case exerciseNameRole:
-			case setsNumberRole:
-			case setTypeRole:
 			case setsRepsRole:
 			case setsWeightRole:
+			case setsNumberRole:
+			case setTypeRole:
 				m_modeldata[row][role-Qt::UserRole] = value.toString();
+				emit dataChanged(index, index, QList<int>() << role);
 			break;
 			case exerciseName1Role:
 			{
@@ -79,7 +80,7 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 				if (idx == -1)
 					m_modeldata[row][exerciseNameRole-Qt::UserRole] = value.toString();
 				else
-					m_modeldata[row][exerciseNameRole-Qt::UserRole].replace(0, idx-1, value.toString());
+					m_modeldata[row][exerciseNameRole-Qt::UserRole].replace(0, idx, value.toString());
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);
 				emit dataChanged(index, index, QList<int>() << exerciseName1Role);
 			}
@@ -125,21 +126,19 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			break;
 			default: return false;
 		}
-		emit dataChanged(index, index, QList<int>() << role);
 		setModified(true);
 		return true;
 	}
 	return false;
 }
 
-void DBMesoSplitModel::changeExercise(const QString& name1, const QString& name2, const QString& sets,
-			const QString& reps, const QString& weight, const uint operation)
+void DBMesoSplitModel::changeExercise(const QString& name, const QString& sets, const QString& reps,
+						const QString& weight, const uint operation)
 {
-	const QString newName(name1 + u" - "_qs + name2);
 	switch (operation)
 	{
 		case 0: //change the single exercise
-			setExerciseName(newName);
+			setExerciseName(name);
 			setSetsReps(reps);
 			setSetsWeight(weight);
 			setSetsNumber(sets);
@@ -148,13 +147,13 @@ void DBMesoSplitModel::changeExercise(const QString& name1, const QString& name2
 			switch (m_nextAddedExercisePos)
 			{
 				case 1:
-					setExerciseName1(newName);
+					setExerciseName1(name);
 					setSetsReps1(reps);
 					setSetsWeight1(weight);
 					m_nextAddedExercisePos = 2;
 				break;
 				case 2:
-					setExerciseName2(newName);
+					setExerciseName2(name);
 					setSetsReps2(reps);
 					setSetsWeight2(weight);
 					m_nextAddedExercisePos = 1;
@@ -163,14 +162,14 @@ void DBMesoSplitModel::changeExercise(const QString& name1, const QString& name2
 		break;
 		case 2: //remove an exercise
 		{
-			if (exerciseName1().indexOf(newName) != -1)
+			if (exerciseName1().indexOf(name) != -1)
 			{
 				setExerciseName(exerciseName2());
 				setSetsReps(setsReps2());
 				setSetsWeight1(setsWeight2());
 				m_nextAddedExercisePos = 2;
 			}
-			else if (exerciseName2().indexOf(newName) != -1)
+			else if (exerciseName2().indexOf(name) != -1)
 			{
 				setExerciseName(exerciseName1());
 				setSetsReps2(setsReps1());

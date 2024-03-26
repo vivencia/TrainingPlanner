@@ -19,9 +19,12 @@ FocusScope {
 	property string nSets
 	property string nReps
 	property string nWeight
+	property bool bListRequestForExercise1: false
+	property bool bListRequestForExercise2: false
+	property var exerciseSetLabelToChange: null
 
 	signal setAdded(int objidx, var setObject)
-	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
+	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype)
 
 	TPBalloonTip {
@@ -105,7 +108,7 @@ FocusScope {
 						cursorPosition = 0;
 						ensureVisible(0);
 					}
-					requestSimpleExercisesList(exerciseItem, !readOnly, 1);
+					requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
 				}
 
 				onTextChanged: {
@@ -158,6 +161,7 @@ FocusScope {
 					width: 25
 					padding: 5
 					z: 2
+
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"remove.png"
 						anchors.fill: parent
@@ -175,7 +179,9 @@ FocusScope {
 					height: 25
 					width: 25
 					padding: 5
+					visible: cboSetType.currentIndex !== 4
 					z: 2
+
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"edit.png"
 						anchors.verticalCenter: parent.verticalCenter
@@ -309,8 +315,32 @@ FocusScope {
 
 	function changeExercise(newname)
 	{
-		txtExerciseName.text = newname;
-		tDayModel.setExerciseName1(newname, exerciseIdx);
+		if (bListRequestForExercise1) {
+			tDayModel.setExerciseName1(newname, exerciseIdx);
+			bListRequestForExercise1 = false;
+			exerciseSetLabelToChange.text = newname;
+		}
+		else if (bListRequestForExercise2) {
+			tDayModel.setExerciseName2(newname, exerciseIdx);
+			bListRequestForExercise2 = false;
+			exerciseSetLabelToChange.text = newname;
+		}
+		else
+			tDayModel.setExerciseName1(newname, exerciseIdx);
+		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
+		requestSimpleExercisesList(null, false, false, 1);
+	}
+
+	function changeExercise1(label) {
+		bListRequestForExercise1 = true;
+		exerciseSetLabelToChange = label;
+		requestSimpleExercisesList(exerciseItem, true, false, 1);
+	}
+
+	function changeExercise2(label) {
+		bListRequestForExercise2 = true;
+		exerciseSetLabelToChange = label;
+		requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
 	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {

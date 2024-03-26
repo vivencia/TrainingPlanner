@@ -115,13 +115,14 @@ Page {
 
 			Label {
 				id: lblDefaults
-				text: qsTr("Optional defaults")
+				text: qsTr("Exercise details:")
 				color: "white"
 				font.pixelSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.minimumWidth: parent.width - 20
 				Layout.maximumWidth: parent.width - 20
 				Layout.leftMargin: 5
+				Layout.topMargin: 10
 				z: 1
 
 				Image {
@@ -387,6 +388,7 @@ Page {
 	}
 
 	function pageActivation() {
+		exercisesList.setFilter();
 		exercisesList.simulateMouseClick(0);
 	}
 

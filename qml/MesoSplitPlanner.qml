@@ -15,8 +15,10 @@ Frame {
 	property int removalSecs: 0
 	property string prevMesoName: ""
 	property int prevMesoId: -1
+	property bool bListRequestForExercise1: false
+	property bool bListRequestForExercise2: false
 
-	signal requestSimpleExercisesList(Item requester, var bVisible, int id)
+	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
 	implicitWidth: windowWidth
 	implicitHeight: splitLayout.height
@@ -150,10 +152,6 @@ Frame {
 						width: parent.width
 
 						onClicked: splitModel.currentRow = index;
-						onCheckedChanged: {
-							if (checked)
-								parentItem.bEnableMultipleSelection = setType === 4;
-						}
 
 						RoundButton {
 							id: btnMoveExerciseUp
@@ -212,9 +210,8 @@ Frame {
 							radius: 5
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							cboSetType.forceActiveFocus();
-						}
+						//Alphanumeric keyboard
+						Keys.onReturnPressed: cboSetType.forceActiveFocus();
 
 						onPressed: (mouse) => {
 							if (!readOnly) {
@@ -238,7 +235,7 @@ Frame {
 								cursorPosition = 0;
 								ensureVisible(0);
 							}
-							requestSimpleExercisesList(paneSplit, !readOnly, 0);
+							requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
 						}
 
 						onActiveFocusChanged: {
@@ -314,7 +311,6 @@ Frame {
 								setListItemHeight(lstSplitExercises.currentItem, index);
 								setType = index;
 								txtNSets.forceActiveFocus();
-								parentItem.bEnableMultipleSelection = setType === 4;
 								if (txtExerciseName.text === qsTr("Choose exercise..."))
 									exerciseName = (qsTr("Choose exercises..."));
 							}
@@ -353,20 +349,45 @@ Frame {
 						visible: cboSetType.currentIndex === 4
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
-						Layout.topMargin: 15
+						Layout.topMargin: 10
 						Layout.bottomMargin: 10
 
 						Label {
-							text: qsTr("Exercise 1")
+							text: exerciseName1
 							font.bold: true
+							wrapMode: Text.WordWrap
+							width: listItem.width/2
 							Layout.alignment: Qt.AlignCenter
-							Layout.leftMargin: listItem.width/6
+							Layout.maximumWidth: width
+							Layout.minimumWidth: width
+
+							MouseArea {
+								anchors.fill: parent
+								onClicked: {
+									splitModel.currentRow = index;
+									bListRequestForExercise1 = true;
+									requestSimpleExercisesList(paneSplit, true, false, 0);
+								}
+							}
 						}
+
 						Label {
-							text: qsTr("Exercise 2")
+							text: exerciseName2
 							font.bold: true
-							Layout.alignment: Qt.AlignRight
-							Layout.leftMargin: listItem.width/6
+							wrapMode: Text.WordWrap
+							width: listItem.width/2
+							Layout.alignment: Qt.AlignCenter
+							Layout.maximumWidth: width
+							Layout.minimumWidth: width
+
+							MouseArea {
+								anchors.fill: parent
+								onClicked: {
+									splitModel.currentRow = index;
+									bListRequestForExercise2 = true;
+									requestSimpleExercisesList(paneSplit, true, false, 0);
+								}
+							}
 						}
 					}
 
@@ -507,9 +528,7 @@ Frame {
 					color: "transparent"
 					radius: 5
 
-					Component.onCompleted: { //Each layout row(9) * 32(height per row) + 32(extra space)
-						setListItemHeight(this, cboSetType.currentIndex);
-					}
+					Component.onCompleted: setListItemHeight(this, cboSetType.currentIndex);
 				}
 
 				background: Rectangle {
@@ -519,11 +538,7 @@ Frame {
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
-
-				onClicked: {
-					splitModel.currentRow = index;
-					parentItem.bEnableMultipleSelection = setType === 4;
-				}
+				onClicked: splitModel.currentRow = index;
 
 				swipe.right: Rectangle {
 					id: rec
@@ -589,12 +604,30 @@ Frame {
 		}
 	}
 
+	//Each layout row(9) * 32(height per row) + 32(extra space)
 	function setListItemHeight(item, settype) {
 		item.height = settype !== 4 ? 320 : 420;
 	}
 
-	function changeModel(name1, name2, nsets, nreps, nweight, multiplesel_opt) {
-			splitModel.changeExercise(name1, name2, nsets, nreps, nweight, multiplesel_opt);
+	function changeExercise(name, nsets, nreps, nweight, multiplesel_opt) {
+		if (bListRequestForExercise1 || bListRequestForExercise2) {
+			if (bListRequestForExercise1) {
+				splitModel.exerciseName1 = name;
+				splitModel.setsReps1 = nreps;
+				splitModel.setsWeight1 = nweight;
+			}
+			else {
+				splitModel.exerciseName2 = name;
+				splitModel.setsReps2 = nreps;
+				splitModel.setsWeight2 = nweight;
+			}
+
+			bListRequestForExercise1 = false;
+			bListRequestForExercise2 = false;
+			requestSimpleExercisesList(null, false, false, 0);
+		}
+		else
+			splitModel.changeExercise(name, nsets, nreps, nweight, multiplesel_opt);
 	}
 
 	function appendNewExerciseToDivision() {

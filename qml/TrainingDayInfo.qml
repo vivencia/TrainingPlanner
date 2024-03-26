@@ -20,8 +20,6 @@ Page {
 	property string splitLetter
 	property string timeIn
 	property string timeOut
-	property string location
-	property string trainingNotes
 
 	property string mesoSplit
 	property string mesoName
@@ -47,8 +45,9 @@ Page {
 	property var timerDialog: null
 	property var timerDialogRequester: null
 
+	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
-	property var exerciseEntryThatRequestedSimpleList: null
+	property var itemThatRequestedSimpleList: null
 
 	signal mesoCalendarChanged()
 
@@ -89,7 +88,7 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
 			timeOut = runCmd.addToTime(timeIn, 1, 30);
-			tDayModel.modified = true;
+			tDayModel.setTimeIn(timeIn);
 			bDayIsFinished = false;
 		}
 	}
@@ -101,7 +100,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
-			tDayModel.modified = true;
+			tDayModel.setTimeOut(timeOut);
 			if (tDayModel.exercisesNumber() > 0)
 			{
 				bDayIsFinished = true;
@@ -120,6 +119,7 @@ Page {
 		onUseTime: (strtime) => {
 			sessionLength = runCmd.timeFromStrTime(strtime);
 			timeOut = runCmd.formatFutureTime(sessionLength);
+			tDayModel.setTimeOut(timeOut);
 			timerRestricted.init(timeOut);
 		}
 	}
@@ -131,6 +131,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
+			tDayModel.setTimeOut(timeOut);
 			timerRestricted.init(timeOut);
 		}
 	}
@@ -319,7 +320,7 @@ Page {
 								tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
 						}
 						appDB.verifyTDayOptions(mainDate, splitLetter);
-						tDayModel.modified = true;
+						tDayModel.setSplitLetter(splitLetter);
 					}			
 				} //TPComboBox
 
@@ -340,6 +341,8 @@ Page {
 					readOnly: true
 					Layout.row: 1
 					Layout.column: 1
+
+					onTextChanged: tDayModel.setTrainingDay(text);
 				} //txtTDay
 			} //GridLayout
 
@@ -396,7 +399,7 @@ Page {
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
-				text: location
+				text: tDayModel.location()
 				visible: splitLetter !== 'R'
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
@@ -405,10 +408,6 @@ Page {
 				onTextEdited: {
 					location = text;
 					tDayModel.modified = true;
-				}
-
-				Component.onCompleted: {
-					location = tDayModel.location();
 				}
 			}
 
@@ -614,17 +613,12 @@ Page {
 
 				TextArea.flickable: TextArea {
 					id: txtDayInfoTrainingNotes
-					text: trainingNotes
+					text: tDayModel.dayNotes()
 					font.bold: true
 					font.pixelSize: AppSettings.fontSizeText
 					color: "white"
 
-					onEditingFinished: {
-						trainingNotes = text;
-						tDayModel.modified = true;
-					}
-
-					Component.onCompleted: trainingNotes = tDayModel.dayNotes();
+					onEditingFinished: tDayModel.setDayNotes(text);
 				}
 				ScrollBar.vertical: ScrollBar {}
 				ScrollBar.horizontal: ScrollBar {}
@@ -921,7 +915,7 @@ Page {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 55
-		visible: !bottomPane.shown
+		visible: !exercisesPane.shown
 
 		background: Rectangle {
 			color: primaryDarkColor
@@ -944,18 +938,19 @@ Page {
 					function continueSave(_id) {
 						if (_id === id) {
 							appDB.databaseReady.disconnect(continueSave);
-							appDB.updateTrainingDayExercises(tDayModel.id());
+							appDB.updateTrainingDayExercises();
 						}
 					}
-
+					tDayModel.setMesoId(mesoId);
+					tDayModel.setDate(mainDate);
 					id = appDB.pass_object(tDayModel);
 					appDB.databaseReady.connect(continueSave);
-					appDB.newTrainingDay(mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
+					appDB.newTrainingDay();
 				}
 				else {
 					appDB.pass_object(tDayModel);
-					appDB.updateTrainingDay(tDayModel.id(), mainDate, tDay, splitLetter, timeIn, timeOut, location, trainingNotes);
-					appDB.updateTrainingDayExercises(tDayModel.id());
+					appDB.updateTrainingDay();
+					appDB.updateTrainingDayExercises();
 				}
 				if (bRealMeso && chkAdjustCalendar.visible)
 				{
@@ -998,62 +993,8 @@ Page {
 		} // bntAddExercise
 	} //footer: ToolBar
 
-	ColumnLayout {
-		id: bottomPane
-		width: parent.width
-		spacing: 0
-		visible: bShowSimpleExercisesList
-		height: shown ? parent.height * 0.5 : btnShowHideList.height
-		property bool shown: true
-
-		onVisibleChanged: {
-			shown = visible;
-		}
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
-		}
-
-		Behavior on height {
-			NumberAnimation {
-				easing.type: Easing.InOutBack
-			}
-		}
-
-		onShownChanged: {
-			if (shown)
-				exercisesList.setFilter();
-		}
-
-		ButtonFlat {
-			id: btnShowHideList
-			imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
-			imageSize: 60
-			onClicked: bottomPane.shown = !bottomPane.shown;
-			Layout.fillWidth: true
-			Layout.topMargin: 0
-			height: 10
-			width: bottomPane.width
-		}
-
-		ExercisesListView {
-			id: exercisesList
-			height: windowHeight * 0.8
-			Layout.fillWidth: true
-			Layout.topMargin: 0
-			Layout.alignment: Qt.AlignTop
-			Layout.rightMargin: 5
-			Layout.maximumHeight: parent.height * 0.8
-			Layout.leftMargin: 5
-			Layout.fillHeight: true
-
-			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
-				if (exerciseEntryThatRequestedSimpleList)
-					exerciseEntryThatRequestedSimpleList.changeExercise(exerciseName + " - " + subName);
-			}
-		}
+	SimpleExercisesListPanel {
+		id: exercisesPane
 	}
 
 	onSplitLetterChanged: {
@@ -1128,13 +1069,14 @@ Page {
 		appDB.getExerciseObject(exerciseidx).createSetObject(settype, 1, "", "");
 	}
 
-	function requestSimpleExercisesList(object, visible) {
+	function requestSimpleExercisesList(object, visible, multipleSel) {
 		bShowSimpleExercisesList = visible;
-		exerciseEntryThatRequestedSimpleList = visible ? object : null;
+		bEnableMultipleSelection = multipleSel;
+		itemThatRequestedSimpleList = visible ? object : null;
 	}
 
 	function hideSimpleExerciseList() {
-		bottomPane.shown = false;
+		exercisesPane.shown = false;
 	}
 
 	function createFirstTimeTipComponent() {

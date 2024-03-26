@@ -26,9 +26,6 @@ Rectangle {
 
 	property int textAndImageSize: (bHasText ? buttonText.width + (bHasImage ? buttonImage.width: 0) : bHasImage ? buttonImage.width: 0)
 
-	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 } ]
-
 	height: Math.max(buttonText.height, buttonImage.height) + 10;
 	width: cboSetType.width + textAndImageSize + 50
 
@@ -52,7 +49,7 @@ Rectangle {
 
 	TPComboBox {
 		id: cboSetType
-		model: setTypesModel
+		model: mainwindow.setTypesModel
 		width: 100
 		currentIndex: comboIndex
 		z: 0

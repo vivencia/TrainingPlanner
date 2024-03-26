@@ -11,8 +11,9 @@ static const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular
 				u"qrc:/qml/SetTypeGiant.qml"_qs << u"qrc:/qml/SetTypeMyoReps.qml"_qs << u"qrc:/qml/SetTypeRegular.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_splitComponent(nullptr),
-		m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr)
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_MesoPage(nullptr),
+		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
+		m_setComponents{nullptr}
 {}
 
 TPMesocycleClass::~TPMesocycleClass()
@@ -30,10 +31,10 @@ void TPMesocycleClass::requestTimerDialog(QQuickItem* requester, const QVariant&
 		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
 }
 
-void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVariant& visible, int id)
+void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id)
 {
 	QMetaObject::invokeMethod(id == 0 ? m_qmlSplitObjectParent : m_CurrenttDayPage, "requestSimpleExercisesList",
-					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible));
+					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible), Q_ARG(QVariant, multipleSelection));
 }
 
 void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type)
@@ -128,8 +129,8 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 				QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
 				m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 				item->setParentItem(m_qmlSplitObjectParent);
-				connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
+				connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
 				QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
 					Q_ARG(QQuickItem*, item));
 				m_splitPages.insert(i.key(), item);
@@ -196,6 +197,9 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 
 		if (m_tDayComponent == nullptr)
 		{
+			//Because TrainingDayInfo.qml now uses the model directly, we need to have an working model before the page is created
+			if (m_CurrenttDayModel->count() == 0)
+				m_CurrenttDayModel->appendRow();
 			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 
@@ -268,8 +272,8 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	QQuickItem* parentLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
 	item->setParentItem(parentLayout);
-	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,int)) );
+	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
 	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&)), this,
 						SLOT(requestFloatingButton(const QVariant&,const QVariant&)) );
 	m_tDayExercises.append(item);
@@ -331,6 +335,13 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 						findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
 
 		m_setComponents[set_type] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type]), QQmlComponent::Asynchronous, parentLayout);
+		switch (set_type)
+		{
+			case 0: m_setComponents[1] = m_setComponents[6] = m_setComponents[0]; break;
+			case 1: m_setComponents[0] = m_setComponents[6] = m_setComponents[1]; break;
+			case 6: m_setComponents[0] = m_setComponents[1] = m_setComponents[6]; break;
+			default: break;
+		}
 	}
 	if (m_setComponents[set_type]->status() != QQmlComponent::Ready)
 		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
@@ -366,6 +377,9 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
 					SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	}
+	if (set_type == 4)
+		item->setProperty("ownerExercise", QVariant::fromValue(m_tDayExercises.at(exercise_idx)));
+
 	emit itemReady(item, tDaySetCreateId);
 	m_setObjects[exercise_idx].append(item);
 	getExerciseObject(exercise_idx)->setProperty("nSets", "1"); //After any set added, by default, set the number of sets to be added afterwards as one at a time

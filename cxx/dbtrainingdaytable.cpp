@@ -75,7 +75,7 @@ void DBTrainingDayTable::getTrainingDay()
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
 		query.prepare( QStringLiteral("SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
-										"FROM training_day_table WHERE date=") + m_data[2] );
+										"FROM training_day_table WHERE date=") + m_execArgs.at(0).toString() );
 
 		if (query.exec())
 		{
@@ -113,7 +113,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
 		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
-										"FROM training_day_table WHERE date=") + m_data[2] );
+										"FROM training_day_table WHERE date=") + m_execArgs.at(0).toString() );
 
 		if (query.exec())
 		{
@@ -161,7 +161,7 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly( true );
 		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE split_letter=\'%1\' AND date<%2 LIMIT 10")
-							.arg(m_data[0], m_data[1]));
+							.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
 
 		if (query.exec())
 		{
@@ -196,19 +196,20 @@ void DBTrainingDayTable::newTrainingDay()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
+		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral(
 									"INSERT INTO training_day_table "
 									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes)"
 									" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\')")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7), m_data.at(8)) );
+									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
+									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) );
+
 		m_result = query.exec();
 		if (m_result)
 		{
 			MSG_OUT("DBTrainingDayTable newTrainingDay SUCCESS")
-			m_data[0] = query.lastInsertId().toString();
-			m_model->appendList(m_data);
+			model->setId(query.lastInsertId().toString());
 			m_model->setModified(false);
 		}
 		mSqlLiteDB.close();
@@ -227,6 +228,8 @@ void DBTrainingDayTable::updateTrainingDay()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
+		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
+
 		QSqlQuery query(mSqlLiteDB);
 		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
 		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
@@ -238,8 +241,8 @@ void DBTrainingDayTable::updateTrainingDay()
 		query.prepare( QStringLiteral(
 									"UPDATE training_day_table SET meso_id=%1, date=%2, day_number=\'%3\', "
 									"split_letter=\'%4\', time_in=\'%5\', time_out=\'%6\', location=\'%7\', notes=\'%8\' WHERE id=%9")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7), m_data.at(8), m_data.at(0)) );
+									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
+									model->timeIn(), model->timeOut(), model->location(), model->dayNotes(), model->idStr()) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -247,7 +250,6 @@ void DBTrainingDayTable::updateTrainingDay()
 	if (m_result)
 	{
 		MSG_OUT("DBTrainingDayTable updateTrainingDay SUCCESS")
-		m_model->updateList(m_data, 0); //each training day uses its own model, therefore only one row: 0
 		m_model->setModified(false);
 	}
 	else
@@ -301,15 +303,14 @@ void DBTrainingDayTable::removeTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM training_day_table WHERE date=") + m_data.at(2) );
+		query.prepare( QStringLiteral("DELETE FROM training_day_table WHERE date=") + static_cast<DBTrainingDayModel*>(m_model)->dateStr() );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
 
 	if (m_result)
 	{
-		if (m_model)
-			m_model->clear();
+		m_model->clear();
 		MSG_OUT("DBTrainingDayTable removeTrainingDay SUCCESS")
 	}
 	else
@@ -335,18 +336,4 @@ void DBTrainingDayTable::deleteTrainingDayTable()
 		MSG_OUT("DBTrainingDayTable deleteTrainingDayTable error: Could not remove file " << mDBFile.fileName())
 
 	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBTrainingDayTable::setData(const QString& id, const QString& mesoId, const QString& date, const QString& trainingDayNumber,
-						const QString& splitLetter, const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes)
-{
-	m_data[0] = id;
-	m_data[1] = mesoId;
-	m_data[2] = date;
-	m_data[3] = trainingDayNumber;
-	m_data[4] = splitLetter;
-	m_data[5] = timeIn;
-	m_data[6] = timeOut;
-	m_data[7] = location;
-	m_data[8] = notes;
 }

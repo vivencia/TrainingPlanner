@@ -99,6 +99,7 @@ set( QML_FILES
     "qml/TPComboBox.qml"
     "qml/GraphicsViewer.qml"
     "qml/TPBalloonTip.qml"
+    "qml/SimpleExercisesListPanel.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

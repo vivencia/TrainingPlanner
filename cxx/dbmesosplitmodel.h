@@ -9,17 +9,17 @@ class DBMesoSplitModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(QString exerciseName READ exerciseName WRITE setExerciseName FINAL)
-Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 FINAL)
-Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 FINAL)
-Q_PROPERTY(uint setType READ setType WRITE setSetTpe FINAL)
-Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber FINAL)
-Q_PROPERTY(QString setsReps READ setsReps WRITE setSetsReps FINAL)
-Q_PROPERTY(QString setsReps1 READ setsReps1 WRITE setSetsReps1 FINAL)
-Q_PROPERTY(QString setsReps2 READ setsReps2 WRITE setSetsReps2 FINAL)
-Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight FINAL)
-Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1 FINAL)
-Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2 FINAL)
+Q_PROPERTY(QString exerciseName READ exerciseName WRITE setExerciseName)
+Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1)
+Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2)
+Q_PROPERTY(uint setType READ setType WRITE setSetType)
+Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber)
+Q_PROPERTY(QString setsReps READ setsReps WRITE setSetsReps)
+Q_PROPERTY(QString setsReps1 READ setsReps1 WRITE setSetsReps1)
+Q_PROPERTY(QString setsReps2 READ setsReps2 WRITE setSetsReps2)
+Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight)
+Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1)
+Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2)
 
 public:
 	enum RoleNames {
@@ -53,7 +53,7 @@ public:
 	Q_INVOKABLE void removeExercise(const uint index) { removeFromList(index); }
 
 	uint setType() const { return data(index(currentRow(), 0), setTypeRole).toUInt(); }
-	void setSetTpe(const uint new_type) { setData(index(currentRow(), 0), new_type, setTypeRole); }
+	void setSetType(const uint new_type) { setData(index(currentRow(), 0), new_type, setTypeRole); }
 
 	QString setsNumber() const { return data(index(currentRow(), 0), setsNumberRole).toString(); }
 	void setSetsNumber(const QString& new_setsnumber) { setData(index(currentRow(), 0), new_setsnumber, setsNumberRole); }
@@ -76,8 +76,7 @@ public:
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-	Q_INVOKABLE void changeExercise(const QString& name1, const QString& name2, const QString& sets,
-						const QString& reps, const QString& weight, const uint operation);
+	Q_INVOKABLE void changeExercise(const QString& name, const QString& sets, const QString& reps, const QString& weight, const uint operation);
 
 private:
 	uint m_nextAddedExercisePos;

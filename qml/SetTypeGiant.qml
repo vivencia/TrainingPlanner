@@ -17,6 +17,7 @@ Item {
 	required property string setType
 
 	property var nextObject: null
+	property var ownerExercise
 	signal requestTimerDialogSignal(Item requester, var args)
 
 	ColumnLayout {
@@ -76,6 +77,11 @@ Item {
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: ownerExercise.changeExercise1(lblExercise1);
+				}
 			}
 
 			Label {
@@ -89,6 +95,11 @@ Item {
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: ownerExercise.changeExercise2(lblExercise2);
+				}
 			}
 		}
 

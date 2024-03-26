@@ -28,13 +28,6 @@ public:
 	void removeTrainingDay();
 	void deleteTrainingDayTable();
 
-	//Call before starting a thread
-	void setData(const QString& id, const QString& mesoId = QString(), const QString& date = QString(), const QString& trainingDayNumber = QString(),
-				const QString& splitLetter = QString(), const QString& timeIn = QString(), const QString& timeOut = QString(),
-				const QString& location = QString(), const QString& notes = QString());
-	void setExercisesData(const QString& id, const QString& exercises_names, const QString& sets_types, const QString& rest_times, const QString& sub_sets,
-							const QString& reps, const QString& weights, const QString& notes);
-
 private:
 	QString formatDate(const uint julianDay) const;
 };

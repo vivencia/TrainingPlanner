@@ -93,12 +93,10 @@ public:
 	Q_INVOKABLE void verifyTDayOptions(const QDate& date, const QString& splitLetter = QString());
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(const QString& splitLetter);
-	Q_INVOKABLE void newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
-							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
-	Q_INVOKABLE void updateTrainingDay(const uint id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
-							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes);
-	Q_INVOKABLE void updateTrainingDayExercises(const uint id);
-	Q_INVOKABLE void removeTrainingDay(const uint id);
+	Q_INVOKABLE void newTrainingDay();
+	Q_INVOKABLE void updateTrainingDay();
+	Q_INVOKABLE void updateTrainingDayExercises();
+	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable();
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);

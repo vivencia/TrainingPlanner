@@ -66,7 +66,13 @@ void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitMode
 
 QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 {
-	return (exercise_idx < m_ExerciseData.count()) ? m_ExerciseData.at(exercise_idx)->name : QString();
+	QString name;
+	if (exercise_idx < m_ExerciseData.count())
+	{
+		name = m_ExerciseData.at(exercise_idx)->name;
+		return name.replace(subrecord_separator, QStringLiteral(" + "));
+	}
+	return name;
 }
 
 void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exercise_idx)
@@ -106,7 +112,7 @@ QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		return idx != -1 ? QStringLiteral("1: ") + m_ExerciseData.at(exercise_idx)->name.left(idx-1) : m_ExerciseData.at(exercise_idx)->name;
+		return idx != -1 ? QStringLiteral("1: ") + m_ExerciseData.at(exercise_idx)->name.left(idx) : m_ExerciseData.at(exercise_idx)->name;
 	}
 	return QString();
 }
@@ -118,7 +124,7 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exerc
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
 		QString new_name1;
 		if (idx != -1)
-			new_name1 = name1 + subrecord_separator + m_ExerciseData.at(exercise_idx)->name.mid(idx+1);
+			new_name1 = name1 + subrecord_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
 		else
 			new_name1 = name1;
 		m_ExerciseData[exercise_idx]->name = new_name1;
@@ -131,7 +137,7 @@ QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.mid(idx+1) : QString();
+		return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1) : QString();
 	}
 	return QString();
 }
@@ -225,7 +231,7 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
-		const uint total(m_ExerciseData.at(exercise_idx)->type.count());
+		const uint total(m_ExerciseData.at(exercise_idx)->nsets);
 		const int n(set_number - total + 1);
 		const QString strType(QString::number(type));
 		if (n >= 1)

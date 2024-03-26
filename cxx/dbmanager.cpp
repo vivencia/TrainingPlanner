@@ -684,7 +684,7 @@ void DbManager::getTrainingDay(const QDate& date)
 
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->gettDayModel(date)));
-	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return m_MesoManager.at(m_MesoIdx)->createTrainingDayPage(date); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id )
@@ -695,7 +695,7 @@ void DbManager::getTrainingDay(const QDate& date)
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); },
 		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
@@ -716,9 +716,11 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 	{
 		DBTrainingDayModel* tempModel(new DBTrainingDayModel(this));
 		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tempModel));
-		worker->setData(splitletter, QString::number(date.toJulianDay()));
+		worker->addExecArg(splitletter);
+		worker->addExecArg(QString::number(date.toJulianDay()));
 		createThread(worker, [worker] () { return worker->getPreviousTrainingDays(); } );
 	}
+
 	m_MesoManager.at(m_MesoIdx)->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 }
 
@@ -726,7 +728,7 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 {
 	const QDate date(m_runCommands->getDateFromStrDate(strDate));
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->setData(QString(), QString(), QString::number(date.toJulianDay()));
+	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] {
 		m_MesoManager.at(m_MesoIdx)->currenttDayModel()->setModified(true);
 		return m_MesoManager.at(m_MesoIdx)->createExercisesObjects();
@@ -759,35 +761,27 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	}
 }
 
-void DbManager::newTrainingDay(const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
-							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes)
+void DbManager::newTrainingDay()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->setData(QString(), m_MesoIdStr, QString::number(date.toJulianDay()), QString::number(trainingDayNumber),
-						splitLetter, timeIn, timeOut, location, notes);
 	createThread(worker, [worker] () { return worker->newTrainingDay(); } );
 }
 
-void DbManager::updateTrainingDay(const uint id, const QDate& date, const uint trainingDayNumber, const QString& splitLetter,
-							const QString& timeIn, const QString& timeOut, const QString& location, const QString& notes)
+void DbManager::updateTrainingDay()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->setData(QString::number(id), m_MesoIdStr, QString::number(date.toJulianDay()), QString::number(trainingDayNumber),
-						splitLetter, timeIn, timeOut, location, notes);
 	createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
 }
 
-void DbManager::updateTrainingDayExercises(const uint id)
+void DbManager::updateTrainingDayExercises()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->addExecArg(id);
 	createThread(worker, [worker] () { return worker->updateTrainingDayExercises(); } );
 }
 
-void DbManager::removeTrainingDay(const uint id)
+void DbManager::removeTrainingDay()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_MesoManager.at(m_MesoIdx)->currenttDayModel()));
-	worker->setData(QString::number(id));
 	createThread(worker, [worker] () { return worker->removeTrainingDay(); } );
 }
 
