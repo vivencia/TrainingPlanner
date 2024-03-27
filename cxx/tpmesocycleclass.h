@@ -90,6 +90,7 @@ public:
 
 	inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_tDayExercises.at(exercise_idx); }
 	void removeExercise(const uint exercise_idx);
+	void moveExercise(const uint exercise_idx, const uint new_idx);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
@@ -101,6 +102,7 @@ public:
 		return set_number < m_setObjects.count() ? m_setObjects.value(exercise_idx).at(set_number) : nullptr;
 	}
 	void removeSet(const uint set_number, const uint exercise_idx);
+	void moveSets(const uint exercise_idx, const uint new_idx);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------

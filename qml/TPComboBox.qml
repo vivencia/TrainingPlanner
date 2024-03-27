@@ -5,13 +5,13 @@ ComboBox {
 	id: control
 	font.bold: true
 	font.pixelSize: AppSettings.fontSizeText
-
-	property string textColor: "white"
-	property string backgroundColor: "black"//"#c3cad5"
 	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
 	textRole: "text"
 	valueRole: "value"
+
+	property string textColor: "white"
+	property string backgroundColor: "black"//"#c3cad5"
 
 	FontMetrics {
 		id: fontMetrics
@@ -46,13 +46,15 @@ ComboBox {
 		}
 
 		onPaint: {
-			context.reset();
-			context.moveTo(0, 0);
-			context.lineTo(width, 0);
-			context.lineTo(width / 2, height);
-			context.closePath();
-			context.fillStyle = textColor
-			context.fill();
+			if (context) {
+				context.reset();
+				context.moveTo(0, 0);
+				context.lineTo(width, 0);
+				context.lineTo(width / 2, height);
+				context.closePath();
+				context.fillStyle = textColor
+				context.fill();
+			}
 		}
 	}
 

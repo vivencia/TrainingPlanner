@@ -256,7 +256,8 @@ uint TPMesocycleClass::createExerciseObject(const QString& exerciseName, const Q
 
 void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 {
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("exerciseIdx"), object_idx >= 0 ? object_idx : m_tDayExercises.count());
+	const int idx(object_idx >= 0 ? object_idx : m_tDayExercises.count());
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("exerciseIdx"), idx);
 	QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, m_QMlEngine->rootContext())));
 	#ifdef DEBUG
@@ -293,8 +294,10 @@ void TPMesocycleClass::createExercisesObjects()
 		else
 			createExercisesObjects();
 	}
-	else {
-		for(uint i(0); i < m_CurrenttDayModel->exercisesNumber(); ++i)
+	else
+	{
+		uint i(0);
+		for(; i < m_CurrenttDayModel->exercisesNumber(); ++i)
 		{
 			createExerciseObject_part2(i);
 			m_tDayExercises[i]->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
@@ -317,6 +320,64 @@ void TPMesocycleClass::removeExercise(const uint exercise_idx)
 		m_tDayExercises.remove(exercise_idx);
 	}
 }
+
+void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
+{
+	if (new_idx < 1000)
+	{
+	//parentLayout->blockSignals(true);
+	m_tDayExercises[exercise_idx]->setProperty("exerciseIdx", new_idx);
+	m_tDayExercises[new_idx]->setProperty("exerciseIdx", exercise_idx);
+	m_tDayExercises.swapItemsAt(exercise_idx, new_idx);
+	if (getSetObject(0, exercise_idx) != nullptr)
+		moveSets(exercise_idx, new_idx);
+
+	for(uint i(0); i < m_tDayExercises.count(); ++i)
+	{
+		qDebug() << m_tDayExercises[i]->property("exerciseIdx");
+		m_tDayExercises[i]->setParentItem(nullptr);
+	}
+	}
+	else
+	{
+	QQuickItem* parentLayout(m_tDayExercises[exercise_idx]->parentItem());
+	for(uint i(0); i < m_tDayExercises.count(); ++i)
+	{
+		qDebug() << m_tDayExercises[i]->property("orig_idx");
+		m_tDayExercises[i]->setParentItem(parentLayout);
+	}
+	}
+
+	//m_tDayExercises[new_idx]->setParentItem(parentLayout);
+	//m_tDayExercises[exercise_idx]->setParentItem(parentLayout);
+	//m_tDayExercises[2]->setParentItem(parentLayout);
+	//m_tDayExercises[3]->setParentItem(parentLayout);
+	//parentLayout->blockSignals(false);
+}
+
+void TPMesocycleClass::moveSets(const uint exercise_idx, const uint new_idx)
+{
+	QQuickItem* ownerExercise(nullptr);
+	for(uint i(0); i < m_setObjects.value(exercise_idx).count(); ++i)
+	{
+		m_setObjects[exercise_idx][i]->setProperty("exerciseIdx", new_idx);
+		ownerExercise = static_cast<QQuickItem*>(m_setObjects.value(exercise_idx).at(i))->property("ownerExercise").value<QQuickItem*>();
+		if (ownerExercise != nullptr)
+			m_setObjects[exercise_idx][i]->setProperty("ownerExercise", QVariant::fromValue(m_tDayExercises.at(new_idx)));
+	}
+	for(uint i(0); i < m_setObjects.value(new_idx).count(); ++i)
+	{
+		m_setObjects[new_idx][i]->setProperty("exerciseIdx", exercise_idx);
+		ownerExercise = static_cast<QQuickItem*>(m_setObjects.value(new_idx).at(i))->property("ownerExercise").value<QQuickItem*>();
+		if (ownerExercise != nullptr)
+			m_setObjects[new_idx][i]->setProperty("ownerExercise", QVariant::fromValue(m_tDayExercises.at(exercise_idx)));
+	}
+
+	m_setObjects[1000] = m_setObjects.value(exercise_idx);
+	m_setObjects[exercise_idx] = m_setObjects.value(new_idx);
+	m_setObjects[new_idx] = m_setObjects.take(1000);
+}
+
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
@@ -382,7 +443,10 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 
 	emit itemReady(item, tDaySetCreateId);
 	m_setObjects[exercise_idx].append(item);
-	getExerciseObject(exercise_idx)->setProperty("nSets", "1"); //After any set added, by default, set the number of sets to be added afterwards as one at a time
+	//After any set added, by default, set the number of sets to be added afterwards as one at a time, and set the suggested reps and weight for the next set
+	getExerciseObject(exercise_idx)->setProperty("nSets", "1");
+	getExerciseObject(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
+	getExerciseObject(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type));
 }
 
 void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)
@@ -397,6 +461,11 @@ void TPMesocycleClass::removeSet(const uint set_number, const uint exercise_idx)
 		m_tDayExercises[exercise_idx]->setProperty("setNbr", m_setObjects.value(exercise_idx).count());
 		if (m_setObjects.value(exercise_idx).count() == 0)
 			m_tDayExercises[exercise_idx]->setProperty("bNewExercise", true);
+		if (set_number == m_setObjects.count()) //last set was removed, update suggested values for a possible set addition
+		{
+			getExerciseObject(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			getExerciseObject(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+		}
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

@@ -801,6 +801,11 @@ void DbManager::removeExerciseObject(const uint exercise_idx)
 	m_MesoManager.at(m_MesoIdx)->removeExercise(exercise_idx);
 }
 
+void DbManager::moveExerciseObject(const uint exercise_idx, const uint new_idx)
+{
+	m_MesoManager.at(m_MesoIdx)->moveExercise(exercise_idx, new_idx);
+}
+
 QQuickItem* DbManager::getExerciseObject(const uint exercise_idx)
 {
 	return m_MesoManager.at(m_MesoIdx)->getExerciseObject(exercise_idx);

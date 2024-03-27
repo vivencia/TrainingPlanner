@@ -67,6 +67,8 @@ public:
 	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight);
+	uint nextSetSuggestedReps(const uint exercise_idx, const uint type) const;
+	uint nextSetSuggestedWeight(const uint exercise_idx, const uint type) const;
 	void newSet(const uint exercise_idx, const uint set_number, const uint type);
 	bool removeSet(const uint set_number, const uint exercise_idx);
 

@@ -100,6 +100,7 @@ public:
 	Q_INVOKABLE void deleteTrainingDayTable();
 	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
+	Q_INVOKABLE void moveExerciseObject(const uint exercise_idx, const uint new_idx);
 	Q_INVOKABLE QQuickItem* getExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
 										const QString& nReps = QString(), const QString& nWeight = QString());

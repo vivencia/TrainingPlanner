@@ -14,7 +14,6 @@ FocusScope {
 	required property int exerciseIdx
 
 	property bool bNewExercise: false
-	property int tDayId: -1
 	property int setNbr: 0
 	property string nSets
 	property string nReps
