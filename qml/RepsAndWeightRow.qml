@@ -9,8 +9,6 @@ FocusScope {
 	required property int rowIdx
 
 	property var nextRowObj: null
-	property var nextObject: null
-
 	property bool bBtnAddEnabled: true
 
 	signal addSubSet(int id, bool bnew)
@@ -47,13 +45,8 @@ FocusScope {
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
-			}
-
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
-			}
+			Component.onCompleted: text = tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 		}
 
 		Label {
@@ -74,10 +67,6 @@ FocusScope {
 			onEnterOrReturnKeyPressed: {
 				if (nextRowObj !== null)
 					nextRowObj.forceActiveFocus();
-				else {
-					if (nextObject !== null)
-						nextObject.forceActiveFocus()
-				}
 			}
 
 			onValueChanged: (str) => {
@@ -85,9 +74,7 @@ FocusScope {
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
 
 			RoundButton {
 				id: btnInsertAnotherRow

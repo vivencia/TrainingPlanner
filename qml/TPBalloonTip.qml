@@ -28,9 +28,8 @@ Popup {
 	height: lblTitle.height + lblMessage.height + Math.max(btn1.height, btn2.height) + 10
 
 	background: Rectangle {
-		border.color: "black"
 		color: "white"
-		radius: 7
+		radius: 8
 	}
 
 	NumberAnimation {
@@ -216,12 +215,13 @@ Popup {
 		onPressed: (mouse) => {
 			prevPos = { x: mouse.x, y: mouse.y };
 		}
+
 		onPositionChanged: {
 			const deltaX = mouseX - prevPos.x;
 			if ( Math.abs(deltaX) >= 10) {
 				x += deltaX;
 				if (deltaX > 0)
-					finalXPos = mainwindow.width + 300;
+					finalXPos = windowWidth + 300;
 				else
 					finalXPos = -300;
 				closeTransition.enabled = false;
@@ -272,12 +272,12 @@ Popup {
 	}
 
 	function show(ypos) {
-		balloon.x = (mainwindow.width - width) / 2;
+		balloon.x = (windowWidth - width)/2;
 		balloon.y = finalYPos = ypos;
-		if ( ypos < mainwindow.height / 2)
+		if ( ypos <= windowHeight/2 )
 			startYPos = -300;
 		else
-			startYPos = mainwindow.height + 300;
+			startYPos = windowHeight + 300;
 		balloon.open();
 	}
 

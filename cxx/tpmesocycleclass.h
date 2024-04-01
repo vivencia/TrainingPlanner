@@ -81,27 +81,25 @@ public:
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	inline void setCurrenttDay(const QDate& date) { m_CurrenttDayModel = m_tDayModels.value(date); m_CurrenttDayPage = m_tDayPages.value(date); }
-	inline bool setsLoaded(const uint exercise_idx) const { return m_setObjects.contains(exercise_idx) ;}
+	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	uint createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
+	Q_INVOKABLE uint createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
 	void createExerciseObject_part2(const int object_idx = -1);
 	void createExercisesObjects();
 
-	inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_tDayExercises.at(exercise_idx); }
-	void removeExercise(const uint exercise_idx);
+	Q_INVOKABLE inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_currentExercises->exerciseEntry(exercise_idx); }
+	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
+	Q_INVOKABLE inline void clearExercises() { m_currentExercises->clear(); m_CurrenttDayModel->clearExercises(); }
 	void moveExercise(const uint exercise_idx, const uint new_idx);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx);
+	void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
+							const QString& nReps = QString(), const QString& nWeight = QString());
 	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
-
-	inline QQuickItem* getSetObject(const uint set_number, const uint exercise_idx) const
-	{
-		return set_number < m_setObjects.count() ? m_setObjects.value(exercise_idx).at(set_number) : nullptr;
-	}
-	void removeSet(const uint set_number, const uint exercise_idx);
+	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
+	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	void moveSets(const uint exercise_idx, const uint new_idx);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
@@ -147,21 +145,59 @@ private:
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+	struct tDayExercises {
+		struct exerciseObject {
+			QQuickItem* m_exerciseEntry;
+			QList<QQuickItem*> m_setObjects;
+		};
+		QList<exerciseObject*> exerciseObjects;
+
+		inline QQuickItem* exerciseEntry_const(const uint exercise_idx) const { return exerciseObjects.at(exercise_idx)->m_exerciseEntry; }
+		inline QQuickItem* exerciseEntry(const uint exercise_idx) { return exerciseObjects[exercise_idx]->m_exerciseEntry; }
+		inline QQuickItem* setObject_const(const uint exercise_idx, const uint set_number) const { return exerciseObjects.at(exercise_idx)->m_setObjects.at(set_number); }
+		inline QQuickItem* setObject(const uint exercise_idx, const uint set_number) const { return exerciseObjects[exercise_idx]->m_setObjects[set_number]; }
+
+		inline uint setCount(const uint exercise_idx) const { return exerciseObjects.at(exercise_idx)->m_setObjects.count(); }
+		inline uint exercisesCount() const { return exerciseObjects.count(); }
+
+		void appendExerciseEntry(QQuickItem* new_exerciseItem);
+		void removeExerciseEntry(const uint exercise_idx);
+		void removeSet(const uint exercise_idx, const uint set_number);
+
+		inline void appendSet(const uint exercise_idx, QQuickItem* new_setObject)
+		{
+			exerciseObjects.at(exercise_idx)->m_setObjects.append(new_setObject);
+		}
+
+		inline void clear()
+		{
+			for (uint i(0); i < exerciseObjects.count(); ++i)
+				removeExerciseEntry(i);
+		}
+
+		~tDayExercises()
+		{
+			clear();
+		}
+	};
+
 	QMap<QDate,DBTrainingDayModel*> m_tDayModels;
 	QMap<QDate,QQuickItem*> m_tDayPages;
+	QMap<QDate,tDayExercises*> m_tDayExercisesList;
+	tDayExercises* m_currentExercises;
 	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
 	DBTrainingDayModel* m_CurrenttDayModel;
 	QQuickItem* m_CurrenttDayPage;
+	QDate m_currentDayPageDate;
+
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	QVariantMap m_tDayExerciseEntryProperties;
-	QList<QQuickItem*> m_tDayExercises;
 	QQmlComponent* m_tDayExercisesComponent;
+	QVariantMap m_tDayExerciseEntryProperties;
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	QQmlComponent* m_setComponents[7];
-	QMap<uint,QList<QQuickItem*>> m_setObjects;
 	QVariantMap m_setObjectProperties;
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 

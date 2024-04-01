@@ -16,7 +16,6 @@ Item {
 	required property int setNumber
 	required property string setType
 
-	property var nextObject: null
 	property var ownerExercise
 	signal requestTimerDialogSignal(Item requester, var args)
 
@@ -43,7 +42,7 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: appDB.removeSetObject(setNumber, exerciseIdx);
+				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
 
@@ -200,11 +199,6 @@ Item {
 				Layout.row: 3
 				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
-
-				onEnterOrReturnKeyPressed: {
-					if (nextObject !== null)
-						nextObject.forceActiveFocus()
-				}
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, 1, str, exerciseIdx);

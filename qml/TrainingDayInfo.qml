@@ -225,6 +225,35 @@ Page {
 		}
 	}
 
+	TPBalloonTip {
+		id: msgDlgSplitLetterChanged
+		title: qsTr("Really change split?")
+		message: qsTr("All exercises changes will be removed")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+
+		onButton1Clicked: {
+			chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
+			splitLetter = cboSplitLetter.currentValue;
+			if (splitLetter === 'R')
+				tDay = "0";
+			else
+			{
+				if (tDay === "0")
+					tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
+			}
+			appDB.verifyTDayOptions(mainDate, splitLetter);
+			tDayModel.setSplitLetter(splitLetter);
+			itemManager.clearExercises();
+		}
+
+		onButton2Clicked: {
+			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
+											splitLetter : tDayModel.splitLetter());
+		}
+	} //TPBalloonTip
+
 	ScrollView {
 		id: scrollTraining
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -308,19 +337,8 @@ Page {
 					Layout.column: 1
 
 					onActivated: (index) => {
-						const splitletter = tDayModel.splitLetter();
-						chkAdjustCalendar.visible = splitletter !== cboModel.get(index).value;
-
-						splitLetter = cboModel.get(index).value;
-						if (splitLetter === 'R')
-							tDay = "0";
-						else
-						{
-							if (tDay === "0")
-								tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
-						}
-						appDB.verifyTDayOptions(mainDate, splitLetter);
-						tDayModel.setSplitLetter(splitLetter);
+						if (cboModel.get(index).value !== splitLetter)
+							msgDlgSplitLetterChanged.show(windowHeight / 2);
 					}			
 				} //TPComboBox
 
@@ -508,9 +526,11 @@ Page {
 							Layout.leftMargin: 5
 
 							Component.onCompleted: {
-								 timeIn = tDayModel.timeIn();
-								 if (timeIn.length === 0)
+								timeIn = tDayModel.timeIn();
+								if (timeIn.length === 0) {
 									timeIn = runCmd.getCurrentTimeString();
+									tDayModel.setTimeIn(timeIn);
+								}
 							}
 						}
 						RoundButton {
@@ -541,8 +561,10 @@ Page {
 
 							Component.onCompleted: {
 								timeOut = tDayModel.timeOut();
-								if (timeOut.length === 0)
+								if (timeOut.length === 0) {
 									timeOut = runCmd.formatFutureTime(1, 30);
+									tDayModel.setTimeOut(timeOut);
+								}
 							}
 						}
 
@@ -1026,7 +1048,7 @@ Page {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		appDB.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
+		itemManager.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
 	}
 
 	function exerciseSetAdded(exerciseObjIdx, setObject) {
@@ -1066,7 +1088,7 @@ Page {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		appDB.getExerciseObject(exerciseidx).createSetObject(settype, 1, "", "");
+		itemManager.getExerciseObject(exerciseidx).createSetObject(settype, tDayModel.setsNumber(exercise_idx), exerciseidx, "", "");
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {

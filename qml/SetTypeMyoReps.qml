@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	required property string setType
 
-	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
 
 	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
@@ -47,9 +46,7 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: {
-					appDB.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
 
@@ -80,13 +77,8 @@ Item {
 				text = str;
 			}
 
-			onEnterOrReturnKeyPressed: {
-				txtNReps.forceActiveFocus();
-			}
-
-			Component.onCompleted: {
-				text = tDayModel.setSubSets(setNumber, exerciseIdx);
-			}
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+			Component.onCompleted: text = tDayModel.setSubSets(setNumber, exerciseIdx);
 		}
 
 		SetInputField {
@@ -95,18 +87,13 @@ Item {
 			availableWidth: setItem.width
 			alternativeLabels: myoLabels
 
-			onEnterOrReturnKeyPressed: {
-				txtNWeight.forceActiveFocus();
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetReps(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setReps(setNumber, exerciseIdx);
-			}
+			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+			Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
 		}
 
 		SetInputField {
@@ -114,19 +101,12 @@ Item {
 			type: SetInputField.Type.WeightType
 			availableWidth: setItem.width
 
-			onEnterOrReturnKeyPressed: {
-				if (nextObject !== null)
-					nextObject.forceActiveFocus()
-			}
-
 			onValueChanged: (str) => {
 				tDayModel.setSetWeight(setNumber, str, exerciseIdx);
 				text = str;
 			}
 
-			Component.onCompleted: {
-				text = tDayModel.setWeight(setNumber, exerciseIdx);
-			}
+			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 		}
 
 		Label {

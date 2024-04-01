@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	required property string setType
 
-	property var nextObject: null
 	property int nSubSets: 0
 	property var subSetList: []
 
@@ -46,7 +45,7 @@ Item {
 					width: 20
 				}
 				onClicked: {
-					appDB.removeSetObject(setNumber, exerciseIdx);
+					itemManager.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
 		}
@@ -129,7 +128,7 @@ Item {
 
 		var component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
-			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx, nextObject:nextObject });
+			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
 			rowSprite.addSubSet.connect(addSubSet);

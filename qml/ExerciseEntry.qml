@@ -34,9 +34,7 @@ FocusScope {
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-		onButton1Clicked: {
-			appDB.removeExerciseObject(exerciseIdx);
-		}
+		onButton1Clicked: itemManager.removeExerciseObject(exerciseIdx);
 	} //TPBalloonTip
 
 	Frame {
@@ -343,15 +341,17 @@ FocusScope {
 	}
 
 	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {
-		function setObjectCreated(object) {
-			appDB.getItem.disconnect(setObjectCreated);
-			setAdded(exerciseIdx, object);
+		function setObjectCreated(object, id) {
+			if (id === 140) {
+				itemManager.itemReady.disconnect(setObjectCreated);
+				setAdded(exerciseIdx, object);
+			}
 		}
 
 		for(var i = setNbr; i < setNbr + n; ++i)
 		{
-			appDB.getItem.connect(setObjectCreated);
-			appDB.createSetObject(type, i, exerciseIdx, nreps, nweight);
+			itemManager.itemReady.connect(setObjectCreated);
+			itemManager.createSetObject(type, i, exerciseIdx, nreps, nweight);
 		}
 		setNbr += n;
 	}
@@ -359,6 +359,6 @@ FocusScope {
 	function paneExerciseShowHide() {
 		paneExercise.shown = !paneExercise.shown
 		if (paneExercise.shown)
-			appDB.createSetObjects(exerciseIdx);
+			itemManager.createSetObjects(exerciseIdx);
 	}
 } //Item

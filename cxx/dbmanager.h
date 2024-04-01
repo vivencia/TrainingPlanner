@@ -98,14 +98,6 @@ public:
 	Q_INVOKABLE void updateTrainingDayExercises();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable();
-	Q_INVOKABLE void createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
-	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
-	Q_INVOKABLE void moveExerciseObject(const uint exercise_idx, const uint new_idx);
-	Q_INVOKABLE QQuickItem* getExerciseObject(const uint exercise_idx);
-	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
-										const QString& nReps = QString(), const QString& nWeight = QString());
-	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
-	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 signals:
@@ -129,6 +121,7 @@ private:
 	TPListModel* m_model;
 	QMap<QString,int> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
+	TPMesocycleClass* m_currentMesoManager;
 
 	DBMesocyclesModel* mesocyclesModel;
 	DBMesoSplitModel* mesoSplitModel;

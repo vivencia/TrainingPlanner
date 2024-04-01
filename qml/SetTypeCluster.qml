@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	required property string setType
 
-	property var nextObject: null
 	signal requestTimerDialogSignal(Item requester, var args)
 
 	ColumnLayout {
@@ -41,7 +40,7 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: appDB.removeSetObject(setNumber, exerciseIdx);
+				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 
 			Label {
@@ -104,11 +103,6 @@ Item {
 			id: txtNWeight
 			type: SetInputField.Type.WeightType
 			availableWidth: setItem.width
-
-			onEnterOrReturnKeyPressed: {
-				if (nextObject !== null)
-					nextObject.forceActiveFocus()
-			}
 
 			onValueChanged: (str) => {
 				tDayModel.setSetWeight(setNumber, str, exerciseIdx);

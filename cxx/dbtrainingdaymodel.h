@@ -13,8 +13,9 @@ QML_ELEMENT
 
 public:
 	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false) {}
-	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
+	~DBTrainingDayModel() { clearExercises(); }
 
+	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; setModified(true); }
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
 	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
