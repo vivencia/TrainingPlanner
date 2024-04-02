@@ -95,11 +95,14 @@ public:
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
+	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
 							const QString& nReps = QString(), const QString& nWeight = QString());
 	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
+	Q_INVOKABLE void createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
+							const QString& nReps = QString(), const QString& nWeight = QString());
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
+	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
 	void moveSets(const uint exercise_idx, const uint new_idx);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
@@ -173,6 +176,7 @@ private:
 		{
 			for (uint i(0); i < exerciseObjects.count(); ++i)
 				removeExerciseEntry(i);
+			exerciseObjects.clear();
 		}
 
 		~tDayExercises()
@@ -185,20 +189,19 @@ private:
 	QMap<QDate,QQuickItem*> m_tDayPages;
 	QMap<QDate,tDayExercises*> m_tDayExercisesList;
 	tDayExercises* m_currentExercises;
-	QQmlComponent* m_tDayComponent;
 	QVariantMap m_tDayProperties;
+	QQmlComponent* m_tDayComponent;
 	DBTrainingDayModel* m_CurrenttDayModel;
 	QQuickItem* m_CurrenttDayPage;
-	QDate m_currentDayPageDate;
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	QQmlComponent* m_tDayExercisesComponent;
 	QVariantMap m_tDayExerciseEntryProperties;
+	QQmlComponent* m_tDayExercisesComponent;
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	QQmlComponent* m_setComponents[7];
 	QVariantMap m_setObjectProperties;
+	QQmlComponent* m_setComponents[7];
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------

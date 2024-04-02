@@ -20,7 +20,6 @@ FocusScope {
 	property string nWeight
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
-	property var exerciseSetLabelToChange: null
 
 	signal setAdded(int objidx, var setObject)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
@@ -71,7 +70,7 @@ FocusScope {
 
 			TextField {
 				id: txtExerciseName
-				text: tDayModel.exerciseName1(exerciseIdx)
+				text: tDayModel.exerciseName(exerciseIdx)
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
 				readOnly: true
@@ -313,46 +312,42 @@ FocusScope {
 	function changeExercise(newname)
 	{
 		if (bListRequestForExercise1) {
-			tDayModel.setExerciseName1(newname, exerciseIdx);
+			itemManager.changeSetsExerciseLabels(exerciseIdx, 1, newname);
 			bListRequestForExercise1 = false;
-			exerciseSetLabelToChange.text = newname;
 		}
 		else if (bListRequestForExercise2) {
-			tDayModel.setExerciseName2(newname, exerciseIdx);
+			itemManager.changeSetsExerciseLabels(exerciseIdx, 2, newname);
 			bListRequestForExercise2 = false;
-			exerciseSetLabelToChange.text = newname;
 		}
 		else
-			tDayModel.setExerciseName1(newname, exerciseIdx);
+			tDayModel.setExerciseName(newname, exerciseIdx);
 		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
 		requestSimpleExercisesList(null, false, false, 1);
 	}
 
-	function changeExercise1(label) {
+	function changeExercise1() {
 		bListRequestForExercise1 = true;
 		exerciseSetLabelToChange = label;
 		requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
-	function changeExercise2(label) {
+	function changeExercise2() {
 		bListRequestForExercise2 = true;
-		exerciseSetLabelToChange = label;
 		requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
 	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {
+		var nsets_created = 0;
 		function setObjectCreated(object, id) {
 			if (id === 140) {
-				itemManager.itemReady.disconnect(setObjectCreated);
+				if (++nsets_created === n)
+					itemManager.itemReady.disconnect(setObjectCreated);
 				setAdded(exerciseIdx, object);
 			}
 		}
 
-		for(var i = setNbr; i < setNbr + n; ++i)
-		{
-			itemManager.itemReady.connect(setObjectCreated);
-			itemManager.createSetObject(type, i, exerciseIdx, nreps, nweight);
-		}
+		itemManager.itemReady.connect(setObjectCreated);
+		itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + n, type, nreps, nweight);
 		setNbr += n;
 	}
 

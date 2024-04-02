@@ -3,6 +3,8 @@
 
 #include <QtMath>
 
+static QString multiUseString;
+
 void DBTrainingDayModel::fromDataBase(const QStringList& list)
 {
 	const QStringList exercises_names(list.at(0).split(record_separator2, Qt::SkipEmptyParts));
@@ -147,12 +149,8 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		QString new_name2;
-		if (idx != -1)
-			new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + subrecord_separator + name2;
-		else
-			new_name2 = subrecord_separator + name2;
-		m_ExerciseData[exercise_idx]->name = new_name2;
+		m_ExerciseData[exercise_idx]->name = (idx != -1 ? m_ExerciseData.at(exercise_idx)->name.left(idx) :
+									m_ExerciseData.at(exercise_idx)->name) + subrecord_separator + name2;
 		setModified(true);
 	}
 }
@@ -227,28 +225,36 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 	}
 }
 
-uint DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type) const
+const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type) const
 {
-	const uint lastSetValue(m_ExerciseData.at(exercise_idx)->reps.last().toUInt());
-	switch (type)
+	if (type == 1 || type == 6)
 	{
-		case 1: return lastSetValue - 3; //Pyramid
-		case 6: return lastSetValue + 5; //Reverse Pyramid
-		default: break;
+		uint lastSetValue(m_ExerciseData.at(exercise_idx)->reps.last().toUInt());
+		if (type == 1) //Pyramid
+			lastSetValue -= 3;
+		else //Reverse Pyramid
+			lastSetValue += 5;
+		multiUseString = QString::number(lastSetValue);
+		return multiUseString;
 	}
-	return lastSetValue;
+	else
+		return m_ExerciseData.at(exercise_idx)->reps.last();
 }
 
-uint DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type) const
+const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type) const
 {
-	const uint lastSetValue(m_ExerciseData.at(exercise_idx)->weight.last().toUInt());
-	switch (type)
+	if (type == 1 || type == 6)
 	{
-		case 1: return qFloor(lastSetValue * 1.2); //Pyramid
-		case 6: return qFloor(lastSetValue * 0.2); //Reverse Pyramid
-		default: break;
+		uint lastSetValue(m_ExerciseData.at(exercise_idx)->weight.last().toUInt());
+		if (type == 1) //Pyramid
+			lastSetValue = qFloor(lastSetValue * 1.2);
+		else //Reverse Pyramid
+			lastSetValue = qFloor(lastSetValue * 0.2);
+		multiUseString = QString::number(lastSetValue);
+		return multiUseString;
 	}
-	return lastSetValue;
+	else
+		return m_ExerciseData.at(exercise_idx)->reps.last();
 }
 
 void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type)
@@ -267,8 +273,9 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 			{
 				m_ExerciseData[exercise_idx]->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
 				m_ExerciseData[exercise_idx]->type.append(strType);
-				m_ExerciseData[exercise_idx]->reps.append(QString::number(nextSetSuggestedReps(exercise_idx, type)));
-				m_ExerciseData[exercise_idx]->weight.append(QString::number(nextSetSuggestedWeight(exercise_idx, type)));
+				m_ExerciseData[exercise_idx]->reps.append(nextSetSuggestedReps(exercise_idx, type));
+				m_ExerciseData[exercise_idx]->weight.append(nextSetSuggestedWeight(exercise_idx, type));
+
 				switch (type)
 				{
 					case 0: //Regular

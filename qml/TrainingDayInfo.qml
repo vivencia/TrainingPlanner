@@ -25,7 +25,6 @@ Page {
 	property string mesoName
 	property string splitText
 	property bool bRealMeso: true
-	readonly property bool bModified: tDayModel.modified
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
@@ -142,6 +141,35 @@ Page {
 	}
 
 	TPBalloonTip {
+		id: msgClearExercises
+		title: opt === 0 ? qsTr("Really change split?") : qsTr("Clear exercises list?")
+		message: qsTr("All exercises changes will be removed")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+
+		property int opt
+
+		onButton1Clicked: {
+			itemManager.clearExercises();
+			if (opt === 0)
+				changeSplitLetter();
+		}
+
+		onButton2Clicked: {
+			if (opt === 0) {
+				cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
+											splitLetter : tDayModel.splitLetter());
+			}
+		}
+
+		function init(_opt) {
+			opt = _opt
+			show(windowHeight / 2);
+		}
+	} //TPBalloonTip
+
+	TPBalloonTip {
 		id: tipTimeWarn
 		title: qsTr("Attention!")
 		message: "<b>" + displayMin + qsTr("</b> minute(s) until end of training session!")
@@ -224,35 +252,6 @@ Page {
 			playSound.stop();
 		}
 	}
-
-	TPBalloonTip {
-		id: msgDlgSplitLetterChanged
-		title: qsTr("Really change split?")
-		message: qsTr("All exercises changes will be removed")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
-
-		onButton1Clicked: {
-			chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
-			splitLetter = cboSplitLetter.currentValue;
-			if (splitLetter === 'R')
-				tDay = "0";
-			else
-			{
-				if (tDay === "0")
-					tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
-			}
-			appDB.verifyTDayOptions(mainDate, splitLetter);
-			tDayModel.setSplitLetter(splitLetter);
-			itemManager.clearExercises();
-		}
-
-		onButton2Clicked: {
-			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
-											splitLetter : tDayModel.splitLetter());
-		}
-	} //TPBalloonTip
 
 	ScrollView {
 		id: scrollTraining
@@ -337,8 +336,12 @@ Page {
 					Layout.column: 1
 
 					onActivated: (index) => {
-						if (cboModel.get(index).value !== splitLetter)
-							msgDlgSplitLetterChanged.show(windowHeight / 2);
+						if (cboModel.get(index).value !== splitLetter) {
+							if (colExercises.children.length > 0)
+								msgClearExercises.init(0);
+							else
+								changeSplitLetter();
+						}
 					}			
 				} //TPComboBox
 
@@ -695,6 +698,20 @@ Page {
 				visible: splitLetter !== 'R'
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 2
+
+				RoundButton {
+					id: btnClearExercises
+					anchors.right: parent.left
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.rightMargin: 5
+					width: 40
+					height: 40
+					visible: colExercises.children.length > 0
+					icon.source: "qrc:/images/"+darkIconFolder+"revert-day.png"
+					ToolTip.text: "Remove all exercises"
+
+					onClicked: msgClearExercises.init(1);
+				}
 			}
 
 			GroupBox {
@@ -946,7 +963,7 @@ Page {
 
 		ButtonFlat {
 			id: btnSaveDay
-			enabled: bModified
+			enabled: tDayModel.modified
 			text: qsTr("Log Day")
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
 			textUnderIcon: true
@@ -1030,6 +1047,20 @@ Page {
 			default: return;
 		}
 		exercisesListModel.makeFilterString(splitText);
+	}
+
+	function changeSplitLetter() {
+		chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
+		splitLetter = cboSplitLetter.currentValue;
+		if (splitLetter === 'R')
+			tDay = "0";
+		else
+		{
+			if (tDay === "0")
+				tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
+		}
+		tDayModel.setSplitLetter(splitLetter);
+		appDB.verifyTDayOptions(mainDate, splitLetter);
 	}
 
 	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {
@@ -1206,7 +1237,7 @@ Page {
 	}
 
 	function aboutToBeSuspended() {
-		if (bModified)
+		if (tDayModel.modified)
 			btnSaveDay.clicked();
 	}
 } // Page

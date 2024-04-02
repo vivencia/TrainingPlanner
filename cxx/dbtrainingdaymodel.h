@@ -13,9 +13,9 @@ QML_ELEMENT
 
 public:
 	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false) {}
-	~DBTrainingDayModel() { clearExercises(); }
+	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
-	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; setModified(true); }
+	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
 	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
@@ -36,16 +36,16 @@ public:
 	Q_INVOKABLE QString trainingDay() const { return m_modeldata.at(0).at(3); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
 	//is changed even for the first time, i.e., when the page is receiving default values
-	Q_INVOKABLE void setTrainingDay(const QString& trainingday ) { m_modeldata[0][3] = trainingday; }
+	Q_INVOKABLE void setTrainingDay(const QString& trainingday ) { if (trainingday != m_modeldata.at(0).at(3)) { m_modeldata[0][3] = trainingday; } }
 
 	Q_INVOKABLE QString splitLetter() const { return m_modeldata.at(0).at(4); }
-	Q_INVOKABLE void setSplitLetter(const QString& splitletter ) { m_modeldata[0][4] = splitletter; setModified(true); }
+	Q_INVOKABLE void setSplitLetter(const QString& splitletter ) { if (splitletter != m_modeldata.at(0).at(4)) { m_modeldata[0][4] = splitletter; setModified(true); } }
 
 	Q_INVOKABLE QString timeIn() const { return m_modeldata.at(0).at(5); }
-	Q_INVOKABLE void setTimeIn(const QString& timein) { m_modeldata[0][5] = timein; setModified(true); }
+	Q_INVOKABLE void setTimeIn(const QString& timein) { if (timein != m_modeldata.at(0).at(5)) { m_modeldata[0][5] = timein; setModified(true); } }
 
 	Q_INVOKABLE QString timeOut() const { return m_modeldata.at(0).at(6); }
-	Q_INVOKABLE void setTimeOut(const QString& timeout) { m_modeldata[0][6] = timeout; setModified(true); }
+	Q_INVOKABLE void setTimeOut(const QString& timeout) { if (timeout != m_modeldata.at(0).at(6)) {  m_modeldata[0][6] = timeout; setModified(true); } }
 
 	Q_INVOKABLE QString location() const { return m_modeldata.at(0).at(7); }
 	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][7] = location; setModified(true); }
@@ -68,8 +68,8 @@ public:
 	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight);
-	uint nextSetSuggestedReps(const uint exercise_idx, const uint type) const;
-	uint nextSetSuggestedWeight(const uint exercise_idx, const uint type) const;
+	const QString& nextSetSuggestedReps(const uint exercise_idx, const uint type) const;
+	const QString& nextSetSuggestedWeight(const uint exercise_idx, const uint type) const;
 	void newSet(const uint exercise_idx, const uint set_number, const uint type);
 	bool removeSet(const uint set_number, const uint exercise_idx);
 

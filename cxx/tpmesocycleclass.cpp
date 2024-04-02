@@ -18,6 +18,15 @@ TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlA
 
 TPMesocycleClass::~TPMesocycleClass()
 {
+	if (!m_tDayExercisesList.isEmpty())
+	{
+		QMap<QDate,tDayExercises*>::iterator itr(m_tDayExercisesList.begin());
+		QMap<QDate,tDayExercises*>::iterator itr_end(m_tDayExercisesList.end());
+		do
+		{
+			delete *itr;
+		} while (++itr != itr_end);
+	}
 	if (m_splitComponent) delete m_splitComponent;
 	if (m_calComponent) delete m_calComponent;
 	if (m_tDayComponent) delete m_tDayComponent;
@@ -194,7 +203,6 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 	{
 		m_tDayProperties.insert(QStringLiteral("mainDate"), date);
 		m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
-		m_currentDayPageDate = date;
 		if (!m_tDayExercisesList.contains(date))
 		{
 			m_currentExercises = new tDayExercises;
@@ -461,6 +469,29 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 	}
 }
 
+//Convenience function for ExerciseEntry::createSetObject. Create last_set - first_set sets on the fly as per user command
+void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
+							const QString& nReps, const QString& nWeight)
+{
+	if (!nReps.isEmpty())
+	{
+		connect(this, &TPMesocycleClass::itemReady, this, [&,set_type,first_set, last_set,exercise_idx](QQuickItem* newSet, uint id)
+			{ if (id = tDaySetCreateId)
+				{
+					emit itemReady(newSet, id);
+					return createSetObjects(exercise_idx, first_set, last_set, set_type);
+				}
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		createSetObject(set_type, first_set, exercise_idx, nReps, nWeight);
+		return;
+	}
+	for (uint i(first_set+1); i < last_set; ++i)
+	{
+		currenttDayModel()->newSet(exercise_idx, i, set_type);
+		createSetObject_part2(set_type, i, exercise_idx);
+	}
+}
+
 void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercise_idx)
 {
 	if (exercise_idx < m_currentExercises->exercisesCount())
@@ -478,6 +509,24 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 		}
+	}
+}
+
+void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text)
+{
+	if (label_idx == 1)
+		m_CurrenttDayModel->setExerciseName1(new_text, exercise_idx);
+	else
+		m_CurrenttDayModel->setExerciseName2(new_text, exercise_idx);
+
+	QQuickItem* setObj(nullptr);
+	QQuickItem* lblExercise(nullptr);
+	for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
+	{
+		setObj = m_currentExercises->setObject_const(exercise_idx, i);
+		lblExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"lblExercise1"_qs : u"lblExercise2"_qs);
+		if (lblExercise)
+			QMetaObject::invokeMethod(setObj, "changeLabel", Q_ARG(QVariant, QVariant::fromValue(lblExercise)), Q_ARG(QVariant, new_text));
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

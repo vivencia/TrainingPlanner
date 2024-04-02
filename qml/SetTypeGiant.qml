@@ -67,6 +67,7 @@ Item {
 
 			Label {
 				id: lblExercise1
+				objectName: "lblExercise1"
 				text: tDayModel.exerciseName1(exerciseIdx)
 				width: setItem.width/2
 				font.bold: true
@@ -79,12 +80,13 @@ Item {
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: ownerExercise.changeExercise1(lblExercise1);
+					onClicked: ownerExercise.changeExercise1();
 				}
 			}
 
 			Label {
 				id: lblExercise2
+				objectName: "lblExercise2"
 				text: tDayModel.exerciseName2(exerciseIdx)
 				width: setItem.width/2
 				font.bold: true
@@ -97,7 +99,7 @@ Item {
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: ownerExercise.changeExercise2(lblExercise2);
+					onClicked: ownerExercise.changeExercise2();
 				}
 			}
 		}
@@ -250,10 +252,9 @@ Item {
 		}
 	} //ColumnLayout setLayout
 
-	function changeExercise(newname)
+	function changeLabel(labelObj, newtext)
 	{
-		txtExerciseName2.text = newname;
-		tDayModel.setExerciseName2(newname, exerciseIdx);
+		labelObj.text = newtext;
 	}
 
 	function requestTimer(requester, message, mins, secs) {

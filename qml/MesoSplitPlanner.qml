@@ -606,23 +606,21 @@ Frame {
 
 	//Each layout row(9) * 32(height per row) + 32(extra space)
 	function setListItemHeight(item, settype) {
-		item.height = settype !== 4 ? 320 : 420;
+		item.height = settype !== 4 ? 320 : 450;
 	}
 
 	function changeExercise(name, nsets, nreps, nweight, multiplesel_opt) {
-		if (bListRequestForExercise1 || bListRequestForExercise2) {
-			if (bListRequestForExercise1) {
-				splitModel.exerciseName1 = name;
-				splitModel.setsReps1 = nreps;
-				splitModel.setsWeight1 = nweight;
-			}
-			else {
-				splitModel.exerciseName2 = name;
-				splitModel.setsReps2 = nreps;
-				splitModel.setsWeight2 = nweight;
-			}
-
+		if (bListRequestForExercise1) {
+			splitModel.exerciseName1 = name;
+			splitModel.setsReps1 = nreps;
+			splitModel.setsWeight1 = nweight;
 			bListRequestForExercise1 = false;
+			requestSimpleExercisesList(null, false, false, 0);
+		}
+		else if (bListRequestForExercise2) {
+			splitModel.exerciseName2 = name;
+			splitModel.setsReps2 = nreps;
+			splitModel.setsWeight2 = nweight;
 			bListRequestForExercise2 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}
