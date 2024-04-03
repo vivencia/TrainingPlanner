@@ -19,6 +19,7 @@ public:
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
 	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
+	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }

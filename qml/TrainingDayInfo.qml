@@ -707,10 +707,18 @@ Page {
 					width: 40
 					height: 40
 					visible: colExercises.children.length > 0
-					icon.source: "qrc:/images/"+darkIconFolder+"revert-day.png"
 					ToolTip.text: "Remove all exercises"
 
-					onClicked: msgClearExercises.init(1);
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"revert-day.png"
+						width: 20
+						height: 20
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+					}
+
+					//onClicked: msgClearExercises.init(1);
+					onClicked: itemManager.moveExercise(0, 1);
 				}
 			}
 
@@ -862,10 +870,11 @@ Page {
 			}
 		}// colMain
 
-		ColumnLayout {
+		GridLayout {
 			id: colExercises
 			objectName: "tDayExercisesLayout"
 			width: parent.width
+			columns: 1
 
 			anchors {
 				left: parent.left
@@ -1119,7 +1128,7 @@ Page {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager.getExerciseObject(exerciseidx).createSetObject(settype, tDayModel.setsNumber(exercise_idx), exerciseidx, "", "");
+		itemManager.createSetObject(settype, tDayModel.setsNumber(exercise_idx), exerciseidx, "", "");
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {

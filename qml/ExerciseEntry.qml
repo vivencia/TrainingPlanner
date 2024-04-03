@@ -10,8 +10,9 @@ FocusScope {
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
 
-	required property DBTrainingDayModel tDayModel
-	required property int exerciseIdx
+	property DBTrainingDayModel tDayModel
+	property int exerciseIdx
+//	property int origidx
 
 	property bool bNewExercise: false
 	property int setNbr: 0
@@ -24,6 +25,15 @@ FocusScope {
 	signal setAdded(int objidx, var setObject)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype)
+
+	/*onExerciseIdxChanged: {
+		console.log("old exerciseIdx: ", origidx);
+		console.log("new exerciseIdx: ", exerciseIdx);
+		console.log(txtExerciseName.text);
+		console.log(tDayModel.exerciseName(exerciseIdx));
+
+		origidx = exerciseIdx;
+	}*/
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -138,6 +148,7 @@ FocusScope {
 					height: 25
 					width: 25
 					padding: 5
+
 					Image {
 						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
 						anchors.verticalCenter: parent.verticalCenter
@@ -327,13 +338,16 @@ FocusScope {
 
 	function changeExercise1() {
 		bListRequestForExercise1 = true;
-		exerciseSetLabelToChange = label;
 		requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
 	function changeExercise2() {
 		bListRequestForExercise2 = true;
 		requestSimpleExercisesList(exerciseItem, true, false, 1);
+	}
+
+	function updateExerciseOrderLabel(new_text: string) {
+		lblExerciseNumber.text = new_text;
 	}
 
 	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {

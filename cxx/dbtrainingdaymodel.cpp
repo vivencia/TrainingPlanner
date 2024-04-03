@@ -57,13 +57,37 @@ void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitMode
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
 		m_ExerciseData.append(new exerciseEntry);
-		m_ExerciseData[i]->name = splitModel->getRow_const(i).at(0);
+		splitModel->setCurrentRow(i);
+		m_ExerciseData[i]->name = splitModel->exerciseName();
 
-		const uint type(splitModel->getRow_const(i).at(1).toUInt());
-		newFirstSet(i, type, splitModel->getRow_const(i).at(3), splitModel->getRow_const(i).at(4));
-		newSet(i, splitModel->getRow_const(i).at(2).toUInt() - 1, type);
+		const uint type(splitModel->setType());
+		if (type == 4)
+			m_ExerciseData[i]->name.replace(u" + "_qs, QString(subrecord_separator));
+		newFirstSet(i, type, splitModel->setsReps(), splitModel->setsWeight());
+		newSet(i, splitModel->setsNumber().toUInt() - 1, type);
 	}
 	setModified(true);
+}
+
+void DBTrainingDayModel::moveExercise(const uint from, const uint to)
+{
+	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())
+	{
+		exerciseEntry* tempExerciseData(m_ExerciseData.at(from));
+
+		if (to > from)
+		{
+			for(uint i(from); i < to; ++i)
+				m_ExerciseData[i] = m_ExerciseData.at(i+1);
+		}
+		else
+		{
+			for(uint i(from); i > to; --i)
+				m_ExerciseData[i] = m_ExerciseData.at(i-1);
+		}
+		m_ExerciseData[to] = tempExerciseData;
+		setModified(true);
+	}
 }
 
 QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
@@ -211,8 +235,14 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 			break;
 			case 4: //GiantSet
 				m_ExerciseData[exercise_idx]->resttime.append(QStringLiteral("01:30"));
-				m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator + nReps + subrecord_separator);
-				m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator + nWeight + subrecord_separator);
+				if (nReps.indexOf(subrecord_separator) == -1)
+					m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator + nReps + subrecord_separator);
+				else
+					m_ExerciseData[exercise_idx]->reps.append(nReps + subrecord_separator);
+				if (nWeight.indexOf(subrecord_separator) == -1)
+					m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator + nWeight + subrecord_separator);
+				else
+					m_ExerciseData[exercise_idx]->weight.append(nWeight + subrecord_separator);
 				m_ExerciseData[exercise_idx]->subsets.append(u"0"_qs);
 			break;
 			case 5: //MyoReps
@@ -254,7 +284,7 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 		return multiUseString;
 	}
 	else
-		return m_ExerciseData.at(exercise_idx)->reps.last();
+		return m_ExerciseData.at(exercise_idx)->weight.last();
 }
 
 void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type)

@@ -91,11 +91,11 @@ public:
 	Q_INVOKABLE inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_currentExercises->exerciseEntry(exercise_idx); }
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE inline void clearExercises() { m_currentExercises->clear(); m_CurrenttDayModel->clearExercises(); }
-	void moveExercise(const uint exercise_idx, const uint new_idx);
+	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx,
+	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
 							const QString& nReps = QString(), const QString& nWeight = QString());
 	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
@@ -103,7 +103,6 @@ public:
 							const QString& nReps = QString(), const QString& nWeight = QString());
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
-	void moveSets(const uint exercise_idx, const uint new_idx);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
