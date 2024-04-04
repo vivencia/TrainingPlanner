@@ -11,6 +11,8 @@ class DBTrainingDayModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
+Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
+
 public:
 	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false) {}
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
@@ -54,7 +56,7 @@ public:
 	Q_INVOKABLE QString dayNotes() const { return m_modeldata.at(0).at(8); }
 	Q_INVOKABLE void setDayNotes(const QString& day_notes) { m_modeldata[0][8] = day_notes; setModified(true); }
 
-	Q_INVOKABLE const uint exercisesNumber() const { return m_ExerciseData.count(); }
+	const uint exerciseCount() const { return m_ExerciseData.count(); }
 	Q_INVOKABLE const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
 
 	Q_INVOKABLE QString exerciseName(const uint exercise_idx) const;
@@ -100,6 +102,9 @@ public:
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint subset, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetWeight(const uint set_number, const uint subset, const QString& new_weight, const uint exercise_idx);
+
+signals:
+	void exerciseCountChanged();
 
 private:
 	struct exerciseEntry {

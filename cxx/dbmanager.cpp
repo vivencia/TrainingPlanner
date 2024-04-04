@@ -708,7 +708,7 @@ void DbManager::getTrainingDayExercises(const QDate& date)
 
 void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 {
-	if (m_currentMesoManager->currenttDayModel()->exercisesNumber() > 0)
+	if (m_currentMesoManager->currenttDayModel()->exerciseCount() > 0)
 	{
 		m_currentMesoManager->createExercisesObjects();
 		return;

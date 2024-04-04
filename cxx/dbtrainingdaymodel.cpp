@@ -121,6 +121,7 @@ void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx
 	}
 	m_ExerciseData[idx]->name = new_exercise;
 	setModified(true);
+	emit exerciseCountChanged();
 }
 
 void DBTrainingDayModel::removeExercise(const uint exercise_idx)
@@ -130,6 +131,7 @@ void DBTrainingDayModel::removeExercise(const uint exercise_idx)
 		delete m_ExerciseData[exercise_idx];
 		m_ExerciseData.remove(exercise_idx);
 		setModified(true);
+		emit exerciseCountChanged();
 	}
 }
 

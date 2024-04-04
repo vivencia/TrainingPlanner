@@ -50,7 +50,7 @@ FocusScope {
 		id: paneExercise
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height + 10
+		height: shown ? implicitHeight : txtExerciseName.height + 15
 		Behavior on height {
 			NumberAnimation {
 				easing.type: Easing.InOutBack
@@ -71,6 +71,49 @@ FocusScope {
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: parent.width
 		width: windowWidth - 10
+
+		RoundButton {
+					id: btnMoveExerciseUp
+					anchors.left: parent.left
+					anchors.leftMargin: 0
+					anchors.top: parent.top
+					anchors.topMargin: -15
+					height: 30
+					width: 30
+					padding: 5
+					enabled: exerciseIdx > 0
+
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"up.png"
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+						height: 25
+						width: 25
+					}
+
+					onClicked: itemManager.moveExercise(exerciseIdx,exerciseIdx-1);
+				}
+				RoundButton {
+					id: btnMoveExerciseDown
+					anchors.left: parent.left
+					anchors.leftMargin: 25
+					anchors.top: parent.top
+					anchors.topMargin: -15
+					height: 30
+					width: 30
+					padding: 5
+					enabled: exerciseIdx < tDayModel.exercisesCount-1
+
+					Image {
+						source: "qrc:/images/"+darkIconFolder+"down.png"
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
+						height: 25
+						width: 25
+					}
+
+					onClicked: itemManager.moveExercise(exerciseIdx,exerciseId+1);
+				}
 
 		ColumnLayout {
 			id: layoutMain
@@ -145,6 +188,7 @@ FocusScope {
 					id: btnFoldIcon
 					anchors.right: lblExerciseNumber.left
 					anchors.verticalCenter: txtExerciseName.verticalCenter
+					anchors.topMargin: 20
 					height: 25
 					width: 25
 					padding: 5
@@ -163,7 +207,7 @@ FocusScope {
 				RoundButton {
 					id: btnRemoveExercise
 					anchors.left: txtExerciseName.right
-					anchors.verticalCenter: txtExerciseName.verticalCenter
+					anchors.top: txtExerciseName.top
 					height: 25
 					width: 25
 					padding: 5
@@ -182,7 +226,7 @@ FocusScope {
 				RoundButton {
 					id: btnEditExercise
 					anchors.left: btnRemoveExercise.right
-					anchors.verticalCenter: parent.verticalCenter
+					anchors.top: txtExerciseName.top
 					height: 25
 					width: 25
 					padding: 5
@@ -234,6 +278,7 @@ FocusScope {
 			SetInputField {
 				id: txtNReps
 				text: nReps
+				Layout.topMargin: 10
 				type: SetInputField.Type.RepType
 				availableWidth: layoutMain.width / 2
 				backColor: "transparent"
@@ -265,6 +310,7 @@ FocusScope {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
+				Layout.topMargin: 10
 				spacing: 1
 
 				TPComboBox {

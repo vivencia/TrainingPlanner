@@ -250,7 +250,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 uint TPMesocycleClass::createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight)
 {
-	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exercisesNumber());
+	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	if (m_tDayExercisesComponent == nullptr)
 	{
 		QQuickItem* parentLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
@@ -314,7 +314,7 @@ void TPMesocycleClass::createExercisesObjects()
 	else
 	{
 		uint i(0);
-		for(; i < m_CurrenttDayModel->exercisesNumber(); ++i)
+		for(; i < m_CurrenttDayModel->exerciseCount(); ++i)
 		{
 			createExerciseObject_part2(i);
 			m_currentExercises->exerciseEntry(i)->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));

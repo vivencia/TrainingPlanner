@@ -100,7 +100,7 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
-			if (tDayModel.exercisesNumber() > 0)
+			if (tDayModel.exerciseCount > 0)
 			{
 				bDayIsFinished = true;
 				if (btnFloat)
@@ -717,8 +717,7 @@ Page {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 
-					//onClicked: msgClearExercises.init(1);
-					onClicked: itemManager.moveExercise(0, 1);
+					onClicked: msgClearExercises.init(1);
 				}
 			}
 
@@ -1093,7 +1092,7 @@ Page {
 
 	function exerciseSetAdded(exerciseObjIdx, setObject) {
 		bStopBounce = true;
-		if (exerciseObjIdx === tDayModel.exercisesNumber() - 1)
+		if (exerciseObjIdx === tDayModel.exerciseCount - 1)
 			scrollBarPosition = phantomItem.y;
 		else
 			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
