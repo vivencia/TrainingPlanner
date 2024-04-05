@@ -12,7 +12,6 @@ FocusScope {
 
 	property DBTrainingDayModel tDayModel
 	property int exerciseIdx
-//	property int origidx
 
 	property bool bNewExercise: false
 	property int setNbr: 0
@@ -25,15 +24,6 @@ FocusScope {
 	signal setAdded(int objidx, var setObject)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype)
-
-	/*onExerciseIdxChanged: {
-		console.log("old exerciseIdx: ", origidx);
-		console.log("new exerciseIdx: ", exerciseIdx);
-		console.log(txtExerciseName.text);
-		console.log(tDayModel.exerciseName(exerciseIdx));
-
-		origidx = exerciseIdx;
-	}*/
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -73,47 +63,47 @@ FocusScope {
 		width: windowWidth - 10
 
 		RoundButton {
-					id: btnMoveExerciseUp
-					anchors.left: parent.left
-					anchors.leftMargin: 0
-					anchors.top: parent.top
-					anchors.topMargin: -15
-					height: 30
-					width: 30
-					padding: 5
-					enabled: exerciseIdx > 0
+			id: btnMoveExerciseUp
+			anchors.left: parent.left
+			anchors.leftMargin: 0
+			anchors.top: parent.top
+			anchors.topMargin: -15
+			height: 30
+			width: 30
+			padding: 5
+			enabled: exerciseIdx > 0
 
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"up.png"
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						height: 25
-						width: 25
-					}
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"up.png"
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+				height: 25
+				width: 25
+			}
 
-					onClicked: itemManager.moveExercise(exerciseIdx,exerciseIdx-1);
-				}
-				RoundButton {
-					id: btnMoveExerciseDown
-					anchors.left: parent.left
-					anchors.leftMargin: 25
-					anchors.top: parent.top
-					anchors.topMargin: -15
-					height: 30
-					width: 30
-					padding: 5
-					enabled: exerciseIdx < tDayModel.exercisesCount-1
+			onClicked: moveExercise(true, true);
+		}
+		RoundButton {
+			id: btnMoveExerciseDown
+			anchors.left: parent.left
+			anchors.leftMargin: 20
+			anchors.top: parent.top
+			anchors.topMargin: -15
+			height: 30
+			width: 30
+			padding: 5
+			enabled: exerciseIdx < tDayModel.exerciseCount-1
 
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"down.png"
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						height: 25
-						width: 25
-					}
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"down.png"
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+				height: 25
+				width: 25
+			}
 
-					onClicked: itemManager.moveExercise(exerciseIdx,exerciseId+1);
-				}
+			onClicked: moveExercise(false, true);
+		}
 
 		ColumnLayout {
 			id: layoutMain
@@ -392,11 +382,19 @@ FocusScope {
 		requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
-	function updateExerciseOrderLabel(new_text: string) {
-		lblExerciseNumber.text = new_text;
+	function moveExercise(up: bool, cxx_cal: bool) {
+		if (cxx_cal)
+			itemManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
+		else {
+			if (up) --exerciseIdx
+			else ++exerciseIdx;
+		}
+
+		lblExerciseNumber.text = parseInt(exerciseIdx + 1) + ":";
+		exerciseItem.Layout.row = exerciseIdx;
 	}
 
-	function createSetObject(type: int, n: int ,nreps: string, nweight: string) {
+	function createSetObject(type: int, n: int, nreps: string, nweight: string) {
 		var nsets_created = 0;
 		function setObjectCreated(object, id) {
 			if (id === 140) {

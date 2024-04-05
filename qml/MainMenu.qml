@@ -45,7 +45,7 @@ Drawer {
 		Rectangle {
 			Layout.fillWidth: true
 			Layout.alignment: Qt.AlignCenter
-			height: 200
+			height: 220
 			color: "transparent"
 
 			Image {
@@ -64,11 +64,12 @@ Drawer {
 			}
 
 			Label {
-				text: "TrainingPlanner by VivenciaSoftware - v20240116"
+				text: "TrainingPlanner by VivenciaSoftware - v20240405"
 				wrapMode: Text.WordWrap
 				font.bold: true
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pixelSize: AppSettings.fontSizeText
 				color: "white"
+
 				anchors {
 					left: parent.left
 					right: parent.right

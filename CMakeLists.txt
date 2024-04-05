@@ -82,7 +82,6 @@ set( QML_FILES
     "qml/MainMenu.qml"
     "qml/MealsDayInfo.qml"
     "qml/TrainingDayInfo.qml"
-    "qml/TrainingDayProgressDialog.qml"
     "qml/SetInputField.qml"
     "qml/LanguageSettingsPage.qml"
     "qml/PageScrollButtons.qml"
@@ -100,6 +99,7 @@ set( QML_FILES
     "qml/GraphicsViewer.qml"
     "qml/TPBalloonTip.qml"
     "qml/SimpleExercisesListPanel.qml"
+    "qml/SetNotesField.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

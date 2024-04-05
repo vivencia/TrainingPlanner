@@ -359,15 +359,9 @@ void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
 		m_currentExercises->exerciseEntry(x)->setParentItem(parentLayout);
 
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("exerciseIdx", new_idx);
-	m_currentExercises->exerciseEntry(new_idx)->setProperty("exerciseIdx", exercise_idx);
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("Layout.row", new_idx);
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("Layout.row", exercise_idx);
 	m_CurrenttDayModel->moveExercise(exercise_idx, new_idx);
-	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(exercise_idx), "updateExerciseOrderLabel",
-									Q_ARG(QString, QString::number(exercise_idx + 1) + u":"_qs));
-	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(new_idx), "updateExerciseOrderLabel",
-									Q_ARG(QString, QString::number(new_idx + 1) + u":"_qs));
+	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
+	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
 }
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
@@ -458,7 +452,8 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 	if (!nReps.isEmpty())
 	{
 		connect(this, &TPMesocycleClass::itemReady, this, [&,set_type,first_set, last_set,exercise_idx](QQuickItem* newSet, uint id)
-			{ if (id = tDaySetCreateId)
+			{
+				if (id == tDaySetCreateId)
 				{
 					emit itemReady(newSet, id);
 					return createSetObjects(exercise_idx, first_set, last_set, set_type);
@@ -486,10 +481,13 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 		m_currentExercises->exerciseEntry(exercise_idx)->setProperty("setNbr", nsets);
 		if (nsets == 0)
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bNewExercise", true);
-		if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
+		else
 		{
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
+			{
+				m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+				m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			}
 		}
 	}
 }

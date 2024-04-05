@@ -67,5 +67,7 @@
         <file>images/white/up.png</file>
         <file>images/black/down.png</file>
         <file>images/white/down.png</file>
+        <file>images/black/home.png</file>
+        <file>images/white/home.png</file>
     </qresource>
 </RCC>

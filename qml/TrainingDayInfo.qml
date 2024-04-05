@@ -614,7 +614,7 @@ Page {
 
 					Image {
 						id: img
-						source: "qrc:/images/"+darkIconFolder+"down.png"
+						source: "qrc:/images/"+darkIconFolder+"fold-down.png"
 						width: 20
 						height: 20
 						anchors.verticalCenter: parent.verticalCenter
@@ -623,7 +623,7 @@ Page {
 
 					onClicked: {
 						trainingNotesField.visible = !trainingNotesField.visible;
-						img.source = trainingNotesField.visible ? "qrc:/images/"+darkIconFolder+"up.png" : "qrc:/images/"+darkIconFolder+"down.png"
+						img.source = trainingNotesField.visible ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
 					}
 				}
 			}

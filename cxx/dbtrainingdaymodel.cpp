@@ -27,6 +27,8 @@ void DBTrainingDayModel::fromDataBase(const QStringList& list)
 		m_ExerciseData[i]->notes = notes.at(i).split(record_separator, Qt::SkipEmptyParts);
 		m_ExerciseData[i]->nsets = m_ExerciseData.at(i)->type.count();
 	}
+	setModified(true);
+	emit exerciseCountChanged();
 }
 
 void DBTrainingDayModel::getSaveInfo(QStringList& data) const
@@ -67,6 +69,7 @@ void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitMode
 		newSet(i, splitModel->setsNumber().toUInt() - 1, type);
 	}
 	setModified(true);
+	emit exerciseCountChanged();
 }
 
 void DBTrainingDayModel::moveExercise(const uint from, const uint to)

@@ -242,9 +242,15 @@ Page {
 		_today = new Date();
 		if (!bAlreadyLoaded) {
 			calendar.model = mesoCalendarModel;
+			mesoCalendarModel.calendarChanged.connect(reloadModel);
 			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
 			bAlreadyLoaded = true;
 		}
+	}
+
+	function reloadModel() {
+		calendar.model = null;
+		calendar.model = mesoCalendarModel;
 	}
 
 	//Javascript date values differ from QDate's and TP's.

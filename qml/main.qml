@@ -100,19 +100,30 @@ ApplicationWindow {
 		TabButton {
 			text: qsTr("HOME")
 			enabled: appStackView.depth >= 2
-			onClicked: {
-				appStackView.pop(appStackView.get(0));
+
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"home.png"
+				height: 30
+				width: 30
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: parent.left
+				anchors.leftMargin: 10
 			}
+
+			onClicked: appStackView.pop(appStackView.get(0));
 		}
 
 		TabButton {
-			text: qsTr("  + Day")
-			enabled: appStackView.depth === 1 //&& mesocyclesModel.count > 0
+			text: qsTr("+ Workout")
+			enabled: appStackView.depth === 1
+
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
 				height: 30
 				width: 30
 				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: parent.left
+				anchors.leftMargin: 10
 			}
 
 			onClicked: {

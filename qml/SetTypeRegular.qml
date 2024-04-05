@@ -88,44 +88,9 @@ FocusScope {
 			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 		}
 
-		Label {
-			text: qsTr("Notes:")
-			Layout.bottomMargin: 10
-			font.bold: true
-
-			RoundButton {
-				id: btnShowHideNotes
-				anchors.left: parent.right
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.rightMargin: 20
-				width: 25
-				height: 25
-
-				Image {
-					id: img
-					source: "qrc:/images/"+darkIconFolder+"down.png"
-					width: 20
-					height: 20
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-				}
-
-				onClicked: {
-					txtSetNotes.visible = !txtSetNotes.visible;
-					img.source = txtSetNotes.visible ? "qrc:/images/"+darkIconFolder+"up.png" : "qrc:/images/"+darkIconFolder+"down.png"
-				}
-			}
-		}
-		TextField {
-			id: txtSetNotes
+		SetNotesField {
+			id: btnShowHideNotes
 			Layout.fillWidth: true
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
-			Layout.bottomMargin: 10
-			visible: false
-
-			onTextEdited: tDayModel.setSetNotes(text, exerciseIdx);
-			Component.onCompleted: text = tDayModel.setNotes(setNumber, exerciseIdx);
 		}
 	} // setLayout
 

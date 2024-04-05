@@ -9,8 +9,6 @@ class DBMesoCalendarModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
-//Q_PROPERTY(int day READ getDay CONSTANT)
-
 public:
 	// Define the role names to be used
 	enum RoleNames {
@@ -50,6 +48,9 @@ public:
 	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
 	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
 	Q_INVOKABLE uint getLastTrainingDayBeforeDate(const QDate& date) const;
+
+signals:
+	void calendarChanged();
 };
 
 #endif // DBMESOCALENDARMODEL_H
