@@ -158,7 +158,7 @@ private:
 		inline QQuickItem* exerciseEntry_const(const uint exercise_idx) const { return exerciseObjects.at(exercise_idx)->m_exerciseEntry; }
 		inline QQuickItem* exerciseEntry(const uint exercise_idx) { return exerciseObjects[exercise_idx]->m_exerciseEntry; }
 		inline QQuickItem* setObject_const(const uint exercise_idx, const uint set_number) const { return exerciseObjects.at(exercise_idx)->m_setObjects.at(set_number); }
-		inline QQuickItem* setObject(const uint exercise_idx, const uint set_number) const { return exerciseObjects[exercise_idx]->m_setObjects[set_number]; }
+		inline QQuickItem* setObject(const uint exercise_idx, const uint set_number) const { return exerciseObjects.at(exercise_idx)->m_setObjects[set_number]; }
 
 		inline uint setCount(const uint exercise_idx) const { return exerciseObjects.at(exercise_idx)->m_setObjects.count(); }
 		inline uint exercisesCount() const { return exerciseObjects.count(); }
@@ -206,6 +206,7 @@ private:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	QVariantMap m_setObjectProperties;
 	QQmlComponent* m_setComponents[7];
+	uint m_expectedSetNumber;
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------

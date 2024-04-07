@@ -26,15 +26,18 @@ FocusScope {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
 				model: mainwindow.setTypesModel
 				currentIndex: setType
-				anchors.left: parent.right
-				anchors.leftMargin: 10
-				anchors.verticalCenter: parent.verticalCenter
 				width: 120
+				anchors {
+					left: parent.right
+					leftMargin: 10
+					verticalCenter: parent.verticalCenter
+				}
 
 				onActivated: (index)=> {
 					if (index !== setType)

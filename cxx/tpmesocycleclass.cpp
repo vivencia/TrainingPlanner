@@ -369,14 +369,6 @@ void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 void TPMesocycleClass::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
 										const QString& nReps, const QString& nWeight)
 {
-	if (bNewSet)
-	{
-		if (set_number == 0)
-			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
-		else
-			currenttDayModel()->newSet(set_number, exercise_idx, set_type);
-	}
-
 	if (m_setComponents[set_type] == nullptr)
 	{
 		m_setObjectProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
@@ -391,6 +383,16 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 			default: break;
 		}
 	}
+
+	if (bNewSet)
+	{
+		if (set_number == 0)
+			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
+		else
+			currenttDayModel()->newSet(set_number, exercise_idx, set_type);
+		m_expectedSetNumber = set_number;
+	}
+
 	if (m_setComponents[set_type]->status() != QQmlComponent::Ready)
 		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
 			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
@@ -417,8 +419,6 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	QQuickItem* parent(m_currentExercises->exerciseEntry(exercise_idx)->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
-	item->setParentItem(parent);
 	if (set_number > 0)
 	{
 		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this,
@@ -431,7 +431,23 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		m_currentExercises->appendSet(exercise_idx, item);
 	else
 		m_currentExercises->insertSet(set_number, exercise_idx, item);
-	emit itemReady(item, tDaySetCreateId);
+
+	//Sets may be crated at any random order, specially when there are set objects of different kind within an exercise. m_expectedSetNumber keeps
+	//track of the order in which the sets are added. When set_number is greater than m_expectedSetNumber, the set objects are not inserted into
+	//the parent layout(with setParentItem). When the expected set_number is finally created, put all sets already in the list (m_setObjects)
+	//orderly into the layout
+	if (set_number <= m_expectedSetNumber)
+	{
+		QQuickItem* parent(m_currentExercises->exerciseEntry(exercise_idx)->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
+		for (uint i(set_number); i < m_currentExercises->setCount(exercise_idx); ++i, ++m_expectedSetNumber)
+		{
+			if (m_currentExercises->setObject(exercise_idx, i)->property("setNumber").toUInt() <= i)
+			{
+				m_currentExercises->setObject(exercise_idx, i)->setParentItem(parent);
+				emit itemReady(m_currentExercises->setObject(exercise_idx, i), tDaySetCreateId);
+			}
+		}
+	}
 	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
@@ -442,6 +458,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 {
 	if (!setsLoaded(exercise_idx))
 	{
+		m_expectedSetNumber = 0;
 		const uint nsets(currenttDayModel()->setsNumber(exercise_idx));
 		for (uint i(0); i < nsets; ++i)
 			createSetObject(currenttDayModel()->setType(i, exercise_idx), i, exercise_idx, false);
@@ -463,6 +480,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createSetObject(set_type, first_set, exercise_idx, true, nReps, nWeight);
+		m_expectedSetNumber = first_set;
 		return;
 	}
 	for (uint i(first_set+1); i < last_set; ++i)
@@ -520,6 +538,7 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, new_type);
 		m_currentExercises->removeSet(exercise_idx, set_number);
 
+		m_expectedSetNumber = set_number;
 		connect(this, &TPMesocycleClass::itemReady, this, [&, set_number, exercise_idx](QQuickItem*, uint)
 			{ return changeSetType(set_number, exercise_idx, 100); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createSetObject(new_type, set_number, exercise_idx, false);

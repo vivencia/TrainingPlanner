@@ -29,6 +29,7 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
@@ -59,9 +60,7 @@ Item {
 					height: 20
 					width: 20
 				}
-				onClicked: {
-					itemManager.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
 
@@ -71,7 +70,6 @@ Item {
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
-			Layout.topMargin: 10
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);

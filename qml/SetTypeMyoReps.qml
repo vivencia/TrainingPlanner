@@ -28,18 +28,23 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
-			Layout.row: 0
-			Layout.column: 0
-			Layout.columnSpan: 2
+			Layout {
+				row: 0
+				column: 0
+				columnSpan: 2
+				bottomMargin: 10
+			}
 
 			TPComboBox {
 				id: cboSetType
 				model: mainwindow.setTypesModel
 				currentIndex: setType
-				anchors.left: parent.right
-				anchors.leftMargin: 10
-				anchors.verticalCenter: parent.verticalCenter
 				width: 120
+				anchors {
+					left: parent.right
+					leftMargin: 10
+					verticalCenter: parent.verticalCenter
+				}
 
 				onActivated: (index)=> {
 					if (index !== setType)

@@ -27,6 +27,7 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType

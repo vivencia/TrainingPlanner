@@ -554,10 +554,11 @@ void DBTrainingDayModel::setSetReps(const uint set_number, const uint exercise_i
 		if (n >= 0)
 		{
 			for(uint i(0); i <= n; ++i)
-				subSetReps.append(new_reps + subrecord_separator);
+				subSetReps.append(new_reps);
 		}
-		subSetReps[subset] = new_reps;
-		m_ExerciseData[exercise_idx]->reps[set_number] = subSetReps.at(0) + subrecord_separator + subSetReps.at(1) + subrecord_separator;
+		else
+			subSetReps[subset] = new_reps;
+		m_ExerciseData[exercise_idx]->reps[set_number] = subSetReps.join(subrecord_separator) + subrecord_separator;
 		setModified(true);
 	}
 }
@@ -586,10 +587,11 @@ void DBTrainingDayModel::setSetWeight(const uint set_number, const uint exercise
 		if (n >= 0)
 		{
 			for(uint i(0); i <= n; ++i)
-				subSetWeight.append(new_weight + subrecord_separator);
+				subSetWeight.append(new_weight);
 		}
-		subSetWeight[subset] = new_weight;
-		m_ExerciseData[exercise_idx]->weight[set_number] = subSetWeight.at(0) + subrecord_separator + subSetWeight.at(0) + subrecord_separator;
+		else
+			subSetWeight[subset] = new_weight;
+		m_ExerciseData[exercise_idx]->weight[set_number] = subSetWeight.join(subrecord_separator) + subrecord_separator;
 		setModified(true);
 	}
 }
