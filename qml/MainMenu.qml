@@ -45,7 +45,7 @@ Drawer {
 		Rectangle {
 			Layout.fillWidth: true
 			Layout.alignment: Qt.AlignCenter
-			height: 220
+			height: 240
 			color: "transparent"
 
 			Image {
@@ -68,6 +68,7 @@ Drawer {
 				wrapMode: Text.WordWrap
 				font.bold: true
 				font.pixelSize: AppSettings.fontSizeText
+				horizontalAlignment: Text.AlignHCenter
 				color: "white"
 
 				anchors {

@@ -73,35 +73,36 @@ public:
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight);
 	const QString& nextSetSuggestedReps(const uint exercise_idx, const uint type) const;
 	const QString& nextSetSuggestedWeight(const uint exercise_idx, const uint type) const;
-	void newSet(const uint exercise_idx, const uint set_number, const uint type);
+	void newSet(const uint set_number, const uint exercise_idx, const uint type);
 	bool removeSet(const uint set_number, const uint exercise_idx);
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetType(const uint set_number, const uint new_type, const uint exercise_idx);
+	Q_INVOKABLE void setSetType(const uint set_number, const uint exercise_idx, const uint new_type);
+	void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 
 	Q_INVOKABLE QString setRestTime(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetRestTime(const uint set_number, const QString& new_time, const uint exercise_idx);
+	Q_INVOKABLE void setSetRestTime(const uint set_number, const uint exercise_idx, const QString& new_time);
 
 	Q_INVOKABLE QString setSubSets(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void newSetSubSet(const uint exercise_idx, const uint set_number);
+	Q_INVOKABLE void newSetSubSet(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE uint setSubSets_int(const uint set_number, const uint exercise_idx) const { return setSubSets(set_number, exercise_idx).toUInt(); }
-	Q_INVOKABLE void setSetSubSets(const uint set_number, const QString& new_subsets, const uint exercise_idx);
+	Q_INVOKABLE void setSetSubSets(const uint set_number, const uint exercise_idx, const QString& new_subsets);
 
 	Q_INVOKABLE QString setReps(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE uint setReps_int(const uint set_number, const uint exercise_idx) const { return setReps(set_number, exercise_idx).toUInt(); }
-	Q_INVOKABLE void setSetReps(const uint set_number, const QString& new_reps, const uint exercise_idx);
+	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const QString& new_reps);
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetWeight(const uint set_number, const QString& new_weight, const uint exercise_idx);
+	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const QString& new_weight);
 
 	Q_INVOKABLE QString setNotes(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx);
 
 	Q_INVOKABLE QString setReps(const uint set_number, const uint subset, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetReps(const uint set_number, const uint subset, const QString& new_reps, const uint exercise_idx);
+	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_reps);
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint subset, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetWeight(const uint set_number, const uint subset, const QString& new_weight, const uint exercise_idx);
+	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_weight);
 
 signals:
 	void exerciseCountChanged();

@@ -109,7 +109,7 @@ Page {
 			spacing: 5
 
 			Label {
-				text: qsTr("Mesocycle's name")
+				text: qsTr("Mesocycle's name:")
 				font.bold: true
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
@@ -148,7 +148,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Start date for meso")
+				text: qsTr("Start date for meso:")
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -201,7 +201,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("End date for meso")
+				text: qsTr("End date for meso:")
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -686,7 +686,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Notes: ")
+				text: qsTr("Mesocycle's considerations: ")
 				font.bold: true
 				Layout.leftMargin: 5
 				color: "white"

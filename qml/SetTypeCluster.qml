@@ -23,13 +23,28 @@ Item {
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
+			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+
+			TPComboBox {
+				id: cboSetType
+				model: mainwindow.setTypesModel
+				currentIndex: setType
+				anchors.left: parent.right
+				anchors.leftMargin: 10
+				anchors.verticalCenter: parent.verticalCenter
+				width: 120
+
+				onActivated: (index)=> {
+					if (index !== setType)
+						itemManager.changeSetType(setNumber, exerciseIdx, index);
+				}
+			}
 
 			RoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: parent.right
+				anchors.left: cboSetType.right
 				height: 25
 				width: 25
 
@@ -63,7 +78,7 @@ Item {
 			visible: setNumber > 0
 
 			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 				text = str;
 			}
 
@@ -77,7 +92,7 @@ Item {
 			availableWidth: setItem.width
 
 			onValueChanged: (str) => {
-				tDayModel.setSetSubSets(setNumber, str, exerciseIdx);
+				tDayModel.setSetSubSets(setNumber, exerciseIdx, str);
 				text = str;
 			}
 
@@ -91,7 +106,7 @@ Item {
 			availableWidth: setItem.width
 
 			onValueChanged: (str) => {
-				tDayModel.setSetReps(setNumber, str, exerciseIdx);
+				tDayModel.setSetReps(setNumber, exerciseIdx, str);
 				text = str;
 			}
 
@@ -105,7 +120,7 @@ Item {
 			availableWidth: setItem.width
 
 			onValueChanged: (str) => {
-				tDayModel.setSetWeight(setNumber, str, exerciseIdx);
+				tDayModel.setSetWeight(setNumber, exerciseIdx, str);
 				text = str;
 			}
 

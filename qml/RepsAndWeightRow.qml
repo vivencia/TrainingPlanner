@@ -41,7 +41,7 @@ FocusScope {
 			Layout.column: 0
 
 			onValueChanged: (str) => {
-				tDayModel.setSetReps(setNumber, rowIdx, str, exerciseIdx);
+				tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
 				text = str;
 			}
 
@@ -70,7 +70,7 @@ FocusScope {
 			}
 
 			onValueChanged: (str) => {
-				tDayModel.setSetWeight(setNumber, rowIdx, str, exerciseIdx);
+				tDayModel.setSetWeight(setNumber, exerciseIdx, rowIdx, str);
 				text = str;
 			}
 

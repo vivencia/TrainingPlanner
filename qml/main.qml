@@ -114,13 +114,13 @@ ApplicationWindow {
 		}
 
 		TabButton {
-			text: qsTr("+ Workout")
+			text: qsTr("   + Workout")
 			enabled: appStackView.depth === 1
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
-				height: 30
-				width: 30
+				height: 40
+				width: 40
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: parent.left
 				anchors.leftMargin: 10

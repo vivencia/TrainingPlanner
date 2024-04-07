@@ -103,6 +103,7 @@ public:
 							const QString& nReps = QString(), const QString& nWeight = QString());
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
+	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
@@ -166,6 +167,10 @@ private:
 		void removeExerciseEntry(const uint exercise_idx);
 		void removeSet(const uint exercise_idx, const uint set_number);
 
+		inline void insertSet(const uint set_number, const uint exercise_idx, QQuickItem* new_setObject)
+		{
+			exerciseObjects.at(exercise_idx)->m_setObjects.insert(set_number, new_setObject);
+		}
 		inline void appendSet(const uint exercise_idx, QQuickItem* new_setObject)
 		{
 			exerciseObjects.at(exercise_idx)->m_setObjects.append(new_setObject);

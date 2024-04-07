@@ -374,7 +374,7 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 		if (set_number == 0)
 			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
 		else
-			currenttDayModel()->newSet(exercise_idx, set_number, set_type);
+			currenttDayModel()->newSet(set_number, exercise_idx, set_type);
 	}
 
 	if (m_setComponents[set_type] == nullptr)
@@ -427,8 +427,11 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	if (set_type == 4)
 		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
 
+	if (set_number >= m_currentExercises->setCount(exercise_idx))
+		m_currentExercises->appendSet(exercise_idx, item);
+	else
+		m_currentExercises->insertSet(set_number, exercise_idx, item);
 	emit itemReady(item, tDaySetCreateId);
-	m_currentExercises->appendSet(exercise_idx, item);
 	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
@@ -508,6 +511,29 @@ void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const u
 		if (lblExercise)
 			QMetaObject::invokeMethod(setObj, "changeLabel", Q_ARG(QVariant, QVariant::fromValue(lblExercise)), Q_ARG(QVariant, new_text));
 	}
+}
+
+void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_idx, const uint new_type)
+{
+	if (new_type != 100)
+	{
+		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, new_type);
+		m_currentExercises->removeSet(exercise_idx, set_number);
+
+		connect(this, &TPMesocycleClass::itemReady, this, [&, set_number, exercise_idx](QQuickItem*, uint)
+			{ return changeSetType(set_number, exercise_idx, 100); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		createSetObject(new_type, set_number, exercise_idx, false);
+		return;
+	}
+
+	tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	QList<QQuickItem*> set_objs(exercise_obj->m_setObjects);
+	QQuickItem* parentLayout(exercise_obj->m_exerciseEntry->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
+
+	for(uint x(0); x < set_objs.count(); ++x)
+		set_objs[x]->setParentItem(nullptr);
+	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
+		set_objs[x]->setParentItem(parentLayout);
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 

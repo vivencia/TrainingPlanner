@@ -346,7 +346,7 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						tDayModel.setSetType(0, cboSetType.currentIndex, exerciseIdx);
+						tDayModel.setSetType(0, exerciseIdx, cboSetType.currentIndex);
 						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
 						bNewExercise = false;

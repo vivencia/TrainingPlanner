@@ -23,17 +23,32 @@ Item {
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
-		spacing: 0
+		spacing: 5
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString() + "  -  " + mainwindow.setTypesModel[setType].text
+			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+
+			TPComboBox {
+				id: cboSetType
+				model: mainwindow.setTypesModel
+				currentIndex: setType
+				anchors.left: parent.right
+				anchors.leftMargin: 10
+				anchors.verticalCenter: parent.verticalCenter
+				width: 120
+
+				onActivated: (index)=> {
+					if (index !== setType)
+						itemManager.changeSetType(setNumber, exerciseIdx, index);
+				}
+			}
 
 			RoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: parent.right
+				anchors.left: cboSetType.right
 				height: 25
 				width: 25
 
@@ -56,9 +71,10 @@ Item {
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
+			Layout.topMargin: 10
 
 			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, str, exerciseIdx);
+				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 				text = str;
 			}
 
@@ -89,7 +105,7 @@ Item {
 	function addSubSet(idx, bNew) {
 		nSubSets++;
 		if (bNew)
-			tDayModel.newSetSubSet(exerciseIdx, setNumber);
+			tDayModel.newSetSubSet(setNumber, exerciseIdx);
 
 		var component = Qt.createComponent("RepsAndWeightRow.qml");
 		if (component.status === Component.Ready) {
@@ -127,7 +143,7 @@ Item {
 		subSetList[subSetList.length-1].Object.bBtnAddEnabled = true;
 		nSubSets++;
 		if (bNew)
-			tDayModel.setSetSubSets(setNumber, nSubSets.toString(), exerciseIdx);
+			tDayModel.setSetSubSets(setNumber, exerciseIdx, nSubSets.toString());
 	}
 
 	function requestTimer(requester, message, mins, secs) {
