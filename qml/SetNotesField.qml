@@ -1,14 +1,17 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Item {
 	height: label.height + txtSetNotes.height
+	width: parent.width
+	Layout.fillWidth: true
+	Layout.bottomMargin: 10
 
 	Label {
 		id: label
 		text: qsTr("Notes:")
 		font.bold: true
-		padding: 2
 		anchors {
 			left: parent.left
 			top: parent.top
@@ -50,11 +53,10 @@ Item {
 			right: parent.right
 			rightMargin: 5
 			leftMargin: 5
-			bottomMargin: 10
 		}
 		visible: false
 
-		onTextEdited: tDayModel.setSetNotes(text, exerciseIdx);
+		onEditingFinished: tDayModel.setSetNotes(setNumber, exerciseIdx, text);
 		Component.onCompleted: text = tDayModel.setNotes(setNumber, exerciseIdx);
 	}
 }

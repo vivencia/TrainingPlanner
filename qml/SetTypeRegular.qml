@@ -106,7 +106,6 @@ FocusScope {
 
 		SetNotesField {
 			id: btnShowHideNotes
-			Layout.fillWidth: true
 		}
 	} // setLayout
 
