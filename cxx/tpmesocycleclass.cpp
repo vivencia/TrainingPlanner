@@ -538,7 +538,7 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, new_type);
 		m_currentExercises->removeSet(exercise_idx, set_number);
 
-		m_expectedSetNumber = set_number;
+		m_expectedSetNumber = 100; //do not trigger the itemReady signal nor add the object to the parent layout
 		connect(this, &TPMesocycleClass::itemReady, this, [&, set_number, exercise_idx](QQuickItem*, uint)
 			{ return changeSetType(set_number, exercise_idx, 100); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createSetObject(new_type, set_number, exercise_idx, false);
