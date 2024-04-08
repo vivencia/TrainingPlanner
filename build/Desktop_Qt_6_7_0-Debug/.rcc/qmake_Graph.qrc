@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/Graph">
+    <file alias="qmldir">/home/guilherme/software/trainingplanner/build/Desktop_Qt_6_7_0-Debug/Graph/qmldir</file>
+  </qresource>
+</RCC>
+

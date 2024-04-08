@@ -25,10 +25,6 @@ ApplicationWindow {
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
 
-	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 },
-							{ text:qsTr("Inverted Pyramid"), value:6 } ]
-
 	Connections {
 		target: Qt.application;
 		function onStateChanged(inState) {

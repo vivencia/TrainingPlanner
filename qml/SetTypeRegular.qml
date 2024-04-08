@@ -30,9 +30,7 @@ FocusScope {
 
 			TPComboBox {
 				id: cboSetType
-				model: mainwindow.setTypesModel
 				currentIndex: setType
-				width: 120
 				anchors {
 					left: parent.right
 					leftMargin: 10

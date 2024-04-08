@@ -1,0 +1,57 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="images/app_logo.png">/home/guilherme/software/trainingplanner/images/app_logo.png</file>
+    <file alias="images/app_icon.png">/home/guilherme/software/trainingplanner/images/app_icon.png</file>
+    <file alias="images/no_image.jpg">/home/guilherme/software/trainingplanner/images/no_image.jpg</file>
+    <file alias="app_resources.qrc">/home/guilherme/software/trainingplanner/app_resources.qrc</file>
+    <file alias="qml/qmldir">/home/guilherme/software/trainingplanner/qml/qmldir</file>
+    <file alias="qml/main.qml">/home/guilherme/software/trainingplanner/qml/main.qml</file>
+    <file alias="qml/AppSettings.qml">/home/guilherme/software/trainingplanner/qml/AppSettings.qml</file>
+    <file alias="qml/FontSizePage.qml">/home/guilherme/software/trainingplanner/qml/FontSizePage.qml</file>
+    <file alias="qml/HomePage.qml">/home/guilherme/software/trainingplanner/qml/HomePage.qml</file>
+    <file alias="qml/NavBar.qml">/home/guilherme/software/trainingplanner/qml/NavBar.qml</file>
+    <file alias="qml/DatePicker.qml">/home/guilherme/software/trainingplanner/qml/DatePicker.qml</file>
+    <file alias="qml/TimePicker.qml">/home/guilherme/software/trainingplanner/qml/TimePicker.qml</file>
+    <file alias="qml/CalendarDialog.qml">/home/guilherme/software/trainingplanner/qml/CalendarDialog.qml</file>
+    <file alias="qml/MesoCycle.qml">/home/guilherme/software/trainingplanner/qml/MesoCycle.qml</file>
+    <file alias="qml/MesoContent.qml">/home/guilherme/software/trainingplanner/qml/MesoContent.qml</file>
+    <file alias="qml/jsfunctions.js">/home/guilherme/software/trainingplanner/qml/jsfunctions.js</file>
+    <file alias="qml/ButtonFlat.qml">/home/guilherme/software/trainingplanner/qml/ButtonFlat.qml</file>
+    <file alias="qml/ButtonIconActive.qml">/home/guilherme/software/trainingplanner/qml/ButtonIconActive.qml</file>
+    <file alias="qml/IconActive.qml">/home/guilherme/software/trainingplanner/qml/IconActive.qml</file>
+    <file alias="qml/ExerciseEntry.qml">/home/guilherme/software/trainingplanner/qml/ExerciseEntry.qml</file>
+    <file alias="qml/ExercisesDatabase.qml">/home/guilherme/software/trainingplanner/qml/ExercisesDatabase.qml</file>
+    <file alias="qml/TimerDialog.qml">/home/guilherme/software/trainingplanner/qml/TimerDialog.qml</file>
+    <file alias="qml/SetTypeRegular.qml">/home/guilherme/software/trainingplanner/qml/SetTypeRegular.qml</file>
+    <file alias="qml/SetTypeCluster.qml">/home/guilherme/software/trainingplanner/qml/SetTypeCluster.qml</file>
+    <file alias="qml/SetTypeDrop.qml">/home/guilherme/software/trainingplanner/qml/SetTypeDrop.qml</file>
+    <file alias="qml/SetTypeGiant.qml">/home/guilherme/software/trainingplanner/qml/SetTypeGiant.qml</file>
+    <file alias="qml/SetTypeMyoReps.qml">/home/guilherme/software/trainingplanner/qml/SetTypeMyoReps.qml</file>
+    <file alias="qml/DevSettingsPage.qml">/home/guilherme/software/trainingplanner/qml/DevSettingsPage.qml</file>
+    <file alias="qml/ThemeSettingsPage.qml">/home/guilherme/software/trainingplanner/qml/ThemeSettingsPage.qml</file>
+    <file alias="qml/RepsAndWeightRow.qml">/home/guilherme/software/trainingplanner/qml/RepsAndWeightRow.qml</file>
+    <file alias="qml/FloatingButton.qml">/home/guilherme/software/trainingplanner/qml/FloatingButton.qml</file>
+    <file alias="qml/MainMenu.qml">/home/guilherme/software/trainingplanner/qml/MainMenu.qml</file>
+    <file alias="qml/MealsDayInfo.qml">/home/guilherme/software/trainingplanner/qml/MealsDayInfo.qml</file>
+    <file alias="qml/TrainingDayInfo.qml">/home/guilherme/software/trainingplanner/qml/TrainingDayInfo.qml</file>
+    <file alias="qml/SetInputField.qml">/home/guilherme/software/trainingplanner/qml/SetInputField.qml</file>
+    <file alias="qml/LanguageSettingsPage.qml">/home/guilherme/software/trainingplanner/qml/LanguageSettingsPage.qml</file>
+    <file alias="qml/PageScrollButtons.qml">/home/guilherme/software/trainingplanner/qml/PageScrollButtons.qml</file>
+    <file alias="qml/ImageViewer.qml">/home/guilherme/software/trainingplanner/qml/ImageViewer.qml</file>
+    <file alias="qml/VideoPlayer.qml">/home/guilherme/software/trainingplanner/qml/VideoPlayer.qml</file>
+    <file alias="qml/ExercisesPlanner.qml">/home/guilherme/software/trainingplanner/qml/ExercisesPlanner.qml</file>
+    <file alias="qml/ExercisesListView.qml">/home/guilherme/software/trainingplanner/qml/ExercisesListView.qml</file>
+    <file alias="qml/MesoSplitPlanner.qml">/home/guilherme/software/trainingplanner/qml/MesoSplitPlanner.qml</file>
+    <file alias="qml/TransparentButton.qml">/home/guilherme/software/trainingplanner/qml/TransparentButton.qml</file>
+    <file alias="qml/FirstTimeHomePageTip.qml">/home/guilherme/software/trainingplanner/qml/FirstTimeHomePageTip.qml</file>
+    <file alias="qml/OpenEndedPlan.qml">/home/guilherme/software/trainingplanner/qml/OpenEndedPlan.qml</file>
+    <file alias="qml/TPTextInput.qml">/home/guilherme/software/trainingplanner/qml/TPTextInput.qml</file>
+    <file alias="qml/TPRadioButton.qml">/home/guilherme/software/trainingplanner/qml/TPRadioButton.qml</file>
+    <file alias="qml/TPComboBox.qml">/home/guilherme/software/trainingplanner/qml/TPComboBox.qml</file>
+    <file alias="qml/GraphicsViewer.qml">/home/guilherme/software/trainingplanner/qml/GraphicsViewer.qml</file>
+    <file alias="qml/TPBalloonTip.qml">/home/guilherme/software/trainingplanner/qml/TPBalloonTip.qml</file>
+    <file alias="qml/SimpleExercisesListPanel.qml">/home/guilherme/software/trainingplanner/qml/SimpleExercisesListPanel.qml</file>
+    <file alias="qml/SetNotesField.qml">/home/guilherme/software/trainingplanner/qml/SetNotesField.qml</file>
+  </qresource>
+</RCC>
+

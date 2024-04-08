@@ -301,10 +301,8 @@ Frame {
 						}
 						TPComboBox {
 							id: cboSetType
-							model: mainwindow.setTypesModel
 							currentIndex: setType
 							enabled: index === splitModel.currentRow
-							Layout.minimumWidth: 110
 							Layout.rightMargin: 5
 
 							onActivated: (index) => {

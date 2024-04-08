@@ -122,7 +122,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
-	QMetaObject::invokeMethod(mainWindow, "init");
+	QMetaObject::invokeMethod(mainWindow, "init", Qt::AutoConnection);
 }
 
 DbManager::~DbManager()
@@ -739,7 +739,7 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 		return m_currentMesoManager->createExercisesObjects();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });
-	QMetaObject::invokeMethod(m_currentMesoManager->currenttDayPage(), "createNavButtons");
+	QMetaObject::invokeMethod(m_currentMesoManager->currenttDayPage(), "createNavButtons", Qt::AutoConnection);
 	m_currentMesoManager->currenttDayPage()->setProperty("bHasMesoPlan", false);
 	m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 }
@@ -758,7 +758,7 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	}
 	else
 	{
-		QMetaObject::invokeMethod(m_currentMesoManager->currenttDayPage(), "createNavButtons");
+		QMetaObject::invokeMethod(m_currentMesoManager->currenttDayPage(), "createNavButtons", Qt::AutoConnection);
 		m_currentMesoManager->currenttDayModel()->convertMesoModelToTDayModel(m_currentMesoManager->getSplitModel(splitletter));
 		m_currentMesoManager->currenttDayPage()->setProperty("bHasMesoPlan", false);
 		m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);

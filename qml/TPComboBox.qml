@@ -5,13 +5,18 @@ ComboBox {
 	id: control
 	font.bold: true
 	font.pixelSize: AppSettings.fontSizeText
-	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
+	implicitWidth: 140//fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
 	textRole: "text"
 	valueRole: "value"
+	model: setTypesModel
 
 	property string textColor: "white"
 	property string backgroundColor: "black"//"#c3cad5"
+
+	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
+							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 },
+							{ text:qsTr("Inverted Pyramid"), value:6 } ]
 
 	FontMetrics {
 		id: fontMetrics
@@ -20,9 +25,13 @@ ComboBox {
 	}
 
 	delegate: ItemDelegate {
+		id: delegate
 		 width: control.width
+		 required property var model
+		 required property var index
+
 		 contentItem: Text {
-			text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
+			text: delegate.model[control.textRole]
 			color: textColor
 			elide: Text.ElideRight
 			font.pixelSize: AppSettings.fontSizeText

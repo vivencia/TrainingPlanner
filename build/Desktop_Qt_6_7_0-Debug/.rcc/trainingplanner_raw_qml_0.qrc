@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/Graph/">
+    <file alias="qml/GraphicsViewer.qml">/home/guilherme/software/trainingplanner/qml/GraphicsViewer.qml</file>
+  </qresource>
+</RCC>
+

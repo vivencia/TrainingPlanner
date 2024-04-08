@@ -49,8 +49,6 @@ Rectangle {
 
 	TPComboBox {
 		id: cboSetType
-		model: mainwindow.setTypesModel
-		width: 100
 		currentIndex: comboIndex
 		z: 0
 

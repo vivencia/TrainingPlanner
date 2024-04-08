@@ -305,8 +305,6 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					model: mainwindow.setTypesModel
-					Layout.minimumWidth: 120
 					currentIndex: tDayModel.setType(0, exerciseIdx)
 
 					onActivated: (index)=> {

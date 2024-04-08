@@ -437,7 +437,8 @@ Page {
 				visible: splitLetter !== 'R'
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
-				Layout.rightMargin: 20
+				Layout.rightMargin: 10
+				height: 300
 
 				background: Rectangle {
 					border.color: "white"
@@ -446,6 +447,7 @@ Page {
 				}
 
 				ColumnLayout {
+					id: timeLayout
 					anchors.fill: parent
 
 					TPRadioButton {

@@ -162,10 +162,10 @@ qt_add_qml_module(trainingplanner
     DEPENDENCIES QtQuick
 )
 
-target_sources(trainingplanner_other_files
-  PRIVATE
-    qml/qmldir
-)
+#target_sources(trainingplanner_other_files
+#  PRIVATE
+#    qml/qmldir
+#)
 
 install(TARGETS trainingplanner
 	RUNTIME DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"

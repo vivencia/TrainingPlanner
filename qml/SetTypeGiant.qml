@@ -31,12 +31,10 @@ Item {
 
 			TPComboBox {
 				id: cboSetType
-				model: mainwindow.setTypesModel
 				currentIndex: setType
 				anchors.left: parent.right
 				anchors.leftMargin: 10
 				anchors.verticalCenter: parent.verticalCenter
-				width: 120
 
 				onActivated: (index)=> {
 					if (index !== setType)
