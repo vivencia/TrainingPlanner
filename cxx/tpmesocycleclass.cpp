@@ -313,6 +313,9 @@ void TPMesocycleClass::createExercisesObjects()
 	}
 	else
 	{
+		QMetaObject::invokeMethod(m_CurrenttDayPage, "createNavButtons", Qt::AutoConnection);
+		m_CurrenttDayPage->setProperty("bHasMesoPlan", false);
+		m_CurrenttDayPage->setProperty("bHasPreviousTDays", false);
 		uint i(0);
 		for(; i < m_CurrenttDayModel->exerciseCount(); ++i)
 		{
@@ -450,8 +453,16 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	}
 	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type));
+	QString suggestedValue(m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
+	int idx(suggestedValue.indexOf(subrecord_separator));
+	if (idx != -1)
+		suggestedValue = suggestedValue.left(idx);
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", suggestedValue);
+	suggestedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type);
+	idx = suggestedValue.indexOf(subrecord_separator);
+	if (idx != -1)
+		suggestedValue = suggestedValue.left(idx);
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", suggestedValue);
 }
 
 void TPMesocycleClass::createSetObjects(const uint exercise_idx)
@@ -500,15 +511,10 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 		m_currentExercises->removeSet(exercise_idx, set_number);
 		const uint nsets(m_currentExercises->setCount(exercise_idx));
 		m_currentExercises->exerciseEntry(exercise_idx)->setProperty("setNbr", nsets);
-		if (nsets == 0)
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bNewExercise", true);
-		else
+		if (nsets > 0 && set_number == nsets) //last set was removed, update suggested values for a possible set addition
 		{
-			if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
-			{
-				m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
-				m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
-			}
+			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 		}
 	}
 }
@@ -551,7 +557,7 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 
 	for(uint x(0); x < set_objs.count(); ++x)
 		set_objs[x]->setParentItem(nullptr);
-	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
+	for(uint x(0); x < set_objs.count(); ++x)
 		set_objs[x]->setParentItem(parentLayout);
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

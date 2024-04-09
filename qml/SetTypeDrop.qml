@@ -15,7 +15,6 @@ Item {
 	required property int setNumber
 	required property string setType
 
-	property int nSubSets: 0
 	property var subSetList: []
 
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -83,7 +82,7 @@ Item {
 			Layout.fillWidth: true
 			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: 10
-			Layout.bottomMargin: 10
+			Layout.bottomMargin: 20
 		}
 
 		SetNotesField {
@@ -98,11 +97,10 @@ Item {
 	}
 
 	function addSubSet(idx, bNew) {
-		nSubSets++;
 		if (bNew)
 			tDayModel.newSetSubSet(setNumber, exerciseIdx);
 
-		var component = Qt.createComponent("RepsAndWeightRow.qml");
+		var component = Qt.createComponent("RepsAndWeightRow.qml", Qt.Asynchronous);
 		if (component.status === Component.Ready) {
 			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
 			subSetList.push({"Object" : rowSprite});
@@ -135,10 +133,9 @@ Item {
 		subSetList[idx].Object.destroy();
 		delete subSetList;
 		subSetList = newSubSetList;
-		subSetList[subSetList.length-1].Object.bBtnAddEnabled = true;
-		nSubSets++;
-		if (bNew)
-			tDayModel.setSetSubSets(setNumber, exerciseIdx, nSubSets.toString());
+		const nsubsets = subSetList.length-1;
+		subSetList[nsubsets].Object.bBtnAddEnabled = true;
+		tDayModel.setSetSubSets(setNumber, exerciseIdx, nsubsets.toString());
 	}
 
 	function requestTimer(requester, message, mins, secs) {

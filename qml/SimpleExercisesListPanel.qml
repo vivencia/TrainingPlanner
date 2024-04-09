@@ -8,11 +8,15 @@ ColumnLayout {
 	visible: bShowSimpleExercisesList
 	height: shown ? parent.height * 0.5 : btnShowHideList.height
 	property bool shown: true
+	property var currentItemThatRequestedSimpleList: null
 
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
-			exercisesList.setFilter();
+			if (itemThatRequestedSimpleList !== currentItemThatRequestedSimpleList) {
+				exercisesList.setFilter();
+				itemThatRequestedSimpleList = currentItemThatRequestedSimpleList;
+			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
 	}

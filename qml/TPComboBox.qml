@@ -5,7 +5,7 @@ ComboBox {
 	id: control
 	font.bold: true
 	font.pixelSize: AppSettings.fontSizeText
-	implicitWidth: 140//fontMetrics.boundingRect("LorenIpsuM").width + 15
+	implicitWidth: 120//fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
 	textRole: "text"
 	valueRole: "value"
@@ -25,13 +25,13 @@ ComboBox {
 	}
 
 	delegate: ItemDelegate {
-		id: delegate
-		 width: control.width
-		 required property var model
-		 required property var index
+		//id: delegate
+		width: control.width
+		//required property var model
+		//required property var index
 
-		 contentItem: Text {
-			text: delegate.model[control.textRole]
+		contentItem: Text {
+			text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData //delegate.model[control.textRole] for 6.7
 			color: textColor
 			elide: Text.ElideRight
 			font.pixelSize: AppSettings.fontSizeText

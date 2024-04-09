@@ -13,7 +13,6 @@ FocusScope {
 	property DBTrainingDayModel tDayModel
 	property int exerciseIdx
 
-	property bool bNewExercise: false
 	property int setNbr: 0
 	property string nSets
 	property string nReps
@@ -138,18 +137,6 @@ FocusScope {
 					cboSetType.forceActiveFocus();
 				}
 
-				onReadOnlyChanged: {
-					if (!readOnly) {
-						cursorPosition = text.length;
-						tDayModel.setExerciseName1(text, exerciseIdx);
-					}
-					else {
-						cursorPosition = 0;
-						ensureVisible(0);
-					}
-					requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
-				}
-
 				onTextChanged: {
 					if (readOnly)
 						ensureVisible(0);
@@ -160,7 +147,9 @@ FocusScope {
 						cursorPosition = text.length;
 					else {
 						readOnly = false;
+						tDayModel.setExerciseName1(text, exerciseIdx);
 						cursorPosition = 0;
+						ensureVisible(0);
 					}
 				}
 
@@ -231,7 +220,10 @@ FocusScope {
 						width: 20
 					}
 
-					onClicked: txtExerciseName.readOnly = !txtExerciseName.readOnly;
+					onClicked: {
+						txtExerciseName.readOnly = !txtExerciseName.readOnly;
+						requestSimpleExercisesList(exerciseItem, !txtExerciseName.readOnly, cboSetType.currentIndex === 4, 1);
+					}
 				}
 
 				RoundButton {
@@ -273,7 +265,6 @@ FocusScope {
 				availableWidth: layoutMain.width / 2
 				backColor: "transparent"
 				borderColor: "transparent"
-				visible: bNewExercise
 
 				onValueChanged:(str)=> nReps = str;
 				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -286,7 +277,6 @@ FocusScope {
 				availableWidth: layoutMain.width / 2
 				backColor: "transparent"
 				borderColor: "transparent"
-				visible: bNewExercise
 
 				onValueChanged:(str)=> nWeight = str;
 			}
@@ -300,7 +290,6 @@ FocusScope {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
-				Layout.topMargin: 10
 				spacing: 1
 
 				TPComboBox {
@@ -325,7 +314,6 @@ FocusScope {
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: bNewExercise
 
 					onValueChanged: (str)=> nSets = str;
 				}
@@ -347,7 +335,6 @@ FocusScope {
 						tDayModel.setSetType(0, exerciseIdx, cboSetType.currentIndex);
 						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
-						bNewExercise = false;
 					}
 				}
 			} // RowLayout

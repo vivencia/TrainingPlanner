@@ -3,7 +3,7 @@
 
 pragma Singleton
 
-import QtCore
+import Qt.labs.settings //QtCore for 6.7
 
 Settings {
 	signal appFontSizeChanged()

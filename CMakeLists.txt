@@ -80,7 +80,6 @@ set( QML_FILES
     "qml/RepsAndWeightRow.qml"
     "qml/FloatingButton.qml"
     "qml/MainMenu.qml"
-    "qml/MealsDayInfo.qml"
     "qml/TrainingDayInfo.qml"
     "qml/SetInputField.qml"
     "qml/LanguageSettingsPage.qml"

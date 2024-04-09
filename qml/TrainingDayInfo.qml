@@ -1076,7 +1076,6 @@ Page {
 	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {
 		function readyToProceed(object, id) {
 			appDB.getItem.disconnect(readyToProceed);
-			object.bNewExercise = true;
 			object.setAdded.connect(exerciseSetAdded);
 
 			bStopBounce = true;
