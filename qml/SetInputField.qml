@@ -192,8 +192,8 @@ FocusScope {
 			readOnly: type === SetInputField.Type.TimeType
 			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
 			padding: 0
-			//focus: type !== SetInputField.Type.TimeType
-			focus: true
+			focus: type !== SetInputField.Type.TimeType
+			//focus: true
 			textColor: inputColor
 
 			anchors {

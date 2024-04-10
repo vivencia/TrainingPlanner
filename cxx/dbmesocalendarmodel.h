@@ -44,6 +44,16 @@ public:
 		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(4).toUInt() : 0;
 	}
 
+	Q_INVOKABLE uint getIndex(const QDateTime& date) const
+	{
+		for( uint i(0); i < m_modeldata.count(); ++i)
+		{
+			if (m_modeldata.at(i).at(0).split(',').at(5).toUInt() == date.date().month())
+				return i;
+		}
+		return 0;
+	}
+
 	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
 	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
 	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;

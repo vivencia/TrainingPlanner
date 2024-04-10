@@ -218,12 +218,12 @@ Page {
 				enabled: false
 
 				onClicked: {
-					function pushTDayOntoStackView(object, id) {
+					function pushTDayOntoStackView(page, id) {
 						if (id === 70) {
 							appDB.getPage.disconnect(pushTDayOntoStackView);
-							object.tDay = trainingDay;
-							object.splitLetter = splitLetter;
-							appStackView.push(object, StackView.DontLoad);
+							page.tDay = trainingDay;
+							page.splitLetter = splitLetter;
+							appStackView.push(page, StackView.DontLoad);
 						}
 					}
 
@@ -246,6 +246,7 @@ Page {
 			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
 			bAlreadyLoaded = true;
 		}
+		calendar.positionViewAtIndex(mesoCalendarModel.getIndex(_today), ListView.Center);
 	}
 
 	function reloadModel() {

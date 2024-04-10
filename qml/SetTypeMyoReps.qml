@@ -17,8 +17,13 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 
-	property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
+	readonly property var myoLabels: [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
+
+	onFocusChanged: {
+		if (focus)
+			txtNSubSets.forceActiveFocus();
+	}
 
 	ColumnLayout {
 		id: setLayout
@@ -122,6 +127,12 @@ Item {
 				text = str;
 			}
 
+			onEnterOrReturnKeyPressed: {
+				const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+				if (nextSet)
+					nextSet.forceActiveFocus();
+			}
+
 			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 		}
 
@@ -134,4 +145,4 @@ Item {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
 	}
-} // FocusScope
+} // Item

@@ -73,8 +73,9 @@ public:
 	inline DBTrainingDayModel* gettDayModel(const QDate& date)
 	{
 		if (!m_tDayModels.contains(date))
-			m_tDayModels.insert(date, new DBTrainingDayModel(this));
-		m_CurrenttDayModel = m_tDayModels.value(date);
+			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(this));
+		else
+			m_CurrenttDayModel = m_tDayModels.value(date);
 		return m_CurrenttDayModel;
 	}
 	inline QQuickItem* gettDayPage(const QDate& date) const { return m_tDayPages.value(date); }
@@ -104,6 +105,9 @@ public:
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
+	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
+	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value);
+	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------

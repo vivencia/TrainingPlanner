@@ -69,5 +69,6 @@
         <file>images/white/down.png</file>
         <file>images/black/home.png</file>
         <file>images/white/home.png</file>
+        <file>images/black/copy-setvalue.png</file>
     </qresource>
 </RCC>

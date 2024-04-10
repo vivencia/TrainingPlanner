@@ -45,8 +45,9 @@ Item {
 		}
 	} //Label
 
-	TextField {
+	TPTextInput {
 		id: txtSetNotes
+		text: tDayModel.setNotes(setNumber, exerciseIdx)
 		anchors {
 			left: parent.left
 			top: label.bottom
@@ -57,6 +58,5 @@ Item {
 		visible: false
 
 		onEditingFinished: tDayModel.setSetNotes(setNumber, exerciseIdx, text);
-		Component.onCompleted: text = tDayModel.setNotes(setNumber, exerciseIdx);
 	}
 }

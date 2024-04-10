@@ -19,6 +19,13 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 
+	onFocusChanged: {
+		if (focus) {
+			if (subSetList.length > 0)
+				subSetList[0].Object.forceActiveFocus();
+		}
+	}
+
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
@@ -74,7 +81,10 @@ Item {
 			}
 
 			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
-			onEnterOrReturnKeyPressed: subSetList[0].Object.forceActiveFocus();
+			onEnterOrReturnKeyPressed: {
+				if (subSetList.length > 0)
+					subSetList[0].Object.forceActiveFocus();
+			}
 		}
 
 		ColumnLayout {
@@ -142,4 +152,4 @@ Item {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
 	}
-} // FocusScope
+} // Item

@@ -1,12 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 
-ColumnLayout {
+Rectangle {
 	id: bottomPane
 	width: parent.width
-	spacing: 0
 	visible: bShowSimpleExercisesList
 	height: shown ? parent.height * 0.5 : btnShowHideList.height
+	color: primaryLightColor
+	opacity: 0.8
+	radius: 10
+
 	property bool shown: true
 	property var currentItemThatRequestedSimpleList: null
 
@@ -33,32 +36,47 @@ ColumnLayout {
 		}
 	}
 
-	ButtonFlat {
-		id: btnShowHideList
-		imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
-		imageSize: 60
-		onClicked: bottomPane.shown = !bottomPane.shown;
-		Layout.fillWidth: true
-		Layout.topMargin: 0
-		height: 10
-		width: bottomPane.width
-	}
+	ColumnLayout {
+		anchors.fill: parent
+		spacing: 0
 
-	ExercisesListView {
-		id: exercisesList
-		height: windowHeight * 0.8
-		Layout.fillWidth: true
-		Layout.topMargin: 0
-		Layout.alignment: Qt.AlignTop
-		Layout.rightMargin: 5
-		Layout.maximumHeight: parent.height - btnShowHideList.height
-		Layout.leftMargin: 5
-		Layout.fillHeight: true
-		canDoMultipleSelection: bEnableMultipleSelection
+		RowLayout {
+			Layout.fillWidth: true
+			spacing: 20
+			Layout.leftMargin: 10
+			Layout.bottomMargin: 2
+			Layout.topMargin: 3
 
-		onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelectionOpt) => {
-			if (itemThatRequestedSimpleList)
-				itemThatRequestedSimpleList.changeExercise(exerciseName + " - " + subName, sets, reps, weight, multipleSelectionOpt);
+			ButtonFlat {
+				id: btnShowHideList
+				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
+				imageSize: 60
+				onClicked: bottomPane.shown = !bottomPane.shown;
+			}
+			ButtonFlat {
+				id: btnCloseList
+				imageSource: "qrc:/images/"+darkIconFolder+"close.png"
+				imageSize: 60
+				onClicked: bShowSimpleExercisesList = false;
+			}
+		}
+
+		ExercisesListView {
+			id: exercisesList
+			height: windowHeight * 0.8
+			Layout.fillWidth: true
+			Layout.topMargin: 0
+			Layout.alignment: Qt.AlignTop
+			Layout.rightMargin: 5
+			Layout.maximumHeight: parent.height - btnShowHideList.height
+			Layout.leftMargin: 5
+			Layout.fillHeight: true
+			canDoMultipleSelection: bEnableMultipleSelection
+
+			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelectionOpt) => {
+				if (itemThatRequestedSimpleList)
+					itemThatRequestedSimpleList.changeExercise(exerciseName + " - " + subName, sets, reps, weight, multipleSelectionOpt);
+			}
 		}
 	}
 }

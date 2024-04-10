@@ -67,6 +67,11 @@ FocusScope {
 			onEnterOrReturnKeyPressed: {
 				if (nextRowObj !== null)
 					nextRowObj.forceActiveFocus();
+				else {
+					const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+					if (nextSet)
+						nextSet.forceActiveFocus();
+				}
 			}
 
 			onValueChanged: (str) => {

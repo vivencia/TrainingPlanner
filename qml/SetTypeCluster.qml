@@ -17,6 +17,11 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 
+	onFocusChanged: {
+		if (focus)
+			txtNSubSets.forceActiveFocus();
+	}
+
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
@@ -123,6 +128,12 @@ Item {
 				text = str;
 			}
 
+			onEnterOrReturnKeyPressed: {
+				const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+				if (nextSet)
+					nextSet.forceActiveFocus();
+			}
+
 			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 		}
 
@@ -135,4 +146,4 @@ Item {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
 	}
-} // FocusScope
+} // Item

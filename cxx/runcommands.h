@@ -21,13 +21,13 @@ public:
 	Q_INVOKABLE int getFileType( const QString& filename );
 	Q_INVOKABLE QString searchForDatabaseFile( const QString& baseDir );
 	QString getAppDir(const QString& dbFile);
+	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 
 	inline QString getDBFileName() const { return m_dbFileName; }
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
 	Q_INVOKABLE const QString formatDate(const QDate& date) const;
 	QDate getDateFromStrDate(const QString& strDate) const;
-
 	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;

@@ -177,7 +177,6 @@ Column {
 	Label {
 		Layout.leftMargin: 5
 		text: qsTr("Search: ")
-		color: "white"
 		font.pixelSize: AppSettings.fontSizeText
 		font.bold: true
 		width: parent.width - 25
@@ -209,6 +208,7 @@ Column {
 			}
 		}
 	}
+
 	TPTextInput {
 		id: txtFilter
 		readOnly: !mainItem.enabled

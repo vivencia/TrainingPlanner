@@ -37,6 +37,31 @@ TextField {
 		font.pixelSize: fontPSize
 	}
 
+	TPBalloonTip {
+		id: textCopiedInfo
+		height: 40
+		textColor: "white"
+		backColor: "black"
+		message: qsTr("Text copied to the clipboard")
+	}
+
+	MouseArea {
+		anchors.fill: parent
+		pressAndHoldInterval: 300
+		onPressAndHold: (mouse) => {
+			runCmd.copyToClipBoard(control.text);
+			textCopiedInfo.showTimed(3000, 0);
+		}
+		onClicked: (mouse) => {
+			mouse.accepted = false;
+			control.forceActiveFocus();
+		}
+		onPressed: (mouse) => {
+			mouse.accepted = true;
+			control.forceActiveFocus();
+		}
+	}
+
 	background: Rectangle {
 		id: itemBack
 		border.color: "black"

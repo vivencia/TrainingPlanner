@@ -8,6 +8,8 @@ Popup {
 	property string button1Text: ""
 	property string button2Text: ""
 	property string imageSource: ""
+	property string backColor: "white"
+	property string textColor: "black"
 	property bool highlightMessage: false
 	property int startYPosition: 0
 
@@ -28,7 +30,8 @@ Popup {
 	height: lblTitle.height + lblMessage.height + Math.max(btn1.height, btn2.height) + 10
 
 	background: Rectangle {
-		color: "white"
+		id: background
+		color: backColor
 		radius: 8
 	}
 
@@ -88,9 +91,10 @@ Popup {
 	Label {
 		id: lblTitle
 		text: title
+		color: textColor
 		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
-		font.pixelSize: AppSettings.fontSizeTitle
+		font.pixelSize: AppSettings.fontSizeTitle * 0.6
 		font.weight: Font.Black
 		width: parent.width - 20
 		height: 30
@@ -123,6 +127,7 @@ Popup {
 	Label {
 		id: lblMessage
 		text: message
+		color: textColor
 		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignJustify
@@ -137,7 +142,7 @@ Popup {
 			left: imgElement.visible ? imgElement.right : parent.left
 			top: lblTitle.visible ? lblTitle.bottom : parent.top
 			leftMargin: 10
-			topMargin: 5
+			topMargin: lblTitle.visible ? 5 : 10
 		}
 	}
 

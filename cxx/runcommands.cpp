@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QSettings>
 #include <QLocale>
+#include <QClipboard>
+#include <QGuiApplication>
 
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
@@ -74,6 +76,11 @@ QString RunCommands::getAppDir(const QString& dbFile)
 			m_appPrivateDir = dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
 	}
 	return m_appPrivateDir;
+}
+
+void RunCommands::copyToClipBoard(const QString& text) const
+{
+	qApp->clipboard()->setText(text);
 }
 
 const QString RunCommands::formatDate(const QDate& date) const

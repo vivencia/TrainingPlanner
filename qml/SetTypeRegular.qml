@@ -4,7 +4,7 @@ import QtQuick.Controls
 
 import com.vivenciasoftware.qmlcomponents
 
-FocusScope {
+Item {
 	id: setItem
 	implicitHeight: setLayout.implicitHeight
 	Layout.fillWidth: true
@@ -17,6 +17,11 @@ FocusScope {
 	required property string setType
 
 	signal requestTimerDialogSignal(Item requester, var args)
+
+	onFocusChanged: {
+		if (focus)
+			txtNReps.forceActiveFocus();
+	}
 
 	ColumnLayout {
 		id: setLayout
@@ -74,34 +79,86 @@ FocusScope {
 			}
 
 			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
-			onEnterOrReturnKeyPressed: txtNSubSets.forceActiveFocus();
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 		}
 
-		SetInputField {
-			id: txtNReps
-			type: SetInputField.Type.RepType
-			availableWidth: setItem.width
+		RowLayout {
+			SetInputField {
+				id: txtNReps
+				type: SetInputField.Type.RepType
+				availableWidth: !btnCopyValue.visible ? setItem.width : setItem.width - 60
 
-			onValueChanged: (str) => {
-				tDayModel.setSetReps(setNumber, exerciseIdx, str);
-				text = str;
+				onValueChanged: (str) => {
+					tDayModel.setSetReps(setNumber, exerciseIdx, str);
+					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue.visible = true;
+				}
+
+				Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
+				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 			}
 
-			Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
-			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+			RoundButton {
+				id: btnCopyValue
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, txtNReps.text);
+					btnCopyValue.visible = false;
+				}
+			}
 		}
 
-		SetInputField {
-			id: txtNWeight
-			type: SetInputField.Type.WeightType
-			availableWidth: setItem.width
+		RowLayout {
+			SetInputField {
+				id: txtNWeight
+				type: SetInputField.Type.WeightType
+				availableWidth: !btnCopyValue2.visible ? setItem.width : setItem.width - 60
 
-			onValueChanged: (str) => {
-				tDayModel.setSetWeight(setNumber, exerciseIdx, str);
-				text = str;
+				onValueChanged: (str) => {
+					tDayModel.setSetWeight(setNumber, exerciseIdx, str);
+					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue2.visible = true;
+				}
+
+				onEnterOrReturnKeyPressed: {
+					const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+					if (nextSet)
+						nextSet.forceActiveFocus();
+				}
+
+				Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 			}
 
-			Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
+			RoundButton {
+				id: btnCopyValue2
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, txtNWeight.text);
+					btnCopyValue2.visible = false;
+				}
+			}
 		}
 
 		SetNotesField {
@@ -113,4 +170,12 @@ FocusScope {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
 	}
-} // FocusScope
+
+	function changeReps(new_value: string) {
+		txtNReps.text = new_value;
+	}
+
+	function changeWeight(new_value: string) {
+		txtNWeight.text = new_value;
+	}
+} // Item

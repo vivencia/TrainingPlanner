@@ -426,10 +426,7 @@ Page {
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
 
-				onTextEdited: {
-					location = text;
-					tDayModel.modified = true;
-				}
+				onTextChanged: tDayModel.setLocation(text);
 			}
 
 			Frame {
@@ -629,27 +626,17 @@ Page {
 					}
 				}
 			}
-			Flickable {
+
+			TPTextInput {
 				id: trainingNotesField
+				text: tDayModel.dayNotes()
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
-				height: Math.min(contentHeight, 60)
-				contentHeight: txtDayInfoTrainingNotes.implicitHeight
 				visible: false
 
-				TextArea.flickable: TextArea {
-					id: txtDayInfoTrainingNotes
-					text: tDayModel.dayNotes()
-					font.bold: true
-					font.pixelSize: AppSettings.fontSizeText
-					color: "white"
-
-					onEditingFinished: tDayModel.setDayNotes(text);
-				}
-				ScrollBar.vertical: ScrollBar {}
-				ScrollBar.horizontal: ScrollBar {}
-			} //Flickable
+				onEditingFinished: tDayModel.setDayNotes(text);
+			}
 
 			Frame {
 				Layout.fillWidth: true
