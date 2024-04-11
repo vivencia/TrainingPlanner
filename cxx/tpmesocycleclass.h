@@ -106,8 +106,8 @@ public:
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value);
-	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value);
+	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value);
+	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
@@ -209,7 +209,7 @@ private:
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	QVariantMap m_setObjectProperties;
-	QQmlComponent* m_setComponents[7];
+	QQmlComponent* m_setComponents[3];
 	uint m_expectedSetNumber;
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 

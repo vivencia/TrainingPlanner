@@ -40,10 +40,10 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 		{
 			data[1].append(m_ExerciseData.at(i)->type.at(x) + record_separator);
 			data[2].append(m_ExerciseData.at(i)->resttime.at(x) + record_separator);
-			data[3].append((x < m_ExerciseData.at(i)->subsets.count() ? m_ExerciseData.at(i)->subsets.at(x) : QString()) + record_separator);
+			data[3].append((x < m_ExerciseData.at(i)->subsets.count() ? m_ExerciseData.at(i)->subsets.at(x) : u"0"_qs) + record_separator);
 			data[4].append(m_ExerciseData.at(i)->reps.at(x) + record_separator);
 			data[5].append(m_ExerciseData.at(i)->weight.at(x) + record_separator);
-			data[6].append((x < m_ExerciseData.at(i)->notes.count() ? m_ExerciseData.at(i)->notes.at(x) : QString()) + record_separator);
+			data[6].append((x < m_ExerciseData.at(i)->notes.count() ? m_ExerciseData.at(i)->notes.at(x) : u" "_qs) + record_separator);
 		}
 		data[1].append(record_separator2);
 		data[2].append(record_separator2);
@@ -260,11 +260,12 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 	}
 }
 
-const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type) const
+const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number) const
 {
 	if (type == 1 || type == 6)
 	{
-		uint lastSetValue(m_ExerciseData.at(exercise_idx)->reps.last().toUInt());
+		uint lastSetValue(set_number == 100 ? m_ExerciseData.at(exercise_idx)->reps.last().toUInt() :
+												m_ExerciseData.at(exercise_idx)->reps.at(set_number).toUInt());
 		if (type == 1) //Pyramid
 			lastSetValue -= 3;
 		else //Reverse Pyramid
@@ -276,11 +277,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 		return m_ExerciseData.at(exercise_idx)->reps.last();
 }
 
-const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type) const
+const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number) const
 {
 	if (type == 1 || type == 6)
 	{
-		uint lastSetValue(m_ExerciseData.at(exercise_idx)->weight.last().toUInt());
+		uint lastSetValue(set_number == 100 ? m_ExerciseData.at(exercise_idx)->weight.last().toUInt() :
+												m_ExerciseData.at(exercise_idx)->weight.at(set_number).toUInt());
 		if (type == 1) //Pyramid
 			lastSetValue = qFloor(lastSetValue * 1.2);
 		else //Reverse Pyramid

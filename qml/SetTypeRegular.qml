@@ -14,9 +14,12 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	required property string setType
+	required property int setType
 
 	signal requestTimerDialogSignal(Item requester, var args)
+
+	readonly property var myoLabels: setType === 5 ? [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
+						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
 
 	onFocusChanged: {
 		if (focus)
@@ -64,11 +67,24 @@ Item {
 				}
 				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
+
+			Label {
+				id: lblTotalReps
+				text: qsTr("Total reps: ") + tDayModel.setReps_int(setNumber, exerciseIdx) * tDayModel.setSubSets_int(setNumber, exerciseIdx)
+				height: parent.height
+				visible: setType === 3
+				anchors {
+					top: parent.top
+					left: btnRemoveSet.right
+					leftMargin: 5
+				}
+			}
 		}
 
 		SetInputField {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
+			text: tDayModel.setRestTime(setNumber, exerciseIdx);
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
@@ -78,7 +94,22 @@ Item {
 				text = str;
 			}
 
-			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+		}
+
+		SetInputField {
+			id: txtNSubSets
+			type: SetInputField.Type.SetType
+			text: tDayModel.setSubSets(setNumber, exerciseIdx);
+			availableWidth: setItem.width
+			visible: setType === 3 || setType === 5
+			alternativeLabels: myoLabels
+
+			onValueChanged: (str) => {
+				tDayModel.setSetSubSets(setNumber, exerciseIdx, str);
+				text = str;
+			}
+
 			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 		}
 
@@ -86,7 +117,9 @@ Item {
 			SetInputField {
 				id: txtNReps
 				type: SetInputField.Type.RepType
+				text: tDayModel.setReps(setNumber, exerciseIdx);
 				availableWidth: !btnCopyValue.visible ? setItem.width : setItem.width - 60
+				alternativeLabels: myoLabels
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, str);
@@ -95,7 +128,6 @@ Item {
 						btnCopyValue.visible = true;
 				}
 
-				Component.onCompleted: text = tDayModel.setReps(setNumber, exerciseIdx);
 				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 			}
 
@@ -113,17 +145,19 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, txtNReps.text);
+					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, setType, txtNReps.text);
 					btnCopyValue.visible = false;
 				}
 			}
-		}
+		} //RowLayout
 
 		RowLayout {
 			SetInputField {
 				id: txtNWeight
 				type: SetInputField.Type.WeightType
+				text: tDayModel.setWeight(setNumber, exerciseIdx);
 				availableWidth: !btnCopyValue2.visible ? setItem.width : setItem.width - 60
+				alternativeLabels: myoLabels
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, str);
@@ -137,8 +171,6 @@ Item {
 					if (nextSet)
 						nextSet.forceActiveFocus();
 				}
-
-				Component.onCompleted: text = tDayModel.setWeight(setNumber, exerciseIdx);
 			}
 
 			RoundButton {
@@ -155,20 +187,29 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, txtNWeight.text);
+					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, setType, txtNWeight.text);
 					btnCopyValue2.visible = false;
 				}
 			}
-		}
+		} //RowLayout
 
 		SetNotesField {
 			id: btnShowHideNotes
 		}
 	} // setLayout
 
+	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
+
 	function requestTimer(requester, message, mins, secs) {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
+	}
+
+	function hideCopyButtons() {
+		if (!tDayModel.modified) {
+			btnCopyValue.visible = false;
+			btnCopyValue2.visible = false;
+		}
 	}
 
 	function changeReps(new_value: string) {

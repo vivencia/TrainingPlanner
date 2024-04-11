@@ -6,14 +6,13 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
-static const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs << u"qrc:/qml/SetTypeRegular.qml"_qs <<
-				u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeCluster.qml"_qs <<
-				u"qrc:/qml/SetTypeGiant.qml"_qs << u"qrc:/qml/SetTypeMyoReps.qml"_qs << u"qrc:/qml/SetTypeRegular.qml"_qs);
+const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs <<
+					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_MesoPage(nullptr),
 		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
-		m_setComponents{nullptr}
+		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {}
 
 TPMesocycleClass::~TPMesocycleClass()
@@ -362,17 +361,9 @@ void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 void TPMesocycleClass::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
 										const QString& nReps, const QString& nWeight)
 {
-	if (m_setComponents[set_type] == nullptr)
-	{
-		m_setComponents[set_type] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type]), QQmlComponent::Asynchronous);
-		switch (set_type)
-		{
-			case 0: m_setComponents[1] = m_setComponents[6] = m_setComponents[0]; break;
-			case 1: m_setComponents[0] = m_setComponents[6] = m_setComponents[1]; break;
-			case 6: m_setComponents[0] = m_setComponents[1] = m_setComponents[6]; break;
-			default: break;
-		}
-	}
+	const uint set_type_cpp(set_type == 2 ? 1 : set_type == 4 ? 2 : 0);
+	if (m_setComponents[set_type_cpp] == nullptr)
+		m_setComponents[set_type_cpp] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type_cpp]), QQmlComponent::Asynchronous);
 
 	m_setObjectProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 	if (bNewSet)
@@ -384,8 +375,8 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 		m_expectedSetNumber = set_number;
 	}
 
-	if (m_setComponents[set_type]->status() != QQmlComponent::Ready)
-		connect(m_setComponents[set_type], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
+	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
+		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
 			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
 	else
 		createSetObject_part2(set_type, set_number, exercise_idx);
@@ -393,12 +384,12 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 
 void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx)
 {
+	const uint set_type_cpp(set_type == 2 ? 1 : set_type == 4 ? 2 : 0);
 	#ifdef DEBUG
-	if (m_setComponents[set_type]->status() == QQmlComponent::Error)
+	if (m_setComponents[set_type_cpp]->status() == QQmlComponent::Error)
 	{
-		qDebug() << m_setComponents[set_type]->errorString();
-		for (uint i(0); i < m_setComponents[set_type]->errors().count(); ++i)
-			qDebug() << m_setComponents[set_type]->errors().at(i).description();
+		for (uint i(0); i < m_setComponents[set_type_cpp]->errors().count(); ++i)
+			qDebug() << m_setComponents[set_type_cpp]->errors().at(i).description();
 		return;
 	}
 	#endif
@@ -406,7 +397,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
 	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
 	m_setObjectProperties.insert(QStringLiteral("setType"), set_type);
-	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type]->
+	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
@@ -530,6 +521,16 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 	if (new_type != 100)
 	{
 		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, new_type);
+		const uint current_type(m_CurrenttDayModel->setType(set_number, exercise_idx));
+		if (current_type != 2 && current_type != 4)
+		{
+			if (new_type != 2 && new_type != 4)
+			{
+				m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setType", new_type);
+				return;
+			}
+		}
+
 		m_currentExercises->removeSet(exercise_idx, set_number);
 
 		m_expectedSetNumber = 100; //do not trigger the itemReady signal nor add the object to the parent layout
@@ -566,21 +567,25 @@ QQuickItem* TPMesocycleClass::nextSetObject(const uint exercise_idx, const uint 
 	return nullptr;
 }
 
-void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value)
+void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value)
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	QString updatedValue(value);
 	for (uint i(set_number+1); i < exercise_obj->m_setObjects.count(); ++i) {
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, value));
-		m_CurrenttDayModel->setSetReps(i, exercise_idx, value);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, updatedValue));
+		m_CurrenttDayModel->setSetReps(i, exercise_idx, updatedValue);
+		updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i);
 	}
 }
 
-void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const QString& value)
+void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value)
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	QString updatedValue(value);
 	for (uint i(set_number+1); i < exercise_obj->m_setObjects.count(); ++i) {
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, value));
-		m_CurrenttDayModel->setSetWeight(i, exercise_idx, value);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, updatedValue));
+		m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);
+		updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i);
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

@@ -71,10 +71,8 @@ set( QML_FILES
     "qml/ExercisesDatabase.qml"
     "qml/TimerDialog.qml"
     "qml/SetTypeRegular.qml"
-    "qml/SetTypeCluster.qml"
     "qml/SetTypeDrop.qml"
     "qml/SetTypeGiant.qml"
-    "qml/SetTypeMyoReps.qml"
     "qml/DevSettingsPage.qml"
     "qml/ThemeSettingsPage.qml"
     "qml/RepsAndWeightRow.qml"
@@ -151,15 +149,15 @@ set(QML_IMPORT_PATH
     ${QML_DIRS}
 )
 
-qt_add_qml_module(trainingplanner
-    URI "Graph"
-    VERSION 1.0
-    QML_FILES
-	qml/GraphicsViewer.qml
-    SOURCES
-	cxx/graph.h cxx/graph.cpp
-    DEPENDENCIES QtQuick
-)
+#qt_add_qml_module(trainingplanner
+#    URI "Graph"
+#    VERSION 1.0
+#    QML_FILES
+#	qml/GraphicsViewer.qml
+#    SOURCES
+#	cxx/graph.h cxx/graph.cpp
+#    DEPENDENCIES QtQuick
+#)
 
 #target_sources(trainingplanner_other_files
 #  PRIVATE
