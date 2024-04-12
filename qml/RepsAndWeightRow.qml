@@ -4,7 +4,8 @@ import QtQuick.Controls
 
 import com.vivenciasoftware.qmlcomponents
 
-FocusScope {
+RowLayout {
+	id: mainRow
 	required property DBTrainingDayModel tDayModel
 	required property int rowIdx
 
@@ -15,82 +16,93 @@ FocusScope {
 	signal delSubSet(int id)
 
 	Layout.fillWidth: true
+	spacing: 0
 	height: 40
 
-	GridLayout {
-		id: mainRow
-		anchors.fill: parent
-		rows: 2
-		columns: 3
-		rowSpacing: 0
+	SetInputField {
+		id: txtNReps
+		type: SetInputField.Type.RepType
+		text: tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
+		availableWidth: windowWidth/4 + 10
+		showLabel: false
 
-		Label {
-			text: rowIdx === 0 ? qsTr("Reps:") : ""
-			Layout.alignment: Qt.AlignCenter
-			Layout.row: 0
-			Layout.column: 0
-		}
-		SetInputField {
-			id: txtNReps
-			type: SetInputField.Type.RepType
-			showLabel: false
-			availableWidth: mainRow.width/3
-			focus: true // makes FocusScope choose this Item to give focus to
-			Layout.alignment: Qt.AlignCenter
-			Layout.row: 1
-			Layout.column: 0
-
-			onValueChanged: (str) => {
-				tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
-				text = str;
-			}
-
-			Component.onCompleted: text = tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
-			onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+		onValueChanged: (str) => {
+			tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
+			text = str;
+			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+				stack1.currentIndex = 1;
 		}
 
-		Label {
-			text: rowIdx === 0 ? qsTr("Weight:") : ""
-			Layout.alignment: Qt.AlignCenter
-			Layout.row: 0
-			Layout.column: 1
+		onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+	}
+
+	StackLayout {
+		id: stack1
+		currentIndex: 0
+
+		Item {
+			width: 30
+			height: 40
 		}
-		SetInputField {
-			id: txtNWeight
-			type: SetInputField.Type.WeightType
-			showLabel: false
-			availableWidth: mainRow.width/3
-			Layout.alignment: Qt.AlignCenter
-			Layout.row: 1
-			Layout.column: 1
 
-			onEnterOrReturnKeyPressed: {
-				if (nextRowObj !== null)
-					nextRowObj.forceActiveFocus();
-				else {
-					const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
-					if (nextSet)
-						nextSet.forceActiveFocus();
-				}
+		RoundButton {
+			id: btnCopyValue
+			Layout.maximumWidth: 40
+			Layout.minimumWidth: 40
+			Layout.maximumHeight: 40
+			Layout.minimumHeight: 40
+
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+				height: 20
+				width: 20
 			}
 
-			onValueChanged: (str) => {
-				tDayModel.setSetWeight(setNumber, exerciseIdx, rowIdx, str);
-				text = str;
+			onClicked: {
+				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
+				stack1.currentIndex = 0;
 			}
+		}
+	}
 
-			Component.onCompleted: text = tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
+	SetInputField {
+		id: txtNWeight
+		type: SetInputField.Type.WeightType
+		text: tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
+		availableWidth: windowWidth/4 + 10
+		showLabel: false
+
+		onEnterOrReturnKeyPressed: {
+			if (nextRowObj !== null)
+				nextRowObj.forceActiveFocus();
+			else {
+				const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+				if (nextSet)
+					nextSet.forceActiveFocus();
+			}
+		}
+
+		onValueChanged: (str) => {
+			tDayModel.setSetWeight(setNumber, exerciseIdx, rowIdx, str);
+			text = str;
+			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+					stack2.currentIndex = 1;
+		}
+	} //txtNWeight
+
+	StackLayout {
+		id: stack2
+		currentIndex: 0
+
+		Row {
 
 			RoundButton {
 				id: btnInsertAnotherRow
 				width: 25
 				height: 25
 				visible: bBtnAddEnabled
-				anchors {
-					left: txtNWeight.right
-					verticalCenter: txtNWeight.verticalCenter
-					leftMargin: 3
-				}
 
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"add-new.png"
@@ -107,11 +119,6 @@ FocusScope {
 				width: 25
 				height: 25
 				visible: rowIdx > 0
-				anchors {
-					left: btnInsertAnotherRow.right
-					verticalCenter: txtNWeight.verticalCenter
-					leftMargin: 3
-				}
 
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -122,12 +129,44 @@ FocusScope {
 
 				onClicked: delSubSet(rowIdx);
 			} //btnRemoveRow
-		} //txtNWeight
-
-		Rectangle {
-			width: 60
-			Layout.row: 1
-			Layout.column: 2
 		}
-	} //GridLayout
-} //FocusScope
+
+		RoundButton {
+			id: btnCopyValue2
+			Layout.maximumWidth: 40
+			Layout.minimumWidth: 40
+			Layout.maximumHeight: 40
+			Layout.minimumHeight: 40
+
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+				height: 20
+				width: 20
+			}
+
+			onClicked: {
+				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
+				stack2.currentIndex = 0;
+			}
+		}
+	}
+
+	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
+
+	function hideCopyButtons() {
+		if (!tDayModel.modified) {
+			stack1.currentIndex = 0;
+			stack2.currentIndex = 0;
+		}
+	}
+
+	function changeReps(new_value: string) {
+		txtNReps.text = new_value;
+	}
+
+	function changeWeight(new_value: string) {
+		txtNWeight.text = new_value;
+	}
+} //RowLayout

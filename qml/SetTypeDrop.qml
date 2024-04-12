@@ -13,7 +13,7 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	required property string setType
+	required property int setType
 
 	property var subSetList: []
 
@@ -71,6 +71,7 @@ Item {
 		SetInputField {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
+			text: tDayModel.setRestTime(setNumber, exerciseIdx);
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
@@ -80,7 +81,6 @@ Item {
 				text = str;
 			}
 
-			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
 			onEnterOrReturnKeyPressed: {
 				if (subSetList.length > 0)
 					subSetList[0].Object.forceActiveFocus();
@@ -90,10 +90,31 @@ Item {
 		ColumnLayout {
 			id: subSetsLayout
 			Layout.fillWidth: true
-			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: 10
 			Layout.bottomMargin: 20
-		}
+
+			RowLayout {
+				Layout.fillWidth: true
+
+				Label {
+					text: qsTr("Reps:")
+					width: setItem.width/2
+					font.bold: true
+					Layout.alignment: Qt.AlignCenter
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
+				}
+
+				Label {
+					text: qsTr("Weight:")
+					width: setItem.width/2
+					font.bold: true
+					Layout.alignment: Qt.AlignCenter
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
+				}
+			}
+		} //subSetsLayout
 
 		SetNotesField {
 			id: btnShowHideNotes
@@ -151,5 +172,15 @@ Item {
 	function requestTimer(requester, message, mins, secs) {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
+	}
+
+	function changeReps(new_value: string, idx: int) {
+		if (idx < subSetList.length)
+			subSetList[idx].Object.changeReps(new_value);
+	}
+
+	function changeWeight(new_value: string, idx: int) {
+		if (idx < subSetList.length)
+			subSetList[idx].Object.changeWeight(new_value);
 	}
 } // Item

@@ -145,7 +145,7 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, setType, txtNReps.text);
+					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber);
 					btnCopyValue.visible = false;
 				}
 			}
@@ -187,7 +187,7 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, setType, txtNWeight.text);
+					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber);
 					btnCopyValue2.visible = false;
 				}
 			}
@@ -212,11 +212,11 @@ Item {
 		}
 	}
 
-	function changeReps(new_value: string) {
+	function changeReps(new_value: string, idx: int) {
 		txtNReps.text = new_value;
 	}
 
-	function changeWeight(new_value: string) {
+	function changeWeight(new_value: string, idx: int) {
 		txtNWeight.text = new_value;
 	}
 } // Item

@@ -274,7 +274,8 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 		return multiUseString;
 	}
 	else
-		return m_ExerciseData.at(exercise_idx)->reps.last();
+		return set_number == 100 ? m_ExerciseData.at(exercise_idx)->reps.last() :
+									m_ExerciseData.at(exercise_idx)->reps.at(set_number);
 }
 
 const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number) const
@@ -291,7 +292,8 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 		return multiUseString;
 	}
 	else
-		return m_ExerciseData.at(exercise_idx)->weight.last();
+		return set_number == 100 ? m_ExerciseData.at(exercise_idx)->weight.last() :
+									m_ExerciseData.at(exercise_idx)->weight.at(set_number);
 }
 
 void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, const uint type)

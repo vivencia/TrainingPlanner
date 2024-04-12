@@ -567,25 +567,55 @@ QQuickItem* TPMesocycleClass::nextSetObject(const uint exercise_idx, const uint 
 	return nullptr;
 }
 
-void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value)
+void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set)
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
-	QString updatedValue(value);
-	for (uint i(set_number+1); i < exercise_obj->m_setObjects.count(); ++i) {
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, updatedValue));
+	uint i(set_number+1);
+	uint set_type(m_CurrenttDayModel->setType(i, exercise_idx));
+	QString updatedValue(m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, set_number));
+	QString displayValue(updatedValue);
+	const uint nsets(exercise_obj->m_setObjects.count());
+	for (; i < nsets; ++i) {
+		if (sub_set != 100)
+		{
+			if (updatedValue.contains(subrecord_separator))
+			{
+				displayValue = updatedValue.split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
+				if (set_number != 2 && set_number != 4)
+					updatedValue = displayValue;
+			}
+		}
 		m_CurrenttDayModel->setSetReps(i, exercise_idx, updatedValue);
-		updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+		if (i < nsets - 1)
+		{
+			set_type = m_CurrenttDayModel->setType(i+1, exercise_idx);
+			displayValue = updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i);
+		}
 	}
 }
 
-void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint set_type, const QString& value)
+void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set)
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
-	QString updatedValue(value);
-	for (uint i(set_number+1); i < exercise_obj->m_setObjects.count(); ++i) {
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, updatedValue));
+	uint set_type(0);
+	QString updatedValue, displayValue;
+	const uint nsets(exercise_obj->m_setObjects.count());
+
+	for (uint i(set_number+1); i < nsets; ++i) {
+		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
+		displayValue = updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i);
+		if (sub_set != 100)
+		{
+			if (updatedValue.contains(subrecord_separator))
+			{
+				displayValue = updatedValue.split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
+				if (set_number != 2 && set_number != 4)
+					updatedValue = displayValue;
+			}
+		}
 		m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);
-		updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, displayValue), Q_ARG(int, sub_set));
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

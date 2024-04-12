@@ -14,7 +14,7 @@ Item {
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
-	required property string setType
+	required property int setType
 
 	property var ownerExercise
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -37,9 +37,11 @@ Item {
 			TPComboBox {
 				id: cboSetType
 				currentIndex: setType
-				anchors.left: parent.right
-				anchors.leftMargin: 10
-				anchors.verticalCenter: parent.verticalCenter
+				anchors {
+					left: parent.right
+					leftMargin: 10
+					verticalCenter: parent.verticalCenter
+				}
 
 				onActivated: (index)=> {
 					if (index !== setType)
@@ -68,6 +70,7 @@ Item {
 		SetInputField {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
+			text: tDayModel.setRestTime(setNumber, exerciseIdx);
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
@@ -77,7 +80,6 @@ Item {
 				text = str;
 			}
 
-			Component.onCompleted: text = tDayModel.setRestTime(setNumber, exerciseIdx);
 			onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 		}
 
@@ -91,8 +93,6 @@ Item {
 				width: setItem.width/2
 				font.bold: true
 				wrapMode: Text.WordWrap
-				Layout.row: 0
-				Layout.column: 0
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -110,8 +110,6 @@ Item {
 				width: setItem.width/2
 				font.bold: true
 				wrapMode: Text.WordWrap
-				Layout.row: 0
-				Layout.column: 1
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -123,107 +121,139 @@ Item {
 			}
 		}
 
-		GridLayout {
+		RowLayout {
 			Layout.fillWidth: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
-			rows: 4
-			columns: 2
-			columnSpacing: 15
-			rowSpacing: 5
-			Layout.leftMargin: setItem.width/7
+			spacing: 5
 
-			Label {
-				text: qsTr("Reps:")
-				Layout.row: 0
-				Layout.column: 0
-				Layout.alignment: Qt.AlignCenter
-			}
 			SetInputField {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
-				availableWidth: setItem.width/3
-				showLabel: false
-				Layout.row: 1
-				Layout.column: 0
-				Layout.alignment: Qt.AlignCenter
+				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
+				availableWidth: !btnCopyValue.visible ? setItem.width/2 + 10 : setItem.width/3
+				Layout.alignment: Qt.AlignLeft
+				showLabel: !btnCopyValue.visible
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 0, str);
 					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue.visible = true;
 				}
 
-				Component.onCompleted: text = tDayModel.setReps(setNumber, 0, exerciseIdx);
 				onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 			}
 
-			Label {
-				text: qsTr("Reps:")
-				Layout.row: 0
-				Layout.column: 1
-				Layout.alignment: Qt.AlignCenter
+			RoundButton {
+				id: btnCopyValue
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 0);
+					visible = false;
+				}
 			}
+
 			SetInputField {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
-				availableWidth: setItem.width/3
+				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
+				availableWidth: setItem.width/4 + 15
 				showLabel: false
-				Layout.row: 1
-				Layout.column: 1
-				Layout.alignment: Qt.AlignCenter
+				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 1, str);
 					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue2.visible = true;
 				}
 
-				Component.onCompleted: text = tDayModel.setReps(setNumber, 1, exerciseIdx);
 				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 			}
 
-			Label {
-				text: qsTr("Weight") + AppSettings.weightUnit + ":"
-				Layout.row: 2
-				Layout.column: 0
-				Layout.alignment: Qt.AlignCenter
+			RoundButton {
+				id: btnCopyValue2
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 1);
+					visible = false;
+				}
 			}
+		}
+
+		RowLayout {
+			Layout.fillWidth: true
+			spacing: 5
+
 			SetInputField {
 				id: txtNWeight1
-				text: strWeight1
+				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				type: SetInputField.Type.WeightType
-				availableWidth: setItem.width/3
-				showLabel: false
-				Layout.row: 3
-				Layout.column: 0
-				Layout.alignment: Qt.AlignCenter
+				availableWidth: !btnCopyValue.visible ? setItem.width/2 + 10 : setItem.width/3
+				Layout.alignment: Qt.AlignLeft
+				showLabel: !btnCopyValue3.visible
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 0, str);
 					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue3.visible = true;
 				}
 
-				Component.onCompleted: text = tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 			}
 
-			Label {
-				text: qsTr("Weight") + AppSettings.weightUnit + ":"
-				Layout.row: 2
-				Layout.column: 1
-				Layout.alignment: Qt.AlignCenter
+			RoundButton {
+				id: btnCopyValue3
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 0);
+					visible = false;
+				}
 			}
+
 			SetInputField {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
-				availableWidth: setItem.width/3
+				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
+				availableWidth: setItem.width/4 + 15
 				showLabel: false
-				Layout.row: 3
-				Layout.column: 1
-				Layout.alignment: Qt.AlignCenter
+				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 1, str);
 					text = str;
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+						btnCopyValue4.visible = true;
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -231,8 +261,25 @@ Item {
 					if (nextSet)
 						nextSet.forceActiveFocus();
 				}
+			}
 
-				Component.onCompleted: text = tDayModel.setWeight(setNumber, 1, exerciseIdx);
+			RoundButton {
+				id: btnCopyValue4
+				visible: false
+				Layout.alignment: Qt.AlignRight
+
+				Image {
+					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					height: 20
+					width: 20
+				}
+
+				onClicked: {
+					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 1);
+					visible = false;
+				}
 			}
 		}
 
@@ -240,6 +287,8 @@ Item {
 			id: btnShowHideNotes
 		}
 	} //ColumnLayout setLayout
+
+	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
 
 	function changeLabel(labelObj, newtext)
 	{
@@ -249,5 +298,28 @@ Item {
 	function requestTimer(requester, message, mins, secs) {
 		var args = [message, mins, secs];
 		requestTimerDialogSignal(requester, args);
+	}
+
+	function hideCopyButtons() {
+		if (!tDayModel.modified) {
+			btnCopyValue.visible = false;
+			btnCopyValue2.visible = false;
+			btnCopyValue3.visible = false;
+			btnCopyValue4.visible = false;
+		}
+	}
+
+	function changeReps(new_value: string, idx: int) {
+		if (idx === 0)
+			txtNReps1.text = new_value;
+		else
+			txtNReps2.text = new_value;
+	}
+
+	function changeWeight(new_value: string, idx: int) {
+		if (idx === 0)
+			txtNWeight1.text = new_value;
+		else
+			txtNWeight2.text = new_value;
 	}
 } // Item
