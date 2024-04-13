@@ -14,16 +14,16 @@ ToolBar {
 
 	ButtonFlat {
 		id: btnBack
-		enabled: appStackView.depth >= 2
+		enabled: stackView.depth >= 2
 		anchors.left: parent.left
 		anchors.leftMargin: 5
-		visible: appStackView.depth >= 2
+		visible: stackView.depth >= 2
 		anchors.verticalCenter: parent.verticalCenter
 		text: qsTr("BACK")
 		imageSource: "qrc:/images/"+lightIconFolder+"back.png"
 
 		onClicked: {
-			appStackView.pop();
+			stackView.pop();
 			backButtonPressed();
 		}
 	}
@@ -62,10 +62,16 @@ ToolBar {
 		onClicked: {
 			if (mainCalendar === null) {
 				var component = Qt.createComponent("CalendarDialog.qml", Qt.Asynchronous);
-				if (component.status === Component.Ready) {
+
+				function finishCreation() {
 					mainCalendar = component.createObject(mainwindow, { showDate:new Date(), simpleCalendar:true,
 						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
 				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
 			}
 			mainCalendar.open();
 		}
@@ -88,9 +94,15 @@ ToolBar {
 		onClicked: {
 			if (mainTimer === null) {
 				var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
-				if (component.status === Component.Ready) {
+
+				function finishCreation() {
 					mainTimer = component.createObject(mainwindow, { simpleTimer:true });
 				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
 			}
 			mainTimer.open();
 		}
@@ -103,4 +115,3 @@ ToolBar {
 			mainTimer.destroy();
 	}
 }
-

@@ -17,8 +17,6 @@ ApplicationWindow {
 	signal appAboutToBeSuspended()
 	signal appActive()
 
-	property StackView appStackView: stackView
-
 	readonly property color primaryLightColor: "#BBDEFB"
 	readonly property color primaryColor: "#25b5f3"
 	readonly property color primaryDarkColor: "#1976D2"
@@ -50,13 +48,6 @@ ApplicationWindow {
 		}
 	}
 
-	function androidBackKeyPressed() {
-		if (appStackView.depth >= 2)
-			appStackView.pop();
-		else
-			close();
-	}
-
 	header: NavBar {
 		id: navBar
 
@@ -68,6 +59,7 @@ ApplicationWindow {
 
 	MainMenu {
 		id: mainMenu
+		objectName: "appMainMenu"
 	}
 
 	Flickable {
@@ -95,7 +87,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("HOME")
-			enabled: appStackView.depth >= 2
+			enabled: stackView.depth >= 2
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"home.png"
@@ -106,12 +98,12 @@ ApplicationWindow {
 				anchors.leftMargin: 10
 			}
 
-			onClicked: appStackView.pop(appStackView.get(0));
+			onClicked: stackView.pop(stackView.get(0));
 		}
 
 		TabButton {
 			text: qsTr("   + Workout")
-			enabled: appStackView.depth === 1
+			enabled: stackView.depth === 1
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
@@ -130,7 +122,7 @@ ApplicationWindow {
 						appDB.getPage.disconnect(pushTDayOntoMainStackView);
 						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
 						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
-						appStackView.push(object2, StackView.DontLoad);
+						mainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(today) , object2);
 					}
 				}
 
@@ -150,6 +142,13 @@ ApplicationWindow {
 			} //onClicked
 		} //TabButton
 	} //footer
+
+	function androidBackKeyPressed() {
+		if (stackView.depth >= 2)
+			stackView.pop();
+		else
+			close();
+	}
 
 	function init() {
 		if (mesocyclesModel.count !== 0)

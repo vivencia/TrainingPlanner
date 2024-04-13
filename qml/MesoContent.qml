@@ -223,7 +223,7 @@ Page {
 							appDB.getPage.disconnect(pushTDayOntoStackView);
 							page.tDay = trainingDay;
 							page.splitLetter = splitLetter;
-							appStackView.push(page, StackView.DontLoad);
+							appMainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(_today) , page);
 						}
 					}
 

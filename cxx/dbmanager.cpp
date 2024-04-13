@@ -113,12 +113,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("accentColor"), QVariant(QColor(37, 181, 243)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(mainWindow) });
 
-	QQuickItem* appStackView(mainWindow->findChild<QQuickItem*>("appStackView"));
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appStackView"), QVariant::fromValue(appStackView) });
+	QObject* appMainMenu(mainWindow->findChild<QObject*>(u"appMainMenu"_qs));
+	properties.append(QQmlContext::PropertyPair{ u"appMainMenu"_qs, QVariant::fromValue(appMainMenu) });
+	QQuickItem* appStackView(mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
+	properties.append(QQmlContext::PropertyPair{ u"appStackView"_qs, QVariant::fromValue(appStackView) });
 
 	QQuickItem* contentItem(appStackView->parentItem());
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowHeight"), contentItem->height() }); //mainwindow.height: 640 - footer.height - header.height
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("windowWidth"), contentItem->width() });
+	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height: 640 - footer.height - header.height
+	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
 
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 

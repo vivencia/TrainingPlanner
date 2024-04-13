@@ -9,7 +9,9 @@ Drawer {
 	spacing: 0
 	padding: 0
 	edge: Qt.LeftEdge
+
 	property bool bMenuClicked: false
+	property var stackWindows: []
 
 	background: Rectangle {
 		gradient: Gradient {
@@ -27,9 +29,7 @@ Drawer {
 			mainMenuClosed();
 	}
 
-	onOpened: {
-		mainMenuOpened();
-	}
+	onOpened: mainMenuOpened();
 
 	ColumnLayout {
 		id: drawerLayout
@@ -93,7 +93,7 @@ Drawer {
 			onButtonClicked: {
 				function pushExercisesPageOntoStack(object) {
 					appDB.getPage.disconnect(pushExercisesPageOntoStack);
-					appStackView.push(object, stackView.DontLoad);
+					stackView.push(object, stackView.DontLoad);
 					menuClicked();
 				}
 
@@ -130,15 +130,19 @@ Drawer {
 			onClicked: { stackView.push("DevSettingsPage.qml"); menuClicked(); }
 		}
 
-		Item { // spacer item
+		Rectangle {
+			height: 3
+			width: parent.width
+			color: "white"
+		}
+
+		/*Item { // spacer item
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-		}
+		}*/
 	} //ColumnLayout
 
-	Component.onCompleted: {
-		mainwindow.backButtonPressed.connect(maybeRestore);
-	}
+	Component.onCompleted: mainwindow.backButtonPressed.connect(maybeRestore);
 
 	function menuClicked() {
 		bMenuClicked = true;
@@ -150,5 +154,33 @@ Drawer {
 			drawer.open();
 			bMenuClicked = false;
 		}
+	}
+
+	function addShortCut(label: string, object: var) {
+		for( var i = 0; i < stackWindows.length; i++ ) {
+			if (stackWindows[i] === object) {
+				stackView.push(object);
+				return;
+			}
+		}
+
+		stackWindows.push({"Object" : object});
+		var component = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			var button = component.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": stackWindows.length-1 });
+			button.buttonClicked.connect(openPage);
+		}
+		//If I just push "object", openPage() does not work. Go figure
+		stackView.push(stackWindows[stackWindows.length-1].Object);
+
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
+	}
+
+	function openPage(page_id: int) {
+		stackView.push(stackWindows[page_id].Object);
 	}
 } //Drawer

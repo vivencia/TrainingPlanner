@@ -1020,7 +1020,7 @@ Page {
 					if (id === 999) //999 first time creation
 						object.exerciseChosen.connect(gotExercise);
 					object.bChooseButtonEnabled = true;
-					appStackView.push(object, StackView.DontLoad);
+					appStackView.push(object);
 				}
 
 				appDB.getPage.connect(openTDayExercisesPage);

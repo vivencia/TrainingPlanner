@@ -2,8 +2,9 @@ import QtQuick
 import QtQuick.Controls
 
 ToolButton {
-	signal buttonClicked();
+	signal buttonClicked(int clickid);
 	property bool bEmitSignal: false
+	property int clickId: -1
 
 	id: button
 	width: parent.width
@@ -42,6 +43,7 @@ ToolButton {
 		font.pixelSize: AppSettings.fontSizeText
 		font.capitalization: Font.MixedCase
 		font.bold: true
+		wrapMode: Text.WordWrap
 		leftPadding: (parent.width - contentWidth) / 2
 	}
 
@@ -74,7 +76,7 @@ ToolButton {
 		onFinished: {
 			if (bEmitSignal) {
 				bEmitSignal = false;
-				buttonClicked();
+				buttonClicked(clickId);
 			}
 		}
 	}

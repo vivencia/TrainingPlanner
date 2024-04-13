@@ -132,7 +132,8 @@ Item {
 			tDayModel.newSetSubSet(setNumber, exerciseIdx);
 
 		var component = Qt.createComponent("RepsAndWeightRow.qml", Qt.Asynchronous);
-		if (component.status === Component.Ready) {
+
+		function finishCreation() {
 			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
@@ -143,8 +144,11 @@ Item {
 				subSetList[idx-1].Object.nextRowObj = rowSprite;
 			}
 		}
+
+		if (component.status === Component.Ready)
+			finishCreation();
 		else
-			console.log(component.errorString());
+			component.statusChanged.connect(finishCreation);
 	}
 
 	function removeSubSet(idx) {

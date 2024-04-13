@@ -268,7 +268,7 @@ Page {
 		{
 			if (id === 175) {
 				appDB.getPage.disconnect(pushPageOntoStack);
-				appStackView.push(object, StackView.DontLoad);
+				stackView.push(object);
 			}
 		}
 
@@ -281,7 +281,7 @@ Page {
 		{
 			if (id === 175) {
 				appDB.getPage.disconnect(pushMesoPageOntoStack);
-				appStackView.push(object, StackView.DontLoad);
+				mainMenu.addShortCut(mesocyclesModel.get(currentMesoIndex, 1), object);
 			}
 		}
 

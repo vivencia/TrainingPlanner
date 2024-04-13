@@ -68,7 +68,7 @@ Page {
 				function calendarPageReady(object, id) {
 					if (id === 35) {
 						appDB.getPage.disconnect(calendarPageReady);
-						appStackView.push(object, StackView.DontLoad);
+						appMainMenu.addShortCut( qsTr("Calendar: ") + mesocyclesModel.get(mesoIdx, 1) , object);
 					}
 				}
 
@@ -630,7 +630,6 @@ Page {
 
 					ButtonFlat {
 						id: btnCreateExercisePlan
-						objectName: "fererer"
 						text: qsTr("Exercises Planner")
 						Layout.row: 6
 						Layout.column: 0
@@ -644,7 +643,7 @@ Page {
 								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
 										mesoId:mesoId, mesoIdx:mesoIdx, mesoSplit:mesoSplit
 								});
-								appStackView.push(mesoPlannerObject);
+								appMainMenu.addShortCut( qsTr("Exercises Planner: ") + runCmd.formatDate(_today) , mesoPlannerObject);
 							}
 
 							if (component.status === Component.Ready)
