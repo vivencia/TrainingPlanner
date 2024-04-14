@@ -69,7 +69,7 @@ Page {
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.modified : false
 			fixedSize: true
-			width: 80
+			width: 50
 			height: btnAddExercise.height
 			anchors.left: parent.left
 			anchors.leftMargin: 5
@@ -89,7 +89,7 @@ Page {
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.count > 0 : false
 			fixedSize: true
-			width: 80
+			width: 50
 			height: btnAddExercise.height
 			anchors.left: btnSave.right
 			anchors.verticalCenter: parent.verticalCenter
@@ -99,6 +99,21 @@ Page {
 				currentPage.appendNewExerciseToDivision();
 				requestSimpleExercisesList(null, false);
 			}
+		}
+
+		ButtonFlat {
+			id: btnSwapPlan
+			text: qsTr("Swap with ") + (currentPage? currentPage.splitLetter : "")
+			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
+			textUnderIcon: true
+			visible: currentPage ? currentPage.bCanSwapPlan : false
+			fixedSize: true
+			width: 50
+			height: btnAddExercise.height
+			anchors.left: btnClearPlan.right
+			anchors.verticalCenter: parent.verticalCenter
+
+			onClicked: appDB.swapPlans(currentPage.splitLetter, currentPage.swappableLetter);
 		}
 
 		ButtonFlat {

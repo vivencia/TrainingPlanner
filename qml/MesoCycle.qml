@@ -643,7 +643,7 @@ Page {
 								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
 										mesoId:mesoId, mesoIdx:mesoIdx, mesoSplit:mesoSplit
 								});
-								appMainMenu.addShortCut( qsTr("Exercises Planner: ") + runCmd.formatDate(_today) , mesoPlannerObject);
+								appMainMenu.addShortCut( qsTr("Exercises Planner: ") + mesocyclesModel.get(mesoIdx, 1) , mesoPlannerObject);
 							}
 
 							if (component.status === Component.Ready)

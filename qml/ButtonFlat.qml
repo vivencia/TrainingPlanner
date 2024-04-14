@@ -56,6 +56,10 @@ Rectangle {
 			buttonText.height = fheight + 10
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
 		}
+		else {
+			buttonText.width = button.width;
+			buttonText.wrapMode = Text.WordWrap;
+		}
 	}
 
 	property double fillPosition: !anim.running

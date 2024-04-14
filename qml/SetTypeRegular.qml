@@ -67,18 +67,6 @@ Item {
 				}
 				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
-
-			Label {
-				id: lblTotalReps
-				text: qsTr("Total reps: ") + tDayModel.setReps_int(setNumber, exerciseIdx) * tDayModel.setSubSets_int(setNumber, exerciseIdx)
-				height: parent.height
-				visible: setType === 3
-				anchors {
-					top: parent.top
-					left: btnRemoveSet.right
-					leftMargin: 5
-				}
-			}
 		}
 
 		SetInputField {
@@ -108,9 +96,24 @@ Item {
 			onValueChanged: (str) => {
 				tDayModel.setSetSubSets(setNumber, exerciseIdx, str);
 				text = str;
+				if (setType === 3)
+					changeTotalRepsLabel();
 			}
 
 			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+
+			Label {
+				id: lblTotalReps
+				font.pixelSize: AppSettings.fontSizeText
+				font.bold: true
+				visible: setType === 3
+				anchors {
+					top: parent.verticalCenter
+					topMargin: -height/2
+					left: parent.horizontalCenter
+					leftMargin: 10
+				}
+			}
 		}
 
 		RowLayout {
@@ -126,6 +129,8 @@ Item {
 					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue.visible = true;
+					if (setType === 3)
+						changeTotalRepsLabel();
 				}
 
 				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -198,7 +203,15 @@ Item {
 		}
 	} // setLayout
 
-	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
+	Component.onCompleted: {
+		tDayModel.modifiedChanged.connect(hideCopyButtons);
+		if (setType === 3)
+			changeTotalRepsLabel();
+	}
+
+	function changeTotalRepsLabel() {
+		lblTotalReps.text = qsTr("Total reps: ") + tDayModel.setReps_int(setNumber, exerciseIdx) * tDayModel.setSubSets_int(setNumber, exerciseIdx);
+	}
 
 	function requestTimer(requester, message, mins, secs) {
 		var args = [message, mins, secs];

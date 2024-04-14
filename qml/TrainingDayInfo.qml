@@ -1119,9 +1119,9 @@ Page {
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
-		bShowSimpleExercisesList = visible;
-		bEnableMultipleSelection = multipleSel;
 		itemThatRequestedSimpleList = visible ? object : null;
+		bEnableMultipleSelection = multipleSel;
+		bShowSimpleExercisesList = visible;
 	}
 
 	function hideSimpleExerciseList() {

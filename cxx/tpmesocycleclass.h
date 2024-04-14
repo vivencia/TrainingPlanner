@@ -55,6 +55,7 @@ public:
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
 	void pushSplitPage(const QChar& splitLetter) const;
+	void swapPlans(const QString& splitLetter1, const QString& splitLetter2);
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------

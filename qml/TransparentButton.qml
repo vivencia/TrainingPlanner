@@ -44,7 +44,6 @@ ToolButton {
 		font.capitalization: Font.MixedCase
 		font.bold: true
 		wrapMode: Text.WordWrap
-		leftPadding: (parent.width - contentWidth) / 2
 	}
 
 	onPressed: {

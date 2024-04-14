@@ -67,7 +67,8 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 					QQmlComponent::Asynchronous);
 
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return TPMesocycleClass::createMesocyclePage_part2(); } );
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+			{ return TPMesocycleClass::createMesocyclePage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	else
 		createMesocyclePage_part2();
 }
@@ -103,7 +104,8 @@ void TPMesocycleClass::createMesoSplitPage()
 	m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 	m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_qmlSplitObjectParent));
 	if (m_splitComponent->status() != QQmlComponent::Ready)
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createMesoSplitPage_part2(); } );
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+			{ return createMesoSplitPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	else
 		createMesoSplitPage_part2();
 }
@@ -150,6 +152,15 @@ void TPMesocycleClass::pushSplitPage(const QChar& splitLetter) const
 					Q_ARG(int, static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A')),
 					Q_ARG(QQuickItem*, m_splitPages.value(splitLetter)));
 }
+
+void TPMesocycleClass::swapPlans(const QString& splitLetter1, const QString& splitLetter2)
+{
+	m_splitPages.value(splitLetter1.at(0))->setProperty("splitLetter", splitLetter2);
+	m_splitPages.value(splitLetter2.at(0))->setProperty("splitLetter", splitLetter1);
+	DBMesoSplitModel* tempSplit(m_splitModels.value(splitLetter1.at(0)));
+	m_splitModels[splitLetter1.at(0)] = m_splitModels.value(splitLetter2.at(0));
+	m_splitModels[splitLetter2.at(0)] = tempSplit;
+}
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -164,7 +175,7 @@ uint TPMesocycleClass::createMesoCalendarPage()
 
 	if (m_calComponent->status() != QQmlComponent::Ready)
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
-					{ return createMesoCalendarPage_part2(); } );
+					{ return createMesoCalendarPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	else
 		createMesoCalendarPage_part2();
 	return calPageCreateId;
@@ -215,7 +226,8 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 		}
 
 		if (m_tDayComponent->status() != QQmlComponent::Ready)
-			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createTrainingDayPage_part2(); } );
+			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+				{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		else
 			createTrainingDayPage_part2();
 	}
@@ -254,7 +266,8 @@ uint TPMesocycleClass::createExerciseObject(const QString& exerciseName, const Q
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
-		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExerciseObject_part2(); } );
+		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+			{ return createExerciseObject_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	else
 		createExerciseObject_part2();
 	return tDayExerciseCreateId;
@@ -296,7 +309,8 @@ void TPMesocycleClass::createExercisesObjects()
 	{
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 		if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
-			connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) { return createExercisesObjects(); } );
+			connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+					{ return createExercisesObjects(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		else
 			createExercisesObjects();
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "createNavButtons", Qt::AutoConnection);
@@ -318,14 +332,15 @@ void TPMesocycleClass::removeExerciseObject(const uint exercise_idx)
 {
 	if (exercise_idx < m_currentExercises->exerciseObjects.count())
 	{
-		for(uint i(exercise_idx+1); i < m_currentExercises->exerciseObjects.count(); ++i)
-		{
-			m_currentExercises->exerciseEntry(i)->setProperty("exerciseIdx", i-1);
-			for(uint x(0); x < m_currentExercises->setCount(i); ++x)
-				m_currentExercises->setObject(i, x)->setProperty("exerciseIdx", i-1);
-		}
 		m_CurrenttDayModel->removeExercise(exercise_idx);
 		m_currentExercises->removeExerciseEntry(exercise_idx);
+		for(uint i(exercise_idx); i < m_currentExercises->exerciseObjects.count(); ++i)
+		{
+			//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
+			QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(i), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
+			for(uint x(0); x < m_currentExercises->setCount(i); ++x)
+				m_currentExercises->setObject(i, x)->setProperty("exerciseIdx", i);
+		}
 	}
 }
 
@@ -377,7 +392,7 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 
 	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
 		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx](QQmlComponent::Status status)
-			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); });
+			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	else
 		createSetObject_part2(set_type, set_number, exercise_idx);
 }
@@ -617,8 +632,10 @@ void TPMesocycleClass::tDayExercises::removeExerciseEntry(const uint exercise_id
 {
 	exerciseObject* exerciseObj(exerciseObjects.at(exercise_idx));
 	for (uint x(0); x < exerciseObj->m_setObjects.count(); ++x)
-		delete exerciseObj->m_setObjects.at(x);
+		exerciseObj->m_setObjects.at(x)->deleteLater();
+	exerciseObj->m_setObjects.clear();
 	exerciseObj->m_exerciseEntry->deleteLater();
+	exerciseObjects.removeAt(exercise_idx);
 	delete exerciseObj;
 }
 

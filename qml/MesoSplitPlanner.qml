@@ -17,6 +17,8 @@ Frame {
 	property int prevMesoId: -1
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
+	property bool bCanSwapPlan: false
+	property string swappableLetter
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
@@ -106,6 +108,8 @@ Frame {
 			onTextEdited: {
 				mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
 				exercisesListModel.makeFilterString(text);
+				swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
+				bCanSwapPlan = swappableLetter !== "";
 			}
 		}
 
@@ -599,6 +603,8 @@ Frame {
 			}
 			exercisesListModel.makeFilterString(txtSplit.text);
 			bAlreadyLoaded = true;
+			swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
+			bCanSwapPlan = swappableLetter !== "";
 		}
 	}
 

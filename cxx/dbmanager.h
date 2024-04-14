@@ -74,6 +74,8 @@ public:
 	Q_INVOKABLE void updateMesoSplitComplete(const QString& splitLetter);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
+	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
+	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

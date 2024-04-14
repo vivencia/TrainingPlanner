@@ -16,9 +16,9 @@ Rectangle {
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
-			if (itemThatRequestedSimpleList !== currentItemThatRequestedSimpleList) {
+			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
-				itemThatRequestedSimpleList = currentItemThatRequestedSimpleList;
+				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
