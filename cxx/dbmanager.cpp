@@ -568,7 +568,7 @@ bool DbManager::mesoHasPlan(const uint meso_id, const QString& splitLetter) cons
 	{
 		DBMesoSplitTable* meso_split(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
 		const bool ret(meso_split->mesoHasPlan(QString::number(meso_id), splitLetter));
-		delete meso_split;
+		meso_split->deleteLater();
 		return ret;
 	}
 	return false;
@@ -597,6 +597,8 @@ static void muscularGroupSimplified(QString& muscularGroup)
 		{
 			if(static_cast<QString>(*itr).length() < 3)
 				continue;
+			if (!muscularGroup.isEmpty())
+				muscularGroup.append(' ');
 			muscularGroup.append(static_cast<QString>(*itr).toLower());
 			if (muscularGroup.endsWith('s', Qt::CaseInsensitive) )
 				muscularGroup.chop(1);
@@ -618,32 +620,39 @@ static bool muscularGroupsSimilar(const QString& muscularGroup1, const QString& 
 		if (muscularGroup1.contains(*itr))
 			matches++;
 	} while (++itr != itr_end);
-	const uint nWords(muscularGroup1.count(' '));
-	return (nWords/matches >= 0.8);
+	if (matches > 0)
+	{
+		const uint nWords(muscularGroup1.count(' ') + 1);
+		return (nWords/matches >= 0.8);
+	}
+	return false;
 }
 
 QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 {
-	QString muscularGroup1(mesoSplitModel->get(m_MesoIdx, static_cast<int>(splitLetter.at(0).toLatin1()) - static_cast<int>('A') + 2));
-	QString muscularGroup2;
-	const QString mesoSplit(mesocyclesModel->get(m_MesoIdx, 6));
-	muscularGroupSimplified(muscularGroup1);
+	if (mesoHasPlan(m_MesoIdx, splitLetter))
+	{
+		QString muscularGroup1(mesoSplitModel->get(m_MesoIdx, static_cast<int>(splitLetter.at(0).toLatin1()) - static_cast<int>('A') + 2));
+		QString muscularGroup2;
+		const QString mesoSplit(mesocyclesModel->get(m_MesoIdx, 6));
+		muscularGroupSimplified(muscularGroup1);
 
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
+		QString::const_iterator itr(mesoSplit.constBegin());
+		const QString::const_iterator itr_end(mesoSplit.constEnd());
 
-	do {
-		if (static_cast<QChar>(*itr) == QChar('R'))
-			continue;
-		if (static_cast<QChar>(*itr) == splitLetter.at(0))
-			continue;
+		do {
+			if (static_cast<QChar>(*itr) == QChar('R'))
+				continue;
+			if (static_cast<QChar>(*itr) == splitLetter.at(0))
+				continue;
 
-		muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
-		muscularGroupSimplified(muscularGroup2);
-		if (muscularGroupsSimilar(muscularGroup1, muscularGroup2))
-			return QString(*itr);
+			muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
+			muscularGroupSimplified(muscularGroup2);
+			if (muscularGroupsSimilar(muscularGroup1, muscularGroup2))
+				return QString(*itr);
 
-	} while (++itr != itr_end);
+		} while (++itr != itr_end);
+	}
 	return QString();
 }
 
@@ -652,11 +661,11 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	m_currentMesoManager->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter1.at(0))));
 	worker->addExecArg(m_MesoId);
-	worker->addExecArg(splitLetter2);
+	worker->addExecArg(splitLetter1);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter2.at(0))));
 	worker2->addExecArg(m_MesoId);
-	worker2->addExecArg(splitLetter1);
+	worker2->addExecArg(splitLetter2);
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------

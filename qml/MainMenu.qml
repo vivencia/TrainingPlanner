@@ -104,30 +104,9 @@ Drawer {
 
 		TransparentButton {
 			id: btnSettingsTheme
-			text: qsTr("Theme")
+			text: qsTr("Settings")
 			Layout.fillWidth: true
-			onClicked: { stackView.push("ThemeSettingsPage.qml"); menuClicked(); }
-		}
-
-		TransparentButton {
-			id: btnSettingsLanguage
-			text: qsTr("Language")
-			Layout.fillWidth: true
-			onClicked: { stackView.push("LanguageSettingsPage.qml", {} ); menuClicked(); }
-		}
-
-		TransparentButton {
-			id: btnSettingsFont
-			text: qsTr("Fonts")
-			Layout.fillWidth: true
-			onClicked: { stackView.push("FontSizePage.qml"); menuClicked(); }
-		}
-
-		TransparentButton {
-			id: btnSettingsDev
-			text: qsTr("Developer Options")
-			Layout.fillWidth: true
-			onClicked: { stackView.push("DevSettingsPage.qml"); menuClicked(); }
+			onClicked: { stackView.push("SettingsPage.qml"); menuClicked(); }
 		}
 
 		Rectangle {
@@ -136,10 +115,10 @@ Drawer {
 			color: "white"
 		}
 
-		/*Item { // spacer item
+		Item { // spacer item
 			Layout.fillWidth: true
 			Layout.fillHeight: true
-		}*/
+		}
 	} //ColumnLayout
 
 	Component.onCompleted: mainwindow.backButtonPressed.connect(maybeRestore);

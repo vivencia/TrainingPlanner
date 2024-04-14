@@ -103,8 +103,7 @@ Page {
 
 		ButtonFlat {
 			id: btnSwapPlan
-			text: qsTr("Swap with ") + (currentPage? currentPage.splitLetter : "")
-			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
+			text: qsTr("Swap with ") + currentPage.swappableLetter
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true
@@ -113,7 +112,7 @@ Page {
 			anchors.left: btnClearPlan.right
 			anchors.verticalCenter: parent.verticalCenter
 
-			onClicked: appDB.swapPlans(currentPage.splitLetter, currentPage.swappableLetter);
+			onClicked: appDB.swapMesoPlans(currentPage.splitLetter, currentPage.swappableLetter);
 		}
 
 		ButtonFlat {

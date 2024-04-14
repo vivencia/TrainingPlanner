@@ -113,29 +113,6 @@
     </message>
 </context>
 <context>
-    <name>DevSettingsPage</name>
-    <message>
-        <location filename="../qml/DevSettingsPage.qml" line="23"/>
-        <source>Delete MesoCycle Table</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../qml/DevSettingsPage.qml" line="32"/>
-        <source>Delete MesoCycle Calendar Table</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/DevSettingsPage.qml" line="41"/>
-        <source>Delete Exercises Table</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/DevSettingsPage.qml" line="53"/>
-        <source>Run action</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ExerciseEntry</name>
     <message>
         <location filename="../qml/ExerciseEntry.qml" line="29"/>
@@ -266,31 +243,13 @@
     </message>
     <message>
         <location filename="../qml/ExercisesPlanner.qml" line="106"/>
+        <source>Swap with </source>
+        <translation>Trocar com </translation>
+    </message>
+    <message>
+        <location filename="../qml/ExercisesPlanner.qml" line="120"/>
         <source>Add exercise</source>
         <translation>Adicionar Exercício</translation>
-    </message>
-</context>
-<context>
-    <name>FontSizePage</name>
-    <message>
-        <location filename="../qml/FontSizePage.qml" line="42"/>
-        <source>Example text</source>
-        <translation>Texto de exemplo</translation>
-    </message>
-    <message>
-        <location filename="../qml/FontSizePage.qml" line="51"/>
-        <source>Font used in titles</source>
-        <translation>Fonte utilizada em títulos</translation>
-    </message>
-    <message>
-        <location filename="../qml/FontSizePage.qml" line="60"/>
-        <source>Font used in lists</source>
-        <translation>Fonte utilizada em listas</translation>
-    </message>
-    <message>
-        <location filename="../qml/FontSizePage.qml" line="69"/>
-        <source>Font used on text input fields</source>
-        <translation>Fonte utilizadas em entradas de texto</translation>
     </message>
 </context>
 <context>
@@ -388,39 +347,6 @@
     </message>
 </context>
 <context>
-    <name>LanguageSettingsPage</name>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="23"/>
-        <source>Application Language</source>
-        <translation>Língua do aplicativo</translation>
-    </message>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="45"/>
-        <source>Measuring Units</source>
-        <translation>Unidade de medida</translation>
-    </message>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="57"/>
-        <source>International Units</source>
-        <translation>Unidades Internacionais</translation>
-    </message>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="72"/>
-        <source>Imperial Units</source>
-        <translation>Unidades Imperiais</translation>
-    </message>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="89"/>
-        <source>The App must be restarted in order to reflect the changes</source>
-        <translation>O aplicativo precisa ser reiniciado para as alterações terem efeito</translation>
-    </message>
-    <message>
-        <location filename="../qml/LanguageSettingsPage.qml" line="102"/>
-        <source>Apply</source>
-        <translation>Aplicar</translation>
-    </message>
-</context>
-<context>
     <name>MainMenu</name>
     <message>
         <location filename="../qml/MainMenu.qml" line="92"/>
@@ -429,23 +355,8 @@
     </message>
     <message>
         <location filename="../qml/MainMenu.qml" line="107"/>
-        <source>Theme</source>
-        <translation>Tema</translation>
-    </message>
-    <message>
-        <location filename="../qml/MainMenu.qml" line="114"/>
-        <source>Language</source>
-        <translation>Lingua</translation>
-    </message>
-    <message>
-        <location filename="../qml/MainMenu.qml" line="121"/>
-        <source>Fonts</source>
-        <translation>Fontes</translation>
-    </message>
-    <message>
-        <location filename="../qml/MainMenu.qml" line="128"/>
-        <source>Developer Options</source>
-        <translation>Desenvolvedor</translation>
+        <source>Settings</source>
+        <translation>Configurações</translation>
     </message>
 </context>
 <context>
@@ -687,75 +598,75 @@
 <context>
     <name>MesoSplitPlanner</name>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="59"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="61"/>
         <source>Import Exercises Plan?</source>
         <translation>Importar o Plano de Exercícios?</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="60"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="62"/>
         <source>Import the exercises plan for training division &lt;b&gt;</source>
         <translation>Importar o programa de exercícios para a divisão de treinos &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="61"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="63"/>
         <source>&lt;/b&gt; from &lt;b&gt;</source>
         <translation>&lt;/b&gt; de &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="62"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="64"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="63"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="65"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="83"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="85"/>
         <source>Training Division </source>
         <translation>Divisão de Treino </translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="92"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="94"/>
         <source>Muscle groups trained in this division:</source>
         <translation>Grupos musculares treinados nesta divisão:</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="148"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="152"/>
         <source>Exercise #</source>
         <translation>Exercício #</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="298"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="302"/>
         <source>Set Type:</source>
         <translation>Tipo de set:</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="313"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="317"/>
         <source>Choose exercises...</source>
         <translation>Escolher exercícios...</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="323"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="327"/>
         <source>Number of Sets:</source>
         <translation>Número de séries:</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="398"/>
-        <location filename="../qml/MesoSplitPlanner.qml" line="419"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="402"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="423"/>
         <source>Baseline number of reps:</source>
         <translation>Número de repetições referencial:</translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="463"/>
-        <location filename="../qml/MesoSplitPlanner.qml" line="482"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="467"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="486"/>
         <source>Baseline weight </source>
         <translation>Carga referencial </translation>
     </message>
     <message>
-        <location filename="../qml/MesoSplitPlanner.qml" line="312"/>
-        <location filename="../qml/MesoSplitPlanner.qml" line="630"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="316"/>
+        <location filename="../qml/MesoSplitPlanner.qml" line="636"/>
         <source>Choose exercise...</source>
         <translation>Escolher exercício...</translation>
     </message>
@@ -947,9 +858,82 @@
         <translation>Série #</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeRegular.qml" line="73"/>
+        <location filename="../qml/SetTypeRegular.qml" line="213"/>
         <source>Total reps: </source>
         <translation>Repetições totais: </translation>
+    </message>
+</context>
+<context>
+    <name>SettingsPage</name>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="30"/>
+        <source>The App must be restarted in order to reflect the changes</source>
+        <translation>O aplicativo precisa ser reiniciado para as alterações terem efeito</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="55"/>
+        <source>Application Language</source>
+        <translation>Língua do aplicativo</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="85"/>
+        <source>Fonts Sizes</source>
+        <translation>Tamanho das fontes</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="131"/>
+        <source>Example text</source>
+        <translation>Texto de exemplo</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="139"/>
+        <source>Font used in titles</source>
+        <translation>Fonte utilizada em títulos</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="146"/>
+        <source>Font used in lists</source>
+        <translation>Fonte utilizada em listas</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="153"/>
+        <source>Font used on text input fields</source>
+        <translation>Fonte utilizadas em entradas de texto</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="175"/>
+        <source>Application style</source>
+        <translation>Estilo do aplicativo</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="196"/>
+        <source>Basic</source>
+        <translation>Básico</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="208"/>
+        <source>Fusion</source>
+        <translation>Fusion</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="220"/>
+        <source>Imagine</source>
+        <translation>Imagine</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="232"/>
+        <source>Material</source>
+        <translation>Material</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="244"/>
+        <source>Universal</source>
+        <translation>Universal</translation>
+    </message>
+    <message>
+        <location filename="../qml/SettingsPage.qml" line="271"/>
+        <source>Apply</source>
+        <translation>Aplicar</translation>
     </message>
 </context>
 <context>
@@ -996,69 +980,6 @@
         <location filename="../qml/TPTextInput.qml" line="45"/>
         <source>Text copied to the clipboard</source>
         <translation>Texto copiado para a área de transferência</translation>
-    </message>
-</context>
-<context>
-    <name>ThemeSettingsPage</name>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="18"/>
-        <source>Application style</source>
-        <translation>Estilo do aplicativo</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="30"/>
-        <source>Basic</source>
-        <translation>Básico</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="39"/>
-        <source>Fusion</source>
-        <translation>Fusion</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="48"/>
-        <source>Imagine</source>
-        <translation>Imagine</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="57"/>
-        <source>Material</source>
-        <translation>Material</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="66"/>
-        <source>Universal</source>
-        <translation>Universal</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="77"/>
-        <source>Appearance</source>
-        <translation>Aprarência</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="88"/>
-        <source>Follow System</source>
-        <translation>Sistem</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="97"/>
-        <source>Light Mode</source>
-        <translation>Modo Claro</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="106"/>
-        <source>Dark Mode</source>
-        <translation>Modo Escuro</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="118"/>
-        <source>Apply</source>
-        <translation>Aplicar</translation>
-    </message>
-    <message>
-        <location filename="../qml/ThemeSettingsPage.qml" line="149"/>
-        <source>You must restart the application for the settings to take effect</source>
-        <translation>O aplicativo precisa ser reiniciado para as alterações terem efeito</translation>
     </message>
 </context>
 <context>
@@ -1358,17 +1279,17 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="96"/>
+        <location filename="../qml/main.qml" line="89"/>
         <source>HOME</source>
         <translation>INÍCIO</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="112"/>
+        <location filename="../qml/main.qml" line="105"/>
         <source>   + Workout</source>
         <translation>   + Treino</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="132"/>
+        <location filename="../qml/main.qml" line="125"/>
         <source>Workout: </source>
         <translation>Treino: </translation>
     </message>

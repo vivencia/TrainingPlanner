@@ -18,7 +18,7 @@ Frame {
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 	property bool bCanSwapPlan: false
-	property string swappableLetter
+	property string swappableLetter: ""
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
