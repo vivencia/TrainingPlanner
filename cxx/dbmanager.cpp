@@ -102,9 +102,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoCalendarModel"), QVariant::fromValue(mesoCalendarModel) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryLightColor"), QVariant(QColor(187, 222, 251)) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryColor"), QVariant(QColor(37, 181, 243)) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("primaryDarkColor"), QVariant(QColor(25, 118, 210)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor1"), QVariant(QColor(220, 227, 240)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor2"), QVariant(QColor(195, 202, 213)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("lightIconFolder"), QStringLiteral("white/") });
@@ -630,7 +627,7 @@ static bool muscularGroupsSimilar(const QString& muscularGroup1, const QString& 
 
 QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 {
-	if (mesoHasPlan(m_MesoIdx, splitLetter))
+	if (mesoHasPlan(m_MesoId, splitLetter))
 	{
 		QString muscularGroup1(mesoSplitModel->get(m_MesoIdx, static_cast<int>(splitLetter.at(0).toLatin1()) - static_cast<int>('A') + 2));
 		QString muscularGroup2;

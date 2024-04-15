@@ -15,17 +15,21 @@
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
-	if ( settingsObj.childKeys().isEmpty() ) {
+	if (settingsObj.childKeys().isEmpty())
+	{
 		settingsObj.setValue( "appLocale", QLocale::system().name() );
 		settingsObj.setValue( "weightUnit", "(kg)" );
-		settingsObj.setValue( "themeStyle", "Material" );
-		settingsObj.setValue( "themeStyleColorIndex", 0 );
+		settingsObj.setValue( "themeStyle", u"Material"_qs );
+		settingsObj.setValue( "colorScheme", u"Blue"_qs );
+		settingsObj.setValue( "primaryDarkColor", u"#1976D2"_qs);
+		settingsObj.setValue( "primaryColor", u"#25b5f3"_qs);
+		settingsObj.setValue( "primaryLightColor", u"#BBDEFB"_qs);
+		settingsObj.setValue( "exercisesListVersion", u"0"_qs);
 		settingsObj.setValue( "themeStyleIndex", 4 );
 		settingsObj.setValue( "fontSize", 14 );
 		settingsObj.setValue( "fontSizeLists", 9 );
 		settingsObj.setValue( "fontSizeText", 12 );
 		settingsObj.setValue( "fontSizeTitle", 21 );
-		settingsObj.setValue( "exercisesListVersion", "0");
 		settingsObj.sync();
 	}
 }
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
 	if (db_filepath.isEmpty())
 	{
 		QQmlApplicationEngine* tempEngine(new QQmlApplicationEngine());
-		db_filepath = runCmd.getAppDir(runCmd.searchForDatabaseFile(tempEngine->offlineStoragePath()));
+		db_filepath = runCmd.getAppDir(tempEngine->offlineStoragePath());
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
 		delete tempEngine;

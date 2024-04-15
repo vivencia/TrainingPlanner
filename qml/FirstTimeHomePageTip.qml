@@ -67,9 +67,9 @@ ToolTip {
 	}
 
 	background: Rectangle {
-		border.color: primaryDarkColor
+		border.color: AppSettings.primaryDarkColor
 		border.width: 2
-		color: primaryDarkColor
+		color: AppSettings.primaryDarkColor
 		opacity: 0.7
 		radius: 7
 	}

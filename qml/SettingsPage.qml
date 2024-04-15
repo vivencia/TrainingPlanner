@@ -6,10 +6,13 @@ Page {
 	id: settingsPage
 
 	property bool bModified: false
+	property bool bNeedRestart: false
 	property var appLanguages: [ { text:"English", value: 0 }, { text:"Português", value: 1 }, { text:"Deutsch", value: 2} ]
 	property var appLocales: ["en_US", "pt_BR", "de_DE"]
 	property int fontPSize : AppSettings.fontSize
 	property int optStyleChosen: 0
+	property int colorSchemeChosen: 0
+	property var colorScheme: ["","",""]
 
 	Image {
 		anchors.fill: parent
@@ -19,7 +22,7 @@ Page {
 		opacity: 0.6
 	}
 	background: Rectangle {
-		color: primaryDarkColor
+		color: AppSettings.primaryDarkColor
 		opacity: 0.7
 	}
 
@@ -69,7 +72,9 @@ Page {
 						}
 					}
 
-					onActivated: (index) => bModified = true;
+					onActivated: (index) => {
+						bNeedRestart = bModified = true;
+					}
 				}
 			}
 //------------------------------------------------------LANGUAGE------------------------------------------------------
@@ -205,8 +210,8 @@ Page {
 						text: qsTr("Basic")
 						Layout.leftMargin: 10
 
-						onCheckedChanged: {
-							bModified = true;
+						onClicked: {
+							bNeedRestart = bModified = true;
 							if (checked) optStyleChosen = 1;
 						}
 					}
@@ -217,8 +222,8 @@ Page {
 						text: qsTr("Fusion")
 						Layout.leftMargin: 10
 
-						onCheckedChanged: {
-							bModified = true;
+						onClicked: {
+							bNeedRestart = bModified = true;
 							if (checked) optStyleChosen = 2;
 						}
 					}
@@ -229,8 +234,8 @@ Page {
 						text: qsTr("Imagine")
 						Layout.leftMargin: 10
 
-						onCheckedChanged: {
-							bModified = true;
+						onClicked: {
+							bNeedRestart = bModified = true;
 							if (checked) optStyleChosen = 3;
 						}
 					}
@@ -241,8 +246,8 @@ Page {
 						text: qsTr("Material")
 						Layout.leftMargin: 10
 
-						onCheckedChanged: {
-							bModified = true;
+						onClicked: {
+							bNeedRestart = bModified = true;
 							if (checked) optStyleChosen = 4;
 						}
 					}
@@ -253,8 +258,8 @@ Page {
 						text: qsTr("Universal")
 						Layout.leftMargin: 10
 
-						onCheckedChanged: {
-							bModified = true;
+						onClicked: {
+							bNeedRestart = bModified = true;
 							if (checked) optStyleChosen = 5;
 						}
 					}
@@ -262,6 +267,164 @@ Page {
 			} //GroupBox
 //------------------------------------------------------THEME------------------------------------------------------
 
+			Rectangle {
+				height: 3
+				color: "white"
+				Layout.fillWidth: true
+			}
+
+//------------------------------------------------------COLORS------------------------------------------------------
+			GroupBox {
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 10
+				Layout.maximumWidth: settingsPage.width - 20
+				spacing: 0
+				padding: 0
+
+				label: Label {
+					text: qsTr("Color Scheme")
+					color: "white"
+					anchors.horizontalCenter: parent.horizontalCenter
+					anchors.bottomMargin: 10
+					font.bold: true
+					font.pixelSize: AppSettings.fontSize
+				}
+
+				background: Rectangle {
+					color: "transparent"
+					border.color: "white"
+					radius: 6
+				}
+
+				GridLayout {
+					anchors.fill: parent
+					columns: 2
+					rows: 5
+
+					TPRadioButton {
+						id: optBlue
+						checked: AppSettings.colorScheme === "Blue";
+						text: qsTr("Blue")
+						Layout.leftMargin: 10
+						Layout.column: 0
+						Layout.row: 0
+
+						onCheckedChanged: {
+							bModified = true;
+							if (checked) colorSchemeChosen = 1;
+						}
+					}
+
+					TPColorRectangle {
+						id: recColor1
+						darkColor: "#1976D2"
+						midColor: "#25b5f3"
+						lightColor: "#BBDEFB"
+						Layout.column: 1
+						Layout.row: 0
+						Layout.rightMargin: 10
+					}
+
+					TPRadioButton {
+						id: optGreen
+						checked: AppSettings.colorScheme === "Green";
+						text: qsTr("Green")
+						Layout.leftMargin: 10
+						Layout.column: 0
+						Layout.row: 1
+
+						onCheckedChanged: {
+							bModified = true;
+							if (checked) colorSchemeChosen = 2;
+						}
+					}
+
+					TPColorRectangle {
+						id: recColor2
+						darkColor: "#12a35a"
+						midColor: "#97dd81"
+						lightColor: "#d4fdc0"
+						Layout.column: 1
+						Layout.row: 1
+						Layout.rightMargin: 10
+					}
+
+					TPRadioButton {
+						id: optRed
+						checked: AppSettings.colorScheme === "Red";
+						text: qsTr("Red")
+						Layout.leftMargin: 10
+						Layout.column: 0
+						Layout.row: 2
+
+						onCheckedChanged: {
+							bModified = true;
+							if (checked) colorSchemeChosen = 3;
+						}
+					}
+
+					TPColorRectangle {
+						id: recColor3
+						darkColor: "#fd1c20"
+						midColor: "#fd9ab1"
+						lightColor: "#ebafc7"
+						Layout.column: 1
+						Layout.row: 2
+						Layout.rightMargin: 10
+					}
+
+					TPRadioButton {
+						id: optDark
+						checked: AppSettings.colorScheme === "Dark";
+						text: qsTr("Dark")
+						Layout.leftMargin: 10
+						Layout.column: 0
+						Layout.row: 3
+
+						onCheckedChanged: {
+							bModified = true;
+							if (checked) colorSchemeChosen = 4;
+						}
+					}
+
+					TPColorRectangle {
+						id: recColor4
+						darkColor: "#000000"
+						midColor: "#b1bab7"
+						lightColor: "#d7e2de"
+						Layout.column: 1
+						Layout.row: 3
+						Layout.rightMargin: 10
+					}
+
+					TPRadioButton {
+						id: optLight
+						checked: AppSettings.colorScheme === "Light";
+						text: qsTr("Light")
+						Layout.leftMargin: 10
+						Layout.column: 0
+						Layout.row: 4
+
+						onCheckedChanged: {
+							bModified = true;
+							if (checked) colorSchemeChosen = 5;
+						}
+					}
+
+					TPColorRectangle {
+						id: recColor5
+						darkColor: "#c1c1c1"
+						midColor: "#cccccc"
+						lightColor: "#f3f3f3"
+						Layout.column: 1
+						Layout.row: 4
+						Layout.rightMargin: 10
+					}
+				}
+			}
+
+//------------------------------------------------------COLORS------------------------------------------------------
 		} //ColumnLayout
 	} //ScrollView
 
@@ -271,7 +434,7 @@ Page {
 		height: 55
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 
@@ -285,7 +448,10 @@ Page {
 
 			onClicked: {
 				bModified = false;
-				applyTip.showTimed(4000, 0);
+				if (bNeedRestart) {
+					applyTip.showTimed(4000, 0);
+					bNeedRestart = false;
+				}
 
 				AppSettings.appLocale = appLocales[cboSetType.currentIndex];
 				AppSettings.fontSize = fontPSize;
@@ -293,24 +459,56 @@ Page {
 				AppSettings.fontSizeLists = fontPSize * 0.7
 				AppSettings.fontSizeText = fontPSize * 0.9
 
-				switch (optStyleChosen) {
-					case 1:
-						AppSettings.themeStyle = "Basic";
-					break;
-					case 2:
-						AppSettings.themeStyle = "Fusion";
-					break;
-					case 3:
-						AppSettings.themeStyle = "Imagine";
-					break;
-					case 4:
-						AppSettings.themeStyle = "Material";
-					break;
-					case 5:
-						AppSettings.themeStyle = "Universal";
-					break;
+				if (optStyleChosen !== 0) {
+					switch (optStyleChosen) {
+						case 1:
+							AppSettings.themeStyle = "Basic";
+						break;
+						case 2:
+							AppSettings.themeStyle = "Fusion";
+						break;
+						case 3:
+							AppSettings.themeStyle = "Imagine";
+						break;
+						case 4:
+							AppSettings.themeStyle = "Material";
+						break;
+						case 5:
+							AppSettings.themeStyle = "Universal";
+						break;
+					}
+					optStyleChosen = 0;
+					AppSettings.themeStyleIndex = optStyleChosen;
 				}
-				AppSettings.themeStyleIndex = optStyleChosen;
+
+				if (colorSchemeChosen !== 0) {
+					switch (colorSchemeChosen) {
+						case 1:
+							AppSettings.colorScheme = "Blue";
+							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor];
+						break;
+						case 2:
+							AppSettings.colorScheme = "Green";
+							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor];
+						break;
+						case 3:
+							AppSettings.colorScheme = "Red";
+							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor];
+						break;
+						case 4:
+							AppSettings.colorScheme = "Dark";
+							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor];
+						break;
+						case 5:
+							AppSettings.colorScheme = "Light";
+							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor];
+						break;
+					}
+					colorSchemeChosen = 0;
+					AppSettings.primaryDarkColor = colorScheme[0];
+					AppSettings.primaryColor = colorScheme[1];
+					AppSettings.primaryLightColor = colorScheme[2];
+				}
 			}
 		}
 	}

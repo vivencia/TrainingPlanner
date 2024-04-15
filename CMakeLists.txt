@@ -94,6 +94,7 @@ set( QML_FILES
     "qml/TPBalloonTip.qml"
     "qml/SimpleExercisesListPanel.qml"
     "qml/SetNotesField.qml"
+    "qml/TPColorRectangle.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

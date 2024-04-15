@@ -41,7 +41,7 @@ Page {
 		opacity: 0.6
 	}
 	background: Rectangle {
-		color: primaryDarkColor
+		color: AppSettings.primaryDarkColor
 		opacity: 0.7
 	}
 
@@ -49,7 +49,7 @@ Page {
 		height: btnManageMeso.height + 20
 		enabled: !bNewMeso && !bModified
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 
@@ -363,7 +363,7 @@ Page {
 							x: chkPreserveOldCalendar.leftPadding
 							y: parent.height / 2 - height / 2
 							radius: 5
-							border.color: chkPreserveOldCalendar.down ? primaryDarkColor : primaryLightColor
+							border.color: chkPreserveOldCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 
 							Rectangle {
 								width: 14
@@ -371,7 +371,7 @@ Page {
 								x: 6
 								y: 6
 								radius: 2
-								color: chkPreserveOldCalendar.down ? primaryDarkColor : primaryLightColor
+								color: chkPreserveOldCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 								visible: chkPreserveOldCalendar.checked
 							}
 						}
@@ -734,7 +734,7 @@ Page {
 		height: 55
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 

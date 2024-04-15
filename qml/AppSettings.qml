@@ -11,13 +11,16 @@ Settings {
 	property string appLocale
 	property string weightUnit
 	property string themeStyle
+	property string colorScheme
+	property string primaryDarkColor
+	property string primaryColor
+	property string primaryLightColor
+	property string exercisesListVersion
 	property int themeStyleIndex
-	property int themeStyleColorIndex
 	property int fontSize
 	property int fontSizeLists
 	property int fontSizeText
 	property int fontSizeTitle
-	property string exercisesListVersion
 
 	onFontSizeChanged: appFontSizeChanged();
 }

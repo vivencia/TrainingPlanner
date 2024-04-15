@@ -5,6 +5,8 @@ import com.vivenciasoftware.qmlcomponents
 
 Frame {
 	id: paneSplit
+	objectName: "mesoSplitPlanner"
+
 	required property int mesoId
 	required property int mesoIdx
 	required property string splitLetter
@@ -151,7 +153,6 @@ Frame {
 						id: optCurrentExercise
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
 						textColor: "black"
-						indicatorColor: "black"
 						checked: index === splitModel.currentRow
 						width: parent.width
 
@@ -536,7 +537,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 5
-					color: splitModel.currentRow === index ? primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+					color: splitModel.currentRow === index ? AppSettings.primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;

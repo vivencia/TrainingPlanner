@@ -66,7 +66,7 @@ Page {
 		opacity: 0.6
 	}
 	background: Rectangle {
-		color: primaryDarkColor
+		color: AppSettings.primaryDarkColor
 		opacity: 0.7
 	}
 
@@ -384,7 +384,7 @@ Page {
 					x: chkAdjustCalendar.leftPadding
 					y: (parent.height-height) / 2
 					radius: 5
-					border.color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
+					border.color: chkAdjustCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 
 					Rectangle {
 						width: 14
@@ -392,7 +392,7 @@ Page {
 						x: 6
 						y: 6
 						radius: 2
-						color: chkAdjustCalendar.down ? primaryDarkColor : primaryLightColor
+						color: chkAdjustCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 						visible: chkAdjustCalendar.checked
 					}
 				}
@@ -954,7 +954,7 @@ Page {
 		visible: !exercisesPane.shown
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 

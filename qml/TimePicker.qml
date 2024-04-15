@@ -217,7 +217,7 @@ Popup {
 		width: parent.width
 		height: parent.height * 0.20
 		background: Rectangle {
-			color: primaryColor
+			color: AppSettings.primaryColor
 		}
 
 		GridLayout {
@@ -409,7 +409,7 @@ Popup {
 					} // content Label
 
 					background: Rectangle {
-						color: innerButton.checked ? primaryColor : "transparent"
+						color: innerButton.checked ? AppSettings.primaryColor : "transparent"
 						radius: width / 2
 					}
 				} // inner button
@@ -469,7 +469,7 @@ Popup {
 					minimumPointSize: 10
 					fontSizeMode: Text.Fit
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: outerButton.checked || outerButton.highlighted ? "white" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? primaryColor : "black"
+					color: outerButton.checked || outerButton.highlighted ? "white" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? AppSettings.primaryColor : "black"
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					elide: Text.ElideRight
@@ -477,7 +477,7 @@ Popup {
 				} // outer content label
 
 				background: Rectangle {
-					color: outerButton.checked ? primaryColor : "transparent"
+					color: outerButton.checked ? AppSettings.primaryColor : "transparent"
 					radius: width / 2
 				}
 			} // outer button
@@ -492,7 +492,7 @@ Popup {
 			height: timePicker.timeButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
-			color: primaryColor
+			color: AppSettings.primaryColor
 		}
 
 		Rectangle { // line to inner buttons
@@ -503,7 +503,7 @@ Popup {
 			height: timePicker.innerButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
-			color: primaryColor
+			color: AppSettings.primaryColor
 		}
 
 		Rectangle {
@@ -511,7 +511,7 @@ Popup {
 			anchors.centerIn: parent
 			width: 10
 			height: 10
-			color: primaryColor
+			color: AppSettings.primaryColor
 			radius: width / 2
 		}
 	} // timeButtonsPane

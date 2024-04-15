@@ -70,5 +70,7 @@
         <file>images/black/home.png</file>
         <file>images/white/home.png</file>
         <file>images/black/copy-setvalue.png</file>
+        <file>images/black/swap.png</file>
+        <file>images/white/swap.png</file>
     </qresource>
 </RCC>

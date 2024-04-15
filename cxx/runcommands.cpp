@@ -42,31 +42,6 @@ int RunCommands::getFileType( const QString& filename )
 	#endif
 }
 
-QString RunCommands::searchForDatabaseFile( const QString& baseDir)
-{
-	QDir root (baseDir);
-	root.setFilter(QDir::AllEntries);
-	QFileInfoList list = root.entryInfoList();
-	for (int i = 0; i < list.size(); ++i)
-	{
-		if (list.at(i).fileName() == "." || list.at(i).fileName() == "..")
-			continue;
-		if (list.at(i).isDir())
-		{
-			return searchForDatabaseFile(list.at(i).filePath());
-		}
-		else
-		{
-			if (list.at(i).fileName().endsWith(QStringLiteral(".sqlite")))
-			{
-				m_dbFileName = list.at(i).filePath();
-				break;
-			}
-		}
-	}
-	return m_dbFileName;
-}
-
 QString RunCommands::getAppDir(const QString& dbFile)
 {
 	if (!dbFile.isEmpty())

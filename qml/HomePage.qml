@@ -20,7 +20,7 @@ Page {
 		opacity: 0.6
 	}
 	background: Rectangle {
-		color: primaryDarkColor
+		color: AppSettings.primaryDarkColor
 		opacity: 0.7
 	}
 
@@ -229,7 +229,7 @@ Page {
 		height: 55
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 

@@ -85,7 +85,7 @@ Popup {
 	FontMetrics {
 		id: fontMetrics
 		font.family: lblMessage.font.family
-		font.pixelSize: AppSettings.fontSizeTitle
+		font.pixelSize: AppSettings.fontSize
 	}
 
 	Label {
@@ -97,7 +97,7 @@ Popup {
 		font.pixelSize: AppSettings.fontSizeTitle * 0.6
 		font.weight: Font.Black
 		width: parent.width - 20
-		height: 30
+		height: visible ? 30 : 0
 		visible: title.length > 0
 		padding: 0
 
@@ -118,9 +118,13 @@ Popup {
 		width: 50
 		height: 50
 
-		anchors {
-			left: parent.left
-			top: lblTitle.visible ? lblTitle.bottom : parent.top
+		Component.onCompleted: {
+			anchors.left = parent.left;
+			anchors.leftMargin = 5;
+			if (lblTitle.visible)
+				anchors.top = lblTitle.bottom;
+			else
+				anchors.verticalCenter = parent.verticalCenter;
 		}
 	}
 
@@ -129,12 +133,11 @@ Popup {
 		text: message
 		color: textColor
 		wrapMode: Text.WordWrap
-		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignJustify
-		font.pixelSize: AppSettings.fontSizeText
-		font.weight: Font.Medium
-		width: imgElement.visible ? parent.width - imgElement.width - 20 : parent.width - 20
-		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
+		font.pixelSize: AppSettings.fontSize
+		font.weight: Font.Black
+		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 20
+		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 25
 		visible: message.length > 0
 		padding: 0
 
@@ -172,6 +175,7 @@ Popup {
 		id: btn1
 		text: button1Text
 		visible: button1Text.length > 0
+		height: visible ? implicitHeigh : 0
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 10
 
@@ -194,6 +198,7 @@ Popup {
 		id: btn2
 		text: button2Text
 		visible: button2Text.length > 0
+		height: visible ? implicitHeigh : 0
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 10
 

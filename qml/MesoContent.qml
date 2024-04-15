@@ -32,7 +32,7 @@ Page {
 
 	header: ToolBar {
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 
@@ -90,7 +90,7 @@ Page {
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
 			width: calendar.width - 20
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 
 			Rectangle {
@@ -190,7 +190,7 @@ Page {
 		width: parent.width
 		height: 55
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 

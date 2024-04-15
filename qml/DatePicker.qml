@@ -38,7 +38,7 @@ Rectangle {
 
 	Rectangle {
 		id: windowTitelBar
-		color: primaryLightColor
+		color: AppSettings.primaryLightColor
 		visible: calendarWindowTitle.length > 0
 		width: parent.width
 		height: lblTitle.contentHeight + 10

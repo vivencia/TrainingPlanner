@@ -243,7 +243,7 @@ Dialog {
 			x: chkTimer.leftPadding
 			y: chkTimer.height / 2 - height / 2
 			radius: 5
-			border.color: chkTimer.down ? primaryDarkColor : primaryLightColor
+			border.color: chkTimer.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 			opacity: 0.5
 
 			Rectangle {
@@ -252,7 +252,7 @@ Dialog {
 				x: 6
 				y: 6
 				radius: 2
-				color: chkTimer.down ? primaryDarkColor : primaryLightColor
+				color: chkTimer.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 				visible: chkTimer.checked
 				opacity: 0.5
 			}

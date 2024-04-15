@@ -19,7 +19,6 @@ public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr ) : QObject(parent), m_appSettings(settings) {}
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
-	Q_INVOKABLE QString searchForDatabaseFile( const QString& baseDir );
 	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 

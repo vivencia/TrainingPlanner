@@ -20,7 +20,7 @@ Rectangle {
 	focus: true
 	border.color: "black"
 	radius: 6
-	opacity: button.enabled ? (bPressed ? 0.3 : 1) : 0.3
+	opacity: button.enabled ? 1 : 0.3
 	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	implicitHeight: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 
@@ -72,10 +72,10 @@ Rectangle {
 
 	gradient: Gradient {
 		orientation: Gradient.Horizontal
-		GradientStop { position: 0.0;								color: primaryDarkColor }
-		GradientStop { position: button.fillPosition - 0.001;		color: primaryLightColor }
-		GradientStop { position: button.fillPosition + 0.001;		color: primaryColor }
-		GradientStop { position: 1.0;								color: primaryDarkColor }
+		GradientStop { position: 0.0;								color: AppSettings.primaryDarkColor }
+		GradientStop { position: button.fillPosition - 0.001;		color: AppSettings.primaryLightColor }
+		GradientStop { position: button.fillPosition + 0.001;		color: AppSettings.primaryColor }
+		GradientStop { position: 1.0;								color: AppSettings.primaryDarkColor }
 	}
 
 	Label {
@@ -115,11 +115,7 @@ Rectangle {
 		visible: imageSource.length > 1
 
 		Component.onCompleted: {
-			if (buttonText.text.length === 0) {
-				anchors.horizontalCenter = button.horizontalCenter
-				anchors.verticalCenter = button.verticalCenter
-			}
-			else {
+			if (text.length > 0) {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
 					anchors.left = buttonText.right
@@ -132,21 +128,29 @@ Rectangle {
 					anchors.bottomMargin = 10;
 				}
 			}
+			else {
+				anchors.horizontalCenter = button.horizontalCenter
+				anchors.verticalCenter = button.verticalCenter
+			}
 		}
 	}
 
 	MouseArea {
 		anchors.fill: parent
 		onClicked: (mouse) => {
-			if (!mouse.wasHeld)
-				bEmitSignal = true;
-			bPressed = false;
+			if (enabled) {
+				if (!mouse.wasHeld)
+					bEmitSignal = true;
+				bPressed = false;
+			}
 		}
 		onPressed: (mouse) => {
-			mouse.accepted = true;
-			bPressed = true;
-			button.forceActiveFocus();
-			anim.start();
+			if (enabled) {
+				mouse.accepted = true;
+				bPressed = true;
+				button.forceActiveFocus();
+				anim.start();
+			}
 		}
 		onReleased: (mouse) => {
 			mouse.accepted = true;

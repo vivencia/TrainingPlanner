@@ -82,7 +82,12 @@ Item {
 				text = str;
 			}
 
-			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+			onEnterOrReturnKeyPressed: {
+				if (txtNSubSets.visible)
+					txtNSubSets.forceActiveFocus();
+				else
+					txtNReps.forceActiveFocus();
+			}
 		}
 
 		SetInputField {

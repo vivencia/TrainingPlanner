@@ -55,7 +55,7 @@ FocusScope {
 
 	IntValidator {
 		id: val_set
-		bottom: 1
+		bottom: 0
 		top: 9
 	}
 
@@ -168,7 +168,7 @@ FocusScope {
 							nbr = 1;
 						else
 							nbr = parseInt(str);
-						if (nbr <= 1)
+						if (nbr < 1)
 							return;
 						nbr--;
 					break;

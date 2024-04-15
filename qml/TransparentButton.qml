@@ -16,7 +16,7 @@ ToolButton {
 
 	background: Rectangle {
 		id: buttonBack
-		color: primaryLightColor
+		color: AppSettings.primaryLightColor
 		opacity: 0.3
 
 		property double fillPosition: !anim.running
@@ -30,10 +30,10 @@ ToolButton {
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0;								color: primaryLightColor }
-			GradientStop { position: buttonBack.fillPosition - 0.001;	color: primaryLightColor }
-			GradientStop { position: buttonBack.fillPosition + 0.001;	color: primaryColor }
-			GradientStop { position: 1.0;								color: primaryColor }
+			GradientStop { position: 0.0;								color: AppSettings.primaryLightColor }
+			GradientStop { position: buttonBack.fillPosition - 0.001;	color: AppSettings.primaryLightColor }
+			GradientStop { position: buttonBack.fillPosition + 0.001;	color: AppSettings.primaryColor }
+			GradientStop { position: 1.0;								color: AppSettings.primaryColor }
 		}
 	}
 

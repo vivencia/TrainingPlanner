@@ -58,7 +58,7 @@ Page {
 		visible: !bShowSimpleExercisesList
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: appSettings.primaryDarkColor
 			opacity: 0.7
 		}
 
@@ -103,7 +103,8 @@ Page {
 
 		ButtonFlat {
 			id: btnSwapPlan
-			text: qsTr("Swap with ") + currentPage.swappableLetter
+			text: currentPage ? currentPage.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
+			imageSource: "qrc:/images/"+lightIconFolder+"swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true

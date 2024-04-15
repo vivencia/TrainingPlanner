@@ -17,9 +17,6 @@ ApplicationWindow {
 	signal appAboutToBeSuspended()
 	signal appActive()
 
-	readonly property color primaryLightColor: "#BBDEFB"
-	readonly property color primaryColor: "#25b5f3"
-	readonly property color primaryDarkColor: "#1976D2"
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
 
@@ -52,7 +49,7 @@ ApplicationWindow {
 		id: navBar
 
 		background: Rectangle {
-			color: primaryDarkColor
+			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 	}

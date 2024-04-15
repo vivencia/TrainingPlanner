@@ -102,7 +102,7 @@ ComboBox {
 			delegate: Text {
 				id: delegate
 				text: model.key
-				color: control.highlighted ? primaryLightColor : "white"
+				color: control.highlighted ? AppSettings.primaryLightColor : "white"
 				font.pixelSize: AppSettings.fontSizeText
 				font.weight: Font.ExtraBold
 				padding: 0

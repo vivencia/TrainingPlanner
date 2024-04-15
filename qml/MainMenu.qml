@@ -17,9 +17,9 @@ Drawer {
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
 			GradientStop { position: 0.0; color: "#dcfbff"; }
-			GradientStop { position: 0.25; color: primaryLightColor; }
-			GradientStop { position: 0.50; color: primaryColor; }
-			GradientStop { position: 0.75; color: primaryDarkColor; }
+			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
 		}
 		opacity: 0.8
 	}
@@ -137,8 +137,8 @@ Drawer {
 
 	function addShortCut(label: string, object: var) {
 		for( var i = 0; i < stackWindows.length; i++ ) {
-			if (stackWindows[i] === object) {
-				stackView.push(object);
+			if (stackWindows[i].Object === object) {
+				stackView.replace(stackView.currentItem, stackWindows[i].Object);
 				return;
 			}
 		}
@@ -160,6 +160,8 @@ Drawer {
 	}
 
 	function openPage(page_id: int) {
-		stackView.push(stackWindows[page_id].Object);
+		var item = stackView.push(stackWindows[page_id].Object);
+		if (!item)
+			stackView.replace(stackView.currentItem, stackWindows[page_id].Object);
 	}
 } //Drawer

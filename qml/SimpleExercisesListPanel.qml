@@ -6,7 +6,7 @@ Rectangle {
 	width: parent.width
 	visible: bShowSimpleExercisesList
 	height: shown ? parent.height * 0.5 : btnShowHideList.height
-	color: primaryLightColor
+	color: AppSettings.primaryLightColor
 	opacity: 0.8
 	radius: 10
 
