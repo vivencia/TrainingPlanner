@@ -69,7 +69,7 @@ Rectangle {
 		}
 		height: 2.5 * cellSize
 		width: parent.width
-		color: paneBackgroundColor
+		color: AppSettings.paneBackgroundColor
 		z: 2
 		Rectangle {
 			id: selectedYear
@@ -209,7 +209,7 @@ Rectangle {
 					width: cellSize
 					radius: height * 0.5
 					enabled: model.month === monthGrid.month
-					color: highlighted ? paneBackgroundColor : "white"
+					color: highlighted ? AppSettings.paneBackgroundColor : "white"
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
@@ -261,7 +261,7 @@ Rectangle {
 				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
-				color: paneBackgroundColor
+				color: AppSettings.paneBackgroundColor
 			}
 			MouseArea {
 				anchors.fill: parent

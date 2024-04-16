@@ -3,7 +3,7 @@
 
 pragma Singleton
 
-import Qt.labs.settings //QtCore for 6.7
+import QtCore
 
 Settings {
 	signal appFontSizeChanged()
@@ -15,8 +15,9 @@ Settings {
 	property string primaryDarkColor
 	property string primaryColor
 	property string primaryLightColor
+	property string paneBackgroundColor
+	property string entrySelectedColor
 	property string exercisesListVersion
-	property int themeStyleIndex
 	property int fontSize
 	property int fontSizeLists
 	property int fontSizeText

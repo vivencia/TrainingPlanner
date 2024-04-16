@@ -256,7 +256,7 @@ Page {
 		padding: 0
 		background: Rectangle {
 			opacity: 0.3
-			color: paneBackgroundColor
+			color: AppSettings.primaryDarkColor
 		}
 
 		ColumnLayout{

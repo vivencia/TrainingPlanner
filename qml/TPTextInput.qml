@@ -40,8 +40,6 @@ TextField {
 	TPBalloonTip {
 		id: textCopiedInfo
 		height: 40
-		textColor: "white"
-		backColor: "black"
 		message: qsTr("Text copied to the clipboard")
 	}
 

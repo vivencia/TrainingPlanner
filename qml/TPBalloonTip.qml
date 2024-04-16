@@ -8,8 +8,8 @@ Popup {
 	property string button1Text: ""
 	property string button2Text: ""
 	property string imageSource: ""
-	property string backColor: "white"
-	property string textColor: "black"
+	property string backColor: AppSettings.paneBackgroundColor
+	property string textColor: "white"
 	property bool highlightMessage: false
 	property int startYPosition: 0
 
@@ -175,7 +175,7 @@ Popup {
 		id: btn1
 		text: button1Text
 		visible: button1Text.length > 0
-		height: visible ? implicitHeigh : 0
+		height: visible ? buttonHeight : 0
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 10
 
@@ -198,7 +198,7 @@ Popup {
 		id: btn2
 		text: button2Text
 		visible: button2Text.length > 0
-		height: visible ? implicitHeigh : 0
+		height: visible ? buttonHeight : 0
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 10
 

@@ -168,7 +168,7 @@ Dialog {
 		}
 		height: 20
 		width: dlgTimer.width
-		color: paneBackgroundColor
+		color: AppSettings.paneBackgroundColor
 		opacity: 0.5
 		z: 0
 
@@ -314,7 +314,7 @@ Dialog {
 		anchors.top: recStrings.bottom
 		height: headerGrid.implicitHeight - 10
 		width: headerGrid.implicitWidth + 20
-		color: paneBackgroundColor
+		color: AppSettings.paneBackgroundColor
 		opacity: 0.5
 		radius: 5
 
@@ -511,7 +511,7 @@ Dialog {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: paneBackgroundColor
+				color: AppSettings.paneBackgroundColor
 				opacity: 0.5
 				radius: 3
 			}

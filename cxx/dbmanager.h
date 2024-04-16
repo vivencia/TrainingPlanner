@@ -29,6 +29,7 @@ public:
 	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands);
 	~DbManager();
 
+	void init();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void removeWorkingMeso();

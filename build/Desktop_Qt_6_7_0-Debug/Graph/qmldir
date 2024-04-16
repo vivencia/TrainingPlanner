@@ -1,6 +1,0 @@
-module Graph
-typeinfo trainingplanner.qmltypes
-depends QtQuick
-prefer :/Graph/
-GraphicsViewer 1.0 qml/GraphicsViewer.qml
-

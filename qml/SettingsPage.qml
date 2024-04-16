@@ -7,12 +7,13 @@ Page {
 
 	property bool bModified: false
 	property bool bNeedRestart: false
+	property bool bFontSizeChanged: false
 	property var appLanguages: [ { text:"English", value: 0 }, { text:"Português", value: 1 }, { text:"Deutsch", value: 2} ]
 	property var appLocales: ["en_US", "pt_BR", "de_DE"]
 	property int fontPSize : AppSettings.fontSize
 	property int optStyleChosen: 0
 	property int colorSchemeChosen: 0
-	property var colorScheme: ["","",""]
+	property var colorScheme: []
 
 	Image {
 		anchors.fill: parent
@@ -28,8 +29,6 @@ Page {
 
 	TPBalloonTip {
 		id: applyTip
-		backColor: "black"
-		textColor: "white"
 		message: qsTr("The App must be restarted in order to reflect the changes")
 		imageSource: "qrc:/images/"+lightIconFolder+"settings.png"
 	}
@@ -121,6 +120,7 @@ Page {
 					onMoved: {
 						fontPSize = value;
 						bModified = true;
+						bFontSizeChanged = true;
 					}
 				}
 
@@ -454,10 +454,14 @@ Page {
 				}
 
 				AppSettings.appLocale = appLocales[cboSetType.currentIndex];
-				AppSettings.fontSize = fontPSize;
-				AppSettings.fontSizeTitle = fontPSize * 1.5
-				AppSettings.fontSizeLists = fontPSize * 0.7
-				AppSettings.fontSizeText = fontPSize * 0.9
+
+				if (bFontSizeChanged) {
+					AppSettings.fontSize = fontPSize;
+					AppSettings.fontSizeTitle = fontPSize * 1.5
+					AppSettings.fontSizeLists = fontPSize * 0.7
+					AppSettings.fontSizeText = fontPSize * 0.9
+					bFontSizeChanged = false;
+				}
 
 				if (optStyleChosen !== 0) {
 					switch (optStyleChosen) {
@@ -478,36 +482,37 @@ Page {
 						break;
 					}
 					optStyleChosen = 0;
-					AppSettings.themeStyleIndex = optStyleChosen;
 				}
 
 				if (colorSchemeChosen !== 0) {
 					switch (colorSchemeChosen) {
 						case 1:
 							AppSettings.colorScheme = "Blue";
-							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor];
+							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed"];
 						break;
 						case 2:
 							AppSettings.colorScheme = "Green";
-							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor];
+							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22"];
 						break;
 						case 3:
 							AppSettings.colorScheme = "Red";
-							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor];
+							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080"];
 						break;
 						case 4:
 							AppSettings.colorScheme = "Dark";
-							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor];
+							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#3f0000", "#696969"];
 						break;
 						case 5:
 							AppSettings.colorScheme = "Light";
-							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor];
+							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de"];
 						break;
 					}
 					colorSchemeChosen = 0;
 					AppSettings.primaryDarkColor = colorScheme[0];
 					AppSettings.primaryColor = colorScheme[1];
 					AppSettings.primaryLightColor = colorScheme[2];
+					AppSettings.paneBackgroundColor = colorScheme[3];
+					AppSettings.entrySelectedColor = colorScheme[4];
 				}
 			}
 		}

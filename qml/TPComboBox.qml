@@ -25,13 +25,14 @@ ComboBox {
 	}
 
 	delegate: ItemDelegate {
-		//id: delegate
+		id: delegate
 		width: control.width
-		//required property var model
-		//required property var index
+		required property var model
+		required property var index
 
 		contentItem: Text {
-			text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData //delegate.model[control.textRole] for 6.7
+			//text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
+			text: delegate.model[control.textRole]
 			color: textColor
 			elide: Text.ElideRight
 			font.pixelSize: AppSettings.fontSizeText

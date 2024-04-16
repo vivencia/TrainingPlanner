@@ -64,8 +64,6 @@ set( QML_FILES
     "qml/MesoContent.qml"
     "qml/jsfunctions.js"
     "qml/ButtonFlat.qml"
-    "qml/ButtonIconActive.qml"
-    "qml/IconActive.qml"
     "qml/ExerciseEntry.qml"
     "qml/ExercisesDatabase.qml"
     "qml/TimerDialog.qml"

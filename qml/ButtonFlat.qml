@@ -11,6 +11,7 @@ Rectangle {
 	property bool textUnderIcon: false
 	property bool highlight: false
 	property bool fixedSize: false
+	property alias buttonHeight: button.implicitHeight
 
 	property string imageSource
 	property bool bPressed: false

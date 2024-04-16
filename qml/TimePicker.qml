@@ -309,12 +309,13 @@ Popup {
 			onClicked: timePicker.setDisplay(runCmd.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
-		ButtonIconActive {
+		ButtonFlat {
 			visible: !timePicker.pickMinutes
-			imageName: timePicker.useWorkTimes? "work.png" : "time.png"
+			imageSource: timePicker.useWorkTimes? "qrc:/images/"+lightIconFolder+"work.png" : "qrc:/images/"+lightIconFolder+"time.png"
 			anchors.right: parent.right
 			anchors.top: parent.top
-			anchors.topMargin: -10
+			anchors.topMargin: -5
+			anchors.rightMargin: 5
 
 			onClicked: {
 				timePicker.useWorkTimes = !timePicker.useWorkTimes
@@ -349,7 +350,6 @@ Popup {
 			padding: 0
 			visible: !timePicker.pickMinutes
 			anchors.centerIn: parent
-			//anchors.top: parent.bottom
 			background: Rectangle {color: "transparent"}
 
 			Repeater {
@@ -401,7 +401,7 @@ Popup {
 						minimumPointSize: 8
 						fontSizeMode: Text.Fit
 						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						color: innerButton.checked || innerButton.highlighted ? textOnPrimary : Material.color(Material.Grey, Material.Shade500)
+						color: innerButton.checked || innerButton.highlighted ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
 						horizontalAlignment: Text.AlignHCenter
 						verticalAlignment: Text.AlignVCenter
 						elide: Text.ElideRight
@@ -547,7 +547,6 @@ Popup {
 			anchors.top: parent.top
 			anchors.right: parent.right
 			anchors.rightMargin: 5
-			//anchors.topMargin: -10
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
 				timePicker.isOK = true;

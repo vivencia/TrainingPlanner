@@ -107,8 +107,8 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: !bMultipleSelection ? curIndex === index ? "cornflowerblue" : index % 2 === 0 ? listEntryColor1 : listEntryColor2 :
-							bSelected ? "cornflowerblue" : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+				color: !bMultipleSelection ? curIndex === index ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2 :
+							bSelected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 			onClicked: {
 				if (!bMultipleSelection) {
