@@ -8,6 +8,12 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
+#ifdef Q_OS_ANDROID
+#ifdef DEBUG
+#include <QStandardPaths>
+#endif
+#endif
+
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
 	#ifdef DEBUG
@@ -52,6 +58,17 @@ QString RunCommands::getAppDir(const QString& dbFile)
 	}
 	return m_appPrivateDir;
 }
+
+#ifdef Q_OS_ANDROID
+void RunCommands::copyFileToAppDataDir(const QString& strfile) const
+{
+	QFile file(strfile);
+	const int len(strfile.length() - strfile.lastIndexOf(u"%2F"_qs) - 3);
+	const QString newFileName(m_appSettings->value("dbFilePath").toString() + strfile.right(len));
+	if (file.copy(newFileName))
+		QFile::setPermissions(newFileName, QFileDevice::ReadUser |  QFileDevice::WriteUser);
+}
+#endif
 
 void RunCommands::copyToClipBoard(const QString& text) const
 {

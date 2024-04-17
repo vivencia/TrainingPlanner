@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
 
 ApplicationWindow {
 	id: mainwindow
@@ -139,6 +140,16 @@ ApplicationWindow {
 			} //onClicked
 		} //TabButton
 	} //footer
+
+	FileDialog {
+		id: fileDialog;
+		title: qsTr("Choose Database File");
+
+		onAccepted: {
+			runCmd.copyFileToAppDataDir(currentFile);
+			close();
+		}
+	}
 
 	function androidBackKeyPressed() {
 		if (stackView.depth >= 2)

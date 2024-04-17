@@ -230,7 +230,7 @@ Page {
 			ButtonFlat {
 				id: btnChooseMediaFromDevice
 				text: qsTr("Choose media")
-				onClicked: chooseMediaFromDevice();
+				onClicked: fileDialog.open();
 				Layout.alignment: Qt.AlignCenter
 				enabled: bNew || bEdit
 			}
@@ -395,7 +395,7 @@ Page {
 	}
 
 	FileDialog {
-		id: fileDialog;
+		id: fileDialog
 		title: qsTr("Please choose a media file");
 
 		onAccepted: {
@@ -403,10 +403,6 @@ Page {
 			close();
 			displaySelectedMedia();
 		}
-	}
-
-	function chooseMediaFromDevice() {
-		fileDialog.open();
 	}
 
 	function displaySelectedMedia() {

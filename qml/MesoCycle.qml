@@ -299,6 +299,8 @@ Page {
 
 				RoundButton {
 					id: btnTrainingSplit
+					width: 40
+					height: 40
 					anchors {
 						left: txtMesoSplit.right
 						verticalCenter: txtMesoSplit.verticalCenter
@@ -338,6 +340,7 @@ Page {
 				visible: bNewMeso ? false : bStartDateChanged || bEndDateChanged || bMesoSplitChanged
 				padding: 0
 				spacing: 0
+				height: 300
 
 				background: Rectangle {
 					border.color: "white"

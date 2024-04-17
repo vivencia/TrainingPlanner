@@ -435,7 +435,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 10
-				height: 300
+				height: 330
 
 				background: Rectangle {
 					border.color: "white"

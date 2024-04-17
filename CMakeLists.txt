@@ -75,7 +75,6 @@ set( QML_FILES
     "qml/MainMenu.qml"
     "qml/TrainingDayInfo.qml"
     "qml/SetInputField.qml"
-    "qml/SettingsPage.qml"
     "qml/PageScrollButtons.qml"
     "qml/ImageViewer.qml"
     "qml/VideoPlayer.qml"
@@ -92,6 +91,7 @@ set( QML_FILES
     "qml/TPBalloonTip.qml"
     "qml/SimpleExercisesListPanel.qml"
     "qml/SetNotesField.qml"
+    "qml/SettingsPage.qml"
     "qml/TPColorRectangle.qml"
 )
 

@@ -20,6 +20,9 @@ public:
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
 	QString getAppDir(const QString& dbFile);
+	#ifdef Q_OS_ANDROID
+	Q_INVOKABLE void copyFileToAppDataDir(const QString& strfile) const;
+	#endif
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 
 	inline QString getDBFileName() const { return m_dbFileName; }

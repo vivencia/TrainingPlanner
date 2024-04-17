@@ -24,7 +24,8 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QQmlContext>
-
+#include <QStandardPaths>
+#include <QDir>
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings), m_runCommands(runcommands),
 		m_model(nullptr), m_exercisesPage(nullptr)
@@ -391,6 +392,8 @@ void DbManager::getAllMesocycles()
 	const int current_meso_idx(mesocyclesModel->count()-1);
 	if (current_meso_idx >= 0)
 		setWorkingMeso(mesocyclesModel->getInt(static_cast<uint>(current_meso_idx), 0), static_cast<uint>(current_meso_idx));
+	else
+		setWorkingMeso(-1, 0);
 	delete worker;
 }
 

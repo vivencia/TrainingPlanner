@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
 	}
+	db.init();
 
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -71,7 +72,6 @@ int main(int argc, char *argv[])
 	if (engine.rootObjects().isEmpty())
 		return -1;
 
-	db.init();
 	db.setQmlEngine(&engine);
 
 	return app.exec();

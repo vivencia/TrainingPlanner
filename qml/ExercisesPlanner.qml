@@ -58,7 +58,7 @@ Page {
 		visible: !bShowSimpleExercisesList
 
 		background: Rectangle {
-			color: appSettings.primaryDarkColor
+			color: appSettings.AppSettings.primaryDarkColor
 			opacity: 0.7
 		}
 
