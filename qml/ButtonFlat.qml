@@ -19,7 +19,7 @@ Rectangle {
 	signal clicked();
 
 	focus: true
-	border.color: "black"
+	border.color: "white"
 	radius: 6
 	opacity: button.enabled ? 1 : 0.3
 	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
@@ -82,7 +82,7 @@ Rectangle {
 	Label {
 		id: buttonText
 		opacity: button.enabled ? 1.0 : 0.3
-		color: button.enabled ? textColor : "black"
+		color: button.enabled ? textColor : "gray"
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pixelSize: AppSettings.fontSizeText*0.9

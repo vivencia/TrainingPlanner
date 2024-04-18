@@ -538,6 +538,8 @@ Page {
 						RoundButton {
 							id: btnInTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
+							width: 40
+							height: 40
 							enabled: !timerRestricted.running
 
 							onClicked: dlgTimeIn.open();
@@ -574,6 +576,8 @@ Page {
 							id: btnOutTime
 							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 							enabled: !timerRestricted.running
+							width: 40
+							height: 40
 
 							onClicked: dlgTimeOut.open();
 						}

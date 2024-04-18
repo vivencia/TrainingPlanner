@@ -251,6 +251,7 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + m_execArgs.at(0).toString() );
 		m_result = query.exec();
+		m_model->clear();
 		mSqlLiteDB.close();
 	}
 

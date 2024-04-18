@@ -169,13 +169,12 @@ Dialog {
 		height: 20
 		width: dlgTimer.width
 		color: AppSettings.paneBackgroundColor
-		opacity: 0.5
 		z: 0
 
 		Label {
 			id: lblTitle
 			text: windowTitle
-			color: "black"
+			color: "white"
 			height: parent.height
 			anchors {
 				left: parent.left
@@ -210,7 +209,7 @@ Dialog {
 
 		Image {
 			id: btnCloseWindow
-			source: "qrc:/images/"+darkIconFolder+"close.png"
+			source: "qrc:/images/"+lightIconFolder+"close.png"
 			width: parent.height
 			height: parent.height
 			anchors.right: parent.right
@@ -312,9 +311,9 @@ Dialog {
 		id: recTimer
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.top: recStrings.bottom
-		height: headerGrid.implicitHeight - 10
-		width: headerGrid.implicitWidth + 20
-		color: AppSettings.paneBackgroundColor
+		height: dlgTimer.height * 0.3
+		width: dlgTimer.width * 0.8
+		color: "black"
 		opacity: 0.5
 		radius: 5
 
@@ -335,7 +334,7 @@ Dialog {
 			TextField {
 				id: txtHours
 				text: runCmd.intTimeToStrTime(hours)
-				color: enabled ? "black" : "gray"
+				color: "white"
 				visible: !bJustMinsAndSecs
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
@@ -345,7 +344,6 @@ Dialog {
 				maximumLength: 2
 				Layout.maximumWidth: 30
 				Layout.alignment: Text.AlignHCenter
-				Layout.leftMargin: 10
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -384,22 +382,23 @@ Dialog {
 				font.pixelSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
-				opacity: 0.6
-				color: "black"
+				color: "white"
 				visible: txtHours.visible
+				Layout.maximumWidth: 10
+				Layout.alignment: Text.AlignHCenter
 			}
 
 			TextField {
 				id: txtMinutes
 				text: runCmd.intTimeToStrTime(mins)
-				color: enabled ? "black" : "gray"
-				Layout.alignment: Text.AlignHCenter
+				color: "white"
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
 				font.bold: true
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
+				Layout.alignment: Text.AlignHCenter
 				Layout.maximumWidth: 30
 
 				Keys.onPressed: (event) => processKeyEvents(event);
@@ -443,15 +442,16 @@ Dialog {
 				font.pixelSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
-				opacity: 0.6
-				color: "black"
+				color: "white"
 				visible: txtSecs.visible
+				Layout.maximumWidth: 10
+				Layout.alignment: Text.AlignHCenter
 			}
 
 			TextField {
 				id: txtSecs
 				text: runCmd.intTimeToStrTime(secs)
-				color: "black"
+				color: "white"
 				focus: true
 				font.pixelSize: AppSettings.fontSizeTitle
 				font.bold: true
@@ -461,7 +461,6 @@ Dialog {
 				maximumLength: 2
 				Layout.alignment: Text.AlignHCenter
 				Layout.maximumWidth: 30
-				Layout.rightMargin: 10
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -511,7 +510,7 @@ Dialog {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: AppSettings.paneBackgroundColor
+				color: "black"
 				opacity: 0.5
 				radius: 3
 			}

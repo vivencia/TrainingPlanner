@@ -193,7 +193,8 @@ Page {
 					id: btnStartDate
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
-					anchors.leftMargin: 10
+					width: 40
+					height: 40
 					icon.source: "qrc:/images/white/calendar.png"
 
 					onClicked: caldlg.open();
@@ -249,7 +250,8 @@ Page {
 					id: btnEndDate
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
-					anchors.leftMargin: 10
+					width: 40
+					height: 40
 					icon.source: "qrc:/images/"+darkIconFolder+"calendar.png"
 
 					onClicked: caldlg2.open();

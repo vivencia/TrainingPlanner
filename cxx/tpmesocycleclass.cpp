@@ -490,7 +490,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 	}
 	for (uint i(first_set+1); i < last_set; ++i)
 	{
-		currenttDayModel()->newSet(exercise_idx, i, set_type);
+		currenttDayModel()->newSet(i, exercise_idx, set_type);
 		createSetObject_part2(set_type, i, exercise_idx);
 	}
 }
