@@ -171,7 +171,7 @@ Popup {
 		}
 	}
 
-	ButtonFlat {
+	TPButton {
 		id: btn1
 		text: button1Text
 		visible: button1Text.length > 0
@@ -194,7 +194,7 @@ Popup {
 		}
 	}
 
-	ButtonFlat {
+	TPButton {
 		id: btn2
 		text: button2Text
 		visible: button2Text.length > 0

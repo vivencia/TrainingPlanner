@@ -62,7 +62,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnSave
 			text: qsTr("Save")
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
@@ -82,7 +82,7 @@ Page {
 			}
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
 			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
@@ -101,7 +101,7 @@ Page {
 			}
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnSwapPlan
 			text: currentPage ? currentPage.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
 			imageSource: "qrc:/images/"+lightIconFolder+"swap.png"
@@ -116,7 +116,7 @@ Page {
 			onClicked: appDB.swapMesoPlans(currentPage.splitLetter, currentPage.swappableLetter);
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
 			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"

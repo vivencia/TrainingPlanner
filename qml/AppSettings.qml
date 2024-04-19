@@ -18,6 +18,7 @@ Settings {
 	property string paneBackgroundColor
 	property string entrySelectedColor
 	property string exercisesListVersion
+	property string backupFolder
 	property int fontSize
 	property int fontSizeLists
 	property int fontSizeText

@@ -47,13 +47,13 @@ Rectangle {
 			Layout.bottomMargin: 2
 			Layout.topMargin: 3
 
-			ButtonFlat {
+			TPButton {
 				id: btnShowHideList
 				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
 				imageSize: 60
 				onClicked: bottomPane.shown = !bottomPane.shown;
 			}
-			ButtonFlat {
+			TPButton {
 				id: btnCloseList
 				imageSource: "qrc:/images/"+darkIconFolder+"close.png"
 				imageSize: 60

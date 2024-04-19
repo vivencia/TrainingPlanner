@@ -208,7 +208,7 @@ Page {
 				Layout.leftMargin: 5
 			}
 
-			ButtonFlat {
+			TPButton {
 				id: btnShowDayInfo
 				text: qsTr("View Day")
 				imageSource: "qrc:/images/"+lightIconFolder+"day-info.png"

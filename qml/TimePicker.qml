@@ -300,7 +300,7 @@ Popup {
 		anchors.topMargin: 10
 		background: Rectangle {color: "transparent"}
 
-		ButtonFlat {
+		TPButton {
 			text: qsTr("Now")
 			anchors.top: parent.top
 			anchors.topMargin: -5
@@ -309,7 +309,7 @@ Popup {
 			onClicked: timePicker.setDisplay(runCmd.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
-		ButtonFlat {
+		TPButton {
 			visible: !timePicker.pickMinutes
 			imageSource: timePicker.useWorkTimes? "qrc:/images/"+lightIconFolder+"work.png" : "qrc:/images/"+lightIconFolder+"time.png"
 			anchors.right: parent.right
@@ -322,7 +322,7 @@ Popup {
 				timePicker.showHour(timePicker.hrsDisplay)
 			}
 		}
-		ButtonFlat {
+		TPButton {
 			visible: timePicker.pickMinutes
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
 			anchors.right: parent.right
@@ -533,7 +533,7 @@ Popup {
 			color: "transparent"
 		}
 
-		ButtonFlat {
+		TPButton {
 			text: qsTr("Cancel")
 			anchors.top: parent.top
 			anchors.left: parent.left
@@ -542,7 +542,7 @@ Popup {
 			onClicked: timePicker.close();
 		}
 
-		ButtonFlat {
+		TPButton {
 			text: qsTr("OK")
 			anchors.top: parent.top
 			anchors.right: parent.right

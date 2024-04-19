@@ -397,7 +397,7 @@ Page {
 				}
 			}
 
-			ButtonFlat {
+			TPButton {
 				id: btnCreateExercisePlan
 				text: qsTr("Exercises Planner")
 				Layout.row: 6
@@ -447,7 +447,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
 			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
@@ -482,7 +482,7 @@ Page {
 			}
 		} //btnRevert
 
-		ButtonFlat {
+		TPButton {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"

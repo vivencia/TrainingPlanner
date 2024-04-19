@@ -24,8 +24,8 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QQmlContext>
-#include <QStandardPaths>
-#include <QDir>
+#include <QFileInfo>
+
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings), m_runCommands(runcommands),
 		m_model(nullptr), m_exercisesPage(nullptr)
@@ -234,6 +234,27 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 	m_WorkerLock[dbObj->objectName()]--;
 	if (m_WorkerLock[dbObj->objectName()] <= 0)
 		cleanUp(dbObj);
+}
+
+void DbManager::verifyBackupPageProperties(QQuickItem* page)
+{
+	QFileInfo backupDirInfo(m_appSettings->value("backupFolder").toString());
+	const bool bCanWriteToBackupFolder(backupDirInfo.isDir() && backupDirInfo.isWritable());
+	if (bCanWriteToBackupFolder)
+	{
+		const QString appDir(m_appSettings->value("backupFolder").toString() + u"/tp/"_qs);
+		QFileInfo f_info(appDir + DBExercisesFileName);
+		page->setProperty("bCanRestoreExercises", f_info.isReadable());
+		f_info.setFile(appDir + DBMesocyclesFileName);
+		page->setProperty("bCanRestoreMeso", f_info.isReadable());
+		f_info.setFile(appDir + DBMesoSplitFileName);
+		page->setProperty("bCanRestoreMesoSplit", f_info.isReadable());
+		f_info.setFile(appDir + DBMesoCalendarFileName);
+		page->setProperty("bCanRestoreMesoCal", f_info.isReadable());
+		f_info.setFile(appDir + DBTrainingDayFileName);
+		page->setProperty("bCanRestoreTraining", f_info.isReadable());
+	}
+	page->setProperty("bCanWriteToBackupFolder", bCanWriteToBackupFolder);
 }
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)

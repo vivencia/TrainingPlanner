@@ -63,7 +63,6 @@ set( QML_FILES
     "qml/MesoCycle.qml"
     "qml/MesoContent.qml"
     "qml/jsfunctions.js"
-    "qml/ButtonFlat.qml"
     "qml/ExerciseEntry.qml"
     "qml/ExercisesDatabase.qml"
     "qml/TimerDialog.qml"
@@ -84,15 +83,19 @@ set( QML_FILES
     "qml/TransparentButton.qml"
     "qml/FirstTimeHomePageTip.qml"
     "qml/OpenEndedPlan.qml"
+    "qml/TPButton.qml"
     "qml/TPTextInput.qml"
     "qml/TPRadioButton.qml"
     "qml/TPComboBox.qml"
+    "qml/TPCheckBox.qml"
+    "qml/TPGroupBox.qml"
+    "qml/TPColorRectangle.qml"
     "qml/GraphicsViewer.qml"
     "qml/TPBalloonTip.qml"
     "qml/SimpleExercisesListPanel.qml"
     "qml/SetNotesField.qml"
     "qml/SettingsPage.qml"
-    "qml/TPColorRectangle.qml"
+    "qml/BackupPage.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

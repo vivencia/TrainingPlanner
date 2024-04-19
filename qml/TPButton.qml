@@ -21,7 +21,7 @@ Rectangle {
 	focus: true
 	border.color: "white"
 	radius: 6
-	opacity: button.enabled ? 1 : 0.3
+	//opacity: button.enabled ? 1 : 0.3
 	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	implicitHeight: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 
@@ -81,8 +81,8 @@ Rectangle {
 
 	Label {
 		id: buttonText
-		opacity: button.enabled ? 1.0 : 0.3
-		color: button.enabled ? textColor : "gray"
+		opacity: button.enabled ? 1.0 : 0.5
+		color: button.enabled ? textColor : "darkgray"
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pixelSize: AppSettings.fontSizeText*0.9

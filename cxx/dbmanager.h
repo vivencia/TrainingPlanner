@@ -35,6 +35,7 @@ public:
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
+	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();

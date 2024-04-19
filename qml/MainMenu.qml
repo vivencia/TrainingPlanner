@@ -109,6 +109,13 @@ Drawer {
 			onClicked: { stackView.push("SettingsPage.qml"); menuClicked(); }
 		}
 
+		TransparentButton {
+			id: btnBackup
+			text: qsTr("Backup/Restore")
+			Layout.fillWidth: true
+			onClicked: { stackView.push("BackupPage.qml"); menuClicked(); }
+		}
+
 		Rectangle {
 			height: 3
 			width: parent.width

@@ -20,11 +20,11 @@ const QString RunCommands::getCorrectPath(const QUrl& url)
 	qDebug() << "input url:  " << url;
 	qDebug() << "output string:  " << url.toString(QUrl::PreferLocalFile);
 	#endif
-	#ifdef Q_OS_ANDROID
+	//#ifdef Q_OS_ANDROID
 	return url.toString(QUrl::PreferLocalFile);
-	#else
-	return url.toString();
-	#endif
+	//#else
+	//return url.toString();
+	//#endif
 }
 
 int RunCommands::getFileType( const QString& filename )

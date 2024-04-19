@@ -8,7 +8,7 @@ Dialog {
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
 	width: simpleTimer ? windowWidth * 0.75 : windowWidth
-	height: windowHeight * 0.30
+	height: windowHeight * 0.35
 	x: (windowWidth - width) / 2
 	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -37,6 +37,8 @@ Dialog {
 	property date suspendedTime
 	property date suspendedTimer
 	property string windowTitle
+
+	readonly property int txtWidth: (dlgTimer.width * 0.8)/3 - 20
 
 	signal useTime(string time)
 
@@ -157,18 +159,10 @@ Dialog {
 
 	header: Rectangle {
 		id: recTitleBar
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-			leftMargin: 0
-			topMargin: 0
-			rightMargin: 0
-			bottomMargin: 0
-		}
 		height: 20
 		width: dlgTimer.width
 		color: AppSettings.paneBackgroundColor
+		opacity: 0.5
 		z: 0
 
 		Label {
@@ -224,145 +218,104 @@ Dialog {
 		}
 	}
 
-	CheckBox {
-		id: chkTimer
-		anchors.top: parent.top
-		anchors.left: parent.left
-		anchors.leftMargin: 5
-		anchors.topMargin: -20
-		text: qsTr("Timer?")
-		checked: bTimer
-		padding: 0
+	ColumnLayout {
+		x: 0
+		y: 0
 		spacing: 0
-		visible: !timePickerOnly
 
-		indicator: Rectangle {
-			implicitWidth: 26
-			implicitHeight: 26
-			x: chkTimer.leftPadding
-			y: chkTimer.height / 2 - height / 2
-			radius: 5
-			border.color: chkTimer.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-			opacity: 0.5
-
-			Rectangle {
-				width: 14
-				height: 14
-				x: 6
-				y: 6
-				radius: 2
-				color: chkTimer.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-				visible: chkTimer.checked
-				opacity: 0.5
-			}
-		}
-
-		contentItem: Text {
-			text: chkTimer.text
-			wrapMode: Text.WordWrap
-			opacity: enabled ? 1.0 : 0.3
-			verticalAlignment: Text.AlignVCenter
-			leftPadding: chkTimer.indicator.width + chkTimer.spacing
-			color: "darkred"
-		}
-
-		onToggled: {
-			bTimer = checked;
-			bForward = !checked;
-			if (bForward && totalSecs === 0)
-				bInputOK = true;
-		}
-	} // CheckBox
-
-	Rectangle {
-		id: recStrings
-		anchors.top: chkTimer.bottom
-		anchors.horizontalCenter: parent.horizontalCenter
-		anchors.topMargin: 0
-		height: 30
-		width: recTimer.width
-
-		Label {
-			x: 0
-			y: 10
-			color: "darkred"
-			font.pixelSize: AppSettings.fontSizeLists
-			text: qsTr("Hours")
-			visible: !bJustMinsAndSecs
-		}
-		Label {
-			y: 10
-			x: txtMinutes.x - 10
-			color: "darkred"
-			font.pixelSize: AppSettings.fontSizeLists
-			text: qsTr("Minutes")
-		}
-		Label {
-			y: 10
-			x: txtSecs.x - 10
-			color: "darkred"
-			font.pixelSize: AppSettings.fontSizeLists
-			text: qsTr("Seconds")
+		TPCheckBox {
+			id: chkTimer
+			text: qsTr("Timer?")
+			textColor: "darkred"
+			checked: bTimer
 			visible: !timePickerOnly
-		}
-	} // Rectangle recStrings
+			Layout.leftMargin: 10
 
-	Rectangle {
-		id: recTimer
-		anchors.horizontalCenter: parent.horizontalCenter
-		anchors.top: recStrings.bottom
-		height: dlgTimer.height * 0.3
-		width: dlgTimer.width * 0.8
-		color: "black"
-		opacity: 0.5
-		radius: 5
+			onToggled: {
+				bTimer = checked;
+				bForward = !checked;
+				if (bForward && totalSecs === 0)
+					bInputOK = true;
+			}
+		} //TPCheckBox
 
 		RowLayout {
-			id: headerGrid
-			anchors.fill: parent
+			id: recStrings
+			height: 30
+			Layout.preferredWidth: dlgTimer.width * 0.8
+			Layout.leftMargin: dlgTimer.width * 0.1
+
+			Label {
+				color: "darkred"
+				font.pixelSize: AppSettings.fontSizeLists
+				text: qsTr("Hours")
+				visible: !bJustMinsAndSecs
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
+			}
+			Label {
+				color: "darkred"
+				font.pixelSize: AppSettings.fontSizeLists
+				text: qsTr("Minutes")
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
+			}
+			Label {
+				color: "darkred"
+				font.pixelSize: AppSettings.fontSizeLists
+				text: qsTr("Seconds")
+				visible: !timePickerOnly
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
+			}
+		} // Rectangle recStrings
+
+
+		RowLayout {
+			id: timerGrid
+			spacing: 0
+			Layout.preferredWidth: dlgTimer.width * 0.8
+			Layout.leftMargin: dlgTimer.width * 0.1
 
 			Rectangle {
 				id: recNegCountDown
-				Layout.alignment: Qt.AlignVCenter
-				Layout.topMargin: -height
 				radius: 2
-				height: 4
+				height: 3
 				width: 12
 				visible: bNegCountDown
 				color: "black"
+				opacity: 0.5
+				Layout.alignment: Qt.AlignVCenter
+				Layout.leftMargin: -10
 			}
-			TextField {
+
+			TPTextInput {
 				id: txtHours
 				text: runCmd.intTimeToStrTime(hours)
-				color: "white"
 				visible: !bJustMinsAndSecs
 				focus: true
-				font.pixelSize: AppSettings.fontSizeTitle
-				font.bold: true
 				validator: IntValidator { bottom: 0; top: 99; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				Layout.maximumWidth: 30
-				Layout.alignment: Text.AlignHCenter
+				width: txtWidth
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
 
 				Keys.onPressed: (event) => processKeyEvents(event);
-
-				background: Rectangle {
-					color: "transparent"
-				}
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtHours.clear();
-						placeholderText = runCmd.intTimeToStrTime(hours);
 						origHours = hours;
 					}
 					else {
 						bInputOK = acceptableInput;
 						if (acceptableInput)
 							hours = parseInt(text);
-						else
+						else {
+							hours = -1; //trigger an onTextChange event
 							hours = origHours;
+						}
 					}
 				}
 				onTextEdited: {
@@ -378,49 +331,45 @@ Dialog {
 			} // txtHours
 
 			Label {
-				text: "  :  "
+				text: ":  "
 				font.pixelSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
-				color: "white"
+				color: "black"
 				visible: txtHours.visible
 				Layout.maximumWidth: 10
-				Layout.alignment: Text.AlignHCenter
+				Layout.minimumWidth: 10
 			}
 
-			TextField {
+			TPTextInput {
 				id: txtMinutes
 				text: runCmd.intTimeToStrTime(mins)
-				color: "white"
 				focus: true
-				font.pixelSize: AppSettings.fontSizeTitle
-				font.bold: true
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				Layout.alignment: Text.AlignHCenter
-				Layout.maximumWidth: 30
+				width: txtWidth
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
 
 				Keys.onPressed: (event) => processKeyEvents(event);
-
-				background: Rectangle {
-					color: "transparent"
-				}
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtMinutes.clear();
-						placeholderText = runCmd.intTimeToStrTime(mins);
 						origMins = mins;
 					}
 					else {
 						bInputOK = acceptableInput
 						if (acceptableInput)
 							mins = parseInt(text);
-						else
+						else {
+							mins = -1; //trigger an onTextChange event
 							mins = origMins;
+						}
 					}
 				}
+
 				onTextEdited: {
 					bInputOK = acceptableInput;
 					if (acceptableInput) {
@@ -438,47 +387,42 @@ Dialog {
 			} // txtMinutes
 
 			Label {
-				text: "  :  "
+				text: ":  "
 				font.pixelSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
-				color: "white"
+				color: "black"
 				visible: txtSecs.visible
 				Layout.maximumWidth: 10
-				Layout.alignment: Text.AlignHCenter
+				Layout.minimumWidth: 10
 			}
 
-			TextField {
+			TPTextInput {
 				id: txtSecs
 				text: runCmd.intTimeToStrTime(secs)
-				color: "white"
 				focus: true
-				font.pixelSize: AppSettings.fontSizeTitle
-				font.bold: true
 				visible: !timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
-				Layout.alignment: Text.AlignHCenter
-				Layout.maximumWidth: 30
+				width: txtWidth
+				Layout.maximumWidth: txtWidth
+				Layout.minimumWidth: txtWidth
 
 				Keys.onPressed: (event) => processKeyEvents(event);
-
-				background: Rectangle {
-					color: "transparent"
-				}
 
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtSecs.clear();
-						placeholderText = runCmd.intTimeToStrTime(secs);
 						origSecs = secs;
 					}
 					else {
 						if (acceptableInput)
 							secs = parseInt(text);
-						else
+						else {
+							secs = -1; //trigger an onTextChange event
 							secs = origSecs;
+						}
 					}
 				}
 				onTextEdited: {
@@ -492,20 +436,17 @@ Dialog {
 				}
 			} // txtSecs
 		} // headerGrid
-	} // Rectangle recTimer
-
-	Rectangle {
-		id: recProgress
-		anchors.top: recTimer.bottom
-		anchors.horizontalCenter: parent.horizontalCenter
-		height: 20
-		width: recTimer.width
-		visible: !timePickerOnly
 
 		ProgressBar {
 			id: progressBar
-			width: parent.width
-			y: (parent.height / 2) - 3
+			visible: !timePickerOnly
+			height: 6
+			width: dlgTimer.width*0.8
+			Layout.topMargin: 10
+			Layout.bottomMargin: 10
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
+			Layout.leftMargin: dlgTimer.width * 0.1
 
 			background: Rectangle {
 				implicitWidth: parent.width
@@ -525,117 +466,118 @@ Dialog {
 				}
 			}
 		} // ProgressBar
-	} // Rectangle
-
-	Rectangle {
-		id: recButtons
-		anchors.top: recProgress.bottom
-		anchors.left: parent.left
-		height: 40
-		width: parent.width
 
 		RowLayout {
-			anchors.fill: parent
+			id: btnsRow
+			spacing: 0
+			Layout.preferredWidth: dlgTimer.width * 0.8
+			Layout.leftMargin: dlgTimer.width * 0.1
+			readonly property int buttonWidth: (dlgTimer.width * 0.8)/3 - 10
 
-		ButtonFlat {
-			id: btnStartPause
-			text: qsTr("Start")
-			enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
-			visible: !timePickerOnly
-			Layout.leftMargin: 10
+			TPButton {
+				id: btnStartPause
+				text: qsTr("Start")
+				enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
+				visible: !timePickerOnly
+				Layout.minimumWidth: btnsRow.buttonWidth
+				Layout.maximumWidth: btnsRow.buttonWidth
 
-			onClicked: {
-				playSound.stop();
-				if (!bRunning) {
-					if (!bPaused) { //Start
-						origHours = hours;
-						origMins = mins;
-						origSecs = secs;
-						mainTimer.init();
+				onClicked: {
+					playSound.stop();
+					if (!bRunning) {
+						if (!bPaused) { //Start
+							origHours = hours;
+							origMins = mins;
+							origSecs = secs;
+							mainTimer.init();
+						}
+						else { //Continue
+							bPaused = false;
+							bRunning = true;
+							mainTimer.start();
+						}
+						text = qsTr("Pause");
 					}
-					else { //Continue
-						bPaused = false;
-						bRunning = true;
-						mainTimer.start();
-					}
-					text = qsTr("Pause");
-				}
-				else { //Pause
-					if (!bPaused) {
-						bPaused = true;
-						mainTimer.stopTimer(false);
-						text = qsTr("Continue");
-					}
-				}
-			}
-		}
-
-		ButtonFlat {
-			id: btnReset
-			text: qsTr("Reset")
-			visible: !timePickerOnly
-			enabled: bRunning ? false : bPaused
-
-			onClicked: {
-				mainTimer.stopTimer(true);
-				playSound.stop();
-				btnStartPause.text = qsTr("Start");
-			}
-		}
-
-		ButtonFlat {
-			id: btnUseTime
-			text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
-			Layout.alignment: Qt.AlignCenter
-
-			onClicked: {
-				var totalsecs = secs;
-				var totalmins = mins;
-				var totalhours = hours;
-				if (!simpleTimer) {
-					if (!bTextChanged) {
-						if (bTimer) {
-							if (bForward) { // Elapsed time after zero plus the starting time
-								totalsecs += origSecs;
-								totalmins += origMins;
-								totalhours += origHours;
-								if (totalsecs > 59) {
-									totalsecs -= 59;
-									totalmins++;
-								}
-								if (totalmins > 59) {
-									totalmins -= 59;
-									totalhours++;
-								}
-								if (totalhours > 99)
-									totalhours = 99;
-							}
-							else { //Compute elapsed time
-								const elapsedTime = origSecs + 60*origMins + 3600*origHours - totalSecs;
-								totalhours = Math.floor(elapsedTime / 3600);
-								totalmins = elapsedTime - totalhours * 3600;
-								totalmins = Math.floor(totalmins / 60);
-								totalsecs = elapsedTime - totalhours * 3600 - totalmins * 60;
-							}
+					else { //Pause
+						if (!bPaused) {
+							bPaused = true;
+							mainTimer.stopTimer(false);
+							text = qsTr("Continue");
 						}
 					}
-					if (timePickerOnly) {
-						useTime(runCmd.intTimeToStrTime(hours) + ":" + runCmd.intTimeToStrTime(mins));
-					}
-					else {
-						if ( totalhours > 0 )
-							useTime(runCmd.intTimeToStrTime(totalhours) + ":" + runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
-						else
-							useTime(runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
-					}
 				}
-				dlgTimer.close();
-				mainTimer.stopTimer(true);
-				btnStartPause.text = qsTr("Start");
 			}
-		}
-	} // recButtons
-	}
+
+			TPButton {
+				id: btnReset
+				text: qsTr("Reset")
+				visible: !timePickerOnly
+				enabled: bRunning ? false : bPaused
+				Layout.minimumWidth: btnsRow.buttonWidth
+				Layout.maximumWidth: btnsRow.buttonWidth
+
+				onClicked: {
+					mainTimer.stopTimer(true);
+					playSound.stop();
+					btnStartPause.text = qsTr("Start");
+				}
+			}
+
+			TPButton {
+				id: btnUseTime
+				text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
+				Layout.minimumWidth: btnsRow.buttonWidth
+				Layout.maximumWidth: btnsRow.buttonWidth
+
+				onClicked: {
+					var totalsecs = secs;
+					var totalmins = mins;
+					var totalhours = hours;
+					if (!simpleTimer) {
+						if (!bTextChanged) {
+							if (bTimer) {
+								if (bForward) { // Elapsed time after zero plus the starting time
+									totalsecs += origSecs;
+									totalmins += origMins;
+									totalhours += origHours;
+									if (totalsecs > 59) {
+										totalsecs -= 59;
+										totalmins++;
+									}
+									if (totalmins > 59) {
+										totalmins -= 59;
+										totalhours++;
+									}
+									if (totalhours > 99)
+										totalhours = 99;
+								}
+								else { //Compute elapsed time
+									const elapsedTime = origSecs + 60*origMins + 3600*origHours - totalSecs;
+									totalhours = Math.floor(elapsedTime / 3600);
+									totalmins = elapsedTime - totalhours * 3600;
+									totalmins = Math.floor(totalmins / 60);
+									totalsecs = elapsedTime - totalhours * 3600 - totalmins * 60;
+								}
+							}
+						}
+						if (timePickerOnly) {
+							useTime(runCmd.intTimeToStrTime(hours) + ":" + runCmd.intTimeToStrTime(mins));
+						}
+						else {
+							if ( totalhours > 0 )
+								useTime(runCmd.intTimeToStrTime(totalhours) + ":" + runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
+							else
+								useTime(runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
+						}
+					}
+					dlgTimer.close();
+					mainTimer.stopTimer(true);
+					btnStartPause.text = qsTr("Start");
+				} //btnUseTime
+			}
+		} //Row
+	} //ColumnLayout
+
 	onClosed: {
 		playSound.stop();
 	}

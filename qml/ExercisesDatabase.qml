@@ -227,7 +227,7 @@ Page {
 				Layout.leftMargin: 5
 			}
 
-			ButtonFlat {
+			TPButton {
 				id: btnChooseMediaFromDevice
 				text: qsTr("Choose media")
 				onClicked: fileDialog.open();
@@ -284,7 +284,7 @@ Page {
 				Layout.fillWidth: true
 				spacing: 5
 
-				ButtonFlat {
+				TPButton {
 					id:btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
@@ -311,7 +311,7 @@ Page {
 					}
 				} //btnNewExercise
 
-				ButtonFlat {
+				TPButton {
 					id:btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesList.curIndex >= 0
@@ -336,7 +336,7 @@ Page {
 					}
 				} //btnEditExercise
 
-				ButtonFlat {
+				TPButton {
 					id:btnSaveExercise
 					text: qsTr("Save")
 					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
@@ -360,7 +360,7 @@ Page {
 					}
 				} //btnSaveExercise
 
-				ButtonFlat {
+				TPButton {
 					id: btnChooseExercise
 					enabled: bChooseButtonEnabled && !bCanEdit && exercisesList.curIndex >= 0
 					text: qsTr("Choose")
@@ -374,7 +374,7 @@ Page {
 					}
 				} //btnChooseExercise
 
-				ButtonFlat {
+				TPButton {
 					id: btnCancel
 					text: qsTr("Close")
 

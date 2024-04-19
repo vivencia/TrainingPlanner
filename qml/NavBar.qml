@@ -12,7 +12,7 @@ ToolBar {
 	property var mainCalendar: null
 	property var mainTimer: null
 
-	ButtonFlat {
+	TPButton {
 		id: btnBack
 		enabled: stackView.depth >= 2
 		anchors.left: parent.left

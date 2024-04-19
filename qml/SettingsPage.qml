@@ -177,28 +177,12 @@ Page {
 			}
 
 //------------------------------------------------------THEME------------------------------------------------------
-			GroupBox {
+			TPGroupBox {
+				text: qsTr("Application style")
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
-				spacing: 0
-				padding: 0
-
-				label: Label {
-					text: qsTr("Application style")
-					color: "white"
-					anchors.horizontalCenter: parent.horizontalCenter
-					anchors.bottomMargin: 10
-					font.bold: true
-					font.pixelSize: AppSettings.fontSize
-				}
-
-				background: Rectangle {
-					color: "transparent"
-					border.color: "white"
-					radius: 6
-				}
 
 				ColumnLayout {
 					anchors.fill: parent
@@ -438,7 +422,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnApplyChanges
 			text: qsTr("Apply")
 			enabled: bModified

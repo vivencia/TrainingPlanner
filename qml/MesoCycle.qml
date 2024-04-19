@@ -53,7 +53,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnManageMeso
 			text: qsTr("Calendar")
 			anchors {
@@ -77,7 +77,7 @@ Page {
 			}
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnStatistics
 			text: qsTr("Statistics")
 			anchors {
@@ -355,41 +355,12 @@ Page {
 					anchors.fill: parent
 					spacing: 0
 
-					CheckBox {
+					TPCheckBox {
 						id: chkPreserveOldCalendar
 						text: qsTr("Preserve previous calendar information?")
 						checked: false
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
-
-						indicator: Rectangle {
-							implicitWidth: 26
-							implicitHeight: 26
-							x: chkPreserveOldCalendar.leftPadding
-							y: parent.height / 2 - height / 2
-							radius: 5
-							border.color: chkPreserveOldCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-
-							Rectangle {
-								width: 14
-								height: 14
-								x: 6
-								y: 6
-								radius: 2
-								color: chkPreserveOldCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-								visible: chkPreserveOldCalendar.checked
-							}
-						}
-						contentItem: Text {
-							text: chkPreserveOldCalendar.text
-							wrapMode: Text.WordWrap
-							opacity: enabled ? 1.0 : 0.3
-							verticalAlignment: Text.AlignVCenter
-							leftPadding: chkPreserveOldCalendar.indicator.width + chkPreserveOldCalendar.spacing
-							color: "white"
-							font.pixelSize: AppSettings.fontSizeText
-							font.bold: true
-						}
 
 						onClicked: {
 							if (checked) {
@@ -397,7 +368,7 @@ Page {
 									optPreserveOldCalendar.checked = true;
 							}
 						}
-					} //CheckBox
+					} //TPCheckBox
 
 					TPRadioButton {
 						id: optPreserveOldCalendar
@@ -633,7 +604,7 @@ Page {
 						}
 					}
 
-					ButtonFlat {
+					TPButton {
 						id: btnCreateExercisePlan
 						text: qsTr("Exercises Planner")
 						Layout.row: 6
@@ -656,7 +627,7 @@ Page {
 							else
 								component.statusChanged.connect(finishCreation);
 						} //onClicked
-					} //ButtonFlat
+					} //TPButton
 				} //GridLayout
 			} //Pane
 
@@ -743,7 +714,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
 			anchors.left: parent.left
@@ -789,7 +760,7 @@ Page {
 			}
 		} //btnRevert
 
-		ButtonFlat {
+		TPButton {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
 			anchors.right: parent.right

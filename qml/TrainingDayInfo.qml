@@ -367,47 +367,15 @@ Page {
 				} //txtTDay
 			} //GridLayout
 
-			CheckBox {
+			TPCheckBox {
 				id: chkAdjustCalendar
 				text: qsTr("Re-adjust meso calendar from this day?")
 				checked: false
+				visible: false
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
-				visible: false
-				padding: 0
-				spacing: 0
-
-				indicator: Rectangle {
-					implicitWidth: 26
-					implicitHeight: 26
-					x: chkAdjustCalendar.leftPadding
-					y: (parent.height-height) / 2
-					radius: 5
-					border.color: chkAdjustCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-
-					Rectangle {
-						width: 14
-						height: 14
-						x: 6
-						y: 6
-						radius: 2
-						color: chkAdjustCalendar.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-						visible: chkAdjustCalendar.checked
-					}
-				}
-
-				contentItem: Label {
-					text: chkAdjustCalendar.text
-					color: "white"
-					font.pixelSize: AppSettings.fontSizeText
-					font.bold: true
-					wrapMode: Text.WordWrap
-					opacity: enabled ? 1.0 : 0.3
-					verticalAlignment: Text.AlignVCenter
-					leftPadding: chkAdjustCalendar.indicator.width + chkAdjustCalendar.spacing
-				}
-			} //CheckBox
+			} //TPCheckBox
 
 			Label {
 				text: qsTr("Location:")
@@ -465,7 +433,7 @@ Page {
 						Layout.fillWidth: true
 						Layout.leftMargin: 30
 
-						ButtonFlat {
+						TPButton {
 							id: btnTimeLength
 							text: qsTr("By duration")
 							enabled: !timerRestricted.running
@@ -473,7 +441,7 @@ Page {
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgSessionLength.open();
 						}
-						ButtonFlat {
+						TPButton {
 							id: btnTimeHour
 							text: qsTr("By time of day")
 							enabled: !timerRestricted.running
@@ -499,7 +467,7 @@ Page {
 						visible: timerRestricted.running || timerRestricted.complete
 					}
 
-					ButtonFlat {
+					TPButton {
 						id: btnCancelTimeRestrictedTimer
 						text: qsTr("Unset alarm")
 						Layout.alignment: Qt.AlignCenter
@@ -672,7 +640,7 @@ Page {
 						padding: 0
 					}
 
-					ButtonFlat {
+					TPButton {
 						id: btnConvertToExercisePlanner
 						text: qsTr("Go")
 						Layout.alignment: Qt.AlignCenter
@@ -714,69 +682,18 @@ Page {
 				}
 			}
 
-			GroupBox {
+			TPGroupBox {
 				id: grpIntent
+				text: qsTr("What do you want to do today?")
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 30
 				visible: bHasMesoPlan || bHasPreviousTDays
 				width: parent.width - 20
-				spacing: 0
-				padding: 0
+
 				property int option
-				property bool highlight: false
-
-				onHighlightChanged: {
-					if (highlight) {
-						recIntent.border.width = 2;
-						anim.start();
-					}
-					else {
-						recIntent.border.width = 1;
-						anim.stop();
-					}
-				}
-
 				onOptionChanged: btnChooseIntent.enabled = true;
-
-				label: Label {
-					text: qsTr("What do you want to do today?")
-					color: "white"
-					font.pixelSize: AppSettings.fontSizeText
-					font.bold: true
-					anchors.horizontalCenter: parent.horizontalCenter
-					anchors.bottomMargin: 10
-				}
-
-				background: Rectangle {
-					id: recIntent
-					color: "transparent"
-					border.color: "white"
-					radius: 6
-				}
-
-				SequentialAnimation {
-					id: anim
-					loops: Animation.Infinite
-
-					ColorAnimation {
-						target: recIntent
-						property: "border.color"
-						from: "white"
-						to: "gold"
-						duration: 300
-						easing.type: Easing.InOutCubic
-					}
-					ColorAnimation {
-						target: recIntent
-						property: "border.color"
-						from: "gold"
-						to: "white"
-						duration: 300
-						easing.type: Easing.InOutCubic
-					}
-				}
 
 				ColumnLayout {
 					anchors {
@@ -794,9 +711,7 @@ Page {
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						onClicked: {
-							grpIntent.option = 1;
-						}
+						onClicked: grpIntent.option = 1;
 					}
 
 					TPRadioButton {
@@ -807,9 +722,7 @@ Page {
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						onClicked: {
-							grpIntent.option = 2;
-						}
+						onClicked: grpIntent.option = 2;
 					}
 
 					TPComboBox {
@@ -829,19 +742,17 @@ Page {
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						onClicked: {
-							grpIntent.option = 3;
-						}
+						onClicked: grpIntent.option = 3;
 					}
 
-					ButtonFlat {
+					TPButton {
 						id: btnChooseIntent
 						text: qsTr("Begin")
 						enabled: false
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
-							highlight = false;
+							grpIntent.highlight = false;
 
 							switch (grpIntent.option) {
 								case 1: //use meso plan
@@ -962,7 +873,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnSaveDay
 			enabled: tDayModel.modified
 			text: qsTr("Log Day")
@@ -1003,7 +914,7 @@ Page {
 			}
 		} //btnSaveDay
 
-		ButtonFlat {
+		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
 			enabled: splitLetter !== 'R' && !grpIntent.visible

@@ -11,7 +11,7 @@ TextField {
 	font.pixelSize: fontPSize
 	font.weight: Font.Bold //Font.ExtraBold
 	color: textColor
-	wrapMode: Text.WordWrap
+	//wrapMode: Text.WordWrap
 	leftInset: 0
 	rightInset: 0
 	topInset: 0

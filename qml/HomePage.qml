@@ -233,7 +233,7 @@ Page {
 			opacity: 0.7
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnAddOpenSchedule
 			text: qsTr("New open-ended schedule")
 			textUnderIcon: true
@@ -245,7 +245,7 @@ Page {
 			onClicked: newAction(0);
 		}
 
-		ButtonFlat {
+		TPButton {
 			id: btnAddMeso
 			text: qsTr("New Mesocycle")
 			imageSource: "qrc:/images/"+lightIconFolder+"mesocycle-add.png"
