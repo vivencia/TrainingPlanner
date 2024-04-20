@@ -137,7 +137,7 @@ Popup {
 		font.pixelSize: AppSettings.fontSize
 		font.weight: Font.Black
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 20
-		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 25
+		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
 		visible: message.length > 0
 		padding: 0
 

@@ -10,12 +10,18 @@ Page {
 	property bool bCanRestoreMeso: false
 	property bool bCanRestoreMesoSplit: false
 	property bool bCanRestoreMesoCal: false
-	property bool bCanRestoreExercises: false
 	property bool bCanRestoreTraining: false
+	property bool bCanRestoreExercises: false
 	property bool bCanWriteToBackupFolder: false
-	property bool bCanRestore: restoreCount > 0
+	property int opResult
 
+	property int backupCount: 5
+	property var backupFiles: [1,1,1,1,1]
+	property bool bCanBackup: backupCount > 0
 	property int restoreCount: 0
+	property var restoreFiles: [0,0,0,0,0]
+	property bool bCanRestore: restoreCount > 0
+	property bool bNeedCheck: false
 
 	Image {
 		anchors.fill: parent
@@ -31,12 +37,25 @@ Page {
 
 	TPBalloonTip {
 		id: opFinished
-		imageSource: "qrc:/images/"+lightIconFolder+"settings.png"
+		imageSource: "qrc:/images/"+lightIconFolder+"backup.png"
+
 
 		function init(msg: string) {
 			message = msg;
-			showTimed(3000, 0);
+			showTimed(5000, 0);
 		}
+	}
+
+	onOpResultChanged: {
+		var msg;
+		switch (opResult)
+		{
+			case 1: msg = qsTr("Selected filed to backup successfully backed up"); break;
+			case 2: msg = qsTr("Failed to backup selected files"); break;
+			case 3: msg = qsTr("Database files successfully restored. You need to restart the app"); break;
+			case 4: msg = qsTr("Failed to restore database from backup"); break;
+		}
+		opFinished.init(msg);
 	}
 
 	FolderDialog {
@@ -45,190 +64,278 @@ Page {
 		currentFolder: AppSettings.backupFolder
 
 		onAccepted: {
-			console.log(runCmd.getCorrectPath(currentFolder));
+			bNeedCheck = true;
 			AppSettings.backupFolder = runCmd.getCorrectPath(currentFolder);
 			close();
 		}
 	}
 
-	ColumnLayout {
-		id: colMain
+	ScrollView {
 		anchors.fill: parent
-		spacing: 5
+		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+		contentWidth: availableWidth //stops bouncing to the sides
+		contentHeight: colMain.implicitHeight
 
-		Label {
-			text: qsTr("BACKUP DATA")
-			color: "white"
-			font.bold: true
-			font.pixelSize: AppSettings.fontSize
-			Layout.alignment: Qt.AlignCenter
-			Layout.topMargin: 20
-			Layout.bottomMargin: 20
-		}
+		ColumnLayout {
+			id: colMain
+			anchors.fill: parent
+			spacing: 5
 
-		Label {
-			text: qsTr("Save backup to folder: ")
-			color: "white"
-			font.bold: true
-			font.pixelSize: AppSettings.fontSize
-			Layout.leftMargin: 5
-		}
-
-		TPTextInput {
-			id: txtBackupLocation
-			text: AppSettings.backupFolder
-			width: backupPage.width - 60
-			Layout.leftMargin: 10
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
-
-			RoundButton {
-				id: btnChooseFolder
-				icon.source: "qrc:/images/"+darkIconFolder+"time.png"
-				width: 40
-				height: 40
-
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: parent.right
-				onClicked: folderDialog.open();
+			Label {
+				text: qsTr("Save backup to folder: ")
+				color: "white"
+				font.bold: true
+				font.pixelSize: AppSettings.fontSize
+				Layout.leftMargin: 5
 			}
 
-			onTextChanged: appDB.verifyBackupPageProperties(backupPage);
-		}
+			TPTextInput {
+				id: txtBackupLocation
+				text: AppSettings.backupFolder
+				width: backupPage.width - 80
+				Layout.leftMargin: 10
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
 
-		TPButton {
-			id: btnBackup
-			text: qsTr("Backup")
-			enabled: bCanWriteToBackupFolder
-			Layout.alignment: Qt.AlignCenter
-
-			onClicked: runCmd.copyFileToAppDataDir(txtBackupLocation.text);
-		}
-
-		Rectangle {
-			height: 3
-			color: "white"
-			Layout.fillWidth: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
-		}
-
-		TPGroupBox {
-			text: qsTr("RESTORE DATA")
-			Layout.alignment: Qt.AlignCenter
-			Layout.bottomMargin: 20
-			Layout.leftMargin: 10
-			Layout.fillWidth: true
-			Layout.maximumWidth: backupPage.width - 20
-
-			ColumnLayout {
-				anchors.fill: parent
-				spacing: 0
-
-				Label {
-					text: qsTr("Restore from folder: ")
-					color: "white"
-					font.bold: true
-					font.pixelSize: AppSettings.fontSize
-					Layout.leftMargin: 5
+				RoundButton {
+					id: btnChooseBackupFolder
+					icon.source: "qrc:/images/"+darkIconFolder+"folder-backup.png"
+					width: 40
+					height: 40
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.left: parent.right
+					onClicked: folderDialog.open();
 				}
 
-				TPTextInput {
-					id: txtRestoreLocation
-					text: AppSettings.backupFolder
-					width: backupPage.width - 80
-					Layout.leftMargin: 10
-					Layout.minimumWidth: width
-					Layout.maximumWidth: width
+				onTextChanged: {
+					if (bNeedCheck)
+						appDB.verifyBackupPageProperties(backupPage);
+				}
+			}
 
-					RoundButton {
-						id: btnChooseRestoreFolder
-						icon.source: "qrc:/images/"+darkIconFolder+"time.png"
-						width: 40
-						height: 40
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.left: parent.right
-						onClicked: folderDialog.open();
+			TPGroupBox {
+				text: qsTr("What to backup")
+				Layout.alignment: Qt.AlignCenter
+				Layout.bottomMargin: 20
+				Layout.leftMargin: 10
+				Layout.fillWidth: true
+				Layout.maximumWidth: backupPage.width - 20
+
+				ColumnLayout {
+					anchors.fill: parent
+					spacing: 0
+
+					TPCheckBox {
+						text: qsTr("Mesocycles")
+						enabled: bCanWriteToBackupFolder
+						checked: true
+						Layout.leftMargin: 10
+
+						onClicked: {
+							if (checked ) ++backupCount
+							else --backupCount;
+						}
+						onCheckedChanged: backupFiles[0] = checked ? 1 : 0;
 					}
+					TPCheckBox {
+						text: qsTr("Mesocycles splits")
+						enabled: bCanWriteToBackupFolder
+						checked: true
+						Layout.leftMargin: 10
 
-					onTextChanged: appDB.verifyBackupPageProperties(backupPage);
-				}
-
-				TPCheckBox {
-					id: chkMeso
-					text: qsTr("Mesocycles")
-					enabled: bCanRestoreMeso
-					checked: bCanRestoreMeso
-					Layout.leftMargin: 10
-
-					onCheckedChanged: {
-						if (checked ) ++restoreCount
-						else --restoreCount;
+						onClicked: {
+							if (checked ) ++backupCount
+							else --backupCount;
+						}
+						onCheckedChanged: backupFiles[1] = checked ? 1 : 0;
 					}
-				}
-				TPCheckBox {
-					id: chkMesoSplit
-					text: qsTr("Mesocycles Splits")
-					enabled: bCanRestoreMesoSplit
-					checked: bCanRestoreMesoSplit
-					Layout.leftMargin: 10
+					TPCheckBox {
+						text: qsTr("Mesocycles calendar")
+						enabled: bCanWriteToBackupFolder
+						checked: true
+						Layout.leftMargin: 10
 
-					onCheckedChanged: {
-						if (checked ) ++restoreCount
-						else --restoreCount;
+						onClicked: {
+							if (checked ) ++backupCount
+							else --backupCount;
+						}
+						onCheckedChanged: backupFiles[2] = checked ? 1 : 0;
 					}
-				}
-				TPCheckBox {
-					id: chkMesoCal
-					text: qsTr("Mesocycles Calendar")
-					enabled: bCanRestoreMesoCal
-					checked: bCanRestoreMesoCal
-					Layout.leftMargin: 10
+					TPCheckBox {
+						text: qsTr("Workouts information")
+						enabled: bCanWriteToBackupFolder
+						checked: true
+						Layout.leftMargin: 10
 
-					onCheckedChanged: {
-						if (checked ) ++restoreCount
-						else --restoreCount;
+						onClicked: {
+							if (checked ) ++backupCount
+							else --backupCount;
+						}
+						onCheckedChanged: backupFiles[3] = checked ? 1 : 0;
 					}
-				}
-				TPCheckBox {
-					id: chkExercises
-					text: qsTr("Exercises database")
-					enabled: bCanRestoreExercises
-					checked: bCanRestoreExercises
-					Layout.leftMargin: 10
+					TPCheckBox {
+						text: qsTr("Exercises database")
+						enabled: bCanWriteToBackupFolder
+						checked: true
+						Layout.leftMargin: 10
 
-					onCheckedChanged: {
-						if (checked ) ++restoreCount
-						else --restoreCount;
+						onClicked: {
+							if (checked ) ++backupCount
+							else --backupCount;
+						}
+						onCheckedChanged: backupFiles[4] = checked ? 1 : 0;
 					}
-				}
-				TPCheckBox {
-					id: chkTraining
-					text: qsTr("Workout days")
-					enabled: bCanRestoreTraining
-					checked: bCanRestoreTraining
-					Layout.leftMargin: 10
+				} //ColumnLayout
+			} //TPGroupBox
 
-					onCheckedChanged: {
-						if (checked ) ++restoreCount
-						else --restoreCount;
+			TPButton {
+				id: btnBackup
+				text: qsTr("Backup")
+				enabled: bCanWriteToBackupFolder && bCanBackup
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: appDB.copyDBFilesToUserDir(backupPage, txtBackupLocation.text, backupFiles);
+			}
+
+			Rectangle {
+				height: 3
+				color: "white"
+				Layout.fillWidth: true
+				Layout.topMargin: 10
+				Layout.bottomMargin: 10
+			}
+
+			Label {
+				text: qsTr("Restore from folder: ")
+				color: "white"
+				font.bold: true
+				font.pixelSize: AppSettings.fontSize
+				Layout.leftMargin: 5
+				Layout.topMargin: 20
+				Layout.bottomMargin: 20
+			}
+
+			TPTextInput {
+				id: txtRestoreLocation
+				text: AppSettings.backupFolder
+				width: backupPage.width - 60
+				Layout.leftMargin: 10
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
+
+				RoundButton {
+					id: btnChooseFolder
+					icon.source: "qrc:/images/"+darkIconFolder+"folder-backup.png"
+					width: 40
+					height: 40
+
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.left: parent.right
+					onClicked: folderDialog.open();
+				}
+
+				onTextChanged: {
+					if (bNeedCheck)
+						appDB.verifyBackupPageProperties(backupPage);
+				}
+			}
+
+			TPGroupBox {
+				text: qsTr("What to restore")
+				Layout.alignment: Qt.AlignCenter
+				Layout.bottomMargin: 20
+				Layout.leftMargin: 10
+				Layout.fillWidth: true
+				Layout.maximumWidth: backupPage.width - 20
+
+				ColumnLayout {
+					anchors.fill: parent
+					spacing: 0
+
+					TPCheckBox {
+						id: chkMeso
+						text: qsTr("Mesocycles")
+						enabled: bCanRestoreMeso
+						checked: bCanRestoreMeso
+						Layout.leftMargin: 10
+
+						onClicked: {
+							if (checked ) ++restoreCount
+							else --restoreCount;
+						}
+						onCheckedChanged: restoreFiles[0] = checked ? 1 : 0;
 					}
-				}
-			} //ColumnLayout
-		} //TPGroupBox
+					TPCheckBox {
+						id: chkMesoSplit
+						text: qsTr("Mesocycles splits")
+						enabled: bCanRestoreMesoSplit
+						checked: bCanRestoreMesoSplit
+						Layout.leftMargin: 10
 
-		TPButton {
-			id: btnRestore
-			text: qsTr("Restore")
-			enabled: bCanRestore
-			Layout.alignment: Qt.AlignCenter
+						onClicked: {
+							if (checked ) ++restoreCount
+							else --restoreCount;
+						}
+						onCheckedChanged: restoreFiles[1] = checked ? 1 : 0;
+					}
+					TPCheckBox {
+						id: chkMesoCal
+						text: qsTr("Mesocycles calendar")
+						enabled: bCanRestoreMesoCal
+						checked: bCanRestoreMesoCal
+						Layout.leftMargin: 10
 
-			onClicked: runCmd.copyFileToAppDataDir(txtBackupLocation.text);
-		}
+						onClicked: {
+							if (checked ) ++restoreCount
+							else --restoreCount;
+						}
+						onCheckedChanged: restoreFiles[2] = checked ? 1 : 0;
+					}
+					TPCheckBox {
+						id: chkTraining
+						text: qsTr("Workouts information")
+						enabled: bCanRestoreTraining
+						checked: bCanRestoreTraining
+						Layout.leftMargin: 10
 
-		Item { // spacer item
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-		}
-	} //ColumLayout
+						onClicked: {
+							if (checked ) ++restoreCount
+							else --restoreCount;
+						}
+						onCheckedChanged: restoreFiles[3] = checked ? 1 : 0;
+					}
+					TPCheckBox {
+						id: chkExercises
+						text: qsTr("Exercises database")
+						enabled: bCanRestoreExercises
+						checked: bCanRestoreExercises
+						Layout.leftMargin: 10
+
+						onClicked: {
+							if (checked ) ++restoreCount
+							else --restoreCount;
+						}
+						onCheckedChanged: restoreFiles[4] = checked ? 1 : 0;
+					}
+				} //ColumnLayout
+			}//TPGroupBox
+
+			TPButton {
+				id: btnRestore
+				text: qsTr("Restore")
+				enabled: bCanRestore
+				Layout.alignment: Qt.AlignCenter
+
+				onClicked: appDB.copyFileToAppDataDir(backupPage, txtBackupLocation.text, restoreFiles);
+			}
+
+			Item { // spacer item
+				Layout.fillWidth: true
+				Layout.fillHeight: true
+			}
+		} //ColumLayout
+	} //ScrollView
+
+	Component.onCompleted: appDB.verifyBackupPageProperties(backupPage);
 } //Page

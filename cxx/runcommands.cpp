@@ -59,17 +59,6 @@ QString RunCommands::getAppDir(const QString& dbFile)
 	return m_appPrivateDir;
 }
 
-#ifdef Q_OS_ANDROID
-void RunCommands::copyFileToAppDataDir(const QString& strfile) const
-{
-	QFile file(strfile);
-	const int len(strfile.length() - strfile.lastIndexOf(u"%2F"_qs) - 3);
-	const QString newFileName(m_appSettings->value("dbFilePath").toString() + strfile.right(len));
-	if (file.copy(newFileName))
-		QFile::setPermissions(newFileName, QFileDevice::ReadUser |  QFileDevice::WriteUser);
-}
-#endif
-
 void RunCommands::copyToClipBoard(const QString& text) const
 {
 	qApp->clipboard()->setText(text);
@@ -79,10 +68,10 @@ const QString RunCommands::formatDate(const QDate& date) const
 {
 	if (date.isValid())
 	{
-		if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+		if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
 		{
 			QLocale locale(QStringLiteral("pt_BR"));
-			return locale.toString(date, QStringLiteral("ddd d/M/yyyy"));
+			return locale.toString(date, u"ddd d/M/yyyy"_qs);
 		}
 		return date.toString(Qt::TextDate);
 	}
@@ -92,7 +81,7 @@ const QString RunCommands::formatDate(const QDate& date) const
 QDate RunCommands::getDateFromStrDate(const QString& strDate) const
 {
 	const QStringView strdate(strDate);
-	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
+	if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
 	{
 		const int spaceIdx(strdate.indexOf(' '));
 		const int fSlashIdx(strdate.indexOf('/'));

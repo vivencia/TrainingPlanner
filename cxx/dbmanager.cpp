@@ -25,10 +25,11 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 #include <QFileInfo>
+#include <QDir>
 
-DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings), m_runCommands(runcommands),
-		m_model(nullptr), m_exercisesPage(nullptr)
+DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands, const QString& argv0)
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mArgv0(argv0), m_appSettings(appSettings),
+		m_runCommands(runcommands), m_model(nullptr), m_exercisesPage(nullptr)
 {}
 
 void DbManager::init()
@@ -77,6 +78,54 @@ void DbManager::init()
 		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		createThread(worker, [worker] () { return worker->updateExercisesList(); } );
 	}
+}
+
+void DbManager::exitApp()
+{
+	qApp->exit (0);
+	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
+	::exit (0);
+}
+
+#include <QtAndroidActivityView>
+void DbManager::restartApp()
+{
+	//#ifdef Q_OS_ANDROID
+	auto activity = QtAndroid::androidActivity();
+	auto packageManager = activity.callObjectMethod("getPackageManager",
+												"()Landroid/content/pm/PackageManager;");
+
+	auto activityIntent = packageManager.callObjectMethod("getLaunchIntentForPackage",
+													  "(Ljava/lang/String;)Landroid/content/Intent;",
+													  activity.callObjectMethod("getPackageName",
+													  "()Ljava/lang/String;").object());
+
+	auto pendingIntent = QAndroidJniObject::callStaticObjectMethod("android/app/PendingIntent", "getActivity",
+															   "(Landroid/content/Context;ILandroid/content/Intent;I)Landroid/app/PendingIntent;",
+															   activity.object(), jint(0), activityIntent.object(),
+															   QAndroidJniObject::getStaticField<jint>("android/content/Intent",
+																									   "FLAG_ACTIVITY_CLEAR_TOP"));
+
+	auto alarmManager = activity.callObjectMethod("getSystemService",
+											  "(Ljava/lang/String;)Ljava/lang/Object;",
+											  QAndroidJniObject::getStaticObjectField("android/content/Context",
+																					  "ALARM_SERVICE",
+																					  "Ljava/lang/String;").object());
+
+	alarmManager.callMethod<void>("set",
+							  "(IJLandroid/app/PendingIntent;)V",
+							  QAndroidJniObject::getStaticField<jint>("android/app/AlarmManager", "RTC"),
+							  jlong(QDateTime::currentMSecsSinceEpoch() + 100), pendingIntent.object());
+
+	qApp->quit();
+	//#else
+	char* args[2] = { nullptr, nullptr };
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(mArgv0.toLocal8Bit ().size ()) * sizeof (char)));
+	::strcpy (args[0], mArgv0.toLocal8Bit ().constData ());
+	::execv (args[0], args);
+	::free (args[0]);
+	exitApp();
+	//#endif
 }
 
 void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
@@ -236,25 +285,106 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 		cleanUp(dbObj);
 }
 
-void DbManager::verifyBackupPageProperties(QQuickItem* page)
+void DbManager::verifyBackupPageProperties(QQuickItem* page) const
 {
 	QFileInfo backupDirInfo(m_appSettings->value("backupFolder").toString());
 	const bool bCanWriteToBackupFolder(backupDirInfo.isDir() && backupDirInfo.isWritable());
+	uint restoreCount(0);
+
 	if (bCanWriteToBackupFolder)
 	{
 		const QString appDir(m_appSettings->value("backupFolder").toString() + u"/tp/"_qs);
+		bool bCanReadFile(false);
+
 		QFileInfo f_info(appDir + DBExercisesFileName);
-		page->setProperty("bCanRestoreExercises", f_info.isReadable());
+		if (bCanReadFile = f_info.isReadable())
+			restoreCount++;
+		page->setProperty("bCanRestoreExercises", bCanReadFile);
+
 		f_info.setFile(appDir + DBMesocyclesFileName);
-		page->setProperty("bCanRestoreMeso", f_info.isReadable());
+		if (bCanReadFile = f_info.isReadable())
+			restoreCount++;
+		page->setProperty("bCanRestoreMeso", bCanReadFile);
+
 		f_info.setFile(appDir + DBMesoSplitFileName);
-		page->setProperty("bCanRestoreMesoSplit", f_info.isReadable());
+		if (bCanReadFile = f_info.isReadable())
+			restoreCount++;
+		page->setProperty("bCanRestoreMesoSplit", bCanReadFile);
+
 		f_info.setFile(appDir + DBMesoCalendarFileName);
-		page->setProperty("bCanRestoreMesoCal", f_info.isReadable());
+		if (bCanReadFile = f_info.isReadable())
+			restoreCount++;
+		page->setProperty("bCanRestoreMesoCal", bCanReadFile);
+
 		f_info.setFile(appDir + DBTrainingDayFileName);
-		page->setProperty("bCanRestoreTraining", f_info.isReadable());
+		if (bCanReadFile = f_info.isReadable())
+			restoreCount++;
+		page->setProperty("bCanRestoreTraining", bCanReadFile);
 	}
 	page->setProperty("bCanWriteToBackupFolder", bCanWriteToBackupFolder);
+	page->setProperty("restoreCount", restoreCount);
+}
+
+static bool copyDBFiles(const QString& sourcePath, const QString& targetPath, const QVariantList& selectedFiles)
+{
+	bool bOK(true);
+	QFileInfo f_info(targetPath);
+	if (!f_info.exists())
+	{
+		QDir dir;
+		bOK = dir.mkdir(targetPath, QFileDevice::ReadOwner|QFileDevice::WriteOwner|QFileDevice::ExeOwner
+					|QFileDevice::ReadGroup|QFileDevice::ExeGroup|QFileDevice::ReadOther|QFileDevice::ExeOwner);
+	}
+	if (bOK)
+	{
+		QFile file;
+		QString dbFile;
+		for (uint i(0); i < 5; ++i)
+		{
+			if (selectedFiles.at(i).toInt() == 1)
+			{
+				switch (i)
+				{
+					case 0: dbFile = DBMesocyclesFileName; break;
+					case 1: dbFile = DBMesoSplitFileName; break;
+					case 2: dbFile = DBMesoCalendarFileName; break;
+					case 3: dbFile = DBTrainingDayFileName; break;
+					case 4: dbFile = DBExercisesFileName; break;
+				}
+				file.setFileName(sourcePath + dbFile);
+				if (bOK = file.copy(targetPath + dbFile))
+					QFile::setPermissions(targetPath + dbFile, QFileDevice::ReadUser | QFileDevice::WriteUser);
+			}
+		}
+	}
+	return bOK;
+}
+
+static void fixPath(QString& path)
+{
+	if (path.endsWith('/')) path.chop(1);
+	if (!path.endsWith(u"/tp"_qs)) path.append(u"/tp"_qs);
+	path.append('/');
+}
+
+void DbManager::copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const
+{
+	QString finalPath(targetPath);
+	fixPath(finalPath);
+	const bool bOK(copyDBFiles(m_appSettings->value("dbFilePath").toString(), finalPath, backupFiles));
+	page->setProperty("opResult", bOK ? 1 : 2);
+	if (bOK)
+		page->setProperty("backupCount", 0);
+}
+
+void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const
+{
+	QString origPath(sourcePath);
+	fixPath(origPath);
+	const bool bOK(copyDBFiles(origPath, m_appSettings->value("dbFilePath").toString(), restoreFiles));
+	page->setProperty("opResult", bOK ? 3 : 4);
+	if (bOK)
+		page->setProperty("restoreCount", 0);
 }
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)

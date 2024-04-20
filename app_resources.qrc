@@ -72,5 +72,10 @@
         <file>images/black/copy-setvalue.png</file>
         <file>images/black/swap.png</file>
         <file>images/white/swap.png</file>
+        <file>images/black/folder-backup.png</file>
+        <file>images/black/backup.png</file>
+        <file>images/white/backup.png</file>
+        <file>images/black/application-exit.png</file>
+        <file>images/white/application-exit.png</file>
     </qresource>
 </RCC>

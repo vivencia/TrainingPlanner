@@ -26,16 +26,20 @@ class DbManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands);
+	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands, const QString& argv0);
 	~DbManager();
 
 	void init();
+	Q_INVOKABLE void exitApp();
+	Q_INVOKABLE void restartApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
-	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page);
+	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
+	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
+	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -117,6 +121,7 @@ private:
 	int m_MesoId;
 	int m_MesoIdx;
 	uint m_expectedPageId;
+	QString mArgv0;
 	QString m_MesoIdStr;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;

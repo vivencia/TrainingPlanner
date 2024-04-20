@@ -128,6 +128,18 @@ Drawer {
 		}
 	} //ColumnLayout
 
+	TransparentButton {
+		id: btnExit
+		text: qsTr("Exit")
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
+
+		onClicked: appDB.exitApp();
+	}
+
 	Component.onCompleted: mainwindow.backButtonPressed.connect(maybeRestore);
 
 	function menuClicked() {
