@@ -39,7 +39,7 @@ Rectangle {
 	FontMetrics {
 		id: fontMetrics
 		font.family: buttonText.font.family
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 	}
 
 	Component.onCompleted: {
@@ -85,7 +85,7 @@ Rectangle {
 		color: button.enabled ? textColor : "darkgray"
 		font.weight: Font.ExtraBold
 		font.bold: true
-		font.pixelSize: AppSettings.fontSizeText*0.9
+		font.pointSize: AppSettings.fontSizeText*0.9
 		leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5

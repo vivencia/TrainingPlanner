@@ -75,7 +75,7 @@ Page {
 			text: firstTimeToolTip.text
 			wrapMode: Text.WordWrap
 			color: "white"
-			font.pixelSize: AppSettings.fontSizeText
+			font.pointSize: AppSettings.fontSizeText
 			width: parent.width
 			padding: 5
 		} //contentItem

@@ -49,7 +49,7 @@ Page {
 				text: qsTr("Training Program")
 				color: "white"
 				font.weight: Font.ExtraBold
-				font.pixelSize: AppSettings.fontSizeTitle
+				font.pointSize: AppSettings.fontSizeTitle
 				wrapMode: Text.WordWrap
 				Layout.alignment: Qt.AlignCenter
 			}

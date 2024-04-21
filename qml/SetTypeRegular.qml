@@ -109,7 +109,7 @@ Item {
 
 			Label {
 				id: lblTotalReps
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				visible: setType === 3
 				anchors {

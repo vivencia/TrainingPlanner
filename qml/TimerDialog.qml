@@ -247,7 +247,7 @@ Dialog {
 
 			Label {
 				color: "darkred"
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Hours")
 				visible: !bJustMinsAndSecs
 				Layout.maximumWidth: txtWidth
@@ -255,14 +255,14 @@ Dialog {
 			}
 			Label {
 				color: "darkred"
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 			}
 			Label {
 				color: "darkred"
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Seconds")
 				visible: !timePickerOnly
 				Layout.maximumWidth: txtWidth
@@ -332,7 +332,7 @@ Dialog {
 
 			Label {
 				text: ":  "
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
 				color: "black"
@@ -388,7 +388,7 @@ Dialog {
 
 			Label {
 				text: ":  "
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				fontSizeMode: Text.Fit
 				font.bold: true
 				color: "black"

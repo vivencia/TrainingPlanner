@@ -89,7 +89,7 @@ Frame {
 			Layout.topMargin: 10
 			Layout.maximumWidth: parent.width - 20
 			font.bold: true
-			font.pixelSize: AppSettings.fontSizeTitle
+			font.pointSize: AppSettings.fontSizeTitle
 		}// Label lblMain
 
 		Label {
@@ -101,7 +101,7 @@ Frame {
 		TextField {
 			id: txtSplit
 			text: mesoSplitModel.get(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2)
-			font.pixelSize: AppSettings.fontSizeText
+			font.pointSize: AppSettings.fontSizeText
 			Layout.fillWidth: true
 			Layout.leftMargin: 5
 			Layout.rightMargin: 20

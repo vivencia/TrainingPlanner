@@ -114,7 +114,7 @@ FocusScope {
 				id: txtExerciseName
 				text: tDayModel.exerciseName(exerciseIdx)
 				font.bold: true
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				readOnly: true
 				wrapMode: Text.WordWrap
 				width: windowWidth - 110
@@ -156,7 +156,7 @@ FocusScope {
 				Label {
 					id: lblExerciseNumber
 					text: parseInt(exerciseIdx + 1) + ":"
-					font.pixelSize: AppSettings.fontSizeText
+					font.pointSize: AppSettings.fontSizeText
 					anchors.right: txtExerciseName.left
 					anchors.verticalCenter: txtExerciseName.verticalCenter
 					width: 20

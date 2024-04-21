@@ -4,7 +4,7 @@ import QtQuick.Controls
 ComboBox {
 	id: control
 	font.bold: true
-	font.pixelSize: AppSettings.fontSizeText
+	font.pointSize: AppSettings.fontSizeText
 	implicitWidth: 120//fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
 	textRole: "text"
@@ -21,7 +21,7 @@ ComboBox {
 	FontMetrics {
 		id: fontMetrics
 		font.family: control.font.family
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 	}
 
 	delegate: ItemDelegate {
@@ -35,7 +35,7 @@ ComboBox {
 			text: delegate.model[control.textRole]
 			color: textColor
 			elide: Text.ElideRight
-			font.pixelSize: AppSettings.fontSizeText
+			font.pointSize: AppSettings.fontSizeText
 			font.weight: Font.ExtraBold
 			verticalAlignment: Text.AlignVCenter
 		}
@@ -73,7 +73,7 @@ ComboBox {
 		leftPadding: 5
 		rightPadding: control.indicator.width + control.spacing
 		color: textColor
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		verticalAlignment: Text.AlignVCenter
 		elide: Text.ElideRight
@@ -104,7 +104,7 @@ ComboBox {
 				id: delegate
 				text: model.key
 				color: control.highlighted ? AppSettings.primaryLightColor : "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.weight: Font.ExtraBold
 				padding: 0
 			}

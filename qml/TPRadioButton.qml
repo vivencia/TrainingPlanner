@@ -13,7 +13,7 @@ RadioButton {
 		text: control.text
 		color: textColor
 		wrapMode: Text.WordWrap
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		anchors.left: parent.left
 		anchors.leftMargin: 25

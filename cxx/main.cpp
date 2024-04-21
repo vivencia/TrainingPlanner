@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
 	RunCommands runCmd(&appSettings);
-	DbManager db(&appSettings, &runCmd);
+	DbManager db(&appSettings, &runCmd, argv[0]);
 	QQmlApplicationEngine engine;
 
 	QString db_filepath (appSettings.value("dbFilePath").toString());

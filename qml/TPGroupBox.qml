@@ -11,7 +11,7 @@ GroupBox {
 	label: Label {
 		id: lblText
 		color: "white"
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.bottomMargin: 10

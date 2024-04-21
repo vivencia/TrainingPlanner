@@ -44,7 +44,7 @@ Page {
 				text: mesoName
 				font.bold: true
 				color: "white"
-				font.pixelSize: AppSettings.fontSize
+				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
@@ -54,7 +54,7 @@ Page {
 				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2)) +
 						qsTr("</b>  through  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3)) + "</b>"
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
 				Layout.leftMargin: 5
@@ -104,7 +104,7 @@ Page {
 				Text {
 					anchors.centerIn: parent
 					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
-					font.pixelSize: AppSettings.fontSizeTitle
+					font.pointSize: AppSettings.fontSizeTitle
 					font.bold: true
 				}
 			}
@@ -122,7 +122,7 @@ Page {
 					verticalAlignment: Text.AlignVCenter
 					color: "white"
 					font.bold: true
-					font.pixelSize: AppSettings.fontSize
+					font.pointSize: AppSettings.fontSize
 				}
 			}
 
@@ -171,7 +171,7 @@ Page {
 						visible: parent.enabled
 						color: todayDate ? "red" : "white"
 						font.bold: true
-						font.pixelSize: AppSettings.fontSize
+						font.pointSize: AppSettings.fontSize
 					}
 
 					MouseArea {
@@ -202,7 +202,7 @@ Page {
 						qsTr("Selected day is not part of the current mesocycle")
 				color: "white"
 				wrapMode: Text.WordWrap
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 				Layout.maximumWidth: parent.width / 2
 				Layout.leftMargin: 5

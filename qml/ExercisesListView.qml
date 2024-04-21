@@ -90,7 +90,7 @@ Column {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
 				color: curIndex === index ? "white" : "black"
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 				padding: 0
 			}
 			spacing: 0
@@ -102,7 +102,7 @@ Column {
 			FontMetrics {
 				id: fontMetrics
 				font.family: listItem.font.family
-				font.pixelSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeLists
 			}
 
 			background: Rectangle {
@@ -177,7 +177,7 @@ Column {
 	Label {
 		Layout.leftMargin: 5
 		text: qsTr("Search: ")
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		width: parent.width - 25
 

@@ -27,7 +27,7 @@ Popup {
 	spacing: 0
 	padding: 0
 	width: windowWidth * 0.7
-	height: lblTitle.height + lblMessage.height + Math.max(btn1.height, btn2.height) + 10
+	height: lblTitle.height + lblMessage.height + 10
 
 	background: Rectangle {
 		id: background
@@ -85,7 +85,7 @@ Popup {
 	FontMetrics {
 		id: fontMetrics
 		font.family: lblMessage.font.family
-		font.pixelSize: AppSettings.fontSize
+		font.pointSize: AppSettings.fontSize
 	}
 
 	Label {
@@ -94,7 +94,7 @@ Popup {
 		color: textColor
 		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
-		font.pixelSize: AppSettings.fontSizeTitle * 0.6
+		font.pointSize: AppSettings.fontSizeTitle * 0.6
 		font.weight: Font.Black
 		width: parent.width - 20
 		height: visible ? 30 : 0
@@ -134,7 +134,7 @@ Popup {
 		color: textColor
 		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignJustify
-		font.pixelSize: AppSettings.fontSize
+		font.pointSize: AppSettings.fontSize
 		font.weight: Font.Black
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 20
 		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
@@ -176,22 +176,14 @@ Popup {
 		text: button1Text
 		visible: button1Text.length > 0
 		height: visible ? buttonHeight : 0
-		anchors.bottom: parent.bottom
-		anchors.bottomMargin: 10
+		z: 2
 
 		onClicked: {
 			button1Clicked();
 			balloon.close();
 		}
 
-		Component.onCompleted: {
-			if (button2Text.length > 0) {
-				anchors.left = parent.left;
-				anchors.leftMargin = (parent.width - width - btn2.width) / 3;
-			}
-			else
-				anchors.horizontalCenter = parent.horizontalCenter;
-		}
+		onTextChanged: positionButton1();
 	}
 
 	TPButton {
@@ -199,28 +191,21 @@ Popup {
 		text: button2Text
 		visible: button2Text.length > 0
 		height: visible ? buttonHeight : 0
-		anchors.bottom: parent.bottom
-		anchors.bottomMargin: 10
+		z: 2
 
 		onClicked: {
 			button2Clicked();
 			balloon.close();
 		}
 
-		Component.onCompleted: {
-			if (button1Text.length > 0) {
-				anchors.right = parent.right;
-				anchors.rightMargin = (parent.width - width - btn1.width) / 3;
-			}
-			else
-				anchors.horizontalCenter = parent.horizontalCenter;
-		}
+		onTextChanged: positionButton2();
 	}
 
 	MouseArea {
 		id: mouseArea
 		property var prevPos
 		z: 1
+		anchors.fill: parent
 
 		onPressed: (mouse) => {
 			prevPos = { x: mouse.x, y: mouse.y };
@@ -239,17 +224,6 @@ Popup {
 				balloon.close();
 			}
 			prevPos = { x: mouseX, y: mouseY };
-		}
-
-		Component.onCompleted: {
-			if (button1Text.length === 0 && button2Text.length === 0)
-				anchors.fill = parent;
-			else {
-				anchors.left = parent.left;
-				anchors.right = parent.right;
-				anchors.top = parent.top;
-				anchors.bottom = btn1.top;
-			}
 		}
 	}
 
@@ -284,7 +258,7 @@ Popup {
 	function show(ypos) {
 		balloon.x = (windowWidth - width)/2;
 		balloon.y = finalYPos = ypos;
-		if ( ypos <= windowHeight/2 )
+		if (ypos <= windowHeight/2)
 			startYPos = -300;
 		else
 			startYPos = windowHeight + 300;
@@ -299,5 +273,30 @@ Popup {
 	function showLate(timeout, ypos) {
 		startYPos = ypos;
 		hideTimer.delayedOpen(timeout);
+	}
+
+	function positionButton1() {
+		balloon.height += btn1.buttonHeight
+		if (button2Text.length > 0) {
+			btn1.anchors.left = balloon.left;
+			btn1.anchors.leftMargin = (balloon.width - btn1.width - btn2.width) / 3;
+		}
+		else
+			btn1.anchors.horizontalCenter = balloon.horizontalCenter;
+		btn1.anchors.bottom = balloon.bottom;
+		btn1.anchors.bottomMargin = 10;
+		btn1.anchors.topMargin = 10;
+	}
+
+	function positionButton2() {
+		if (button1Text.length > 0) {
+			btn2.anchors.right = balloon.right;
+			btn2.anchors.rightMargin = (balloon.width - btn2.width - btn1.width) / 3;
+		}
+		else
+			btn2.anchors.horizontalCenter = balloon.horizontalCenter;
+		btn2.anchors.bottom = balloon.bottom;
+		btn2.anchors.bottomMargin = 10;
+		btn2.anchors.topMargin = 10;
 	}
 }

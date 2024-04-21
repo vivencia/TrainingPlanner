@@ -39,9 +39,16 @@ Page {
 		id: opFinished
 		imageSource: "qrc:/images/"+lightIconFolder+"backup.png"
 
+		onButton1Clicked: appDB.restartApp();
 
 		function init(msg: string) {
 			message = msg;
+			showTimed(5000, 0);
+		}
+
+		function initButton(msg: string) {
+			message = msg;
+			button1Text = qsTr("Restart now");
 			showTimed(5000, 0);
 		}
 	}
@@ -52,8 +59,11 @@ Page {
 		{
 			case 1: msg = qsTr("Selected filed to backup successfully backed up"); break;
 			case 2: msg = qsTr("Failed to backup selected files"); break;
-			case 3: msg = qsTr("Database files successfully restored. You need to restart the app"); break;
 			case 4: msg = qsTr("Failed to restore database from backup"); break;
+			case 3:
+				msg = qsTr("Database files successfully restored. You need to restart the app");
+				opFinished.initButton(msg);
+				return;
 		}
 		opFinished.init(msg);
 	}
@@ -86,7 +96,7 @@ Page {
 				text: qsTr("Save backup to folder: ")
 				color: "white"
 				font.bold: true
-				font.pixelSize: AppSettings.fontSize
+				font.pointSize: AppSettings.fontSize
 				Layout.leftMargin: 5
 			}
 
@@ -210,7 +220,7 @@ Page {
 				text: qsTr("Restore from folder: ")
 				color: "white"
 				font.bold: true
-				font.pixelSize: AppSettings.fontSize
+				font.pointSize: AppSettings.fontSize
 				Layout.leftMargin: 5
 				Layout.topMargin: 20
 				Layout.bottomMargin: 20

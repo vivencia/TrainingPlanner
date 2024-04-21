@@ -46,7 +46,7 @@ Page {
 			Label {
 				text: qsTr("Exercise:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
@@ -70,7 +70,7 @@ Page {
 			Label {
 				text: qsTr("Specifics:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
 			}
@@ -94,7 +94,7 @@ Page {
 			Label {
 				text: qsTr("Muscular Group:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
@@ -119,7 +119,7 @@ Page {
 				id: lblDefaults
 				text: qsTr("Exercise details:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.minimumWidth: parent.width - 20
 				Layout.maximumWidth: parent.width - 20
@@ -220,7 +220,7 @@ Page {
 			Label {
 				text: qsTr("Descriptive media:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.bottomMargin: 10
 				Layout.topMargin: 10

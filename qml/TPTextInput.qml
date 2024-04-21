@@ -8,7 +8,7 @@ TextField {
 	property int fontPSize: AppSettings.fontSizeText
 
 	id: control
-	font.pixelSize: fontPSize
+	font.pointSize: fontPSize
 	font.weight: Font.Bold //Font.ExtraBold
 	color: textColor
 	//wrapMode: Text.WordWrap
@@ -34,7 +34,7 @@ TextField {
 	FontMetrics {
 		id: fontMetrics
 		font.family: control.font.family
-		font.pixelSize: fontPSize
+		font.pointSize: fontPSize
 	}
 
 	TPBalloonTip {

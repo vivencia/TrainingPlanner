@@ -87,10 +87,17 @@ void DbManager::exitApp()
 	::exit (0);
 }
 
-#include <QtAndroidActivityView>
+#ifdef Q_OS_ANDROID
+#include <QtCore/qandroidextras_p.h>
+#else
+extern "C"
+{
+	#include <unistd.h>
+}
+#endif
 void DbManager::restartApp()
 {
-	//#ifdef Q_OS_ANDROID
+	#ifdef Q_OS_ANDROID
 	auto activity = QtAndroid::androidActivity();
 	auto packageManager = activity.callObjectMethod("getPackageManager",
 												"()Landroid/content/pm/PackageManager;");
@@ -118,14 +125,14 @@ void DbManager::restartApp()
 							  jlong(QDateTime::currentMSecsSinceEpoch() + 100), pendingIntent.object());
 
 	qApp->quit();
-	//#else
+	#else
 	char* args[2] = { nullptr, nullptr };
-	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(mArgv0.toLocal8Bit ().size ()) * sizeof (char)));
-	::strcpy (args[0], mArgv0.toLocal8Bit ().constData ());
-	::execv (args[0], args);
-	::free (args[0]);
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(mArgv0.toLocal8Bit().size()) * sizeof(char)));
+	::strncpy(args[0], mArgv0.toLocal8Bit().constData(), mArgv0.length());
+	::execv(args[0], args);
+	::free(args[0]);
 	exitApp();
-	//#endif
+	#endif
 }
 
 void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
@@ -337,7 +344,7 @@ static bool copyDBFiles(const QString& sourcePath, const QString& targetPath, co
 	}
 	if (bOK)
 	{
-		QFile file;
+		QFile inFile, outFile;
 		QString dbFile;
 		for (uint i(0); i < 5; ++i)
 		{
@@ -351,8 +358,11 @@ static bool copyDBFiles(const QString& sourcePath, const QString& targetPath, co
 					case 3: dbFile = DBTrainingDayFileName; break;
 					case 4: dbFile = DBExercisesFileName; break;
 				}
-				file.setFileName(sourcePath + dbFile);
-				if (bOK = file.copy(targetPath + dbFile))
+				inFile.setFileName(sourcePath + dbFile);
+				outFile.setFileName(targetPath + dbFile);
+				if (outFile.exists())
+					outFile.remove();
+				if (bOK = inFile.copy(outFile.fileName()))
 					QFile::setPermissions(targetPath + dbFile, QFileDevice::ReadUser | QFileDevice::WriteUser);
 			}
 		}

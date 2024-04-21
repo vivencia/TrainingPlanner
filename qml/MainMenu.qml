@@ -31,15 +31,34 @@ Drawer {
 
 	onOpened: mainMenuOpened();
 
+	TransparentButton {
+		id: btnExit
+		text: qsTr("Exit")
+		imageSource: "qrc:/images/"+lightIconFolder+"application-exit.png"
+		leftAlign: false
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
+
+		onClicked: appDB.exitApp();
+	}
+
 	ColumnLayout {
 		id: drawerLayout
 		spacing: 5
 
 		anchors {
-			fill: parent
+			left: parent.left
+			right: parent.right
+			top: parent.top
+			bottom: btnExit.top
 			leftMargin: 5
 			rightMargin: 5
 			topMargin: 10
+			bottomMargin: 5
 		}
 
 		Rectangle {
@@ -67,7 +86,7 @@ Drawer {
 				text: "TrainingPlanner by VivenciaSoftware - v20240405"
 				wrapMode: Text.WordWrap
 				font.bold: true
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				horizontalAlignment: Text.AlignHCenter
 				color: "white"
 
@@ -127,18 +146,6 @@ Drawer {
 			Layout.fillHeight: true
 		}
 	} //ColumnLayout
-
-	TransparentButton {
-		id: btnExit
-		text: qsTr("Exit")
-		anchors {
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
-		}
-
-		onClicked: appDB.exitApp();
-	}
 
 	Component.onCompleted: mainwindow.backButtonPressed.connect(maybeRestore);
 

@@ -307,7 +307,7 @@ Page {
 				horizontalAlignment: Qt.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
-				font.pixelSize: AppSettings.fontSizeTitle
+				font.pointSize: AppSettings.fontSizeTitle
 				color: "white"
 			}
 
@@ -321,7 +321,7 @@ Page {
 				Label {
 					text: qsTr("Training Division:")
 					color: "white"
-					font.pixelSize: AppSettings.fontSizeText
+					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
 					Layout.row: 0
 					Layout.column: 0
@@ -348,7 +348,7 @@ Page {
 				Label {
 					text: qsTr("Training Day #")
 					color: "white"
-					font.pixelSize: AppSettings.fontSizeText
+					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
 					visible: splitLetter !== 'R'
 					Layout.row: 1
@@ -380,7 +380,7 @@ Page {
 			Label {
 				text: qsTr("Location:")
 				color: "white"
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
 				visible: splitLetter !== 'R'
@@ -458,7 +458,7 @@ Page {
 									qsTr("Session time elapsed!")
 						wrapMode: Text.WordWrap
 						color: "white"
-						font.pixelSize: AppSettings.fontSizeText
+						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.fillWidth: true
 						Layout.maximumWidth: frmTrainingTime.width
@@ -485,7 +485,7 @@ Page {
 						Label {
 							id: lblInTime
 							color: "white"
-							font.pixelSize: AppSettings.fontSizeText
+							font.pointSize: AppSettings.fontSizeText
 							font.bold: true
 							text: qsTr("In time:")
 						}
@@ -521,7 +521,7 @@ Page {
 						Label {
 							id: lblOutTime
 							color: "white"
-							font.pixelSize: AppSettings.fontSizeText
+							font.pointSize: AppSettings.fontSizeText
 							font.bold: true
 							text: qsTr("Out time:")
 						}
@@ -557,7 +557,7 @@ Page {
 									runCmd.getStrMinFromTime(sessionLength) + qsTr(" minute(s)</b>")
 						wrapMode: Text.WordWrap
 						color: "white"
-						font.pixelSize: AppSettings.fontSizeText
+						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.fillWidth: true
 						Layout.maximumWidth: frmTrainingTime.width
@@ -569,7 +569,7 @@ Page {
 			Label {
 				id: lblDayInfoTrainingNotes
 				text: qsTr("This training session considerations:")
-				font.pixelSize: AppSettings.fontSizeText
+				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				visible: splitLetter !== 'R'
 				color: "white"
@@ -629,7 +629,7 @@ Page {
 					Label {
 						text: qsTr("Replace exercises plan for this division with this day's training list?")
 						wrapMode: Text.WordWrap
-						font.pixelSize: AppSettings.fontSizeText
+						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.topMargin: 20
 						Layout.leftMargin: 5
@@ -655,7 +655,7 @@ Page {
 				text: qsTr("--- EXERCISES ---")
 				color: "white"
 				font.weight: Font.Black
-				font.pixelSize: AppSettings.fontSizeTitle
+				font.pointSize: AppSettings.fontSizeTitle
 				visible: splitLetter !== 'R'
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 2

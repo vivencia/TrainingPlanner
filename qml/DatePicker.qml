@@ -87,7 +87,7 @@ Rectangle {
 				topPadding: cellSize * 0.5
 				horizontalAlignment: Text.AlignLeft
 				verticalAlignment: Text.AlignVCenter
-				font.pixelSize: fontSizePx * 1.7
+				font.pointSize: fontSizePx * 1.7
 				font.bold: true
 				opacity: yearsList.visible ? 1 : 0.7
 				color: "white"
@@ -110,7 +110,7 @@ Rectangle {
 			}
 			leftPadding: cellSize * 0.5
 			verticalAlignment: Text.AlignVCenter
-			font.pixelSize: height * 0.5
+			font.pointSize: height * 0.5
 			font.bold: true
 			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
 			color: "white"
@@ -169,7 +169,7 @@ Rectangle {
 
 				Text {
 					anchors.centerIn: parent
-					font.pixelSize: fontSizePx * 1.2
+					font.pointSize: fontSizePx * 1.2
 					font.bold: true
 					text: calendar.months[model.month] + " " + model.year;
 				}
@@ -187,7 +187,7 @@ Rectangle {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					font.pixelSize: fontSizePx
+					font.pointSize: fontSizePx
 					font.bold: true
 				}
 			}
@@ -217,7 +217,7 @@ Rectangle {
 					Text {
 						anchors.centerIn: parent
 						text: model.day
-						font.pixelSize: fontSizePx
+						font.pointSize: fontSizePx
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
@@ -258,7 +258,7 @@ Rectangle {
 			height: cellSize * 1.5
 			Text {
 				anchors.centerIn: parent
-				font.pixelSize: fontSizePx * 1.5
+				font.pointSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
 				color: AppSettings.paneBackgroundColor
@@ -323,7 +323,7 @@ Rectangle {
 				Text {
 					id: okBtnText
 					anchors.centerIn: parent
-					font.pixelSize: fontSizePx * 1.8
+					font.pointSize: fontSizePx * 1.8
 					font.bold: true
 					color: "black"
 					text: "OK"
@@ -346,7 +346,7 @@ Rectangle {
 				Text {
 					id: cancelBtnText
 					anchors.centerIn: parent
-					font.pixelSize: fontSizePx * 1.8
+					font.pointSize: fontSizePx * 1.8
 					font.bold: true
 					color: "black"
 					text: qsTr("CANCEL")

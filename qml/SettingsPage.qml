@@ -31,6 +31,9 @@ Page {
 		id: applyTip
 		message: qsTr("The App must be restarted in order to reflect the changes")
 		imageSource: "qrc:/images/"+lightIconFolder+"settings.png"
+		button1Text: qsTr("Restart now")
+
+		onButton1Clicked: appDB.restartApp();
 	}
 
 	ScrollView {
@@ -57,7 +60,7 @@ Page {
 					text: qsTr("Application Language")
 					color: "white"
 					font.bold: true
-					font.pixelSize: AppSettings.fontSize
+					font.pointSize: AppSettings.fontSize
 				}
 
 				TPComboBox {
@@ -89,7 +92,7 @@ Page {
 				text: qsTr("Fonts Sizes")
 				color: "white"
 				font.bold: true
-				font.pixelSize: AppSettings.fontSize
+				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 10
 			}
@@ -104,7 +107,7 @@ Page {
 				Label {
 					id: lblMin
 					text: "A"
-					font.pixelSize: 10
+					font.pointSize: 10
 					font.weight: 400
 					color: "white"
 				}
@@ -127,7 +130,7 @@ Page {
 				Label {
 					id: lblMax
 					text: "A"
-					font.pixelSize: 30
+					font.pointSize: 30
 					font.weight: 400
 					color: "white"
 				}
@@ -272,7 +275,7 @@ Page {
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.bottomMargin: 10
 					font.bold: true
-					font.pixelSize: AppSettings.fontSize
+					font.pointSize: AppSettings.fontSize
 				}
 
 				background: Rectangle {

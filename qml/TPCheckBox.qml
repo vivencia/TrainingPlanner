@@ -30,7 +30,7 @@ CheckBox {
 
 	contentItem: Text {
 		text: control.text
-		font.pixelSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		wrapMode: Text.WordWrap
 		opacity: enabled ? 1.0 : 0.3

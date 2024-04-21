@@ -76,7 +76,7 @@ FocusScope {
 			padding: 0
 			visible: showLabel
 			font.bold: true
-			font.pixelSize: fontPixelSize
+			font.pointSize: fontPixelSize
 			color: labelColor
 
 			anchors {
