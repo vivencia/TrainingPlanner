@@ -116,9 +116,9 @@ Page {
 					id: fontSizeSlider
 					snapMode: Slider.SnapAlways
 					stepSize: 1
-					from: 10
+					from: 8
 					value: fontPSize
-					to: 30
+					to: 20
 					width: settingsPage.width - lblMin.width - lblMax.width - 20
 					onMoved: {
 						fontPSize = value;
@@ -148,7 +148,7 @@ Page {
 			Label {
 				id: lblTitleFont
 				text: qsTr("Font used in titles")
-				font.pointSize: fontPSize * 1.5
+				font.pointSize: fontPSize * 1.2
 				color: "white"
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
@@ -157,7 +157,7 @@ Page {
 			Label {
 				id: lblListsFont
 				text: qsTr("Font used in lists")
-				font.pointSize: fontPSize * 0.7
+				font.pointSize: fontPSize * 0.8
 				color: "white"
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20

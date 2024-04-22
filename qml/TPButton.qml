@@ -21,7 +21,6 @@ Rectangle {
 	focus: true
 	border.color: "white"
 	radius: 6
-	//opacity: button.enabled ? 1 : 0.3
 	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	implicitHeight: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 
@@ -58,8 +57,10 @@ Rectangle {
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
 		}
 		else {
-			buttonText.width = button.width;
-			buttonText.wrapMode = Text.WordWrap;
+			if (imageSource.length > 0)
+				buttonText.elide = Text.ElideRight
+			else
+				buttonText.wrapMode = Text.WordWrap;
 		}
 	}
 
@@ -92,16 +93,23 @@ Rectangle {
 		rightPadding: 5
 
 		onTextChanged: resizeButton();
+
 		Component.onCompleted: {
-			if (!textUnderIcon) {
-				anchors.verticalCenter = button.verticalCenter;
-				if (imageSource.length === 0)
+			if (imageSource.length > 0) {
+				if (!textUnderIcon) {
+					anchors.verticalCenter = button.verticalCenter;
+					anchors.left = button.left;
+					anchors.leftMargin = 2;
+				}
+				else {
 					anchors.horizontalCenter = button.horizontalCenter;
+					anchors.bottom = button.bottom;
+					anchors.bottomMargin = 2;
+				}
 			}
 			else {
 				anchors.horizontalCenter = button.horizontalCenter;
-				anchors.bottom = button.bottom;
-				anchors.bottomMargin = 2;
+				anchors.verticalCenter = button.verticalCenter;
 			}
 		}
 	}

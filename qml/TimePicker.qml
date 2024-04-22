@@ -401,10 +401,9 @@ Popup {
 						minimumPointSize: 8
 						fontSizeMode: Text.Fit
 						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						color: innerButton.checked || innerButton.highlighted ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
+						color: innerButton.checked || innerButton.highlighted ? AppSettings.primaryDarkColor : AppSettings.primaryColor
 						horizontalAlignment: Text.AlignHCenter
 						verticalAlignment: Text.AlignVCenter
-						elide: Text.ElideRight
 						rotation: -innerButton.angle
 					} // content Label
 
@@ -469,10 +468,9 @@ Popup {
 					minimumPointSize: 10
 					fontSizeMode: Text.Fit
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: outerButton.checked || outerButton.highlighted ? "white" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? AppSettings.primaryColor : "black"
+					color: outerButton.checked || outerButton.highlighted ? "black" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? AppSettings.primaryColor : "black"
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					elide: Text.ElideRight
 					rotation: -outerButton.angle
 				} // outer content label
 

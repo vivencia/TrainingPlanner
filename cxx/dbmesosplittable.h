@@ -7,6 +7,7 @@
 #include <QSettings>
 
 class DBMesoSplitModel;
+class DBTrainingDayModel;
 
 static const QString DBMesoSplitFileName ( QStringLiteral("MesocyclesSplits.db.sqlite") );
 static const QString DBMesoSplitObjectName ( QStringLiteral("MesocyclesSplits") );
@@ -27,6 +28,7 @@ public:
 	void getCompleteMesoSplit();
 	void updateMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
+	void convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel);
 
 	//Call before starting a thread
 	void setData(const QString& mesoId, const QString& splitA = QString(), const QString& splitB = QString(), const QString& splitC = QString(),

@@ -3,6 +3,8 @@
 
 #include "tplistmodel.h"
 
+class DBTrainingDayModel;
+
 class DBMesoSplitModel : public TPListModel
 {
 
@@ -37,6 +39,7 @@ public:
 	};
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr);
+	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 
 	QString exerciseName() const { return data(index(currentRow(), 0), exerciseNameRole).toString(); }
 	void setExerciseName(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseNameRole); }

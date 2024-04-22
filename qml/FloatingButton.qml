@@ -5,7 +5,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Rectangle {
 	id: button
-	color: AppSettings.paneBackgroundColor
+	color: AppSettings.primaryLightColor
 	opacity: bHeld ? 0.7 : 1
 	radius: width / 2
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -26,7 +26,7 @@ Rectangle {
 
 	property int textAndImageSize: (bHasText ? buttonText.width + (bHasImage ? buttonImage.width: 0) : bHasImage ? buttonImage.width: 0)
 
-	height: Math.max(buttonText.height, buttonImage.height) + 10;
+	height: cboSetType.height + 10;
 	width: cboSetType.width + textAndImageSize + 50
 
 	ToolButton {
@@ -61,10 +61,13 @@ Rectangle {
 		onActivated: { comboIndex = cboSetType.currentValue; }
 	}
 
-	Text {
+	Label {
 		id: buttonText
 		color: "white"
 		padding: 0
+		width: 100
+		minimumPointSize: 8
+		fontSizeMode: Text.Fit
 		visible: bHasText
 		z: 0
 
@@ -79,8 +82,8 @@ Rectangle {
 		id: buttonImage
 		visible: bHasImage
 		source: "qrc:/images/"+lightIconFolder+image;
-		width: bHasText > 1 ? 20 : 20
-		height: bHasText > 1 ? 20 : 20
+		width: 20
+		height: 20
 		z: 0
 		anchors {
 			right: parent.right
@@ -161,7 +164,7 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		x = 0;
+		x = (windowWidth-width)/2;
 		y = windowHeight * 0.5 - height;
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);

@@ -233,7 +233,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
+		const QString mesoId(m_execArgs.at(0).toString());
 		const QChar splitLetter(m_execArgs.at(1).toChar());
 
 		QSqlQuery query(mSqlLiteDB);
@@ -286,7 +286,7 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QString mesoId(QString::number(m_execArgs.at(0).toUInt()));
+		const QString mesoId(m_execArgs.at(0).toString());
 		const QString splitLetter(m_execArgs.at(1).toString());
 
 		QString exercises;
@@ -345,6 +345,12 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 		mSqlLiteDB.close();
 	}
 	return m_result;
+}
+
+void DBMesoSplitTable::convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel)
+{
+	static_cast<DBMesoSplitModel*>(m_model)->convertFromTDayModel(tDayModel);
+	updateMesoSplitComplete();
 }
 
 void DBMesoSplitTable::setData(const QString& mesoId, const QString& splitA, const QString& splitB, const QString& splitC,

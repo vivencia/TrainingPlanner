@@ -1,4 +1,5 @@
 #include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
 
 DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	: TPListModel{parent}, m_nextAddedExercisePos(2)
@@ -15,6 +16,11 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	m_roleNames[setsWeight1Role] = "setsWeight1";
 	m_roleNames[setsReps2Role] = "setsReps2";
 	m_roleNames[setsWeight2Role] = "setsWeight2";
+}
+
+void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
+{
+
 }
 
 QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const

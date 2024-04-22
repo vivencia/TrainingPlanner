@@ -88,7 +88,7 @@ void DbManager::exitApp()
 }
 
 #ifdef Q_OS_ANDROID
-#include <QtCore/qandroidextras_p.h>
+//#include <QtCore/qandroidextras_p.h>
 #else
 extern "C"
 {
@@ -98,7 +98,7 @@ extern "C"
 void DbManager::restartApp()
 {
 	#ifdef Q_OS_ANDROID
-	auto activity = QtAndroid::androidActivity();
+	/*auto activity = QtAndroid::androidActivity();
 	auto packageManager = activity.callObjectMethod("getPackageManager",
 												"()Landroid/content/pm/PackageManager;");
 
@@ -124,7 +124,7 @@ void DbManager::restartApp()
 							  QAndroidJniObject::getStaticField<jint>("android/app/AlarmManager", "RTC"),
 							  jlong(QDateTime::currentMSecsSinceEpoch() + 100), pendingIntent.object());
 
-	qApp->quit();
+	qApp->quit();*/
 	#else
 	char* args[2] = { nullptr, nullptr };
 	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(mArgv0.toLocal8Bit().size()) * sizeof(char)));
@@ -304,27 +304,27 @@ void DbManager::verifyBackupPageProperties(QQuickItem* page) const
 		bool bCanReadFile(false);
 
 		QFileInfo f_info(appDir + DBExercisesFileName);
-		if (bCanReadFile = f_info.isReadable())
+		if ((bCanReadFile = f_info.isReadable()))
 			restoreCount++;
 		page->setProperty("bCanRestoreExercises", bCanReadFile);
 
 		f_info.setFile(appDir + DBMesocyclesFileName);
-		if (bCanReadFile = f_info.isReadable())
+		if ((bCanReadFile = f_info.isReadable()))
 			restoreCount++;
 		page->setProperty("bCanRestoreMeso", bCanReadFile);
 
 		f_info.setFile(appDir + DBMesoSplitFileName);
-		if (bCanReadFile = f_info.isReadable())
+		if ((bCanReadFile = f_info.isReadable()))
 			restoreCount++;
 		page->setProperty("bCanRestoreMesoSplit", bCanReadFile);
 
 		f_info.setFile(appDir + DBMesoCalendarFileName);
-		if (bCanReadFile = f_info.isReadable())
+		if ((bCanReadFile = f_info.isReadable()))
 			restoreCount++;
 		page->setProperty("bCanRestoreMesoCal", bCanReadFile);
 
 		f_info.setFile(appDir + DBTrainingDayFileName);
-		if (bCanReadFile = f_info.isReadable())
+		if ((bCanReadFile = f_info.isReadable()))
 			restoreCount++;
 		page->setProperty("bCanRestoreTraining", bCanReadFile);
 	}
@@ -362,7 +362,7 @@ static bool copyDBFiles(const QString& sourcePath, const QString& targetPath, co
 				outFile.setFileName(targetPath + dbFile);
 				if (outFile.exists())
 					outFile.remove();
-				if (bOK = inFile.copy(outFile.fileName()))
+				if ((bOK = inFile.copy(outFile.fileName())))
 					QFile::setPermissions(targetPath + dbFile, QFileDevice::ReadUser | QFileDevice::WriteUser);
 			}
 		}
@@ -707,7 +707,7 @@ void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
 		{
 			createdSplits.append(splitLetter);
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter)));
-			worker->addExecArg(m_MesoId);
+			worker->addExecArg(m_MesoIdStr);
 			worker->addExecArg(static_cast<QChar>(*itr));
 			connect( this, &DbManager::databaseReady, this, [&] { return m_currentMesoManager->createMesoSplitPage(); },
 						static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -719,7 +719,7 @@ void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
 void DbManager::updateMesoSplitComplete(const QString& splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
-	worker->addExecArg(m_MesoId);
+	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
@@ -739,8 +739,8 @@ bool DbManager::mesoHasPlan(const uint meso_id, const QString& splitLetter) cons
 void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
-	worker->addExecArg(prev_meso_id);
-	worker->addExecArg(splitLetter);
+	worker->addExecArg(QString::number(prev_meso_id));
+	worker->addExecArg(splitLetter.at(0));
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
 }
 
@@ -822,11 +822,11 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 {
 	m_currentMesoManager->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter1.at(0))));
-	worker->addExecArg(m_MesoId);
+	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(splitLetter1);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter2.at(0))));
-	worker2->addExecArg(m_MesoId);
+	worker2->addExecArg(m_MesoIdStr);
 	worker2->addExecArg(splitLetter2);
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
@@ -998,8 +998,8 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	if (!m_currentMesoManager->getSplitModel(splitletter)->isReady())
 	{
 		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitletter)));
-		worker->addExecArg(m_MesoId);
-		worker->addExecArg(splitLetter.at(0));
+		worker->addExecArg(m_MesoIdStr);
+		worker->addExecArg(splitletter);
 		connect( this, &DbManager::databaseReady, this, [&,splitLetter] { return loadExercisesFromMesoPlan(splitLetter); },
 				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
@@ -1008,6 +1008,27 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	{
 		m_currentMesoManager->currenttDayModel()->convertMesoModelToTDayModel(m_currentMesoManager->getSplitModel(splitletter));
 		m_currentMesoManager->createExercisesObjects();
+	}
+}
+
+void DbManager::convertTDayToPlan(DBTrainingDayModel* tDayModel)
+{
+	const QChar splitletter(tDayModel->splitLetter().at(0));
+	if (!m_currentMesoManager->getSplitModel(splitletter)->isReady())
+	{
+		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitletter)));
+		worker->addExecArg(m_MesoIdStr);
+		worker->addExecArg(splitletter);
+		connect( this, &DbManager::databaseReady, this, [&,tDayModel] { return convertTDayToPlan(tDayModel); },
+				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+	}
+	else
+	{
+		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitletter)));
+		worker->addExecArg(m_MesoIdStr);
+		worker->addExecArg(tDayModel->splitLetter());
+		createThread(worker, [worker, tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); } );
 	}
 }
 

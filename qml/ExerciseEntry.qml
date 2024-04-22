@@ -74,6 +74,7 @@ FocusScope {
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"up.png"
+				asynchronous: true
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 				height: 25
@@ -95,6 +96,7 @@ FocusScope {
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"down.png"
+				asynchronous: true
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 				height: 25
@@ -174,6 +176,7 @@ FocusScope {
 
 					Image {
 						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
+						asynchronous: true
 						anchors.verticalCenter: parent.verticalCenter
 						anchors.horizontalCenter: parent.horizontalCenter
 						height: 20
@@ -194,7 +197,9 @@ FocusScope {
 
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"remove.png"
-						anchors.fill: parent
+						asynchronous: true
+						anchors.verticalCenter: parent.verticalCenter
+						anchors.horizontalCenter: parent.horizontalCenter
 						height: 20
 						width: 20
 					}
@@ -214,6 +219,7 @@ FocusScope {
 
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"edit.png"
+						asynchronous: true
 						anchors.verticalCenter: parent.verticalCenter
 						anchors.horizontalCenter: parent.horizontalCenter
 						height: 20
@@ -236,6 +242,7 @@ FocusScope {
 
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+						asynchronous: true
 						anchors.fill: parent
 						height: 20
 						width: 20
@@ -290,6 +297,7 @@ FocusScope {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
+				Layout.bottomMargin: 10
 				spacing: 1
 
 				TPComboBox {
@@ -326,6 +334,7 @@ FocusScope {
 
 					Image {
 						source: "qrc:/images/"+darkIconFolder+"add-new.png";
+						asynchronous: true
 						height: 20
 						width: 20
 						anchors.verticalCenter: parent.verticalCenter

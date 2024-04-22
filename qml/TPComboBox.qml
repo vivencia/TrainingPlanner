@@ -3,10 +3,8 @@ import QtQuick.Controls
 
 ComboBox {
 	id: control
-	font.bold: true
-	font.pointSize: AppSettings.fontSizeText
 	implicitWidth: 120//fontMetrics.boundingRect("LorenIpsuM").width + 15
-	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 20
+	implicitHeight: 25
 	textRole: "text"
 	valueRole: "value"
 	model: setTypesModel
@@ -30,12 +28,14 @@ ComboBox {
 		required property var model
 		required property var index
 
-		contentItem: Text {
+		contentItem: Label {
 			//text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
 			text: delegate.model[control.textRole]
 			color: textColor
 			elide: Text.ElideRight
-			font.pointSize: AppSettings.fontSizeText
+			//font.pointSize: AppSettings.fontSizeText
+			minimumPointSize: 8
+			fontSizeMode: Text.Fit
 			font.weight: Font.ExtraBold
 			verticalAlignment: Text.AlignVCenter
 		}

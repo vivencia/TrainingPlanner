@@ -12,7 +12,6 @@ FocusScope {
 	property var alternativeLabels: []
 
 	property bool bClearInput: true
-	property int fontPixelSize: AppSettings.fontSizeText
 	property color borderColor: "black"
 	property color labelColor: "black"
 	property color inputColor: "white"
@@ -76,7 +75,7 @@ FocusScope {
 			padding: 0
 			visible: showLabel
 			font.bold: true
-			font.pointSize: fontPixelSize
+			font.pointSize: AppSettings.fontSizeText
 			color: labelColor
 
 			anchors {
@@ -186,7 +185,6 @@ FocusScope {
 		TPTextInput {
 			id: txtMain
 			validator: validatorType[type]
-			fontPSize: fontPixelSize
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType

@@ -8,7 +8,7 @@ Popup {
 	property string button1Text: ""
 	property string button2Text: ""
 	property string imageSource: ""
-	property string backColor: AppSettings.paneBackgroundColor
+	property string backColor: AppSettings.primaryLightColor
 	property string textColor: "white"
 	property bool highlightMessage: false
 	property int startYPosition: 0
@@ -33,6 +33,7 @@ Popup {
 		id: background
 		color: backColor
 		radius: 8
+		opacity: 0.7
 	}
 
 	NumberAnimation {
@@ -119,12 +120,11 @@ Popup {
 		height: 50
 
 		Component.onCompleted: {
-			anchors.left = parent.left;
-			anchors.leftMargin = 5;
+			x = 5;
 			if (lblTitle.visible)
 				anchors.top = lblTitle.bottom;
 			else
-				anchors.verticalCenter = parent.verticalCenter;
+				y = 10;
 		}
 	}
 
@@ -183,7 +183,12 @@ Popup {
 			balloon.close();
 		}
 
-		onTextChanged: positionButton1();
+		onTextChanged: {
+			if (imgElement.y + imgElement.height >= balloon.height)
+				balloon.height += 2 * buttonHeight;
+			else
+				balloon.height += buttonHeight;
+		}
 	}
 
 	TPButton {
@@ -198,7 +203,14 @@ Popup {
 			balloon.close();
 		}
 
-		onTextChanged: positionButton2();
+		onTextChanged: {
+			if (button1Text.length === 0) {
+				if (imgElement.y + imgElement.height >= balloon.height)
+					balloon.height += 2 * buttonHeight;
+				else
+					balloon.height += buttonHeight;
+			}
+		}
 	}
 
 	MouseArea {
@@ -262,6 +274,10 @@ Popup {
 			startYPos = -300;
 		else
 			startYPos = windowHeight + 300;
+		if (button1Text.length > 0)
+			positionButton1();
+		if (button2Text.length > 0 )
+			positionButton2();
 		balloon.open();
 	}
 
@@ -276,27 +292,18 @@ Popup {
 	}
 
 	function positionButton1() {
-		balloon.height += btn1.buttonHeight
-		if (button2Text.length > 0) {
-			btn1.anchors.left = balloon.left;
-			btn1.anchors.leftMargin = (balloon.width - btn1.width - btn2.width) / 3;
-		}
+		if (button2Text.length > 0)
+			btn1.x = (balloon.width - btn1.implicitWidth - btn2.implicitWidth) / 3;
 		else
-			btn1.anchors.horizontalCenter = balloon.horizontalCenter;
-		btn1.anchors.bottom = balloon.bottom;
-		btn1.anchors.bottomMargin = 10;
-		btn1.anchors.topMargin = 10;
+			btn1.x = (balloon.width - btn1.implicitWidth)/2;
+		btn1.y = balloon.height - btn1.buttonHeight - 5;
 	}
 
 	function positionButton2() {
-		if (button1Text.length > 0) {
-			btn2.anchors.right = balloon.right;
-			btn2.anchors.rightMargin = (balloon.width - btn2.width - btn1.width) / 3;
-		}
+		if (button1Text.length > 0)
+			btn2.x = (balloon.width - btn2.implicitWidth - btn1.implicitWidth) / 3 + btn2.implicitWidth + 5;
 		else
-			btn2.anchors.horizontalCenter = balloon.horizontalCenter;
-		btn2.anchors.bottom = balloon.bottom;
-		btn2.anchors.bottomMargin = 10;
-		btn2.anchors.topMargin = 10;
+			btn2.x = (balloon.width - btn2.implicitWidth)/2;
+		btn2.y = balloon.height - btn2.buttonHeight - 5;
 	}
 }

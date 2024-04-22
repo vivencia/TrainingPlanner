@@ -5,10 +5,9 @@ TextField {
 	property string textColor: "white"
 	property string backgroundColor: "black"//"#c3cad5"
 	property bool highlight: false
-	property int fontPSize: AppSettings.fontSizeText
 
 	id: control
-	font.pointSize: fontPSize
+	font.pointSize: AppSettings.fontSizeText
 	font.weight: Font.Bold //Font.ExtraBold
 	color: textColor
 	//wrapMode: Text.WordWrap
@@ -34,7 +33,7 @@ TextField {
 	FontMetrics {
 		id: fontMetrics
 		font.family: control.font.family
-		font.pointSize: fontPSize
+		font.pointSize: AppSettings.fontSizeText
 	}
 
 	TPBalloonTip {

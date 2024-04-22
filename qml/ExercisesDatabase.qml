@@ -5,6 +5,8 @@ import QtQuick.Dialogs
 
 Page {
 	id: pageExercises
+	width: windowWidth
+	height: windowHeight
 
 	property string strMediaPath
 	property bool bCanEdit: false
@@ -262,7 +264,7 @@ Page {
 		ColumnLayout{
 			width: parent.width
 			height: parent.height
-			spacing: 5
+			spacing: 0
 
 			ExercisesListView {
 				id: exercisesList
@@ -270,7 +272,7 @@ Page {
 				Layout.topMargin: 0
 				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
-				Layout.maximumHeight: parent.height * 0.8
+				Layout.fillHeight: true
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
@@ -282,12 +284,19 @@ Page {
 			RowLayout {
 				id: toolbarExercises
 				Layout.fillWidth: true
+				Layout.maximumHeight: 30
+				Layout.leftMargin: 5
+				Layout.bottomMargin: 5
 				spacing: 5
+
+				readonly property int buttonWidth: Math.ceil(pageExercises.width/5.5)
 
 				TPButton {
 					id:btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
+					width: toolbarExercises.buttonWidth
+					fixedSize: true
 
 					onClicked: {
 						if (!bNew) {
@@ -315,6 +324,8 @@ Page {
 					id:btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesList.curIndex >= 0
+					width: toolbarExercises.buttonWidth
+					fixedSize: true
 
 					onClicked: {
 						if (!bEdit) {
@@ -340,6 +351,8 @@ Page {
 					id:btnSaveExercise
 					text: qsTr("Save")
 					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
+					width: toolbarExercises.buttonWidth
+					fixedSize: true
 
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
@@ -361,9 +374,11 @@ Page {
 				} //btnSaveExercise
 
 				TPButton {
-					id: btnChooseExercise
+					id: btnAddExercise
 					enabled: bChooseButtonEnabled && !bCanEdit && exercisesList.curIndex >= 0
-					text: qsTr("Choose")
+					text: qsTr("Add")
+					width: toolbarExercises.buttonWidth
+					fixedSize: true
 
 					onClicked: {
 						const curIndex = exercisesList.curIndex;
@@ -372,11 +387,13 @@ Page {
 									exercisesListModel.get(curIndex, 6));
 						pageExercises.StackView.view.pop();
 					}
-				} //btnChooseExercise
+				} //btnAddExercise
 
 				TPButton {
 					id: btnCancel
 					text: qsTr("Close")
+					width: toolbarExercises.buttonWidth
+					fixedSize: true
 
 					onClicked: pageExercises.StackView.view.pop();
 				} // btnCancel
@@ -385,9 +402,7 @@ Page {
 		} //ColumnLayout
 	} // footer
 
-	Component.onCompleted: {
-		pageExercises.StackView.activating.connect(pageActivation);
-	}
+	Component.onCompleted: pageExercises.StackView.activating.connect(pageActivation);
 
 	function pageActivation() {
 		exercisesList.setFilter();

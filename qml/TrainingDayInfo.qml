@@ -473,27 +473,30 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 						visible: timerRestricted.running
 
-						onClicked: {
-							timerRestricted.stopTimer();
-						}
+						onClicked: timerRestricted.stopTimer();
 					}
 
-					RowLayout {
+
+					Label {
+						id: lblInTime
+						color: "white"
+						font.pointSize: AppSettings.fontSizeText
+						font.bold: true
+						text: qsTr("In time:")
+						bottomPadding: 15
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 
-						Label {
-							id: lblInTime
-							color: "white"
-							font.pointSize: AppSettings.fontSizeText
-							font.bold: true
-							text: qsTr("In time:")
-						}
 						TPTextInput {
 							id: txtInTime
 							text: timeIn
 							readOnly: true
-							Layout.leftMargin: 5
+							anchors {
+								top: parent.top
+								topMargin: -5
+								left: parent.left
+								leftMargin: 80
+							}
 
 							Component.onCompleted: {
 								timeIn = tDayModel.timeIn();
@@ -503,33 +506,56 @@ Page {
 								}
 							}
 						}
+
 						RoundButton {
 							id: btnInTime
-							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 							width: 40
 							height: 40
 							enabled: !timerRestricted.running
+							anchors {
+								top: parent.top
+								topMargin: -15
+								left: txtInTime.right
+							}
+
+							Image {
+								source: "qrc:/images/"+darkIconFolder+"time.png"
+								fillMode: Image.PreserveAspectFit
+								asynchronous: true
+								width: 25
+								height: 25
+								anchors {
+									verticalCenter: parent.verticalCenter
+									horizontalCenter: parent.horizontalCenter
+								}
+							}
 
 							onClicked: dlgTimeIn.open();
 						}
-					} //RowLayout
+					} //Label
 
-					RowLayout {
+					Label {
+						id: lblOutTime
+						color: "white"
+						font.pointSize: AppSettings.fontSizeText
+						font.bold: true
+						text: qsTr("Out time:")
+						bottomPadding: 10
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 
-						Label {
-							id: lblOutTime
-							color: "white"
-							font.pointSize: AppSettings.fontSizeText
-							font.bold: true
-							text: qsTr("Out time:")
-						}
 						TPTextInput {
 							id: txtOutTime
 							text: timeOut
 							readOnly: true
 							Layout.leftMargin: 5
+
+							anchors {
+								top: parent.top
+								topMargin: -5
+								left: parent.left
+								leftMargin: 80
+							}
 
 							Component.onCompleted: {
 								timeOut = tDayModel.timeOut();
@@ -542,10 +568,27 @@ Page {
 
 						RoundButton {
 							id: btnOutTime
-							icon.source: "qrc:/images/"+darkIconFolder+"time.png"
 							enabled: !timerRestricted.running
 							width: 40
 							height: 40
+
+							anchors {
+								top: parent.top
+								topMargin: -15
+								left: txtOutTime.right
+							}
+
+							Image {
+								source: "qrc:/images/"+darkIconFolder+"time.png"
+								fillMode: Image.PreserveAspectFit
+								asynchronous: true
+								width: 25
+								height: 25
+								anchors {
+									verticalCenter: parent.verticalCenter
+									horizontalCenter: parent.horizontalCenter
+								}
+							}
 
 							onClicked: dlgTimeOut.open();
 						}
@@ -645,7 +688,7 @@ Page {
 						text: qsTr("Go")
 						Layout.alignment: Qt.AlignCenter
 						Layout.bottomMargin: 20
-						onClicked: convertDayToPlan();
+						onClicked: appDB.convertTDayToPlan(tDayModel);
 					}
 				}
 			} //Frame
@@ -876,7 +919,7 @@ Page {
 		TPButton {
 			id: btnSaveDay
 			enabled: tDayModel.modified
-			text: qsTr("Log Day")
+			text: qsTr("Log Workout")
 			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
 			textUnderIcon: true
 			anchors.left: parent.left
