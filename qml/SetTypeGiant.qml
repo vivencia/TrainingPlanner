@@ -86,38 +86,32 @@ Item {
 		RowLayout {
 			Layout.fillWidth: true
 
-			Label {
-				id: lblExercise1
-				objectName: "lblExercise1"
+			ExerciseNameField {
+				id: txtExercise1
+				objectName: "txtExercise1"
 				text: tDayModel.exerciseName1(exerciseIdx)
+				showRemoveButton: false
 				width: setItem.width/2
-				font.bold: true
-				wrapMode: Text.WordWrap
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: ownerExercise.changeExercise1();
-				}
+				onExerciseChanged: (new_text) => ownerExercise.changeExercise1(false);
+				onEditButtonClicked: ownerExercise.changeExercise1(true);
 			}
 
-			Label {
-				id: lblExercise2
-				objectName: "lblExercise2"
+			ExerciseNameField {
+				id: txtExercise2
+				objectName: "txtExercise2"
 				text: tDayModel.exerciseName2(exerciseIdx)
+				showRemoveButton: false
 				width: setItem.width/2
-				font.bold: true
-				wrapMode: Text.WordWrap
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: ownerExercise.changeExercise2();
-				}
+				onExerciseChanged: (new_text) => ownerExercise.changeExercise2(false);
+				onEditButtonClicked: ownerExercise.changeExercise2(true);
 			}
 		}
 
@@ -290,9 +284,9 @@ Item {
 
 	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
 
-	function changeLabel(labelObj, newtext)
+	function changeExerciseText(textObj: var, newtext: string)
 	{
-		labelObj.text = newtext;
+		textObj.text = newtext;
 	}
 
 	function requestTimer(requester, message, mins, secs) {

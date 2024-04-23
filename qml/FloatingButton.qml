@@ -10,7 +10,6 @@ Rectangle {
 	radius: width / 2
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
-	required property DBTrainingDayModel tDayModel
 	property int exerciseIdx
 
 	property string text
@@ -43,7 +42,7 @@ Rectangle {
 
 		Image {
 			anchors.fill: parent
-			source: "qrc:/images/"+lightIconFolder+"close.png";
+			source: "qrc:/images/"+darkIconFolder+"close.png";
 		}
 	}
 
@@ -63,7 +62,8 @@ Rectangle {
 
 	Label {
 		id: buttonText
-		color: "white"
+		color: "black"
+		font.bold: true
 		padding: 0
 		width: 100
 		minimumPointSize: 8
@@ -81,7 +81,7 @@ Rectangle {
 	Image {
 		id: buttonImage
 		visible: bHasImage
-		source: "qrc:/images/"+lightIconFolder+image;
+		source: "qrc:/images/"+darkIconFolder+image;
 		width: 20
 		height: 20
 		z: 0
@@ -170,8 +170,8 @@ Rectangle {
 		mainwindow.mainMenuClosed.connect(showButtons);
 	}
 
-	function updateDisplayText() {
-		buttonText.text = button.text + " #" + (tDayModel.setsNumber(exerciseIdx) + 1).toString();
+	function updateDisplayText(nset: string) {
+		buttonText.text = button.text + " #" + nset;
 	}
 
 	function hideButtons() {

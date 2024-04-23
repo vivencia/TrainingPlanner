@@ -116,7 +116,7 @@ public:
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
-	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type);
+	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);

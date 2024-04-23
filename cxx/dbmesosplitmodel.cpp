@@ -20,7 +20,30 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 
 void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
 {
+	m_modeldata.clear();
+	m_indexProxy.clear();
+	QStringList exerciseInfo;
+	QString repsOrweight;
+	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
+	{
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->name);
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->type.at(0));
+		exerciseInfo.append(QString::number(tDayModel->m_ExerciseData.at(i)->nsets));
 
+		//DBTrainingDayModel can handle composite sets that end with subrecord_separator. DBMesoSplitModel cannot
+		repsOrweight = tDayModel->m_ExerciseData.at(i)->reps.at(0);
+		if (repsOrweight.endsWith(subrecord_separator))
+			repsOrweight.chop(1);
+		exerciseInfo.append(repsOrweight);
+		repsOrweight = tDayModel->m_ExerciseData.at(i)->weight.at(0);
+		if (repsOrweight.endsWith(subrecord_separator))
+			repsOrweight.chop(1);
+		exerciseInfo.append(repsOrweight);
+		m_modeldata.append(exerciseInfo);
+		m_indexProxy.append(i);
+		exerciseInfo.clear();
+	}
+	setReady(true);
 }
 
 QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const

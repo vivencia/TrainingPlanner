@@ -39,12 +39,7 @@ Frame {
 		onTriggered: {
 			if ( removalSecs === 0 ) {
 				undoTimer.stop();
-				splitModel.removeExercise(idxToRemove);
-				if (idxToRemove > 0)
-					--idxToRemove;
-				if (splitModel.count === 0)
-					appendNewExerciseToDivision();
-				splitModel.setCurrentRow(idxToRemove);
+				removeExercise(idxToRemove);
 			}
 			else {
 				removalSecs = removalSecs - 1000;
@@ -73,6 +68,26 @@ Frame {
 		}
 	} //TPBalloonTip
 
+	TPBalloonTip {
+		id: msgDlgRemove
+		title: qsTr("Remove Exercise?")
+		message: exerciseName + qsTr("This action cannot be undone.")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		onButton1Clicked: removeExercise(idxToRemove);
+
+		property int idxToRemove
+		property string exerciseName
+
+		function init(idxtoremove: int, pos: int) {
+			idxToRemove = idxtoremove;
+			splitModel.currentRow = idxtoremove;
+			exerciseName = splitModel.exerciseName;
+			show(pos);
+		}
+	} //TPBalloonTip
+
 	background: Rectangle {
 		border.color: "transparent"
 		radius: 5
@@ -98,14 +113,12 @@ Frame {
 			Layout.topMargin: 10
 		}
 
-		TextField {
+		TPTextInput {
 			id: txtSplit
 			text: mesoSplitModel.get(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2)
-			font.pointSize: AppSettings.fontSizeText
-			Layout.fillWidth: true
 			Layout.leftMargin: 5
-			Layout.rightMargin: 20
-			font.bold: true
+			Layout.rightMargin: 5
+			Layout.fillWidth: true
 
 			onTextEdited: {
 				mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
@@ -198,25 +211,19 @@ Frame {
 						}
 					}
 
-					TextField {
+					ExerciseNameField {
 						id: txtExerciseName
 						text: exerciseName
-						wrapMode: Text.WordWrap
-						readOnly: true
 						Layout.leftMargin: 5
-						Layout.minimumWidth: parent.width - 40
-						Layout.maximumWidth: parent.width - 40
-						width: parent.width - 40
-						focus: true
-
-						background: Rectangle {
-							color: txtExerciseName.readOnly ? "transparent" : "white"
-							border.color: txtExerciseName.readOnly ? "transparent" : "black"
-							radius: 5
-						}
+						width: parent.width - 60
+						Layout.minimumWidth: width
+						Layout.maximumWidth: width
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
+						onExerciseChanged: (new_text) => exerciseName = new_text;
+						onRemoveButtonClicked: msgDlgRemove.init(index, 0);
+						onEditButtonClicked: requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
 
 						onPressed: (mouse) => {
 							if (!readOnly) {
@@ -230,70 +237,7 @@ Frame {
 						onPressAndHold: (mouse) => {
 							mouse.accepted = false;
 						}
-
-						onReadOnlyChanged: {
-							if (!readOnly) {
-								cursorPosition = text.length;
-								exerciseName = text;
-							}
-							else {
-								cursorPosition = 0;
-								ensureVisible(0);
-							}
-							requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
-						}
-
-						onActiveFocusChanged: {
-							if (activeFocus) {
-								cursorPosition = text.length;
-							}
-							else {
-								readOnly = true;
-								cursorPosition = 0;
-							}
-						}
-
-						RoundButton {
-							id: btnEditExercise
-							padding: 10
-							anchors.left: txtExerciseName.right
-							anchors.top: txtExerciseName.top
-							height: 25
-							width: 25
-							enabled: index === splitModel.currentRow
-
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"edit.png"
-								anchors.verticalCenter: parent.verticalCenter
-								anchors.horizontalCenter: parent.horizontalCenter
-								fillMode: Image.PreserveAspectFit
-								height: 20
-								width: 20
-							}
-
-							onClicked: txtExerciseName.readOnly = !txtExerciseName.readOnly;
-						} //ToolButton btnEditExercise
-
-						RoundButton {
-							id: btnClearText
-							anchors.left: btnEditExercise.left
-							anchors.top: btnEditExercise.bottom
-							height: 20
-							width: 20
-							visible: !txtExerciseName.readOnly
-
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-								anchors.fill: parent
-								height: 20
-								width: 20
-							}
-							onClicked: {
-								txtExerciseName.clear();
-								txtExerciseName.forceActiveFocus();
-							}
-						}
-					} //TextField
+					} //ExerciseNameField
 
 					RowLayout {
 						Layout.leftMargin: 5
@@ -612,6 +556,15 @@ Frame {
 	//Each layout row(9) * 32(height per row) + 32(extra space)
 	function setListItemHeight(item, settype) {
 		item.height = settype !== 4 ? 320 : 450;
+	}
+
+	function removeExercise(idx: int) {
+		splitModel.removeExercise(idx);
+		if (idx > 0)
+			--idx;
+		if (splitModel.count === 0)
+			appendNewExerciseToDivision();
+		splitModel.setCurrentRow(idx);
 	}
 
 	function changeExercise(name, nsets, nreps, nweight, multiplesel_opt) {

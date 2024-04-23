@@ -96,6 +96,7 @@ set( QML_FILES
     "qml/SetNotesField.qml"
     "qml/SettingsPage.qml"
     "qml/BackupPage.qml"
+    "qml/ExerciseNameField.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

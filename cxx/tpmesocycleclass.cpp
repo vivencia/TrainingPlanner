@@ -45,9 +45,10 @@ void TPMesocycleClass::requestExercisesList(QQuickItem* requester, const QVarian
 					Q_ARG(QVariant, QVariant::fromValue(requester)), Q_ARG(QVariant, visible), Q_ARG(QVariant, multipleSelection));
 }
 
-void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type)
+void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset)
 {
-	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestFloatingButton", Q_ARG(int, exercise_idx.toInt()), Q_ARG(int, set_type.toInt()));
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "requestFloatingButton", Q_ARG(int, exercise_idx.toInt()),
+								Q_ARG(int, set_type.toInt()), Q_ARG(QString, nset.toString()));
 }
 
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -297,8 +298,8 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	item->setObjectName("exercise_" + QString::number(idx));
 	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
-	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&)), this,
-						SLOT(requestFloatingButton(const QVariant&,const QVariant&)) );
+	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,
+						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)) );
 	m_currentExercises->appendExerciseEntry(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }
@@ -521,13 +522,13 @@ void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const u
 		m_CurrenttDayModel->setExerciseName2(new_text, exercise_idx);
 
 	QQuickItem* setObj(nullptr);
-	QQuickItem* lblExercise(nullptr);
+	QQuickItem* txtExercise(nullptr);
 	for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
 	{
 		setObj = m_currentExercises->setObject_const(exercise_idx, i);
-		lblExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"lblExercise1"_qs : u"lblExercise2"_qs);
-		if (lblExercise)
-			QMetaObject::invokeMethod(setObj, "changeLabel", Q_ARG(QVariant, QVariant::fromValue(lblExercise)), Q_ARG(QVariant, new_text));
+		txtExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"txtExercise1"_qs : u"txtExercise2"_qs);
+		if (txtExercise)
+			QMetaObject::invokeMethod(setObj, "changeExerciseText", Q_ARG(QVariant, QVariant::fromValue(txtExercise)), Q_ARG(QString, new_text));
 	}
 }
 

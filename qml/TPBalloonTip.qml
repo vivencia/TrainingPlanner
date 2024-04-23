@@ -8,7 +8,7 @@ Popup {
 	property string button1Text: ""
 	property string button2Text: ""
 	property string imageSource: ""
-	property string backColor: AppSettings.primaryLightColor
+	property string backColor: AppSettings.primaryColor
 	property string textColor: "white"
 	property bool highlightMessage: false
 	property int startYPosition: 0
@@ -27,7 +27,6 @@ Popup {
 	spacing: 0
 	padding: 0
 	width: windowWidth * 0.7
-	height: lblTitle.height + lblMessage.height + 10
 
 	background: Rectangle {
 		id: background
@@ -93,21 +92,16 @@ Popup {
 		id: lblTitle
 		text: title
 		color: textColor
-		wrapMode: Text.WordWrap
 		elide: Text.ElideRight
-		font.pointSize: AppSettings.fontSizeTitle * 0.6
+		horizontalAlignment: Text.AlignHCenter
+		font.pointSize: AppSettings.fontSizeTitle
 		font.weight: Font.Black
-		width: parent.width - 20
-		height: visible ? 30 : 0
 		visible: title.length > 0
+		width: parent.width - 20
+		height: 30
 		padding: 0
-
-		anchors {
-			left: parent.left
-			top: parent.top
-			leftMargin: 10
-			topMargin: 5
-		}
+		x: 10
+		y: 5
 	}
 
 	Image {
@@ -118,14 +112,8 @@ Popup {
 		visible: imageSource.length > 0
 		width: 50
 		height: 50
-
-		Component.onCompleted: {
-			x = 5;
-			if (lblTitle.visible)
-				anchors.top = lblTitle.bottom;
-			else
-				y = 10;
-		}
+		x: 5
+		y: (balloon.height-height)/2
 	}
 
 	Label {
@@ -136,16 +124,39 @@ Popup {
 		horizontalAlignment: Text.AlignJustify
 		font.pointSize: AppSettings.fontSize
 		font.weight: Font.Black
-		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 20
+		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
 		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
 		visible: message.length > 0
 		padding: 0
+		x: imgElement.visible ? imgElement.width + 10 : 10
+		y: lblTitle.visible ? lblTitle.height + 10 : 10
+	}
 
-		anchors {
-			left: imgElement.visible ? imgElement.right : parent.left
-			top: lblTitle.visible ? lblTitle.bottom : parent.top
-			leftMargin: 10
-			topMargin: lblTitle.visible ? 5 : 10
+	TPButton {
+		id: btn1
+		text: button1Text
+		visible: button1Text.length > 0
+		x: button2Text.length > 0 ? (balloon.width - implicitWidth - btn2.implicitWidth)/2 : (balloon.width - implicitWidth)/2;
+		y: balloon.height - buttonHeight - 5;
+		z: 2
+
+		onClicked: {
+			button1Clicked();
+			balloon.close();
+		}
+	}
+
+	TPButton {
+		id: btn2
+		text: button2Text
+		visible: button2Text.length > 0
+		x: button1Text.length > 0 ? btn1.x + btn1.width + 5 : (balloon.width - implicitWidth)/2;
+		y: balloon.height - buttonHeight - 5;
+		z: 2
+
+		onClicked: {
+			button2Clicked();
+			balloon.close();
 		}
 	}
 
@@ -168,48 +179,6 @@ Popup {
 			to: "white"
 			duration: 500
 			easing.type: Easing.InOutCubic
-		}
-	}
-
-	TPButton {
-		id: btn1
-		text: button1Text
-		visible: button1Text.length > 0
-		height: visible ? buttonHeight : 0
-		z: 2
-
-		onClicked: {
-			button1Clicked();
-			balloon.close();
-		}
-
-		onTextChanged: {
-			if (imgElement.y + imgElement.height >= balloon.height)
-				balloon.height += 2 * buttonHeight;
-			else
-				balloon.height += buttonHeight;
-		}
-	}
-
-	TPButton {
-		id: btn2
-		text: button2Text
-		visible: button2Text.length > 0
-		height: visible ? buttonHeight : 0
-		z: 2
-
-		onClicked: {
-			button2Clicked();
-			balloon.close();
-		}
-
-		onTextChanged: {
-			if (button1Text.length === 0) {
-				if (imgElement.y + imgElement.height >= balloon.height)
-					balloon.height += 2 * buttonHeight;
-				else
-					balloon.height += buttonHeight;
-			}
 		}
 	}
 
@@ -268,16 +237,13 @@ Popup {
 	}
 
 	function show(ypos) {
+		balloon.height = lblTitle.height + lblMessage.height + (button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
 		balloon.x = (windowWidth - width)/2;
 		balloon.y = finalYPos = ypos;
 		if (ypos <= windowHeight/2)
 			startYPos = -300;
 		else
 			startYPos = windowHeight + 300;
-		if (button1Text.length > 0)
-			positionButton1();
-		if (button2Text.length > 0 )
-			positionButton2();
 		balloon.open();
 	}
 
@@ -289,21 +255,5 @@ Popup {
 	function showLate(timeout, ypos) {
 		startYPos = ypos;
 		hideTimer.delayedOpen(timeout);
-	}
-
-	function positionButton1() {
-		if (button2Text.length > 0)
-			btn1.x = (balloon.width - btn1.implicitWidth - btn2.implicitWidth) / 3;
-		else
-			btn1.x = (balloon.width - btn1.implicitWidth)/2;
-		btn1.y = balloon.height - btn1.buttonHeight - 5;
-	}
-
-	function positionButton2() {
-		if (button1Text.length > 0)
-			btn2.x = (balloon.width - btn2.implicitWidth - btn1.implicitWidth) / 3 + btn2.implicitWidth + 5;
-		else
-			btn2.x = (balloon.width - btn2.implicitWidth)/2;
-		btn2.y = balloon.height - btn2.buttonHeight - 5;
 	}
 }

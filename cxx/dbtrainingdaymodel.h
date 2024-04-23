@@ -123,6 +123,8 @@ private:
 
 	QList<exerciseEntry*> m_ExerciseData;
 	bool m_tDayModified;
+
+	friend class DBMesoSplitModel;
 };
 
 Q_DECLARE_METATYPE(DBTrainingDayModel*)

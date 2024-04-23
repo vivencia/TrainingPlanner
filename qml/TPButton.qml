@@ -50,7 +50,7 @@ Rectangle {
 		if (!fixedSize) {
 			const fwidth = fontMetrics.boundingRect(text).width;
 			buttonText.width = fwidth + 5
-			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10);
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 15);
 
 			const fheight = fontMetrics.boundingRect("TM").height;
 			buttonText.height = fheight + 10
@@ -121,6 +121,7 @@ Rectangle {
 		fillMode: Image.PreserveAspectFit
 		mirror: false
 		source: imageSource
+		opacity: button.enabled ? 1 : 0.5
 		visible: imageSource.length > 1
 
 		Component.onCompleted: {

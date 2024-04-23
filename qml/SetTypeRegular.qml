@@ -232,6 +232,8 @@ Item {
 
 	function changeReps(new_value: string, idx: int) {
 		txtNReps.text = new_value;
+		if (setType === 3)
+			changeTotalRepsLabel();
 	}
 
 	function changeWeight(new_value: string, idx: int) {

@@ -522,8 +522,8 @@ Page {
 								source: "qrc:/images/"+darkIconFolder+"time.png"
 								fillMode: Image.PreserveAspectFit
 								asynchronous: true
-								width: 25
-								height: 25
+								width: 20
+								height: 20
 								anchors {
 									verticalCenter: parent.verticalCenter
 									horizontalCenter: parent.horizontalCenter
@@ -582,8 +582,8 @@ Page {
 								source: "qrc:/images/"+darkIconFolder+"time.png"
 								fillMode: Image.PreserveAspectFit
 								asynchronous: true
-								width: 25
-								height: 25
+								width: 20
+								height: 20
 								anchors {
 									verticalCenter: parent.verticalCenter
 									horizontalCenter: parent.horizontalCenter
@@ -937,6 +937,8 @@ Page {
 					}
 					tDayModel.setMesoId(mesoId);
 					tDayModel.setDate(mainDate);
+					tDayModel.setSplitLetter(splitLetter);
+					tDayModel.setTrainingDay(tDay)
 					id = appDB.pass_object(tDayModel);
 					appDB.databaseReady.connect(continueSave);
 					appDB.newTrainingDay();
@@ -1046,12 +1048,12 @@ Page {
 		bounceTimer.start();
 	}
 
-	function createFloatingAddSetButton(exerciseIdx, settype) {
+	function createFloatingAddSetButton(exerciseIdx: int, settype: int, nset: string) {
 		var component = Qt.createComponent("FloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
 			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"),
-					image:"add-new.png", exerciseIdx:exerciseIdx, tDayModel:tDayModel, comboIndex:settype });
-			btnFloat.updateDisplayText();
+					image:"add-new.png", exerciseIdx:exerciseIdx, comboIndex:settype });
+			btnFloat.updateDisplayText(nset);
 			btnFloat.buttonClicked.connect(createNewSet);
 			btnFloat.visible = true;
 		}
@@ -1061,13 +1063,13 @@ Page {
 			component.statusChanged.connect(finishCreation);
 	}
 
-	function requestFloatingButton(exerciseIdx: int, settype: int) {
+	function requestFloatingButton(exerciseIdx: int, settype: int, nset: string) {
 		if (btnFloat === null)
-			createFloatingAddSetButton(exerciseIdx, settype);
+			createFloatingAddSetButton(exerciseIdx, settype, nset);
 		else {
 			btnFloat.exerciseIdx = exerciseIdx;
 			btnFloat.comboIndex = settype;
-			btnFloat.updateDisplayText();
+			btnFloat.updateDisplayText(nset);
 			btnFloat.visible = true;
 		}
 	}

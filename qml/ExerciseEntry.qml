@@ -22,7 +22,7 @@ FocusScope {
 
 	signal setAdded(int objidx, var setObject)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
-	signal requestFloatingButton(var exerciseidx, var settype)
+	signal requestFloatingButton(var exerciseidx, var settype, var nset)
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -112,48 +112,24 @@ FocusScope {
 			anchors.fill: parent
 			spacing: 0
 
-			TextField {
+			ExerciseNameField {
 				id: txtExerciseName
 				text: tDayModel.exerciseName(exerciseIdx)
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeText
-				readOnly: true
-				wrapMode: Text.WordWrap
 				width: windowWidth - 110
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
-				height: 60
 				Layout.leftMargin: 45
 				Layout.rightMargin: 5
 				Layout.topMargin: 0
-				z: 1
-
-				background: Rectangle {
-					color: txtExerciseName.readOnly ? "transparent" : "white"
-					border.color: txtExerciseName.readOnly ? "transparent" : "black"
-					radius: 5
-				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
 					btnEditExercise.clicked();
 					cboSetType.forceActiveFocus();
 				}
 
-				onTextChanged: {
-					if (readOnly)
-						ensureVisible(0);
-				}
-
-				onActiveFocusChanged: {
-					if (activeFocus)
-						cursorPosition = text.length;
-					else {
-						readOnly = false;
-						tDayModel.setExerciseName1(text, exerciseIdx);
-						cursorPosition = 0;
-						ensureVisible(0);
-					}
-				}
+				onExerciseChanged: (new_text) => tDayModel.setExerciseName1(new_text, exerciseIdx);
+				onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
+				onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
 
 				Label {
 					id: lblExerciseNumber
@@ -184,73 +160,6 @@ FocusScope {
 					}
 					onClicked: paneExerciseShowHide()
 					z: 1
-				}
-
-				RoundButton {
-					id: btnRemoveExercise
-					anchors.left: txtExerciseName.right
-					anchors.top: txtExerciseName.top
-					height: 25
-					width: 25
-					padding: 5
-					z: 2
-
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"remove.png"
-						asynchronous: true
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						height: 20
-						width: 20
-					}
-
-					onClicked: msgDlgRemove.show(exerciseItem.y)
-				} //btnRemoveExercise
-
-				RoundButton {
-					id: btnEditExercise
-					anchors.left: btnRemoveExercise.right
-					anchors.top: txtExerciseName.top
-					height: 25
-					width: 25
-					padding: 5
-					visible: cboSetType.currentIndex !== 4
-					z: 2
-
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"edit.png"
-						asynchronous: true
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						height: 20
-						width: 20
-					}
-
-					onClicked: {
-						txtExerciseName.readOnly = !txtExerciseName.readOnly;
-						requestSimpleExercisesList(exerciseItem, !txtExerciseName.readOnly, cboSetType.currentIndex === 4, 1);
-					}
-				}
-
-				RoundButton {
-					id: btnClearText
-					anchors.left: btnEditExercise.left
-					anchors.top: btnEditExercise.bottom
-					height: 20
-					width: 20
-					visible: !txtExerciseName.readOnly
-
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-						asynchronous: true
-						anchors.fill: parent
-						height: 20
-						width: 20
-					}
-					onClicked: {
-						txtExerciseName.clear();
-						txtExerciseName.forceActiveFocus();
-					}
 				}
 
 				MouseArea {
@@ -341,8 +250,8 @@ FocusScope {
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 					onClicked: {
-						createSetObject(cboSetType.currentIndex, parseInt(txtNSets.text), nReps, nWeight);
-						requestFloatingButton(exerciseIdx, cboSetType.currentIndex);
+						createSetObject(cboSetType.currentIndex, parseInt(nSets), nReps, nWeight);
+						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
 					}
 				}
 			} // RowLayout
@@ -365,14 +274,16 @@ FocusScope {
 		requestSimpleExercisesList(null, false, false, 1);
 	}
 
-	function changeExercise1() {
+	function changeExercise1(showList: bool) {
 		bListRequestForExercise1 = true;
-		requestSimpleExercisesList(exerciseItem, true, false, 1);
+		if (showList)
+			requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
-	function changeExercise2() {
+	function changeExercise2(showList: bool) {
 		bListRequestForExercise2 = true;
-		requestSimpleExercisesList(exerciseItem, true, false, 1);
+		if (showList)
+			requestSimpleExercisesList(exerciseItem, true, false, 1);
 	}
 
 	function moveExercise(up: bool, cxx_cal: bool) {

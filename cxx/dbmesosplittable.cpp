@@ -245,6 +245,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 		{
 			if (query.first ())
 			{
+				m_model->clear(); //The model might have been used before, but we want a clean slate now
 				const QStringList exercises(query.value(0).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList setstypes(query.value(1).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList setsnumber(query.value(2).toString().split(record_separator, Qt::SkipEmptyParts));
@@ -267,6 +268,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 		mSqlLiteDB.close();
 		m_result = true;
 		m_model->setReady(true);
+		m_model->setModified(false);
 	}
 
 	if (!m_result)
