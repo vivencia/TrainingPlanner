@@ -205,7 +205,7 @@ void TPMesocycleClass::createMesoCalendarPage_part2()
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
+uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarModel* mesoCal)
 {
 	if (!m_tDayPages.contains(date))
 	{
@@ -216,14 +216,25 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 		{
 			m_currentExercises = new tDayExercises;
 			m_tDayExercisesList.insert(date, m_currentExercises);
+
+			const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
+			const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
 			//Because TrainingDayInfo.qml now uses the model directly, we need to have an working model before the page is created
 			if (m_CurrenttDayModel->count() == 0)
+			{
 				m_CurrenttDayModel->appendRow();
+				m_CurrenttDayModel->setMesoId(QString::number(m_MesoId));
+				m_CurrenttDayModel->setDate(date);
+				m_CurrenttDayModel->setSplitLetter(splitLetter);
+				m_CurrenttDayModel->setTrainingDay(tday);
+			}
 
 			m_tDayProperties.insert(QStringLiteral("mainDate"), date);
-			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
+			m_tDayProperties.insert(QStringLiteral("tDay"), tday);
+			m_tDayProperties.insert(QStringLiteral("splitLetter"), splitLetter);
 		}
 
 		if (m_tDayComponent->status() != QQmlComponent::Ready)

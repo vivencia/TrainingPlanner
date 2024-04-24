@@ -24,8 +24,8 @@ Frame {
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
-	implicitWidth: windowWidth
-	implicitHeight: splitLayout.height
+	width: windowWidth
+	height: windowHeight
 
 	padding: 0
 	spacing: 0
@@ -93,40 +93,55 @@ Frame {
 		radius: 5
 	}
 
-	ColumnLayout {
-		id: splitLayout
-		anchors.fill: parent
+	Label {
+		id: lblMain
+		text: qsTr("Training Division ") + splitLetter
+		horizontalAlignment: Text.AlignHCenter
+		width: parent.width
+		font.bold: true
+		font.pointSize: AppSettings.fontSizeTitle
 
-		Label {
-			id: lblMain
-			text: qsTr("Training Division ") + splitLetter
-			Layout.alignment: Qt.AlignHCenter|Qt.AlignTop
-			Layout.topMargin: 10
-			Layout.maximumWidth: parent.width - 20
-			font.bold: true
-			font.pointSize: AppSettings.fontSizeTitle
-		}// Label lblMain
+		anchors {
+			top: parent.top
+			topMargin: 10
+			left: parent.left
+			bottomMargin: 10
+		}
+	}// Label lblMain
 
-		Label {
-			text: qsTr("Muscle groups trained in this division:")
-			Layout.leftMargin: 5
-			Layout.topMargin: 10
+	Label {
+		id: lblGroups
+		text: qsTr("Muscle groups trained in this division:")
+		width: parent.width - 20
+		anchors {
+			top: lblMain.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			bottomMargin: 5
+		}
+	}
+
+	TPTextInput {
+		id: txtGroups
+		text: mesoSplitModel.get(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2)
+		width: parent.width - 20
+
+		anchors {
+			top: lblGroups.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			bottomMargin: 10
 		}
 
-		TPTextInput {
-			id: txtSplit
-			text: mesoSplitModel.get(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2)
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
-			Layout.fillWidth: true
-
-			onTextEdited: {
-				mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
-				exercisesListModel.makeFilterString(text);
-				swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
-				bCanSwapPlan = swappableLetter !== "";
-			}
+		onTextEdited: {
+			mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
+			exercisesListModel.makeFilterString(text);
+			swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
+			bCanSwapPlan = swappableLetter !== "";
 		}
+	}
 
 		ListView {
 			id: lstSplitExercises
@@ -134,18 +149,22 @@ Frame {
 			flickableDirection: Flickable.VerticalFlick
 			contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 			property int totalHeight
-			width: parent.width
 
-			Layout.fillWidth: true
-			Layout.fillHeight: true
-			Layout.rightMargin: 10
-			Layout.leftMargin: 5
-			Layout.minimumHeight: 200
+			anchors {
+				top: txtGroups.bottom
+				topMargin: 10
+				left: parent.left
+				leftMargin: 5
+				right: parent.right
+				rightMargin: 5
+				bottom: parent.bottom
+				bottomMargin: 10
+			}
 
 			ScrollBar.vertical: ScrollBar {
 				id: vBar
 				policy: ScrollBar.AsNeeded
-				active: true; visible: lstSplitExercises.totalHeight > lstSplitExercises.height
+				active: true; visible: lstSplitExercises.contentHeight > lstSplitExercises.height
 			}
 
 			model: splitModel
@@ -154,7 +173,7 @@ Frame {
 				id: delegate
 				spacing: 0
 				padding: 0
-				implicitWidth: Math.max(lstSplitExercises.width, listItem.implicitWidth)
+				implicitWidth: lstSplitExercises.width
 				implicitHeight: listItem.height
 
 				ColumnLayout {
@@ -173,12 +192,15 @@ Frame {
 
 						RoundButton {
 							id: btnMoveExerciseUp
-							anchors.right: btnMoveExerciseDown.left
-							anchors.verticalCenter: parent.verticalCenter
 							height: 30
 							width: 30
 							padding: 5
 							enabled: index > 0
+							anchors {
+								right: btnMoveExerciseDown.left
+								rightMargin: -10
+								verticalCenter: parent.verticalCenter
+							}
 
 							Image {
 								source: "qrc:/images/"+darkIconFolder+"up.png"
@@ -192,12 +214,15 @@ Frame {
 						}
 						RoundButton {
 							id: btnMoveExerciseDown
-							anchors.right: parent.right
-							anchors.verticalCenter: parent.verticalCenter
 							height: 30
 							width: 30
-							padding: 5
+							padding: 0
 							enabled: index < splitModel.count-1
+							anchors {
+								right: parent.right
+								rightMargin: 20
+								verticalCenter: parent.verticalCenter
+							}
 
 							Image {
 								source: "qrc:/images/"+darkIconFolder+"down.png"
@@ -215,7 +240,7 @@ Frame {
 						id: txtExerciseName
 						text: exerciseName
 						Layout.leftMargin: 5
-						width: parent.width - 60
+						width: parent.width - 70
 						Layout.minimumWidth: width
 						Layout.maximumWidth: width
 
@@ -241,6 +266,7 @@ Frame {
 
 					RowLayout {
 						Layout.leftMargin: 5
+						Layout.topMargin: 5
 						Layout.fillWidth: true
 
 						Label {
@@ -258,7 +284,9 @@ Frame {
 								setListItemHeight(lstSplitExercises.currentItem, index);
 								setType = index;
 								txtNSets.forceActiveFocus();
-								if (txtExerciseName.text === qsTr("Choose exercise..."))
+								if (setType !== 4)
+									exerciseName = (qsTr("Choose exercise..."));
+								else
 									exerciseName = (qsTr("Choose exercises..."));
 							}
 						}
@@ -284,6 +312,35 @@ Frame {
 							onValueChanged: (str) => setsNumber = str;
 
 							onEnterOrReturnKeyPressed: {
+								if (txtNSubsets.visible)
+									txtNSubsets.forceActiveFocus();
+								else
+									txtNReps.forceActiveFocus();
+							}
+						}
+					}
+
+					RowLayout {
+						visible: setType === 2 || setType === 3 || setType === 5
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
+
+						Label {
+							text: qsTr("Number of Subsets:")
+							wrapMode: Text.WordWrap
+							Layout.minimumWidth: listItem.width/2
+						}
+						SetInputField {
+							id: txtNSubsets
+							text: setsSubsets
+							type: SetInputField.Type.SetType
+							availableWidth: listItem.width / 3
+							showLabel: false
+							enabled: index === splitModel.currentRow
+
+							onValueChanged: (str) => setsSubsets = str;
+
+							onEnterOrReturnKeyPressed: {
 								if (txtNReps.visible)
 									txtNReps.forceActiveFocus();
 								else
@@ -300,10 +357,10 @@ Frame {
 						Layout.bottomMargin: 10
 
 						Label {
-							text: exerciseName1
+							text: exerciseName1.length > 0 ? exerciseName1 : qsTr("No exercise yet selected")
 							font.bold: true
 							wrapMode: Text.WordWrap
-							width: listItem.width/2
+							width: listItem.width*0.5-10
 							Layout.alignment: Qt.AlignCenter
 							Layout.maximumWidth: width
 							Layout.minimumWidth: width
@@ -319,10 +376,10 @@ Frame {
 						}
 
 						Label {
-							text: exerciseName2
+							text: exerciseName2.length > 0 ? exerciseName2 : qsTr("No exercise yet selected")
 							font.bold: true
 							wrapMode: Text.WordWrap
-							width: listItem.width/2
+							width: listItem.width*0.5-10
 							Layout.alignment: Qt.AlignCenter
 							Layout.maximumWidth: width
 							Layout.minimumWidth: width
@@ -466,6 +523,15 @@ Frame {
 							onValueChanged: (str) => setsWeight2 = str;
 						}
 					} //RowLayout
+
+					SetNotesField {
+						info: qsTr("Set instructions:")
+						text: setsNotes
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
+
+						onEditFinished: (new_text) => setSetsNotes(new_text);
+					}
 				} //ColumnLayout
 
 				contentItem: Rectangle {
@@ -530,7 +596,6 @@ Frame {
 				}
 			} //delegate: SwipeDelegate
 		} //ListView
-	} //ColumnLayout
 
 	function init() {
 		if (!bAlreadyLoaded) {
@@ -546,16 +611,16 @@ Frame {
 				else
 					appendNewExerciseToDivision();
 			}
-			exercisesListModel.makeFilterString(txtSplit.text);
+			exercisesListModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
 			swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
 			bCanSwapPlan = swappableLetter !== "";
 		}
 	}
 
-	//Each layout row(9) * 32(height per row) + 32(extra space)
+	//Each layout row(10) * 32(height per row) + 30(extra space)
 	function setListItemHeight(item, settype) {
-		item.height = settype !== 4 ? 320 : 450;
+		item.height = settype !== 4 ? 360 : 450;
 	}
 
 	function removeExercise(idx: int) {

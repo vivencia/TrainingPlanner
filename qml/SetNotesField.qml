@@ -8,6 +8,11 @@ Item {
 	Layout.fillWidth: true
 	Layout.bottomMargin: 10
 
+	property alias text: txtSetNotes.text
+	property alias color: label.color
+	property alias info: label.text
+	signal editFinished(string new_text)
+
 	Label {
 		id: label
 		text: qsTr("Notes:")
@@ -47,7 +52,7 @@ Item {
 
 	TPTextInput {
 		id: txtSetNotes
-		text: tDayModel.setNotes(setNumber, exerciseIdx)
+
 		anchors {
 			left: parent.left
 			top: label.bottom
@@ -57,6 +62,6 @@ Item {
 		}
 		visible: false
 
-		onEditingFinished: tDayModel.setSetNotes(setNumber, exerciseIdx, text);
+		onEditingFinished: editFinished(text);
 	}
 }

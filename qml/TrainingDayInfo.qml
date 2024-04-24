@@ -609,48 +609,14 @@ Page {
 				} //ColumnLayout
 			} //Frame
 
-			Label {
-				id: lblDayInfoTrainingNotes
-				text: qsTr("This training session considerations:")
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
+			SetNotesField {
+				info: qsTr("This training session considerations:")
+				text: tDayModel.dayNotes()
 				visible: splitLetter !== 'R'
 				color: "white"
 				Layout.leftMargin: 5
 
-				RoundButton {
-					id: btnShowHideNotes
-					anchors.left: parent.right
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.rightMargin: 20
-					width: 25
-					height: 25
-
-					Image {
-						id: img
-						source: "qrc:/images/"+darkIconFolder+"fold-down.png"
-						width: 20
-						height: 20
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-					}
-
-					onClicked: {
-						trainingNotesField.visible = !trainingNotesField.visible;
-						img.source = trainingNotesField.visible ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
-					}
-				}
-			}
-
-			TPTextInput {
-				id: trainingNotesField
-				text: tDayModel.dayNotes()
-				Layout.fillWidth: true
-				Layout.rightMargin: 5
-				Layout.leftMargin: 5
-				visible: false
-
-				onEditingFinished: tDayModel.setDayNotes(text);
+				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);
 			}
 
 			Frame {
@@ -935,10 +901,6 @@ Page {
 							appDB.updateTrainingDayExercises();
 						}
 					}
-					tDayModel.setMesoId(mesoId);
-					tDayModel.setDate(mainDate);
-					tDayModel.setSplitLetter(splitLetter);
-					tDayModel.setTrainingDay(tDay)
 					id = appDB.pass_object(tDayModel);
 					appDB.databaseReady.connect(continueSave);
 					appDB.newTrainingDay();

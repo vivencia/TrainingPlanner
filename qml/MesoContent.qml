@@ -221,8 +221,6 @@ Page {
 					function pushTDayOntoStackView(page, id) {
 						if (id === 70) {
 							appDB.getPage.disconnect(pushTDayOntoStackView);
-							page.tDay = trainingDay;
-							page.splitLetter = splitLetter;
 							appMainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(_today) , page);
 						}
 					}

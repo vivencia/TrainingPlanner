@@ -117,8 +117,6 @@ ApplicationWindow {
 				function pushTDayOntoMainStackView(object2, id) {
 					if (id === 70) {
 						appDB.getPage.disconnect(pushTDayOntoMainStackView);
-						object2.tDay = mesoCalendarModel.getTrainingDay(today.getMonth() + 1, today.getDate() - 1);
-						object2.splitLetter = mesoCalendarModel.getSplitLetter(today.getMonth() + 1, today.getDate() - 1);
 						mainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(today) , object2);
 					}
 				}

@@ -279,6 +279,8 @@ Item {
 
 		SetNotesField {
 			id: btnShowHideNotes
+			text: tDayModel.setNotes(setNumber, exerciseIdx)
+			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
 	} //ColumnLayout setLayout
 

@@ -50,6 +50,8 @@ void DbManager::init()
 		db_mesos->createTable();
 		delete db_mesos;
 	}
+	QFile mDBFile(m_DBFilePath + DBMesoSplitFileName);
+	qDebug() << "$$$$$$$$$$$$$$   " << mDBFile.remove();
 	f_info.setFile(m_DBFilePath + DBMesoSplitFileName);
 	if (!f_info.isReadable())
 	{
@@ -665,6 +667,13 @@ void DbManager::newMesoSplit(const QString& splitA, const QString& splitB, const
 void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
 								const QString& splitD, const QString& splitE, const QString& splitF)
 {
+	//If the MesocyclesSplits.db.sqlite was removed, but Mesocycles.db.sqlite was not, Mesocyles.qml will
+	//call update on a empty database. We account for that possibility
+	if (mesoSplitModel->count() == 0)
+	{
+		newMesoSplit(splitA, splitB, splitC, splitD, splitE, splitF);
+		return;
+	}
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
@@ -941,7 +950,7 @@ void DbManager::getTrainingDay(const QDate& date)
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->gettDayModel(date)));
 	worker->addExecArg(QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date); },
+	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id )
 		{ if (id == tDayPageCreateId) return getTrainingDayExercises(date); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));

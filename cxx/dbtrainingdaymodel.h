@@ -70,7 +70,8 @@ public:
 	Q_INVOKABLE QString exerciseName2(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
 
-	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight);
+	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight,
+						const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);
 	const QString& nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	const QString& nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	void newSet(const uint set_number, const uint exercise_idx, const uint type);

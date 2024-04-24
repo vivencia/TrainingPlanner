@@ -8,6 +8,9 @@ TextField {
 	readOnly: true
 	wrapMode: Text.WordWrap
 	height: 60
+	leftInset: 5
+	rightInset: 5
+	padding: 0
 	z: 1
 
 	property bool showRemoveButton: true
@@ -32,7 +35,7 @@ TextField {
 			cursorPosition = text.length;
 		else {
 			readOnly = false;
-			exerciseChanged(text1);
+			exerciseChanged(text);
 			cursorPosition = 0;
 			ensureVisible(0);
 		}
@@ -40,21 +43,22 @@ TextField {
 
 	RoundButton {
 		id: btnRemoveExercise
-		anchors.left: control.right
-		anchors.top: control.top
 		height: 25
 		width: 25
 		padding: 5
 		visible: showRemoveButton
 		z: 2
+		anchors {
+			left: control.right
+			top: control.top
+		}
 
 		Image {
 			source: "qrc:/images/"+darkIconFolder+"remove.png"
 			asynchronous: true
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-			height: 20
-			width: 20
+			anchors.fill: parent
+			height: 25
+			width: 25
 		}
 
 		onClicked: removeButtonClicked();
@@ -67,7 +71,6 @@ TextField {
 		height: 25
 		width: 25
 		padding: 5
-		visible: cboSetType.currentIndex !== 4
 		z: 2
 
 		Image {
