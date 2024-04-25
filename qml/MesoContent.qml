@@ -43,14 +43,14 @@ Page {
 				id: lbl1
 				text: mesoName
 				font.bold: true
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
 			Label {
 				id: lbl2
-				color: "white"
+				color: AppSettings.fontColor
 				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2)) +
 						qsTr("</b>  through  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3)) + "</b>"
@@ -120,7 +120,7 @@ Page {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					color: "white"
+					color: AppSettings.fontColor
 					font.bold: true
 					font.pointSize: AppSettings.fontSize
 				}
@@ -148,7 +148,7 @@ Page {
 					Component.onCompleted: {
 						var colorValue = "transparent";
 						if ( highlighted )
-							return Material.primary;
+							return AppSettings.primaryLightColor;
 						else {
 							//if ( monthGrid.year === model.year) {
 								if ( monthGrid.month === model.month ) {
@@ -169,18 +169,15 @@ Page {
 						scale: highlighted ? 1.4 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
-						color: todayDate ? "red" : "white"
+						color: todayDate ? "red" : AppSettings.fontColor
 						font.bold: true
 						font.pointSize: AppSettings.fontSize
 					}
 
 					MouseArea {
 						anchors.fill: parent
-						onClicked: {
-							selectDay(model.year, model.month, model.day);
-						}
+						onClicked: selectDay(model.year, model.month, model.day);
 					}
-
 				} //delegate: Rectangle
 			} //MonthGrid
 		} //delegate: Rectangle
@@ -200,9 +197,9 @@ Page {
 			Label {
 				text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
 						qsTr("Selected day is not part of the current mesocycle")
-				color: "white"
+				color: AppSettings.fontColor
 				wrapMode: Text.WordWrap
-				font.pointSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSizeText
 				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 				Layout.maximumWidth: parent.width / 2
 				Layout.leftMargin: 5
@@ -211,7 +208,7 @@ Page {
 			TPButton {
 				id: btnShowDayInfo
 				text: qsTr("View Day")
-				imageSource: "qrc:/images/"+lightIconFolder+"day-info.png"
+				imageSource: "qrc:/images/"+AppSettings.iconFolder+"day-info.png"
 				textUnderIcon: true
 				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
 				Layout.rightMargin: 5

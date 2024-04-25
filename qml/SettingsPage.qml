@@ -30,7 +30,7 @@ Page {
 	TPBalloonTip {
 		id: applyTip
 		message: qsTr("The App must be restarted in order to reflect the changes")
-		imageSource: "qrc:/images/"+lightIconFolder+"settings.png"
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"settings.png"
 		button1Text: qsTr("Restart now")
 
 		onButton1Clicked: appDB.restartApp();
@@ -58,7 +58,7 @@ Page {
 
 				Label {
 					text: qsTr("Application Language")
-					color: "white"
+					color: AppSettings.fontColor
 					font.bold: true
 					font.pointSize: AppSettings.fontSize
 				}
@@ -83,14 +83,14 @@ Page {
 
 			Rectangle {
 				height: 3
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.fillWidth: true
 			}
 
 //------------------------------------------------------FONTS------------------------------------------------------
 			Label {
 				text: qsTr("Fonts Sizes")
-				color: "white"
+				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
@@ -109,7 +109,7 @@ Page {
 					text: "A"
 					font.pointSize: 10
 					font.weight: 400
-					color: "white"
+					color: AppSettings.fontColor
 				}
 
 				Slider {
@@ -132,7 +132,7 @@ Page {
 					text: "A"
 					font.pointSize: 30
 					font.weight: 400
-					color: "white"
+					color: AppSettings.fontColor
 				}
 			} //RowLayout
 
@@ -140,7 +140,7 @@ Page {
 				id: lblExample
 				text: qsTr("Example text")
 				font.pointSize: fontPSize
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
 			}
@@ -149,7 +149,7 @@ Page {
 				id: lblTitleFont
 				text: qsTr("Font used in titles")
 				font.pointSize: fontPSize * 1.2
-				color: "white"
+				color: AppSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
@@ -158,7 +158,7 @@ Page {
 				id: lblListsFont
 				text: qsTr("Font used in lists")
 				font.pointSize: fontPSize * 0.8
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
 			}
@@ -166,7 +166,7 @@ Page {
 				id: lblTextFont
 				text: qsTr("Font used on text input fields")
 				font.pointSize: fontPSize * 0.9
-				color: "white"
+				color: AppSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
@@ -175,7 +175,7 @@ Page {
 
 			Rectangle {
 				height: 3
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -256,7 +256,7 @@ Page {
 
 			Rectangle {
 				height: 3
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -271,7 +271,7 @@ Page {
 
 				label: Label {
 					text: qsTr("Color Scheme")
-					color: "white"
+					color: AppSettings.fontColor
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.bottomMargin: 10
 					font.bold: true
@@ -280,7 +280,7 @@ Page {
 
 				background: Rectangle {
 					color: "transparent"
-					border.color: "white"
+					border.color: AppSettings.fontColor
 					radius: 6
 				}
 
@@ -475,22 +475,32 @@ Page {
 					switch (colorSchemeChosen) {
 						case 1:
 							AppSettings.colorScheme = "Blue";
+							AppSettings.fontColor = "white";
+							AppSettings.iconFolder = "white/"
 							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed"];
 						break;
 						case 2:
 							AppSettings.colorScheme = "Green";
+							AppSettings.fontColor = "white";
+							AppSettings.iconFolder = "white/"
 							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22"];
 						break;
 						case 3:
 							AppSettings.colorScheme = "Red";
+							AppSettings.fontColor = "white";
+							AppSettings.iconFolder = "white/"
 							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080"];
 						break;
 						case 4:
 							AppSettings.colorScheme = "Dark";
+							AppSettings.fontColor = "white";
+							AppSettings.iconFolder = "white/"
 							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#3f0000", "#696969"];
 						break;
 						case 5:
 							AppSettings.colorScheme = "Light";
+							AppSettings.fontColor = "black";
+							AppSettings.iconFolder = "black/"
 							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de"];
 						break;
 					}

@@ -65,7 +65,7 @@ Page {
 		TPButton {
 			id: btnSave
 			text: qsTr("Save")
-			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.modified : false
 			fixedSize: true
@@ -85,7 +85,7 @@ Page {
 		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
-			imageSource: "qrc:/images/"+lightIconFolder+"clear.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"clear.png"
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.count > 0 : false
 			fixedSize: true
@@ -104,7 +104,7 @@ Page {
 		TPButton {
 			id: btnSwapPlan
 			text: currentPage ? currentPage.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
-			imageSource: "qrc:/images/"+lightIconFolder+"swap.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true
@@ -119,7 +119,7 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors.right: parent.right
 			anchors.rightMargin: 5
@@ -141,7 +141,7 @@ Page {
 		appDB.getPage.connect(insertSplitPage);
 		appDB.getCompleteMesoSplit(mesoSplit);
 		if (Qt.platform.os === "android")
-			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+			mainwindow.appSuspended.connect(aboutToBeSuspended);
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {

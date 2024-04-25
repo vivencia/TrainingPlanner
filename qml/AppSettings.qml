@@ -19,6 +19,8 @@ Settings {
 	property string entrySelectedColor
 	property string exercisesListVersion
 	property string backupFolder
+	property string fontColor
+	property string iconFolder
 	property int fontSize
 	property int fontSizeLists
 	property int fontSizeText

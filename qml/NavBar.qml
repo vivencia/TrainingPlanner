@@ -20,7 +20,7 @@ ToolBar {
 		visible: stackView.depth >= 2
 		anchors.verticalCenter: parent.verticalCenter
 		text: qsTr("BACK")
-		imageSource: "qrc:/images/"+lightIconFolder+"back.png"
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"back.png"
 
 		onClicked: {
 			stackView.pop();

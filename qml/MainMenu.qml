@@ -34,7 +34,7 @@ Drawer {
 	TransparentButton {
 		id: btnExit
 		text: qsTr("Exit")
-		imageSource: "qrc:/images/"+lightIconFolder+"application-exit.png"
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"application-exit.png"
 		leftAlign: false
 
 		anchors {
@@ -88,7 +88,7 @@ Drawer {
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeText
 				horizontalAlignment: Text.AlignHCenter
-				color: "white"
+				color: AppSettings.fontColor
 
 				anchors {
 					left: parent.left
@@ -102,7 +102,7 @@ Drawer {
 		Rectangle {
 			height: 3
 			width: parent.width
-			color: "white"
+			color: AppSettings.fontColor
 		}
 
 		TransparentButton {
@@ -138,7 +138,7 @@ Drawer {
 		Rectangle {
 			height: 3
 			width: parent.width
-			color: "white"
+			color: AppSettings.fontColor
 		}
 
 		Item { // spacer item

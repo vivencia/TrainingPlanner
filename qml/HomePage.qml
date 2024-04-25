@@ -39,7 +39,7 @@ Page {
 			anchors.fill: parent
 
 			Image {
-				source: "qrc:/images/"+lightIconFolder+"mesocycle.png"
+				source: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
 				width: 50
 				height: 50
 				Layout.alignment: Qt.AlignCenter
@@ -47,7 +47,7 @@ Page {
 
 			Label {
 				text: qsTr("Training Program")
-				color: "white"
+				color: AppSettings.fontColor
 				font.weight: Font.ExtraBold
 				font.pointSize: AppSettings.fontSizeTitle
 				wrapMode: Text.WordWrap
@@ -97,7 +97,7 @@ Page {
 					}
 
 					Image {
-						source: "qrc:/images/"+lightIconFolder+"remove.png"
+						source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 						height: 40
 						width: 40
 						anchors.top: parent.top
@@ -194,7 +194,7 @@ Page {
 
 				Label {
 					text: qsTr("Name: <b>") + mesoName + "</b>"
-					color: "white"
+					color: AppSettings.fontColor
 					width: mesoDelegate.width
 					elide: Text.ElideRight
 				}
@@ -202,22 +202,22 @@ Page {
 					text: realMeso ?
 							qsTr("Start of mesocycle: <b>") + runCmd.formatDate(mesoStartDate) + "</b>" :
 							qsTr("Program start date: <b>") + runCmd.formatDate(mesoStartDate) + "</b>"
-					color: "white"
+					color: AppSettings.fontColor
 				}
 				Label {
 					text: realMeso ?
 							qsTr("End of mesocycle: <b>") + runCmd.formatDate(mesoEndDate) + "</b>" :
 							qsTr("Open-ended program - no end date set")
-					color: "white"
+					color: AppSettings.fontColor
 				}
 				Label {
 					text: qsTr("Weeks in mesocycle: <b>") + mesoWeeks + "</b>"
-					color: "white"
+					color: AppSettings.fontColor
 					visible: realMeso
 				}
 				Label {
 					text: qsTr("Training Split: <b>") + mesoSplit + "</b>"
-					color: "white"
+					color: AppSettings.fontColor
 				}
 			}
 		} //delegate
@@ -237,7 +237,7 @@ Page {
 			id: btnAddOpenSchedule
 			text: qsTr("New open-ended schedule")
 			textUnderIcon: true
-			imageSource: "qrc:/images/"+lightIconFolder+"open-schedule.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"open-schedule.png"
 			anchors.left: parent.left
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.leftMargin: 5
@@ -248,7 +248,7 @@ Page {
 		TPButton {
 			id: btnAddMeso
 			text: qsTr("New Mesocycle")
-			imageSource: "qrc:/images/"+lightIconFolder+"mesocycle-add.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle-add.png"
 			textUnderIcon: true
 			anchors.right: parent.right
 			anchors.verticalCenter: parent.verticalCenter

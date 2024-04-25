@@ -241,7 +241,7 @@ Popup {
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: hrsButton.checked ? 1.0 : 0.6
-					color: "white"
+					color: AppSettings.fontColor
 					elide: Text.ElideRight
 				}
 				background: Rectangle {
@@ -259,7 +259,7 @@ Popup {
 				font.bold: true
 				fontSizeMode: Text.Fit
 				opacity: 0.6
-				color: "white"
+				color: AppSettings.fontColor
 			}
 
 			Button {
@@ -274,7 +274,7 @@ Popup {
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: minutesButton.checked ? 1.0 : 0.6
-					color: "white"
+					color: AppSettings.fontColor
 					elide: Text.ElideRight
 				}
 				background: Rectangle {
@@ -311,7 +311,7 @@ Popup {
 
 		TPButton {
 			visible: !timePicker.pickMinutes
-			imageSource: timePicker.useWorkTimes? "qrc:/images/"+lightIconFolder+"work.png" : "qrc:/images/"+lightIconFolder+"time.png"
+			imageSource: timePicker.useWorkTimes? "qrc:/images/"+AppSettings.iconFolder+"work.png" : "qrc:/images/"+AppSettings.iconFolder+"time.png"
 			anchors.right: parent.right
 			anchors.top: parent.top
 			anchors.topMargin: -5

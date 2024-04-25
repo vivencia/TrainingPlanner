@@ -9,7 +9,7 @@ Popup {
 	property string button2Text: ""
 	property string imageSource: ""
 	property string backColor: AppSettings.primaryColor
-	property string textColor: "white"
+	property string textColor: AppSettings.fontColor
 	property bool highlightMessage: false
 	property int startYPosition: 0
 
@@ -167,7 +167,7 @@ Popup {
 		ColorAnimation {
 			target: lblMessage
 			property: "color"
-			from: "white"
+			from: AppSettings.fontColor
 			to: "darkred"
 			duration: 700
 			easing.type: Easing.InOutCubic
@@ -176,7 +176,7 @@ Popup {
 			target: lblMessage
 			property: "color"
 			from: "darkred"
-			to: "white"
+			to: AppSettings.fontColor
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}

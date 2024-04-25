@@ -47,7 +47,7 @@ Page {
 
 			Label {
 				text: qsTr("Exercise:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
@@ -71,7 +71,7 @@ Page {
 
 			Label {
 				text: qsTr("Specifics:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
@@ -95,7 +95,7 @@ Page {
 
 			Label {
 				text: qsTr("Muscular Group:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
@@ -120,7 +120,7 @@ Page {
 			Label {
 				id: lblDefaults
 				text: qsTr("Exercise details:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.minimumWidth: parent.width - 20
@@ -133,7 +133,7 @@ Page {
 					anchors.left: lblDefaults.right
 					anchors.leftMargin: -20
 					anchors.verticalCenter: lblDefaults.verticalCenter
-					source: paneExerciseDefaults.shown ? "qrc:/images/"+lightIconFolder+"fold-up.png" : "qrc:/images/"+lightIconFolder+"fold-down.png"
+					source: paneExerciseDefaults.shown ? "qrc:/images/"+AppSettings.iconFolder+"fold-up.png" : "qrc:/images/"+AppSettings.iconFolder+"fold-down.png"
 					height: 20
 					width: 20
 					z: 0
@@ -161,7 +161,7 @@ Page {
 				z: 0
 
 				background: Rectangle {
-					border.color: "white"
+					border.color: AppSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -184,7 +184,7 @@ Page {
 						alternativeLabels: ["", "", "", qsTr("Sets:")]
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: "white"
+						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => text = str;
@@ -197,7 +197,7 @@ Page {
 						availableWidth: parent.width*0.6
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: "white"
+						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => text = str;
@@ -210,7 +210,7 @@ Page {
 						availableWidth: parent.width*0.6
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: "white"
+						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onValueChanged: (str) => text = str;
@@ -221,7 +221,7 @@ Page {
 
 			Label {
 				text: qsTr("Descriptive media:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.bottomMargin: 10

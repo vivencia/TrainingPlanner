@@ -36,7 +36,7 @@ ToolButton {
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		font.capitalization: Font.MixedCase
-		color: "white"
+		color: AppSettings.fontColor
 		anchors.verticalCenter: parent.verticalCenter
 
 		Component.onCompleted: {

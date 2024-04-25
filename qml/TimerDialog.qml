@@ -168,7 +168,7 @@ Dialog {
 		Label {
 			id: lblTitle
 			text: windowTitle
-			color: "white"
+			color: AppSettings.fontColor
 			height: parent.height
 			anchors {
 				left: parent.left
@@ -203,7 +203,7 @@ Dialog {
 
 		Image {
 			id: btnCloseWindow
-			source: "qrc:/images/"+lightIconFolder+"close.png"
+			source: "qrc:/images/"+AppSettings.iconFolder+"close.png"
 			width: parent.height
 			height: parent.height
 			anchors.right: parent.right
@@ -587,7 +587,7 @@ Dialog {
 		mainwindow.mainMenuOpened.connect(hideDlg);
 		mainwindow.mainMenuClosed.connect(showDlg);
 		if (Qt.platform.os === "android") {
-			mainwindow.appAboutToBeSuspended.connect(appSuspended);
+			mainwindow.appSuspended.connect(appSuspended);
 			mainwindow.appActive.connect(appResumed);
 		}
 	}

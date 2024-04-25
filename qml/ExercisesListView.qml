@@ -89,7 +89,7 @@ Column {
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: curIndex === index ? "white" : "black"
+				color: curIndex === index ? AppSettings.fontColor : "black"
 				font.pointSize: AppSettings.fontSizeLists
 				padding: 0
 			}
@@ -140,7 +140,7 @@ Column {
 				radius: 5
 
 				Image {
-					source: "qrc:/images/"+lightIconFolder+"remove.png"
+					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 					anchors.left: parent.left
 					anchors.leftMargin: 10
 					anchors.verticalCenter: parent.verticalCenter
@@ -152,7 +152,7 @@ Column {
 
 				Label {
 					text: qsTr("Removing in " + seconds/1000 + "s")
-					color: "white"
+					color: AppSettings.fontColor
 					padding: 5
 					anchors.fill: parent
 					anchors.leftMargin: 40
@@ -228,7 +228,7 @@ Column {
 			width: 20
 
 			Image {
-				source: "qrc:/images/"+lightIconFolder+"edit-clear.png"
+				source: "qrc:/images/"+AppSettings.iconFolder+"edit-clear.png"
 				anchors.fill: parent
 				height: 20
 				width: 20

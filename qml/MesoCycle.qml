@@ -61,7 +61,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 				leftMargin: 20
 			}
-			imageSource: "qrc:/images/"+lightIconFolder+"edit-mesocycle.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
 
 			onClicked: {
 				var id;
@@ -85,7 +85,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 				rightMargin: 20
 			}
-			imageSource: "qrc:/images/"+lightIconFolder+"statistics.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"statistics.png"
 
 			onClicked: {
 				if (mesoStatisticsPage === null)
@@ -113,7 +113,7 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
-				color: "white"
+				color: AppSettings.fontColor
 			}
 			TPTextInput {
 				id: txtMesoName
@@ -152,7 +152,7 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				color: "white"
+				color: AppSettings.fontColor
 			}
 
 			TPTextInput {
@@ -206,7 +206,7 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				color: "white"
+				color: AppSettings.fontColor
 			}
 			TPTextInput {
 				id: txtMesoEndDate
@@ -266,7 +266,7 @@ Page {
 				Layout.leftMargin: 5
 				Layout.minimumWidth: 50
 				Layout.maximumWidth: 50
-				color: "white"
+				color: AppSettings.fontColor
 			}
 
 			TPTextInput {
@@ -283,7 +283,7 @@ Page {
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				color: "white"
+				color: AppSettings.fontColor
 			}
 			RegularExpressionValidator {
 				id: regEx
@@ -308,8 +308,8 @@ Page {
 						verticalCenter: txtMesoSplit.verticalCenter
 						leftMargin: 10
 					}
-					icon.source: paneTrainingSplit.visible ? "qrc:/images/"+lightIconFolder+"fold-up.png" :
-													"qrc:/images/"+lightIconFolder+"fold-down.png"
+					icon.source: paneTrainingSplit.visible ? "qrc:/images/"+AppSettings.iconFolder+"fold-up.png" :
+													"qrc:/images/"+AppSettings.iconFolder+"fold-down.png"
 					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
 				}
 
@@ -345,7 +345,7 @@ Page {
 				height: 300
 
 				background: Rectangle {
-					border.color: "white"
+					border.color: AppSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -415,7 +415,7 @@ Page {
 						font.bold: true
 						Layout.row: 0
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitA.visible
 					}
 					TPTextInput {
@@ -448,7 +448,7 @@ Page {
 						font.bold: true
 						Layout.row: 1
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitB.visible
 					}
 					TPTextInput {
@@ -480,7 +480,7 @@ Page {
 						text: qsTr("Day C: ")
 						Layout.row: 2
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitC.visible
 					}
 					TPTextInput {
@@ -512,7 +512,7 @@ Page {
 						text: qsTr("Day D: ")
 						Layout.row: 3
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitD.visible
 					}
 					TPTextInput {
@@ -544,7 +544,7 @@ Page {
 						text: qsTr("Day E: ")
 						Layout.row: 4
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitE.visible
 					}
 					TPTextInput {
@@ -576,7 +576,7 @@ Page {
 						text: qsTr("Day F: ")
 						Layout.row: 5
 						Layout.column: 0
-						color: "white"
+						color: AppSettings.fontColor
 						visible: txtSplitF.visible
 					}
 					TPTextInput {
@@ -635,7 +635,7 @@ Page {
 				text: qsTr("Drug Protocol: ")
 				font.bold: true
 				Layout.leftMargin: 5
-				color: "white"
+				color: AppSettings.fontColor
 			}
 			Flickable {
 				Layout.fillWidth: true
@@ -648,7 +648,7 @@ Page {
 				TextArea.flickable: TextArea {
 					id: txtMesoDrugs
 					text: mesocyclesModel.get(mesoIdx, 7)
-					color: "white"
+					color: AppSettings.fontColor
 
 					onEditingFinished: {
 						if ( text !== mesocyclesModel.get(mesoIdx, 7) )
@@ -664,7 +664,7 @@ Page {
 				text: qsTr("Mesocycle's considerations: ")
 				font.bold: true
 				Layout.leftMargin: 5
-				color: "white"
+				color: AppSettings.fontColor
 			}
 			Flickable {
 				Layout.fillWidth: true
@@ -677,7 +677,7 @@ Page {
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
 					text: mesocyclesModel.get(mesoIdx, 4)
-					color: "white"
+					color: AppSettings.fontColor
 
 					onEditingFinished: {
 						if ( text !== mesocyclesModel.get(mesoIdx, 4) )
@@ -721,7 +721,7 @@ Page {
 			anchors.leftMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
-			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"revert-day.png"
 			enabled: bModified
 
 			onClicked: {
@@ -767,7 +767,7 @@ Page {
 			anchors.rightMargin: 5
 			anchors.verticalCenter: parent.verticalCenter
 			textUnderIcon: true
-			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			enabled: bNewMeso ? bMesoNameOK : bModified
 
 			onClicked: {

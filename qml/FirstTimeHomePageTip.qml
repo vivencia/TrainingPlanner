@@ -55,7 +55,7 @@ ToolTip {
 		text: message
 		font.bold: true
 		font.pointSize: AppSettings.fontSizeTitle
-		color: "white"
+		color: AppSettings.fontColor
 		width: fontMetrics.boundingRect(text).width + 10
 		height: fontMetrics.boundingRect(text).height + 5
 		anchors {

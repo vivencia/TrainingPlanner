@@ -27,6 +27,9 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue( "paneBackgroundColor", u"#1976d2"_qs);
 		settingsObj.setValue( "entrySelectedColor", u"#6495ed"_qs);
 		settingsObj.setValue( "exercisesListVersion", u"0"_qs);
+		settingsObj.setValue( "backupFolder", u""_qs);
+		settingsObj.setValue( "fontColor", u"white"_qs);
+		settingsObj.setValue( "iconFolder", u"white/"_qs);
 		settingsObj.setValue( "fontSize", 14 );
 		settingsObj.setValue( "fontSizeLists", 9 );
 		settingsObj.setValue( "fontSizeText", 12 );

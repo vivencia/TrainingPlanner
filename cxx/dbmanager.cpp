@@ -50,8 +50,6 @@ void DbManager::init()
 		db_mesos->createTable();
 		delete db_mesos;
 	}
-	QFile mDBFile(m_DBFilePath + DBMesoSplitFileName);
-	qDebug() << "$$$$$$$$$$$$$$   " << mDBFile.remove();
 	f_info.setFile(m_DBFilePath + DBMesoSplitFileName);
 	if (!f_info.isReadable())
 	{

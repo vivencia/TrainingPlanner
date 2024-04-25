@@ -30,6 +30,7 @@ Page {
 	property bool bHasMesoPlan: false
 
 	property date sessionLength
+	property date sessionStart
 
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
@@ -193,6 +194,76 @@ Page {
 	}
 
 	Timer {
+		id : workoutTimer
+		interval: 1000
+		running: false
+		repeat: true
+
+		property int hours: 0
+		property int mins: 0
+		property int secs: 0
+		property bool forward: true
+		property bool bWasSuspended: false
+
+		onTriggered: calcTime();
+
+		Component.onCompleted: {
+			if (Qt.platform.os === "android") {
+				mainwindow.appSuspended.connect(appSuspended);
+				mainwindow.appActive.connect(appResumed);
+			}
+		}
+
+		function appSuspended() {
+			if (running)
+				bWasSuspended = true;
+		}
+
+		function appResumed() {
+			if (bWasSuspended) {
+				const elapsedTime = runCmd.calculateTimeBetweenTimes(sessionStart, runCmd.getCurrentTimeString(true));
+				console.log("############## elapsedTime", elapsedTime.toTimeString());
+
+				var correctedCounter;
+				if (forward)
+					correctedCounter = runCmd.calculateTimeBetweenTimes("00:00::00", elapsedTime);
+				else
+					correctedCounter = runCmd.calculateTimeBetweenTimes(elapsedTime, runCmd.formatTime(sessionLength, true));
+				hours = correctedCounter.getHours();
+				mins = correctedCounter.getMinutes();
+				secs = correctedCounter.getSeconds();
+				bWasSuspended = false;
+			}
+		}
+
+		function calcTime() {
+			if (bWasSuspended) return;
+			if (forward) {
+				if (secs == 59) {
+					secs = 0;
+					if (mins === 59) {
+						mins = 0;
+						hours++;
+					}
+					mins++;
+				}
+				secs++;
+			}
+			else {
+				if (secs == 0) {
+					secs = 59;
+					if (mins === 0) {
+						mins = 59;
+						hours--;
+					}
+					mins--;
+				}
+				secs--;
+			}
+		}
+	}
+
+	Timer {
 		id: timerRestricted
 		interval: 60000 //Every one minute
 		repeat: true
@@ -308,7 +379,7 @@ Page {
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
 				font.pointSize: AppSettings.fontSizeTitle
-				color: "white"
+				color: AppSettings.fontColor
 			}
 
 			GridLayout {
@@ -320,7 +391,7 @@ Page {
 
 				Label {
 					text: qsTr("Training Division:")
-					color: "white"
+					color: AppSettings.fontColor
 					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
 					Layout.row: 0
@@ -347,7 +418,7 @@ Page {
 
 				Label {
 					text: qsTr("Training Day #")
-					color: "white"
+					color: AppSettings.fontColor
 					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
 					visible: splitLetter !== 'R'
@@ -379,7 +450,7 @@ Page {
 
 			Label {
 				text: qsTr("Location:")
-				color: "white"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
@@ -406,7 +477,7 @@ Page {
 				height: 330
 
 				background: Rectangle {
-					border.color: "white"
+					border.color: AppSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -457,7 +528,7 @@ Page {
 									runCmd.getStrMinFromTime(sessionLength) + qsTr(" minute(s)</b>, at <b>") + timeOut + "</b>" :
 									qsTr("Session time elapsed!")
 						wrapMode: Text.WordWrap
-						color: "white"
+						color: AppSettings.fontColor
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.fillWidth: true
@@ -479,7 +550,7 @@ Page {
 
 					Label {
 						id: lblInTime
-						color: "white"
+						color: AppSettings.fontColor
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						text: qsTr("In time:")
@@ -536,7 +607,7 @@ Page {
 
 					Label {
 						id: lblOutTime
-						color: "white"
+						color: AppSettings.fontColor
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						text: qsTr("Out time:")
@@ -599,7 +670,7 @@ Page {
 						text: qsTr("Total session length: <b>") + runCmd.getStrHourFromTime(sessionLength) + qsTr(" hour(s) and ") +
 									runCmd.getStrMinFromTime(sessionLength) + qsTr(" minute(s)</b>")
 						wrapMode: Text.WordWrap
-						color: "white"
+						color: AppSettings.fontColor
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
 						Layout.fillWidth: true
@@ -613,7 +684,7 @@ Page {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
 				visible: splitLetter !== 'R'
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.leftMargin: 5
 
 				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);
@@ -626,7 +697,7 @@ Page {
 				visible: bDayIsFinished
 
 				background: Rectangle {
-					border.color: "white"
+					border.color: AppSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -642,7 +713,7 @@ Page {
 						font.bold: true
 						Layout.topMargin: 20
 						Layout.leftMargin: 5
-						color: "white"
+						color: AppSettings.fontColor
 						Layout.fillWidth: true
 						width: parent.width - 5
 						Layout.bottomMargin: 2
@@ -662,7 +733,7 @@ Page {
 			Label {
 				id: lblExercisesStart
 				text: qsTr("--- EXERCISES ---")
-				color: "white"
+				color: AppSettings.fontColor
 				font.weight: Font.Black
 				font.pointSize: AppSettings.fontSizeTitle
 				visible: splitLetter !== 'R'
@@ -836,7 +907,7 @@ Page {
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		if (Qt.platform.os === "android")
-			mainwindow.appAboutToBeSuspended.connect(aboutToBeSuspended);
+			mainwindow.appSuspended.connect(aboutToBeSuspended);
 	}
 
 	Timer {
@@ -874,7 +945,7 @@ Page {
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
-		height: 55
+		height: 100
 		visible: !exercisesPane.shown
 
 		background: Rectangle {
@@ -882,15 +953,77 @@ Page {
 			opacity: 0.7
 		}
 
+		RowLayout {
+			id: workoutLengthRow
+			height: 50
+			spacing: 5
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				top: parent.top
+				right: parent.right
+				rightMargin: 5
+			}
+
+			Label {
+				text: qsTr("Workout:")
+				color: AppSettings.fontColor
+				font.bold: true
+				font.pointSize: AppSettings.fontSizeText
+			}
+
+			TPButton {
+				id: btnStartWorkout
+				text: qsTr("Begin")
+
+				onClicked: workoutLengthClock.running = true;
+			}
+
+			Rectangle {
+				id: workoutLengthClock
+				property alias running: workoutTimer.running
+				property int hours: 0
+				property int mins: 0
+				property int secs: 0
+
+				antialiasing: true
+				width: spinnerLayout.width
+				height: 40
+				color: AppSettings.primaryColor
+
+				RowLayout {
+					id : spinnerLayout
+					spacing: 2
+
+					DigitalClock { max: 24; value: workoutLengthClock.hours; }
+					Rectangle { color : AppSettings.fontColor; width: 2; height: 40 }
+					DigitalClock { max: 60; value: workoutLengthClock.mins; }
+					Rectangle { color : AppSettings.fontColor; width: 2; height: 40 }
+					DigitalClock { max: 60; value: workoutLengthClock.secs; }
+				}
+			}
+
+			TPButton {
+				id: btnEndWorkout
+				text: qsTr("Finish")
+
+				onClicked: workoutLengthClock.running = false;
+			}
+		}
+
 		TPButton {
 			id: btnSaveDay
 			enabled: tDayModel.modified
 			text: qsTr("Log Workout")
-			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			textUnderIcon: true
-			anchors.left: parent.left
-			anchors.leftMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				top: workoutLengthRow.bottom
+				bottom: parent.bottom
+				bottomMargin: 5
+			}
 
 			onClicked: {
 				if (tDayModel.id() === -1) {
@@ -925,11 +1058,15 @@ Page {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
 			enabled: splitLetter !== 'R' && !grpIntent.visible
-			imageSource: "qrc:/images/"+lightIconFolder+"exercises-add.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
-			anchors.right: parent.right
-			anchors.rightMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				right: parent.right
+				rightMargin: 5
+				top: workoutLengthRow.bottom
+				bottom: parent.bottom
+				bottomMargin: 5
+			}
 
 			onClicked: {
 				if (navButtons !== null)

@@ -74,7 +74,7 @@ Page {
 		contentItem: Text {
 			text: firstTimeToolTip.text
 			wrapMode: Text.WordWrap
-			color: "white"
+			color: AppSettings.fontColor
 			font.pointSize: AppSettings.fontSizeText
 			width: parent.width
 			padding: 5
@@ -119,7 +119,7 @@ Page {
 			Layout.alignment: Qt.AlignLeft
 			Layout.leftMargin: 5
 			Layout.topMargin: 10
-			color: "white"
+			color: AppSettings.fontColor
 		}
 
 		TPTextInput {
@@ -147,7 +147,7 @@ Page {
 				anchors.left: txtMesoStartDate.right
 				anchors.verticalCenter: txtMesoStartDate.verticalCenter
 				anchors.leftMargin: 10
-				icon.source: "qrc:/images/"+lightIconFolder+"calendar.png"
+				icon.source: "qrc:/images/"+AppSettings.iconFolder+"calendar.png"
 
 				onClicked: caldlg.open();
 			}
@@ -158,7 +158,7 @@ Page {
 			font.bold: true
 			Layout.alignment: Qt.AlignLeft
 			Layout.leftMargin: 5
-			color: "white"
+			color: AppSettings.fontColor
 		}
 
 		RegularExpressionValidator {
@@ -200,7 +200,7 @@ Page {
 				font.bold: true
 				Layout.row: 0
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitA.visible
 			}
 			TPTextInput {
@@ -234,7 +234,7 @@ Page {
 				font.bold: true
 				Layout.row: 1
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitB.visible
 			}
 			TPTextInput {
@@ -269,7 +269,7 @@ Page {
 				font.bold: true
 				Layout.row: 2
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitC.visible
 			}
 			TPTextInput {
@@ -304,7 +304,7 @@ Page {
 				font.bold: true
 				Layout.row: 3
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitD.visible
 			}
 			TPTextInput {
@@ -339,7 +339,7 @@ Page {
 				font.bold: true
 				Layout.row: 4
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitE.visible
 			}
 			TPTextInput {
@@ -374,7 +374,7 @@ Page {
 				font.bold: true
 				Layout.row: 5
 				Layout.column: 0
-				color: "white"
+				color: AppSettings.fontColor
 				visible: txtSplitF.visible
 			}
 			TPTextInput {
@@ -450,7 +450,7 @@ Page {
 		TPButton {
 			id: btnRevert
 			text: qsTr("Cancel alterations")
-			imageSource: "qrc:/images/"+lightIconFolder+"revert-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"revert-day.png"
 			textUnderIcon: true
 			enabled: bModified
 			anchors.left: parent.left
@@ -485,7 +485,7 @@ Page {
 		TPButton {
 			id: btnSaveMeso
 			text: qsTr("Save Information")
-			imageSource: "qrc:/images/"+lightIconFolder+"save-day.png"
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			textUnderIcon: true
 			enabled: bModified
 			anchors.right: parent.right

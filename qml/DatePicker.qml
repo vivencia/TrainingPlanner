@@ -90,7 +90,7 @@ Rectangle {
 				font.pointSize: fontSizePx * 1.7
 				font.bold: true
 				opacity: yearsList.visible ? 1 : 0.7
-				color: "white"
+				color: AppSettings.fontColor
 				text: calendar.currentYear
 			}
 			MouseArea {
@@ -113,7 +113,7 @@ Rectangle {
 			font.pointSize: height * 0.5
 			font.bold: true
 			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
-			color: "white"
+			color: AppSettings.fontColor
 			opacity: yearsList.visible ? 0.7 : 1
 			MouseArea {
 				anchors.fill: parent
@@ -161,9 +161,7 @@ Rectangle {
 			width: cellSize * 7
 			Rectangle {
 				id: monthYearTitle
-				anchors {
-					top: parent.top
-				}
+				anchors.top: parent.top
 				height: cellSize * 1.3
 				width: parent.width
 
@@ -178,9 +176,7 @@ Rectangle {
 			DayOfWeekRow {
 				id: weekTitles
 				locale: monthGrid.locale
-				anchors {
-					top: monthYearTitle.bottom
-				}
+				anchors.top: monthYearTitle.bottom
 				height: cellSize
 				width: parent.width
 				delegate: Text {
@@ -197,9 +193,7 @@ Rectangle {
 				month: model.month
 				year: model.year
 				spacing: 0
-				anchors {
-					top: weekTitles.bottom
-				}
+				anchors.top: weekTitles.bottom
 				width: cellSize * 7
 				height: cellSize * 6
 
@@ -209,10 +203,20 @@ Rectangle {
 					width: cellSize
 					radius: height * 0.5
 					enabled: model.month === monthGrid.month
-					color: highlighted ? AppSettings.paneBackgroundColor : "white"
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
+
+					Component.onCompleted: {
+						var colorValue = "transparent";
+						if ( highlighted )
+							return AppSettings.primaryLightColor;
+						else {
+							if ( monthGrid.month === model.month )
+								colorValue =  AppSettings.paneBackgroundColor;
+						}
+						color = colorValue
+					}
 
 					Text {
 						anchors.centerIn: parent
@@ -222,7 +226,7 @@ Rectangle {
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						visible: parent.enabled
-						color: todayDate ? "red" : parent.highlighted ? "white" : "black"
+						color: todayDate ? "red" : parent.highlighted ? "black" : "white"
 					}
 					MouseArea {
 						anchors.fill: parent

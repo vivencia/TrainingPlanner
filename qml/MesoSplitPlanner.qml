@@ -563,7 +563,7 @@ Frame {
 					z: 2
 
 					Image {
-						source: "qrc:/images/"+lightIconFolder+"remove.png"
+						source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 						anchors.left: parent.left
 						anchors.leftMargin: 10
 						anchors.verticalCenter: parent.verticalCenter
@@ -575,7 +575,7 @@ Frame {
 
 					Label {
 						text: qsTr("Removing in " + removalSecs/1000 + "s")
-						color: "white"
+						color: AppSettings.fontColor
 						padding: 5
 						anchors.fill: parent
 						anchors.leftMargin: 40

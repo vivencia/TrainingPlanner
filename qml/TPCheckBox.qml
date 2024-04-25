@@ -6,7 +6,7 @@ CheckBox {
 	padding: 0
 	spacing: 5
 
-	property string textColor: "white"
+	property string textColor: AppSettings.fontColor
 
 	indicator: Rectangle {
 		implicitWidth: 20
@@ -14,8 +14,8 @@ CheckBox {
 		x: control.leftPadding
 		y: (control.height-height)/2
 		radius: 4
-		border.color: "white"
-		color: "white"
+		border.color: AppSettings.fontColor
+		color: AppSettings.fontColor
 
 		Rectangle {
 			width: 10

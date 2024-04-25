@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 Rectangle {
 	id: button
-	property color textColor: "white"
+	property color textColor: AppSettings.fontColor
 	property alias imageMirror: buttonImage.mirror
 	property alias imageSize: buttonImage.height
 	property alias font: buttonText.font
@@ -19,7 +19,7 @@ Rectangle {
 	signal clicked();
 
 	focus: true
-	border.color: "white"
+	border.color: AppSettings.fontColor
 	radius: 6
 	implicitWidth: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	implicitHeight: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)

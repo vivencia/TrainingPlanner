@@ -10,7 +10,7 @@ GroupBox {
 
 	label: Label {
 		id: lblText
-		color: "white"
+		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		anchors.horizontalCenter: parent.horizontalCenter
@@ -20,7 +20,7 @@ GroupBox {
 	background: Rectangle {
 		id: recBack
 		color: "transparent"
-		border.color: "white"
+		border.color: AppSettings.fontColor
 		radius: 6
 	}
 
@@ -42,7 +42,7 @@ GroupBox {
 		ColorAnimation {
 			target: recBack
 			property: "border.color"
-			from: "white"
+			from: AppSettings.fontColor
 			to: "gold"
 			duration: 300
 			easing.type: Easing.InOutCubic
@@ -51,7 +51,7 @@ GroupBox {
 			target: recBack
 			property: "border.color"
 			from: "gold"
-			to: "white"
+			to: AppSettings.fontColor
 			duration: 300
 			easing.type: Easing.InOutCubic
 		}

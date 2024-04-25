@@ -14,7 +14,7 @@ ApplicationWindow {
 	signal backButtonPressed()
 	signal mainMenuOpened()
 	signal mainMenuClosed()
-	signal appAboutToBeSuspended()
+	signal appSuspended()
 	signal appActive()
 
 	readonly property string lightIconFolder: "white/"
@@ -25,9 +25,9 @@ ApplicationWindow {
 		function onStateChanged(inState) {
 			if (Qt.platform.os === "android") {
 				switch (inState) {
-					case Qt.ApplicationSuspended: break;
+					case Qt.ApplicationSuspended: appSuspended(); break;
 					case Qt.ApplicationHidden: break;
-					case Qt.ApplicationInactive: appAboutToBeSuspended(); break;
+					case Qt.ApplicationInactive: break;
 					case Qt.ApplicationActive: appActive(); break;
 				}
 			}

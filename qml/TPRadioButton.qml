@@ -7,7 +7,7 @@ RadioButton {
 	padding: 0
 	Layout.fillWidth: true
 
-	property string textColor: "white"
+	property string textColor: AppSettings.fontColor
 
 	contentItem: Label {
 		text: control.text
@@ -27,7 +27,7 @@ RadioButton {
 		x: 3
 		y: (parent.height-height)/2
 		radius: 10
-		color: "white"
+		color: textColor
 
 		Rectangle {
 			width: 14
@@ -35,8 +35,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: !control.down ? AppSettings.primaryDarkColor : AppSettings.primaryColor
-			visible: control.checked
+			color: control.checked ? textColor : AppSettings.paneBackgroundColor
 		}
 	}
 }

@@ -37,7 +37,7 @@ Page {
 
 	TPBalloonTip {
 		id: opFinished
-		imageSource: "qrc:/images/"+lightIconFolder+"backup.png"
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"backup.png"
 
 		onButton1Clicked: appDB.restartApp();
 
@@ -94,7 +94,7 @@ Page {
 
 			Label {
 				text: qsTr("Save backup to folder: ")
-				color: "white"
+				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSize
 				Layout.leftMargin: 5
@@ -210,7 +210,7 @@ Page {
 
 			Rectangle {
 				height: 3
-				color: "white"
+				color: AppSettings.fontColor
 				Layout.fillWidth: true
 				Layout.topMargin: 10
 				Layout.bottomMargin: 10
@@ -218,7 +218,7 @@ Page {
 
 			Label {
 				text: qsTr("Restore from folder: ")
-				color: "white"
+				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSize
 				Layout.leftMargin: 5

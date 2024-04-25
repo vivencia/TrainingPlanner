@@ -20,7 +20,7 @@ TextField {
 	signal editButtonClicked()
 
 	background: Rectangle {
-		color: readOnly ? "transparent" : "white"
+		color: readOnly ? "transparent" : AppSettings.fontColor
 		border.color: readOnly ? "transparent" : "black"
 		radius: 5
 	}
