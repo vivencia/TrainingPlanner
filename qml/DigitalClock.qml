@@ -31,6 +31,7 @@ Rectangle {
 		delegate: Text {
 			minimumPointSize: 8
 			fontSizeMode: Text.Fit
+			horizontalAlignment: Text.AlignHCenter
 			font.bold: true
 			color: AppSettings.fontColor
 			text: String(index).length == 1 ? "0" + index : index

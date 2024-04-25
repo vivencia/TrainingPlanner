@@ -7,8 +7,8 @@ Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
-	width: simpleTimer ? windowWidth * 0.75 : windowWidth
-	height: windowHeight * 0.35
+	width: timePickerOnly ? 150 : simpleTimer ? windowWidth * 0.75 : windowWidth
+	height: timePickerOnly ? 100 : windowHeight * 0.35
 	x: (windowWidth - width) / 2
 	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -38,7 +38,7 @@ Dialog {
 	property date suspendedTimer
 	property string windowTitle
 
-	readonly property int txtWidth: (dlgTimer.width * 0.8)/3 - 20
+	readonly property int txtWidth: !timePickerOnly ? (dlgTimer.width * 0.8)/3 - 20 : 40
 
 	signal useTime(string time)
 
@@ -243,7 +243,7 @@ Dialog {
 			id: recStrings
 			height: 30
 			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: dlgTimer.width * 0.1
+			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 25
 
 			Label {
 				color: "darkred"
@@ -275,7 +275,7 @@ Dialog {
 			id: timerGrid
 			spacing: 0
 			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: dlgTimer.width * 0.1
+			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 20
 
 			Rectangle {
 				id: recNegCountDown
@@ -470,9 +470,10 @@ Dialog {
 		RowLayout {
 			id: btnsRow
 			spacing: 0
+			Layout.topMargin: 3
 			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: dlgTimer.width * 0.1
-			readonly property int buttonWidth: (dlgTimer.width * 0.8)/3 - 10
+			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 50
+			readonly property int buttonWidth: !timePickerOnly ? (dlgTimer.width * 0.8)/3 - 10 : 50
 
 			TPButton {
 				id: btnStartPause
