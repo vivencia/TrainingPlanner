@@ -1,5 +1,21 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
+
+Row {
+	spacing: 0
+	height: 60
+
+	property alias text: control.text
+	property alias readOnly: control.readOnly
+	property bool showRemoveButton: true
+
+	signal exerciseChanged(string new_exercise)
+	signal removeButtonClicked()
+	signal editButtonClicked()
+	signal mousePressed(var mouse)
+	signal mousePressAndHold(var mouse)
+	signal itemClicked();
 
 TextField {
 	id: control
@@ -7,37 +23,67 @@ TextField {
 	font.pointSize: AppSettings.fontSizeText
 	readOnly: true
 	wrapMode: Text.WordWrap
-	height: 60
-	leftInset: 5
-	rightInset: 5
-	padding: 0
+	rightPadding: 20
 	z: 1
-
-	property bool showRemoveButton: true
-
-	signal exerciseChanged(string new_exercise)
-	signal removeButtonClicked()
-	signal editButtonClicked()
+	width: parent.width-(showRemoveButton ? 50 : 25)
+	Layout.fillHeight: true
+	Layout.maximumWidth: width
+	Layout.minimumWidth: width
 
 	background: Rectangle {
-		color: readOnly ? "transparent" : AppSettings.fontColor
-		border.color: readOnly ? "transparent" : "black"
+		color: control.readOnly ? "transparent" : "white"
+		border.color: control.readOnly ? "transparent" : "black"
 		radius: 5
 	}
 
-	onTextChanged: {
-		if (readOnly)
+	onPressed: (mouse) => mousePressed(mouse);
+	onPressAndHold: (mouse) => mousePressAndHold(mouse);
+
+	onReadOnlyChanged: {
+		if (readOnly) {
 			ensureVisible(0);
+			cursorPosition = 0;
+		}
+		else
+			cursorPosition = text.length;
 	}
 
 	onActiveFocusChanged: {
-		if (activeFocus)
-			cursorPosition = text.length;
-		else {
+		if (!activeFocus) {
 			readOnly = false;
 			exerciseChanged(text);
-			cursorPosition = 0;
-			ensureVisible(0);
+		}
+	}
+
+	RoundButton {
+		id: btnClearText
+		height: 20
+		width: 20
+		visible: !control.readOnly
+		anchors {
+			right: control.right
+			rightMargin: 5
+			verticalCenter: control.verticalCenter
+		}
+
+		Image {
+			source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+			asynchronous: true
+			anchors.fill: parent
+			height: 20
+			width: 20
+		}
+		onClicked: {
+			control.clear();
+			control.forceActiveFocus();
+		}
+	}
+
+		MouseArea {
+			anchors.fill: control
+			onClicked: itemClicked
+			enabled: control.readOnly
+			z:1
 		}
 	}
 
@@ -48,10 +94,6 @@ TextField {
 		padding: 5
 		visible: showRemoveButton
 		z: 2
-		anchors {
-			left: control.right
-			top: control.top
-		}
 
 		Image {
 			source: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -66,8 +108,6 @@ TextField {
 
 	RoundButton {
 		id: btnEditExercise
-		anchors.left: btnRemoveExercise.right
-		anchors.top: control.top
 		height: 25
 		width: 25
 		padding: 5
@@ -85,27 +125,6 @@ TextField {
 		onClicked: {
 			control.readOnly = !control.readOnly;
 			editButtonClicked();
-		}
-	}
-
-	RoundButton {
-		id: btnClearText
-		anchors.left: btnEditExercise.left
-		anchors.top: btnEditExercise.bottom
-		height: 20
-		width: 20
-		visible: !control.readOnly
-
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-			asynchronous: true
-			anchors.fill: parent
-			height: 20
-			width: 20
-		}
-		onClicked: {
-			control.clear();
-			control.forceActiveFocus();
 		}
 	}
 }

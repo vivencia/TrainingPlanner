@@ -12,9 +12,9 @@ FocusScope {
 	property var alternativeLabels: []
 
 	property bool bClearInput: true
-	property color borderColor: "black"
-	property color labelColor: "black"
-	property color inputColor: "white"
+	property color borderColor: AppSettings.fontColor
+	property color labelColor: AppSettings.fontColor
+	property color inputColor: AppSettings.fontColor
 	property color backColor: "white"
 
 	signal valueChanged(string str)
@@ -191,8 +191,6 @@ FocusScope {
 			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
-			//focus: true
-			textColor: inputColor
 
 			anchors {
 				left: btnDecrease.right

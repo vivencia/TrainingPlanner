@@ -6,6 +6,8 @@ Item {
 	height: label.height + txtSetNotes.height
 	width: parent.width
 	Layout.fillWidth: true
+	Layout.leftMargin: 5
+	Layout.rightMargin: 5
 	Layout.bottomMargin: 10
 
 	property alias text: txtSetNotes.text
@@ -57,8 +59,6 @@ Item {
 			left: parent.left
 			top: label.bottom
 			right: parent.right
-			rightMargin: 5
-			leftMargin: 5
 		}
 		visible: false
 

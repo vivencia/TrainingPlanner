@@ -91,13 +91,13 @@ Item {
 				objectName: "txtExercise1"
 				text: tDayModel.exerciseName1(exerciseIdx)
 				showRemoveButton: false
-				width: setItem.width/2
-				Layout.alignment: Qt.AlignCenter
+				width: setItem.width/2-10
+				Layout.alignment: Qt.AlignLeft
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
 				onExerciseChanged: (new_text) => ownerExercise.changeExercise1(false);
-				onEditButtonClicked: ownerExercise.changeExercise1(true);
+				onEditButtonClicked: ownerExercise.changeExercise1(!readOnly);
 			}
 
 			ExerciseNameField {
@@ -105,13 +105,13 @@ Item {
 				objectName: "txtExercise2"
 				text: tDayModel.exerciseName2(exerciseIdx)
 				showRemoveButton: false
-				width: setItem.width/2
+				width: setItem.width/2-10
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
 				onExerciseChanged: (new_text) => ownerExercise.changeExercise2(false);
-				onEditButtonClicked: ownerExercise.changeExercise2(true);
+				onEditButtonClicked: ownerExercise.changeExercise2(!readOnly);
 			}
 		}
 

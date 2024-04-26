@@ -14,6 +14,26 @@
 #endif
 #endif
 
+RunCommands::RunCommands( QSettings* settings, QObject *parent )
+	: QObject(parent), m_appSettings(settings), m_workoutTimer(nullptr), mb_appSuspended(false)
+{
+	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
+		if (state == Qt::ApplicationSuspended)
+		{
+			mb_appSuspended = true;
+			emit appSuspended();
+		}
+		else if (state == Qt::ApplicationActive)
+		{
+			if (mb_appSuspended)
+			{
+				emit appResumed();
+				mb_appSuspended = false;
+			}
+		}
+	});
+}
+
 const QString RunCommands::getCorrectPath(const QUrl& url)
 {
 	#ifdef DEBUG
@@ -225,22 +245,6 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-QDateTime RunCommands::calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const
-{
-	const QTime time1(QTime::fromString(strTime1, u"hh:mm"_qs));
-	QTime time2(QTime::fromString(strTime2, u"hh:mm"_qs));
-
-	int hour(time2.hour() - time1.hour());
-	int min (time2.minute() - time1.minute());
-	if (min < 0) {
-		hour--;
-		min += 60;
-	}
-
-	time2.setHMS(hour, min, 0);
-	return QDateTime(QDate::currentDate(), time2);
-}
-
 QDateTime RunCommands::updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const
 {
 	//If I don't put this line of code here, that does nothing but print to cout, the code fails. Don't know why
@@ -253,4 +257,140 @@ QDateTime RunCommands::updateTimer(const QDateTime& timeOfSuspension, const QDat
 		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(0 - QTime(0, 0, 0).secsTo(diffTime)));
 	else
 		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(QTime(0, 0, 0).secsTo(diffTime)));
+}
+
+void RunCommands::prepareWorkoutTimer(const QString& strStartTime)
+{
+	if (!m_workoutTimer)
+	{
+		m_workoutTimer = new QTimer(this);
+		m_workoutTimer->setInterval(1000);
+		connect(this, &RunCommands::appResumed, this, &RunCommands::correctTimer);
+		connect(m_workoutTimer, &QTimer::timeout, this, &RunCommands::calcTime);
+	}
+	m_hours = strStartTime.left(2).toUInt();
+	m_mins = strStartTime.mid(3, 2).toUInt();
+	m_secs = strStartTime.right(2).toUInt();
+	mb_timerForward = (m_hours == m_mins == m_secs == 0);
+	mSessionLength.setHMS(m_hours, m_mins, m_secs);
+	mTimeWarnings = 0;
+}
+
+void RunCommands::startWorkoutTimer()
+{
+	mSessionStartTime = QTime::currentTime();
+	m_workoutTimer->start();
+}
+
+QString RunCommands::stopWorkoutTimer()
+{
+	m_workoutTimer->stop();
+	if (mSessionLength.hour() == mSessionLength.minute() == mSessionLength.second() == 0)
+		mElapsedTime.setHMS(m_hours, m_mins, m_secs);
+	else
+	{
+		mElapsedTime.setHMS(m_hours, m_mins, m_secs);
+		if (mb_timerForward)
+			mElapsedTime = mSessionLength.addSecs(m_secs + m_mins*60 + m_hours*3600);
+	}
+	return mElapsedTime.toString(u"hh:mm:ss"_qs);
+}
+
+void RunCommands::calcTime()
+{
+	if (mb_timerForward)
+	{
+		if (m_secs == 59)
+		{
+			m_secs = 0;
+			if (m_mins == 59)
+			{
+				m_mins = 0;
+				m_hours++;
+			}
+			m_mins++;
+		}
+		m_secs++;
+	}
+	else
+	{
+		if (m_secs == 0)
+		{
+			if (m_mins == 0)
+			{
+				if (m_hours == 0)
+				{
+					mb_timerForward = true;
+					return;
+				}
+				m_mins = 59;
+				m_hours--;
+			}
+			else
+			{
+				if (m_hours == 0)
+				{
+					switch (m_mins)
+					{
+						case 15:
+							if (mTimeWarnings == 0)
+							{
+								mTimeWarnings = 1;
+								emit timeWarning(u"15"_qs);
+							}
+							break;
+						case 5:
+							if (mTimeWarnings < 2)
+							{
+								mTimeWarnings = 2;
+								emit timeWarning(u"5"_qs);
+							}
+						break;
+						case 0:
+							if (mTimeWarnings < 3)
+							{
+								mTimeWarnings = 3;
+								emit timeWarning(QString::number(m_secs));
+							}
+							break;
+					}
+					m_secs = 59;
+					m_mins--;
+				}
+				m_secs--;
+			}
+		}
+	}
+}
+
+void RunCommands::correctTimer()
+{
+	calculateTimeBetweenTimes(mSessionStartTime, QTime::currentTime());
+	if (mb_timerForward)
+		calculateTimeBetweenTimes(QTime(0, 0, 0), mElapsedTime);
+	else
+		calculateTimeBetweenTimes(mElapsedTime, mSessionLength);
+	m_hours = mElapsedTime.hour();
+	m_mins = mElapsedTime.minute();
+	m_secs = mElapsedTime.second();
+}
+
+void RunCommands::calculateTimeBetweenTimes(const QTime& time1, const QTime& time2)
+{
+	int hour(time2.hour() - time1.hour());
+	int min (time2.minute() - time1.minute());
+	int sec(time2.second() - time1.second());
+
+	if (sec < 0)
+	{
+		min--;
+		sec += 60;
+	}
+	if (min < 0)
+	{
+		hour--;
+		min += 60;
+	}
+
+	mElapsedTime.setHMS(hour, min, sec);
 }

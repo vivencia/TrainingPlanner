@@ -18,6 +18,8 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 
+	readonly property int controlWidth: setItem.width - 20
+
 	readonly property var myoLabels: setType === 5 ? [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
 
@@ -55,15 +57,15 @@ Item {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: cboSetType.right
-				height: 25
-				width: 25
+				height: 30
+				width: 30
 
 				Image {
 					source: "qrc:/images/"+darkIconFolder+"remove.png"
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
+					height: 30
+					width: 30
 				}
 				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
@@ -73,9 +75,10 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			text: tDayModel.setRestTime(setNumber, exerciseIdx);
-			availableWidth: setItem.width
+			availableWidth: controlWidth
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
+			Layout.leftMargin: 5
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
@@ -94,9 +97,10 @@ Item {
 			id: txtNSubSets
 			type: SetInputField.Type.SetType
 			text: tDayModel.setSubSets(setNumber, exerciseIdx);
-			availableWidth: setItem.width
+			availableWidth: controlWidth
 			visible: setType === 3 || setType === 5
 			alternativeLabels: myoLabels
+			Layout.leftMargin: 5
 
 			onValueChanged: (str) => {
 				tDayModel.setSetSubSets(setNumber, exerciseIdx, str);
@@ -111,7 +115,8 @@ Item {
 				id: lblTotalReps
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
-				visible: setType === 3
+				color: AppSettings.fontColor
+				visible: setType === 3				
 				anchors {
 					top: parent.verticalCenter
 					topMargin: -height/2
@@ -126,8 +131,9 @@ Item {
 				id: txtNReps
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, exerciseIdx);
-				availableWidth: !btnCopyValue.visible ? setItem.width : setItem.width - 60
+				availableWidth: !btnCopyValue.visible ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
+				Layout.leftMargin: 5
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, str);
@@ -162,11 +168,13 @@ Item {
 		} //RowLayout
 
 		RowLayout {
+			Layout.leftMargin: 5
+
 			SetInputField {
 				id: txtNWeight
 				type: SetInputField.Type.WeightType
 				text: tDayModel.setWeight(setNumber, exerciseIdx);
-				availableWidth: !btnCopyValue2.visible ? setItem.width : setItem.width - 60
+				availableWidth: !btnCopyValue2.visible ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
 
 				onValueChanged: (str) => {

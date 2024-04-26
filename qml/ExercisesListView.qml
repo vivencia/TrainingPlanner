@@ -179,6 +179,7 @@ Column {
 		text: qsTr("Search: ")
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
+		color: AppSettings.fontColor
 		width: parent.width - 25
 
 		RoundButton {
@@ -203,9 +204,7 @@ Column {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onCheckedChanged: {
-				bMultipleSelection = checked;
-			}
+			onCheckedChanged: bMultipleSelection = checked;
 		}
 	}
 

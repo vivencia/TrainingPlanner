@@ -924,17 +924,17 @@ Page {
 				id: workoutLengthClock
 				antialiasing: true
 				width: spinnerLayout.width
-				height: 40
+				height: 35
 				color: AppSettings.primaryColor
 
 				RowLayout {
-					id : spinnerLayout
+					id: spinnerLayout
 					spacing: 2
 
 					DigitalClock { max: 24; value: workoutTimer.hours; }
-					Rectangle { color : AppSettings.fontColor; width: 2; height: 40 }
+					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 					DigitalClock { max: 60; value: workoutTimer.mins; }
-					Rectangle { color : AppSettings.fontColor; width: 2; height: 40 }
+					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 					DigitalClock { max: 60; value: workoutTimer.secs; }
 				}
 			}

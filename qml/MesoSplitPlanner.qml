@@ -240,9 +240,7 @@ Frame {
 						id: txtExerciseName
 						text: exerciseName
 						Layout.leftMargin: 5
-						width: parent.width - 70
-						Layout.minimumWidth: width
-						Layout.maximumWidth: width
+						Layout.fillWidth: true
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
@@ -250,7 +248,7 @@ Frame {
 						onRemoveButtonClicked: msgDlgRemove.init(index, 0);
 						onEditButtonClicked: requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
 
-						onPressed: (mouse) => {
+						onMousePressed: (mouse) => {
 							if (!readOnly) {
 								mouse.accepted = true;
 								forceActiveFocus();
@@ -259,9 +257,7 @@ Frame {
 								mouse.accepted = false; //relay the signal to the delegate
 						}
 
-						onPressAndHold: (mouse) => {
-							mouse.accepted = false;
-						}
+						onMousePressAndHold: (mouse) => mouse.accepted = false;
 					} //ExerciseNameField
 
 					RowLayout {

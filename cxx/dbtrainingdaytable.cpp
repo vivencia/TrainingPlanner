@@ -159,19 +159,18 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
 		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE split_letter=\'%1\' AND date<%2 LIMIT 10")
 							.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
 
 		if (query.exec())
 		{
-			if (query.first ())
+			if (query.last())
 			{
 				QStringList dates;
 				do {
 				if (!query.value(0).toString().isEmpty())
 					dates.append(formatDate(query.value(1).toUInt()));
-				} while (query.next());
+				} while (query.previous());
 				static_cast<DBTrainingDayModel*>(m_model)->appendList(dates);
 			}
 		}

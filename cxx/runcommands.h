@@ -5,6 +5,7 @@
 #include <QQmlEngine>
 #include <QUrl>
 #include <QDateTime>
+#include <QTimer>
 
 class QSettings;
 
@@ -12,11 +13,10 @@ class RunCommands : public QObject
 {
 
 Q_OBJECT
-Q_PROPERTY(QString dbFileName READ getDBFileName NOTIFY dbFileNameChanged)
-Q_PROPERTY(QString appPrivateDir READ getAppPrivateDir NOTIFY appPrivateDirChanged)
 
 public:
-	explicit RunCommands( QSettings* settings, QObject *parent = nullptr ) : QObject(parent), m_appSettings(settings) {}
+	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
+	~RunCommands() { if (m_workoutTimer) delete m_workoutTimer; }
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
 	QString getAppDir(const QString& dbFile);
@@ -48,24 +48,42 @@ public:
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
 	Q_INVOKABLE QDateTime timeFromStrTime(const QString& strTime) const { return QDateTime(QDate::currentDate(), QTime::fromString(strTime, u"hh:mm"_qs)); }
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
-	Q_INVOKABLE QDateTime calculateTimeBetweenTimes(const QString& strTime1, const QString& strTime2) const;
-	Q_INVOKABLE QDateTime calculateTimeRemaing(const QString& strFinalTime) const { return calculateTimeBetweenTimes(QTime::currentTime().toString(u"hh:mm"_qs), strFinalTime); }
 	Q_INVOKABLE QDateTime updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const;
 
+	Q_INVOKABLE void prepareWorkoutTimer(const QString& strStartTime = u"00:00:00"_qs);
+	Q_INVOKABLE void startWorkoutTimer();
+	Q_INVOKABLE QString stopWorkoutTimer();
+
 signals:
-	void dbFileNameChanged();
-	void appPrivateDirChanged();
+	void appSuspended();
+	void appResumed();
+	void workoutTimerTriggered(const uint hours, const uint mins, const uint secs);
+	void timeWarning(QString remaingMinutes);
 
 private:
 	QString m_dbFileName;
 	QString m_appPrivateDir;
 	QSettings* m_appSettings;
 
+	QTimer* m_workoutTimer;
+	uint m_hours, m_mins, m_secs;
+	uint mTimeWarnings;
+	bool mb_timerForward;
+	QTime mSessionStartTime;
+	QTime mElapsedTime;
+	QTime mSessionLength;
+
+	bool mb_appSuspended;
+
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
 	{
 		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
+
+	void calcTime();
+	void calculateTimeBetweenTimes(const QTime& time1, const QTime& time2);
+	void correctTimer();
 };
 
 #endif // RUNCOMMANDS_H

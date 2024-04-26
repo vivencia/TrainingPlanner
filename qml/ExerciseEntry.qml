@@ -112,43 +112,16 @@ FocusScope {
 			anchors.fill: parent
 			spacing: 0
 
-			ExerciseNameField {
-				id: txtExerciseName
-				text: tDayModel.exerciseName(exerciseIdx)
-				width: windowWidth - 110
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
-				Layout.leftMargin: 45
-				Layout.rightMargin: 5
-				Layout.topMargin: 0
-
-				Keys.onReturnPressed: { //Alphanumeric keyboard
-					btnEditExercise.clicked();
-					cboSetType.forceActiveFocus();
-				}
-
-				onExerciseChanged: (new_text) => tDayModel.setExerciseName1(new_text, exerciseIdx);
-				onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
-				onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
-
-				Label {
-					id: lblExerciseNumber
-					text: parseInt(exerciseIdx + 1) + ":"
-					font.pointSize: AppSettings.fontSizeText
-					anchors.right: txtExerciseName.left
-					anchors.verticalCenter: txtExerciseName.verticalCenter
-					width: 20
-					padding: 2
-				}
+			Row {
+				spacing: 0
+				padding: 0
+				Layout.fillWidth: true
+				Layout.topMargin: 10
 
 				RoundButton {
 					id: btnFoldIcon
-					anchors.right: lblExerciseNumber.left
-					anchors.verticalCenter: txtExerciseName.verticalCenter
-					anchors.topMargin: 20
 					height: 25
 					width: 25
-					padding: 5
 
 					Image {
 						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
@@ -158,20 +131,37 @@ FocusScope {
 						height: 20
 						width: 20
 					}
-					onClicked: paneExerciseShowHide()
+					onClicked: paneExerciseShowHide();
 					z: 1
 				}
 
-				MouseArea {
-					anchors.left: txtExerciseName.left
-					anchors.right: txtExerciseName.right
-					anchors.top: txtExerciseName.top
-					anchors.bottom: txtExerciseName.bottom
-					onClicked: paneExerciseShowHide()
-					enabled: txtExerciseName.readOnly
-					z:1
+				Label {
+					id: lblExerciseNumber
+					text: parseInt(exerciseIdx + 1) + ":"
+					font.pointSize: AppSettings.fontSizeText
+					width: 15
+					padding: 2
 				}
-			} //txtExerciseName
+
+				ExerciseNameField {
+					id: txtExerciseName
+					text: tDayModel.exerciseName(exerciseIdx)
+					width: windowWidth - 45
+					Layout.minimumWidth: width
+					Layout.maximumWidth: width
+					Layout.leftMargin: 45
+
+					Keys.onReturnPressed: { //Alphanumeric keyboard
+						btnEditExercise.clicked();
+						cboSetType.forceActiveFocus();
+					}
+
+					onExerciseChanged: (new_text) => tDayModel.setExerciseName1(new_text, exerciseIdx);
+					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
+					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
+					onItemClicked: paneExerciseShowHide();
+				}
+			} //Row txtExerciseName
 
 			SetInputField {
 				id: txtNReps
@@ -276,14 +266,12 @@ FocusScope {
 
 	function changeExercise1(showList: bool) {
 		bListRequestForExercise1 = true;
-		if (showList)
-			requestSimpleExercisesList(exerciseItem, true, false, 1);
+		requestSimpleExercisesList(exerciseItem, showList, false, 1);
 	}
 
 	function changeExercise2(showList: bool) {
 		bListRequestForExercise2 = true;
-		if (showList)
-			requestSimpleExercisesList(exerciseItem, true, false, 1);
+		requestSimpleExercisesList(exerciseItem, showList, false, 1);
 	}
 
 	function moveExercise(up: bool, cxx_cal: bool) {

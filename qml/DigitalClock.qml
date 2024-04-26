@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 Rectangle {
 	width: 25
-	height: 45
+	height: 35
 	color: AppSettings.primaryColor
 
 	property alias value: list.currentIndex
@@ -35,6 +35,7 @@ Rectangle {
 			font.bold: true
 			color: AppSettings.fontColor
 			text: String(index).length == 1 ? "0" + index : index
+			anchors.horizontalCenter: parent.horizontalCenter
 		}
 	}
 }
