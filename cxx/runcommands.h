@@ -14,6 +14,8 @@ class RunCommands : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(bool timerRunning READ timerRunning NOTIFY timerRunningChanged FINAL)
+
 public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
 	~RunCommands() { if (m_workoutTimer) delete m_workoutTimer; }
@@ -50,15 +52,17 @@ public:
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
 	Q_INVOKABLE QDateTime updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const;
 
+	bool timerRunning() const { return m_workoutTimer ? m_workoutTimer->isActive() : false; }
 	Q_INVOKABLE void prepareWorkoutTimer(const QString& strStartTime = u"00:00:00"_qs);
 	Q_INVOKABLE void startWorkoutTimer();
-	Q_INVOKABLE QString stopWorkoutTimer();
+	Q_INVOKABLE void stopWorkoutTimer();
 
 signals:
 	void appSuspended();
 	void appResumed();
 	void workoutTimerTriggered(const uint hours, const uint mins, const uint secs);
-	void timeWarning(QString remaingMinutes);
+	void timeWarning(QString remaingMinutes, bool bminutes);
+	void timerRunningChanged();
 
 private:
 	QString m_dbFileName;

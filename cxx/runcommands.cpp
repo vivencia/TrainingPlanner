@@ -278,22 +278,30 @@ void RunCommands::prepareWorkoutTimer(const QString& strStartTime)
 
 void RunCommands::startWorkoutTimer()
 {
+	if (!m_workoutTimer)
+		prepareWorkoutTimer();
 	mSessionStartTime = QTime::currentTime();
 	m_workoutTimer->start();
+	emit timerRunningChanged();
 }
 
-QString RunCommands::stopWorkoutTimer()
+void RunCommands::stopWorkoutTimer()
 {
 	m_workoutTimer->stop();
-	if (mSessionLength.hour() == mSessionLength.minute() == mSessionLength.second() == 0)
-		mElapsedTime.setHMS(m_hours, m_mins, m_secs);
+	emit timerRunningChanged();
+	if (mb_timerForward)
+	{
+		if (mSessionLength.hour() != 0 && mSessionLength.minute() != 0 && mSessionLength.second() != 0)
+			mElapsedTime = mSessionLength.addSecs(m_secs + m_mins*60 + m_hours*3600);
+		else
+			mElapsedTime.setHMS(m_hours, m_mins, m_secs);
+	}
 	else
 	{
 		mElapsedTime.setHMS(m_hours, m_mins, m_secs);
-		if (mb_timerForward)
-			mElapsedTime = mSessionLength.addSecs(m_secs + m_mins*60 + m_hours*3600);
+		calculateTimeBetweenTimes(mElapsedTime, mSessionLength);
 	}
-	return mElapsedTime.toString(u"hh:mm:ss"_qs);
+	emit workoutTimerTriggered(mElapsedTime.hour(), mElapsedTime.minute(), mElapsedTime.second());
 }
 
 void RunCommands::calcTime()
@@ -336,21 +344,21 @@ void RunCommands::calcTime()
 							if (mTimeWarnings == 0)
 							{
 								mTimeWarnings = 1;
-								emit timeWarning(u"15"_qs);
+								emit timeWarning(u"15"_qs, true);
 							}
 							break;
 						case 5:
 							if (mTimeWarnings < 2)
 							{
 								mTimeWarnings = 2;
-								emit timeWarning(u"5"_qs);
+								emit timeWarning(u"5"_qs, true);
 							}
 						break;
 						case 0:
 							if (mTimeWarnings < 3)
 							{
 								mTimeWarnings = 3;
-								emit timeWarning(QString::number(m_secs));
+								emit timeWarning(QString::number(m_secs), false);
 							}
 							break;
 					}
@@ -361,6 +369,7 @@ void RunCommands::calcTime()
 			}
 		}
 	}
+	emit workoutTimerTriggered(m_hours, m_mins, m_secs);
 }
 
 void RunCommands::correctTimer()

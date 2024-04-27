@@ -227,14 +227,18 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 				m_CurrenttDayModel->setDate(date);
 				m_CurrenttDayModel->setSplitLetter(splitLetter);
 				m_CurrenttDayModel->setTrainingDay(tday);
+				m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
+				m_CurrenttDayModel->setTimeOut(u"--:--"_qs);
 			}
-
 			m_tDayProperties.insert(QStringLiteral("mainDate"), date);
 			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 			m_tDayProperties.insert(QStringLiteral("tDay"), tday);
 			m_tDayProperties.insert(QStringLiteral("splitLetter"), splitLetter);
+			m_tDayProperties.insert(QStringLiteral("bDayIsFinished"), m_CurrenttDayModel->timeOut() != u"--:--"_qs);
+			m_tDayProperties.insert(QStringLiteral("timeIn"), m_CurrenttDayModel->timeIn());
+			m_tDayProperties.insert(QStringLiteral("timeOut"), m_CurrenttDayModel->timeOut());
 		}
 
 		if (m_tDayComponent->status() != QQmlComponent::Ready)

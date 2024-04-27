@@ -298,6 +298,7 @@ Dialog {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				width: txtWidth
+				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 
@@ -349,6 +350,7 @@ Dialog {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				width: txtWidth
+				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 
@@ -406,6 +408,7 @@ Dialog {
 				inputMethodHints: Qt.ImhDigitsOnly
 				maximumLength: 2
 				width: txtWidth
+				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 

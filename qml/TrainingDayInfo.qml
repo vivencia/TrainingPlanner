@@ -10,8 +10,9 @@ Page {
 	id: trainingDayPage
 	objectName: "trainingDayPage"
 	width: windowWidth
+	height: windowHeight
 
-	required property date mainDate //dayDate
+	required property date mainDate
 	required property int mesoId
 	required property int mesoIdx
 	required property DBTrainingDayModel tDayModel
@@ -28,6 +29,7 @@ Page {
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
+	property bool bDayIsFinished
 
 	property date sessionStart
 
@@ -35,7 +37,6 @@ Page {
 	property bool bAlreadyLoaded
 	property bool bStopBounce: false
 
-	property bool bDayIsFinished: false
 	property date previousDivisionDayDate
 	property int scrollBarPosition: 0
 	property var btnFloat: null
@@ -70,11 +71,6 @@ Page {
 		opacity: 0.7
 	}
 
-	onBDayIsFinishedChanged : {
-		if (bDayIsFinished)
-			sessionLength = runCmd.calculateTimeBetweenTimes(timeIn, timeOut);
-	}
-
 	ListModel {
 		id: cboModel
 	}
@@ -86,9 +82,7 @@ Page {
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
-			timeOut = runCmd.addToTime(timeIn, 1, 30);
 			tDayModel.setTimeIn(timeIn);
-			bDayIsFinished = false;
 		}
 	}
 
@@ -100,13 +94,7 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
-			if (tDayModel.exerciseCount > 0)
-			{
-				bDayIsFinished = true;
-				if (btnFloat)
-					btnFloat.visible = false;
-				btnSaveDay.clicked();
-			}
+			bDayIsFinished = true;
 		}
 	}
 
@@ -115,7 +103,7 @@ Page {
 		timePickerOnly: true
 		windowTitle: qsTr("Length of this training session")
 
-		onUseTime: (strtime) => workoutTimer.prepare(strtime);
+		onUseTime: (strtime) => runCmd.prepareWorkoutTimer(strtime);
 	}
 
 	TimePicker {
@@ -123,7 +111,7 @@ Page {
 		hrsDisplay: runCmd.getCurrentTimeString()
 		minutesDisplay: runCmd.getCurrentTimeString()
 
-		onTimeSet: (hour, minutes) => workoutTimer.prepare(hour + ":" + minutes);
+		onTimeSet: (hour, minutes) => runCmd.prepareWorkoutTimer(hour + ":" + minutes);
 	}
 
 	SoundEffect {
@@ -168,10 +156,20 @@ Page {
 		button1Text: qsTr("OK")
 
 		property string timeLeft
-		property int nShow: 0
-
-		onOpened: nShow++;
 		onButton1Clicked: playSound.stop();
+	}
+	function displayTimeWarning(timeleft: string, bmin: bool) {
+		tipTimeWarn.timeLeft = timeleft + (bmin ? qsTr("minutes") : qsTr("seconds"));
+		var timeout;
+		if (!bmin)
+		{
+			timeout = 60000;
+			playSound.loops = 4;
+		}
+		else
+			timeout = 18000;
+		playSound.play();
+		tipTimeWarn.showTimed(timeout, 0);
 	}
 
 	TPBalloonTip {
@@ -181,118 +179,6 @@ Page {
 		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
 		button1Text: qsTr("OK")
 		highlightMessage: true
-	}
-
-	Timer {
-		id: workoutTimer
-		interval: 1000
-		running: false
-		repeat: true
-
-		property int hours: 0
-		property int mins: 0
-		property int secs: 0
-		property bool forward: true
-		property bool bWasSuspended: false
-
-		onTriggered: calcTime();
-
-		Component.onCompleted: {
-			if (Qt.platform.os === "android") {
-				mainwindow.appSuspended.connect(appSuspended);
-				mainwindow.appActive.connect(appResumed);
-			}
-		}
-
-		function appSuspended() {
-			if (running)
-				bWasSuspended = true;
-		}
-
-		function appResumed() {
-			if (bWasSuspended) {
-				const elapsedTime = runCmd.calculateTimeBetweenTimes(sessionStart, runCmd.getCurrentTimeString(true));
-				console.log("############## elapsedTime", elapsedTime.toTimeString());
-
-				var correctedCounter;
-				if (forward)
-					correctedCounter = runCmd.calculateTimeBetweenTimes("00:00::00", elapsedTime);
-				else
-					correctedCounter = runCmd.calculateTimeBetweenTimes(elapsedTime, runCmd.formatTime(sessionLength, true));
-				hours = correctedCounter.getHours();
-				mins = correctedCounter.getMinutes();
-				secs = correctedCounter.getSeconds();
-				bWasSuspended = false;
-			}
-		}
-
-		function prepare(strTime: string) {
-			secs = 0;
-			mins = runCmd.getMinutesOrSeconsFromStrTime(strTime)*1
-			hours = runCmd.getHourOrMinutesFromStrTime(strTime)*1;
-		}
-
-		function calcTime() {
-			if (bWasSuspended) return;
-			if (forward) {
-				if (secs == 59) {
-					secs = 0;
-					if (mins === 59) {
-						mins = 0;
-						hours++;
-					}
-					mins++;
-				}
-				secs++;
-			}
-			else {
-				if (secs == 0) {
-					if (mins === 0) {
-						if (hours === 0) {
-							forward = true;
-							return;
-						}
-						mins = 59;
-						hours--;
-					}
-					else {
-						if (hours === 0) {
-							switch (mins) {
-								case 15:
-									if (tipTimeWarn.nShow === 0) {
-										tipTimeWarn.timeLeft = String(mins) + qsTr("minute(s)");
-										playSound.play();
-										tipTimeWarn.showTimed(18000, 0);
-									}
-								break;
-								case 5:
-									if (tipTimeWarn.nShow === 0)
-										tipTimeWarn.nShow = 1;
-									if (tipTimeWarn.nShow === 1) {
-										tipTimeWarn.timeLeft = String(mins) + qsTr("minute(s)");
-										playSound.play();
-										tipTimeWarn.showTimed(18000, 0);
-									}
-								break;
-								case 0:
-									if (tipTimeWarn.nShow !== 2)
-										tipTimeWarn.nShow = 2;
-									if (tipTimeWarn.nShow === 2) {
-										tipTimeWarn.timeLeft = String(secs) + qsTr("second(s)");
-										playSound.loops = 4;
-										playSound.play();
-										tipTimeWarn.showTimed(60000, 0);
-									}
-								break;
-							}
-						}
-					}
-					secs = 59;
-					mins--;
-				}
-				secs--;
-			}
-		}
 	}
 
 	ScrollView {
@@ -461,18 +347,20 @@ Page {
 						id: optFreeTimeSession
 						text: qsTr("Open time training session")
 						checked: true
-						enabled: !workoutTimer.running
+						enabled: !runCmd.timerRunning
 						Layout.fillWidth: true
 
-						onClicked: workoutTimer.forward = true;
+						onClicked: {
+							if (checked)
+								runCmd.prepareWorkoutTimer();
+						}
 					}
 					TPRadioButton {
 						id: optTimeConstrainedSession
 						text: qsTr("Time constrained session")
 						checked: false
+						enabled: !runCmd.timerRunning
 						Layout.fillWidth: true
-
-						onClicked: workoutTimer.forward = false;
 					}
 
 					RowLayout {
@@ -483,7 +371,7 @@ Page {
 						TPButton {
 							id: btnTimeLength
 							text: qsTr("By duration")
-							enabled: !workoutTimer.running
+							enabled: !bDayIsFinished && !runCmd.timerRunning
 							visible: optTimeConstrainedSession.checked
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgSessionLength.open();
@@ -491,7 +379,7 @@ Page {
 						TPButton {
 							id: btnTimeHour
 							text: qsTr("By time of day")
-							enabled: !workoutTimer.running
+							enabled: !bDayIsFinished && !runCmd.timerRunning
 							visible: optTimeConstrainedSession.checked
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgTimeEndSession.open();
@@ -518,21 +406,13 @@ Page {
 								left: parent.left
 								leftMargin: 80
 							}
-
-							Component.onCompleted: {
-								timeIn = tDayModel.timeIn();
-								if (timeIn.length === 0) {
-									timeIn = runCmd.getCurrentTimeString();
-									tDayModel.setTimeIn(timeIn);
-								}
-							}
 						}
 
 						RoundButton {
 							id: btnInTime
 							width: 40
 							height: 40
-							enabled: !workoutTimer.running
+							enabled: !runCmd.timerRunning
 							anchors {
 								top: parent.top
 								topMargin: -15
@@ -577,19 +457,11 @@ Page {
 								left: parent.left
 								leftMargin: 80
 							}
-
-							Component.onCompleted: {
-								timeOut = tDayModel.timeOut();
-								if (timeOut.length === 0) {
-									timeOut = runCmd.formatFutureTime(1, 30);
-									tDayModel.setTimeOut(timeOut);
-								}
-							}
 						}
 
 						RoundButton {
 							id: btnOutTime
-							enabled: !workoutTimer.running
+							enabled: !runCmd.timerRunning
 							width: 40
 							height: 40
 
@@ -631,7 +503,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 20
-				visible: bDayIsFinished
+				visible: bDayIsFinished && tDayModel.exerciseCount > 0
 
 				background: Rectangle {
 					border.color: AppSettings.fontColor
@@ -843,8 +715,6 @@ Page {
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
-		if (Qt.platform.os === "android")
-			mainwindow.appSuspended.connect(aboutToBeSuspended);
 	}
 
 	Timer {
@@ -903,7 +773,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Workout:")
+				text: !bDayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
 				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeText
@@ -912,11 +782,14 @@ Page {
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
+				visible: !bDayIsFinished
 
 				onClicked: {
-					workoutTimer.start();
+					runCmd.workoutTimerTriggered.connect(updateTimer);
+					runCmd.startWorkoutTimer();
 					timeIn = runCmd.getCurrentTimeString();
 					tDayModel.setTimeIn(timeIn);
+					runCmd.timeWarning.connect(displayTimeWarning);
 				}
 			}
 
@@ -931,23 +804,37 @@ Page {
 					id: spinnerLayout
 					spacing: 2
 
-					DigitalClock { max: 24; value: workoutTimer.hours; }
+					DigitalClock {
+						id: hoursClock
+						max: 24
+					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
-					DigitalClock { max: 60; value: workoutTimer.mins; }
+
+					DigitalClock {
+						id: minsClock
+						max: 60
+					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
-					DigitalClock { max: 60; value: workoutTimer.secs; }
+
+					DigitalClock {
+						id: secsClock;
+						max: 60;
+					}
 				}
 			}
 
 			TPButton {
 				id: btnEndWorkout
 				text: qsTr("Finish")
+				visible: !bDayIsFinished
 
 				onClicked: {
-					workoutTimer.stop();
-					timeOut = runCmd.formatFutureTime(1, 30);
+					runCmd.stopWorkoutTimer();
+					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
-					tDayModel.modified = true;
+					bDayIsFinished = true;
+					runCmd.workoutTimerTriggered.disconnect(updateTimer);
+					runCmd.timeWarning.disconnect(displayTimeWarning);
 				}
 			}
 		}
@@ -1232,8 +1119,10 @@ Page {
 			btnFloat.visible = false;
 	}
 
-	function aboutToBeSuspended() {
-		if (tDayModel.modified)
-			btnSaveDay.clicked();
+	function updateTimer(hour: int, min: int, sec: int)
+	{
+		hoursClock.value = hour;
+		minsClock.value = min;
+		secsClock.value = sec;
 	}
 } // Page
