@@ -12,7 +12,7 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_q
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_MesoPage(nullptr),
 		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
-		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
+		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}, m_mainMenuShortcutComponent(nullptr)
 {}
 
 TPMesocycleClass::~TPMesocycleClass()
@@ -87,9 +87,12 @@ void TPMesocycleClass::createMesocyclePage_part2()
 	}
 	#endif
 	m_QMlEngine->setObjectOwnership(m_MesoPage, QQmlEngine::CppOwnership);
-	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
-	m_MesoPage->setParentItem(parent);
-	emit pageReady(m_MesoPage, mesoPageCreateId);
+
+	//m_appStackView is set for the first and only time here
+	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
+	m_MesoPage->setParentItem(m_appStackView);
+	//emit pageReady(m_MesoPage, mesoPageCreateId);
+	addMainMenuShortCut(m_MesocyclesModel->getFast(m_MesoIdx, 1), m_MesoPage);
 }
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
@@ -197,8 +200,7 @@ void TPMesocycleClass::createMesoCalendarPage_part2()
 		}
 		#endif
 		m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
-		QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
-		m_calPage->setParentItem(parent);
+		m_calPage->setParentItem(m_appStackView);
 		emit pageReady(m_calPage, calPageCreateId);
 	}
 }
@@ -263,8 +265,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	#endif
 	QQuickItem* page(static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_QMlEngine->rootContext())));
 	m_QMlEngine->setObjectOwnership(page, QQmlEngine::CppOwnership);
-	QQuickItem* parent(m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(QStringLiteral("appStackView")));
-	page->setParentItem(parent);
+	page->setParentItem(m_appStackView);
 	m_CurrenttDayPage = page;
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
 	emit pageReady(page, tDayPageCreateId);
@@ -663,3 +664,88 @@ void TPMesocycleClass::tDayExercises::removeSet(const uint exercise_idx, const u
 
 
 //-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+
+//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+void TPMesocycleClass::addMainMenuShortCut(const QString& label, QQuickItem* page)
+{
+	const int button_id(m_mainMenuShortcutPages.indexOf(page));
+	if (button_id != -1)
+		openMainMenuShortCut(button_id);
+	else
+	{
+		if (m_mainMenuShortcutEntries.count() < 5)
+		{
+			connect( this, &TPMesocycleClass::itemReady, this, [&,label, page](QQuickItem* entry, uint id)
+			{
+				if (id == menuShortCutCreatedId)
+				{
+					m_mainMenuShortcutEntries.append(entry);
+					m_mainMenuShortcutPages.append(page);
+					QMetaObject::invokeMethod(m_appStackView, "push", Q_ARG(QQuickItem*, page));
+				}
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+			createMainMenuShortCut(label);
+			return;
+		}
+		else
+		{
+			for (uint i(0); i < m_mainMenuShortcutPages.count()-1; ++i)
+			{
+				m_mainMenuShortcutPages.move(i+1, i);
+				m_mainMenuShortcutEntries.move(i+1, i);
+			}
+			m_mainMenuShortcutEntries.at(4)->setProperty("label", label);
+			m_mainMenuShortcutPages.replace(4, page);
+			QMetaObject::invokeMethod(m_appStackView, "push", Q_ARG(QVariant, QVariant::fromValue(page)));
+		}
+	}
+}
+
+void TPMesocycleClass::createMainMenuShortCut(const QString& label)
+{
+	if (m_mainMenuShortcutComponent == nullptr)
+	{
+		m_mainMenuShortcutComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TransparentButton.qml"_qs), QQmlComponent::Asynchronous);
+		QObject* appMainMenu(m_QMlEngine->rootContext()->contextProperty(u"appMainMenu"_qs).value<QObject*>());
+		m_mainMenuShortcutLayout = appMainMenu->findChild<QQuickItem*>(u"windowListLayout"_qs);
+	}
+
+	m_mainMenuShortcutProperties.insert( u"clickId"_qs, m_mainMenuShortcutEntries.count());
+	m_mainMenuShortcutProperties.insert( u"text"_qs, label);
+
+	if (m_mainMenuShortcutComponent->status() != QQmlComponent::Ready)
+		connect(m_mainMenuShortcutComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+			{ return createMainMenuShortCut_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	else
+		createMainMenuShortCut_part2();
+}
+
+void TPMesocycleClass::createMainMenuShortCut_part2()
+{
+	if (m_mainMenuShortcutComponent->isReady())
+	{
+		QQuickItem* entry(static_cast<QQuickItem*>(m_mainMenuShortcutComponent->createWithInitialProperties(
+					m_mainMenuShortcutProperties, m_QMlEngine->rootContext())));
+		#ifdef DEBUG
+		if (m_mainMenuShortcutComponent->status() == QQmlComponent::Error)
+		{
+			qDebug() << m_mainMenuShortcutComponent->errorString();
+			for (uint i(0); i < m_mainMenuShortcutComponent->errors().count(); ++i)
+				qDebug() << m_mainMenuShortcutComponent->errors().at(i).description();
+			return;
+		}
+		#endif
+		entry->setProperty("Layout.fillWidth", true);
+		m_QMlEngine->setObjectOwnership(entry, QQmlEngine::CppOwnership);
+		entry->setParentItem(m_mainMenuShortcutLayout);
+		connect( entry, SIGNAL(buttonClicked(int)), this, SLOT(openMainMenuShortCut(int)) );
+		emit itemReady(entry, menuShortCutCreatedId);
+	}
+}
+
+void TPMesocycleClass::openMainMenuShortCut(int button_id)
+{
+	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
+	QMetaObject::invokeMethod(mainWindow, "stackViewPushExistingPage", Q_ARG(QVariant, QVariant::fromValue(m_mainMenuShortcutPages.at(button_id))));
+}
+//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

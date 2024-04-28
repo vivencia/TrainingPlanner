@@ -16,7 +16,7 @@ Drawer {
 	background: Rectangle {
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: "#dcfbff"; }
+			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
 			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
 			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
 			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
@@ -141,6 +141,13 @@ Drawer {
 			color: AppSettings.fontColor
 		}
 
+		ColumnLayout {
+			id: windowListLayout
+			objectName: "windowListLayout"
+			spacing: 5
+			Layout.fillWidth: true;
+		}
+
 		Item { // spacer item
 			Layout.fillWidth: true
 			Layout.fillHeight: true
@@ -159,35 +166,5 @@ Drawer {
 			drawer.open();
 			bMenuClicked = false;
 		}
-	}
-
-	function addShortCut(label: string, object: var) {
-		for( var i = 0; i < stackWindows.length; i++ ) {
-			if (stackWindows[i].Object === object) {
-				stackView.replace(stackView.currentItem, stackWindows[i].Object);
-				return;
-			}
-		}
-
-		stackWindows.push({"Object" : object});
-		var component = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			var button = component.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": stackWindows.length-1 });
-			button.buttonClicked.connect(openPage);
-		}
-		//If I just push "object", openPage() does not work. Go figure
-		stackView.push(stackWindows[stackWindows.length-1].Object);
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
-	function openPage(page_id: int) {
-		var item = stackView.push(stackWindows[page_id].Object);
-		if (!item)
-			stackView.replace(stackView.currentItem, stackWindows[page_id].Object);
 	}
 } //Drawer

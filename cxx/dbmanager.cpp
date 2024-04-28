@@ -565,8 +565,9 @@ void DbManager::getMesocycle(const uint meso_idx)
 
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
-		emit getPage(m_currentMesoManager->getMesoPage(), mesoPageCreateId);
-		return;
+		m_currentMesoManager->addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+		//emit getPage(m_currentMesoManager->getMesoPage(), mesoPageCreateId);
+		//return;
 	}
 	m_expectedPageId = mesoPageCreateId;
 	m_currentMesoManager->createMesocyclePage();

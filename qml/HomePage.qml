@@ -25,15 +25,23 @@ Page {
 	}
 
 	header: ToolBar {
-		topPadding: 20
+		topPadding: 5
 		bottomPadding: 20
 		leftPadding: 10
 		rightPadding: 10
 		height: 60
 
 		background: Rectangle {
-			opacity: 0
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
+
 
 		RowLayout {
 			anchors.fill: parent
@@ -137,7 +145,7 @@ Page {
 
 				onClicked: {
 					currentMesoIndex = index;
-					showMeso();
+					appDB.getMesocycle(currentMesoIndex);
 					swipeWidth = 0;
 					recRemoveMeso.visible = false;
 				}
@@ -229,8 +237,14 @@ Page {
 		height: 55
 
 		background: Rectangle {
-			color: AppSettings.primaryDarkColor
-			opacity: 0.7
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
 
 		TPButton {

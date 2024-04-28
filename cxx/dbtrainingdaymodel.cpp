@@ -346,7 +346,7 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 					break;
 					case 5: //MyoReps
 						m_ExerciseData.at(exercise_idx)->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 30));
-						m_ExerciseData.at(exercise_idx)->subsets.last() = QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toInt() - 1);
+						m_ExerciseData.at(exercise_idx)->subsets.last() = QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toInt() + 1);
 					break;
 				}
 			}

@@ -10,7 +10,6 @@ ToolButton {
 	property int clickId: -1
 
 	id: button
-	width: parent.width
 	height: 40
 	rightPadding: 0
 	leftPadding: 0

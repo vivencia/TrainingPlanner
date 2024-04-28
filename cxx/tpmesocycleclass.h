@@ -20,6 +20,7 @@ static const uint calPageCreateId(35);
 static const uint tDayPageCreateId(70);
 static const uint tDayExerciseCreateId(105);
 static const uint tDaySetCreateId(140);
+static const uint menuShortCutCreatedId(200);
 
 class TPMesocycleClass : public QObject
 {
@@ -113,10 +114,17 @@ public:
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	Q_INVOKABLE void addMainMenuShortCut(const QString& label, QQuickItem* page);
+	void createMainMenuShortCut(const QString& label);
+	void createMainMenuShortCut_part2();
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
 	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
+	void openMainMenuShortCut(int button_id);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);
@@ -126,6 +134,7 @@ private:
 	int m_MesoId;
 	uint m_MesoIdx;
 	QQmlApplicationEngine* m_QMlEngine;
+	QQuickItem* m_appStackView;
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	DBMesocyclesModel* m_MesocyclesModel;
@@ -216,5 +225,12 @@ private:
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	QVariantMap m_mainMenuShortcutProperties;
+	QQmlComponent* m_mainMenuShortcutComponent;
+	QList<QQuickItem*> m_mainMenuShortcutEntries;
+	QList<QQuickItem*> m_mainMenuShortcutPages;
+	QQuickItem* m_mainMenuShortcutLayout;
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 #endif // TPMESOCYCLECLASS_H

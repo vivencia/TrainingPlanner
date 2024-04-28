@@ -756,8 +756,14 @@ Page {
 		visible: !exercisesPane.shown
 
 		background: Rectangle {
-			color: AppSettings.primaryDarkColor
-			opacity: 0.7
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
 
 		RowLayout {

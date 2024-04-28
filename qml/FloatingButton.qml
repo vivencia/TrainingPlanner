@@ -5,7 +5,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Rectangle {
 	id: button
-	color: AppSettings.primaryLightColor
+	color: AppSettings.primaryColor
 	opacity: bHeld ? 0.7 : 1
 	radius: width / 2
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates

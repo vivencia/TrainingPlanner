@@ -256,9 +256,16 @@ Page {
 		height: parent.height * 0.5
 		spacing: 0
 		padding: 0
+
 		background: Rectangle {
-			opacity: 0.3
-			color: AppSettings.primaryDarkColor
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
 
 		ColumnLayout{

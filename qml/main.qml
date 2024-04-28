@@ -150,4 +150,8 @@ ApplicationWindow {
 			appDB.getMesoSplit();
 		homePage.pageActivation();
 	}
+
+	function stackViewPushExistingPage(page: var) {
+		stackView.replace(stackView.currentItem, page);
+	}
 } //ApplicationWindow
