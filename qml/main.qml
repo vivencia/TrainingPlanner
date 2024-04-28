@@ -124,7 +124,7 @@ ApplicationWindow {
 				function mesoCalendarOK()
 				{
 					appDB.databaseReady.disconnect(mesoCalendarOK);
-					appDB.getPage.connect(pushTDayOntoMainStackView);
+					//appDB.getPage.connect(pushTDayOntoMainStackView);
 					appDB.getTrainingDay(today);
 				}
 
@@ -151,7 +151,11 @@ ApplicationWindow {
 		homePage.pageActivation();
 	}
 
-	function stackViewPushExistingPage(page: var) {
+	function pushOntoStack(page: Item) {
+		stackView.push(page);
+	}
+
+	function stackViewPushExistingPage(page: Item) {
 		stackView.replace(stackView.currentItem, page);
 	}
 } //ApplicationWindow

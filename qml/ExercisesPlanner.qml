@@ -12,7 +12,6 @@ Page {
 
 	required property int mesoId
 	required property int mesoIdx
-	required property string mesoSplit
 
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
@@ -145,9 +144,7 @@ Page {
 		}
 
 		appDB.getPage.connect(insertSplitPage);
-		appDB.getCompleteMesoSplit(mesoSplit);
-		if (Qt.platform.os === "android")
-			mainwindow.appSuspended.connect(aboutToBeSuspended);
+		appDB.getCompleteMesoSplit();
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
@@ -158,10 +155,5 @@ Page {
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
-	}
-
-	function aboutToBeSuspended() {
-		if (currentPage.splitModel.modified)
-			btnSave.clicked();
 	}
 } //Page

@@ -209,7 +209,7 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 		}
 		if (!bFound)
 		{
-			m_currentMesoManager = new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, this);
+			m_currentMesoManager = new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, m_runCommands, this);
 			m_currentMesoManager->setMesocycleModel(mesocyclesModel);
 			m_MesoManager.append(m_currentMesoManager);
 			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
@@ -567,7 +567,7 @@ void DbManager::getMesocycle(const uint meso_idx)
 	{
 		m_currentMesoManager->addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
 		//emit getPage(m_currentMesoManager->getMesoPage(), mesoPageCreateId);
-		//return;
+		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
 	m_currentMesoManager->createMesocyclePage();
@@ -693,8 +693,9 @@ void DbManager::deleteMesoSplitTable()
 	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
 }
 
-void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
+void DbManager::getCompleteMesoSplit()
 {
+	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, 6));
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
 	QChar splitLetter;
@@ -707,7 +708,8 @@ void DbManager::getCompleteMesoSplit(const QString& mesoSplit)
 
 		if (m_currentMesoManager->getSplitPage(splitLetter) != nullptr)
 		{
-			emit getPage(m_currentMesoManager->getSplitPage(splitLetter), static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A'));
+			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
+			//emit getPage(m_currentMesoManager->getSplitPage(splitLetter), static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A'));
 			continue;
 		}
 
@@ -857,7 +859,8 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 	{
 		if (m_currentMesoManager->getCalendarPage() != nullptr)
 		{
-			emit getPage(m_currentMesoManager->getCalendarPage(), calPageCreateId);
+			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
+			//emit getPage(m_currentMesoManager->getCalendarPage(), calPageCreateId);
 			return;
 		}
 		m_currentMesoManager->setMesoCalendarModel(mesoCalendarModel);
@@ -942,7 +945,8 @@ void DbManager::getTrainingDay(const QDate& date)
 	if (m_currentMesoManager->gettDayPage(date) != nullptr)
 	{
 		m_currentMesoManager->setCurrenttDay(date);
-		emit getPage(m_currentMesoManager->gettDayPage(date), tDayPageCreateId);
+		m_currentMesoManager->addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
+		//emit getPage(m_currentMesoManager->gettDayPage(date), tDayPageCreateId);
 		return;
 	}
 

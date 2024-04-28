@@ -2,19 +2,19 @@ import QtQuick
 import QtQuick.Controls
 
 ToolButton {
-	property string imageSource
-	property bool leftAlign: true
-
-	signal buttonClicked(int clickid);
-	property bool bEmitSignal: false
-	property int clickId: -1
-
 	id: button
 	height: 40
 	rightPadding: 0
 	leftPadding: 0
 	rightInset: 0
 	leftInset: 0
+
+	signal buttonClicked(int clickid)
+	property bool bEmitSignal: false
+	property int clickId: -1
+
+	property string imageSource
+	property bool leftAlign: true
 
 	onPressed: anim.start();
 	onReleased: bEmitSignal = true;

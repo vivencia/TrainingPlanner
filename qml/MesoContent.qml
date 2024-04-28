@@ -227,17 +227,7 @@ Page {
 				Layout.rightMargin: 5
 				enabled: false
 
-				onClicked: {
-					function pushTDayOntoStackView(page, id) {
-						if (id === 70) {
-							appDB.getPage.disconnect(pushTDayOntoStackView);
-							appMainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(_today) , page);
-						}
-					}
-
-					appDB.getPage.connect(pushTDayOntoStackView);
-					appDB.getTrainingDay(calendar.dayInfoDate);
-				}
+				onClicked: appDB.getTrainingDay(calendar.dayInfoDate);
 			}
 		} // RowLayout
 	} // footer: ToolBar

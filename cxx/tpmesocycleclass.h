@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QDate>
 
+class RunCommands;
 class DBMesocyclesModel;
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -28,7 +29,7 @@ class TPMesocycleClass : public QObject
 Q_OBJECT
 
 public:
-	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent = nullptr);
+	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent = nullptr);
 	~TPMesocycleClass();
 
 	inline int mesoId() const { return m_MesoId; }
@@ -45,6 +46,9 @@ public:
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
+	Q_INVOKABLE void createPlannerPage();
+	void createPlannerPage_part2();
+
 	void createMesoSplitPage();
 	void createMesoSplitPage_part2();
 
@@ -134,7 +138,9 @@ private:
 	int m_MesoId;
 	uint m_MesoIdx;
 	QQmlApplicationEngine* m_QMlEngine;
+	RunCommands* m_runCommands;
 	QQuickItem* m_appStackView;
+	QQuickWindow* m_mainWindow;
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	DBMesocyclesModel* m_MesocyclesModel;
@@ -144,6 +150,10 @@ private:
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
+	QQmlComponent* m_plannerComponent;
+	QVariantMap m_plannerProperties;
+	QQuickItem* m_plannerPage;
+
 	QQmlComponent* m_splitComponent;
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;

@@ -70,18 +70,7 @@ Page {
 			}
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
 
-			onClicked: {
-				var id;
-				function calendarPageReady(object, id) {
-					if (id === 35) {
-						appDB.getPage.disconnect(calendarPageReady);
-						appMainMenu.addShortCut( qsTr("Calendar: ") + mesocyclesModel.get(mesoIdx, 1) , object);
-					}
-				}
-
-				appDB.getPage.connect(calendarPageReady);
-				appDB.getMesoCalendar(true);
-			}
+			onClicked: appDB.getMesoCalendar(true);
 		}
 
 		TPButton {
@@ -619,21 +608,7 @@ Page {
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
 
-						onClicked: {
-							var component = Qt.createComponent("ExercisesPlanner.qml", Qt.Asynchronous);
-
-							function finishCreation() {
-								var mesoPlannerObject = component.createObject(mesoPropertiesPage, {
-										mesoId:mesoId, mesoIdx:mesoIdx, mesoSplit:mesoSplit
-								});
-								appMainMenu.addShortCut( qsTr("Exercises Planner: ") + mesocyclesModel.get(mesoIdx, 1) , mesoPlannerObject);
-							}
-
-							if (component.status === Component.Ready)
-								finishCreation();
-							else
-								component.statusChanged.connect(finishCreation);
-						} //onClicked
+						onClicked: itemManager.createPlannerPage();
 					} //TPButton
 				} //GridLayout
 			} //Pane

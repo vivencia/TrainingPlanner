@@ -1,5 +1,6 @@
 #include "tpmesocycleclass.h"
 #include "dbmesocyclesmodel.h"
+#include "runcommands.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
@@ -9,11 +10,14 @@
 const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
 
-TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_mesoComponent(nullptr), m_MesoPage(nullptr),
-		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
-		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}, m_mainMenuShortcutComponent(nullptr)
-{}
+TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent)
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_mesoComponent(nullptr),
+		m_MesoPage(nullptr), m_plannerComponent(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr),
+		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
+		m_setComponents{nullptr}, m_mainMenuShortcutComponent(nullptr)
+{
+	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
+}
 
 TPMesocycleClass::~TPMesocycleClass()
 {
@@ -88,8 +92,6 @@ void TPMesocycleClass::createMesocyclePage_part2()
 	#endif
 	m_QMlEngine->setObjectOwnership(m_MesoPage, QQmlEngine::CppOwnership);
 
-	//m_appStackView is set for the first and only time here
-	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
 	m_MesoPage->setParentItem(m_appStackView);
 	//emit pageReady(m_MesoPage, mesoPageCreateId);
 	addMainMenuShortCut(m_MesocyclesModel->getFast(m_MesoIdx, 1), m_MesoPage);
@@ -97,6 +99,45 @@ void TPMesocycleClass::createMesocyclePage_part2()
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
+void TPMesocycleClass::createPlannerPage()
+{
+	if (m_plannerComponent == nullptr)
+	{
+		m_plannerComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous);
+		m_plannerProperties.insert(u"mesoId"_qs, m_MesoId);
+		m_plannerProperties.insert(u"mesoIdx"_qs, m_MesoIdx);
+	}
+	else
+	{
+		addMainMenuShortCut(tr("Exercises Planner: ") + m_MesocyclesModel->getFast(m_MesoIdx, 1), m_plannerPage);
+		return;
+	}
+
+	if (m_plannerComponent->status() != QQmlComponent::Ready)
+		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+			{ return TPMesocycleClass::createPlannerPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	else
+		createPlannerPage_part2();
+}
+
+void TPMesocycleClass::createPlannerPage_part2()
+{
+	m_plannerPage = static_cast<QQuickItem*>(m_plannerComponent->createWithInitialProperties(m_plannerProperties, m_QMlEngine->rootContext()));
+	#ifdef DEBUG
+	if (m_plannerComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_plannerComponent->errorString();
+		for (uint i(0); i < m_plannerComponent->errors().count(); ++i)
+			qDebug() << m_plannerComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	m_QMlEngine->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
+
+	m_plannerPage->setParentItem(m_appStackView);
+	addMainMenuShortCut(tr("Exercises Planner: ") + m_MesocyclesModel->getFast(m_MesoIdx, 1), m_plannerPage);
+}
+
 void TPMesocycleClass::createMesoSplitPage()
 {
 	if (m_splitComponent == nullptr)
@@ -201,7 +242,8 @@ void TPMesocycleClass::createMesoCalendarPage_part2()
 		#endif
 		m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 		m_calPage->setParentItem(m_appStackView);
-		emit pageReady(m_calPage, calPageCreateId);
+		//emit pageReady(m_calPage, calPageCreateId);
+		addMainMenuShortCut(tr("Calendar: ") + m_MesocyclesModel->getFast(m_MesoIdx, 1), m_calPage);
 	}
 }
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -268,7 +310,8 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	page->setParentItem(m_appStackView);
 	m_CurrenttDayPage = page;
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
-	emit pageReady(page, tDayPageCreateId);
+	//emit pageReady(page, tDayPageCreateId);
+	addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(m_CurrenttDayModel->date()), page);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
@@ -681,7 +724,7 @@ void TPMesocycleClass::addMainMenuShortCut(const QString& label, QQuickItem* pag
 				{
 					m_mainMenuShortcutEntries.append(entry);
 					m_mainMenuShortcutPages.append(page);
-					QMetaObject::invokeMethod(m_appStackView, "push", Q_ARG(QQuickItem*, page));
+					QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 			createMainMenuShortCut(label);
@@ -696,7 +739,7 @@ void TPMesocycleClass::addMainMenuShortCut(const QString& label, QQuickItem* pag
 			}
 			m_mainMenuShortcutEntries.at(4)->setProperty("label", label);
 			m_mainMenuShortcutPages.replace(4, page);
-			QMetaObject::invokeMethod(m_appStackView, "push", Q_ARG(QVariant, QVariant::fromValue(page)));
+			QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
 		}
 	}
 }
@@ -708,6 +751,7 @@ void TPMesocycleClass::createMainMenuShortCut(const QString& label)
 		m_mainMenuShortcutComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TransparentButton.qml"_qs), QQmlComponent::Asynchronous);
 		QObject* appMainMenu(m_QMlEngine->rootContext()->contextProperty(u"appMainMenu"_qs).value<QObject*>());
 		m_mainMenuShortcutLayout = appMainMenu->findChild<QQuickItem*>(u"windowListLayout"_qs);
+		m_mainWindow = static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0));
 	}
 
 	m_mainMenuShortcutProperties.insert( u"clickId"_qs, m_mainMenuShortcutEntries.count());
@@ -745,7 +789,6 @@ void TPMesocycleClass::createMainMenuShortCut_part2()
 
 void TPMesocycleClass::openMainMenuShortCut(int button_id)
 {
-	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
-	QMetaObject::invokeMethod(mainWindow, "stackViewPushExistingPage", Q_ARG(QVariant, QVariant::fromValue(m_mainMenuShortcutPages.at(button_id))));
+	QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

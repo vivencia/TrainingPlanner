@@ -76,7 +76,7 @@ public:
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable();
-	Q_INVOKABLE void getCompleteMesoSplit(const QString& mesoSplit);
+	Q_INVOKABLE void getCompleteMesoSplit();
 	Q_INVOKABLE void updateMesoSplitComplete(const QString& splitLetter);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
