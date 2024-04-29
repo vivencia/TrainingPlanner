@@ -15,9 +15,11 @@ Item {
 	required property int setNumber
 	required property int setType
 
+	property bool finishButtonVisible: false
 	property var subSetList: []
 
 	signal requestTimerDialogSignal(Item requester, var args)
+	signal exerciseCompleted(int exercise_idx)
 
 	onFocusChanged: {
 		if (focus) {
@@ -28,8 +30,9 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		Layout.fillWidth: true
 		spacing: 5
+		Layout.fillWidth: true
+		Layout.bottomMargin: 10
 
 		Label {
 			id: lblSetNumber
@@ -120,6 +123,18 @@ Item {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
+		}
+
+		TPButton {
+			id: btnCompleteExercise
+			text: qsTr("Exercise completed")
+			visible: finishButtonVisible
+			Layout.alignment: Qt.AlignCenter
+
+			onClicked: {
+				setLayout.enabled = false;
+				exerciseCompleted(exerciseIdx);
+			}
 		}
 	} // setLayout
 

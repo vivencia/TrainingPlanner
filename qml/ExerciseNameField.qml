@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Row {
 	spacing: 0
 	height: 60
+	z: 0
 
 	property alias text: control.text
 	property alias readOnly: control.readOnly
@@ -15,75 +16,78 @@ Row {
 	signal editButtonClicked()
 	signal mousePressed(var mouse)
 	signal mousePressAndHold(var mouse)
-	signal itemClicked();
+	signal itemClicked()
 
-TextField {
-	id: control
-	font.bold: true
-	font.pointSize: AppSettings.fontSizeText
-	readOnly: true
-	wrapMode: Text.WordWrap
-	rightPadding: 20
-	z: 1
-	width: parent.width-(showRemoveButton ? 50 : 25)
-	Layout.fillHeight: true
-	Layout.maximumWidth: width
-	Layout.minimumWidth: width
+	TextField {
+		id: control
+		font.bold: true
+		font.pointSize: AppSettings.fontSizeText
+		readOnly: true
+		wrapMode: Text.WordWrap
+		rightPadding: 20
+		z: 1
+		width: parent.width-(showRemoveButton ? 50 : 25)
+		Layout.fillHeight: true
+		Layout.maximumWidth: width
+		Layout.minimumWidth: width
 
-	background: Rectangle {
-		color: control.readOnly ? "transparent" : "white"
-		border.color: control.readOnly ? "transparent" : "black"
-		radius: 5
-	}
-
-	onPressed: (mouse) => mousePressed(mouse);
-	onPressAndHold: (mouse) => mousePressAndHold(mouse);
-
-	onReadOnlyChanged: {
-		if (readOnly) {
-			ensureVisible(0);
-			cursorPosition = 0;
-		}
-		else
-			cursorPosition = text.length;
-	}
-
-	onActiveFocusChanged: {
-		if (!activeFocus) {
-			readOnly = false;
-			exerciseChanged(text);
-		}
-	}
-
-	RoundButton {
-		id: btnClearText
-		height: 20
-		width: 20
-		visible: !control.readOnly
-		anchors {
-			right: control.right
-			rightMargin: 5
-			verticalCenter: control.verticalCenter
+		background: Rectangle {
+			color: control.readOnly ? "transparent" : "white"
+			border.color: control.readOnly ? "transparent" : "black"
+			radius: 5
 		}
 
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-			asynchronous: true
-			anchors.fill: parent
-			height: 20
-			width: 20
+		onPressed: (mouse) => {
+			console.log("mouse pressed");
+		mousePressed(mouse);
 		}
-		onClicked: {
-			control.clear();
-			control.forceActiveFocus();
-		}
-	}
+		onPressAndHold: (mouse) => mousePressAndHold(mouse);
 
 		MouseArea {
-			anchors.fill: control
-			onClicked: itemClicked
-			enabled: control.readOnly
-			z:1
+				anchors.fill: control
+				onClicked: itemClicked
+				enabled: control.readOnly
+				z:2
+		}
+
+		onReadOnlyChanged: {
+			if (readOnly) {
+				ensureVisible(0);
+				cursorPosition = 0;
+			}
+			else
+				cursorPosition = text.length;
+		}
+
+		onActiveFocusChanged: {
+			if (!activeFocus) {
+				readOnly = false;
+				exerciseChanged(text);
+			}
+		}
+
+		RoundButton {
+			id: btnClearText
+			height: 20
+			width: 20
+			visible: !control.readOnly
+			anchors {
+				right: control.right
+				rightMargin: 5
+				verticalCenter: control.verticalCenter
+			}
+
+			Image {
+				source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
+				asynchronous: true
+				anchors.fill: parent
+				height: 20
+				width: 20
+			}
+			onClicked: {
+				control.clear();
+				control.forceActiveFocus();
+			}
 		}
 	}
 
@@ -93,7 +97,7 @@ TextField {
 		width: 25
 		padding: 5
 		visible: showRemoveButton
-		z: 2
+		z: 1
 
 		Image {
 			source: "qrc:/images/"+darkIconFolder+"remove.png"
@@ -111,7 +115,7 @@ TextField {
 		height: 25
 		width: 25
 		padding: 5
-		z: 2
+		z: 1
 
 		Image {
 			source: "qrc:/images/"+darkIconFolder+"edit.png"

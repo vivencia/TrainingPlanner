@@ -36,18 +36,28 @@ Page {
 		id: splitView
 		objectName: "splitSwipeView"
 		currentIndex: -1
-		anchors.fill: parent
+		height: parent.height
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+		}
+
 		interactive: !exercisesPane.shown
 
 		onCurrentIndexChanged: currentItem.init();
 	} //SwipeView
 
 	PageIndicator {
+		id: indicator
 		count: splitView.count
 		currentIndex: splitView.currentIndex
-		anchors.bottom: parent.bottom
-		anchors.horizontalCenter: parent.horizontalCenter
 		visible: !exercisesPane.shown
+		height: 20
+		anchors {
+			bottom: parent.bottom
+			horizontalCenter: parent.horizontalCenter
+		}
 	}
 
 	footer: ToolBar {

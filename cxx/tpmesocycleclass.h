@@ -104,7 +104,7 @@ public:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
 							const QString& nReps = QString(), const QString& nWeight = QString());
-	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0);
+	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0, const bool bNewSet = false);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
 							const QString& nReps = QString(), const QString& nWeight = QString());
@@ -120,15 +120,15 @@ public:
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	Q_INVOKABLE void addMainMenuShortCut(const QString& label, QQuickItem* page);
-	void createMainMenuShortCut(const QString& label);
-	void createMainMenuShortCut_part2();
+	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
 	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
-	void openMainMenuShortCut(int button_id);
+	void exerciseCompleted(int exercise_idx);
+	void openMainMenuShortCut(const int button_id);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);
@@ -141,7 +141,6 @@ private:
 	RunCommands* m_runCommands;
 	QQuickItem* m_appStackView;
 	QQuickWindow* m_mainWindow;
-
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	DBMesocyclesModel* m_MesocyclesModel;
 	QQmlComponent* m_mesoComponent;
@@ -159,7 +158,6 @@ private:
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
 	QString m_createdSplits;
-	QQuickItem* m_qmlSplitObjectParent;
 	QQuickItem* m_qmlSplitObjectContainer;
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
@@ -236,11 +234,8 @@ private:
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	QVariantMap m_mainMenuShortcutProperties;
-	QQmlComponent* m_mainMenuShortcutComponent;
-	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	QList<QQuickItem*> m_mainMenuShortcutPages;
-	QQuickItem* m_mainMenuShortcutLayout;
+	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 #endif // TPMESOCYCLECLASS_H

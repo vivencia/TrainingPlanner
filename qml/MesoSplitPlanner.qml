@@ -25,7 +25,7 @@ Frame {
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
 	width: windowWidth
-	height: windowHeight
+	height: windowHeight - 55
 
 	padding: 0
 	spacing: 0

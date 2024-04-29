@@ -8,6 +8,7 @@ ToolButton {
 	leftPadding: 0
 	rightInset: 0
 	leftInset: 0
+	width: parent.width
 
 	signal buttonClicked(int clickid)
 	property bool bEmitSignal: false

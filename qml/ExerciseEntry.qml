@@ -20,7 +20,7 @@ FocusScope {
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 
-	signal setAdded(int objidx, var setObject)
+	signal setAdded(int objidx, int nsets)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
 
@@ -131,7 +131,7 @@ FocusScope {
 						height: 20
 						width: 20
 					}
-					onClicked: paneExerciseShowHide();
+					onClicked: paneExerciseShowHide(false);
 					z: 1
 				}
 
@@ -146,7 +146,7 @@ FocusScope {
 				ExerciseNameField {
 					id: txtExerciseName
 					text: tDayModel.exerciseName(exerciseIdx)
-					width: windowWidth - 45
+					width: windowWidth - 65
 					Layout.minimumWidth: width
 					Layout.maximumWidth: width
 					Layout.leftMargin: 45
@@ -159,7 +159,7 @@ FocusScope {
 					onExerciseChanged: (new_text) => tDayModel.setExerciseName1(new_text, exerciseIdx);
 					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
-					onItemClicked: paneExerciseShowHide();
+					onItemClicked: paneExerciseShowHide(false);
 				}
 			} //Row txtExerciseName
 
@@ -290,9 +290,10 @@ FocusScope {
 		var nsets_created = 0;
 		function setObjectCreated(object, id) {
 			if (id === 140) {
-				if (++nsets_created === n)
+				if (++nsets_created === n) {
 					itemManager.itemReady.disconnect(setObjectCreated);
-				setAdded(exerciseIdx, object);
+					setAdded(exerciseIdx, n > 1 ? 50: height);
+				}
 			}
 		}
 
@@ -301,8 +302,8 @@ FocusScope {
 		setNbr += n;
 	}
 
-	function paneExerciseShowHide() {
-		paneExercise.shown = !paneExercise.shown
+	function paneExerciseShowHide(force: bool) {
+		paneExercise.shown = !force ? !paneExercise.shown : true
 		if (paneExercise.shown)
 			itemManager.createSetObjects(exerciseIdx);
 	}

@@ -98,6 +98,17 @@ const QString RunCommands::formatDate(const QDate& date) const
 	return QString();
 }
 
+const QString RunCommands::formatTodayDate() const
+{
+	const QDate today(QDate::currentDate());
+	if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
+	{
+		QLocale locale(QStringLiteral("pt_BR"));
+		return locale.toString(today, u"ddd d/M/yyyy"_qs);
+	}
+	return today.toString(Qt::TextDate);
+}
+
 QDate RunCommands::getDateFromStrDate(const QString& strDate) const
 {
 	const QStringView strdate(strDate);

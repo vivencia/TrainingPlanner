@@ -198,6 +198,7 @@ Page {
 			}
 			else {
 				if (navButtons) {
+					//console.log(ScrollBar.vertical.position);
 					if (contentItem.contentY <= 50) {
 						navButtons.showUpButton = false;
 						navButtons.showDownButton = true;
@@ -694,6 +695,10 @@ Page {
 			navButtons.visible = true;
 		}
 
+		function setScrollBarPosition2(pos) {
+			ScrollBar.vertical.setPosition(pos);
+		}
+
 		function setScrollBarPosition(pos) {
 			if (pos === 0)
 				ScrollBar.vertical.setPosition(0);
@@ -971,14 +976,10 @@ Page {
 		itemManager.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
 	}
 
-	function exerciseSetAdded(exerciseObjIdx, setObject) {
-		bStopBounce = true;
-		if (exerciseObjIdx === tDayModel.exerciseCount - 1)
-			scrollBarPosition = phantomItem.y;
-		else
-			scrollBarPosition = phantomItem.y - lblExercisesStart.y + setObject.y + setObject.height;
-		scrollTraining.scrollToPos(scrollBarPosition);
-		bounceTimer.start();
+	function exerciseSetAdded(exercise_idx: int, scrollamount: int) {
+		//bStopBounce = true;
+		scrollTraining.setScrollBarPosition2(scrollamount/scrollTraining.contentHeight);
+		//bounceTimer.start();
 	}
 
 	function createFloatingAddSetButton(exerciseIdx: int, settype: int, nset: string) {
@@ -1019,6 +1020,10 @@ Page {
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
+	}
+
+	function showExercise(exerciseEntry: Item) {
+
 	}
 
 	function createFirstTimeTipComponent() {

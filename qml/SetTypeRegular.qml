@@ -6,7 +6,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Item {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight
+	height: setLayout.implicitHeight + 10
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
@@ -16,7 +16,10 @@ Item {
 	required property int setNumber
 	required property int setType
 
+	property bool finishButtonVisible: false
+
 	signal requestTimerDialogSignal(Item requester, var args)
+	signal exerciseCompleted(int exercise_idx)
 
 	readonly property int controlWidth: setItem.width - 20
 
@@ -31,6 +34,7 @@ Item {
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
+		Layout.bottomMargin: 10
 
 		Label {
 			id: lblSetNumber
@@ -215,6 +219,19 @@ Item {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
+		}
+
+		TPButton {
+			id: btnCompleteExercise
+			text: qsTr("Exercise completed")
+			visible: finishButtonVisible
+			Layout.alignment: Qt.AlignHCenter
+			Layout.topMargin: -5
+
+			onClicked: {
+				setLayout.enabled = false;
+				exerciseCompleted(exerciseIdx);
+			}
 		}
 	} // setLayout
 

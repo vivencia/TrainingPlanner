@@ -168,8 +168,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor2"), QVariant(QColor(195, 202, 213)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(mainWindow) });
 
-	QObject* appMainMenu(mainWindow->findChild<QObject*>(u"appMainMenu"_qs));
-	properties.append(QQmlContext::PropertyPair{ u"appMainMenu"_qs, QVariant::fromValue(appMainMenu) });
 	QQuickItem* appStackView(mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
 	properties.append(QQmlContext::PropertyPair{ u"appStackView"_qs, QVariant::fromValue(appStackView) });
 
@@ -566,7 +564,6 @@ void DbManager::getMesocycle(const uint meso_idx)
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
 		m_currentMesoManager->addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
-		//emit getPage(m_currentMesoManager->getMesoPage(), mesoPageCreateId);
 		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
@@ -709,7 +706,6 @@ void DbManager::getCompleteMesoSplit()
 		if (m_currentMesoManager->getSplitPage(splitLetter) != nullptr)
 		{
 			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
-			//emit getPage(m_currentMesoManager->getSplitPage(splitLetter), static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A'));
 			continue;
 		}
 
@@ -860,7 +856,6 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 		if (m_currentMesoManager->getCalendarPage() != nullptr)
 		{
 			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
-			//emit getPage(m_currentMesoManager->getCalendarPage(), calPageCreateId);
 			return;
 		}
 		m_currentMesoManager->setMesoCalendarModel(mesoCalendarModel);
@@ -946,7 +941,6 @@ void DbManager::getTrainingDay(const QDate& date)
 	{
 		m_currentMesoManager->setCurrenttDay(date);
 		m_currentMesoManager->addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
-		//emit getPage(m_currentMesoManager->gettDayPage(date), tDayPageCreateId);
 		return;
 	}
 

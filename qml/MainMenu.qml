@@ -141,13 +141,6 @@ Drawer {
 			color: AppSettings.fontColor
 		}
 
-		ColumnLayout {
-			id: windowListLayout
-			objectName: "windowListLayout"
-			spacing: 5
-			Layout.fillWidth: true;
-		}
-
 		Item { // spacer item
 			Layout.fillWidth: true
 			Layout.fillHeight: true
@@ -166,5 +159,20 @@ Drawer {
 			drawer.open();
 			bMenuClicked = false;
 		}
+	}
+
+	function createShortCut(label: string, object: Item, clickid: int) {
+		var component = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			var button = component.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": clickid });
+			button.buttonClicked.connect(itemManager.openMainMenuShortCut);
+			itemManager.addMainMenuShortCutEntry(button);
+		}
+
+		if (component.status === Component.Ready)
+			finishCreation();
+		else
+			component.statusChanged.connect(finishCreation);
 	}
 } //Drawer

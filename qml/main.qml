@@ -56,7 +56,6 @@ ApplicationWindow {
 
 	MainMenu {
 		id: mainMenu
-		objectName: "appMainMenu"
 	}
 
 	Flickable {
@@ -112,20 +111,17 @@ ApplicationWindow {
 			}
 
 			onClicked: {
-				const today = new Date();
-				var calendarPage;
 				function pushTDayOntoMainStackView(object2, id) {
 					if (id === 70) {
 						appDB.getPage.disconnect(pushTDayOntoMainStackView);
-						mainMenu.addShortCut( qsTr("Workout: ") + runCmd.formatDate(today) , object2);
+						itemManager.addMainMenuShortCut( qsTr("Workout: ") + runCmd.formatTodayDate() , object2);
 					}
 				}
 
 				function mesoCalendarOK()
 				{
 					appDB.databaseReady.disconnect(mesoCalendarOK);
-					//appDB.getPage.connect(pushTDayOntoMainStackView);
-					appDB.getTrainingDay(today);
+					appDB.getTrainingDay(new Date());
 				}
 
 				if (mesoCalendarModel.count > 0)
@@ -151,11 +147,19 @@ ApplicationWindow {
 		homePage.pageActivation();
 	}
 
+	function popFromStack(page: Item) {
+		stackView.pop(page, StackView.Immediate);
+	}
+
 	function pushOntoStack(page: Item) {
 		stackView.push(page);
 	}
 
 	function stackViewPushExistingPage(page: Item) {
 		stackView.replace(stackView.currentItem, page);
+	}
+
+	function createShortCut(label: string, object: Item, clickid: int) {
+		mainMenu.createShortCut(label, object, clickid);
 	}
 } //ApplicationWindow
