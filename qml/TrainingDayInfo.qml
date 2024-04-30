@@ -29,16 +29,13 @@ Page {
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
-	property bool bDayIsFinished
 
 	property date sessionStart
 
 	property bool bFirstTime: false
 	property bool bAlreadyLoaded
-	property bool bStopBounce: false
 
 	property date previousDivisionDayDate
-	property int scrollBarPosition: 0
 	property var btnFloat: null
 	property var navButtons: null
 	property var firstTimeTip: null
@@ -94,7 +91,6 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
-			bDayIsFinished = true;
 		}
 	}
 
@@ -187,33 +183,8 @@ Page {
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
 		contentWidth: trainingDayPage.width //stops bouncing to the sides
-		contentHeight: colMain.height + colExercises.implicitHeight
+		contentHeight: colMain.height + exercisesLayout.implicitHeight
 		anchors.fill: parent
-
-		ScrollBar.vertical.onPositionChanged: {
-			if (bStopBounce) {
-				if (ScrollBar.vertical.position < scrollBarPosition) {
-					scrollToPos(scrollBarPosition);
-				}
-			}
-			else {
-				if (navButtons) {
-					//console.log(ScrollBar.vertical.position);
-					if (contentItem.contentY <= 50) {
-						navButtons.showUpButton = false;
-						navButtons.showDownButton = true;
-					}
-					else if (Math.abs(contentItem.contentY - (phantomItem.y - lblExercisesStart.y)) < 50) {
-						navButtons.showUpButton = true;
-						navButtons.showDownButton = false;
-					}
-					else {
-						navButtons.showUpButton = true;
-						navButtons.showDownButton = true;
-					}
-				}
-			}
-		}
 
 		ColumnLayout {
 			id: colMain
@@ -259,14 +230,14 @@ Page {
 				TPComboBox {
 					id: cboSplitLetter
 					model: cboModel
-					enabled: model.count > 0
+					enabled: !tDayModel.dayIsFinished && model.count > 0
 					Layout.maximumWidth: 100
 					Layout.row: 0
 					Layout.column: 1
 
 					onActivated: (index) => {
 						if (cboModel.get(index).value !== splitLetter) {
-							if (colExercises.children.length > 0)
+							if (exercisesLayout.children.length > 0)
 								msgClearExercises.init(0);
 							else
 								changeSplitLetter();
@@ -319,6 +290,7 @@ Page {
 				placeholderText: "Academia Golden Era"
 				text: tDayModel.location()
 				visible: splitLetter !== 'R'
+				enabled: !tDayModel.dayIsFinished
 				Layout.fillWidth: true
 				Layout.rightMargin: 10
 				Layout.leftMargin: 5
@@ -348,7 +320,7 @@ Page {
 						id: optFreeTimeSession
 						text: qsTr("Open time training session")
 						checked: true
-						enabled: !runCmd.timerRunning
+						enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 						Layout.fillWidth: true
 
 						onClicked: {
@@ -360,7 +332,7 @@ Page {
 						id: optTimeConstrainedSession
 						text: qsTr("Time constrained session")
 						checked: false
-						enabled: !runCmd.timerRunning
+						enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 						Layout.fillWidth: true
 					}
 
@@ -372,7 +344,6 @@ Page {
 						TPButton {
 							id: btnTimeLength
 							text: qsTr("By duration")
-							enabled: !bDayIsFinished && !runCmd.timerRunning
 							visible: optTimeConstrainedSession.checked
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgSessionLength.open();
@@ -380,7 +351,6 @@ Page {
 						TPButton {
 							id: btnTimeHour
 							text: qsTr("By time of day")
-							enabled: !bDayIsFinished && !runCmd.timerRunning
 							visible: optTimeConstrainedSession.checked
 							Layout.alignment: Qt.AlignCenter
 							onClicked: dlgTimeEndSession.open();
@@ -413,7 +383,7 @@ Page {
 							id: btnInTime
 							width: 40
 							height: 40
-							enabled: !runCmd.timerRunning
+							enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 							anchors {
 								top: parent.top
 								topMargin: -15
@@ -462,7 +432,7 @@ Page {
 
 						RoundButton {
 							id: btnOutTime
-							enabled: !runCmd.timerRunning
+							enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 							width: 40
 							height: 40
 
@@ -493,6 +463,7 @@ Page {
 			SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
+				readOnly: !tDayModel.dayIsFinished
 				visible: splitLetter !== 'R'
 				color: AppSettings.fontColor
 				Layout.leftMargin: 5
@@ -504,7 +475,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 20
-				visible: bDayIsFinished && tDayModel.exerciseCount > 0
+				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 
 				background: Rectangle {
 					border.color: AppSettings.fontColor
@@ -543,21 +514,38 @@ Page {
 			Label {
 				id: lblExercisesStart
 				text: qsTr("--- EXERCISES ---")
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignVCenter
 				color: AppSettings.fontColor
 				font.weight: Font.Black
 				font.pointSize: AppSettings.fontSizeTitle
 				visible: splitLetter !== 'R'
-				Layout.alignment: Qt.AlignCenter
-				Layout.bottomMargin: 2
+				height: 40
+				Layout.bottomMargin: 10
+				Layout.fillWidth: true
+				Layout.minimumHeight: height
+				Layout.maximumHeight: height
+
+				background: Rectangle {
+					gradient: Gradient {
+						orientation: Gradient.Horizontal
+						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+						GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+						GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+						GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+					}
+					opacity: 0.8
+				}
 
 				RoundButton {
 					id: btnClearExercises
-					anchors.right: parent.left
+					anchors.left: parent.left
 					anchors.verticalCenter: parent.verticalCenter
-					anchors.rightMargin: 5
+					anchors.leftMargin: 5
 					width: 40
 					height: 40
-					visible: colExercises.children.length > 0
+					enabled: !tDayModel.dayIsFinished
+					visible: exercisesLayout.children.length > 0
 					ToolTip.text: "Remove all exercises"
 
 					Image {
@@ -664,7 +652,7 @@ Page {
 		}// colMain
 
 		GridLayout {
-			id: colExercises
+			id: exercisesLayout
 			objectName: "tDayExercisesLayout"
 			width: parent.width
 			columns: 1
@@ -690,13 +678,26 @@ Page {
 			}
 		}
 
+		ScrollBar.vertical.onPositionChanged: {
+			if (navButtons) {
+				if (contentItem.contentY <= 50) {
+					navButtons.showUpButton = false;
+					navButtons.showDownButton = true;
+				}
+				else if (Math.abs(contentItem.contentY - (phantomItem.y - lblExercisesStart.y)) < 50) {
+					navButtons.showUpButton = true;
+					navButtons.showDownButton = false;
+				}
+				else {
+					navButtons.showUpButton = true;
+					navButtons.showDownButton = true;
+				}
+			}
+		}
+
 		function scrollToPos(y_pos) {
 			contentItem.contentY = y_pos;
 			navButtons.visible = true;
-		}
-
-		function setScrollBarPosition2(pos) {
-			ScrollBar.vertical.setPosition(pos);
 		}
 
 		function setScrollBarPosition(pos) {
@@ -723,13 +724,18 @@ Page {
 	}
 
 	Timer {
-		id: bounceTimer
+		id: scrollTimer
 		interval: 200
 		running: false
 		repeat: false
 
-		onTriggered: {
-			bStopBounce = false;
+		property int ypos:0
+
+		onTriggered: scrollTraining.scrollToPos(ypos);
+
+		function init(pos) {
+			ypos = exercisesLayout.y + pos;
+			start();
 		}
 	}
 
@@ -784,7 +790,7 @@ Page {
 			}
 
 			Label {
-				text: !bDayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
+				text: !tDayModel.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
 				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeText
@@ -793,7 +799,7 @@ Page {
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
-				visible: !bDayIsFinished
+				visible: !tDayModel.dayIsFinished
 
 				onClicked: {
 					runCmd.workoutTimerTriggered.connect(updateTimer);
@@ -818,18 +824,21 @@ Page {
 					DigitalClock {
 						id: hoursClock
 						max: 24
+						enabled: tDayModel.dayIsFinished
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
 						id: minsClock
 						max: 60
+						enabled: tDayModel.dayIsFinished
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
-						id: secsClock;
-						max: 60;
+						id: secsClock
+						max: 60
+						enabled: tDayModel.dayIsFinished
 					}
 				}
 			}
@@ -837,13 +846,14 @@ Page {
 			TPButton {
 				id: btnEndWorkout
 				text: qsTr("Finish")
-				visible: !bDayIsFinished
+				visible: !tDayModel.dayIsFinished
 
 				onClicked: {
 					runCmd.stopWorkoutTimer();
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
-					bDayIsFinished = true;
+					btnSaveDay.clicked();
+					tDayModel.dayIsFinished = true;
 					runCmd.workoutTimerTriggered.disconnect(updateTimer);
 					runCmd.timeWarning.disconnect(displayTimeWarning);
 				}
@@ -852,7 +862,7 @@ Page {
 
 		TPButton {
 			id: btnSaveDay
-			enabled: tDayModel.modified
+			enabled: !tDayModel.dayIsFinished && tDayModel.modified
 			text: qsTr("Log Workout")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			textUnderIcon: true
@@ -894,9 +904,41 @@ Page {
 		} //btnSaveDay
 
 		TPButton {
+			id: btnEditDay
+			text: !editMode ? qsTr("Edit workout") : qsTr("Done")
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
+			textUnderIcon: true
+			visible: tDayModel.dayIsFinished
+
+			property bool editMode: false
+
+			anchors {
+				left: btnSaveDay.right
+				leftMargin: 3
+				top: workoutLengthRow.bottom
+				bottom: parent.bottom
+				bottomMargin: 5
+			}
+
+			onClicked: {
+				if (!editMode) {
+					tDayModel.dayIsFinished = false;
+					visible = true;
+					editMode = true;
+				}
+				else {
+					if (btnAddExercise.enabled)
+						btnAddExercise.clicked();
+					tDayModel.dayIsFinished = true;
+					Qt.binding(function() { return btnEditDay.visible = tDayModel.dayIsFinished; });
+				}
+			}
+		}
+
+		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			enabled: splitLetter !== 'R' && !grpIntent.visible
+			enabled: !tDayModel.dayIsFinished && splitLetter !== 'R' && !grpIntent.visible
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors {
@@ -961,14 +1003,9 @@ Page {
 	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {
 		function readyToProceed(object, id) {
 			appDB.getItem.disconnect(readyToProceed);
-			object.setAdded.connect(exerciseSetAdded);
-
-			bStopBounce = true;
 			if (navButtons === null)
 				createNavButtons();
-			scrollBarPosition = phantomItem.y;
-			scrollTraining.scrollToPos(scrollBarPosition);
-			bounceTimer.start();
+			scrollTimer.init(phantomItem.y);
 			return;
 		}
 
@@ -976,10 +1013,8 @@ Page {
 		itemManager.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
 	}
 
-	function exerciseSetAdded(exercise_idx: int, scrollamount: int) {
-		//bStopBounce = true;
-		scrollTraining.setScrollBarPosition2(scrollamount/scrollTraining.contentHeight);
-		//bounceTimer.start();
+	function placeSetIntoView(ypos: int) {
+		scrollTimer.init(ypos);
 	}
 
 	function createFloatingAddSetButton(exerciseIdx: int, settype: int, nset: string) {
@@ -1020,10 +1055,6 @@ Page {
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
-	}
-
-	function showExercise(exerciseEntry: Item) {
-
 	}
 
 	function createFirstTimeTipComponent() {

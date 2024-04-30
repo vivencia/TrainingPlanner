@@ -10,6 +10,7 @@ Item {
 	Layout.rightMargin: 5
 	Layout.bottomMargin: 10
 
+	property alias readOnly: txtSetNotes.readOnly
 	property alias text: txtSetNotes.text
 	property alias color: label.color
 	property alias info: label.text

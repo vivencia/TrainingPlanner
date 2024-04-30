@@ -37,17 +37,19 @@ Row {
 			radius: 5
 		}
 
-		onPressed: (mouse) => {
-			console.log("mouse pressed");
-		mousePressed(mouse);
+		Component.onCompleted: {
+			ensureVisible(0);
+			cursorPosition = 0;
 		}
+
+		onPressed: (mouse) => mousePressed(mouse);
 		onPressAndHold: (mouse) => mousePressAndHold(mouse);
 
 		MouseArea {
-				anchors.fill: control
-				onClicked: itemClicked
-				enabled: control.readOnly
-				z:2
+			anchors.fill: control
+			enabled: control.readOnly
+			z:2
+			onClicked: itemClicked();
 		}
 
 		onReadOnlyChanged: {

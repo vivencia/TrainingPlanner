@@ -33,6 +33,7 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
+		enabled: !tDayModel.dayIsFinished
 		Layout.fillWidth: true
 		Layout.bottomMargin: 10
 

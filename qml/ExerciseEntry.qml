@@ -20,7 +20,6 @@ FocusScope {
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 
-	signal setAdded(int objidx, int nsets)
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
 
@@ -40,14 +39,29 @@ FocusScope {
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height + 15
+		implicitHeight: layoutMain.implicitHeight + 10
+		implicitWidth: parent.width
+		width: windowWidth - 10
+		clip: true
+		padding: 0
+		z: 0
+		Layout.fillWidth: true
+
 		Behavior on height {
 			NumberAnimation {
 				easing.type: Easing.InOutBack
 			}
 		}
-		clip: true
-		padding: 0
-		z: 0
+
+		MouseArea {
+			enabled: tDayModel.dayIsFinished
+			z:2
+			anchors.fill: parent
+			onClicked: (mouse) => {
+				if (mouse.y < txtExerciseName.height)
+					btnFoldIcon.clicked();
+			}
+		}
 
 		background: Rectangle {
 			color: exerciseIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
@@ -55,11 +69,6 @@ FocusScope {
 			opacity: 0.8
 			radius: 5
 		}
-
-		Layout.fillWidth: true
-		implicitHeight: layoutMain.implicitHeight + 10
-		implicitWidth: parent.width
-		width: windowWidth - 10
 
 		RoundButton {
 			id: btnMoveExerciseUp
@@ -111,6 +120,7 @@ FocusScope {
 			objectName: "exerciseSetsLayout"
 			anchors.fill: parent
 			spacing: 0
+			enabled: !tDayModel.dayIsFinished
 
 			Row {
 				spacing: 0
@@ -287,17 +297,6 @@ FocusScope {
 	}
 
 	function createSetObject(type: int, n: int, nreps: string, nweight: string) {
-		var nsets_created = 0;
-		function setObjectCreated(object, id) {
-			if (id === 140) {
-				if (++nsets_created === n) {
-					itemManager.itemReady.disconnect(setObjectCreated);
-					setAdded(exerciseIdx, n > 1 ? 50: height);
-				}
-			}
-		}
-
-		itemManager.itemReady.connect(setObjectCreated);
 		itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + n, type, nreps, nweight);
 		setNbr += n;
 	}

@@ -12,9 +12,10 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
+Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false) {}
+	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false), mb_DayIsFinished(false) {}
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
@@ -23,6 +24,8 @@ public:
 	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
+	bool dayIsFinished() const { return mb_DayIsFinished; }
+	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); }
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(0); }
@@ -48,7 +51,7 @@ public:
 	Q_INVOKABLE void setTimeIn(const QString& timein) { if (timein != m_modeldata.at(0).at(5)) { m_modeldata[0][5] = timein; setModified(true); } }
 
 	Q_INVOKABLE QString timeOut() const { return m_modeldata.at(0).at(6); }
-	Q_INVOKABLE void setTimeOut(const QString& timeout) { if (timeout != m_modeldata.at(0).at(6)) {  m_modeldata[0][6] = timeout; setModified(true); } }
+	Q_INVOKABLE void setTimeOut(const QString& timeout) { if (timeout != m_modeldata.at(0).at(6)) { m_modeldata[0][6] = timeout; setModified(true); } }
 
 	Q_INVOKABLE QString location() const { return m_modeldata.at(0).at(7); }
 	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][7] = location; setModified(true); }
@@ -107,6 +110,7 @@ public:
 
 signals:
 	void exerciseCountChanged();
+	void dayIsFinishedChanged();
 
 private:
 	struct exerciseEntry {
@@ -124,6 +128,7 @@ private:
 
 	QList<exerciseEntry*> m_ExerciseData;
 	bool m_tDayModified;
+	bool mb_DayIsFinished;
 
 	friend class DBMesoSplitModel;
 };

@@ -278,6 +278,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 
 			const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
 			const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
+
 			//Because TrainingDayInfo.qml now uses the model directly, we need to have an working model before the page is created
 			if (m_CurrenttDayModel->count() == 0)
 			{
@@ -289,13 +290,18 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 				m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
 				m_CurrenttDayModel->setTimeOut(u"--:--"_qs);
 			}
+			else
+			{
+				if (m_CurrenttDayModel->timeOut() != u"--:--"_qs)
+					m_CurrenttDayModel->setDayIsFinished(true);
+			}
+
 			m_tDayProperties.insert(QStringLiteral("mainDate"), date);
 			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 			m_tDayProperties.insert(QStringLiteral("tDay"), tday);
 			m_tDayProperties.insert(QStringLiteral("splitLetter"), splitLetter);
-			m_tDayProperties.insert(QStringLiteral("bDayIsFinished"), m_CurrenttDayModel->timeOut() != u"--:--"_qs);
 			m_tDayProperties.insert(QStringLiteral("timeIn"), m_CurrenttDayModel->timeIn());
 			m_tDayProperties.insert(QStringLiteral("timeOut"), m_CurrenttDayModel->timeOut());
 		}
@@ -325,7 +331,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	page->setParentItem(m_appStackView);
 	m_CurrenttDayPage = page;
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
-	//emit pageReady(page, tDayPageCreateId);
+	emit pageReady(page, tDayPageCreateId);
 	addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(m_CurrenttDayModel->date()), page);
 }
 
@@ -498,7 +504,12 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		if (!bNewSet)
 		{
 			if (set_number == currenttDayModel()->setsNumber(exercise_idx)-1)
+			{
 				item->setProperty("finishButtonVisible", true);
+				//Place into view: exercise entry + first set
+				QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
+							Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
+			}
 		}
 		else
 		{
@@ -559,6 +570,12 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 		for (uint i(0); i < nsets; ++i)
 			createSetObject(currenttDayModel()->setType(i, exercise_idx), i, exercise_idx, false);
 	}
+	else
+	{
+		//Place into view: exercise entry + first set
+		QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
+			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
+	}
 }
 
 //Convenience function for ExerciseEntry::createSetObject. Create last_set - first_set sets on the fly as per user command
@@ -579,10 +596,23 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 		m_expectedSetNumber = first_set;
 		return;
 	}
-	for (uint i(first_set+1); i < last_set; ++i)
+	if ((last_set - first_set) > 1)
 	{
-		currenttDayModel()->newSet(i, exercise_idx, set_type);
-		createSetObject_part2(set_type, i, exercise_idx, true);
+		for (uint i(first_set+1); i < last_set; ++i)
+		{
+			currenttDayModel()->newSet(i, exercise_idx, set_type);
+			createSetObject_part2(set_type, i, exercise_idx, true);
+		}
+		//Place into view: exercise entry + first set
+		QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
+			Q_ARG(int, m_currentExercises->setObject(exercise_idx, 0)->property("y").toInt()));
+	}
+	else
+	{
+		//Place into view: most recent set added
+		QMetaObject::invokeMethod( m_CurrenttDayPage, "placeSetIntoView",
+			Q_ARG( int, first_set > 0 ? (m_currentExercises->setObject(exercise_idx, first_set-1)->property("y").toInt() + 50) :
+										(m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()) ) );
 	}
 }
 
