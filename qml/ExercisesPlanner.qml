@@ -93,7 +93,7 @@ Page {
 			onClicked: {
 				appDB.pass_object(currentPage.splitModel);
 				appDB.updateMesoSplitComplete(currentPage.splitLetter);
-				requestSimpleExercisesList(null, false);
+				requestSimpleExercisesList(null, false, false);
 			}
 		}
 
@@ -102,7 +102,7 @@ Page {
 			text: qsTr("Clear")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"clear.png"
 			textUnderIcon: true
-			enabled: currentPage ? currentPage.splitModel.count > 0 : false
+			enabled: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 50
 			height: btnAddExercise.height
@@ -132,13 +132,32 @@ Page {
 		}
 
 		TPButton {
+			id: btnExportPlan
+			text: qsTr("Export")
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+			textUnderIcon: true
+			visible: currentPage ? currentPage.splitModel.count > 1 : false
+			fixedSize: true
+			width: 50
+			height: btnAddExercise.height
+			anchors.left: btnSwapPlan.right
+			anchors.verticalCenter: parent.verticalCenter
+
+			onClicked: appDB.exportMesoPlan(currentPage.splitLetter);
+		}
+
+		TPButton {
 			id: btnAddExercise
-			text: qsTr("Add exercise")
+			text: qsTr("+ Exercise")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
-			anchors.right: parent.right
-			anchors.rightMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
+			fixedSize: true
+			width: 60
+			anchors {
+				right: parent.right
+				rightMargin: 5
+				verticalCenter: parent.verticalCenter
+			}
 
 			onClicked: currentPage.appendNewExerciseToDivision();
 		} //btnAddExercise

@@ -582,18 +582,12 @@ Dialog {
 		} //Row
 	} //ColumnLayout
 
-	onClosed: {
-		playSound.stop();
-	}
+	onClosed: playSound.stop();
 
 	Component.onCompleted: {
 		mainwindow.backButtonPressed.connect(maybeDestroy);
 		mainwindow.mainMenuOpened.connect(hideDlg);
 		mainwindow.mainMenuClosed.connect(showDlg);
-		if (Qt.platform.os === "android") {
-			mainwindow.appSuspended.connect(appSuspended);
-			mainwindow.appActive.connect(appResumed);
-		}
 	}
 
 	function maybeDestroy() {
@@ -637,27 +631,6 @@ Dialog {
 				}
 
 			break;
-		}
-	}
-
-	function appSuspended() {
-		if (bRunning) {
-			bWasSuspended = true;
-			suspendedTimer = new Date(2024, 1, 1, hours, mins, secs);
-			console.log("############## suspendedTimer", suspendedTimer.toTimeString());
-			suspendedTime = runCmd.getCurrentTime();
-			console.log("############## suspendedTime", suspendedTime.toTimeString());
-		}
-	}
-
-	function appResumed() {
-		if (bWasSuspended) {
-			bWasSuspended = false;
-			const correctedTimer = runCmd.updateTimer(suspendedTime, suspendedTimer, bTimer);
-			console.log("############## correctedTimer", correctedTimer.toTimeString());
-			hours = correctedTimer.getHours();
-			mins = correctedTimer.getMinutes();
-			secs = correctedTimer.getSeconds();
 		}
 	}
 } // Dialog

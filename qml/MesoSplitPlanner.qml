@@ -240,13 +240,23 @@ Frame {
 						id: txtExerciseName
 						text: exerciseName
 						Layout.leftMargin: 5
-						Layout.fillWidth: true
+						Layout.minimumWidth: parent.width - 20
+						Layout.maximumWidth: parent.width - 20
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
 						onExerciseChanged: (new_text) => exerciseName = new_text;
-						onRemoveButtonClicked: msgDlgRemove.init(index, 0);
-						onEditButtonClicked: requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
+						onItemClicked: splitModel.currentRow = index;
+
+						onRemoveButtonClicked: {
+							splitModel.currentRow = index;
+							msgDlgRemove.init(index, 0);
+						}
+
+						onEditButtonClicked: {
+							splitModel.currentRow = index;
+							requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
+						}
 
 						onMousePressed: (mouse) => {
 							if (!readOnly) {
@@ -353,7 +363,7 @@ Frame {
 						Layout.bottomMargin: 10
 
 						Label {
-							text: exerciseName1.length > 0 ? exerciseName1 : qsTr("No exercise yet selected")
+							text: exerciseName1
 							font.bold: true
 							wrapMode: Text.WordWrap
 							width: listItem.width*0.5-10
@@ -372,7 +382,7 @@ Frame {
 						}
 
 						Label {
-							text: exerciseName2.length > 0 ? exerciseName2 : qsTr("No exercise yet selected")
+							text: exerciseName2
 							font.bold: true
 							wrapMode: Text.WordWrap
 							width: listItem.width*0.5-10
@@ -526,7 +536,7 @@ Frame {
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
 
-						onEditFinished: (new_text) => setSetsNotes(new_text);
+						onEditFinished: (new_text) => setsNotes = new_text;
 					}
 				} //ColumnLayout
 

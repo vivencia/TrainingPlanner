@@ -121,8 +121,8 @@ void DBExercisesTable::updateExercisesList()
 
 	if (mSqlLiteDB.open())
 	{
-		QStringList::const_iterator itr ( m_ExercisesList.constBegin () );
-		const QStringList::const_iterator itr_end ( m_ExercisesList.constEnd () );
+		QStringList::const_iterator itr(m_ExercisesList.constBegin());
+		const QStringList::const_iterator itr_end(m_ExercisesList.constEnd());
 
 		QStringList fields;
 		QSqlQuery query(mSqlLiteDB);
@@ -327,8 +327,8 @@ void DBExercisesTable::removePreviousListEntriesFromDB()
 
 void DBExercisesTable::getExercisesList()
 {
-	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
-	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+	QFile exercisesListFile(u":/extras/exerciseslist.lst"_qs);
+	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[1024];
 		qint64 lineLength;

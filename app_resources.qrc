@@ -77,5 +77,7 @@
         <file>images/white/backup.png</file>
         <file>images/black/application-exit.png</file>
         <file>images/white/application-exit.png</file>
+        <file>images/black/export.png</file>
+        <file>images/white/export.png</file>
     </qresource>
 </RCC>

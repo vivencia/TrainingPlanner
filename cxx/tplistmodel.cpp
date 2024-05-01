@@ -1,6 +1,7 @@
 #include "tplistmodel.h"
 
 #include <QRegularExpression>
+#include <QFile>
 
 void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
 {
@@ -174,4 +175,22 @@ void TPListModel::makeFilterString(const QString& text)
 			m_filterString.remove(')');
 		} while (++itr != itr_end);
 	}
+}
+
+bool TPListModel::exportToText(const QString& filename) const
+{
+	QFile outFile(filename);
+	if (outFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::NewOnly|QIODeviceBase::Text ) )
+	{
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+		while (itr != itr_end)
+		{
+			for (uint i(0); i < (*itr).count(); ++i)
+				outFile.write((*itr).at(i).toUtf8().constData() + '\n', (*itr).at(i).length() + 1);
+			outFile.write("\n\n", 2);
+		}
+		return true;
+	}
+	return false;
 }

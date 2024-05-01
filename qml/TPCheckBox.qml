@@ -8,14 +8,24 @@ CheckBox {
 
 	property string textColor: AppSettings.fontColor
 
+	contentItem: Text {
+		text: control.text
+		font.pointSize: AppSettings.fontSizeText
+		font.weight: Font.ExtraBold
+		wrapMode: Text.WordWrap
+		opacity: enabled ? 1.0 : 0.3
+		verticalAlignment: Text.AlignVCenter
+		leftPadding: control.indicator.width + control.spacing
+		color: textColor
+	}
+
 	indicator: Rectangle {
 		implicitWidth: 20
 		implicitHeight: 20
 		x: control.leftPadding
 		y: (control.height-height)/2
 		radius: 4
-		border.color: AppSettings.fontColor
-		color: AppSettings.fontColor
+		color: textColor
 
 		Rectangle {
 			width: 10
@@ -23,19 +33,7 @@ CheckBox {
 			x: 5
 			y: 5
 			radius: 2
-			color: !control.down ? AppSettings.primaryDarkColor : AppSettings.primaryLightColor
-			visible: control.checked
+			color: control.checked ? textColor : AppSettings.paneBackgroundColor
 		}
-	}
-
-	contentItem: Text {
-		text: control.text
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
-		wrapMode: Text.WordWrap
-		opacity: enabled ? 1.0 : 0.3
-		verticalAlignment: Text.AlignVCenter
-		leftPadding: control.indicator.width + control.spacing
-		color: textColor
 	}
 }

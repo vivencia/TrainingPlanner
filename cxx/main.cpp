@@ -1,7 +1,7 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml/qqmlextensionplugin.h>
 #include <QSettings>
@@ -41,7 +41,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 int main(int argc, char *argv[])
 {
 	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
-	QGuiApplication app(argc, argv);
+	QApplication app(argc, argv);
 	app.setOrganizationName("Vivencia Software");
 	app.setOrganizationDomain("org.vivenciasoftware");
 	app.setApplicationName("Training Planner");

@@ -26,13 +26,13 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	width: windowWidth * 0.7
+	width: windowWidth * 0.8
 
 	background: Rectangle {
 		id: background
 		color: backColor
 		radius: 8
-		opacity: 0.7
+		opacity: 0.9
 	}
 
 	NumberAnimation {

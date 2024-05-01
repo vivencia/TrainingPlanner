@@ -15,25 +15,9 @@ ApplicationWindow {
 	signal backButtonPressed()
 	signal mainMenuOpened()
 	signal mainMenuClosed()
-	signal appSuspended()
-	signal appActive()
 
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
-
-	Connections {
-		target: Qt.application;
-		function onStateChanged(inState) {
-			if (Qt.platform.os === "android") {
-				switch (inState) {
-					case Qt.ApplicationSuspended: appSuspended(); break;
-					case Qt.ApplicationHidden: break;
-					case Qt.ApplicationInactive: break;
-					case Qt.ApplicationActive: appActive(); break;
-				}
-			}
-		}
-	}
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android") {

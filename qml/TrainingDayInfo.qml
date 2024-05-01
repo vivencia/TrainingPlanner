@@ -927,8 +927,8 @@ Page {
 					editMode = true;
 				}
 				else {
-					if (btnAddExercise.enabled)
-						btnAddExercise.clicked();
+					if (btnSaveDay.enabled)
+						btnSaveDay.clicked();
 					tDayModel.dayIsFinished = true;
 					Qt.binding(function() { return btnEditDay.visible = tDayModel.dayIsFinished; });
 				}

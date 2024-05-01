@@ -84,38 +84,46 @@ Page {
 
 			Rectangle {
 				id: recRemoveMeso
-				width: 80
-				height: parent.height
-				color: "red"
+				color: "lightcoral"
 				radius: 6
 				visible: false
 				z: 1
+				anchors {
+					right: parent.right
+					top: parent.top
+					bottom: parent.bottom
+				}
 
-				Rectangle {
-					anchors.centerIn: parent
-					width: 80
-					height: 80
-					color: "transparent"
-
-					Text {
-						text: qsTr("Remove Mesocycle")
-						anchors.bottom: parent.bottom
-						anchors.horizontalCenter: parent.horizontalCenter
-						anchors.bottomMargin: 5
+				Text {
+					text: qsTr("Remove Mesocycle")
+					font.pointSize: AppSettings.fontSize
+					font.bold: true
+					color: AppSettings.fontColor
+					visible: parent.width > width
+					anchors {
+						bottom: parent.bottom
+						horizontalCenter: parent.horizontalCenter
+						bottomMargin: 10
 					}
+				}
 
-					Image {
-						source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
-						height: 40
-						width: 40
-						anchors.top: parent.top
-						anchors.horizontalCenter: parent.horizontalCenter
-						anchors.topMargin: 5
+				Image {
+					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
+					height: 40
+					width: 40
+					visible: parent.width > 50
+					anchors {
+						top: parent.top
+						horizontalCenter: parent.horizontalCenter
+						topMargin: 10
 					}
+				}
 
-					MouseArea {
-						anchors.fill: parent
-						onClicked: msgDlg.show(parent.y + parent.height);
+				MouseArea {
+					anchors.fill: parent
+					onClicked: {
+						msgDlg.show(parent.y + parent.height);
+						recRemoveMeso.visible = false;
 					}
 				}
 
@@ -128,8 +136,6 @@ Page {
 					imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
 					onButton1Clicked: appDB.removeMesocycle();
-
-					onButton2Clicked: recRemoveMeso.visible = false;
 				}
 			} //Rectangle recRemoveMeso
 
@@ -137,54 +143,49 @@ Page {
 				id: swipeDetector
 				anchors.fill: parent
 				preventStealing: true
-				property int xStart: 0
+				pressAndHoldInterval: 300
 				property int xPrev: 0
 				property bool tracing: false
-				property int swipeWidth
-				property bool bFromRight
 
 				onClicked: {
-					currentMesoIndex = index;
-					appDB.getMesocycle(currentMesoIndex);
-					swipeWidth = 0;
-					recRemoveMeso.visible = false;
+					if (!recRemoveMeso.visible) {
+						currentMesoIndex = index;
+						appDB.getMesocycle(currentMesoIndex);
+					}
+					else
+						recRemoveMeso.visible = false;
 				}
 
 				onPressAndHold: (mouse) => {
-					tracing = true;
+					xPrev = mouse.x;
 					if (!recRemoveMeso.visible) {
-						swipeWidth = 0;
-						bFromRight = mouse.x >= width / 2;
-						recRemoveMeso.anchors.left = undefined;
-						recRemoveMeso.anchors.right = undefined;
-						if (bFromRight)
-							recRemoveMeso.anchors.right = parent.right;
-						else
-							recRemoveMeso.anchors.left = parent.left;
-						recRemoveMeso.width = 0;
-						recRemoveMeso.visible = true;
+						if (xPrev >= width/3) {
+							tracing = true;
+							recRemoveMeso.width = width - xPrev;
+							recRemoveMeso.visible = true;
+						}
+					}
+					else {
+						if (xPrev >= 50)
+							tracing = true;
 					}
 				}
 
 				onPositionChanged: (mouse) => {
-					if ( !tracing ) return;
-					if (bFromRight)
-						swipeWidth = parent.width - mouse.x;
-					else
-						swipeWidth = mouse.x;
-
-					if (swipeWidth < parent.width * 0.8) {
-						if (swipeWidth <= parent.width * 0.2)
-							swipeWidth = 0;
-						recRemoveMeso.width = swipeWidth;
+					if (!tracing) return;
+					if (mouse.x <= 50)
+						recRemoveMeso.width = mesosListView.width-50;
+					else if (mouse.x === mesosListView.width - 10)
+						recRemoveMeso.visible = false;
+					else {
+						recRemoveMeso.width += (xPrev - mouse.x);
+						xPrev = mouse.x;
 					}
 				}
 
 				onReleased: (mouse) => {
-					if (tracing) {
+					if (tracing)
 						tracing = false;
-						if (swipeWidth <= 0) recRemoveMeso.visible = false;
-					}
 				}
 			} //MouseArea
 

@@ -10,7 +10,7 @@ ComboBox {
 	model: setTypesModel
 
 	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor
+	property string backgroundColor: AppSettings.primaryLightColor
 
 	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 },
@@ -103,17 +103,19 @@ ComboBox {
 				id: delegate
 				text: model.key
 				color: control.highlighted ? AppSettings.primaryLightColor : AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
+				minimumPointSize: 8
+				fontSizeMode: Text.Fit
 				font.weight: Font.ExtraBold
+				elide: Text.ElideRight
 				padding: 0
 			}
 			ScrollIndicator.vertical: ScrollIndicator { }
 		}
 
 		background: Rectangle {
-			border.color: "black"
+			border.color: AppSettings.fontColor
 			color: backgroundColor
-			opacity: 0.5
+			opacity: 0.9
 			radius: 6
 		}
 	}

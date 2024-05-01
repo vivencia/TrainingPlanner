@@ -8,6 +8,7 @@
 #include <QTimer>
 
 class QSettings;
+class QFileDialog;
 
 class RunCommands : public QObject
 {
@@ -15,6 +16,7 @@ class RunCommands : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool timerRunning READ timerRunning NOTIFY timerRunningChanged FINAL)
+Q_PROPERTY(QString selectedFile READ selectedFile NOTIFY selectedFileChanged FINAL)
 
 public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
@@ -24,6 +26,7 @@ public:
 	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 
+	const QString& selectedFile() const { return m_selectedFile; }
 	inline QString getDBFileName() const { return m_dbFileName; }
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
@@ -51,12 +54,16 @@ public:
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
 	Q_INVOKABLE QDateTime timeFromStrTime(const QString& strTime) const { return QDateTime(QDate::currentDate(), QTime::fromString(strTime, u"hh:mm"_qs)); }
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
-	Q_INVOKABLE QDateTime updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const;
 
 	bool timerRunning() const { return m_workoutTimer ? m_workoutTimer->isActive() : false; }
 	Q_INVOKABLE void prepareWorkoutTimer(const QString& strStartTime = u"00:00:00"_qs);
 	Q_INVOKABLE void startWorkoutTimer();
 	Q_INVOKABLE void stopWorkoutTimer();
+
+	Q_INVOKABLE void getDirectory();
+
+public slots:
+	void fileDialogClosed();
 
 signals:
 	void appSuspended();
@@ -64,11 +71,13 @@ signals:
 	void workoutTimerTriggered(const uint hours, const uint mins, const uint secs);
 	void timeWarning(QString remaingMinutes, bool bminutes);
 	void timerRunningChanged();
+	void selectedFileChanged(bool result);
 
 private:
 	QString m_dbFileName;
 	QString m_appPrivateDir;
 	QSettings* m_appSettings;
+	QString m_selectedFile;
 
 	QTimer* m_workoutTimer;
 	uint m_hours, m_mins, m_secs;

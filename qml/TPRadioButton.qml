@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 RadioButton {
 	id: control
-	padding: 0
+	spacing: 0
 	Layout.fillWidth: true
 
 	property string textColor: AppSettings.fontColor
@@ -15,10 +15,7 @@ RadioButton {
 		wrapMode: Text.WordWrap
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
-		anchors.left: parent.left
-		anchors.leftMargin: 25
-		anchors.right: parent.right
-		anchors.rightMargin: 5
+		leftPadding: control.indicator.width + control.spacing
 	}
 
 	indicator: Rectangle {

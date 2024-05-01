@@ -7,12 +7,8 @@
 #include <QLocale>
 #include <QClipboard>
 #include <QGuiApplication>
-
-#ifdef Q_OS_ANDROID
-#ifdef DEBUG
+#include <QFileDialog>
 #include <QStandardPaths>
-#endif
-#endif
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	: QObject(parent), m_appSettings(settings), m_workoutTimer(nullptr), mb_appSuspended(false)
@@ -256,20 +252,6 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-QDateTime RunCommands::updateTimer(const QDateTime& timeOfSuspension, const QDateTime& currentTimer, const bool bTimer) const
-{
-	//If I don't put this line of code here, that does nothing but print to cout, the code fails. Don't know why
-	qDebug() << timeOfSuspension.time().second();
-	const QTime diffTime(QTime::currentTime().hour() - timeOfSuspension.time().hour(),
-						 QTime::currentTime().minute() - timeOfSuspension.time().minute(),
-						 QTime::currentTime().second() - timeOfSuspension.time().second());
-	//qDebug() << "Suspended for  " << diffTime.toString("hh:mm:ss");
-	if (bTimer)
-		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(0 - QTime(0, 0, 0).secsTo(diffTime)));
-	else
-		return QDateTime(QDate::currentDate(), currentTimer.time().addSecs(QTime(0, 0, 0).secsTo(diffTime)));
-}
-
 void RunCommands::prepareWorkoutTimer(const QString& strStartTime)
 {
 	if (!m_workoutTimer)
@@ -413,4 +395,25 @@ void RunCommands::calculateTimeBetweenTimes(const QTime& time1, const QTime& tim
 	}
 
 	mElapsedTime.setHMS(hour, min, sec);
+}
+
+void RunCommands::getDirectory()
+{
+	QWidget* dummy(new QWidget());
+	QFileDialog* dlg(new QFileDialog(dummy, tr("Choose folder to export to"),
+					QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)));
+	dlg->deleteLater();
+	dlg->setFileMode(QFileDialog::Directory);
+	dlg->open(this, SLOT(fileDialogClosed()));
+}
+
+void RunCommands::fileDialogClosed()
+{
+	QFileDialog* dlg(dynamic_cast<QFileDialog*>(sender()));
+	const bool bOK(dlg->result() == QDialog::Accepted);
+	if (bOK)
+		m_selectedFile = dlg->selectedFiles().at(0);
+	emit selectedFileChanged(bOK);
+	delete dlg->parent();
+	delete dlg;
 }

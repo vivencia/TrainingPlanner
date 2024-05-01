@@ -62,12 +62,13 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case exerciseName1Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx) : QString();
+				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx) :
+					m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole);
 			}
 			case exerciseName2Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).sliced(idx+1) : QString();
+				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).sliced(idx+1) : tr("2: Add exercise ...");
 			}
 			case setsNumberRole:
 			case setsSubsetsRole:
