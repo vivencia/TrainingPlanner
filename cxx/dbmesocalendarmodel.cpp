@@ -3,6 +3,7 @@
 DBMesoCalendarModel::DBMesoCalendarModel(QObject *parent)
 	: TPListModel{parent}
 {
+	m_tableId = MESOCALENDAR_TABLE_ID;
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[mesoCalIdRole] = "mesoCalId";
 	m_roleNames[mesoCalMesoIdRole] = "mesoCalMesoId";

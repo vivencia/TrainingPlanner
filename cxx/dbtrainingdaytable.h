@@ -9,8 +9,6 @@
 class DBTrainingDayModel;
 
 static const QString DBTrainingDayFileName ( QStringLiteral("TrainingDay.db.sqlite") );
-static const QString DBTrainingDayObjectName ( QStringLiteral("TrainingDay") );
-static const uint TRAININGDAY_TABLE_ID = 0x0005;
 
 class DBTrainingDayTable : public TPDatabaseTable
 {

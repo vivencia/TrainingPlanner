@@ -4,6 +4,7 @@
 DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	: TPListModel{parent}, m_nextAddedExercisePos(2)
 {
+	m_tableId = MESOSPLIT_TABLE_ID;
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[exerciseNameRole] = "exerciseName";
 	m_roleNames[exerciseName1Role] = "exerciseName1";

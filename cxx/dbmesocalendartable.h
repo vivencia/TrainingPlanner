@@ -9,8 +9,6 @@
 class DBMesoCalendarModel;
 
 static const QString DBMesoCalendarFileName ( QStringLiteral("MesoCalendar.db.sqlite") );
-static const QString DBMesoCalendarObjectName ( QStringLiteral("MesoCalendar") );
-static const uint MESOCALENDAR_TABLE_ID = 0x0004;
 
 class DBMesoCalendarTable : public TPDatabaseTable
 {

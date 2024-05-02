@@ -9,8 +9,6 @@
 class DBExercisesModel;
 
 static const QString DBExercisesFileName ( QStringLiteral("ExercisesList.db.sqlite") );
-static const QString DBExercisesObjectName ( QStringLiteral("Exercises") );
-static const uint EXERCISES_TABLE_ID = 0x0001;
 
 class DBExercisesModel;
 

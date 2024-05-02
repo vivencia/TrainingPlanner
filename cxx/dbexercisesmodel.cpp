@@ -3,6 +3,7 @@
 DBExercisesModel::DBExercisesModel(QObject *parent)
 	: TPListModel(parent)
 {
+	m_tableId = EXERCISES_TABLE_ID;
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[exerciseIdRole] = "exerciseId";
 	m_roleNames[mainNameRole] = "mainName";

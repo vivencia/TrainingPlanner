@@ -15,6 +15,18 @@ static const QLatin1Char record_separator(29);
 static const QLatin1Char record_separator2(30);
 static const QLatin1Char subrecord_separator(31);
 
+static const uint EXERCISES_TABLE_ID = 0x0001;
+static const uint MESOCYCLES_TABLE_ID = 0x0002;
+static const uint MESOSPLIT_TABLE_ID = 0x0003;
+static const uint MESOCALENDAR_TABLE_ID = 0x0004;
+static const uint TRAININGDAY_TABLE_ID = 0x0005;
+
+static const QString DBExercisesObjectName(QStringLiteral("Exercises"));
+static const QString DBMesocyclesObjectName(QStringLiteral("Mesocycles"));
+static const QString DBMesoSplitObjectName(QStringLiteral("MesocyclesSplits"));
+static const QString DBMesoCalendarObjectName(QStringLiteral("MesoCalendar"));
+static const QString DBTrainingDayObjectName(QStringLiteral("TrainingDay"));
+
 class TPListModel : public QAbstractListModel
 {
 
@@ -28,7 +40,7 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 public:
 
 	explicit TPListModel(QObject *parent = nullptr) : QAbstractListModel(parent),
-		m_currentRow(-1), m_bFilterApplied(false),  m_bReady(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
+		m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),  m_bReady(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );
@@ -71,7 +83,7 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
-	Q_INVOKABLE bool exportToText(const QString& filename) const;
+	Q_INVOKABLE bool exportToText(const QString& filename, const bool appendToFile) const;
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);
@@ -139,6 +151,7 @@ protected:
 	QList<uint> m_indexProxy;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
+	uint m_tableId;
 	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;

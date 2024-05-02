@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtCore
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -223,7 +224,7 @@ Page {
 	FileDialog {
 		id: exportDialog
 		title: qsTr("Choose the folder and filename to export to")
-		currentFolder: QtCore.standardLocations(QtCore.DocumentsLocation)[0]
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 		fileMode: FileDialog.SaveFile
 
 		property int _opt
@@ -238,10 +239,12 @@ Page {
 				return;
 			}
 			var result;
-			if (_opt === 1)
-				result = currentPage.splitModel.exportToText(currentFile);
+			if (_opt === 0) {
+				for (var i = 0; i < splitView.count; ++i)
+					result = splitView.itemAt(i).splitModel.exportToText(currentFile, true);
+			}
 			else
-				result = currentPage.splitModel.exportToText(currentFile);
+				result = currentPage.splitModel.exportToText(currentFile, false);
 			exportTip.init(result ? qsTr("Meso plan successfully exported") : qsTr("Failed to export meso plan"));
 			close();
 		}
@@ -252,9 +255,10 @@ Page {
 			if (opt === 0)
 				suggestedName = qsTr(" - Exercises Plan.tp")
 			else
-				suggestedName = qsTr(" - Exercises Plan - Split " + currentPage.splitLetter + ".tp");
+				suggestedName = qsTr(" - Exercises Plan - Split ") + currentPage.splitLetter + ".tp";
 
 			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+			open();
 		}
 	}
 } //Page

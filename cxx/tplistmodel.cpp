@@ -177,11 +177,34 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-bool TPListModel::exportToText(const QString& filename) const
+bool TPListModel::exportToText(const QString& filename, const bool appendToFile) const
 {
 	QFile outFile(filename);
-	if (outFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::NewOnly|QIODeviceBase::Text ) )
+	QFlags<QIODeviceBase::OpenModeFlag> flags;
+
+	if (outFile.exists())
 	{
+		if (!appendToFile)
+			return false;
+		else
+			flags = QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text;
+	}
+	else
+		flags = QIODeviceBase::ReadOnly|QIODeviceBase::NewOnly|QIODeviceBase::Text;
+
+	if (outFile.open(flags))
+	{
+		QString tableName;
+		switch (m_tableId)
+		{
+			case EXERCISES_TABLE_ID: tableName = DBExercisesObjectName; break;
+			case MESOCYCLES_TABLE_ID: tableName = DBMesocyclesObjectName; break;
+			case MESOCALENDAR_TABLE_ID: tableName = DBMesoCalendarObjectName; break;
+			case MESOSPLIT_TABLE_ID: tableName = DBMesoSplitObjectName; break;
+			case TRAININGDAY_TABLE_ID: tableName = DBTrainingDayObjectName; break;
+		}
+		outFile.write(tableName.toUtf8().constData() + '\n');
+
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
 		while (itr != itr_end)

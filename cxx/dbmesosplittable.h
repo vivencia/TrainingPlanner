@@ -10,8 +10,6 @@ class DBMesoSplitModel;
 class DBTrainingDayModel;
 
 static const QString DBMesoSplitFileName ( QStringLiteral("MesocyclesSplits.db.sqlite") );
-static const QString DBMesoSplitObjectName ( QStringLiteral("MesocyclesSplits") );
-static const uint MESOSPLIT_TABLE_ID = 0x0003;
 
 class DBMesoSplitTable : public TPDatabaseTable
 {
