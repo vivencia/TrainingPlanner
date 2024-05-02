@@ -29,16 +29,13 @@ Page {
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
+	property bool editMode: false
 
-	property date sessionStart
-
-	property bool bFirstTime: false
 	property bool bAlreadyLoaded
 
 	property date previousDivisionDayDate
 	property var btnFloat: null
 	property var navButtons: null
-	property var firstTimeTip: null
 	property var timerDialog: null
 	property var timerDialogRequester: null
 
@@ -315,12 +312,12 @@ Page {
 				ColumnLayout {
 					id: timeLayout
 					anchors.fill: parent
+					enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning && !grpIntent.visible
 
 					TPRadioButton {
 						id: optFreeTimeSession
 						text: qsTr("Open time training session")
 						checked: true
-						enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 						Layout.fillWidth: true
 
 						onClicked: {
@@ -332,7 +329,6 @@ Page {
 						id: optTimeConstrainedSession
 						text: qsTr("Time constrained session")
 						checked: false
-						enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 						Layout.fillWidth: true
 					}
 
@@ -383,7 +379,6 @@ Page {
 							id: btnInTime
 							width: 40
 							height: 40
-							enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 							anchors {
 								top: parent.top
 								topMargin: -15
@@ -432,7 +427,6 @@ Page {
 
 						RoundButton {
 							id: btnOutTime
-							enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
 							width: 40
 							height: 40
 
@@ -799,7 +793,7 @@ Page {
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
-				visible: !tDayModel.dayIsFinished
+				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
 
 				onClicked: {
 					runCmd.workoutTimerTriggered.connect(updateTimer);
@@ -824,21 +818,18 @@ Page {
 					DigitalClock {
 						id: hoursClock
 						max: 24
-						enabled: tDayModel.dayIsFinished
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
 						id: minsClock
 						max: 60
-						enabled: tDayModel.dayIsFinished
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
 						id: secsClock
 						max: 60
-						enabled: tDayModel.dayIsFinished
 					}
 				}
 			}
@@ -846,7 +837,7 @@ Page {
 			TPButton {
 				id: btnEndWorkout
 				text: qsTr("Finish")
-				visible: !tDayModel.dayIsFinished
+				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
 
 				onClicked: {
 					runCmd.stopWorkoutTimer();
@@ -909,8 +900,6 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
 			textUnderIcon: true
 			visible: tDayModel.dayIsFinished
-
-			property bool editMode: false
 
 			anchors {
 				left: btnSaveDay.right
@@ -1057,28 +1046,6 @@ Page {
 		exercisesPane.shown = false;
 	}
 
-	function createFirstTimeTipComponent() {
-		var component = Qt.createComponent("FirstTimeHomePageTip.qml", Qt.Asynchronous);
-		function finishCreation() {
-			firstTimeTip = component.createObject(trainingDayPage, { message:qsTr("Start here") });
-		}
-
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
-	function placeTipOnAddExercise() {
-		if (bFirstTime) {
-			if (!firstTimeTip)
-				createFirstTimeTipComponent();
-			firstTimeTip.y = dayInfoToolBar.y;
-			firstTimeTip.x = trainingDayPage.width-firstTimeTip.width;
-			firstTimeTip.visible = true;
-		}
-	}
-
 	function requestTimerDialog(requester, message, mins, secs) {
 		if (timerDialog === null) {
 			var component = Qt.createComponent("TimerDialog.qml", Qt.Asynchronous);
@@ -1133,28 +1100,9 @@ Page {
 
 	function pageActivation() {
 		changeComboModel();
-
-		return;
-		if (!bAlreadyLoaded) {
-			if (bFirstTime) {
-				if (grpIntent.visible) {
-					scrollTraining.setScrollBarPosition(1);
-					grpIntent.highlight = true;
-				}
-				else
-					placeTipOnAddExercise();
-			}
-			bAlreadyLoaded = true;
-		}
-		else {
-			if (navButtons)
-				navButtons.visible = true;
-		}
 	}
 
 	function pageDeActivation() {
-		if (firstTimeTip)
-			firstTimeTip.visible = false;
 		if (navButtons)
 			navButtons.visible = false;
 		if (btnFloat)

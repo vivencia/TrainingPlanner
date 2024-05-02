@@ -81,7 +81,6 @@ set( QML_FILES
     "qml/ExercisesListView.qml"
     "qml/MesoSplitPlanner.qml"
     "qml/TransparentButton.qml"
-    "qml/FirstTimeHomePageTip.qml"
     "qml/OpenEndedPlan.qml"
     "qml/TPButton.qml"
     "qml/TPTextInput.qml"

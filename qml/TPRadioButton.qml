@@ -24,7 +24,8 @@ RadioButton {
 		x: 3
 		y: (parent.height-height)/2
 		radius: 10
-		color: textColor
+		color: "transparent"
+		border.color: textColor
 
 		Rectangle {
 			width: 14
@@ -32,7 +33,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.checked ? textColor : AppSettings.paneBackgroundColor
+			color: control.checked ? AppSettings.paneBackgroundColor : "transparent"
 		}
 	}
 }

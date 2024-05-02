@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Dialogs
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -86,9 +87,11 @@ Page {
 			fixedSize: true
 			width: 50
 			height: btnAddExercise.height
-			anchors.left: parent.left
-			anchors.leftMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				verticalCenter: parent.verticalCenter
+			}
 
 			onClicked: {
 				appDB.pass_object(currentPage.splitModel);
@@ -106,8 +109,11 @@ Page {
 			fixedSize: true
 			width: 50
 			height: btnAddExercise.height
-			anchors.left: btnSave.right
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				left: btnSave.right
+				leftMargin: 3
+				verticalCenter: parent.verticalCenter
+			}
 
 			onClicked: {
 				currentPage.splitModel.clear();
@@ -125,8 +131,11 @@ Page {
 			fixedSize: true
 			width: 50
 			height: btnAddExercise.height
-			anchors.left: btnClearPlan.right
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				left: btnClearPlan.right
+				leftMargin: 3
+				verticalCenter: parent.verticalCenter
+			}
 
 			onClicked: appDB.swapMesoPlans(currentPage.splitLetter, currentPage.swappableLetter);
 		}
@@ -140,10 +149,13 @@ Page {
 			fixedSize: true
 			width: 50
 			height: btnAddExercise.height
-			anchors.left: btnSwapPlan.right
-			anchors.verticalCenter: parent.verticalCenter
+			anchors {
+				left: btnSwapPlan.right
+				leftMargin: 3
+				verticalCenter: parent.verticalCenter
+			}
 
-			onClicked: appDB.exportMesoPlan(currentPage.splitLetter);
+			onClicked: exportTypeTip.show(0);
 		}
 
 		TPButton {
@@ -152,7 +164,7 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			fixedSize: true
-			width: 60
+			width: 65
 			anchors {
 				right: parent.right
 				rightMargin: 5
@@ -184,5 +196,65 @@ Page {
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		message: qsTr("What do you want to export?")
+		button1Text: qsTr("Entire plan")
+		button2Text: qsTr("Just this split")
+
+		onButton1Clicked: exportDialog.init(0);
+		onButton2Clicked: exportDialog.init(1);
+	}
+
+	TPBalloonTip {
+		id: exportTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		button1Text: "OK"
+
+		function init(msg: string) {
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
+	FileDialog {
+		id: exportDialog
+		title: qsTr("Choose the folder and filename to export to")
+		currentFolder: QtCore.standardLocations(QtCore.DocumentsLocation)[0]
+		fileMode: FileDialog.SaveFile
+
+		property int _opt
+
+		onAccepted: {
+			if (runCmd.fileExists(currentFile)) {
+				exportTip.init(qsTr("Choose a non-existing file"));
+				return;
+			}
+			if (!runCmd.writablePath(currentFile)) {
+				exportTip.init(qsTr("Cannot save under this folder"));
+				return;
+			}
+			var result;
+			if (_opt === 1)
+				result = currentPage.splitModel.exportToText(currentFile);
+			else
+				result = currentPage.splitModel.exportToText(currentFile);
+			exportTip.init(result ? qsTr("Meso plan successfully exported") : qsTr("Failed to export meso plan"));
+			close();
+		}
+
+		function init(opt: int) {
+			var suggestedName;
+			_opt = opt;
+			if (opt === 0)
+				suggestedName = qsTr(" - Exercises Plan.tp")
+			else
+				suggestedName = qsTr(" - Exercises Plan - Split " + currentPage.splitLetter + ".tp");
+
+			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+		}
 	}
 } //Page

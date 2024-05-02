@@ -25,7 +25,8 @@ CheckBox {
 		x: control.leftPadding
 		y: (control.height-height)/2
 		radius: 4
-		color: textColor
+		color: "transparent"
+		border.color: textColor
 
 		Rectangle {
 			width: 10
@@ -33,7 +34,7 @@ CheckBox {
 			x: 5
 			y: 5
 			radius: 2
-			color: control.checked ? textColor : AppSettings.paneBackgroundColor
+			color: control.checked ? AppSettings.paneBackgroundColor : "transparent"
 		}
 	}
 }

@@ -33,9 +33,7 @@ Page {
 	property bool bLoadCompleted: false
 	property bool bNewMeso: mesoId === -1
 	property bool bModified: false
-	property bool bFirstTime: false
 	property bool bEmptyPlan: false
-	property var firstTimeTip: null
 
 	Image {
 		anchors.fill: parent
@@ -47,44 +45,6 @@ Page {
 	background: Rectangle {
 		color: AppSettings.primaryDarkColor
 		opacity: 0.7
-	}
-
-	onBModifiedChanged: {
-		if (bLoadCompleted && bModified) {
-			if (bFirstTime && firstTimeTip) {
-				firstTimeTip.message = qsTr("Click here");
-				firstTimeTip.y = mesoCycleToolBar.y;
-				firstTimeTip.x = openEndedPage.width - firstTimeTip.width;
-				firstTimeTip.visible = true;
-			}
-		}
-	}
-
-	ToolTip {
-		id: firstTimeToolTip
-		text: qsTr("Change the Weekly Training Division field or specify which muscle groups are trainned on the corresponding division day")
-		timeout: -1
-		x: 0
-		y: mesoCycleToolBar.y - height
-		width: mainwindow.width * 0.9
-		height: implicitContentHeight + 2*contentItem.padding
-		parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-		visible: bFirstTime
-
-		contentItem: Text {
-			text: firstTimeToolTip.text
-			wrapMode: Text.WordWrap
-			color: AppSettings.fontColor
-			font.pointSize: AppSettings.fontSizeText
-			width: parent.width
-			padding: 5
-		} //contentItem
-
-		background: Rectangle {
-			color: "black"
-			opacity: 0.6
-			radius: 8
-		}
 	}
 
 	ListModel {
@@ -174,7 +134,6 @@ Page {
 			Layout.minimumWidth: parent.width / 2
 			validator: regEx
 			text: mesoSplit
-			highlight: bFirstTime
 
 			onTextEdited: {
 				if (bNewMeso || (text !== mesosModel.get(idxModel).mesoSplit))
@@ -211,7 +170,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('A') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitA)) {
@@ -245,7 +203,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('B') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitB)) {
@@ -280,7 +237,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('C') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitC)) {
@@ -315,7 +271,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('D') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitD)) {
@@ -350,7 +305,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('E') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitE)) {
@@ -385,7 +339,6 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				visible: mesoSplit.indexOf('F') !== -1
-				highlight: bFirstTime
 
 				onEditingFinished: {
 					if (bNewMeso || (text !== divisionModel.get(idxDivision).splitF)) {
@@ -493,16 +446,6 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 
 			onClicked: {
-				if (bFirstTime) {
-					firstTimeToolTip.text = qsTr("Either click on HOME or on Exercises Planner to create a script for your training routine")
-					firstTimeTip.visible = false;
-					firstTimeTip.x = 0;
-					firstTimeTip.y = mesoCycleToolBar.y + mesoCycleToolBar.height;
-					firstTimeTip.visible = true;
-					bFirstTime = false;
-					bEmptyPlan = true;
-				}
-
 				if (mesoSplit.length === 0)
 					mesoSplit = "ABC";
 				if (strSplitA.length === 0)
@@ -570,17 +513,6 @@ Page {
 		Component.onCompleted: {
 			bLoadCompleted = true;
 			JSF.checkWhetherCanCreatePlan();
-
-			if (bFirstTime && firstTimeTip) {
-				firstTimeTip.message = qsTr("Click here");
-				firstTimeTip.y = mesoCycleToolBar.y;
-				firstTimeTip.x = openEndedPage.width;
-				firstTimeTip.visible = true;
-			}
-			else {
-				let plan_info = Database.getCompleteDivisionAForMeso(mesoId);
-				bEmptyPlan = !plan_info.splitExercises;
-			}
 		}
 	} //footer
 } //Page

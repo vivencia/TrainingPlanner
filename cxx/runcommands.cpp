@@ -7,8 +7,6 @@
 #include <QLocale>
 #include <QClipboard>
 #include <QGuiApplication>
-#include <QFileDialog>
-#include <QStandardPaths>
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	: QObject(parent), m_appSettings(settings), m_workoutTimer(nullptr), mb_appSuspended(false)
@@ -252,6 +250,19 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
+const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal)
+{
+	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
+	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());
+
+	if (min < 0)
+	{
+		hour--;
+		min += 60;
+	}
+	return QTime(hour, min, 0);
+}
+
 void RunCommands::prepareWorkoutTimer(const QString& strStartTime)
 {
 	if (!m_workoutTimer)
@@ -397,23 +408,15 @@ void RunCommands::calculateTimeBetweenTimes(const QTime& time1, const QTime& tim
 	mElapsedTime.setHMS(hour, min, sec);
 }
 
-void RunCommands::getDirectory()
+bool RunCommands::fileExists(const QString& filename) const
 {
-	QWidget* dummy(new QWidget());
-	QFileDialog* dlg(new QFileDialog(dummy, tr("Choose folder to export to"),
-					QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)));
-	dlg->deleteLater();
-	dlg->setFileMode(QFileDialog::Directory);
-	dlg->open(this, SLOT(fileDialogClosed()));
+	QFileInfo fi(filename);
+	return fi.exists();
 }
 
-void RunCommands::fileDialogClosed()
+bool RunCommands::writablePath(const QString& filename) const
 {
-	QFileDialog* dlg(dynamic_cast<QFileDialog*>(sender()));
-	const bool bOK(dlg->result() == QDialog::Accepted);
-	if (bOK)
-		m_selectedFile = dlg->selectedFiles().at(0);
-	emit selectedFileChanged(bOK);
-	delete dlg->parent();
-	delete dlg;
+	QFileInfo fi(filename);
+	fi.setFile(fi.filePath());
+	return fi.isWritable();
 }

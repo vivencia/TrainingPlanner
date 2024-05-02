@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 TextField {
 	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor//"black"//"#c3cad5"
+	property string backgroundColor: AppSettings.primaryDarkColor
 	property bool highlight: false
 
 	id: control

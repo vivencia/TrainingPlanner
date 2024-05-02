@@ -10,7 +10,7 @@ ComboBox {
 	model: setTypesModel
 
 	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryLightColor
+	property string backgroundColor: AppSettings.primaryDarkColor
 
 	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
 							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 },
@@ -83,7 +83,7 @@ ComboBox {
 		implicitWidth: control.implicitWidth
 		implicitHeight: control.implicitHeight
 		color: backgroundColor
-		opacity: 0.8
+		opacity: 0.5
 		border.width: control.visualFocus ? 2 : 1
 		radius: 6
 	}

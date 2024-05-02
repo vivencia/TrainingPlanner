@@ -5,6 +5,7 @@ Rectangle {
 	width: 25
 	height: 35
 	color: AppSettings.primaryColor
+	enabled: false
 
 	property alias value: list.currentIndex
 	property int max

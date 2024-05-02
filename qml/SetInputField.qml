@@ -13,7 +13,7 @@ FocusScope {
 
 	property bool bClearInput: true
 	property color borderColor: AppSettings.fontColor
-	property color labelColor: AppSettings.fontColor
+	property color labelColor: "white"
 	property color inputColor: AppSettings.fontColor
 	property color backColor: "white"
 

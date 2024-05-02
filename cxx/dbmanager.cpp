@@ -836,13 +836,6 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	worker2->addExecArg(splitLetter2);
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
-
-void DbManager::exportMesoPlan(const QString& splitLetter)
-{
-	connect(m_runCommands, &RunCommands::selectedFileChanged, this, [&, splitLetter] (const bool result) {
-		if (result) m_currentMesoManager->getSplitModel(splitLetter.at(0))->exportToText(m_runCommands->selectedFile()); });
-	m_runCommands->getDirectory();
-}
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

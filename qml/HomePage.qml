@@ -9,8 +9,6 @@ Page {
 	id: homePage
 	property int currentMesoIndex: -1
 	property date minimumStartDate;
-	property var firstTimeTip: null
-	property bool bFirstTime: false
 
 	Image {
 		anchors.fill: parent
@@ -273,10 +271,7 @@ Page {
 		}
 	} // footer
 
-	Component.onCompleted: {
-		homePage.StackView.activating.connect(pageActivation);
-		homePage.StackView.onDeactivating.connect(pageDeActivation);
-	}
+	Component.onCompleted: homePage.StackView.activating.connect(pageActivation);
 
 	function newAction(opt) {
 		function pushPageOntoStack(object, id)
@@ -306,50 +301,5 @@ Page {
 
 	function pageActivation() {
 		mesosListView.model = mesocyclesModel;
-		if (mesocyclesModel.count === 0) {
-			createFirstTimeTipComponent();
-			firstTimeTip.y = homePageToolBar.y;
-			firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
-			firstTimeTip.visible = true;
-			bFirstTime = true;
-		}
-
-		//mesocyclesModel.count === 0 is a first iteration of tips
-		//showTip is a second iteration of tips. So it should be true under this condition and false if the first iteration condition is true
-		const showTip = false; // mesocyclesModel.count !== 0 ? !Database.isTrainingDayTableEmpty(mesocyclesModel.mesoId) : false;
-
-		if (mesocyclesModel.count === 0 || showTip) {
-			if (firstTimeTip) {
-				firstTimeTip.message = qsTr("Start here");
-				firstTimeTip.visible = true;
-			}
-			else
-				createFirstTimeTipComponent();
-
-			if (mesocyclesModel.count === 0) {
-				firstTimeTip.y = homePageToolBar.y;
-				firstTimeTip.x = (homePage.width-firstTimeTip.width)/2;
-				firstTimeTip.visible = true;
-			}
-			else {
-				if (showTip) {
-					firstTimeTip.y = homePageToolBar.y + homePageToolBar.height;
-					firstTimeTip.x = homePage.width-firstTimeTip.width;
-					firstTimeTip.visible = true;
-				}
-			}
-		}
-	}
-
-	function pageDeActivation() {
-		if (firstTimeTip)
-			firstTimeTip.visible = false;
-	}
-
-	function createFirstTimeTipComponent() {
-		var component = Qt.createComponent("FirstTimeHomePageTip.qml");
-		if (component.status === Component.Ready) {
-			firstTimeTip = component.createObject(homePage, { message:qsTr("Start either here or here"), showTwoImages: true });
-		}
 	}
 } //Page
