@@ -53,20 +53,14 @@ Item {
 				}
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: cboSetType.right
-				height: 25
-				width: 25
+				height: 30
+				width: 30
+				imageName: "remove.png"
 
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"remove.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
 				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 		}
@@ -141,18 +135,15 @@ Item {
 				onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnCopyValue
 				visible: false
+				imageName: "copy-setvalue.png"
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 30
+				Layout.minimumWidth: 30
+				Layout.maximumWidth: 30
 				Layout.alignment: Qt.AlignRight
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
 
 				onClicked: {
 					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 0);
@@ -178,18 +169,15 @@ Item {
 				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnCopyValue2
 				visible: false
+				imageName: "copy-setvalue.png"
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 30
+				Layout.minimumWidth: 30
+				Layout.maximumWidth: 30
 				Layout.alignment: Qt.AlignRight
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
 
 				onClicked: {
 					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 1);
@@ -220,18 +208,15 @@ Item {
 				onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnCopyValue3
 				visible: false
+				imageName: "copy-setvalue.png"
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 30
+				Layout.minimumWidth: 30
+				Layout.maximumWidth: 30
 				Layout.alignment: Qt.AlignRight
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
 
 				onClicked: {
 					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 0);
@@ -261,18 +246,15 @@ Item {
 				}
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnCopyValue4
 				visible: false
+				imageName: "copy-setvalue.png"
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 30
+				Layout.minimumWidth: 30
+				Layout.maximumWidth: 30
 				Layout.alignment: Qt.AlignRight
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
 
 				onClicked: {
 					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 1);

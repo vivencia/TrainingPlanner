@@ -97,6 +97,7 @@ set( QML_FILES
     "qml/BackupPage.qml"
     "qml/ExerciseNameField.qml"
     "qml/DigitalClock.qml"
+    "qml/TPRoundButton.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

@@ -22,7 +22,6 @@ public:
 	void getPreviousTrainingDays();
 	void newTrainingDay();
 	void updateTrainingDay();
-	void updateTrainingDayExercises();
 	void removeTrainingDay();
 	void deleteTrainingDayTable();
 

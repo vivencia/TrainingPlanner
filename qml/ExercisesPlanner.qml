@@ -86,7 +86,7 @@ Page {
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.modified : false
 			fixedSize: true
-			width: 50
+			width: 55
 			height: btnAddExercise.height
 			anchors {
 				left: parent.left
@@ -108,7 +108,7 @@ Page {
 			textUnderIcon: true
 			enabled: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
-			width: 50
+			width: 55
 			height: btnAddExercise.height
 			anchors {
 				left: btnSave.right
@@ -130,7 +130,7 @@ Page {
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true
-			width: 50
+			width: 55
 			height: btnAddExercise.height
 			anchors {
 				left: btnClearPlan.right
@@ -148,7 +148,7 @@ Page {
 			textUnderIcon: true
 			visible: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
-			width: 50
+			width: 55
 			height: btnAddExercise.height
 			anchors {
 				left: btnSwapPlan.right
@@ -156,7 +156,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: exportTypeTip.show(0);
+			onClicked: exportTypeTip.show(-1);
 		}
 
 		TPButton {
@@ -165,7 +165,7 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			fixedSize: true
-			width: 65
+			width: 70
 			anchors {
 				right: parent.right
 				rightMargin: 5
@@ -230,21 +230,13 @@ Page {
 		property int _opt
 
 		onAccepted: {
-			if (runCmd.fileExists(currentFile)) {
-				exportTip.init(qsTr("Choose a non-existing file"));
-				return;
-			}
-			if (!runCmd.writablePath(currentFile)) {
-				exportTip.init(qsTr("Cannot save under this folder"));
-				return;
-			}
 			var result;
 			if (_opt === 0) {
 				for (var i = 0; i < splitView.count; ++i)
-					result = splitView.itemAt(i).splitModel.exportToText(currentFile, true);
+					result = splitView.itemAt(i).splitModel.exportToText(currentFile);
 			}
 			else
-				result = currentPage.splitModel.exportToText(currentFile, false);
+				result = currentPage.splitModel.exportToText(currentFile);
 			exportTip.init(result ? qsTr("Meso plan successfully exported") : qsTr("Failed to export meso plan"));
 			close();
 		}

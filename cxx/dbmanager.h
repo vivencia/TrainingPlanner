@@ -104,7 +104,6 @@ public:
 	Q_INVOKABLE void convertTDayToPlan(DBTrainingDayModel* tDayModel);
 	Q_INVOKABLE void newTrainingDay();
 	Q_INVOKABLE void updateTrainingDay();
-	Q_INVOKABLE void updateTrainingDayExercises();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable();
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

@@ -40,7 +40,7 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 public:
 
 	explicit TPListModel(QObject *parent = nullptr) : QAbstractListModel(parent),
-		m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),  m_bReady(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
+		m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),  m_bReady(false), m_bModified(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );
@@ -83,7 +83,7 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
-	Q_INVOKABLE bool exportToText(const QString& filename, const bool appendToFile) const;
+	Q_INVOKABLE bool exportToText(const QString& filename) const;
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);

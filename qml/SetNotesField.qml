@@ -25,7 +25,7 @@ Item {
 			top: parent.top
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: button
 			anchors {
 				left: parent.right
@@ -34,17 +34,7 @@ Item {
 			}
 			width: 25
 			height: 25
-
-			Image {
-				id: img
-				source: "qrc:/images/"+darkIconFolder+"fold-down.png"
-				width: 20
-				height: 20
-				anchors {
-					verticalCenter: parent.verticalCenter
-					horizontalCenter: parent.horizontalCenter
-				}
-			}
+			imageName: "fold-down.png"
 
 			onClicked: {
 				txtSetNotes.visible = !txtSetNotes.visible;

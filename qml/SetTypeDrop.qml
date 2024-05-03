@@ -53,20 +53,13 @@ Item {
 				}
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: cboSetType.right
 				height: 25
 				width: 25
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"remove.png"
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-					height: 20
-					width: 20
-				}
+				imageName: "remove.png"
 				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 			}
 		}

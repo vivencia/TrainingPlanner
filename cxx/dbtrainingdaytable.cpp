@@ -73,7 +73,7 @@ void DBTrainingDayTable::getTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
+		query.setForwardOnly(true);
 		query.prepare( QStringLiteral("SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
 										"FROM training_day_table WHERE date=") + m_execArgs.at(0).toString() );
 
@@ -111,13 +111,13 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
+		query.setForwardOnly(true);
 		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
 										"FROM training_day_table WHERE date=") + m_execArgs.at(0).toString() );
 
 		if (query.exec())
 		{
-			if (query.first ())
+			if (query.first())
 			{
 				QStringList split_info;
 				uint i(0);
@@ -196,13 +196,26 @@ void DBTrainingDayTable::newTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
+		model->getSaveInfo(m_data);
+
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		query.prepare( QStringLiteral(
 									"INSERT INTO training_day_table "
-									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes)"
-									" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\')")
+									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
+									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes)"
+									" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
+									"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\')")
 									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
-									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) );
+											model->timeIn(), model->timeOut(), model->location(), model->dayNotes(),
+											m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+											m_data.at(5), m_data.at(6)) );
 
 		m_result = query.exec();
 		if (m_result)
@@ -228,6 +241,7 @@ void DBTrainingDayTable::updateTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
+		model->getSaveInfo(m_data);
 
 		QSqlQuery query(mSqlLiteDB);
 		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
@@ -239,9 +253,14 @@ void DBTrainingDayTable::updateTrainingDay()
 
 		query.prepare( QStringLiteral(
 									"UPDATE training_day_table SET meso_id=%1, date=%2, day_number=\'%3\', "
-									"split_letter=\'%4\', time_in=\'%5\', time_out=\'%6\', location=\'%7\', notes=\'%8\' WHERE id=%9")
+									"split_letter=\'%4\', time_in=\'%5\', time_out=\'%6\', location=\'%7\', notes=\'%8\', ")
 									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
-									model->timeIn(), model->timeOut(), model->location(), model->dayNotes(), model->idStr()) );
+									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
+									QStringLiteral("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
+									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
+									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
+										m_data.at(5), m_data.at(6), model->idStr()) );
+
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -255,43 +274,6 @@ void DBTrainingDayTable::updateTrainingDay()
 	{
 		MSG_OUT("DBTrainingDayTable updateTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable updateTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBTrainingDayTable::updateTrainingDayExercises()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		static_cast<DBTrainingDayModel*>(m_model)->getSaveInfo(m_data);
-
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-
-		query.prepare( QStringLiteral(
-									"UPDATE training_day_table SET exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
-									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-										m_data.at(5), m_data.at(6), QString::number(static_cast<DBTrainingDayModel*>(m_model)->id())) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		m_model->setModified(false);
-		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBTrainingDayTable updateTrainingDayExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

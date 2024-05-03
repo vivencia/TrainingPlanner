@@ -1050,12 +1050,6 @@ void DbManager::updateTrainingDay()
 	createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
 }
 
-void DbManager::updateTrainingDayExercises()
-{
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-	createThread(worker, [worker] () { return worker->updateTrainingDayExercises(); } );
-}
-
 void DbManager::removeTrainingDay()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));

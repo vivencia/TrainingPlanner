@@ -102,12 +102,14 @@ Page {
 				}
 			}
 
-			RoundButton {
+			TPRoundButton {
 				id: btnStartDate
-				anchors.left: txtMesoStartDate.right
-				anchors.verticalCenter: txtMesoStartDate.verticalCenter
-				anchors.leftMargin: 10
-				icon.source: "qrc:/images/"+AppSettings.iconFolder+"calendar.png"
+				imageName: "calendar.png"
+				anchors {
+					left: txtMesoStartDate.right
+					verticalCenter: txtMesoStartDate.verticalCenter
+					leftMargin: 10
+				}
 
 				onClicked: caldlg.open();
 			}

@@ -182,22 +182,14 @@ Column {
 		color: AppSettings.fontColor
 		width: parent.width - 25
 
-		RoundButton {
+		TPRoundButton {
 			id: btnMultipleSelection
 			checkable: true
 			checked: false
 			visible: canDoMultipleSelection
 			width: 20
 			height: 20
-			focus: false
-
-			Image {
-				source: "qrc:/images/" + darkIconFolder + "multi-selection.png"
-				width: 20
-				height: 20
-				anchors.fill: parent
-				fillMode: Image.PreserveAspectFit
-			}
+			imageName: "multi-selection.png"
 
 			anchors {
 				left: parent.right

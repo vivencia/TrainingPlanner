@@ -190,8 +190,9 @@ Frame {
 
 						onClicked: splitModel.currentRow = index;
 
-						RoundButton {
+						TPRoundButton {
 							id: btnMoveExerciseUp
+							imageName: "up.png"
 							height: 30
 							width: 30
 							padding: 5
@@ -202,18 +203,11 @@ Frame {
 								verticalCenter: parent.verticalCenter
 							}
 
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"up.png"
-								anchors.verticalCenter: parent.verticalCenter
-								anchors.horizontalCenter: parent.horizontalCenter
-								height: 25
-								width: 25
-							}
-
 							onClicked: splitModel.moveRow(index,index-1);
 						}
-						RoundButton {
+						TPRoundButton {
 							id: btnMoveExerciseDown
+							imageName: "down.png"
 							height: 30
 							width: 30
 							padding: 0
@@ -222,14 +216,6 @@ Frame {
 								right: parent.right
 								rightMargin: 20
 								verticalCenter: parent.verticalCenter
-							}
-
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"down.png"
-								anchors.verticalCenter: parent.verticalCenter
-								anchors.horizontalCenter: parent.horizontalCenter
-								height: 25
-								width: 25
 							}
 
 							onClicked: splitModel.moveRow(index,index+1);

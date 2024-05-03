@@ -1,8 +1,5 @@
 #include "runcommands.h"
 
-#include <QFileInfo>
-#include <QFile>
-#include <QDir>
 #include <QSettings>
 #include <QLocale>
 #include <QClipboard>
@@ -406,17 +403,4 @@ void RunCommands::calculateTimeBetweenTimes(const QTime& time1, const QTime& tim
 	}
 
 	mElapsedTime.setHMS(hour, min, sec);
-}
-
-bool RunCommands::fileExists(const QString& filename) const
-{
-	QFileInfo fi(filename);
-	return fi.exists();
-}
-
-bool RunCommands::writablePath(const QString& filename) const
-{
-	QFileInfo fi(filename);
-	fi.setFile(fi.filePath());
-	return fi.isWritable();
 }

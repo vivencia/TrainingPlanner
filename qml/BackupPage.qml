@@ -108,9 +108,9 @@ Page {
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-				RoundButton {
+				TPRoundButton {
 					id: btnChooseBackupFolder
-					icon.source: "qrc:/images/"+darkIconFolder+"folder-backup.png"
+					imageName: "folder-backup.png"
 					width: 40
 					height: 40
 					anchors.verticalCenter: parent.verticalCenter
@@ -234,12 +234,11 @@ Page {
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-				RoundButton {
+				TPRoundButton {
 					id: btnChooseFolder
-					icon.source: "qrc:/images/"+darkIconFolder+"folder-backup.png"
+					imageName: "folder-backup.png"
 					width: 40
 					height: 40
-
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.left: parent.right
 					onClicked: folderDialog.open();

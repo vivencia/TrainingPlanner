@@ -68,24 +68,18 @@ Row {
 			}
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnClearText
 			height: 20
 			width: 20
 			visible: !control.readOnly
+			imageName: "edit-clear.png"
 			anchors {
 				right: control.right
 				rightMargin: 5
 				verticalCenter: control.verticalCenter
 			}
 
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"edit-clear.png"
-				asynchronous: true
-				anchors.fill: parent
-				height: 20
-				width: 20
-			}
 			onClicked: {
 				control.clear();
 				control.forceActiveFocus();
@@ -93,40 +87,24 @@ Row {
 		}
 	}
 
-	RoundButton {
+	TPRoundButton {
 		id: btnRemoveExercise
 		height: 25
 		width: 25
 		padding: 5
 		visible: showRemoveButton
 		z: 1
-
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"remove.png"
-			asynchronous: true
-			anchors.fill: parent
-			height: 25
-			width: 25
-		}
-
+		imageName: "remove.png"
 		onClicked: removeButtonClicked();
 	} //btnRemoveExercise
 
-	RoundButton {
+	TPRoundButton {
 		id: btnEditExercise
 		height: 25
 		width: 25
 		padding: 5
 		z: 1
-
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"edit.png"
-			asynchronous: true
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-			height: 20
-			width: 20
-		}
+		imageName: "edit.png"
 
 		onClicked: {
 			control.readOnly = !control.readOnly;

@@ -177,41 +177,34 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-bool TPListModel::exportToText(const QString& filename, const bool appendToFile) const
+bool TPListModel::exportToText(const QString& filename) const
 {
 	QFile outFile(filename);
-	QFlags<QIODeviceBase::OpenModeFlag> flags;
 
-	if (outFile.exists())
-	{
-		if (!appendToFile)
-			return false;
-		else
-			flags = QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text;
-	}
-	else
-		flags = QIODeviceBase::ReadOnly|QIODeviceBase::NewOnly|QIODeviceBase::Text;
-
-	if (outFile.open(flags))
+	if (outFile.open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
 		QString tableName;
 		switch (m_tableId)
 		{
-			case EXERCISES_TABLE_ID: tableName = DBExercisesObjectName; break;
-			case MESOCYCLES_TABLE_ID: tableName = DBMesocyclesObjectName; break;
-			case MESOCALENDAR_TABLE_ID: tableName = DBMesoCalendarObjectName; break;
-			case MESOSPLIT_TABLE_ID: tableName = DBMesoSplitObjectName; break;
-			case TRAININGDAY_TABLE_ID: tableName = DBTrainingDayObjectName; break;
+			case EXERCISES_TABLE_ID: tableName = DBExercisesObjectName + '\n'; break;
+			case MESOCYCLES_TABLE_ID: tableName = DBMesocyclesObjectName + '\n'; break;
+			case MESOCALENDAR_TABLE_ID: tableName = DBMesoCalendarObjectName + '\n'; break;
+			case MESOSPLIT_TABLE_ID: tableName = DBMesoSplitObjectName + '\n'; break;
+			case TRAININGDAY_TABLE_ID: tableName = DBTrainingDayObjectName + '\n'; break;
 		}
-		outFile.write(tableName.toUtf8().constData() + '\n');
+		outFile.write(tableName.toUtf8().constData());
 
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
 		while (itr != itr_end)
 		{
-			for (uint i(0); i < (*itr).count(); ++i)
-				outFile.write((*itr).at(i).toUtf8().constData() + '\n', (*itr).at(i).length() + 1);
+			for (uint i(0); i < (*itr).count(); ++i) {
+				qDebug() << (*itr).at(i).toUtf8().constData();
+				outFile.write((*itr).at(i).toUtf8().constData(), (*itr).at(i).length());
+				outFile.write("\n", 1);
+			}
 			outFile.write("\n\n", 2);
+			++itr;
 		}
 		return true;
 	}

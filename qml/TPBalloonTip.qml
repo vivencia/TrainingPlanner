@@ -239,6 +239,10 @@ Popup {
 	function show(ypos) {
 		balloon.height = lblTitle.height + lblMessage.height + (button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
 		balloon.x = (windowWidth - width)/2;
+
+		if (ypos < 0)
+			ypos = (windowHeight-balloon.height)/2;
+
 		balloon.y = finalYPos = ypos;
 		if (ypos <= windowHeight/2)
 			startYPos = -300;

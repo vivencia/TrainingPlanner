@@ -201,7 +201,7 @@ Page {
 				bottomPadding: 20
 				Layout.maximumWidth: parent.width - 10
 				Layout.leftMargin: 5
-				horizontalAlignment: Qt.AlignHCenter
+				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
 				font.pointSize: AppSettings.fontSizeTitle
@@ -375,26 +375,16 @@ Page {
 							}
 						}
 
-						RoundButton {
+						TPRoundButton {
 							id: btnInTime
 							width: 40
 							height: 40
+							imageName: "time.png"
+
 							anchors {
 								top: parent.top
 								topMargin: -15
 								left: txtInTime.right
-							}
-
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"time.png"
-								fillMode: Image.PreserveAspectFit
-								asynchronous: true
-								width: 20
-								height: 20
-								anchors {
-									verticalCenter: parent.verticalCenter
-									horizontalCenter: parent.horizontalCenter
-								}
 							}
 
 							onClicked: dlgTimeIn.open();
@@ -425,27 +415,16 @@ Page {
 							}
 						}
 
-						RoundButton {
+						TPRoundButton {
 							id: btnOutTime
 							width: 40
 							height: 40
+							imageName: "time.png"
 
 							anchors {
 								top: parent.top
 								topMargin: -15
 								left: txtOutTime.right
-							}
-
-							Image {
-								source: "qrc:/images/"+darkIconFolder+"time.png"
-								fillMode: Image.PreserveAspectFit
-								asynchronous: true
-								width: 20
-								height: 20
-								anchors {
-									verticalCenter: parent.verticalCenter
-									horizontalCenter: parent.horizontalCenter
-								}
 							}
 
 							onClicked: dlgTimeOut.open();
@@ -531,23 +510,19 @@ Page {
 					opacity: 0.8
 				}
 
-				RoundButton {
+				TPRoundButton {
 					id: btnClearExercises
-					anchors.left: parent.left
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.leftMargin: 5
 					width: 40
 					height: 40
 					enabled: !tDayModel.dayIsFinished
 					visible: exercisesLayout.children.length > 0
 					ToolTip.text: "Remove all exercises"
+					imageName: "revert-day.png"
 
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"revert-day.png"
-						width: 20
-						height: 20
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
+					anchors {
+						left: parent.left
+						verticalCenter: parent.verticalCenter
+						leftMargin: 5
 					}
 
 					onClicked: msgClearExercises.init(1);
@@ -775,6 +750,7 @@ Page {
 			id: workoutLengthRow
 			height: 50
 			spacing: 5
+			visible: splitLetter !== 'R'
 			anchors {
 				left: parent.left
 				leftMargin: 5
@@ -866,23 +842,11 @@ Page {
 			}
 
 			onClicked: {
-				if (tDayModel.id() === -1) {
-					var id;
-					function continueSave(_id) {
-						if (_id === id) {
-							appDB.databaseReady.disconnect(continueSave);
-							appDB.updateTrainingDayExercises();
-						}
-					}
-					id = appDB.pass_object(tDayModel);
-					appDB.databaseReady.connect(continueSave);
+				if (tDayModel.id() === -1)
 					appDB.newTrainingDay();
-				}
-				else {
-					appDB.pass_object(tDayModel);
+				else
 					appDB.updateTrainingDay();
-					appDB.updateTrainingDayExercises();
-				}
+
 				if (bRealMeso && chkAdjustCalendar.visible)
 				{
 					if (!chkAdjustCalendar.checked)

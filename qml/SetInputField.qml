@@ -13,7 +13,7 @@ FocusScope {
 
 	property bool bClearInput: true
 	property color borderColor: AppSettings.fontColor
-	property color labelColor: "white"
+	property color labelColor: "black"
 	property color inputColor: AppSettings.fontColor
 	property color backColor: "white"
 
@@ -85,13 +85,14 @@ FocusScope {
 			}
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnIncreaseMinutes
 			padding: 0
 			spacing: 2
 			width: 25
 			height: 25
 			visible: type === SetInputField.Type.TimeType
+			imageName: "plus.png"
 
 			anchors {
 				left: lblMain.visible ? lblMain.right : parent.left
@@ -100,33 +101,24 @@ FocusScope {
 				verticalCenter: parent.verticalCenter
 			}
 
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"plus.png"
-				anchors.fill: parent
-			}
-
 			onClicked: {
 				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
 			}
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnDecrease
 			padding: 0
 			spacing: 2
 			width: 25
 			height: 25
+			imageName: "minus.png"
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
-			}
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"minus.png"
-				anchors.fill: parent
 			}
 
 			onClicked: {
@@ -240,23 +232,19 @@ FocusScope {
 			}
 		} //TextInput
 
-		RoundButton {
+		TPRoundButton {
 			id: btnIncrease
 			padding: 0
 			spacing: 2
 			width: 25
 			height: 25
+			imageName: "plus.png"
 
 			anchors {
 				left: txtMain.right
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
-			}
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"plus.png"
-				anchors.fill: parent
 			}
 
 			onClicked: {
@@ -306,24 +294,20 @@ FocusScope {
 			}
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnDecreaseSeconds
 			padding: 0
 			spacing: 2
 			width: 20
 			height: 20
 			visible: type === SetInputField.Type.TimeType
+			imageName: "minus.png"
 
 			anchors {
 				left: btnIncrease.right
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
-			}
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"minus.png"
-				anchors.fill: parent
 			}
 
 			onClicked: {

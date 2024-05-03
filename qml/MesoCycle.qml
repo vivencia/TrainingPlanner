@@ -185,13 +185,13 @@ Page {
 					}
 				}
 
-				RoundButton {
+				TPRoundButton {
 					id: btnStartDate
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 					width: 40
 					height: 40
-					icon.source: "qrc:/images/white/calendar.png"
+					imageName: "calendar.png"
 
 					onClicked: caldlg.open();
 				}
@@ -242,13 +242,13 @@ Page {
 					}
 				}
 
-				RoundButton {
+				TPRoundButton {
 					id: btnEndDate
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
 					width: 40
 					height: 40
-					icon.source: "qrc:/images/"+darkIconFolder+"calendar.png"
+					imageName: "calendar.png"
 
 					onClicked: caldlg2.open();
 				}
@@ -295,7 +295,7 @@ Page {
 				Layout.minimumWidth: parent.width / 2
 				ToolTip.text: qsTr("On a mesocycle, there should be at least one rest day(R)")
 
-				RoundButton {
+				TPRoundButton {
 					id: btnTrainingSplit
 					width: 40
 					height: 40
@@ -304,8 +304,7 @@ Page {
 						verticalCenter: txtMesoSplit.verticalCenter
 						leftMargin: 10
 					}
-					icon.source: paneTrainingSplit.visible ? "qrc:/images/"+AppSettings.iconFolder+"fold-up.png" :
-													"qrc:/images/"+AppSettings.iconFolder+"fold-down.png"
+					imageName: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
 					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
 				}
 

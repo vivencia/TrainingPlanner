@@ -42,23 +42,16 @@ RowLayout {
 
 		Item {
 			width: 30
-			height: 40
+			height: 30
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnCopyValue
-			Layout.maximumWidth: 40
-			Layout.minimumWidth: 40
-			Layout.maximumHeight: 40
-			Layout.minimumHeight: 40
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-				height: 20
-				width: 20
-			}
+			Layout.maximumWidth: 30
+			Layout.minimumWidth: 30
+			Layout.maximumHeight: 30
+			Layout.minimumHeight: 30
+			imageName: "copy-setvalue.png"
 
 			onClicked: {
 				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
@@ -97,54 +90,34 @@ RowLayout {
 		currentIndex: 0
 
 		Row {
-
-			RoundButton {
+			TPRoundButton {
 				id: btnInsertAnotherRow
 				width: 25
 				height: 25
 				visible: bBtnAddEnabled
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"add-new.png"
-					anchors.fill: parent
-					width: 20
-					height: 20
-				}
+				imageName: "add-new.png"
 
 				onClicked: addSubSet(rowIdx+1, true);
 			} //bntInsertAnotherRow
 
-			RoundButton {
+			TPRoundButton {
 				id: btnRemoveRow
 				width: 25
 				height: 25
 				visible: rowIdx > 0
-
-				Image {
-					source: "qrc:/images/"+darkIconFolder+"remove.png"
-					anchors.fill: parent
-					height: 20
-					width: 20
-				}
+				imageName: "remove.png"
 
 				onClicked: delSubSet(rowIdx);
 			} //btnRemoveRow
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnCopyValue2
-			Layout.maximumWidth: 40
-			Layout.minimumWidth: 40
-			Layout.maximumHeight: 40
-			Layout.minimumHeight: 40
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"copy-setvalue.png"
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-				height: 20
-				width: 20
-			}
+			Layout.maximumWidth: 30
+			Layout.minimumWidth: 30
+			Layout.maximumHeight: 30
+			Layout.minimumHeight: 30
+			imageName: "copy-setvalue.png"
 
 			onClicked: {
 				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);

@@ -70,46 +70,36 @@ FocusScope {
 			radius: 5
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnMoveExerciseUp
-			anchors.left: parent.left
-			anchors.leftMargin: 0
-			anchors.top: parent.top
-			anchors.topMargin: -15
 			height: 30
 			width: 30
 			padding: 5
 			enabled: exerciseIdx > 0
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"up.png"
-				asynchronous: true
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-				height: 25
-				width: 25
+			visible: !tDayModel.dayIsFinished
+			imageName: "up.png"
+			anchors {
+				left: parent.left
+				leftMargin: 0
+				top: parent.top
+				topMargin: -15
 			}
 
 			onClicked: moveExercise(true, true);
 		}
-		RoundButton {
+		TPRoundButton {
 			id: btnMoveExerciseDown
-			anchors.left: parent.left
-			anchors.leftMargin: 20
-			anchors.top: parent.top
-			anchors.topMargin: -15
 			height: 30
 			width: 30
 			padding: 5
 			enabled: exerciseIdx < tDayModel.exerciseCount-1
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"down.png"
-				asynchronous: true
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-				height: 25
-				width: 25
+			visible: !tDayModel.dayIsFinished
+			imageName: "down.png"
+			anchors {
+				left: parent.left
+				leftMargin: 20
+				top: parent.top
+				topMargin: -15
 			}
 
 			onClicked: moveExercise(false, true);
@@ -128,19 +118,11 @@ FocusScope {
 				Layout.fillWidth: true
 				Layout.topMargin: 10
 
-				RoundButton {
+				TPRoundButton {
 					id: btnFoldIcon
 					height: 25
 					width: 25
-
-					Image {
-						source: paneExercise.shown ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
-						asynchronous: true
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						height: 20
-						width: 20
-					}
+					imageName: paneExercise.shown ? "fold-up.png" : "fold-down.png"
 					onClicked: paneExerciseShowHide(false);
 					z: 1
 				}
@@ -235,20 +217,15 @@ FocusScope {
 					onValueChanged: (str)=> nSets = str;
 				}
 
-				RoundButton {
+				TPRoundButton {
 					id: btnAddSet
-					width: 30
-					height: 30
+					imageName: "add-new.png"
+					Layout.minimumHeight: 30
+					Layout.maximumHeight: 30
+					Layout.minimumWidth: 30
+					Layout.maximumWidth: 30
 					Layout.leftMargin: 20
 
-					Image {
-						source: "qrc:/images/"+darkIconFolder+"add-new.png";
-						asynchronous: true
-						height: 20
-						width: 20
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-					}
 					onClicked: {
 						createSetObject(cboSetType.currentIndex, parseInt(nSets), nReps, nWeight);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
