@@ -79,3 +79,31 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 	}
 	return false;
 }
+
+void DBExercisesModel::manageSelectedEntries(const uint index, const uint operation)
+{
+	switch (operation)
+	{
+		case 1: //add
+			if (!m_selectedEntries.contains(index))
+				m_selectedEntries.append(index);
+		break;
+		case 2: //remove
+			const int idx(m_selectedEntries.indexOf(index));
+			if (idx != -1)
+				m_selectedEntries.remove(index, 1);
+		break;
+	}
+}
+
+QString DBExercisesModel::selectedEntriesValues(const uint field) const
+{
+	QString result;
+	for (uint i(0); i < m_selectedEntries.count(); ++i)
+	{
+		if (!result.isEmpty())
+			result += subrecord_separator;
+		result += m_modeldata.at(i).at(field);
+	}
+	return result;
+}

@@ -482,10 +482,11 @@ void DbManager::deleteExercisesTable()
 	createThread(worker, [worker] () { return worker->deleteExercisesTable(); } );
 }
 
-void DbManager::openExercisesListPage()
+void DbManager::openExercisesListPage(const bool fromMainMenu)
 {
 	if (m_exercisesPage != nullptr)
 	{
+		m_exercisesPage->setProperty("bChooseButtonEnabled", !fromMainMenu);
 		emit getPage(m_exercisesPage, 89676);
 		return;
 	}
@@ -493,6 +494,7 @@ void DbManager::openExercisesListPage()
 	connect( this, &DbManager::databaseReady, this, &DbManager::createExercisesListPage, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getAllExercises(); } );
 
+	m_exercisesProperties.insert(QStringLiteral("bChooseButtonEnabled"), !fromMainMenu);
 	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
 	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
 		return createExercisesListPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -513,7 +515,8 @@ void DbManager::createExercisesListPage()
 	{
 		if (m_exercisesPage == nullptr)
 		{
-			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->create(m_QMlEngine->rootContext()));
+			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
+															m_exercisesProperties, m_QMlEngine->rootContext()));
 			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 			QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
 			m_exercisesPage->setParentItem(parent->contentItem());

@@ -122,6 +122,7 @@ Column {
 				else {
 					bSelected = !bSelected;
 					displaySelectedExercise(index, bSelected ? 1 : 2);
+					exercisesListModel.manageSelectedEntries(index, bSelected ? 1 : 2);
 				}
 				this.forceActiveFocus();
 			}

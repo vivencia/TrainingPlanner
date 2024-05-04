@@ -25,10 +25,16 @@ public:
 	};
 
 	explicit DBExercisesModel(QObject *parent = 0);
+	Q_INVOKABLE void manageSelectedEntries(const uint index, const uint operation);
+	Q_INVOKABLE QString selectedEntriesValues(const uint field) const;
+	Q_INVOKABLE QList<uint> selectedEntries() const { return m_selectedEntries; }
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
+private:
+	QList<uint> m_selectedEntries;
 };
 
 #endif // DBEXERCISESMODEL_H

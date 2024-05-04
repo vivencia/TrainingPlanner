@@ -51,7 +51,7 @@ public:
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable();
-	Q_INVOKABLE void openExercisesListPage();
+	Q_INVOKABLE void openExercisesListPage(const bool fromMainMenu = false);
 	void createExercisesListPage();
 	void getExercisesListVersion();
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -141,6 +141,7 @@ private:
 	QString m_exercisesListVersion;
 	QQuickItem* m_exercisesPage;
 	QQmlComponent* m_exercisesComponent;
+	QVariantMap m_exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);

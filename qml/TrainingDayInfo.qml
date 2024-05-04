@@ -88,6 +88,10 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
+			if (!editMode) {
+				btnSaveDay.clicked();
+				tDayModel.dayIsFinished = true;
+			}
 		}
 	}
 
@@ -684,6 +688,16 @@ Page {
 			navButtons.destroy();
 	}
 
+	Keys.onPressed: (event)=> {
+		if (event.key === Qt.Key_Back) {
+			event.accepted = true;
+			if (exercisesPane.visible)
+				exercisesPane.visible = false;
+			else
+				trainingDayPage.StackView.pop();
+		}
+	}
+
 	Component.onCompleted: {
 		mesoName = mesocyclesModel.get(mesoIdx, 1);
 		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
@@ -770,6 +784,7 @@ Page {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
+				enabled: !runCmd.timerRunning
 
 				onClicked: {
 					runCmd.workoutTimerTriggered.connect(updateTimer);
@@ -814,6 +829,7 @@ Page {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
+				enabled: !runCmd.timerRunning
 
 				onClicked: {
 					runCmd.stopWorkoutTimer();
@@ -924,6 +940,11 @@ Page {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
+
+		onVisibleChanged: {
+			if (navButtons)
+				navButtons.visible = !visible;
+		}
 	}
 
 	onSplitLetterChanged: {

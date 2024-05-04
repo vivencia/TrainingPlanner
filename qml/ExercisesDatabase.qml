@@ -12,7 +12,7 @@ Page {
 	property bool bCanEdit: false
 	property bool bNew: false
 	property bool bEdit: false
-	property bool bChooseButtonEnabled: false
+	property bool bChooseButtonEnabled: true
 	property bool bJustSaved: false
 	property var imageViewer: null
 	property var videoViewer: null
@@ -275,6 +275,7 @@ Page {
 
 			ExercisesListView {
 				id: exercisesList
+				canDoMultipleSelection: bChooseButtonEnabled
 				Layout.fillWidth: true
 				Layout.topMargin: 0
 				Layout.alignment: Qt.AlignTop
@@ -283,7 +284,8 @@ Page {
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
-				onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
+				onExerciseEntrySelected: (exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
+					if (multipleSelection === 2) return;
 					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
 				}
 			}

@@ -93,7 +93,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 							{
 								//Fill the model with info that reflects that these month days are not part of the meso
 								for( ; day < firstDayOfMeso; ++day)
-									mesocal_info.append( QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
+									mesocal_info.append(QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
 							}
 						}
 					}
@@ -107,7 +107,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 					const uint lastDayOfMonth( QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth() );
 					//Fill the model with info that reflects that these month days are not part of the meso
 					for( ; day <= lastDayOfMonth; ++day)
-						mesocal_info.append( QStringLiteral("-1, -1, -1, 'N',") + strYear + ',' + strMonth);
+						mesocal_info.append(QStringLiteral("-1,-1,-1,'N',") + strYear + ',' + strMonth);
 					m_model->appendList(mesocal_info);
 				}
 			}

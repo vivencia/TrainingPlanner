@@ -38,7 +38,7 @@ FocusScope {
 		id: paneExercise
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height + 15
+		height: shown ? implicitHeight : txtExerciseName.height + 40
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: parent.width
 		width: windowWidth - 10

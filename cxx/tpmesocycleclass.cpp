@@ -289,6 +289,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 				m_CurrenttDayModel->setTrainingDay(tday);
 				m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
 				m_CurrenttDayModel->setTimeOut(u"--:--"_qs);
+				m_CurrenttDayModel->setModified(false);
 			}
 			else
 			{
