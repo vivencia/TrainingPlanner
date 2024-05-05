@@ -8,15 +8,13 @@ Column {
 	id: mainItem
 	spacing: 5
 
-	property int curIndex: -1
 	property int seconds
 	property bool bFilterApplied: false
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
 	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
-	signal exerciseEntrySelected(string exerciseName, string subName, string muscularGroup, string sets,
-									string reps, string weight, string mediaPath, int multipleSelectionOption)
+	signal exerciseEntrySelected(int idx, int multipleSelectionOption)
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
@@ -85,11 +83,12 @@ Column {
 
 		delegate: SwipeDelegate {
 			id: delegate
-			property bool bSelected: false
+			property bool bSelected: exercisesListModel.entryIsSelected
+
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: curIndex === index ? AppSettings.fontColor : "black"
+				color: exercisesListModel.currentRow === index ? AppSettings.fontColor : "black"
 				font.pointSize: AppSettings.fontSizeLists
 				padding: 0
 			}
@@ -107,28 +106,32 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: !bMultipleSelection ? curIndex === index ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2 :
-							bSelected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+				color: bSelected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 			onClicked: {
 				if (!bMultipleSelection) {
-					if (index !== curIndex)
-						displaySelectedExercise(index, 0);
+					if (index !== exercisesListModel.currentRow)
+					{
+						exercisesListModel.currentRow = index;
+						exercisesListModel.manageSelectedEntries(index, 1);
+						exerciseEntrySelected(index, 0);
+					}
 					else {
 						hideSimpleExerciseList();
 						return;
 					}
 				}
-				else {
-					bSelected = !bSelected;
-					displaySelectedExercise(index, bSelected ? 1 : 2);
-					exercisesListModel.manageSelectedEntries(index, bSelected ? 1 : 2);
+				else
+				{
+					exercisesListModel.currentRow = index;
+					exercisesListModel.manageSelectedEntries(index, 2);
+					exerciseEntrySelected(index, exercisesListModel.entryIsSelected(index) ? 1 : 2);
 				}
 				this.forceActiveFocus();
 			}
 
 			Component.onCompleted: {
-				if ( lstExercises.totalWidth < width )
+				if (lstExercises.totalWidth < width)
 					lstExercises.totalWidth = width;
 				lstExercises.totalHeight += height;
 			}
@@ -253,11 +256,8 @@ Column {
 	}
 
 	function displaySelectedExercise(lstIdx, multiple_opt) {
-		curIndex = lstIdx;
-		exerciseEntrySelected(exercisesListModel.get(lstIdx, 1), exercisesListModel.get(lstIdx, 2),
-							exercisesListModel.get(lstIdx, 3), exercisesListModel.get(lstIdx, 4),
-							exercisesListModel.get(lstIdx, 5), exercisesListModel.get(lstIdx, 6),
-							exercisesListModel.get(lstIdx, 8), multiple_opt);
+		exercisesListModel.currentRow = lstIdx;
+		exerciseEntrySelected(lstIdx, multiple_opt);
 	}
 
 	function removeExercise(removeIdx) {
@@ -266,12 +266,8 @@ Column {
 
 		function readyToContinue() {
 			appDB.databaseReady.disconnect(readyToContinue);
-			if (curIndex === removeIdx) {
-				if (curIndex >= exercisesListModel.count)
-					curIndex--;
-				if (exercisesListModel.count > 0)
-					simulateMouseClick(curIndex);
-			}
+			if (exercisesListModel.currentRow >= removeIdx)
+				simulateMouseClick(exercisesListModel.currentRow);
 		}
 		exercisesListModel.setCurrentRow(actualIndex);
 		appDB.removeExercise(exercisesListModel.getInt(actualIndex, 0));
@@ -280,7 +276,7 @@ Column {
 
 	function setCurrentIndex(newIdx) {
 		if (newIdx < exercisesListModel.count) {
-			curIndex = newIdx;
+			exercisesListModel.currentRow = newIdx;
 			lstExercises.currentIndex = newIdx;
 			lstExercises.ensureVisible(lstExercises.currentItem);
 		}

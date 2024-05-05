@@ -404,3 +404,62 @@ void RunCommands::calculateTimeBetweenTimes(const QTime& time1, const QTime& tim
 
 	mElapsedTime.setHMS(hour, min, sec);
 }
+
+QString RunCommands::getCompositeValue(const uint idx, const QString& compositeString) const
+{
+	QString::const_iterator itr(compositeString.constBegin());
+	const QString::const_iterator itr_end(compositeString.constEnd());
+	uint n_seps(0);
+	int chr_pos(0);
+	uint last_sep_pos(0);
+
+	while (itr != itr_end)
+	{
+		if ((*itr).toLatin1() == char(31))
+		{
+			if (n_seps == idx)
+				return compositeString.mid(last_sep_pos, chr_pos);
+			++n_seps;
+			last_sep_pos += chr_pos + 1;
+			chr_pos = -1;
+		}
+		++chr_pos;
+		++itr;
+	}
+	return compositeString.mid(last_sep_pos, chr_pos);
+}
+
+QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString) const
+{
+	static const QLatin1Char subrecord_separator(31);
+	int sep_pos(compositeString.indexOf(subrecord_separator));
+	int n_seps(-1);
+
+	if (sep_pos == -1)
+	{
+		if (idx == 0)
+			return compositeString = newValue;
+		else
+		{
+			while (++n_seps < idx)
+				compositeString += subrecord_separator;
+			return compositeString += newValue;
+		}
+	}
+
+	uint last_sep_pos(0);
+	do {
+		++n_seps;
+		if (idx == n_seps)
+		{
+			compositeString.remove(last_sep_pos, sep_pos - last_sep_pos);
+			compositeString.insert(last_sep_pos, newValue);
+			return compositeString;
+		}
+		last_sep_pos = sep_pos + 1;
+		sep_pos = compositeString.indexOf(QLatin1Char(31), last_sep_pos);
+	} while(sep_pos != -1);
+	while (++n_seps < idx)
+		compositeString += subrecord_separator;
+	return compositeString += newValue;
+}

@@ -1,7 +1,7 @@
 #include "dbexercisesmodel.h"
 
 DBExercisesModel::DBExercisesModel(QObject *parent)
-	: TPListModel(parent)
+	: TPListModel(parent), m_selectedEntryToReplace(0)
 {
 	m_tableId = EXERCISES_TABLE_ID;
 	// Set names to the role name hash container (QHash<int, QByteArray>)
@@ -80,30 +80,30 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }
 
-void DBExercisesModel::manageSelectedEntries(const uint index, const uint operation)
+void DBExercisesModel::manageSelectedEntries(const uint index, const uint max_selected)
 {
-	switch (operation)
+	if (max_selected == 1)
 	{
-		case 1: //add
-			if (!m_selectedEntries.contains(index))
+		m_selectedEntries.clear();
+		m_selectedEntries.append(index);
+	}
+	else
+	{
+		const int idx(m_selectedEntries.indexOf(index));
+		if (idx == -1)
+		{
+			if (m_selectedEntries.count() < max_selected)
 				m_selectedEntries.append(index);
-		break;
-		case 2: //remove
-			const int idx(m_selectedEntries.indexOf(index));
-			if (idx != -1)
-				m_selectedEntries.remove(index, 1);
-		break;
+			else
+			{
+				if (m_selectedEntryToReplace >= max_selected - 1)
+					m_selectedEntryToReplace = 0;
+				m_selectedEntries[m_selectedEntryToReplace] = index;
+				m_selectedEntryToReplace++;
+			}
+		}
+		else
+			m_selectedEntries.remove(idx, 1);
 	}
-}
-
-QString DBExercisesModel::selectedEntriesValues(const uint field) const
-{
-	QString result;
-	for (uint i(0); i < m_selectedEntries.count(); ++i)
-	{
-		if (!result.isEmpty())
-			result += subrecord_separator;
-		result += m_modeldata.at(i).at(field);
-	}
-	return result;
+	emit entryIsSelectedChanged();
 }

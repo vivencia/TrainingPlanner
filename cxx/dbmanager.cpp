@@ -487,6 +487,7 @@ void DbManager::openExercisesListPage(const bool fromMainMenu)
 	if (m_exercisesPage != nullptr)
 	{
 		m_exercisesPage->setProperty("bChooseButtonEnabled", !fromMainMenu);
+		exercisesListModel->clearSelectedEntries();
 		emit getPage(m_exercisesPage, 89676);
 		return;
 	}

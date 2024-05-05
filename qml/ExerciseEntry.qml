@@ -155,28 +155,61 @@ FocusScope {
 				}
 			} //Row txtExerciseName
 
-			SetInputField {
-				id: txtNReps
-				text: nReps
+			Row {
 				Layout.topMargin: 10
-				type: SetInputField.Type.RepType
-				availableWidth: layoutMain.width / 2
-				backColor: "transparent"
-				borderColor: "transparent"
 
-				onValueChanged:(str)=> nReps = str;
-				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+				SetInputField {
+					id: txtNReps
+					text: !txtNReps2.visible ? nReps : runCmd.getCompositeValue(0, nReps)
+					type: SetInputField.Type.RepType
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(0, str, nWeight);
+					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
+				}
+
+				SetInputField {
+					id: txtNReps2
+					text: runCmd.getCompositeValue(1, nReps)
+					type: SetInputField.Type.RepType
+					alternativeLabels: ["",qsTr("Exercise 2:")]
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+					visible: cboSetType.currentIndex === 4
+
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(1, str);
+					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+				}
 			}
 
-			SetInputField {
-				id: txtNWeight
-				text: nWeight
-				type: SetInputField.Type.WeightType
-				availableWidth: layoutMain.width / 2
-				backColor: "transparent"
-				borderColor: "transparent"
+			Row {
 
-				onValueChanged:(str)=> nWeight = str;
+				SetInputField {
+					id: txtNWeight
+					text: !txtNWeight2.visible ? nWeight : runCmd.getCompositeValue(0, nWeight)
+					type: SetInputField.Type.WeightType
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(0, str, nWeight);
+				}
+
+				SetInputField {
+					id: txtNWeight2
+					text: runCmd.getCompositeValue(0, nWeight)
+					type: SetInputField.Type.RepType
+					alternativeLabels: [qsTr("Exercise 2:")]
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+					visible: cboSetType.currentIndex === 4
+
+					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(0, str, nWeight);
+				}
 			}
 
 			Label {
@@ -235,18 +268,19 @@ FocusScope {
 		} // ColumnLayout layoutMain
 	} //paneExercise
 
-	function changeExercise(newname)
+	function changeExercise(multipleSelectionOpt)
 	{
+		if (multipleSelectionOpt !== 0) return;
 		if (bListRequestForExercise1) {
-			itemManager.changeSetsExerciseLabels(exerciseIdx, 1, newname);
+			itemManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
-			itemManager.changeSetsExerciseLabels(exerciseIdx, 2, newname);
+			itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(1, 1) + " - " + exercisesListModel.selectedEntriesValue(1, 2));
 			bListRequestForExercise2 = false;
 		}
 		else
-			tDayModel.setExerciseName(newname, exerciseIdx);
+			tDayModel.setExerciseName(exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2), exerciseIdx);
 		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
 		requestSimpleExercisesList(null, false, false, 1);
 	}
@@ -282,5 +316,9 @@ FocusScope {
 		paneExercise.shown = !force ? !paneExercise.shown : true
 		if (paneExercise.shown)
 			itemManager.createSetObjects(exerciseIdx);
+	}
+
+	function setSetComboIndex(new_index: int) {
+		cboSetType.currentIndex = new_index;
 	}
 } //Item

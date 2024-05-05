@@ -1,5 +1,6 @@
 #include "tpmesocycleclass.h"
 #include "dbmesocyclesmodel.h"
+#include "dbexercisesmodel.h"
 #include "runcommands.h"
 
 #include <QQmlApplicationEngine>
@@ -343,10 +344,27 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-uint TPMesocycleClass::createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight)
+uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 {
 	if (m_tDayExercisesComponent == nullptr)
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
+
+	QString exerciseName, nSets, nReps, nWeight;
+	if (exercisesModel->selectedEntriesCount() == 1)
+	{
+		exerciseName = exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2);
+		nSets = exercisesModel->selectedEntriesValue_fast(0, 4);
+		nReps = exercisesModel->selectedEntriesValue_fast(0, 5);
+		nWeight = exercisesModel->selectedEntriesValue_fast(0, 6);
+	}
+	else
+	{
+		exerciseName = exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2) +
+			subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2);
+		nSets = exercisesModel->selectedEntriesValue_fast(0, 4) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 4);
+		nReps = exercisesModel->selectedEntriesValue_fast(0, 5) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 5);
+		nWeight = exercisesModel->selectedEntriesValue_fast(0, 6) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 6);
+	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
@@ -387,6 +405,11 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
 	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,
 						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)) );
+
+	//Two exercises were selected under ExercisesDatabase.qml
+	if (item->property("nSets").toString().contains(subrecord_separator))
+		QMetaObject::invokeMethod(item, "setSetComboIndex", Q_ARG(int, 4));
+
 	m_currentExercises->appendExerciseEntry(item);
 	emit itemReady(item, tDayExerciseCreateId);
 }

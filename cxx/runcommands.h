@@ -59,6 +59,9 @@ public:
 	Q_INVOKABLE void startWorkoutTimer();
 	Q_INVOKABLE void stopWorkoutTimer();
 
+	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString) const;
+	Q_INVOKABLE QString setCompositeValue(const uint idx, const QString& newValue, QString& compositeString) const;
+
 signals:
 	void appSuspended();
 	void appResumed();

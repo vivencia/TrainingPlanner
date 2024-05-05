@@ -624,23 +624,30 @@ Frame {
 		splitModel.setCurrentRow(idx);
 	}
 
-	function changeExercise(name, nsets, nreps, nweight, multiplesel_opt) {
+	function changeExercise(multiplesel_opt) {
 		if (bListRequestForExercise1) {
-			splitModel.exerciseName1 = name;
-			splitModel.setsReps1 = nreps;
-			splitModel.setsWeight1 = nweight;
+			splitModel.exerciseName1 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
+			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
+			splitModel.setsReps1 = exercisesListModel.selectedEntriesValue(0, 5);
+			splitModel.setsWeight1 = exercisesListModel.selectedEntriesValue(0, 6);
 			bListRequestForExercise1 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else if (bListRequestForExercise2) {
-			splitModel.exerciseName2 = name;
-			splitModel.setsReps2 = nreps;
-			splitModel.setsWeight2 = nweight;
+			splitModel.exerciseName2 = exercisesListModel.selectedEntriesValue(1, 1) + " - " + exercisesListModel.selectedEntriesValue(1, 2);
+			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
+			splitModel.setsReps2 = exercisesListModel.selectedEntriesValue(1, 5);
+			splitModel.setsWeight2 = exercisesListModel.selectedEntriesValue(1, 6);
 			bListRequestForExercise2 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else
-			splitModel.changeExercise(name, nsets, nreps, nweight, multiplesel_opt);
+			splitModel.changeExercise(
+				exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2),
+				exercisesListModel.selectedEntriesValue(0, 4),
+				exercisesListModel.selectedEntriesValue(0, 5),
+				exercisesListModel.selectedEntriesValue(0, 6),
+				multiplesel_opt);
 	}
 
 	function appendNewExerciseToDivision() {

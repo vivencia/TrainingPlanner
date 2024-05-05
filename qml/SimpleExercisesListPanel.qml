@@ -18,6 +18,7 @@ Rectangle {
 		if (shown) {
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
+				exercisesListModel.clearSelectedEntries();
 				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
@@ -73,9 +74,9 @@ Rectangle {
 			Layout.fillHeight: true
 			canDoMultipleSelection: bEnableMultipleSelection
 
-			onExerciseEntrySelected:(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelectionOpt) => {
+			onExerciseEntrySelected:(index, multipleSelectionOpt) => {
 				if (itemThatRequestedSimpleList)
-					itemThatRequestedSimpleList.changeExercise(exerciseName + " - " + subName, sets, reps, weight, multipleSelectionOpt);
+					itemThatRequestedSimpleList.changeExercise(multipleSelectionOpt);
 			}
 		}
 	}

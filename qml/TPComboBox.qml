@@ -72,7 +72,7 @@ ComboBox {
 		text: control.displayText
 		leftPadding: 5
 		rightPadding: control.indicator.width + control.spacing
-		color: textColor
+		color: control.enabled ? textColor : "gray"
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		verticalAlignment: Text.AlignVCenter

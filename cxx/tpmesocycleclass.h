@@ -11,6 +11,8 @@
 
 class RunCommands;
 class DBMesocyclesModel;
+class DBExercisesModel;
+
 class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
@@ -91,7 +93,7 @@ public:
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	Q_INVOKABLE uint createExerciseObject(const QString& exerciseName, const QString& nSets, const QString& nReps, const QString& nWeight);
+	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);
 	void createExerciseObject_part2(const int object_idx = -1);
 	void createExercisesObjects();
 

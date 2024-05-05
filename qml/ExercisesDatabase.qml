@@ -17,7 +17,7 @@ Page {
 	property var imageViewer: null
 	property var videoViewer: null
 
-	signal exerciseChosen(string strName1, string strName2, string nSets, string nReps, string nWeight)
+	signal exerciseChosen()
 
 	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
 		anchors.fill: parent
@@ -239,17 +239,6 @@ Page {
 		} // ColumnLayout
 	} // ScrollView
 
-	function exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath) {
-		txtExerciseName.text = exerciseName;
-		txtExerciseSubName.text = subName;
-		txtMuscularGroup.text = muscularGroup;
-		txtNSets.text = sets;
-		txtNReps.text = reps;
-		txtNWeight.text = weight;
-		strMediaPath = mediaPath;
-		displaySelectedMedia();
-	}
-
 	footer: ToolBar {
 		id: bottomPane
 		width: parent.width
@@ -284,9 +273,16 @@ Page {
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
-				onExerciseEntrySelected: (exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath, multipleSelection) => {
+				onExerciseEntrySelected: (index, multipleSelection) => {
 					if (multipleSelection === 2) return;
-					exerciseSelected(exerciseName, subName, muscularGroup, sets, reps, weight, mediaPath);
+					txtExerciseName.text = exercisesListModel.get(index, 1);
+					txtExerciseSubName.text = exercisesListModel.get(index, 2);
+					txtMuscularGroup.text = exercisesListModel.get(index, 3);
+					txtNSets.text = exercisesListModel.get(index, 4);
+					txtNReps.text = exercisesListModel.get(index, 5);
+					txtNWeight.text = exercisesListModel.get(index, 6);
+					strMediaPath = exercisesListModel.get(index, 8);
+					displaySelectedMedia();
 				}
 			}
 
@@ -390,10 +386,7 @@ Page {
 					fixedSize: true
 
 					onClicked: {
-						const curIndex = exercisesList.curIndex;
-						exerciseChosen(exercisesListModel.get(curIndex, 1), exercisesListModel.get(curIndex, 2),
-									exercisesListModel.get(curIndex, 4), exercisesListModel.get(curIndex, 5),
-									exercisesListModel.get(curIndex, 6));
+						exerciseChosen();
 						pageExercises.StackView.view.pop();
 					}
 				} //btnAddExercise

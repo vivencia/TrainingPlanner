@@ -8,6 +8,7 @@ class DBExercisesModel : public TPListModel
 
 Q_OBJECT
 QML_ELEMENT
+Q_PROPERTY(bool entryIsSelected READ entryIsSelected NOTIFY entryIsSelectedChanged)
 
 public:	
 	// Define the role names to be used
@@ -25,16 +26,23 @@ public:
 	};
 
 	explicit DBExercisesModel(QObject *parent = 0);
-	Q_INVOKABLE void manageSelectedEntries(const uint index, const uint operation);
-	Q_INVOKABLE QString selectedEntriesValues(const uint field) const;
-	Q_INVOKABLE QList<uint> selectedEntries() const { return m_selectedEntries; }
+	Q_INVOKABLE bool entryIsSelected() const { return m_selectedEntries.contains(currentRow()); }
+	Q_INVOKABLE void clearSelectedEntries() { m_selectedEntries.clear(); m_selectedEntryToReplace = 0; }
+	Q_INVOKABLE void manageSelectedEntries(const uint index, const uint max_selected = 1);
+	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
+	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
+	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
+signals:
+	void entryIsSelectedChanged();
+
 private:
 	QList<uint> m_selectedEntries;
+	uint m_selectedEntryToReplace;
 };
 
 #endif // DBEXERCISESMODEL_H

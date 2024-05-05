@@ -598,7 +598,7 @@ Page {
 
 					TPButton {
 						id: btnChooseIntent
-						text: qsTr("Begin")
+						text: qsTr("Proceed")
 						enabled: false
 						Layout.alignment: Qt.AlignCenter
 
@@ -615,7 +615,6 @@ Page {
 								case 3: //empty session
 									bHasPreviousTDays = false;
 									bHasMesoPlan = false;
-									placeTipOnAddExercise();
 								break;
 							}
 						}
@@ -974,17 +973,16 @@ Page {
 		appDB.verifyTDayOptions(mainDate, splitLetter);
 	}
 
-	function gotExercise(strName1: string, strName2: string, nSets: string, nReps: string, nWeight: string) {
+	function gotExercise() {
 		function readyToProceed(object, id) {
 			appDB.getItem.disconnect(readyToProceed);
-			if (navButtons === null)
-				createNavButtons();
+			createNavButtons();
 			scrollTimer.init(phantomItem.y);
 			return;
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		itemManager.createExerciseObject(strName1 + " - " + strName2, nSets, nReps, nWeight);
+		itemManager.createExerciseObject(exercisesListModel);
 	}
 
 	function placeSetIntoView(ypos: int) {
