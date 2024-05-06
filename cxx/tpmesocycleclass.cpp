@@ -192,7 +192,6 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 			if (m_createdSplits.indexOf(i.key()) == -1)
 			{
 				m_createdSplits.append(i.key());
-				m_splitProperties[QStringLiteral("splitLetter")] = QString(i.key());
 				m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(m_splitModels.value(i.key()));
 				QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
 				m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
@@ -221,6 +220,25 @@ void TPMesocycleClass::swapPlans(const QString& splitLetter1, const QString& spl
 	DBMesoSplitModel* tempSplit(m_splitModels.value(splitLetter1.at(0)));
 	m_splitModels[splitLetter1.at(0)] = m_splitModels.value(splitLetter2.at(0));
 	m_splitModels[splitLetter2.at(0)] = tempSplit;
+}
+
+//Updates MesoCycle.qml and, consequently, m_MesocyclesModel with changes originating in MesoSplitPlanner
+void TPMesocycleClass::changeMuscularGroup(DBMesoSplitModel* splitModel)
+{
+	QMetaObject::invokeMethod(m_MesoPage, "changeMuscularGroup", Q_ARG(QString, splitModel->splitLetter()),
+		Q_ARG(QString, splitModel->muscularGroup()));
+}
+
+//Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml and
+void TPMesocycleClass::updateMuscularGroup(const QString& splitA, const QString& splitB, const QString& splitC,
+								const QString& splitD, const QString& splitE, const QString& splitF)
+{
+	const QStringList splits(QStringList() << splitA << splitB << splitC << splitD << splitE << splitF);
+	for(uint i(0); i < 6; ++i)
+	{
+		if (m_splitModels.value(QChar('A'+i)) != nullptr)
+			m_splitModels[QChar('A'+i)]->setMuscularGroup(splits.at(i));
+	}
 }
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 

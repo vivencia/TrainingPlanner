@@ -84,6 +84,8 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE bool exportToText(const QString& filename, const bool bFancy) const;
+	Q_INVOKABLE int importFromText(const QString& filename, const bool bReplace);
+
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);
@@ -131,6 +133,9 @@ public:
 
 	inline const bool isReady() const { return m_bReady; }
 	inline void setReady(const bool bready) { m_bReady = bready; }
+
+	inline virtual const QString exportExtraInfo() const { return QString(); }
+	inline virtual bool importExtraInfo(const QString& ) { return false; }
 
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }

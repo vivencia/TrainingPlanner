@@ -36,7 +36,7 @@ public:
 	void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
-	Q_INVOKABLE void pass_object(QObject *obj) { m_model = static_cast<TPListModel*>(obj); }
+
 	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
@@ -77,9 +77,9 @@ public:
 	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable();
 	Q_INVOKABLE void getCompleteMesoSplit();
-	Q_INVOKABLE void updateMesoSplitComplete(const QString& splitLetter);
+	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
-	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter);
+	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -127,7 +127,6 @@ private:
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
 	RunCommands* m_runCommands;
-	TPListModel* m_model;
 	QMap<QString,int> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;

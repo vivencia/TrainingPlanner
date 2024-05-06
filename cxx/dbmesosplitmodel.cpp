@@ -5,6 +5,8 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	: TPListModel{parent}, m_nextAddedExercisePos(2)
 {
 	m_tableId = MESOSPLIT_TABLE_ID;
+	setObjectName(DBMesoSplitObjectName);
+
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[exerciseNameRole] = "exerciseName";
 	m_roleNames[exerciseName1Role] = "exerciseName1";
@@ -208,4 +210,20 @@ void DBMesoSplitModel::changeExercise(const QString& name, const QString& sets, 
 		}
 		break;
 	}
+}
+
+bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
+{
+	int idx(extrainfo.indexOf(':'));
+	if (idx != -1)
+	{
+		setSplitLetter(extrainfo.mid(idx+1, 1));
+		idx = extrainfo.indexOf('-', idx+1);
+		if (idx != -1)
+		{
+			setMuscularGroup(extrainfo.mid(idx+1, extrainfo.length() - idx - 1));
+			return true;
+		}
+	}
+	return false;
 }

@@ -38,7 +38,7 @@ Item {
 
 			onClicked: {
 				txtSetNotes.visible = !txtSetNotes.visible;
-				img.source = txtSetNotes.visible ? "qrc:/images/"+darkIconFolder+"fold-up.png" : "qrc:/images/"+darkIconFolder+"fold-down.png"
+				imageName = txtSetNotes.visible ? "fold-up.png" : "fold-down.png"
 			}
 		}
 	} //Label

@@ -4,6 +4,8 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: TPListModel(parent)
 {
 	m_tableId = MESOCYCLES_TABLE_ID;
+	setObjectName(DBMesocyclesObjectName);
+
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[mesoIdRole] = "mesoId";
 	m_roleNames[mesoNameRole] = "mesoName";

@@ -21,16 +21,13 @@ Page {
 
 	property alias currentPage: splitView.currentItem
 
-	contentItem {
-		Keys.onPressed: (event) => {
-			switch (event.key) {
-				case Qt.Key_Back:
-					if (exercisesPane.shown) {
-						event.accepted = true;
-						exercisesPane.shown = false;
-					}
-				break;
-			}
+	Keys.onPressed: (event) => {
+		if (event.key === Qt.Key_Back) {
+			event.accepted = true;
+			if (exercisesPane.visible)
+				exercisesPane.visible = false;
+			else
+				pagePlanner.StackView.pop();
 		}
 	}
 
@@ -95,8 +92,7 @@ Page {
 			}
 
 			onClicked: {
-				appDB.pass_object(currentPage.splitModel);
-				appDB.updateMesoSplitComplete(currentPage.splitLetter);
+				appDB.updateMesoSplitComplete(currentPage.splitModel);
 				requestSimpleExercisesList(null, false, false);
 			}
 		}
@@ -125,7 +121,7 @@ Page {
 
 		TPButton {
 			id: btnSwapPlan
-			text: currentPage ? currentPage.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
+			text: currentPage ? currentPage.splitModel.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
@@ -138,7 +134,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.swapMesoPlans(currentPage.splitLetter, currentPage.swappableLetter);
+			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter, currentPage.swappableLetter);
 		}
 
 		TPButton {
@@ -146,7 +142,7 @@ Page {
 			text: qsTr("Export")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
 			textUnderIcon: true
-			visible: currentPage ? currentPage.splitModel.count > 1 : false
+			//visible: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -156,7 +152,11 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: exportTypeTip.show(-1);
+			onClicked: {
+
+			const error = currentPage.splitModel.importFromText("/home/guilherme/tp1.tp", true); //exportTypeTip.show(-1);
+			console.log(error);
+			}
 		}
 
 		TPButton {
@@ -247,7 +247,7 @@ Page {
 			if (opt === 0)
 				suggestedName = qsTr(" - Exercises Plan.tp")
 			else
-				suggestedName = qsTr(" - Exercises Plan - Split ") + currentPage.splitLetter + ".tp";
+				suggestedName = qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".tp";
 
 			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
 			open();

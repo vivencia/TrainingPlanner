@@ -404,7 +404,6 @@ Page {
 					anchors.fill: parent
 					columns: 2
 					rows: 7
-
 					Label {
 						text: qsTr("Day A: ")
 						font.bold: true
@@ -773,7 +772,7 @@ Page {
 				else {
 					function canProceed() {
 						appDB.databaseReady.disconnect(canProceed);
-						appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text)
+						appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 
 						if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
 							appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
@@ -787,6 +786,18 @@ Page {
 			} //onClicked
 		} //btnSaveMeso
 	} //footer
+
+	function changeMuscularGroup(splitletter: string, description: string) {
+		switch (splitletter) {
+			case 'A': txtSplitA.text = description; break;
+			case 'B': txtSplitB.text = description; break;
+			case 'C': txtSplitC.text = description; break;
+			case 'D': txtSplitD.text = description; break;
+			case 'E': txtSplitE.text = description; break;
+			case 'F': txtSplitF.text = description; break;
+		}
+		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
+	}
 
 	function createMesoStatisticsObject() {
 		var component = Qt.createComponent("GraphicsViewer.qml", Qt.Asynchronous);

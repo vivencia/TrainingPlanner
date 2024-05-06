@@ -24,6 +24,8 @@ Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight)
 Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1)
 Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2)
 Q_PROPERTY(QString setsNotes READ setsNotes WRITE setSetsNotes)
+Q_PROPERTY(QString muscularGroup READ muscularGroup WRITE setMuscularGroup NOTIFY muscularGroupChanged)
+Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged)
 
 public:
 	enum RoleNames {
@@ -44,6 +46,13 @@ public:
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
+
+	QString muscularGroup() const { return m_muscularGroup; }
+	void setMuscularGroup(const QString& muscularGroup ) { m_muscularGroup = muscularGroup; setModified(true); emit muscularGroupChanged(); }
+
+	QString splitLetter() const { return QString(m_splitLetter); }
+	void setSplitLetter(const QChar& splitLetter ) { m_splitLetter = splitLetter; setModified(true); emit splitLetterChanged(); }
+	void setSplitLetter(const QString& splitLetter ) { m_splitLetter = splitLetter.at(0); setModified(true); emit splitLetterChanged(); }
 
 	QString exerciseName() const { return data(index(currentRow(), 0), exerciseNameRole).toString(); }
 	void setExerciseName(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseNameRole); }
@@ -91,8 +100,17 @@ public:
 
 	Q_INVOKABLE void changeExercise(const QString& name, const QString& sets, const QString& reps, const QString& weight, const uint operation);
 
+	inline virtual const QString exportExtraInfo() const override { return tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup; }
+	virtual bool importExtraInfo(const QString& extrainfo) override;
+
+signals:
+	void muscularGroupChanged();
+	 void splitLetterChanged();
+
 private:
 	uint m_nextAddedExercisePos;
+	QString m_muscularGroup;
+	QChar m_splitLetter;
 
 	void replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value);
 };

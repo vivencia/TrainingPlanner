@@ -9,7 +9,6 @@ Frame {
 
 	required property int mesoId
 	required property int mesoIdx
-	required property string splitLetter
 	required property DBMesoSplitModel splitModel
 	required property Item parentItem
 
@@ -56,16 +55,13 @@ Frame {
 	TPBalloonTip {
 		id: msgDlgImport
 		title: qsTr("Import Exercises Plan?")
-		message: qsTr("Import the exercises plan for training division <b>") + splitLetter +
+		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter +
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-		onButton1Clicked: {
-			appDB.pass_object(splitModel);
-			appDB.loadSplitFromPreviousMeso(prevMesoId, splitLetter);
-		}
+		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
 	} //TPBalloonTip
 
 	TPBalloonTip {
@@ -95,7 +91,7 @@ Frame {
 
 	Label {
 		id: lblMain
-		text: qsTr("Training Division ") + splitLetter
+		text: qsTr("Training Division ") + splitModel.splitLetter
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
 		font.bold: true
@@ -124,7 +120,7 @@ Frame {
 
 	TPTextInput {
 		id: txtGroups
-		text: mesoSplitModel.get(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2)
+		text: splitModel.muscularGroup
 		width: parent.width - 20
 
 		anchors {
@@ -135,11 +131,12 @@ Frame {
 			bottomMargin: 10
 		}
 
-		onTextEdited: {
-			mesoSplitModel.set(mesoIdx, splitLetter.charCodeAt(0) - "A".charCodeAt(0) + 2, text);
+		onEditingFinished: {
+			splitModel.muscularGroup = text;
 			exercisesListModel.makeFilterString(text);
-			swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);
 			bCanSwapPlan = swappableLetter !== "";
+			itemManager.changeMuscularGroup(splitModel);
 		}
 	}
 
@@ -594,8 +591,8 @@ Frame {
 			if (splitModel.count === 0) {
 				prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
 				if (prevMesoId >= 0) {
-					if (appDB.mesoHasPlan(prevMesoId, splitLetter)) {
-						prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, DBMesocyclesModel.mesoNameRole);
+					if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter)) {
+						prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, mesocyclesModel.mesoNameRole);
 						msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
 						splitModel.currentRow = 0;
 					}
@@ -605,7 +602,7 @@ Frame {
 			}
 			exercisesListModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
-			swappableLetter = appDB.checkIfSplitSwappable(splitLetter);
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);
 			bCanSwapPlan = swappableLetter !== "";
 		}
 	}

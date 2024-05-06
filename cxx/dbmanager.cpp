@@ -29,7 +29,7 @@
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands, const QString& argv0)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mArgv0(argv0), m_appSettings(appSettings),
-		m_runCommands(runcommands), m_model(nullptr), m_exercisesPage(nullptr)
+		m_runCommands(runcommands), m_exercisesPage(nullptr)
 {}
 
 void DbManager::init()
@@ -678,6 +678,7 @@ void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, co
 	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
 	createThread(worker, [worker] () { worker->updateMesoSplit(); } );
+	m_currentMesoManager->updateMuscularGroup(splitA, splitB, splitC, splitD, splitE, splitF);
 }
 
 void DbManager::removeMesoSplit()
@@ -726,11 +727,10 @@ void DbManager::getCompleteMesoSplit()
 	} while (++itr != itr_end);
 }
 
-void DbManager::updateMesoSplitComplete(const QString& splitLetter)
+void DbManager::updateMesoSplitComplete(DBMesoSplitModel* model)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, model));
 	worker->addExecArg(m_MesoIdStr);
-	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 }
 
@@ -746,11 +746,11 @@ bool DbManager::mesoHasPlan(const uint meso_id, const QString& splitLetter) cons
 	return false;
 }
 
-void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, const QString& splitLetter)
+void DbManager::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, static_cast<DBMesoSplitModel*>(m_model)));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, model));
 	worker->addExecArg(QString::number(prev_meso_id));
-	worker->addExecArg(splitLetter.at(0));
+	worker->addExecArg(model->splitLetter().at(0));
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); } );
 }
 

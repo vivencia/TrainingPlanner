@@ -182,22 +182,16 @@ void TPListModel::makeFilterString(const QString& text)
 bool TPListModel::exportToText(const QString& filename, const bool bFancy) const
 {
 	QFile outFile(filename);
-
 	if (outFile.open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
-		QString tableName;
-		switch (m_tableId)
-		{
-			case EXERCISES_TABLE_ID: tableName = bFancy ? DBExercisesObjectName + '\n' : QStringLiteral("0x01\n"); break;
-			case MESOCYCLES_TABLE_ID: tableName = bFancy ? DBMesocyclesObjectName + '\n' : QStringLiteral("0x02\n"); break;
-			case MESOCALENDAR_TABLE_ID: tableName = bFancy ? DBMesoCalendarObjectName + '\n' : QStringLiteral("0x03\n"); break;
-			case MESOSPLIT_TABLE_ID: tableName = bFancy ? DBMesoSplitObjectName + '\n' : QStringLiteral("0x04\n"); break;
-			case TRAININGDAY_TABLE_ID: tableName = bFancy ? DBTrainingDayObjectName + '\n' : QStringLiteral("0x05\n"); break;
-		}
+		const QString tableName(bFancy ? objectName() + u"\n\n"_qs : QString::number(m_tableId) + u"\n"_qs);
 		outFile.write(tableName.toUtf8().constData());
+		outFile.write(exportExtraInfo().toUtf8().constData());
+		outFile.write("\n\n", 2);
 
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+		QString value;
 		while (itr != itr_end)
 		{
 			for (uint i(0); i < (*itr).count(); ++i) {
@@ -205,22 +199,96 @@ bool TPListModel::exportToText(const QString& filename, const bool bFancy) const
 				{
 					outFile.write(m_roleNames.value(Qt::UserRole+i).constData());
 					outFile.write(": ", 2);
-					outFile.write((*itr).at(i).replace(subrecord_separator, '|').toUtf8().constData(), (*itr).at(i).length());
+					value = (*itr).at(i);
+					outFile.write(value.replace(subrecord_separator, '|').toUtf8().constData());
 					outFile.write("\n", 1);
 				}
 				else
 				{
-					outFile.write((*itr).at(i).toUtf8().constData(), (*itr).at(i).length());
-					outFile.write(record_separator, 1);
+					outFile.write((*itr).at(i).toUtf8().constData());
+					outFile.write(QByteArray(1, record_separator.toLatin1()), 1);
 				}
 			}
 			if (bFancy)
-				outFile.write("\n\n", 2);
+				outFile.write("\n", 1);
 			else
-				outFile.write(record_separator2, 1);
+				outFile.write(QByteArray(1, record_separator2.toLatin1()), 1);
 			++itr;
 		}
 		return true;
 	}
 	return false;
+}
+
+/*Return values
+ *	-1: Failed to open file
+ *	-2: File is of different type than the model
+ *	-3: Model is not empty and replace is not set to true
+ *	-4: Error in the format of the file
+ *	-5: Nothing was imported, either because file was missing info or error in formatting
+ */
+int TPListModel::importFromText(const QString& filename, const bool bReplace)
+{
+	QFile inFile(filename);
+	if (inFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		QString inData(inFile.readLine());
+		const bool bFancy(!inData.startsWith(u"0x0"_qs));
+		qint64 lineLength(0);
+		QStringList modeldata;
+
+		if (bFancy)
+		{
+			if (inData.indexOf(objectName()) == -1)
+				return -2;
+
+			if (count() > 0)
+			{
+				if(!bReplace)
+					return -3;
+				clear();
+			}
+
+			char buf[1024];
+			int sep_idx(0);
+
+			while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 ) {
+				if (lineLength > 2)
+				{
+					inData = buf;
+					inData.replace(" ", "");
+					inData.chop(1);
+					if (!importExtraInfo(inData))
+						return -4;
+					break;
+				}
+			}
+
+			while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 ) {
+				inData = buf;
+				inData.chop(1);
+				if (inData.isEmpty())
+				{
+					if (!modeldata.isEmpty())
+					{
+						appendList(modeldata);
+						modeldata.clear();
+					}
+				}
+				else
+				{
+					sep_idx = inData.indexOf(':');
+					if (sep_idx != -1)
+						modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				}
+			}
+			return (count() > 0 ? 0 : -5);
+		}
+		else
+		{
+			if (inData.indexOf(QString::number(m_tableId)) == -1)
+				return -2;
+		}
+	}
+	return -1;
 }

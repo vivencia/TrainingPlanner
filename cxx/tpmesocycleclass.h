@@ -63,6 +63,9 @@ public:
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
 	void pushSplitPage(const QChar& splitLetter) const;
 	void swapPlans(const QString& splitLetter1, const QString& splitLetter2);
+	Q_INVOKABLE void changeMuscularGroup(DBMesoSplitModel* splitModel);
+	void updateMuscularGroup(const QString& splitA, const QString& splitB, const QString& splitC,
+								const QString& splitD, const QString& splitE, const QString& splitF);
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
