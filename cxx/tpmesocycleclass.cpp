@@ -337,7 +337,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(m_CurrenttDayModel->date()), page);
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
-		const QTime workoutLenght(m_runCommands->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
+		const QTime workoutLenght(m_runCommands->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()).time());
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}

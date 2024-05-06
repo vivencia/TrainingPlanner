@@ -28,7 +28,7 @@ public:
 	explicit DBExercisesModel(QObject *parent = 0);
 	Q_INVOKABLE bool entryIsSelected() const { return m_selectedEntries.contains(currentRow()); }
 	Q_INVOKABLE void clearSelectedEntries() { m_selectedEntries.clear(); m_selectedEntryToReplace = 0; }
-	Q_INVOKABLE void manageSelectedEntries(const uint index, const uint max_selected = 1);
+	Q_INVOKABLE int manageSelectedEntries(const uint index, const uint max_selected = 1);
 	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
 	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }

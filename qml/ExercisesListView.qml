@@ -83,7 +83,7 @@ Column {
 
 		delegate: SwipeDelegate {
 			id: delegate
-			property bool bSelected: exercisesListModel.entryIsSelected
+			property bool bSelected: false
 
 			contentItem: Text {
 				id: listItem
@@ -109,9 +109,11 @@ Column {
 				color: bSelected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 			onClicked: {
+				bSelected = !bSelected;
 				if (!bMultipleSelection) {
 					if (index !== exercisesListModel.currentRow)
 					{
+						lstExercises.itemAtIndex(exercisesListModel.currentRow).bSelected = false;
 						exercisesListModel.currentRow = index;
 						exercisesListModel.manageSelectedEntries(index, 1);
 						exerciseEntrySelected(index, 0);
@@ -124,8 +126,10 @@ Column {
 				else
 				{
 					exercisesListModel.currentRow = index;
-					exercisesListModel.manageSelectedEntries(index, 2);
-					exerciseEntrySelected(index, exercisesListModel.entryIsSelected(index) ? 1 : 2);
+					const item_idx = exercisesListModel.manageSelectedEntries(index, 2);
+					exerciseEntrySelected(index, bSelected ? 1 : 2);
+					if (item_idx !== -1)
+						lstExercises.itemAtIndex(item_idx).bSelected = false;
 				}
 				this.forceActiveFocus();
 			}

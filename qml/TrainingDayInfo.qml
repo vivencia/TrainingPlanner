@@ -88,6 +88,8 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
+			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
+			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
 			if (!editMode) {
 				btnSaveDay.clicked();
 				tDayModel.dayIsFinished = true;
@@ -203,8 +205,9 @@ Page {
 				id: label1
 				topPadding: 20
 				bottomPadding: 20
-				Layout.maximumWidth: parent.width - 10
-				Layout.leftMargin: 5
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 10
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
@@ -449,10 +452,11 @@ Page {
 			}
 
 			Frame {
+				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
+				height: 70
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
-				Layout.rightMargin: 20
-				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
+				Layout.rightMargin: 5
 
 				background: Rectangle {
 					border.color: AppSettings.fontColor

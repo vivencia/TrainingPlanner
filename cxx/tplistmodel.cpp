@@ -179,7 +179,7 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-bool TPListModel::exportToText(const QString& filename) const
+bool TPListModel::exportToText(const QString& filename, const bool bFancy) const
 {
 	QFile outFile(filename);
 
@@ -188,11 +188,11 @@ bool TPListModel::exportToText(const QString& filename) const
 		QString tableName;
 		switch (m_tableId)
 		{
-			case EXERCISES_TABLE_ID: tableName = DBExercisesObjectName + '\n'; break;
-			case MESOCYCLES_TABLE_ID: tableName = DBMesocyclesObjectName + '\n'; break;
-			case MESOCALENDAR_TABLE_ID: tableName = DBMesoCalendarObjectName + '\n'; break;
-			case MESOSPLIT_TABLE_ID: tableName = DBMesoSplitObjectName + '\n'; break;
-			case TRAININGDAY_TABLE_ID: tableName = DBTrainingDayObjectName + '\n'; break;
+			case EXERCISES_TABLE_ID: tableName = bFancy ? DBExercisesObjectName + '\n' : QStringLiteral("0x01\n"); break;
+			case MESOCYCLES_TABLE_ID: tableName = bFancy ? DBMesocyclesObjectName + '\n' : QStringLiteral("0x02\n"); break;
+			case MESOCALENDAR_TABLE_ID: tableName = bFancy ? DBMesoCalendarObjectName + '\n' : QStringLiteral("0x03\n"); break;
+			case MESOSPLIT_TABLE_ID: tableName = bFancy ? DBMesoSplitObjectName + '\n' : QStringLiteral("0x04\n"); break;
+			case TRAININGDAY_TABLE_ID: tableName = bFancy ? DBTrainingDayObjectName + '\n' : QStringLiteral("0x05\n"); break;
 		}
 		outFile.write(tableName.toUtf8().constData());
 
@@ -201,11 +201,23 @@ bool TPListModel::exportToText(const QString& filename) const
 		while (itr != itr_end)
 		{
 			for (uint i(0); i < (*itr).count(); ++i) {
-				qDebug() << (*itr).at(i).toUtf8().constData();
-				outFile.write((*itr).at(i).toUtf8().constData(), (*itr).at(i).length());
-				outFile.write("\n", 1);
+				if (bFancy)
+				{
+					outFile.write(m_roleNames.value(Qt::UserRole+i).constData());
+					outFile.write(": ", 2);
+					outFile.write((*itr).at(i).replace(subrecord_separator, '|').toUtf8().constData(), (*itr).at(i).length());
+					outFile.write("\n", 1);
+				}
+				else
+				{
+					outFile.write((*itr).at(i).toUtf8().constData(), (*itr).at(i).length());
+					outFile.write(record_separator, 1);
+				}
 			}
-			outFile.write("\n\n", 2);
+			if (bFancy)
+				outFile.write("\n\n", 2);
+			else
+				outFile.write(record_separator2, 1);
 			++itr;
 		}
 		return true;

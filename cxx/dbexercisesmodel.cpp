@@ -80,7 +80,7 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }
 
-void DBExercisesModel::manageSelectedEntries(const uint index, const uint max_selected)
+int DBExercisesModel::manageSelectedEntries(const uint index, const uint max_selected)
 {
 	if (max_selected == 1)
 	{
@@ -98,12 +98,15 @@ void DBExercisesModel::manageSelectedEntries(const uint index, const uint max_se
 			{
 				if (m_selectedEntryToReplace >= max_selected - 1)
 					m_selectedEntryToReplace = 0;
+				const uint itemToDeselect(m_selectedEntries.at(m_selectedEntryToReplace));
 				m_selectedEntries[m_selectedEntryToReplace] = index;
 				m_selectedEntryToReplace++;
+				return itemToDeselect;
 			}
 		}
 		else
 			m_selectedEntries.remove(idx, 1);
 	}
 	emit entryIsSelectedChanged();
+	return -1;
 }

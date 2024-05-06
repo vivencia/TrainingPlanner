@@ -38,7 +38,7 @@ FocusScope {
 		id: paneExercise
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height + 40
+		height: shown ? implicitHeight : txtExerciseName.height + 30
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: parent.width
 		width: windowWidth - 10
@@ -143,10 +143,7 @@ FocusScope {
 					Layout.maximumWidth: width
 					Layout.leftMargin: 45
 
-					Keys.onReturnPressed: { //Alphanumeric keyboard
-						btnEditExercise.clicked();
-						cboSetType.forceActiveFocus();
-					}
+					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 
 					onExerciseChanged: (new_text) => tDayModel.setExerciseName1(new_text, exerciseIdx);
 					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
@@ -174,7 +171,7 @@ FocusScope {
 					id: txtNReps2
 					text: runCmd.getCompositeValue(1, nReps)
 					type: SetInputField.Type.RepType
-					alternativeLabels: ["",qsTr("Exercise 2:")]
+					showLabel: false
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
@@ -202,7 +199,7 @@ FocusScope {
 					id: txtNWeight2
 					text: runCmd.getCompositeValue(0, nWeight)
 					type: SetInputField.Type.RepType
-					alternativeLabels: [qsTr("Exercise 2:")]
+					showLabel: false
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"

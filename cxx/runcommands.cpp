@@ -247,7 +247,7 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal)
+const QDateTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal)
 {
 	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
 	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());
@@ -257,7 +257,9 @@ const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, con
 		hour--;
 		min += 60;
 	}
-	return QTime(hour, min, 0);
+	QDateTime timeDiff;
+	timeDiff.setTime(QTime(hour, min, 0));
+	return timeDiff;
 }
 
 void RunCommands::prepareWorkoutTimer(const QString& strStartTime)

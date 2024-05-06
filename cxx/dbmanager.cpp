@@ -995,10 +995,11 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 	const QDate date(m_runCommands->getDateFromStrDate(strDate));
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
 	worker->addExecArg(QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] {
-		m_currentMesoManager->currenttDayModel()->setModified(true);
-		return m_currentMesoManager->createExercisesObjects();
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+
+	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
+	connect( this, &DbManager::databaseReady, this, [&,date] { m_currentMesoManager->currenttDayModel()->setModified(true);
+			m_currentMesoManager->currenttDayModel()->setModified(true); return m_currentMesoManager->createExercisesObjects(); },
+				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });
 }
 

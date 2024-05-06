@@ -328,7 +328,7 @@ Page {
 				TPButton {
 					id:btnEditExercise
 					text: qsTr("Edit")
-					enabled: !bNew && exercisesList.curIndex >= 0
+					enabled: !bNew && exercisesListModel.currentRow >= 0
 					width: toolbarExercises.buttonWidth
 					fixedSize: true
 
@@ -347,7 +347,7 @@ Page {
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
 							if (!bJustSaved)
-								exercisesList.displaySelectedExercise(exercisesList.curIndex);
+								exercisesList.displaySelectedExercise(exercisesListModel.currentRow);
 						}
 					}
 				} //btnEditExercise
@@ -368,8 +368,8 @@ Page {
 							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
 						}
 						else if (bEdit) {
-							exercisesListModel.setCurrentRow(exercisesList.curIndex);
-							appDB.updateExercise(exercisesListModel.get(exercisesList.curIndex, 0), txtExerciseName.text,
+							exercisesListModel.setCurrentRow(exercisesListModel.currentRow);
+							appDB.updateExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
 													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnEditExercise.clicked();
@@ -380,7 +380,7 @@ Page {
 
 				TPButton {
 					id: btnAddExercise
-					enabled: bChooseButtonEnabled && !bCanEdit && exercisesList.curIndex >= 0
+					enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
 					text: qsTr("Add")
 					width: toolbarExercises.buttonWidth
 					fixedSize: true

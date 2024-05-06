@@ -53,7 +53,7 @@ public:
 	Q_INVOKABLE QDateTime timeFromStrTime(const QString& strTime) const { return QDateTime(QDate::currentDate(), QTime::fromString(strTime, u"hh:mm"_qs)); }
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
 
-	const QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal);
+	Q_INVOKABLE const QDateTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal);
 	bool timerRunning() const { return m_workoutTimer ? m_workoutTimer->isActive() : false; }
 	Q_INVOKABLE void prepareWorkoutTimer(const QString& strStartTime = u"00:00:00"_qs);
 	Q_INVOKABLE void startWorkoutTimer();

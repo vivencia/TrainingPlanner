@@ -83,7 +83,7 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
-	Q_INVOKABLE bool exportToText(const QString& filename) const;
+	Q_INVOKABLE bool exportToText(const QString& filename, const bool bFancy) const;
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);
