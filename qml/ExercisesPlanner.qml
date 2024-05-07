@@ -152,11 +152,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-
-			const error = currentPage.splitModel.importFromText("/home/guilherme/tp1.tp", true); //exportTypeTip.show(-1);
-			console.log(error);
-			}
+			onClicked: exportTypeTip.show(-1);
 		}
 
 		TPButton {

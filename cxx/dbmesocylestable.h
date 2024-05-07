@@ -21,7 +21,6 @@ public:
 	void newMesocycle();
 	void updateMesocycle();
 	void removeMesocycle();
-	void deleteMesocyclesTable();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mesoName = QString(), const QString& mesoStartDate = QString(),

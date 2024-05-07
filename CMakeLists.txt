@@ -18,14 +18,14 @@ set( RESOURCE_FILES app_resources.qrc )
 
 set( SOURCES
 	cxx/main.cpp
-	cxx/backupclass.cpp cxx/backupclass.h
+
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/graph.h cxx/graph.cpp
 
-	cxx/tpdatabasetable.h
+	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
 	cxx/dbmesocylestable.h cxx/dbmesocylestable.cpp
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp

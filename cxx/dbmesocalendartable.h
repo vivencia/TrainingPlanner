@@ -23,7 +23,6 @@ public:
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 	void removeMesoCalendar();
-	void deleteMesoCalendarTable();
 
 	//Call before starting a thread
 	void setData(const QString& mesoId, const QString& calNDay, const QString& calSplit);

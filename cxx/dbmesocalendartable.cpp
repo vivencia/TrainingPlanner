@@ -9,7 +9,8 @@
 DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
-	setObjectName( DBMesoCalendarObjectName );
+	m_tableName = u"mesocycles_calendar_table"_qs;
+	setObjectName(DBMesoCalendarObjectName);
 	const QString cnx_name( QStringLiteral("db_mesocal_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoCalendarFileName );
@@ -261,23 +262,6 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	{
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesoCalendarTable::deleteMesoCalendarTable()
-{
-	QFile mDBFile(mSqlLiteDB.databaseName());
-	m_result = mDBFile.remove();
-	if (m_result)
-	{
-		m_model->clear();
-		m_opcode = OP_DELETE_TABLE;
-		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBMesoCalendarTable deleteMesoCalendarTable error: Could not remove file " << mDBFile.fileName())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

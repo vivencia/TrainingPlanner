@@ -1,7 +1,6 @@
 #include "tplistmodel.h"
 
 #include <QRegularExpression>
-#include <QFile>
 
 void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
 {
@@ -179,116 +178,104 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-bool TPListModel::exportToText(const QString& filename, const bool bFancy) const
+/*void TPListModel::exportToText(QFile& outFile, const bool bFancy) const
 {
-	QFile outFile(filename);
-	if (outFile.open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
-	{
-		const QString tableName(bFancy ? objectName() + u"\n\n"_qs : QString::number(m_tableId) + u"\n"_qs);
-		outFile.write(tableName.toUtf8().constData());
-		outFile.write(exportExtraInfo().toUtf8().constData());
-		outFile.write("\n\n", 2);
+	QString strHeader;
+	if (bFancy)
+		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
+	else
+		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
 
-		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
-		QString value;
-		while (itr != itr_end)
-		{
-			for (uint i(0); i < (*itr).count(); ++i) {
-				if (bFancy)
-				{
-					outFile.write(m_roleNames.value(Qt::UserRole+i).constData());
-					outFile.write(": ", 2);
-					value = (*itr).at(i);
-					outFile.write(value.replace(subrecord_separator, '|').toUtf8().constData());
-					outFile.write("\n", 1);
-				}
-				else
-				{
-					outFile.write((*itr).at(i).toUtf8().constData());
-					outFile.write(QByteArray(1, record_separator.toLatin1()), 1);
-				}
-			}
+	outFile.write(strHeader.toUtf8().constData());
+	outFile.write(exportExtraInfo().toUtf8().constData());
+	if (bFancy)
+		outFile.write("\n\n", 2);
+	else
+		outFile.write("\n", 1);
+
+	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+	QString value;
+
+	while (itr != itr_end)
+	{
+		for (uint i(0); i < (*itr).count(); ++i) {
 			if (bFancy)
+			{
+				outFile.write(m_roleNames.value(Qt::UserRole+i).constData());
+				outFile.write(": ", 2);
+				value = (*itr).at(i);
+				outFile.write(value.replace(subrecord_separator, '|').toUtf8().constData());
 				outFile.write("\n", 1);
+			}
 			else
-				outFile.write(QByteArray(1, record_separator2.toLatin1()), 1);
-			++itr;
+			{
+				outFile.write((*itr).at(i).toUtf8().constData());
+				outFile.write(QByteArray(1, record_separator.toLatin1()), 1);
+			}
 		}
-		return true;
+		if (bFancy)
+			outFile.write("\n", 1);
+		else
+			outFile.write(QByteArray(1, record_separator2.toLatin1()), 1);
+		++itr;
 	}
-	return false;
 }
 
-/*Return values
- *	-1: Failed to open file
- *	-2: File is of different type than the model
- *	-3: Model is not empty and replace is not set to true
- *	-4: Error in the format of the file
- *	-5: Nothing was imported, either because file was missing info or error in formatting
- */
-int TPListModel::importFromText(const QString& filename, const bool bReplace)
+bool TPListModel::importFromFancyText(QFile& inFile)
 {
-	QFile inFile(filename);
-	if (inFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
-	{
-		QString inData(inFile.readLine());
-		const bool bFancy(!inData.startsWith(u"0x0"_qs));
-		qint64 lineLength(0);
-		QStringList modeldata;
+	char buf[256];
+	QString inData;
+	QStringList modeldata;
+	int sep_idx(-1);
 
-		if (bFancy)
+	while (inFile.readLine(buf, sizeof(buf)) != -1) {
+		inData = buf;
+		inData.chop(1);
+		if (inData.isEmpty())
 		{
-			if (inData.indexOf(objectName()) == -1)
-				return -2;
-
-			if (count() > 0)
+			if (!modeldata.isEmpty())
 			{
-				if(!bReplace)
-					return -3;
-				clear();
+				appendList(modeldata);
+				modeldata.clear();
 			}
-
-			char buf[1024];
-			int sep_idx(0);
-
-			while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 ) {
-				if (lineLength > 2)
-				{
-					inData = buf;
-					inData.replace(" ", "");
-					inData.chop(1);
-					if (!importExtraInfo(inData))
-						return -4;
-					break;
-				}
-			}
-
-			while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 ) {
-				inData = buf;
-				inData.chop(1);
-				if (inData.isEmpty())
-				{
-					if (!modeldata.isEmpty())
-					{
-						appendList(modeldata);
-						modeldata.clear();
-					}
-				}
-				else
-				{
-					sep_idx = inData.indexOf(':');
-					if (sep_idx != -1)
-						modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
-				}
-			}
-			return (count() > 0 ? 0 : -5);
 		}
 		else
 		{
-			if (inData.indexOf(QString::number(m_tableId)) == -1)
-				return -2;
+			sep_idx = inData.indexOf(':');
+			if (sep_idx != -1)
+				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
 		}
 	}
-	return -1;
+	return count() > 0;
 }
+
+bool TPListModel::importFromText(const QString& data)
+{
+	int chr_pos1(data.indexOf(':'));
+	int  chr_pos2(data.indexOf('\n', chr_pos1+1));
+
+	if (importExtraInfo(data.mid(chr_pos1, chr_pos2 - chr_pos1)))
+	{
+		const uint dataSize(data.length());
+		QStringList modeldata;
+
+		chr_pos1 = ++chr_pos2 + 1;
+		do {
+			switch (data.at(chr_pos1).toLatin1())
+			{
+				case 29: //record_separator
+					modeldata.append(data.mid(chr_pos2, chr_pos1 - chr_pos2));
+					chr_pos2 = chr_pos1 + 1;
+				break;
+				case 30: //record_separator2
+					appendList(modeldata);
+					modeldata.clear();
+					chr_pos2 = chr_pos1 + 1;
+				break;
+			}
+		} while (++chr_pos1 < dataSize);
+	}
+	return count() > 0;
+}
+*/

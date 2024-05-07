@@ -395,6 +395,136 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 		page->setProperty("restoreCount", 0);
 }
 
+/*bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
+{
+	QFile outFile(filename);
+	if (outFile.open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+	{
+		model->exportToText(outFile, bFancy);
+		outFile.close();
+		return true;
+	}
+	return false;
+}*/
+
+/*Return values
+ *	-1: Failed to open file
+ *	-2: File format was not recognized
+ *	-3: Model is not empty and replace is not set to true
+ *	-4: Nothing was imported, either because file was missing info or error in formatting
+ */
+/*int DbManager::importFromFile(const QString& filename, const bool bReplace, QFile& inFile)
+{
+	if (!inFile.isOpen())
+	{
+		if (!inFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+			return -1;
+	}
+
+	TPListModel* model(nullptr);
+	QString inData(inFile.readLine());
+	const bool bFancy(!inData.startsWith(u"##0x"_qs));
+	if (bFancy)
+	{
+		if (inData.indexOf(DBMesocyclesFileName) != -1)
+			model = mesocyclesModel;
+		else if (inData.indexOf(DBMesoSplitFileName) != -1)
+			;
+		else if (inData.indexOf(DBMesoCalendarFileName) != -1)
+			model = mesoCalendarModel;
+		else if (inData.indexOf(DBTrainingDayFileName) != -1)
+			;
+		else if (inData.indexOf(DBExercisesFileName) != -1)
+			model = exercisesListModel;
+		else
+		{
+			inFile.close();
+			return -2;
+		}
+
+		char buf[128];
+		qint64 lineLength(0);
+
+		while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 )
+		{
+			if (lineLength > 2)
+			{
+				inData = buf;
+				inData.replace(u" "_qs, u""_qs);
+				inData.chop(1);
+				if (!model)
+				{
+					int sep_idx(0);
+					sep_idx = inData.indexOf(':');
+					if (sep_idx != -1)
+						model = m_currentMesoManager->getSplitModel(inData.at(sep_idx+1));
+					else
+						model = m_currentMesoManager->gettDayModel(m_runCommands->getDateFromStrDate(inData));
+					if (!model)
+					{
+						inFile.close();
+						return -2;
+					}
+				}
+				break;
+			}
+		}
+		if (!model->importFromFancyText(inFile))
+		{
+			inFile.close();
+			return -4;
+		}
+
+		switch (model->tableID())
+		{
+			case EXERCISES_TABLE_ID:
+				deleteExercisesTable(false);
+			break;
+			case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
+			case MESOSPLIT_TABLE_ID: break;
+			case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
+			case TRAININGDAY_TABLE_ID: break;
+		}
+
+		if (!inFile.atEnd())
+			return importFromFile(filename, bReplace, inFile);
+	}
+	else
+		{
+			inData = inData.left(2);
+			inData.chop(1);
+			switch (inData.toUInt())
+			{
+				case EXERCISES_TABLE_ID: model = exercisesListModel; break;
+				case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
+				case MESOSPLIT_TABLE_ID: break;
+				case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
+				case TRAININGDAY_TABLE_ID: break;
+				default:
+					inFile.close();
+					return -2;
+			}
+
+			const QString data(inFile.readAll());
+	if (!data.isEmpty())
+	{
+		}
+
+		if (model->count() > 0)
+		{
+			if(!bReplace)
+				return -3;
+			model->clear();
+		}
+		if (!model->importExtraInfo(inData))
+			return -4;
+
+		inFile.close();
+		return 0;
+	}
+	return -5;
+}*/
+
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 {
 	if (!thread->isFinished())
@@ -476,10 +606,10 @@ void DbManager::removeExercise(const QString& id)
 	createThread(worker, [worker] () { return worker->removeExercise(); } );
 }
 
-void DbManager::deleteExercisesTable()
+void DbManager::deleteExercisesTable(const bool bRemoveFile)
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	createThread(worker, [worker] () { return worker->deleteExercisesTable(); } );
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DbManager::openExercisesListPage(const bool fromMainMenu)
@@ -641,10 +771,10 @@ void DbManager::removeMesocycle()
 	}
 }
 
-void DbManager::deleteMesocyclesTable()
+void DbManager::deleteMesocyclesTable(const bool bRemoveFile)
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	createThread(worker, [worker] () { return worker->deleteMesocyclesTable(); } );
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
@@ -689,10 +819,10 @@ void DbManager::removeMesoSplit()
 	createThread(worker, [worker] () { return worker->removeMesoSplit(); } );
 }
 
-void DbManager::deleteMesoSplitTable()
+void DbManager::deleteMesoSplitTable(const bool bRemoveFile)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	createThread(worker, [worker] () { return worker->deleteMesoSplitTable(); } );
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DbManager::getCompleteMesoSplit()
@@ -931,10 +1061,10 @@ void DbManager::removeMesoCalendar()
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
 }
 
-void DbManager::deleteMesoCalendarTable()
+void DbManager::deleteMesoCalendarTable(const bool bRemoveFile)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	createThread(worker, [worker] () { return worker->deleteMesoCalendarTable(); } );
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
@@ -1061,9 +1191,9 @@ void DbManager::removeTrainingDay()
 	createThread(worker, [worker] () { return worker->removeTrainingDay(); } );
 }
 
-void DbManager::deleteTrainingDayTable()
+void DbManager::deleteTrainingDayTable(const bool bRemoveFile)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-	createThread(worker, [worker] () { return worker->deleteTrainingDayTable(); } );
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

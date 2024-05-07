@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 #include <QDate>
+#include <QFile>
 
 #ifdef DEBUG
 #define MSG_OUT(message) qDebug() << message;
@@ -59,6 +60,7 @@ public:
 
 	virtual ~TPListModel () override;
 
+	inline int tableID() const { return m_tableId; }
 	bool modified() const { return m_bModified; }
 	void setModified(const bool bModified)
 	{
@@ -83,8 +85,9 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
-	Q_INVOKABLE bool exportToText(const QString& filename, const bool bFancy) const;
-	Q_INVOKABLE int importFromText(const QString& filename, const bool bReplace);
+	//Q_INVOKABLE void exportToText(QFile& outFile, const bool bFancy) const;
+	//Q_INVOKABLE bool importFromFancyText(QFile& inFile);
+	//Q_INVOKABLE bool importFromText(const QString& data);
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{

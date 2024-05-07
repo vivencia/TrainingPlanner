@@ -312,7 +312,7 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 	return multiUseString;
 }
 
-void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, const uint type)
+void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nSubSets)
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
@@ -326,11 +326,11 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 
 			for(uint i(0); i < n; ++i)
 			{
-				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
-				m_ExerciseData.at(exercise_idx)->subsets.append(m_ExerciseData.at(exercise_idx)->subsets.last());
 				m_ExerciseData.at(exercise_idx)->type.append(strType);
-				m_ExerciseData.at(exercise_idx)->reps.append(nextSetSuggestedReps(exercise_idx, type));
-				m_ExerciseData.at(exercise_idx)->weight.append(nextSetSuggestedWeight(exercise_idx, type));
+				m_ExerciseData.at(exercise_idx)->subsets.append(nSubSets.isEmpty() ? m_ExerciseData.at(exercise_idx)->subsets.last() : nSubSets);
+				m_ExerciseData.at(exercise_idx)->reps.append(nReps.isEmpty() ? nextSetSuggestedReps(exercise_idx, type) : nReps);
+				m_ExerciseData.at(exercise_idx)->weight.append(nWeight.isEmpty() ? nextSetSuggestedWeight(exercise_idx, type) : nWeight);
+				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
 
 				switch (type)
 				{

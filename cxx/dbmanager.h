@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QMap>
 #include <QQmlComponent>
+#include <QFile>
 
 class TPDatabaseTable;
 class QQmlApplicationEngine;
@@ -41,6 +42,9 @@ public:
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
+	//Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
+	//Q_INVOKABLE int importFromFile(const QString& filename, const bool bReplace, QFile& inFile);
+
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
 	Q_INVOKABLE void newExercise(const QString& mainName, const QString& subName, const QString& muscularGroup,
@@ -50,7 +54,7 @@ public:
 									const QString& nSets, const QString& nReps, const QString& nWeight,
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
-	Q_INVOKABLE void deleteExercisesTable();
+	Q_INVOKABLE void deleteExercisesTable(const bool bRemoveFile);
 	Q_INVOKABLE void openExercisesListPage(const bool fromMainMenu = false);
 	void createExercisesListPage();
 	void getExercisesListVersion();
@@ -65,7 +69,7 @@ public:
 	Q_INVOKABLE void updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
 									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
 	Q_INVOKABLE void removeMesocycle();
-	Q_INVOKABLE void deleteMesocyclesTable();
+	Q_INVOKABLE void deleteMesocyclesTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -75,7 +79,7 @@ public:
 	Q_INVOKABLE void updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC, const QString& splitD,
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit();
-	Q_INVOKABLE void deleteMesoSplitTable();
+	Q_INVOKABLE void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void getCompleteMesoSplit();
 	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
@@ -92,7 +96,7 @@ public:
 	Q_INVOKABLE void updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay);
 	Q_INVOKABLE void updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
 	Q_INVOKABLE void removeMesoCalendar();
-	Q_INVOKABLE void deleteMesoCalendarTable();
+	Q_INVOKABLE void deleteMesoCalendarTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
@@ -105,7 +109,7 @@ public:
 	Q_INVOKABLE void newTrainingDay();
 	Q_INVOKABLE void updateTrainingDay();
 	Q_INVOKABLE void removeTrainingDay();
-	Q_INVOKABLE void deleteTrainingDayTable();
+	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 signals:

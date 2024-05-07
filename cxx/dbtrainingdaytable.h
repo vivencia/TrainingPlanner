@@ -23,7 +23,6 @@ public:
 	void newTrainingDay();
 	void updateTrainingDay();
 	void removeTrainingDay();
-	void deleteTrainingDayTable();
 
 private:
 	QString formatDate(const uint julianDay) const;

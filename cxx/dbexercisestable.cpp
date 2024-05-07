@@ -12,6 +12,7 @@ uint DBExercisesTable::m_exercisesTableLastId(1000);
 DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
+	m_tableName = u"exercises_table"_qs;
 	setObjectName( DBExercisesObjectName );
 	const QString cnx_name( QStringLiteral("db_exercises_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
@@ -273,23 +274,6 @@ void DBExercisesTable::removeExercise()
 	{
 		MSG_OUT("DBExercisesTable removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBExercisesTable removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBExercisesTable::deleteExercisesTable()
-{
-	QFile mDBFile(mSqlLiteDB.databaseName());
-	m_result = mDBFile.remove();
-	if (m_result)
-	{
-		m_model->clear();
-		m_opcode = OP_DELETE_TABLE;
-		MSG_OUT("DBExercisesTable deleteExercisesTable SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBExercisesTable deleteExercisesTable error: Could not remove file " << mDBFile.fileName())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

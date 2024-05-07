@@ -9,7 +9,6 @@
 #include <QQuickStyle>
 
 #include "translationclass.h"
-#include "backupclass.h"
 #include "runcommands.h"
 #include "dbmanager.h"
 

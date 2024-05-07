@@ -34,12 +34,16 @@ public:
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline TPListModel* model() const { return m_model; }
 
+	void clearTable();
+	void removeDBFile();
+
 protected:
 	QSqlDatabase mSqlLiteDB;
 	QSettings* m_appSettings;
 	QStringList m_data;
 	TPListModel* m_model;
 	QVariantList m_execArgs;
+	QString m_tableName;
 
 	bool m_result;
 	OP_CODES m_opcode;

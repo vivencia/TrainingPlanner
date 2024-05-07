@@ -832,7 +832,7 @@ Page {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
-				enabled: !runCmd.timerRunning
+				enabled: runCmd.timerRunning
 
 				onClicked: {
 					runCmd.stopWorkoutTimer();

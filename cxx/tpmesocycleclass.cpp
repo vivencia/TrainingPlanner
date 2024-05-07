@@ -515,7 +515,7 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 		if (set_number == 0)
 			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
 		else
-			currenttDayModel()->newSet(set_number, exercise_idx, set_type);
+			currenttDayModel()->newSet(set_number, exercise_idx, set_type, nReps, nWeight);
 		m_expectedSetNumber = set_number;
 	}
 

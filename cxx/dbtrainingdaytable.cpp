@@ -15,7 +15,8 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* app
 	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
 
-	setObjectName( DBTrainingDayObjectName );
+	m_tableName = u"training_day_table"_qs;
+	setObjectName(DBTrainingDayObjectName);
 	const QString cnx_name( QStringLiteral("db_trainingday_connection-") + QString::number(dist(gen)) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBTrainingDayFileName );
@@ -299,22 +300,5 @@ void DBTrainingDayTable::removeTrainingDay()
 		MSG_OUT("DBTrainingDayTable removeTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBTrainingDayTable removeTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBTrainingDayTable::deleteTrainingDayTable()
-{
-	QFile mDBFile(mSqlLiteDB.databaseName());
-	m_result = mDBFile.remove();
-	if (m_result)
-	{
-		if (m_model)
-			m_model->clear();
-		m_opcode = OP_DELETE_TABLE;
-		MSG_OUT("DBTrainingDayTable deleteTrainingDayTable SUCCESS")
-	}
-	else
-		MSG_OUT("DBTrainingDayTable deleteTrainingDayTable error: Could not remove file " << mDBFile.fileName())
-
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

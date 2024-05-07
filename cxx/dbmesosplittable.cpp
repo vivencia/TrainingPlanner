@@ -13,7 +13,8 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSett
 	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
 
-	setObjectName( DBMesoSplitObjectName );
+	m_tableName = u"mesocycles_splits"_qs;
+	setObjectName(DBMesoSplitObjectName);
 	const QString cnx_name( QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)) );
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoSplitFileName );
@@ -217,24 +218,6 @@ void DBMesoSplitTable::removeMesoSplit()
 	{
 		MSG_OUT("DBMesoSplitTable removeMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable removeMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesoSplitTable::deleteMesoSplitTable()
-{
-	QFile mDBFile(mSqlLiteDB.databaseName());
-	m_result = mDBFile.remove();
-	if (m_result)
-	{
-		if (m_model)
-			m_model->clear();
-		m_opcode = OP_DELETE_TABLE;
-		MSG_OUT("DBMesoSplitTable deleteMesoSplitTable SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBMesoSplitTable deleteMesoSplitTable error: Could not remove file " << mDBFile.fileName())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

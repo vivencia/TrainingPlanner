@@ -24,7 +24,6 @@ public:
 	void newExercise();
 	void updateExercise();
 	void removeExercise();
-	void deleteExercisesTable();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mainName = QString(), const QString& subName = QString(),
