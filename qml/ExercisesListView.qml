@@ -83,7 +83,6 @@ Column {
 
 		delegate: SwipeDelegate {
 			id: delegate
-			property bool bSelected: false
 
 			contentItem: Text {
 				id: listItem
@@ -106,33 +105,10 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: bSelected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+				color: selected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
-			onClicked: {
-				bSelected = !bSelected;
-				if (!bMultipleSelection) {
-					if (index !== exercisesListModel.currentRow)
-					{
-						lstExercises.itemAtIndex(exercisesListModel.currentRow).bSelected = false;
-						exercisesListModel.currentRow = index;
-						exercisesListModel.manageSelectedEntries(index, 1);
-						exerciseEntrySelected(index, 0);
-					}
-					else {
-						hideSimpleExerciseList();
-						return;
-					}
-				}
-				else
-				{
-					exercisesListModel.currentRow = index;
-					const item_idx = exercisesListModel.manageSelectedEntries(index, 2);
-					exerciseEntrySelected(index, bSelected ? 1 : 2);
-					if (item_idx !== -1)
-						lstExercises.itemAtIndex(item_idx).bSelected = false;
-				}
-				this.forceActiveFocus();
-			}
+
+			onClicked: itemClicked(index);
 
 			Component.onCompleted: {
 				if (lstExercises.totalWidth < width)
@@ -195,8 +171,8 @@ Column {
 			checkable: true
 			checked: false
 			visible: canDoMultipleSelection
-			width: 20
-			height: 20
+			width: 25
+			height: 25
 			imageName: "multi-selection.png"
 
 			anchors {
@@ -259,11 +235,6 @@ Column {
 			lstExercises.model = exercisesListModel;
 	}
 
-	function displaySelectedExercise(lstIdx, multiple_opt) {
-		exercisesListModel.currentRow = lstIdx;
-		exerciseEntrySelected(lstIdx, multiple_opt);
-	}
-
 	function removeExercise(removeIdx) {
 		const actualIndex = exercisesListModel.getInt(removeIdx, 9); //position of item in the main model
 		var i;
@@ -278,24 +249,40 @@ Column {
 		appDB.databaseReady.connect(readyToContinue);
 	}
 
-	function setCurrentIndex(newIdx) {
-		if (newIdx < exercisesListModel.count) {
-			exercisesListModel.currentRow = newIdx;
-			lstExercises.currentIndex = newIdx;
-			lstExercises.ensureVisible(lstExercises.currentItem);
+	function itemClicked(idx) {
+		exercisesListModel.invertSelected(idx);
+		if (!bMultipleSelection) {
+			if (idx !== exercisesListModel.currentRow) {
+				exercisesListModel.setSelected(exercisesListModel.currentRow, false);
+				exercisesListModel.currentRow = idx;
+				exercisesListModel.manageSelectedEntries(idx, 1);
+				exerciseEntrySelected(idx, 0);
+			}
+			else {
+				hideSimpleExerciseList();
+				return;
+			}
 		}
+		else
+		{
+			exercisesListModel.currentRow = idx;
+			const item_idx = exercisesListModel.manageSelectedEntries(idx, 2);
+			exerciseEntrySelected(idx, exercisesListModel.isSelected(idx) ? 1 : 2);
+			if (item_idx !== -1)
+				exercisesListModel.setSelected(item_idx, false);
+		}
+		lstExercises.forceActiveFocus();
 	}
 
 	function simulateMouseClick(new_index) {
-		if (new_index < exercisesListModel.count) {
-			displaySelectedExercise(new_index, 0);
-			lstExercises.positionViewAtIndex(new_index, ListView.Beginning);
-		}
+		lstExercises.positionViewAtIndex(new_index, ListView.Center);
+		itemClicked(new_index);
 	}
 
 	function setFilter() {
 		txtFilter.text = exercisesListModel.getFilter();
 		txtFilter.textChanged();
-		setCurrentIndex(-1);
+		if (exercisesListModel.count > 0)
+			simulateMouseClick(0);
 	}
 }

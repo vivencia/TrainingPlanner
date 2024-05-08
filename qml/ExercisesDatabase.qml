@@ -7,6 +7,7 @@ Page {
 	id: pageExercises
 	width: windowWidth
 	height: windowHeight
+	title: "Exercises Page"
 
 	property string strMediaPath
 	property bool bCanEdit: false
@@ -408,7 +409,6 @@ Page {
 
 	function pageActivation() {
 		exercisesList.setFilter();
-		exercisesList.simulateMouseClick(0);
 	}
 
 	FileDialog {

@@ -153,31 +153,6 @@ void DBMesocyclesTable::updateMesocycle()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesocyclesTable::removeMesocycle()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM mesocycles_table WHERE id=") + m_data.at(0) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		m_opcode = OP_DEL;
-		m_model->removeFromList(m_execArgs.at(0).toUInt());
-		MSG_OUT("DBMesocyclesTable removeMesocycle SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBMesocyclesTable removeMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable removeMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesocyclesTable::setData(const QString& id, const QString& mesoName, const QString& mesoStartDate,
 						const QString& mesoEndDate, const QString& mesoNote, const QString& mesoWeeks,
 						const QString& mesoSplit, const QString& mesoDrugs)

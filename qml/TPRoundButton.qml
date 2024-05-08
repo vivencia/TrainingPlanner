@@ -17,4 +17,14 @@ RoundButton {
 		width: control.width - 5
 		opacity: control.enabled ? 1 : 0.5
 	}
+
+	background: Rectangle {
+		radius: control.radius
+		opacity: enabled ? 1 : 0.3
+		visible: !control.flat || control.down || control.checked || control.highlighted
+		color: Color.blend(control.checked || control.highlighted ? control.palette.dark : control.palette.button,
+																	control.palette.mid, control.down ? 0.5 : 0.0)
+		border.color: !control.checked ? "transparent" : AppSettings.fontColor
+		border.width: !control.checked ? 0 : 2
+	}
 }

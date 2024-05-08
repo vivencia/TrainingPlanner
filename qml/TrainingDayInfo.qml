@@ -944,7 +944,7 @@ Page {
 	SimpleExercisesListPanel {
 		id: exercisesPane
 
-		onVisibleChanged: {
+		onShownChanged: {
 			if (navButtons)
 				navButtons.visible = !visible;
 		}

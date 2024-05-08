@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
 	id: settingsPage
+	objectName: "settingsPage"
 
 	property bool bModified: false
 	property bool bNeedRestart: false

@@ -18,7 +18,7 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSett
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBExercisesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < 10; i++)
+	for(uint i(0); i < 11; i++)
 		m_data.append(QString());
 }
 
@@ -78,10 +78,13 @@ void DBExercisesTable::getAllExercises()
 
 				const uint n_entries(9);
 				uint i(0);
+				uint nExercises(0);
 				do
 				{
 					for (i = 0; i < n_entries; ++i)
 						exercise_info.append(query.value(static_cast<int>(i)).toString());
+					exercise_info.append(QString::number(nExercises++));
+					exercise_info.append(u"0"_qs);
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
@@ -159,7 +162,7 @@ void DBExercisesTable::updateExercisesList()
 				m_model->appendList(QStringList()
 								<< QString::number(idx) << fields.at(0) << fields.at(1) << fields.at(2).trimmed()
 								<< QStringLiteral("4") << QStringLiteral("12") << QStringLiteral("20")
-								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << QStringLiteral("1") );
+								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << QString::number(idx) << u"0"_qs );
 			}
 		}
 		mSqlLiteDB.commit();
@@ -201,6 +204,7 @@ void DBExercisesTable::newExercise()
 			if (m_model)
 			{
 				m_data[9] = QString::number(m_model->count());
+				m_data[10] = u"0"_qs;
 				m_model->appendList(data());
 			}
 		}
@@ -246,34 +250,6 @@ void DBExercisesTable::updateExercise()
 	{
 		MSG_OUT("DBExercisesTable updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBExercisesTable updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBExercisesTable::removeExercise()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM exercises_table WHERE id=") + m_data.at(0) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-		if (m_result)
-		{
-			if (m_model)
-				m_model->removeFromList(m_model->currentRow());
-		}
-	}
-
-	if (m_result)
-	{
-		MSG_OUT("DBExercisesTable removeExercise SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBExercisesTable removeExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable removeExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

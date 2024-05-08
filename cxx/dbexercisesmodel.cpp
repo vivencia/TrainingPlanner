@@ -17,6 +17,7 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[uWeightRole] = "uWeight";
 	m_roleNames[mediaPathRole] = "mediaPath";
 	m_roleNames[actualIndexRole] = "actualIndex";
+	m_roleNames[selectedRole] = "selected";
 
 	filterSearch_Field1 = 3; //First look for muscularGroup
 	filterSearch_Field2 = 1; //Then look for mainName
@@ -48,8 +49,9 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 					//MSG_OUT("Filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole))
 					return m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole);
 				}
-			case Qt::DisplayRole:
-				return m_modeldata.at(row).at(index.column());
+			case selectedRole:
+				return !m_bFilterApplied ? bool(m_modeldata.at(row).at(selectedRole-Qt::UserRole) == u"1"_qs) :
+					bool(m_modeldata.at(m_indexProxy.at(row)).at(selectedRole-Qt::UserRole) == u"1"_qs);
 		}
 	}
 	return QVariant();
@@ -77,13 +79,23 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toString();
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
+			case selectedRole:
+				if (!m_bFilterApplied)
+					m_modeldata[row][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
+				else
+					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
+				emit dataChanged(index, index, QList<int>() << selectedRole);
+				return true;
 		}
 	}
 	return false;
 }
 
-int DBExercisesModel::manageSelectedEntries(const uint index, const uint max_selected)
+int DBExercisesModel::manageSelectedEntries(uint index, const uint max_selected)
 {
+	if (m_bFilterApplied)
+		index = m_modeldata.at(m_indexProxy.at(index)).at(9).toUInt();
+
 	if (max_selected == 1)
 	{
 		m_selectedEntries.clear();
@@ -109,6 +121,5 @@ int DBExercisesModel::manageSelectedEntries(const uint index, const uint max_sel
 		else
 			m_selectedEntries.remove(idx, 1);
 	}
-	emit entryIsSelectedChanged();
 	return -1;
 }

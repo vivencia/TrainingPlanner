@@ -37,11 +37,6 @@ Row {
 			radius: 5
 		}
 
-		Component.onCompleted: {
-			ensureVisible(0);
-			cursorPosition = 0;
-		}
-
 		onPressed: (mouse) => mousePressed(mouse);
 		onPressAndHold: (mouse) => mousePressAndHold(mouse);
 
@@ -61,12 +56,12 @@ Row {
 				cursorPosition = text.length;
 		}
 
-		onActiveFocusChanged: {
-			if (!activeFocus) {
-				readOnly = false;
-				exerciseChanged(text);
-			}
+		onTextChanged: {
+			ensureVisible(0);
+			cursorPosition = 0;
 		}
+
+		onEditingFinished: exerciseChanged(text);
 
 		TPRoundButton {
 			id: btnClearText

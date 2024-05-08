@@ -83,7 +83,7 @@ Drawer {
 			}
 
 			Label {
-				text: "TrainingPlanner by VivenciaSoftware - v20240405"
+				text: "TrainingPlanner by VivenciaSoftware - v20240508"
 				wrapMode: Text.WordWrap
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeText
@@ -109,6 +109,11 @@ Drawer {
 			id: btnSettingsExDB
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
+			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+				stackView.currentItem
+				!stackView.find((item, index) => { return item.title === "Exercises Page"; })
+			}
+
 			onButtonClicked: {
 				function pushExercisesPageOntoStack(object) {
 					appDB.getPage.disconnect(pushExercisesPageOntoStack);
@@ -125,6 +130,10 @@ Drawer {
 			id: btnSettingsTheme
 			text: qsTr("Settings")
 			Layout.fillWidth: true
+			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+				stackView.currentItem
+				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
+			}
 			onClicked: { stackView.push("SettingsPage.qml"); menuClicked(); }
 		}
 
@@ -132,6 +141,10 @@ Drawer {
 			id: btnBackup
 			text: qsTr("Backup/Restore")
 			Layout.fillWidth: true
+			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+				stackView.currentItem
+				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
+			}
 			onClicked: { stackView.push("BackupPage.qml"); menuClicked(); }
 		}
 

@@ -3,6 +3,32 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
+void TPDatabaseTable::removeEntry()
+{
+	m_result = false;
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		query.prepare( QStringLiteral("DELETE FROM ") + m_tableName + QStringLiteral("WHERE id=") + m_data.at(0) );
+		m_result = query.exec();
+		mSqlLiteDB.close();
+	}
+
+	if (m_result)
+	{
+		m_opcode = OP_DEL;
+		if (m_model)
+			m_model->removeFromList(m_model->currentRow());
+		MSG_OUT(m_tableName << " removeEntry SUCCESS")
+	}
+	else
+	{
+		MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void TPDatabaseTable::clearTable()
 {
 	m_result = false;

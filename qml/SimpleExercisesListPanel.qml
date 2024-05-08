@@ -73,6 +73,7 @@ Rectangle {
 			Layout.leftMargin: 5
 			Layout.fillHeight: true
 			canDoMultipleSelection: bEnableMultipleSelection
+			bMultipleSelection: bEnableMultipleSelection
 
 			onExerciseEntrySelected:(index, multipleSelectionOpt) => {
 				if (itemThatRequestedSimpleList)

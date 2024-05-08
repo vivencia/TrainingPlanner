@@ -34,6 +34,7 @@ public:
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline TPListModel* model() const { return m_model; }
 
+	void removeEntry();
 	void clearTable();
 	void removeDBFile();
 

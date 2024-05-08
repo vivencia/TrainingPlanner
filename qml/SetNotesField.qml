@@ -7,7 +7,7 @@ Item {
 	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
-	Layout.rightMargin: 5
+	Layout.rightMargin: 10
 	Layout.bottomMargin: 10
 
 	property alias readOnly: txtSetNotes.readOnly

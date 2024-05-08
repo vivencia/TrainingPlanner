@@ -603,7 +603,7 @@ void DbManager::removeExercise(const QString& id)
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	worker->setData(id);
-	createThread(worker, [worker] () { return worker->removeExercise(); } );
+	createThread(worker, [worker] () { return worker->removeEntry(); } );
 }
 
 void DbManager::deleteExercisesTable(const bool bRemoveFile)
@@ -767,7 +767,7 @@ void DbManager::removeMesocycle()
 		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 		worker->addExecArg(m_MesoIdx);
 		worker->setData(m_MesoIdStr);
-		createThread(worker, [worker] () { return worker->removeMesocycle(); } );
+		createThread(worker, [worker] () { return worker->removeEntry(); } );
 	}
 }
 
@@ -814,9 +814,9 @@ void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, co
 void DbManager::removeMesoSplit()
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	worker->addExecArg(m_MesoIdx);
+	mesoSplitModel->setCurrentRow(m_MesoIdx);
 	worker->setData(m_MesoIdStr);
-	createThread(worker, [worker] () { return worker->removeMesoSplit(); } );
+	createThread(worker, [worker] () { return worker->removeEntry(); } );
 }
 
 void DbManager::deleteMesoSplitTable(const bool bRemoveFile)

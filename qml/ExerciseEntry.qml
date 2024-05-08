@@ -197,7 +197,7 @@ FocusScope {
 
 				SetInputField {
 					id: txtNWeight2
-					text: runCmd.getCompositeValue(0, nWeight)
+					text: runCmd.getCompositeValue(1, nWeight)
 					type: SetInputField.Type.RepType
 					showLabel: false
 					availableWidth: layoutMain.width / 2
@@ -205,7 +205,7 @@ FocusScope {
 					borderColor: "transparent"
 					visible: cboSetType.currentIndex === 4
 
-					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(0, str, nWeight);
+					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(1, str, nWeight);
 				}
 			}
 
@@ -273,7 +273,7 @@ FocusScope {
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
-			itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(1, 1) + " - " + exercisesListModel.selectedEntriesValue(1, 2));
+			itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
 			bListRequestForExercise2 = false;
 		}
 		else

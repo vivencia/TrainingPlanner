@@ -631,10 +631,10 @@ Frame {
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else if (bListRequestForExercise2) {
-			splitModel.exerciseName2 = exercisesListModel.selectedEntriesValue(1, 1) + " - " + exercisesListModel.selectedEntriesValue(1, 2);
+			splitModel.exerciseName2 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
 			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
-			splitModel.setsReps2 = exercisesListModel.selectedEntriesValue(1, 5);
-			splitModel.setsWeight2 = exercisesListModel.selectedEntriesValue(1, 6);
+			splitModel.setsReps2 = exercisesListModel.selectedEntriesValue(0, 5);
+			splitModel.setsWeight2 = exercisesListModel.selectedEntriesValue(0, 6);
 			bListRequestForExercise2 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}

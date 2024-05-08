@@ -198,30 +198,6 @@ void DBMesoSplitTable::updateMesoSplit()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoSplitTable::removeMesoSplit()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM mesocycles_splits WHERE meso_id=") + m_data.at(1) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		m_model->removeFromList(m_execArgs.at(0).toUInt());
-		MSG_OUT("DBMesoSplitTable removeMesoSplit SUCCESS")
-	}
-	else
-	{
-		MSG_OUT("DBMesoSplitTable removeMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable removeMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesoSplitTable::getCompleteMesoSplit()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));

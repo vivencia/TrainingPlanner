@@ -431,7 +431,7 @@ QString RunCommands::getCompositeValue(const uint idx, const QString& compositeS
 	return compositeString.mid(last_sep_pos, chr_pos);
 }
 
-QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString) const
+QString RunCommands::setCompositeValue(const uint idx, const QString newValue, QString compositeString) const
 {
 	static const QLatin1Char subrecord_separator(31);
 	int sep_pos(compositeString.indexOf(subrecord_separator));
