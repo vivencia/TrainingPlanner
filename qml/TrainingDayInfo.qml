@@ -304,11 +304,12 @@ Page {
 
 			Frame {
 				id: frmTrainingTime
-				visible: splitLetter !== 'R'
+				visible: splitLetter !== 'R' && !grpIntent.visible
+				enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
+				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 10
-				height: 330
 
 				background: Rectangle {
 					border.color: AppSettings.fontColor
@@ -319,7 +320,6 @@ Page {
 				ColumnLayout {
 					id: timeLayout
 					anchors.fill: parent
-					enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning && !grpIntent.visible
 
 					TPRadioButton {
 						id: optFreeTimeSession

@@ -108,7 +108,7 @@ Column {
 				color: selected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 
-			onClicked: itemClicked(index);
+			onClicked: itemClicked(index, true);
 
 			Component.onCompleted: {
 				if (lstExercises.totalWidth < width)
@@ -249,14 +249,15 @@ Column {
 		appDB.databaseReady.connect(readyToContinue);
 	}
 
-	function itemClicked(idx) {
+	function itemClicked(idx: int, emit_signal: bool) {
 		exercisesListModel.invertSelected(idx);
 		if (!bMultipleSelection) {
 			if (idx !== exercisesListModel.currentRow) {
 				exercisesListModel.setSelected(exercisesListModel.currentRow, false);
 				exercisesListModel.currentRow = idx;
 				exercisesListModel.manageSelectedEntries(idx, 1);
-				exerciseEntrySelected(idx, 0);
+				if (emit_signal)
+					exerciseEntrySelected(idx, 0);
 			}
 			else {
 				hideSimpleExerciseList();
@@ -267,22 +268,23 @@ Column {
 		{
 			exercisesListModel.currentRow = idx;
 			const item_idx = exercisesListModel.manageSelectedEntries(idx, 2);
-			exerciseEntrySelected(idx, exercisesListModel.isSelected(idx) ? 1 : 2);
+			if (emit_signal)
+				exerciseEntrySelected(idx, exercisesListModel.isSelected(idx) ? 1 : 2);
 			if (item_idx !== -1)
 				exercisesListModel.setSelected(item_idx, false);
 		}
 		lstExercises.forceActiveFocus();
 	}
 
-	function simulateMouseClick(new_index) {
+	function simulateMouseClick(new_index: int, emit_signal: bool) {
 		lstExercises.positionViewAtIndex(new_index, ListView.Center);
-		itemClicked(new_index);
+		itemClicked(new_index, emit_signal);
 	}
 
 	function setFilter() {
 		txtFilter.text = exercisesListModel.getFilter();
 		txtFilter.textChanged();
 		if (exercisesListModel.count > 0)
-			simulateMouseClick(0);
+			simulateMouseClick(0, false);
 	}
 }

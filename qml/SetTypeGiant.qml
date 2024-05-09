@@ -94,7 +94,10 @@ Item {
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
-				onExerciseChanged: (new_text) => ownerExercise.changeExercise1(false);
+				onExerciseChanged: (new_text) => {
+					tDayModel.setExerciseName1(new_text, exerciseIdx);
+					ownerExercise.changeExercise(0, false);
+				}
 				onEditButtonClicked: ownerExercise.changeExercise1(!readOnly);
 			}
 
@@ -108,7 +111,10 @@ Item {
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
-				onExerciseChanged: (new_text) => ownerExercise.changeExercise2(false);
+				onExerciseChanged: (new_text) => {
+					tDayModel.setExerciseName2(new_text, exerciseIdx);
+					ownerExercise.changeExercise(0, false);
+				}
 				onEditButtonClicked: ownerExercise.changeExercise2(!readOnly);
 			}
 		}
@@ -315,5 +321,10 @@ Item {
 			txtNWeight1.text = new_value;
 		else
 			txtNWeight2.text = new_value;
+	}
+
+	function liberateSignals(liberate: bool) {
+		txtExercise1.bCanEmitTextChanged = liberate;
+		txtExercise2.bCanEmitTextChanged = liberate;
 	}
 } // Item

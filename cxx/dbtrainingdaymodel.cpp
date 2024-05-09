@@ -108,7 +108,14 @@ void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exe
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
-		m_ExerciseData.at(exercise_idx)->name = new_name;
+		const int idx(new_name.indexOf('+'));
+		if (idx == -1)
+			m_ExerciseData.at(exercise_idx)->name = new_name;
+		else
+		{
+			QString new_name_copy(new_name);
+			m_ExerciseData.at(exercise_idx)->name = new_name_copy.replace(QStringLiteral(" + "), QChar(subrecord_separator));
+		}
 		setModified(true);
 	}
 }

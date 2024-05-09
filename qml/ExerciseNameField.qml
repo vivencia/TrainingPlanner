@@ -10,6 +10,7 @@ Row {
 	property alias text: control.text
 	property alias readOnly: control.readOnly
 	property bool showRemoveButton: true
+	property bool bCanEmitTextChanged: false
 
 	signal exerciseChanged(string new_exercise)
 	signal removeButtonClicked()
@@ -17,6 +18,13 @@ Row {
 	signal mousePressed(var mouse)
 	signal mousePressAndHold(var mouse)
 	signal itemClicked()
+
+	onBCanEmitTextChangedChanged: {
+		if (bCanEmitTextChanged)
+			control.textChanged.connect(control.textChangedSignal);
+		else
+			control.textChanged.disconnect(control.textChangedSignal);
+	}
 
 	TextField {
 		id: control
@@ -56,12 +64,15 @@ Row {
 				cursorPosition = text.length;
 		}
 
-		onTextChanged: {
-			ensureVisible(0);
-			cursorPosition = 0;
-		}
-
 		onEditingFinished: exerciseChanged(text);
+
+		function textChangedSignal() {
+			if (readOnly) {
+				ensureVisible(0);
+				cursorPosition = 0;
+				exerciseChanged(text);
+			}
+		}
 
 		TPRoundButton {
 			id: btnClearText

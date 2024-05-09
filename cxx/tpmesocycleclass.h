@@ -114,7 +114,7 @@ public:
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
 							const QString& nReps = QString(), const QString& nWeight = QString());
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
-	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text);
+	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text, const bool bChangeModel = true);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set = 0);

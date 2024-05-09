@@ -621,7 +621,7 @@ Frame {
 		splitModel.setCurrentRow(idx);
 	}
 
-	function changeExercise(multiplesel_opt) {
+	function changeExercise(multiplesel_opt: int, fromList: bool) {
 		if (bListRequestForExercise1) {
 			splitModel.exerciseName1 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
 			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);

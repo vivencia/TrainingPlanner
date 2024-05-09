@@ -77,7 +77,7 @@ Rectangle {
 
 			onExerciseEntrySelected:(index, multipleSelectionOpt) => {
 				if (itemThatRequestedSimpleList)
-					itemThatRequestedSimpleList.changeExercise(multipleSelectionOpt);
+					itemThatRequestedSimpleList.changeExercise(multipleSelectionOpt, true);
 			}
 		}
 	}

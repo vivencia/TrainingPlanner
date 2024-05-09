@@ -430,6 +430,7 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 
 	m_currentExercises->appendExerciseEntry(item);
 	emit itemReady(item, tDayExerciseCreateId);
+	QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 }
 
 void TPMesocycleClass::createExercisesObjects()
@@ -570,9 +571,6 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		}
 	}
 
-	if (set_type == 4)
-		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
-
 	if (set_number >= m_currentExercises->setCount(exercise_idx))
 		m_currentExercises->appendSet(exercise_idx, item);
 	else
@@ -593,6 +591,12 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 				emit itemReady(m_currentExercises->setObject(exercise_idx, i), tDaySetCreateId);
 			}
 		}
+	}
+
+	if (set_type == 4)
+	{
+		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
+		QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 	}
 
 	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
@@ -684,21 +688,28 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 	}
 }
 
-void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text)
+void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text, const bool bChangeModel)
 {
-	if (label_idx == 1)
-		m_CurrenttDayModel->setExerciseName1(new_text, exercise_idx);
-	else
-		m_CurrenttDayModel->setExerciseName2(new_text, exercise_idx);
+	if (bChangeModel)
+	{
+		if (label_idx == 1)
+			m_CurrenttDayModel->setExerciseName1(new_text, exercise_idx);
+		else
+			m_CurrenttDayModel->setExerciseName2(new_text, exercise_idx);
+	}
 
 	QQuickItem* setObj(nullptr);
 	QQuickItem* txtExercise(nullptr);
 	for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
 	{
-		setObj = m_currentExercises->setObject_const(exercise_idx, i);
-		txtExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"txtExercise1"_qs : u"txtExercise2"_qs);
-		if (txtExercise)
+		if (m_CurrenttDayModel->setType(i, exercise_idx) == 4)
+		{
+			setObj = m_currentExercises->setObject_const(exercise_idx, i);
+			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, false));
+			txtExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"txtExercise1"_qs : u"txtExercise2"_qs);
 			QMetaObject::invokeMethod(setObj, "changeExerciseText", Q_ARG(QVariant, QVariant::fromValue(txtExercise)), Q_ARG(QString, new_text));
+			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, true));
+		}
 	}
 }
 
