@@ -19,13 +19,6 @@ Row {
 	signal mousePressAndHold(var mouse)
 	signal itemClicked()
 
-	onBCanEmitTextChangedChanged: {
-		if (bCanEmitTextChanged)
-			control.textChanged.connect(control.textChangedSignal);
-		else
-			control.textChanged.disconnect(control.textChangedSignal);
-	}
-
 	TextField {
 		id: control
 		font.bold: true
@@ -66,11 +59,13 @@ Row {
 
 		onEditingFinished: exerciseChanged(text);
 
-		function textChangedSignal() {
-			if (readOnly) {
-				ensureVisible(0);
-				cursorPosition = 0;
-				exerciseChanged(text);
+		onTextChanged: {
+			if (bCanEmitTextChanged) {
+				if (readOnly) {
+					ensureVisible(0);
+					cursorPosition = 0;
+					exerciseChanged(text);
+				}
 			}
 		}
 

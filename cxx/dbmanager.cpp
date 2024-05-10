@@ -395,17 +395,18 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 		page->setProperty("restoreCount", 0);
 }
 
-/*bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
+bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
 {
-	QFile outFile(filename);
-	if (outFile.open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+	QFile* outFile(new QFile(filename));
+	outFile->deleteLater();
+	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
 		model->exportToText(outFile, bFancy);
-		outFile.close();
+		outFile->close();
 		return true;
 	}
 	return false;
-}*/
+}
 
 /*Return values
  *	-1: Failed to open file
@@ -413,16 +414,18 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
  *	-3: Model is not empty and replace is not set to true
  *	-4: Nothing was imported, either because file was missing info or error in formatting
  */
-/*int DbManager::importFromFile(const QString& filename, const bool bReplace, QFile& inFile)
+int DbManager::importFromFile(const QString& filename, const bool bReplace, QFile* inFile)
 {
-	if (!inFile.isOpen())
+	if (!inFile)
 	{
-		if (!inFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+		inFile = new QFile(filename);
+		inFile->deleteLater();
+		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 			return -1;
 	}
 
 	TPListModel* model(nullptr);
-	QString inData(inFile.readLine());
+	QString inData(inFile->readLine());
 	const bool bFancy(!inData.startsWith(u"##0x"_qs));
 	if (bFancy)
 	{
@@ -437,93 +440,88 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 		else if (inData.indexOf(DBExercisesFileName) != -1)
 			model = exercisesListModel;
 		else
-		{
-			inFile.close();
 			return -2;
-		}
 
 		char buf[128];
 		qint64 lineLength(0);
 
-		while ( (lineLength = inFile.readLine(buf, sizeof(buf))) != -1 )
+		while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
 		{
 			if (lineLength > 2)
 			{
 				inData = buf;
 				inData.replace(u" "_qs, u""_qs);
 				inData.chop(1);
-				if (!model)
-				{
-					int sep_idx(0);
-					sep_idx = inData.indexOf(':');
-					if (sep_idx != -1)
-						model = m_currentMesoManager->getSplitModel(inData.at(sep_idx+1));
-					else
-						model = m_currentMesoManager->gettDayModel(m_runCommands->getDateFromStrDate(inData));
-					if (!model)
-					{
-						inFile.close();
-						return -2;
-					}
-				}
 				break;
 			}
 		}
-		if (!model->importFromFancyText(inFile))
+	}
+	else
+	{
+		inData = inData.left(2);
+		inData.chop(1);
+		switch (inData.toUInt())
 		{
-			inFile.close();
-			return -4;
-		}
-
-		switch (model->tableID())
-		{
-			case EXERCISES_TABLE_ID:
-				deleteExercisesTable(false);
-			break;
+			case EXERCISES_TABLE_ID: model = exercisesListModel; break;
 			case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
 			case MESOSPLIT_TABLE_ID: break;
 			case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
 			case TRAININGDAY_TABLE_ID: break;
+			default:
+				return -2;
 		}
+	}
 
-		if (!inFile.atEnd())
-			return importFromFile(filename, bReplace, inFile);
+	if (!model)
+	{
+		int sep_idx(0);
+		sep_idx = inData.indexOf(':');
+		if (sep_idx != -1)
+			model = m_currentMesoManager->getSplitModel(inData.at(sep_idx+1));
+		else
+			model = m_currentMesoManager->gettDayModel(m_runCommands->getDateFromStrDate(inData));
+		if (!model)
+			return -2;
+	}
+
+	if (model->count() > 0)
+	{
+		if(!bReplace)
+			return -3;
+		model->clear();
+	}
+
+	if (model->importExtraInfo(inData))
+		return -4;
+
+	if (bFancy)
+	{
+		if (!model->importFromFancyText(inFile))
+			return -4;
 	}
 	else
-		{
-			inData = inData.left(2);
-			inData.chop(1);
-			switch (inData.toUInt())
-			{
-				case EXERCISES_TABLE_ID: model = exercisesListModel; break;
-				case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
-				case MESOSPLIT_TABLE_ID: break;
-				case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
-				case TRAININGDAY_TABLE_ID: break;
-				default:
-					inFile.close();
-					return -2;
-			}
-
-			const QString data(inFile.readAll());
-	if (!data.isEmpty())
 	{
-		}
-
-		if (model->count() > 0)
-		{
-			if(!bReplace)
-				return -3;
-			model->clear();
-		}
-		if (!model->importExtraInfo(inData))
+		//if (!model->importFromText(inFile))
 			return -4;
-
-		inFile.close();
-		return 0;
 	}
+
+	switch (model->tableID())
+	{
+		case EXERCISES_TABLE_ID:
+			deleteExercisesTable(false);
+
+		break;
+		case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
+		case MESOSPLIT_TABLE_ID: break;
+		case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
+		case TRAININGDAY_TABLE_ID: break;
+	}
+
+		if (!inFile->atEnd())
+			return importFromFile(filename, bReplace, inFile);
+
 	return -5;
-}*/
+}
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 {

@@ -178,7 +178,7 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-/*void TPListModel::exportToText(QFile& outFile, const bool bFancy) const
+void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 {
 	QString strHeader;
 	if (bFancy)
@@ -186,12 +186,12 @@ void TPListModel::makeFilterString(const QString& text)
 	else
 		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
 
-	outFile.write(strHeader.toUtf8().constData());
-	outFile.write(exportExtraInfo().toUtf8().constData());
+	outFile->write(strHeader.toUtf8().constData());
+	outFile->write(exportExtraInfo().toUtf8().constData());
 	if (bFancy)
-		outFile.write("\n\n", 2);
+		outFile->write("\n\n", 2);
 	else
-		outFile.write("\n", 1);
+		outFile->write("\n", 1);
 
 	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
 	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
@@ -202,34 +202,34 @@ void TPListModel::makeFilterString(const QString& text)
 		for (uint i(0); i < (*itr).count(); ++i) {
 			if (bFancy)
 			{
-				outFile.write(m_roleNames.value(Qt::UserRole+i).constData());
-				outFile.write(": ", 2);
+				outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
+				outFile->write(": ", 2);
 				value = (*itr).at(i);
-				outFile.write(value.replace(subrecord_separator, '|').toUtf8().constData());
-				outFile.write("\n", 1);
+				outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+				outFile->write("\n", 1);
 			}
 			else
 			{
-				outFile.write((*itr).at(i).toUtf8().constData());
-				outFile.write(QByteArray(1, record_separator.toLatin1()), 1);
+				outFile->write((*itr).at(i).toUtf8().constData());
+				outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
 			}
 		}
 		if (bFancy)
-			outFile.write("\n", 1);
+			outFile->write("\n", 1);
 		else
-			outFile.write(QByteArray(1, record_separator2.toLatin1()), 1);
+			outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
 		++itr;
 	}
 }
 
-bool TPListModel::importFromFancyText(QFile& inFile)
+bool TPListModel::importFromFancyText(QFile* inFile)
 {
 	char buf[256];
 	QString inData;
 	QStringList modeldata;
 	int sep_idx(-1);
 
-	while (inFile.readLine(buf, sizeof(buf)) != -1) {
+	while (inFile->readLine(buf, sizeof(buf)) != -1) {
 		inData = buf;
 		inData.chop(1);
 		if (inData.isEmpty())
@@ -254,28 +254,23 @@ bool TPListModel::importFromText(const QString& data)
 {
 	int chr_pos1(data.indexOf(':'));
 	int  chr_pos2(data.indexOf('\n', chr_pos1+1));
+	const uint dataSize(data.length());
+	QStringList modeldata;
 
-	if (importExtraInfo(data.mid(chr_pos1, chr_pos2 - chr_pos1)))
-	{
-		const uint dataSize(data.length());
-		QStringList modeldata;
-
-		chr_pos1 = ++chr_pos2 + 1;
-		do {
-			switch (data.at(chr_pos1).toLatin1())
-			{
-				case 29: //record_separator
-					modeldata.append(data.mid(chr_pos2, chr_pos1 - chr_pos2));
-					chr_pos2 = chr_pos1 + 1;
-				break;
-				case 30: //record_separator2
-					appendList(modeldata);
-					modeldata.clear();
-					chr_pos2 = chr_pos1 + 1;
-				break;
-			}
-		} while (++chr_pos1 < dataSize);
-	}
+	chr_pos1 = ++chr_pos2 + 1;
+	do {
+		switch (data.at(chr_pos1).toLatin1())
+		{
+			case 29: //record_separator
+				modeldata.append(data.mid(chr_pos2, chr_pos1 - chr_pos2));
+				chr_pos2 = chr_pos1 + 1;
+			break;
+			case 30: //record_separator2
+				appendList(modeldata);
+				modeldata.clear();
+				chr_pos2 = chr_pos1 + 1;
+			break;
+		}
+	} while (++chr_pos1 < dataSize);
 	return count() > 0;
 }
-*/

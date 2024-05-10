@@ -85,9 +85,9 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
-	//Q_INVOKABLE void exportToText(QFile& outFile, const bool bFancy) const;
-	//Q_INVOKABLE bool importFromFancyText(QFile& inFile);
-	//Q_INVOKABLE bool importFromText(const QString& data);
+	Q_INVOKABLE void exportToText(QFile* outFile, const bool bFancy) const;
+	Q_INVOKABLE bool importFromFancyText(QFile* inFile);
+	Q_INVOKABLE bool importFromText(const QString& data);
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{
