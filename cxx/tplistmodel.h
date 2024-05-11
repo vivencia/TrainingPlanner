@@ -74,7 +74,7 @@ public:
 	Q_INVOKABLE void updateList (const QStringList& list, const int row);
 	Q_INVOKABLE void removeFromList (const int row);
 	Q_INVOKABLE void appendList(const QStringList& list);
-	Q_INVOKABLE void clear();
+	Q_INVOKABLE virtual void clear();
 
 	Q_INVOKABLE inline uint count() const { return m_indexProxy.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
@@ -137,6 +137,7 @@ public:
 	inline const bool isReady() const { return m_bReady; }
 	inline void setReady(const bool bready) { m_bReady = bready; }
 
+	inline virtual void resetPrivateData() {}
 	inline virtual const QString exportExtraInfo() const { return QString(); }
 	inline virtual bool importExtraInfo(const QString& ) { return false; }
 
@@ -163,6 +164,7 @@ protected:
 	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
+	uint filterSearch_Field3;
 	QString m_filterString;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );

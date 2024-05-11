@@ -25,16 +25,20 @@ public:
 		selectedRole = Qt::UserRole+10
 	};
 
+	explicit DBExercisesModel(QObject *parent = 0);
+
 	Q_INVOKABLE void setSelected(const uint idx, const bool bSelected) { setData(index(idx, 0), bSelected, selectedRole); }
 	Q_INVOKABLE bool isSelected(const uint idx) const { return data(index(idx, 0), selectedRole).toBool(); }
 	Q_INVOKABLE void invertSelected(const uint idx) { setData(index(idx, 0), !data(index(idx, 0), selectedRole).toBool(), selectedRole); }
 
-	explicit DBExercisesModel(QObject *parent = 0);
-	Q_INVOKABLE void clearSelectedEntries() { m_selectedEntries.clear(); m_selectedEntryToReplace = 0; }
+	Q_INVOKABLE void clearSelectedEntries();
 	Q_INVOKABLE int manageSelectedEntries(uint index, const uint max_selected = 1);
 	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
 	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
+
+	Q_INVOKABLE virtual void clear() override;
+	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;

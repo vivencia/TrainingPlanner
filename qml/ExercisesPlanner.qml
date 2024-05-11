@@ -137,10 +137,15 @@ Page {
 			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter, currentPage.swappableLetter);
 		}
 
+		TPFloatingMenuBar
+		{
+			id: fdsfsd
+		}
+
 		TPButton {
 			id: btnExportPlan
-			text: qsTr("Export")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+			text: qsTr("In/Ex port")
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
 			//visible: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
@@ -152,7 +157,29 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: exportTypeTip.show(-1);
+			property var inexportMenu: null
+
+			onClicked: {
+				//fdsfsd.addEntry(qsTr("Export"), "export.png", 0);
+				//fdsfsd.addEntry(qsTr("Import"), "import.png", 1);
+				fdsfsd.menuEntrySelected.connect(this.selectedMenuOption);
+				fdsfsd.show(btnExportPlan, 0);
+				return;
+				if (inexportMenu === null) {
+					inexportMenu = Qt.createComponent("TPFloatingMenuBar.qml");
+					inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
+					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
+					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
+				}
+				inexportMenu.show(btnExportPlan, 0);
+			}
+
+			function selectedMenuOption(menuid: int) {
+				if (menuid === 0)
+					exportTypeTip.show(-1);
+				else
+					console.log("menu option 2");
+			}
 		}
 
 		TPButton {

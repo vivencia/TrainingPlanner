@@ -214,11 +214,7 @@ Column {
 			}
 		}
 
-		onTextChanged: {
-			lstExercises.currentIndex = -1;
-			lstExercises.ensureVisible(null);
-			exercisesListModel.setFilter(text);
-		}
+		onTextChanged: exercisesListModel.setFilter(text);
 	} // txtFilter
 
 	Component.onCompleted: {
@@ -227,12 +223,8 @@ Column {
 			lstExercises.model = exercisesListModel;
 		}
 
-		if (exercisesListModel.count === 0) {
-			appDB.databaseReady.connect(setModel);
-			appDB.getAllExercises();
-		}
-		else
-			lstExercises.model = exercisesListModel;
+		appDB.databaseReady.connect(setModel);
+		appDB.getAllExercises();
 	}
 
 	function removeExercise(removeIdx) {

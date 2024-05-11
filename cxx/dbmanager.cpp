@@ -73,11 +73,9 @@ void DbManager::init()
 	}
 
 	getExercisesListVersion();
+	exercisesListModel = new DBExercisesModel(this);
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
-	{
-		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings));
-		createThread(worker, [worker] () { return worker->updateExercisesList(); } );
-	}
+		updateExercisesList(false);
 }
 
 void DbManager::exitApp()
@@ -146,7 +144,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
 
-	exercisesListModel = new DBExercisesModel(this);
 	mesoSplitModel  = new DBMesoSplitModel(this);
 	mesoCalendarModel = new DBMesoCalendarModel(this);
 	mesocyclesModel = new DBMesocyclesModel(this);
@@ -416,6 +413,7 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
  */
 int DbManager::importFromFile(const QString& filename, const bool bReplace, QFile* inFile)
 {
+	bool bMultiModel(false);
 	if (!inFile)
 	{
 		inFile = new QFile(filename);
@@ -423,10 +421,14 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 			return -1;
 	}
+	else
+		bMultiModel = true;
 
 	TPListModel* model(nullptr);
 	QString inData(inFile->readLine());
 	const bool bFancy(!inData.startsWith(u"##0x"_qs));
+	int sep_idx(0);
+
 	if (bFancy)
 	{
 		if (inData.indexOf(DBMesocyclesFileName) != -1)
@@ -474,7 +476,6 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 
 	if (!model)
 	{
-		int sep_idx(0);
 		sep_idx = inData.indexOf(':');
 		if (sep_idx != -1)
 			model = m_currentMesoManager->getSplitModel(inData.at(sep_idx+1));
@@ -501,26 +502,52 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 	}
 	else
 	{
-		//if (!model->importFromText(inFile))
-			return -4;
+		const QString data(inFile->readAll());
+		if (!data.isEmpty())
+		{
+			sep_idx = data.indexOf(u"##0x"_qs);
+			if (sep_idx == -1)
+			{
+				if (!model->importFromText(data))
+					return -4;
+			}
+			else
+			{
+				inFile->seek(sep_idx);
+				if (!model->importFromText(data.left(sep_idx)))
+					return -4;
+			}
+		}
 	}
 
-	switch (model->tableID())
+	//TODO
+	if (bMultiModel)
 	{
-		case EXERCISES_TABLE_ID:
-			deleteExercisesTable(false);
-
-		break;
-		case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
-		case MESOSPLIT_TABLE_ID: break;
-		case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
-		case TRAININGDAY_TABLE_ID: break;
+		switch (model->tableID())
+		{
+			case EXERCISES_TABLE_ID:
+				deleteExercisesTable(false);
+				updateExercisesList(true);
+			break;
+			case MESOCYCLES_TABLE_ID:
+				deleteMesocyclesTable(false);
+			break;
+			case MESOSPLIT_TABLE_ID:
+				deleteMesoSplitTable(false);
+			break;
+			case MESOCALENDAR_TABLE_ID:
+				deleteMesoCalendarTable(false);
+			break;
+			case TRAININGDAY_TABLE_ID:
+				deleteTrainingDayTable(false);
+			break;
+		}
 	}
 
-		if (!inFile->atEnd())
-			return importFromFile(filename, bReplace, inFile);
-
-	return -5;
+	if (!inFile->atEnd())
+		return importFromFile(filename, bReplace, inFile);
+	else
+		return 0;
 }
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
@@ -575,8 +602,13 @@ void DbManager::bridge(QQuickItem* item, const uint id) {
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	createThread(worker, [worker] () { worker->getAllExercises(); } );
+	if (exercisesListModel->count() == 0)
+	{
+		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+		createThread(worker, [worker] () { worker->getAllExercises(); } );
+	}
+	else
+		emit databaseReady();
 }
 
 void DbManager::newExercise( const QString& mainName, const QString& subName, const QString& muscularGroup,
@@ -610,6 +642,12 @@ void DbManager::deleteExercisesTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
+void DbManager::updateExercisesList(const bool bFromModel)
+{
+	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+	createThread(worker, [worker, bFromModel] () { return bFromModel ? worker->updateExercisesListFromModel() : worker->updateExercisesList(); } );
+}
+
 void DbManager::openExercisesListPage(const bool fromMainMenu)
 {
 	if (m_exercisesPage != nullptr)
@@ -619,9 +657,12 @@ void DbManager::openExercisesListPage(const bool fromMainMenu)
 		emit getPage(m_exercisesPage, 89676);
 		return;
 	}
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	connect( this, &DbManager::databaseReady, this, &DbManager::createExercisesListPage, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-	createThread(worker, [worker] () { return worker->getAllExercises(); } );
+	if (exercisesListModel->count() == 0)
+	{
+		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+		connect( this, &DbManager::databaseReady, this, &DbManager::createExercisesListPage, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		createThread(worker, [worker] () { return worker->getAllExercises(); } );
+	}
 
 	m_exercisesProperties.insert(QStringLiteral("bChooseButtonEnabled"), !fromMainMenu);
 	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);

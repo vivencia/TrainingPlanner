@@ -184,6 +184,49 @@ void DBExercisesTable::updateExercisesList()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+void DBExercisesTable::updateExercisesListFromModel()
+{
+	removePreviousListEntriesFromDB();
+	m_result = false;
+
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
+		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
+		const QString query_cmd( QStringLiteral(
+								"INSERT INTO exercises_table "
+								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
+								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'qrc:/images/no_image.jpg\', 1)") );
+
+		mSqlLiteDB.transaction();
+		for ( uint i(0); i < m_model->count(); ++i)
+		{
+			query.exec(query_cmd.arg(i).arg(m_model->getFast(i, 1), m_model->getFast(i, 2), m_model->getFast(i, 3), m_model->getFast(i, 4),
+						m_model->getFast(i, 5), m_model->getFast(i, 6), strWeightUnit));
+		}
+		mSqlLiteDB.commit();
+		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
+		mSqlLiteDB.close();
+	}
+	if (!m_result)
+	{
+		MSG_OUT("DBExercisesTable updateExercisesListFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBExercisesTable updateExercisesListFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	else
+	{
+		MSG_OUT("DBExercisesTable updateExercisesListFromModel SUCCESS")
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void DBExercisesTable::newExercise()
 {
 	m_result = false;

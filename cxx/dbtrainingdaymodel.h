@@ -28,6 +28,19 @@ public:
 	bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); }
 
+	void setModified(const bool bModified)
+	{
+		if (m_bModified != bModified)
+		{
+			m_bModified = bModified;
+			if (++m_nModified == 10)
+			{
+				emit modifiedChanged();
+				m_nModified = 0;
+			}
+		}
+	}
+
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(0); }
 	inline void setId(const QString& new_id) { m_modeldata[0][0] = new_id; }
@@ -131,6 +144,7 @@ private:
 	QList<exerciseEntry*> m_ExerciseData;
 	bool m_tDayModified;
 	bool mb_DayIsFinished;
+	uint m_nModified;
 
 	friend class DBMesoSplitModel;
 };

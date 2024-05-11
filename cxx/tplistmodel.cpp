@@ -104,10 +104,10 @@ void TPListModel::moveRow(const uint from, const uint to)
 
 void TPListModel::setFilter(const QString &filter)
 {
-	if ( filter.length() >=3 )
+	if (filter.length() >=3)
 	{
-		QList<QStringList>::const_iterator lst_itr ( m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator lst_itrend ( m_modeldata.constEnd());
+		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
 		uint idx(0);
 		bool bFound(false), bFirst(true);
 
@@ -116,7 +116,11 @@ void TPListModel::setFilter(const QString &filter)
 		{
 			bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field1)).hasMatch();
 			if (!bFound)
+			{
 				bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field2)).hasMatch();
+				if (!bFound)
+					bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field3)).hasMatch();
+			}
 
 			if (bFound)
 			{
@@ -125,6 +129,8 @@ void TPListModel::setFilter(const QString &filter)
 					bFirst = false;
 					beginRemoveRows(QModelIndex(), 0, count()-1);
 					m_indexProxy.clear();
+					resetPrivateData();
+					setCurrentRow(-1);
 					endRemoveRows();
 				}
 				beginInsertRows(QModelIndex(), count(), count());
@@ -141,6 +147,8 @@ void TPListModel::setFilter(const QString &filter)
 			m_bFilterApplied = false;
 			beginRemoveRows(QModelIndex(), 0, count()-1);
 			m_indexProxy.clear();
+			resetPrivateData();
+			setCurrentRow(-1);
 			endRemoveRows();
 			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
 			for( uint i (0); i < m_modeldata.count(); ++i )

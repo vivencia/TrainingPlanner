@@ -91,7 +91,7 @@ Page {
 			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
 			if (!editMode) {
-				btnSaveDay.clicked();
+				saveWorkout();
 				tDayModel.dayIsFinished = true;
 			}
 		}
@@ -707,6 +707,8 @@ Page {
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
+		tDayModel.dayIsFinishedChanged.connect(saveWorkout);
+		tDayModel.modifiedChanged.connect(saveWorkout);
 	}
 
 	Timer {
@@ -838,7 +840,6 @@ Page {
 					runCmd.stopWorkoutTimer();
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
-					btnSaveDay.clicked();
 					tDayModel.dayIsFinished = true;
 					runCmd.workoutTimerTriggered.disconnect(updateTimer);
 					runCmd.timeWarning.disconnect(displayTimeWarning);
@@ -847,46 +848,17 @@ Page {
 		}
 
 		TPButton {
-			id: btnSaveDay
-			enabled: !tDayModel.dayIsFinished && tDayModel.modified
-			text: qsTr("Log Workout")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
-			textUnderIcon: true
-			anchors {
-				left: parent.left
-				leftMargin: 5
-				top: workoutLengthRow.bottom
-				bottom: parent.bottom
-				bottomMargin: 5
-			}
-
-			onClicked: {
-				if (tDayModel.id() === -1)
-					appDB.newTrainingDay();
-				else
-					appDB.updateTrainingDay();
-
-				if (bRealMeso && chkAdjustCalendar.visible)
-				{
-					if (!chkAdjustCalendar.checked)
-						appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
-					else
-						appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter, tDay);
-					chkAdjustCalendar.visible = false;
-				}
-			}
-		} //btnSaveDay
-
-		TPButton {
 			id: btnEditDay
 			text: !editMode ? qsTr("Edit workout") : qsTr("Done")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
 			textUnderIcon: true
+			width: 50
+			fixedSize: true
 			visible: tDayModel.dayIsFinished
 
 			anchors {
-				left: btnSaveDay.right
-				leftMargin: 3
+				left: parent.left
+				leftMargin: 5
 				top: workoutLengthRow.bottom
 				bottom: parent.bottom
 				bottomMargin: 5
@@ -899,8 +871,6 @@ Page {
 					editMode = true;
 				}
 				else {
-					if (btnSaveDay.enabled)
-						btnSaveDay.clicked();
 					tDayModel.dayIsFinished = true;
 					Qt.binding(function() { return btnEditDay.visible = tDayModel.dayIsFinished; });
 				}
@@ -961,6 +931,23 @@ Page {
 			default: return;
 		}
 		exercisesListModel.makeFilterString(splitText);
+	}
+
+	function saveWorkout() {
+		if (!tDayModel.modified) return;
+		if (tDayModel.id() === -1)
+			appDB.newTrainingDay();
+		else
+			appDB.updateTrainingDay();
+
+		if (bRealMeso && chkAdjustCalendar.visible)
+		{
+			if (!chkAdjustCalendar.checked)
+				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
+			else
+				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter, tDay);
+			chkAdjustCalendar.visible = false;
+		}
 	}
 
 	function changeSplitLetter() {

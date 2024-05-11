@@ -98,6 +98,7 @@ set( QML_FILES
     "qml/ExerciseNameField.qml"
     "qml/DigitalClock.qml"
     "qml/TPRoundButton.qml"
+    "qml/TPFloatingMenuBar.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

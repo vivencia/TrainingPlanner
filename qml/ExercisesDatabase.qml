@@ -408,7 +408,7 @@ Page {
 	Component.onCompleted: pageExercises.StackView.activating.connect(pageActivation);
 
 	function pageActivation() {
-		exercisesList.setFilter();
+		exercisesList.simulateMouseClick(0, true);
 	}
 
 	FileDialog {

@@ -21,6 +21,13 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 
 	filterSearch_Field1 = 3; //First look for muscularGroup
 	filterSearch_Field2 = 1; //Then look for mainName
+	filterSearch_Field3 = 2; //Finally, subName
+}
+
+void DBExercisesModel::clear()
+{
+	clearSelectedEntries();
+	TPListModel::clear();
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
@@ -89,6 +96,14 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 		}
 	}
 	return false;
+}
+
+void DBExercisesModel::clearSelectedEntries()
+{
+	for (uint i(0); i < m_selectedEntries.count(); ++i)
+		setSelected(m_selectedEntries.at(i), false);
+	m_selectedEntries.clear();
+	m_selectedEntryToReplace = 0;
 }
 
 int DBExercisesModel::manageSelectedEntries(uint index, const uint max_selected)
