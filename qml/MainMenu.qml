@@ -9,11 +9,14 @@ Drawer {
 	spacing: 0
 	padding: 0
 	edge: Qt.LeftEdge
+	opacity: 0.8
 
 	property bool bMenuClicked: false
 	property var stackWindows: []
+	property var buttonComponent: null
 
 	background: Rectangle {
+		id: backgrundRec
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
 			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
@@ -49,6 +52,7 @@ Drawer {
 	ColumnLayout {
 		id: drawerLayout
 		spacing: 5
+		opacity: parent.opacity
 
 		anchors {
 			left: parent.left
@@ -175,17 +179,18 @@ Drawer {
 	}
 
 	function createShortCut(label: string, object: Item, clickid: int) {
-		var component = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+		if (!buttonComponent)
+			buttonComponent = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = component.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": clickid });
+			var button = buttonComponent.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": clickid });
 			button.buttonClicked.connect(itemManager.openMainMenuShortCut);
 			itemManager.addMainMenuShortCutEntry(button);
 		}
 
-		if (component.status === Component.Ready)
+		if (buttonComponent.status === Component.Ready)
 			finishCreation();
 		else
-			component.statusChanged.connect(finishCreation);
+			buttonComponent.statusChanged.connect(finishCreation);
 	}
 } //Drawer

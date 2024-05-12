@@ -102,7 +102,7 @@ void TPListModel::moveRow(const uint from, const uint to)
 	}
 }
 
-void TPListModel::setFilter(const QString &filter)
+void TPListModel::setFilter(const QString &filter, const bool resetSelection)
 {
 	if (filter.length() >=3)
 	{
@@ -129,8 +129,11 @@ void TPListModel::setFilter(const QString &filter)
 					bFirst = false;
 					beginRemoveRows(QModelIndex(), 0, count()-1);
 					m_indexProxy.clear();
-					resetPrivateData();
-					setCurrentRow(-1);
+					if (resetSelection)
+					{
+						resetPrivateData();
+						setCurrentRow(-1);
+					}
 					endRemoveRows();
 				}
 				beginInsertRows(QModelIndex(), count(), count());
@@ -147,8 +150,11 @@ void TPListModel::setFilter(const QString &filter)
 			m_bFilterApplied = false;
 			beginRemoveRows(QModelIndex(), 0, count()-1);
 			m_indexProxy.clear();
-			resetPrivateData();
-			setCurrentRow(-1);
+			if (resetSelection)
+			{
+				resetPrivateData();
+				setCurrentRow(-1);
+			}
 			endRemoveRows();
 			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
 			for( uint i (0); i < m_modeldata.count(); ++i )

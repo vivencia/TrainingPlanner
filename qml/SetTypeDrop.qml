@@ -17,6 +17,7 @@ Item {
 
 	property bool finishButtonVisible: false
 	property var subSetList: []
+	property var subSetComponent: null
 
 	signal requestTimerDialogSignal(Item requester, var args)
 	signal exerciseCompleted(int exercise_idx)
@@ -141,10 +142,11 @@ Item {
 		if (bNew)
 			tDayModel.newSetSubSet(setNumber, exerciseIdx);
 
-		var component = Qt.createComponent("RepsAndWeightRow.qml", Qt.Asynchronous);
+		if (!subSetComponent)
+			subSetComponent = Qt.createComponent("RepsAndWeightRow.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var rowSprite = component.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
+			var rowSprite = subSetComponent.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
 			rowSprite.addSubSet.connect(addSubSet);
@@ -155,10 +157,10 @@ Item {
 			}
 		}
 
-		if (component.status === Component.Ready)
+		if (subSetComponent.status === Component.Ready)
 			finishCreation();
 		else
-			component.statusChanged.connect(finishCreation);
+			subSetComponent.statusChanged.connect(finishCreation);
 	}
 
 	function removeSubSet(idx) {

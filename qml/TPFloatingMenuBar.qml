@@ -6,28 +6,37 @@ Popup {
 	signal menuEntrySelected(id: int);
 
 	id: menu
-	closePolicy: Popup.NoAutoClose
+	closePolicy: Popup.CloseOnPressOutside
 	modal: false
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	implicitWidth: mainLayout.implicitWidth
-	implicitHeight: mainLayout.implicitHeight
+	width: windowWidth * 0.5
+	height: entriesTotalHeight
 
 	property var entriesList: []
+	property int entriesTotalHeight: 0
+	property var entryComponent: null
 
 	background: Rectangle {
 		id: background
 		color: AppSettings.primaryColor
-		opacity: 0.9
 	}
 
 	enter: Transition {
 		NumberAnimation {
 			target: background
 			property: "opacity"
-			from: 0
-			to: 1
+			from: 0.0
+			to: 0.9
+			duration: 500
+			easing.type: Easing.InOutCubic
+		}
+		NumberAnimation {
+			target: background
+			property: "scale"
+			from: 0.0
+			to: 1.0
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -38,37 +47,28 @@ Popup {
 		NumberAnimation {
 			target: background
 			property: "opacity"
-			from: 1
-			to: 0
+			from: 0.9
+			to: 0.0
 			duration: 500
 			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
+		NumberAnimation {
+			target: background
+			property: "scale"
+			from: 1.0
+			to: 0.0
+			duration: 500
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
 		}
 	}
 
 	ColumnLayout {
 		id: mainLayout
 		anchors.fill: parent
-		spacing: 3
-
-		TransparentButton {
-			id: exportbtn
-			text: "Export"
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-			clickId: 0
-			Layout.fillWidth: true
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
-		}
-
-		TransparentButton {
-			id: importbtn
-			text: "Import"
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-			clickId: 1
-			Layout.fillWidth: true
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
-		}
+		spacing: 0
+		opacity: background.opacity
 	}
 
 	Component.onDestruction: {
@@ -77,45 +77,57 @@ Popup {
 	}
 
 	function addEntry(label: string, img: string, id: int) {
-		var component = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+		if (!entryComponent)
+			entryComponent = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = component.createObject(mainLayout, { "text": label, "imageSource": "qrc:/images/"+AppSettings.iconFolder+img,  "clickId": id,
+			var button = entryComponent.createObject(mainLayout, { "text": label, "imageSource": "qrc:/images/"+AppSettings.iconFolder+img,  "clickId": id,
 				"Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
-			button.buttonClicked.connect(menuEntrySelected);
+			entriesTotalHeight += button.height;
+			button.buttonClicked.connect(menuEntryClicked);
 			entriesList.push(button);
 		}
 
-		if (component.status === Component.Ready)
+		if (entryComponent.status === Component.Ready)
 			finishCreation();
 		else
-			component.statusChanged.connect(finishCreation);
+			entryComponent.statusChanged.connect(finishCreation);
 	}
 
 	function show(parent: Item, pos: int) {
+		if (menu.visible) {
+			menu.close();
+			return;
+		}
+
 		var point;
 		switch (pos) {
 			case 0: //top
-				point = parent.mapTo(mainwindow, parent.y, parent.x);
-				menu.x = point.x;
-				menu.y = point.y - menu.height - 5
+				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y);
+				menu.x = parent.x;
+				menu.y = point.y - parent.height;
 			break;
 			case 1: //left
-				point = parent.mapToGlobal(parent.y, parent.x + parent.width);
-				menu.x = point.x + 5;
+				point = parent.mapToItem(mainwindow.contentItem, parent.x + parent.width, parent.y);
+				menu.x = parent.x + parent.width;
 				menu.y = point.y;
 			break;
 			case 2: //right
-				point = parent.mapToGlobal(parent.y, parent.x);
-				menu.x = point.x - menu.width - 5;
+				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y);
+				menu.x = parent.x - menu.width - 5;
 				menu.y = point.y;
 			break;
-			case 2: //bottom
-				point = parent.mapToGlobal(parent.y + parent.height, parent.x);
-				menu.x = point.x;
-				menu.y = point.y + 5;
+			case 3: //bottom
+				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y + parent.height);
+				menu.x = parent.x;
+				menu.y = point.y + parent.height;
 			break;
 		}
 		menu.open();
+	}
+
+	function menuEntryClicked(buttonid: int) {
+		menuEntrySelected(buttonid);
+		menu.close();
 	}
 }

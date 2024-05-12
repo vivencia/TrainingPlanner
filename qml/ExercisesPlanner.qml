@@ -137,17 +137,12 @@ Page {
 			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter, currentPage.swappableLetter);
 		}
 
-		TPFloatingMenuBar
-		{
-			id: fdsfsd
-		}
-
 		TPButton {
 			id: btnExportPlan
 			text: qsTr("In/Ex port")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
-			//visible: currentPage ? currentPage.splitModel.count > 1 : false
+			visible: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -160,13 +155,9 @@ Page {
 			property var inexportMenu: null
 
 			onClicked: {
-				//fdsfsd.addEntry(qsTr("Export"), "export.png", 0);
-				//fdsfsd.addEntry(qsTr("Import"), "import.png", 1);
-				fdsfsd.menuEntrySelected.connect(this.selectedMenuOption);
-				fdsfsd.show(btnExportPlan, 0);
-				return;
 				if (inexportMenu === null) {
-					inexportMenu = Qt.createComponent("TPFloatingMenuBar.qml");
+					var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+					inexportMenu = inexportMenuComponent.createObject(pagePlanner, {});
 					inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
 					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
 					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
@@ -228,9 +219,10 @@ Page {
 		message: qsTr("What do you want to export?")
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
+		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: exportDialog.init(0);
-		onButton2Clicked: exportDialog.init(1);
+		onButton1Clicked: exportDialog.init(0, checkBoxChecked);
+		onButton2Clicked: exportDialog.init(1, checkBoxChecked);
 	}
 
 	TPBalloonTip {
@@ -251,22 +243,24 @@ Page {
 		fileMode: FileDialog.SaveFile
 
 		property int _opt
+		property bool _bfancyFormat
 
 		onAccepted: {
 			var result;
 			if (_opt === 0) {
 				for (var i = 0; i < splitView.count; ++i)
-					result = splitView.itemAt(i).splitModel.exportToText(currentFile);
+					result = appDB.exportToFile(splitView.itemAt(i).splitModel, currentFile, _bfancyFormat);
 			}
 			else
-				result = currentPage.splitModel.exportToText(currentFile);
+				result = appDB.exportToFile(currentPage.splitModel, currentFile, _bfancyFormat);
 			exportTip.init(result ? qsTr("Meso plan successfully exported") : qsTr("Failed to export meso plan"));
 			close();
 		}
 
-		function init(opt: int) {
+		function init(opt: int, fancy: bool) {
 			var suggestedName;
 			_opt = opt;
+			_bfancyFormat = fancy;
 			if (opt === 0)
 				suggestedName = qsTr(" - Exercises Plan.tp")
 			else

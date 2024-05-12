@@ -7,11 +7,14 @@ Popup {
 	property string title: ""
 	property string button1Text: ""
 	property string button2Text: ""
+	property string checkBoxText: ""
 	property string imageSource: ""
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property bool highlightMessage: false
 	property int startYPosition: 0
+
+	property bool checkBoxChecked: chkBox.checked
 
 	property int finalXPos: 0
 	property int finalYPos: 0
@@ -113,7 +116,7 @@ Popup {
 		width: 50
 		height: 50
 		x: 5
-		y: (balloon.height-height)/2
+		y: (balloon.height-height)/2 - (checkBoxText.length === 0 ? 0 : 20)
 	}
 
 	Label {
@@ -137,7 +140,7 @@ Popup {
 		text: button1Text
 		visible: button1Text.length > 0
 		x: button2Text.length > 0 ? (balloon.width - implicitWidth - btn2.implicitWidth)/2 : (balloon.width - implicitWidth)/2;
-		y: balloon.height - buttonHeight - 5;
+		y: balloon.height - buttonHeight - (checkBoxText.length !== 0 ? chkBox.height + 5 : 5);
 		z: 2
 
 		onClicked: {
@@ -151,13 +154,22 @@ Popup {
 		text: button2Text
 		visible: button2Text.length > 0
 		x: button1Text.length > 0 ? btn1.x + btn1.width + 5 : (balloon.width - implicitWidth)/2;
-		y: balloon.height - buttonHeight - 5;
+		y: balloon.height - buttonHeight - (checkBoxText.length !== 0 ? chkBox.height + 5 : 5);
 		z: 2
 
 		onClicked: {
 			button2Clicked();
 			balloon.close();
 		}
+	}
+
+	TPCheckBox {
+		id: chkBox
+		text: checkBoxText
+		visible: checkBoxText.length > 0
+		x: 5
+		y: balloon.height - height - 5;
+		z: 2
 	}
 
 	SequentialAnimation {
@@ -237,7 +249,9 @@ Popup {
 	}
 
 	function show(ypos) {
-		balloon.height = lblTitle.height + lblMessage.height + (button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
+		balloon.height = lblTitle.height + lblMessage.height +
+							(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10)) +
+							(checkBoxText.length > 0 ? chkBox.height : 0);
 		balloon.x = (windowWidth - width)/2;
 
 		if (ypos < 0)

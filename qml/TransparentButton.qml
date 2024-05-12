@@ -9,6 +9,7 @@ ToolButton {
 	rightInset: 0
 	leftInset: 0
 	width: parent.width
+	opacity: parent.opacity
 
 	signal buttonClicked(int clickid)
 	property bool bEmitSignal: false
@@ -37,6 +38,7 @@ ToolButton {
 		font.bold: true
 		font.capitalization: Font.MixedCase
 		color: button.enabled ? AppSettings.fontColor : "gray"
+		opacity: button.opacity
 		anchors.verticalCenter: parent.verticalCenter
 
 		Component.onCompleted: {
@@ -62,6 +64,7 @@ ToolButton {
 		id: buttonImage
 		source: imageSource
 		visible: imageSource.length > 0
+		opacity: button.opacity
 		fillMode: Image.PreserveAspectFit
 		width: 20
 		height: 20
@@ -75,7 +78,7 @@ ToolButton {
 	background: Rectangle {
 		id: buttonBack
 		color: AppSettings.primaryLightColor
-		opacity: 0.3
+		opacity: parent.opacity
 
 		property double fillPosition: !anim.running
 

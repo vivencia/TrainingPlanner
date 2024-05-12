@@ -852,7 +852,7 @@ Page {
 			text: !editMode ? qsTr("Edit workout") : qsTr("Done")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
 			textUnderIcon: true
-			width: 50
+			width: 65
 			fixedSize: true
 			visible: tDayModel.dayIsFinished
 
@@ -880,7 +880,7 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			enabled: !tDayModel.dayIsFinished && splitLetter !== 'R' && !grpIntent.visible
+			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && runCmd.timerRunning: false;
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors {

@@ -81,7 +81,7 @@ public:
 	Q_INVOKABLE void setCurrentRow(const int row);
 	Q_INVOKABLE void moveRow(const uint from, const uint to);
 
-	Q_INVOKABLE void setFilter(const QString& filter);
+	Q_INVOKABLE void setFilter(const QString& filter, const bool resetSelection);
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 

@@ -394,7 +394,11 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 
 bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
 {
-	QFile* outFile(new QFile(filename));
+	QString fname(filename);
+	if (filename.startsWith(u"file:"_qs))
+		fname.remove(0, 7); //remove file://
+
+	QFile* outFile(new QFile(fname));
 	outFile->deleteLater();
 	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{

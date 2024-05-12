@@ -9,7 +9,6 @@ Column {
 	spacing: 5
 
 	property int seconds
-	property bool bFilterApplied: false
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
@@ -214,7 +213,7 @@ Column {
 			}
 		}
 
-		onTextChanged: exercisesListModel.setFilter(text);
+		onTextChanged: exercisesListModel.setFilter(text, bMultipleSelection);
 	} // txtFilter
 
 	Component.onCompleted: {
@@ -275,7 +274,7 @@ Column {
 
 	function setFilter() {
 		txtFilter.text = exercisesListModel.getFilter();
-		txtFilter.textChanged();
+		exercisesListModel.setFilter(text, true);
 		if (exercisesListModel.count > 0)
 			simulateMouseClick(0, false);
 	}
