@@ -33,7 +33,6 @@ ComboBox {
 			text: delegate.model[control.textRole]
 			color: textColor
 			elide: Text.ElideRight
-			//font.pointSize: AppSettings.fontSizeText
 			minimumPointSize: 8
 			fontSizeMode: Text.Fit
 			font.weight: Font.ExtraBold

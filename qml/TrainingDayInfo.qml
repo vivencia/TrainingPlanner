@@ -852,7 +852,7 @@ Page {
 			text: !editMode ? qsTr("Edit workout") : qsTr("Done")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
 			textUnderIcon: true
-			width: 65
+			width: 75
 			fixedSize: true
 			visible: tDayModel.dayIsFinished
 

@@ -1,12 +1,14 @@
 #ifndef RUNCOMMANDS_H
 #define RUNCOMMANDS_H
 
+#include "tptimer.h"
+
 #include <QObject>
 #include <QQmlEngine>
 #include <QUrl>
 #include <QDateTime>
-#include <QTimer>
 
+class TPTimer;
 class QSettings;
 class QFileDialog;
 
@@ -66,7 +68,6 @@ signals:
 	void appSuspended();
 	void appResumed();
 	void workoutTimerTriggered(const uint hours, const uint mins, const uint secs);
-	void timeWarning(QString remaingMinutes, bool bminutes);
 	void timerRunningChanged();
 
 private:
@@ -74,14 +75,7 @@ private:
 	QString m_appPrivateDir;
 	QSettings* m_appSettings;
 
-	QTimer* m_workoutTimer;
-	uint m_hours, m_mins, m_secs;
-	uint mTimeWarnings;
-	bool mb_timerForward;
-	QTime mSessionStartTime;
-	QTime mElapsedTime;
-	QTime mSessionLength;
-
+	TPTimer* m_workoutTimer;
 	bool mb_appSuspended;
 
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
@@ -89,10 +83,6 @@ private:
 		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
-
-	void calcTime();
-	void calculateTimeBetweenTimes(const QTime& time1, const QTime& time2);
-	void correctTimer();
 };
 
 #endif // RUNCOMMANDS_H

@@ -23,6 +23,7 @@ set( SOURCES
 	cxx/runcommands.cpp cxx/runcommands.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
+	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/graph.h cxx/graph.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
