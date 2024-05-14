@@ -8,7 +8,6 @@
 #include <QUrl>
 #include <QDateTime>
 
-class TPTimer;
 class QSettings;
 class QFileDialog;
 
@@ -17,11 +16,8 @@ class RunCommands : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool timerRunning READ timerRunning NOTIFY timerRunningChanged FINAL)
-
 public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
-	~RunCommands() { if (m_workoutTimer) delete m_workoutTimer; }
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
 	QString getAppDir(const QString& dbFile);
@@ -54,12 +50,8 @@ public:
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
 	Q_INVOKABLE QDateTime timeFromStrTime(const QString& strTime) const { return QDateTime(QDate::currentDate(), QTime::fromString(strTime, u"hh:mm"_qs)); }
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
-
-	Q_INVOKABLE const QDateTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal);
-	bool timerRunning() const { return m_workoutTimer ? m_workoutTimer->isActive() : false; }
-	Q_INVOKABLE void prepareWorkoutTimer(const QString& strStartTime = u"00:00:00"_qs);
-	Q_INVOKABLE void startWorkoutTimer();
-	Q_INVOKABLE void stopWorkoutTimer();
+	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
+	const QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
 	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString) const;
 	Q_INVOKABLE QString setCompositeValue(const uint idx, const QString newValue, QString compositeString) const;
@@ -67,15 +59,12 @@ public:
 signals:
 	void appSuspended();
 	void appResumed();
-	void workoutTimerTriggered(const uint hours, const uint mins, const uint secs);
-	void timerRunningChanged();
 
 private:
 	QString m_dbFileName;
 	QString m_appPrivateDir;
 	QSettings* m_appSettings;
 
-	TPTimer* m_workoutTimer;
 	bool mb_appSuspended;
 
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const

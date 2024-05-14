@@ -1,7 +1,7 @@
 #include "dbmanager.h"
 #include "runcommands.h"
-
 #include "tpmesocycleclass.h"
+#include "tptimer.h"
 
 #include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
@@ -143,6 +143,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
+	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 
 	mesoSplitModel  = new DBMesoSplitModel(this);
 	mesoCalendarModel = new DBMesoCalendarModel(this);

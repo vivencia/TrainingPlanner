@@ -1,7 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtMultimedia
+
+import com.vivenciasoftware.qmlcomponents
 
 Dialog {
 	id: dlgTimer
@@ -27,8 +28,6 @@ Dialog {
 	property bool timePickerOnly: false
 	property bool bRunning: false
 	property bool bPaused: false
-	property bool bForward: false
-	property bool bTimer: true
 	property bool bInputOK: true
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
@@ -42,118 +41,15 @@ Dialog {
 
 	signal useTime(string time)
 
-	SoundEffect {
-		id: playSound
-		source: "qrc:/sounds/timer-end.wav"
-		loops: SoundEffect.Infinite
-	}
-
-	Timer {
+	TPTimer {
 		id: mainTimer
 		interval: 1000
-		running: false
-		repeat: true
-		property int indVal: 1
+		alarmSoundFile: "qrc:/sounds/timer-end.wav"
+		stopWatch: !chkTimer.checked
 
-		onTriggered: {
-			if (!bForward) {
-				progressBar.value = progressBar.value - 1;
-				if (totalSecs <= 14 && !playSound.playing)
-					playSound.play();
-				if (secs > 0) {
-					--secs;
-				}
-				else if (secs === 0) {
-					if (mins > 0 ) {
-						secs = 59;
-						--mins;
-					}
-					else if ( mins === 0 ) {
-						if (hours > 0) {
-							--hours;
-							if (mins === 0) {
-								mins = 59;
-								secs = 59;
-							}
-							else
-								--mins;
-						}
-						else {
-							//playSound.play();
-							bForward = true;
-							progressBar.indeterminate = true;
-							progressBar.value = 0;
-							progressBar.from = 0;
-							progressBar.to = 10;
-							bNegCountDown = true;
-						}
-					}
-				}
-			}
-			else {
-				switch (progressBar.value) {
-					case 0: indVal = 1; break;
-					case 10: indVal = -1; break;
-					default: break;
-				}
-				progressBar.value = progressBar.value + indVal;
-
-				if (secs < 59) {
-					++secs;
-					if (secs >= 4 && playSound.playing)
-						playSound.stop();
-				}
-				else {
-					if (mins < 59) {
-						secs = 0;
-						++mins;
-					}
-					else {
-						if (hours < 99) {
-							mins = 0;
-							++hours
-						}
-						else
-							stopTimer(!bForward); //When in stopwath mode, leave the current values displayed
-					}
-				}
-			}
-		}
-
-		function init () {
-			//const totalSecs = secs + 60*mins + 3600*hours
-			if (bForward) {
-				progressBar.indeterminate = true;
-				progressBar.value = 0;
-				progressBar.from = 0;
-				progressBar.to = 10;
-			}
-			else {
-				progressBar.indeterminate = false;
-				progressBar.from = totalSecs;
-				progressBar.to = 0;
-				progressBar.value = totalSecs;
-			}
-			bRunning = true;
-			bPaused = false;
-			bTextChanged = false;
-			mainTimer.start();
-		}
-
-		function stopTimer(reset) {
-			stop();
-			bRunning = false;
-			if (reset) {
-				if (bNegCountDown) {
-					bForward = false;
-					bNegCountDown = false;
-				}
-				hours = origHours;
-				mins = origMins;
-				secs = origSecs;
-				progressBar.value = 0;
-				bPaused = false;
-			}
+		Component.onCompleted: {
+			setRunCommandsObject(runCmd);
+			addWarningAtSecond(15);
 		}
 	}
 
@@ -213,7 +109,7 @@ Dialog {
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: { mainTimer.stopTimer(reset); dlgTimer.close(); }
+				onClicked: { mainTimer.stopTimer(); dlgTimer.close(); }
 			}
 		}
 	}
@@ -227,16 +123,9 @@ Dialog {
 			id: chkTimer
 			text: qsTr("Timer?")
 			textColor: "darkred"
-			checked: bTimer
+			checked: true
 			visible: !timePickerOnly
 			Layout.leftMargin: 10
-
-			onToggled: {
-				bTimer = checked;
-				bForward = !checked;
-				if (bForward && totalSecs === 0)
-					bInputOK = true;
-			}
 		} //TPCheckBox
 
 		RowLayout {
@@ -291,7 +180,7 @@ Dialog {
 
 			TPTextInput {
 				id: txtHours
-				text: runCmd.intTimeToStrTime(hours)
+				text: mainTimer.strHours
 				visible: !bJustMinsAndSecs
 				focus: true
 				validator: IntValidator { bottom: 0; top: 99; }
@@ -307,16 +196,14 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtHours.clear();
-						origHours = hours;
+						origHours = mainTimer.hours;
 					}
 					else {
 						bInputOK = acceptableInput;
 						if (acceptableInput)
-							hours = parseInt(text);
-						else {
-							hours = -1; //trigger an onTextChange event
-							hours = origHours;
-						}
+							mainTimer.strHours = text;
+						else
+							mainTimer.hours = origHours;
 					}
 				}
 				onTextEdited: {
@@ -344,7 +231,7 @@ Dialog {
 
 			TPTextInput {
 				id: txtMinutes
-				text: runCmd.intTimeToStrTime(mins)
+				text: mainTimer.strMinutes
 				focus: true
 				validator: IntValidator { bottom: 0; top: 59; }
 				inputMethodHints: Qt.ImhDigitsOnly
@@ -359,16 +246,14 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtMinutes.clear();
-						origMins = mins;
+						origMins = mainTimer.minutes;
 					}
 					else {
 						bInputOK = acceptableInput
 						if (acceptableInput)
-							mins = parseInt(text);
-						else {
-							mins = -1; //trigger an onTextChange event
-							mins = origMins;
-						}
+							mainTimer.strMinutes = text;
+						else
+							mainTimer.mins = origMins;
 					}
 				}
 
@@ -401,7 +286,7 @@ Dialog {
 
 			TPTextInput {
 				id: txtSecs
-				text: runCmd.intTimeToStrTime(secs)
+				text: mainTimer.strSeconds
 				focus: true
 				visible: !timePickerOnly
 				validator: IntValidator { bottom: 0; top: 59; }
@@ -417,15 +302,13 @@ Dialog {
 				onActiveFocusChanged: {
 					if (activeFocus) {
 						txtSecs.clear();
-						origSecs = secs;
+						origSecs = mainTimer.seconds;
 					}
 					else {
 						if (acceptableInput)
-							secs = parseInt(text);
-						else {
-							secs = -1; //trigger an onTextChange event
-							secs = origSecs;
-						}
+							mainTimer.strSeconds = text;
+						else
+							mainTimer.seconds = origSecs;
 					}
 				}
 				onTextEdited: {
@@ -445,6 +328,10 @@ Dialog {
 			visible: !timePickerOnly
 			height: 6
 			width: dlgTimer.width*0.8
+			from: 0
+			to: mainTimer.totalSecs
+			value: mainTimer.seconds
+			indeterminate: mainTimer.stopWatch
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
 			Layout.minimumWidth: width
@@ -481,7 +368,7 @@ Dialog {
 			TPButton {
 				id: btnStartPause
 				text: qsTr("Start")
-				enabled: bInputOK ? bForward ? true : totalSecs > 0 : false
+				enabled: bInputOK ? mainTimer.stopWatch ? true : mainTimer.totalSecs() > 0 : false
 				visible: !timePickerOnly
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth

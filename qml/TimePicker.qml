@@ -20,7 +20,7 @@ Popup {
 		Keys.onPressed: (event) => {
 			if (event.key === Qt.Key_Back) {
 				event.accepted = true;
-				close ();
+				close();
 			}
 		}
 	}
@@ -68,6 +68,7 @@ Popup {
 	]
 
 	// set these properties before start
+	property bool bOnlyFutureTime: false
 	property int outerButtonIndex: 0
 	property int innerButtonIndex: -1
 	property bool pickMinutes: false
@@ -204,6 +205,23 @@ Popup {
 		hrsButton.checked = true;
 		timePicker.pickMinutes = false;
 		timePicker.showHour(timePicker.hrsDisplay);
+	}
+
+	function buttonsIsEnabled(buttonText: string, bHour: bool) {
+		if (bOnlyFutureTime) {
+			if (bHour)
+				return parseInt(buttonText) >= parseInt(runCmd.getHourFromCurrentTime());
+			else {
+				if (parseInt(hrsDisplay) > parseInt(runCmd.getHourFromCurrentTime()))
+					return true;
+				else if (parseInt(hrsDisplay) < parseInt(runCmd.getHourFromCurrentTime()))
+					return false;
+				else
+					return parseInt(buttonText) >= parseInt(runCmd.getMinutesFromCurrentTime())
+			}
+		}
+		else
+			return true;
 	}
 
 	topPadding: 0
@@ -366,6 +384,7 @@ Popup {
 					height: 40
 					checked: index === timePicker.innerButtonIndex
 					checkable: true
+					enabled: buttonsIsEnabled(text, true);
 
 					onClicked: {
 						timePicker.outerButtonIndex = -1
@@ -428,7 +447,8 @@ Popup {
 				height: 40
 				checked: index === timePicker.outerButtonIndex
 				checkable: true
-				enabled: timePicker.pickMinutes && timePicker.onlyQuartersAllowed? modelData.q : true
+				enabled: timePicker.pickMinutes ? (buttonsIsEnabled(text, false) ? timePicker.onlyQuartersAllowed ? modelData.q : true : false) :
+							buttonsIsEnabled(text, true)
 
 				onClicked: {
 					timePicker.innerButtonIndex = -1

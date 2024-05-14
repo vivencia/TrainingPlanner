@@ -6,7 +6,7 @@
 #include <QGuiApplication>
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
-	: QObject(parent), m_appSettings(settings), m_workoutTimer(nullptr), mb_appSuspended(false)
+	: QObject(parent), m_appSettings(settings), mb_appSuspended(false)
 {
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)
@@ -247,7 +247,13 @@ QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-const QDateTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal)
+QString RunCommands::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
+{
+	const QTime time(calculateTimeDifference(strTimeInit, strTimeFinal));
+	return time.toString(u"hh:mm:ss");
+}
+
+const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
 {
 	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
 	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());
@@ -257,33 +263,7 @@ const QDateTime RunCommands::calculateTimeDifference(const QString& strTimeInit,
 		hour--;
 		min += 60;
 	}
-	return QDateTime(QDate::currentDate(), QTime(hour, min, 0));
-}
-
-void RunCommands::prepareWorkoutTimer(const QString& strStartTime)
-{
-	if (!m_workoutTimer)
-	{
-		m_workoutTimer = new TPTimer(this, this);
-		m_workoutTimer->setInterval(1000);
-	}
-	m_workoutTimer->prepareTimer(strStartTime);
-}
-
-void RunCommands::startWorkoutTimer()
-{
-	if (!m_workoutTimer)
-		prepareWorkoutTimer();
-	m_workoutTimer->setMinutesWarnings(15, 5, 1);
-	m_workoutTimer->start();
-	emit timerRunningChanged();
-}
-
-void RunCommands::stopWorkoutTimer()
-{
-	m_workoutTimer->stop();
-	emit timerRunningChanged();
-	emit workoutTimerTriggered(m_workoutTimer->hours(), m_workoutTimer->minutes(), m_workoutTimer->seconds());
+	return QTime(hour, min, 0);
 }
 
 QString RunCommands::getCompositeValue(const uint idx, const QString& compositeString) const

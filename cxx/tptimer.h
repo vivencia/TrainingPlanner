@@ -6,6 +6,7 @@
 #include <QQmlEngine>
 
 class RunCommands;
+class QSoundEffect;
 
 class TPTimer : public QTimer
 {
@@ -16,32 +17,49 @@ QML_ELEMENT
 Q_PROPERTY(int hours READ hours WRITE setHours NOTIFY hoursChanged FINAL)
 Q_PROPERTY(int minutes READ minutes WRITE setMinutes NOTIFY minutesChanged FINAL)
 Q_PROPERTY(int seconds READ seconds WRITE setSeconds NOTIFY secondsChanged FINAL)
+Q_PROPERTY(QString strHours READ strHours WRITE setStrHours NOTIFY hoursChanged FINAL)
+Q_PROPERTY(QString strMinutes READ strMinutes WRITE setStrMinutes NOTIFY minutesChanged FINAL)
+Q_PROPERTY(QString strSeconds READ strSeconds WRITE setStrSeconds NOTIFY secondsChanged FINAL)
 Q_PROPERTY(bool stopWatch READ stopWatch WRITE setStopWatch NOTIFY stopWatchChanged FINAL)
+Q_PROPERTY(QString alarmSoundFile READ alarmSoundFile WRITE setAlarmSoundFile FINAL)
+Q_PROPERTY(int totalSeconds READ totalSeconds NOTIFY totalSecondsChanged FINAL)
 
 public:
-	explicit TPTimer(QObject* parent, RunCommands *runCmd);
+	explicit TPTimer(QObject* parent = nullptr);
+	virtual ~TPTimer();
 
-	void prepareTimer(const QString& strStartTime);
-	void startTimer();
-	void stopTimer();
-	const QTime& calculateTimeBetweenTimes(const QTime& time1, const QTime& time2);
+	Q_INVOKABLE void setRunCommandsObject(RunCommands *runCmd);
+	Q_INVOKABLE void prepareTimer(const QString& strStartTime);
+	Q_INVOKABLE void startTimer();
+	Q_INVOKABLE void stopTimer();
 
 	inline int hours() const { return m_hours; }
 	inline void setHours(const int n_hours) { m_hours = n_hours; emit hoursChanged(); }
+	QString strHours() const;
+	void setStrHours(const QString& str_hours);
+
 	inline int minutes() const { return m_minutes; }
 	inline void setMinutes(const int n_minutes) { m_minutes = n_minutes; emit minutesChanged(); }
+	QString strMinutes() const;
+	void setStrMinutes(const QString& str_minutes);
+
 	inline int seconds() const { return m_seconds; }
 	inline void setSeconds(const int n_seconds) { m_seconds = n_seconds; emit secondsChanged(); }
+	QString strSeconds() const;
+	void setStrSeconds(const QString& str_seconds);
+
 	inline bool stopWatch() const { return mb_stopWatch; }
 	inline void setStopWatch(const bool forward_timer) { mb_stopWatch = mb_timerForward = forward_timer; emit stopWatchChanged(); }
+	inline const QString& alarmSoundFile() const { return m_alarmSoundFile; }
+	void setAlarmSoundFile(const QString& soundFileName);
 
-	template<class... Args>
-	void setMinutesWarnings(Args... mins);
-	template<class... Args>
-	void setSecondsWarnings(Args... secs);
+	Q_INVOKABLE void stopAlarmSound();
+	Q_INVOKABLE void setAlarmSoundLoops(const uint nloops);
+	Q_INVOKABLE inline void addWarningAtMinute(const uint minute) { mMinutesWarnings.append(minute); }
+	Q_INVOKABLE inline void addWarningAtSecond(const uint second) { mSecondsWarnings.append(second); }
 
-	inline int totalSecs() const { return m_seconds + m_minutes*60 + m_hours*3600; }
-	inline const QTime& elapsedTime() const { return m_elapsedTime; }
+	inline int totalSeconds() const { return m_totalSeconds; }
+	Q_INVOKABLE inline QDateTime elapsedTime() const { return QDateTime(QDate::currentDate(), m_elapsedTime); }
 	inline const QTime& initialTime() const { return m_initialTime; }
 
 signals:
@@ -50,35 +68,22 @@ signals:
 	void secondsChanged();
 	void stopWatchChanged();
 	void timeWarning(QString remaingMinutes, bool bminutes);
+	void totalSecondsChanged();
 
 private:
 	int m_hours, m_minutes, m_seconds;
-	uint mTimeWarnings;
+	int m_totalSeconds;
 	bool mb_stopWatch, mb_timerForward;
+	QString m_alarmSoundFile;
 	QTime m_elapsedTime;
 	QTime m_initialTime;
 	QTime m_timeOfDay;
 	QList<int> mMinutesWarnings;
 	QList<int> mSecondsWarnings;
+	QSoundEffect* m_alarmSound;
 
+	const QTime& calculateTimeBetweenTimes(const QTime& time1, const QTime& time2);
 	void calcTime();
 	void correctTimer();
 };
-
-template<class... Args>
-void TPTimer::setMinutesWarnings(Args... mins)
-{
-	mTimeWarnings = 0;
-	const auto list = {mins...};
-	mMinutesWarnings = list;
-}
-
-template<class... Args>
-void TPTimer::setSecondsWarnings(Args... secs)
-{
-	mTimeWarnings = 0;
-	const auto list = {secs...};
-	mSecondsWarnings = list;
-}
-
 #endif // TPTIMER_H

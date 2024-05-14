@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
-import QtMultimedia
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -102,20 +101,33 @@ Page {
 		timePickerOnly: true
 		windowTitle: qsTr("Length of this training session")
 
-		onUseTime: (strtime) => runCmd.prepareWorkoutTimer(strtime);
+		onUseTime: (strtime) => workoutTimer.prepareTimer(strtime + ":00");
 	}
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getCurrentTimeString()
-		minutesDisplay: runCmd.getCurrentTimeString()
+		hrsDisplay: runCmd.getHourFromCurrentTime()
+		minutesDisplay: runCmd.getMinutesFromCurrentTime()
+		bOnlyFutureTime: true
 
-		onTimeSet: (hour, minutes) => runCmd.prepareWorkoutTimer(hour + ":" + minutes);
+		onTimeSet: (hour, minutes) => {
+			workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(
+					runCmd.getCurrentTimeString(), hour + ":" + minutes));
+		}
 	}
 
-	SoundEffect {
-		id: playSound
-		source: "qrc:/sounds/timer-end.wav"
+	TPTimer {
+		id: workoutTimer
+		alarmSoundFile: "qrc:/sounds/timer-end.wav"
+		stopWatch: true
+		interval: 1000
+
+		Component.onCompleted: {
+			setRunCommandsObject(runCmd);
+			addWarningAtMinute(15);
+			addWarningAtMinute(5);
+			addWarningAtMinute(1);
+		}
 	}
 
 	TPBalloonTip {
@@ -155,19 +167,18 @@ Page {
 		button1Text: qsTr("OK")
 
 		property string timeLeft
-		onButton1Clicked: playSound.stop();
+		onButton1Clicked: workoutTimer.stopAlarmSound();
 	}
 	function displayTimeWarning(timeleft: string, bmin: bool) {
-		tipTimeWarn.timeLeft = timeleft + (bmin ? qsTr("minutes") : qsTr("seconds"));
+		tipTimeWarn.timeLeft = timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds"));
 		var timeout;
 		if (!bmin)
 		{
 			timeout = 60000;
-			playSound.loops = 4;
+			workoutTimer.setAlarmSoundLoops(4);
 		}
 		else
 			timeout = 18000;
-		playSound.play();
 		tipTimeWarn.showTimed(timeout, 0);
 	}
 
@@ -305,7 +316,7 @@ Page {
 			Frame {
 				id: frmTrainingTime
 				visible: splitLetter !== 'R' && !grpIntent.visible
-				enabled: !tDayModel.dayIsFinished && !runCmd.timerRunning
+				enabled: !tDayModel.dayIsFinished && !workoutTimer.active
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
@@ -329,7 +340,7 @@ Page {
 
 						onClicked: {
 							if (checked)
-								runCmd.prepareWorkoutTimer();
+								workoutTimer.prepareTimer("");
 						}
 					}
 					TPRadioButton {
@@ -789,14 +800,13 @@ Page {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
-				enabled: !runCmd.timerRunning
+				enabled: !workoutTimer.active
 
 				onClicked: {
-					runCmd.workoutTimerTriggered.connect(updateTimer);
-					runCmd.startWorkoutTimer();
+					workoutTimer.startTimer();
 					timeIn = runCmd.getCurrentTimeString();
 					tDayModel.setTimeIn(timeIn);
-					runCmd.timeWarning.connect(displayTimeWarning);
+					workoutTimer.timeWarning.connect(displayTimeWarning);
 				}
 			}
 
@@ -814,18 +824,21 @@ Page {
 					DigitalClock {
 						id: hoursClock
 						max: 24
+						value: workoutTimer.hours
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
 						id: minsClock
 						max: 60
+						value: workoutTimer.minutes
 					}
 					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
 
 					DigitalClock {
 						id: secsClock
 						max: 60
+						value: workoutTimer.seconds
 					}
 				}
 			}
@@ -834,15 +847,15 @@ Page {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
-				enabled: runCmd.timerRunning
+				enabled: workoutTimer.active
 
 				onClicked: {
-					runCmd.stopWorkoutTimer();
+					workoutTimer.stopTimer();
+					const sessionLength = workoutTimer.elapsedTime();
+					updateTimer(sessionLength.getHours(), sessionLength.getMinutes(), sessionLength.getSeconds());
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsFinished = true;
-					runCmd.workoutTimerTriggered.disconnect(updateTimer);
-					runCmd.timeWarning.disconnect(displayTimeWarning);
 				}
 			}
 		}
@@ -880,7 +893,7 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && runCmd.timerRunning: false;
+			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active: false;
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors {

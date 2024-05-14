@@ -1,20 +1,49 @@
+#include <QSoundEffect>
+
 #include "tptimer.h"
 #include "runcommands.h"
 
-TPTimer::TPTimer(QObject* parent, RunCommands* runCmd)
-	: QTimer{parent}, mb_stopWatch(true), mb_timerForward(true)
+static int warningIdx(-1);
+
+TPTimer::TPTimer(QObject* parent)
+	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), mb_stopWatch(true), mb_timerForward(true), m_alarmSound(nullptr)
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
+}
+
+TPTimer::~TPTimer()
+{
+	if (m_alarmSound)
+		delete m_alarmSound;
+	QTimer::~QTimer();
+}
+
+void TPTimer::setRunCommandsObject(RunCommands *runCmd)
+{
 	connect(runCmd, &RunCommands::appResumed, this, &TPTimer::correctTimer);
 }
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_hours = strStartTime.left(2).toUInt();
-	m_minutes = strStartTime.mid(3, 2).toUInt();
-	m_seconds = strStartTime.right(2).toUInt();
-	mb_timerForward = (m_hours == m_minutes == m_seconds == 0);
-	mTimeWarnings = 0;
+	if (!strStartTime.isEmpty())
+	{
+		m_hours = strStartTime.left(2).toUInt();
+		m_minutes = strStartTime.mid(3, 2).toUInt();
+		m_seconds = strStartTime.right(2).toUInt();
+		mb_timerForward = false;
+		m_totalSeconds = m_seconds + m_minutes*60 + m_hours*3600;
+
+	}
+	else
+	{
+		m_hours = m_minutes = m_seconds = 0;
+		mb_timerForward = true;
+		m_totalSeconds = 0;
+	}
+	emit hoursChanged();
+	emit minutesChanged();
+	emit secondsChanged();
+	emit totalSecondsChanged();
 }
 
 void TPTimer::startTimer()
@@ -28,6 +57,9 @@ void TPTimer::startTimer()
 void TPTimer::stopTimer()
 {
 	stop();
+	if (m_alarmSound)
+		m_alarmSound->stop();
+
 	if (stopWatch())
 		m_elapsedTime.setHMS(m_hours, m_minutes, m_seconds);
 	else
@@ -35,8 +67,90 @@ void TPTimer::stopTimer()
 		if (!mb_timerForward)
 			calculateTimeBetweenTimes(QTime(m_hours, m_seconds, m_minutes), m_initialTime);
 		else
-			m_elapsedTime = m_initialTime.addSecs(totalSecs());
+			m_elapsedTime = m_initialTime.addSecs(m_totalSeconds);
+		m_totalSeconds = m_elapsedTime.second() + m_elapsedTime.minute()*60 + m_elapsedTime.hour()*3600;
+		emit totalSecondsChanged();
 	}
+}
+
+QString TPTimer::strHours() const
+{
+	QString ret(QString::number(m_hours));
+	if (m_hours < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+void TPTimer::setStrHours(const QString& str_hours)
+{
+	bool bOK(true);
+	const uint hours(str_hours.toUInt(&bOK));
+	if (bOK)
+	{
+		m_hours = hours;
+		emit hoursChanged();
+	}
+}
+
+QString TPTimer::strMinutes() const
+{
+	QString ret(QString::number(m_minutes));
+	if (m_minutes < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+void TPTimer::setStrMinutes(const QString& str_minutes)
+{
+	bool bOK(true);
+	const uint minutes(str_minutes.toUInt(&bOK));
+	if (bOK)
+	{
+		m_minutes = minutes;
+		emit minutesChanged();
+	}
+}
+
+QString TPTimer::strSeconds() const
+{
+	QString ret(QString::number(m_seconds));
+	if (m_seconds < 10)
+		ret.prepend('0');
+	return ret;
+}
+
+void TPTimer::setStrSeconds(const QString& str_seconds)
+{
+	bool bOK(true);
+	const uint seconds(str_seconds.toUInt(&bOK));
+	if (bOK)
+	{
+		m_seconds = seconds;
+		emit secondsChanged();
+	}
+}
+
+void TPTimer::setAlarmSoundFile(const QString& soundFileName)
+{
+	if (!m_alarmSound)
+	{
+		m_alarmSound = new QSoundEffect(this);
+		m_alarmSound->setSource(soundFileName);
+		m_alarmSound->setLoopCount(1);
+		m_alarmSound->setVolume(0.25f);
+	}
+}
+
+void TPTimer::stopAlarmSound()
+{
+	if (m_alarmSound)
+		m_alarmSound->stop();
+}
+
+void TPTimer::setAlarmSoundLoops(const uint nloops)
+{
+	if (m_alarmSound)
+		m_alarmSound->setLoopCount(nloops);
 }
 
 const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime& time2)
@@ -89,7 +203,7 @@ void TPTimer::calcTime()
 					mb_timerForward = true;
 					return;
 				}
-				m_minutes = 59;
+				m_minutes = 60;
 				m_hours--;
 				emit hoursChanged();
 				emit minutesChanged();
@@ -98,28 +212,31 @@ void TPTimer::calcTime()
 			{
 				if (m_hours == 0)
 				{
-					if (!mMinutesWarnings.isEmpty())
+					warningIdx = mMinutesWarnings.indexOf(m_minutes);
+					if (warningIdx != -1)
 					{
-						if (m_minutes == mMinutesWarnings.at(mTimeWarnings))
-						{
-							mTimeWarnings++;
-							emit timeWarning(QString::number(m_minutes), true);
-						}
+						mMinutesWarnings.remove(warningIdx);
+						emit timeWarning(QString::number(m_minutes), true);
+						if (m_alarmSound)
+							m_alarmSound->play();
 					}
-					else if (!mSecondsWarnings.isEmpty())
-					{
-						if (m_seconds == mSecondsWarnings.at(mTimeWarnings))
-						{
-							mTimeWarnings++;
-							emit timeWarning(QString::number(m_seconds), false);
-						}
-					}
-					m_seconds = 60;
-					m_minutes--;
-					emit minutesChanged();
 				}
-				m_seconds--;
-				emit secondsChanged();
+			}
+			m_minutes--;
+			emit minutesChanged();
+			m_seconds = 60;
+		}
+		m_seconds--;
+		emit secondsChanged();
+		if (m_minutes == 0)
+		{
+			warningIdx = mSecondsWarnings.indexOf(m_seconds);
+			if (warningIdx != -1)
+			{
+				mSecondsWarnings.remove(warningIdx);
+				emit timeWarning(QString::number(m_seconds), false);
+				if (m_alarmSound)
+					m_alarmSound->play();
 			}
 		}
 	}
