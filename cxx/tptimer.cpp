@@ -6,16 +6,19 @@
 static int warningIdx(-1);
 
 TPTimer::TPTimer(QObject* parent)
-	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), mb_stopWatch(true), mb_timerForward(true), m_alarmSound(nullptr)
+	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), m_totalSeconds(0), mb_stopWatch(true),
+		mb_timerForward(true), mb_paused(false), m_alarmSound(nullptr)
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
+	m_pausedTime.setHMS(0, 0, 0);
+	m_timeOfPause.setHMS(0, 0 ,0);
+	m_originalStartTime = u"00:00:00"_qs;
 }
 
 TPTimer::~TPTimer()
 {
 	if (m_alarmSound)
 		delete m_alarmSound;
-	QTimer::~QTimer();
 }
 
 void TPTimer::setRunCommandsObject(RunCommands *runCmd)
@@ -25,51 +28,66 @@ void TPTimer::setRunCommandsObject(RunCommands *runCmd)
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	if (!strStartTime.isEmpty())
-	{
-		m_hours = strStartTime.left(2).toUInt();
-		m_minutes = strStartTime.mid(3, 2).toUInt();
-		m_seconds = strStartTime.right(2).toUInt();
-		mb_timerForward = false;
-		m_totalSeconds = m_seconds + m_minutes*60 + m_hours*3600;
-
-	}
-	else
-	{
-		m_hours = m_minutes = m_seconds = 0;
-		mb_timerForward = true;
-		m_totalSeconds = 0;
-	}
+	m_originalStartTime = strStartTime;
+	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
 	emit secondsChanged();
-	emit totalSecondsChanged();
+	emit pausedChanged();
+	emit timerForwardChanged();
 }
 
 void TPTimer::startTimer()
 {
-	m_elapsedTime.setHMS(0, 0, 0);
-	m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
-	m_timeOfDay = QTime::currentTime();
+	if (!mb_paused)
+	{
+		m_elapsedTime.setHMS(0, 0, 0);
+		m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
+		m_timeOfDay = QTime::currentTime();
+	}
+	else
+	{
+		mb_paused = false;
+		emit pausedChanged();
+		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
+		m_pausedTime = m_pausedTime.addSecs(totalSecs(m_elapsedTime));
+	}
 	start();
 }
 
 void TPTimer::stopTimer()
 {
 	stop();
-	if (m_alarmSound)
-		m_alarmSound->stop();
+	stopAlarmSound();
+	calculateElapsedTime();
+	mb_paused = false;
+	emit pausedChanged();
+}
 
-	if (stopWatch())
-		m_elapsedTime.setHMS(m_hours, m_minutes, m_seconds);
+void TPTimer::pauseTimer()
+{
+	if (!isActive())
+		return;
+	stopAlarmSound();
+	mb_paused = true;
+	m_timeOfPause = QTime::currentTime();
+	stop();
+	emit pausedChanged();
+}
+
+void TPTimer::resetTimer(const bool start)
+{
+	stop();
+	stopAlarmSound();
+	prepareFromString();
+	if (start)
+		startTimer();
 	else
 	{
-		if (!mb_timerForward)
-			calculateTimeBetweenTimes(QTime(m_hours, m_seconds, m_minutes), m_initialTime);
-		else
-			m_elapsedTime = m_initialTime.addSecs(m_totalSeconds);
-		m_totalSeconds = m_elapsedTime.second() + m_elapsedTime.minute()*60 + m_elapsedTime.hour()*3600;
-		emit totalSecondsChanged();
+		emit hoursChanged();
+		emit minutesChanged();
+		emit secondsChanged();
+		emit pausedChanged();
 	}
 }
 
@@ -88,6 +106,8 @@ void TPTimer::setStrHours(const QString& str_hours)
 	if (bOK)
 	{
 		m_hours = hours;
+		calcTotalSecs();
+		m_originalStartTime.replace(0, 2, str_hours);
 		emit hoursChanged();
 	}
 }
@@ -107,6 +127,8 @@ void TPTimer::setStrMinutes(const QString& str_minutes)
 	if (bOK)
 	{
 		m_minutes = minutes;
+		calcTotalSecs();
+		m_originalStartTime.replace(3, 2, str_minutes);
 		emit minutesChanged();
 	}
 }
@@ -126,6 +148,8 @@ void TPTimer::setStrSeconds(const QString& str_seconds)
 	if (bOK)
 	{
 		m_seconds = seconds;
+		calcTotalSecs();
+		m_originalStartTime.replace(6, 2, str_seconds);
 		emit secondsChanged();
 	}
 }
@@ -153,6 +177,27 @@ void TPTimer::setAlarmSoundLoops(const uint nloops)
 		m_alarmSound->setLoopCount(nloops);
 }
 
+void TPTimer::prepareFromString()
+{
+	if (!m_originalStartTime.isEmpty())
+	{
+		m_hours = m_originalStartTime.left(2).toUInt();
+		m_minutes = m_originalStartTime.mid(3, 2).toUInt();
+		m_seconds = m_originalStartTime.right(2).toUInt();
+		mb_timerForward = mb_stopWatch;
+	}
+	else
+	{
+		m_hours = m_minutes = m_seconds = 0;
+		if (mb_stopWatch)
+			mb_timerForward = true;
+		m_totalSeconds = 0;
+	}
+	mb_paused = false;
+	m_pausedTime.setHMS(0, 0, 0);
+	m_timeOfPause.setHMS(0, 0 ,0);
+}
+
 const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime& time2)
 {
 	int hour(time2.hour() - time1.hour());
@@ -171,6 +216,28 @@ const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime&
 	}
 	m_elapsedTime.setHMS(hour, min, sec);
 	return m_elapsedTime;
+}
+
+void TPTimer::calculateElapsedTime()
+{
+	if (!m_pausedTime.isNull())
+	{
+		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
+		m_pausedTime = m_pausedTime.addSecs(totalSecs(m_elapsedTime));
+	}
+	if (stopWatch())
+		m_elapsedTime.setHMS(m_hours, m_minutes, m_seconds);
+	else
+	{
+		if (!mb_timerForward)
+			calculateTimeBetweenTimes(QTime(m_hours, m_seconds, m_minutes), m_initialTime);
+		else
+			m_elapsedTime = m_initialTime.addSecs(m_totalSeconds);
+		m_totalSeconds = totalSecs(m_elapsedTime);
+		emit totalSecondsChanged();
+	}
+	if (!m_pausedTime.isNull())
+		m_elapsedTime = m_elapsedTime.addMSecs(-totalSecs(m_pausedTime));
 }
 
 void TPTimer::calcTime()
@@ -201,6 +268,7 @@ void TPTimer::calcTime()
 				if (m_hours == 0)
 				{
 					mb_timerForward = true;
+					emit timerForwardChanged();
 					return;
 				}
 				m_minutes = 60;

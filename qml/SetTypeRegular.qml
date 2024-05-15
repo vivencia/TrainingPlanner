@@ -6,6 +6,7 @@ import com.vivenciasoftware.qmlcomponents
 
 Item {
 	id: setItem
+	height: setLayout.implicitHeight + 10
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
@@ -24,8 +25,6 @@ Item {
 
 	readonly property var myoLabels: setType === 5 ? [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
-
-	onSetTypeChanged: height = setLayout.implicitHeight + 10;
 
 	onFocusChanged: {
 		if (focus)

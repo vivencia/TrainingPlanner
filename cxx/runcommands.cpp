@@ -170,32 +170,6 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 	return newDate;
 }
 
-QString RunCommands::intTimeToStrTime(const uint time) const
-{
-	QString ret(QString::number(time));
-	if (time < 10)
-		ret.prepend('0');
-	return ret;
-}
-
-QString RunCommands::getStrHourFromTime(const QDateTime& time) const
-{
-	const int hour(time.time().hour());
-	QString ret(QString::number(hour));
-	if (hour < 10)
-		ret.prepend('0');
-	return ret;
-}
-
-QString RunCommands::getStrMinFromTime(const QDateTime& time) const
-{
-	const int min(time.time().minute());
-	QString ret(QString::number(min));
-	if (min < 10)
-		ret.prepend('0');
-	return ret;
-}
-
 QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
 {
 	int secs(QStringView{strTime}.mid(3, 2).toUInt());

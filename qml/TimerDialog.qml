@@ -8,7 +8,7 @@ Dialog {
 	id: dlgTimer
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
-	width: timePickerOnly ? 150 : simpleTimer ? windowWidth * 0.75 : windowWidth
+	width: timePickerOnly ? 150 : windowWidth * 0.75
 	height: timePickerOnly ? 100 : windowHeight * 0.35
 	x: (windowWidth - width) / 2
 	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
@@ -16,30 +16,25 @@ Dialog {
 	spacing: 0
 	padding: 0
 
-	property int hours: 0
-	property int mins: 0
-	property int secs: 0
-	property int totalSecs: secs + 60*mins + 3600*hours
-	property int origHours: 0
-	property int origMins: 0
-	property int origSecs: 0
 	property bool bJustMinsAndSecs: false
 	property bool simpleTimer: false
 	property bool timePickerOnly: false
-	property bool bRunning: false
-	property bool bPaused: false
 	property bool bInputOK: true
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
 	property bool bTempHide: false
-	property bool bWasSuspended: false
-	property date suspendedTime
-	property date suspendedTimer
 	property string windowTitle
+	property string initialTime
 
-	readonly property int txtWidth: !timePickerOnly ? (dlgTimer.width * 0.8)/3 - 20 : 40
+	readonly property int rowWidth: dlgTimer.width * 0.8
+	readonly property int txtWidth: !timePickerOnly ? rowWidth/3 - 20 : 40
+	readonly property int leftMarginValue: dlgTimer.width * 0.1
 
 	signal useTime(string time)
+
+	onClosed: mainTimer.stopTimer();
+
+	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
 
 	TPTimer {
 		id: mainTimer
@@ -70,7 +65,7 @@ Dialog {
 				left: parent.left
 				right: parent.right
 				rightMargin: 30
-				leftMargin: 5
+				leftMargin: 10
 				verticalCenter: parent.verticalCenter
 			}
 			elide: Text.ElideLeft
@@ -104,12 +99,12 @@ Dialog {
 			height: parent.height
 			anchors.right: parent.right
 			anchors.top: parent.top
-			anchors.rightMargin: 10
+			anchors.rightMargin: 12
 			z: 2
 
 			MouseArea {
 				anchors.fill: parent
-				onClicked: { mainTimer.stopTimer(); dlgTimer.close(); }
+				onClicked: { dlgTimer.close(); }
 			}
 		}
 	}
@@ -128,11 +123,13 @@ Dialog {
 			Layout.leftMargin: 10
 		} //TPCheckBox
 
-		RowLayout {
+		Row {
 			id: recStrings
 			height: 30
-			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 25
+			spacing: txtWidth
+			Layout.minimumWidth: rowWidth
+			Layout.maximumWidth: rowWidth
+			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 25
 
 			Label {
 				color: "darkred"
@@ -141,6 +138,7 @@ Dialog {
 				visible: !bJustMinsAndSecs
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.alignment: Qt.AlignHCenter
 			}
 			Label {
 				color: "darkred"
@@ -148,6 +146,7 @@ Dialog {
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.alignment: Qt.AlignHCenter
 			}
 			Label {
 				color: "darkred"
@@ -156,22 +155,25 @@ Dialog {
 				visible: !timePickerOnly
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.alignment: Qt.AlignHCenter
 			}
 		} // Rectangle recStrings
 
 
-		RowLayout {
+		Row {
 			id: timerGrid
-			spacing: 0
-			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 20
+			spacing: 10
+			Layout.topMargin: 5
+			Layout.minimumWidth: rowWidth
+			Layout.maximumWidth: rowWidth
+			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 20
 
 			Rectangle {
 				id: recNegCountDown
 				radius: 2
 				height: 3
 				width: 12
-				visible: bNegCountDown
+				visible: mainTimer.stopWatch !== mainTimer.timerForward
 				color: "black"
 				opacity: 0.5
 				Layout.alignment: Qt.AlignVCenter
@@ -194,16 +196,14 @@ Dialog {
 				Keys.onPressed: (event) => processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus) {
+					if (activeFocus)
 						txtHours.clear();
-						origHours = mainTimer.hours;
-					}
 					else {
 						bInputOK = acceptableInput;
 						if (acceptableInput)
 							mainTimer.strHours = text;
 						else
-							mainTimer.hours = origHours;
+							mainTimer.hours = mainTimer.orignalHours();
 					}
 				}
 				onTextEdited: {
@@ -244,16 +244,14 @@ Dialog {
 				Keys.onPressed: (event) => processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus) {
+					if (activeFocus)
 						txtMinutes.clear();
-						origMins = mainTimer.minutes;
-					}
 					else {
 						bInputOK = acceptableInput
 						if (acceptableInput)
 							mainTimer.strMinutes = text;
 						else
-							mainTimer.mins = origMins;
+							mainTimer.mins = mainTimer.orignalMinutes();
 					}
 				}
 
@@ -300,15 +298,13 @@ Dialog {
 				Keys.onPressed: (event) => processKeyEvents(event);
 
 				onActiveFocusChanged: {
-					if (activeFocus) {
+					if (activeFocus)
 						txtSecs.clear();
-						origSecs = mainTimer.seconds;
-					}
 					else {
 						if (acceptableInput)
 							mainTimer.strSeconds = text;
 						else
-							mainTimer.seconds = origSecs;
+							mainTimer.seconds = mainTimer.orignalSeconds();
 					}
 				}
 				onTextEdited: {
@@ -327,16 +323,16 @@ Dialog {
 			id: progressBar
 			visible: !timePickerOnly
 			height: 6
-			width: dlgTimer.width*0.8
+			width: rowWidth
 			from: 0
-			to: mainTimer.totalSecs
+			to: mainTimer.totalSeconds
 			value: mainTimer.seconds
 			indeterminate: mainTimer.stopWatch
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
-			Layout.leftMargin: dlgTimer.width * 0.1
+			Layout.leftMargin: leftMarginValue
 
 			background: Rectangle {
 				implicitWidth: parent.width
@@ -357,45 +353,27 @@ Dialog {
 			}
 		} // ProgressBar
 
-		RowLayout {
+		Row {
 			id: btnsRow
-			spacing: 0
+			spacing: txtWidth/2
 			Layout.topMargin: 3
-			Layout.preferredWidth: dlgTimer.width * 0.8
-			Layout.leftMargin: !timePickerOnly ? dlgTimer.width * 0.1 : 50
-			readonly property int buttonWidth: !timePickerOnly ? (dlgTimer.width * 0.8)/3 - 10 : 50
+			Layout.preferredWidth: rowWidth
+			Layout.leftMargin: !timePickerOnly ? leftMarginValue : 50
+			readonly property int buttonWidth: !timePickerOnly ? rowWidth/3 - 10 : 50
 
 			TPButton {
 				id: btnStartPause
-				text: qsTr("Start")
-				enabled: bInputOK ? mainTimer.stopWatch ? true : mainTimer.totalSecs() > 0 : false
+				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
+				enabled: bInputOK ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
 				visible: !timePickerOnly
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: {
-					playSound.stop();
-					if (!bRunning) {
-						if (!bPaused) { //Start
-							origHours = hours;
-							origMins = mins;
-							origSecs = secs;
-							mainTimer.init();
-						}
-						else { //Continue
-							bPaused = false;
-							bRunning = true;
-							mainTimer.start();
-						}
-						text = qsTr("Pause");
-					}
-					else { //Pause
-						if (!bPaused) {
-							bPaused = true;
-							mainTimer.stopTimer(false);
-							text = qsTr("Continue");
-						}
-					}
+					if (!mainTimer.active)
+						mainTimer.startTimer();
+					else
+						mainTimer.stopTimer();
 				}
 			}
 
@@ -403,15 +381,10 @@ Dialog {
 				id: btnReset
 				text: qsTr("Reset")
 				visible: !timePickerOnly
-				enabled: bRunning ? false : bPaused
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth
 
-				onClicked: {
-					mainTimer.stopTimer(true);
-					playSound.stop();
-					btnStartPause.text = qsTr("Start");
-				}
+				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
 
 			TPButton {
@@ -421,55 +394,16 @@ Dialog {
 				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: {
-					var totalsecs = secs;
-					var totalmins = mins;
-					var totalhours = hours;
-					if (!simpleTimer) {
-						if (!bTextChanged) {
-							if (bTimer) {
-								if (bForward) { // Elapsed time after zero plus the starting time
-									totalsecs += origSecs;
-									totalmins += origMins;
-									totalhours += origHours;
-									if (totalsecs > 59) {
-										totalsecs -= 59;
-										totalmins++;
-									}
-									if (totalmins > 59) {
-										totalmins -= 59;
-										totalhours++;
-									}
-									if (totalhours > 99)
-										totalhours = 99;
-								}
-								else { //Compute elapsed time
-									const elapsedTime = origSecs + 60*origMins + 3600*origHours - totalSecs;
-									totalhours = Math.floor(elapsedTime / 3600);
-									totalmins = elapsedTime - totalhours * 3600;
-									totalmins = Math.floor(totalmins / 60);
-									totalsecs = elapsedTime - totalhours * 3600 - totalmins * 60;
-								}
-							}
-						}
-						if (timePickerOnly) {
-							useTime(runCmd.intTimeToStrTime(hours) + ":" + runCmd.intTimeToStrTime(mins));
-						}
-						else {
-							if ( totalhours > 0 )
-								useTime(runCmd.intTimeToStrTime(totalhours) + ":" + runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
-							else
-								useTime(runCmd.intTimeToStrTime(totalmins) + ":" + runCmd.intTimeToStrTime(totalsecs));
-						}
-					}
+					const elapsedtime = mainTimer.currentElapsedTime();
+					if (timePickerOnly)
+						useTime(runCmd.formatTime(elapsedtime, false));
+					else
+						useTime(runCmd.formatTime(elapsedtime, true));
 					dlgTimer.close();
-					mainTimer.stopTimer(true);
-					btnStartPause.text = qsTr("Start");
 				} //btnUseTime
 			}
 		} //Row
 	} //ColumnLayout
-
-	onClosed: playSound.stop();
 
 	Component.onCompleted: {
 		mainwindow.backButtonPressed.connect(maybeDestroy);
@@ -500,7 +434,6 @@ Dialog {
 		switch (event.key) {
 			case Qt.Key_Back:
 				event.accepted = true;
-				mainTimer.stopTimer(true);
 				dlgTimer.close();
 			break;
 			case Qt.Key_Enter:
@@ -516,7 +449,6 @@ Dialog {
 					btnUseTime.forceActiveFocus();
 					btnUseTime.clicked();
 				}
-
 			break;
 		}
 	}

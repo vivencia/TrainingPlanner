@@ -881,12 +881,12 @@ Page {
 				if (!editMode) {
 					tDayModel.dayIsFinished = false;
 					visible = true;
-					editMode = true;
 				}
 				else {
 					tDayModel.dayIsFinished = true;
 					Qt.binding(function() { return btnEditDay.visible = tDayModel.dayIsFinished; });
 				}
+				editMode = !editMode;
 			}
 		}
 
@@ -1020,7 +1020,7 @@ Page {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager.createSetObject(settype, tDayModel.setsNumber(exercise_idx), exerciseidx, "", "");
+		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, "", "");
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
@@ -1051,8 +1051,7 @@ Page {
 		if (!timerDialog.visible) {
 			timerDialogRequester = requester;
 			timerDialog.windowTitle = message;
-			timerDialog.mins = mins;
-			timerDialog.secs = secs;
+			timerDialog.initialTime = "00:" + mins + ":" + secs;
 			timerDlgMessage.close();
 			timerDialog.open();
 		}
