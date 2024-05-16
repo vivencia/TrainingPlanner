@@ -43,7 +43,8 @@ public:
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
-	Q_INVOKABLE int importFromFile(const QString& filename, const bool bReplace, QFile* inFile = nullptr);
+	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
+	void importFromModel(TPListModel* model);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -55,7 +56,7 @@ public:
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable(const bool bRemoveFile);
-	Q_INVOKABLE void updateExercisesList(const bool bFromModel);
+	Q_INVOKABLE void updateExercisesList();
 	Q_INVOKABLE void openExercisesListPage(const bool fromMainMenu = false);
 	void createExercisesListPage();
 	void getExercisesListVersion();

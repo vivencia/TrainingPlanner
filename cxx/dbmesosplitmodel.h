@@ -102,6 +102,7 @@ public:
 
 	inline virtual const QString exportExtraInfo() const override { return tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup; }
 	virtual bool importExtraInfo(const QString& extrainfo) override;
+	virtual void updateFromModel(TPListModel* model) override;
 
 signals:
 	void muscularGroupChanged();

@@ -72,6 +72,11 @@ void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitMode
 	emit exerciseCountChanged();
 }
 
+void DBTrainingDayModel::updateFromModel(TPListModel* model)
+{
+
+}
+
 void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())

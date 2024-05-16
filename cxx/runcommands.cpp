@@ -298,3 +298,21 @@ QString RunCommands::setCompositeValue(const uint idx, const QString newValue, Q
 		compositeString += subrecord_separator;
 	return compositeString += newValue;
 }
+
+bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& string2) const
+{
+	const QStringList words2(string2.split(' '));
+	QStringList::const_iterator itr(words2.begin());
+	const QStringList::const_iterator itr_end(words2.end());
+	uint matches(0);
+	uint nwords(0);
+	do
+	{
+		nwords++;
+		if (string1.contains(*itr))
+			matches++;
+	} while (++itr != itr_end);
+	if (matches > 0)
+		return (nwords/matches >= 0.8);
+	return false;
+}

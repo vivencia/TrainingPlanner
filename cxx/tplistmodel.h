@@ -89,6 +89,10 @@ public:
 	Q_INVOKABLE bool importFromFancyText(QFile* inFile);
 	Q_INVOKABLE bool importFromText(const QString& data);
 
+	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
+	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
+	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
+
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);
@@ -140,6 +144,7 @@ public:
 	inline virtual void resetPrivateData() {}
 	inline virtual const QString exportExtraInfo() const { return QString(); }
 	inline virtual bool importExtraInfo(const QString& ) { return false; }
+	inline virtual void updateFromModel(TPListModel*) {}
 
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
@@ -158,6 +163,7 @@ protected:
 
 	QList<QStringList> m_modeldata;
 	QList<uint> m_indexProxy;
+	QList<uint> m_modifiedIndices;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
 	uint m_tableId;

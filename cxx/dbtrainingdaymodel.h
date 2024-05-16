@@ -23,10 +23,12 @@ public:
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
 	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
-	void moveExercise(const uint from, const uint to);
+	virtual void updateFromModel(TPListModel* model) override;
+
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); }
+	void moveExercise(const uint from, const uint to);
 
 	void setModified(const bool bModified)
 	{

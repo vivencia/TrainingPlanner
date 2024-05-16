@@ -21,6 +21,7 @@ public:
 	void getMesoSplit();
 	void newMesoSplit();
 	void updateMesoSplit();
+	virtual void updateFromModel();
 	void getCompleteMesoSplit();
 	void updateMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);

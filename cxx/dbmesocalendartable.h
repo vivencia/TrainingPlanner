@@ -20,6 +20,7 @@ public:
 	void getMesoCalendar();
 	void createMesoCalendar();
 	void updateMesoCalendarEntry();
+	virtual void updateFromModel();
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 	void removeMesoCalendar();

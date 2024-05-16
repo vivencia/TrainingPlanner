@@ -18,6 +18,11 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	m_roleNames[realMesoRole] = "realMeso";
 }
 
+void DBMesocyclesModel::updateFromModel(TPListModel* model)
+{
+
+}
+
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());

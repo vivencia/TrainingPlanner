@@ -227,3 +227,8 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 	}
 	return false;
 }
+
+void DBMesoSplitModel::updateFromModel(TPListModel* model)
+{
+
+}

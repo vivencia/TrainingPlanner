@@ -24,6 +24,7 @@ public:
 	};
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
+	virtual void updateFromModel(TPListModel* model) override;
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 9; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;

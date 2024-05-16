@@ -75,7 +75,7 @@ void DbManager::init()
 	getExercisesListVersion();
 	exercisesListModel = new DBExercisesModel(this);
 	if (m_exercisesListVersion != m_appSettings->value("exercisesListVersion").toString())
-		updateExercisesList(false);
+		updateExercisesList();
 }
 
 void DbManager::exitApp()
@@ -416,9 +416,8 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
  *	-3: Model is not empty and replace is not set to true
  *	-4: Nothing was imported, either because file was missing info or error in formatting
  */
-int DbManager::importFromFile(const QString& filename, const bool bReplace, QFile* inFile)
+int DbManager::importFromFile(const QString& filename, QFile* inFile)
 {
-	bool bMultiModel(false);
 	if (!inFile)
 	{
 		inFile = new QFile(filename);
@@ -426,8 +425,6 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 			return -1;
 	}
-	else
-		bMultiModel = true;
 
 	TPListModel* model(nullptr);
 	QString inData(inFile->readLine());
@@ -437,15 +434,15 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 	if (bFancy)
 	{
 		if (inData.indexOf(DBMesocyclesFileName) != -1)
-			model = mesocyclesModel;
+			model = new DBMesocyclesModel;
 		else if (inData.indexOf(DBMesoSplitFileName) != -1)
-			;
+			model = new DBMesoSplitModel;
 		else if (inData.indexOf(DBMesoCalendarFileName) != -1)
-			model = mesoCalendarModel;
+			model = new DBMesoCalendarModel;
 		else if (inData.indexOf(DBTrainingDayFileName) != -1)
-			;
+			model = new DBTrainingDayModel;
 		else if (inData.indexOf(DBExercisesFileName) != -1)
-			model = exercisesListModel;
+			model = new DBExercisesModel;
 		else
 			return -2;
 
@@ -469,32 +466,14 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 		inData.chop(1);
 		switch (inData.toUInt())
 		{
-			case EXERCISES_TABLE_ID: model = exercisesListModel; break;
-			case MESOCYCLES_TABLE_ID: model = mesocyclesModel; break;
-			case MESOSPLIT_TABLE_ID: break;
-			case MESOCALENDAR_TABLE_ID: model = mesoCalendarModel; break;
-			case TRAININGDAY_TABLE_ID: break;
+			case EXERCISES_TABLE_ID: model = new DBExercisesModel; break;
+			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel; break;
+			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel; break;
+			case MESOCALENDAR_TABLE_ID: model = new DBMesoCalendarModel; break;
+			case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel; break;
 			default:
 				return -2;
 		}
-	}
-
-	if (!model)
-	{
-		sep_idx = inData.indexOf(':');
-		if (sep_idx != -1)
-			model = m_currentMesoManager->getSplitModel(inData.at(sep_idx+1));
-		else
-			model = m_currentMesoManager->gettDayModel(m_runCommands->getDateFromStrDate(inData));
-		if (!model)
-			return -2;
-	}
-
-	if (model->count() > 0)
-	{
-		if(!bReplace)
-			return -3;
-		model->clear();
 	}
 
 	if (model->importExtraInfo(inData))
@@ -525,34 +504,34 @@ int DbManager::importFromFile(const QString& filename, const bool bReplace, QFil
 		}
 	}
 
-	//TODO
-	if (bMultiModel)
-	{
-		switch (model->tableID())
-		{
-			case EXERCISES_TABLE_ID:
-				deleteExercisesTable(false);
-				updateExercisesList(true);
-			break;
-			case MESOCYCLES_TABLE_ID:
-				deleteMesocyclesTable(false);
-			break;
-			case MESOSPLIT_TABLE_ID:
-				deleteMesoSplitTable(false);
-			break;
-			case MESOCALENDAR_TABLE_ID:
-				deleteMesoCalendarTable(false);
-			break;
-			case TRAININGDAY_TABLE_ID:
-				deleteTrainingDayTable(false);
-			break;
-		}
-	}
+	importFromModel(model);
 
 	if (!inFile->atEnd())
-		return importFromFile(filename, bReplace, inFile);
+		return importFromFile(filename, inFile);
 	else
 		return 0;
+}
+
+void DbManager::importFromModel(TPListModel* model)
+{
+	TPDatabaseTable* worker(nullptr);
+	switch (model->tableID())
+	{
+		case EXERCISES_TABLE_ID: worker = new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel); break;
+		case MESOCYCLES_TABLE_ID: worker = new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel); break;
+		case MESOCALENDAR_TABLE_ID: worker = new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel); break;
+		case MESOSPLIT_TABLE_ID:
+			worker = new DBMesoSplitTable(m_DBFilePath, m_appSettings,
+				m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
+		break;
+		case TRAININGDAY_TABLE_ID:
+			worker = new DBTrainingDayTable(m_DBFilePath, m_appSettings,
+				m_currentMesoManager->gettDayModel(static_cast<DBTrainingDayModel*>(model)->date()));
+		break;
+	}
+
+	worker->addExecArg(QVariant::fromValue(model));
+	createThread(worker, [worker] () { worker->updateFromModel(); } );
 }
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
@@ -647,10 +626,10 @@ void DbManager::deleteExercisesTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
-void DbManager::updateExercisesList(const bool bFromModel)
+void DbManager::updateExercisesList()
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	createThread(worker, [worker, bFromModel] () { return bFromModel ? worker->updateExercisesListFromModel() : worker->updateExercisesList(); } );
+	createThread(worker, [worker] () { return worker->updateExercisesList(); } );
 }
 
 void DbManager::openExercisesListPage(const bool fromMainMenu)
@@ -955,25 +934,6 @@ static void muscularGroupSimplified(QString& muscularGroup)
 	}
 }
 
-static bool muscularGroupsSimilar(const QString& muscularGroup1, const QString& muscularGroup2)
-{
-	const QStringList words2(muscularGroup2.split(' '));
-	QStringList::const_iterator itr(words2.begin());
-	const QStringList::const_iterator itr_end(words2.end());
-	uint matches(0);
-	do
-	{
-		if (muscularGroup1.contains(*itr))
-			matches++;
-	} while (++itr != itr_end);
-	if (matches > 0)
-	{
-		const uint nWords(muscularGroup1.count(' ') + 1);
-		return (nWords/matches >= 0.8);
-	}
-	return false;
-}
-
 QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 {
 	if (mesoHasPlan(m_MesoId, splitLetter))
@@ -994,7 +954,7 @@ QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 
 			muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
 			muscularGroupSimplified(muscularGroup2);
-			if (muscularGroupsSimilar(muscularGroup1, muscularGroup2))
+			if (m_runCommands->stringsAreSimiliar(muscularGroup1, muscularGroup2))
 				return QString(*itr);
 
 		} while (++itr != itr_end);

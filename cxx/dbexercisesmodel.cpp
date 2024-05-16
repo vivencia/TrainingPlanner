@@ -16,6 +16,7 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 	m_roleNames[nWeightRole] = "nWeight";
 	m_roleNames[uWeightRole] = "uWeight";
 	m_roleNames[mediaPathRole] = "mediaPath";
+	m_roleNames[fromListRole] = "fromList";
 	m_roleNames[actualIndexRole] = "actualIndex";
 	m_roleNames[selectedRole] = "selected";
 
@@ -28,6 +29,24 @@ void DBExercisesModel::clear()
 {
 	clearSelectedEntries();
 	TPListModel::clear();
+}
+
+void DBExercisesModel::updateFromModel(TPListModel* model)
+{
+	if (model->count() > 0)
+	{
+		QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
+		uint lastIndex(m_modeldata.count());
+		do {
+			//Only import user added or modified exercise entries
+			if ((*lst_itr).at(9) == u"0"_qs)
+			{
+				m_modifiedIndices.append(lastIndex++);
+				appendList((*lst_itr));
+			}
+		} while (++lst_itr != lst_itrend);
+	}
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
@@ -56,9 +75,10 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 					//MSG_OUT("Filter: DBExercisesModel::data(" << index.row() << "," << index.column() << ") role: " << role << " = " << m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole))
 					return m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole);
 				}
+			case fromListRole:
 			case selectedRole:
-				return !m_bFilterApplied ? bool(m_modeldata.at(row).at(selectedRole-Qt::UserRole) == u"1"_qs) :
-					bool(m_modeldata.at(m_indexProxy.at(row)).at(selectedRole-Qt::UserRole) == u"1"_qs);
+				return !m_bFilterApplied ? bool(m_modeldata.at(row).at(role-Qt::UserRole) == u"1"_qs) :
+					bool(m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == u"1"_qs);
 		}
 	}
 	return QVariant();
@@ -86,12 +106,14 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toString();
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
+
+			case fromListRole:
 			case selectedRole:
 				if (!m_bFilterApplied)
 					m_modeldata[row][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
 				else
 					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
-				emit dataChanged(index, index, QList<int>() << selectedRole);
+				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}
 	}

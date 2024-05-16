@@ -198,6 +198,41 @@ void DBMesoSplitTable::updateMesoSplit()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+void DBMesoSplitTable::updateFromModel()
+{
+	m_result = false;
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
+		TPListModel* model(m_execArgs.at(0).value<TPListModel*>());
+		static_cast<DBMesoSplitModel*>(m_model)->updateFromModel(model);
+
+
+		mSqlLiteDB.close();
+		//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
+		//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
+		delete model;
+	}
+	if (!m_result)
+	{
+		MSG_OUT("DBMesoSplitTable updateFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBMesoSplitTable updateFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	else
+	{
+		m_model->clearModifiedIndices();
+		MSG_OUT("DBMesoSplitTable updateFromModel SUCCESS")
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void DBMesoSplitTable::getCompleteMesoSplit()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));

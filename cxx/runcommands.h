@@ -52,6 +52,7 @@ public:
 
 	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString) const;
 	Q_INVOKABLE QString setCompositeValue(const uint idx, const QString newValue, QString compositeString) const;
+	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 
 signals:
 	void appSuspended();

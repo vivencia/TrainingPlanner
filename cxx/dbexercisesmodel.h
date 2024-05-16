@@ -21,8 +21,9 @@ public:
 		nWeightRole = Qt::UserRole+6,
 		uWeightRole = Qt::UserRole+7,
 		mediaPathRole = Qt::UserRole+8,
-		actualIndexRole = Qt::UserRole+9,
-		selectedRole = Qt::UserRole+10
+		fromListRole = Qt::UserRole+9,
+		actualIndexRole = Qt::UserRole+10,
+		selectedRole = Qt::UserRole+11
 	};
 
 	explicit DBExercisesModel(QObject *parent = 0);
@@ -39,6 +40,7 @@ public:
 
 	Q_INVOKABLE virtual void clear() override;
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
+	virtual void updateFromModel(TPListModel* model) override;
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;

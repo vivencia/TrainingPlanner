@@ -75,16 +75,15 @@ void DBExercisesTable::getAllExercises()
 			if (query.first ())
 			{
 				QStringList exercise_info;
-
-				const uint n_entries(9);
 				uint i(0);
 				uint nExercises(0);
+
 				do
 				{
-					for (i = 0; i < n_entries; ++i)
+					for (i = 0; i < 10; ++i)
 						exercise_info.append(query.value(static_cast<int>(i)).toString());
-					exercise_info.append(QString::number(nExercises++));
-					exercise_info.append(u"0"_qs);
+					exercise_info.append(QString::number(nExercises++)); //actualIndexRole
+					exercise_info.append(u"0"_qs); //selectedRole
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
@@ -184,11 +183,9 @@ void DBExercisesTable::updateExercisesList()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBExercisesTable::updateExercisesListFromModel()
+void DBExercisesTable::updateFromModel()
 {
-	removePreviousListEntriesFromDB();
 	m_result = false;
-
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
@@ -199,21 +196,29 @@ void DBExercisesTable::updateExercisesListFromModel()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
+		TPListModel* model(m_execArgs.at(0).value<TPListModel*>());
+		static_cast<DBExercisesModel*>(m_model)->updateFromModel(model);
+
 		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
 		const QString query_cmd( QStringLiteral(
 								"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'qrc:/images/no_image.jpg\', 1)") );
+								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'qrc:/images/no_image.jpg\', 0)") );
 
 		mSqlLiteDB.transaction();
-		for ( uint i(0); i < m_model->count(); ++i)
+		for ( uint i(0), idx(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
-			query.exec(query_cmd.arg(i).arg(m_model->getFast(i, 1), m_model->getFast(i, 2), m_model->getFast(i, 3), m_model->getFast(i, 4),
-						m_model->getFast(i, 5), m_model->getFast(i, 6), strWeightUnit));
+			idx = m_model->modifiedIndex(i);
+			query.exec(query_cmd.arg(m_model->getFast(idx, 0).arg(m_model->getFast(idx, 1), m_model->getFast(idx, 2),
+									m_model->getFast(idx, 3), m_model->getFast(idx, 4), m_model->getFast(idx, 5),
+									m_model->getFast(idx, 6), strWeightUnit)));
 		}
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		mSqlLiteDB.close();
+		//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
+		//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
+		delete model;
 	}
 	if (!m_result)
 	{
@@ -222,6 +227,7 @@ void DBExercisesTable::updateExercisesListFromModel()
 	}
 	else
 	{
+		m_model->clearModifiedIndices();
 		MSG_OUT("DBExercisesTable updateExercisesListFromModel SUCCESS")
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -271,9 +277,10 @@ void DBExercisesTable::updateExercise()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 		query.prepare( QStringLiteral(
 									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\' WHERE id=%9")
+									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9")
 									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
 										m_data.at(7), m_data.at(8), m_data.at(0)) );
 		m_result = query.exec();
