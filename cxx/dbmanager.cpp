@@ -249,15 +249,6 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
 					m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
 			break;
-			case OP_ADD:
-				if (dbObj->objectName() == DBMesocyclesObjectName)
-				{
-					m_MesoId = static_cast<DBMesocyclesTable*>(dbObj)->data().at(0).toUInt();
-					m_currentMesoManager->setMesoId(m_MesoId);
-					m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
-					m_MesoIdStr = QString::number(m_MesoId);
-				}
-			break;
 			case OP_READ:
 				if (dbObj->objectName() == DBMesoCalendarObjectName)
 				{
@@ -530,6 +521,7 @@ void DbManager::importFromModel(TPListModel* model)
 		break;
 	}
 
+	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(QVariant::fromValue(model));
 	createThread(worker, [worker] () { worker->updateFromModel(); } );
 }
@@ -756,24 +748,37 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name)
 			m_runCommands->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);
 }
 
-void DbManager::newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
-						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
+void DbManager::saveMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
+						const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
+							const QString& splitA, const QString& splitB, const QString& splitC,
+							const QString& splitD, const QString& splitE, const QString& splitF,
+								const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	worker->addExecArg(m_MesoIdx);
-	worker->setData(QString(), mesoName, QString::number(mesoStartDate.toJulianDay()), QString::number(mesoEndDate.toJulianDay()),
-						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
-	createThread(worker, [worker] () { worker->newMesocycle(); } );
-}
+	mesocyclesModel->setCurrentRow(m_MesoIdx);
+	const bool bNewMeso(m_MesoId == -1);
 
-void DbManager::updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
-				const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs)
-{
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	worker->addExecArg(m_MesoIdx);
 	worker->setData(m_MesoIdStr, mesoName, QString::number(mesoStartDate.toJulianDay()), QString::number(mesoEndDate.toJulianDay()),
 						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
-	createThread(worker, [worker] () { worker->updateMesocycle(); } );
+	if (bNewMeso)
+	{
+		createThread(worker, [worker] () { worker->newMesocycle(); } );
+		worker->setCallbackForDoneFunc([&,splitA, splitB, splitC, splitD, splitE, splitF] (TPDatabaseTable*)
+		{
+			m_MesoId = mesocyclesModel->getFast(mesocyclesModel->currentRow(), 0).toUInt();
+			m_currentMesoManager->setMesoId(m_MesoId);
+			m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
+			m_MesoIdStr = QString::number(m_MesoId);
+			updateMesoSplit(splitA, splitB, splitC, splitD, splitE, splitF);
+		} );
+	}
+	else
+	{
+		createThread(worker, [worker] () { worker->updateMesocycle(); } );
+		updateMesoSplit(splitA, splitB, splitC, splitD, splitE, splitF);
+		if (bChangeCalendar)
+			changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, bPreserveOldCalendar, bPreserveUntillYesterday);
+	}
 }
 
 void DbManager::removeMesocycle()
@@ -1177,16 +1182,13 @@ void DbManager::convertTDayToPlan(DBTrainingDayModel* tDayModel)
 	}
 }
 
-void DbManager::newTrainingDay()
+void DbManager::saveTrainingDay()
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-	createThread(worker, [worker] () { return worker->newTrainingDay(); } );
-}
-
-void DbManager::updateTrainingDay()
-{
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-	createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
+	if (m_currentMesoManager->currenttDayModel()->id() == -1)
+		createThread(worker, [worker] () { return worker->newTrainingDay(); } );
+	else
+		createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
 }
 
 void DbManager::removeTrainingDay()

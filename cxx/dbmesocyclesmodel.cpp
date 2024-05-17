@@ -20,7 +20,11 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 
 void DBMesocyclesModel::updateFromModel(TPListModel* model)
 {
-
+	if (model->count() > 0)
+	{
+		appendList(model->m_modeldata.at(0));
+		setCurrentRow(count() -1);
+	}
 }
 
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const

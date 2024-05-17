@@ -192,6 +192,21 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
+void TPListModel::setExportFiter(const QString& filter, const uint field)
+{
+	const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
+	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
+	uint row(0);
+	m_exportRows.clear();
+
+	for ( ; lst_itr != lst_itrend; ++lst_itr, ++row )
+	{
+		if (regex.match(static_cast<QStringList>(*lst_itr).at(field)).hasMatch())
+			m_exportRows.append(row);
+	}
+}
+
 void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 {
 	QString strHeader;
@@ -207,32 +222,62 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 	else
 		outFile->write("\n", 1);
 
-	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
 	QString value;
-
-	while (itr != itr_end)
+	if (m_exportRows.isEmpty())
 	{
-		for (uint i(0); i < (*itr).count(); ++i) {
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+		while (itr != itr_end)
+		{
+			for (uint i(0); i < (*itr).count(); ++i)
+			{
+				if (bFancy)
+				{
+					outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
+					outFile->write(": ", 2);
+					value = (*itr).at(i);
+					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+					outFile->write("\n", 1);
+				}
+				else
+				{
+					outFile->write((*itr).at(i).toUtf8().constData());
+					outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
+				}
+			}
 			if (bFancy)
-			{
-				outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
-				outFile->write(": ", 2);
-				value = (*itr).at(i);
-				outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 				outFile->write("\n", 1);
-			}
 			else
-			{
-				outFile->write((*itr).at(i).toUtf8().constData());
-				outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
-			}
+				outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
+			++itr;
 		}
-		if (bFancy)
-			outFile->write("\n", 1);
-		else
-			outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
-		++itr;
+	}
+	else
+	{
+		for (uint x(0); x < m_exportRows.count(); ++x)
+		{
+			for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+			{
+				if (bFancy)
+				{
+					outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
+					outFile->write(": ", 2);
+					value = m_modeldata.at(m_exportRows.at(x)).at(i);
+					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+					outFile->write("\n", 1);
+				}
+				else
+				{
+					outFile->write(m_modeldata.at(m_exportRows.at(x)).at(i).toUtf8().constData());
+					outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
+				}
+			}
+			if (bFancy)
+				outFile->write("\n", 1);
+			else
+				outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
+		}
 	}
 }
 

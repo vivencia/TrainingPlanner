@@ -196,7 +196,7 @@ void DBExercisesTable::updateFromModel()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		TPListModel* model(m_execArgs.at(0).value<TPListModel*>());
+		TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
 		static_cast<DBExercisesModel*>(m_model)->updateFromModel(model);
 
 		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());

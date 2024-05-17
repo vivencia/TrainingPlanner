@@ -85,6 +85,7 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
+	Q_INVOKABLE void setExportFiter(const QString& filter, const uint field);
 	Q_INVOKABLE void exportToText(QFile* outFile, const bool bFancy) const;
 	Q_INVOKABLE bool importFromFancyText(QFile* inFile);
 	Q_INVOKABLE bool importFromText(const QString& data);
@@ -96,6 +97,11 @@ public:
 	inline const QString& getFast(const uint row, const uint field) const
 	{
 		return m_modeldata.at(row).at(field);
+	}
+
+	inline void setFast(const uint row, const uint field, const QString& value)
+	{
+		m_modeldata[row][field] = value;
 	}
 
 	inline const QDate getDateFast(const uint row, const uint field) const
@@ -164,6 +170,7 @@ protected:
 	QList<QStringList> m_modeldata;
 	QList<uint> m_indexProxy;
 	QList<uint> m_modifiedIndices;
+	QList<uint> m_exportRows;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
 	uint m_tableId;
@@ -175,6 +182,12 @@ protected:
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
 	void copy ( const TPListModel& src_item );
+
+	friend class DBExercisesModel;
+	friend class DBMesocyclesModel;
+	friend class DBMesoSplitModel;
+	friend class DBMesoCalendarModel;
+	friend class DBTrainingDayModel;
 };
 
 #endif // TPLISTMODEL_H

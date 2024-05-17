@@ -757,31 +757,20 @@ Page {
 			enabled: bNewMeso ? bMesoNameOK : bModified
 
 			onClicked: {
-				if (bNewMeso) {
-					function getMesoId() {
-						appDB.databaseReady.disconnect(getMesoId);
-						appDB.newMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-						bNewMeso = false;
+				var changeCalendar = false;
+				if (bNewMeso)
+					bNewMeso = false;
+				else
+				{
+					if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
+						changeCalendar = true;
+						bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 					}
-
-					appDB.databaseReady.connect(getMesoId);
-					appDB.newMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
-					mesoIdx = mesocyclesModel.count - 1;
-					bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 				}
-				else {
-					function canProceed() {
-						appDB.databaseReady.disconnect(canProceed);
-						appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-
-						if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
-							appDB.changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
-							bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
-						}
-					}
-					appDB.databaseReady.connect(canProceed);
-					appDB.updateMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text, txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text);
-				}
+				appDB.saveMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text,
+									txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text,
+									txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text,
+									changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 				bModified = false;
 			} //onClicked
 		} //btnSaveMeso

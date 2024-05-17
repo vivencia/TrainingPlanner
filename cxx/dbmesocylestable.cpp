@@ -108,7 +108,7 @@ void DBMesocyclesTable::newMesocycle()
 			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
 			m_data[0] = query.lastInsertId().toString();
 			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-			m_model->updateList(m_data, m_execArgs.at(0).toUInt());
+			m_model->updateList(m_data, m_model->currentRow());
 			m_model->setModified(false);
 			m_opcode = OP_ADD;
 		}
@@ -142,7 +142,7 @@ void DBMesocyclesTable::updateMesocycle()
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
 		m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-		m_model->updateList(m_data, m_execArgs.at(0).toUInt());
+		m_model->updateList(m_data, m_model->currentRow());
 		m_model->setModified(false);
 	}
 	else
@@ -158,32 +158,35 @@ void DBMesocyclesTable::updateFromModel()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-
-		TPListModel* model(m_execArgs.at(0).value<TPListModel*>());
+		TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
 		static_cast<DBMesocyclesModel*>(m_model)->updateFromModel(model);
-
-
-		mSqlLiteDB.close();
 		//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
 		//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
 		delete model;
+
+		const int row(m_model->currentRow());
+		QSqlQuery query(mSqlLiteDB);
+		query.prepare( QStringLiteral(
+									"INSERT INTO mesocycles_table "
+									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
+									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
+									.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4),
+										m_model->getFast(row, 5), m_model->getFast(row, 6), m_model->getFast(row, 7)) );
+		m_result = query.exec();
+		if (m_result)
+		{
+			MSG_OUT("DBMesocyclesTable updateFromModel SUCCESS")
+			m_model->setFast(row, 0, query.lastInsertId().toString());
+			m_model->setModified(false);
+			m_opcode = OP_ADD;
+		}
+		mSqlLiteDB.close();
 	}
+
 	if (!m_result)
 	{
 		MSG_OUT("DBMesocyclesTable updateFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesocyclesTable updateFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-	{
-		m_model->clearModifiedIndices();
-		MSG_OUT("DBMesocyclesTable updateFromModel SUCCESS")
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

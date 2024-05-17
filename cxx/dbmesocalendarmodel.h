@@ -30,7 +30,6 @@ public:
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
 	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay);
 	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter);
-	virtual void updateFromModel(TPListModel* model) override;
 
 	Q_INVOKABLE int getMesoId() const
 	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(1).toUInt() : -1;	}

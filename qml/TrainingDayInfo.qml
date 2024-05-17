@@ -948,10 +948,7 @@ Page {
 
 	function saveWorkout() {
 		if (!tDayModel.modified) return;
-		if (tDayModel.id() === -1)
-			appDB.newTrainingDay();
-		else
-			appDB.updateTrainingDay();
+		appDB.saveTrainingDay();
 
 		if (bRealMeso && chkAdjustCalendar.visible)
 		{

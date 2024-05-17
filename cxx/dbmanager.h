@@ -66,10 +66,11 @@ public:
 	Q_INVOKABLE void getAllMesocycles();
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name);
-	Q_INVOKABLE void newMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
-									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
-	Q_INVOKABLE void updateMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
-									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs);
+	Q_INVOKABLE void saveMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
+									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
+										const QString& splitA, const QString& splitB, const QString& splitC,
+										const QString& splitD, const QString& splitE, const QString& splitF,
+											const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday);
 	Q_INVOKABLE void removeMesocycle();
 	Q_INVOKABLE void deleteMesocyclesTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -108,8 +109,7 @@ public:
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(const QString& splitLetter);
 	Q_INVOKABLE void convertTDayToPlan(DBTrainingDayModel* tDayModel);
-	Q_INVOKABLE void newTrainingDay();
-	Q_INVOKABLE void updateTrainingDay();
+	Q_INVOKABLE void saveTrainingDay();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

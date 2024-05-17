@@ -230,5 +230,13 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 
 void DBMesoSplitModel::updateFromModel(TPListModel* model)
 {
-
+	if (model->count() > 0)
+	{
+		clear();
+		QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
+		do {
+			appendList((*lst_itr));
+		} while (++lst_itr != lst_itrend);
+	}
 }

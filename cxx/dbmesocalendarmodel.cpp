@@ -221,11 +221,6 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 	emit calendarChanged();
 }
 
-void DBMesoCalendarModel::updateFromModel(TPListModel* model)
-{
-
-}
-
 int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 {
 	for( uint i(0); i < m_modeldata.count(); ++i)
