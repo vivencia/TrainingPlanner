@@ -274,7 +274,7 @@ Column {
 
 	function setFilter() {
 		txtFilter.text = exercisesListModel.getFilter();
-		exercisesListModel.setFilter(text, true);
+		exercisesListModel.setFilter(txtFilter.text, true);
 		if (exercisesListModel.count > 0)
 			simulateMouseClick(0, false);
 	}

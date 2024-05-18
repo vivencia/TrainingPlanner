@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Dialogs
+import QtCore
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -189,6 +190,89 @@ Page {
 		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
 		button1Text: qsTr("OK")
 		highlightMessage: true
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		title: qsTr("Export workout")
+		message: label1.text
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		checkBoxText: qsTr("Human readable?")
+
+		onButton1Clicked: exportDialog.init(checkBoxChecked);
+	}
+
+	TPBalloonTip {
+		id: exportTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		button1Text: "OK"
+
+		function init(msg: string) {
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
+	TPBalloonTip {
+		id: importTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		button1Text: "OK"
+
+		function init(header: string, msg: string) {
+			title = header;
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
+	FileDialog {
+		id: exportDialog
+		title: qsTr("Choose the folder and filename to export to")
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.SaveFile
+
+		property int _opt
+		property bool _bfancyFormat
+
+		onAccepted: {
+			const result = appDB.exportToFile(tDayModel, currentFile, _bfancyFormat);
+			exportTip.init(result ? qsTr("Workout successfully exported") : qsTr("Failed to export workout"));
+			close();
+		}
+
+		function init(fancy: bool) {
+			var suggestedName;
+			_bfancyFormat = fancy;
+			suggestedName = qsTr(" - Workout ") + splitLetter + ".tp";
+			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+			open();
+		}
+	}
+
+	FileDialog {
+		id: importDialog
+		title: qsTr("Choose the file to import from")
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.OpenFile
+
+		property int _opt
+		property bool _bfancyFormat
+
+		onAccepted: {
+			const result = appDB.importFromFile(currentFile);
+			var message;
+			switch (result)
+			{
+				case  0: message = qsTr("Import was successfull"); break;
+				case -1: message = qsTr("Failed to open file"); break;
+				case -2: message = qsTr("File type not recognized"); break;
+				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
+			}
+			importTip.init(message, currentFile);
+			close();
+		}
 	}
 
 	ScrollView {
@@ -891,6 +975,44 @@ Page {
 		}
 
 		TPButton {
+			id: btnInExportDay
+			text: qsTr("In/Ex port")
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
+			textUnderIcon: true
+			visible: tDayModel.dayIsFinished
+			width: 55
+			fixedSize: true
+
+			anchors {
+				left: btnEditDay.right
+				leftMargin: 5
+				top: workoutLengthRow.bottom
+				bottom: parent.bottom
+				bottomMargin: 5
+			}
+
+			property var inexportMenu: null
+
+			onClicked: {
+				if (inexportMenu === null) {
+					var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+					inexportMenu = inexportMenuComponent.createObject(trainingDayPage, {});
+					inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
+					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
+					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
+				}
+				inexportMenu.show(btnInExportDay, 0);
+			}
+
+			function selectedMenuOption(menuid: int) {
+				if (menuid === 0)
+					exportTypeTip.show(-1);
+				else
+					importDialog.open();
+			}
+		}
+
+		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
 			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active: false;
@@ -1086,6 +1208,7 @@ Page {
 	}
 
 	function pageDeActivation() {
+		saveWorkout();
 		if (navButtons)
 			navButtons.visible = false;
 		if (btnFloat)

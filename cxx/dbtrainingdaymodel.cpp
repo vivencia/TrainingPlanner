@@ -97,7 +97,7 @@ bool DBTrainingDayModel::importExtraInfo(const QString& extraInfo)
 	int spaceIdx(extraInfo.lastIndexOf(' '));
 	if (spaceIdx != -1)
 	{
-		const int fSlashIdx(extraInfo.indexOf('/', idx+1));
+		const int fSlashIdx(extraInfo.indexOf('/', spaceIdx+1));
 		const int fSlashIdx2 = extraInfo.indexOf('/', fSlashIdx+1);
 		const uint day(extraInfo.mid(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
 		const uint month(extraInfo.mid(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());

@@ -138,7 +138,7 @@ Page {
 		}
 
 		TPButton {
-			id: btnExportPlan
+			id: btnInExport
 			text: qsTr("In/Ex port")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
@@ -162,14 +162,14 @@ Page {
 					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
 					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
 				}
-				inexportMenu.show(btnExportPlan, 0);
+				inexportMenu.show(btnInExport, 0);
 			}
 
 			function selectedMenuOption(menuid: int) {
 				if (menuid === 0)
 					exportTypeTip.show(-1);
 				else
-					console.log("menu option 2");
+					importDialog.open();
 			}
 		}
 
@@ -236,6 +236,18 @@ Page {
 		}
 	}
 
+	TPBalloonTip {
+		id: importTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		button1Text: "OK"
+
+		function init(header: string, msg: string) {
+			title = header;
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
 	FileDialog {
 		id: exportDialog
 		title: qsTr("Choose the folder and filename to export to")
@@ -268,6 +280,30 @@ Page {
 
 			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
 			open();
+		}
+	}
+
+	FileDialog {
+		id: importDialog
+		title: qsTr("Choose the file to import from")
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.OpenFile
+
+		property int _opt
+		property bool _bfancyFormat
+
+		onAccepted: {
+			const result = appDB.importFromFile(currentFile);
+			var message;
+			switch (result)
+			{
+				case  0: message = qsTr("Import was successfull"); break;
+				case -1: message = qsTr("Failed to open file"); break;
+				case -2: message = qsTr("File type not recognized"); break;
+				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
+			}
+			importTip.init(message, currentFile);
+			close();
 		}
 	}
 } //Page

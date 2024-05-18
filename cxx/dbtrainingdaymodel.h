@@ -27,7 +27,7 @@ public:
 
 	//So far, date format for exporting is not locale specific
 	inline virtual const QString exportExtraInfo() const { return tr("Date: ") + date().toString("d/M/yyyy"); }
-	inline virtual bool importExtraInfo(const QString& extraInfo);
+	virtual bool importExtraInfo(const QString& extraInfo);
 
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }

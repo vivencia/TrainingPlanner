@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import QtCore
 
 Page {
 	id: pageExercises
@@ -354,7 +355,7 @@ Page {
 				} //btnEditExercise
 
 				TPButton {
-					id:btnSaveExercise
+					id: btnSaveExercise
 					text: qsTr("Save")
 					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
 					width: toolbarExercises.buttonWidth
@@ -393,13 +394,32 @@ Page {
 				} //btnAddExercise
 
 				TPButton {
-					id: btnCancel
-					text: qsTr("Close")
+					id: btnInExport
+					text: qsTr("In/Ex port")
+					enabled: !btnSaveExercise.enabled
 					width: toolbarExercises.buttonWidth
 					fixedSize: true
 
-					onClicked: pageExercises.StackView.view.pop();
-				} // btnCancel
+					property var inexportMenu: null
+
+					onClicked: {
+						if (inexportMenu === null) {
+							var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+							inexportMenu = inexportMenuComponent.createObject(pageExercises, {});
+							inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
+							inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
+							inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
+						}
+						inexportMenu.show(btnInExport, 0);
+					}
+
+					function selectedMenuOption(menuid: int) {
+						if (menuid === 0)
+							exportTypeTip.show(-1);
+						else
+							importDialog.open();
+					}
+				} // btnInExport
 
 			} // Row
 		} //ColumnLayout
@@ -409,6 +429,89 @@ Page {
 
 	function pageActivation() {
 		exercisesList.simulateMouseClick(0, true);
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		title: qsTr("Export workout")
+		message: label1.text
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		checkBoxText: qsTr("Human readable?")
+
+		onButton1Clicked: exportDialog.init(checkBoxChecked);
+	}
+
+	TPBalloonTip {
+		id: exportTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		button1Text: "OK"
+
+		function init(msg: string) {
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
+	TPBalloonTip {
+		id: importTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		button1Text: "OK"
+
+		function init(header: string, msg: string) {
+			title = header;
+			message = msg;
+			showTimed(5000, 0);
+		}
+	}
+
+	FileDialog {
+		id: exportDialog
+		title: qsTr("Choose the folder and filename to export to")
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.SaveFile
+
+		property int _opt
+		property bool _bfancyFormat
+
+		onAccepted: {
+			const result = appDB.exportToFile(exercisesListModel, currentFile, _bfancyFormat);
+			exportTip.init(result ? qsTr("Exercises list successfully exported") : qsTr("Failed to export exercises list"));
+			close();
+		}
+
+		function init(fancy: bool) {
+			var suggestedName;
+			_bfancyFormat = fancy;
+			suggestedName = qsTr(" - Workout ") + splitLetter + ".tp";
+			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+			open();
+		}
+	}
+
+	FileDialog {
+		id: importDialog
+		title: qsTr("Choose the file to import from")
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.OpenFile
+
+		property int _opt
+		property bool _bfancyFormat
+
+		onAccepted: {
+			const result = appDB.importFromFile(currentFile);
+			var message;
+			switch (result)
+			{
+				case  0: message = qsTr("Import was successfull"); break;
+				case -1: message = qsTr("Failed to open file"); break;
+				case -2: message = qsTr("File type not recognized"); break;
+				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
+			}
+			importTip.init(message, currentFile);
+			close();
+		}
 	}
 
 	FileDialog {

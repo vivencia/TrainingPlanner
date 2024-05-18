@@ -32,7 +32,8 @@ const QString DBMesocyclesModel::exportExtraInfo() const
 	QString extraInfo;
 	for (uint i(0); i < 6; ++i)
 		extraInfo.append(tr("Split%1: ").arg(QChar(static_cast<char>('A' + i))) + m_extraInfo.at(i) + u"\n"_qs);
-	return extraInfo.chop(2);
+	extraInfo.chop(2);
+	return extraInfo;
 }
 
 bool DBMesocyclesModel::importExtraInfo(const QString& extraInfo)
@@ -58,6 +59,7 @@ bool DBMesocyclesModel::importExtraInfo(const QString& extraInfo)
 		++chr_pos;
 		++itr;
 	}
+	return !m_extraInfo.isEmpty();
 }
 
 void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,

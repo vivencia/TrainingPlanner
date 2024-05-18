@@ -402,10 +402,10 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
 }
 
 /*Return values
+ *	 0: success
  *	-1: Failed to open file
  *	-2: File format was not recognized
- *	-3: Model is not empty and replace is not set to true
- *	-4: Nothing was imported, either because file was missing info or error in formatting
+ *	-3: Nothing was imported, either because file was missing info or error in formatting
  */
 int DbManager::importFromFile(const QString& filename, QFile* inFile)
 {
@@ -508,18 +508,19 @@ void DbManager::importFromModel(TPListModel* model)
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
-			updateExercisesList(model);
+			updateExercisesList(static_cast<DBExercisesModel*>(model));
+		break;
 		case MESOCYCLES_TABLE_ID:
 			createNewMesocycle(model->getFast(0, 8) == u"1"_qs, model->getFast(0, 1));
-			saveMesocycle(model->getFast(0, 1), model->getFast(0, 2), model->getFast(0, 3), model->getFast(0, 4), model->getFast(0, 5),
+			saveMesocycle(model->getFast(0, 1), model->getDate(0, 2), model->getDate(0, 3), model->getFast(0, 4), model->getFast(0, 5),
 							model->getFast(0, 6), model->getFast(0, 7), model->extraInfo(0), model->extraInfo(1), model->extraInfo(2),
 							model->extraInfo(3), model->extraInfo(4), model->extraInfo(5), false, false, false);
-
+		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter()));
+			DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
 			splitModel->updateFromModel(model);
-			updateMesoSplitComplete(splitModel->splitLetter());
+			updateMesoSplitComplete(static_cast<DBMesoSplitModel*>(model));
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
@@ -543,7 +544,6 @@ void DbManager::importFromModel(TPListModel* model)
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getTrainingDay(dayDate);
 			}
-
 		}
 		break;
 	}
