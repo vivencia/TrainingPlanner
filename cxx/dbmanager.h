@@ -56,7 +56,7 @@ public:
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable(const bool bRemoveFile);
-	Q_INVOKABLE void updateExercisesList();
+	Q_INVOKABLE void updateExercisesList(DBExercisesModel* model = nullpr);
 	Q_INVOKABLE void openExercisesListPage(const bool fromMainMenu = false);
 	void createExercisesListPage();
 	void getExercisesListVersion();

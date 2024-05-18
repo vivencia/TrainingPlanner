@@ -22,9 +22,49 @@ void DBMesocyclesModel::updateFromModel(TPListModel* model)
 {
 	if (model->count() > 0)
 	{
-		appendList(model->m_modeldata.at(0));
-		setCurrentRow(count() -1);
+		updateList(model->m_modeldata.at(0), count() - 1);
+		setCurrentRow(count() - 1);
 	}
+}
+
+const QString DBMesocyclesModel::exportExtraInfo() const
+{
+	QString extraInfo;
+	for (uint i(0); i < 6; ++i)
+		extraInfo.append(tr("Split%1: ").arg(QChar(static_cast<char>('A' + i))) + m_extraInfo.at(i) + u"\n"_qs);
+	return extraInfo.chop(2);
+}
+
+bool DBMesocyclesModel::importExtraInfo(const QString& extraInfo)
+{
+	QString::const_iterator itr(extraInfo.constBegin());
+	const QString::const_iterator itr_end(extraInfo.constEnd());
+	int chr_colon(0);
+	int chr_sep(0);
+	uint chr_pos(0);
+
+	while (itr != itr_end)
+	{
+		switch((*itr).toLatin1())
+		{
+			case ':':
+				chr_colon = chr_pos + 2;
+			break;
+			case '\n':
+				chr_sep = chr_pos;
+				m_extraInfo.append(extraInfo.mid(chr_colon, chr_sep - chr_colon));
+			break;
+		}
+		++chr_pos;
+		++itr;
+	}
+}
+
+void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
+									const QString& splitD, const QString& splitE, const QString& splitF)
+{
+	m_extraInfo.clear();
+	m_extraInfo.append(QStringList() << splitA << splitB << splitC << splitD << splitE << splitF);
 }
 
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const

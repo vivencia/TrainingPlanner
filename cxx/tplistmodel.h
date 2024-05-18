@@ -141,6 +141,8 @@ public:
 			return QDate::currentDate();
 	}
 
+	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
+
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(m_indexProxy.at(row)); }
 	inline QStringList& getRow(const uint row) { return m_modeldata[m_indexProxy.at(row)]; }
 
@@ -171,6 +173,7 @@ protected:
 	QList<uint> m_indexProxy;
 	QList<uint> m_modifiedIndices;
 	QList<uint> m_exportRows;
+	QStringList m_extraInfo;
 	QHash<int, QByteArray> m_roleNames;
 	int m_currentRow;
 	uint m_tableId;

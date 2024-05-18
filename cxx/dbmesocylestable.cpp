@@ -153,44 +153,6 @@ void DBMesocyclesTable::updateMesocycle()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesocyclesTable::updateFromModel()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
-		static_cast<DBMesocyclesModel*>(m_model)->updateFromModel(model);
-		//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
-		//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
-		delete model;
-
-		const int row(m_model->currentRow());
-		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
-									"INSERT INTO mesocycles_table "
-									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
-									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4),
-										m_model->getFast(row, 5), m_model->getFast(row, 6), m_model->getFast(row, 7)) );
-		m_result = query.exec();
-		if (m_result)
-		{
-			MSG_OUT("DBMesocyclesTable updateFromModel SUCCESS")
-			m_model->setFast(row, 0, query.lastInsertId().toString());
-			m_model->setModified(false);
-			m_opcode = OP_ADD;
-		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable updateFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable updateFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesocyclesTable::setData(const QString& id, const QString& mesoName, const QString& mesoStartDate,
 						const QString& mesoEndDate, const QString& mesoNote, const QString& mesoWeeks,
 						const QString& mesoSplit, const QString& mesoDrugs)

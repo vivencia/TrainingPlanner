@@ -39,12 +39,8 @@ void DBExercisesModel::updateFromModel(TPListModel* model)
 		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
 		uint lastIndex(m_modeldata.count());
 		do {
-			//Only import user added or modified exercise entries
-			if ((*lst_itr).at(9) == u"0"_qs)
-			{
-				m_modifiedIndices.append(lastIndex++);
-				appendList((*lst_itr));
-			}
+			m_modifiedIndices.append(lastIndex++);
+			appendList((*lst_itr));
 		} while (++lst_itr != lst_itrend);
 	}
 }

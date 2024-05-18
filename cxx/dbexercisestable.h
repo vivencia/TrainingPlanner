@@ -21,7 +21,7 @@ public:
 	virtual void createTable();
 	void getAllExercises();
 	void updateExercisesList();
-	virtual void updateFromModel();
+	void updateFromModel();
 	void newExercise();
 	void updateExercise();
 

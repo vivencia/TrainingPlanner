@@ -238,5 +238,9 @@ void DBMesoSplitModel::updateFromModel(TPListModel* model)
 		do {
 			appendList((*lst_itr));
 		} while (++lst_itr != lst_itrend);
+		setSplitLetter(static_cast<DBMesoSplitModel*>(model)->splitLetter());
+		setMuscularGroup(static_cast<DBMesoSplitModel*>(model)->muscularGroup());
+		//The model created in DbManager::importFromFile can now sefaly be delete
+		delete model;
 	}
 }

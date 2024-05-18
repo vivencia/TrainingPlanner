@@ -20,7 +20,6 @@ public:
 	void getAllMesocycles();
 	void newMesocycle();
 	void updateMesocycle();
-	virtual void updateFromModel();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mesoName = QString(), const QString& mesoStartDate = QString(),

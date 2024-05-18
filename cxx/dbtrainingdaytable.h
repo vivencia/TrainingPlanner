@@ -22,7 +22,6 @@ public:
 	void getPreviousTrainingDays();
 	void newTrainingDay();
 	void updateTrainingDay();
-	virtual void updateFromModel();
 	void removeTrainingDay();
 
 private:

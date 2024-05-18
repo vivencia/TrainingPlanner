@@ -198,17 +198,6 @@ void DBMesoSplitTable::updateMesoSplit()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoSplitTable::updateFromModel()
-{
-	TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
-	static_cast<DBMesoSplitModel*>(m_model)->updateFromModel(model);
-	//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
-	//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
-	delete model;
-	updateMesoSplitComplete();
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
 void DBMesoSplitTable::getCompleteMesoSplit()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
