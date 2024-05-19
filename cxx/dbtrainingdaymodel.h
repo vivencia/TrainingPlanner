@@ -26,8 +26,11 @@ public:
 	virtual void updateFromModel(TPListModel* model) override;
 
 	//So far, date format for exporting is not locale specific
-	inline virtual const QString exportExtraInfo() const { return tr("Date: ") + date().toString("d/M/yyyy"); }
-	virtual bool importExtraInfo(const QString& extraInfo);
+	inline virtual const QString exportExtraInfo() const override { return tr("Date: ") + date().toString("d/M/yyyy"); }
+	virtual bool importExtraInfo(const QString& extraInfo) override;
+	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
+	virtual bool importFromFancyText(QFile* inFile) override;
+	virtual bool importFromText(const QString& data) override;
 
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }

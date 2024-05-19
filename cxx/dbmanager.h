@@ -106,6 +106,7 @@ public:
 	Q_INVOKABLE void getTrainingDay(const QDate& date);
 	void getTrainingDayExercises(const QDate& date);
 	Q_INVOKABLE void verifyTDayOptions(const QDate& date, const QString& splitLetter = QString());
+	Q_INVOKABLE void clearExercises();
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(const QString& splitLetter);
 	Q_INVOKABLE void convertTDayToPlan(DBTrainingDayModel* tDayModel);

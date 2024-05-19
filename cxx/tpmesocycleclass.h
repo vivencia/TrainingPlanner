@@ -102,7 +102,7 @@ public:
 
 	Q_INVOKABLE inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_currentExercises->exerciseEntry(exercise_idx); }
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
-	Q_INVOKABLE inline void clearExercises() { m_currentExercises->clear(); m_CurrenttDayModel->clearExercises(); }
+	inline void clearExercises() { m_currentExercises->clear(); m_CurrenttDayModel->clearExercises(); }
 	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
@@ -205,9 +205,8 @@ private:
 
 		inline void clear()
 		{
-			for (uint i(0); i < exerciseObjects.count(); ++i)
+			for (int i(exerciseObjects.count() - 1); i >= 0 ; --i)
 				removeExerciseEntry(i);
-			exerciseObjects.clear();
 		}
 
 		~tDayExercises()

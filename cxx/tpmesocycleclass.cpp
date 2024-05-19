@@ -824,7 +824,7 @@ void TPMesocycleClass::tDayExercises::removeExerciseEntry(const uint exercise_id
 void TPMesocycleClass::tDayExercises::removeSet(const uint exercise_idx, const uint set_number)
 {
 	setObject(exercise_idx, set_number)->deleteLater();
-	exerciseObjects[exercise_idx]->m_setObjects.remove(set_number);
+	exerciseObjects.at(exercise_idx)->m_setObjects.remove(set_number);
 }
 //-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 

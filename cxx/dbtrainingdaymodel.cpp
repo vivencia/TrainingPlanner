@@ -109,6 +109,206 @@ bool DBTrainingDayModel::importExtraInfo(const QString& extraInfo)
 	return false;
 }
 
+void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
+{
+	this->TPListModel::exportToText(outFile, bFancy);
+
+	if (exerciseCount() == 0)
+		return;
+
+	if (bFancy)
+	{
+		const QString strHeader(tr("Exercises:\n\n"));
+		outFile->write(strHeader.toUtf8().constData());
+	}
+
+	uint settype(0);
+	QString value;
+	for (uint i(0); i < m_ExerciseData.count(); ++i)
+	{
+		if (bFancy)
+		{
+			settype = setType(0, i);
+			outFile->write(QString(QString::number(i+1) + ": ").toUtf8().constData());
+			outFile->write(exerciseName(i).toUtf8().constData());
+			outFile->write("\n", 1);
+			outFile->write(tr("Number of sets: ").toUtf8().constData());
+			outFile->write(QString::number(setsNumber(i)).toUtf8().constData());
+			outFile->write("\n", 1);
+			outFile->write(tr("Type of sets: ").toUtf8().constData());
+			outFile->write(QString::number(settype).toUtf8().constData());
+			outFile->write("\n", 1);
+			outFile->write(tr("Rest time between sets: ").toUtf8().constData());
+			outFile->write(setRestTime(0, i).toUtf8().constData());
+			outFile->write("\n", 1);
+			if (settype == 2 || settype == 3 || settype == 5)
+			{
+				outFile->write(tr("Number of subsets: ").toUtf8().constData());
+				outFile->write(setSubSets(0, i).toUtf8().constData());
+				outFile->write("\n", 1);
+			}
+			outFile->write(tr("Initial number of reps: ").toUtf8().constData());
+			outFile->write(setReps(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
+			outFile->write("\n", 1);
+			outFile->write(tr("Initial weight: ").toUtf8().constData());
+			outFile->write(setWeight(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
+			outFile->write("\n", 1);
+			outFile->write(tr("Note for the sets: ").toUtf8().constData());
+			outFile->write(setNotes(0, i).toUtf8().constData());
+			outFile->write("\n\n", 1);
+		}
+		else
+		{
+			value = m_ExerciseData.at(i)->name + record_separator + QString::number(m_ExerciseData.at(i)->nsets) +
+						record_separator + m_ExerciseData.at(i)->type.at(0) + record_separator + m_ExerciseData.at(i)->resttime.at(0) +
+						record_separator + m_ExerciseData.at(i)->subsets.at(0) + record_separator + m_ExerciseData.at(i)->reps.at(0) +
+						record_separator + m_ExerciseData.at(i)->weight.at(0) + record_separator + m_ExerciseData.at(i)->notes.at(0) +
+						record_separator2;
+			outFile->write(value.toUtf8().constData());
+		}
+	}
+}
+
+bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
+{
+	if (!this->TPListModel::importFromFancyText(inFile))
+		return false;
+
+	char buf[256];
+	QString inData;
+	int sep_idx(-1);
+
+	uint exerciseNumber(0), nsets(0);
+	QString type, resttime, subsets, reps, weight, notes;
+
+	while (inFile->readLine(buf, sizeof(buf)) != -1) {
+		inData = buf;
+		sep_idx = inData.indexOf(QString::number(exerciseNumber+1) + ':');
+		if (sep_idx != -1)
+		{
+			newExercise(inData.mid(sep_idx, inData.length() - sep_idx).trimmed(), exerciseNumber);
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(':') == -1)
+				return false;
+			nsets = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().toUInt();
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(':') == -1)
+			type = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(':') == -1)
+			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(tr("subsets")) == -1)
+			{
+				subsets = u"0"_qs;
+				if (sep_idx = inData.indexOf(':') == -1)
+					return false;
+				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			}
+			else
+			{
+				if (sep_idx = inData.indexOf(':') == -1)
+					return false;
+				subsets = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+				if (inFile->readLine(buf, sizeof(buf)) == -1)
+					return false;
+				if (sep_idx = inData.indexOf(':') == -1)
+					return false;
+				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			}
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(':') == -1)
+			weight = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+
+			if (inFile->readLine(buf, sizeof(buf)) == -1)
+				return false;
+			inData = buf;
+			if (sep_idx = inData.indexOf(':') == -1)
+			notes = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			if (notes.isEmpty())
+				notes = u" "_qs;
+
+			newFirstSet(exerciseNumber, type.toUInt(), reps, weight, subsets, notes);
+			for (uint i(1); i < nsets; ++i)
+				newSet(i, exerciseNumber, type.toUInt());
+		}
+	}
+	return exerciseCount() > 0;
+}
+
+bool DBTrainingDayModel::importFromText(const QString& data)
+{
+	if (!this->TPListModel::importFromText(data))
+		return false;
+
+	int chr_pos1(data.indexOf(record_separator2));
+	int chr_pos2(data.indexOf(record_separator2, chr_pos1+1));
+	int rec_sep1(chr_pos1+1);
+	int rec_sep2(data.indexOf(record_separator, rec_sep1));
+	const uint dataSize(data.length());
+
+	uint exerciseNumber(0), nsets(0);
+	QString type, resttime, subsets, reps, weight, notes;
+
+	while (chr_pos2 > 0 && chr_pos2 < dataSize) {
+		newExercise(data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1), exerciseNumber);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		nsets = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1).toUInt();
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		type = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		resttime = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		subsets = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		reps = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		weight = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		notes = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
+		rec_sep1= rec_sep2+1;
+		rec_sep2 = data.indexOf(record_separator, rec_sep1);
+
+		newFirstSet(exerciseNumber, type.toUInt(), reps, weight, subsets, notes);
+		for (uint i(1); i < nsets; ++i)
+			newSet(i, exerciseNumber, type.toUInt());
+
+		chr_pos1 = chr_pos2+1;
+		chr_pos2 = data.indexOf(record_separator2, chr_pos1+1);
+		exerciseNumber++;
+	}
+	return count() > 0;
+}
+
 void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())

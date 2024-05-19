@@ -142,9 +142,9 @@ Page {
 		property int opt
 
 		onButton1Clicked: {
-			itemManager.clearExercises();
 			if (opt === 0)
 				changeSplitLetter();
+			appDB.clearExercises();
 		}
 
 		onButton2Clicked: {
@@ -329,7 +329,7 @@ Page {
 				TPComboBox {
 					id: cboSplitLetter
 					model: cboModel
-					enabled: !tDayModel.dayIsFinished && model.count > 0
+					enabled: workoutTimer.active ? false : !tDayModel.dayIsFinished
 					Layout.maximumWidth: 100
 					Layout.row: 0
 					Layout.column: 1
@@ -1015,7 +1015,7 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active: false;
+			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			anchors {
@@ -1093,7 +1093,6 @@ Page {
 				tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
 		}
 		tDayModel.setSplitLetter(splitLetter);
-		appDB.verifyTDayOptions(mainDate, splitLetter);
 	}
 
 	function gotExercise() {

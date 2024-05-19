@@ -86,9 +86,9 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE void setExportFiter(const QString& filter, const uint field);
-	Q_INVOKABLE void exportToText(QFile* outFile, const bool bFancy) const;
-	Q_INVOKABLE bool importFromFancyText(QFile* inFile);
-	Q_INVOKABLE bool importFromText(const QString& data);
+	virtual void exportToText(QFile* outFile, const bool bFancy) const;
+	virtual bool importFromFancyText(QFile* inFile);
+	virtual bool importFromText(const QString& data);
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }

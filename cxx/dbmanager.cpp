@@ -1161,6 +1161,12 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 	m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 }
 
+void DbManager::clearExercises()
+{
+	m_currentMesoManager->clearExercises();
+	verifyTDayOptions(m_currentMesoManager->currenttDayModel()->date(), m_currentMesoManager->currenttDayModel()->splitLetter());
+}
+
 void DbManager::loadExercisesFromDate(const QString& strDate)
 {
 	const QDate date(m_runCommands->getDateFromStrDate(strDate));

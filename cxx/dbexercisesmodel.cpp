@@ -127,7 +127,7 @@ void DBExercisesModel::clearSelectedEntries()
 int DBExercisesModel::manageSelectedEntries(uint index, const uint max_selected)
 {
 	if (m_bFilterApplied)
-		index = m_modeldata.at(m_indexProxy.at(index)).at(9).toUInt();
+		index = m_modeldata.at(m_indexProxy.at(index)).at(10).toUInt();
 
 	if (max_selected == 1)
 	{

@@ -150,7 +150,7 @@ FocusScope {
 						itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 					}
 					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
-					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, cboSetType.currentIndex === 4, 1);
+					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
 					onItemClicked: paneExerciseShowHide(false);
 				}
 			} //Row txtExerciseName
