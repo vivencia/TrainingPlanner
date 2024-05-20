@@ -425,7 +425,7 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exerc
 			new_name1 = name1 + subrecord_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
 		else
 			new_name1 = name1;
-		m_ExerciseData.at(exercise_idx)->name = new_name1;
+		m_ExerciseData.at(exercise_idx)->name = new_name1.replace(u"1: "_qs, "");
 		setModified(true);
 	}
 }
@@ -445,8 +445,12 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 	if (exercise_idx < m_ExerciseData.count())
 	{
 		const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(subrecord_separator));
-		m_ExerciseData.at(exercise_idx)->name = (idx != -1 ? m_ExerciseData.at(exercise_idx)->name.left(idx) :
-									m_ExerciseData.at(exercise_idx)->name) + subrecord_separator + name2;
+		QString new_name2;
+		if (idx != -1)
+			new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + subrecord_separator + name2;
+		else
+			new_name2 = subrecord_separator + name2;
+		m_ExerciseData.at(exercise_idx)->name = new_name2.replace(u"2: "_qs, "");
 		setModified(true);
 	}
 }
