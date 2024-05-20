@@ -61,10 +61,11 @@ Row {
 
 		onTextChanged: {
 			if (bCanEmitTextChanged) {
-				if (readOnly) {
+				if (!readOnly)
+					exerciseChanged(text);
+				else {
 					ensureVisible(0);
 					cursorPosition = 0;
-					exerciseChanged(text);
 				}
 			}
 		}

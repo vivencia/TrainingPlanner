@@ -18,7 +18,6 @@ Rectangle {
 		if (shown) {
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
-				exercisesListModel.clearSelectedEntries();
 				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
@@ -74,9 +73,9 @@ Rectangle {
 			Layout.fillHeight: true
 			canDoMultipleSelection: bEnableMultipleSelection
 
-			onExerciseEntrySelected:(index, multipleSelectionOpt) => {
+			onExerciseEntrySelected: {
 				if (itemThatRequestedSimpleList)
-					itemThatRequestedSimpleList.changeExercise(multipleSelectionOpt, true);
+					itemThatRequestedSimpleList.changeExercise(true);
 			}
 		}
 	}

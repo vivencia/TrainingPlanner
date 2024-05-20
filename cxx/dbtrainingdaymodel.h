@@ -3,6 +3,7 @@
 
 #include "tplistmodel.h"
 
+class DBExercisesModel;
 class DBMesoSplitModel;
 
 class DBTrainingDayModel : public TPListModel
@@ -89,6 +90,7 @@ public:
 	Q_INVOKABLE void setExerciseName(const QString& new_name, const uint exercise_idx);
 	void newExercise(const QString& new_exercise, const uint idx);
 	void removeExercise(const uint exercise_idx);
+	Q_INVOKABLE void changeExerciseName(const uint exercise_idx, DBExercisesModel* model);
 
 	Q_INVOKABLE QString exerciseName1(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName1(const QString& name1, const uint exercise_idx);

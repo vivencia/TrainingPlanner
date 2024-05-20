@@ -621,7 +621,7 @@ Frame {
 		splitModel.setCurrentRow(idx);
 	}
 
-	function changeExercise(multiplesel_opt: int, fromList: bool) {
+	function changeExercise(fromList: bool) {
 		if (bListRequestForExercise1) {
 			splitModel.exerciseName1 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
 			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
@@ -639,12 +639,7 @@ Frame {
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else
-			splitModel.changeExercise(
-				exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2),
-				exercisesListModel.selectedEntriesValue(0, 4),
-				exercisesListModel.selectedEntriesValue(0, 5),
-				exercisesListModel.selectedEntriesValue(0, 6),
-				multiplesel_opt);
+			splitModel.changeExercise(exercisesListModel);
 	}
 
 	function appendNewExerciseToDivision() {

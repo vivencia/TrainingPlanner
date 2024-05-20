@@ -268,9 +268,8 @@ FocusScope {
 		} // ColumnLayout layoutMain
 	} //paneExercise
 
-	function changeExercise(multipleSelectionOpt: int, fromList: bool)
-	{
-		if (multipleSelectionOpt !== 0) return;
+	function changeExercise(fromList: bool) {
+		var interruptSignals = true;
 		if (bListRequestForExercise1) {
 			if (fromList)
 				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
@@ -286,10 +285,27 @@ FocusScope {
 			bListRequestForExercise2 = false;
 		}
 		else
-			tDayModel.setExerciseName(exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2), exerciseIdx);
-		txtExerciseName.bCanEmitTextChanged = false;
-		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
-		txtExerciseName.bCanEmitTextChanged = true;
+		{
+			interruptSignals = false;
+			if (fromList)
+				tDayModel.changeExerciseName(exerciseIdx, exercisesListModel);
+			else
+			{
+				if (bListRequestForExercise1)
+					itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+				else if (bListRequestForExercise2)
+					itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+			}
+		}
+
+		if (interruptSignals)
+		{
+			txtExerciseName.bCanEmitTextChanged = false;
+			txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
+			txtExerciseName.bCanEmitTextChanged = true;
+		}
+		else
+			txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
 	}
 
 	function changeExercise1(showList: bool) {

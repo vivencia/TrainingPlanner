@@ -1,5 +1,6 @@
 #include "dbtrainingdaymodel.h"
 #include "dbmesosplitmodel.h"
+#include "dbexercisesmodel.h"
 
 #include <QtMath>
 
@@ -191,40 +192,44 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(':') == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
 			nsets = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().toUInt();
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(':') == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
+				return false;
 			type = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(':') == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
+				return false;
 			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(tr("subsets")) == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
+				return false;
+			if ((sep_idx = inData.indexOf(tr("subsets"))) == -1)
 			{
 				subsets = u"0"_qs;
-				if (sep_idx = inData.indexOf(':') == -1)
+				if ((sep_idx = inData.indexOf(':')) == -1)
 					return false;
 				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 			}
 			else
 			{
-				if (sep_idx = inData.indexOf(':') == -1)
+				if ((sep_idx = inData.indexOf(':')) == -1)
 					return false;
 				subsets = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 				if (inFile->readLine(buf, sizeof(buf)) == -1)
 					return false;
-				if (sep_idx = inData.indexOf(':') == -1)
+				if ((sep_idx = inData.indexOf(':')) == -1)
 					return false;
 				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 			}
@@ -232,13 +237,15 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(':') == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
+				return false;
 			weight = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if (sep_idx = inData.indexOf(':') == -1)
+			if ((sep_idx = inData.indexOf(':')) == -1)
+				return false;
 			notes = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
 			if (notes.isEmpty())
 				notes = u" "_qs;
@@ -380,6 +387,22 @@ void DBTrainingDayModel::removeExercise(const uint exercise_idx)
 		setModified(true);
 		emit exerciseCountChanged();
 	}
+}
+
+void DBTrainingDayModel::changeExerciseName(const uint exercise_idx, DBExercisesModel* model)
+{
+	QString name;
+	const uint nSel(model->selectedEntriesCount());
+
+	if (nSel == 1)
+		name = model->selectedEntriesValue_fast(0, 1) + u" - "_qs + model->selectedEntriesValue_fast(0, 2);
+	else
+	{
+		for (uint i(0); i < nSel; ++i)
+			name += model->selectedEntriesValue_fast(i, 1) + u" - "_qs + model->selectedEntriesValue_fast(i, 2) + subrecord_separator;
+		name.chop(1);
+	}
+	setExerciseName(name, exercise_idx);
 }
 
 QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const

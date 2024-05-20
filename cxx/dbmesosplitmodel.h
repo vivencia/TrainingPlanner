@@ -4,6 +4,7 @@
 #include "tplistmodel.h"
 
 class DBTrainingDayModel;
+class DBExercisesModel;
 
 class DBMesoSplitModel : public TPListModel
 {
@@ -98,7 +99,7 @@ public:
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-	Q_INVOKABLE void changeExercise(const QString& name, const QString& sets, const QString& reps, const QString& weight, const uint operation);
+	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
 	inline virtual const QString exportExtraInfo() const override { return tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup; }
 	virtual bool importExtraInfo(const QString& extrainfo) override;

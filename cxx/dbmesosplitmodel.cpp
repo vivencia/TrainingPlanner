@@ -1,5 +1,6 @@
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
+#include "dbexercisesmodel.h"
 
 DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	: TPListModel{parent}, m_nextAddedExercisePos(2)
@@ -163,53 +164,37 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }
 
-void DBMesoSplitModel::changeExercise(const QString& name, const QString& sets, const QString& reps,
-						const QString& weight, const uint operation)
+void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 {
-	switch (operation)
+	QString name, sets, reps, weight;
+	const uint nSel(model->selectedEntriesCount());
+
+	if (nSel == 1)
 	{
-		case 0: //change the single exercise
-			setExerciseName(name);
-			setSetsReps(reps);
-			setSetsWeight(weight);
-			setSetsNumber(sets);
-		break;
-		case 1: //add an exercise
-			switch (m_nextAddedExercisePos)
-			{
-				case 1:
-					setExerciseName1(name);
-					setSetsReps1(reps);
-					setSetsWeight1(weight);
-					m_nextAddedExercisePos = 2;
-				break;
-				case 2:
-					setExerciseName2(name);
-					setSetsReps2(reps);
-					setSetsWeight2(weight);
-					m_nextAddedExercisePos = 1;
-				break;
-			}
-		break;
-		case 2: //remove an exercise
-		{
-			if (exerciseName1().indexOf(name) != -1)
-			{
-				setExerciseName(exerciseName2());
-				setSetsReps(setsReps2());
-				setSetsWeight1(setsWeight2());
-				m_nextAddedExercisePos = 2;
-			}
-			else if (exerciseName2().indexOf(name) != -1)
-			{
-				setExerciseName(exerciseName1());
-				setSetsReps2(setsReps1());
-				setSetsWeight2(setsWeight1());
-				m_nextAddedExercisePos = 1;
-			}
-		}
-		break;
+		name = model->selectedEntriesValue_fast(0, 1) + u" - "_qs + model->selectedEntriesValue_fast(0, 2);
+		sets = model->selectedEntriesValue(0, 4);
+		reps = model->selectedEntriesValue(0, 5);
+		weight = model->selectedEntriesValue(0, 6);
 	}
+	else
+	{
+		for (uint i(0); i < nSel; ++i)
+		{
+			name += model->selectedEntriesValue_fast(i, 1) + u" - "_qs + model->selectedEntriesValue_fast(i, 2) + subrecord_separator;
+			sets += model->selectedEntriesValue(i, 4) + subrecord_separator;
+			reps += model->selectedEntriesValue(i, 5) + subrecord_separator;
+			weight += model->selectedEntriesValue(i, 6) + subrecord_separator;
+		}
+		name.chop(1);
+		sets.chop(1);
+		reps.chop(1);
+		weight.chop(1);
+	}
+
+	setExerciseName(name);
+	setSetsReps(reps);
+	setSetsWeight(weight);
+	setSetsNumber(sets);
 }
 
 bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)

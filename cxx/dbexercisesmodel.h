@@ -28,14 +28,10 @@ public:
 
 	explicit DBExercisesModel(QObject *parent = 0);
 
-	Q_INVOKABLE void setSelected(const uint idx, const bool bSelected) { setData(index(idx, 0), bSelected, selectedRole); }
-	Q_INVOKABLE bool isSelected(const uint idx) const { return data(index(idx, 0), selectedRole).toBool(); }
-	Q_INVOKABLE void invertSelected(const uint idx) { setData(index(idx, 0), !data(index(idx, 0), selectedRole).toBool(), selectedRole); }
-
 	Q_INVOKABLE void clearSelectedEntries();
-	Q_INVOKABLE int manageSelectedEntries(uint index, const uint max_selected = 1);
-	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
-	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index)).at(field); }
+	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
+	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }
+	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 
 	Q_INVOKABLE virtual void clear() override;
@@ -47,7 +43,12 @@ public:
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
 private:
-	QList<uint> m_selectedEntries;
+	typedef struct {
+		uint real_index;
+		uint view_index;
+	} selectedEntry;
+
+	QList<selectedEntry> m_selectedEntries;
 	uint m_selectedEntryToReplace;
 };
 

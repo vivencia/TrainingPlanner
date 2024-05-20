@@ -434,8 +434,7 @@ Page {
 	TPBalloonTip {
 		id: exportTypeTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		title: qsTr("Export workout")
-		message: label1.text
+		title: qsTr("Export exercises")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")

@@ -12,8 +12,7 @@ Column {
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
 
-	//multipleSelectionOption - 0: single selection; 1: remove selection; 2: add selection
-	signal exerciseEntrySelected(int idx, int multipleSelectionOption)
+	signal exerciseEntrySelected(int idx)
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
@@ -213,7 +212,7 @@ Column {
 			}
 		}
 
-		onTextChanged: exercisesListModel.setFilter(text, bMultipleSelection);
+		onTextChanged: exercisesListModel.setFilter(text, false);
 	} // txtFilter
 
 	Component.onCompleted: {
@@ -241,28 +240,23 @@ Column {
 	}
 
 	function itemClicked(idx: int, emit_signal: bool) {
-		exercisesListModel.invertSelected(idx);
 		if (!bMultipleSelection) {
-			if (idx !== exercisesListModel.currentRow) {
-				exercisesListModel.setSelected(exercisesListModel.currentRow, false);
+			if (exercisesListModel.manageSelectedEntries(idx, 1)) {
 				exercisesListModel.currentRow = idx;
-				exercisesListModel.manageSelectedEntries(idx, 1);
 				if (emit_signal)
-					exerciseEntrySelected(idx, 0);
+					exerciseEntrySelected(idx);
 			}
 			else {
 				hideSimpleExerciseList();
 				return;
 			}
 		}
-		else
-		{
-			exercisesListModel.currentRow = idx;
-			const item_idx = exercisesListModel.manageSelectedEntries(idx, 2);
-			if (emit_signal)
-				exerciseEntrySelected(idx, exercisesListModel.isSelected(idx) ? 1 : 2);
-			if (item_idx !== -1)
-				exercisesListModel.setSelected(item_idx, false);
+		else {
+			if (exercisesListModel.manageSelectedEntries(idx, 2)) {
+				exercisesListModel.currentRow = idx;
+				if (emit_signal)
+					exerciseEntrySelected(idx);
+			}
 		}
 		lstExercises.forceActiveFocus();
 	}
@@ -274,8 +268,5 @@ Column {
 
 	function setFilter() {
 		txtFilter.text = exercisesListModel.getFilter();
-		exercisesListModel.setFilter(txtFilter.text, true);
-		if (exercisesListModel.count > 0)
-			simulateMouseClick(0, false);
 	}
 }

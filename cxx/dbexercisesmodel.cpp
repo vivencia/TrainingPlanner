@@ -119,40 +119,81 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 void DBExercisesModel::clearSelectedEntries()
 {
 	for (uint i(0); i < m_selectedEntries.count(); ++i)
-		setSelected(m_selectedEntries.at(i), false);
+	{
+		m_modeldata[m_selectedEntries.at(i).real_index][11] = u"0"_qs;
+			emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
+				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
+	}
 	m_selectedEntries.clear();
 	m_selectedEntryToReplace = 0;
 }
 
-int DBExercisesModel::manageSelectedEntries(uint index, const uint max_selected)
+//Returns true if an item is added to the list of selected entries. False if the item is already in the list(the item then gets removed)
+//When an item is added, it becomes selected. When an item is removed, it becomes deselected
+bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max_selected)
 {
+	selectedEntry entry;
+	uint real_item_pos(item_pos);
 	if (m_bFilterApplied)
-		index = m_modeldata.at(m_indexProxy.at(index)).at(10).toUInt();
+		real_item_pos = m_modeldata.at(m_indexProxy.at(item_pos)).at(10).toUInt();
+	entry.real_index = real_item_pos;
+	entry.view_index = item_pos;
 
 	if (max_selected == 1)
 	{
-		m_selectedEntries.clear();
-		m_selectedEntries.append(index);
+		if (!m_selectedEntries.isEmpty())
+		{
+			m_modeldata[m_selectedEntries.at(0).real_index][11] = u"0"_qs;
+			emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
+				index(m_selectedEntries.at(0).view_index, 0), QList<int>() << selectedRole);
+			m_selectedEntries.clear();
+		}
+		m_selectedEntries.append(entry);
 	}
 	else
 	{
-		const int idx(m_selectedEntries.indexOf(index));
+		int idx(-1);
+		for (uint i(0); i < m_selectedEntries.count(); ++i)
+		{
+			if (m_selectedEntries.at(i).real_index == real_item_pos)
+			{
+				idx = i;
+				break;
+			}
+		}
+
 		if (idx == -1)
 		{
 			if (m_selectedEntries.count() < max_selected)
-				m_selectedEntries.append(index);
+				m_selectedEntries.append(entry);
 			else
 			{
 				if (m_selectedEntryToReplace >= max_selected - 1)
 					m_selectedEntryToReplace = 0;
-				const uint itemToDeselect(m_selectedEntries.at(m_selectedEntryToReplace));
-				m_selectedEntries[m_selectedEntryToReplace] = index;
+				m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][11] = u"0"_qs;
+				emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
+						index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0), QList<int>() << selectedRole);
+				m_selectedEntries[m_selectedEntryToReplace].real_index = real_item_pos;
+				m_selectedEntries[m_selectedEntryToReplace].view_index = item_pos;
 				m_selectedEntryToReplace++;
-				return itemToDeselect;
 			}
 		}
 		else
+		{
+			if (m_selectedEntryToReplace == idx)
+			{
+				++m_selectedEntryToReplace;
+				if (m_selectedEntryToReplace >= max_selected - 1)
+					m_selectedEntryToReplace = 0;
+			}
+			m_modeldata[m_selectedEntries.at(idx).real_index][11] = u"0"_qs;
+				emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
+						index(m_selectedEntries.at(idx).view_index, 0), QList<int>() << selectedRole);
 			m_selectedEntries.remove(idx, 1);
+			return false;
+		}
 	}
-	return -1;
+	m_modeldata[real_item_pos][11] = u"1"_qs;
+	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>() << selectedRole);
+	return true;
 }

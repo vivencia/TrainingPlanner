@@ -96,7 +96,7 @@ Item {
 
 				onExerciseChanged: (new_text) => {
 					tDayModel.setExerciseName1(new_text, exerciseIdx);
-					ownerExercise.changeExercise(0, false);
+					ownerExercise.changeExercise(false);
 				}
 				onEditButtonClicked: ownerExercise.changeExercise1(!readOnly);
 			}
@@ -113,7 +113,7 @@ Item {
 
 				onExerciseChanged: (new_text) => {
 					tDayModel.setExerciseName2(new_text, exerciseIdx);
-					ownerExercise.changeExercise(0, false);
+					ownerExercise.changeExercise(false);
 				}
 				onEditButtonClicked: ownerExercise.changeExercise2(!readOnly);
 			}

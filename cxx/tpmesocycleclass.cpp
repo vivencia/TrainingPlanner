@@ -707,7 +707,8 @@ void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const u
 			setObj = m_currentExercises->setObject_const(exercise_idx, i);
 			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, false));
 			txtExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"txtExercise1"_qs : u"txtExercise2"_qs);
-			QMetaObject::invokeMethod(setObj, "changeExerciseText", Q_ARG(QVariant, QVariant::fromValue(txtExercise)), Q_ARG(QString, new_text));
+			QMetaObject::invokeMethod(setObj, "changeExerciseText", Q_ARG(QVariant, QVariant::fromValue(txtExercise)),
+				Q_ARG(QString, label_idx == 1 ? m_CurrenttDayModel->exerciseName1(exercise_idx) : m_CurrenttDayModel->exerciseName2(exercise_idx)));
 			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, true));
 		}
 	}
