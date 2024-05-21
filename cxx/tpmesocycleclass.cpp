@@ -500,6 +500,13 @@ void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
 	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
 }
+
+void TPMesocycleClass::rollUpExercises() const
+{
+	for (uint i(0); i < m_currentExercises->exercisesCount(); ++i)
+		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false));
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
+}
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
@@ -626,7 +633,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 	{
 		//Place into view: exercise entry + first set
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
-			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
+			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 100));
 	}
 }
 

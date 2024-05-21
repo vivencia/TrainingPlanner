@@ -17,6 +17,7 @@ public:
 	explicit DBTrainingDayTable(const QString& dbFilePath, QSettings* appSettings, DBTrainingDayModel* model = nullptr);
 
 	virtual void createTable();
+	virtual void updateDatabase() {}
 	void getTrainingDay();
 	void getTrainingDayExercises();
 	void getPreviousTrainingDays();

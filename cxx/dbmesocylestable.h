@@ -17,6 +17,7 @@ public:
 	explicit DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model = nullptr);
 
 	virtual void createTable();
+	virtual void updateDatabase() {}
 	void getAllMesocycles();
 	void newMesocycle();
 	void updateMesocycle();

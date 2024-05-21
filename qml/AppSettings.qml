@@ -8,6 +8,7 @@ import QtCore
 Settings {
 	signal appFontSizeChanged()
 
+	property string appVersion
 	property string appLocale
 	property string weightUnit
 	property string themeStyle

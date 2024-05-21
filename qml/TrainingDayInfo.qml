@@ -50,7 +50,6 @@ Page {
 
 	onPreviousTDaysChanged: {
 		cboPreviousTDaysDates.model = previousTDays;
-		bHasPreviousTDays = previousTDays.length > 0;
 	}
 
 	Image {
@@ -817,7 +816,10 @@ Page {
 		onTriggered: scrollTraining.scrollToPos(ypos);
 
 		function init(pos) {
-			ypos = exercisesLayout.y + pos;
+			if (pos >= 0)
+				ypos = exercisesLayout.y + pos;
+			else
+				ypos = 0;
 			start();
 		}
 	}
@@ -940,6 +942,8 @@ Page {
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsFinished = true;
+					itemManager.rollUpExercises();
+					appDB.setDayIsFinished(mainDate, true);
 				}
 			}
 		}

@@ -148,6 +148,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	mesoSplitModel  = new DBMesoSplitModel(this);
 	mesoCalendarModel = new DBMesoCalendarModel(this);
 	mesocyclesModel = new DBMesocyclesModel(this);
+
+	if (m_appSettings->value("appVersion") != TP_APP_VERSION)
+	{
+		//All the update code goes in here
+		updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		m_appSettings->setValue("appVersion", TP_APP_VERSION);
+	}
+
 	getAllMesocycles();
 
 	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
@@ -262,8 +270,16 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				else if (dbObj->objectName() == DBTrainingDayObjectName)
 				{
 					DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(static_cast<DBTrainingDayTable*>(dbObj)->model()));
-					m_currentMesoManager->currenttDayPage()->setProperty("previousTDays", tempModel->count() > 0 ?
-						QVariant::fromValue(tempModel->getRow_const(0)) : QVariant::fromValue(QVariantList()));
+					if (tempModel->count() > 0)
+					{
+						m_currentMesoManager->currenttDayPage()->setProperty("previousTDays", QVariant::fromValue(tempModel->getRow_const(0)));
+						m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", true);
+					}
+					else
+					{
+						m_currentMesoManager->currenttDayPage()->setProperty("previousTDays", QVariant::fromValue(QVariantList()));
+						m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);
+					}
 					delete tempModel;
 				}
 			break;
@@ -547,6 +563,11 @@ void DbManager::importFromModel(TPListModel* model)
 		}
 		break;
 	}
+}
+
+void DbManager::updateDB(TPDatabaseTable* worker)
+{
+	createThread(worker, [worker] () { worker->updateDatabase(); } );
 }
 
 void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
@@ -1095,6 +1116,15 @@ void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
+void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
+{
+	mesoCalendarModel->setDayIsFinished(date, bFinished);
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	worker->addExecArg(date);
+	worker->addExecArg(bFinished);
+	createThread(worker, [worker] () { worker->updateDayIsFinished(); } );
+}
+
 void DbManager::removeMesoCalendar()
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
@@ -1153,12 +1183,11 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 	{
 		DBTrainingDayModel* tempModel(new DBTrainingDayModel(this));
 		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tempModel));
+		worker->addExecArg(m_MesoIdStr);
 		worker->addExecArg(splitletter);
 		worker->addExecArg(QString::number(date.toJulianDay()));
 		createThread(worker, [worker] () { return worker->getPreviousTrainingDays(); } );
 	}
-
-	m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 }
 
 void DbManager::clearExercises()

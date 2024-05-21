@@ -10,19 +10,9 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
-	// Define the role names to be used
-	enum RoleNames {
-		mesoCalIdRole = Qt::UserRole,
-		mesoCalMesoIdRole = Qt::UserRole+1,
-		mesoCalDateRole = Qt::UserRole+2,
-		mesoCalNDayRole = Qt::UserRole+3,
-		mesoCalSplitRole = Qt::UserRole+4,
-		monthNbrRole = Qt::UserRole+5,
-		yearNbrRole = Qt::UserRole+6,
-		isTrainingDayRole = Qt::UserRole+7
-	};
 
-	explicit DBMesoCalendarModel(QObject *parent = 0);
+	explicit DBMesoCalendarModel(QObject *parent = 0) : TPListModel{parent}
+	{	m_tableId = MESOCALENDAR_TABLE_ID;	setObjectName(DBMesoCalendarObjectName); }
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
 	Q_INVOKABLE void createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit);
@@ -57,6 +47,8 @@ public:
 	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
 	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
 	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
+	Q_INVOKABLE bool isDayFinished(const uint month, const uint day) const;
+	void setDayIsFinished(const QDate& date, const bool bFinished);
 	Q_INVOKABLE uint getLastTrainingDayBeforeDate(const QDate& date) const;
 
 signals:

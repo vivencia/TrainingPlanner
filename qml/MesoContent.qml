@@ -147,34 +147,27 @@ Page {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
-					readonly property bool todayDate: model.year === _today.getFullYear() && model.month === _today.getMonth() && model.day === _today.getDate()
+					//readonly property bool todayDate: model.year === _today.getFullYear() && model.month === _today.getMonth() && model.day === _today.getDate()
+					readonly property bool todayDate: model.month === _today.getMonth() && model.day === _today.getDate()
 					property bool bIsTrainingDay: false
 
 					Component.onCompleted: {
 						var colorValue = "transparent";
-						if ( highlighted )
-							return AppSettings.primaryLightColor;
-						else {
-							//if ( monthGrid.year === model.year) {
-								if ( monthGrid.month === model.month ) {
-									if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
-										colorValue =  listEntryColor2;
-										bIsTrainingDay = true;
-									}
-								}
-							//}
-							bIsTrainingDay = false;
+						bIsTrainingDay = false;
+						if ( monthGrid.month === model.month ) {
+							if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
+								colorValue =  listEntryColor2;
+								bIsTrainingDay = true;
+							}
 						}
 						color = colorValue
 					}
 
 					Text {
 						anchors.centerIn: parent
-						text: monthGrid.month === model.month ? mesoCalendarModel.isTrainingDay(model.month+1, model.day-1) ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
-						scale: highlighted ? 1.4 : 1
-						Behavior on scale { NumberAnimation { duration: 150 } }
-						visible: parent.enabled
+						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
+						scale: todayDate ? 1.2 : 1
+						//visible: parent.enabled
 						color: todayDate ? "red" : AppSettings.fontColor
 						font.bold: true
 						font.pointSize: AppSettings.fontSize

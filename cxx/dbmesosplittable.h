@@ -18,6 +18,7 @@ public:
 	explicit DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model = nullptr);
 
 	virtual void createTable();
+	virtual void updateDatabase() {}
 	void getMesoSplit();
 	void newMesoSplit();
 	void updateMesoSplit();

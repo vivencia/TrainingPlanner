@@ -19,6 +19,7 @@ public:
 	explicit DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
 
 	virtual void createTable();
+	virtual void updateDatabase() {}
 	void getAllExercises();
 	void updateExercisesList();
 	void updateFromModel();

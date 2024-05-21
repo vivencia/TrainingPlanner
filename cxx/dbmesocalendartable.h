@@ -17,10 +17,11 @@ public:
 	explicit DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model = nullptr);
 
 	virtual void createTable();
+	virtual void updateDatabase();
 	void getMesoCalendar();
 	void createMesoCalendar();
 	void updateMesoCalendarEntry();
-	virtual void updateFromModel();
+	void updateDayIsFinished();
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 	void removeMesoCalendar();

@@ -14,25 +14,26 @@
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
-	if (settingsObj.childKeys().isEmpty())
+	if (settingsObj.childKeys().isEmpty() || settingsObj.value("appLocale").toString().isEmpty())
 	{
-		settingsObj.setValue( "appLocale", QLocale::system().name() );
-		settingsObj.setValue( "weightUnit", "(kg)" );
-		settingsObj.setValue( "themeStyle", u"Material"_qs );
-		settingsObj.setValue( "colorScheme", u"Blue"_qs );
-		settingsObj.setValue( "primaryDarkColor", u"#1976D2"_qs);
-		settingsObj.setValue( "primaryColor", u"#25b5f3"_qs);
-		settingsObj.setValue( "primaryLightColor", u"#BBDEFB"_qs);
-		settingsObj.setValue( "paneBackgroundColor", u"#1976d2"_qs);
-		settingsObj.setValue( "entrySelectedColor", u"#6495ed"_qs);
-		settingsObj.setValue( "exercisesListVersion", u"0"_qs);
-		settingsObj.setValue( "backupFolder", u""_qs);
-		settingsObj.setValue( "fontColor", u"white"_qs);
-		settingsObj.setValue( "iconFolder", u"white/"_qs);
-		settingsObj.setValue( "fontSize", 14 );
-		settingsObj.setValue( "fontSizeLists", 9 );
-		settingsObj.setValue( "fontSizeText", 12 );
-		settingsObj.setValue( "fontSizeTitle", 21 );
+		settingsObj.setValue("appVersion", QString());
+		settingsObj.setValue("appLocale", QLocale::system().name());
+		settingsObj.setValue("weightUnit", u"(kg)"_qs);
+		settingsObj.setValue("themeStyle", u"Material"_qs);
+		settingsObj.setValue("colorScheme", u"Blue"_qs);
+		settingsObj.setValue("primaryDarkColor", u"#1976D2"_qs);
+		settingsObj.setValue("primaryColor", u"#25b5f3"_qs);
+		settingsObj.setValue("primaryLightColor", u"#BBDEFB"_qs);
+		settingsObj.setValue("paneBackgroundColor", u"#1976d2"_qs);
+		settingsObj.setValue("entrySelectedColor", u"#6495ed"_qs);
+		settingsObj.setValue("exercisesListVersion", u"0"_qs);
+		settingsObj.setValue("backupFolder", u""_qs);
+		settingsObj.setValue("fontColor", u"white"_qs);
+		settingsObj.setValue("iconFolder", u"white/"_qs);
+		settingsObj.setValue("fontSize", 14);
+		settingsObj.setValue("fontSizeLists", 9);
+		settingsObj.setValue("fontSizeText", 12);
+		settingsObj.setValue("fontSizeTitle", 21);
 		settingsObj.sync();
 	}
 }

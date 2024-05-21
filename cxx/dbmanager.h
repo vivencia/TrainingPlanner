@@ -21,6 +21,8 @@ class DBTrainingDayModel;
 class RunCommands;
 class TPMesocycleClass;
 
+static const QString TP_APP_VERSION(QStringLiteral("v20240521-A"));
+
 class DbManager : public QObject
 {
 
@@ -98,6 +100,7 @@ public:
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
 	Q_INVOKABLE void updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay);
 	Q_INVOKABLE void updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit);
+	Q_INVOKABLE void setDayIsFinished(const QDate& date, const bool bFinished);
 	Q_INVOKABLE void removeMesoCalendar();
 	Q_INVOKABLE void deleteMesoCalendarTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -150,6 +153,7 @@ private:
 	QVariantMap m_exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
+	void updateDB(TPDatabaseTable* worker);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);

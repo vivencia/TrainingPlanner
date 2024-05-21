@@ -22,6 +22,7 @@ public:
 		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
 
 	virtual void createTable() = 0;
+	virtual void updateDatabase() = 0;
 
 	inline const QStringList& data () const { return m_data; }
 	inline OP_CODES opCode() const { return m_opcode; }

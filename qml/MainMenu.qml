@@ -87,7 +87,7 @@ Drawer {
 			}
 
 			Label {
-				text: "TrainingPlanner by VivenciaSoftware - v20240508"
+				text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
 				wrapMode: Text.WordWrap
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeText
