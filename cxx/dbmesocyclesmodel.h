@@ -3,6 +3,16 @@
 
 #include "tplistmodel.h"
 
+#define MESOCYCLES_COL_ID 0
+#define MESOCYCLES_COL_NAME 1
+#define MESOCYCLES_COL_STARTDATE 2
+#define MESOCYCLES_COL_ENDDATE 3
+#define MESOCYCLES_COL_NOTE 4
+#define MESOCYCLES_COL_WEEKS 5
+#define MESOCYCLES_COL_SPLIT 6
+#define MESOCYCLES_COL_DRUGS 7
+#define MESOCYCLES_COL_REALMESO 8
+
 class DBMesocyclesModel : public TPListModel
 {
 
@@ -13,14 +23,14 @@ public:
 	// Define the role names to be used
 	enum RoleNames {
 		mesoIdRole = Qt::UserRole,
-		mesoNameRole = Qt::UserRole+1,
-		mesoStartDateRole = Qt::UserRole+2,
-		mesoEndDateRole = Qt::UserRole+3,
-		mesoNoteRole = Qt::UserRole+4,
-		mesoWeeksRole = Qt::UserRole+5,
-		mesoSplitRole = Qt::UserRole+6,
-		mesoDrugsRole = Qt::UserRole+7,
-		realMesoRole = Qt::UserRole+8,
+		mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
+		mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
+		mesoEndDateRole = Qt::UserRole+MESOCYCLES_COL_ENDDATE,
+		mesoNoteRole = Qt::UserRole+MESOCYCLES_COL_NOTE,
+		mesoWeeksRole = Qt::UserRole+MESOCYCLES_COL_WEEKS,
+		mesoSplitRole = Qt::UserRole+MESOCYCLES_COL_SPLIT,
+		mesoDrugsRole = Qt::UserRole+MESOCYCLES_COL_DRUGS,
+		realMesoRole = Qt::UserRole+MESOCYCLES_COL_REALMESO
 	};
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
@@ -35,7 +45,7 @@ public:
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-	Q_INVOKABLE QVariant getMesoInfo(const int mesoid, const int role) const;
+	Q_INVOKABLE QString getMesoInfo(const int mesoid, const uint field) const;
 	Q_INVOKABLE int getPreviousMesoId(const int current_mesoid) const;
 	Q_INVOKABLE QDate getPreviousMesoEndDate(const int current_mesoid) const;
 	Q_INVOKABLE QDate getNextMesoStartDate(const int mesoid) const;

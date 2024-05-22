@@ -3,6 +3,20 @@
 
 #include "tplistmodel.h"
 
+#define MESOSPLIT_COL_EXERCISENAME 0
+#define MESOSPLIT_COL_SETTYPE 1
+#define MESOSPLIT_COL_SETSNUMBER 2
+#define MESOSPLIT_COL_SUBSETSNUMBER 3
+#define MESOSPLIT_COL_REPSNUMBER 4
+#define MESOSPLIT_COL_WEIGHT 5
+#define MESOSPLIT_COL_NOTES 6
+#define MESOSPLIT_COL_EXERCISE1REPS 7
+#define MESOSPLIT_COL_EXERCISE1WEIGHT 8
+#define MESOSPLIT_COL_EXERCISE2REPS 9
+#define MESOSPLIT_COL_EXERCISE2WEIGHT 10
+#define MESOSPLIT_COL_EXERCISE1NAME 11
+#define MESOSPLIT_COL_EXERCISE2NAME 12
+
 class DBTrainingDayModel;
 class DBExercisesModel;
 
@@ -31,18 +45,18 @@ Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY spli
 public:
 	enum RoleNames {
 		exerciseNameRole = Qt::UserRole,
-		exerciseName1Role = Qt::UserRole+11,
-		exerciseName2Role = Qt::UserRole+12,
-		setTypeRole = Qt::UserRole+1,
-		setsNumberRole = Qt::UserRole+2,
-		setsSubsetsRole = Qt::UserRole+3,
-		setsRepsRole = Qt::UserRole+4,
-		setsReps1Role = Qt::UserRole+7,
-		setsReps2Role = Qt::UserRole+9,
-		setsWeightRole = Qt::UserRole+5,
-		setsWeight1Role = Qt::UserRole+8,
-		setsWeight2Role = Qt::UserRole+10,
-		setsNotesRole = Qt::UserRole+6
+		exerciseName1Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE1NAME,
+		exerciseName2Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE2NAME,
+		setTypeRole = Qt::UserRole+MESOSPLIT_COL_SETTYPE,
+		setsNumberRole = Qt::UserRole+MESOSPLIT_COL_SETSNUMBER,
+		setsSubsetsRole = Qt::UserRole+MESOSPLIT_COL_SUBSETSNUMBER,
+		setsRepsRole = Qt::UserRole+MESOSPLIT_COL_REPSNUMBER,
+		setsReps1Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE1REPS,
+		setsReps2Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE2REPS,
+		setsWeightRole = Qt::UserRole+MESOSPLIT_COL_WEIGHT,
+		setsWeight1Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE1WEIGHT,
+		setsWeight2Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE2WEIGHT,
+		setsNotesRole = Qt::UserRole+MESOSPLIT_COL_NOTES
 	};
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr);
@@ -107,7 +121,7 @@ public:
 
 signals:
 	void muscularGroupChanged();
-	 void splitLetterChanged();
+	void splitLetterChanged();
 
 private:
 	uint m_nextAddedExercisePos;

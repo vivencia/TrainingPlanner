@@ -3,6 +3,16 @@
 
 #include "tplistmodel.h"
 
+#define TDAY_COL_ID 0
+#define TDAY_COL_MESOID 1
+#define TDAY_COL_DATE 2
+#define TDAY_COL_TRAININGDAYNUMBER 3
+#define TDAY_COL_SPLITLETTER 4
+#define TDAY_COL_TIMEIN 5
+#define TDAY_COL_TIMEOUT 6
+#define TDAY_COL_LOCATION 7
+#define TDAY_COL_NOTES 8
+
 class DBExercisesModel;
 class DBMesoSplitModel;
 
@@ -51,37 +61,41 @@ public:
 		}
 	}
 
-	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(0).toInt() : -1; }
-	inline const QString& idStr() const { return m_modeldata.at(0).at(0); }
-	inline void setId(const QString& new_id) { m_modeldata[0][0] = new_id; }
+	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
+	inline const QString& idStr() const { return m_modeldata.at(0).at(TDAY_COL_ID); }
+	inline void setId(const QString& new_id) { m_modeldata[0][TDAY_COL_ID] = new_id; }
 
-	Q_INVOKABLE const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(1).toInt(): -1; }
-	inline const QString& mesoIdStr() const { return m_modeldata.at(0).at(1); }
-	Q_INVOKABLE inline void setMesoId(const QString& mesoid) { m_modeldata[0][1] = mesoid; }
+	Q_INVOKABLE const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_MESOID).toInt(): -1; }
+	inline const QString& mesoIdStr() const { return m_modeldata.at(0).at(TDAY_COL_MESOID); }
+	Q_INVOKABLE inline void setMesoId(const QString& mesoid) { m_modeldata[0][TDAY_COL_MESOID] = mesoid; }
 
-	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(0).at(2).toLongLong()) : QDate::currentDate(); }
-	inline const QString& dateStr() const { return m_modeldata.at(0).at(2); }
-	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[0][2] = QString::number(date.toJulianDay()); setModified(true); }
+	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(0).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
+	inline const QString& dateStr() const { return m_modeldata.at(0).at(TDAY_COL_DATE); }
+	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[0][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }
 
-	Q_INVOKABLE QString trainingDay() const { return m_modeldata.at(0).at(3); }
+	Q_INVOKABLE QString trainingDay() const { return m_modeldata.at(0).at(TDAY_COL_TRAININGDAYNUMBER); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
 	//is changed even for the first time, i.e., when the page is receiving default values
-	Q_INVOKABLE void setTrainingDay(const QString& trainingday ) { if (trainingday != m_modeldata.at(0).at(3)) { m_modeldata[0][3] = trainingday; } }
+	Q_INVOKABLE void setTrainingDay(const QString& trainingday )
+	{ if (trainingday != m_modeldata.at(0).at(TDAY_COL_TRAININGDAYNUMBER)) { m_modeldata[0][TDAY_COL_TRAININGDAYNUMBER] = trainingday; setModified(true); } }
 
-	Q_INVOKABLE QString splitLetter() const { return m_modeldata.at(0).at(4); }
-	Q_INVOKABLE void setSplitLetter(const QString& splitletter ) { if (splitletter != m_modeldata.at(0).at(4)) { m_modeldata[0][4] = splitletter; setModified(true); } }
+	Q_INVOKABLE QString splitLetter() const { return m_modeldata.at(0).at(TDAY_COL_SPLITLETTER); }
+	Q_INVOKABLE void setSplitLetter(const QString& splitletter )
+	{ if (splitletter != m_modeldata.at(0).at(TDAY_COL_SPLITLETTER)) { m_modeldata[0][TDAY_COL_SPLITLETTER] = splitletter; setModified(true); } }
 
-	Q_INVOKABLE QString timeIn() const { return m_modeldata.at(0).at(5); }
-	Q_INVOKABLE void setTimeIn(const QString& timein) { if (timein != m_modeldata.at(0).at(5)) { m_modeldata[0][5] = timein; setModified(true); } }
+	Q_INVOKABLE QString timeIn() const { return m_modeldata.at(0).at(TDAY_COL_TIMEIN); }
+	Q_INVOKABLE void setTimeIn(const QString& timein)
+	{ if (timein != m_modeldata.at(0).at(TDAY_COL_TIMEIN)) { m_modeldata[0][TDAY_COL_TIMEIN] = timein; setModified(true); } }
 
-	Q_INVOKABLE QString timeOut() const { return m_modeldata.at(0).at(6); }
-	Q_INVOKABLE void setTimeOut(const QString& timeout) { if (timeout != m_modeldata.at(0).at(6)) { m_modeldata[0][6] = timeout; setModified(true); } }
+	Q_INVOKABLE QString timeOut() const { return m_modeldata.at(0).at(TDAY_COL_TIMEOUT); }
+	Q_INVOKABLE void setTimeOut(const QString& timeout)
+	{ if (timeout != m_modeldata.at(0).at(TDAY_COL_TIMEOUT)) { m_modeldata[0][TDAY_COL_TIMEOUT] = timeout; setModified(true); } }
 
-	Q_INVOKABLE QString location() const { return m_modeldata.at(0).at(7); }
-	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][7] = location; setModified(true); }
+	Q_INVOKABLE QString location() const { return m_modeldata.at(0).at(TDAY_COL_LOCATION); }
+	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][TDAY_COL_LOCATION] = location; setModified(true); }
 
-	Q_INVOKABLE QString dayNotes() const { return m_modeldata.at(0).at(8); }
-	Q_INVOKABLE void setDayNotes(const QString& day_notes) { m_modeldata[0][8] = day_notes; setModified(true); }
+	Q_INVOKABLE QString dayNotes() const { return m_modeldata.at(0).at(TDAY_COL_NOTES); }
+	Q_INVOKABLE void setDayNotes(const QString& day_notes) { m_modeldata[0][TDAY_COL_NOTES] = day_notes; setModified(true); }
 
 	const uint exerciseCount() const { return m_ExerciseData.count(); }
 	Q_INVOKABLE const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }

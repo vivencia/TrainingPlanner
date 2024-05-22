@@ -120,8 +120,8 @@ void DBExercisesModel::clearSelectedEntries()
 {
 	for (uint i(0); i < m_selectedEntries.count(); ++i)
 	{
-		m_modeldata[m_selectedEntries.at(i).real_index][11] = u"0"_qs;
-			emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
+		m_modeldata[m_selectedEntries.at(i).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+		emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
 				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
 	}
 	m_selectedEntries.clear();
@@ -143,7 +143,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 	{
 		if (!m_selectedEntries.isEmpty())
 		{
-			m_modeldata[m_selectedEntries.at(0).real_index][11] = u"0"_qs;
+			m_modeldata[m_selectedEntries.at(0).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
 			emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
 				index(m_selectedEntries.at(0).view_index, 0), QList<int>() << selectedRole);
 			m_selectedEntries.clear();
@@ -170,7 +170,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 			{
 				if (m_selectedEntryToReplace >= max_selected - 1)
 					m_selectedEntryToReplace = 0;
-				m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][11] = u"0"_qs;
+				m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
 				emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
 						index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0), QList<int>() << selectedRole);
 				m_selectedEntries[m_selectedEntryToReplace].real_index = real_item_pos;
@@ -186,14 +186,14 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 				if (m_selectedEntryToReplace >= max_selected - 1)
 					m_selectedEntryToReplace = 0;
 			}
-			m_modeldata[m_selectedEntries.at(idx).real_index][11] = u"0"_qs;
+			m_modeldata[m_selectedEntries.at(idx).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
 				emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
 						index(m_selectedEntries.at(idx).view_index, 0), QList<int>() << selectedRole);
 			m_selectedEntries.remove(idx, 1);
 			return false;
 		}
 	}
-	m_modeldata[real_item_pos][11] = u"1"_qs;
+	m_modeldata[real_item_pos][EXERCISES_COL_SELECTED] = u"1"_qs;
 	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>() << selectedRole);
 	return true;
 }

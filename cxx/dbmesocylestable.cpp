@@ -15,7 +15,7 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSe
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesocyclesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < 8; i++)
+	for(uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_COL_REALMESO; i++)
 		m_data.append(QString());
 }
 
@@ -64,14 +64,12 @@ void DBMesocyclesTable::getAllMesocycles()
 			if (query.first ())
 			{
 				QStringList meso_info;
-
-				const uint n_entries(8);
 				uint i(0);
 				do
 				{
-					for (i = 0; i < n_entries; ++i)
+					for (i = MESOCYCLES_COL_ID; i < MESOCYCLES_COL_REALMESO; ++i)
 						meso_info.append(query.value(static_cast<int>(i)).toString());
-					meso_info.append(query.value(3).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //realMeso? 3 = mesoEndDate
+					meso_info.append(query.value(MESOCYCLES_COL_ENDDATE).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //MESOCYCLES_COL_REALMESO
 					m_model->appendList(meso_info);
 					meso_info.clear();
 				} while ( query.next () );
@@ -100,14 +98,15 @@ void DBMesocyclesTable::newMesocycle()
 									"INSERT INTO mesocycles_table "
 									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
 									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7)) );
+									.arg(m_data.at(MESOCYCLES_COL_NAME), m_data.at(MESOCYCLES_COL_STARTDATE), m_data.at(MESOCYCLES_COL_ENDDATE),
+										m_data.at(MESOCYCLES_COL_NOTE), m_data.at(MESOCYCLES_COL_WEEKS), m_data.at(MESOCYCLES_COL_SPLIT),
+										m_data.at(MESOCYCLES_COL_DRUGS)) );
 		m_result = query.exec();
 		if (m_result)
 		{
 			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
-			m_data[0] = query.lastInsertId().toString();
-			m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
+			m_data[MESOCYCLES_COL_ID] = query.lastInsertId().toString();
+			m_data.append(m_data.at(MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 			m_model->updateList(m_data, m_model->currentRow());
 			m_model->setModified(false);
 			m_opcode = OP_ADD;
@@ -132,8 +131,9 @@ void DBMesocyclesTable::updateMesocycle()
 		query.prepare( QStringLiteral(
 									"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=\'%2\', meso_end_date=\'%3\', "
 									"meso_note=\'%4\', meso_nweeks=\'%5\', meso_split=\'%6\', meso_drugs=\'%7\' WHERE id=%8")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7), m_data.at(0)) );
+									.arg(m_data.at(MESOCYCLES_COL_NAME), m_data.at(MESOCYCLES_COL_STARTDATE), m_data.at(MESOCYCLES_COL_ENDDATE),
+										m_data.at(MESOCYCLES_COL_NOTE), m_data.at(MESOCYCLES_COL_WEEKS), m_data.at(MESOCYCLES_COL_SPLIT),
+										m_data.at(MESOCYCLES_COL_DRUGS), m_data.at(MESOCYCLES_COL_ID)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -141,8 +141,6 @@ void DBMesocyclesTable::updateMesocycle()
 	if (m_result)
 	{
 		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
-		m_data.append(m_data.at(3) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-		m_model->updateList(m_data, m_model->currentRow());
 		m_model->setModified(false);
 	}
 	else
@@ -157,12 +155,12 @@ void DBMesocyclesTable::setData(const QString& id, const QString& mesoName, cons
 						const QString& mesoEndDate, const QString& mesoNote, const QString& mesoWeeks,
 						const QString& mesoSplit, const QString& mesoDrugs)
 {
-	m_data[0] = id;
-	m_data[1] = mesoName;
-	m_data[2] = mesoStartDate;
-	m_data[3] = mesoEndDate;
-	m_data[4] = mesoNote;
-	m_data[5] = mesoWeeks;
-	m_data[6] = mesoSplit;
-	m_data[7] = mesoDrugs;
+	m_data[MESOCYCLES_COL_ID] = id;
+	m_data[MESOCYCLES_COL_NAME] = mesoName;
+	m_data[MESOCYCLES_COL_STARTDATE] = mesoStartDate;
+	m_data[MESOCYCLES_COL_ENDDATE] = mesoEndDate;
+	m_data[MESOCYCLES_COL_NOTE] = mesoNote;
+	m_data[MESOCYCLES_COL_WEEKS] = mesoWeeks;
+	m_data[MESOCYCLES_COL_SPLIT] = mesoSplit;
+	m_data[MESOCYCLES_COL_DRUGS] = mesoDrugs;
 }

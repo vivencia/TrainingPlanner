@@ -3,6 +3,19 @@
 
 #include "tplistmodel.h"
 
+#define EXERCISES_COL_ID 0
+#define EXERCISES_COL_MAINNAME 1
+#define EXERCISES_COL_SUBNAME 2
+#define EXERCISES_COL_MUSCULARGROUP 3
+#define EXERCISES_COL_SETSNUMBER 4
+#define EXERCISES_COL_REPSNUMBER 5
+#define EXERCISES_COL_WEIGHT 6
+#define EXERCISES_COL_WEIGHTUNIT 7
+#define EXERCISES_COL_MEDIAPATH 8
+#define EXERCISES_COL_FROMAPPLIST 9
+#define EXERCISES_COL_ACTUALINDEX 10
+#define EXERCISES_COL_SELECTED 11
+
 class DBExercisesModel : public TPListModel
 {
 
@@ -13,17 +26,17 @@ public:
 	// Define the role names to be used
 	enum RoleNames {
 		exerciseIdRole = Qt::UserRole,
-		mainNameRole = Qt::UserRole+1,
-		subNameRole = Qt::UserRole+2,
-		muscularGroupRole = Qt::UserRole+3,
-		nSetsRole = Qt::UserRole+4,
-		nRepsRole = Qt::UserRole+5,
-		nWeightRole = Qt::UserRole+6,
-		uWeightRole = Qt::UserRole+7,
-		mediaPathRole = Qt::UserRole+8,
-		fromListRole = Qt::UserRole+9,
-		actualIndexRole = Qt::UserRole+10,
-		selectedRole = Qt::UserRole+11
+		mainNameRole = Qt::UserRole+EXERCISES_COL_MAINNAME,
+		subNameRole = Qt::UserRole+EXERCISES_COL_SUBNAME,
+		muscularGroupRole = Qt::UserRole+EXERCISES_COL_MUSCULARGROUP,
+		nSetsRole = Qt::UserRole+EXERCISES_COL_SETSNUMBER,
+		nRepsRole = Qt::UserRole+EXERCISES_COL_REPSNUMBER,
+		nWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHT,
+		uWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHTUNIT,
+		mediaPathRole = Qt::UserRole+EXERCISES_COL_MEDIAPATH,
+		fromListRole = Qt::UserRole+EXERCISES_COL_FROMAPPLIST,
+		actualIndexRole = Qt::UserRole+EXERCISES_COL_ACTUALINDEX,
+		selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
 	};
 
 	explicit DBExercisesModel(QObject *parent = 0);

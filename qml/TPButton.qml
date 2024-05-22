@@ -23,7 +23,6 @@ Rectangle {
 	radius: 6
 	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
-	//opacity: !highlighted ? 1 : 0.5
 
 	onHighlightedChanged:
 		if (highlighted) {

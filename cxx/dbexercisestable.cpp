@@ -18,7 +18,7 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSett
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBExercisesFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < 11; i++)
+	for(uint i(EXERCISES_COL_ID); i < EXERCISES_COL_SELECTED; i++)
 		m_data.append(QString());
 }
 
@@ -80,10 +80,10 @@ void DBExercisesTable::getAllExercises()
 
 				do
 				{
-					for (i = 0; i < 10; ++i)
+					for (i = EXERCISES_COL_ID; i < EXERCISES_COL_ACTUALINDEX; ++i)
 						exercise_info.append(query.value(static_cast<int>(i)).toString());
-					exercise_info.append(QString::number(nExercises++)); //actualIndexRole
-					exercise_info.append(u"0"_qs); //selectedRole
+					exercise_info.append(QString::number(nExercises++)); //EXERCISES_COL_ACTUALINDEX
+					exercise_info.append(u"0"_qs); //EXERCISES_COL_SELECTED
 					m_model->appendList(exercise_info);
 					exercise_info.clear();
 				} while ( query.next () );
@@ -203,15 +203,16 @@ void DBExercisesTable::updateFromModel()
 		const QString query_cmd( QStringLiteral(
 								"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'qrc:/images/no_image.jpg\', 0)") );
+								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'%9\', 0)") );
 
 		mSqlLiteDB.transaction();
 		for ( uint i(0), idx(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
 			idx = m_model->modifiedIndex(i);
-			query.exec(query_cmd.arg(m_model->getFast(idx, 0).arg(m_model->getFast(idx, 1), m_model->getFast(idx, 2),
-									m_model->getFast(idx, 3), m_model->getFast(idx, 4), m_model->getFast(idx, 5),
-									m_model->getFast(idx, 6), strWeightUnit)));
+			query.exec(query_cmd.arg(m_model->getFast(idx, EXERCISES_COL_ID).arg(m_model->getFast(idx, EXERCISES_COL_MAINNAME),
+							m_model->getFast(idx, EXERCISES_COL_SUBNAME), m_model->getFast(idx, EXERCISES_COL_MUSCULARGROUP),
+							m_model->getFast(idx, EXERCISES_COL_SETSNUMBER), m_model->getFast(idx, EXERCISES_COL_REPSNUMBER),
+							m_model->getFast(idx, EXERCISES_COL_WEIGHT), strWeightUnit, m_model->getFast(idx, EXERCISES_COL_MEDIAPATH))));
 		}
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
@@ -244,16 +245,18 @@ void DBExercisesTable::newExercise()
 									"INSERT INTO exercises_table"
 									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
-									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-										m_data.at(5), m_data.at(6), m_data.at(7), m_data.at(8)) );
+									.arg(m_data.at(EXERCISES_COL_ID), m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME),
+										m_data.at(EXERCISES_COL_MUSCULARGROUP), m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER),
+										m_data.at(EXERCISES_COL_WEIGHT), m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 		if (m_result)
 		{
 			if (m_model)
 			{
-				m_data[9] = QString::number(m_model->count());
-				m_data[10] = u"0"_qs;
+				m_data[EXERCISES_COL_FROMAPPLIST] = u"0"_qs;
+				m_data[EXERCISES_COL_ACTUALINDEX] = QString::number(m_model->count());
+				m_data[EXERCISES_COL_SELECTED] = u"0"_qs;
 				m_model->appendList(data());
 			}
 		}
@@ -281,8 +284,9 @@ void DBExercisesTable::updateExercise()
 		query.prepare( QStringLiteral(
 									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
 									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5), m_data.at(6),
-										m_data.at(7), m_data.at(8), m_data.at(0)) );
+									.arg(m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME), m_data.at(EXERCISES_COL_MUSCULARGROUP),
+										m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER), m_data.at(EXERCISES_COL_WEIGHT),
+										m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH), m_data.at(EXERCISES_COL_ID)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 		if (m_result)
@@ -308,15 +312,15 @@ void DBExercisesTable::setData(const QString& id, const QString& mainName, const
 						const QString& muscularGroup, const QString& nSets, const QString& nReps,
 						const QString& nWeight, const QString& uWeight, const QString& mediaPath)
 {
-	m_data[0] = id;
-	m_data[1] = mainName;
-	m_data[2] = subName;
-	m_data[3] = muscularGroup;
-	m_data[4] = nSets; //QString::number(nSets,'g', 1)
-	m_data[5] = nReps;
-	m_data[6] = nWeight;
-	m_data[7] = uWeight;
-	m_data[8] = mediaPath;
+	m_data[EXERCISES_COL_ID] = id;
+	m_data[EXERCISES_COL_MAINNAME] = mainName;
+	m_data[EXERCISES_COL_SUBNAME] = subName;
+	m_data[EXERCISES_COL_MUSCULARGROUP] = muscularGroup;
+	m_data[EXERCISES_COL_SETSNUMBER] = nSets; //QString::number(nSets,'g', 1)
+	m_data[EXERCISES_COL_REPSNUMBER] = nReps;
+	m_data[EXERCISES_COL_WEIGHT] = nWeight;
+	m_data[EXERCISES_COL_WEIGHTUNIT] = uWeight;
+	m_data[EXERCISES_COL_MEDIAPATH] = mediaPath;
 }
 
 void DBExercisesTable::removePreviousListEntriesFromDB()

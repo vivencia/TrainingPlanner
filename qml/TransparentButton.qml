@@ -10,6 +10,11 @@ ToolButton {
 	leftInset: 0
 	width: parent.width
 	opacity: parent.opacity
+	hoverEnabled: true
+
+	onHoveredChanged: {
+		opacity = hovered ? 1 : parent.opacity
+	}
 
 	signal buttonClicked(int clickid)
 	property bool bEmitSignal: false

@@ -24,7 +24,7 @@ function checkWhetherCanCreatePlan() {
 		ok &= (txtSplitF.length > 1);
 		txtSplitF.cursorPosition = 0;
 	}
-	btnCreateExercisePlan.enabled = ok;
+	btnCreateExercisePlan.enabled = !bNewMeso && ok;
 }
 
 function moveFocusToNextField(from) {

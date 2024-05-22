@@ -410,7 +410,7 @@ Page {
 							inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
 							inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
 						}
-						inexportMenu.show(btnInExport, 0);
+						inexportMenu.show(btnInExport, 1);
 					}
 
 					function selectedMenuOption(menuid: int) {

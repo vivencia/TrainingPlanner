@@ -134,25 +134,25 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 				m_modeldata[row][role-Qt::UserRole] = value.toString();
 			break;
 			case exerciseName1Role:
-				replaceCompositeValue(row, 0, 1, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 1, value.toString());
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);
 			break;
 			case exerciseName2Role:
-				replaceCompositeValue(row, 0, 2, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 2, value.toString());
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);
 			break;
 			case setsReps1Role:
-				replaceCompositeValue(row, 4, 1, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 1, value.toString());
 				emit dataChanged(index, index, QList<int>() << setsRepsRole);
 			case setsReps2Role:
-				replaceCompositeValue(row, 4, 2, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 2, value.toString());
 				emit dataChanged(index, index, QList<int>() << setsRepsRole);
 			break;
 			case setsWeight1Role:
-				replaceCompositeValue(row, 5, 1, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_WEIGHT, 1, value.toString());
 				emit dataChanged(index, index, QList<int>() << setsWeightRole);
 			case setsWeight2Role:
-				replaceCompositeValue(row, 5, 2, value.toString());
+				replaceCompositeValue(row, MESOSPLIT_COL_WEIGHT, 2, value.toString());
 				emit dataChanged(index, index, QList<int>() << setsWeightRole);
 			break;
 			default: return false;
@@ -171,19 +171,21 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 
 	if (nSel == 1)
 	{
-		name = model->selectedEntriesValue_fast(0, 1) + u" - "_qs + model->selectedEntriesValue_fast(0, 2);
-		sets = model->selectedEntriesValue(0, 4);
-		reps = model->selectedEntriesValue(0, 5);
-		weight = model->selectedEntriesValue(0, 6);
+		name = model->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_qs +
+				model->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME);
+		sets = model->selectedEntriesValue(0, EXERCISES_COL_SETSNUMBER);
+		reps = model->selectedEntriesValue(0, EXERCISES_COL_REPSNUMBER);
+		weight = model->selectedEntriesValue(0, EXERCISES_COL_WEIGHT);
 	}
 	else
 	{
 		for (uint i(0); i < nSel; ++i)
 		{
-			name += model->selectedEntriesValue_fast(i, 1) + u" - "_qs + model->selectedEntriesValue_fast(i, 2) + subrecord_separator;
-			sets += model->selectedEntriesValue(i, 4) + subrecord_separator;
-			reps += model->selectedEntriesValue(i, 5) + subrecord_separator;
-			weight += model->selectedEntriesValue(i, 6) + subrecord_separator;
+			name += model->selectedEntriesValue_fast(i, EXERCISES_COL_MAINNAME) + u" - "_qs +
+					model->selectedEntriesValue_fast(i, EXERCISES_COL_SUBNAME) + subrecord_separator;
+			sets += model->selectedEntriesValue(i, EXERCISES_COL_SETSNUMBER) + subrecord_separator;
+			reps += model->selectedEntriesValue(i, EXERCISES_COL_REPSNUMBER) + subrecord_separator;
+			weight += model->selectedEntriesValue(i, EXERCISES_COL_WEIGHT) + subrecord_separator;
 		}
 		name.chop(1);
 		sets.chop(1);

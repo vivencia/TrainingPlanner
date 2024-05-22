@@ -94,36 +94,44 @@ Popup {
 			entryComponent.statusChanged.connect(finishCreation);
 	}
 
-	function show(parent: Item, pos: int) {
-		if (menu.visible) {
-			menu.close();
+	function show(targetItem: Item, pos: int) {
+		if (visible) {
+			close();
 			return;
 		}
+		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 
-		var point;
+		var xpos, ypos;
 		switch (pos) {
 			case 0: //top
-				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y);
-				menu.x = parent.x;
-				menu.y = point.y - parent.height;
+				xpos = point.x;
+				ypos = point.y - height;
 			break;
 			case 1: //left
-				point = parent.mapToItem(mainwindow.contentItem, parent.x + parent.width, parent.y);
-				menu.x = parent.x + parent.width;
-				menu.y = point.y;
+				xpos = point.x - width
+				ypos = point.y;
 			break;
 			case 2: //right
-				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y);
-				menu.x = parent.x - menu.width - 5;
-				menu.y = point.y;
+				xpos = point.x + targetItem.width;
+				ypos = point.y;
 			break;
 			case 3: //bottom
-				point = parent.mapToItem(mainwindow.contentItem, parent.x, parent.y + parent.height);
-				menu.x = parent.x;
-				menu.y = point.y + parent.height;
+				xpos = point.x;
+				ypos = point.y + targetItem.height;
 			break;
 		}
-		menu.open();
+
+		if (xpos < 0)
+			xpos = 0;
+		else if (xpos + width > parent.width)
+			xpos = parent.width - width;
+		if (ypos < 0)
+			ypos = 0;
+		else if (ypos + height > parent.height)
+			ypos = parent.height - width;
+		x = xpos;
+		y = ypos;
+		open();
 	}
 
 	function menuEntryClicked(buttonid: int) {

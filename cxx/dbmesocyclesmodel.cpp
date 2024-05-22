@@ -119,47 +119,32 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 	return false;
 }
 
-QVariant DBMesocyclesModel::getMesoInfo(const int mesoid, const int role) const
+QString DBMesocyclesModel::getMesoInfo(const int mesoid, const uint field) const
 {
-	if (mesoid >= 0)
+	for(uint x(0); x < count(); ++x)
 	{
-		for(uint x(0); x < count(); ++x)
-		{
-			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == mesoid)
-				return data(index(x), role);
-		}
+		if (static_cast<QString>(m_modeldata.at(x).at(MESOCYCLES_COL_ID)).toInt() == mesoid)
+			return m_modeldata.at(x).at(field);
 	}
-	return QVariant();
+	return QString();
 }
 
 int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 {
-	if (current_mesoid >= 0)
+	for(uint x(1); x < count(); ++x)
 	{
-		for(uint x(0); x < count(); ++x)
-		{
-			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == current_mesoid)
-			{
-				if (x > 0)
-					return static_cast<QString>(m_modeldata.at(x-1).at(0)).toInt();
-			}
-		}
+		if (static_cast<QString>(m_modeldata.at(x).at(MESOCYCLES_COL_ID)).toInt() == current_mesoid)
+			return static_cast<QString>(m_modeldata.at(x-1).at(MESOCYCLES_COL_ID)).toInt();
 	}
 	return -1;
 }
 
 QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
 {
-	if (current_mesoid >= 0)
+	for(uint x(1); x < count(); ++x)
 	{
-		for(uint x(0); x < count(); ++x)
-		{
-			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == current_mesoid)
-			{
-				if (x > 0)
-					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x-1).at(3)).toLongLong());
-			}
-		}
+		if (static_cast<QString>(m_modeldata.at(x).at(MESOCYCLES_COL_ID)).toInt() == current_mesoid)
+			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x-1).at(MESOCYCLES_COL_ENDDATE)).toLongLong());
 	}
 	// 1 or 0 meso records = no previous meso. The first meso can start anywhere in 2024
 	return QDate(2024, 1, 1);
@@ -167,16 +152,10 @@ QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
 
 QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 {
-	if (mesoid >= 0)
+	for(uint x(0); x < count() - 1; ++x)
 	{
-		for(uint x(0); x < count(); ++x)
-		{
-			if (static_cast<QString>(m_modeldata.at(x).at(0)).toInt() == mesoid)
-			{
-				if (x + 1 < count())
-					return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x+1).at(2)).toLongLong());
-			}
-		}
+		if (static_cast<QString>(m_modeldata.at(x).at(MESOCYCLES_COL_ID)).toInt() == mesoid)
+			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(x+1).at(MESOCYCLES_COL_STARTDATE)).toLongLong());
 	}
 	 //This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
 	return QDate::currentDate().addMonths(6);
@@ -184,7 +163,7 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
-	if ( count() > 0)
-		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.last().at(3)).toLongLong());
+	if (count() > 0)
+		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.last().at(MESOCYCLES_COL_ENDDATE)).toLongLong());
 	return QDate::currentDate();
 }

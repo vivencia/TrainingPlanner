@@ -7,8 +7,6 @@
 
 #include <random>
 
-static const uint n_entries(9);
-
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* appSettings, DBTrainingDayModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
@@ -21,7 +19,7 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* app
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBTrainingDayFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < n_entries; i++)
+	for(uint i(0); i < 7; i++)
 		m_data.append(QString());
 }
 
@@ -84,7 +82,7 @@ void DBTrainingDayTable::getTrainingDay()
 			{
 				QStringList split_info;
 				uint i(0);
-				for (i = 0; i < n_entries; ++i)
+				for (i = TDAY_COL_ID; i <= TDAY_COL_NOTES; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				m_model->appendList(split_info);
 			}
@@ -122,7 +120,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 			{
 				QStringList split_info;
 				uint i(0);
-				for (i = 0; i < n_entries-1; ++i)
+				for (i = 0; i < 7; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
 				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(split_info);
 			}
