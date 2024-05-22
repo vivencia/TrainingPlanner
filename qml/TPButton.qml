@@ -9,7 +9,7 @@ Rectangle {
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property bool textUnderIcon: false
-	property bool highlight: false
+	property bool highlighted: false
 	property bool fixedSize: false
 	property alias buttonHeight: button.implicitHeight
 
@@ -23,16 +23,23 @@ Rectangle {
 	radius: 6
 	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
+	//opacity: !highlighted ? 1 : 0.5
 
-	onHighlightChanged: {
-		if (highlight) {
-			button.border.width = 2;
-			anim2.start();
+	onHighlightedChanged:
+		if (highlighted) {
+			fillPosition = 0;
+			highlighTimer.start();
 		}
-		else {
-			button.border.width = 1;
-			anim2.stop();
-		}
+		else
+			fillPosition = 1;
+
+	Timer {
+		id: highlighTimer
+		running: false
+		repeat: false
+		interval: 200
+
+		onTriggered: fillPosition = 1;
 	}
 
 	FontMetrics {
@@ -64,11 +71,11 @@ Rectangle {
 		}
 	}
 
-	property double fillPosition: !anim.running
+	property double fillPosition: 1
 	Behavior on fillPosition {
 		NumberAnimation {
 			id: flash
-			duration: 300
+			duration: 200
 		}
 	}
 
@@ -147,6 +154,9 @@ Rectangle {
 
 	MouseArea {
 		anchors.fill: parent
+		enabled: button.enabled
+		hoverEnabled: true
+
 		onClicked: (mouse) => {
 			if (enabled) {
 				if (!mouse.wasHeld)
@@ -159,6 +169,7 @@ Rectangle {
 				mouse.accepted = true;
 				bPressed = true;
 				button.forceActiveFocus();
+				button.fillPosition = 0;
 				anim.start();
 			}
 		}
@@ -166,6 +177,9 @@ Rectangle {
 			mouse.accepted = true;
 			bPressed = false;
 		}
+
+		onEntered: button.highlighted = true;
+		onExited: button.highlighted = false;
 	}
 
 	SequentialAnimation {
@@ -195,28 +209,6 @@ Rectangle {
 				bEmitSignal = false;
 				button.clicked();
 			}
-		}
-	}
-
-	SequentialAnimation {
-		id: anim2
-		loops: Animation.Infinite
-		alwaysRunToEnd: true
-
-		PropertyAnimation {
-			target: button
-			property: "border.color"
-			to: "gold"
-			duration: 300
-			easing.type: Easing.InOutCubic
-		}
-
-		PropertyAnimation {
-			target: button
-			property: "border.color"
-			to: "black"
-			duration: 300
-			easing.type: Easing.InOutCubic
 		}
 	}
 } //Rectangle

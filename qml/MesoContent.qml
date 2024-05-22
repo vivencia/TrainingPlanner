@@ -95,7 +95,7 @@ Page {
 
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
-			width: calendar.width - 20
+			width: calendar.width - 10
 			color: AppSettings.primaryDarkColor
 			opacity: 0.7
 
@@ -147,17 +147,23 @@ Page {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					//readonly property bool todayDate: model.year === _today.getFullYear() && model.month === _today.getMonth() && model.day === _today.getDate()
+					border.color: "red"
+					border.width: bDayIsFinished ? 2 : 0
+					opacity: !highlighted ? 1 : 0.5
+
 					readonly property bool todayDate: model.month === _today.getMonth() && model.day === _today.getDate()
 					property bool bIsTrainingDay: false
+					property bool bDayIsFinished: false
+					property bool highlighted: false
+					property string colorValue
 
 					Component.onCompleted: {
 						var colorValue = "transparent";
-						bIsTrainingDay = false;
 						if ( monthGrid.month === model.month ) {
 							if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
 								colorValue =  listEntryColor2;
 								bIsTrainingDay = true;
+								bDayIsFinished = mesoCalendarModel.isDayFinished(model.month+1, model.day-1);
 							}
 						}
 						color = colorValue
@@ -166,16 +172,46 @@ Page {
 					Text {
 						anchors.centerIn: parent
 						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
-						scale: todayDate ? 1.2 : 1
-						//visible: parent.enabled
 						color: todayDate ? "red" : AppSettings.fontColor
 						font.bold: true
 						font.pointSize: AppSettings.fontSize
 					}
 
+					SequentialAnimation {
+						id: anim
+						alwaysRunToEnd: true
+
+						// Expand the button
+						PropertyAnimation {
+							target: dayEntry
+							property: "scale"
+							to: 1.4
+							duration: 200
+							easing.type: Easing.InOutCubic
+						}
+
+						// Shrink back to normal
+						PropertyAnimation {
+							target: dayEntry
+							property: "scale"
+							to: 1.0
+							duration: 200
+							easing.type: Easing.InOutCubic
+						}
+					}
+
 					MouseArea {
 						anchors.fill: parent
-						onClicked: selectDay(model.year, model.month, model.day);
+						hoverEnabled: true
+						enabled: dayEntry.bIsTrainingDay
+
+						onClicked: {
+							anim.start();
+							selectDay(model.year, model.month, model.day);
+						}
+
+						onEntered: dayEntry.highlighted = true;
+						onExited: dayEntry.highlighted = false;
 					}
 				} //delegate: Rectangle
 			} //MonthGrid
@@ -197,32 +233,36 @@ Page {
 			opacity: 0.8
 		}
 
-		RowLayout {
-			anchors.fill: parent
+		Label {
+			text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
+					qsTr("Selected day is not part of the current mesocycle")
+			color: AppSettings.fontColor
+			width: parent.width - btnShowDayInfo.width - 10
+			wrapMode: Text.WordWrap
+			font.pointSize: AppSettings.fontSizeText
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				verticalCenter: parent.verticalCenter
+			}
+		}
 
-			Label {
-				text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
-						qsTr("Selected day is not part of the current mesocycle")
-				color: AppSettings.fontColor
-				wrapMode: Text.WordWrap
-				font.pointSize: AppSettings.fontSizeText
-				Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-				Layout.maximumWidth: parent.width / 2
-				Layout.leftMargin: 5
+		TPButton {
+			id: btnShowDayInfo
+			text: qsTr("View Day")
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"day-info.png"
+			textUnderIcon: true
+			width: 60
+			fixedSize: true
+			enabled: false
+			anchors {
+				right: parent.right
+				rightMargin: 5
+				verticalCenter: parent.verticalCenter
 			}
 
-			TPButton {
-				id: btnShowDayInfo
-				text: qsTr("View Day")
-				imageSource: "qrc:/images/"+AppSettings.iconFolder+"day-info.png"
-				textUnderIcon: true
-				Layout.alignment:  Qt.AlignRight | Qt.AlignVCenter
-				Layout.rightMargin: 5
-				enabled: false
-
-				onClicked: appDB.getTrainingDay(calendar.dayInfoDate);
-			}
-		} // RowLayout
+			onClicked: appDB.getTrainingDay(calendar.dayInfoDate);
+		}
 	} // footer: ToolBar
 
 	Component.onCompleted: {
@@ -249,7 +289,7 @@ Page {
 	//Month: JS 0-11 TP: 1-12
 	//Date: JS 1-31 TP:0-30
 	function selectDay(year, month, day) {
-		btnShowDayInfo.enabled = mesoCalendarModel.isTrainingDay(month+1, day-1);
+		btnShowDayInfo.enabled = mesoCalendarModel.isPartOfMeso(month+1, day-1);
 
 		if (btnShowDayInfo.enabled) {
 			splitLetter = mesoCalendarModel.getSplitLetter(month+1, day-1);
