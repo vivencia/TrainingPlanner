@@ -7,7 +7,6 @@ import QtQuick.Layouts
 
 Page {
 	id: homePage
-	property int currentMesoIndex: -1
 	property date minimumStartDate;
 
 	Image {
@@ -82,7 +81,8 @@ Page {
 
 			Rectangle {
 				id: recRemoveMeso
-				color: "lightcoral"
+				color: "red"
+				opacity: 0.7
 				radius: 6
 				visible: false
 				z: 1
@@ -146,10 +146,8 @@ Page {
 				property bool tracing: false
 
 				onClicked: {
-					if (!recRemoveMeso.visible) {
-						currentMesoIndex = index;
-						appDB.getMesocycle(currentMesoIndex);
-					}
+					if (!recRemoveMeso.visible)
+						appDB.getMesocycle(index);
 					else
 						recRemoveMeso.visible = false;
 				}
@@ -163,20 +161,18 @@ Page {
 							recRemoveMeso.visible = true;
 						}
 					}
-					else {
-						if (xPrev >= 50)
-							tracing = true;
-					}
 				}
 
 				onPositionChanged: (mouse) => {
 					if (!tracing) return;
-					if (mouse.x <= 50)
-						recRemoveMeso.width = mesosListView.width-50;
-					else if (mouse.x === mesosListView.width - 10)
-						recRemoveMeso.visible = false;
+					if (mouse.x <= 0)
+						recRemoveMeso.width = mesosListView.width;
 					else {
 						recRemoveMeso.width += (xPrev - mouse.x);
+						if (mouse.x > xPrev) {
+							if (recRemoveMeso.width <= 30)
+								recRemoveMeso.visible = false;
+						}
 						xPrev = mouse.x;
 					}
 				}
@@ -190,7 +186,7 @@ Page {
 			background: Rectangle {
 				radius: 6
 				opacity: 0.8
-				color: listEntryColor2
+				color: index === mesocyclesModel.currentRow ? AppSettings.entrySelectedColor : listEntryColor2
 			}
 
 			Column {
@@ -271,8 +267,6 @@ Page {
 		}
 	} // footer
 
-	Component.onCompleted: homePage.StackView.activating.connect(pageActivation);
-
 	function newAction(opt) {
 		function pushPageOntoStack(object, id)
 		{
@@ -286,20 +280,7 @@ Page {
 		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"));
 	}
 
-	function showMeso() {
-		function pushMesoPageOntoStack(object, id)
-		{
-			if (id === 175) {
-				appDB.getPage.disconnect(pushMesoPageOntoStack);
-				mainMenu.addShortCut(mesocyclesModel.get(currentMesoIndex, 1), object);
-			}
-		}
-
-		appDB.getPage.connect(pushMesoPageOntoStack);
-		appDB.getMesocycle(currentMesoIndex);
-	}
-
-	function pageActivation() {
+	function setViewModel() {
 		mesosListView.model = mesocyclesModel;
 	}
 } //Page

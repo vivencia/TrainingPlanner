@@ -787,6 +787,7 @@ Page {
 
 	Keys.onPressed: (event)=> {
 		if (event.key === Qt.Key_Back) {
+			saveWorkout();
 			event.accepted = true;
 			if (exercisesPane.visible)
 				exercisesPane.visible = false;
@@ -1211,7 +1212,6 @@ Page {
 	}
 
 	function pageDeActivation() {
-		saveWorkout();
 		if (navButtons)
 			navButtons.visible = false;
 		if (btnFloat)

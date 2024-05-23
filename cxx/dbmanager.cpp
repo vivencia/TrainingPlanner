@@ -223,6 +223,8 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 		m_MesoId = mesoId;
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
+		mesocyclesModel->setCurrentRow(mesoIdx);
+		getMesoSplit();
 	}
 }
 
@@ -1151,6 +1153,9 @@ void DbManager::getTrainingDay(const QDate& date)
 
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->gettDayModel(date)));
+	worker->addExecArg("13");
+	worker->removeEntry();
+	worker->clearExecArgs();
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );

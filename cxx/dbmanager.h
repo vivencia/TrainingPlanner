@@ -36,7 +36,7 @@ public:
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void restartApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
-	void setWorkingMeso(const int mesoId, const uint mesoIdx);
+	Q_INVOKABLE void setWorkingMeso(const int mesoId, const uint mesoIdx);
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 

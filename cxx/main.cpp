@@ -16,7 +16,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
 	if (settingsObj.childKeys().isEmpty() || settingsObj.value("appLocale").toString().isEmpty())
 	{
-		settingsObj.setValue("appVersion", QString());
+		settingsObj.setValue("appVersion", TP_APP_VERSION);
 		settingsObj.setValue("appLocale", QLocale::system().name());
 		settingsObj.setValue("weightUnit", u"(kg)"_qs);
 		settingsObj.setValue("themeStyle", u"Material"_qs);

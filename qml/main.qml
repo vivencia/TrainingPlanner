@@ -127,9 +127,7 @@ ApplicationWindow {
 	}
 
 	function init() {
-		if (mesocyclesModel.count !== 0)
-			appDB.getMesoSplit();
-		homePage.pageActivation();
+		homePage.setViewModel();
 	}
 
 	function popFromStack(page: Item) {

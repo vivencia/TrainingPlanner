@@ -31,6 +31,7 @@ public:
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
+	inline void clearExecArgs() { m_execArgs.clear(); }
 	inline TPListModel* model() const { return m_model; }
 
 	void removeEntry();

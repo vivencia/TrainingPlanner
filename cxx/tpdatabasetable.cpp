@@ -9,7 +9,7 @@ void TPDatabaseTable::removeEntry()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM ") + m_tableName + QStringLiteral("WHERE id=") + m_data.at(0) );
+		query.prepare(QStringLiteral("DELETE FROM ") + m_tableName + QStringLiteral(" WHERE id=") + m_execArgs.at(0).toString());
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -26,7 +26,7 @@ void TPDatabaseTable::removeEntry()
 		MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	//doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void TPDatabaseTable::clearTable()

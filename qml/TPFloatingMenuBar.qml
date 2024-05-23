@@ -18,6 +18,13 @@ Popup {
 	property int entriesTotalHeight: 0
 	property var entryComponent: null
 
+	Keys.onPressed: (event) => {
+		if (event.key === Qt.Key_Back) {
+			event.accepted = true;
+			close();
+		}
+	}
+
 	background: Rectangle {
 		id: background
 		color: AppSettings.primaryColor
@@ -81,8 +88,8 @@ Popup {
 			entryComponent = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = entryComponent.createObject(mainLayout, { "text": label, "imageSource": "qrc:/images/"+AppSettings.iconFolder+img,  "clickId": id,
-				"Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
+			var button = entryComponent.createObject(mainLayout, { "text": label, "imageSource": "qrc:/images/"+AppSettings.iconFolder+img,
+				"clickId": id, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
 			entriesTotalHeight += button.height;
 			button.buttonClicked.connect(menuEntryClicked);
 			entriesList.push(button);

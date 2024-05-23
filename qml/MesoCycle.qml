@@ -677,6 +677,7 @@ Page {
 		if (bNewMeso)
 			txtMesoName.forceActiveFocus();
 		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
+		mesoPropertiesPage.StackView.activating.connect(pageActivation);
 	}
 
 	Component.onDestruction: {
@@ -806,5 +807,9 @@ Page {
 	function pageDeActivation() {
 		if (bNewMeso)
 			appDB.removeMesocycle();
+	}
+
+	function pageActivation() {
+		appDB.setWorkingMeso(mesoId, mesoIdx);
 	}
 } //Page

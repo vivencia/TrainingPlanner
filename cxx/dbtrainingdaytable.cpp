@@ -118,11 +118,11 @@ void DBTrainingDayTable::getTrainingDayExercises()
 		{
 			if (query.first())
 			{
-				QStringList split_info;
+				QStringList workout_info;
 				uint i(0);
 				for (i = 0; i < 7; ++i)
-					split_info.append(query.value(static_cast<int>(i)).toString());
-				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(split_info);
+					workout_info.append(query.value(static_cast<int>(i)).toString());
+				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(workout_info);
 			}
 		}
 		mSqlLiteDB.close();
