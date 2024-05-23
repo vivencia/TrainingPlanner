@@ -496,7 +496,7 @@ Page {
 							AppSettings.colorScheme = "Dark";
 							AppSettings.fontColor = "white";
 							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#3f0000", "#696969"];
+							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969"];
 						break;
 						case 5:
 							AppSettings.colorScheme = "Light";

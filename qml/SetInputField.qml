@@ -40,8 +40,8 @@ FocusScope {
 
 	DoubleValidator {
 		id: val_rep
-		bottom: 0.0
-		top: 99.9;
+		bottom: 0.00
+		top: 99.99;
 		decimals: 1
 		locale: AppSettings.appLocale
 	}
@@ -101,9 +101,7 @@ FocusScope {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
-			}
+			onClicked: valueChanged(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
 		}
 
 		TPRoundButton {
@@ -142,7 +140,12 @@ FocusScope {
 								nbr -= 5;
 						}
 						else
-							nbr -= 2.5
+						{
+							if (str.endsWith('5'))
+								nbr -= 2.5
+							else
+								nbr -= 5;
+						}
 					break;
 					case SetInputField.Type.RepType:
 						if (str === "")
@@ -152,7 +155,12 @@ FocusScope {
 						if (str.indexOf('.') === -1)
 							nbr -= 1;
 						else
-							nbr -= 0.5
+						{
+							if (str.endsWith('5'))
+								nbr -= 0.5
+							else
+								nbr -= 1;
+						}
 					break;
 					case SetInputField.Type.SetType:
 						if (str === "")
@@ -180,7 +188,7 @@ FocusScope {
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 35 : 30
+			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 40 : 35
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
 
@@ -213,13 +221,12 @@ FocusScope {
 					}
 				}
 				else {
-					if (!acceptableInput)
-						text = origText;
+					valueChanged(sanitizeText(text));
 				}
 			}
 
 			onEditingFinished: {
-				if (acceptableInput)
+				//if (acceptableInput)
 					valueChanged(sanitizeText(text));
 			}
 
@@ -263,8 +270,12 @@ FocusScope {
 							else
 								nbr += 5;
 						}
-						else
-							nbr += 2.5
+						else {
+							if (str.endsWith('5'))
+								nbr += 2.5
+							else
+								nbr += 5
+						}
 						if (nbr > 999.99)
 							return;
 					break;
@@ -273,7 +284,12 @@ FocusScope {
 						if (str.indexOf('.') === -1)
 							nbr += 1;
 						else
-							nbr += 0.5
+						{
+							if (str.endsWith('5'))
+								nbr += 0.5
+							else
+								nbr += 1;
+						}
 						if (nbr > 99.99)
 							return;
 					break;

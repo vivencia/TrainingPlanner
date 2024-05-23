@@ -304,7 +304,7 @@ Page {
 				Layout.rightMargin: 10
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Trainning: <b>") + splitText + "</b>"
+				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Workout number: <b>") + splitText + "</b>"
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
 			}
@@ -390,7 +390,7 @@ Page {
 				visible: splitLetter !== 'R'
 				enabled: !tDayModel.dayIsFinished
 				Layout.fillWidth: true
-				Layout.rightMargin: 10
+				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 
 				onTextChanged: tDayModel.setLocation(text);
@@ -403,7 +403,7 @@ Page {
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
-				Layout.rightMargin: 10
+				Layout.rightMargin: 5
 
 				background: Rectangle {
 					border.color: AppSettings.fontColor
@@ -563,7 +563,7 @@ Page {
 					spacing: 0
 
 					Label {
-						text: qsTr("Replace exercises plan for this division with this day's training list?")
+						text: qsTr("Use this workout exercises as the default exercises plan for this division in this mesocycle?")
 						wrapMode: Text.WordWrap
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
@@ -581,7 +581,10 @@ Page {
 						text: qsTr("Go")
 						Layout.alignment: Qt.AlignCenter
 						Layout.bottomMargin: 20
-						onClicked: appDB.convertTDayToPlan(tDayModel);
+						onClicked: {
+							appDB.convertTDayToPlan(tDayModel);
+							enabled = editMode;
+						}
 					}
 				}
 			} //Frame
@@ -635,7 +638,7 @@ Page {
 				id: grpIntent
 				text: qsTr("What do you want to do today?")
 				Layout.fillWidth: true
-				Layout.rightMargin: 10
+				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 30
 				visible: bHasMesoPlan || bHasPreviousTDays
@@ -787,10 +790,10 @@ Page {
 
 	Keys.onPressed: (event)=> {
 		if (event.key === Qt.Key_Back) {
-			saveWorkout();
+			saveWorkout(); //It should called also when the back button is clicked, but I don't have a method for doing it yet
 			event.accepted = true;
 			if (exercisesPane.visible)
-				exercisesPane.visible = false;
+				requestSimpleExercisesList(null, false, false);
 			else
 				trainingDayPage.StackView.pop();
 		}

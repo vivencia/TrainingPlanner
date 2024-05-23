@@ -495,12 +495,12 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 			case 2: //DropSet
 			{
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
-				const uint nreps(nReps.toUInt());
-				m_ExerciseData.at(exercise_idx)->reps.append(nReps + subrecord_separator + QString::number(nreps - 3) +
-												subrecord_separator + QString::number(nreps - 6) + subrecord_separator);
-				const uint nweight(nWeight.toUInt());
-				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator + QString::number(nweight - 10) +
-												subrecord_separator + QString::number(nweight - 20) + subrecord_separator);
+				const float nreps(nReps.toFloat());
+				m_ExerciseData.at(exercise_idx)->reps.append(nReps + subrecord_separator + QString::number(nreps - 3.0, 'g', 2) +
+												subrecord_separator + QString::number(nreps - 6.0, 'g', 2) + subrecord_separator);
+				const float nweight(nWeight.toFloat());
+				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator + QString::number(nweight - 10.0, 'g', 2) +
+												subrecord_separator + QString::number(nweight - 20.0, 'g', 2) + subrecord_separator);
 			}
 			break;
 			case 3: //ClusterSet
@@ -545,12 +545,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 
 	if (type == 1 || type == 6)
 	{
-		uint lastSetValue(multiUseString.toUInt());
+		float lastSetValue(multiUseString.toFloat());
 		if (type == 1) //Pyramid
-			lastSetValue -= 3;
+			lastSetValue -= 3.0;
 		else //Reverse Pyramid
-			lastSetValue += 5;
-		multiUseString = QString::number(lastSetValue);
+			lastSetValue += 5.0;
+		multiUseString = QString::number(lastSetValue, 'g', 2);
 	}
 	return multiUseString;
 }
@@ -573,12 +573,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 
 	if (type == 1 || type == 6)
 	{
-		uint lastSetValue(multiUseString.toUInt());
+		float lastSetValue(multiUseString.toFloat());
 		if (type == 1) //Pyramid
-			lastSetValue = qFloor(lastSetValue * 1.2);
+			lastSetValue = lastSetValue * 1.2;
 		else //Reverse Pyramid
-			lastSetValue = qFloor(lastSetValue * 0.8);
-		multiUseString = QString::number(lastSetValue);
+			lastSetValue = lastSetValue * 0.8;
+		multiUseString = QString::number(lastSetValue, 'g', 2);
 	}
 	return multiUseString;
 }

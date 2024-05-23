@@ -24,7 +24,10 @@ ApplicationWindow {
 			contentItem.Keys.pressed.connect( function(event) {
 				if (event.key === Qt.Key_Back) {
 					event.accepted = true;
-					androidBackKeyPressed();
+					if (stackView.depth >= 2)
+						stackView.pop();
+					else
+						close();
 				}
 			});
 		}
@@ -118,13 +121,6 @@ ApplicationWindow {
 			} //onClicked
 		} //TabButton
 	} //footer
-
-	function androidBackKeyPressed() {
-		if (stackView.depth >= 2)
-			stackView.pop();
-		else
-			close();
-	}
 
 	function init() {
 		homePage.setViewModel();
