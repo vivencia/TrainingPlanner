@@ -470,6 +470,7 @@ Page {
 
 					Label {
 						text: qsTr("Day C: ")
+						font.bold: true
 						Layout.row: 2
 						Layout.column: 0
 						color: AppSettings.fontColor
@@ -502,6 +503,7 @@ Page {
 
 					Label {
 						text: qsTr("Day D: ")
+						font.bold: true
 						Layout.row: 3
 						Layout.column: 0
 						color: AppSettings.fontColor
@@ -534,6 +536,7 @@ Page {
 
 					Label {
 						text: qsTr("Day E: ")
+						font.bold: true
 						Layout.row: 4
 						Layout.column: 0
 						color: AppSettings.fontColor
@@ -566,6 +569,7 @@ Page {
 
 					Label {
 						text: qsTr("Day F: ")
+						font.bold: true
 						Layout.row: 5
 						Layout.column: 0
 						color: AppSettings.fontColor
@@ -604,7 +608,7 @@ Page {
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
 
-						onClicked: itemManager.createPlannerPage();
+						onClicked: appDB.createPlannerPage();
 					} //TPButton
 				} //GridLayout
 			} //Pane

@@ -224,7 +224,6 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
 		mesocyclesModel->setCurrentRow(mesoIdx);
-		getMesoSplit();
 	}
 }
 
@@ -753,6 +752,10 @@ void DbManager::getAllMesocycles()
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
 	const int current_meso_idx(mesocyclesModel->count()-1);
+
+	for(uint i(0); i <= current_meso_idx; ++i)
+		getMesoSplit(mesocyclesModel->getFast(i, 0));
+
 	if (current_meso_idx >= 0)
 		setWorkingMeso(mesocyclesModel->getInt(static_cast<uint>(current_meso_idx), 0), static_cast<uint>(current_meso_idx));
 	else
@@ -866,10 +869,10 @@ void DbManager::deleteMesocyclesTable(const bool bRemoveFile)
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-void DbManager::getMesoSplit()
+void DbManager::getMesoSplit(const QString& mesoid)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	worker->addExecArg(m_MesoId);
+	worker->addExecArg(mesoid);
 	createThread(worker, [worker] () { worker->getMesoSplit(); } );
 }
 

@@ -78,7 +78,7 @@ public:
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
-	Q_INVOKABLE void getMesoSplit();
+	Q_INVOKABLE void getMesoSplit(const QString& mesoid);
 	Q_INVOKABLE void newMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
 									const QString& splitD, const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC, const QString& splitD,

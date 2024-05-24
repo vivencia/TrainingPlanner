@@ -119,7 +119,6 @@ void DBMesoSplitTable::getMesoSplit()
 				uint i(0);
 				for (i = 0; i < 8; ++i)
 					split_info.append(query.value(static_cast<int>(i)).toString());
-				m_model->clear();
 				m_model->appendList(split_info);
 				m_result = true;
 			}
