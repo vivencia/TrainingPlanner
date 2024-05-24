@@ -46,7 +46,7 @@ Page {
 	}
 
 	header: ToolBar {
-		height: btnManageMeso.height + 20
+		height: 45
 		enabled: !bNewMeso && !bModified
 
 		background: Rectangle {
@@ -61,7 +61,6 @@ Page {
 		}
 
 		TPButton {
-			id: btnManageMeso
 			text: qsTr("Calendar")
 			anchors {
 				left: parent.left
@@ -74,7 +73,6 @@ Page {
 		}
 
 		TPButton {
-			id: btnStatistics
 			text: qsTr("Statistics")
 			anchors {
 				right: parent.right
@@ -761,17 +759,15 @@ Page {
 				var changeCalendar = false;
 				if (bNewMeso)
 					bNewMeso = false;
-				else
-				{
-					if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
-						changeCalendar = true;
-						bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
-					}
+				if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
+					changeCalendar = true;
+					bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 				}
 				appDB.saveMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text,
 									txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text,
 									txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text,
 									changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+				JSF.checkWhetherCanCreatePlan();
 				bModified = false;
 			} //onClicked
 		} //btnSaveMeso

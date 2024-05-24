@@ -5,6 +5,8 @@ import QtQuick.Layouts
 Page {
 	id: settingsPage
 	objectName: "settingsPage"
+	width: mainwindow.width
+	height: mainwindow.contentItem.height
 
 	property bool bModified: false
 	property bool bNeedRestart: false
@@ -49,13 +51,24 @@ Page {
 			anchors.fill: parent
 			spacing: 5
 
+			Label {
+				text: qsTr("Application Settings")
+				color: AppSettings.fontColor
+				font.bold: true
+				font.pointSize: AppSettings.fontSizeTitle
+				horizontalAlignment: Text.AlignHCenter
+				Layout.fillWidth: true
+				Layout.topMargin: 20
+			}
+
 //------------------------------------------------------LANGUAGE------------------------------------------------------
 			RowLayout {
-				width: parent.width - 60
-				spacing: 12
+				spacing: 10
 				Layout.alignment: Qt.AlignHCenter
 				Layout.fillWidth: true
-				Layout.topMargin: 10
+				Layout.leftMargin: 10
+				Layout.rightMargin: 20
+				Layout.topMargin: 20
 
 				Label {
 					text: qsTr("Application Language")
@@ -81,6 +94,25 @@ Page {
 				}
 			}
 //------------------------------------------------------LANGUAGE------------------------------------------------------
+
+			Rectangle {
+				height: 3
+				color: AppSettings.fontColor
+				Layout.fillWidth: true
+			}
+
+//------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
+
+			TPCheckBox {
+				id: chkAskConfirmation
+				text: qsTr("Always ask the user confirmation before any attempted deletion")
+				checked: AppSettings.alwaysAskConfirmation
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 20
+			}
+
+//------------------------------------------------------APP BEHAVIOUR------------------------------------------------------
 
 			Rectangle {
 				height: 3
@@ -422,8 +454,14 @@ Page {
 		height: 55
 
 		background: Rectangle {
-			color: AppSettings.primaryDarkColor
-			opacity: 0.7
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
 
 		TPButton {
@@ -442,6 +480,7 @@ Page {
 				}
 
 				AppSettings.appLocale = appLocales[cboSetType.currentIndex];
+				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 				if (bFontSizeChanged) {
 					AppSettings.fontSize = fontPSize;

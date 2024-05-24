@@ -102,7 +102,7 @@ ApplicationWindow {
 				function pushTDayOntoMainStackView(object2, id) {
 					if (id === 70) {
 						appDB.getPage.disconnect(pushTDayOntoMainStackView);
-						itemManager.addMainMenuShortCut( qsTr("Workout: ") + runCmd.formatTodayDate() , object2);
+						appDB.addMainMenuShortCut( qsTr("Workout: ") + runCmd.formatTodayDate() , object2);
 					}
 				}
 
@@ -124,6 +124,10 @@ ApplicationWindow {
 
 	function init() {
 		homePage.setViewModel();
+		if (AppSettings.firstTime) {
+			AppSettings.firstTime = false;
+			stackView.push("SettingsPage.qml");
+		}
 	}
 
 	function popFromStack(page: Item) {

@@ -85,6 +85,7 @@ public:
 										const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable(const bool bRemoveFile);
+	Q_INVOKABLE void createExercisesPlannerPage();
 	Q_INVOKABLE void getCompleteMesoSplit();
 	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
@@ -118,6 +119,12 @@ public:
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	Q_INVOKABLE void addMainMenuShortCut(const QString& label, QQuickItem* page);
+	void removeMainMenuShortCut(QQuickItem* page);
+	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
 signals:
 	void databaseReady();
 	void getPage(QQuickItem* item, const uint id);
@@ -126,6 +133,7 @@ signals:
 
 public slots:
 	void bridge(QQuickItem* item, const uint id);
+	void openMainMenuShortCut(const int button_id);
 
 private:
 	int m_MesoId;
@@ -140,6 +148,7 @@ private:
 	QMap<QString,int> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
+	QQuickWindow* m_mainWindow;
 
 	DBMesocyclesModel* mesocyclesModel;
 	DBMesoSplitModel* mesoSplitModel;
@@ -152,6 +161,11 @@ private:
 	QQmlComponent* m_exercisesComponent;
 	QVariantMap m_exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	QList<QQuickItem*> m_mainMenuShortcutPages;
+	QList<QQuickItem*> m_mainMenuShortcutEntries;
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 	void updateDB(TPDatabaseTable* worker);
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);

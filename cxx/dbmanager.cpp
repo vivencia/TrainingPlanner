@@ -158,7 +158,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	getAllMesocycles();
 
-	QQuickWindow* mainWindow(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
+	m_mainWindow = static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0));
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties;
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appDB"), QVariant::fromValue(this) });
@@ -172,9 +172,9 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("darkIconFolder"), QStringLiteral("black/") });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor1"), QVariant(QColor(220, 227, 240)) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor2"), QVariant(QColor(195, 202, 213)) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(mainWindow) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(m_mainWindow) });
 
-	QQuickItem* appStackView(mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
+	QQuickItem* appStackView(m_mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
 	properties.append(QQmlContext::PropertyPair{ u"appStackView"_qs, QVariant::fromValue(appStackView) });
 
 	QQuickItem* contentItem(appStackView->parentItem());
@@ -183,7 +183,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
-	QMetaObject::invokeMethod(mainWindow, "init", Qt::AutoConnection);
+	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
 }
 
 DbManager::~DbManager()
@@ -230,11 +230,14 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 
 void DbManager::removeWorkingMeso()
 {
+	removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
+	removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
+	removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 	delete m_currentMesoManager;
 	m_MesoManager.remove(m_MesoIdx);
-	if (m_MesoIdx > 0)
+	if (m_MesoManager.count() > 0)
 	{
-		--m_MesoIdx;
+		m_MesoIdx = m_MesoManager.count() - 1;
 		setWorkingMeso(m_MesoManager.at(m_MesoIdx)->mesoId(), m_MesoIdx);
 	}
 	else
@@ -550,7 +553,7 @@ void DbManager::importFromModel(TPListModel* model)
 			{
 				connect( this, &DbManager::databaseReady, this, [&,dayDate] {
 					connect( this, &DbManager::getPage, this, [&,model] (QQuickItem* item, const uint) {
-						return m_currentMesoManager->addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
+						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getMesoCalendar(false);
@@ -558,7 +561,7 @@ void DbManager::importFromModel(TPListModel* model)
 			else
 			{
 				connect( this, &DbManager::getPage, this, [&,model] (QQuickItem* item, const uint) {
-						return m_currentMesoManager->addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
+						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getTrainingDay(dayDate);
 			}
@@ -764,10 +767,13 @@ void DbManager::getMesocycle(const uint meso_idx)
 
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
-		m_currentMesoManager->addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+		addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
 		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
+	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == mesoPageCreateId)
+				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createMesocyclePage();
 }
 
@@ -906,6 +912,20 @@ void DbManager::deleteMesoSplitTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
+void DbManager::createExercisesPlannerPage()
+{
+	if (m_currentMesoManager->getExercisesPlannerPage())
+	{
+		addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getExercisesPlannerPage());
+		return;
+	}
+	m_expectedPageId = exercisesPlannerCreateId;
+	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == exercisesPlannerCreateId)
+				addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getExercisesPlannerPage());
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	m_currentMesoManager->createPlannerPage();
+}
+
 void DbManager::getCompleteMesoSplit()
 {
 	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, 6));
@@ -919,11 +939,11 @@ void DbManager::getCompleteMesoSplit()
 		if (splitLetter == QChar('R'))
 			continue;
 
-		if (m_currentMesoManager->getSplitPage(splitLetter) != nullptr)
+		/*if (m_currentMesoManager->getSplitPage(splitLetter) != nullptr)
 		{
-			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
+			emit getPage(m_currentMesoManager->getSplitPage(splitLetter), static_cast<int>(splitLetter.cell()) - static_cast<int>('A'));
 			continue;
-		}
+		}*/
 
 		if (createdSplits.indexOf(splitLetter) == -1)
 		{
@@ -1053,11 +1073,14 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 	{
 		if (m_currentMesoManager->getCalendarPage() != nullptr)
 		{
-			m_currentMesoManager->addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
+			addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
 			return;
 		}
 		m_currentMesoManager->setMesoCalendarModel(mesoCalendarModel);
 		m_expectedPageId = calPageCreateId;
+		connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == calPageCreateId)
+				addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		m_currentMesoManager->createMesoCalendarPage();
 	}
 }
@@ -1147,7 +1170,7 @@ void DbManager::getTrainingDay(const QDate& date)
 	if (m_currentMesoManager->gettDayPage(date) != nullptr)
 	{
 		m_currentMesoManager->setCurrenttDay(date);
-		m_currentMesoManager->addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
+		addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
 		return;
 	}
 
@@ -1159,8 +1182,11 @@ void DbManager::getTrainingDay(const QDate& date)
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id )
-		{ if (id == tDayPageCreateId) return getTrainingDayExercises(date); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id ) { if (id == tDayPageCreateId)
+		{
+			addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
+			return getTrainingDayExercises(date);
+		} }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
 }
 
@@ -1275,3 +1301,52 @@ void DbManager::deleteTrainingDayTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+void DbManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
+{
+	if (m_mainMenuShortcutPages.contains(page))
+		QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, page));
+	else
+	{
+		if (m_mainMenuShortcutEntries.count() < 5)
+		{
+			QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
+			QMetaObject::invokeMethod(m_mainWindow, "createShortCut", Q_ARG(QString, label),
+													Q_ARG(QQuickItem*, page), Q_ARG(int, m_mainMenuShortcutPages.count()));
+			m_mainMenuShortcutPages.append(page);
+		}
+		else
+		{
+			QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
+			for (uint i(0); i < m_mainMenuShortcutPages.count()-1; ++i)
+			{
+				m_mainMenuShortcutPages.move(i+1, i);
+				m_mainMenuShortcutEntries.at(i)->setProperty("text", m_mainMenuShortcutEntries.at(i+1)->property("text").toString());
+			}
+			m_mainMenuShortcutEntries.at(4)->setProperty("text", label);
+			m_mainMenuShortcutPages.replace(4, page);
+		}
+	}
+}
+
+void DbManager::removeMainMenuShortCut(QQuickItem* page)
+{
+	const int idx(m_mainMenuShortcutPages.indexOf(page));
+	if (idx != -1)
+	{
+		m_mainMenuShortcutPages.remove(idx);
+		m_mainMenuShortcutEntries.at(idx)->setParentItem(nullptr);
+		delete m_mainMenuShortcutEntries.at(idx);
+		m_mainMenuShortcutEntries.remove(idx);
+		for (uint i(idx); i < m_mainMenuShortcutEntries.count(); ++i)
+			m_mainMenuShortcutEntries.at(i)->setProperty("clickid", i);
+	}
+}
+
+void DbManager::openMainMenuShortCut(const int button_id)
+{
+	QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
+}
+
+//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

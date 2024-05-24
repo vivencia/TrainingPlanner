@@ -30,10 +30,12 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue("backupFolder", u""_qs);
 		settingsObj.setValue("fontColor", u"white"_qs);
 		settingsObj.setValue("iconFolder", u"white/"_qs);
-		settingsObj.setValue("fontSize", 14);
-		settingsObj.setValue("fontSizeLists", 9);
-		settingsObj.setValue("fontSizeText", 12);
-		settingsObj.setValue("fontSizeTitle", 21);
+		settingsObj.setValue("fontSize", 12);
+		settingsObj.setValue("fontSizeLists", 8);
+		settingsObj.setValue("fontSizeText", 10);
+		settingsObj.setValue("fontSizeTitle", 18);
+		settingsObj.setValue("alwaysAskConfirmation", true);
+		settingsObj.setValue("firstTime", true);
 		settingsObj.sync();
 	}
 }

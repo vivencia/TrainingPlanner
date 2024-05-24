@@ -157,6 +157,7 @@ FocusScope {
 
 			Row {
 				Layout.topMargin: 10
+				Layout.leftMargin: 5
 
 				SetInputField {
 					id: txtNReps
@@ -186,6 +187,7 @@ FocusScope {
 			}
 
 			Row {
+				Layout.leftMargin: 5
 
 				SetInputField {
 					id: txtNWeight
@@ -215,6 +217,7 @@ FocusScope {
 			Label {
 				text: qsTr("Set type: ")
 				font.bold: true
+				Layout.leftMargin: 5
 			}
 
 			RowLayout {

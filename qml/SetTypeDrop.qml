@@ -29,6 +29,17 @@ Item {
 		}
 	}
 
+	TPBalloonTip {
+		id: msgDlgRemove
+		title: qsTr("Remove Set")
+		message: lblSetNumber.text + qsTr("? This action cannot be undone.")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+
+		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
+	} //TPBalloonTip
+
 	ColumnLayout {
 		id: setLayout
 		spacing: 5
@@ -61,7 +72,13 @@ Item {
 				height: 25
 				width: 25
 				imageName: "remove.png"
-				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
+
+				onClicked: {
+					if (AppSettings.alwaysAskConfirmation)
+						msgDlgRemove.show(-1);
+					else
+						itemManager.removeSetObject(setNumber, exerciseIdx);
+				}
 			}
 		}
 

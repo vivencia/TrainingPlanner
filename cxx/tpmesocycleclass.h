@@ -24,6 +24,7 @@ static const uint tDayPageCreateId(70);
 static const uint tDayExerciseCreateId(105);
 static const uint tDaySetCreateId(140);
 static const uint menuShortCutCreatedId(200);
+static const uint exercisesPlannerCreateId(235);
 
 class TPMesocycleClass : public QObject
 {
@@ -50,6 +51,7 @@ public:
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 	Q_INVOKABLE void createPlannerPage();
 	void createPlannerPage_part2();
+	inline QQuickItem* getExercisesPlannerPage() const { return m_plannerPage; }
 
 	void createMesoSplitPage();
 	void createMesoSplitPage_part2();
@@ -124,17 +126,11 @@ public:
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	Q_INVOKABLE void addMainMenuShortCut(const QString& label, QQuickItem* page);
-	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
 	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
 	void exerciseCompleted(int exercise_idx);
-	void openMainMenuShortCut(const int button_id);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);
@@ -146,7 +142,7 @@ private:
 	QQmlApplicationEngine* m_QMlEngine;
 	RunCommands* m_runCommands;
 	QQuickItem* m_appStackView;
-	QQuickWindow* m_mainWindow;
+
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	DBMesocyclesModel* m_MesocyclesModel;
 	QQmlComponent* m_mesoComponent;
@@ -237,10 +233,5 @@ private:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	QList<QQuickItem*> m_mainMenuShortcutPages;
-	QList<QQuickItem*> m_mainMenuShortcutEntries;
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 #endif // TPMESOCYCLECLASS_H

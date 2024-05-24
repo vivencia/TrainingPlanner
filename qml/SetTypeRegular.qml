@@ -31,6 +31,17 @@ Item {
 			txtNReps.forceActiveFocus();
 	}
 
+	TPBalloonTip {
+		id: msgDlgRemove
+		title: qsTr("Remove Set")
+		message: lblSetNumber.text + qsTr("? This action cannot be undone.")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+
+		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
+	} //TPBalloonTip
+
 	ColumnLayout {
 		id: setLayout
 		enabled: !tDayModel.dayIsFinished
@@ -65,7 +76,13 @@ Item {
 				height: 30
 				width: 30
 				imageName: "remove.png"
-				onClicked: itemManager.removeSetObject(setNumber, exerciseIdx);
+
+				onClicked: {
+					if (AppSettings.alwaysAskConfirmation)
+						msgDlgRemove.show(-1);
+					else
+						itemManager.removeSetObject(setNumber, exerciseIdx);
+				}
 			}
 		}
 

@@ -13,8 +13,8 @@ RoundButton {
 		fillMode: Image.PreserveAspectFit
 		anchors.verticalCenter: parent.verticalCenter
 		anchors.horizontalCenter: parent.horizontalCenter
-		height: control.height - 5
-		width: control.width - 5
+		height: control.height > 20 ? 20 : control.height - 5
+		width: height
 		opacity: control.enabled ? 1 : 0.5
 	}
 

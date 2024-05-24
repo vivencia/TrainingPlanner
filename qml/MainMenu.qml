@@ -184,8 +184,8 @@ Drawer {
 
 		function finishCreation() {
 			var button = buttonComponent.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": clickid });
-			button.buttonClicked.connect(itemManager.openMainMenuShortCut);
-			itemManager.addMainMenuShortCutEntry(button);
+			button.buttonClicked.connect(appDB.openMainMenuShortCut);
+			appDB.addMainMenuShortCutEntry(button);
 		}
 
 		if (buttonComponent.status === Component.Ready)

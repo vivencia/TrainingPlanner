@@ -560,25 +560,22 @@ Page {
 
 				ColumnLayout {
 					anchors.fill: parent
-					spacing: 0
+					spacing: 10
 
 					Label {
-						text: qsTr("Use this workout exercises as the default exercises plan for this division in this mesocycle?")
+						text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle?")
 						wrapMode: Text.WordWrap
 						font.pointSize: AppSettings.fontSizeText
 						font.bold: true
-						Layout.topMargin: 20
-						Layout.leftMargin: 5
 						color: AppSettings.fontColor
 						Layout.fillWidth: true
-						width: parent.width - 5
-						Layout.bottomMargin: 2
-						padding: 0
+						Layout.topMargin: 20
+						Layout.leftMargin: 5
 					}
 
 					TPButton {
 						id: btnConvertToExercisePlanner
-						text: qsTr("Go")
+						text: qsTr("Yes")
 						Layout.alignment: Qt.AlignCenter
 						Layout.bottomMargin: 20
 						onClicked: {

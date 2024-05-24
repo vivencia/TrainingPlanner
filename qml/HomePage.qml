@@ -184,8 +184,9 @@ Page {
 			} //MouseArea
 
 			background: Rectangle {
+				id: backRec
 				radius: 6
-				opacity: 0.8
+				opacity: index === mesocyclesModel.currentRow ? 0.8 : 0.6
 				color: index === mesocyclesModel.currentRow ? AppSettings.entrySelectedColor : listEntryColor2
 			}
 
@@ -200,27 +201,32 @@ Page {
 					color: AppSettings.fontColor
 					width: mesoDelegate.width
 					elide: Text.ElideRight
+					opacity: backRec.opacity
 				}
 				Label {
 					text: realMeso ?
 							qsTr("Start of mesocycle: <b>") + runCmd.formatDate(mesoStartDate) + "</b>" :
 							qsTr("Program start date: <b>") + runCmd.formatDate(mesoStartDate) + "</b>"
 					color: AppSettings.fontColor
+					opacity: backRec.opacity
 				}
 				Label {
 					text: realMeso ?
 							qsTr("End of mesocycle: <b>") + runCmd.formatDate(mesoEndDate) + "</b>" :
 							qsTr("Open-ended program - no end date set")
 					color: AppSettings.fontColor
+					opacity: backRec.opacity
 				}
 				Label {
 					text: qsTr("Weeks in mesocycle: <b>") + mesoWeeks + "</b>"
 					color: AppSettings.fontColor
 					visible: realMeso
+					opacity: backRec.opacity
 				}
 				Label {
 					text: qsTr("Training Split: <b>") + mesoSplit + "</b>"
 					color: AppSettings.fontColor
+					opacity: backRec.opacity
 				}
 			}
 		} //delegate
