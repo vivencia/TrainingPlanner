@@ -49,7 +49,8 @@ public:
 	Q_INVOKABLE int getPreviousMesoId(const int current_mesoid) const;
 	Q_INVOKABLE QDate getPreviousMesoEndDate(const int current_mesoid) const;
 	Q_INVOKABLE QDate getNextMesoStartDate(const int mesoid) const;
-	Q_INVOKABLE QDate getLastMesoEndDate() const;	
+	Q_INVOKABLE QDate getLastMesoEndDate() const;
+	Q_INVOKABLE int mesoThatHasDate(const QDateTime& datetime) const;
 };
 
 #endif // DBMESOCYCLESMODEL_H

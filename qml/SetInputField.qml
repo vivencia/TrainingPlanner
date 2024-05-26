@@ -32,9 +32,10 @@ FocusScope {
 
 	DoubleValidator {
 		id: val_weigth
-		bottom: 0.0
-		top: 999.9;
-		decimals: 1
+		bottom: 0.00
+		top: 999.99;
+		decimals: 2
+		notation: DoubleValidator.StandardNotation
 		locale: AppSettings.appLocale
 	}
 
@@ -42,7 +43,8 @@ FocusScope {
 		id: val_rep
 		bottom: 0.00
 		top: 99.99;
-		decimals: 1
+		decimals: 2
+		notation: DoubleValidator.StandardNotation
 		locale: AppSettings.appLocale
 	}
 
@@ -220,15 +222,9 @@ FocusScope {
 						bClearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
 					}
 				}
-				else {
-					valueChanged(sanitizeText(text));
-				}
 			}
 
-			onEditingFinished: {
-				//if (acceptableInput)
-					valueChanged(sanitizeText(text));
-			}
+			onTextEdited: valueChanged(text = sanitizeText(text));
 
 			MouseArea {
 				id: mousearea
@@ -335,11 +331,11 @@ FocusScope {
 	} //Rectangle
 
 	function sanitizeText(text) {
-		if (text.indexOf(',') !== -1)
-			text = text.replace(',', '.');
-		if (text.indexOf('-') !== -1)
+		//if (text.indexOf(',') !== -1)
+			text = text.replace('.', ',');
+		//if (text.indexOf('-') !== -1)
 			text = text.replace('-', '');
-		if (text.indexOf('E') !== -1)
+		//if (text.indexOf('E') !== -1)
 			text = text.replace('E', '');
 		return text.trim();
 	}

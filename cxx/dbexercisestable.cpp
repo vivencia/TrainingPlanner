@@ -94,7 +94,9 @@ void DBExercisesTable::getAllExercises()
 				m_result = true;
 			}
 		}
-		m_model->setReady(true);
+		else //for some reason the database table is empty. Populate it with the app provided exercises list
+			updateExercisesList();
+		m_model->setReady(m_model->count() > 0);
 		mSqlLiteDB.close();
 	}
 
@@ -161,7 +163,7 @@ void DBExercisesTable::updateExercisesList()
 				m_model->appendList(QStringList()
 								<< QString::number(idx) << fields.at(0) << fields.at(1) << fields.at(2).trimmed()
 								<< QStringLiteral("4") << QStringLiteral("12") << QStringLiteral("20")
-								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << QString::number(idx) << u"0"_qs );
+								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << u"1"_qs << QString::number(idx) << u"0"_qs );
 			}
 		}
 		mSqlLiteDB.commit();

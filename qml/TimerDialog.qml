@@ -394,11 +394,10 @@ Dialog {
 				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: {
-					const elapsedtime = mainTimer.currentElapsedTime();
 					if (timePickerOnly)
-						useTime(runCmd.formatTime(elapsedtime, false));
+						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
 					else
-						useTime(runCmd.formatTime(elapsedtime, true));
+						useTime(runCmd.formatTime(mainTimer.currentElapsedTime(), true));
 					dlgTimer.close();
 				} //btnUseTime
 			}

@@ -79,11 +79,8 @@ const QString RunCommands::formatDate(const QDate& date) const
 {
 	if (date.isValid())
 	{
-		if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
-		{
-			QLocale locale(QStringLiteral("pt_BR"));
-			return locale.toString(date, u"ddd d/M/yyyy"_qs);
-		}
+		if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
+			return appLocale.toString(date, u"ddd d/M/yyyy"_qs);
 		return date.toString(Qt::TextDate);
 	}
 	return QString();
@@ -92,11 +89,8 @@ const QString RunCommands::formatDate(const QDate& date) const
 const QString RunCommands::formatTodayDate() const
 {
 	const QDate today(QDate::currentDate());
-	if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
-	{
-		QLocale locale(QStringLiteral("pt_BR"));
-		return locale.toString(today, u"ddd d/M/yyyy"_qs);
-	}
+	if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
+		return appLocale.toString(today, u"ddd d/M/yyyy"_qs);
 	return today.toString(Qt::TextDate);
 }
 

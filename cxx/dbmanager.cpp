@@ -42,6 +42,7 @@ void DbManager::init()
 		DBExercisesTable* db_exercises(new DBExercisesTable(m_DBFilePath, m_appSettings));
 		db_exercises->createTable();
 		delete db_exercises;
+		m_appSettings->setValue("exercisesListVersion", "0");
 	}
 	f_info.setFile(m_DBFilePath + DBMesocyclesFileName);
 	if (!f_info.isReadable())
@@ -258,8 +259,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				dbObj->createTable();
 			break;
 			case OP_UPDATE_LIST:
-				if (static_cast<DBExercisesTable*>(dbObj)->opCode() == OP_UPDATE_LIST)
-					m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
+				m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
 			break;
 			case OP_READ:
 				if (dbObj->objectName() == DBMesoCalendarObjectName)
@@ -718,8 +718,7 @@ void DbManager::createExercisesListPage()
 			m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 															m_exercisesProperties, m_QMlEngine->rootContext()));
 			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-			QQuickWindow* parent(static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0)));
-			m_exercisesPage->setParentItem(parent->contentItem());
+			m_exercisesPage->setParentItem(m_mainWindow->contentItem());
 			emit getPage(m_exercisesPage, 999);
 		}
 	}

@@ -64,7 +64,7 @@ RowLayout {
 		id: txtNWeight
 		type: SetInputField.Type.WeightType
 		text: tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
-		availableWidth: windowWidth/4 + 10
+		availableWidth: windowWidth/4 + 20
 		showLabel: false
 
 		onEnterOrReturnKeyPressed: {

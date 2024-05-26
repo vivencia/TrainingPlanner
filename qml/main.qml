@@ -87,7 +87,7 @@ ApplicationWindow {
 
 		TabButton {
 			text: qsTr("   + Workout")
-			enabled: stackView.depth === 1
+			enabled: stackView.depth === 1 && mesocyclesModel.mesoThatHasDate(new Date()) === mesocyclesModel.currentRow
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"

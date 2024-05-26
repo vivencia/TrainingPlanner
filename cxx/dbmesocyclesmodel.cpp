@@ -167,3 +167,18 @@ QDate DBMesocyclesModel::getLastMesoEndDate() const
 		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.last().at(MESOCYCLES_COL_ENDDATE)).toLongLong());
 	return QDate::currentDate();
 }
+
+int DBMesocyclesModel::mesoThatHasDate(const QDateTime& datetime) const
+{
+	const QDate date(datetime.date());
+	uint mesoIdx(0);
+	for(; mesoIdx < count(); ++mesoIdx)
+	{
+		if (date >= getDateFast(mesoIdx, MESOCYCLES_COL_STARTDATE))
+		{
+			if (date <= getDateFast(mesoIdx, MESOCYCLES_COL_ENDDATE))
+				return mesoIdx;
+		}
+	}
+	return -1;
+}

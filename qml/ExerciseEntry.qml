@@ -256,6 +256,7 @@ FocusScope {
 				TPRoundButton {
 					id: btnAddSet
 					imageName: "add-new.png"
+					focus: true
 					Layout.minimumHeight: 40
 					Layout.maximumHeight: 40
 					Layout.minimumWidth: 40

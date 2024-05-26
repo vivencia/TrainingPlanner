@@ -79,37 +79,51 @@ Page {
 			width: ListView.view.width
 			height: mesoContent.implicitHeight
 
-			Rectangle {
-				id: recRemoveMeso
+			onClicked: appDB.getMesocycle(index);
+
+			swipe.right: Rectangle {
+				id: removeRec
+				width: parent.width
+				height: parent.height
+				clip: false
 				color: "red"
-				opacity: 0.7
 				radius: 6
-				visible: false
-				z: 1
-				anchors {
+				opacity: mesoDelegate.swipe.complete ? 0.7 : 0-mesoDelegate.swipe.position
+				Behavior on opacity { NumberAnimation { } }
+				//visible: false
+				//z: 1
+				/*anchors {
 					right: parent.right
 					top: parent.top
 					bottom: parent.bottom
+				}*/
+				SwipeDelegate.onClicked: {
+					msgDlg.show(parent.y + parent.height);
+					mesoDelegate.swipe.close();
 				}
 
-				Text {
+				Label {
 					text: qsTr("Remove Mesocycle")
 					font.pointSize: AppSettings.fontSize
 					font.bold: true
 					color: AppSettings.fontColor
-					visible: parent.width > width
-					anchors {
+					//visible: parent.width > width
+					/*anchors {
 						bottom: parent.bottom
 						horizontalCenter: parent.horizontalCenter
 						bottomMargin: 10
-					}
+					}*/
+					anchors.fill: parent
+					anchors.leftMargin: 40
+					horizontalAlignment: Qt.AlignLeft
+					verticalAlignment: Qt.AlignVCenter
 				}
 
 				Image {
 					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 					height: 40
 					width: 40
-					visible: parent.width > 50
+					//visible: parent.width > 50
 					anchors {
 						top: parent.top
 						horizontalCenter: parent.horizontalCenter
@@ -117,13 +131,13 @@ Page {
 					}
 				}
 
-				MouseArea {
+				/*MouseArea {
 					anchors.fill: parent
 					onClicked: {
 						msgDlg.show(parent.y + parent.height);
 						recRemoveMeso.visible = false;
 					}
-				}
+				}*/
 
 				TPBalloonTip {
 					id: msgDlg
@@ -137,7 +151,7 @@ Page {
 				}
 			} //Rectangle recRemoveMeso
 
-			MouseArea {
+			/*MouseArea {
 				id: swipeDetector
 				anchors.fill: parent
 				preventStealing: true
@@ -181,7 +195,7 @@ Page {
 					if (tracing)
 						tracing = false;
 				}
-			} //MouseArea
+			} //MouseArea */
 
 			background: Rectangle {
 				id: backRec
@@ -190,7 +204,7 @@ Page {
 				color: index === mesocyclesModel.currentRow ? AppSettings.entrySelectedColor : listEntryColor2
 			}
 
-			Column {
+			contentItem: Column {
 				id: mesoContent
 				topPadding: 10
 				bottomPadding: 10

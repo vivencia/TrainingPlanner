@@ -101,7 +101,10 @@ Page {
 		timePickerOnly: true
 		windowTitle: qsTr("Length of this training session")
 
-		onUseTime: (strtime) => workoutTimer.prepareTimer(strtime + ":00");
+		onUseTime: (strtime) => {
+			workoutTimer.stopWatch = false;
+			workoutTimer.prepareTimer(strtime + ":00");
+		}
 	}
 
 	TimePicker {
@@ -111,6 +114,7 @@ Page {
 		bOnlyFutureTime: true
 
 		onTimeSet: (hour, minutes) => {
+			workoutTimer.stopWatch = false;
 			workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(
 					runCmd.getCurrentTimeString(), hour + ":" + minutes));
 		}
@@ -422,8 +426,10 @@ Page {
 						Layout.fillWidth: true
 
 						onClicked: {
-							if (checked)
+							if (checked) {
+								workoutTimer.stopWatch = true;
 								workoutTimer.prepareTimer("");
+							}
 						}
 					}
 					TPRadioButton {
@@ -1143,7 +1149,7 @@ Page {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, "", "");
+		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {

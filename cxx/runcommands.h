@@ -11,6 +11,8 @@
 class QSettings;
 class QFileDialog;
 
+static QLocale appLocale;
+
 class RunCommands : public QObject
 {
 

@@ -53,7 +53,7 @@ public:
 		if (m_bModified != bModified)
 		{
 			m_bModified = bModified;
-			if (++m_nModified == 10)
+			if (++m_nModified == 5)
 			{
 				emit modifiedChanged();
 				m_nModified = 0;

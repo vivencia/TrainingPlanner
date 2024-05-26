@@ -1,5 +1,6 @@
 #include "dbtrainingdaytable.h"
 #include "dbtrainingdaymodel.h"
+#include "runcommands.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -143,11 +144,8 @@ void DBTrainingDayTable::getTrainingDayExercises()
 QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
 	const QDate date(QDate::fromJulianDay(julianDay));
-	if (m_appSettings->value("appLocale").toString() == QStringLiteral("pt_BR"))
-	{
-		QLocale locale(QStringLiteral("pt_BR"));
-		return locale.toString(date, QStringLiteral("ddd d/M/yyyy"));
-	}
+	if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
+		return appLocale.toString(date, QStringLiteral("ddd d/M/yyyy"));
 	return date.toString(Qt::TextDate);
 }
 

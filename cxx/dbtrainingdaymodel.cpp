@@ -1,6 +1,7 @@
 #include "dbtrainingdaymodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbexercisesmodel.h"
+#include "runcommands.h"
 
 #include <QtMath>
 
@@ -472,6 +473,20 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 	return ret;
 }
 
+static inline QString dropSetReps(const QString& reps)
+{
+	const float value(appLocale.toFloat(reps));
+	return subrecord_separator + appLocale.toString(qCeil(value * 0.8)) + subrecord_separator +
+				appLocale.toString(qCeil(value * 0.8 * 0.8)) + subrecord_separator;
+}
+
+static inline QString dropSetWeight(const QString& weight)
+{
+	const float value(appLocale.toFloat(weight));
+	return subrecord_separator + appLocale.toString(value * 0.5, 'f', 2) + subrecord_separator +
+				appLocale.toString(value * 0.5, 'f', 2) + subrecord_separator;
+}
+
 void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight,
 										const QString& nSubsets, const QString& notes)
 {
@@ -481,7 +496,6 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 		m_ExerciseData.at(exercise_idx)->nsets = 1;
 		setModified(true);
 		m_ExerciseData.at(exercise_idx)->type.append(strType);
-		m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
 		m_ExerciseData.at(exercise_idx)->notes.append(notes);
 
 		switch (type) {
@@ -491,22 +505,21 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
+				m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
 			break;
 			case 2: //DropSet
 			{
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
-				const float nreps(nReps.toFloat());
-				m_ExerciseData.at(exercise_idx)->reps.append(nReps + subrecord_separator + QString::number(nreps - 3.0, 'g', 2) +
-												subrecord_separator + QString::number(nreps - 6.0, 'g', 2) + subrecord_separator);
-				const float nweight(nWeight.toFloat());
-				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator + QString::number(nweight - 10.0, 'g', 2) +
-												subrecord_separator + QString::number(nweight - 20.0, 'g', 2) + subrecord_separator);
+				m_ExerciseData.at(exercise_idx)->reps.append(nReps + dropSetReps(nReps));
+				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + dropSetWeight(nWeight));
+				m_ExerciseData.at(exercise_idx)->subsets.append(u"3"_qs);
 			}
 			break;
 			case 3: //ClusterSet
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("02:00"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
+				m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
 			break;
 			case 4: //GiantSet
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
@@ -518,11 +531,13 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 					m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator + nWeight + subrecord_separator);
 				else
 					m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator);
+				m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
 			break;
 			case 5: //MyoReps
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("02:30"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
+				m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
 			break;
 		}
 	}
@@ -545,19 +560,18 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 
 	if (type == 1 || type == 6)
 	{
-		float lastSetValue(multiUseString.toFloat());
+		float lastSetValue(appLocale.toFloat(multiUseString));
 		if (type == 1) //Pyramid
-			lastSetValue -= 3.0;
+			lastSetValue = qCeil(lastSetValue * 0.8);
 		else //Reverse Pyramid
-			lastSetValue += 5.0;
-		multiUseString = QString::number(lastSetValue, 'g', 2);
+			lastSetValue = qCeil(lastSetValue * 1.25);
+		multiUseString = appLocale.toString(static_cast<int>(lastSetValue));
 	}
 	return multiUseString;
 }
 
 const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number, const uint sub_set) const
 {
-
 	if (set_number == 100)
 	{
 		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.last() :
@@ -573,12 +587,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 
 	if (type == 1 || type == 6)
 	{
-		float lastSetValue(multiUseString.toFloat());
+		float lastSetValue(appLocale.toFloat(multiUseString));
 		if (type == 1) //Pyramid
-			lastSetValue = lastSetValue * 1.2;
+			lastSetValue *= 1.2;
 		else //Reverse Pyramid
-			lastSetValue = lastSetValue * 0.8;
-		multiUseString = QString::number(lastSetValue, 'g', 2);
+			lastSetValue *= 0.8;
+		multiUseString = appLocale.toString(lastSetValue, 'f', 2);
 	}
 	return multiUseString;
 }
@@ -598,11 +612,15 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 
 			for(uint i(0); i < n; ++i)
 			{
-				m_ExerciseData.at(exercise_idx)->type.append(strType);
 				m_ExerciseData.at(exercise_idx)->subsets.append(nSubSets.isEmpty() ? m_ExerciseData.at(exercise_idx)->subsets.last() : nSubSets);
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps.isEmpty() ? nextSetSuggestedReps(exercise_idx, type) : nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight.isEmpty() ? nextSetSuggestedWeight(exercise_idx, type) : nWeight);
 				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
+
+				if (strType != m_ExerciseData.at(exercise_idx)->type.last())
+					changeSetType(set_number, exercise_idx, type);
+				else
+					m_ExerciseData.at(exercise_idx)->type.append(strType);
 
 				switch (type)
 				{
@@ -684,8 +702,8 @@ void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercis
 			}
 			else if (new_type == 2)
 			{
-				m_ExerciseData.at(exercise_idx)->reps[set_number].append(subrecord_separator + reps + subrecord_separator + reps + subrecord_separator);
-				m_ExerciseData.at(exercise_idx)->weight[set_number].append(subrecord_separator + weight + subrecord_separator + weight + subrecord_separator);
+				m_ExerciseData.at(exercise_idx)->reps[set_number].append(dropSetReps(reps));
+				m_ExerciseData.at(exercise_idx)->weight[set_number].append(dropSetWeight(weight));
 				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_qs;
 			}
 			else if (new_type == 3)

@@ -16,8 +16,9 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
 	if (settingsObj.childKeys().isEmpty() || settingsObj.value("appLocale").toString().isEmpty())
 	{
+		appLocale = QLocale::system();
 		settingsObj.setValue("appVersion", TP_APP_VERSION);
-		settingsObj.setValue("appLocale", QLocale::system().name());
+		settingsObj.setValue("appLocale", appLocale.name());
 		settingsObj.setValue("weightUnit", u"(kg)"_qs);
 		settingsObj.setValue("themeStyle", u"Material"_qs);
 		settingsObj.setValue("colorScheme", u"Blue"_qs);
@@ -38,6 +39,9 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.setValue("firstTime", true);
 		settingsObj.sync();
 	}
+	else
+		appLocale.setDefault(QLocale(settingsObj.value("appLocale").toString()));
+	appLocale.setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 }
 
 int main(int argc, char *argv[])
