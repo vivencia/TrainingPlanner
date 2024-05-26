@@ -86,8 +86,8 @@ ApplicationWindow {
 		}
 
 		TabButton {
+			id: btnWorkout
 			text: qsTr("   + Workout")
-			enabled: stackView.depth === 1 && mesocyclesModel.mesoThatHasDate(new Date()) === mesocyclesModel.currentRow
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
@@ -124,6 +124,9 @@ ApplicationWindow {
 
 	function init() {
 		homePage.setViewModel();
+		btnWorkout.enabled = Qt.binding(function() {
+			return stackView.depth === 1 && mesocyclesModel.mesoThatHasDate(new Date()) === mesocyclesModel.currentRow;
+		});
 		if (AppSettings.firstTime) {
 			AppSettings.firstTime = false;
 			stackView.push("SettingsPage.qml");

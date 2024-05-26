@@ -137,7 +137,6 @@ Column {
 					color: AppSettings.fontColor
 					padding: 5
 					anchors.fill: parent
-					anchors.leftMargin: 40
 					horizontalAlignment: Qt.AlignLeft
 					verticalAlignment: Qt.AlignVCenter
 					opacity: delegate.swipe.complete ? 1 : 0

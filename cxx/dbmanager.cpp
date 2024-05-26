@@ -1195,6 +1195,7 @@ void DbManager::getTrainingDay(const QDate& date)
 void DbManager::getTrainingDayExercises(const QDate& date)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
+	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); },
 		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );

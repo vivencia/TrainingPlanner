@@ -90,13 +90,7 @@ Page {
 				radius: 6
 				opacity: mesoDelegate.swipe.complete ? 0.7 : 0-mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
-				//visible: false
-				//z: 1
-				/*anchors {
-					right: parent.right
-					top: parent.top
-					bottom: parent.bottom
-				}*/
+
 				SwipeDelegate.onClicked: {
 					msgDlg.show(parent.y + parent.height);
 					mesoDelegate.swipe.close();
@@ -107,37 +101,23 @@ Page {
 					font.pointSize: AppSettings.fontSize
 					font.bold: true
 					color: AppSettings.fontColor
-					//visible: parent.width > width
-					/*anchors {
-						bottom: parent.bottom
+					anchors {
 						horizontalCenter: parent.horizontalCenter
-						bottomMargin: 10
-					}*/
-					anchors.fill: parent
-					anchors.leftMargin: 40
-					horizontalAlignment: Qt.AlignLeft
-					verticalAlignment: Qt.AlignVCenter
+						top: parent.top
+						topMargin: parent.height/2 + height
+					}
 				}
 
 				Image {
 					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 					height: 40
 					width: 40
-					//visible: parent.width > 50
 					anchors {
-						top: parent.top
 						horizontalCenter: parent.horizontalCenter
-						topMargin: 10
+						top: parent.top
+						topMargin: parent.height/2 - height
 					}
 				}
-
-				/*MouseArea {
-					anchors.fill: parent
-					onClicked: {
-						msgDlg.show(parent.y + parent.height);
-						recRemoveMeso.visible = false;
-					}
-				}*/
 
 				TPBalloonTip {
 					id: msgDlg
@@ -149,53 +129,32 @@ Page {
 
 					onButton1Clicked: appDB.removeMesocycle();
 				}
-			} //Rectangle recRemoveMeso
+			} //swipe.right: Rectangle
 
-			/*MouseArea {
-				id: swipeDetector
-				anchors.fill: parent
-				preventStealing: true
-				pressAndHoldInterval: 300
-				property int xPrev: 0
-				property bool tracing: false
+			swipe.left: Rectangle {
+				id: optionsRec
+				width: parent.width
+				height: parent.height
+				clip: false
+				color: "steelblue"
+				radius: 6
+				z: 1
+				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
+				Behavior on opacity { NumberAnimation { } }
 
-				onClicked: {
-					if (!recRemoveMeso.visible)
-						appDB.getMesocycle(index);
-					else
-						recRemoveMeso.visible = false;
-				}
-
-				onPressAndHold: (mouse) => {
-					xPrev = mouse.x;
-					if (!recRemoveMeso.visible) {
-						if (xPrev >= width/3) {
-							tracing = true;
-							recRemoveMeso.width = width - xPrev;
-							recRemoveMeso.visible = true;
-						}
+				TPRadioButton {
+					text: qsTr("Current mesocycle")
+					checked: mesocyclesModel.currentRow === index;
+					anchors {
+						left: parent.left
+						leftMargin: 10
+						top: parent.top
+						topMargin: 10
 					}
-				}
 
-				onPositionChanged: (mouse) => {
-					if (!tracing) return;
-					if (mouse.x <= 0)
-						recRemoveMeso.width = mesosListView.width;
-					else {
-						recRemoveMeso.width += (xPrev - mouse.x);
-						if (mouse.x > xPrev) {
-							if (recRemoveMeso.width <= 30)
-								recRemoveMeso.visible = false;
-						}
-						xPrev = mouse.x;
-					}
+					onClicked: mesocyclesModel.currentRow = index;
 				}
-
-				onReleased: (mouse) => {
-					if (tracing)
-						tracing = false;
-				}
-			} //MouseArea */
+			} //swipe.left: Rectangle
 
 			background: Rectangle {
 				id: backRec
@@ -304,3 +263,50 @@ Page {
 		mesosListView.model = mesocyclesModel;
 	}
 } //Page
+
+
+/*MouseArea {
+				id: swipeDetector
+				anchors.fill: parent
+				preventStealing: true
+				pressAndHoldInterval: 300
+				property int xPrev: 0
+				property bool tracing: false
+
+				onClicked: {
+					if (!recRemoveMeso.visible)
+						appDB.getMesocycle(index);
+					else
+						recRemoveMeso.visible = false;
+				}
+
+				onPressAndHold: (mouse) => {
+					xPrev = mouse.x;
+					if (!recRemoveMeso.visible) {
+						if (xPrev >= width/3) {
+							tracing = true;
+							recRemoveMeso.width = width - xPrev;
+							recRemoveMeso.visible = true;
+						}
+					}
+				}
+
+				onPositionChanged: (mouse) => {
+					if (!tracing) return;
+					if (mouse.x <= 0)
+						recRemoveMeso.width = mesosListView.width;
+					else {
+						recRemoveMeso.width += (xPrev - mouse.x);
+						if (mouse.x > xPrev) {
+							if (recRemoveMeso.width <= 30)
+								recRemoveMeso.visible = false;
+						}
+						xPrev = mouse.x;
+					}
+				}
+
+				onReleased: (mouse) => {
+					if (tracing)
+						tracing = false;
+				}
+			} //MouseArea */

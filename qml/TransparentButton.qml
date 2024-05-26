@@ -82,7 +82,7 @@ ToolButton {
 
 	background: Rectangle {
 		id: buttonBack
-		color: AppSettings.primaryLightColor
+		color: AppSettings.primaryDarkColor
 		opacity: parent.opacity
 
 		property double fillPosition: !anim.running

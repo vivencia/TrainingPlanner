@@ -979,7 +979,7 @@ Page {
 				}
 				else {
 					tDayModel.dayIsFinished = true;
-					Qt.binding(function() { return btnEditDay.visible = tDayModel.dayIsFinished; });
+					btnEditDay.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
 				editMode = !editMode;
 			}

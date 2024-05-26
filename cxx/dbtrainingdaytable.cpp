@@ -113,7 +113,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
 		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
-										"FROM training_day_table WHERE date=") + m_execArgs.at(0).toString() );
+						"FROM training_day_table WHERE date=%1 AND meso_id=%2").arg(m_execArgs.at(1).toString(), m_execArgs.at(0).toString()) );
 
 		if (query.exec())
 		{
@@ -249,9 +249,9 @@ void DBTrainingDayTable::updateTrainingDay()
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
 		query.prepare( QStringLiteral(
-									"UPDATE training_day_table SET meso_id=%1, date=%2, day_number=\'%3\', "
-									"split_letter=\'%4\', time_in=\'%5\', time_out=\'%6\', location=\'%7\', notes=\'%8\', ")
-									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
+									"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
+									"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', ")
+									.arg(model->dateStr(), model->trainingDay(), model->splitLetter(),
 									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
 									QStringLiteral("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
 									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
@@ -281,7 +281,8 @@ void DBTrainingDayTable::removeTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM training_day_table WHERE date=") + static_cast<DBTrainingDayModel*>(m_model)->dateStr() );
+		query.prepare( QStringLiteral("DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2").arg(
+			static_cast<DBTrainingDayModel*>(m_model)->dateStr(), static_cast<DBTrainingDayModel*>(m_model)->mesoIdStr()) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
