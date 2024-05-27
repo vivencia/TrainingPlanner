@@ -275,9 +275,15 @@ bool DBMesoCalendarModel::isDayFinished(const uint month, const uint day) const
 
 void DBMesoCalendarModel::setDayIsFinished(const QDate& date, const bool bFinished)
 {
-	QStringList dayInfo(m_modeldata.at(date.month()).at(date.day()-1).split(','));
-	dayInfo.replace(MESOCALENDAR_COL_TRAININGCOMPLETE, bFinished ? u"1"_qs : u"0"_qs);
-	m_modeldata[date.month()].replace(date.day()-1, dayInfo.join(','));
+	for( uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == date.month())
+		{
+			QStringList dayInfo(m_modeldata.at(i).at(date.day()-1).split(','));
+			dayInfo.replace(MESOCALENDAR_COL_TRAININGCOMPLETE, bFinished ? u"1"_qs : u"0"_qs);
+			m_modeldata[i].replace(date.day()-1, dayInfo.join(','));
+		}
+	}
 }
 
 uint DBMesoCalendarModel::getLastTrainingDayBeforeDate(const QDate& date) const

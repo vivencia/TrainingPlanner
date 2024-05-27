@@ -608,7 +608,7 @@ Page {
 						Layout.columnSpan: 2
 						Layout.alignment: Qt.AlignCenter
 
-						onClicked: appDB.createPlannerPage();
+						onClicked: appDB.createExercisesPlannerPage();
 					} //TPButton
 				} //GridLayout
 			} //Pane

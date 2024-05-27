@@ -190,7 +190,7 @@ FocusScope {
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 40 : 35
+			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 45 : 35
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
 

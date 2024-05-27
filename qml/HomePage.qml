@@ -81,6 +81,50 @@ Page {
 
 			onClicked: appDB.getMesocycle(index);
 
+			swipe.left: Rectangle {
+				id: optionsRec
+				width: parent.width
+				height: parent.height
+				clip: false
+				color: "steelblue"
+				radius: 6
+				z: 0
+				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
+				Behavior on opacity { NumberAnimation { } }
+
+				TPRadioButton {
+					id: optCurrentMeso
+					text: qsTr("Current mesocycle")
+					checked: mesocyclesModel.currentRow === index;
+					z: 1
+
+					anchors {
+						left: parent.left
+						leftMargin: 10
+						top: parent.top
+						topMargin: 10
+					}
+
+					onClicked: mesocyclesModel.currentRow = index;
+				}
+
+				TPButton {
+					text: qsTr("View Mesocycle Info")
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
+					textUnderIcon: false
+					z: 1
+
+					anchors {
+						top: optCurrentMeso.bottom
+						topMargin: 10
+						left: parent.left
+						leftMargin: 10
+					}
+
+					onClicked: appDB.getMesocycle(index);
+				}
+			} //swipe.left: Rectangle
+
 			swipe.right: Rectangle {
 				id: removeRec
 				width: parent.width
@@ -88,35 +132,21 @@ Page {
 				clip: false
 				color: "red"
 				radius: 6
-				opacity: mesoDelegate.swipe.complete ? 0.7 : 0-mesoDelegate.swipe.position
+				z: 0
+				opacity: mesoDelegate.swipe.complete ? 0.8 : 0-mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
-				SwipeDelegate.onClicked: {
-					msgDlg.show(parent.y + parent.height);
-					mesoDelegate.swipe.close();
-				}
-
-				Label {
+				TransparentButton {
 					text: qsTr("Remove Mesocycle")
-					font.pointSize: AppSettings.fontSize
-					font.bold: true
-					color: AppSettings.fontColor
-					anchors {
-						horizontalCenter: parent.horizontalCenter
-						top: parent.top
-						topMargin: parent.height/2 + height
-					}
-				}
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
+					z: 1
 
-				Image {
-					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
-					height: 40
-					width: 40
 					anchors {
 						horizontalCenter: parent.horizontalCenter
-						top: parent.top
-						topMargin: parent.height/2 - height
+						verticalCenter: parent.verticalCenter
 					}
+
+					onClicked: msgDlg.show(parent.y + parent.height);
 				}
 
 				TPBalloonTip {
@@ -130,31 +160,6 @@ Page {
 					onButton1Clicked: appDB.removeMesocycle();
 				}
 			} //swipe.right: Rectangle
-
-			swipe.left: Rectangle {
-				id: optionsRec
-				width: parent.width
-				height: parent.height
-				clip: false
-				color: "steelblue"
-				radius: 6
-				z: 1
-				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
-				Behavior on opacity { NumberAnimation { } }
-
-				TPRadioButton {
-					text: qsTr("Current mesocycle")
-					checked: mesocyclesModel.currentRow === index;
-					anchors {
-						left: parent.left
-						leftMargin: 10
-						top: parent.top
-						topMargin: 10
-					}
-
-					onClicked: mesocyclesModel.currentRow = index;
-				}
-			} //swipe.left: Rectangle
 
 			background: Rectangle {
 				id: backRec

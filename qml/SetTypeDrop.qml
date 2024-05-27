@@ -16,6 +16,7 @@ Item {
 	required property int setType
 
 	property bool finishButtonVisible: false
+	property bool setCompleted: false
 	property var subSetList: []
 	property var subSetComponent: null
 
@@ -55,9 +56,13 @@ Item {
 			TPComboBox {
 				id: cboSetType
 				currentIndex: setType
-				anchors.left: parent.right
-				anchors.leftMargin: 10
-				anchors.verticalCenter: parent.verticalCenter
+				enabled: !setCompleted
+
+				anchors {
+					left: parent.right
+					leftMargin: 10
+					verticalCenter: parent.verticalCenter
+				}
 
 				onActivated: (index)=> {
 					if (index !== setType)
@@ -80,6 +85,38 @@ Item {
 						itemManager.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
+
+			TPCheckBox {
+				id: chkSetCompleted
+				text: qsTr("Completed?")
+				checked: setCompleted
+				visible: !setCompleted
+				height: 25
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: btnRemoveSet.right
+
+				onCheckedChanged: setCompleted = checked;
+			}
+
+			Image {
+				id: imgCompleted
+				source: "qrc:/images/"+darkIconFolder+"set-completed.png"
+				asynchronous: true
+				fillMode: Image.PreserveAspectFit
+				visible: setCompleted
+				width: 30
+				height: 30
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: btnRemoveSet.right
+					leftMargin: 40
+				}
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: setCompleted = false;
+				}
+			}
 		}
 
 		SetInputField {
@@ -89,6 +126,7 @@ Item {
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
+			enabled: !setCompleted
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
@@ -103,6 +141,7 @@ Item {
 
 		ColumnLayout {
 			id: subSetsLayout
+			enabled: !setCompleted
 			Layout.fillWidth: true
 			Layout.topMargin: 10
 			Layout.bottomMargin: 20
@@ -133,6 +172,7 @@ Item {
 		SetNotesField {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
+			enabled: !setCompleted
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
 

@@ -1145,6 +1145,15 @@ void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay
 
 void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
 {
+	if (!mesoCalendarModel->isReady())
+	{
+		connect(this, &DbManager::databaseReady, this, [&,date,bFinished] ()
+		{
+			return setDayIsFinished(date, bFinished);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		getMesoCalendar(false);
+		return;
+	}
 	mesoCalendarModel->setDayIsFinished(date, bFinished);
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->addExecArg(date);

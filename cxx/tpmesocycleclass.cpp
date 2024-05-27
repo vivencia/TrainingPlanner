@@ -405,10 +405,6 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,
 						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)) );
 
-	//Two exercises were selected under ExercisesDatabase.qml
-	if (item->property("nSets").toString().contains(subrecord_separator))
-		QMetaObject::invokeMethod(item, "setSetComboIndex", Q_ARG(int, 4));
-
 	m_currentExercises->appendExerciseEntry(item);
 	emit itemReady(item, tDayExerciseCreateId);
 	QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));

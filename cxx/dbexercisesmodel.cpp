@@ -139,19 +139,19 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 	entry.real_index = real_item_pos;
 	entry.view_index = item_pos;
 
-	if (max_selected == 1)
+	/*if (max_selected == 1)
 	{
-		if (!m_selectedEntries.isEmpty())
+		for (uint i(0); i < m_selectedEntries.count(); ++i)
 		{
-			m_modeldata[m_selectedEntries.at(0).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
-			emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
-				index(m_selectedEntries.at(0).view_index, 0), QList<int>() << selectedRole);
-			m_selectedEntries.clear();
+			m_modeldata[m_selectedEntries.at(i).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+			emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
+				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
 		}
+		m_selectedEntries.clear();
 		m_selectedEntries.append(entry);
 	}
 	else
-	{
+	{*/
 		int idx(-1);
 		for (uint i(0); i < m_selectedEntries.count(); ++i)
 		{
@@ -166,9 +166,9 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 		{
 			if (m_selectedEntries.count() < max_selected)
 				m_selectedEntries.append(entry);
-			else
+			else if (m_selectedEntries.count() == max_selected)
 			{
-				if (m_selectedEntryToReplace >= max_selected - 1)
+				if (m_selectedEntryToReplace > max_selected - 1)
 					m_selectedEntryToReplace = 0;
 				m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
 				emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
@@ -177,13 +177,26 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 				m_selectedEntries[m_selectedEntryToReplace].view_index = item_pos;
 				m_selectedEntryToReplace++;
 			}
+			else
+			{
+				for (uint i(0); i <= max_selected; ++i)
+				{
+					m_modeldata[m_selectedEntries.at(0).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+					emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
+						index(m_selectedEntries.at(0).view_index, 0), QList<int>() << selectedRole);
+					if (m_selectedEntries.count() > 1)
+						m_selectedEntries.remove(0, 1);
+				}
+				m_selectedEntries[0].real_index = real_item_pos;
+				m_selectedEntries[0].view_index = item_pos;
+			}
 		}
 		else
 		{
 			if (m_selectedEntryToReplace == idx)
 			{
 				++m_selectedEntryToReplace;
-				if (m_selectedEntryToReplace >= max_selected - 1)
+				if (m_selectedEntryToReplace > max_selected - 1)
 					m_selectedEntryToReplace = 0;
 			}
 			m_modeldata[m_selectedEntries.at(idx).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
@@ -192,7 +205,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 			m_selectedEntries.remove(idx, 1);
 			return false;
 		}
-	}
+	//}
 	m_modeldata[real_item_pos][EXERCISES_COL_SELECTED] = u"1"_qs;
 	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>() << selectedRole);
 	return true;

@@ -159,21 +159,18 @@ Column {
 		Layout.leftMargin: 5
 		text: qsTr("Search: ")
 		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
+		font.weight: Font.ExtraBold
 		color: AppSettings.fontColor
 		width: parent.width - 25
 
-		TPRoundButton {
-			id: btnMultipleSelection
-			checkable: true
-			checked: false
-			visible: canDoMultipleSelection
-			width: 25
+		TPCheckBox {
+			id: chkMultipleSelection
+			text: qsTr("Multiple selection")
+			enabled: canDoMultipleSelection
 			height: 25
-			imageName: "multi-selection.png"
 
 			anchors {
-				left: parent.right
+				right: parent.right
 				verticalCenter: parent.verticalCenter
 			}
 

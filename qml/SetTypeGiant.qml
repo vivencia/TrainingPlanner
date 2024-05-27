@@ -17,6 +17,7 @@ Item {
 	required property int setType
 
 	property bool finishButtonVisible: false
+	property bool setCompleted: false
 	property var ownerExercise
 
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -52,6 +53,8 @@ Item {
 			TPComboBox {
 				id: cboSetType
 				currentIndex: setType
+				enabled: !setCompleted
+
 				anchors {
 					left: parent.right
 					leftMargin: 10
@@ -79,6 +82,44 @@ Item {
 						itemManager.removeSetObject(setNumber, exerciseIdx);
 				}
 			}
+
+			TPCheckBox {
+				id: chkSetCompleted
+				text: qsTr("Completed?")
+				checked: setCompleted
+				visible: !setCompleted
+				height: 25
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: btnRemoveSet.right
+
+				onCheckedChanged: {
+					setCompleted = checked;
+					btnCopyValue.visible = false;
+					btnCopyValue2.visible = false;
+					btnCopyValue3.visible = false;
+					btnCopyValue4.visible = false;
+				}
+			}
+
+			Image {
+				id: imgCompleted
+				source: "qrc:/images/"+darkIconFolder+"set-completed.png"
+				asynchronous: true
+				fillMode: Image.PreserveAspectFit
+				visible: setCompleted
+				width: 30
+				height: 30
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: btnRemoveSet.right
+					leftMargin: 40
+				}
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: setCompleted = false;
+				}
+			}
 		}
 
 		SetInputField {
@@ -88,6 +129,7 @@ Item {
 			availableWidth: setItem.width
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
+			enabled: !setCompleted
 
 			onValueChanged: (str) => {
 				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
@@ -99,6 +141,7 @@ Item {
 
 		RowLayout {
 			Layout.fillWidth: true
+			enabled: !setCompleted
 
 			ExerciseNameField {
 				id: txtExercise1
@@ -138,6 +181,7 @@ Item {
 		RowLayout {
 			Layout.fillWidth: true
 			spacing: 5
+			enabled: !setCompleted
 
 			SetInputField {
 				id: txtNReps1
@@ -211,6 +255,7 @@ Item {
 		RowLayout {
 			Layout.fillWidth: true
 			spacing: 5
+			enabled: !setCompleted
 
 			SetInputField {
 				id: txtNWeight1
@@ -288,6 +333,7 @@ Item {
 		SetNotesField {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
+			enabled: !setCompleted
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
 

@@ -78,7 +78,7 @@ Page {
 				}
 
 				TPComboBox {
-					id: cboSetType
+					id: cboAppLanguage
 					model: appLanguages
 					currentIndex: {
 						switch (AppSettings.appLocale) {
@@ -479,7 +479,7 @@ Page {
 					bNeedRestart = false;
 				}
 
-				AppSettings.appLocale = appLocales[cboSetType.currentIndex];
+				AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
 				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 				if (bFontSizeChanged) {

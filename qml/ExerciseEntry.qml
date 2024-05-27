@@ -161,7 +161,7 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps
-					text: !txtNReps2.visible ? nReps : runCmd.getCompositeValue(0, nReps)
+					text: runCmd.getCompositeValue(0, nReps)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
@@ -179,7 +179,7 @@ FocusScope {
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: cboSetType.currentIndex === 4
+					visible: tDayModel.compositeExercise
 
 					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(1, str);
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -191,7 +191,7 @@ FocusScope {
 
 				SetInputField {
 					id: txtNWeight
-					text: !txtNWeight2.visible ? nWeight : runCmd.getCompositeValue(0, nWeight)
+					text: runCmd.getCompositeValue(0, nWeight)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
@@ -203,13 +203,14 @@ FocusScope {
 				SetInputField {
 					id: txtNWeight2
 					text: runCmd.getCompositeValue(1, nWeight)
-					type: SetInputField.Type.RepType
+					type: SetInputField.Type.WeightType
 					showLabel: false
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: cboSetType.currentIndex === 4
+					visible: tDayModel.compositeExercise
 
+					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
 					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(1, str, nWeight);
 				}
 			}
@@ -343,10 +344,6 @@ FocusScope {
 		paneExercise.shown = !force ? !paneExercise.shown : true
 		if (paneExercise.shown)
 			itemManager.createSetObjects(exerciseIdx);
-	}
-
-	function setSetComboIndex(new_index: int) {
-		cboSetType.currentIndex = new_index;
 	}
 
 	function liberateSignals(liberate: bool) {

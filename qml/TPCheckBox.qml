@@ -5,6 +5,7 @@ CheckBox {
 	id: control
 	padding: 0
 	spacing: 5
+	width: contentItem.implicitWidth
 
 	property string textColor: AppSettings.fontColor
 

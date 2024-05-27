@@ -361,6 +361,8 @@ void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exe
 			QString new_name_copy(new_name);
 			m_ExerciseData.at(exercise_idx)->name = new_name_copy.replace(QStringLiteral(" + "), QChar(subrecord_separator));
 		}
+		m_CompositeExerciseList[exercise_idx] = idx != -1;
+		emit compositeExerciseChanged(m_compositeExerciseIdx = exercise_idx);
 		setModified(true);
 	}
 }
@@ -375,6 +377,8 @@ void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx
 			m_ExerciseData.append(new exerciseEntry);
 	}
 	m_ExerciseData[idx]->name = new_exercise;
+	m_CompositeExerciseList[idx] = new_exercise.contains(subrecord_separator);
+	emit compositeExerciseChanged(m_compositeExerciseIdx = idx);
 	setModified(true);
 	emit exerciseCountChanged();
 }
@@ -427,6 +431,8 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exerc
 		else
 			new_name1 = name1;
 		m_ExerciseData.at(exercise_idx)->name = new_name1.replace(u"1: "_qs, "");
+		m_CompositeExerciseList[exercise_idx] = idx != -1;
+		emit compositeExerciseChanged(m_compositeExerciseIdx = exercise_idx);
 		setModified(true);
 	}
 }
@@ -451,6 +457,8 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 			new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + subrecord_separator + name2;
 		else
 			new_name2 = subrecord_separator + name2;
+		m_CompositeExerciseList[exercise_idx] = idx != -1;
+		emit compositeExerciseChanged(m_compositeExerciseIdx = exercise_idx);
 		m_ExerciseData.at(exercise_idx)->name = new_name2.replace(u"2: "_qs, "");
 		setModified(true);
 	}
