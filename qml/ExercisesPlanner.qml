@@ -81,7 +81,7 @@ Page {
 			text: qsTr("Save")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
 			textUnderIcon: true
-			enabled: currentPage ? currentPage.splitModel.modified : false
+			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.modified : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -102,7 +102,7 @@ Page {
 			text: qsTr("Clear")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"clear.png"
 			textUnderIcon: true
-			enabled: currentPage ? currentPage.splitModel.count > 1 : false
+			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -121,7 +121,7 @@ Page {
 
 		TPButton {
 			id: btnSwapPlan
-			text: currentPage ? currentPage.splitModel.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
+			text: splitView.currentIndex >= 0 ? currentPage.splitModel.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
@@ -142,7 +142,7 @@ Page {
 			text: qsTr("In/Ex port")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
-			visible: currentPage ? currentPage.splitModel.count > 1 : false
+			visible: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -196,10 +196,11 @@ Page {
 
 	Component.onCompleted: {
 		function insertSplitPage(page, idx) {
-			splitView.insertItem(idx, page);
+			if (idx < 6)
+				splitView.insertItem(idx, page);
 		}
 
-		appDB.getPage.connect(insertSplitPage);
+		itemManager.pageReady.connect(insertSplitPage);
 		appDB.getCompleteMesoSplit();
 	}
 

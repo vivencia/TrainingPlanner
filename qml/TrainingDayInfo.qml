@@ -89,10 +89,8 @@ Page {
 			tDayModel.setTimeOut(timeOut);
 			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			if (!editMode) {
-				saveWorkout();
+			if (!editMode)
 				tDayModel.dayIsFinished = true;
-			}
 		}
 	}
 
@@ -1083,7 +1081,7 @@ Page {
 		if (!tDayModel.modified) return;
 		appDB.saveTrainingDay();
 
-		if (bRealMeso && chkAdjustCalendar.visible)
+		if (chkAdjustCalendar.visible)
 		{
 			if (!chkAdjustCalendar.checked)
 				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
@@ -1094,7 +1092,8 @@ Page {
 	}
 
 	function changeSplitLetter() {
-		chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
+		if (bRealMeso)
+			chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
 		splitLetter = cboSplitLetter.currentValue;
 		if (splitLetter === 'R')
 			tDay = "0";

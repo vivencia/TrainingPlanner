@@ -272,7 +272,7 @@ QString RunCommands::setCompositeValue(const uint idx, const QString newValue, Q
 		{
 			while (++n_seps < idx)
 				compositeString += subrecord_separator;
-			return compositeString += newValue;
+			return compositeString += newValue + subrecord_separator;
 		}
 	}
 
@@ -286,11 +286,11 @@ QString RunCommands::setCompositeValue(const uint idx, const QString newValue, Q
 			return compositeString;
 		}
 		last_sep_pos = sep_pos + 1;
-		sep_pos = compositeString.indexOf(QLatin1Char(31), last_sep_pos);
+		sep_pos = compositeString.indexOf(subrecord_separator, last_sep_pos);
 	} while(sep_pos != -1);
 	while (++n_seps < idx)
 		compositeString += subrecord_separator;
-	return compositeString += newValue;
+	return compositeString += newValue + subrecord_separator;
 }
 
 bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& string2) const

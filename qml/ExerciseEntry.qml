@@ -19,6 +19,7 @@ FocusScope {
 	property string nWeight
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
+	property bool bCompositeExercise
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
@@ -123,7 +124,7 @@ FocusScope {
 					height: 25
 					width: 25
 					imageName: paneExercise.shown ? "fold-up.png" : "fold-down.png"
-					onClicked: paneExerciseShowHide(false);
+					onClicked: paneExerciseShowHide(false, false);
 					z: 1
 				}
 
@@ -151,7 +152,7 @@ FocusScope {
 					}
 					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
-					onItemClicked: paneExerciseShowHide(false);
+					onItemClicked: paneExerciseShowHide(false, false);
 				}
 			} //Row txtExerciseName
 
@@ -167,7 +168,7 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(0, str, nWeight);
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(0, str, nReps);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 
@@ -179,9 +180,9 @@ FocusScope {
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: tDayModel.compositeExercise
+					visible: bCompositeExercise
 
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(1, str);
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(1, str, nReps);
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 			}
@@ -208,7 +209,7 @@ FocusScope {
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: tDayModel.compositeExercise
+					visible: bCompositeExercise
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
 					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(1, str, nWeight);
@@ -238,6 +239,18 @@ FocusScope {
 							case 3: nSets = "2"; break; //ClusterSet
 							case 5: nSets = "3"; break; //MyoReps
 							default: break;
+						}
+						if (bCompositeExercise) {
+							if (index !== 4) {
+								var exercisename = tDayModel.exerciseName1(exerciseIdx);
+								exercisename = exercisename.replace("1: ", "");
+								txtExerciseName.text = exercisename;
+								bCompositeExercise = false;
+							}
+						}
+						else {
+							if (index === 4)
+								bCompositeExercise = true;
 						}
 					}
 				}
@@ -272,6 +285,12 @@ FocusScope {
 			} // RowLayout
 		} // ColumnLayout layoutMain
 	} //paneExercise
+
+	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(compositeExerciseActions);
+
+	function compositeExerciseActions() {
+		bCompositeExercise = tDayModel.compositeExercise(exerciseIdx);
+	}
 
 	function changeExercise(fromList: bool) {
 		var interruptSignals = true;
@@ -340,8 +359,8 @@ FocusScope {
 		setNbr += n;
 	}
 
-	function paneExerciseShowHide(force: bool) {
-		paneExercise.shown = !force ? !paneExercise.shown : true
+	function paneExerciseShowHide(show: bool, force: bool) {
+		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
 			itemManager.createSetObjects(exerciseIdx);
 	}

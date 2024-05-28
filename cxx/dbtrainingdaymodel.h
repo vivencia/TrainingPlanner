@@ -23,7 +23,6 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
-Q_PROPERTY(bool compositeExercise READ compositeExercise NOTIFY compositeExerciseChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 
 public:
@@ -46,21 +45,18 @@ public:
 
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
 
-	inline bool compositeExercise() const { return m_CompositeExerciseList.value(m_compositeExerciseIdx); }
+	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); }
 	void moveExercise(const uint from, const uint to);
 
 	void setModified(const bool bModified)
 	{
-		if (m_bModified != bModified)
+		m_bModified = bModified;
+		if (++m_nModified == 10)
 		{
-			m_bModified = bModified;
-			if (++m_nModified == 5)
-			{
-				emit modifiedChanged();
-				m_nModified = 0;
-			}
+			emit modifiedChanged();
+			m_nModified = 0;
 		}
 	}
 
@@ -175,7 +171,6 @@ private:
 	bool mb_DayIsFinished;
 	uint m_nModified;
 	QMap<uint, bool> m_CompositeExerciseList;
-	uint m_compositeExerciseIdx;
 
 	friend class DBMesoSplitModel;
 };

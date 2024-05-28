@@ -63,7 +63,6 @@ public:
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
-	void pushSplitPage(const QChar& splitLetter) const;
 	void swapPlans(const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void changeMuscularGroup(DBMesoSplitModel* splitModel);
 	void updateMuscularGroup(const QString& splitA, const QString& splitB, const QString& splitC,
@@ -160,7 +159,6 @@ private:
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
 	QString m_createdSplits;
-	QQuickItem* m_qmlSplitObjectContainer;
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------

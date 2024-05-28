@@ -596,6 +596,8 @@ Frame {
 						msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
 						splitModel.currentRow = 0;
 					}
+					else
+						appendNewExerciseToDivision();
 				}
 				else
 					appendNewExerciseToDivision();

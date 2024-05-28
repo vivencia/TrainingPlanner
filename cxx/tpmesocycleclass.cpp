@@ -13,7 +13,7 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_q
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_mesoComponent(nullptr),
-		m_MesoPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr),
+		m_MesoPage(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr),
 		m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
 	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
@@ -57,10 +57,10 @@ void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const
 
 void TPMesocycleClass::exerciseCompleted(int exercise_idx)
 {
-	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false));
+	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	if (exercise_idx < m_currentExercises->exercisesCount()-1)
 	{
-		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true));
+		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "showExercise", Q_ARG(QQuickItem*, m_currentExercises->exerciseEntry_const(exercise_idx+1)));
 	}
 }
@@ -143,7 +143,6 @@ void TPMesocycleClass::createMesoSplitPage()
 	if (m_splitComponent == nullptr)
 		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
 
-	m_qmlSplitObjectContainer = m_plannerPage->findChild<QQuickItem*>(QStringLiteral("splitSwipeView"));
 	m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 	m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 	m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_plannerPage));
@@ -181,19 +180,11 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 				item->setParentItem(m_plannerPage);
 				connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
-				QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem", Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')),
-					Q_ARG(QQuickItem*, item));
+				emit pageReady(item, static_cast<int>(i.key().cell()) - static_cast<int>('A'));
 				m_splitPages.insert(i.key(), item);
 			}
 		}
 	}
-}
-
-void TPMesocycleClass::pushSplitPage(const QChar& splitLetter) const
-{
-	QMetaObject::invokeMethod(m_qmlSplitObjectContainer, "insertItem",
-					Q_ARG(int, static_cast<int>(splitLetter.toLatin1()) - static_cast<int>('A')),
-					Q_ARG(QQuickItem*, m_splitPages.value(splitLetter)));
 }
 
 void TPMesocycleClass::swapPlans(const QString& splitLetter1, const QString& splitLetter2)
@@ -358,11 +349,14 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	}
 	else
 	{
-		exerciseName = exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2) +
-			subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2);
-		nSets = exercisesModel->selectedEntriesValue_fast(0, 4) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 4);
-		nReps = exercisesModel->selectedEntriesValue_fast(0, 5) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 5);
-		nWeight = exercisesModel->selectedEntriesValue_fast(0, 6) + subrecord_separator + exercisesModel->selectedEntriesValue_fast(1, 6);
+		exerciseName = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
+		exerciseName = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
+		nSets = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
+		nSets = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
+		nReps = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
+		nReps = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
+		nWeight = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
+		nWeight = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
 	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
@@ -370,6 +364,8 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("bCompositeExercise"), m_CurrenttDayModel->compositeExercise(m_CurrenttDayModel->exerciseCount()-1));
+
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return createExerciseObject_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -481,7 +477,7 @@ void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 void TPMesocycleClass::rollUpExercises() const
 {
 	for (uint i(0); i < m_currentExercises->exercisesCount(); ++i)
-		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false));
+		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
@@ -610,7 +606,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 	{
 		//Place into view: exercise entry + first set
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
-			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 100));
+			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 50));
 	}
 }
 
@@ -641,7 +637,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 		}
 		//Place into view: exercise entry + first set
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
-			Q_ARG(int, m_currentExercises->setObject(exercise_idx, 0)->property("y").toInt()));
+			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 50));
 	}
 	else
 	{

@@ -620,6 +620,7 @@ void DbManager::bridge(QQuickItem* item, const uint id) {
 	{
 		emit getPage(item, id);
 		emit internalSignal(id);
+		m_expectedPageId = 0;
 	}
 }
 
@@ -940,12 +941,6 @@ void DbManager::getCompleteMesoSplit()
 		splitLetter = static_cast<QChar>(*itr);
 		if (splitLetter == QChar('R'))
 			continue;
-
-		/*if (m_currentMesoManager->getSplitPage(splitLetter) != nullptr)
-		{
-			emit getPage(m_currentMesoManager->getSplitPage(splitLetter), static_cast<int>(splitLetter.cell()) - static_cast<int>('A'));
-			continue;
-		}*/
 
 		if (createdSplits.indexOf(splitLetter) == -1)
 		{
