@@ -51,17 +51,26 @@ void TPTimer::startTimer()
 		emit pausedChanged();
 		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
 		m_pausedTime = m_pausedTime.addSecs(totalSecs(m_elapsedTime));
+		mb_pausedTimePositive = true;
 	}
 	start();
 }
 
 void TPTimer::stopTimer()
 {
-	stop();
-	stopAlarmSound();
-	calculateElapsedTime();
-	mb_paused = false;
-	emit pausedChanged();
+	if (isActive())
+	{
+		stop();
+		stopAlarmSound();
+	}
+	if (mb_paused)
+	{
+		calculateElapsedTime();
+		mb_paused = false;
+		mb_pausedTimePositive = false;
+		m_pausedTime.setHMS(0, 0, 0);
+		emit pausedChanged();
+	}
 }
 
 void TPTimer::pauseTimer()
@@ -191,9 +200,10 @@ void TPTimer::prepareFromString()
 		m_hours = m_minutes = m_seconds = 0;
 		if (mb_stopWatch)
 			mb_timerForward = true;
-		m_totalSeconds = 0;
 	}
+	calcTotalSecs();
 	mb_paused = false;
+	mb_pausedTimePositive = false;
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
 }
@@ -220,7 +230,7 @@ const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime&
 
 void TPTimer::calculateElapsedTime()
 {
-	if (!m_pausedTime.isNull())
+	if (mb_pausedTimePositive)
 	{
 		calculateTimeBetweenTimes(m_timeOfPause, QTime::currentTime());
 		m_pausedTime = m_pausedTime.addSecs(totalSecs(m_elapsedTime));
@@ -230,13 +240,13 @@ void TPTimer::calculateElapsedTime()
 	else
 	{
 		if (!mb_timerForward)
-			calculateTimeBetweenTimes(QTime(m_hours, m_seconds, m_minutes), m_initialTime);
+			calculateTimeBetweenTimes(QTime(m_hours, m_minutes, m_seconds), m_initialTime);
 		else
 			m_elapsedTime = m_initialTime.addSecs(m_totalSeconds);
 		m_totalSeconds = totalSecs(m_elapsedTime);
 		emit totalSecondsChanged();
 	}
-	if (!m_pausedTime.isNull())
+	if (mb_pausedTimePositive)
 		m_elapsedTime = m_elapsedTime.addMSecs(-totalSecs(m_pausedTime));
 }
 

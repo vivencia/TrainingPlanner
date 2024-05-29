@@ -494,7 +494,7 @@ static inline QString dropSetWeight(const QString& weight)
 {
 	const float value(appLocale.toFloat(weight));
 	return subrecord_separator + appLocale.toString(value * 0.5, 'f', 2) + subrecord_separator +
-				appLocale.toString(value * 0.5, 'f', 2) + subrecord_separator;
+				appLocale.toString(value * 0.5 * 0.5, 'f', 2) + subrecord_separator;
 }
 
 void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight,

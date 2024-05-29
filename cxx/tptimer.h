@@ -86,7 +86,7 @@ signals:
 private:
 	uint m_hours, m_minutes, m_seconds;
 	uint m_totalSeconds;
-	bool mb_stopWatch, mb_timerForward, mb_paused;
+	bool mb_stopWatch, mb_timerForward, mb_paused, mb_pausedTimePositive;
 	QString m_alarmSoundFile, m_originalStartTime;
 	QTime m_elapsedTime;
 	QTime m_initialTime;

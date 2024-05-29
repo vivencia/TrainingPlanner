@@ -989,7 +989,7 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
 			visible: tDayModel.dayIsFinished
-			width: 55
+			width: 70
 			fixedSize: true
 
 			anchors {

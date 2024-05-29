@@ -36,7 +36,8 @@ public:
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
 	Q_INVOKABLE QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
 
-	Q_INVOKABLE QString formatTime(const QDateTime& time, const bool use_secs = false) const { return time.toString(!use_secs ? u"hh:mm"_qs : u"hh:mm:ss"_qs); }
+	Q_INVOKABLE QString formatTime(const QDateTime& time, const bool use_hours = false, const bool use_secs = false) const
+	{ return time.toString((use_hours ? u"hh:mm"_qs : u"mm"_qs) + (use_secs ? u":ss"_qs : u""_qs)); }
 	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
 					QTime::currentTime().toString(u"hh:mm"_qs) : QTime::currentTime().toString(u"hh:mm:ss"_qs); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
@@ -55,6 +56,8 @@ public:
 	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString) const;
 	Q_INVOKABLE QString setCompositeValue(const uint idx, const QString newValue, QString compositeString) const;
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
+
+	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
 signals:
 	void appSuspended();

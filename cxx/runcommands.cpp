@@ -310,3 +310,139 @@ bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& stri
 		return (nwords/matches >= 0.8);
 	return false;
 }
+
+QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
+{
+	strValue.replace('.', ',');
+	strValue.replace('-', u""_qs);
+	strValue.replace('E', u""_qs);
+	strValue = strValue.trimmed();
+
+	float result(appLocale.toFloat(strValue));
+	switch (settype)
+		case 0: //SetInputField.Type.WeightType
+		{
+			if (strValue.contains('.') || strValue.contains(','))
+			{
+				if (bIncrease)
+					result += strValue.endsWith('5') ? 2.5 : 5.0;
+				else
+					result -= strValue.endsWith('5') ? 2.5 : 5.0;
+			}
+			else
+			{
+				if (result < 40)
+				{
+					if (bIncrease)
+					{
+						if (strValue.endsWith('4') || strValue.endsWith('9'))
+							++result;
+						else
+							result += 2;
+					}
+					else
+					{
+						if (strValue.endsWith('6') || strValue.endsWith('1'))
+							--result;
+						else
+							result += 2;
+					}
+				}
+				else
+				{
+					if (bIncrease)
+						result += 5;
+					else
+						result -= 5;
+				}
+			}
+			if (bIncrease)
+			{
+				if (result > 999.99)
+					result = 999.99;
+			}
+			else
+			{
+				if (result < 0)
+					result = 0;
+			}
+			strValue = QString::number(result, 'f', 2);
+			if (strValue.right(2) != u"50"_qs)
+				strValue.chop(3);
+			return strValue;
+		break;
+
+		case 1: //SetInputField.Type.RepType
+			if (strValue.contains('.') || strValue.contains(','))
+			{
+				if (bIncrease)
+					result += 0.5;
+				else
+					result -= 0.5;
+			}
+			else
+			{
+				if (bIncrease)
+					++result;
+				else
+					--result;
+			}
+			if (bIncrease)
+			{
+				if (result > 100)
+					result = 100;
+			}
+			else
+			{
+				if (result < 0)
+					result = 0;
+			}
+			return QString::number(static_cast<uint>(result));
+		break;
+
+		case 2: //SetInputField.Type.TimeType
+		{
+			if (bIncrease)
+			{
+				result = strValue.right(2).toUInt();
+				if (result >= 55)
+				{
+					++result;
+					if (result >= 60)
+						result = 0;
+				}
+				else
+					result += 5;
+				strValue = strValue.left(3) + (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result));
+			}
+			else
+			{
+				result = strValue.left(2).toUInt();
+				--result;
+				if (result < 0)
+					result = 0;
+				strValue = (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result)) + strValue.right(3);
+			}
+			return strValue;
+		}
+		break;
+
+		case 3: //SetInputField.Type.SetType
+			if (bIncrease)
+			{
+				++result;
+				if (result > 9)
+					result = 9;
+			}
+			else
+			{
+				--result;
+				if (result < 0)
+					result = 0;
+			}
+			return QString::number(static_cast<uint>(result));
+		break;
+
+		default: return QString();
+	}
+}

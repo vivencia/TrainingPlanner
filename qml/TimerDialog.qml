@@ -19,7 +19,6 @@ Dialog {
 	property bool bJustMinsAndSecs: false
 	property bool simpleTimer: false
 	property bool timePickerOnly: false
-	property bool bInputOK: true
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
 	property bool bTempHide: false
@@ -199,7 +198,6 @@ Dialog {
 					if (activeFocus)
 						txtHours.clear();
 					else {
-						bInputOK = acceptableInput;
 						if (acceptableInput)
 							mainTimer.strHours = text;
 						else
@@ -207,7 +205,6 @@ Dialog {
 					}
 				}
 				onTextEdited: {
-					bInputOK = acceptableInput;
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
 							bTextChanged = true;
@@ -247,7 +244,6 @@ Dialog {
 					if (activeFocus)
 						txtMinutes.clear();
 					else {
-						bInputOK = acceptableInput
 						if (acceptableInput)
 							mainTimer.strMinutes = text;
 						else
@@ -256,7 +252,6 @@ Dialog {
 				}
 
 				onTextEdited: {
-					bInputOK = acceptableInput;
 					if (acceptableInput) {
 						if (text.length === 2) {
 							bTextChanged = true;
@@ -308,7 +303,6 @@ Dialog {
 					}
 				}
 				onTextEdited: {
-					bInputOK = acceptableInput;
 					if (acceptableInput) {
 						if ( text.length === 2 ) {
 							bTextChanged = true;
@@ -364,7 +358,7 @@ Dialog {
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
-				enabled: bInputOK ? mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0 : false
+				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
 				visible: !timePickerOnly
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth
@@ -397,7 +391,7 @@ Dialog {
 					if (timePickerOnly)
 						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
 					else
-						useTime(runCmd.formatTime(mainTimer.currentElapsedTime(), true));
+						useTime(runCmd.formatTime(mainTimer.currentElapsedTime(), false, true));
 					dlgTimer.close();
 				} //btnUseTime
 			}

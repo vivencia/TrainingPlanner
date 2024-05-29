@@ -122,65 +122,8 @@ FocusScope {
 			}
 
 			onClicked: {
-				var nbr;
-				var str = sanitizeText(txtMain.text);
-
-				switch (type) {
-					case SetInputField.Type.WeightType:
-						if (str === "")
-							nbr = 5;
-						else
-							nbr = str*1;
-
-						if (str.indexOf('.') === -1) {
-							if (nbr <= 40) {
-								nbr -= 2;
-								if (nbr % 2 !== 0)
-									nbr--;
-							}
-							else
-								nbr -= 5;
-						}
-						else
-						{
-							if (str.endsWith('5'))
-								nbr -= 2.5
-							else
-								nbr -= 5;
-						}
-					break;
-					case SetInputField.Type.RepType:
-						if (str === "")
-							nbr = 5;
-						else
-							nbr = str*1;
-						if (str.indexOf('.') === -1)
-							nbr -= 1;
-						else
-						{
-							if (str.endsWith('5'))
-								nbr -= 0.5
-							else
-								nbr -= 1;
-						}
-					break;
-					case SetInputField.Type.SetType:
-						if (str === "")
-							nbr = 1;
-						else
-							nbr = parseInt(str);
-						if (nbr < 1)
-							return;
-						nbr--;
-					break;
-					case SetInputField.Type.TimeType:
-						valueChanged(runCmd.addTimeToStrTime(txtMain.text, -1, 0));
-					return;
-				}
-				if (nbr < 0)
-					return;
 				bClearInput = false;
-				valueChanged(nbr.toString());
+				valueChanged(runCmd.setTypeOperation(type, false, txtMain.text));
 			}
 		}
 
@@ -251,58 +194,8 @@ FocusScope {
 			}
 
 			onClicked: {
-				var nbr;
-				var str = sanitizeText(txtMain.text);
-
-				switch (type) {
-					case SetInputField.Type.WeightType:
-						nbr = str*1;
-						if (str.indexOf('.') === -1) {
-							if (nbr <= 40) {
-								nbr += 2;
-								if (nbr % 2 !== 0)
-									nbr++;
-							}
-							else
-								nbr += 5;
-						}
-						else {
-							if (str.endsWith('5'))
-								nbr += 2.5
-							else
-								nbr += 5
-						}
-						if (nbr > 999.99)
-							return;
-					break;
-					case SetInputField.Type.RepType:
-						nbr = str*1;
-						if (str.indexOf('.') === -1)
-							nbr += 1;
-						else
-						{
-							if (str.endsWith('5'))
-								nbr += 0.5
-							else
-								nbr += 1;
-						}
-						if (nbr > 99.99)
-							return;
-					break;
-					case SetInputField.Type.SetType:
-						nbr = parseInt(str);
-						if (nbr >= 9)
-							return;
-						nbr++;
-					break;
-					case SetInputField.Type.TimeType:
-						const secs = parseInt(str.substring(3, 5));
-						nbr = secs < 55 ? 5 : 1;
-						valueChanged(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
-					return;
-				}
 				bClearInput = false;
-				valueChanged(nbr.toString());
+				valueChanged(runCmd.setTypeOperation(type, true, txtMain.text));
 			}
 		}
 
@@ -331,16 +224,14 @@ FocusScope {
 	} //Rectangle
 
 	function sanitizeText(text) {
-		//if (text.indexOf(',') !== -1)
-			text = text.replace('.', ',');
-		//if (text.indexOf('-') !== -1)
-			text = text.replace('-', '');
-		//if (text.indexOf('E') !== -1)
-			text = text.replace('E', '');
+		text = text.replace('.', ',');
+		text = text.replace('-', '');
+		text = text.replace('E', '');
 		return text.trim();
 	}
 
 	function timeChanged(strTime) {
+		txtMain.text = strTime;
 		valueChanged(strTime);
 		enterOrReturnKeyPressed();
 	}
