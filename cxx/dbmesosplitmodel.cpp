@@ -32,22 +32,21 @@ void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
 	QString repsOrweight;
 	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
 	{
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->name);
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->type.at(0));
-		exerciseInfo.append(QString::number(tDayModel->m_ExerciseData.at(i)->nsets));
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->subsets.at(0));
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->name); //MESOSPLIT_COL_EXERCISENAME
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->type.at(0)); //MESOSPLIT_COL_SETTYPE
+		exerciseInfo.append(QString::number(tDayModel->m_ExerciseData.at(i)->nsets)); //MESOSPLIT_COL_SETSNUMBER
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->subsets.at(0)); //MESOSPLIT_COL_SUBSETSNUMBER
 
 		//DBTrainingDayModel can handle composite sets that end with subrecord_separator. DBMesoSplitModel cannot
 		repsOrweight = tDayModel->m_ExerciseData.at(i)->reps.at(0);
 		if (repsOrweight.endsWith(subrecord_separator))
 			repsOrweight.chop(1);
-		exerciseInfo.append(repsOrweight);
+		exerciseInfo.append(repsOrweight); //MESOSPLIT_COL_REPSNUMBER
 		repsOrweight = tDayModel->m_ExerciseData.at(i)->weight.at(0);
 		if (repsOrweight.endsWith(subrecord_separator))
 			repsOrweight.chop(1);
-
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->notes.at(0));
-		exerciseInfo.append(repsOrweight);
+		exerciseInfo.append(repsOrweight); //MESOSPLIT_COL_WEIGHT
+		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->notes.at(0)); //MESOSPLIT_COL_NOTES
 		m_modeldata.append(exerciseInfo);
 		m_indexProxy.append(i);
 		exerciseInfo.clear();

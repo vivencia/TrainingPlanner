@@ -13,6 +13,15 @@
 #define TDAY_COL_LOCATION 7
 #define TDAY_COL_NOTES 8
 
+#define TDAY_EXERCISES_COL_NAMES 0
+#define TDAY_EXERCISES_COL_TYPES 1
+#define TDAY_EXERCISES_COL_RESTTIMES 2
+#define TDAY_EXERCISES_COL_SUBSETS 3
+#define TDAY_EXERCISES_COL_REPS 4
+#define TDAY_EXERCISES_COL_WEIGHTS 5
+#define TDAY_EXERCISES_COL_NOTES 6
+#define TDAY_EXERCISES_COL_COMPLETED 7
+
 class DBExercisesModel;
 class DBMesoSplitModel;
 
@@ -26,7 +35,7 @@ Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, m_tDayModified(false), mb_DayIsFinished(false)
+	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, mb_DayIsFinished(false)
 				{ m_tableId = TRAININGDAY_TABLE_ID; setObjectName(DBTrainingDayObjectName); }
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
@@ -47,18 +56,8 @@ public:
 
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }
-	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); }
+	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); emit saveWorkout(); }
 	void moveExercise(const uint from, const uint to);
-
-	void setModified(const bool bModified)
-	{
-		m_bModified = bModified;
-		if (++m_nModified == 10)
-		{
-			emit modifiedChanged();
-			m_nModified = 0;
-		}
-	}
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(TDAY_COL_ID); }
@@ -141,6 +140,10 @@ public:
 	Q_INVOKABLE QString setNotes(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx);
 
+	Q_INVOKABLE bool setCompleted(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE void setSetCompleted(const uint set_number, const uint exercise_idx, const bool completed);
+	Q_INVOKABLE bool allSetsCompleted(const uint exercise_idx) const;
+
 	Q_INVOKABLE QString setReps(const uint set_number, const uint subset, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_reps);
 
@@ -148,9 +151,11 @@ public:
 	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_weight);
 
 signals:
+	void saveWorkout();
 	void exerciseCountChanged();
 	void compositeExerciseChanged(const uint exercise_idx);
 	void dayIsFinishedChanged();
+	void exerciseCompleted(const uint exercise_idx, const bool completed);
 
 private:
 	struct exerciseEntry {
@@ -162,14 +167,13 @@ private:
 		QStringList reps;
 		QStringList weight;
 		QStringList notes;
+		QStringList completed;
 
 		exerciseEntry() : nsets(0) {}
 	};
 
 	QList<exerciseEntry*> m_ExerciseData;
-	bool m_tDayModified;
 	bool mb_DayIsFinished;
-	uint m_nModified;
 	QMap<uint, bool> m_CompositeExerciseList;
 
 	friend class DBMesoSplitModel;

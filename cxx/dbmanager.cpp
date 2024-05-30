@@ -153,7 +153,8 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	if (m_appSettings->value("appVersion") != TP_APP_VERSION)
 	{
 		//All the update code goes in here
-		updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		updateDB(new DBTrainingDayTable(m_DBFilePath, m_appSettings));
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 	}
 
@@ -853,6 +854,7 @@ void DbManager::removeMesocycle()
 	else
 	{
 		removeMesoCalendar();
+		mesoCalendarModel->clear();
 		removeMesoSplit();
 		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 		worker->addExecArg(m_MesoIdx);
@@ -1110,13 +1112,13 @@ void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEn
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
-void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay)
+void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter)
 {
 	if (!mesoCalendarModel->isReady())
 	{
-		connect(this, &DbManager::databaseReady, this, [&,mesoSplit,startDate,splitLetter,tDay] ()
+		connect(this, &DbManager::databaseReady, this, [&,mesoSplit,startDate,splitLetter] ()
 		{
-			return updateMesoCalendarModel(mesoSplit,startDate,splitLetter,tDay);
+			return updateMesoCalendarModel(mesoSplit,startDate,splitLetter);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(false);
 		return;
@@ -1126,7 +1128,6 @@ void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& s
 	worker->addExecArg(mesoSplit);
 	worker->addExecArg(startDate);
 	worker->addExecArg(splitLetter);
-	worker->addExecArg(tDay);
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
 }
 

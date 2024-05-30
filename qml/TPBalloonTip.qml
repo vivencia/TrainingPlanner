@@ -88,7 +88,7 @@ Popup {
 	FontMetrics {
 		id: fontMetrics
 		font.family: lblMessage.font.family
-		font.pointSize: AppSettings.fontSize
+		font.pointSize: AppSettings.fontSizeText
 	}
 
 	Label {
@@ -97,7 +97,7 @@ Popup {
 		color: textColor
 		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignHCenter
-		font.pointSize: AppSettings.fontSizeTitle
+		font.pointSize: AppSettings.fontSize
 		font.weight: Font.Black
 		visible: title.length > 0
 		width: parent.width - 20
@@ -116,7 +116,7 @@ Popup {
 		width: 50
 		height: 50
 		x: 5
-		y: (balloon.height-height)/2 - (checkBoxText.length === 0 ? 0 : 20)
+		y: (balloon.height-height)/2
 	}
 
 	Label {
@@ -125,7 +125,7 @@ Popup {
 		color: textColor
 		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignJustify
-		font.pointSize: AppSettings.fontSize
+		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.Black
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
 		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30

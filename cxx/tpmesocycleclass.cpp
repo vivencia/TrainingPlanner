@@ -325,6 +325,10 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	m_CurrenttDayPage = page;
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
 	emit pageReady(page, tDayPageCreateId);
+
+	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
+		return enableDisableExerciseCompletedButton(exercise_idx, completed);
+	} );
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
 		const QTime workoutLenght(m_runCommands->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
@@ -526,8 +530,8 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	if (set_number > 0)
-	{
+	//if (set_number > 0)
+	//{
 		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 		connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
 		if (!bNewSet)
@@ -549,7 +553,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 				item->setProperty("finishButtonVisible", true);
 			}
 		}
-	}
+	//}
 
 	if (set_number >= m_currentExercises->setCount(exercise_idx))
 		m_currentExercises->appendSet(exercise_idx, item);
@@ -752,7 +756,8 @@ void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const
 	QString updatedValue;
 	const uint nsets(exercise_obj->m_setObjects.count());
 
-	for (uint i(set_number+1); i < nsets; ++i) {
+	for (uint i(set_number+1); i < nsets; ++i)
+	{
 		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
 		updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i-1, sub_set);
 		if (set_type == 2 || set_type == 4)
@@ -771,7 +776,8 @@ void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, con
 	QString updatedValue;
 	const uint nsets(exercise_obj->m_setObjects.count());
 
-	for (uint i(set_number+1); i < nsets; ++i) {
+	for (uint i(set_number+1); i < nsets; ++i)
+	{
 		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
 		updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i-1, sub_set);
 		if (set_type == 2 || set_type == 4)
@@ -780,6 +786,20 @@ void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, con
 			m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);
 
 		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+	}
+}
+
+void TPMesocycleClass::enableDisableExerciseCompletedButton(const uint exercise_idx, const bool completed)
+{
+	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	const uint nsets(exercise_obj->m_setObjects.count());
+	for (uint i(0); i < nsets; ++i)
+	{
+		if (exercise_obj->m_setObjects.at(i)->property("finishButtonVisible").toBool())
+		{
+			exercise_obj->m_setObjects.at(i)->setProperty("finishButtonEnabled", completed);
+			break;
+		}
 	}
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------

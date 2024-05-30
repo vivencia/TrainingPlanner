@@ -27,7 +27,7 @@ public:
 	Q_INVOKABLE void createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit);
 	void changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
-	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay);
+	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
 	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter);
 
 	Q_INVOKABLE int getMesoId() const

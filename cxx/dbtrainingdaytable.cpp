@@ -20,7 +20,7 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* app
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBTrainingDayFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(0); i < 7; i++)
+	for(uint i(TDAY_EXERCISES_COL_NAMES); i <= TDAY_EXERCISES_COL_COMPLETED; i++)
 		m_data.append(QString());
 }
 
@@ -53,7 +53,8 @@ void DBTrainingDayTable::createTable()
 										"setssubsets TEXT DEFAULT \"\","
 										"setsreps TEXT DEFAULT \"\","
 										"setsweights TEXT DEFAULT \"\","
-										"setsnotes TEXT DEFAULT \"\")" ));
+										"setsnotes TEXT DEFAULT \"\","
+										"setscompleted TEXT DEFAULT \"\")" ));
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
@@ -64,6 +65,110 @@ void DBTrainingDayTable::createTable()
 	}
 	else
 		MSG_OUT("DBTrainingDayTable createTable SUCCESS")
+}
+
+void DBTrainingDayTable::updateDatabase()
+{
+	m_result = false;
+	QList<QStringList> oldTableInfo;
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		QStringList dayInfo;
+		query.setForwardOnly(true);
+		if (query.exec( QStringLiteral("SELECT * FROM training_day_table")))
+		{
+			if (query.first ())
+			{
+				uint nsets(0);
+				QString completedStr;
+				do {
+					dayInfo.append(query.value(TDAY_COL_ID).toString());
+					dayInfo.append(query.value(TDAY_COL_MESOID).toString());
+					dayInfo.append(query.value(TDAY_COL_DATE).toString());
+					dayInfo.append(query.value(TDAY_COL_TRAININGDAYNUMBER).toString());
+					dayInfo.append(query.value(TDAY_COL_SPLITLETTER).toString());
+					dayInfo.append(query.value(TDAY_COL_TIMEIN).toString());
+					dayInfo.append(query.value(TDAY_COL_TIMEOUT).toString());
+					dayInfo.append(query.value(TDAY_COL_LOCATION).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_NAMES+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_TYPES+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_RESTTIMES+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_SUBSETS+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_REPS+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_WEIGHTS+1).toString());
+					dayInfo.append(query.value(TDAY_COL_NOTES+TDAY_EXERCISES_COL_NOTES+1).toString());
+					completedStr = dayInfo.at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_NOTES+1);
+					completedStr.replace(' ', '1'); //COMPLETED set to true by default
+					dayInfo.append(completedStr);
+					oldTableInfo.append(dayInfo);
+					dayInfo.clear();
+				} while (query.next());
+			}
+			m_result = oldTableInfo.count() > 0;
+		}
+		mSqlLiteDB.close();
+		clearTable();
+		if (m_result)
+		{
+			createTable();
+			if (m_result)
+			{
+				if (mSqlLiteDB.open())
+				{
+					query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+					query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+					query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+					query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+					query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+					query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+					if (mSqlLiteDB.transaction())
+					{
+						const QString queryStart( QStringLiteral("INSERT INTO training_day_table "
+									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
+									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
+									" VALUES ") );
+						const QString queryValuesTemplate("(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\'),");
+						QString queryValues;
+
+						for (uint i(0), n(0); i < oldTableInfo.count(); ++i, ++n)
+						{
+							queryValues += queryValuesTemplate.arg(oldTableInfo.at(i).at(TDAY_COL_MESOID), oldTableInfo.at(i).at(TDAY_COL_DATE), oldTableInfo.at(i).at(TDAY_COL_TRAININGDAYNUMBER),
+									oldTableInfo.at(i).at(TDAY_COL_SPLITLETTER), oldTableInfo.at(i).at(TDAY_COL_TIMEIN), oldTableInfo.at(i).at(TDAY_COL_TIMEOUT),
+									oldTableInfo.at(i).at(TDAY_COL_LOCATION), oldTableInfo.at(i).at(TDAY_COL_NOTES),
+									oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_NAMES+1), oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_TYPES+1),
+									oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_RESTTIMES+1), oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_SUBSETS+1),
+									oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_REPS+1), oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_WEIGHTS+1),
+									oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_NOTES+1), oldTableInfo.at(i).at(TDAY_COL_NOTES+TDAY_EXERCISES_COL_COMPLETED+1));
+							if (n == 50)
+							{
+								queryValues.chop(1);
+								query.exec(queryStart + queryValues);
+								queryValues.clear();
+								n = 0;
+							}
+						}
+						if (!queryValues.isEmpty())
+						{
+							queryValues.chop(1);
+							query.exec(queryStart + queryValues);
+						}
+						m_result = mSqlLiteDB.commit();
+					}
+					mSqlLiteDB.close();
+				}
+			}
+		}
+	}
+	if (!m_result)
+	{
+		MSG_OUT("DBTrainingDayTable updateDatabase Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBTrainingDayTable updateDatabase Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
+	else
+		MSG_OUT("DBTrainingDayTable updateDatabase SUCCESS")
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBTrainingDayTable::getTrainingDay()
@@ -112,7 +217,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes "
+		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
 						"FROM training_day_table WHERE date=%1 AND meso_id=%2").arg(m_execArgs.at(1).toString(), m_execArgs.at(0).toString()) );
 
 		if (query.exec())
@@ -121,7 +226,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 			{
 				QStringList workout_info;
 				uint i(0);
-				for (i = 0; i < 7; ++i)
+				for (i = TDAY_EXERCISES_COL_NAMES; i <= TDAY_EXERCISES_COL_COMPLETED; ++i)
 					workout_info.append(query.value(static_cast<int>(i)).toString());
 				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(workout_info);
 			}
@@ -206,13 +311,15 @@ void DBTrainingDayTable::newTrainingDay()
 		query.prepare( QStringLiteral(
 									"INSERT INTO training_day_table "
 									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
-									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes)"
+									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 									" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
-									"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\')")
+									"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')")
 									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
 											model->timeIn(), model->timeOut(), model->location(), model->dayNotes(),
-											m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-											m_data.at(5), m_data.at(6)) );
+											m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
+											m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
+											m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
+											m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED)) );
 
 		m_result = query.exec();
 		if (m_result)
@@ -254,9 +361,11 @@ void DBTrainingDayTable::updateTrainingDay()
 									.arg(model->dateStr(), model->trainingDay(), model->splitLetter(),
 									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
 									QStringLiteral("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\' WHERE id=%8")
-									.arg(m_data.at(0), m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4),
-										m_data.at(5), m_data.at(6), model->idStr()) );
+									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9")
+									.arg(m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
+											m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
+											m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
+											m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED), model->idStr()) );
 
 		m_result = query.exec();
 		mSqlLiteDB.close();

@@ -17,7 +17,8 @@ Item {
 	required property int setType
 
 	property bool finishButtonVisible: false
-	property bool setCompleted: false
+	property bool finishButtonEnabled: false
+	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 
 	signal requestTimerDialogSignal(Item requester, var args)
 	signal exerciseCompleted(int exercise_idx)
@@ -99,6 +100,7 @@ Item {
 
 				onCheckedChanged: {
 					setCompleted = checked;
+					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
 					btnCopyValue.visible = false;
 					btnCopyValue2.visible = false;
 				}
@@ -275,6 +277,7 @@ Item {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
 			visible: finishButtonVisible
+			enabled: finishButtonEnabled
 			Layout.alignment: Qt.AlignHCenter
 			Layout.topMargin: -5
 

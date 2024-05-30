@@ -139,7 +139,7 @@ Page {
 
 		TPButton {
 			id: btnInExport
-			text: qsTr("In/Ex port")
+			text: qsTr("In/Ex")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
 			visible: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false

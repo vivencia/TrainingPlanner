@@ -96,7 +96,7 @@ void DBMesoCalendarTable::updateDatabase()
 					query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 					if (mSqlLiteDB.transaction())
 					{
-						const QString queryStart(QStringLiteral(
+						const QString queryStart( QStringLiteral(
 									"INSERT INTO mesocycles_calendar_table "
 									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES ") );
 						QString queryValues;
@@ -353,7 +353,7 @@ void DBMesoCalendarTable::changeMesoCalendar()
 void DBMesoCalendarTable::updateMesoCalendar()
 {
 	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(1).toString(), m_execArgs.at(2).toDate(),
-										m_execArgs.at(3).toString(), m_execArgs.at(4).toString());
+										m_execArgs.at(3).toString());
 	removeMesoCalendar();
 	createMesoCalendar();
 }
@@ -366,7 +366,6 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + m_execArgs.at(0).toString() );
 		m_result = query.exec();
-		m_model->clear();
 		mSqlLiteDB.close();
 	}
 

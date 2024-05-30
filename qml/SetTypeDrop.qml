@@ -16,7 +16,8 @@ Item {
 	required property int setType
 
 	property bool finishButtonVisible: false
-	property bool setCompleted: false
+	property bool finishButtonEnabled: false
+	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
 	property var subSetComponent: null
 
@@ -95,7 +96,10 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: btnRemoveSet.right
 
-				onCheckedChanged: setCompleted = checked;
+				onCheckedChanged: {
+					setCompleted = checked;
+					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
+				}
 			}
 
 			Image {
@@ -180,6 +184,7 @@ Item {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
 			visible: finishButtonVisible
+			enabled: finishButtonEnabled
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {

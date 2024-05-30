@@ -143,9 +143,13 @@ Page {
 		property int opt
 
 		onButton1Clicked: {
-			if (opt === 0)
+			if (opt === 0) {
+				appDB.clearExercises();
 				changeSplitLetter();
-			appDB.clearExercises();
+			}
+			else
+				appDB.clearExercises();
+
 		}
 
 		onButton2Clicked: {
@@ -157,7 +161,7 @@ Page {
 
 		function init(_opt) {
 			opt = _opt
-			show(windowHeight / 2);
+			show(-1);
 		}
 	} //TPBalloonTip
 
@@ -807,7 +811,7 @@ Page {
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		tDayModel.dayIsFinishedChanged.connect(saveWorkout);
-		tDayModel.modifiedChanged.connect(saveWorkout);
+		tDayModel.saveWorkout.connect(saveWorkout);
 	}
 
 	Timer {
@@ -1078,7 +1082,6 @@ Page {
 	}
 
 	function saveWorkout() {
-		if (!tDayModel.modified) return;
 		appDB.saveTrainingDay();
 
 		if (chkAdjustCalendar.visible)
@@ -1086,23 +1089,37 @@ Page {
 			if (!chkAdjustCalendar.checked)
 				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
 			else
-				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter, tDay);
+				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter);
 			chkAdjustCalendar.visible = false;
 		}
 	}
 
-	function changeSplitLetter() {
-		if (bRealMeso)
-			chkAdjustCalendar.visible = (cboSplitLetter.currentValue !== splitLetter);
-		splitLetter = cboSplitLetter.currentValue;
-		if (splitLetter === 'R')
-			tDay = "0";
-		else
-		{
-			if (tDay === "0")
-				tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
+	TPBalloonTip {
+		id: adjustCalendarBox
+		title: qsTr("Re-adjust meso calendar?")
+		checkBoxText: qsTr("Only alter this day")
+		imageSource: "qrc:/images/"+darkIconFolder+"calendar.png"
+		button1Text: qsTr("Adjust")
+		button2Text: qsTr("Cancel")
+
+		onButton1Clicked: {
+			if (checkBoxChecked)
+				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
+			else
+				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter);
 		}
+	}
+	function changeSplitLetter() {
+		const bAdjustCalendar = bRealMeso && cboSplitLetter.currentValue !== splitLetter;
+		splitLetter = cboSplitLetter.currentValue;
 		tDayModel.setSplitLetter(splitLetter);
+		if (splitLetter === 'R')
+			saveWorkout();
+		else
+			tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
+
+		if (bAdjustCalendar)
+			adjustCalendarBox.show(-1);
 	}
 
 	function gotExercise() {

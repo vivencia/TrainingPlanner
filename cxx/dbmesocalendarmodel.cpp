@@ -145,15 +145,13 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 	emit calendarChanged();
 }
 
-void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter, const QString& tDay)
+void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter)
 {
-	const uint year(startDate.year());
-	const uint month(startDate.month());
+	uint year(startDate.year());
+	uint month(startDate.month());
 	uint day(startDate.day()-1);
+	int tday(0);
 	int idx(mesoSplit.indexOf(splitLetter));
-	uint tday(tDay.toUInt());
-	if (tday == 0)
-		tday = getLastTrainingDayBeforeDate(startDate);
 
 	for(uint i(0); i < m_modeldata.count(); ++i)
 	{
@@ -163,21 +161,51 @@ void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& sta
 			{
 				QStringList monthInfo(m_modeldata.at(i));
 				QStringList dayInfo;
-				do {
-					for(; day < monthInfo.count(); ++day)
+				for(; day < monthInfo.count(); ++day)
+				{
+					dayInfo = monthInfo.at(day).split(',');
+					if (tday == 0)
 					{
-						dayInfo = monthInfo.at(day).split(',');
-						if (mesoSplit.at(idx) == u"R"_qs)
-							dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = u"0"_qs;
+						if (dayInfo[MESOCALENDAR_COL_TRAINING_DAY] != u"0"_qs)
+							tday = dayInfo[MESOCALENDAR_COL_TRAINING_DAY].toUInt();
 						else
-							dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = QString::number(tday++);
-						dayInfo[MESOCALENDAR_COL_SPLITLETTER] = mesoSplit.at(idx);
-						m_modeldata[i][day] = dayInfo.join(',');
-						if (++idx >= mesoSplit.length())
-							idx = 0;
+						{
+							uint x(day-1);
+							do {
+								tday = getTrainingDay(month, x);
+								if (tday > 0) break;
+								--x;
+							} while (tday > 0);
+							if (tday <= 0) //will only try one month behind. If there is ever a month with no training then we have a problem
+							{
+								x = 30;
+								do {
+									tday = getTrainingDay(month, x);
+									if (tday > 0) break;
+									--x;
+								} while (tday > 0);
+							}
+							if (tday < 0)
+								tday = 0;
+						}
 					}
-				} while(++i < m_modeldata.count());
-				break;
+
+					if (mesoSplit.at(idx) == u"R"_qs)
+						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = u"0"_qs;
+					else
+						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = QString::number(tday++);
+					dayInfo[MESOCALENDAR_COL_SPLITLETTER] = mesoSplit.at(idx);
+					m_modeldata[i][day] = dayInfo.join(',');
+					if (++idx >= mesoSplit.length())
+						idx = 0;
+				}
+				++month;
+				day = 0;
+				if (month == 13)
+				{
+					month = 1;
+					year++;
+				}
 			}
 		}
 	}
