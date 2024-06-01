@@ -169,20 +169,17 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 	i.toFront();
 	while (i.hasNext()) {
 		i.next();
-		if (i.value()->isReady())
+		if (m_createdSplits.indexOf(i.key()) == -1)
 		{
-			if (m_createdSplits.indexOf(i.key()) == -1)
-			{
-				m_createdSplits.append(i.key());
-				m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(m_splitModels.value(i.key()));
-				QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
-				m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-				item->setParentItem(m_plannerPage);
-				connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
-				emit pageReady(item, static_cast<int>(i.key().cell()) - static_cast<int>('A'));
-				m_splitPages.insert(i.key(), item);
-			}
+			m_createdSplits.append(i.key());
+			m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(m_splitModels.value(i.key()));
+			QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
+			m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+			item->setParentItem(m_plannerPage);
+			connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
+					SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
+			emit pageReady(item, static_cast<int>(i.key().cell()) - static_cast<int>('A'));
+			m_splitPages.insert(i.key(), item);
 		}
 	}
 }

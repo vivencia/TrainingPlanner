@@ -957,7 +957,7 @@ void DbManager::getCompleteMesoSplit()
 	QString createdSplits;
 
 	nSplitPages = 0;
-	connect(this, &DbManager::getPage, this, [&,nSplitPages] (QQuickItem* item, const uint id) { if (id <= 6) {
+	connect(this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint id) { if (id <= 6) {
 		QMetaObject::invokeMethod(m_currentMesoManager->getExercisesPlannerPage(), "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(id)));
 		if (--nSplitPages == 0)
 			disconnect(this, &DbManager::getPage, this, nullptr);

@@ -1867,8 +1867,8 @@
     </message>
     <message>
         <location filename="../qml/main.qml" line="90"/>
-        <source>   Today&apos;s Workout</source>
-        <translation>   Treino de Hoje</translation>
+        <source>Today&apos;s Workout</source>
+        <translation>Treino de hoje</translation>
     </message>
 </context>
 </TS>

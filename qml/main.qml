@@ -87,7 +87,8 @@ ApplicationWindow {
 
 		TabButton {
 			id: btnWorkout
-			text: qsTr("   Today's Workout")
+			text: "          " + qsTr("Today's Workout")
+			font.pointSize: AppSettings.fontSizeText
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
