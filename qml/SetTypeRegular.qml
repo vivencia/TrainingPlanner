@@ -101,8 +101,6 @@ Item {
 				onCheckedChanged: {
 					setCompleted = checked;
 					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
-					btnCopyValue.visible = false;
-					btnCopyValue2.visible = false;
 				}
 			}
 
@@ -137,10 +135,7 @@ Item {
 			enabled: !setCompleted
 			Layout.leftMargin: 5
 
-			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
-				text = str;
-			}
+			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 
 			onEnterOrReturnKeyPressed: {
 				if (txtNSubSets.visible)
@@ -162,7 +157,6 @@ Item {
 
 			onValueChanged: (str) => {
 				tDayModel.setSetSubSets(setNumber, exerciseIdx, str);
-				text = str;
 				if (setType === 3)
 					changeTotalRepsLabel();
 			}
@@ -197,7 +191,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue.visible = true;
 					if (setType === 3)
@@ -237,7 +230,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue2.visible = true;
 				}
@@ -289,7 +281,7 @@ Item {
 	} // setLayout
 
 	Component.onCompleted: {
-		tDayModel.modifiedChanged.connect(hideCopyButtons);
+		tDayModel.saveWorkout.connect(hideCopyButtons);
 		if (setType === 3)
 			changeTotalRepsLabel();
 	}
@@ -304,10 +296,8 @@ Item {
 	}
 
 	function hideCopyButtons() {
-		if (!tDayModel.modified) {
-			btnCopyValue.visible = false;
-			btnCopyValue2.visible = false;
-		}
+		btnCopyValue.visible = false;
+		btnCopyValue2.visible = false;
 	}
 
 	function changeReps(new_value: string, idx: int) {

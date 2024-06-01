@@ -103,7 +103,10 @@ FocusScope {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: valueChanged(runCmd.addTimeToStrTime(txtMain.text, 1, 0));
+			onClicked: {
+				txtMain.text = runCmd.addTimeToStrTime(txtMain.text, 1, 0)
+				valueChanged(txtMain.text);
+			}
 		}
 
 		TPRoundButton {
@@ -123,7 +126,8 @@ FocusScope {
 
 			onClicked: {
 				bClearInput = false;
-				valueChanged(runCmd.setTypeOperation(type, false, txtMain.text));
+				txtMain.text = runCmd.setTypeOperation(type, false, txtMain.text !== "" ? txtMain.text : origText)
+				valueChanged(txtMain.text);
 			}
 		}
 
@@ -154,7 +158,7 @@ FocusScope {
 			}
 
 			onActiveFocusChanged: {
-				if(activeFocus) {
+				if (activeFocus) {
 					if (type === SetInputField.Type.TimeType) {
 						openTimerDialog();
 						return;
@@ -164,6 +168,10 @@ FocusScope {
 						txtMain.clear();
 						bClearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
 					}
+				}
+				else {
+					if (text === "")
+						text = origText;
 				}
 			}
 
@@ -195,7 +203,8 @@ FocusScope {
 
 			onClicked: {
 				bClearInput = false;
-				valueChanged(runCmd.setTypeOperation(type, true, txtMain.text));
+				txtMain.text = runCmd.setTypeOperation(type, true, txtMain.text !== "" ? txtMain.text : origText)
+				valueChanged(txtMain.text);
 			}
 		}
 
@@ -218,7 +227,8 @@ FocusScope {
 			onClicked: {
 				const secs = parseInt(txtMain.text.substring(3, 5));
 				const nbr = secs > 5 ? -5 : -1;
-				valueChanged(runCmd.addTimeToStrTime(txtMain.text, 0, nbr));
+				txtMain.text = runCmd.addTimeToStrTime(txtMain.text, 0, nbr);
+				valueChanged(txtMain.text);
 			}
 		}
 	} //Rectangle

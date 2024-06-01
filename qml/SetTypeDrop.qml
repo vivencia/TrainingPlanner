@@ -132,10 +132,7 @@ Item {
 			visible: setNumber > 0
 			enabled: !setCompleted
 
-			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
-				text = str;
-			}
+			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 
 			onEnterOrReturnKeyPressed: {
 				if (subSetList.length > 0)

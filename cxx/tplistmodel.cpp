@@ -38,7 +38,7 @@ void TPListModel::removeFromList (const int row)
 		beginRemoveRows(QModelIndex(), row, row);
 		m_modeldata.remove(row);
 		m_indexProxy.remove(row);
-		for( uint i (row); i < m_modeldata.count(); ++i )
+		for(uint i(row); i < m_modeldata.count(); ++i)
 			m_indexProxy[i] = i-1;
 		if (m_currentRow >= row)
 			setCurrentRow(m_currentRow - 1);

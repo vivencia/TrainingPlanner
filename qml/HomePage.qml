@@ -96,11 +96,13 @@ Page {
 					id: optCurrentMeso
 					text: qsTr("Current mesocycle")
 					checked: mesocyclesModel.currentRow === index;
+					width: parent.width/2
+					height: 35
 					z: 1
 
 					anchors {
 						left: parent.left
-						leftMargin: 10
+						leftMargin: 2
 						top: parent.top
 						topMargin: 10
 					}
@@ -108,20 +110,57 @@ Page {
 					onClicked: mesocyclesModel.currentRow = index;
 				}
 
-				TPButton {
-					text: qsTr("View Mesocycle Info")
+				TransparentButton {
+					id: btnMesoInfo
+					text: qsTr("Mesocycle Info")
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
-					textUnderIcon: false
+					width: parent.width/2
 					z: 1
 
 					anchors {
 						top: optCurrentMeso.bottom
-						topMargin: 10
+						topMargin: 2
 						left: parent.left
-						leftMargin: 10
+						leftMargin: 2
 					}
 
 					onClicked: appDB.getMesocycle(index);
+				}
+				TransparentButton {
+					id: btnMesoCalendar
+					text: qsTr("View Calendar")
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
+					width: parent.width/2
+					z: 1
+
+					anchors {
+						top: parent.top
+						topMargin: 10
+						left: parent.horizontalCenter
+					}
+
+					onClicked: {
+						appDB.setWorkingMeso(-1, index);
+						appDB.getMesoCalendar(true);
+					}
+				}
+				TransparentButton {
+					id: btnMesoPlan
+					text: qsTr("Exercises Plan")
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
+					width: parent.width/2
+					z: 1
+
+					anchors {
+						top: btnMesoCalendar.bottom
+						topMargin: 2
+						left: parent.horizontalCenter
+					}
+
+					onClicked: {
+						appDB.setWorkingMeso(-1, index);
+						appDB.createExercisesPlannerPage();
+					}
 				}
 			} //swipe.left: Rectangle
 
@@ -252,15 +291,6 @@ Page {
 	} // footer
 
 	function newAction(opt) {
-		function pushPageOntoStack(object, id)
-		{
-			if (id === 175) {
-				appDB.getPage.disconnect(pushPageOntoStack);
-				stackView.push(object);
-			}
-		}
-
-		appDB.getPage.connect(pushPageOntoStack);
 		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"));
 	}
 

@@ -36,7 +36,7 @@ public:
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void restartApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
-	Q_INVOKABLE void setWorkingMeso(const int mesoId, const uint mesoIdx);
+	Q_INVOKABLE void setWorkingMeso(int mesoId, const uint mesoIdx);
 	void removeWorkingMeso();
 	void gotResult(TPDatabaseTable* dbObj);
 
@@ -59,8 +59,8 @@ public:
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable(const bool bRemoveFile);
 	Q_INVOKABLE void updateExercisesList(DBExercisesModel* model = nullptr);
-	Q_INVOKABLE void openExercisesListPage(const bool fromMainMenu = false);
-	void createExercisesListPage();
+	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
+	void createExercisesListPage(QQuickItem *connectPage);
 	void getExercisesListVersion();
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 

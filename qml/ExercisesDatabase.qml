@@ -189,7 +189,6 @@ Page {
 						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
-						onValueChanged: (str) => text = str;
 						onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 					}
 
@@ -202,7 +201,6 @@ Page {
 						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
-						onValueChanged: (str) => text = str;
 						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 					}
 
@@ -215,7 +213,6 @@ Page {
 						labelColor: AppSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
-						onValueChanged: (str) => text = str;
 						onEnterOrReturnKeyPressed: btnChooseMediaFromDevice.forceActiveFocus();
 					}
 				} // ColumnLayout

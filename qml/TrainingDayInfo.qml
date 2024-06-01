@@ -371,16 +371,6 @@ Page {
 				} //txtTDay
 			} //GridLayout
 
-			TPCheckBox {
-				id: chkAdjustCalendar
-				text: qsTr("Re-adjust meso calendar from this day?")
-				checked: false
-				visible: false
-				Layout.rightMargin: 5
-				Layout.leftMargin: 5
-				Layout.fillWidth: true
-			} //TPCheckBox
-
 			Label {
 				text: qsTr("Location:")
 				color: AppSettings.fontColor
@@ -1039,22 +1029,15 @@ Page {
 				bottomMargin: 5
 			}
 
+			property bool bFirstClick: true
+
 			onClicked: {
 				if (navButtons !== null)
 					navButtons.hideButtons();
 				if (btnFloat)
 					btnFloat.visible = false;
-
-				function openTDayExercisesPage(object, id) {
-					appDB.getPage.disconnect(openTDayExercisesPage);
-					if (id === 999) //999 first time creation
-						object.exerciseChosen.connect(gotExercise);
-					object.bChooseButtonEnabled = true;
-					appStackView.push(object);
-				}
-
-				appDB.getPage.connect(openTDayExercisesPage);
-				appDB.openExercisesListPage();
+				appDB.openExercisesListPage(true, bFirstClick ? trainingDayPage : null);
+				bFirstClick = false;
 			}
 		} // bntAddExercise
 	} //footer: ToolBar
@@ -1083,15 +1066,6 @@ Page {
 
 	function saveWorkout() {
 		appDB.saveTrainingDay();
-
-		if (chkAdjustCalendar.visible)
-		{
-			if (!chkAdjustCalendar.checked)
-				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
-			else
-				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter);
-			chkAdjustCalendar.visible = false;
-		}
 	}
 
 	TPBalloonTip {

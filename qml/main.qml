@@ -87,7 +87,7 @@ ApplicationWindow {
 
 		TabButton {
 			id: btnWorkout
-			text: qsTr("   + Workout")
+			text: qsTr("   Today's Workout")
 
 			Image {
 				source: "qrc:/images/"+darkIconFolder+"exercises.png"
@@ -99,13 +99,6 @@ ApplicationWindow {
 			}
 
 			onClicked: {
-				function pushTDayOntoMainStackView(object2, id) {
-					if (id === 70) {
-						appDB.getPage.disconnect(pushTDayOntoMainStackView);
-						appDB.addMainMenuShortCut( qsTr("Workout: ") + runCmd.formatTodayDate() , object2);
-					}
-				}
-
 				function mesoCalendarOK()
 				{
 					appDB.databaseReady.disconnect(mesoCalendarOK);

@@ -141,11 +141,11 @@ void TPMesocycleClass::createPlannerPage_part2()
 void TPMesocycleClass::createMesoSplitPage()
 {
 	if (m_splitComponent == nullptr)
+	{
 		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
-
-	m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-	m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_plannerPage));
+		m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
+		m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+	}
 	if (m_splitComponent->status() != QQmlComponent::Ready)
 		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return createMesoSplitPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );

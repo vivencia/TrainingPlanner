@@ -96,10 +96,6 @@ Item {
 				onCheckedChanged: {
 					setCompleted = checked;
 					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
-					btnCopyValue.visible = false;
-					btnCopyValue2.visible = false;
-					btnCopyValue3.visible = false;
-					btnCopyValue4.visible = false;
 				}
 			}
 
@@ -133,10 +129,7 @@ Item {
 			visible: setNumber > 0
 			enabled: !setCompleted
 
-			onValueChanged: (str) => {
-				tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
-				text = str;
-			}
+			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 
 			onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 		}
@@ -195,7 +188,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 0, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue.visible = true;
 				}
@@ -229,7 +221,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 1, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue2.visible = true;
 				}
@@ -269,7 +260,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 0, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue3.visible = true;
 				}
@@ -303,7 +293,6 @@ Item {
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 1, str);
-					text = str;
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 						btnCopyValue4.visible = true;
 				}
@@ -353,7 +342,7 @@ Item {
 		}
 	} //ColumnLayout setLayout
 
-	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
+	Component.onCompleted: tDayModel.saveWorkout.connect(hideCopyButtons);
 
 	function changeExerciseText(textObj: var, newtext: string)
 	{
@@ -366,12 +355,10 @@ Item {
 	}
 
 	function hideCopyButtons() {
-		if (!tDayModel.modified) {
-			btnCopyValue.visible = false;
-			btnCopyValue2.visible = false;
-			btnCopyValue3.visible = false;
-			btnCopyValue4.visible = false;
-		}
+		btnCopyValue.visible = false;
+		btnCopyValue2.visible = false;
+		btnCopyValue3.visible = false;
+		btnCopyValue4.visible = false;
 	}
 
 	function changeReps(new_value: string, idx: int) {

@@ -3,7 +3,7 @@ import QtQuick.Controls
 
 ToolButton {
 	id: button
-	height: 40
+	height: 35
 	rightPadding: 0
 	leftPadding: 0
 	rightInset: 0
@@ -56,7 +56,7 @@ ToolButton {
 				width = textWidth;
 			if (leftAlign) {
 				anchors.left = parent.left;
-				anchors.leftMargin = imageSource.length === 0 ? 5 : buttonImage.width;
+				anchors.leftMargin = imageSource.length === 0 ? 5 : buttonImage.width + 5;
 			}
 			else {
 				anchors.right = parent.right;
@@ -76,6 +76,7 @@ ToolButton {
 
 		anchors {
 			right: buttonText.left
+			rightMargin: 5
 			verticalCenter: parent.verticalCenter
 		}
 	}

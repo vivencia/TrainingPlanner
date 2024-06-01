@@ -119,14 +119,8 @@ Drawer {
 			}
 
 			onButtonClicked: {
-				function pushExercisesPageOntoStack(object) {
-					appDB.getPage.disconnect(pushExercisesPageOntoStack);
-					stackView.push(object);
-					menuClicked();
-				}
-
-				appDB.getPage.connect(pushExercisesPageOntoStack);
-				appDB.openExercisesListPage(true);
+				appDB.openExercisesListPage(false);
+				menuClicked();
 			}
 		}
 

@@ -27,6 +27,8 @@
 #include <QFileInfo>
 #include <QDir>
 
+static uint nSplitPages(0);
+
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands, const QString& argv0)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mArgv0(argv0), m_appSettings(appSettings),
 		m_runCommands(runcommands), m_exercisesPage(nullptr)
@@ -199,11 +201,17 @@ DbManager::~DbManager()
 		delete m_MesoManager.at(i);
 }
 
-void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
+void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
 {
 	if (mesoId != m_MesoId)
 	{
 		bool bFound(false);
+		if (mesoId < 0)
+		{
+			if (mesoIdx < mesocyclesModel->count())
+				mesoId = mesocyclesModel->getInt(mesoIdx, MESOCYCLES_COL_ID);
+		}
+
 		for(uint i(0); i < m_MesoManager.count(); ++i)
 		{
 			if (m_MesoManager.at(i)->mesoId() == mesoId)
@@ -213,6 +221,7 @@ void DbManager::setWorkingMeso(const int mesoId, const uint mesoIdx)
 				break;
 			}
 		}
+
 		if (!bFound)
 		{
 			m_currentMesoManager = new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, m_runCommands, this);
@@ -234,12 +243,12 @@ void DbManager::removeWorkingMeso()
 	removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
 	removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 	removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
+	m_MesoManager.removeOne(m_currentMesoManager);
 	delete m_currentMesoManager;
-	m_MesoManager.remove(m_MesoIdx);
 	if (m_MesoManager.count() > 0)
 	{
-		m_MesoIdx = m_MesoManager.count() - 1;
-		setWorkingMeso(m_MesoManager.at(m_MesoIdx)->mesoId(), m_MesoIdx);
+		const uint idx(m_MesoManager.count() - 1);
+		setWorkingMeso(m_MesoManager.at(idx)->mesoId(), m_MesoManager.at(idx)->mesoIdx());
 	}
 	else
 	{
@@ -617,9 +626,9 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 void DbManager::bridge(QQuickItem* item, const uint id) {
 	MSG_OUT("bridge  id " << id)
 	MSG_OUT("bridge item " << item->objectName())
+	emit getPage(item, id);
 	if (id == m_expectedPageId)
 	{
-		emit getPage(item, id);
 		emit internalSignal(id);
 		m_expectedPageId = 0;
 	}
@@ -680,29 +689,32 @@ void DbManager::updateExercisesList(DBExercisesModel* model)
 	}
 }
 
-void DbManager::openExercisesListPage(const bool fromMainMenu)
+void DbManager::openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
 {
 	if (m_exercisesPage != nullptr)
 	{
-		m_exercisesPage->setProperty("bChooseButtonEnabled", !fromMainMenu);
+		m_exercisesPage->setProperty("bChooseButtonEnabled", bChooseButtonEnabled);
 		exercisesListModel->clearSelectedEntries();
-		emit getPage(m_exercisesPage, 89676);
+		if (connectPage)
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		return;
 	}
 	if (exercisesListModel->count() == 0)
 	{
 		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-		connect( this, &DbManager::databaseReady, this, &DbManager::createExercisesListPage, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		connect( this, &DbManager::databaseReady, this, [&,connectPage] { return createExercisesListPage(connectPage); },
+				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createThread(worker, [worker] () { return worker->getAllExercises(); } );
 	}
 
-	m_exercisesProperties.insert(QStringLiteral("bChooseButtonEnabled"), !fromMainMenu);
+	m_exercisesProperties.insert(QStringLiteral("bChooseButtonEnabled"), bChooseButtonEnabled);
 	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
-	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
-		return createExercisesListPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&,connectPage](QQmlComponent::Status) {
+		return createExercisesListPage(connectPage); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 }
 
-void DbManager::createExercisesListPage()
+void DbManager::createExercisesListPage(QQuickItem* connectPage)
 {
 	#ifdef DEBUG
 	if (m_exercisesComponent->status() == QQmlComponent::Error)
@@ -721,7 +733,9 @@ void DbManager::createExercisesListPage()
 															m_exercisesProperties, m_QMlEngine->rootContext()));
 			m_QMlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
 			m_exercisesPage->setParentItem(m_mainWindow->contentItem());
-			emit getPage(m_exercisesPage, 999);
+			if (connectPage)
+				connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
+			QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		}
 	}
 }
@@ -806,6 +820,9 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name)
 	mesocyclesModel->appendList(mesoInfo);
 	setWorkingMeso(-1, mesocyclesModel->count() - 1);
 	m_expectedPageId = mesoPageCreateId;
+	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == mesoPageCreateId)
+				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createMesocyclePage(minimumStartDate, bRealMeso ?
 			m_runCommands->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);
 }
@@ -939,6 +956,13 @@ void DbManager::getCompleteMesoSplit()
 	QChar splitLetter;
 	QString createdSplits;
 
+	nSplitPages = 0;
+	connect(this, &DbManager::getPage, this, [&,nSplitPages] (QQuickItem* item, const uint id) { if (id <= 6) {
+		QMetaObject::invokeMethod(m_currentMesoManager->getExercisesPlannerPage(), "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(id)));
+		if (--nSplitPages == 0)
+			disconnect(this, &DbManager::getPage, this, nullptr);
+		}
+	});
 	do {
 		splitLetter = static_cast<QChar>(*itr);
 		if (splitLetter == QChar('R'))
@@ -946,6 +970,7 @@ void DbManager::getCompleteMesoSplit()
 
 		if (createdSplits.indexOf(splitLetter) == -1)
 		{
+			nSplitPages++;
 			createdSplits.append(splitLetter);
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter)));
 			worker->addExecArg(m_MesoIdStr);

@@ -10,7 +10,6 @@ Frame {
 	required property int mesoId
 	required property int mesoIdx
 	required property DBMesoSplitModel splitModel
-	required property Item parentItem
 
 	property bool bAlreadyLoaded: false
 	property int removalSecs: 0

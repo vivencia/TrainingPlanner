@@ -194,15 +194,7 @@ Page {
 		id: exercisesPane
 	}
 
-	Component.onCompleted: {
-		function insertSplitPage(page, idx) {
-			if (idx < 6)
-				splitView.insertItem(idx, page);
-		}
-
-		itemManager.pageReady.connect(insertSplitPage);
-		appDB.getCompleteMesoSplit();
-	}
+	Component.onCompleted: appDB.getCompleteMesoSplit();
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
 		itemThatRequestedSimpleList = object;
@@ -212,6 +204,10 @@ Page {
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
+	}
+
+	function insertSplitPage(page: Item, idx: int) {
+		splitView.insertItem(idx, page);
 	}
 
 	TPBalloonTip {

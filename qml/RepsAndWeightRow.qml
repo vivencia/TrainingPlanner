@@ -28,7 +28,6 @@ RowLayout {
 
 		onValueChanged: (str) => {
 			tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
-			text = str;
 			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 				stack1.currentIndex = 1;
 		}
@@ -79,7 +78,6 @@ RowLayout {
 
 		onValueChanged: (str) => {
 			tDayModel.setSetWeight(setNumber, exerciseIdx, rowIdx, str);
-			text = str;
 			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
 					stack2.currentIndex = 1;
 		}
@@ -126,13 +124,11 @@ RowLayout {
 		}
 	}
 
-	Component.onCompleted: tDayModel.modifiedChanged.connect(hideCopyButtons);
+	Component.onCompleted: tDayModel.saveWorkout.connect(hideCopyButtons);
 
 	function hideCopyButtons() {
-		if (!tDayModel.modified) {
-			stack1.currentIndex = 0;
-			stack2.currentIndex = 0;
-		}
+		stack1.currentIndex = 0;
+		stack2.currentIndex = 0;
 	}
 
 	function changeReps(new_value: string) {
