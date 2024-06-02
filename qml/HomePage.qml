@@ -77,7 +77,7 @@ Page {
 		delegate: SwipeDelegate {
 			id: mesoDelegate
 			width: ListView.view.width
-			height: mesoContent.implicitHeight
+			height: 110
 
 			onClicked: appDB.getMesocycle(index);
 
@@ -92,36 +92,18 @@ Page {
 				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
-				TPRadioButton {
-					id: optCurrentMeso
-					text: qsTr("Current mesocycle")
-					checked: mesocyclesModel.currentRow === index;
-					width: parent.width/2
-					height: 35
+				TransparentButton {
+					id: btnMesoInfo
+					text: qsTr("Mesocycle Info")
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
+					width: parent.width*0.65
 					z: 1
 
 					anchors {
 						left: parent.left
 						leftMargin: 2
 						top: parent.top
-						topMargin: 10
-					}
-
-					onClicked: mesocyclesModel.currentRow = index;
-				}
-
-				TransparentButton {
-					id: btnMesoInfo
-					text: qsTr("Mesocycle Info")
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
-					width: parent.width/2
-					z: 1
-
-					anchors {
-						top: optCurrentMeso.bottom
 						topMargin: 2
-						left: parent.left
-						leftMargin: 2
 					}
 
 					onClicked: appDB.getMesocycle(index);
@@ -130,13 +112,14 @@ Page {
 					id: btnMesoCalendar
 					text: qsTr("View Calendar")
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
-					width: parent.width/2
+					width: parent.width*0.65
 					z: 1
 
 					anchors {
-						top: parent.top
-						topMargin: 10
-						left: parent.horizontalCenter
+						top: btnMesoInfo.bottom
+						topMargin: 2
+						left: parent.left
+						leftMargin: 2
 					}
 
 					onClicked: {
@@ -148,19 +131,35 @@ Page {
 					id: btnMesoPlan
 					text: qsTr("Exercises Plan")
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
-					width: parent.width/2
+					width: parent.width*0.65
 					z: 1
 
 					anchors {
 						top: btnMesoCalendar.bottom
 						topMargin: 2
-						left: parent.horizontalCenter
+						left: parent.left
+						leftMargin: 2
 					}
 
 					onClicked: {
 						appDB.setWorkingMeso(-1, index);
 						appDB.createExercisesPlannerPage();
 					}
+				}
+				TPRadioButton {
+					id: optCurrentMeso
+					text: qsTr("Current mesocycle")
+					checked: mesocyclesModel.currentRow === index;
+					width: parent.width*0.35
+					height: 35
+					z: 1
+
+					anchors {
+						verticalCenter: parent.verticalCenter
+						left: btnMesoInfo.right
+					}
+
+					onClicked: mesocyclesModel.currentRow = index;
 				}
 			} //swipe.left: Rectangle
 

@@ -28,7 +28,7 @@ public:
 	void changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
 								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
 	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
-	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter);
+	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished);
 
 	Q_INVOKABLE int getMesoId() const
 	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(MESOCALENDAR_COL_MESOID).toUInt() : -1;	}

@@ -10,6 +10,7 @@ RadioButton {
 	property string textColor: AppSettings.fontColor
 
 	contentItem: Label {
+		id: lblText
 		text: control.text
 		color: textColor
 		wrapMode: Text.WordWrap
@@ -22,7 +23,7 @@ RadioButton {
 		implicitWidth: 20
 		implicitHeight: 20
 		x: 3
-		y: (parent.height-height)/2
+		y: lblText.y
 		radius: 10
 		color: "transparent"
 		border.color: textColor

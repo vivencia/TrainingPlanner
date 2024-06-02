@@ -212,7 +212,7 @@ void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& sta
 	emit calendarChanged();
 }
 
-void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter)
+void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished)
 {
 	const uint year(date.year());
 	const uint month(date.month());
@@ -226,8 +226,8 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 			{
 				const QStringList dayInfo(m_modeldata.at(i).at(day).split(','));
 				m_modeldata[i][day] = dayInfo.at(MESOCALENDAR_COL_ID) + ',' + dayInfo.at(MESOCALENDAR_COL_MESOID) + ',' +
-						tDay + ',' + splitLetter + ',' + dayInfo.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' +
-						dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' + dayInfo.at(MESOCALENDAR_COL_MONTH) + ',' + dayInfo.at(MESOCALENDAR_COL_DAY) ;
+						tDay + ',' + splitLetter + ',' + dayIsFinished + ',' + dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' +
+						dayInfo.at(MESOCALENDAR_COL_MONTH) + ',' + dayInfo.at(MESOCALENDAR_COL_DAY) ;
 			}
 		}
 	}

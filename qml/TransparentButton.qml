@@ -13,15 +13,17 @@ ToolButton {
 	hoverEnabled: true
 
 	onHoveredChanged: {
-		opacity = hovered ? 1 : parent.opacity
+		opacity = hovered ? 1 : followParentsOpacity ? parent.opacity : 0.9
 	}
 
 	signal buttonClicked(int clickid)
 	property bool bEmitSignal: false
 	property int clickId: -1
 
+	property string buttonColor: AppSettings.primaryDarkColor
 	property string imageSource
 	property bool leftAlign: true
+	property bool followParentsOpacity: false
 
 	onPressed: anim.start();
 	onReleased: bEmitSignal = true;
@@ -43,7 +45,7 @@ ToolButton {
 		font.bold: true
 		font.capitalization: Font.MixedCase
 		color: button.enabled ? AppSettings.fontColor : "gray"
-		opacity: button.opacity
+		opacity: followParentsOpacity ? button.opacity : 1
 		anchors.verticalCenter: parent.verticalCenter
 
 		Component.onCompleted: {
@@ -69,7 +71,7 @@ ToolButton {
 		id: buttonImage
 		source: imageSource
 		visible: imageSource.length > 0
-		opacity: button.opacity
+		opacity: followParentsOpacity ? button.opacity : 1
 		fillMode: Image.PreserveAspectFit
 		width: 20
 		height: 20
@@ -83,8 +85,9 @@ ToolButton {
 
 	background: Rectangle {
 		id: buttonBack
-		color: AppSettings.primaryDarkColor
-		opacity: parent.opacity
+		color: buttonColor
+		opacity: followParentsOpacity ? parent.opacity : 0.9
+		radius: height
 
 		property double fillPosition: !anim.running
 

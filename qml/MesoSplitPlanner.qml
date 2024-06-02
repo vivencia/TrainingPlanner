@@ -9,6 +9,7 @@ Frame {
 
 	required property int mesoId
 	required property int mesoIdx
+	required property var parentItem
 	required property DBMesoSplitModel splitModel
 
 	property bool bAlreadyLoaded: false
@@ -161,6 +162,23 @@ Frame {
 				id: vBar
 				policy: ScrollBar.AsNeeded
 				active: true; visible: lstSplitExercises.contentHeight > lstSplitExercises.height
+
+				onPositionChanged: {
+					if (parentItem.navButtons) {
+						if (lstSplitExercises.contentY <= 50) {
+							parentItem.navButtons.showUpButton = false;
+							parentItem.navButtons.showDownButton = true;
+						}
+						else if (lstSplitExercises.contentHeight - lstSplitExercises.contentY - vBar.height <= 50) {
+							parentItem.navButtons.showUpButton = true;
+							parentItem.navButtons.showDownButton = false;
+						}
+						else {
+							parentItem.navButtons.showUpButton = true;
+							parentItem.navButtons.showDownButton = true;
+						}
+					}
+				}
 			}
 
 			model: splitModel
@@ -606,6 +624,19 @@ Frame {
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);
 			bCanSwapPlan = swappableLetter !== "";
 		}
+		if (splitModel.count > 1) {
+			if (parentItem.navButtons !== null)
+				parentItem.navButtons.showButtons();
+			else
+				parentItem.createNavButtons();
+		}
+	}
+
+	function setScrollBarPosition(pos) {
+		if (pos === 0)
+			vBar.setPosition(0);
+		else
+			vBar.setPosition(pos - vBar.size/2);
 	}
 
 	//Each layout row(10) * 32(height per row) + 30(extra space)

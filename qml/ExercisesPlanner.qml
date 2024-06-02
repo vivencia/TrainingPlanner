@@ -18,6 +18,7 @@ Page {
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
 	property var itemThatRequestedSimpleList: null
+	property var navButtons: null
 
 	property alias currentPage: splitView.currentItem
 
@@ -186,7 +187,11 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: currentPage.appendNewExerciseToDivision();
+			onClicked: {
+				if (navButtons === null)
+					createNavButtons();
+				currentPage.appendNewExerciseToDivision();
+			}
 		} //btnAddExercise
 	}
 
@@ -194,16 +199,54 @@ Page {
 		id: exercisesPane
 	}
 
-	Component.onCompleted: appDB.getCompleteMesoSplit();
+	Component.onCompleted: {
+		appDB.getCompleteMesoSplit();
+		pagePlanner.StackView.activating.connect(pageActivation);
+		pagePlanner.StackView.onDeactivating.connect(pageDeActivation);
+	}
+
+	function pageActivation() {
+		if (navButtons)
+			navButtons.visible = true;
+	}
+
+	function pageDeActivation() {
+		if (navButtons)
+			navButtons.visible = false;
+	}
+
+	function createNavButtons() {
+		if (navButtons === null) {
+			var component = Qt.createComponent("PageScrollButtons.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				navButtons = component.createObject(pagePlanner, {});
+				navButtons.scrollTo.connect(currentPage.setScrollBarPosition);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
 		itemThatRequestedSimpleList = object;
 		bEnableMultipleSelection = multipleSel;
 		bShowSimpleExercisesList = visible;
+		if (navButtons !== null) {
+			if (visible)
+				navButtons.hideButtons();
+			else
+				navButtons.showButtons();
+		}
 	}
 
 	function hideSimpleExerciseList() {
 		exercisesPane.shown = false;
+		if (navButtons !== null)
+			navButtons.showButtons();
 	}
 
 	function insertSplitPage(page: Item, idx: int) {

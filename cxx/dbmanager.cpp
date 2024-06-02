@@ -1156,11 +1156,11 @@ void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& s
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
 }
 
-void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit)
+void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit, const bool bDayIsFinished)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->addExecArg(calDate);
-	worker->setData(m_MesoIdStr, QString::number(calNDay), calSplit);
+	worker->setData(QString::number(calNDay), calSplit, bDayIsFinished ? u"1"_qs : u"0"_qs);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 

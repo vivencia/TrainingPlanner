@@ -68,7 +68,7 @@ FocusScope {
 			color: exerciseIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
 			border.color: "transparent"
 			opacity: 0.8
-			radius: 5
+			radius: 10
 		}
 
 		TPRoundButton {

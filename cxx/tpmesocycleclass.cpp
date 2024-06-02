@@ -12,9 +12,9 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_q
 					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_mesoComponent(nullptr),
-		m_MesoPage(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr),
-		m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_MesoPage(nullptr),
+		m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
+		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
 	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
 }
@@ -77,9 +77,8 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
 
 	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
-	if (m_mesoComponent == nullptr)
-		m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
-					QQmlComponent::Asynchronous);
+	m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
+							QQmlComponent::Asynchronous);
 
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -145,7 +144,9 @@ void TPMesocycleClass::createMesoSplitPage()
 		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
 		m_splitProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 		m_splitProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+		m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_plannerPage));
 	}
+
 	if (m_splitComponent->status() != QQmlComponent::Ready)
 		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return createMesoSplitPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -216,9 +217,7 @@ void TPMesocycleClass::updateMuscularGroup(const QString& splitA, const QString&
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 uint TPMesocycleClass::createMesoCalendarPage()
 {
-	if (m_calComponent == nullptr)
-		m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
-
+	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
 	m_calProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 	m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_mesosCalendarModel));
@@ -258,7 +257,11 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 	if (!m_tDayPages.contains(date))
 	{
 		if (m_tDayComponent == nullptr)
+		{
 			m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
+			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
+		}
 
 		if (!m_tDayExercisesList.contains(date))
 		{
@@ -287,8 +290,6 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 			}
 
 			m_tDayProperties.insert(QStringLiteral("mainDate"), date);
-			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 			m_tDayProperties.insert(QStringLiteral("tDay"), tday);
 			m_tDayProperties.insert(QStringLiteral("splitLetter"), splitLetter);

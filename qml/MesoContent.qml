@@ -234,8 +234,8 @@ Page {
 		}
 
 		Label {
-			text: btnShowDayInfo.enabled ? qsTr("Trainning day <b>#" + trainingDay + "</b> Division: <b>" + splitLetter + "</b> - <b>") + splitContent + "</b>" :
-					qsTr("Selected day is not part of the current mesocycle")
+			text: btnShowDayInfo.enabled ? qsTr("Workout #") + "<b>" + trainingDay + "</b> " + qsTr("Split:") +
+					"<b> " + splitLetter + "</b> - <b>" + splitContent + "</b>" : qsTr("Selected day is not part of the current mesocycle")
 			color: AppSettings.fontColor
 			width: parent.width - btnShowDayInfo.width - 10
 			wrapMode: Text.WordWrap
@@ -310,6 +310,7 @@ Page {
 			case 'D': splitContent = mesoSplitModel.get(mesoIdx, 5); break;
 			case 'E': splitContent = mesoSplitModel.get(mesoIdx, 6); break;
 			case 'F': splitContent = mesoSplitModel.get(mesoIdx, 7); break;
+			default: splitContent = "";
 		}
 	}
 } //Page

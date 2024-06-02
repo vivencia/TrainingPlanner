@@ -776,12 +776,12 @@ Page {
 		}
 	} // ScrollView scrollTraining
 
-	Component.onDestruction: {
+	/*Component.onDestruction: {
 		if (timerDialog !== null)
 			timerDialog.destroy();
 		if (navButtons !== null)
 			navButtons.destroy();
-	}
+	}*/
 
 	Keys.onPressed: (event)=> {
 		if (event.key === Qt.Key_Back) {
@@ -1078,7 +1078,10 @@ Page {
 
 		onButton1Clicked: {
 			if (checkBoxChecked)
-				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter);
+			{
+				const bDayIsFinished = splitLetter != "R" ? tDayModel.dayIsFinished : false;
+				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter, bDayIsFinished);
+			}
 			else
 				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter);
 		}
@@ -1205,6 +1208,8 @@ Page {
 
 	function pageActivation() {
 		changeComboModel();
+		if (navButtons)
+			navButtons.visible = true;
 	}
 
 	function pageDeActivation() {
