@@ -12,9 +12,9 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_q
 					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_MesoPage(nullptr),
-		m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr),
-		m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_mesoComponent(nullptr),
+		m_MesoPage(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr),
+		m_calPage(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
 	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
 }
@@ -488,7 +488,7 @@ void TPMesocycleClass::rollUpExercises() const
 void TPMesocycleClass::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
 										const QString& nReps, const QString& nWeight)
 {
-	const uint set_type_cpp(set_type == 2 ? 1 : set_type == 4 ? 2 : 0);
+	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
 	if (m_setComponents[set_type_cpp] == nullptr)
 		m_setComponents[set_type_cpp] = new QQmlComponent(m_QMlEngine, QUrl(setTypePages[set_type_cpp]), QQmlComponent::Asynchronous);
 
@@ -511,7 +511,7 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 
 void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet)
 {
-	const uint set_type_cpp(set_type == 2 ? 1 : set_type == 4 ? 2 : 0);
+	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
 	#ifdef DEBUG
 	if (m_setComponents[set_type_cpp]->status() == QQmlComponent::Error)
 	{
@@ -575,7 +575,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		}
 	}
 
-	if (set_type == 4)
+	if (set_type == SET_TYPE_GIANT)
 	{
 		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
 		QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
@@ -684,7 +684,7 @@ void TPMesocycleClass::changeSetsExerciseLabels(const uint exercise_idx, const u
 	QQuickItem* txtExercise(nullptr);
 	for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
 	{
-		if (m_CurrenttDayModel->setType(i, exercise_idx) == 4)
+		if (m_CurrenttDayModel->setType(i, exercise_idx) == SET_TYPE_GIANT)
 		{
 			setObj = m_currentExercises->setObject_const(exercise_idx, i);
 			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, false));
@@ -701,10 +701,10 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 	if (new_type != 100)
 	{
 		const uint current_type(m_CurrenttDayModel->setType(set_number, exercise_idx));
-		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, new_type);
-		if (current_type != 2 && current_type != 4)
+		m_CurrenttDayModel->changeSetType(set_number, exercise_idx, current_type, new_type);
+		if (current_type != SET_TYPE_DROP && current_type != SET_TYPE_GIANT)
 		{
-			if (new_type != 2 && new_type != 4)
+			if (new_type != SET_TYPE_DROP && new_type != SET_TYPE_GIANT)
 			{
 				m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setType", new_type);
 				return;
@@ -758,7 +758,7 @@ void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const
 	{
 		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
 		updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i-1, sub_set);
-		if (set_type == 2 || set_type == 4)
+		if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
 			m_CurrenttDayModel->setSetReps(i, exercise_idx, sub_set, updatedValue);
 		else
 			m_CurrenttDayModel->setSetReps(i, exercise_idx, updatedValue);
@@ -778,7 +778,7 @@ void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, con
 	{
 		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
 		updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i-1, sub_set);
-		if (set_type == 2 || set_type == 4)
+		if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
 			m_CurrenttDayModel->setSetWeight(i, exercise_idx, sub_set, updatedValue);
 		else
 			m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);

@@ -9,8 +9,7 @@ TextField {
 	id: control
 	font.pointSize: AppSettings.fontSizeText
 	font.weight: Font.Bold //Font.ExtraBold
-	color: textColor
-	//wrapMode: Text.WordWrap
+	color: enabled ? textColor : "lightgray"
 	leftInset: 0
 	rightInset: 0
 	topInset: 0

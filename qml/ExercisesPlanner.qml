@@ -333,7 +333,8 @@ Page {
 		property bool _bfancyFormat
 
 		onAccepted: {
-			const result = appDB.importFromFile(currentFile);
+			//const result = appDB.importFromFile(currentFile);
+			const result = appDB.importFromFile("/home/guilherme/Dokumente/tp/splits.tp");
 			var message;
 			switch (result)
 			{

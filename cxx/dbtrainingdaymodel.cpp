@@ -514,15 +514,15 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 		m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
 
 		switch (type) {
-			case 0: //Regular
-			case 1: //Pyramid
-			case 6: //Reverse Pyramid
+			case SET_TYPE_REGULAR:
+			case SET_TYPE_PYRAMID:
+			case SET_TYPE_REVERSE_PYRAMID:
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
 				m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
 			break;
-			case 2: //DropSet
+			case SET_TYPE_DROP:
 			{
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps + dropSetReps(nReps));
@@ -530,13 +530,13 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 				m_ExerciseData.at(exercise_idx)->subsets.append(u"3"_qs);
 			}
 			break;
-			case 3: //ClusterSet
+			case SET_TYPE_CLUSTER:
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("02:00"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
 				m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
 			break;
-			case 4: //GiantSet
+			case SET_TYPE_GIANT:
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("01:30"));
 				if (nReps.indexOf(subrecord_separator) == -1)
 					m_ExerciseData.at(exercise_idx)->reps.append(nReps + subrecord_separator + nReps + subrecord_separator);
@@ -548,7 +548,7 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 					m_ExerciseData.at(exercise_idx)->weight.append(nWeight + subrecord_separator);
 				m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
 			break;
-			case 5: //MyoReps
+			case SET_TYPE_MYOREPS:
 				m_ExerciseData.at(exercise_idx)->resttime.append(QStringLiteral("02:30"));
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
@@ -573,12 +573,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 													reps;
 	}
 
-	if (type == 1 || type == 6)
+	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
 		float lastSetValue(appLocale.toFloat(multiUseString));
-		if (type == 1) //Pyramid
+		if (type == SET_TYPE_PYRAMID)
 			lastSetValue = qCeil(lastSetValue * 0.8);
-		else //Reverse Pyramid
+		else
 			lastSetValue = qCeil(lastSetValue * 1.25);
 		multiUseString = appLocale.toString(static_cast<int>(lastSetValue));
 	}
@@ -600,12 +600,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 													weight;
 	}
 
-	if (type == 1 || type == 6)
+	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
 		float lastSetValue(appLocale.toFloat(multiUseString));
-		if (type == 1) //Pyramid
+		if (type == SET_TYPE_PYRAMID)
 			lastSetValue *= 1.2;
-		else //Reverse Pyramid
+		else
 			lastSetValue *= 0.8;
 		multiUseString = appLocale.toString(lastSetValue, 'f', 2);
 	}
@@ -632,25 +632,24 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight.isEmpty() ? nextSetSuggestedWeight(exercise_idx, type) : nWeight);
 				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
 				m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
+				m_ExerciseData.at(exercise_idx)->type.append(strType);
 
-				if (strType != m_ExerciseData.at(exercise_idx)->type.last())
-					changeSetType(set_number, exercise_idx, type);
-				else
-					m_ExerciseData.at(exercise_idx)->type.append(strType);
+				if (strType != m_ExerciseData.at(exercise_idx)->type.at(set_number-1-i))
+					changeSetType (set_number, exercise_idx, m_ExerciseData.at(exercise_idx)->type.at(set_number-1-i).toUInt(), type);
 
 				switch (type)
 				{
-					case 0: //Regular
-					case 1: //Pyramid
-					case 2: //DropSet
-					case 4: //GiantSet
-					case 6: //Reverse Pyramid
+					case SET_TYPE_REGULAR:
+					case SET_TYPE_PYRAMID:
+					case SET_TYPE_DROP:
+					case SET_TYPE_GIANT:
+					case SET_TYPE_REVERSE_PYRAMID:
 						m_ExerciseData.at(exercise_idx)->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 0, 30));
 					break;
-					case 3: //ClusterSet
+					case SET_TYPE_CLUSTER:
 						m_ExerciseData.at(exercise_idx)->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 0));
 					break;
-					case 5: //MyoReps
+					case SET_TYPE_MYOREPS:
 						m_ExerciseData.at(exercise_idx)->resttime.append(increaseStringTimeBy(m_ExerciseData.at(exercise_idx)->resttime.last(), 1, 30));
 						m_ExerciseData.at(exercise_idx)->subsets.last() = QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toInt() + 1);
 					break;
@@ -687,7 +686,7 @@ uint DBTrainingDayModel::setType(const uint set_number, const uint exercise_idx)
 		if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 			return m_ExerciseData.at(exercise_idx)->type.at(set_number).toUInt();
 	}
-	return 0;
+	return SET_TYPE_REGULAR;
 }
 
 void DBTrainingDayModel::setSetType(const uint set_number, const uint exercise_idx, const uint new_type)
@@ -699,39 +698,38 @@ void DBTrainingDayModel::setSetType(const uint set_number, const uint exercise_i
 	}
 }
 
-void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercise_idx, const uint new_type)
+void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercise_idx, const uint old_type, const uint new_type)
 {
-	const uint type(m_ExerciseData.at(exercise_idx)->type.at(set_number).toUInt());
 	const QString reps(m_ExerciseData.at(exercise_idx)->reps.at(set_number));
 	const QString weight(m_ExerciseData.at(exercise_idx)->weight.at(set_number));
-	switch (type)
+	switch (old_type)
 	{
-		case 0:
-		case 1:
-		case 3:
-		case 5:
-		case 6:
-			if (new_type == 4)
+		case SET_TYPE_REGULAR:
+		case SET_TYPE_PYRAMID:
+		case SET_TYPE_CLUSTER:
+		case SET_TYPE_MYOREPS:
+		case SET_TYPE_REVERSE_PYRAMID:
+			if (new_type == SET_TYPE_GIANT)
 			{
 				m_ExerciseData.at(exercise_idx)->reps[set_number].append(subrecord_separator + reps + subrecord_separator);
 				m_ExerciseData.at(exercise_idx)->weight[set_number].append(subrecord_separator + weight + subrecord_separator);
 			}
-			else if (new_type == 2)
+			else if (new_type == SET_TYPE_DROP)
 			{
 				m_ExerciseData.at(exercise_idx)->reps[set_number].append(dropSetReps(reps));
 				m_ExerciseData.at(exercise_idx)->weight[set_number].append(dropSetWeight(weight));
 				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_qs;
 			}
-			else if (new_type == 3)
+			else if (new_type == SET_TYPE_CLUSTER)
 				m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_qs;
 		break;
-		case 2:
-		case 4:
-			if (new_type != 2 && new_type != 4)
+		case SET_TYPE_DROP:
+		case SET_TYPE_GIANT:
+			if (new_type != SET_TYPE_DROP && new_type != SET_TYPE_GIANT)
 			{
 				m_ExerciseData.at(exercise_idx)->reps[set_number] = reps.left(reps.indexOf(subrecord_separator));
 				m_ExerciseData.at(exercise_idx)->weight[set_number] = weight.left(weight.indexOf(subrecord_separator));
-				if (new_type == 3)
+				if (new_type == SET_TYPE_CLUSTER)
 					m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_qs;
 			}
 		break;

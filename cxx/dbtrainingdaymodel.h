@@ -22,6 +22,14 @@
 #define TDAY_EXERCISES_COL_NOTES 6
 #define TDAY_EXERCISES_COL_COMPLETED 7
 
+#define SET_TYPE_REGULAR 0
+#define SET_TYPE_PYRAMID 1
+#define SET_TYPE_DROP 2
+#define SET_TYPE_CLUSTER 3
+#define SET_TYPE_GIANT 4
+#define SET_TYPE_MYOREPS 5
+#define SET_TYPE_REVERSE_PYRAMID 6
+
 class DBExercisesModel;
 class DBMesoSplitModel;
 
@@ -120,7 +128,7 @@ public:
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetType(const uint set_number, const uint exercise_idx, const uint new_type);
-	void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
+	void changeSetType(const uint set_number, const uint exercise_idx, const uint old_type, const uint new_type);
 
 	Q_INVOKABLE QString setRestTime(const uint set_number, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetRestTime(const uint set_number, const uint exercise_idx, const QString& new_time);

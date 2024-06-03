@@ -180,5 +180,5 @@ int DBMesocyclesModel::mesoThatHasDate(const QDateTime& datetime) const
 				return mesoIdx;
 		}
 	}
-	return -1;
+	return -5; //cannot return -1 because it will be the currentRow of mesocyclesModel when it is empty and we might get matches we do not want
 }

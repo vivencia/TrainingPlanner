@@ -227,7 +227,7 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 				const QStringList dayInfo(m_modeldata.at(i).at(day).split(','));
 				m_modeldata[i][day] = dayInfo.at(MESOCALENDAR_COL_ID) + ',' + dayInfo.at(MESOCALENDAR_COL_MESOID) + ',' +
 						tDay + ',' + splitLetter + ',' + dayIsFinished + ',' + dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' +
-						dayInfo.at(MESOCALENDAR_COL_MONTH) + ',' + dayInfo.at(MESOCALENDAR_COL_DAY) ;
+						dayInfo.at(MESOCALENDAR_COL_MONTH);
 			}
 		}
 	}

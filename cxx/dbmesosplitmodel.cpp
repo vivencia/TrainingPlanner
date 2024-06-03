@@ -203,11 +203,11 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 	int idx(extrainfo.indexOf(':'));
 	if (idx != -1)
 	{
-		setSplitLetter(extrainfo.mid(idx+1, 1));
+		setSplitLetter(extrainfo.mid(idx+2, 1));
 		idx = extrainfo.indexOf('-', idx+1);
 		if (idx != -1)
 		{
-			setMuscularGroup(extrainfo.mid(idx+1, extrainfo.length() - idx - 1));
+			setMuscularGroup(extrainfo.mid(idx+2, extrainfo.length() - idx - 3));
 			return true;
 		}
 	}

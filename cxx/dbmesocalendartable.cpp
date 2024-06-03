@@ -290,7 +290,7 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			query.finish();
 			query.prepare( QStringLiteral(
 									"UPDATE mesocycles_calendar_table SET training_day=%1, "
-									"training_split=\'%2\' training_complete=%3 WHERE id=%4")
+									"training_split=\'%2\', training_complete=%3 WHERE id=%4")
 									.arg(m_data.at(0), m_data.at(1), m_data.at(2), strId) );
 			m_result = query.exec();
 			if (m_result)

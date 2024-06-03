@@ -441,42 +441,49 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 {
 	if (!inFile)
 	{
-		inFile = new QFile(filename);
+		inFile = new QFile(filename, this);
 		inFile->deleteLater();
 		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 			return -1;
 	}
 
 	TPListModel* model(nullptr);
-	QString inData(inFile->readLine());
+	qint64 lineLength(0);
+	char buf[128];
+	QString inData;
+
+	while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
+	{
+		if (lineLength > 2)
+		{
+			inData = buf;
+			break;
+		}
+	}
+
 	const bool bFancy(!inData.startsWith(u"##0x"_qs));
 	int sep_idx(0);
 
 	if (bFancy)
 	{
-		if (inData.indexOf(DBMesocyclesFileName) != -1)
-			model = new DBMesocyclesModel;
-		else if (inData.indexOf(DBMesoSplitFileName) != -1)
-			model = new DBMesoSplitModel;
-		else if (inData.indexOf(DBMesoCalendarFileName) != -1)
-			model = new DBMesoCalendarModel;
-		else if (inData.indexOf(DBTrainingDayFileName) != -1)
-			model = new DBTrainingDayModel;
-		else if (inData.indexOf(DBExercisesFileName) != -1)
-			model = new DBExercisesModel;
+		if (inData.indexOf(DBMesoSplitObjectName) != -1)
+			model = new DBMesoSplitModel(this);
+		else if (inData.indexOf(DBMesoCalendarObjectName) != -1)
+			model = new DBMesoCalendarModel(this);
+		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
+			model = new DBMesocyclesModel(this);
+		else if (inData.indexOf(DBTrainingDayObjectName) != -1)
+			model = new DBTrainingDayModel(this);
+		else if (inData.indexOf(DBExercisesObjectName) != -1)
+			model = new DBExercisesModel(this);
 		else
 			return -2;
-
-		char buf[128];
-		qint64 lineLength(0);
 
 		while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
 		{
 			if (lineLength > 2)
 			{
 				inData = buf;
-				inData.replace(u" "_qs, u""_qs);
-				inData.chop(1);
 				break;
 			}
 		}
@@ -497,14 +504,12 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 		}
 	}
 
-	if (model->importExtraInfo(inData))
+	if (!model->importExtraInfo(inData))
 		return -4;
 
+	bool bDataImportSuccessfull(false);
 	if (bFancy)
-	{
-		if (!model->importFromFancyText(inFile))
-			return -4;
-	}
+		bDataImportSuccessfull = model->importFromFancyText(inFile);
 	else
 	{
 		const QString data(inFile->readAll());
@@ -512,20 +517,17 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 		{
 			sep_idx = data.indexOf(u"##0x"_qs);
 			if (sep_idx == -1)
-			{
-				if (!model->importFromText(data))
-					return -4;
-			}
+				bDataImportSuccessfull = model->importFromText(data);
 			else
 			{
 				inFile->seek(sep_idx);
-				if (!model->importFromText(data.left(sep_idx)))
-					return -4;
+				bDataImportSuccessfull = model->importFromText(data.left(sep_idx));
 			}
 		}
 	}
 
-	importFromModel(model);
+	if (bDataImportSuccessfull)
+		importFromModel(model);
 
 	if (!inFile->atEnd())
 		return importFromFile(filename, inFile);
@@ -545,12 +547,13 @@ void DbManager::importFromModel(TPListModel* model)
 			saveMesocycle(model->getFast(0, 1), model->getDate(0, 2), model->getDate(0, 3), model->getFast(0, 4), model->getFast(0, 5),
 							model->getFast(0, 6), model->getFast(0, 7), model->extraInfo(0), model->extraInfo(1), model->extraInfo(2),
 							model->extraInfo(3), model->extraInfo(4), model->extraInfo(5), false, false, false);
+			delete model;
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
 			DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
 			splitModel->updateFromModel(model);
-			updateMesoSplitComplete(static_cast<DBMesoSplitModel*>(model));
+			updateMesoSplitComplete(splitModel);
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
@@ -561,7 +564,7 @@ void DbManager::importFromModel(TPListModel* model)
 			if (mesoCalendarModel->count() == 0)
 			{
 				connect( this, &DbManager::databaseReady, this, [&,dayDate] {
-					connect( this, &DbManager::getPage, this, [&,model] (QQuickItem* item, const uint) {
+					connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
 						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -569,7 +572,7 @@ void DbManager::importFromModel(TPListModel* model)
 			}
 			else
 			{
-				connect( this, &DbManager::getPage, this, [&,model] (QQuickItem* item, const uint) {
+				connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
 						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getTrainingDay(dayDate);
@@ -768,8 +771,8 @@ void DbManager::getAllMesocycles()
 	worker->getAllMesocycles();
 	const int current_meso_idx(mesocyclesModel->count()-1);
 
-	for(uint i(0); i <= current_meso_idx; ++i)
-		getMesoSplit(mesocyclesModel->getFast(i, 0));
+	for(int i(0); i <= current_meso_idx; ++i)
+		getMesoSplit(mesocyclesModel->getFast(static_cast<uint>(i), 0));
 
 	if (current_meso_idx >= 0)
 		setWorkingMeso(mesocyclesModel->getInt(static_cast<uint>(current_meso_idx), 0), static_cast<uint>(current_meso_idx));

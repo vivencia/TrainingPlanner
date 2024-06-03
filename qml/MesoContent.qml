@@ -275,9 +275,9 @@ Page {
 			calendar.model = mesoCalendarModel;
 			mesoCalendarModel.calendarChanged.connect(reloadModel);
 			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
+			calendar.positionViewAtIndex(mesoCalendarModel.getIndex(_today), ListView.Center);
 			bAlreadyLoaded = true;
 		}
-		calendar.positionViewAtIndex(mesoCalendarModel.getIndex(_today), ListView.Center);
 	}
 
 	function reloadModel() {

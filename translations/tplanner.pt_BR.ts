@@ -177,7 +177,7 @@
         <translation>Adicionar exercício...</translation>
     </message>
     <message>
-        <location filename="../cxx/dbtrainingdaymodel.h" line="49"/>
+        <location filename="../cxx/dbtrainingdaymodel.h" line="57"/>
         <source>Date: </source>
         <translation>Data: </translation>
     </message>
@@ -288,22 +288,22 @@
 <context>
     <name>DbManager</name>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="941"/>
-        <location filename="../cxx/dbmanager.cpp" line="946"/>
+        <location filename="../cxx/dbmanager.cpp" line="939"/>
+        <location filename="../cxx/dbmanager.cpp" line="944"/>
         <source>Exercises Planner: </source>
         <translation>Programa de Exercícios: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1100"/>
-        <location filename="../cxx/dbmanager.cpp" line="1106"/>
+        <location filename="../cxx/dbmanager.cpp" line="1098"/>
+        <location filename="../cxx/dbmanager.cpp" line="1104"/>
         <source>Calendar: </source>
         <translation>Calendário: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="565"/>
-        <location filename="../cxx/dbmanager.cpp" line="573"/>
-        <location filename="../cxx/dbmanager.cpp" line="1205"/>
-        <location filename="../cxx/dbmanager.cpp" line="1219"/>
+        <location filename="../cxx/dbmanager.cpp" line="563"/>
+        <location filename="../cxx/dbmanager.cpp" line="571"/>
+        <location filename="../cxx/dbmanager.cpp" line="1203"/>
+        <location filename="../cxx/dbmanager.cpp" line="1217"/>
         <source>Workout: </source>
         <translation>Treino: </translation>
     </message>
@@ -520,7 +520,7 @@
     <message>
         <location filename="../qml/ExercisesPlanner.qml" line="143"/>
         <source>In/Ex</source>
-        <translation>In/Ex</translation>
+        <translation>Im/Ex</translation>
     </message>
     <message>
         <location filename="../qml/ExercisesPlanner.qml" line="162"/>
@@ -588,22 +588,22 @@
         <translation>Escolha o arquivo a ser importado</translation>
     </message>
     <message>
-        <location filename="../qml/ExercisesPlanner.qml" line="340"/>
+        <location filename="../qml/ExercisesPlanner.qml" line="341"/>
         <source>Import was successfull</source>
         <translation>Arquivo importado com sucesso</translation>
     </message>
     <message>
-        <location filename="../qml/ExercisesPlanner.qml" line="341"/>
+        <location filename="../qml/ExercisesPlanner.qml" line="342"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/ExercisesPlanner.qml" line="342"/>
+        <location filename="../qml/ExercisesPlanner.qml" line="343"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
-        <location filename="../qml/ExercisesPlanner.qml" line="343"/>
+        <location filename="../qml/ExercisesPlanner.qml" line="344"/>
         <source>File is formatted wrongly or is corrupted</source>
         <translation>Formato desconhecido ou arquivo corrompido</translation>
     </message>
@@ -1209,17 +1209,17 @@
         <translation>Terminada?</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeDrop.qml" line="154"/>
+        <location filename="../qml/SetTypeDrop.qml" line="155"/>
         <source>Reps:</source>
         <translation>Repetições:</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeDrop.qml" line="163"/>
+        <location filename="../qml/SetTypeDrop.qml" line="164"/>
         <source>Weight:</source>
         <translation>Peso:</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeDrop.qml" line="182"/>
+        <location filename="../qml/SetTypeDrop.qml" line="183"/>
         <source>Exercise completed</source>
         <translation>Exercício Completado</translation>
     </message>
@@ -1257,7 +1257,7 @@
         <translation>Terminada?</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeGiant.qml" line="333"/>
+        <location filename="../qml/SetTypeGiant.qml" line="334"/>
         <source>Exercise completed</source>
         <translation>Exercício Completado</translation>
     </message>
@@ -1320,12 +1320,12 @@
         <translation>Terminada?</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeRegular.qml" line="270"/>
+        <location filename="../qml/SetTypeRegular.qml" line="271"/>
         <source>Exercise completed</source>
         <translation>Exercício Completado</translation>
     </message>
     <message>
-        <location filename="../qml/SetTypeRegular.qml" line="290"/>
+        <location filename="../qml/SetTypeRegular.qml" line="291"/>
         <source>Total reps: </source>
         <translation>Repetições totais: </translation>
     </message>
@@ -1484,6 +1484,16 @@
         <location filename="../qml/TPComboBox.qml" line="17"/>
         <source>Inverted Pyramid</source>
         <translation>Pirâmide invertida</translation>
+    </message>
+</context>
+<context>
+    <name>TPListModel</name>
+    <message>
+        <location filename="../cxx/tplistmodel.cpp" line="283"/>
+        <source>##End##
+</source>
+        <translation>##Fim##
+</translation>
     </message>
 </context>
 <context>
@@ -1755,7 +1765,7 @@
     <message>
         <location filename="../qml/TrainingDayInfo.qml" line="982"/>
         <source>In/Ex port</source>
-        <translation>In/Ex portar</translation>
+        <translation>Im/Ex portar</translation>
     </message>
     <message>
         <location filename="../qml/TrainingDayInfo.qml" line="1003"/>
@@ -1788,7 +1798,7 @@
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../qml/TrainingDayInfo.qml" line="1118"/>
+        <location filename="../qml/TrainingDayInfo.qml" line="1121"/>
         <source>Add set</source>
         <translation>Adicionar série</translation>
     </message>

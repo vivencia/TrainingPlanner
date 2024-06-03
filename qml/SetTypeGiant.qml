@@ -87,6 +87,7 @@ Item {
 			TPCheckBox {
 				id: chkSetCompleted
 				text: qsTr("Completed?")
+				textColor: "black"
 				checked: setCompleted
 				visible: !setCompleted
 				height: 25

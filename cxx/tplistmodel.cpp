@@ -279,6 +279,10 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 				outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
 		}
 	}
+	if (bFancy)
+		outFile->write(tr("##End##\n").toUtf8().constData());
+	else
+		outFile->write("##end##");
 }
 
 bool TPListModel::importFromFancyText(QFile* inFile)
@@ -304,6 +308,11 @@ bool TPListModel::importFromFancyText(QFile* inFile)
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
 				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+			else
+			{
+				if (inData.contains(u"##"_qs))
+					break;
+			}
 		}
 	}
 	return count() > 0;
