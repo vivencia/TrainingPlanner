@@ -256,28 +256,8 @@ Page {
 		}
 	}
 
-	FileDialog {
+	TPImportDialog {
 		id: importDialog
-		title: qsTr("Choose the file to import from")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.OpenFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			const result = appDB.importFromFile(currentFile);
-			var message;
-			switch (result)
-			{
-				case  0: message = qsTr("Import was successfull"); break;
-				case -1: message = qsTr("Failed to open file"); break;
-				case -2: message = qsTr("File type not recognized"); break;
-				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
-			}
-			importTip.init(message, currentFile);
-			close();
-		}
 	}
 
 	ScrollView {
@@ -783,15 +763,12 @@ Page {
 			navButtons.destroy();
 	}*/
 
-	Keys.onPressed: (event)=> {
-		if (event.key === Qt.Key_Back) {
-			saveWorkout(); //It should called also when the back button is clicked, but I don't have a method for doing it yet
-			event.accepted = true;
-			if (exercisesPane.visible)
-				requestSimpleExercisesList(null, false, false);
-			else
-				trainingDayPage.StackView.pop();
-		}
+	Keys.onBackPressed: (event) => {
+		event.accepted = true;
+		if (exercisesPane.visible)
+			requestSimpleExercisesList(null, false, false);
+		else
+			trainingDayPage.StackView.pop();
 	}
 
 	Component.onCompleted: {

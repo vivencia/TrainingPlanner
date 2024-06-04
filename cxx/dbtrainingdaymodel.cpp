@@ -94,8 +94,6 @@ void DBTrainingDayModel::updateFromModel(TPListModel* model)
 	}
 	setModified(true);
 	emit exerciseCountChanged();
-	//The model created in DbManager::importFromFile can now sefaly be delete
-	delete model;
 }
 
 bool DBTrainingDayModel::importExtraInfo(const QString& extraInfo)

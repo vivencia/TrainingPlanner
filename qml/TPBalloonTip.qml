@@ -116,7 +116,7 @@ Popup {
 		width: 50
 		height: 50
 		x: 5
-		y: (balloon.height-height)/2
+		y: lblTitle.visible ? (balloon.height-height)/2 : (balloon.height-height)/3
 	}
 
 	Label {
@@ -132,7 +132,7 @@ Popup {
 		visible: message.length > 0
 		padding: 0
 		x: imgElement.visible ? imgElement.width + 10 : 10
-		y: lblTitle.visible ? lblTitle.height + 10 : 10
+		y: lblTitle.visible ? lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
 	}
 
 	TPButton {

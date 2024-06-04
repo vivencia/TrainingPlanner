@@ -25,6 +25,7 @@ set( SOURCES
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/graph.h cxx/graph.cpp
+	cxx/tpapplication.h cxx/tpapplication.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
@@ -100,6 +101,7 @@ set( QML_FILES
     "qml/DigitalClock.qml"
     "qml/TPRoundButton.qml"
     "qml/TPFloatingMenuBar.qml"
+    "qml/TPImportDialog.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

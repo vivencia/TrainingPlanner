@@ -29,7 +29,7 @@ class DbManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands, const QString& argv0);
+	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands);
 	~DbManager();
 
 	void init();
@@ -44,6 +44,8 @@ public:
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
+	void processArguments();
+	void openRequestedFile(const QString& filename);
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
 	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
 	void importFromModel(TPListModel* model);
@@ -120,7 +122,7 @@ public:
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	Q_INVOKABLE void addMainMenuShortCut(const QString& label, QQuickItem* page);
+	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
@@ -139,7 +141,6 @@ private:
 	int m_MesoId;
 	int m_MesoIdx;
 	uint m_expectedPageId;
-	QString mArgv0;
 	QString m_MesoIdStr;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;

@@ -22,28 +22,25 @@ Page {
 
 	property alias currentPage: splitView.currentItem
 
-	Keys.onPressed: (event) => {
-		if (event.key === Qt.Key_Back) {
-			event.accepted = true;
-			if (exercisesPane.visible)
-				exercisesPane.visible = false;
-			else
-				pagePlanner.StackView.pop();
-		}
+	Keys.onBackPressed: (event) => {
+		event.accepted = true;
+		if (exercisesPane.visible)
+			requestSimpleExercisesList(null, false, false);
+		else
+			pagePlanner.StackView.pop();
 	}
 
 	SwipeView {
 		id: splitView
 		objectName: "splitSwipeView"
 		currentIndex: -1
+		interactive: !exercisesPane.shown
 		height: parent.height
 		anchors {
 			top: parent.top
 			left: parent.left
 			right: parent.right
 		}
-
-		interactive: !exercisesPane.shown
 
 		onCurrentIndexChanged: currentItem.init();
 	} //SwipeView
@@ -276,18 +273,6 @@ Page {
 		}
 	}
 
-	TPBalloonTip {
-		id: importTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-		button1Text: "OK"
-
-		function init(header: string, msg: string) {
-			title = header;
-			message = msg;
-			showTimed(5000, 0);
-		}
-	}
-
 	FileDialog {
 		id: exportDialog
 		title: qsTr("Choose the folder and filename to export to")
@@ -301,7 +286,7 @@ Page {
 			var result;
 			if (_opt === 0) {
 				for (var i = 0; i < splitView.count; ++i)
-					result = appDB.exportToFile(splitView.itemAt(i).splitModel, currentFile, _bfancyFormat);
+					result = appDB.exportToFile(splitView.itemAt(i).splitModel, "/home/guilherme/Dokumente/tp/splits.tp", _bfancyFormat);
 			}
 			else
 				result = appDB.exportToFile(currentPage.splitModel, currentFile, _bfancyFormat);
@@ -320,31 +305,6 @@ Page {
 
 			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
 			open();
-		}
-	}
-
-	FileDialog {
-		id: importDialog
-		title: qsTr("Choose the file to import from")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.OpenFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			//const result = appDB.importFromFile(currentFile);
-			const result = appDB.importFromFile("/home/guilherme/Dokumente/tp/splits.tp");
-			var message;
-			switch (result)
-			{
-				case  0: message = qsTr("Import was successfull"); break;
-				case -1: message = qsTr("Failed to open file"); break;
-				case -2: message = qsTr("File type not recognized"); break;
-				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
-			}
-			importTip.init(message, currentFile);
-			close();
 		}
 	}
 } //Page

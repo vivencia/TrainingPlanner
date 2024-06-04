@@ -18,11 +18,9 @@ Popup {
 	property int entriesTotalHeight: 0
 	property var entryComponent: null
 
-	contentItem.Keys.onPressed: (event) => {
-		if (event.key === Qt.Key_Back) {
-			event.accepted = true;
-			close();
-		}
+	contentItem.Keys.onBackPressed: (event) => {
+		event.accepted = true;
+		close();
 	}
 
 	background: Rectangle {
@@ -37,7 +35,7 @@ Popup {
 			property: "opacity"
 			from: 0.0
 			to: 0.9
-			duration: 500
+			duration: 300
 			easing.type: Easing.InOutCubic
 		}
 		NumberAnimation {
@@ -45,7 +43,7 @@ Popup {
 			property: "scale"
 			from: 0.0
 			to: 1.0
-			duration: 500
+			duration: 300
 			easing.type: Easing.InOutCubic
 		}
 	}

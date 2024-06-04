@@ -1,4 +1,5 @@
 #include "dbmanager.h"
+#include "tpapplication.h"
 #include "runcommands.h"
 #include "tpmesocycleclass.h"
 #include "tptimer.h"
@@ -29,8 +30,8 @@
 
 static uint nSplitPages(0);
 
-DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands, const QString& argv0)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mArgv0(argv0), m_appSettings(appSettings),
+DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings),
 		m_runCommands(runcommands), m_exercisesPage(nullptr)
 {}
 
@@ -128,8 +129,9 @@ void DbManager::restartApp()
 	qApp->quit();*/
 	#else
 	char* args[2] = { nullptr, nullptr };
-	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(mArgv0.toLocal8Bit().size()) * sizeof(char)));
-	::strncpy(args[0], mArgv0.toLocal8Bit().constData(), mArgv0.length());
+	const QString argv0(qApp->arguments().at(0));
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
+	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
 	::free(args[0]);
 	exitApp();
@@ -188,6 +190,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
+	processArguments();
 }
 
 DbManager::~DbManager()
@@ -414,6 +417,19 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 		page->setProperty("restoreCount", 0);
 }
 
+void DbManager::processArguments()
+{
+	connect(static_cast<TPApplication*>(qApp), &TPApplication::openFileRequested, this, [&] (QString file) {
+			return QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, file)); });
+	const QStringList args(qApp->arguments());
+	if (args.count() > 1)
+	{
+		QFileInfo file(args.at(1));
+		if (file.isFile())
+			QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, args.at(1)));
+	}
+}
+
 bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
 {
 	QString fname(filename);
@@ -504,6 +520,7 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 		}
 	}
 
+	model->deleteLater();
 	if (!model->importExtraInfo(inData))
 		return -4;
 
@@ -547,7 +564,6 @@ void DbManager::importFromModel(TPListModel* model)
 			saveMesocycle(model->getFast(0, 1), model->getDate(0, 2), model->getDate(0, 3), model->getFast(0, 4), model->getFast(0, 5),
 							model->getFast(0, 6), model->getFast(0, 7), model->extraInfo(0), model->extraInfo(1), model->extraInfo(2),
 							model->extraInfo(3), model->extraInfo(4), model->extraInfo(5), false, false, false);
-			delete model;
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
@@ -961,9 +977,10 @@ void DbManager::getCompleteMesoSplit()
 
 	nSplitPages = 0;
 	connect(this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint id) { if (id <= 6) {
-		QMetaObject::invokeMethod(m_currentMesoManager->getExercisesPlannerPage(), "insertSplitPage", Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(id)));
-		if (--nSplitPages == 0)
-			disconnect(this, &DbManager::getPage, this, nullptr);
+			QMetaObject::invokeMethod(m_currentMesoManager->getExercisesPlannerPage(), "insertSplitPage",
+								Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(id)));
+			if (--nSplitPages == 0)
+				disconnect(this, &DbManager::getPage, this, nullptr);
 		}
 	});
 	do {
@@ -1371,8 +1388,8 @@ void DbManager::removeMainMenuShortCut(QQuickItem* page)
 	const int idx(m_mainMenuShortcutPages.indexOf(page));
 	if (idx != -1)
 	{
+		QMetaObject::invokeMethod(m_mainWindow, "popFromStack", Q_ARG(QQuickItem*, page));
 		m_mainMenuShortcutPages.remove(idx);
-		m_mainMenuShortcutEntries.at(idx)->setParentItem(nullptr);
 		delete m_mainMenuShortcutEntries.at(idx);
 		m_mainMenuShortcutEntries.remove(idx);
 		for (uint i(idx); i < m_mainMenuShortcutEntries.count(); ++i)
@@ -1384,5 +1401,4 @@ void DbManager::openMainMenuShortCut(const int button_id)
 {
 	QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
-
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

@@ -219,9 +219,6 @@ void DBExercisesTable::updateFromModel()
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		mSqlLiteDB.close();
-		//It's not intuitive, but the model created in DbManager::importFromFile can only be deleted here. Cannot use deleteLater()
-		//because this function works in a different thread and, therefore, model coulde be destroyed before we are done using it
-		delete model;
 	}
 	if (!m_result)
 	{

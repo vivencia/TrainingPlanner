@@ -1,16 +1,16 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QApplication>
+#include "tpapplication.h"
+#include "translationclass.h"
+#include "runcommands.h"
+#include "dbmanager.h"
+
 #include <QQmlApplicationEngine>
 #include <QtQml/qqmlextensionplugin.h>
 #include <QSettings>
 #include <QQmlContext>
 #include <QQuickStyle>
-
-#include "translationclass.h"
-#include "runcommands.h"
-#include "dbmanager.h"
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
@@ -47,7 +47,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 int main(int argc, char *argv[])
 {
 	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
-	QApplication app(argc, argv);
+	TPApplication app(argc, argv);
 	app.setOrganizationName("Vivencia Software");
 	app.setOrganizationDomain("org.vivenciasoftware");
 	app.setApplicationName("Training Planner");
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
 	RunCommands runCmd(&appSettings);
-	DbManager db(&appSettings, &runCmd, argv[0]);
+	DbManager db(&appSettings, &runCmd);
 	QQmlApplicationEngine engine;
 
 	QString db_filepath (appSettings.value("dbFilePath").toString());
