@@ -22,6 +22,14 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	m_roleNames[setsReps2Role] = "setsReps2";
 	m_roleNames[setsWeight2Role] = "setsWeight2";
 	m_roleNames[setsNotesRole] = "setsNotes";
+	mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
+	mColumnNames.append(tr("Exercise name: "));
+	mColumnNames.append(tr("Set type: "));
+	mColumnNames.append(tr("Number of sets: "));
+	mColumnNames.append(tr("Number of subsets: "));
+	mColumnNames.append(tr("Baseline number of reps: "));
+	mColumnNames.append(tr("Baseline weight: "));
+	mColumnNames.append(tr("Set instructions: "));
 }
 
 void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)

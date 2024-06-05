@@ -13,7 +13,7 @@ FileDialog {
 
 	onAccepted: {
 		//const result = appDB.importFromFile(currentFile);
-		const result = appDB.importFromFile("/home/guilherme/Dokumente/tp/splits.tp");
+		const result = appDB.importFromFile("/home/guilherme/Dokumente/tp/tday.tp");
 		var message;
 		switch (result)
 		{

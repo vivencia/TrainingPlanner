@@ -22,7 +22,17 @@ DBExercisesModel::DBExercisesModel(QObject *parent)
 
 	filterSearch_Field1 = 3; //First look for muscularGroup
 	filterSearch_Field2 = 1; //Then look for mainName
-	filterSearch_Field3 = 2; //Finally, subName
+
+	mColumnNames.reserve(EXERCISES_COL_MEDIAPATH+1);
+	mColumnNames.append(QString());
+	mColumnNames.append(tr("Exercise: "));
+	mColumnNames.append(tr("Specifics: "));
+	mColumnNames.append(tr("Muscular Group: "));
+	mColumnNames.append(tr("Sets: "));
+	mColumnNames.append(tr("Weight: "));
+	mColumnNames.append(tr("Reps: "));
+	mColumnNames.append(QString());
+	mColumnNames.append(tr("Descriptive media: "));
 }
 
 void DBExercisesModel::clear()

@@ -48,7 +48,7 @@ Page {
 			width: pageExercises.width
 
 			Label {
-				text: qsTr("Exercise:")
+				text: exercisesListModel.columnLabel(1)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -72,7 +72,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Specifics:")
+				text: exercisesListModel.columnLabel(2)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -96,7 +96,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Muscular Group:")
+				text: exercisesListModel.columnLabel(3)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -183,7 +183,7 @@ Page {
 						id: txtNSets
 						type: SetInputField.Type.SetType
 						availableWidth: parent.width*0.6
-						alternativeLabels: ["", "", "", qsTr("Sets:")]
+						alternativeLabels: ["", "", "", exercisesListModel.columnLabel(4)]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -196,6 +196,7 @@ Page {
 						id: txtNReps
 						type: SetInputField.Type.RepType
 						availableWidth: parent.width*0.6
+						alternativeLabels: ["", exercisesListModel.columnLabel(5)]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -208,6 +209,7 @@ Page {
 						id: txtNWeight
 						type: SetInputField.Type.WeightType
 						availableWidth: parent.width*0.6
+						alternativeLabels: [exercisesListModel.columnLabel(6), ""]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -219,7 +221,7 @@ Page {
 			} //Pane
 
 			Label {
-				text: qsTr("Descriptive media:")
+				text: exercisesListModel.columnLabel(8)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true

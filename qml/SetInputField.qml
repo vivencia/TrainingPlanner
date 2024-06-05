@@ -78,7 +78,7 @@ FocusScope {
 			visible: showLabel
 			font.bold: true
 			font.pointSize: AppSettings.fontSizeText
-			color: labelColor
+			color: enabled ? labelColor : "lightgray"
 
 			anchors {
 				left: parent.left

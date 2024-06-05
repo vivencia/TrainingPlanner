@@ -242,7 +242,8 @@ Page {
 		property bool _bfancyFormat
 
 		onAccepted: {
-			const result = appDB.exportToFile(tDayModel, currentFile, _bfancyFormat);
+			//const result = appDB.exportToFile(tDayModel, currentFile, _bfancyFormat);
+			const result = appDB.exportToFile(tDayModel, "/home/guilherme/Dokumente/tp/tday.tp", _bfancyFormat);
 			exportTip.init(result ? qsTr("Workout successfully exported") : qsTr("Failed to export workout"));
 			close();
 		}

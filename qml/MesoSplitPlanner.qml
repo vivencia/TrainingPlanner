@@ -276,7 +276,7 @@ Frame {
 						Layout.fillWidth: true
 
 						Label {
-							text: qsTr("Set Type:")
+							text: splitModel.columnLabel(1)
 							wrapMode: Text.WordWrap
 							Layout.minimumWidth: listItem.width/2
 						}
@@ -303,7 +303,7 @@ Frame {
 						Layout.fillWidth: true
 
 						Label {
-							text: qsTr("Number of Sets:")
+							text: splitModel.columnLabel(2)
 							wrapMode: Text.WordWrap
 							Layout.minimumWidth: listItem.width/2
 						}
@@ -332,7 +332,7 @@ Frame {
 						Layout.fillWidth: true
 
 						Label {
-							text: qsTr("Number of Subsets:")
+							text: splitModel.columnLabel(3)
 							wrapMode: Text.WordWrap
 							Layout.minimumWidth: listItem.width/2
 						}
@@ -407,7 +407,7 @@ Frame {
 						Layout.fillWidth: true
 
 						Label {
-							text: qsTr("Baseline number of reps:")
+							text: splitModel.columnLabel(4)
 							wrapMode: Text.WordWrap
 							Layout.maximumWidth: listItem.width/2
 							Layout.minimumWidth: listItem.width/2
@@ -428,7 +428,7 @@ Frame {
 					}
 
 					Label {
-						text: qsTr("Baseline number of reps:")
+						text: splitModel.columnLabel(4)
 						wrapMode: Text.WordWrap
 						visible: cboSetType.currentIndex === 4
 						Layout.leftMargin: 5
@@ -472,7 +472,7 @@ Frame {
 						Layout.fillWidth: true
 
 						Label {
-							text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
+							text: splitModel.columnLabel(5)
 							wrapMode: Text.WordWrap
 							Layout.minimumWidth: listItem.width/2
 						}
@@ -491,7 +491,7 @@ Frame {
 					}
 
 					Label {
-						text: qsTr("Baseline weight ") + AppSettings.weightUnit + ":"
+						text: splitModel.columnLabel(5)
 						wrapMode: Text.WordWrap
 						visible: cboSetType.currentIndex === 4
 					}
@@ -531,7 +531,7 @@ Frame {
 					} //RowLayout
 
 					SetNotesField {
-						info: qsTr("Set instructions:")
+						info: splitModel.columnLabel(6)
 						text: setsNotes
 						Layout.leftMargin: 5
 						Layout.fillWidth: true

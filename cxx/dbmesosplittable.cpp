@@ -19,6 +19,7 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSett
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoSplitFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
+	m_data.reserve(8);
 	for(uint i(0); i < 8; i++)
 		m_data.append(QString());
 }

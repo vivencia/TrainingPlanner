@@ -1277,6 +1277,7 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 void DbManager::clearExercises()
 {
 	m_currentMesoManager->clearExercises();
+	saveTrainingDay();
 	verifyTDayOptions(m_currentMesoManager->currenttDayModel()->date(), m_currentMesoManager->currenttDayModel()->splitLetter());
 }
 
@@ -1307,7 +1308,7 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	}
 	else
 	{
-		m_currentMesoManager->currenttDayModel()->convertMesoModelToTDayModel(m_currentMesoManager->getSplitModel(splitletter));
+		m_currentMesoManager->currenttDayModel()->convertMesoSplitModelToTDayModel(m_currentMesoManager->getSplitModel(splitletter));
 		m_currentMesoManager->createExercisesObjects();
 	}
 }

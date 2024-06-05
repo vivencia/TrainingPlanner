@@ -16,6 +16,16 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	m_roleNames[mesoSplitRole] = "mesoSplit";
 	m_roleNames[mesoDrugsRole] = "mesoDrugs";
 	m_roleNames[realMesoRole] = "realMeso";
+
+	mColumnNames.reserve(MESOCYCLES_COL_DRUGS+1);
+	mColumnNames.append(QString());
+	mColumnNames.append(tr("Mesocycle's name: "));
+	mColumnNames.append(tr("Start date for meso: "));
+	mColumnNames.append(tr("End date for meso: "));
+	mColumnNames.append(tr("Mesocycle's considerations: "));
+	mColumnNames.append(tr("Number of weeks: "));
+	mColumnNames.append(tr("Weekly Training Division: "));
+	mColumnNames.append(tr("Drug Protocol: "));
 }
 
 void DBMesocyclesModel::updateFromModel(TPListModel* model)

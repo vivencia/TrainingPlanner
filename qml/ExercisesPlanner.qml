@@ -286,7 +286,8 @@ Page {
 			var result;
 			if (_opt === 0) {
 				for (var i = 0; i < splitView.count; ++i)
-					result = appDB.exportToFile(splitView.itemAt(i).splitModel, "/home/guilherme/Dokumente/tp/splits.tp", _bfancyFormat);
+					//result = appDB.exportToFile(splitView.itemAt(i).splitModel, currentFile, _bfancyFormat);
+					result = appDB.exportToFile(splitView.itemAt(i).splitModel, "/home/guilherme/Dokumente/tp/batista5.tp", _bfancyFormat);
 			}
 			else
 				result = appDB.exportToFile(currentPage.splitModel, currentFile, _bfancyFormat);

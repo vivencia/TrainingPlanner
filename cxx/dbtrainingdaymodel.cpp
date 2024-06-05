@@ -7,6 +7,13 @@
 
 static QString multiUseString;
 
+DBTrainingDayModel::DBTrainingDayModel(QObject* parent)
+	: TPListModel{parent}, mb_DayIsFinished(false)
+{
+	m_tableId = TRAININGDAY_TABLE_ID;
+	setObjectName(DBTrainingDayObjectName);
+}
+
 void DBTrainingDayModel::fromDataBase(const QStringList& list)
 {
 	const QStringList exercises_names(list.at(TDAY_EXERCISES_COL_NAMES).split(record_separator2, Qt::SkipEmptyParts));
@@ -60,7 +67,7 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 	}
 }
 
-void DBTrainingDayModel::convertMesoModelToTDayModel(DBMesoSplitModel* splitModel)
+void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel)
 {
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
@@ -96,27 +103,8 @@ void DBTrainingDayModel::updateFromModel(TPListModel* model)
 	emit exerciseCountChanged();
 }
 
-bool DBTrainingDayModel::importExtraInfo(const QString& extraInfo)
-{
-	int spaceIdx(extraInfo.lastIndexOf(' '));
-	if (spaceIdx != -1)
-	{
-		const int fSlashIdx(extraInfo.indexOf('/', spaceIdx+1));
-		const int fSlashIdx2 = extraInfo.indexOf('/', fSlashIdx+1);
-		const uint day(extraInfo.mid(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
-		const uint month(extraInfo.mid(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());
-		const uint year(extraInfo.right(4).toUInt());
-		const QDate date(year, month, day);
-		setDate(date);
-		return true;
-	}
-	return false;
-}
-
 void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 {
-	this->TPListModel::exportToText(outFile, bFancy);
-
 	if (exerciseCount() == 0)
 		return;
 
@@ -128,9 +116,9 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 
 	uint settype(0);
 	QString value;
-	for (uint i(0); i < m_ExerciseData.count(); ++i)
+	if (bFancy)
 	{
-		if (bFancy)
+		for (uint i(0); i < m_ExerciseData.count(); ++i)
 		{
 			settype = setType(0, i);
 			outFile->write(QString(QString::number(i+1) + ": ").toUtf8().constData());
@@ -159,9 +147,13 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 			outFile->write("\n", 1);
 			outFile->write(tr("Note for the sets: ").toUtf8().constData());
 			outFile->write(setNotes(0, i).toUtf8().constData());
-			outFile->write("\n\n", 1);
+			outFile->write("\n\n", 2);
 		}
-		else
+		outFile->write(tr("##End##\n").toUtf8().constData());
+	}
+	else
+	{
+		for (uint i(0); i < m_ExerciseData.count(); ++i)
 		{
 			value = m_ExerciseData.at(i)->name + record_separator + QString::number(m_ExerciseData.at(i)->nsets) +
 						record_separator + m_ExerciseData.at(i)->type.at(0) + record_separator + m_ExerciseData.at(i)->resttime.at(0) +
@@ -170,14 +162,12 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 						record_separator2;
 			outFile->write(value.toUtf8().constData());
 		}
+		outFile->write("##end##");
 	}
 }
 
 bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
 {
-	if (!this->TPListModel::importFromFancyText(inFile))
-		return false;
-
 	char buf[256];
 	QString inData;
 	int sep_idx(-1);
@@ -216,9 +206,9 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
-			if ((sep_idx = inData.indexOf(':')) == -1)
+			if (inData.indexOf(':') == -1)
 				return false;
-			if ((sep_idx = inData.indexOf(tr("subsets"))) == -1)
+			if (inData.indexOf(tr("subsets")) == -1)
 			{
 				subsets = u"0"_qs;
 				if ((sep_idx = inData.indexOf(':')) == -1)
@@ -488,15 +478,45 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 static inline QString dropSetReps(const QString& reps)
 {
 	const float value(appLocale.toFloat(reps));
-	return subrecord_separator + appLocale.toString(qCeil(value * 0.8)) + subrecord_separator +
-				appLocale.toString(qCeil(value * 0.8 * 0.8)) + subrecord_separator;
+	QString value1(appLocale.toString(qCeil(value * 0.8)));
+	if (value1.contains('.') || value1.contains(','))
+	{
+		if (value1.right(2) != u"50"_qs)
+			value1.chop(3); //nn
+		else
+			value1.chop(1); // nn,5 or nn.5
+	}
+	QString value2(appLocale.toString(qCeil(value * 0.8 * 0.8)));
+	if (value2.contains('.') || value2.contains(','))
+	{
+		if (value2.right(2) != u"50"_qs)
+			value2.chop(3); //nn
+		else
+			value2.chop(1); // nn,5 or nn.5
+	}
+	return subrecord_separator + value1 + subrecord_separator + value2 + subrecord_separator;
 }
 
 static inline QString dropSetWeight(const QString& weight)
 {
 	const float value(appLocale.toFloat(weight));
-	return subrecord_separator + appLocale.toString(value * 0.5, 'f', 2) + subrecord_separator +
-				appLocale.toString(value * 0.5 * 0.5, 'f', 2) + subrecord_separator;
+	QString value1(appLocale.toString(value * 0.5, 'f', 2));
+	if (value1.contains('.') || value1.contains(','))
+	{
+		if (value1.right(2) != u"50"_qs)
+			value1.chop(3); //nn
+		else
+			value1.chop(1); // nn,5 or nn.5
+	}
+	QString value2(appLocale.toString(value * 0.5 * 0.5, 'f', 2));
+	if (value2.contains('.') || value2.contains(','))
+	{
+		if (value2.right(2) != u"50"_qs)
+			value2.chop(3); //nn
+		else
+			value2.chop(1); // nn,5 or nn.5
+	}
+	return subrecord_separator + value1 + subrecord_separator + value2 + subrecord_separator;
 }
 
 void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight,
@@ -579,6 +599,13 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 		else
 			lastSetValue = qCeil(lastSetValue * 1.25);
 		multiUseString = appLocale.toString(static_cast<int>(lastSetValue));
+		if (multiUseString.contains('.') || multiUseString.contains(','))
+		{
+			if (multiUseString.right(2) != u"50"_qs)
+				multiUseString.chop(3); //nn
+			else
+				multiUseString.chop(1); // nn,5 or nn.5
+		}
 	}
 	return multiUseString;
 }
@@ -606,6 +633,13 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 		else
 			lastSetValue *= 0.8;
 		multiUseString = appLocale.toString(lastSetValue, 'f', 2);
+		if (multiUseString.contains('.') || multiUseString.contains(','))
+		{
+			if (multiUseString.right(2) != u"50"_qs)
+				multiUseString.chop(3);
+			else
+				multiUseString.chop(1);
+		}
 	}
 	return multiUseString;
 }
@@ -618,6 +652,7 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 		const uint total(m_ExerciseData.at(exercise_idx)->nsets);
 		const int n(set_number - total + 1);
 		const QString strType(QString::number(type));
+		uint n_exercises(0);
 		if (n >= 1)
 		{
 			m_ExerciseData.at(exercise_idx)->nsets += n;
@@ -632,8 +667,12 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 				m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
 				m_ExerciseData.at(exercise_idx)->type.append(strType);
 
-				if (strType != m_ExerciseData.at(exercise_idx)->type.at(set_number-1-i))
-					changeSetType (set_number, exercise_idx, m_ExerciseData.at(exercise_idx)->type.at(set_number-1-i).toUInt(), type);
+				n_exercises = m_ExerciseData.at(exercise_idx)->type.count();
+				if (n_exercises > 1)
+				{
+					if (strType != m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2))
+						changeSetType (set_number, exercise_idx, m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2).toUInt(), type);
+				}
 
 				switch (type)
 				{

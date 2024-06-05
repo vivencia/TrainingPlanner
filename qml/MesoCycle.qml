@@ -103,7 +103,7 @@ Page {
 			spacing: 5
 
 			Label {
-				text: qsTr("Mesocycle's name:")
+				text: mesocyclesModel.columnLabel(1)
 				font.bold: true
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
@@ -142,7 +142,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Start date for meso:")
+				text: mesocyclesModel.columnLabel(2)
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -196,7 +196,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("End date for meso:")
+				text: mesocyclesModel.columnLabel(3)
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -254,7 +254,7 @@ Page {
 
 			Label {
 				id: lblnWeeks
-				text: qsTr("Number of weeks: ")
+				text: mesocyclesModel.columnLabel(5)
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -273,7 +273,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Weekly Training Division: ")
+				text: mesocyclesModel.columnLabel(6)
 				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -614,7 +614,7 @@ Page {
 			} //Pane
 
 			Label {
-				text: qsTr("Drug Protocol: ")
+				text: mesocyclesModel.columnLabel(7)
 				font.bold: true
 				Layout.leftMargin: 5
 				color: AppSettings.fontColor
@@ -643,7 +643,7 @@ Page {
 			}
 
 			Label {
-				text: qsTr("Mesocycle's considerations: ")
+				text: mesocyclesModel.columnLabel(4)
 				font.bold: true
 				Layout.leftMargin: 5
 				color: AppSettings.fontColor

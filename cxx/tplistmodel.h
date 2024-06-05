@@ -85,6 +85,7 @@ public:
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
+	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
 	Q_INVOKABLE void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile, const bool bFancy) const;
 	virtual bool importFromFancyText(QFile* inFile);
@@ -175,12 +176,13 @@ protected:
 	QList<uint> m_exportRows;
 	QStringList m_extraInfo;
 	QHash<int, QByteArray> m_roleNames;
+	QList<QString> mColumnNames;
+
 	int m_currentRow;
 	uint m_tableId;
 	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
-	uint filterSearch_Field3;
 	QString m_filterString;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );

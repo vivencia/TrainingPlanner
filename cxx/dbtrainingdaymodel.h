@@ -43,19 +43,18 @@ Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject *parent = nullptr) : TPListModel{parent}, mb_DayIsFinished(false)
-				{ m_tableId = TRAININGDAY_TABLE_ID; setObjectName(DBTrainingDayObjectName); }
+	explicit DBTrainingDayModel(QObject* parent = nullptr);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list);
 	void getSaveInfo(QStringList& data) const;
-	void convertMesoModelToTDayModel(DBMesoSplitModel* splitModel);
+	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel);
 	virtual void updateFromModel(TPListModel* model) override;
 
 	//So far, date format for exporting is not locale specific
 	inline virtual const QString exportExtraInfo() const override { return tr("Date: ") + date().toString("d/M/yyyy"); }
-	virtual bool importExtraInfo(const QString& extraInfo) override;
+	inline virtual bool importExtraInfo(const QString&) override { return true; }
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual bool importFromFancyText(QFile* inFile) override;
 	virtual bool importFromText(const QString& data) override;

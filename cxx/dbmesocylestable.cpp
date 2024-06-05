@@ -11,10 +11,11 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSe
 {
 	m_tableName = u"mesocycles_table"_qs;
 	setObjectName(DBMesocyclesObjectName);
-	const QString cnx_name( QStringLiteral("db_meso_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
-	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
-	const QString dbname( dbFilePath + DBMesocyclesFileName );
-	mSqlLiteDB.setDatabaseName( dbname );
+	const QString cnx_name(QStringLiteral("db_meso_connection-") + QTime::currentTime().toString(QStringLiteral("z")));
+	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString dbname(dbFilePath + DBMesocyclesFileName);
+	mSqlLiteDB.setDatabaseName(dbname);
+	m_data.reserve(MESOCYCLES_COL_REALMESO); //don't need COL_REALMESO to be passed via m_data
 	for(uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_COL_REALMESO; i++)
 		m_data.append(QString());
 }

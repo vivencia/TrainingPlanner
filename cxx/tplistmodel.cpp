@@ -116,11 +116,7 @@ void TPListModel::setFilter(const QString &filter, const bool resetSelection)
 		{
 			bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field1)).hasMatch();
 			if (!bFound)
-			{
 				bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field2)).hasMatch();
-				if (!bFound)
-					bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field3)).hasMatch();
-			}
 
 			if (bFound)
 			{
@@ -234,8 +230,7 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 			{
 				if (bFancy)
 				{
-					outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
-					outFile->write(": ", 2);
+					outFile->write(mColumnNames.at(i).toUtf8().constData());
 					value = (*itr).at(i);
 					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 					outFile->write("\n", 1);
@@ -261,8 +256,7 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 			{
 				if (bFancy)
 				{
-					outFile->write(m_roleNames.value(Qt::UserRole+i).constData());
-					outFile->write(": ", 2);
+					outFile->write(mColumnNames.at(i).toUtf8().constData());
 					value = m_modeldata.at(m_exportRows.at(x)).at(i);
 					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 					outFile->write("\n", 1);

@@ -13,12 +13,13 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSett
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	m_tableName = u"exercises_table"_qs;
-	setObjectName( DBExercisesObjectName );
-	const QString cnx_name( QStringLiteral("db_exercises_connection-") + QTime::currentTime().toString(QStringLiteral("z")) );
-	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
-	const QString dbname( dbFilePath + DBExercisesFileName );
-	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(EXERCISES_COL_ID); i < EXERCISES_COL_SELECTED; i++)
+	setObjectName(DBExercisesObjectName);
+	const QString cnx_name(QStringLiteral("db_exercises_connection-") + QTime::currentTime().toString(QStringLiteral("z")));
+	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString dbname(dbFilePath + DBExercisesFileName);
+	mSqlLiteDB.setDatabaseName(dbname);
+	m_data.reserve(EXERCISES_COL_SELECTED+1);
+	for(uint i(EXERCISES_COL_ID); i <= EXERCISES_COL_SELECTED; i++)
 		m_data.append(QString());
 }
 
