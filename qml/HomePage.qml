@@ -1,6 +1,3 @@
-// Copyright (C) 2022 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -208,12 +205,11 @@ Page {
 
 			contentItem: Column {
 				id: mesoContent
-				topPadding: 10
-				bottomPadding: 10
-				leftPadding: 10
+				padding: 0
+				spacing: 2
 
 				Label {
-					text: qsTr("Name: <b>") + mesoName + "</b>"
+					text: mesocyclesModel.columnLabel(1) + "<b>" + mesoName + "</b>"
 					color: AppSettings.fontColor
 					width: mesoDelegate.width
 					elide: Text.ElideRight
@@ -221,26 +217,26 @@ Page {
 				}
 				Label {
 					text: realMeso ?
-							qsTr("Start of mesocycle: <b>") + runCmd.formatDate(mesoStartDate) + "</b>" :
-							qsTr("Program start date: <b>") + runCmd.formatDate(mesoStartDate) + "</b>"
+							mesocyclesModel.columnLabel(2) + "<b>" + runCmd.formatDate(mesoStartDate) + "</b>" :
+							qsTr("Program start date: ") + "<b>" + runCmd.formatDate(mesoStartDate) + "</b>"
 					color: AppSettings.fontColor
 					opacity: backRec.opacity
 				}
 				Label {
 					text: realMeso ?
-							qsTr("End of mesocycle: <b>") + runCmd.formatDate(mesoEndDate) + "</b>" :
+							mesocyclesModel.columnLabel(3) + "<b>" + runCmd.formatDate(mesoEndDate) + "</b>" :
 							qsTr("Open-ended program - no end date set")
 					color: AppSettings.fontColor
 					opacity: backRec.opacity
 				}
 				Label {
-					text: qsTr("Weeks in mesocycle: <b>") + mesoWeeks + "</b>"
+					text: mesocyclesModel.columnLabel(5) + "<b>" + mesoWeeks + "</b>"
 					color: AppSettings.fontColor
 					visible: realMeso
 					opacity: backRec.opacity
 				}
 				Label {
-					text: qsTr("Training Split: <b>") + mesoSplit + "</b>"
+					text: mesocyclesModel.columnLabel(6) + "<b>" + mesoSplit + "</b>"
 					color: AppSettings.fontColor
 					opacity: backRec.opacity
 				}
@@ -273,7 +269,16 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.leftMargin: 5
 
-			onClicked: newAction(0);
+			onClicked: tertetre.init(); //newAction(0);
+		}
+
+		TPBalloonTip {
+			id: tertetre
+
+			function init() {
+				message = appDB.appArgs();
+				show(-1);
+			}
 		}
 
 		TPButton {

@@ -19,8 +19,15 @@ Page {
 	property bool bShowSimpleExercisesList: false
 	property var itemThatRequestedSimpleList: null
 	property var navButtons: null
+	property var inexportMenu: null
 
 	property alias currentPage: splitView.currentItem
+	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
+
+	onBExportEnabledChanged: {
+		if (inexportMenu)
+			inexportMenu.enableMenuEntry(0, bExportEnabled);
+	}
 
 	Keys.onBackPressed: (event) => {
 		event.accepted = true;
@@ -140,7 +147,6 @@ Page {
 			text: qsTr("In/Ex")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
-			visible: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			width: 55
 			height: btnAddExercise.height
@@ -149,8 +155,6 @@ Page {
 				leftMargin: 3
 				verticalCenter: parent.verticalCenter
 			}
-
-			property var inexportMenu: null
 
 			onClicked: {
 				if (inexportMenu === null) {
@@ -194,6 +198,10 @@ Page {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
+	}
+
+	TPImportDialog {
+		id: importDialog
 	}
 
 	Component.onCompleted: {

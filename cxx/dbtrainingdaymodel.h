@@ -63,7 +63,7 @@ public:
 
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }
-	void setDayIsFinished(const bool finished) { mb_DayIsFinished = finished; emit dayIsFinishedChanged(); emit saveWorkout(); }
+	void setDayIsFinished(const bool finished);
 	void moveExercise(const uint from, const uint to);
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }

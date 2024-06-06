@@ -1277,7 +1277,6 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 void DbManager::clearExercises()
 {
 	m_currentMesoManager->clearExercises();
-	saveTrainingDay();
 	verifyTDayOptions(m_currentMesoManager->currenttDayModel()->date(), m_currentMesoManager->currenttDayModel()->splitLetter());
 }
 
@@ -1336,11 +1335,14 @@ void DbManager::convertTDayToPlan(DBTrainingDayModel* tDayModel)
 
 void DbManager::saveTrainingDay()
 {
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-	if (m_currentMesoManager->currenttDayModel()->id() == -1)
-		createThread(worker, [worker] () { return worker->newTrainingDay(); } );
-	else
-		createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
+	if (m_currentMesoManager->currenttDayModel()->modified())
+	{
+		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
+		if (m_currentMesoManager->currenttDayModel()->id() == -1)
+			createThread(worker, [worker] () { return worker->newTrainingDay(); } );
+		else
+			createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
+	}
 }
 
 void DbManager::removeTrainingDay()
@@ -1403,3 +1405,13 @@ void DbManager::openMainMenuShortCut(const int button_id)
 	QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
+
+QString DbManager::appArgs() const
+{
+	const QStringList args(qApp->arguments());
+	QString message;
+	for (uint i (0); i < args.count(); ++i)
+		message += QString::number(i) + ": " + args.at(i) + '\n';
+	return message;
+}

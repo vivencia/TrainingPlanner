@@ -20,8 +20,8 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	mColumnNames.reserve(MESOCYCLES_COL_DRUGS+1);
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Mesocycle's name: "));
-	mColumnNames.append(tr("Start date for meso: "));
-	mColumnNames.append(tr("End date for meso: "));
+	mColumnNames.append(tr("Start date: "));
+	mColumnNames.append(tr("End date: "));
 	mColumnNames.append(tr("Mesocycle's considerations: "));
 	mColumnNames.append(tr("Number of weeks: "));
 	mColumnNames.append(tr("Weekly Training Division: "));

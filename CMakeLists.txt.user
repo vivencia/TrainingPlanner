@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 13.0.0, 2024-06-05T14:29:08. -->
+<!-- Written by QtCreator 13.0.0, 2024-06-06T14:24:18. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -537,7 +537,8 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">trainingplanner</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.trainingplanner</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">trainingplanner</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
+    <value type="QString" key="RunConfiguration.Arguments">/home/guilherme/Dokumente/tp/Batista 5 - Plano de exercícios.tp</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

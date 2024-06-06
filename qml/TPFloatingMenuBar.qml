@@ -101,6 +101,10 @@ Popup {
 			entryComponent.statusChanged.connect(finishCreation);
 	}
 
+	function enableMenuEntry(id: int, benabled: bool) {
+		entriesList[id].enabled = benabled;;
+	}
+
 	function show(targetItem: Item, pos: int) {
 		if (visible) {
 			close();

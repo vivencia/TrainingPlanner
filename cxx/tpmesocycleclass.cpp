@@ -449,6 +449,13 @@ void TPMesocycleClass::removeExerciseObject(const uint exercise_idx)
 	}
 }
 
+void TPMesocycleClass::clearExercises()
+{
+	m_currentExercises->clear();
+	m_CurrenttDayModel->clearExercises();
+	m_CurrenttDayModel->setDayIsFinished(false);
+}
+
 void TPMesocycleClass::moveExercise(const uint exercise_idx, const uint new_idx)
 {
 	uint nsets(m_currentExercises->setCount(exercise_idx));

@@ -309,6 +309,14 @@ bool DBTrainingDayModel::importFromText(const QString& data)
 	return count() > 0;
 }
 
+void DBTrainingDayModel::setDayIsFinished(const bool finished)
+{
+	mb_DayIsFinished = finished;
+	setModified(true);
+	emit dayIsFinishedChanged();
+	emit saveWorkout();
+}
+
 void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())

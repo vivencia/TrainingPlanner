@@ -127,6 +127,7 @@ public:
 	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
+	Q_INVOKABLE QString appArgs() const;
 signals:
 	void databaseReady();
 	void getPage(QQuickItem* item, const uint id);
