@@ -142,12 +142,14 @@ Page {
 				width: parent.width
 				height: calendar.cellSize * 8
 
+				property var selectedDay: null
+
 				delegate: Rectangle {
 					id: dayEntry
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					border.color: "red"
+					border.color: "darkgreen"
 					border.width: bDayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
 
@@ -178,9 +180,8 @@ Page {
 					}
 
 					SequentialAnimation {
-						id: anim
+						id: animExpand
 						alwaysRunToEnd: true
-
 						// Expand the button
 						PropertyAnimation {
 							target: dayEntry
@@ -189,7 +190,10 @@ Page {
 							duration: 200
 							easing.type: Easing.InOutCubic
 						}
-
+					}
+					SequentialAnimation {
+						id: animShrink
+						alwaysRunToEnd: true
 						// Shrink back to normal
 						PropertyAnimation {
 							target: dayEntry
@@ -200,13 +204,23 @@ Page {
 						}
 					}
 
+					function highlightDay(highlighted: bool) {
+						if (highlighted)
+							animExpand.start();
+						else
+							animShrink.start();
+					}
+
 					MouseArea {
 						anchors.fill: parent
 						hoverEnabled: true
 						enabled: dayEntry.bIsTrainingDay
 
 						onClicked: {
-							anim.start();
+							if (monthGrid.selectedDay)
+								monthGrid.selectedDay.highlightDay(false);
+							dayEntry.highlightDay(true);
+							monthGrid.selectedDay = dayEntry;
 							selectDay(model.year, model.month, model.day);
 						}
 
@@ -234,12 +248,12 @@ Page {
 		}
 
 		Label {
-			text: btnShowDayInfo.enabled ? qsTr("Workout #") + "<b>" + trainingDay + "</b> " + qsTr("Split:") +
-					"<b> " + splitLetter + "</b> - <b>" + splitContent + "</b>" : qsTr("Selected day is not part of the current mesocycle")
+			id: lblInfo
 			color: AppSettings.fontColor
 			width: parent.width - btnShowDayInfo.width - 10
 			wrapMode: Text.WordWrap
 			font.pointSize: AppSettings.fontSizeText
+			font.bold: true
 			anchors {
 				left: parent.left
 				leftMargin: 5
@@ -265,9 +279,7 @@ Page {
 		}
 	} // footer: ToolBar
 
-	Component.onCompleted: {
-		mesoContentPage.StackView.activating.connect(pageActivation);
-	}
+	Component.onCompleted: mesoContentPage.StackView.activating.connect(pageActivation);
 
 	function pageActivation() {
 		_today = new Date();
@@ -300,6 +312,8 @@ Page {
 		calendar.currentMonth = month;
 		calendar.currentYear = year;
 		calendar.dayInfoDate = new Date(year, month, day);
+		lblInfo.text = runCmd.formatDate(calendar.dayInfoDate) + (btnShowDayInfo.enabled ? qsTr(": Workout #") + trainingDay + qsTr(" Split: ") +
+					splitLetter + " - " + splitContent : qsTr("Selected day is not part of the current mesocycle"));
 	}
 
 	function getDivisionContent(splitletter) {

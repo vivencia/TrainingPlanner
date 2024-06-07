@@ -261,7 +261,7 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE meso_id=%1 split_letter=\'%2\' AND date<%3 LIMIT 10")
+		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 LIMIT 10")
 							.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString(), m_execArgs.at(2).toString()));
 
 		if (query.exec())

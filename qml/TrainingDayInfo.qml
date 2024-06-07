@@ -778,7 +778,6 @@ Page {
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
-		tDayModel.dayIsFinishedChanged.connect(saveWorkout);
 		tDayModel.saveWorkout.connect(saveWorkout);
 	}
 
@@ -1054,27 +1053,40 @@ Page {
 		button1Text: qsTr("Adjust")
 		button2Text: qsTr("Cancel")
 
-		onButton1Clicked: {
-			if (checkBoxChecked)
-			{
-				const bDayIsFinished = splitLetter != "R" ? tDayModel.dayIsFinished : false;
-				appDB.updateMesoCalendarEntry(mainDate, tDay, splitLetter, bDayIsFinished);
-			}
-			else
-				appDB.updateMesoCalendarModel(mesoSplit, mainDate, splitLetter);
-		}
-	}
-	function changeSplitLetter() {
-		const bAdjustCalendar = bRealMeso && cboSplitLetter.currentValue !== splitLetter;
-		splitLetter = cboSplitLetter.currentValue;
-		tDayModel.setSplitLetter(splitLetter);
-		if (splitLetter === 'R')
-			saveWorkout();
-		else
-			tDay = mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate);
+		property string newSplitLetter
 
-		if (bAdjustCalendar)
+		onButton1Clicked: {
+			var bDayIsFinished;
+			if (newSplitLetter !== "R") {
+				if (splitLetter == "R")
+					tDay = parseInt(mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate) + 1);
+				bDayIsFinished = tDayModel.dayIsFinished;
+			}
+			else {
+				tDay = 0;
+				bDayIsFinished = false;
+			}
+			if (checkBoxChecked)
+				appDB.updateMesoCalendarEntry(mainDate, tDay, newSplitLetter, bDayIsFinished);
+			else
+				appDB.updateMesoCalendarModel(mesoSplit, mainDate, newSplitLetter);
+			splitLetter = newSplitLetter;
+			tDayModel.setTrainingDay(tDay);
+			tDayModel.setSplitLetter(splitLetter);
+			saveWorkout();
+			if (splitLetter !== "R")
+				appDB.verifyTDayOptions(mainDate, splitLetter);
+		}
+
+		onButton2Clicked:
+			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
+	}
+
+	function changeSplitLetter() {
+		if (bRealMeso && cboSplitLetter.currentValue !== splitLetter) {
+			adjustCalendarBox.newSplitLetter = cboSplitLetter.currentValue;
 			adjustCalendarBox.show(-1);
+		}
 	}
 
 	function gotExercise() {
