@@ -72,6 +72,14 @@ Page {
 			onClicked: appDB.getMesoCalendar(true);
 		}
 
+TPBalloonTip {
+			id: tertetre2
+
+			function init() {
+				message = runCmd.uriToOpen();
+				show(-1);
+			}
+		}
 		TPButton {
 			text: qsTr("Statistics")
 			anchors {
@@ -81,12 +89,7 @@ Page {
 			}
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"statistics.png"
 
-			onClicked: {
-				if (mesoStatisticsPage === null)
-					createMesoStatisticsObject();
-				else
-					appStackView.push(mesoStatisticsPage, StackView.DontLoad);
-			}
+			onClicked: tertetre2.init();
 		}
 	}
 
@@ -680,11 +683,6 @@ Page {
 			txtMesoName.forceActiveFocus();
 		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
 		mesoPropertiesPage.StackView.activating.connect(pageActivation);
-	}
-
-	Component.onDestruction: {
-		if (mesoStatisticsPage !== null)
-			mesoStatisticsPage.destroy();
 	}
 
 	footer: ToolBar {

@@ -24,8 +24,8 @@ set( SOURCES
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
+	cxx/urihandler.h cxx/urihandler.cpp
 	cxx/graph.h cxx/graph.cpp
-	cxx/tpapplication.h cxx/tpapplication.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
@@ -40,6 +40,12 @@ set( SOURCES
 	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
 	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
+)
+
+set( JAVASOURCES
+    java/TPActivity.java
+    java/QShareUtils.java
+    java/QSharePathResolver.java
 )
 
 set( TRANSLATIONS_DIR
@@ -107,6 +113,7 @@ set( QML_FILES
 qt_add_resources(${RESOURCE_FILES})
 qt_add_executable(trainingplanner
 	${SOURCES}
+	${JAVASOURCES}
 	${QML_FILES}
 	${RESOURCE_FILES}
 	${QM_FILES}

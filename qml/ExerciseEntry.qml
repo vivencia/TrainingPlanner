@@ -289,7 +289,15 @@ FocusScope {
 	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(compositeExerciseActions);
 
 	function compositeExerciseActions() {
+		const bCompositeExercise2 = bCompositeExercise;
 		bCompositeExercise = tDayModel.compositeExercise(exerciseIdx);
+		//When a composite exercise is formed, nWeight and nReps get a second value. If the user decides to revert back to
+		//a simple exercise, those variables will be cluttered with useless info that will stream down to the sets being created
+		//We catch that condition now and clear the variables;
+		if (bCompositeExercise2 && !bCompositeExercise) {
+			nWeight = runCmd.getCompositeValue(0, nWeight);
+			nReps = runCmd.getCompositeValue(0, nReps);
+		}
 	}
 
 	function changeExercise(fromList: bool) {

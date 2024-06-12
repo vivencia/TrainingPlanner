@@ -12,6 +12,7 @@ Rectangle {
 	property bool showUpButton: true
 	property bool showDownButton: true
 	property var currentButton: null
+
 	implicitHeight: btnUp.height + btnDown.height
 	implicitWidth: btnUp.width
 	color: "transparent"
@@ -166,13 +167,13 @@ Rectangle {
 		}
 	}
 
-	function hideButtons() {
-		if (button)
+	function hideButtons(directCall: bool) {
+		if (directCall)
 			button.visible = false;
 	}
 
-	function showButtons() {
-		if (button)
+	function showButtons(directCall: bool) {
+		if (directCall)
 			button.visible = true;
 	}
 }

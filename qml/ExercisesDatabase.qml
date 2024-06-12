@@ -394,7 +394,7 @@ Page {
 
 				TPButton {
 					id: btnInExport
-					text: qsTr("In/Ex port")
+					text: qsTr("In/Export")
 					enabled: !btnSaveExercise.enabled
 					width: toolbarExercises.buttonWidth
 					fixedSize: true

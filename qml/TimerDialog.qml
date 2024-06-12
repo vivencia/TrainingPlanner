@@ -39,7 +39,7 @@ Dialog {
 		id: mainTimer
 		interval: 1000
 		alarmSoundFile: "qrc:/sounds/timer-end.wav"
-		stopWatch: !chkTimer.checked
+		stopWatch: chkStopWatch.checked
 
 		Component.onCompleted: {
 			setRunCommandsObject(runCmd);
@@ -114,10 +114,10 @@ Dialog {
 		spacing: 0
 
 		TPCheckBox {
-			id: chkTimer
-			text: qsTr("Timer?")
+			id: chkStopWatch
+			text: qsTr("Stopwatch")
 			textColor: "darkred"
-			checked: true
+			checked: false
 			visible: !timePickerOnly
 			Layout.leftMargin: 10
 		} //TPCheckBox
@@ -244,10 +244,11 @@ Dialog {
 					if (activeFocus)
 						txtMinutes.clear();
 					else {
+						console.log(text);
 						if (acceptableInput)
 							mainTimer.strMinutes = text;
 						else
-							mainTimer.mins = mainTimer.orignalMinutes();
+							mainTimer.minutes = mainTimer.orignalMinutes();
 					}
 				}
 
@@ -318,9 +319,9 @@ Dialog {
 			visible: !timePickerOnly
 			height: 6
 			width: rowWidth
-			from: 0
-			to: mainTimer.totalSeconds
-			value: mainTimer.seconds
+			from: mainTimer.totalSeconds
+			to: 0
+			value: mainTimer.progressValue
 			indeterminate: mainTimer.stopWatch
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10

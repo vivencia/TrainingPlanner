@@ -89,8 +89,10 @@ Page {
 			tDayModel.setTimeOut(timeOut);
 			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			if (!editMode)
-				tDayModel.dayIsFinished = true;
+			if (!editMode) {
+				itemManager.rollUpExercises();
+				appDB.setDayIsFinished(mainDate, true);
+			}
 		}
 	}
 
@@ -917,7 +919,6 @@ Page {
 					updateTimer(sessionLength.getHours(), sessionLength.getMinutes(), sessionLength.getSeconds());
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
-					tDayModel.dayIsFinished = true;
 					itemManager.rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 				}
@@ -956,7 +957,7 @@ Page {
 
 		TPButton {
 			id: btnInExportDay
-			text: qsTr("In/Ex port")
+			text: qsTr("In/Export")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
 			visible: tDayModel.dayIsFinished
@@ -1009,8 +1010,8 @@ Page {
 			property bool bFirstClick: true
 
 			onClicked: {
-				if (navButtons !== null)
-					navButtons.hideButtons();
+				if (navButtons)
+					navButtons.visible = false;
 				if (btnFloat)
 					btnFloat.visible = false;
 				appDB.openExercisesListPage(true, bFirstClick ? trainingDayPage : null);

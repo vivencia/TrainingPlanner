@@ -25,6 +25,7 @@ Q_PROPERTY(bool timerForward READ timerForward NOTIFY timerForwardChanged FINAL)
 Q_PROPERTY(QString alarmSoundFile READ alarmSoundFile WRITE setAlarmSoundFile FINAL)
 Q_PROPERTY(uint totalSeconds READ totalSeconds NOTIFY totalSecondsChanged FINAL)
 Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged FINAL)
+Q_PROPERTY(uint progressValue READ progressValue NOTIFY progressValueChanged FINAL)
 
 public:
 	explicit TPTimer(QObject* parent = nullptr);
@@ -40,17 +41,17 @@ public:
 	inline int hours() const { return m_hours; }
 	inline void setHours(const uint n_hours) { m_hours = n_hours; emit hoursChanged(); }
 	QString strHours() const;
-	void setStrHours(const QString& str_hours);
+	void setStrHours(QString& str_hours);
 
 	inline int minutes() const { return m_minutes; }
 	inline void setMinutes(const uint n_minutes) { m_minutes = n_minutes; emit minutesChanged(); }
 	QString strMinutes() const;
-	void setStrMinutes(const QString& str_minutes);
+	void setStrMinutes(QString& str_minutes);
 
 	inline int seconds() const { return m_seconds; }
 	inline void setSeconds(const uint n_seconds) { m_seconds = n_seconds; emit secondsChanged(); }
 	QString strSeconds() const;
-	void setStrSeconds(const QString& str_seconds);
+	void setStrSeconds(QString& str_seconds);
 
 	inline bool stopWatch() const { return mb_stopWatch; }
 	inline bool timerForward() const { return mb_timerForward; }
@@ -69,6 +70,7 @@ public:
 
 	inline uint totalSeconds() const { return m_totalSeconds; }
 	inline bool paused() const { return mb_paused; }
+	inline uint progressValue() const { return m_progressValue; }
 	Q_INVOKABLE inline QDateTime elapsedTime() const { return QDateTime(QDate::currentDate(), m_elapsedTime); }
 	Q_INVOKABLE inline QDateTime currentElapsedTime() { calculateElapsedTime(); return QDateTime(QDate::currentDate(), m_elapsedTime); }
 	inline const QTime& initialTime() const { return m_initialTime; }
@@ -82,10 +84,12 @@ signals:
 	void timeWarning(QString remaingMinutes, bool bminutes);
 	void totalSecondsChanged();
 	void pausedChanged();
+	void progressValueChanged();
 
 private:
 	uint m_hours, m_minutes, m_seconds;
-	uint m_totalSeconds;
+	uint m_totalSeconds, m_progressValue;
+	int mWarningIdx;
 	bool mb_stopWatch, mb_timerForward, mb_paused, mb_pausedTimePositive;
 	QString m_alarmSoundFile, m_originalStartTime;
 	QTime m_elapsedTime;

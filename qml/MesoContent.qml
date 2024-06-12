@@ -149,7 +149,7 @@ Page {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					border.color: "darkgreen"
+					border.color: "red"
 					border.width: bDayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
 

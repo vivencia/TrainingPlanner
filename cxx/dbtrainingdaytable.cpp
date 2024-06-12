@@ -209,7 +209,7 @@ void DBTrainingDayTable::getTrainingDay()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::getTrainingDayExercises()
+void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForReUse)
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
@@ -228,7 +228,7 @@ void DBTrainingDayTable::getTrainingDayExercises()
 				uint i(0);
 				for (i = TDAY_EXERCISES_COL_NAMES; i <= TDAY_EXERCISES_COL_COMPLETED; ++i)
 					workout_info.append(query.value(static_cast<int>(i)).toString());
-				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(workout_info);
+				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(workout_info, bClearSomeFieldsForReUse);
 			}
 		}
 		mSqlLiteDB.close();

@@ -19,7 +19,7 @@ public:
 	virtual void createTable();
 	virtual void updateDatabase();
 	void getTrainingDay();
-	void getTrainingDayExercises();
+	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
 	void getPreviousTrainingDays();
 	void newTrainingDay();
 	void updateTrainingDay();

@@ -2,18 +2,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.vivenciasoftware.TrainingPlanner" android:installLocation="auto" android:versionCode="1" android:versionName="1.0">
     <!-- %%INSERT_PERMISSIONS -->
     <!-- %%INSERT_FEATURES -->
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>
+	<!--
+	<uses-feature android:glEsVersion="0x00020000" android:required="true"/>
+	-->
     <application android:name="org.qtproject.qt.android.bindings.QtApplication" android:hardwareAccelerated="true" android:label="TrainingPlanner" android:requestLegacyExternalStorage="true" android:allowNativeHeapPointerTagging="false" android:allowBackup="true" android:fullBackupOnly="false" android:icon="@drawable/icon">
-	<activity android:name="org.qtproject.qt.android.bindings.QtActivity" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density" android:label="TrainingPlanner" android:launchMode="singleTop" android:screenOrientation="portrait" android:exported="true" android:theme="@style/splashScreenTheme">
+	<activity android:name=".TPActivity" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density" android:label="TrainingPlanner" android:launchMode="singleInstance" android:screenOrientation="portrait" android:exported="true" android:theme="@style/splashScreenTheme">
 	    <intent-filter>
 		<action android:name="android.intent.action.MAIN"/>
 		<category android:name="android.intent.category.LAUNCHER"/>
 	    </intent-filter>
 		<intent-filter>
-        <action android:name="android.intent.action.SEND" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <data android:mimeType="text/plain" />
-    </intent-filter>
+            <action android:name=".TPActivity" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+
+	<intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+                <data android:scheme="file"/>
+                <data android:scheme="content"/>
+            </intent-filter>
 	<intent-filter>
         <action android:name="android.intent.action.SEND" />
         <category android:name="android.intent.category.DEFAULT" />
@@ -54,7 +70,19 @@
 	    <meta-data android:name="android.app.extract_android_style" android:value="minimal"/>
 	    <meta-data android:name="android.app.splash_screen_drawable" android:resource="@drawable/splashscreen"/>
 	    <meta-data android:name="android.app.splash_screen_drawable_portrait" android:resource="@drawable/splashscreen_port"/>
-	    <meta-data android:name="android.app.background_running" android:value="true"/>
+	    <meta-data android:name="android.app.background_running" android:value="false"/>
+
+		 <meta-data android:name="android.app.use_local_qt_libs" android:value="-- %%USE_LOCAL_QT_LIBS%% --"/>
+	    <meta-data android:name="android.app.libs_prefix" android:value="/data/local/tmp/qt/"/>
+	    <meta-data android:name="android.app.load_local_libs" android:value="-- %%INSERT_LOCAL_LIBS%% --"/>
+	    <meta-data android:name="android.app.load_local_jars" android:value="-- %%INSERT_LOCAL_JARS%% --"/>
+	    <meta-data android:name="android.app.static_init_classes" android:value="-- %%INSERT_INIT_CLASSES%% --"/>
 	</activity>
+	<!-- For adding service(s) please check: https://wiki.qt.io/AndroidServices -->
+        <!-- Register the File Provider for document sharing -->
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="org.vivenciasoftware.TrainingPlanner.fileprovider" android:grantUriPermissions="true" android:exported="false">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/qtprovider_paths"/>
+        </provider>
+
     </application>
 </manifest>

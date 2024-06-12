@@ -14,7 +14,7 @@ DBTrainingDayModel::DBTrainingDayModel(QObject* parent)
 	setObjectName(DBTrainingDayObjectName);
 }
 
-void DBTrainingDayModel::fromDataBase(const QStringList& list)
+void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse)
 {
 	const QStringList exercises_names(list.at(TDAY_EXERCISES_COL_NAMES).split(record_separator2, Qt::SkipEmptyParts));
 	const QStringList setstypes(list.at(TDAY_EXERCISES_COL_TYPES).split(record_separator2, Qt::SkipEmptyParts));
@@ -23,7 +23,15 @@ void DBTrainingDayModel::fromDataBase(const QStringList& list)
 	const QStringList reps(list.at(TDAY_EXERCISES_COL_REPS).split(record_separator2, Qt::SkipEmptyParts));
 	const QStringList weights(list.at(TDAY_EXERCISES_COL_WEIGHTS).split(record_separator2, Qt::SkipEmptyParts));
 	const QStringList notes(list.at(TDAY_EXERCISES_COL_NOTES).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList completed(list.at(TDAY_EXERCISES_COL_COMPLETED).split(record_separator2, Qt::SkipEmptyParts));
+
+	QStringList completed;
+	if (!bClearSomeFieldsForReUse)
+		completed = list.at(TDAY_EXERCISES_COL_COMPLETED).split(record_separator2, Qt::SkipEmptyParts);
+	else //reset for new use
+	{
+		QString temp(list.at(TDAY_EXERCISES_COL_COMPLETED));
+		completed = temp.replace(u"1"_qs, u"0"_qs).split(record_separator2, Qt::SkipEmptyParts);
+	}
 
 	for(uint i(0); i < exercises_names.count(); ++i)
 	{

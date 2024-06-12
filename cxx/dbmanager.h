@@ -44,7 +44,12 @@ public:
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
+#ifndef Q_OS_ANDROID
 	void processArguments();
+#else
+	void checkPendingIntents();
+#endif
+
 	void openRequestedFile(const QString& filename);
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
 	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
@@ -173,6 +178,10 @@ private:
 	void startThread(QThread* thread, TPDatabaseTable* dbObj);
 	void cleanUp(TPDatabaseTable* dbObj);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
+
+	#ifdef Q_OS_ANDROID
+	QString mAppDataFilesPath;
+	#endif
 };
 
 #endif // DBMANAGER_H

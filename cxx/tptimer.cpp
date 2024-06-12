@@ -3,8 +3,6 @@
 #include "tptimer.h"
 #include "runcommands.h"
 
-static int warningIdx(-1);
-
 TPTimer::TPTimer(QObject* parent)
 	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), m_totalSeconds(0), mb_stopWatch(true),
 		mb_timerForward(true), mb_paused(false), m_alarmSound(nullptr)
@@ -35,6 +33,7 @@ void TPTimer::prepareTimer(const QString& strStartTime)
 	emit secondsChanged();
 	emit pausedChanged();
 	emit timerForwardChanged();
+	emit progressValueChanged();
 }
 
 void TPTimer::startTimer()
@@ -108,17 +107,11 @@ QString TPTimer::strHours() const
 	return ret;
 }
 
-void TPTimer::setStrHours(const QString& str_hours)
+void TPTimer::setStrHours(QString& str_hours)
 {
-	bool bOK(true);
-	const uint hours(str_hours.toUInt(&bOK));
-	if (bOK)
-	{
-		m_hours = hours;
-		calcTotalSecs();
-		m_originalStartTime.replace(0, 2, str_hours);
-		emit hoursChanged();
-	}
+	if (str_hours.length() == 1)
+		str_hours.prepend('0');
+	prepareTimer(m_originalStartTime.replace(0, 2, str_hours));
 }
 
 QString TPTimer::strMinutes() const
@@ -129,17 +122,11 @@ QString TPTimer::strMinutes() const
 	return ret;
 }
 
-void TPTimer::setStrMinutes(const QString& str_minutes)
+void TPTimer::setStrMinutes(QString& str_minutes)
 {
-	bool bOK(true);
-	const uint minutes(str_minutes.toUInt(&bOK));
-	if (bOK)
-	{
-		m_minutes = minutes;
-		calcTotalSecs();
-		m_originalStartTime.replace(3, 2, str_minutes);
-		emit minutesChanged();
-	}
+	if (str_minutes.length() == 1)
+		str_minutes.prepend('0');
+	prepareTimer(m_originalStartTime.replace(3, 2, str_minutes));
 }
 
 QString TPTimer::strSeconds() const
@@ -150,17 +137,11 @@ QString TPTimer::strSeconds() const
 	return ret;
 }
 
-void TPTimer::setStrSeconds(const QString& str_seconds)
+void TPTimer::setStrSeconds(QString& str_seconds)
 {
-	bool bOK(true);
-	const uint seconds(str_seconds.toUInt(&bOK));
-	if (bOK)
-	{
-		m_seconds = seconds;
-		calcTotalSecs();
-		m_originalStartTime.replace(6, 2, str_seconds);
-		emit secondsChanged();
-	}
+	if (str_seconds.length() == 1)
+		str_seconds.prepend('0');
+	prepareTimer(m_originalStartTime.replace(6, 2, str_seconds));
 }
 
 void TPTimer::setAlarmSoundFile(const QString& soundFileName)
@@ -202,6 +183,7 @@ void TPTimer::prepareFromString()
 			mb_timerForward = true;
 	}
 	calcTotalSecs();
+	m_progressValue = !mb_stopWatch ? m_totalSeconds : 0;
 	mb_paused = false;
 	mb_pausedTimePositive = false;
 	m_pausedTime.setHMS(0, 0, 0);
@@ -216,12 +198,12 @@ const QTime& TPTimer::calculateTimeBetweenTimes(const QTime& time1, const QTime&
 
 	if (sec < 0)
 	{
-		min--;
+		--min;
 		sec += 60;
 	}
 	if (min < 0)
 	{
-		hour--;
+		--hour;
 		min += 60;
 	}
 	m_elapsedTime.setHMS(hour, min, sec);
@@ -260,13 +242,15 @@ void TPTimer::calcTime()
 			if (m_minutes == 59)
 			{
 				m_minutes = -1;
-				m_hours++;
+				++m_hours;
 				emit hoursChanged();
 			}
-			m_minutes++;
+			++m_minutes;
 			emit minutesChanged();
 		}
-		m_seconds++;
+		++m_seconds;
+		++m_progressValue;
+		emit progressValueChanged();
 		emit secondsChanged();
 	}
 	else
@@ -282,7 +266,7 @@ void TPTimer::calcTime()
 					return;
 				}
 				m_minutes = 60;
-				m_hours--;
+				--m_hours;
 				emit hoursChanged();
 				emit minutesChanged();
 			}
@@ -290,28 +274,30 @@ void TPTimer::calcTime()
 			{
 				if (m_hours == 0)
 				{
-					warningIdx = mMinutesWarnings.indexOf(m_minutes);
-					if (warningIdx != -1)
+					mWarningIdx = mMinutesWarnings.indexOf(m_minutes);
+					if (mWarningIdx != -1)
 					{
-						mMinutesWarnings.remove(warningIdx);
+						mMinutesWarnings.remove(mWarningIdx);
 						emit timeWarning(QString::number(m_minutes), true);
 						if (m_alarmSound)
 							m_alarmSound->play();
 					}
 				}
 			}
-			m_minutes--;
+			--m_minutes;
 			emit minutesChanged();
 			m_seconds = 60;
 		}
-		m_seconds--;
+		--m_seconds;
+		--m_progressValue;
+		emit progressValueChanged();
 		emit secondsChanged();
 		if (m_minutes == 0)
 		{
-			warningIdx = mSecondsWarnings.indexOf(m_seconds);
-			if (warningIdx != -1)
+			mWarningIdx = mSecondsWarnings.indexOf(m_seconds);
+			if (mWarningIdx != -1)
 			{
-				mSecondsWarnings.remove(warningIdx);
+				mSecondsWarnings.remove(mWarningIdx);
 				emit timeWarning(QString::number(m_seconds), false);
 				if (m_alarmSound)
 					m_alarmSound->play();

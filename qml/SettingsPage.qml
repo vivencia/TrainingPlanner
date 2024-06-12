@@ -517,31 +517,31 @@ Page {
 							AppSettings.colorScheme = "Blue";
 							AppSettings.fontColor = "white";
 							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed"];
+							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "lightgray"];
 						break;
 						case 2:
 							AppSettings.colorScheme = "Green";
 							AppSettings.fontColor = "white";
 							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22"];
+							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "lightgray"];
 						break;
 						case 3:
 							AppSettings.colorScheme = "Red";
 							AppSettings.fontColor = "white";
 							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080"];
+							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "lightgray"];
 						break;
 						case 4:
 							AppSettings.colorScheme = "Dark";
 							AppSettings.fontColor = "white";
 							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969"];
+							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "lightgray"];
 						break;
 						case 5:
 							AppSettings.colorScheme = "Light";
 							AppSettings.fontColor = "black";
 							AppSettings.iconFolder = "black/"
-							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de"];
+							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "white"];
 						break;
 					}
 					colorSchemeChosen = 0;
@@ -550,6 +550,7 @@ Page {
 					AppSettings.primaryLightColor = colorScheme[2];
 					AppSettings.paneBackgroundColor = colorScheme[3];
 					AppSettings.entrySelectedColor = colorScheme[4];
+					AppSettings.disabledFontColor = colorScheme[5];
 				}
 			}
 		}

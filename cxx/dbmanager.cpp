@@ -1,5 +1,4 @@
 #include "dbmanager.h"
-#include "tpapplication.h"
 #include "runcommands.h"
 #include "tpmesocycleclass.h"
 #include "tptimer.h"
@@ -29,6 +28,37 @@
 #include <QDir>
 
 static uint nSplitPages(0);
+
+#ifdef Q_OS_ANDROID
+
+#include <QStandardPaths>
+#include <QJniObject>
+#include <qnativeinterface.h>
+
+void DbManager::checkPendingIntents()
+{
+	QJniObject activity = QNativeInterface::QAndroidApplication::context();
+	if(activity.isValid())
+	{
+		// create a Java String for the Working Dir Path
+		QJniObject jniWorkingDir = QJniObject::fromString(mAppDataFilesPath);
+		if(!jniWorkingDir.isValid())
+		{
+			MSG_OUT("QJniObject jniWorkingDir not valid.WorkingDir not valid")
+			return;
+		}
+		activity.callMethod<void>("checkPendingIntents","(Ljava/lang/String;)V", jniWorkingDir.object<jstring>());
+		MSG_OUT("checkPendingIntents: " << mAppDataFilesPath)
+		return;
+	}
+	MSG_OUT("checkPendingIntents: Activity not valid")
+}
+#else
+extern "C"
+{
+	#include <unistd.h>
+}
+#endif
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings),
@@ -89,14 +119,6 @@ void DbManager::exitApp()
 	::exit (0);
 }
 
-#ifdef Q_OS_ANDROID
-//#include <QtCore/qandroidextras_p.h>
-#else
-extern "C"
-{
-	#include <unistd.h>
-}
-#endif
 void DbManager::restartApp()
 {
 	#ifdef Q_OS_ANDROID
@@ -154,13 +176,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	mesoCalendarModel = new DBMesoCalendarModel(this);
 	mesocyclesModel = new DBMesocyclesModel(this);
 
-	if (m_appSettings->value("appVersion") != TP_APP_VERSION)
+	//Enable only when necessary to avoid problems
+	/*if (m_appSettings->value("appVersion") != TP_APP_VERSION)
 	{
 		//All the update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
 		updateDB(new DBTrainingDayTable(m_DBFilePath, m_appSettings));
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
-	}
+	}*/
 
 	getAllMesocycles();
 
@@ -190,7 +213,28 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
+
+#ifndef Q_OS_ANDROID
 	processArguments();
+#else
+	const QString appDataRoot(QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0));
+	// as next we create a /my_share_files subdirectory to store our example files from assets
+	mAppDataFilesPath = appDataRoot + u"/my_share_files"_qs;
+	if (!QDir(mAppDataFilesPath).exists())
+	{
+		if (QDir().mkpath(mAppDataFilesPath))
+			MSG_OUT("Created app data /files directory. " << mAppDataFilesPath)
+		else
+		{
+			MSG_OUT("Failed to create app data /files directory. " << mAppDataFilesPath)
+			return;
+		}
+	}
+	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
+	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
+	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
+	checkPendingIntents();
+#endif
 }
 
 DbManager::~DbManager()
@@ -417,17 +461,22 @@ void DbManager::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath
 		page->setProperty("restoreCount", 0);
 }
 
+#ifndef Q_OS_ANDROID
 void DbManager::processArguments()
 {
-	connect(static_cast<TPApplication*>(qApp), &TPApplication::openFileRequested, this, [&] (QString file) {
-			return QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, file)); });
 	const QStringList args(qApp->arguments());
 	if (args.count() > 1)
 	{
 		QFileInfo file(args.at(1));
 		if (file.isFile())
-			QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, args.at(1)));
+			openRequestedFile(args.at(1));
 	}
+}
+#endif
+
+void DbManager::openRequestedFile(const QString &filename)
+{
+	QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, filename));
 }
 
 bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const
@@ -1195,6 +1244,7 @@ void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
 		getMesoCalendar(false);
 		return;
 	}
+	m_currentMesoManager->gettDayModel(date)->setDayIsFinished(bFinished);
 	mesoCalendarModel->setDayIsFinished(date, bFinished);
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	worker->addExecArg(date);
@@ -1228,9 +1278,9 @@ void DbManager::getTrainingDay(const QDate& date)
 
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->gettDayModel(date)));
-	worker->addExecArg("13");
+	/*worker->addExecArg("13");
 	worker->removeEntry();
-	worker->clearExecArgs();
+	worker->clearExecArgs();*/
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -1284,13 +1334,14 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 {
 	const QDate date(m_runCommands->getDateFromStrDate(strDate));
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
+	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(QString::number(date.toJulianDay()));
 
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
 	connect( this, &DbManager::databaseReady, this, [&,date] { m_currentMesoManager->currenttDayModel()->setModified(true);
-			m_currentMesoManager->currenttDayModel()->setModified(true); return m_currentMesoManager->createExercisesObjects(); },
+			 return m_currentMesoManager->createExercisesObjects(); },
 				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); });
+	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
 }
 
 void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)

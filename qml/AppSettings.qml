@@ -21,6 +21,7 @@ Settings {
 	property string exercisesListVersion
 	property string backupFolder
 	property string fontColor
+	property string disabledFontColor
 	property string iconFolder
 	property int fontSize
 	property int fontSizeLists

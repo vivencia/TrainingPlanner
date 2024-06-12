@@ -12,6 +12,7 @@ class QSettings;
 class QFileDialog;
 
 static QLocale appLocale;
+static QString androidUrl;
 
 class RunCommands : public QObject
 {
