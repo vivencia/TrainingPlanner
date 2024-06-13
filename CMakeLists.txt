@@ -108,6 +108,7 @@ set( QML_FILES
     "qml/TPRoundButton.qml"
     "qml/TPFloatingMenuBar.qml"
     "qml/TPImportDialog.qml"
+    "qml/ImportMessageBox.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

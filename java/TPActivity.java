@@ -224,21 +224,4 @@ public class TPActivity extends QtActivity
       }
       setFileReceivedAndSaved(filePath);
     } // processIntent
-
-    /*public void onNewIntent(Intent i)
-    {
-	if (i.getAction() == Intent.ACTION_VIEW)
-	{
-	    Bar.openUri(i.getData().toString());
-	}
-	else if (i.getAction() == Intent.ACTION_SEND)
-	{
-	    Bar.openUri(i.getData().toString());
-	}
-	else if (i.getAction() == Intent.ACTION_MAIN)
-	{
-	    Bar.openUri(i.getData().toString());
-	}
-	super.onNewIntent(i);
-    }*/
 }

@@ -48,6 +48,7 @@ public:
 	void processArguments();
 #else
 	void checkPendingIntents();
+	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
 #endif
 
 	void openRequestedFile(const QString& filename);
@@ -99,6 +100,9 @@ public:
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
+	#ifdef Q_OS_ANDROID
+	Q_INVOKABLE bool exportMesoSplit(const QString& splitLetter, const bool bFancy);
+	#endif
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

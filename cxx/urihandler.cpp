@@ -94,6 +94,17 @@ bool URIHandler::checkFileExists(const QString& url) const
 	}
 }
 
+void URIHandler::onActivityResult(int requestCode, int resultCode) const
+{
+	// we're getting RESULT_OK only if edit is done
+	if (resultCode == -1)
+		MSG_OUT("Send Activity Result OK")
+	else if (resultCode == 0)
+		MSG_OUT("Send Activity Result Canceled")
+	else
+		MSG_OUT("Send Activity wrong result code: " << resultCode << " from request: " << requestCode)
+}
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -127,6 +138,15 @@ JNIEXPORT bool JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_chec
 	bool exists = handlerInstance()->checkFileExists(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
 	return exists;
+}
+
+JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fireActivityResult(
+						JNIEnv *env, jobject obj, jint requestCode, jint resultCode)
+{
+	Q_UNUSED (obj)
+	Q_UNUSED (env)
+	handlerInstance()->onActivityResult(requestCode, resultCode);
+	return;
 }
 
 #ifdef __cplusplus

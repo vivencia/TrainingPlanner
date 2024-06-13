@@ -25,8 +25,11 @@ Page {
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	onBExportEnabledChanged: {
-		if (inexportMenu)
-			inexportMenu.enableMenuEntry(0, bExportEnabled);
+		if (inexportMenu) {
+			inexportMenu.enableMenuEntry(1, bExportEnabled);
+			if (Qt.platform.os === "android")
+				inexportMenu.enableMenuEntry(2, bExportEnabled);
+		}
 	}
 
 	Keys.onBackPressed: (event) => {
@@ -160,18 +163,21 @@ Page {
 				if (inexportMenu === null) {
 					var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
 					inexportMenu = inexportMenuComponent.createObject(pagePlanner, {});
-					inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
-					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
+					inexportMenu.addEntry(qsTr("Import"), "import.png", 0);
+					inexportMenu.addEntry(qsTr("Save"), "save-day.png", 1);
+					if (Qt.platform.os === "android")
+						inexportMenu.addEntry(qsTr("Export"), "export.png", 2);
 					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
 				}
 				inexportMenu.show(btnInExport, 0);
 			}
 
 			function selectedMenuOption(menuid: int) {
-				if (menuid === 0)
-					exportTypeTip.show(-1);
-				else
-					importDialog.open();
+				switch (menuid) {
+					case 0: importDialog.open(); break;
+					case 1: exportTypeTip.init(true); break;
+					case 2: exportTypeTip.init(false); break;
+				}
 			}
 		}
 
@@ -261,13 +267,34 @@ Page {
 	TPBalloonTip {
 		id: exportTypeTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		message: qsTr("What do you want to export?")
+		message: saveOpt ? qsTr("What to you want to save?") : qsTr("What do you want to export?")
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: exportDialog.init(0, checkBoxChecked);
-		onButton2Clicked: exportDialog.init(1, checkBoxChecked);
+		onButton1Clicked: {
+			if (saveOpt)
+				saveDialog.init(0, checkBoxChecked);
+			else {
+				const result = appDB.exportMesoSplit("X", checkBoxChecked);
+				exportTip.init(result ? qsTr("Entire Meso plan successfully exported") : qsTr("Failed to export meso plan"));
+			}
+		}
+		onButton2Clicked: {
+			if (saveOpt)
+				saveDialog.init(1, checkBoxChecked);
+			else {
+				const result = appDB.exportMesoSplit(currentPage.splitModel.splitLetter, checkBoxChecked);
+				exportTip.init(result ? qsTr("Meso split plan successfully exported") : qsTr("Failed to export meso split plan"));
+			}
+		}
+
+		property bool saveOpt: false
+
+		function init(bSave: bool) {
+			saveOpt = bSave;
+			show(-1);
+		}
 	}
 
 	TPBalloonTip {
@@ -282,8 +309,8 @@ Page {
 	}
 
 	FileDialog {
-		id: exportDialog
-		title: qsTr("Choose the folder and filename to export to")
+		id: saveDialog
+		title: qsTr("Choose the folder and filename to save to")
 		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 		fileMode: FileDialog.SaveFile
 
@@ -299,7 +326,7 @@ Page {
 			}
 			else
 				result = appDB.exportToFile(currentPage.splitModel, currentFile, _bfancyFormat);
-			exportTip.init(result ? qsTr("Meso plan successfully exported") : qsTr("Failed to export meso plan"));
+			exportTip.init(result ? qsTr("Meso plan successfully saved") : qsTr("Failed to save meso plan"));
 			close();
 		}
 

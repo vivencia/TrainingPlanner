@@ -9,6 +9,7 @@
 	-->
     <application android:name="org.qtproject.qt.android.bindings.QtApplication" android:hardwareAccelerated="true" android:label="TrainingPlanner" android:requestLegacyExternalStorage="true" android:allowNativeHeapPointerTagging="false" android:allowBackup="true" android:fullBackupOnly="false" android:icon="@drawable/icon">
 	<activity android:name=".TPActivity" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density" android:label="TrainingPlanner" android:launchMode="singleInstance" android:screenOrientation="portrait" android:exported="true" android:theme="@style/splashScreenTheme">
+
 	    <intent-filter>
 		<action android:name="android.intent.action.MAIN"/>
 		<category android:name="android.intent.category.LAUNCHER"/>
@@ -30,6 +31,8 @@
                 <data android:scheme="file"/>
                 <data android:scheme="content"/>
             </intent-filter>
+
+			<!--
 	<intent-filter>
         <action android:name="android.intent.action.SEND" />
         <category android:name="android.intent.category.DEFAULT" />
@@ -65,6 +68,7 @@
 			<data android:mimeType="*/*"/>
 			<data android:host="*"/>
 		</intent-filter>
+			-->
 	    <meta-data android:name="android.app.lib_name" android:value="trainingplanner"/>
 	    <meta-data android:name="android.app.arguments" android:value=""/>
 	    <meta-data android:name="android.app.extract_android_style" android:value="minimal"/>

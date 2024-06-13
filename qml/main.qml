@@ -21,6 +21,8 @@ ApplicationWindow {
 	readonly property int windowWidth: width
 	readonly property int windowHeight: contentItem.height
 
+	property var msgBoxImport: null
+
 	Component.onCompleted: {
 		if (Qt.platform.os === "android") {
 			contentItem.Keys.pressed.connect( function(event) {
@@ -145,24 +147,21 @@ ApplicationWindow {
 		mainMenu.createShortCut(label, object, clickid);
 	}
 
-	TPBalloonTip {
-		id: beforeImportTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-		title: qsTr("Attempt to import the file?")
-		message: importFile
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No");
-
-		property string importFile
-		onButton1Clicked: appDB.importFromFile(importFile);
-
-		function init(file: string) {
-			importFile = file;
-			show(-1);
-		}
-	}
-
 	function tryToOpenFile(fileName: string) {
-		beforeImportTip.init(fileName);
+		function createMessageBox() {
+			if (msgBoxImport === null) {
+				var component = Qt.createComponent("ImportMessageBox.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					msgBoxImport = component.createObject(this, {});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			msgBoxImport.init(fileName);
+		}
 	}
 } //ApplicationWindow

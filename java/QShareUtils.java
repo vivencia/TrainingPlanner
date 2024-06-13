@@ -124,7 +124,6 @@ public class QShareUtils
     public static boolean createCustomChooserAndStartActivity(Intent theIntent, String title, int requestId, Uri uri) {
         final Context context = QtNative.activity();
         final PackageManager packageManager = context.getPackageManager();
-        final boolean isLowerOrEqualsKitKat = Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT;
 
         // MATCH_DEFAULT_ONLY: Resolution and querying flag. if set, only filters that support the CATEGORY_DEFAULT will be considered for matching.
         // Check if there is a default app for this type of content.
@@ -187,14 +186,6 @@ public class QShareUtils
             // removed KitKat check and added queries to AndroidManifest
             // thx: https://forum.qt.io/topic/127170/android-11-qdir-mkdir-does-not-always-work/11
             context.grantUriPermission(targetPackageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            /*
-            if(isLowerOrEqualsKitKat) {
-                Log.d("ekkescorner", "legacy support grantUriPermission");
-                context.grantUriPermission(targetPackageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                // attention: you must revoke the permission later, so this only makes sense with getting back a result to know that Intent was done
-                // I always move or delete the file, so I don't revoke permission
-            }
-            */
         }
 
         // check if there are apps found for our Intent to avoid that there was only our own removed app before
@@ -206,7 +197,7 @@ public class QShareUtils
         // now we can create our Intent with custom Chooser
         // we need all collected targetedIntents as EXTRA_INITIAL_INTENTS
         // we're using the last targetedIntent as initializing Intent, because
-        // chooser adds its initializing intent to the end of EXTRA_INITIAL_INTENTS :)
+	// chooser adds its initializing intent to the end of EXTRA_INITIAL_INTENTS
         Intent chooserIntent = Intent.createChooser(targetedIntents.remove(targetedIntents.size() - 1), title);
         if (targetedIntents.isEmpty()) {
             Log.d("ekkescorner", title+" only one Intent left for Chooser");

@@ -34,6 +34,7 @@ static uint nSplitPages(0);
 #include <QStandardPaths>
 #include <QJniObject>
 #include <qnativeinterface.h>
+#include <QtCore/6.6.3/QtCore/private/qandroidextras_p.h>
 
 void DbManager::checkPendingIntents()
 {
@@ -53,6 +54,128 @@ void DbManager::checkPendingIntents()
 	}
 	MSG_OUT("checkPendingIntents: Activity not valid")
 }
+
+/*
+ * As default we're going the Java - way with one simple JNI call (recommended)
+ * if altImpl is true we're going the pure JNI way
+ * HINT: we don't use altImpl anymore
+ *
+ * If a requestId was set we want to get the Activity Result back (recommended)
+ * We need the Request Id and Result Id to control our workflow
+*/
+bool DbManager::sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId)
+{
+	QJniObject jsPath = QJniObject::fromString(filePath);
+	QJniObject jsTitle = QJniObject::fromString(title);
+	QJniObject jsMimeType = QJniObject::fromString(mimeType);
+	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+													"sendFile",
+													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
+													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId);
+	if(!ok)
+	{
+		MSG_OUT("Unable to resolve activity from Java")
+		return false;
+	}
+
+	// THE FILE PATH
+	// to get a valid Path we must prefix file://
+	// attention file must be inside Users Documents folder !
+	// trying to send a file from APP DATA will fail
+	QJniObject jniPath = QJniObject::fromString("file://"+filePath);
+	if(!jniPath.isValid())
+	{
+		MSG_OUT("QJniObject jniPath not valid. Share: an Error occured\nFilePath not valid")
+		return false;
+	}
+	// next step: convert filePath Java String into Java Uri
+	QJniObject jniUri = QJniObject::callStaticObjectMethod("android/net/Uri", "parse", "(Ljava/lang/String;)Landroid/net/Uri;", jniPath.object<jstring>());
+	if(!jniUri.isValid())
+	{
+		MSG_OUT("QJniObject jniUri not valid. Share: an Error occured\nURI not valid")
+		return false;
+	}
+
+	// THE INTENT ACTION
+	// create a Java String for the ACTION
+	QJniObject jniAction = QJniObject::getStaticObjectField<jstring>("android/content/Intent", "ACTION_SEND");
+	if(!jniAction.isValid())
+	{
+		MSG_OUT("QJniObject jniParam not valid. Intent (ACTION_SEND) creation failed")
+		return false;
+	}
+
+	// then create the Intent Object for this Action
+	QJniObject jniIntent("android/content/Intent","(Ljava/lang/String;)V", jniAction.object<jstring>());
+	if(!jniIntent.isValid())
+	{
+		MSG_OUT("QJniObject jniIntent not valid. Intent object creation failed")
+		return false;
+	}
+
+	// create a Java String for the File Type (Mime Type)
+	QJniObject jniMimeType = QJniObject::fromString(mimeType);
+	if(!jniMimeType.isValid())
+	{
+		MSG_OUT("QJniObject jniMimeType not valid.")
+		return false;
+	}
+
+	// set Type (MimeType)
+	QJniObject jniType = jniIntent.callObjectMethod("setType", "(Ljava/lang/String;)Landroid/content/Intent;", jniMimeType.object<jstring>());
+	if(!jniType.isValid())
+	{
+		MSG_OUT("QJniObject jniType not valid.")
+		return false;
+	}
+
+	// THE EXTRA STREAM
+	// create a Java String for the EXTRA
+	QJniObject jniExtra = QJniObject::getStaticObjectField<jstring>("android/content/Intent", "EXTRA_STREAM");
+	if(!jniExtra.isValid())
+	{
+		MSG_OUT("QJniObject jniExtra not valid.")
+		return false;
+	}
+
+	// put Extra (EXTRA_STREAM and URI)
+	QJniObject jniExtraStreamUri = jniIntent.callObjectMethod("putExtra",
+			"(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;",
+			jniExtra.object<jstring>(), jniUri.object<jobject>());
+	if(!jniExtraStreamUri.isValid())
+	{
+		MSG_OUT("QJniObject jniExtraStreamUri not valid.")
+		return false;
+	}
+
+	QJniObject activity = QNativeInterface::QAndroidApplication::context();
+	QJniObject packageManager = activity.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
+	QJniObject componentName = jniIntent.callObjectMethod("resolveActivity",
+															"(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;",
+															packageManager.object());
+	if (!componentName.isValid())
+	{
+		MSG_OUT("Unable to resolve activity. No app available")
+		return false;
+	}
+
+	QtAndroidPrivate::startActivity(jniIntent, requestId);
+	return true;
+
+	/*if(requestId <= 0)
+	{
+		// we dont need a result if there's no requestId
+		QtAndroidPrivate::startActivity(jniIntent, requestId);
+	}
+	else {
+		// we have the JNI Object, know the requestId
+		// and want the Result back into 'this' handleActivityResult(...)
+		// attention: to test JNI with QAndroidActivityResultReceiver you must comment or rename
+		// onActivityResult()  method in QShareActivity.java - otherwise you'll get wrong request or result codes
+		QtAndroidPrivate::startActivity(jniIntent, requestId, this);
+	}*/
+}
+
 #else
 extern "C"
 {
@@ -219,7 +342,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 #else
 	const QString appDataRoot(QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0));
 	// as next we create a /my_share_files subdirectory to store our example files from assets
-	mAppDataFilesPath = appDataRoot + u"/my_share_files"_qs;
+	mAppDataFilesPath = appDataRoot + u"/tp/"_qs;
 	if (!QDir(mAppDataFilesPath).exists())
 	{
 		if (QDir().mkpath(mAppDataFilesPath))
@@ -1145,6 +1268,40 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	worker2->addExecArg(splitLetter2);
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
+
+#ifdef Q_OS_ANDROID
+bool DbManager::exportMesoSplit(const QString& splitLetter, const bool bFancy)
+{
+	QString mesoSplit;
+	QString mesoLetters;
+	bool bSaveToFileOk(true);
+	const QString tempFileName(mAppDataFilesPath + u"splits.tp"_qs);
+
+	if (splitLetter == u"X"_qs)
+		mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
+	else
+		mesoSplit = splitLetter;
+
+	QString::const_iterator itr(mesoSplit.constBegin());
+	const QString::const_iterator itr_end(mesoSplit.constEnd());
+
+	do {
+		if (static_cast<QChar>(*itr) == QChar('R'))
+			continue;
+		if (mesoLetters.contains(static_cast<QChar>(*itr)))
+			continue;
+		mesoLetters.append(static_cast<QChar>(*itr));
+		bSaveToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), tempFileName, bFancy);
+	} while (++itr != itr_end);
+
+	if (bSaveToFileOk)
+	{
+		bSaveToFileOk = sendFile(tempFileName, tr("Send file"), u"text/plain"_qs, 10);
+		QDir().remove(tempFileName);
+	}
+	return bSaveToFileOk;
+}
+#endif
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
