@@ -24,8 +24,7 @@ public:
 	void onActivityResult(int requestCode, int resultCode) const;
 
 signals:
-	void openURLRequest(const QString& url);
-	void fileReceivedAndSaved(const QString& url);
+	void activityFinishedResult(const int requestCode, const int resultCode);
 
 private:
 	DbManager* m_appDB;

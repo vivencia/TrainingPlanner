@@ -31,6 +31,8 @@ static uint nSplitPages(0);
 
 #ifdef Q_OS_ANDROID
 
+#include "urihandler.h"
+
 #include <QStandardPaths>
 #include <QJniObject>
 #include <qnativeinterface.h>
@@ -356,6 +358,8 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
+	connect(handlerInstance(), &URIHandler::activityFinishedResult, this, [] (const int requestCode, const int resultCode) {
+		return QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode)); });
 	checkPendingIntents();
 #endif
 }
@@ -590,9 +594,13 @@ void DbManager::processArguments()
 	const QStringList args(qApp->arguments());
 	if (args.count() > 1)
 	{
-		QFileInfo file(args.at(1));
+		QString filename;
+		for (uint i(1); i < args.count(); ++i)
+			filename += args.at(i) + ' ';
+		filename.chop(1);
+		QFileInfo file(filename);
 		if (file.isFile())
-			openRequestedFile(args.at(1));
+			openRequestedFile(filename);
 	}
 }
 #endif
@@ -1275,7 +1283,7 @@ bool DbManager::exportMesoSplit(const QString& splitLetter, const bool bFancy)
 	QString mesoSplit;
 	QString mesoLetters;
 	bool bSaveToFileOk(true);
-	const QString tempFileName(mAppDataFilesPath + u"splits.tp"_qs);
+	const QString tempFileName(mAppDataFilesPath + u"splits.txt"_qs);
 
 	if (splitLetter == u"X"_qs)
 		mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
@@ -1296,8 +1304,11 @@ bool DbManager::exportMesoSplit(const QString& splitLetter, const bool bFancy)
 
 	if (bSaveToFileOk)
 	{
-		bSaveToFileOk = sendFile(tempFileName, tr("Send file"), u"text/plain"_qs, 10);
-		QDir().remove(tempFileName);
+		bSaveToFileOk = sendFile(tempFileName, tr("Send file"), u"*/*"_qs, 10);
+		if (QDir().remove(tempFileName))
+			MSG_OUT("Removed file: " << tempFileName)
+		else
+			MSG_OUT("Removed file failed: " << tempFileName)
 	}
 	return bSaveToFileOk;
 }

@@ -103,6 +103,7 @@ void URIHandler::onActivityResult(int requestCode, int resultCode) const
 		MSG_OUT("Send Activity Result Canceled")
 	else
 		MSG_OUT("Send Activity wrong result code: " << resultCode << " from request: " << requestCode)
+	emit activityFinishedResult(requestCode, resultCode);
 }
 
 #ifdef __cplusplus

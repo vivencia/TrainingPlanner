@@ -148,12 +148,12 @@ ApplicationWindow {
 	}
 
 	function tryToOpenFile(fileName: string) {
-		function createMessageBox() {
-			if (msgBoxImport === null) {
+		if (msgBoxImport === null) {
+			function createMessageBox() {
 				var component = Qt.createComponent("ImportMessageBox.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgBoxImport = component.createObject(this, {});
+					msgBoxImport = component.createObject(contentItem, {});
 				}
 
 				if (component.status === Component.Ready)
@@ -161,7 +161,19 @@ ApplicationWindow {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			msgBoxImport.init(fileName);
+			createMessageBox();
 		}
+		msgBoxImport.init(fileName);
+	}
+
+	function activityResultMessage(requestCode: int, resultCode: int) {
+		var result;
+		console.log("*********    " + requestCode + " **********");
+		switch (resultCode) {
+			case -1: result = 0; break;
+			case 0: result = -1; break;
+			default: result = -2; break;
+		}
+		msgBoxImport.displayResultMessage(result, msgBoxImport.fileName);
 	}
 } //ApplicationWindow

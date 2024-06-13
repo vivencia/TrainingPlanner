@@ -1,6 +1,7 @@
 import QtQuick
 
 TPBalloonTip {
+	id: msgbox
 	imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
 	title: qsTr("Attempt to import the file?")
 	message: importFile
@@ -9,15 +10,15 @@ TPBalloonTip {
 
 	property string importFile
 
+	onButton1Clicked: {
+		const result = appDB.importFromFile(importFile);
+		displayResultMessage(result, importFile);
+	}
+
 	TPBalloonTip {
 		id: afterImportTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
 		button1Text: "OK"
-	}
-
-	onButton1Clicked: {
-		const result = appDB.importFromFile(importFile);
-		displayResultMessage(result, importFile);
 	}
 
 	function displayResultMessage(result: int, filename: string) {
@@ -36,7 +37,7 @@ TPBalloonTip {
 
 	function init(file: string) {
 		importFile = file;
-		show(-1);
+		msgbox.show(-1);
 	}
 }
 
