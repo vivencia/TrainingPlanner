@@ -342,7 +342,8 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 #ifndef Q_OS_ANDROID
 	processArguments();
 #else
-	const QString appDataRoot(QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0));
+	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
+	/*const QString appDataRoot(QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0));
 	// as next we create a /my_share_files subdirectory to store our example files from assets
 	mAppDataFilesPath = appDataRoot + u"/tp/"_qs;
 	if (!QDir(mAppDataFilesPath).exists())
@@ -354,12 +355,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 			MSG_OUT("Failed to create app data /files directory. " << mAppDataFilesPath)
 			return;
 		}
-	}
+	}*/
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
-	connect(handlerInstance(), &URIHandler::activityFinishedResult, this, [] (const int requestCode, const int resultCode) {
-		return QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode)); });
+	connect(handlerInstance(), &URIHandler::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
+		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode));
+		QFile::remove(exportFileName());
+	});
 	checkPendingIntents();
 #endif
 }
@@ -1241,25 +1244,30 @@ QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 	if (mesoHasPlan(m_MesoId, splitLetter))
 	{
 		QString muscularGroup1(mesoSplitModel->get(m_MesoIdx, static_cast<int>(splitLetter.at(0).toLatin1()) - static_cast<int>('A') + 2));
-		QString muscularGroup2;
-		const QString mesoSplit(mesocyclesModel->get(m_MesoIdx, 6));
-		muscularGroupSimplified(muscularGroup1);
+		if (!muscularGroup1.isEmpty())
+		{
+			QString muscularGroup2;
+			const QString mesoSplit(mesocyclesModel->get(m_MesoIdx, 6));
+			muscularGroupSimplified(muscularGroup1);
 
-		QString::const_iterator itr(mesoSplit.constBegin());
-		const QString::const_iterator itr_end(mesoSplit.constEnd());
+			QString::const_iterator itr(mesoSplit.constBegin());
+			const QString::const_iterator itr_end(mesoSplit.constEnd());
 
-		do {
-			if (static_cast<QChar>(*itr) == QChar('R'))
-				continue;
-			if (static_cast<QChar>(*itr) == splitLetter.at(0))
-				continue;
+			do {
+				if (static_cast<QChar>(*itr) == QChar('R'))
+					continue;
+				else if (static_cast<QChar>(*itr) == splitLetter.at(0))
+					continue;
 
-			muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
-			muscularGroupSimplified(muscularGroup2);
-			if (m_runCommands->stringsAreSimiliar(muscularGroup1, muscularGroup2))
-				return QString(*itr);
-
-		} while (++itr != itr_end);
+				muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
+				if (!muscularGroup2.isEmpty())
+				{
+					muscularGroupSimplified(muscularGroup2);
+					if (m_runCommands->stringsAreSimiliar(muscularGroup1, muscularGroup2))
+						return QString(*itr);
+				}
+			} while (++itr != itr_end);
+		}
 	}
 	return QString();
 }
@@ -1278,18 +1286,27 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 }
 
 #ifdef Q_OS_ANDROID
-bool DbManager::exportMesoSplit(const QString& splitLetter, const bool bFancy)
+void DbManager::exportMesoSplit(const QString& filename, const QString& splitLetter, const bool bFancy)
 {
+	setExportFileName("app_logo.png");
+	if (!QFile::exists(exportFileName()))
+	{
+		QFile::copy(":/images/app_logo.png", exportFileName());
+		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
+	}
+	sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);
+	return;
+
 	QString mesoSplit;
 	QString mesoLetters;
 	bool bSaveToFileOk(true);
-	const QString tempFileName(mAppDataFilesPath + u"splits.txt"_qs);
 
 	if (splitLetter == u"X"_qs)
 		mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
 	else
 		mesoSplit = splitLetter;
 
+	setExportFileName(filename);
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
 
@@ -1299,18 +1316,16 @@ bool DbManager::exportMesoSplit(const QString& splitLetter, const bool bFancy)
 		if (mesoLetters.contains(static_cast<QChar>(*itr)))
 			continue;
 		mesoLetters.append(static_cast<QChar>(*itr));
-		bSaveToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), tempFileName, bFancy);
+		bSaveToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), exportFileName(), bFancy);
 	} while (++itr != itr_end);
 
 	if (bSaveToFileOk)
+		sendFile(exportFileName(), tr("Send file"), u"*/*"_qs, 10);
+	else
 	{
-		bSaveToFileOk = sendFile(tempFileName, tr("Send file"), u"*/*"_qs, 10);
-		if (QDir().remove(tempFileName))
-			MSG_OUT("Removed file: " << tempFileName)
-		else
-			MSG_OUT("Removed file failed: " << tempFileName)
+		QFile::remove(exportFileName());
+		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, 10), Q_ARG(int, 0));
 	}
-	return bSaveToFileOk;
 }
 #endif
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------

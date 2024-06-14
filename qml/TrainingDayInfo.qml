@@ -526,46 +526,22 @@ Page {
 				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);
 			}
 
-			Frame {
+			TransparentButton {
+				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle")
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
-				height: 70
+				width: parent.width - 10
+				height: 50
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
+				Layout.bottomMargin: 10
+				Layout.topMargin: -10
 
-				background: Rectangle {
-					border.color: AppSettings.fontColor
-					color: "transparent"
-					radius: 6
+				onClicked: {
+					appDB.convertTDayToPlan(tDayModel);
+					enabled = editMode;
 				}
-
-				ColumnLayout {
-					anchors.fill: parent
-					spacing: 10
-
-					Label {
-						text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle?")
-						wrapMode: Text.WordWrap
-						font.pointSize: AppSettings.fontSizeText
-						font.bold: true
-						color: AppSettings.fontColor
-						Layout.fillWidth: true
-						Layout.topMargin: 20
-						Layout.leftMargin: 5
-					}
-
-					TPButton {
-						id: btnConvertToExercisePlanner
-						text: qsTr("Yes")
-						Layout.alignment: Qt.AlignCenter
-						Layout.bottomMargin: 20
-						onClicked: {
-							appDB.convertTDayToPlan(tDayModel);
-							enabled = editMode;
-						}
-					}
-				}
-			} //Frame
+			}
 
 			Label {
 				id: lblExercisesStart
@@ -619,7 +595,7 @@ Page {
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 30
-				visible: bHasMesoPlan || bHasPreviousTDays
+				visible: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays)
 				width: parent.width - 20
 
 				property int option

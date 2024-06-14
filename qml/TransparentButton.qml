@@ -11,6 +11,8 @@ ToolButton {
 	width: parent.width
 	opacity: parent.opacity
 	hoverEnabled: true
+	implicitWidth: width
+	implicitHeight: height
 
 	onHoveredChanged: {
 		opacity = hovered ? 1 : followParentsOpacity ? parent.opacity : 0.9

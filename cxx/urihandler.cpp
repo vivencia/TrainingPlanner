@@ -5,6 +5,7 @@
 #include "dbmanager.h"
 
 #include <jni.h>
+#include <QFile>
 
 URIHandler* URIHandler::s_instance(nullptr);
 
@@ -94,7 +95,7 @@ bool URIHandler::checkFileExists(const QString& url) const
 	}
 }
 
-void URIHandler::onActivityResult(int requestCode, int resultCode) const
+void URIHandler::onActivityResult(int requestCode, int resultCode)
 {
 	// we're getting RESULT_OK only if edit is done
 	if (resultCode == -1)

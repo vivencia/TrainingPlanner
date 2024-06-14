@@ -273,23 +273,18 @@ Page {
 		checkBoxText: qsTr("Human readable?")
 
 		onButton1Clicked: {
-			if (saveOpt)
-				saveDialog.init(0, checkBoxChecked);
-			else {
-				const result = appDB.exportMesoSplit("X", checkBoxChecked);
-				exportTip.init(result ? qsTr("Entire Meso plan successfully exported") : qsTr("Failed to export meso plan"));
-			}
+			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".tp";
+			saveOpt ? saveDialog.init(suggestedName, 0, checkBoxChecked) :
+									appDB.exportMesoSplit(suggestedName, "X", checkBoxChecked);
 		}
 		onButton2Clicked: {
-			if (saveOpt)
-				saveDialog.init(1, checkBoxChecked);
-			else {
-				const result = appDB.exportMesoSplit(currentPage.splitModel.splitLetter, checkBoxChecked);
-				exportTip.init(result ? qsTr("Meso split plan successfully exported") : qsTr("Failed to export meso split plan"));
-			}
+			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan.tp")
+			saveOpt ? saveDialog.init(suggestedName, 1, checkBoxChecked) :
+									appDB.exportMesoSplit(suggestedName, currentPage.splitModel.splitLetter, checkBoxChecked);
 		}
 
 		property bool saveOpt: false
+		property string suggestedName;
 
 		function init(bSave: bool) {
 			saveOpt = bSave;
@@ -330,16 +325,10 @@ Page {
 			close();
 		}
 
-		function init(opt: int, fancy: bool) {
-			var suggestedName;
+		function init(suggestedName: string, opt: int, fancy: bool) {
 			_opt = opt;
 			_bfancyFormat = fancy;
-			if (opt === 0)
-				suggestedName = qsTr(" - Exercises Plan.tp")
-			else
-				suggestedName = qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".tp";
-
-			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+			currentFile = suggestedName;
 			open();
 		}
 	}

@@ -241,14 +241,14 @@ public class QShareUtils
         File imageFileToShare = new File(filePath);
 
         // Using FileProvider you must get the URI from FileProvider using your AUTHORITY
-        // Uri uri = Uri.fromFile(imageFileToShare);
-        Uri uri;
-        try {
+	// Uri uri = Uri.fromFile(imageFileToShare);
+	Uri uri;
+	try {
             uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, imageFileToShare);
-        } catch (IllegalArgumentException e) {
-            Log.d("ekkescorner sendFile - cannot be shared: ", filePath);
-            return false;
-        }
+	} catch (IllegalArgumentException e) {
+	    Log.d("ekkescorner sendFile - cannot be shared: ", filePath);
+	    return false;
+	}
 
         Log.d("ekkescorner sendFile", uri.toString());
         sendIntent.putExtra(Intent.EXTRA_STREAM, uri);

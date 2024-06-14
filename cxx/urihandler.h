@@ -21,7 +21,7 @@ public:
 	void setFileUrlReceived(const QString &url) const;
 	void setFileReceivedAndSaved(const QString& url) const;
 	bool checkFileExists(const QString& url) const;
-	void onActivityResult(int requestCode, int resultCode) const;
+	void onActivityResult(int requestCode, int resultCode);
 
 signals:
 	void activityFinishedResult(const int requestCode, const int resultCode);

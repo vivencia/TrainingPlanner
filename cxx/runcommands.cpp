@@ -345,7 +345,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 						if (strValue.endsWith('6') || strValue.endsWith('1'))
 							--result;
 						else
-							result += 2;
+							result -= 2;
 					}
 				}
 				else
@@ -418,7 +418,12 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 			else
 			{
 				result = strValue.left(2).toUInt();
-				--result;
+				if (result > 55)
+					--result;
+				else if (result <= 5)
+					--result;
+				else
+					result -= 5;
 				if (result < 0)
 					result = 0;
 				strValue = (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result)) + strValue.right(3);

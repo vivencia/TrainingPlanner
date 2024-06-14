@@ -170,9 +170,9 @@ ApplicationWindow {
 		var result;
 		console.log("*********    " + requestCode + " **********");
 		switch (resultCode) {
-			case -1: result = 0; break;
-			case 0: result = -1; break;
-			default: result = -2; break;
+			case -1: result = -4; break;
+			case 0: result = -5; break;
+			default: result = -6; break;
 		}
 		msgBoxImport.displayResultMessage(result, msgBoxImport.fileName);
 	}

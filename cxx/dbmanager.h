@@ -49,6 +49,8 @@ public:
 #else
 	void checkPendingIntents();
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
+	Q_INVOKABLE void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
+	inline const QString& exportFileName() const { return m_exportFileName; }
 #endif
 
 	void openRequestedFile(const QString& filename);
@@ -101,7 +103,7 @@ public:
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	#ifdef Q_OS_ANDROID
-	Q_INVOKABLE bool exportMesoSplit(const QString& splitLetter, const bool bFancy);
+	Q_INVOKABLE void exportMesoSplit(const QString& filename, const QString& splitLetter, const bool bFancy);
 	#endif
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
@@ -185,6 +187,7 @@ private:
 
 	#ifdef Q_OS_ANDROID
 	QString mAppDataFilesPath;
+	QString m_exportFileName;
 	#endif
 };
 

@@ -85,7 +85,7 @@
 	<!-- For adding service(s) please check: https://wiki.qt.io/AndroidServices -->
         <!-- Register the File Provider for document sharing -->
         <provider android:name="androidx.core.content.FileProvider" android:authorities="org.vivenciasoftware.TrainingPlanner.fileprovider" android:grantUriPermissions="true" android:exported="false">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/filepaths"/>
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/qtprovider_paths"/>
         </provider>
 
     </application>
