@@ -174,13 +174,13 @@ Rectangle {
 		buttonText.text = button.text + " #" + nset;
 	}
 
-	function hideButtons() {
-		if (button)
+	function hideButtons(directCall: bool) {
+		if (directCall)
 			button.visible = false;
 	}
 
-	function showButtons() {
-		if (button)
+	function showButtons(directCall: bool) {
+		if (directCall)
 			button.visible = true;
 	}
 }

@@ -68,7 +68,7 @@ Drawer {
 		Rectangle {
 			Layout.fillWidth: true
 			Layout.alignment: Qt.AlignCenter
-			height: 240
+			height: 200
 			color: "transparent"
 
 			Image {
@@ -107,6 +107,7 @@ Drawer {
 			height: 3
 			width: parent.width
 			color: AppSettings.fontColor
+			Layout.topMargin: 20
 		}
 
 		TransparentButton {
@@ -150,6 +151,7 @@ Drawer {
 			height: 3
 			width: parent.width
 			color: AppSettings.fontColor
+			Layout.bottomMargin: 20
 		}
 
 		Item { // spacer item

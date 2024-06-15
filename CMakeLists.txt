@@ -129,6 +129,7 @@ target_link_libraries(trainingplanner PUBLIC
 	Qt6::Qml
 	Qt6::Quick
 	Qt6::QuickControls2
+	Qt6::CorePrivate
 )
 
 set(trainingplanner_resource_files
