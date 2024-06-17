@@ -9,7 +9,7 @@ import android.content.*;
 import android.app.*;
 
 import java.lang.String;
-//import android.content.Intent;
+import android.content.Intent;
 import java.io.File;
 import android.net.Uri;
 import android.util.Log;
@@ -18,11 +18,6 @@ import android.webkit.MimeTypeMap;
 
 import org.vivenciasoftware.TrainingPlanner.QShareUtils;
 import org.vivenciasoftware.TrainingPlanner.QSharePathResolver;
-
-class Bar
-{
-    public static native void openUri(String uri);
-}
 
 public class TPActivity extends QtActivity
 {

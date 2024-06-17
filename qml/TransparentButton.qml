@@ -102,10 +102,10 @@ ToolButton {
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0;								color: AppSettings.primaryColor }
-			GradientStop { position: buttonBack.fillPosition - 0.001;	color: AppSettings.primaryColor }
-			GradientStop { position: buttonBack.fillPosition + 0.001;	color: AppSettings.primaryDarkColor }
-			GradientStop { position: 1.0;								color: AppSettings.primaryDarkColor }
+			GradientStop { position: 0.0;								color: AppSettings.primaryLightColor }
+			GradientStop { position: buttonBack.fillPosition - 0.001;	color: AppSettings.primaryLightColor }
+			GradientStop { position: buttonBack.fillPosition + 0.001;	color: AppSettings.primaryColor }
+			GradientStop { position: 1.0;								color: AppSettings.primaryColor }
 		}
 	}
 

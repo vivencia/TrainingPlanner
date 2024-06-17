@@ -273,12 +273,12 @@ Page {
 		checkBoxText: qsTr("Human readable?")
 
 		onButton1Clicked: {
-			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".tp";
+			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".txt";
 			saveOpt ? saveDialog.init(suggestedName, 0, checkBoxChecked) :
 									appDB.exportMesoSplit(suggestedName, "X", checkBoxChecked);
 		}
 		onButton2Clicked: {
-			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan.tp")
+			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan.txt")
 			saveOpt ? saveDialog.init(suggestedName, 1, checkBoxChecked) :
 									appDB.exportMesoSplit(suggestedName, currentPage.splitModel.splitLetter, checkBoxChecked);
 		}

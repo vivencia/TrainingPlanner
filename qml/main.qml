@@ -12,16 +12,17 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
-	signal backButtonPressed()
-	signal mainMenuOpened()
-	signal mainMenuClosed()
+	signal backButtonPressed();
+	signal mainMenuOpened();
+	signal mainMenuClosed();
 
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
 	readonly property int windowWidth: width
 	readonly property int windowHeight: contentItem.height
 
-	property var msgBoxImport: null
+	property var importMessageDialog: null
+	property string importExportFilename
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android") {
@@ -148,12 +149,14 @@ ApplicationWindow {
 	}
 
 	function tryToOpenFile(fileName: string) {
-		if (msgBoxImport === null) {
+		importExportFilename = fileName;
+		if (importMessageDialog === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("ImportMessageBox.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgBoxImport = component.createObject(contentItem, {});
+					importMessageDialog = component.createObject(contentItem, {});
+					importMessageDialog.init(fileName);
 				}
 
 				if (component.status === Component.Ready)
@@ -163,17 +166,41 @@ ApplicationWindow {
 			}
 			createMessageBox();
 		}
-		msgBoxImport.init(fileName);
+		else
+			importMessageDialog.init(importExportFilename);
+	}
+
+	TPBalloonTip {
+		id: activityFinishedTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		button1Text: "OK"
+	}
+
+	function displayResultMessage(result: int) {
+		var message;
+		switch (result)
+		{
+			case  0: message = qsTr("Import was successfull"); break;
+			case -1: message = qsTr("Failed to open file"); break;
+			case -2: message = qsTr("File type not recognized"); break;
+			case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
+			case -4: message = qsTr("Export successfully"); break;
+			case -5: message = qsTr("Export failed"); break;
+			case -6: message = qsTr("Something went wrong"); break;
+		}
+		activityFinishedTip.title = message;
+		activityFinishedTip.message = importExportFilename;
+		activityFinishedTip.showTimed(5000, 0);
 	}
 
 	function activityResultMessage(requestCode: int, resultCode: int) {
+		console.log("****** requestCode: ", requestCode, "    resultCode: ", resultCode);
 		var result;
-		console.log("*********    " + requestCode + " **********");
 		switch (resultCode) {
 			case -1: result = -4; break;
 			case 0: result = -5; break;
 			default: result = -6; break;
 		}
-		msgBoxImport.displayResultMessage(result, msgBoxImport.fileName);
+		displayResultMessage(result);
 	}
 } //ApplicationWindow

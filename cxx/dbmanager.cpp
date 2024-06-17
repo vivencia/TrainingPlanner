@@ -79,103 +79,7 @@ bool DbManager::sendFile(const QString& filePath, const QString& title, const QS
 		MSG_OUT("Unable to resolve activity from Java")
 		return false;
 	}
-
-	// THE FILE PATH
-	// to get a valid Path we must prefix file://
-	// attention file must be inside Users Documents folder !
-	// trying to send a file from APP DATA will fail
-	QJniObject jniPath = QJniObject::fromString("file://"+filePath);
-	if(!jniPath.isValid())
-	{
-		MSG_OUT("QJniObject jniPath not valid. Share: an Error occured\nFilePath not valid")
-		return false;
-	}
-	// next step: convert filePath Java String into Java Uri
-	QJniObject jniUri = QJniObject::callStaticObjectMethod("android/net/Uri", "parse", "(Ljava/lang/String;)Landroid/net/Uri;", jniPath.object<jstring>());
-	if(!jniUri.isValid())
-	{
-		MSG_OUT("QJniObject jniUri not valid. Share: an Error occured\nURI not valid")
-		return false;
-	}
-
-	// THE INTENT ACTION
-	// create a Java String for the ACTION
-	QJniObject jniAction = QJniObject::getStaticObjectField<jstring>("android/content/Intent", "ACTION_SEND");
-	if(!jniAction.isValid())
-	{
-		MSG_OUT("QJniObject jniParam not valid. Intent (ACTION_SEND) creation failed")
-		return false;
-	}
-
-	// then create the Intent Object for this Action
-	QJniObject jniIntent("android/content/Intent","(Ljava/lang/String;)V", jniAction.object<jstring>());
-	if(!jniIntent.isValid())
-	{
-		MSG_OUT("QJniObject jniIntent not valid. Intent object creation failed")
-		return false;
-	}
-
-	// create a Java String for the File Type (Mime Type)
-	QJniObject jniMimeType = QJniObject::fromString(mimeType);
-	if(!jniMimeType.isValid())
-	{
-		MSG_OUT("QJniObject jniMimeType not valid.")
-		return false;
-	}
-
-	// set Type (MimeType)
-	QJniObject jniType = jniIntent.callObjectMethod("setType", "(Ljava/lang/String;)Landroid/content/Intent;", jniMimeType.object<jstring>());
-	if(!jniType.isValid())
-	{
-		MSG_OUT("QJniObject jniType not valid.")
-		return false;
-	}
-
-	// THE EXTRA STREAM
-	// create a Java String for the EXTRA
-	QJniObject jniExtra = QJniObject::getStaticObjectField<jstring>("android/content/Intent", "EXTRA_STREAM");
-	if(!jniExtra.isValid())
-	{
-		MSG_OUT("QJniObject jniExtra not valid.")
-		return false;
-	}
-
-	// put Extra (EXTRA_STREAM and URI)
-	QJniObject jniExtraStreamUri = jniIntent.callObjectMethod("putExtra",
-			"(Ljava/lang/String;Landroid/os/Parcelable;)Landroid/content/Intent;",
-			jniExtra.object<jstring>(), jniUri.object<jobject>());
-	if(!jniExtraStreamUri.isValid())
-	{
-		MSG_OUT("QJniObject jniExtraStreamUri not valid.")
-		return false;
-	}
-
-	QJniObject activity = QNativeInterface::QAndroidApplication::context();
-	QJniObject packageManager = activity.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
-	QJniObject componentName = jniIntent.callObjectMethod("resolveActivity",
-															"(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;",
-															packageManager.object());
-	if (!componentName.isValid())
-	{
-		MSG_OUT("Unable to resolve activity. No app available")
-		return false;
-	}
-
-	QtAndroidPrivate::startActivity(jniIntent, requestId);
 	return true;
-
-	/*if(requestId <= 0)
-	{
-		// we dont need a result if there's no requestId
-		QtAndroidPrivate::startActivity(jniIntent, requestId);
-	}
-	else {
-		// we have the JNI Object, know the requestId
-		// and want the Result back into 'this' handleActivityResult(...)
-		// attention: to test JNI with QAndroidActivityResultReceiver you must comment or rename
-		// onActivityResult()  method in QShareActivity.java - otherwise you'll get wrong request or result codes
-		QtAndroidPrivate::startActivity(jniIntent, requestId, this);
-	}*/
 }
 
 #else
@@ -343,19 +247,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	processArguments();
 #else
 	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
-	/*const QString appDataRoot(QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0));
-	// as next we create a /my_share_files subdirectory to store our example files from assets
-	mAppDataFilesPath = appDataRoot + u"/tp/"_qs;
-	if (!QDir(mAppDataFilesPath).exists())
-	{
-		if (QDir().mkpath(mAppDataFilesPath))
-			MSG_OUT("Created app data /files directory. " << mAppDataFilesPath)
-		else
-		{
-			MSG_OUT("Failed to create app data /files directory. " << mAppDataFilesPath)
-			return;
-		}
-	}*/
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
@@ -1288,14 +1179,14 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 #ifdef Q_OS_ANDROID
 void DbManager::exportMesoSplit(const QString& filename, const QString& splitLetter, const bool bFancy)
 {
-	setExportFileName("app_logo.png");
+	/*setExportFileName("app_logo.png");
 	if (!QFile::exists(exportFileName()))
 	{
 		QFile::copy(":/images/app_logo.png", exportFileName());
 		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
 	}
 	sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);
-	return;
+	return;*/
 
 	QString mesoSplit;
 	QString mesoLetters;
@@ -1320,10 +1211,11 @@ void DbManager::exportMesoSplit(const QString& filename, const QString& splitLet
 	} while (++itr != itr_end);
 
 	if (bSaveToFileOk)
-		sendFile(exportFileName(), tr("Send file"), u"*/*"_qs, 10);
+		sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
 	else
 	{
 		QFile::remove(exportFileName());
+		m_mainWindow->setProperty("importExportFilename", exportFileName());
 		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, 10), Q_ARG(int, 0));
 	}
 }

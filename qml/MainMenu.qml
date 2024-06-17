@@ -105,9 +105,9 @@ Drawer {
 
 		Rectangle {
 			height: 3
-			width: parent.width
 			color: AppSettings.fontColor
-			Layout.topMargin: 20
+			Layout.topMargin: 10
+			Layout.fillWidth: true
 		}
 
 		TransparentButton {
@@ -149,9 +149,9 @@ Drawer {
 
 		Rectangle {
 			height: 3
-			width: parent.width
 			color: AppSettings.fontColor
-			Layout.bottomMargin: 20
+			Layout.fillWidth: true
+			Layout.bottomMargin: 10
 		}
 
 		Item { // spacer item

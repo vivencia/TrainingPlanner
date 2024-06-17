@@ -108,7 +108,6 @@ FocusScope {
 
 		ColumnLayout {
 			id: layoutMain
-			objectName: "exerciseSetsLayout"
 			anchors.fill: parent
 			spacing: 0
 			enabled: !tDayModel.dayIsFinished
@@ -283,6 +282,13 @@ FocusScope {
 					}
 				}
 			} // RowLayout
+			ColumnLayout {
+				id: exerciseSetsLayout
+				objectName: "exerciseSetsLayout"
+				spacing: 0
+				Layout.fillWidth: true
+				Layout.fillHeight: true
+			}
 		} // ColumnLayout layoutMain
 	} //paneExercise
 
