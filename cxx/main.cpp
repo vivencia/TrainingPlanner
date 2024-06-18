@@ -9,9 +9,11 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-/*#ifdef Q_OS_ANDROID
+#ifdef Q_OS_ANDROID
 
 #include "urihandler.h"
+
+/*
 #include <android/log.h>
 
 const char*const applicationName="tp_app";
@@ -52,8 +54,8 @@ void tpMessageHandler(
 	abort();
   }
 }
-
-#endif //Q_OS_ANDROID*/
+*/
+#endif //Q_OS_ANDROID
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
@@ -92,9 +94,9 @@ int main(int argc, char *argv[])
 	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
 	QApplication app(argc, argv);
 
-	#ifdef Q_OS_ANDROID
+	/*#ifdef Q_OS_ANDROID
 	qInstallMessageHandler(tpMessageHandler);
-	#endif
+	#endif*/
 
 	app.setOrganizationName("Vivencia Software");
 	app.setOrganizationDomain("org.vivenciasoftware");
