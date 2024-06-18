@@ -5,6 +5,31 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
+void setAppLocale(const QString& localeStr)
+{
+	const QString strLanguage(localeStr.left(2));
+	const QString strTerritory(localeStr.right(2));
+	QLocale::Language language;
+	QLocale::Territory territory;
+
+	if (strLanguage == u"pt"_qs)
+		language = QLocale::Portuguese;
+	else if (strLanguage == u"de"_qs)
+		language = QLocale::German;
+	else
+		language = QLocale::English;
+
+	if (strTerritory == u"BR"_qs)
+		territory = QLocale::Brazil;
+	else if (strTerritory == u"DE"_qs)
+		territory = QLocale::Germany;
+	else
+		territory = QLocale::UnitedStates;
+
+	appLocale.setDefault(QLocale(language, territory));
+	appLocale.setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
+}
+
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	: QObject(parent), m_appSettings(settings), mb_appSuspended(false)
 {

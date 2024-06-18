@@ -61,6 +61,8 @@ set( QM_FILES
 )
 
 set( QML_FILES
+    "qml/jsfunctions.js"
+    "qml/inexportMethods.js"
     "qml/main.qml"
     "qml/AppSettings.qml"
     "qml/HomePage.qml"
@@ -70,7 +72,6 @@ set( QML_FILES
     "qml/CalendarDialog.qml"
     "qml/MesoCycle.qml"
     "qml/MesoContent.qml"
-    "qml/jsfunctions.js"
     "qml/ExerciseEntry.qml"
     "qml/ExercisesDatabase.qml"
     "qml/TimerDialog.qml"
@@ -88,7 +89,6 @@ set( QML_FILES
     "qml/ExercisesPlanner.qml"
     "qml/ExercisesListView.qml"
     "qml/MesoSplitPlanner.qml"
-    "qml/TransparentButton.qml"
     "qml/OpenEndedPlan.qml"
     "qml/TPButton.qml"
     "qml/TPTextInput.qml"

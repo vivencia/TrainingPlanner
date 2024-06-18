@@ -11,16 +11,22 @@ Rectangle {
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false
+	property bool flat: false
+	property bool leftAlign: true
+	property bool followParentsOpacity: false
+	property bool rounded: false
 	property alias buttonHeight: button.implicitHeight
-
+	property int clickId: -1
 	property string imageSource
 	property bool bPressed: false
 	property bool bEmitSignal: false
-	signal clicked();
+
+	signal clicked(int clickid);
 
 	focus: true
-	border.color: AppSettings.fontColor
-	radius: 6
+	border.color: flat ? "transparent" : AppSettings.fontColor
+	opacity: followParentsOpacity ? parent.opacity : 1
+	radius: rounded ? height : flat ? 0 : 6
 	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 
@@ -88,8 +94,8 @@ Rectangle {
 
 	Label {
 		id: buttonText
-		opacity: button.enabled ? 1.0 : 0.5
-		color: button.enabled ? textColor : "darkgray"
+		opacity: (followParentsOpacity ? button.opacity : (button.enabled ? 1.0 : 0.5))
+		color: button.enabled ? textColor : AppSettings.disabledFontColor
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pointSize: AppSettings.fontSizeText*0.9
@@ -104,8 +110,14 @@ Rectangle {
 			if (imageSource.length > 0) {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
-					anchors.left = button.left;
-					anchors.leftMargin = 2;
+					if (leftAlign) {
+						anchors.left = button.left;
+						anchors.leftMargin = rounded ? 10 : 2;
+					}
+					else {
+						anchors.right = parent.right;
+						anchors.rightMargin = rounded ? 10 : 2;
+					}
 				}
 				else {
 					anchors.horizontalCenter = button.horizontalCenter;
@@ -127,15 +139,21 @@ Rectangle {
 		fillMode: Image.PreserveAspectFit
 		mirror: false
 		source: imageSource
-		opacity: button.enabled ? 1 : 0.5
+		opacity: (followParentsOpacity ? button.opacity : (button.enabled ? 1.0 : 0.5))
 		visible: imageSource.length > 1
 
 		Component.onCompleted: {
 			if (text.length > 0) {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
-					anchors.left = buttonText.right
-					anchors.leftMargin = 0;
+					if (leftAlign) {
+						anchors.left = buttonText.right
+						anchors.leftMargin = 0;
+					}
+					else {
+						anchors.right = buttonText.left
+						anchors.rightMargin = 0;
+					}
 				}
 				else {
 					anchors.top = button.top;
@@ -152,7 +170,7 @@ Rectangle {
 	}
 
 	MouseArea {
-		anchors.fill: parent
+		anchors.fill: button
 		enabled: button.enabled
 		hoverEnabled: true
 
@@ -206,7 +224,7 @@ Rectangle {
 		onFinished: {
 			if (bEmitSignal) {
 				bEmitSignal = false;
-				button.clicked();
+				button.clicked(button.clickId);
 			}
 		}
 	}

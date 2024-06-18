@@ -558,8 +558,6 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 	{
 		if (inData.indexOf(DBMesoSplitObjectName) != -1)
 			model = new DBMesoSplitModel(this);
-		else if (inData.indexOf(DBMesoCalendarObjectName) != -1)
-			model = new DBMesoCalendarModel(this);
 		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
 			model = new DBMesocyclesModel(this);
 		else if (inData.indexOf(DBTrainingDayObjectName) != -1)
@@ -587,7 +585,6 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 			case EXERCISES_TABLE_ID: model = new DBExercisesModel; break;
 			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel; break;
 			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel; break;
-			case MESOCALENDAR_TABLE_ID: model = new DBMesoCalendarModel; break;
 			case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel; break;
 			default:
 				return -2;
@@ -670,6 +667,91 @@ void DbManager::importFromModel(TPListModel* model)
 		}
 		break;
 	}
+}
+
+int DbManager::parseFile(QString filename)
+{
+	if (filename.startsWith(u"file:"_qs))
+		filename.remove(0, 7); //remove file://
+	QFile* inFile(new QFile(filename, this));
+	inFile->deleteLater();
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+		return -1;
+
+	qint64 lineLength(0);
+	char buf[128];
+	QString inData;
+	QString tableMessage;
+	bool createMessage[4] = { false };
+
+	while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
+	{
+		if (lineLength > 10)
+		{
+			if (strstr(buf, "##") != NULL)
+			{
+				inData = buf;
+				if (!inData.startsWith(u"##0x"_qs)) //Fancy
+				{
+					if (inData.indexOf(DBMesoSplitObjectName) != -1)
+						createMessage[0] = true;
+					else if (inData.indexOf(DBMesocyclesObjectName) != -1)
+						createMessage[1] = true;
+					else if (inData.indexOf(DBTrainingDayObjectName) != -1)
+						createMessage[2] = true;
+					else if (inData.indexOf(DBExercisesObjectName) != -1)
+						createMessage[3] = true;
+					else
+						return -2;
+				}
+				else
+				{
+					inData = inData.left(2);
+					inData.chop(1);
+					switch (inData.toUInt())
+					{
+						case EXERCISES_TABLE_ID: createMessage[0] = true; break;
+						case MESOCYCLES_TABLE_ID: createMessage[1] = true; break;
+						case MESOSPLIT_TABLE_ID: createMessage[2] = true; break;
+						case TRAININGDAY_TABLE_ID: createMessage[3] = true; break;
+						default: return -2;
+					}
+				}
+				if (createMessage[0])
+				{
+					if (tableMessage.isEmpty())
+						tableMessage = tr("a new Training Split Exercise Plan");
+					else
+						tableMessage = tr("new Training Split Exercise Plans");
+				}
+				else if (createMessage[1])
+					tableMessage = tr("an entire Mesocycle Plan, including exercise split plans");
+				else if (createMessage[2])
+					tableMessage = tr("One Training Day");
+				else if (createMessage[3])
+				{
+					if (!createMessage[1])
+						tableMessage = tr("An updated exercises database list");
+					else
+						tableMessage.append(tr("and an updated exercises database list"));
+				}
+			}
+		}
+	}
+
+	if (createMessage[0] || createMessage[1] || createMessage[2] || createMessage[3])
+	{
+		const QString message(tr("This will import data to create: %1"));
+		QMetaObject::invokeMethod(m_mainWindow, "confirmImport", Q_ARG(QString, message.arg(tableMessage)));
+		return 1;
+	}
+	else
+		return -3;
+}
+
+void DbManager::exportMeso()
+{
+
 }
 
 void DbManager::updateDB(TPDatabaseTable* worker)

@@ -4,6 +4,8 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
 
+import "inexportMethods.js" as INEX
+
 Page {
 	id: pageExercises
 	width: windowWidth
@@ -20,6 +22,17 @@ Page {
 	property var videoViewer: null
 
 	signal exerciseChosen()
+
+	property var inexportMenu: null
+	readonly property bool bExportEnabled: !bChooseButtonEnabled
+
+	onBExportEnabledChanged: {
+		if (inexportMenu) {
+			inexportMenu.enableMenuEntry(1, bExportEnabled);
+			if (Qt.platform.os === "android")
+				inexportMenu.enableMenuEntry(2, bExportEnabled);
+		}
+	}
 
 	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
 		anchors.fill: parent
@@ -396,28 +409,11 @@ Page {
 					id: btnInExport
 					text: qsTr("In/Export")
 					enabled: !btnSaveExercise.enabled
+					visible: !bChooseButtonEnabled
 					width: toolbarExercises.buttonWidth
 					fixedSize: true
 
-					property var inexportMenu: null
-
-					onClicked: {
-						if (inexportMenu === null) {
-							var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
-							inexportMenu = inexportMenuComponent.createObject(pageExercises, {});
-							inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
-							inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
-							inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
-						}
-						inexportMenu.show(btnInExport, 1);
-					}
-
-					function selectedMenuOption(menuid: int) {
-						if (menuid === 0)
-							exportTypeTip.show(-1);
-						else
-							importDialog.open();
-					}
+					onClicked: INEX.showInExMenu(pageExercises);
 				} // btnInExport
 
 			} // Row
@@ -452,21 +448,9 @@ Page {
 		}
 	}
 
-	TPBalloonTip {
-		id: importTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-		button1Text: "OK"
-
-		function init(header: string, msg: string) {
-			title = header;
-			message = msg;
-			showTimed(5000, 0);
-		}
-	}
-
 	FileDialog {
 		id: exportDialog
-		title: qsTr("Choose the folder and filename to export to")
+		title: qsTr("Choose the folder and filename to save to")
 		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 		fileMode: FileDialog.SaveFile
 
@@ -475,40 +459,14 @@ Page {
 
 		onAccepted: {
 			const result = appDB.exportToFile(exercisesListModel, currentFile, _bfancyFormat);
-			exportTip.init(result ? qsTr("Exercises list successfully exported") : qsTr("Failed to export exercises list"));
+			exportTip.init(result ? qsTr("Exercises list successfully saved") : qsTr("Failed to save exercises list"));
 			close();
 		}
 
 		function init(fancy: bool) {
-			var suggestedName;
 			_bfancyFormat = fancy;
-			suggestedName = qsTr(" - Workout ") + splitLetter + ".tp";
-			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
+			currentFile = qsTr("TrainingPlanner Exercises List.txt");
 			open();
-		}
-	}
-
-	FileDialog {
-		id: importDialog
-		title: qsTr("Choose the file to import from")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.OpenFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			const result = appDB.importFromFile(currentFile);
-			var message;
-			switch (result)
-			{
-				case  0: message = qsTr("Import was successfull"); break;
-				case -1: message = qsTr("Failed to open file"); break;
-				case -2: message = qsTr("File type not recognized"); break;
-				case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
-			}
-			importTip.init(message, currentFile);
-			close();
 		}
 	}
 

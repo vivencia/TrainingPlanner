@@ -78,4 +78,6 @@ private:
 	}
 };
 
+extern void setAppLocale(const QString& localeStr);
+
 #endif // RUNCOMMANDS_H

@@ -58,6 +58,9 @@ public:
 	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
 	void importFromModel(TPListModel* model);
 
+	Q_INVOKABLE int parseFile(QString filename);
+	Q_INVOKABLE void exportMeso();
+
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
 	Q_INVOKABLE void newExercise(const QString& mainName, const QString& subName, const QString& muscularGroup,

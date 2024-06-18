@@ -85,38 +85,52 @@ Page {
 				clip: false
 				color: "steelblue"
 				radius: 6
-				z: 0
 				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
-				TransparentButton {
+				TPRadioButton {
+					id: optCurrentMeso
+					text: qsTr("Current mesocycle")
+					checked: mesocyclesModel.currentRow === index;
+					width: parent.width/3
+					height: parent.height/2
+
+					anchors {
+						top: parent.top
+						left: parent.left
+					}
+
+					onClicked: mesocyclesModel.currentRow = index;
+				}
+
+				TPButton {
 					id: btnMesoInfo
-					text: qsTr("Mesocycle Info")
+					text: qsTr("View Meso")
+					flat: true
+					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
-					width: parent.width*0.65
-					z: 1
+					width: parent.width/3
+					height: parent.height/2
 
 					anchors {
 						left: parent.left
-						leftMargin: 2
-						top: parent.top
-						topMargin: 2
+						bottom: parent.bottom
 					}
 
 					onClicked: appDB.getMesocycle(index);
 				}
-				TransparentButton {
+				TPButton {
 					id: btnMesoCalendar
-					text: qsTr("View Calendar")
+					text: qsTr("Calendar")
+					flat: true
+					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
-					width: parent.width*0.65
-					z: 1
+					width: parent.width/3
+					height: parent.height/2
 
 					anchors {
-						top: btnMesoInfo.bottom
-						topMargin: 2
-						left: parent.left
-						leftMargin: 2
+						top: parent.top
+						left: optCurrentMeso.right
 					}
 
 					onClicked: {
@@ -124,18 +138,18 @@ Page {
 						appDB.getMesoCalendar(true);
 					}
 				}
-				TransparentButton {
+				TPButton {
 					id: btnMesoPlan
 					text: qsTr("Exercises Plan")
+					flat: true
+					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
-					width: parent.width*0.65
-					z: 1
+					width: parent.width/3
+					height: parent.height/2
 
 					anchors {
 						top: btnMesoCalendar.bottom
-						topMargin: 2
-						left: parent.left
-						leftMargin: 2
+						left: btnMesoInfo.right
 					}
 
 					onClicked: {
@@ -143,20 +157,43 @@ Page {
 						appDB.createExercisesPlannerPage();
 					}
 				}
-				TPRadioButton {
-					id: optCurrentMeso
-					text: qsTr("Current mesocycle")
-					checked: mesocyclesModel.currentRow === index;
-					width: parent.width*0.35
-					height: 35
-					z: 1
+				TPButton {
+					id: btnImport
+					text: qsTr("Import")
+					flat: true
+					textUnderIcon: true
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+					width: parent.width/3
+					height: parent.height/2
 
 					anchors {
-						verticalCenter: parent.verticalCenter
-						left: btnMesoInfo.right
+						top: parent.top
+						left: btnMesoPlan.right
 					}
 
-					onClicked: mesocyclesModel.currentRow = index;
+					onClicked: {
+						appDB.setWorkingMeso(-1, index);
+						mainwindow.chooseFileToImport();
+					}
+				}
+				TPButton {
+					id: btnExport
+					text: qsTr("Export")
+					flat: true
+					textUnderIcon: true
+					imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+					width: parent.width/3
+					height: parent.height/2
+
+					anchors {
+						top: btnImport.bottom
+						left: btnMesoCalendar.right
+					}
+
+					onClicked: {
+						appDB.setWorkingMeso(-1, index);
+						appDB.exportMeso();
+					}
 				}
 			} //swipe.left: Rectangle
 
@@ -167,14 +204,13 @@ Page {
 				clip: false
 				color: "red"
 				radius: 6
-				z: 0
 				opacity: mesoDelegate.swipe.complete ? 0.8 : 0-mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
-				TransparentButton {
+				TPButton {
 					text: qsTr("Remove Mesocycle")
+					flat: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
-					z: 1
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter

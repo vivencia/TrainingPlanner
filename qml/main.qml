@@ -22,6 +22,7 @@ ApplicationWindow {
 	readonly property int windowHeight: contentItem.height
 
 	property var importMessageDialog: null
+	property var importOpenDialog: null
 	property string importExportFilename
 
 	Component.onCompleted: {
@@ -148,6 +149,42 @@ ApplicationWindow {
 		mainMenu.createShortCut(label, object, clickid);
 	}
 
+	TPBalloonTip {
+		id: importConfirmDialog
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+
+		onButton1Clicked: appDB.importFromFile(importExportFilename);
+	}
+
+	function confirmImport(message: string) {
+		importConfirmDialog.title = qsTr("Proceed with action?");
+		importConfirmDialog.message = message;
+		importConfirmDialog.show(-1);
+	}
+
+	function chooseFileToImport() {
+		if (importOpenDialog === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("TPImportDialog.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					importOpenDialog = component.createObject(contentItem, {});
+					importOpenDialog.open();
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		else
+			importOpenDialog.open();
+	}
+
 	function tryToOpenFile(fileName: string) {
 		importExportFilename = fileName;
 		if (importMessageDialog === null) {
@@ -180,6 +217,7 @@ ApplicationWindow {
 		var message;
 		switch (result)
 		{
+			case  1: return; //Wait for user to confirm whether they will really import from the file
 			case  0: message = qsTr("Import was successfull"); break;
 			case -1: message = qsTr("Failed to open file"); break;
 			case -2: message = qsTr("File type not recognized"); break;

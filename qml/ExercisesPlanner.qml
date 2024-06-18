@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtCore
 
+import "inexportMethods.js" as INEX
 import com.vivenciasoftware.qmlcomponents
 
 Page {
@@ -15,13 +16,13 @@ Page {
 	required property int mesoId
 	required property int mesoIdx
 
+	property alias currentPage: splitView.currentItem
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
 	property var itemThatRequestedSimpleList: null
 	property var navButtons: null
-	property var inexportMenu: null
 
-	property alias currentPage: splitView.currentItem
+	property var inexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	onBExportEnabledChanged: {
@@ -159,26 +160,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				if (inexportMenu === null) {
-					var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
-					inexportMenu = inexportMenuComponent.createObject(pagePlanner, {});
-					inexportMenu.addEntry(qsTr("Import"), "import.png", 0);
-					inexportMenu.addEntry(qsTr("Save"), "save-day.png", 1);
-					if (Qt.platform.os === "android")
-						inexportMenu.addEntry(qsTr("Export"), "export.png", 2);
-					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
-				}
-				inexportMenu.show(btnInExport, 0);
-			}
-
-			function selectedMenuOption(menuid: int) {
-				switch (menuid) {
-					case 0: importDialog.open(); break;
-					case 1: exportTypeTip.init(true); break;
-					case 2: exportTypeTip.init(false); break;
-				}
-			}
+			onClicked: INEX.showInExMenu(pagePlanner);
 		}
 
 		TPButton {
@@ -204,10 +186,6 @@ Page {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
-	}
-
-	TPImportDialog {
-		id: importDialog
 	}
 
 	Component.onCompleted: {

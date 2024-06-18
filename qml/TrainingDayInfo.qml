@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtCore
 
+import "inexportMethods.js" as INEX
 import com.vivenciasoftware.qmlcomponents
 
 Page {
@@ -47,6 +48,17 @@ Page {
 
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
+
+	property var inexportMenu: null
+	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
+
+	onBExportEnabledChanged: {
+		if (inexportMenu) {
+			inexportMenu.enableMenuEntry(1, bExportEnabled);
+			if (Qt.platform.os === "android")
+				inexportMenu.enableMenuEntry(2, bExportEnabled);
+		}
+	}
 
 	onPreviousTDaysChanged: {
 		cboPreviousTDaysDates.model = previousTDays;
@@ -222,21 +234,9 @@ Page {
 		}
 	}
 
-	TPBalloonTip {
-		id: importTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-		button1Text: "OK"
-
-		function init(header: string, msg: string) {
-			title = header;
-			message = msg;
-			showTimed(5000, 0);
-		}
-	}
-
 	FileDialog {
-		id: exportDialog
-		title: qsTr("Choose the folder and filename to export to")
+		id: saveDialog
+		title: qsTr("Choose the folder and filename to save to")
 		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 		fileMode: FileDialog.SaveFile
 
@@ -246,21 +246,17 @@ Page {
 		onAccepted: {
 			//const result = appDB.exportToFile(tDayModel, currentFile, _bfancyFormat);
 			const result = appDB.exportToFile(tDayModel, "/home/guilherme/Dokumente/tp/tday.tp", _bfancyFormat);
-			exportTip.init(result ? qsTr("Workout successfully exported") : qsTr("Failed to export workout"));
+			exportTip.init(result ? qsTr("Workout successfully saved") : qsTr("Failed to save workout"));
 			close();
 		}
 
 		function init(fancy: bool) {
 			var suggestedName;
 			_bfancyFormat = fancy;
-			suggestedName = qsTr(" - Workout ") + splitLetter + ".tp";
+			suggestedName = qsTr(" - Workout ") + splitLetter + ".txt";
 			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
 			open();
 		}
-	}
-
-	TPImportDialog {
-		id: importDialog
 	}
 
 	ScrollView {
@@ -526,8 +522,10 @@ Page {
 				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);
 			}
 
-			TransparentButton {
+			TPButton {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle")
+				flat: true
+				rounded: true
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 				width: parent.width - 10
 				height: 50
@@ -932,7 +930,7 @@ Page {
 		}
 
 		TPButton {
-			id: btnInExportDay
+			id: btnInExport
 			text: qsTr("In/Export")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
@@ -948,25 +946,7 @@ Page {
 				bottomMargin: 5
 			}
 
-			property var inexportMenu: null
-
-			onClicked: {
-				if (inexportMenu === null) {
-					var inexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
-					inexportMenu = inexportMenuComponent.createObject(trainingDayPage, {});
-					inexportMenu.addEntry(qsTr("Export"), "export.png", 0);
-					inexportMenu.addEntry(qsTr("Import"), "import.png", 1);
-					inexportMenu.menuEntrySelected.connect(this.selectedMenuOption);
-				}
-				inexportMenu.show(btnInExportDay, 0);
-			}
-
-			function selectedMenuOption(menuid: int) {
-				if (menuid === 0)
-					exportTypeTip.show(-1);
-				else
-					importDialog.open();
-			}
+			onClicked: INEX.showInExMenu(trainingDayPage);
 		}
 
 		TPButton {

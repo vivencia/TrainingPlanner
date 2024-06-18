@@ -9,7 +9,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 
-#ifdef Q_OS_ANDROID
+/*#ifdef Q_OS_ANDROID
 
 #include "urihandler.h"
 #include <android/log.h>
@@ -53,7 +53,7 @@ void tpMessageHandler(
   }
 }
 
-#endif //Q_OS_ANDROID
+#endif //Q_OS_ANDROID*/
 
 void populateSettingsWithDefaultValue( QSettings& settingsObj)
 {
@@ -84,8 +84,7 @@ void populateSettingsWithDefaultValue( QSettings& settingsObj)
 		settingsObj.sync();
 	}
 	else
-		appLocale.setDefault(QLocale(settingsObj.value("appLocale").toString()));
-	appLocale.setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
+		setAppLocale(settingsObj.value("appLocale").toString());
 }
 
 int main(int argc, char *argv[])
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
 	QSettings appSettings;
 	populateSettingsWithDefaultValue(appSettings);
 
-	TranslationClass trClass( appSettings );
+	TranslationClass trClass(appSettings);
 	trClass.selectLanguage();
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());

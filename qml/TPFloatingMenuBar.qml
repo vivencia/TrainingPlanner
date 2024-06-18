@@ -84,14 +84,13 @@ Popup {
 
 	function addEntry(label: string, img: string, id: int) {
 		if (!entryComponent)
-			entryComponent = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+			entryComponent = Qt.createComponent("TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
-				clickId: id, buttonColor: "transparent", followParentsOpacity: true, "Layout.fillWidth": true,
-					"Layout.leftMargin": 5, "Layout.rightMargin": 5 });
+				clickId: id, flat: true, followParentsOpacity: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
 			entriesTotalHeight += button.height;
-			button.buttonClicked.connect(menuEntryClicked);
+			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);
 		}
 

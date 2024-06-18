@@ -34,11 +34,12 @@ Drawer {
 
 	onOpened: mainMenuOpened();
 
-	TransparentButton {
+	TPButton {
 		id: btnExit
 		text: qsTr("Exit")
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"application-exit.png"
 		leftAlign: false
+		flat: true
 
 		anchors {
 			left: parent.left
@@ -110,25 +111,31 @@ Drawer {
 			Layout.fillWidth: true
 		}
 
-		TransparentButton {
+		TPButton {
 			id: btnSettingsExDB
+			flat: true
+			rounded: true
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
+
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.title === "Exercises Page"; })
 			}
 
-			onButtonClicked: {
+			onClicked: {
 				appDB.openExercisesListPage(false);
 				menuClicked();
 			}
 		}
 
-		TransparentButton {
+		TPButton {
 			id: btnSettingsTheme
 			text: qsTr("Settings")
+			flat: true
+			rounded: true
 			Layout.fillWidth: true
+
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
@@ -136,10 +143,13 @@ Drawer {
 			onClicked: { stackView.push("SettingsPage.qml"); menuClicked(); }
 		}
 
-		TransparentButton {
+		TPButton {
 			id: btnBackup
 			text: qsTr("Backup/Restore")
+			flat: true
+			rounded: true
 			Layout.fillWidth: true
+
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
@@ -176,11 +186,11 @@ Drawer {
 
 	function createShortCut(label: string, object: Item, clickid: int) {
 		if (!buttonComponent)
-			buttonComponent = Qt.createComponent("TransparentButton.qml", Qt.Asynchronous);
+			buttonComponent = Qt.createComponent("TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { "text": label, "Layout.fillWidth": true, "clickId": clickid });
-			button.buttonClicked.connect(appDB.openMainMenuShortCut);
+			var button = buttonComponent.createObject(drawerLayout, { text: label, flat: true, rounded: true, clickId: clickid, "Layout.fillWidth": true });
+			button.clicked.connect(appDB.openMainMenuShortCut);
 			appDB.addMainMenuShortCutEntry(button);
 		}
 
