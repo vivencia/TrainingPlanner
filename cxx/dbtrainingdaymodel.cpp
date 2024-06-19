@@ -116,11 +116,12 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 	if (exerciseCount() == 0)
 		return;
 
+	QString strHeader;
 	if (bFancy)
-	{
-		const QString strHeader(tr("Exercises:\n\n"));
-		outFile->write(strHeader.toUtf8().constData());
-	}
+		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
+	else
+		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
+	outFile->write(strHeader.toUtf8().constData());
 
 	uint settype(0);
 	QString value;

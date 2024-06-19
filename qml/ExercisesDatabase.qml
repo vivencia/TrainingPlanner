@@ -406,7 +406,7 @@ Page {
 				} //btnAddExercise
 
 				TPButton {
-					id: btnInExport
+					id: btnImExport
 					text: qsTr("In/Export")
 					enabled: !btnSaveExercise.enabled
 					visible: !bChooseButtonEnabled
@@ -414,7 +414,7 @@ Page {
 					fixedSize: true
 
 					onClicked: INEX.showInExMenu(pageExercises);
-				} // btnInExport
+				} // btnImExport
 
 			} // Row
 		} //ColumnLayout
@@ -434,7 +434,14 @@ Page {
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: exportDialog.init(checkBoxChecked);
+		onButton1Clicked: appDB.saveExercisesList(saveOpt, checkBoxChecked);
+
+		property bool saveOpt: false
+
+		function init(bSave: bool) {
+			saveOpt = bSave;
+			show(-1);
+		}
 	}
 
 	TPBalloonTip {
@@ -445,28 +452,6 @@ Page {
 		function init(msg: string) {
 			message = msg;
 			showTimed(5000, 0);
-		}
-	}
-
-	FileDialog {
-		id: exportDialog
-		title: qsTr("Choose the folder and filename to save to")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.SaveFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			const result = appDB.exportToFile(exercisesListModel, currentFile, _bfancyFormat);
-			exportTip.init(result ? qsTr("Exercises list successfully saved") : qsTr("Failed to save exercises list"));
-			close();
-		}
-
-		function init(fancy: bool) {
-			_bfancyFormat = fancy;
-			currentFile = qsTr("TrainingPlanner Exercises List.txt");
-			open();
 		}
 	}
 

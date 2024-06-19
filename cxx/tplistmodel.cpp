@@ -230,10 +230,16 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 			{
 				if (bFancy)
 				{
-					outFile->write(mColumnNames.at(i).toUtf8().constData());
-					value = (*itr).at(i);
-					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
-					outFile->write("\n", 1);
+					if (i < mColumnNames.count())
+					{
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							value = (*itr).at(i);
+							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write("\n", 1);
+						}
+					}
 				}
 				else
 				{
@@ -256,10 +262,16 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 			{
 				if (bFancy)
 				{
-					outFile->write(mColumnNames.at(i).toUtf8().constData());
-					value = m_modeldata.at(m_exportRows.at(x)).at(i);
-					outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
-					outFile->write("\n", 1);
+					if (i < mColumnNames.count())
+					{
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							value = m_modeldata.at(m_exportRows.at(x)).at(i);
+							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write("\n", 1);
+						}
+					}
 				}
 				else
 				{

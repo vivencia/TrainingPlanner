@@ -46,10 +46,13 @@ public:
 	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }
 	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
+	void setLastID(uint exercisesTableLastId) { m_exercisesTableLastId = exercisesTableLastId; }
+	bool collectExportData();
 
 	Q_INVOKABLE virtual void clear() override;
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
 	virtual void updateFromModel(TPListModel* model) override;
+	virtual bool importFromFancyText(QFile* inFile) override;
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
@@ -63,6 +66,7 @@ private:
 
 	QList<selectedEntry> m_selectedEntries;
 	uint m_selectedEntryToReplace;
+	uint m_exercisesTableLastId;
 };
 
 #endif // DBEXERCISESMODEL_H

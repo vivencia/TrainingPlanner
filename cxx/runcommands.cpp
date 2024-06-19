@@ -100,17 +100,6 @@ void RunCommands::copyToClipBoard(const QString& text) const
 	qApp->clipboard()->setText(text);
 }
 
-const QString RunCommands::formatDate(const QDate& date) const
-{
-	if (date.isValid())
-	{
-		if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
-			return appLocale.toString(date, u"ddd d/M/yyyy"_qs);
-		return date.toString(Qt::TextDate);
-	}
-	return QString();
-}
-
 const QString RunCommands::formatTodayDate() const
 {
 	const QDate today(QDate::currentDate());

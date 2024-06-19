@@ -12,7 +12,6 @@ class QSettings;
 class QFileDialog;
 
 static QLocale appLocale;
-static QString androidUrl;
 
 class RunCommands : public QObject
 {
@@ -29,7 +28,7 @@ public:
 	inline QString getDBFileName() const { return m_dbFileName; }
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
-	Q_INVOKABLE const QString formatDate(const QDate& date) const;
+	Q_INVOKABLE const QString formatDate(const QDate& date) const { return appLocale.toString(date, u"ddd d/M/yyyy"_qs); }
 	Q_INVOKABLE const QString formatTodayDate() const;
 	QDate getDateFromStrDate(const QString& strDate) const;
 	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;

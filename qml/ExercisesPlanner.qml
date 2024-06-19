@@ -147,7 +147,7 @@ Page {
 		}
 
 		TPButton {
-			id: btnInExport
+			id: btnImExport
 			text: qsTr("In/Ex")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
@@ -250,19 +250,10 @@ Page {
 		button2Text: qsTr("Just this split")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: {
-			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan - Split ") + currentPage.splitModel.splitLetter + ".txt";
-			saveOpt ? saveDialog.init(suggestedName, 0, checkBoxChecked) :
-									appDB.exportMesoSplit(suggestedName, "X", checkBoxChecked);
-		}
-		onButton2Clicked: {
-			suggestedName = mesocyclesModel.get(mesoIdx, 1) + qsTr(" - Exercises Plan.txt")
-			saveOpt ? saveDialog.init(suggestedName, 1, checkBoxChecked) :
-									appDB.exportMesoSplit(suggestedName, currentPage.splitModel.splitLetter, checkBoxChecked);
-		}
+		onButton1Clicked: appDB.saveMesoSplit("X", saveOpt, checkBoxChecked);
+		onButton2Clicked: appDB.saveMesoSplit(currentPage.splitModel.splitLetter, saveOpt, checkBoxChecked);
 
 		property bool saveOpt: false
-		property string suggestedName;
 
 		function init(bSave: bool) {
 			saveOpt = bSave;
@@ -278,36 +269,6 @@ Page {
 		function init(msg: string) {
 			message = msg;
 			showTimed(5000, 0);
-		}
-	}
-
-	FileDialog {
-		id: saveDialog
-		title: qsTr("Choose the folder and filename to save to")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.SaveFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			var result;
-			if (_opt === 0) {
-				for (var i = 0; i < splitView.count; ++i)
-					//result = appDB.exportToFile(splitView.itemAt(i).splitModel, currentFile, _bfancyFormat);
-					result = appDB.exportToFile(splitView.itemAt(i).splitModel, "/home/guilherme/Dokumente/tp/batista5.tp", _bfancyFormat);
-			}
-			else
-				result = appDB.exportToFile(currentPage.splitModel, currentFile, _bfancyFormat);
-			exportTip.init(result ? qsTr("Meso plan successfully saved") : qsTr("Failed to save meso plan"));
-			close();
-		}
-
-		function init(suggestedName: string, opt: int, fancy: bool) {
-			_opt = opt;
-			_bfancyFormat = fancy;
-			currentFile = suggestedName;
-			open();
 		}
 	}
 } //Page

@@ -26,6 +26,7 @@
 #include <QQmlContext>
 #include <QFileInfo>
 #include <QDir>
+#include <QStandardPaths>
 
 static uint nSplitPages(0);
 
@@ -33,7 +34,6 @@ static uint nSplitPages(0);
 
 #include "urihandler.h"
 
-#include <QStandardPaths>
 #include <QJniObject>
 #include <qnativeinterface.h>
 #include <QtCore/6.6.3/QtCore/private/qandroidextras_p.h>
@@ -243,10 +243,10 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
 
+	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
 #ifndef Q_OS_ANDROID
 	processArguments();
 #else
-	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
@@ -669,6 +669,21 @@ void DbManager::importFromModel(TPListModel* model)
 	}
 }
 
+void DbManager::saveFileDialogClosed(QString finalFileName, bool bResultOK)
+{
+	int resultCode(-5);
+	if (finalFileName.startsWith(u"file:"_qs))
+		finalFileName.remove(0, 7); //remove file://
+	if (bResultOK)
+	{
+		bResultOK = QFile::copy(exportFileName(), finalFileName);
+		resultCode = bResultOK ? 3 : -10;
+	}
+	QFile::remove(exportFileName());
+	m_mainWindow->setProperty("importExportFilename", finalFileName);
+	QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, resultCode));
+}
+
 int DbManager::parseFile(QString filename)
 {
 	if (filename.startsWith(u"file:"_qs))
@@ -932,6 +947,34 @@ void DbManager::getExercisesListVersion()
 				m_exercisesListVersion = line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
+	}
+}
+
+void DbManager::saveExercisesList(const bool bSave, const bool bFancy)
+{
+	const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
+	setExportFileName(suggestedName);
+	if (!exercisesListModel->collectExportData())
+	{
+		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -6));
+		return;
+	}
+	if (exportToFile(exercisesListModel, exportFileName(), bFancy))
+	{
+		#ifdef Q_OS_ANDROID
+		if (!bSave)
+			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
+		else
+		#else
+		if (bSave)
+		#endif
+			QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
+	else
+	{
+		QFile::remove(exportFileName());
+		m_mainWindow->setProperty("importExportFilename", exportFileName());
+		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
 	}
 }
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -1258,28 +1301,25 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
 
-#ifdef Q_OS_ANDROID
-void DbManager::exportMesoSplit(const QString& filename, const QString& splitLetter, const bool bFancy)
+void DbManager::saveMesoSplit(const QString& splitLetter, const bool bSave, const bool bFancy)
 {
-	/*setExportFileName("app_logo.png");
-	if (!QFile::exists(exportFileName()))
-	{
-		QFile::copy(":/images/app_logo.png", exportFileName());
-		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
-	}
-	sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);
-	return;*/
-
 	QString mesoSplit;
-	QString mesoLetters;
-	bool bSaveToFileOk(true);
+	QString suggestedName;
 
 	if (splitLetter == u"X"_qs)
+	{
 		mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
+		suggestedName = mesocyclesModel->getFast(m_MesoIdx, 1) + tr(" - Exercises Plan.txt");
+	}
 	else
+	{
 		mesoSplit = splitLetter;
+		suggestedName = mesocyclesModel->getFast(m_MesoIdx, 1) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
+	}
+	setExportFileName(suggestedName);
 
-	setExportFileName(filename);
+	QString mesoLetters;
+	bool bSaveToFileOk(true);
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
 
@@ -1291,17 +1331,31 @@ void DbManager::exportMesoSplit(const QString& filename, const QString& splitLet
 		mesoLetters.append(static_cast<QChar>(*itr));
 		bSaveToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), exportFileName(), bFancy);
 	} while (++itr != itr_end);
-
 	if (bSaveToFileOk)
-		sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
+	{
+		#ifdef Q_OS_ANDROID
+		/*setExportFileName("app_logo.png");
+		if (!QFile::exists(exportFileName()))
+		{
+			QFile::copy(":/images/app_logo.png", exportFileName());
+			QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
+		}
+		sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);*/
+		if (!bSave)
+			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
+		else
+		#else
+		if (bSave)
+		#endif
+			QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
 	else
 	{
 		QFile::remove(exportFileName());
 		m_mainWindow->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, 10), Q_ARG(int, 0));
+		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
 	}
 }
-#endif
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -1563,6 +1617,29 @@ void DbManager::deleteTrainingDayTable(const bool bRemoveFile)
 {
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
+}
+
+void DbManager::saveTrainingDay(const QDate& date, const QString& splitLetter, const bool bSave, const bool bFancy)
+{
+	const QString suggestedName(tr(" - Workout ") + splitLetter + u".txt"_qs);
+	setExportFileName(suggestedName);
+	if (exportToFile(m_currentMesoManager->gettDayModel(date), exportFileName(), bFancy))
+	{
+		#ifdef Q_OS_ANDROID
+		if (!bSave)
+			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
+		else
+		#else
+		if (bSave)
+		#endif
+			QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
+	else
+	{
+		QFile::remove(exportFileName());
+		m_mainWindow->setProperty("importExportFilename", exportFileName());
+		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
+	}
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

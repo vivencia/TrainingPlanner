@@ -86,7 +86,7 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
-	Q_INVOKABLE void setExportFiter(const QString& filter, const uint field);
+	void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile, const bool bFancy) const;
 	virtual bool importFromFancyText(QFile* inFile);
 	virtual bool importFromText(const QString& data);

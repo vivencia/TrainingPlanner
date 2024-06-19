@@ -49,15 +49,16 @@ public:
 #else
 	void checkPendingIntents();
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
-	Q_INVOKABLE void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
-	inline const QString& exportFileName() const { return m_exportFileName; }
 #endif
 
+	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
+	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
 	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
 	void importFromModel(TPListModel* model);
 
+	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
 	Q_INVOKABLE void exportMeso();
 
@@ -75,6 +76,7 @@ public:
 	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
 	void createExercisesListPage(QQuickItem *connectPage);
 	void getExercisesListVersion();
+	Q_INVOKABLE void saveExercisesList(const bool bSave, const bool bFancy);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -105,9 +107,7 @@ public:
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
-	#ifdef Q_OS_ANDROID
-	Q_INVOKABLE void exportMesoSplit(const QString& filename, const QString& splitLetter, const bool bFancy);
-	#endif
+	Q_INVOKABLE void saveMesoSplit(const QString& splitLetter, const bool bSave, const bool bFancy);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -133,6 +133,7 @@ public:
 	Q_INVOKABLE void saveTrainingDay();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
+	Q_INVOKABLE void saveTrainingDay(const QDate& date, const QString& splitLetter, const bool bSave, const bool bFancy);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
@@ -188,10 +189,8 @@ private:
 	void cleanUp(TPDatabaseTable* dbObj);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
 
-	#ifdef Q_OS_ANDROID
-	QString mAppDataFilesPath;
 	QString m_exportFileName;
-	#endif
+	QString mAppDataFilesPath;
 };
 
 #endif // DBMANAGER_H

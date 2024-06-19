@@ -92,6 +92,7 @@ void DBExercisesTable::getAllExercises()
 				const uint highest_id (static_cast<DBExercisesModel*>(m_model)->data(index, DBExercisesModel::exerciseIdRole).toUInt());
 				if (highest_id >= m_exercisesTableLastId)
 					m_exercisesTableLastId = highest_id + 1;
+				static_cast<DBExercisesModel*>(m_model)->setLastID(m_exercisesTableLastId);
 				m_result = true;
 			}
 		}
@@ -209,7 +210,8 @@ void DBExercisesTable::updateFromModel()
 								" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\' \'%7\', \'%8\', \'%9\', 0)") );
 
 		mSqlLiteDB.transaction();
-		for ( uint i(0), idx(0); i < m_model->modifiedIndicesCount(); ++i)
+		uint idx(0);
+		for ( uint i(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
 			idx = m_model->modifiedIndex(i);
 			query.exec(query_cmd.arg(m_model->getFast(idx, EXERCISES_COL_ID).arg(m_model->getFast(idx, EXERCISES_COL_MAINNAME),
@@ -217,6 +219,7 @@ void DBExercisesTable::updateFromModel()
 							m_model->getFast(idx, EXERCISES_COL_SETSNUMBER), m_model->getFast(idx, EXERCISES_COL_REPSNUMBER),
 							m_model->getFast(idx, EXERCISES_COL_WEIGHT), strWeightUnit, m_model->getFast(idx, EXERCISES_COL_MEDIAPATH))));
 		}
+		static_cast<DBExercisesModel*>(m_model)->setLastID(idx);
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		mSqlLiteDB.close();
@@ -258,14 +261,13 @@ void DBExercisesTable::newExercise()
 				m_data[EXERCISES_COL_ACTUALINDEX] = QString::number(m_model->count());
 				m_data[EXERCISES_COL_SELECTED] = u"0"_qs;
 				m_model->appendList(data());
+				static_cast<DBExercisesModel*>(m_model)->setLastID(m_exercisesTableLastId);
 			}
 		}
 	}
 
 	if (m_result)
-	{
 		MSG_OUT("DBExercisesTable newExercise SUCCESS")
-	}
 	else
 	{
 		MSG_OUT("DBExercisesTable newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())

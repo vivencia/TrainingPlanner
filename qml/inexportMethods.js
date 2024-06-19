@@ -8,7 +8,7 @@ function showInExMenu(page) {
 			inexportMenu.addEntry(qsTr("Export"), "export.png", 2);
 		inexportMenu.menuEntrySelected.connect(selectedMenuOption);
 	}
-	inexportMenu.show(btnInExport, 0);
+	inexportMenu.show(btnImExport, 0);
 }
 
 function selectedMenuOption(menuid) {

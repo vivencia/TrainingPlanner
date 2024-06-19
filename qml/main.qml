@@ -23,6 +23,7 @@ ApplicationWindow {
 
 	property var importMessageDialog: null
 	property var importOpenDialog: null
+	property var saveDialog: null
 	property string importExportFilename
 
 	Component.onCompleted: {
@@ -166,7 +167,7 @@ ApplicationWindow {
 
 	function chooseFileToImport() {
 		if (importOpenDialog === null) {
-			function createMessageBox() {
+			function createImportDialog() {
 				var component = Qt.createComponent("TPImportDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
@@ -179,10 +180,31 @@ ApplicationWindow {
 				else
 					component.statusChanged.connect(finishCreation);
 			}
-			createMessageBox();
+			createImportDialog();
 		}
 		else
 			importOpenDialog.open();
+	}
+
+	function chooseFolderToSave(filename: string) {
+		if (saveDialog === null) {
+			function createSaveDialog() {
+				var component = Qt.createComponent("TPSaveDialog.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					saveDialog = component.createObject(contentItem, {});
+					saveDialog.init(filename);
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createSaveDialog();
+		}
+		else
+			saveDialog.init(filename);
 	}
 
 	function tryToOpenFile(fileName: string) {
@@ -217,14 +239,17 @@ ApplicationWindow {
 		var message;
 		switch (result)
 		{
+			case  3: message = qsTr("Saved successfully to"); break;
+			case  2: message = qsTr("Export successfully"); break;
 			case  1: return; //Wait for user to confirm whether they will really import from the file
 			case  0: message = qsTr("Import was successfull"); break;
 			case -1: message = qsTr("Failed to open file"); break;
 			case -2: message = qsTr("File type not recognized"); break;
 			case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
-			case -4: message = qsTr("Export successfully"); break;
-			case -5: message = qsTr("Export failed"); break;
-			case -6: message = qsTr("Something went wrong"); break;
+			case -4: message = qsTr("Export failed"); break;
+			case -5: message = qsTr("Saving canceled");  break;
+			case -6: message = qsTr("Nothing to save");  break;
+			case -10: message = qsTr("Something went wrong"); break;
 		}
 		activityFinishedTip.title = message;
 		activityFinishedTip.message = importExportFilename;
@@ -235,9 +260,9 @@ ApplicationWindow {
 		console.log("****** requestCode: ", requestCode, "    resultCode: ", resultCode);
 		var result;
 		switch (resultCode) {
-			case -1: result = -4; break;
-			case 0: result = -5; break;
-			default: result = -6; break;
+			case -1: result = 2; break;
+			case 0: result = -4; break;
+			default: result = -10; break;
 		}
 		displayResultMessage(result);
 	}

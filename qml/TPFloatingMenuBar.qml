@@ -11,7 +11,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	width: windowWidth * 0.5
+	width: 100
 	height: entriesTotalHeight
 
 	property var entriesList: []
@@ -26,7 +26,6 @@ Popup {
 	background: Rectangle {
 		id: background
 		color: AppSettings.primaryColor
-		radius: 10
 	}
 
 	enter: Transition {
@@ -89,7 +88,7 @@ Popup {
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
 				clickId: id, flat: true, followParentsOpacity: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
-			entriesTotalHeight += button.height;
+			entriesTotalHeight += button.buttonHeight;
 			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);
 		}

@@ -220,7 +220,14 @@ Page {
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: exportDialog.init(checkBoxChecked);
+		onButton1Clicked: appDB.saveTrainingDay(mainDate, splitLetter, saveOpt, checkBoxChecked);
+
+		property bool saveOpt: false
+
+		function init(bSave: bool) {
+			saveOpt = bSave;
+			show(-1);
+		}
 	}
 
 	TPBalloonTip {
@@ -231,31 +238,6 @@ Page {
 		function init(msg: string) {
 			message = msg;
 			showTimed(5000, 0);
-		}
-	}
-
-	FileDialog {
-		id: saveDialog
-		title: qsTr("Choose the folder and filename to save to")
-		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-		fileMode: FileDialog.SaveFile
-
-		property int _opt
-		property bool _bfancyFormat
-
-		onAccepted: {
-			//const result = appDB.exportToFile(tDayModel, currentFile, _bfancyFormat);
-			const result = appDB.exportToFile(tDayModel, "/home/guilherme/Dokumente/tp/tday.tp", _bfancyFormat);
-			exportTip.init(result ? qsTr("Workout successfully saved") : qsTr("Failed to save workout"));
-			close();
-		}
-
-		function init(fancy: bool) {
-			var suggestedName;
-			_bfancyFormat = fancy;
-			suggestedName = qsTr(" - Workout ") + splitLetter + ".txt";
-			currentFile = mesocyclesModel.get(mesoIdx, 1) + suggestedName;
-			open();
 		}
 	}
 
@@ -289,7 +271,8 @@ Page {
 				Layout.rightMargin: 10
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" + qsTr("Workout number: <b>") + splitText + "</b>"
+				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" +
+					qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>"
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
 			}
@@ -842,6 +825,7 @@ Page {
 
 				onClicked: {
 					workoutTimer.startTimer();
+					exercisesLayout.enabled = true;
 					timeIn = runCmd.getCurrentTimeString();
 					tDayModel.setTimeIn(timeIn);
 					workoutTimer.timeWarning.connect(displayTimeWarning);
@@ -930,7 +914,7 @@ Page {
 		}
 
 		TPButton {
-			id: btnInExport
+			id: btnImExport
 			text: qsTr("In/Export")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
