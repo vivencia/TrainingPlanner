@@ -2,7 +2,7 @@
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
 
-DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
+DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 	: TPListModel{parent}, m_nextAddedExercisePos(2)
 {
 	m_tableId = MESOSPLIT_TABLE_ID;
@@ -22,14 +22,30 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent)
 	m_roleNames[setsReps2Role] = "setsReps2";
 	m_roleNames[setsWeight2Role] = "setsWeight2";
 	m_roleNames[setsNotesRole] = "setsNotes";
-	mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
-	mColumnNames.append(tr("Exercise name: "));
-	mColumnNames.append(tr("Set type: "));
-	mColumnNames.append(tr("Number of sets: "));
-	mColumnNames.append(tr("Number of subsets: "));
-	mColumnNames.append(tr("Baseline number of reps: "));
-	mColumnNames.append(tr("Baseline weight: "));
-	mColumnNames.append(tr("Set instructions: "));
+
+	if (bComplete)
+	{
+		mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
+		mColumnNames.append(tr("Exercise name: "));
+		mColumnNames.append(tr("Set type: "));
+		mColumnNames.append(tr("Number of sets: "));
+		mColumnNames.append(tr("Number of subsets: "));
+		mColumnNames.append(tr("Baseline number of reps: "));
+		mColumnNames.append(tr("Baseline weight: "));
+		mColumnNames.append(tr("Set instructions: "));
+	}
+	else
+	{
+		mColumnNames.reserve(8);
+		mColumnNames.append(QString()); //id
+		mColumnNames.append(QString()); //meso id
+		mColumnNames.append(tr("Split A: "));
+		mColumnNames.append(tr("Split B: "));
+		mColumnNames.append(tr("Split C: "));
+		mColumnNames.append(tr("Split D: "));
+		mColumnNames.append(tr("Split E: "));
+		mColumnNames.append(tr("Split F: "));
+	}
 }
 
 void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
@@ -206,6 +222,11 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 	setSetsNumber(sets);
 }
 
+const QString DBMesoSplitModel::exportExtraInfo() const
+{
+	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup : QString();
+}
+
 bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 {
 	int idx(extrainfo.indexOf(':'));
@@ -219,7 +240,8 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 			return true;
 		}
 	}
-	return false;
+	mb_Complete = false;
+	return true;
 }
 
 void DBMesoSplitModel::updateFromModel(TPListModel* model)

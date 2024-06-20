@@ -52,8 +52,15 @@ Dialog {
 		height: 20
 		width: dlgTimer.width
 		color: AppSettings.paneBackgroundColor
-		opacity: 0.5
 		z: 0
+		gradient: Gradient {
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+		}
+		opacity: 0.8
 
 		Label {
 			id: lblTitle
@@ -244,7 +251,6 @@ Dialog {
 					if (activeFocus)
 						txtMinutes.clear();
 					else {
-						console.log(text);
 						if (acceptableInput)
 							mainTimer.strMinutes = text;
 						else

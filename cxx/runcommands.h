@@ -28,9 +28,9 @@ public:
 	inline QString getDBFileName() const { return m_dbFileName; }
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
-	Q_INVOKABLE const QString formatDate(const QDate& date) const { return appLocale.toString(date, u"ddd d/M/yyyy"_qs); }
+	Q_INVOKABLE static QString formatDate(const QDate& date) { return appLocale.toString(date, u"ddd d/M/yyyy"_qs); }
 	Q_INVOKABLE const QString formatTodayDate() const;
-	QDate getDateFromStrDate(const QString& strDate) const;
+	static QDate getDateFromStrDate(const QString& strDate);
 	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;

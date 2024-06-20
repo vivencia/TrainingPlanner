@@ -35,11 +35,15 @@ public:
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
 	virtual void updateFromModel(TPListModel* model) override;
-	virtual const QString exportExtraInfo() const override;
+	//virtual const QString exportExtraInfo() const override;
 	virtual bool importExtraInfo(const QString& ) override;
+	virtual bool importFromFancyText(QFile* inFile) override;
 
-	void setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
-									const QString& splitD, const QString& splitE, const QString& splitF);
+	virtual inline bool isFieldFormatSpecial (const uint field) const override { return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE; }
+	virtual QString formatField(const QString& fieldValue) const override;
+
+	/*void setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
+									const QString& splitD, const QString& splitE, const QString& splitF);*/
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 9; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;

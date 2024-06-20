@@ -160,7 +160,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: INEX.showInExMenu(pagePlanner);
+			onClicked: INEX.showInExMenu(pagePlanner, true);
 		}
 
 		TPButton {
@@ -245,30 +245,19 @@ Page {
 	TPBalloonTip {
 		id: exportTypeTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		message: saveOpt ? qsTr("What to you want to save?") : qsTr("What do you want to export?")
+		message: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: appDB.saveMesoSplit("X", saveOpt, checkBoxChecked);
-		onButton2Clicked: appDB.saveMesoSplit(currentPage.splitModel.splitLetter, saveOpt, checkBoxChecked);
+		onButton1Clicked: appDB.exportMesoSplit("X", bShare, checkBoxChecked);
+		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter, bShare, checkBoxChecked);
 
-		property bool saveOpt: false
+		property bool bShare: false
 
-		function init(bSave: bool) {
-			saveOpt = bSave;
+		function init(share: bool) {
+			bShare = share;
 			show(-1);
-		}
-	}
-
-	TPBalloonTip {
-		id: exportTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		button1Text: "OK"
-
-		function init(msg: string) {
-			message = msg;
-			showTimed(5000, 0);
 		}
 	}
 } //Page

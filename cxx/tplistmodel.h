@@ -86,6 +86,7 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
+	inline void setExportRow(const uint row) { m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile, const bool bFancy) const;
 	virtual bool importFromFancyText(QFile* inFile);
@@ -94,6 +95,9 @@ public:
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
 	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
+
+	virtual inline bool isFieldFormatSpecial (const uint field) const { Q_UNUSED(field); return false; }
+	virtual inline QString formatField(const QString& fieldValue) const { return fieldValue; }
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{

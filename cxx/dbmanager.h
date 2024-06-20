@@ -21,7 +21,7 @@ class DBTrainingDayModel;
 class RunCommands;
 class TPMesocycleClass;
 
-static const QString TP_APP_VERSION(QStringLiteral("v20240530-A"));
+static const QString TP_APP_VERSION(QStringLiteral("v20240620-A"));
 
 class DbManager : public QObject
 {
@@ -54,13 +54,13 @@ public:
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
 	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
-	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy) const;
+	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy, QFile* &outFile) const;
 	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
 	void importFromModel(TPListModel* model);
 
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
-	Q_INVOKABLE void exportMeso();
+	Q_INVOKABLE void exportMeso(const bool bShare, const bool bFancy);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -76,15 +76,15 @@ public:
 	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
 	void createExercisesListPage(QQuickItem *connectPage);
 	void getExercisesListVersion();
-	Q_INVOKABLE void saveExercisesList(const bool bSave, const bool bFancy);
+	Q_INVOKABLE void exportExercisesList(const bool bShare, const bool bFancy);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllMesocycles();
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name);
-	Q_INVOKABLE void saveMesocycle(const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate, const QString& mesoNote,
-									const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
+	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
+									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
 										const QString& splitA, const QString& splitB, const QString& splitC,
 										const QString& splitD, const QString& splitE, const QString& splitF,
 											const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday);
@@ -107,7 +107,7 @@ public:
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
-	Q_INVOKABLE void saveMesoSplit(const QString& splitLetter, const bool bSave, const bool bFancy);
+	Q_INVOKABLE void exportMesoSplit(const QString& splitLetter, const bool bShare, const bool bFancy, QFile *outFileInUse = nullptr);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -133,7 +133,7 @@ public:
 	Q_INVOKABLE void saveTrainingDay();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
-	Q_INVOKABLE void saveTrainingDay(const QDate& date, const QString& splitLetter, const bool bSave, const bool bFancy);
+	Q_INVOKABLE void exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare, const bool bFancy);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

@@ -108,10 +108,10 @@ const QString RunCommands::formatTodayDate() const
 	return today.toString(Qt::TextDate);
 }
 
-QDate RunCommands::getDateFromStrDate(const QString& strDate) const
+QDate RunCommands::getDateFromStrDate(const QString& strDate)
 {
 	const QStringView strdate(strDate);
-	if (m_appSettings->value("appLocale").toString() == u"pt_BR"_qs)
+	if (appLocale.name() == u"pt_BR"_qs)
 	{
 		const int spaceIdx(strdate.indexOf(' '));
 		const int fSlashIdx(strdate.indexOf('/'));

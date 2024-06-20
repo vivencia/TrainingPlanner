@@ -59,8 +59,9 @@ public:
 		setsNotesRole = Qt::UserRole+MESOSPLIT_COL_NOTES
 	};
 
-	explicit DBMesoSplitModel(QObject *parent = nullptr);
+	explicit DBMesoSplitModel(QObject *parent = nullptr, const bool bComplete = true);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
+	inline bool completeSplit() const { return mb_Complete; }
 
 	QString muscularGroup() const { return m_muscularGroup; }
 	void setMuscularGroup(const QString& muscularGroup ) { m_muscularGroup = muscularGroup; setModified(true); emit muscularGroupChanged(); }
@@ -115,7 +116,7 @@ public:
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
-	inline virtual const QString exportExtraInfo() const override { return tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup; }
+	virtual const QString exportExtraInfo() const override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual void updateFromModel(TPListModel* model) override;
 
@@ -127,6 +128,7 @@ private:
 	uint m_nextAddedExercisePos;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
+	bool mb_Complete;
 
 	void replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value);
 };

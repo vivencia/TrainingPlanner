@@ -759,16 +759,16 @@ TPBalloonTip {
 
 			onClicked: {
 				var changeCalendar = false;
-				if (bNewMeso)
-					bNewMeso = false;
 				if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
 					changeCalendar = true;
 					bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
 				}
-				appDB.saveMesocycle(txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text,
+				appDB.saveMesocycle(bNewMeso, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text,
 									txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text,
 									txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text,
 									changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+				if (bNewMeso)
+					bNewMeso = false;
 				JSF.checkWhetherCanCreatePlan();
 				bModified = false;
 			} //onClicked

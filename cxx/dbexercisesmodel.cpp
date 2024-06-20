@@ -103,7 +103,7 @@ bool DBExercisesModel::importFromFancyText(QFile* inFile)
 					modeldata.append(u" "_qs);
 					col++;
 				}
-				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				modeldata.append(inData.right(inData.length() - sep_idx - 2));
 				col++;
 			}
 			else

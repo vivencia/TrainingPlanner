@@ -23,7 +23,7 @@ import java.lang.NumberFormatException;
 public class QSharePathResolver {
     public static String getRealPathFromURI(final Context context, final Uri uri) {
 
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+	final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
@@ -41,7 +41,7 @@ public class QSharePathResolver {
                 // TODO handle non-primary volumes
             }
             // DownloadsProvider
-            else if (isDownloadsDocument(uri)) {
+	    else if (isDownloadsDocument(uri)) {
                 Log.d("ekkescorner"," isDownloadsDocument");
                 final String id = DocumentsContract.getDocumentId(uri);
                 Log.d("ekkescorner"," getDocumentId "+id);

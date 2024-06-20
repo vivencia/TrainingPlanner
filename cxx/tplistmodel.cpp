@@ -235,7 +235,10 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 						if (!mColumnNames.at(i).isEmpty())
 						{
 							outFile->write(mColumnNames.at(i).toUtf8().constData());
-							value = (*itr).at(i);
+							if (!isFieldFormatSpecial(i))
+								value = (*itr).at(i);
+							else
+								value = formatField((*itr).at(i));
 							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 							outFile->write("\n", 1);
 						}
@@ -267,7 +270,10 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 						if (!mColumnNames.at(i).isEmpty())
 						{
 							outFile->write(mColumnNames.at(i).toUtf8().constData());
-							value = m_modeldata.at(m_exportRows.at(x)).at(i);
+							if (!isFieldFormatSpecial(i))
+								value = m_modeldata.at(m_exportRows.at(x)).at(i);
+							else
+								value = formatField(m_modeldata.at(m_exportRows.at(x)).at(i));
 							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 							outFile->write("\n", 1);
 						}
@@ -313,7 +319,7 @@ bool TPListModel::importFromFancyText(QFile* inFile)
 		{
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
-				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				modeldata.append(inData.right(inData.length() - sep_idx - 2));
 			else
 			{
 				if (inData.contains(u"##"_qs))

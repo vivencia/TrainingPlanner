@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import "inexportMethods.js" as INEX
+
 Page {
 	id: homePage
 	property date minimumStartDate;
@@ -192,7 +194,10 @@ Page {
 
 					onClicked: {
 						appDB.setWorkingMeso(-1, index);
-						appDB.exportMeso();
+						if (Qt.platform.os === "android")
+							INEX.showInExMenu(trainingDayPage, true);
+						else
+							exportTypeTip.init(false);
 					}
 				}
 			} //swipe.left: Rectangle
@@ -336,6 +341,24 @@ Page {
 
 	function setViewModel() {
 		mesosListView.model = mesocyclesModel;
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		message: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		checkBoxText: qsTr("Human readable?")
+
+		onButton1Clicked: appDB.exportMeso(bShare, checkBoxChecked);
+
+		property bool bShare: false
+
+		function init(share: bool) {
+			bShare = share;
+			show(-1);
+		}
 	}
 } //Page
 

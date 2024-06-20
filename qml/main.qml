@@ -248,7 +248,7 @@ ApplicationWindow {
 			case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
 			case -4: message = qsTr("Export failed"); break;
 			case -5: message = qsTr("Saving canceled");  break;
-			case -6: message = qsTr("Nothing to save");  break;
+			case -6: message = qsTr("Nothing to save. Only exercises that do not come by default with the app can be exported");  break;
 			case -10: message = qsTr("Something went wrong"); break;
 		}
 		activityFinishedTip.title = message;

@@ -214,30 +214,19 @@ Page {
 	TPBalloonTip {
 		id: exportTypeTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		title: qsTr("Export workout")
+		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
 		message: label1.text
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: appDB.saveTrainingDay(mainDate, splitLetter, saveOpt, checkBoxChecked);
+		onButton1Clicked: appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked);
 
-		property bool saveOpt: false
+		property bool bShare: false
 
-		function init(bSave: bool) {
-			saveOpt = bSave;
+		function init(share: bool) {
+			bShare = share;
 			show(-1);
-		}
-	}
-
-	TPBalloonTip {
-		id: exportTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		button1Text: "OK"
-
-		function init(msg: string) {
-			message = msg;
-			showTimed(5000, 0);
 		}
 	}
 
@@ -930,7 +919,7 @@ Page {
 				bottomMargin: 5
 			}
 
-			onClicked: INEX.showInExMenu(trainingDayPage);
+			onClicked: INEX.showInExMenu(trainingDayPage, true);
 		}
 
 		TPButton {

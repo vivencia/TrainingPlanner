@@ -63,51 +63,48 @@ Rectangle {
 
 	Rectangle {
 		id: titleOfDate
+		height: 2.5 * cellSize
+		width: parent.width
+		color: AppSettings.paneBackgroundColor
+		gradient: Gradient {
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+		}
+		opacity: 0.8
+		z: 1
+
 		anchors {
 			top: windowTitelBar.visible ? windowTitelBar.bottom : parent.top
 			horizontalCenter: parent.horizontalCenter
 		}
-		height: 2.5 * cellSize
-		width: parent.width
-		color: AppSettings.paneBackgroundColor
-		z: 2
-		Rectangle {
+
+		Text {
 			id: selectedYear
+			text: calendar.currentYear
+			leftPadding: cellSize * 0.5
+			horizontalAlignment: Text.AlignLeft
+			verticalAlignment: Text.AlignVCenter
+			font.pointSize: fontSizePx * 2
+			font.bold: true
+			opacity: yearsList.visible ? 1 : 0.7
+			color: AppSettings.fontColor
 			anchors {
 				top: parent.top
 				left: parent.left
 				right: parent.right
 			}
-			height: cellSize * 1
-			color: parent.color
-			Text {
-				id: yearTitle
-				anchors.fill: parent
-				leftPadding: cellSize * 0.5
-				topPadding: cellSize * 0.5
-				horizontalAlignment: Text.AlignLeft
-				verticalAlignment: Text.AlignVCenter
-				font.pointSize: fontSizePx * 1.7
-				font.bold: true
-				opacity: yearsList.visible ? 1 : 0.7
-				color: AppSettings.fontColor
-				text: calendar.currentYear
-			}
+
 			MouseArea {
 				anchors.fill: parent
-				onClicked: {
-					yearsList.show();
-				}
+				onClicked: yearsList.visible ? yearsList.hide() : yearsList.show();
 			}
 		}
+
 		Text {
 			id: selectedWeekDayMonth
-			anchors {
-				left: parent.left
-				right: parent.right
-				top: selectedYear.bottom
-				bottom: parent.bottom
-			}
 			leftPadding: cellSize * 0.5
 			verticalAlignment: Text.AlignVCenter
 			font.pointSize: height * 0.5
@@ -115,17 +112,30 @@ Rectangle {
 			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
 			color: AppSettings.fontColor
 			opacity: yearsList.visible ? 0.7 : 1
+
+			anchors {
+				left: parent.left
+				right: parent.right
+				top: selectedYear.bottom
+				bottom: parent.bottom
+			}
+
 			MouseArea {
 				anchors.fill: parent
-				onClicked: {
-					yearsList.hide();
-				}
+				onClicked: yearsList.hide();
 			}
 		}
-	}
+	} //titleOfDate
 
 	ListView {
 		id: calendar
+		height: cellSize * 8
+		visible: true
+		z: 1
+		snapMode: ListView.SnapToItem
+		orientation: ListView.Horizontal
+		spacing: cellSize
+
 		anchors {
 			top: titleOfDate.bottom
 			left: parent.left
@@ -133,12 +143,6 @@ Rectangle {
 			leftMargin: cellSize * 0.5
 			rightMargin: cellSize * 0.5
 		}
-		height: cellSize * 8
-		visible: true
-		z: 1
-		snapMode: ListView.SnapToItem
-		orientation: ListView.Horizontal
-		spacing: cellSize
 
 		model: CalendarModel {
 			id: calendarModel
@@ -245,14 +249,14 @@ Rectangle {
 
 	ListView {
 		id: yearsList
-		anchors.fill: calendar
-		orientation: ListView.Vertical
 		visible: false
-		z: calendar.z
+		z: 2
+		anchors.fill: calendar
 
 		property int currentYear
-		property int startYear: startDate.getFullYear();
-		property int endYear : endDate.getFullYear();
+		readonly property int startYear: startDate.getFullYear();
+		readonly property int endYear : endDate.getFullYear();
+
 		model: ListModel {
 			id: yearsModel
 		}
@@ -260,12 +264,21 @@ Rectangle {
 		delegate: Rectangle {
 			width: yearsList.width
 			height: cellSize * 1.5
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
+
 			Text {
 				anchors.centerIn: parent
 				font.pointSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
-				color: AppSettings.paneBackgroundColor
+				color: AppSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent
@@ -291,12 +304,14 @@ Rectangle {
 				yearsModel.append({name: year});
 			}
 		}
+
 		function show() {
 			visible = true;
 			calendar.visible = false
 			currentYear = calendar.currentYear
 			yearsList.positionViewAtIndex(currentYear - startYear, ListView.SnapToItem);
 		}
+
 		function hide() {
 			visible = false;
 			calendar.visible = true;
@@ -311,7 +326,7 @@ Rectangle {
 			rightMargin: cellSize * 0.5
 			topMargin: -20
 		}
-		z: titleOfDate.z
+		z: 1
 		color: "black"
 		Row {
 			layoutDirection: "RightToLeft"

@@ -1,4 +1,5 @@
 #include "dbmesocyclesmodel.h"
+#include "runcommands.h"
 
 DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	: TPListModel(parent)
@@ -37,14 +38,14 @@ void DBMesocyclesModel::updateFromModel(TPListModel* model)
 	}
 }
 
-const QString DBMesocyclesModel::exportExtraInfo() const
+/*const QString DBMesocyclesModel::exportExtraInfo() const
 {
 	QString extraInfo;
 	for (uint i(0); i < 6; ++i)
 		extraInfo.append(tr("Split%1: ").arg(QChar(static_cast<char>('A' + i))) + m_extraInfo.at(i) + u"\n"_qs);
 	extraInfo.chop(2);
 	return extraInfo;
-}
+}*/
 
 bool DBMesocyclesModel::importExtraInfo(const QString& extraInfo)
 {
@@ -72,12 +73,61 @@ bool DBMesocyclesModel::importExtraInfo(const QString& extraInfo)
 	return !m_extraInfo.isEmpty();
 }
 
-void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
+bool DBMesocyclesModel::importFromFancyText(QFile* inFile)
+{
+	char buf[256];
+	QString inData;
+	QStringList modeldata;
+	int sep_idx(-1);
+	uint col(0);
+	QString value;
+
+	while (inFile->readLine(buf, sizeof(buf)) != -1) {
+		inData = buf;
+		inData.chop(1);
+		if (inData.isEmpty())
+		{
+			if (!modeldata.isEmpty())
+			{
+				appendList(modeldata);
+				modeldata.clear();
+				col = 0;
+			}
+		}
+		else
+		{
+			sep_idx = inData.indexOf(':');
+			if (sep_idx != -1)
+			{
+				value = inData.right(inData.length() - sep_idx - 2);
+				//The subtraction is because the ID column is not exported making all columns in the exported text MESOCYCLES_COL_* - 1
+				if (col == MESOCYCLES_COL_STARTDATE-1 ||col == MESOCYCLES_COL_ENDDATE-1)
+					modeldata.append(QString::number(RunCommands::getDateFromStrDate(value).toJulianDay()));
+				else
+					modeldata.append(value);
+				col++;
+			}
+			else
+			{
+				if (inData.contains(u"##"_qs))
+					break;
+			}
+		}
+	}
+	return count() > 0;
+}
+
+QString DBMesocyclesModel::formatField(const QString &fieldValue) const
+{
+	return RunCommands::formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+}
+
+/*void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
 									const QString& splitD, const QString& splitE, const QString& splitF)
 {
 	m_extraInfo.clear();
 	m_extraInfo.append(QStringList() << splitA << splitB << splitC << splitD << splitE << splitF);
-}
+}*/
 
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 {

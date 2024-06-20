@@ -413,7 +413,7 @@ Page {
 					width: toolbarExercises.buttonWidth
 					fixedSize: true
 
-					onClicked: INEX.showInExMenu(pageExercises);
+					onClicked: INEX.showInExMenu(pageExercises, true);
 				} // btnImExport
 
 			} // Row
@@ -429,29 +429,18 @@ Page {
 	TPBalloonTip {
 		id: exportTypeTip
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		title: qsTr("Export exercises")
+		message: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")
 
-		onButton1Clicked: appDB.saveExercisesList(saveOpt, checkBoxChecked);
+		onButton1Clicked: appDB.exportExercisesList(bShare, checkBoxChecked);
 
-		property bool saveOpt: false
+		property bool bShare: false
 
-		function init(bSave: bool) {
-			saveOpt = bSave;
+		function init(share: bool) {
+			bShare = share;
 			show(-1);
-		}
-	}
-
-	TPBalloonTip {
-		id: exportTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-		button1Text: "OK"
-
-		function init(msg: string) {
-			message = msg;
-			showTimed(5000, 0);
 		}
 	}
 
