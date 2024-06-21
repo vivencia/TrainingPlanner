@@ -310,16 +310,7 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.leftMargin: 5
 
-			onClicked: tertetre.init(); //newAction(0);
-		}
-
-		TPBalloonTip {
-			id: tertetre
-
-			function init() {
-				message = appDB.appArgs();
-				show(-1);
-			}
+			onClicked: newAction(0);
 		}
 
 		TPButton {

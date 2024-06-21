@@ -101,6 +101,7 @@ public:
 	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void createExercisesPlannerPage();
+	void loadCompleteMesoSplits();
 	Q_INVOKABLE void getCompleteMesoSplit();
 	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
@@ -142,7 +143,6 @@ public:
 	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
-	Q_INVOKABLE QString appArgs() const;
 signals:
 	void databaseReady();
 	void getPage(QQuickItem* item, const uint id);
@@ -157,6 +157,9 @@ private:
 	int m_MesoId;
 	int m_MesoIdx;
 	uint m_expectedPageId;
+	bool mb_splitsLoaded;
+	uint m_nSplits;
+	uint m_totalSplits;
 	QString m_MesoIdStr;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;

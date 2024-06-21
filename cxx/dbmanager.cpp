@@ -28,7 +28,7 @@
 #include <QDir>
 #include <QStandardPaths>
 
-static uint nSplitPages(0);
+#define SPLITS_LOADED_ID 4321
 
 #ifdef Q_OS_ANDROID
 
@@ -90,7 +90,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), m_appSettings(appSettings),
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mb_splitsLoaded(false), m_appSettings(appSettings),
 		m_runCommands(runcommands), m_exercisesPage(nullptr)
 {}
 
@@ -777,6 +777,13 @@ int DbManager::parseFile(QString filename)
 
 void DbManager::exportMeso(const bool bShare, const bool bFancy)
 {
+	if (!mb_splitsLoaded)
+	{
+		connect( this, &DbManager::internalSignal, this, [&,bShare,bFancy] (const uint id) { if (id == SPLITS_LOADED_ID) {
+			return exportMeso(bShare, bFancy); disconnect(this, &DbManager::internalSignal, this, nullptr); } } );
+		loadCompleteMesoSplits();
+		return;
+	}
 	const QString suggestedName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
 	setExportFileName(suggestedName);
 	QFile* outFile(nullptr);
@@ -786,8 +793,6 @@ void DbManager::exportMeso(const bool bShare, const bool bFancy)
 	{
 		mesoSplitModel->setExportRow(m_MesoIdx);
 		exportToFile(mesoSplitModel, QString(), bFancy, outFile);
-			//TODO create a function that loads the splits from database without creating the QML pages. This function needs to return a special signal
-			//that the calling methods will connect to
 		exportMesoSplit(u"X"_qs, bShare, bFancy, outFile);
 
 		#ifdef Q_OS_ANDROID
@@ -1205,39 +1210,60 @@ void DbManager::createExercisesPlannerPage()
 	m_currentMesoManager->createPlannerPage();
 }
 
-void DbManager::getCompleteMesoSplit()
+void DbManager::loadCompleteMesoSplits()
 {
-	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, 6));
+	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT));
+	QString mesoLetters;
+	DBMesoSplitModel* splitModel(nullptr);
+	m_nSplits = 0;
+	m_totalSplits = 0;
+
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
-	QChar splitLetter;
-	QString createdSplits;
 
-	nSplitPages = 0;
+	do {
+		if (static_cast<QChar>(*itr) == QChar('R'))
+			continue;
+		if (mesoLetters.contains(static_cast<QChar>(*itr)))
+			continue;
+
+		mesoLetters.append(static_cast<QChar>(*itr));
+
+		splitModel = m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr));
+		++m_nSplits;
+		++m_totalSplits;
+		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
+		worker->addExecArg(m_MesoIdStr);
+		worker->addExecArg(static_cast<QChar>(*itr));
+		connect( this, &DbManager::databaseReady, this, [&] {
+			if (--m_nSplits == 0) {
+				mb_splitsLoaded = true;
+				emit internalSignal(SPLITS_LOADED_ID);
+			}
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+	} while (++itr != itr_end);
+}
+
+void DbManager::getCompleteMesoSplit()
+{
+	m_nSplits = m_totalSplits;
 	connect(this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint id) { if (id <= 6) {
 			QMetaObject::invokeMethod(m_currentMesoManager->getExercisesPlannerPage(), "insertSplitPage",
 								Q_ARG(QQuickItem*, item), Q_ARG(int, static_cast<int>(id)));
-			if (--nSplitPages == 0)
+			if (--m_nSplits == 0)
 				disconnect(this, &DbManager::getPage, this, nullptr);
 		}
 	});
-	do {
-		splitLetter = static_cast<QChar>(*itr);
-		if (splitLetter == QChar('R'))
-			continue;
 
-		if (createdSplits.indexOf(splitLetter) == -1)
-		{
-			nSplitPages++;
-			createdSplits.append(splitLetter);
-			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter)));
-			worker->addExecArg(m_MesoIdStr);
-			worker->addExecArg(static_cast<QChar>(*itr));
-			connect( this, &DbManager::databaseReady, this, [&] { return m_currentMesoManager->createMesoSplitPage(); },
-						static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
-		}
-	} while (++itr != itr_end);
+	if (!mb_splitsLoaded)
+	{
+		connect( this, &DbManager::internalSignal, this, [&] (const uint id) { if (id == SPLITS_LOADED_ID) {
+				return m_currentMesoManager->createMesoSplitPage(); disconnect(this, &DbManager::internalSignal, this, nullptr); } } );
+		loadCompleteMesoSplits();
+	}
+	else
+		m_currentMesoManager->createMesoSplitPage();
 }
 
 void DbManager::updateMesoSplitComplete(DBMesoSplitModel* model)
@@ -1611,14 +1637,11 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 {
 	const QChar splitletter(splitLetter.at(0));
-	if (!m_currentMesoManager->getSplitModel(splitletter)->isReady())
+	if (!mb_splitsLoaded)
 	{
-		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitletter)));
-		worker->addExecArg(m_MesoIdStr);
-		worker->addExecArg(splitletter);
-		connect( this, &DbManager::databaseReady, this, [&,splitLetter] { return loadExercisesFromMesoPlan(splitLetter); },
-				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+		connect( this, &DbManager::internalSignal, this, [&,splitLetter] (const uint id) { if (id == SPLITS_LOADED_ID)
+			loadExercisesFromMesoPlan(splitLetter); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		loadCompleteMesoSplits();
 	}
 	else
 	{
@@ -1630,14 +1653,11 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 void DbManager::convertTDayToPlan(DBTrainingDayModel* tDayModel)
 {
 	const QChar splitletter(tDayModel->splitLetter().at(0));
-	if (!m_currentMesoManager->getSplitModel(splitletter)->isReady())
+	if (!mb_splitsLoaded)
 	{
-		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitletter)));
-		worker->addExecArg(m_MesoIdStr);
-		worker->addExecArg(splitletter);
-		connect( this, &DbManager::databaseReady, this, [&,tDayModel] { return convertTDayToPlan(tDayModel); },
-				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+		connect( this, &DbManager::internalSignal, this, [&,tDayModel] (const uint id) { if (id == SPLITS_LOADED_ID)
+				return convertTDayToPlan(tDayModel); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		loadCompleteMesoSplits();
 	}
 	else
 	{
@@ -1744,13 +1764,3 @@ void DbManager::openMainMenuShortCut(const int button_id)
 	QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-
-
-QString DbManager::appArgs() const
-{
-	const QStringList args(qApp->arguments());
-	QString message;
-	for (uint i (0); i < args.count(); ++i)
-		message += QString::number(i) + ": " + args.at(i) + '\n';
-	return message;
-}
