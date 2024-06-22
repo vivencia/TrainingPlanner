@@ -57,38 +57,6 @@ void tpMessageHandler(
 */
 #endif //Q_OS_ANDROID
 
-void populateSettingsWithDefaultValue( QSettings& settingsObj)
-{
-	if (settingsObj.childKeys().isEmpty() || settingsObj.value("appLocale").toString().isEmpty())
-	{
-		appLocale = QLocale::system();
-		settingsObj.setValue("appVersion", TP_APP_VERSION);
-		settingsObj.setValue("appLocale", appLocale.name());
-		settingsObj.setValue("weightUnit", u"(kg)"_qs);
-		settingsObj.setValue("themeStyle", u"Material"_qs);
-		settingsObj.setValue("colorScheme", u"Blue"_qs);
-		settingsObj.setValue("primaryDarkColor", u"#1976D2"_qs);
-		settingsObj.setValue("primaryColor", u"#25b5f3"_qs);
-		settingsObj.setValue("primaryLightColor", u"#BBDEFB"_qs);
-		settingsObj.setValue("paneBackgroundColor", u"#1976d2"_qs);
-		settingsObj.setValue("entrySelectedColor", u"#6495ed"_qs);
-		settingsObj.setValue("exercisesListVersion", u"0"_qs);
-		settingsObj.setValue("backupFolder", u""_qs);
-		settingsObj.setValue("fontColor", u"white"_qs);
-		settingsObj.setValue("disabledFontColor", u"lightgray"_qs);
-		settingsObj.setValue("iconFolder", u"white/"_qs);
-		settingsObj.setValue("fontSize", 12);
-		settingsObj.setValue("fontSizeLists", 8);
-		settingsObj.setValue("fontSizeText", 10);
-		settingsObj.setValue("fontSizeTitle", 18);
-		settingsObj.setValue("alwaysAskConfirmation", true);
-		settingsObj.setValue("firstTime", true);
-		settingsObj.sync();
-	}
-	else
-		setAppLocale(settingsObj.value("appLocale").toString());
-}
-
 int main(int argc, char *argv[])
 {
 	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
@@ -103,14 +71,14 @@ int main(int argc, char *argv[])
 	app.setApplicationName("Training Planner");
 
 	QSettings appSettings;
-	populateSettingsWithDefaultValue(appSettings);
+	RunCommands runCmd(&appSettings);
+	runCmd.populateSettingsWithDefaultValue();
 
 	TranslationClass trClass(appSettings);
 	trClass.selectLanguage();
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	RunCommands runCmd(&appSettings);
 	DbManager db(&appSettings, &runCmd);
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);

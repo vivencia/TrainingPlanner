@@ -217,8 +217,9 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		query.prepare( QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
-						"FROM training_day_table WHERE date=%1 AND meso_id=%2").arg(m_execArgs.at(1).toString(), m_execArgs.at(0).toString()) );
+		const QString queryCmd(QStringLiteral("SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
+						"FROM training_day_table WHERE date=%1 AND meso_id=%2").arg(m_execArgs.at(1).toString(), m_execArgs.at(0).toString()));
+		query.prepare( queryCmd );
 
 		if (query.exec())
 		{
@@ -249,9 +250,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
 	const QDate date(QDate::fromJulianDay(julianDay));
-	if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
-		return appLocale.toString(date, QStringLiteral("ddd d/M/yyyy"));
-	return date.toString(Qt::TextDate);
+	return runCmd()->appLocale()->toString(date, QStringLiteral("ddd d/M/yyyy"));
 }
 
 void DBTrainingDayTable::getPreviousTrainingDays()

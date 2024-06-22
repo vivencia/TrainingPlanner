@@ -5,34 +5,12 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
-void setAppLocale(const QString& localeStr)
-{
-	const QString strLanguage(localeStr.left(2));
-	const QString strTerritory(localeStr.right(2));
-	QLocale::Language language;
-	QLocale::Territory territory;
-
-	if (strLanguage == u"pt"_qs)
-		language = QLocale::Portuguese;
-	else if (strLanguage == u"de"_qs)
-		language = QLocale::German;
-	else
-		language = QLocale::English;
-
-	if (strTerritory == u"BR"_qs)
-		territory = QLocale::Brazil;
-	else if (strTerritory == u"DE"_qs)
-		territory = QLocale::Germany;
-	else
-		territory = QLocale::UnitedStates;
-
-	appLocale.setDefault(QLocale(language, territory));
-	appLocale.setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
-}
+RunCommands* RunCommands::app_runcmd(nullptr);
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	: QObject(parent), m_appSettings(settings), mb_appSuspended(false)
 {
+	app_runcmd = this;
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)
 		{
@@ -100,19 +78,22 @@ void RunCommands::copyToClipBoard(const QString& text) const
 	qApp->clipboard()->setText(text);
 }
 
-const QString RunCommands::formatTodayDate() const
+QString RunCommands::formatDate(const QDate& date) const
 {
-	const QDate today(QDate::currentDate());
-	if (appLocale.name() != QStringLiteral("en_US") || appLocale.name() != QStringLiteral("C"))
-		return appLocale.toString(today, u"ddd d/M/yyyy"_qs);
-	return today.toString(Qt::TextDate);
+	return m_appLocale->toString(date, u"ddd d/M/yyyy"_qs);
 }
 
-QDate RunCommands::getDateFromStrDate(const QString& strDate)
+QString RunCommands::formatTodayDate() const
+{
+	const QDate today(QDate::currentDate());
+	return m_appLocale->toString(today, u"ddd d/M/yyyy"_qs);
+}
+
+QDate RunCommands::getDateFromStrDate(const QString& strDate) const
 {
 	const QStringView strdate(strDate);
-	if (appLocale.name() == u"pt_BR"_qs)
-	{
+	//if (appLocale->name() == u"pt_BR"_qs)
+	//{
 		const int spaceIdx(strdate.indexOf(' '));
 		const int fSlashIdx(strdate.indexOf('/'));
 		const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
@@ -121,7 +102,7 @@ QDate RunCommands::getDateFromStrDate(const QString& strDate)
 		const uint year(strdate.right(4).toUInt());
 		const QDate date(year, month, day);
 		return date;
-	}
+	/*}
 	else
 	{
 		static const QString months[12] = {u"Jan"_qs,u"Feb"_qs,u"Mar"_qs,u"Apr"_qs,u"May"_qs,
@@ -140,7 +121,7 @@ QDate RunCommands::getDateFromStrDate(const QString& strDate)
 		const uint day(strdate.mid(spaceIdx+1, spaceIdx2-spaceIdx-1).toUInt());
 		const QDate date(year, month, day);
 		return date;
-	}
+	}*/
 }
 
 uint RunCommands::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
@@ -332,7 +313,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 	strValue.replace('E', u""_qs);
 	strValue = strValue.trimmed();
 
-	float result(appLocale.toFloat(strValue));
+	float result(m_appLocale->toFloat(strValue));
 	switch (settype)
 		case 0: //SetInputField.Type.WeightType
 		{
@@ -464,4 +445,61 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 
 		default: return QString();
 	}
+}
+
+void RunCommands::setAppLocale(const QString& localeStr)
+{
+	const QString strLanguage(localeStr.left(2));
+	const QString strTerritory(localeStr.right(2));
+	QLocale::Language language;
+	QLocale::Territory territory;
+
+	if (strLanguage == u"pt"_qs)
+		language = QLocale::Portuguese;
+	else if (strLanguage == u"de"_qs)
+		language = QLocale::German;
+	else
+		language = QLocale::English;
+
+	if (strTerritory == u"BR"_qs)
+		territory = QLocale::Brazil;
+	else if (strTerritory == u"DE"_qs)
+		territory = QLocale::Germany;
+	else
+		territory = QLocale::UnitedStates;
+
+	m_appLocale = new QLocale(language, territory);
+	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
+}
+
+void RunCommands::populateSettingsWithDefaultValue()
+{
+	if (m_appSettings->childKeys().isEmpty() || m_appSettings->value("appLocale").toString().isEmpty())
+	{
+		setAppLocale(QLocale::system().name());
+		m_appSettings->setValue("appVersion", TP_APP_VERSION);
+		m_appSettings->setValue("appLocale", m_appLocale->name());
+		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
+		m_appSettings->setValue("themeStyle", u"Material"_qs);
+		m_appSettings->setValue("colorScheme", u"Blue"_qs);
+		m_appSettings->setValue("primaryDarkColor", u"#1976D2"_qs);
+		m_appSettings->setValue("primaryColor", u"#25b5f3"_qs);
+		m_appSettings->setValue("primaryLightColor", u"#BBDEFB"_qs);
+		m_appSettings->setValue("paneBackgroundColor", u"#1976d2"_qs);
+		m_appSettings->setValue("entrySelectedColor", u"#6495ed"_qs);
+		m_appSettings->setValue("exercisesListVersion", u"0"_qs);
+		m_appSettings->setValue("backupFolder", u""_qs);
+		m_appSettings->setValue("fontColor", u"white"_qs);
+		m_appSettings->setValue("disabledFontColor", u"lightgray"_qs);
+		m_appSettings->setValue("iconFolder", u"white/"_qs);
+		m_appSettings->setValue("fontSize", 12);
+		m_appSettings->setValue("fontSizeLists", 8);
+		m_appSettings->setValue("fontSizeText", 10);
+		m_appSettings->setValue("fontSizeTitle", 18);
+		m_appSettings->setValue("alwaysAskConfirmation", true);
+		m_appSettings->setValue("firstTime", true);
+		m_appSettings->sync();
+	}
+	else
+		setAppLocale(m_appSettings->value("appLocale").toString());
 }

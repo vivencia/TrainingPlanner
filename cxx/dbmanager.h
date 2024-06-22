@@ -21,8 +21,6 @@ class DBTrainingDayModel;
 class RunCommands;
 class TPMesocycleClass;
 
-static const QString TP_APP_VERSION(QStringLiteral("v20240620-A"));
-
 class DbManager : public QObject
 {
 

@@ -102,7 +102,7 @@ bool DBMesocyclesModel::importFromFancyText(QFile* inFile)
 				value = inData.right(inData.length() - sep_idx - 2);
 				//The subtraction is because the ID column is not exported making all columns in the exported text MESOCYCLES_COL_* - 1
 				if (col == MESOCYCLES_COL_STARTDATE-1 ||col == MESOCYCLES_COL_ENDDATE-1)
-					modeldata.append(QString::number(RunCommands::getDateFromStrDate(value).toJulianDay()));
+					modeldata.append(QString::number(runCmd()->getDateFromStrDate(value).toJulianDay()));
 				else
 					modeldata.append(value);
 				col++;
@@ -119,7 +119,26 @@ bool DBMesocyclesModel::importFromFancyText(QFile* inFile)
 
 QString DBMesocyclesModel::formatField(const QString &fieldValue) const
 {
-	return RunCommands::formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+}
+
+uint DBMesocyclesModel::getTotalSplits(const uint row) const
+{
+	const QString mesoSplit(m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT));
+	QString::const_iterator itr(mesoSplit.constBegin());
+	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	QString mesoLetters;
+	uint nSplits(0);
+
+	do {
+		if (static_cast<QChar>(*itr) == QChar('R'))
+			continue;
+		if (mesoLetters.contains(static_cast<QChar>(*itr)))
+			continue;
+		mesoLetters.append(static_cast<QChar>(*itr));
+		nSplits++;
+	} while (++itr != itr_end);
+	return nSplits;
 }
 
 /*void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,

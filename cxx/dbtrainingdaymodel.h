@@ -59,7 +59,7 @@ public:
 	virtual bool importFromFancyText(QFile* inFile) override;
 	virtual bool importFromText(const QString& data) override;
 
-	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId("-1"); }
+	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	bool dayIsFinished() const { return mb_DayIsFinished; }

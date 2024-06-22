@@ -7,6 +7,7 @@ import "inexportMethods.js" as INEX
 Page {
 	id: homePage
 	property date minimumStartDate;
+	property var inexportMenu: null
 
 	Image {
 		anchors.fill: parent
@@ -179,7 +180,7 @@ Page {
 					}
 				}
 				TPButton {
-					id: btnExport
+					id: btnImExport
 					text: qsTr("Export")
 					flat: true
 					textUnderIcon: true
@@ -195,7 +196,7 @@ Page {
 					onClicked: {
 						appDB.setWorkingMeso(-1, index);
 						if (Qt.platform.os === "android")
-							INEX.showInExMenu(trainingDayPage, true);
+							INEX.showInExMenu(homePage, true);
 						else
 							exportTypeTip.init(false);
 					}

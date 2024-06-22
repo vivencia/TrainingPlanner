@@ -8,10 +8,10 @@
 #include <QUrl>
 #include <QDateTime>
 
+static const QString TP_APP_VERSION(QStringLiteral("v20240620-A"));
+
 class QSettings;
 class QFileDialog;
-
-static QLocale appLocale;
 
 class RunCommands : public QObject
 {
@@ -20,17 +20,19 @@ Q_OBJECT
 
 public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
+	~RunCommands() { delete m_appLocale; }
 	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
 	Q_INVOKABLE int getFileType( const QString& filename );
 	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 
+	inline QLocale* appLocale() const { return m_appLocale; }
 	inline QString getDBFileName() const { return m_dbFileName; }
 	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
 
-	Q_INVOKABLE static QString formatDate(const QDate& date) { return appLocale.toString(date, u"ddd d/M/yyyy"_qs); }
-	Q_INVOKABLE const QString formatTodayDate() const;
-	static QDate getDateFromStrDate(const QString& strDate);
+	Q_INVOKABLE QString formatDate(const QDate& date) const;
+	Q_INVOKABLE QString formatTodayDate() const;
+	QDate getDateFromStrDate(const QString& strDate) const;
 	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
@@ -59,6 +61,9 @@ public:
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
+	void setAppLocale(const QString& localeStr);
+	void populateSettingsWithDefaultValue();
+
 signals:
 	void appSuspended();
 	void appResumed();
@@ -67,7 +72,9 @@ private:
 	QString m_dbFileName;
 	QString m_appPrivateDir;
 	QSettings* m_appSettings;
+	QLocale* m_appLocale;
 
+	static RunCommands* app_runcmd;
 	bool mb_appSuspended;
 
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
@@ -75,8 +82,11 @@ private:
 		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
+
+	friend RunCommands* runCmd();
 };
 
-extern void setAppLocale(const QString& localeStr);
+inline RunCommands* runCmd() { return RunCommands::app_runcmd; }
+
 
 #endif // RUNCOMMANDS_H

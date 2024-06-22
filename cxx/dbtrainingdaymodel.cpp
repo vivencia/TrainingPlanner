@@ -494,8 +494,8 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 
 static inline QString dropSetReps(const QString& reps)
 {
-	const float value(appLocale.toFloat(reps));
-	QString value1(appLocale.toString(qCeil(value * 0.8)));
+	const float value(runCmd()->appLocale()->toFloat(reps));
+	QString value1(runCmd()->appLocale()->toString(qCeil(value * 0.8)));
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.right(2) != u"50"_qs)
@@ -503,7 +503,7 @@ static inline QString dropSetReps(const QString& reps)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(appLocale.toString(qCeil(value * 0.8 * 0.8)));
+	QString value2(runCmd()->appLocale()->toString(qCeil(value * 0.8 * 0.8)));
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.right(2) != u"50"_qs)
@@ -516,8 +516,8 @@ static inline QString dropSetReps(const QString& reps)
 
 static inline QString dropSetWeight(const QString& weight)
 {
-	const float value(appLocale.toFloat(weight));
-	QString value1(appLocale.toString(value * 0.5, 'f', 2));
+	const float value(runCmd()->appLocale()->toFloat(weight));
+	QString value1(runCmd()->appLocale()->toString(value * 0.5, 'f', 2));
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.right(2) != u"50"_qs)
@@ -525,7 +525,7 @@ static inline QString dropSetWeight(const QString& weight)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(appLocale.toString(value * 0.5 * 0.5, 'f', 2));
+	QString value2(runCmd()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2));
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.right(2) != u"50"_qs)
@@ -610,12 +610,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appLocale.toFloat(multiUseString));
+		float lastSetValue(runCmd()->appLocale()->toFloat(multiUseString));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue = qCeil(lastSetValue * 0.8);
 		else
 			lastSetValue = qCeil(lastSetValue * 1.25);
-		multiUseString = appLocale.toString(static_cast<int>(lastSetValue));
+		multiUseString = runCmd()->appLocale()->toString(static_cast<int>(lastSetValue));
 		if (multiUseString.contains('.') || multiUseString.contains(','))
 		{
 			if (multiUseString.right(2) != u"50"_qs)
@@ -644,12 +644,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appLocale.toFloat(multiUseString));
+		float lastSetValue(runCmd()->appLocale()->toFloat(multiUseString));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue *= 1.2;
 		else
 			lastSetValue *= 0.8;
-		multiUseString = appLocale.toString(lastSetValue, 'f', 2);
+		multiUseString = runCmd()->appLocale()->toString(lastSetValue, 'f', 2);
 		if (multiUseString.contains('.') || multiUseString.contains(','))
 		{
 			if (multiUseString.right(2) != u"50"_qs)

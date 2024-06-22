@@ -23,6 +23,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 	m_roleNames[setsWeight2Role] = "setsWeight2";
 	m_roleNames[setsNotesRole] = "setsNotes";
 
+	mb_Complete = bComplete;
 	if (bComplete)
 	{
 		mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
@@ -237,6 +238,7 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 		if (idx != -1)
 		{
 			setMuscularGroup(extrainfo.mid(idx+2, extrainfo.length() - idx - 3));
+			mb_Complete = true;
 			return true;
 		}
 	}

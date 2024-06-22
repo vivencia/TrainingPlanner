@@ -302,6 +302,7 @@ void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
 		m_MesoId = mesoId;
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
+		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 		mesocyclesModel->setCurrentRow(mesoIdx);
 	}
 }
@@ -1121,6 +1122,7 @@ void DbManager::saveMesocycle(const bool bNewMeso, const QString& mesoName, cons
 		if (bChangeCalendar)
 			changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, bPreserveOldCalendar, bPreserveUntillYesterday);
 	}
+	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 }
 
 void DbManager::removeMesocycle()
@@ -1215,8 +1217,7 @@ void DbManager::loadCompleteMesoSplits()
 	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT));
 	QString mesoLetters;
 	DBMesoSplitModel* splitModel(nullptr);
-	m_nSplits = 0;
-	m_totalSplits = 0;
+	m_nSplits = m_totalSplits;
 
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
@@ -1230,8 +1231,6 @@ void DbManager::loadCompleteMesoSplits()
 		mesoLetters.append(static_cast<QChar>(*itr));
 
 		splitModel = m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr));
-		++m_nSplits;
-		++m_totalSplits;
 		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
 		worker->addExecArg(m_MesoIdStr);
 		worker->addExecArg(static_cast<QChar>(*itr));
