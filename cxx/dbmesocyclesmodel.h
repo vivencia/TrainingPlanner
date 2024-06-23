@@ -35,9 +35,7 @@ public:
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
 	virtual void updateFromModel(TPListModel* model) override;
-	//virtual const QString exportExtraInfo() const override;
-	virtual bool importExtraInfo(const QString& ) override;
-	virtual bool importFromFancyText(QFile* inFile) override;
+	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 
 	virtual inline bool isFieldFormatSpecial (const uint field) const override { return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE; }
 	virtual QString formatField(const QString& fieldValue) const override;

@@ -531,10 +531,12 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
  *	-2: File format was not recognized
  *	-3: Nothing was imported, either because file was missing info or error in formatting
  */
-int DbManager::importFromFile(const QString& filename, QFile* inFile)
+int DbManager::importFromFile(QString filename, QFile* inFile)
 {
 	if (!inFile)
 	{
+		if (filename.startsWith(u"file:"_qs))
+			filename.remove(0, 7); //remove file://
 		inFile = new QFile(filename, this);
 		inFile->deleteLater();
 		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
@@ -601,7 +603,7 @@ int DbManager::importFromFile(const QString& filename, QFile* inFile)
 
 	bool bDataImportSuccessfull(false);
 	if (bFancy)
-		bDataImportSuccessfull = model->importFromFancyText(inFile);
+		bDataImportSuccessfull = model->importFromFancyText(inFile, inData);
 	else
 	{
 		const QString data(inFile->readAll());
@@ -635,9 +637,11 @@ void DbManager::importFromModel(TPListModel* model)
 			updateExercisesList(static_cast<DBExercisesModel*>(model));
 		break;
 		case MESOCYCLES_TABLE_ID:
-			createNewMesocycle(model->getFast(0, 8) == u"1"_qs, model->getFast(0, 1));
-			saveMesocycle(true, model->getFast(0, 1), model->getDate(0, 2), model->getDate(0, 3), model->getFast(0, 4), model->getFast(0, 5),
-							model->getFast(0, 6), model->getFast(0, 7), QString(), QString(), QString(),
+			createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1));
+			saveMesocycle(true, model->getFast(0, MESOCYCLES_COL_NAME), model->getDate(0, MESOCYCLES_COL_STARTDATE),
+								model->getDate(0, MESOCYCLES_COL_ENDDATE), model->getFast(0, MESOCYCLES_COL_NOTE),
+								model->getFast(0, MESOCYCLES_COL_WEEKS), model->getFast(0, MESOCYCLES_COL_SPLIT),
+								model->getFast(0, MESOCYCLES_COL_DRUGS), QString(), QString(), QString(),
 							QString(), QString(), QString(), false, false, false);
 		break;
 		case MESOSPLIT_TABLE_ID:
@@ -721,7 +725,11 @@ int DbManager::parseFile(QString filename)
 				if (!inData.startsWith(u"##0x"_qs)) //Fancy
 				{
 					if (inData.indexOf(DBMesoSplitObjectName) != -1)
+					{
+						if (createMessage[1] && createMessage[0])
+							continue;
 						createMessage[0] = true;
+					}
 					else if (inData.indexOf(DBMesocyclesObjectName) != -1)
 						createMessage[1] = true;
 					else if (inData.indexOf(DBTrainingDayObjectName) != -1)
@@ -737,9 +745,13 @@ int DbManager::parseFile(QString filename)
 					inData.chop(1);
 					switch (inData.toUInt())
 					{
-						case EXERCISES_TABLE_ID: createMessage[0] = true; break;
+						case EXERCISES_TABLE_ID: createMessage[3] = true; break;
 						case MESOCYCLES_TABLE_ID: createMessage[1] = true; break;
-						case MESOSPLIT_TABLE_ID: createMessage[2] = true; break;
+						case MESOSPLIT_TABLE_ID:
+							if (createMessage[1] && createMessage[0])
+								continue;
+							createMessage[0] = true;
+						break;
 						case TRAININGDAY_TABLE_ID: createMessage[3] = true; break;
 						default: return -2;
 					}
@@ -749,10 +761,15 @@ int DbManager::parseFile(QString filename)
 					if (tableMessage.isEmpty())
 						tableMessage = tr("a new Training Split Exercise Plan");
 					else
-						tableMessage = tr("new Training Split Exercise Plans");
+					{
+						if (createMessage[1])
+							tableMessage += tr("new Training Split Exercise Plans");
+						else
+							tableMessage = tr("new Training Split Exercise Plans");
+					}
 				}
 				else if (createMessage[1])
-					tableMessage = tr("an entire Mesocycle Plan, including exercise split plans");
+					tableMessage = tr("an entire Mesocycle Plan, including ");
 				else if (createMessage[2])
 					tableMessage = tr("One Training Day");
 				else if (createMessage[3])
@@ -779,12 +796,7 @@ int DbManager::parseFile(QString filename)
 void DbManager::exportMeso(const bool bShare, const bool bFancy)
 {
 	if (!mb_splitsLoaded)
-	{
-		connect( this, &DbManager::internalSignal, this, [&,bShare,bFancy] (const uint id) { if (id == SPLITS_LOADED_ID) {
-			return exportMeso(bShare, bFancy); disconnect(this, &DbManager::internalSignal, this, nullptr); } } );
-		loadCompleteMesoSplits();
-		return;
-	}
+		loadCompleteMesoSplits(false);
 	const QString suggestedName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
 	setExportFileName(suggestedName);
 	QFile* outFile(nullptr);
@@ -1212,12 +1224,13 @@ void DbManager::createExercisesPlannerPage()
 	m_currentMesoManager->createPlannerPage();
 }
 
-void DbManager::loadCompleteMesoSplits()
+void DbManager::loadCompleteMesoSplits(const bool bThreaded)
 {
 	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT));
 	QString mesoLetters;
 	DBMesoSplitModel* splitModel(nullptr);
 	m_nSplits = m_totalSplits;
+	DBMesoSplitTable* worker2(nullptr);
 
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
@@ -1229,19 +1242,39 @@ void DbManager::loadCompleteMesoSplits()
 			continue;
 
 		mesoLetters.append(static_cast<QChar>(*itr));
-
 		splitModel = m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr));
-		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
-		worker->addExecArg(m_MesoIdStr);
-		worker->addExecArg(static_cast<QChar>(*itr));
-		connect( this, &DbManager::databaseReady, this, [&] {
-			if (--m_nSplits == 0) {
-				mb_splitsLoaded = true;
-				emit internalSignal(SPLITS_LOADED_ID);
+
+		if (bThreaded)
+		{
+			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
+			worker->addExecArg(m_MesoIdStr);
+			worker->addExecArg(static_cast<QChar>(*itr));
+			connect( this, &DbManager::databaseReady, this, [&] {
+				if (--m_nSplits == 0) {
+					mb_splitsLoaded = true;
+					emit internalSignal(SPLITS_LOADED_ID);
+				}
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+		}
+		else
+		{
+			if (!worker2)
+			{
+				worker2 = new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel);
+				worker2->addExecArg(m_MesoIdStr);
+				worker2->addExecArg(static_cast<QChar>(*itr));
 			}
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
+			else
+			{
+				worker2->changeExecArg(static_cast<QChar>(*itr), 1);
+				worker2->setModel(splitModel);
+			}
+			worker2->getCompleteMesoSplit(false);
+		}
 	} while (++itr != itr_end);
+	if (worker2)
+		delete worker2;
 }
 
 void DbManager::getCompleteMesoSplit()

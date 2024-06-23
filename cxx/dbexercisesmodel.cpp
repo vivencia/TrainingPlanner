@@ -66,10 +66,9 @@ void DBExercisesModel::updateFromModel(TPListModel* model)
 	}
 }
 
-bool DBExercisesModel::importFromFancyText(QFile* inFile)
+bool DBExercisesModel::importFromFancyText(QFile* inFile, QString& inData)
 {
 	char buf[256];
-	QString inData;
 	QStringList modeldata;
 	int sep_idx(-1);
 	uint col(0);

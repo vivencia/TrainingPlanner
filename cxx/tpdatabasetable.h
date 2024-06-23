@@ -32,7 +32,9 @@ public:
 
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline void clearExecArgs() { m_execArgs.clear(); }
+	inline void changeExecArg(const QVariant& arg, const uint pos) { if (pos < m_execArgs.count()) m_execArgs[pos] = arg; }
 	inline TPListModel* model() const { return m_model; }
+	void setModel(TPListModel* model) { m_model = model; }
 
 	void removeEntry();
 	void clearTable();

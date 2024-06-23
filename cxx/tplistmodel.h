@@ -89,7 +89,7 @@ public:
 	inline void setExportRow(const uint row) { m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile, const bool bFancy) const;
-	virtual bool importFromFancyText(QFile* inFile);
+	virtual bool importFromFancyText(QFile* inFile, QString& inData);
 	virtual bool importFromText(const QString& data);
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
@@ -156,7 +156,7 @@ public:
 
 	inline virtual void resetPrivateData() {}
 	inline virtual const QString exportExtraInfo() const { return QString(); }
-	inline virtual bool importExtraInfo(const QString& ) { return false; }
+	inline virtual bool importExtraInfo(const QString& ) { return true; }
 	inline virtual void updateFromModel(TPListModel*) {}
 
 	// QAbstractItemModel interface

@@ -53,7 +53,7 @@ public:
 	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy, QFile* &outFile) const;
-	Q_INVOKABLE int importFromFile(const QString& filename, QFile* inFile = nullptr);
+	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
 	void importFromModel(TPListModel* model);
 
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
@@ -99,7 +99,7 @@ public:
 	Q_INVOKABLE void removeMesoSplit();
 	Q_INVOKABLE void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void createExercisesPlannerPage();
-	void loadCompleteMesoSplits();
+	void loadCompleteMesoSplits(const bool bThreaded = true);
 	Q_INVOKABLE void getCompleteMesoSplit();
 	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;

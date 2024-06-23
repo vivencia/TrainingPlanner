@@ -11,11 +11,12 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	width: 100
+	width: widesteEntryWidth
 	height: entriesTotalHeight
 
 	property var entriesList: []
 	property int entriesTotalHeight: 0
+	property int widesteEntryWidth: 100
 	property var entryComponent: null
 
 	contentItem.Keys.onBackPressed: (event) => {
@@ -88,6 +89,8 @@ Popup {
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
 				clickId: id, flat: true, followParentsOpacity: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
+			if (button.width > widesteEntryWidth)
+				widesteEntryWidth = button.width;
 			entriesTotalHeight += button.buttonHeight;
 			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);
@@ -132,12 +135,12 @@ Popup {
 
 		if (xpos < 0)
 			xpos = 0;
-		else if (xpos + width > parent.width)
-			xpos = parent.width - width;
+		else if (xpos + width > parent.width - 20)
+			xpos = parent.width - width - 10;
 		if (ypos < 0)
 			ypos = 0;
 		else if (ypos + height > parent.height)
-			ypos = parent.height - width;
+			ypos = parent.height - height - 10;
 		x = xpos;
 		y = ypos;
 		open();

@@ -14,8 +14,8 @@ FileDialog {
 	property bool _bfancyFormat
 
 	onAccepted: {
-		const result = appDB.parseFile(currentFile);
 		mainwindow.importExportFilename = currentFile;
+		const result = appDB.parseFile(currentFile);
 		mainwindow.displayResultMessage(result);
 		close();
 	}

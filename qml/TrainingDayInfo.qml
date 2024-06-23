@@ -49,14 +49,14 @@ Page {
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
 
-	property var inexportMenu: null
+	property var imexportMenu: null
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 
 	onBExportEnabledChanged: {
-		if (inexportMenu) {
-			inexportMenu.enableMenuEntry(1, bExportEnabled);
+		if (imexportMenu) {
+			imexportMenu.enableMenuEntry(1, bExportEnabled);
 			if (Qt.platform.os === "android")
-				inexportMenu.enableMenuEntry(2, bExportEnabled);
+				imexportMenu.enableMenuEntry(2, bExportEnabled);
 		}
 	}
 

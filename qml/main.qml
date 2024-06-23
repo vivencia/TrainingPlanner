@@ -156,8 +156,11 @@ ApplicationWindow {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 
-		onButton1Clicked: appDB.importFromFile(importExportFilename);
+		onButton1Clicked: {
+			const result = appDB.importFromFile(importExportFilename);
+			displayResultMessage(result);
 	}
+}
 
 	function confirmImport(message: string) {
 		importConfirmDialog.title = qsTr("Proceed with action?");
@@ -247,8 +250,11 @@ ApplicationWindow {
 			case -2: message = qsTr("File type not recognized"); break;
 			case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
 			case -4: message = qsTr("Export failed"); break;
-			case -5: message = qsTr("Saving canceled");  break;
-			case -6: message = qsTr("Nothing to save. Only exercises that do not come by default with the app can be exported");  break;
+			case -5: importExportFilename = qsTr("Saving canceled");  break;
+			case -6:
+				message = qsTr("Nothing to save.");
+				importExportFilename = qsTr("Only exercises that do not come by default with the app can be exported");
+			break;
 			case -10: message = qsTr("Something went wrong"); break;
 		}
 		activityFinishedTip.title = message;

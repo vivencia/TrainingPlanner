@@ -7,7 +7,9 @@ import "inexportMethods.js" as INEX
 Page {
 	id: homePage
 	property date minimumStartDate;
-	property var inexportMenu: null
+	property var newMesoMenu: null
+	property var imexportMenu: null
+	property var btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
 
 	Image {
 		anchors.fill: parent
@@ -180,7 +182,7 @@ Page {
 					}
 				}
 				TPButton {
-					id: btnImExport
+					id: btnExport
 					text: qsTr("Export")
 					flat: true
 					textUnderIcon: true
@@ -196,7 +198,10 @@ Page {
 					onClicked: {
 						appDB.setWorkingMeso(-1, index);
 						if (Qt.platform.os === "android")
+						{
+							btnImExport = this;
 							INEX.showInExMenu(homePage, true);
+						}
 						else
 							exportTypeTip.init(false);
 					}
@@ -311,7 +316,12 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.leftMargin: 5
 
-			onClicked: newAction(0);
+			onClicked: {
+				if (mesocyclesModel.count > 0)
+					newAction(0);
+				else
+					showEmptyDatabaseMenu();
+			}
 		}
 
 		TPButton {
@@ -323,7 +333,12 @@ Page {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.rightMargin: 5
 
-			onClicked: newAction(1);
+			onClicked: {
+				if (mesocyclesModel.count > 0)
+					newAction(1);
+				else
+					showEmptyDatabaseMenu();
+			}
 		}
 	} // footer
 
@@ -333,6 +348,24 @@ Page {
 
 	function setViewModel() {
 		mesosListView.model = mesocyclesModel;
+	}
+
+	function showEmptyDatabaseMenu() {
+		if (newMesoMenu === null) {
+			var newMesoMenuMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+			newMesoMenu = newMesoMenuMenuComponent.createObject(homePage, {});
+			newMesoMenu.addEntry(qsTr("Create new mesocycle"), "mesocycle-add.png", 0);
+			newMesoMenu.addEntry(qsTr("Import mesocycle from file"), "import.png", 1);
+			newMesoMenu.menuEntrySelected.connect(selectedNewMesoMenuOption);
+		}
+		newMesoMenu.show(btnAddMeso, 0);
+	}
+
+	function selectedNewMesoMenuOption(menuid) {
+		switch (menuid) {
+			case 0: newAction(1); break;
+			case 1: mainwindow.chooseFileToImport(); break;
+		}
 	}
 
 	TPBalloonTip {

@@ -297,10 +297,9 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 		outFile->write("##end##");
 }
 
-bool TPListModel::importFromFancyText(QFile* inFile)
+bool TPListModel::importFromFancyText(QFile* inFile, QString& inData)
 {
 	char buf[256];
-	QString inData;
 	QStringList modeldata;
 	int sep_idx(-1);
 

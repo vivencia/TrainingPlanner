@@ -175,10 +175,9 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 	}
 }
 
-bool DBTrainingDayModel::importFromFancyText(QFile* inFile)
+bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 {
 	char buf[256];
-	QString inData;
 	int sep_idx(-1);
 
 	uint exerciseNumber(0), nsets(0);

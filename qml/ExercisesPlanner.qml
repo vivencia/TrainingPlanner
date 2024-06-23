@@ -22,14 +22,14 @@ Page {
 	property var itemThatRequestedSimpleList: null
 	property var navButtons: null
 
-	property var inexportMenu: null
+	property var imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	onBExportEnabledChanged: {
-		if (inexportMenu) {
-			inexportMenu.enableMenuEntry(1, bExportEnabled);
+		if (imexportMenu) {
+			imexportMenu.enableMenuEntry(1, bExportEnabled);
 			if (Qt.platform.os === "android")
-				inexportMenu.enableMenuEntry(2, bExportEnabled);
+				imexportMenu.enableMenuEntry(2, bExportEnabled);
 		}
 	}
 

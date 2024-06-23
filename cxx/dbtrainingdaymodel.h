@@ -52,11 +52,8 @@ public:
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel);
 	virtual void updateFromModel(TPListModel* model) override;
 
-	//So far, date format for exporting is not locale specific
-	inline virtual const QString exportExtraInfo() const override { return tr("Date: ") + date().toString("d/M/yyyy"); }
-	inline virtual bool importExtraInfo(const QString&) override { return true; }
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
-	virtual bool importFromFancyText(QFile* inFile) override;
+	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 	virtual bool importFromText(const QString& data) override;
 
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }

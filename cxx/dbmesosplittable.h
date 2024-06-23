@@ -22,7 +22,7 @@ public:
 	void getMesoSplit();
 	void newMesoSplit();
 	void updateMesoSplit();
-	void getCompleteMesoSplit();
+	void getCompleteMesoSplit(const bool bEmitSignal = true);
 	void updateMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
 	void convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel);
@@ -30,9 +30,6 @@ public:
 	//Call before starting a thread
 	void setData(const QString& mesoId, const QString& splitA = QString(), const QString& splitB = QString(), const QString& splitC = QString(),
 					const QString& splitD = QString(), const QString& splitE = QString(), const QString& splitF = QString());
-
-private:
-	bool mb_emitNow;
 };
 
 #endif // DBMESOSPLITTABLE_H

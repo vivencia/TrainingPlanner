@@ -8,7 +8,7 @@
 #include <random>
 
 DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model)), mb_emitNow(true)
+	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
@@ -198,7 +198,7 @@ void DBMesoSplitTable::updateMesoSplit()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoSplitTable::getCompleteMesoSplit()
+void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
@@ -259,7 +259,7 @@ void DBMesoSplitTable::getCompleteMesoSplit()
 	else
 		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
 
-	if (mb_emitNow)
+	if (bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
