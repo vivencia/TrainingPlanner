@@ -80,7 +80,7 @@ public:
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllMesocycles();
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
-	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name);
+	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name, const bool bCreatePage);
 	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
 									const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
 										const QString& splitA, const QString& splitB, const QString& splitC,

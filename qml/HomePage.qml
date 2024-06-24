@@ -343,7 +343,7 @@ Page {
 	} // footer
 
 	function newAction(opt) {
-		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"));
+		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"), true);
 	}
 
 	function setViewModel() {

@@ -26,7 +26,7 @@ void TPDatabaseTable::removeEntry()
 		MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	//doneFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void TPDatabaseTable::clearTable()

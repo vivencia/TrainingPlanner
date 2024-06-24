@@ -303,6 +303,16 @@ bool TPListModel::importFromFancyText(QFile* inFile, QString& inData)
 	QStringList modeldata;
 	int sep_idx(-1);
 
+	if (m_extraInfo.isEmpty())
+	{
+		inData.chop(1);
+		int sep_idx(inData.indexOf(':'));
+		if (sep_idx != -1)
+			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+		else
+			return false;
+	}
+
 	while (inFile->readLine(buf, sizeof(buf)) != -1) {
 		inData = buf;
 		inData.chop(1);
@@ -318,7 +328,7 @@ bool TPListModel::importFromFancyText(QFile* inFile, QString& inData)
 		{
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
-				modeldata.append(inData.right(inData.length() - sep_idx - 2));
+				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
 			else
 			{
 				if (inData.contains(u"##"_qs))

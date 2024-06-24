@@ -121,6 +121,13 @@ uint DBMesocyclesModel::getTotalSplits(const uint row) const
 	return nSplits;
 }
 
+void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
+									const QString& splitD, const QString& splitE, const QString& splitF)
+{
+	m_extraInfo.clear();
+	m_extraInfo.append(QStringList () << splitA << splitB << splitC << splitD << splitE << splitF);
+}
+
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());

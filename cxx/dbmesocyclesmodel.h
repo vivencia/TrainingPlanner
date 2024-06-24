@@ -41,8 +41,8 @@ public:
 	virtual QString formatField(const QString& fieldValue) const override;
 
 	uint getTotalSplits(const uint row) const;
-	/*void setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
-									const QString& splitD, const QString& splitE, const QString& splitF);*/
+	void setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
+									const QString& splitD, const QString& splitE, const QString& splitF);
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 9; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;

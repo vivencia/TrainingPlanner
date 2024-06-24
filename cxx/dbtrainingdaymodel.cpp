@@ -188,7 +188,7 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 		sep_idx = inData.indexOf(QString::number(exerciseNumber+1) + ':');
 		if (sep_idx != -1)
 		{
-			newExercise(inData.mid(sep_idx, inData.length() - sep_idx).trimmed(), exerciseNumber);
+			newExercise(inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator), exerciseNumber);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
@@ -202,14 +202,14 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			type = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			type = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
@@ -221,7 +221,7 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 				subsets = u"0"_qs;
 				if ((sep_idx = inData.indexOf(':')) == -1)
 					return false;
-				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 			}
 			else
 			{
@@ -232,7 +232,7 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 					return false;
 				if ((sep_idx = inData.indexOf(':')) == -1)
 					return false;
-				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+				reps = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 			}
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
@@ -240,14 +240,14 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			weight = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			weight = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			notes = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			notes = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 			if (notes.isEmpty())
 				notes = u" "_qs;
 

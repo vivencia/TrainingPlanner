@@ -239,6 +239,7 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 		{
 			setMuscularGroup(extrainfo.mid(idx+2, extrainfo.length() - idx - 3));
 			mb_Complete = true;
+			m_extraInfo.append(u"1"_qs); //Just any value, so that TPList::importFromFancyText knows we have extra info
 			return true;
 		}
 	}
