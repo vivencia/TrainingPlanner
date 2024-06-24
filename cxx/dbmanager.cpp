@@ -314,7 +314,7 @@ void DbManager::removeWorkingMeso()
 	removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 	removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 	m_MesoManager.removeOne(m_currentMesoManager);
-	TPMesocycleClass* mesoManager = m_currentMesoManager;
+	delete m_currentMesoManager;
 	if (m_MesoManager.count() > 0)
 	{
 		const uint idx(m_MesoManager.count() - 1);
@@ -322,7 +322,6 @@ void DbManager::removeWorkingMeso()
 	}
 	else
 		setWorkingMeso(-1, 0);
-	delete mesoManager;
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -364,10 +363,6 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					}
 					delete tempModel;
 				}
-			break;
-			case OP_DEL:
-				if (dbObj->objectName() == DBMesocyclesObjectName)
-					removeWorkingMeso();
 			break;
 			case OP_ADD:
 				if (dbObj->objectName() == DBMesocyclesObjectName)
@@ -1165,6 +1160,7 @@ void DbManager::removeMesocycle()
 		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 		worker->addExecArg(m_MesoIdStr);
 		createThread(worker, [worker] () { return worker->removeEntry(); } );
+		removeWorkingMeso();
 	}
 }
 
