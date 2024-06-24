@@ -90,7 +90,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mb_splitsLoaded(false), m_appSettings(appSettings),
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mb_splitsLoaded(false), mb_importMode(false), m_appSettings(appSettings),
 		m_runCommands(runcommands), m_exercisesPage(nullptr)
 {}
 
@@ -314,7 +314,7 @@ void DbManager::removeWorkingMeso()
 	removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 	removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 	m_MesoManager.removeOne(m_currentMesoManager);
-	delete m_currentMesoManager;
+	TPMesocycleClass* mesoManager = m_currentMesoManager;
 	if (m_MesoManager.count() > 0)
 	{
 		const uint idx(m_MesoManager.count() - 1);
@@ -322,6 +322,7 @@ void DbManager::removeWorkingMeso()
 	}
 	else
 		setWorkingMeso(-1, 0);
+	delete mesoManager;
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -643,6 +644,7 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 
 void DbManager::importFromModel(TPListModel* model)
 {
+	mb_importMode = true;
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
@@ -663,6 +665,9 @@ void DbManager::importFromModel(TPListModel* model)
 				DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
 				splitModel->updateFromModel(model);
 				updateMesoSplitComplete(splitModel);
+				// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
+				// by the time mb_splitsLoaded is ever checked upon
+				mb_splitsLoaded = true;
 			}
 			else
 			{
@@ -695,6 +700,7 @@ void DbManager::importFromModel(TPListModel* model)
 		}
 		break;
 	}
+	mb_importMode = false;
 }
 
 void DbManager::saveFileDialogClosed(QString finalFileName, bool bResultOK)
@@ -849,6 +855,8 @@ void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 		MSG_OUT("starting thread for " << dbObj->objectName())
 		m_WorkerLock[dbObj->objectName()]++;
 		thread->start();
+		if (dbObj->waitForThreadToFinish())
+			thread->wait();
 	}
 }
 
@@ -1130,6 +1138,8 @@ void DbManager::saveMesocycle(const bool bNewMeso, const QString& mesoName, cons
 						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
 	if (bNewMeso)
 	{
+		if (mb_importMode)
+			worker->setWaitForThreadToFinish(true);
 		mesocyclesModel->setSplitInfo(splitA, splitB, splitC, splitD, splitE, splitF);
 		createThread(worker, [worker] () { worker->newMesocycle(); } );
 	}
@@ -1756,7 +1766,7 @@ void DbManager::exportTrainingDay(const QDate& date, const QString& splitLetter,
 void DbManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
 	if (m_mainMenuShortcutPages.contains(page))
-		QMetaObject::invokeMethod(m_mainWindow, "stackViewPushExistingPage", Q_ARG(QQuickItem*, page));
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
 	else
 	{
 		if (m_mainMenuShortcutEntries.count() < 5)

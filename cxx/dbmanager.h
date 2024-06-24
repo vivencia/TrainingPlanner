@@ -156,6 +156,7 @@ private:
 	int m_MesoIdx;
 	uint m_expectedPageId;
 	bool mb_splitsLoaded;
+	bool mb_importMode;
 	uint m_nSplits;
 	uint m_totalSplits;
 	QString m_MesoIdStr;

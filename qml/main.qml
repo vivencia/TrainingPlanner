@@ -135,7 +135,7 @@ ApplicationWindow {
 	}
 
 	function popFromStack(page: Item) {
-		stackView.pop(page, StackView.Immediate);
+		stackView.pop(page);
 	}
 
 	function pushOntoStack(page: Item) {

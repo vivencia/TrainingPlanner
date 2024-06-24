@@ -19,7 +19,7 @@ class TPDatabaseTable : public QObject
 
 public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
-		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), m_opcode(OP_NULL) {}
+		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), mb_waitForFinished(false), m_opcode(OP_NULL) {}
 
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;
@@ -36,6 +36,9 @@ public:
 	inline TPListModel* model() const { return m_model; }
 	void setModel(TPListModel* model) { m_model = model; }
 
+	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
+	inline bool waitForThreadToFinish() const { return mb_waitForFinished; }
+
 	void removeEntry();
 	void clearTable();
 	void removeDBFile();
@@ -49,6 +52,7 @@ protected:
 	QString m_tableName;
 
 	bool m_result;
+	bool mb_waitForFinished;
 	OP_CODES m_opcode;
 
 	std::function<void (TPDatabaseTable*)> doneFunc;
