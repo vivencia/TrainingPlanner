@@ -13,9 +13,6 @@ Page {
 	width: windowWidth
 	height: windowHeight
 
-	required property int mesoId
-	required property int mesoIdx
-
 	property alias currentPage: splitView.currentItem
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false

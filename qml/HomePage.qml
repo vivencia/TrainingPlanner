@@ -228,7 +228,7 @@ Page {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: msgDlg.show(parent.y + parent.height);
+					onClicked: msgDlg.init(index);
 				}
 
 				TPBalloonTip {
@@ -239,7 +239,13 @@ Page {
 					button2Text: qsTr("No")
 					imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
 
-					onButton1Clicked: appDB.removeMesocycle();
+					property int mesoidx
+					onButton1Clicked: appDB.removeMesocycle(mesoidx);
+
+					function init(meso_idx: int) {
+						mesoidx = meso_idx;
+						show(-1);
+					}
 				}
 			} //swipe.right: Rectangle
 

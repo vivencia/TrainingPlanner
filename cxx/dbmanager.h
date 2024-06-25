@@ -86,7 +86,7 @@ public:
 										const QString& splitA, const QString& splitB, const QString& splitC,
 										const QString& splitD, const QString& splitE, const QString& splitF,
 											const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday);
-	Q_INVOKABLE void removeMesocycle();
+	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void deleteMesocyclesTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
@@ -96,7 +96,7 @@ public:
 									const QString& splitD, const QString& splitE, const QString& splitF);
 	Q_INVOKABLE void updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC, const QString& splitD,
 										const QString& splitE, const QString& splitF);
-	Q_INVOKABLE void removeMesoSplit();
+	Q_INVOKABLE void removeMesoSplit(const uint meso_id);
 	Q_INVOKABLE void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void createExercisesPlannerPage();
 	void loadCompleteMesoSplits(const bool bThreaded = true);
@@ -117,7 +117,7 @@ public:
 	Q_INVOKABLE void updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
 	Q_INVOKABLE void updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit, const bool bDayIsFinished);
 	Q_INVOKABLE void setDayIsFinished(const QDate& date, const bool bFinished);
-	Q_INVOKABLE void removeMesoCalendar();
+	Q_INVOKABLE void removeMesoCalendar(const uint meso_id);
 	Q_INVOKABLE void deleteMesoCalendarTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 

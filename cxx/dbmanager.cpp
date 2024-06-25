@@ -202,7 +202,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 
 	mesoSplitModel = new DBMesoSplitModel(this, false);
-	mesoCalendarModel = new DBMesoCalendarModel(this);
 	mesocyclesModel = new DBMesocyclesModel(this);
 
 	//Enable only when necessary to avoid problems
@@ -260,7 +259,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 DbManager::~DbManager()
 {
-	delete mesoCalendarModel;
 	delete mesoSplitModel;
 	delete exercisesListModel;
 	delete mesocyclesModel;
@@ -298,7 +296,7 @@ void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
 			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
 			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
-		mesoCalendarModel->clear();
+		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
 		m_MesoId = mesoId;
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
@@ -309,19 +307,7 @@ void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
 
 void DbManager::removeWorkingMeso()
 {
-	mesocyclesModel->removeFromList(m_MesoIdx);
-	removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
-	removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
-	removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
-	m_MesoManager.removeOne(m_currentMesoManager);
-	delete m_currentMesoManager;
-	if (m_MesoManager.count() > 0)
-	{
-		const uint idx(m_MesoManager.count() - 1);
-		setWorkingMeso(m_MesoManager.at(idx)->mesoId(), m_MesoManager.at(idx)->mesoIdx());
-	}
-	else
-		setWorkingMeso(-1, 0);
+
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -1148,19 +1134,43 @@ void DbManager::saveMesocycle(const bool bNewMeso, const QString& mesoName, cons
 	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 }
 
-void DbManager::removeMesocycle()
+void DbManager::removeMesocycle(const uint meso_idx)
 {
-	if (mesocyclesModel->getInt(m_MesoIdx, 0) == -1)
-		removeWorkingMeso();
-	else
+	const int meso_id(mesocyclesModel->getInt(meso_idx, MESOCYCLES_COL_ID));
+
+	TPMesocycleClass* meso(m_MesoManager.at(meso_idx));
+	mesocyclesModel->removeFromList(meso_idx);
+	m_MesoManager.removeAt(meso_idx);
+	delete meso;
+
+	if (meso_idx == m_MesoIdx)
 	{
-		removeMesoCalendar();
-		mesoCalendarModel->clear();
-		removeMesoSplit();
-		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-		worker->addExecArg(m_MesoIdStr);
+		if (meso_id >= 0)
+		{
+			removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
+			removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
+			removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
+		}
+		if (m_MesoManager.count() > 0)
+		{
+			const uint idx(m_MesoManager.count() - 1);
+			setWorkingMeso(m_MesoManager.at(idx)->mesoId(), m_MesoManager.at(idx)->mesoIdx());
+		}
+		else
+			setWorkingMeso(-1, 0);
+	}
+
+	if (meso_id >= 0)
+	{
+		removeMesoCalendar(meso_id);
+		removeMesoSplit(meso_id);
+		mesoSplitModel->removeFromList(meso_idx);
+		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
+		worker->addExecArg(QString::number(meso_id));
 		createThread(worker, [worker] () { return worker->removeEntry(); } );
-		removeWorkingMeso();
+
+		for (uint i(meso_idx+1); i < m_MesoManager.count(); ++i)
+			m_MesoManager.at(i)->changeMesoIdxFromPages(i-1);
 	}
 }
 
@@ -1205,11 +1215,10 @@ void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, co
 	m_currentMesoManager->updateMuscularGroup(splitA, splitB, splitC, splitD, splitE, splitF);
 }
 
-void DbManager::removeMesoSplit()
+void DbManager::removeMesoSplit(const uint meso_id)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	mesoSplitModel->setCurrentRow(m_MesoIdx);
-	worker->addExecArg(m_MesoIdStr);
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
+	worker->addExecArg(QString::number(meso_id));
 	createThread(worker, [worker] () { return worker->removeEntry(); } );
 }
 
@@ -1500,7 +1509,6 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 			addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
 			return;
 		}
-		m_currentMesoManager->setMesoCalendarModel(mesoCalendarModel);
 		m_expectedPageId = calPageCreateId;
 		connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == calPageCreateId)
 				addMainMenuShortCut(tr("Calendar: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getCalendarPage());
@@ -1583,10 +1591,10 @@ void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
 	createThread(worker, [worker] () { worker->updateDayIsFinished(); } );
 }
 
-void DbManager::removeMesoCalendar()
+void DbManager::removeMesoCalendar(const uint meso_id)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->addExecArg(m_MesoIdStr);
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+	worker->addExecArg(QString::number(meso_id));
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); } );
 }
 

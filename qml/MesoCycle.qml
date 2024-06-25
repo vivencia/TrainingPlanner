@@ -804,7 +804,7 @@ TPBalloonTip {
 
 	function pageDeActivation() {
 		if (bNewMeso)
-			appDB.removeMesocycle();
+			appDB.removeMesocycle(mesoIdx);
 	}
 
 	function pageActivation() {

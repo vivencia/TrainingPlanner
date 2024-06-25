@@ -9,7 +9,6 @@ Page {
 	width: windowWidth
 	height: windowHeight
 
-	required property int mesoId
 	required property int mesoIdx
 	required property DBMesoCalendarModel mesoCalendarModel
 

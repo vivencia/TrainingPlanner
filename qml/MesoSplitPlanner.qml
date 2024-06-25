@@ -7,15 +7,13 @@ Frame {
 	id: paneSplit
 	objectName: "mesoSplitPlanner"
 
-	required property int mesoId
-	required property int mesoIdx
 	required property var parentItem
 	required property DBMesoSplitModel splitModel
 
 	property bool bAlreadyLoaded: false
 	property int removalSecs: 0
 	property string prevMesoName: ""
-	property int prevMesoId: -1
+	property int prevMesoId: -2
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 	property bool bCanSwapPlan: false
@@ -605,16 +603,13 @@ Frame {
 
 	function init() {
 		if (!bAlreadyLoaded) {
-			if (splitModel.count === 0) {
-				prevMesoId = mesocyclesModel.getPreviousMesoId(mesoId);
-				if (prevMesoId >= 0) {
-					if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter)) {
-						prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, 1);
-						msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
-						splitModel.currentRow = 0;
-					}
-					else
-						appendNewExerciseToDivision();
+			if (prevMesoId == -1) //splitModel is empty and there is no previous mesocycle
+				appendNewExerciseToDivision();
+			else if (prevMesoId >= 0) { //splitModel is empty and there is a previous mesocycle. Check if it has a plan for the letter
+				if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter)) {
+					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, 1);
+					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
+					splitModel.currentRow = 0;
 				}
 				else
 					appendNewExerciseToDivision();

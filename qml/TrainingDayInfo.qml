@@ -925,6 +925,7 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
+			visible: splitLetter !== 'R'
 			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true

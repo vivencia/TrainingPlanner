@@ -365,6 +365,7 @@ FocusScope {
 		}
 
 		lblExerciseNumber.text = parseInt(exerciseIdx + 1) + ":";
+		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
 		exerciseItem.Layout.row = exerciseIdx;
 	}
 

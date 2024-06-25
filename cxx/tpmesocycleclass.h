@@ -38,6 +38,7 @@ public:
 	inline int mesoId() const { return m_MesoId; }
 	inline void setMesoId(const int new_mesoid) { m_MesoId = new_mesoid; }
 	inline uint mesoIdx() const { return m_MesoIdx; }
+	void changeMesoIdxFromPages(const uint new_mesoIdx);
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
@@ -45,7 +46,7 @@ public:
 	void createMesocyclePage_part2();
 
 	inline void setMesocycleModel(DBMesocyclesModel* model) { m_MesocyclesModel = model; }
-	inline QQuickItem* getMesoPage() const { return m_MesoPage; }
+	inline QQuickItem* getMesoPage() const { return m_mesoPage; }
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
@@ -74,7 +75,12 @@ public:
 	void createMesoCalendarPage_part2();
 
 	inline QQuickItem* getCalendarPage() const { return m_calPage; }
-	inline void setMesoCalendarModel(DBMesoCalendarModel* model) { m_mesosCalendarModel = model; }
+	inline DBMesoCalendarModel* mesoCalendarModel()
+	{
+		if (!m_mesosCalendarModel)
+			m_mesosCalendarModel = new DBMesoCalendarModel;
+		return m_mesosCalendarModel;
+	}
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
@@ -146,7 +152,7 @@ private:
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	DBMesocyclesModel* m_MesocyclesModel;
 	QQmlComponent* m_mesoComponent;
-	QQuickItem* m_MesoPage;
+	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
