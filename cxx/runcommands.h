@@ -61,7 +61,7 @@ public:
 
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
-	void setAppLocale(const QString& localeStr);
+	void setAppLocale(const QString& localeStr, const bool bChangeConfig = false);
 	void populateSettingsWithDefaultValue();
 
 signals:

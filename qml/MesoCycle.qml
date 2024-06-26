@@ -71,26 +71,6 @@ Page {
 
 			onClicked: appDB.getMesoCalendar(true);
 		}
-
-TPBalloonTip {
-			id: tertetre2
-
-			function init() {
-				message = runCmd.uriToOpen();
-				show(-1);
-			}
-		}
-		TPButton {
-			text: qsTr("Statistics")
-			anchors {
-				right: parent.right
-				verticalCenter: parent.verticalCenter
-				rightMargin: 20
-			}
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"statistics.png"
-
-			onClicked: tertetre2.init();
-		}
 	}
 
 	ScrollView {

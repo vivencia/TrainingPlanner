@@ -148,6 +148,7 @@ Page {
 					text: qsTr("Exercises Plan")
 					flat: true
 					textUnderIcon: true
+					fixedSize: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
 					width: parent.width/3
 					height: parent.height/2

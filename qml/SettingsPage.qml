@@ -227,7 +227,7 @@ Page {
 					TPRadioButton {
 						id: optBasic
 						checked: AppSettings.themeStyle === "Basic";
-						text: qsTr("Basic")
+						text: "Basic"
 						Layout.leftMargin: 10
 
 						onClicked: {
@@ -239,7 +239,7 @@ Page {
 					TPRadioButton {
 						id: optFusion
 						checked: AppSettings.themeStyle === "Fusion";
-						text: qsTr("Fusion")
+						text: "Fusion"
 						Layout.leftMargin: 10
 
 						onClicked: {
@@ -251,7 +251,7 @@ Page {
 					TPRadioButton {
 						id: optImagine
 						checked: AppSettings.themeStyle === "Imagine";
-						text: qsTr("Imagine")
+						text: "Imagine"
 						Layout.leftMargin: 10
 
 						onClicked: {
@@ -263,7 +263,7 @@ Page {
 					TPRadioButton {
 						id: optMaterial
 						checked: AppSettings.themeStyle === "Material";
-						text: qsTr("Material")
+						text: "Material"
 						Layout.leftMargin: 10
 
 						onClicked: {
@@ -275,7 +275,7 @@ Page {
 					TPRadioButton {
 						id: optUniversal
 						checked: AppSettings.themeStyle === "Universal";
-						text: qsTr("Universal")
+						text: "Universal"
 						Layout.leftMargin: 10
 
 						onClicked: {
@@ -474,12 +474,12 @@ Page {
 
 			onClicked: {
 				bModified = false;
-				if (bNeedRestart) {
+				/*if (bNeedRestart) {
 					applyTip.showTimed(4000, 0);
 					bNeedRestart = false;
-				}
+				}*/
 
-				AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
+				appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
 				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 				if (bFontSizeChanged) {

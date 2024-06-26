@@ -14,13 +14,16 @@ ToolBar {
 
 	TPButton {
 		id: btnBack
-		enabled: stackView.depth >= 2
-		anchors.left: parent.left
-		anchors.leftMargin: 5
-		visible: stackView.depth >= 2
-		anchors.verticalCenter: parent.verticalCenter
 		text: qsTr("BACK")
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"back.png"
+		rounded: false
+		enabled: stackView.depth >= 2
+		visible: stackView.depth >= 2
+		anchors {
+			left: parent.left
+			leftMargin: 5
+			verticalCenter: parent.verticalCenter
+		}
 
 		onClicked: {
 			stackView.pop();

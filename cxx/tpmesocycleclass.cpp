@@ -70,8 +70,11 @@ void TPMesocycleClass::exerciseCompleted(int exercise_idx)
 	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	if (exercise_idx < m_currentExercises->exercisesCount()-1)
 	{
-		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
-		QMetaObject::invokeMethod(m_CurrenttDayPage, "showExercise", Q_ARG(QQuickItem*, m_currentExercises->exerciseEntry_const(exercise_idx+1)));
+		if (!m_currentExercises->exerciseEntry_const(exercise_idx+1)->property("finishButtonEnabled").toBool())
+		{
+			QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
+			QMetaObject::invokeMethod(m_CurrenttDayPage, "showExercise", Q_ARG(QQuickItem*, m_currentExercises->exerciseEntry_const(exercise_idx+1)));
+		}
 	}
 }
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -148,10 +151,7 @@ void TPMesocycleClass::createPlannerPage_part2()
 void TPMesocycleClass::createMesoSplitPage()
 {
 	if (m_splitComponent == nullptr)
-	{
 		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
-		m_splitProperties.insert(QStringLiteral("parentItem"), QVariant::fromValue(m_plannerPage));
-	}
 
 	if (m_splitComponent->status() != QQmlComponent::Ready)
 		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -184,6 +184,7 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 			splitModel = m_splitModels.value(i.key());
 			m_createdSplits.append(i.key());
 			m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(splitModel);
+			m_splitProperties[QStringLiteral("parentItem")] = QVariant::fromValue(m_plannerPage);
 			QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_QMlEngine->rootContext())));
 			m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 			item->setParentItem(m_plannerPage);

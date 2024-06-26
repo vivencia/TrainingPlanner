@@ -11,10 +11,10 @@ Rectangle {
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false
-	property bool flat: false
+	property bool flat: true
 	property bool leftAlign: true
 	property bool followParentsOpacity: false
-	property bool rounded: false
+	property bool rounded: true
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
 	property string imageSource
@@ -59,8 +59,8 @@ Rectangle {
 	}
 
 	function resizeButton() {
+		const fwidth = fontMetrics.boundingRect(text).width;
 		if (!fixedSize) {
-			const fwidth = fontMetrics.boundingRect(text).width;
 			buttonText.width = fwidth + 5
 			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 15);
 
@@ -69,10 +69,10 @@ Rectangle {
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
 		}
 		else {
-			if (imageSource.length > 0)
-				buttonText.elide = Text.ElideRight
-			else
+			if (rounded) {
+				buttonText.width = fwidth*0.9;
 				buttonText.wrapMode = Text.WordWrap;
+			}
 		}
 	}
 

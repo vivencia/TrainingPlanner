@@ -8,7 +8,7 @@
 RunCommands* RunCommands::app_runcmd(nullptr);
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
-	: QObject(parent), m_appSettings(settings), mb_appSuspended(false)
+	: QObject(parent), m_appSettings(settings), m_appLocale(nullptr), mb_appSuspended(false)
 {
 	app_runcmd = this;
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
@@ -447,8 +447,11 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 	}
 }
 
-void RunCommands::setAppLocale(const QString& localeStr)
+void RunCommands::setAppLocale(const QString& localeStr, const bool bChangeConfig)
 {
+	if (m_appLocale)
+		delete m_appLocale;
+
 	const QString strLanguage(localeStr.left(2));
 	const QString strTerritory(localeStr.right(2));
 	QLocale::Language language;
@@ -470,15 +473,16 @@ void RunCommands::setAppLocale(const QString& localeStr)
 
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
+	if (bChangeConfig)
+		m_appSettings->setValue("appLocale", m_appLocale->name());
 }
 
 void RunCommands::populateSettingsWithDefaultValue()
 {
 	if (m_appSettings->childKeys().isEmpty() || m_appSettings->value("appLocale").toString().isEmpty())
 	{
-		setAppLocale(QLocale::system().name());
+		setAppLocale(QLocale::system().name(), true);
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
-		m_appSettings->setValue("appLocale", m_appLocale->name());
 		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
 		m_appSettings->setValue("themeStyle", u"Material"_qs);
 		m_appSettings->setValue("colorScheme", u"Blue"_qs);
