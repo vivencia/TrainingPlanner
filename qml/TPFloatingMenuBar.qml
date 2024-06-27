@@ -11,6 +11,7 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
+	opacity: 1
 	height: entriesTotalHeight
 
 	property var entriesList: []
@@ -22,14 +23,46 @@ Popup {
 		close();
 	}
 
-	onAboutToShow: {
-		for(var i = 0; i < entriesList.length; ++i)
-			entriesList[i].initTransition();
+	enter: Transition {
+		NumberAnimation {
+			target: menu
+			property: "opacity"
+			from: 0.0
+			to: 1.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
+		NumberAnimation {
+			target: menu
+			property: "scale"
+			from: 0.0
+			to: 1.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
 	}
 
-	onAboutToHide: {
-		for(var i = 0; i < entriesList.length; ++i)
-			entriesList[i].finishTransition();
+	exit: Transition {
+		NumberAnimation {
+			target: menu
+			property: "opacity"
+			from: 1.0
+			to: 0.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
+		NumberAnimation {
+			target: menu
+			property: "scale"
+			from: 1.0
+			to: 0.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
 	}
 
 	background: Rectangle {
@@ -55,7 +88,7 @@ Popup {
 
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
-				clickId: id, flat: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
+				clickId: id, flat: true, rounded: false, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
 			entriesTotalHeight += button.buttonHeight;
 			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);
@@ -72,10 +105,6 @@ Popup {
 	}
 
 	function show(targetItem: Item, pos: int) {
-		if (visible) {
-			close();
-			return;
-		}
 		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 
 		var xpos, ypos;
