@@ -52,8 +52,8 @@ bool DBMesocyclesModel::importFromFancyText(QFile* inFile, QString& inData)
 	if (sep_idx != -1)
 	{
 		value = inData.right(inData.length() - sep_idx - 2);
-		modeldata.append(u"-1"_qs);
-		modeldata.append(value);
+		modeldata.append(u"-1"_qs); //id
+		modeldata.append(value); //meso name
 		col++;
 	}
 	else
@@ -119,13 +119,6 @@ uint DBMesocyclesModel::getTotalSplits(const uint row) const
 		} while (++itr != itr_end);
 	}
 	return nSplits;
-}
-
-void DBMesocyclesModel::setSplitInfo(const QString& splitA, const QString& splitB, const QString& splitC,
-									const QString& splitD, const QString& splitE, const QString& splitF)
-{
-	m_extraInfo.clear();
-	m_extraInfo.append(QStringList () << splitA << splitB << splitC << splitD << splitE << splitF);
 }
 
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const

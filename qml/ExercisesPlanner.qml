@@ -89,6 +89,7 @@ Page {
 			textUnderIcon: true
 			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.modified : false
 			fixedSize: true
+			rounded: false
 			width: 55
 			height: btnAddExercise.height
 			anchors {
@@ -110,6 +111,7 @@ Page {
 			textUnderIcon: true
 			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
+			rounded: false
 			width: 55
 			height: btnAddExercise.height
 			anchors {
@@ -132,6 +134,7 @@ Page {
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true
+			rounded: false
 			width: 55
 			height: btnAddExercise.height
 			anchors {
@@ -149,6 +152,7 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
 			fixedSize: true
+			rounded: false
 			width: 55
 			height: btnAddExercise.height
 			anchors {
@@ -166,6 +170,7 @@ Page {
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
 			textUnderIcon: true
 			fixedSize: true
+			rounded: false
 			width: 70
 			anchors {
 				right: parent.right

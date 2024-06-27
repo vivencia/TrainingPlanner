@@ -11,12 +11,10 @@ Popup {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
-	width: widesteEntryWidth
 	height: entriesTotalHeight
 
 	property var entriesList: []
 	property int entriesTotalHeight: 0
-	property int widesteEntryWidth: 100
 	property var entryComponent: null
 
 	contentItem.Keys.onBackPressed: (event) => {
@@ -24,50 +22,19 @@ Popup {
 		close();
 	}
 
+	onAboutToShow: {
+		for(var i = 0; i < entriesList.length; ++i)
+			entriesList[i].initTransition();
+	}
+
+	onAboutToHide: {
+		for(var i = 0; i < entriesList.length; ++i)
+			entriesList[i].finishTransition();
+	}
+
 	background: Rectangle {
 		id: background
-		color: AppSettings.primaryColor
-	}
-
-	enter: Transition {
-		NumberAnimation {
-			target: background
-			property: "opacity"
-			from: 0.0
-			to: 0.9
-			duration: 300
-			easing.type: Easing.InOutCubic
-		}
-		NumberAnimation {
-			target: background
-			property: "scale"
-			from: 0.0
-			to: 1.0
-			duration: 300
-			easing.type: Easing.InOutCubic
-		}
-	}
-
-	exit: Transition {
-		id: closeTransition
-		NumberAnimation {
-			target: background
-			property: "opacity"
-			from: 0.9
-			to: 0.0
-			duration: 500
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
-		NumberAnimation {
-			target: background
-			property: "scale"
-			from: 1.0
-			to: 0.0
-			duration: 500
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
+		color: "transparent"
 	}
 
 	ColumnLayout {
@@ -88,9 +55,7 @@ Popup {
 
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
-				clickId: id, flat: true, followParentsOpacity: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
-			if (button.width > widesteEntryWidth)
-				widesteEntryWidth = button.width;
+				clickId: id, flat: true, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
 			entriesTotalHeight += button.buttonHeight;
 			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);

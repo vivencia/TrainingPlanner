@@ -89,7 +89,7 @@ public:
 	inline void setExportRow(const uint row) { m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile, const bool bFancy) const;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData);
+	virtual bool importFromFancyText(QFile* inFile, QString& inData) { Q_UNUSED(inFile); Q_UNUSED(inData); return false; }
 	virtual bool importFromText(const QString& data);
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
@@ -99,27 +99,36 @@ public:
 	virtual inline bool isFieldFormatSpecial (const uint field) const { Q_UNUSED(field); return false; }
 	virtual inline QString formatField(const QString& fieldValue) const { return fieldValue; }
 
-	inline const QString& getFast(const uint row, const uint field) const
-	{
-		return m_modeldata.at(row).at(field);
-	}
-
-	inline void setFast(const uint row, const uint field, const QString& value)
-	{
-		m_modeldata[row][field] = value;
-	}
-
-	inline const QDate getDateFast(const uint row, const uint field) const
-	{
-		return QDate::fromJulianDay(m_modeldata.at(row).at(field).toLongLong());
-	}
-
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{
 		if (row >= 0 && row < m_indexProxy.count())
 			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
 		else
 			return QString();
+	}
+
+	inline const QString& getFast(const uint row, const uint field) const
+	{
+		return m_modeldata.at(row).at(field);
+	}
+
+	Q_INVOKABLE bool set(const uint row, const uint field, const QString& value)
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+		{
+			if (getFast(m_indexProxy.at(row), field) != value)
+			{
+				m_modeldata[m_indexProxy.at(row)][field] = value;
+				setModified(true);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline void setFast(const uint row, const uint field, const QString& value)
+	{
+		m_modeldata[row][field] = value;
 	}
 
 	Q_INVOKABLE int getInt(const uint row, const uint field) const
@@ -144,6 +153,25 @@ public:
 			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
 		else
 			return QDate::currentDate();
+	}
+
+	inline const QDate getDateFast(const uint row, const uint field) const
+	{
+		return QDate::fromJulianDay(m_modeldata.at(row).at(field).toLongLong());
+	}
+
+	Q_INVOKABLE bool setDate(const uint row, const uint field, const QDate& date)
+	{
+		if (row >= 0 && row < m_indexProxy.count())
+		{
+			if (getDateFast(m_indexProxy.at(row), field) != date)
+			{
+				m_modeldata[m_indexProxy.at(row)][field] = QString::number(date.toJulianDay());
+				setModified(true);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }

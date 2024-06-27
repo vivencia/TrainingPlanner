@@ -117,6 +117,7 @@ public:
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
 	virtual const QString exportExtraInfo() const override;
+	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual void updateFromModel(TPListModel* model) override;
 

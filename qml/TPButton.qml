@@ -13,7 +13,6 @@ Rectangle {
 	property bool fixedSize: false
 	property bool flat: true
 	property bool leftAlign: true
-	property bool followParentsOpacity: false
 	property bool rounded: true
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
@@ -25,10 +24,63 @@ Rectangle {
 
 	focus: true
 	border.color: flat ? "transparent" : AppSettings.fontColor
-	opacity: followParentsOpacity ? parent.opacity : 1
 	radius: rounded ? height : flat ? 0 : 6
 	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
+
+	SequentialAnimation {
+		id: showTransition
+		alwaysRunToEnd: true
+
+		NumberAnimation {
+			target: button
+			property: "opacity"
+			from: 0.0
+			to: 1.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+		}
+		NumberAnimation {
+			target: button
+			property: "scale"
+			from: 0.0
+			to: 1.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+		}
+	}
+
+	SequentialAnimation {
+		id: hideTransition
+		alwaysRunToEnd: true
+
+		NumberAnimation {
+			target: button
+			property: "opacity"
+			from: 1.0
+			to: 0.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
+		NumberAnimation {
+			target: button
+			property: "scale"
+			from: 1.0
+			to: 0.0
+			duration: 300
+			easing.type: Easing.InOutCubic
+			alwaysRunToEnd: true
+		}
+	}
+
+	function initTransition() {
+		showTransition.start();
+	}
+
+	function finishTransition() {
+		hideTransition.start();
+	}
 
 	onHighlightedChanged:
 		if (highlighted) {
@@ -94,7 +146,7 @@ Rectangle {
 
 	Label {
 		id: buttonText
-		opacity: (followParentsOpacity ? button.opacity : (button.enabled ? 1.0 : 0.5))
+		opacity: button.opacity
 		color: button.enabled ? textColor : AppSettings.disabledFontColor
 		font.weight: Font.ExtraBold
 		font.bold: true
@@ -139,7 +191,7 @@ Rectangle {
 		fillMode: Image.PreserveAspectFit
 		mirror: false
 		source: imageSource
-		opacity: (followParentsOpacity ? button.opacity : (button.enabled ? 1.0 : 0.5))
+		opacity: button.opacity
 		visible: imageSource.length > 1
 
 		Component.onCompleted: {

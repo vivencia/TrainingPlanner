@@ -13,23 +13,19 @@ Page {
 
 	required property int mesoId
 	required property int mesoIdx
-	required property date mesoStartDate
-	required property date mesoEndDate
 
+	property string mesoSplit: mesocyclesModel.get(mesoIdx, 6);
 	property date minimumMesoStartDate
 	property date maximumMesoEndDate
 	property date fixedMesoEndDate //Used on newMeso to revert data to the original value gathered from HomePage
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
-	property string mesoSplit: mesocyclesModel.get(mesoIdx, 6)
-
-	property bool bMesoNameOK: true
+	property bool bMesoNameOK: false
+	property bool bMesoSplitOK: false
 	property bool bStartDateChanged: false
 	property bool bEndDateChanged: false
-	property bool bMesoSplitChanged: false
 
 	property bool bNewMeso: mesoId === -1
-	property bool bModified: false
 
 	property var mesoStatisticsPage: null
 
@@ -47,7 +43,7 @@ Page {
 
 	header: ToolBar {
 		height: 45
-		enabled: !bNewMeso && !bModified
+		enabled: !bNewMeso && !mesocyclesModel.modified
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -102,12 +98,13 @@ Page {
 				ToolTip.text: qsTr("Mesocycle name too short")
 
 				onTextEdited: {
-					bMesoNameOK= text.length >= 5;
-					if (bMesoNameOK) {
-						if (text !== mesocyclesModel.get(mesoIdx, 1))
-							bModified = true;
-					}
+					bMesoNameOK = text.length >= 5;
 					ToolTip.visible = !bMesoNameOK;
+				}
+
+				onEditingFinished: {
+					if (bMesoNameOK)
+						bMesoNameOK = mesocyclesModel.set(mesoIdx, 1, text);
 				}
 
 				Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -154,12 +151,11 @@ Page {
 					}
 
 					onDateSelected: function(date) {
-						bStartDateChanged = date !== mesocyclesModel.getDate(mesoIdx, 2);
+						bStartDateChanged = mesocyclesModel.setDate(mesoIdx, 2, date);
 						if (bStartDateChanged) {
-							mesoStartDate = date;
-							txtMesoStartDate.text = runCmd.formatDate(mesoStartDate);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesoStartDate, mesoEndDate);
-							bModified = true;
+							txtMesoStartDate.text = runCmd.formatDate(date);
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(date, mesocyclesModel.getDate(mesoIdx, 3));
+							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
 						}
 						if (bNewMeso)
 							caldlg2.open();
@@ -201,7 +197,7 @@ Page {
 
 				CalendarDialog {
 					id: caldlg2
-					showDate: mesoEndDate
+					showDate: mesocyclesModel.getDate(mesoIdx, 3)
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
 					windowTitle: bNewMeso ? qsTr("Please select the end date for the mesocycle ") + txtMesoName.text : ""
@@ -212,12 +208,11 @@ Page {
 					}
 
 					onDateSelected: function(date) {
-						bEndDateChanged = date !== mesocyclesModel.getDate(mesoIdx, 3);
+						bEndDateChanged = mesocyclesModel.setDate(mesoIdx, 3, date);
 						if (bEndDateChanged) {
-							mesoEndDate = date;
-							txtMesoEndDate.text = runCmd.formatDate(mesoEndDate);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesoStartDate, mesoEndDate);
-							bModified = true;
+							txtMesoEndDate.text = runCmd.formatDate(date);
+							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), date);
+							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
 						}
 						txtMesoSplit.forceActiveFocus();
 					}
@@ -290,11 +285,17 @@ Page {
 				}
 
 				onTextEdited: {
-					bMesoSplitChanged = text !== mesocyclesModel.get(mesoIdx, 6);
-					if (bMesoSplitChanged) {
-						ToolTip.visible = text.indexOf('R') === -1;
-						bModified = true;
-						mesoSplit = text;
+					bMesoSplitOK = text.indexOf('R') !== -1;
+					ToolTip.visible = !bMesoSplitOK;
+				}
+
+				onEditingFinished: {
+					if (bMesoSplitOK) {
+						bMesoSplitOK = mesocyclesModel.set(mesoIdx, 6, text);
+						if (bMesoSplitOK) {
+							mesoSplit = text;
+							JSF.checkWhetherCanCreatePlan();
+						}
 					}
 				}
 
@@ -315,7 +316,7 @@ Page {
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 5
-				visible: bNewMeso ? false : bStartDateChanged || bEndDateChanged || bMesoSplitChanged
+				visible: bNewMeso ? false : bStartDateChanged || bEndDateChanged || bMesoSplitOK
 				padding: 0
 				spacing: 0
 				height: 300
@@ -403,8 +404,7 @@ Page {
 						visible: mesoSplit.indexOf('A') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 2) ) {
-								bModified = true;
+							if (mesoSplitModel.set(mesoIdx, 2, text)) {
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
@@ -436,8 +436,7 @@ Page {
 						visible: mesoSplit.indexOf('B') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 3) ) {
-								bModified = true;
+							if (mesoSplitModel.set(mesoIdx, 3, text)) {
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
@@ -469,8 +468,7 @@ Page {
 						visible: mesoSplit.indexOf('C') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 4) ) {
-								bModified = true;
+							if (mesoSplitModel.set(mesoIdx, 4, text)) {
 								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
@@ -502,9 +500,8 @@ Page {
 						visible: mesoSplit.indexOf('D') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 5) ) {
-								bModified = true;
-								if (text.length >=3 )
+							if (mesoSplitModel.set(mesoIdx, 5, text)) {
+								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
 						}
@@ -535,9 +532,8 @@ Page {
 						visible: mesoSplit.indexOf('E') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 6) ) {
-								bModified = true;
-								if (text.length >=3 )
+							if (mesoSplitModel.set(mesoIdx, 6, text)) {
+								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
 						}
@@ -568,9 +564,8 @@ Page {
 						visible: mesoSplit.indexOf('F') !== -1
 
 						onEditingFinished: {
-							if ( text !== mesoSplitModel.get(mesoIdx, 7) ) {
-								bModified = true;
-								if (text.length >=3 )
+							if (mesoSplitModel.set(mesoIdx, 7, text)) {
+								if (text.length >=3)
 									JSF.checkWhetherCanCreatePlan();
 							}
 						}
@@ -615,10 +610,7 @@ Page {
 					text: mesocyclesModel.get(mesoIdx, 7)
 					color: AppSettings.fontColor
 
-					onEditingFinished: {
-						if ( text !== mesocyclesModel.get(mesoIdx, 7) )
-							bModified = true;
-					}
+					onEditingFinished: mesocyclesModel.set(mesoIdx, 7, text);
 				}
 				Component.onCompleted: vBar.position = 0
 				ScrollBar.vertical: ScrollBar { id: vBar }
@@ -644,10 +636,7 @@ Page {
 					text: mesocyclesModel.get(mesoIdx, 4)
 					color: AppSettings.fontColor
 
-					onEditingFinished: {
-						if ( text !== mesocyclesModel.get(mesoIdx, 4) )
-							bModified = true;
-					}
+					onEditingFinished: mesocyclesModel.set(mesoIdx, 4, text);
 				}
 
 				Component.onCompleted: vBar2.position = 0
@@ -663,97 +652,8 @@ Page {
 			txtMesoName.forceActiveFocus();
 		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
 		mesoPropertiesPage.StackView.activating.connect(pageActivation);
+		mesocyclesModel.modifiedChanged.connect(saveMeso);
 	}
-
-	footer: ToolBar {
-		id: mesoCycleToolBar
-		width: parent.width
-		height: 55
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
-
-		TPButton {
-			id: btnRevert
-			text: qsTr("Cancel alterations")
-			anchors.left: parent.left
-			anchors.leftMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
-			textUnderIcon: true
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"revert-day.png"
-			enabled: bModified
-
-			onClicked: {
-				if (!bNewMeso) {
-					txtMesoName.text = Qt.binding(function() { return mesocyclesModel.get(mesoIdx, 1) });
-					mesoStartDate = mesocyclesModel.getDate(mesoIdx, 2);
-					mesoEndDate = mesocyclesModel.getDate(mesoIdx, 3);
-					txtMesoNotes.text = Qt.binding(function() { return mesocyclesModel.get(mesoIdx, 4) });
-					txtMesoNWeeks.text = Qt.binding(function() { return mesocyclesModel.get(mesoIdx, 5) });
-					txtMesoSplit.text = Qt.binding(function() { return mesocyclesModel.get(mesoIdx, 6) });
-					txtMesoDrugs.text = Qt.binding(function() { return mesocyclesModel.get(mesoIdx, 7) });
-					txtSplitA.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 2) });
-					txtSplitB.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 3) });
-					txtSplitC.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 4) });
-					txtSplitD.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 5) });
-					txtSplitE.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 6) });
-					txtSplitF.text = Qt.binding(function() { return mesoSplitModel.get(mesoIdx, 7) });
-				}
-				else {
-					mesoStartDate = calendarStartDate;
-					mesoEndDate = fixedMesoEndDate;
-					txtMesoName.clear();
-					txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(calendarStartDate, fixedMesoEndDate);
-					txtMesoSplit.clear();
-					txtMesoDrugs.clear();
-					txtMesoNotes.clear();
-					txtSplitA.clear();
-					txtSplitB.clear();
-					txtSplitC.clear();
-					txtSplitD.clear();
-					txtSplitE.clear();
-					txtSplitF.clear();
-				}
-				bModified = false;
-				bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
-			}
-		} //btnRevert
-
-		TPButton {
-			id: btnSaveMeso
-			text: qsTr("Save Information")
-			anchors.right: parent.right
-			anchors.rightMargin: 5
-			anchors.verticalCenter: parent.verticalCenter
-			textUnderIcon: true
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
-			enabled: bNewMeso ? bMesoNameOK : bModified
-
-			onClicked: {
-				var changeCalendar = false;
-				if (bStartDateChanged || bEndDateChanged || bMesoSplitChanged) {
-					changeCalendar = true;
-					bStartDateChanged = bEndDateChanged = bMesoSplitChanged = false;
-				}
-				appDB.saveMesocycle(bNewMeso, txtMesoName.text, mesoStartDate, mesoEndDate, txtMesoNotes.text,
-									txtMesoNWeeks.text, txtMesoSplit.text, txtMesoDrugs.text,
-									txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text,
-									changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
-				if (bNewMeso)
-					bNewMeso = false;
-				JSF.checkWhetherCanCreatePlan();
-				bModified = false;
-			} //onClicked
-		} //btnSaveMeso
-	} //footer
 
 	function changeMuscularGroup(splitletter: string, description: string) {
 		switch (splitletter) {
@@ -767,21 +667,6 @@ Page {
 		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 	}
 
-	function createMesoStatisticsObject() {
-		var component = Qt.createComponent("GraphicsViewer.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			mesoStatisticsPage = component.createObject(mesoPropertiesPage, {
-				width:homePage.width, height:homePage.height
-			});
-			appStackView.push(mesoStatisticsPage, StackView.DontLoad);
-		}
-		if (component.status === Component.Ready)
-			finishCreation();
-		else
-			component.statusChanged.connect(finishCreation);
-	}
-
 	function pageDeActivation() {
 		if (bNewMeso)
 			appDB.removeMesocycle(mesoIdx);
@@ -789,5 +674,15 @@ Page {
 
 	function pageActivation() {
 		appDB.setWorkingMeso(mesoId, mesoIdx);
+	}
+
+	function saveMeso() {
+		var changeCalendar = false;
+		if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+			changeCalendar = true;
+			bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+		}
+		appDB.saveMesocycle(bNewMeso, changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+		bNewMeso = false;
 	}
 } //Page

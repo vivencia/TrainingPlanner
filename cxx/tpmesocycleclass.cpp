@@ -83,8 +83,6 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 {
 	m_mesoProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 	m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_mesoProperties.insert(QStringLiteral("mesoStartDate"), m_MesocyclesModel->getDate(m_MesoIdx, 2));
-	m_mesoProperties.insert(QStringLiteral("mesoEndDate"), m_MesocyclesModel->getDate(m_MesoIdx, 3));
 	m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
 	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
 	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
@@ -218,14 +216,12 @@ void TPMesocycleClass::changeMuscularGroup(DBMesoSplitModel* splitModel)
 }
 
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml and
-void TPMesocycleClass::updateMuscularGroup(const QString& splitA, const QString& splitB, const QString& splitC,
-								const QString& splitD, const QString& splitE, const QString& splitF)
+void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
-	const QStringList splits(QStringList() << splitA << splitB << splitC << splitD << splitE << splitF);
 	for(uint i(0); i < 6; ++i)
 	{
 		if (m_splitModels.value(QChar('A'+i)) != nullptr)
-			m_splitModels[QChar('A'+i)]->setMuscularGroup(splits.at(i));
+			m_splitModels[QChar('A'+i)]->setMuscularGroup(splitModel->getFast(splitModel->currentRow(), i+2));
 	}
 }
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------

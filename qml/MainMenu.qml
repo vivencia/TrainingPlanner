@@ -39,7 +39,7 @@ Drawer {
 		text: qsTr("Exit")
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"application-exit.png"
 		leftAlign: false
-		flat: true
+		rounded: false
 
 		anchors {
 			left: parent.left
@@ -113,8 +113,6 @@ Drawer {
 
 		TPButton {
 			id: btnSettingsExDB
-			flat: true
-			rounded: true
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
 
@@ -132,8 +130,6 @@ Drawer {
 		TPButton {
 			id: btnSettingsTheme
 			text: qsTr("Settings")
-			flat: true
-			rounded: true
 			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
@@ -146,8 +142,6 @@ Drawer {
 		TPButton {
 			id: btnBackup
 			text: qsTr("Backup/Restore")
-			flat: true
-			rounded: true
 			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
@@ -189,7 +183,7 @@ Drawer {
 			buttonComponent = Qt.createComponent("TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, flat: true, rounded: true, clickId: clickid, "Layout.fillWidth": true });
+			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, "Layout.fillWidth": true });
 			button.clicked.connect(appDB.openMainMenuShortCut);
 			appDB.addMainMenuShortCutEntry(button);
 		}

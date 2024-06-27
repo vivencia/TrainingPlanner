@@ -111,8 +111,8 @@ Page {
 				TPButton {
 					id: btnMesoInfo
 					text: qsTr("View Meso")
-					flat: true
 					textUnderIcon: true
+					rounded: false
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
 					width: parent.width/3
 					height: parent.height/2
@@ -127,7 +127,7 @@ Page {
 				TPButton {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
-					flat: true
+					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
 					width: parent.width/3
@@ -146,7 +146,7 @@ Page {
 				TPButton {
 					id: btnMesoPlan
 					text: qsTr("Exercises Plan")
-					flat: true
+					rounded: false
 					textUnderIcon: true
 					fixedSize: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
@@ -166,7 +166,7 @@ Page {
 				TPButton {
 					id: btnImport
 					text: qsTr("Import")
-					flat: true
+					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
 					width: parent.width/3
@@ -185,7 +185,7 @@ Page {
 				TPButton {
 					id: btnExport
 					text: qsTr("Export")
-					flat: true
+					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
 					width: parent.width/3
@@ -221,7 +221,6 @@ Page {
 
 				TPButton {
 					text: qsTr("Remove Mesocycle")
-					flat: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
 
 					anchors {
@@ -318,10 +317,13 @@ Page {
 			id: btnAddOpenSchedule
 			text: qsTr("New open-ended schedule")
 			textUnderIcon: true
+			rounded: false
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"open-schedule.png"
-			anchors.left: parent.left
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.leftMargin: 5
+			anchors {
+				left: parent.left
+				verticalCenter: parent.verticalCenter
+				leftMargin: 5
+			}
 
 			onClicked: {
 				if (mesocyclesModel.count > 0)
@@ -336,9 +338,12 @@ Page {
 			text: qsTr("New Mesocycle")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle-add.png"
 			textUnderIcon: true
-			anchors.right: parent.right
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.rightMargin: 5
+			rounded: false
+			anchors {
+				right: parent.right
+				verticalCenter: parent.verticalCenter
+				rightMargin: 5
+			}
 
 			onClicked: {
 				if (mesocyclesModel.count > 0)

@@ -303,13 +303,9 @@ void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
 		m_MesoIdx = mesoIdx;
 		m_MesoIdStr = QString::number(m_MesoId);
 		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
-		mesocyclesModel->setCurrentRow(mesoIdx);
+		mesocyclesModel->setCurrentRow(m_MesoIdx);
+		mesoSplitModel->setCurrentRow(m_MesoIdx);
 	}
-}
-
-void DbManager::removeWorkingMeso()
-{
-
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -359,11 +355,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					m_MesoIdStr = QString::number(m_MesoId);
 					m_currentMesoManager->setMesoId(m_MesoId);
 					if (m_currentMesoManager->getMesoPage())
-					{
-						newMesoSplit(mesocyclesModel->extraInfo(0), mesocyclesModel->extraInfo(1), mesocyclesModel->extraInfo(2),
-									mesocyclesModel->extraInfo(3), mesocyclesModel->extraInfo(4), mesocyclesModel->extraInfo(5));
 						m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
-					}
 				}
 			break;
 		}
@@ -635,11 +627,9 @@ void DbManager::importFromModel(TPListModel* model)
 		break;
 		case MESOCYCLES_TABLE_ID:
 			createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1), false);
-			saveMesocycle(true, model->getFast(0, MESOCYCLES_COL_NAME), model->getDate(0, MESOCYCLES_COL_STARTDATE),
-								model->getDate(0, MESOCYCLES_COL_ENDDATE), model->getFast(0, MESOCYCLES_COL_NOTE),
-								model->getFast(0, MESOCYCLES_COL_WEEKS), model->getFast(0, MESOCYCLES_COL_SPLIT),
-								model->getFast(0, MESOCYCLES_COL_DRUGS), QString(), QString(), QString(),
-							QString(), QString(), QString(), false, false, false);
+			for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
+				mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
+			saveMesocycle(true, false, false, false);
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
@@ -654,8 +644,10 @@ void DbManager::importFromModel(TPListModel* model)
 			}
 			else
 			{
-				updateMesoSplit(model->getFast(0, 0), model->getFast(0, 1), model->getFast(0, 2), model->getFast(0, 3),
-								model->getFast(0, 4), model->getFast(0, 5));
+				for (uint i(0); i < 8; ++i)
+					mesoSplitModel->setFast(m_MesoIdx, i, model->getFast(0, i));
+				mesoSplitModel->setFast(m_MesoIdx, 1, m_MesoIdStr);
+				newMesoSplit();
 			}
 		}
 		break;
@@ -1091,11 +1083,14 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 		startDate = minimumStartDate;
 		endDate = m_runCommands->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
-	const QStringList mesoInfo( QStringList() << u"-1"_qs << name << QString::number(startDate.toJulianDay()) <<
+	mesocyclesModel->appendList(QStringList() << u"-1"_qs << name << QString::number(startDate.toJulianDay()) <<
 		(bRealMeso ? QString::number(endDate.toJulianDay()) : u"0"_qs) << QString() <<
 		(bRealMeso ? QString::number(m_runCommands->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
-		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs) );
-	mesocyclesModel->appendList(mesoInfo);
+		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs));
+
+	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
+				QString() << QString() << QString() << QString() );
+
 	setWorkingMeso(-2, mesocyclesModel->count() - 1);
 	if (bCreatePage)
 	{
@@ -1108,30 +1103,32 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 	}
 }
 
-void DbManager::saveMesocycle(const bool bNewMeso, const QString& mesoName, const QDate& mesoStartDate, const QDate& mesoEndDate,
-						const QString& mesoNote, const QString& mesoWeeks, const QString& mesoSplit, const QString& mesoDrugs,
-							const QString& splitA, const QString& splitB, const QString& splitC,
-							const QString& splitD, const QString& splitE, const QString& splitF,
-								const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
+void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	mesocyclesModel->setCurrentRow(m_MesoIdx);
+	worker->addExecArg(m_MesoIdx);
 
-	worker->setData(m_MesoIdStr, mesoName, QString::number(mesoStartDate.toJulianDay()), QString::number(mesoEndDate.toJulianDay()),
-						mesoNote, mesoWeeks, mesoSplit, mesoDrugs);
 	if (bNewMeso)
 	{
 		if (mb_importMode)
 			worker->setWaitForThreadToFinish(true);
-		mesocyclesModel->setSplitInfo(splitA, splitB, splitC, splitD, splitE, splitF);
+		else
+		{
+			connect( this, &DbManager::databaseReady, this, [&] {
+				mesoSplitModel->setFast(m_MesoIdx, 2, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
+				newMesoSplit();
+			} );
+		}
 		createThread(worker, [worker] () { worker->newMesocycle(); } );
 	}
 	else
 	{
 		createThread(worker, [worker] () { worker->updateMesocycle(); } );
-		updateMesoSplit(splitA, splitB, splitC, splitD, splitE, splitF);
+		updateMesoSplit();
 		if (bChangeCalendar)
-			changeMesoCalendar(mesoStartDate, mesoEndDate, mesoSplit, bPreserveOldCalendar, bPreserveUntillYesterday);
+			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE),
+				mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE),
+				mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT), bPreserveOldCalendar, bPreserveUntillYesterday);
 	}
 	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 }
@@ -1191,30 +1188,19 @@ void DbManager::getMesoSplit(const QString& mesoid)
 	createThread(worker, [worker] () { worker->getMesoSplit(); } );
 }
 
-void DbManager::newMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
-								const QString& splitD, const QString& splitE, const QString& splitF)
+void DbManager::newMesoSplit()
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
+	worker->addExecArg(m_MesoIdx);
 	createThread(worker, [worker] () { worker->newMesoSplit(); } );
 }
 
-void DbManager::updateMesoSplit(const QString& splitA, const QString& splitB, const QString& splitC,
-								const QString& splitD, const QString& splitE, const QString& splitF)
+void DbManager::updateMesoSplit()
 {
-	//If the MesocyclesSplits.db.sqlite was removed, but Mesocycles.db.sqlite was not, Mesocyles.qml will
-	//call update on a empty database. We account for that possibility. Also, when importing we will not attempt to create a new mesoSplit entry
-	//at the time of the new mesocicle creation. Its creation gets deffered untill the information from splits is read from the import file
-	if (mesoSplitModel->count() == 0)
-	{
-		newMesoSplit(splitA, splitB, splitC, splitD, splitE, splitF);
-		return;
-	}
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	worker->addExecArg(m_MesoIdx);
-	worker->setData(m_MesoIdStr, splitA, splitB, splitC, splitD, splitE, splitF);
 	createThread(worker, [worker] () { worker->updateMesoSplit(); } );
-	m_currentMesoManager->updateMuscularGroup(splitA, splitB, splitC, splitD, splitE, splitF);
+	m_currentMesoManager->updateMuscularGroup(mesoSplitModel);
 }
 
 void DbManager::removeMesoSplit(const uint meso_id)

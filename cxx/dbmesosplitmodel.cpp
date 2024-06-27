@@ -247,6 +247,52 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 	return true;
 }
 
+bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
+{
+	char buf[256];
+	QStringList modeldata;
+	int sep_idx(-1);
+
+	if (m_extraInfo.isEmpty())
+	{
+		inData.chop(1);
+		int sep_idx(inData.indexOf(':'));
+		if (sep_idx != -1)
+		{
+			modeldata.append(u"-1"_qs); //id
+			modeldata.append(u"-1"_qs); //meso id
+			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+		}
+		else
+			return false;
+	}
+
+	while (inFile->readLine(buf, sizeof(buf)) != -1) {
+		inData = buf;
+		inData.chop(1);
+		if (inData.isEmpty())
+		{
+			if (!modeldata.isEmpty())
+			{
+				appendList(modeldata);
+				modeldata.clear();
+			}
+		}
+		else
+		{
+			sep_idx = inData.indexOf(':');
+			if (sep_idx != -1)
+				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+			else
+			{
+				if (inData.contains(u"##"_qs))
+					break;
+			}
+		}
+	}
+	return count() > 0;
+}
+
 void DBMesoSplitModel::updateFromModel(TPListModel* model)
 {
 	if (model->count() > 0)

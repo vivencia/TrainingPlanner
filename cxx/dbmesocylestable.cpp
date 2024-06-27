@@ -95,20 +95,22 @@ void DBMesocyclesTable::newMesocycle()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		const uint row(m_execArgs.at(0).toUInt());
 		query.prepare( QStringLiteral(
 									"INSERT INTO mesocycles_table "
 									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
 									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_data.at(MESOCYCLES_COL_NAME), m_data.at(MESOCYCLES_COL_STARTDATE), m_data.at(MESOCYCLES_COL_ENDDATE),
-										m_data.at(MESOCYCLES_COL_NOTE), m_data.at(MESOCYCLES_COL_WEEKS), m_data.at(MESOCYCLES_COL_SPLIT),
-										m_data.at(MESOCYCLES_COL_DRUGS)) );
+									.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
+										m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
+										m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
+										m_model->getFast(row, MESOCYCLES_COL_DRUGS)) );
 		m_result = query.exec();
 		if (m_result)
 		{
 			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
-			m_data[MESOCYCLES_COL_ID] = query.lastInsertId().toString();
-			m_data.append(m_data.at(MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
-			m_model->updateList(m_data, m_model->currentRow());
+			m_model->setFast(row, MESOCYCLES_COL_ID, query.lastInsertId().toString());
+			m_model->setFast(row, MESOCYCLES_COL_REALMESO,
+					m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 			m_model->setModified(false);
 			m_opcode = OP_ADD;
 		}
@@ -129,12 +131,14 @@ void DBMesocyclesTable::updateMesocycle()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
+		const uint row(m_execArgs.at(0).toUInt());
+		const QString queryCmd(QStringLiteral(
 									"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=\'%2\', meso_end_date=\'%3\', "
 									"meso_note=\'%4\', meso_nweeks=\'%5\', meso_split=\'%6\', meso_drugs=\'%7\' WHERE id=%8")
-									.arg(m_data.at(MESOCYCLES_COL_NAME), m_data.at(MESOCYCLES_COL_STARTDATE), m_data.at(MESOCYCLES_COL_ENDDATE),
-										m_data.at(MESOCYCLES_COL_NOTE), m_data.at(MESOCYCLES_COL_WEEKS), m_data.at(MESOCYCLES_COL_SPLIT),
-										m_data.at(MESOCYCLES_COL_DRUGS), m_data.at(MESOCYCLES_COL_ID)) );
+									.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
+										m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
+										m_model->getFast(row, MESOCYCLES_COL_DRUGS), m_model->getFast(row, MESOCYCLES_COL_ID)));
+		query.prepare( queryCmd );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}

@@ -297,48 +297,6 @@ void TPListModel::exportToText(QFile* outFile, const bool bFancy) const
 		outFile->write("##end##");
 }
 
-bool TPListModel::importFromFancyText(QFile* inFile, QString& inData)
-{
-	char buf[256];
-	QStringList modeldata;
-	int sep_idx(-1);
-
-	if (m_extraInfo.isEmpty())
-	{
-		inData.chop(1);
-		int sep_idx(inData.indexOf(':'));
-		if (sep_idx != -1)
-			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
-		else
-			return false;
-	}
-
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
-		{
-			if (!modeldata.isEmpty())
-			{
-				appendList(modeldata);
-				modeldata.clear();
-			}
-		}
-		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
-			else
-			{
-				if (inData.contains(u"##"_qs))
-					break;
-			}
-		}
-	}
-	return count() > 0;
-}
-
 bool TPListModel::importFromText(const QString& data)
 {
 	int chr_pos1(data.indexOf(':'));

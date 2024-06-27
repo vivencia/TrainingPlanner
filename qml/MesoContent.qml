@@ -265,6 +265,7 @@ Page {
 			text: qsTr("View Day")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"day-info.png"
 			textUnderIcon: true
+			rounded: false
 			width: 60
 			fixedSize: true
 			enabled: false

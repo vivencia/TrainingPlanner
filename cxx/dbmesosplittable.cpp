@@ -145,19 +145,19 @@ void DBMesoSplitTable::newMesoSplit()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		const uint row(m_execArgs.at(0).toUInt());
 		query.prepare( QStringLiteral(
 									"INSERT INTO mesocycles_splits "
 									"(meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
 									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_data.at(1), m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7)) );
+									.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4), m_model->getFast(row, 5),
+										m_model->getFast(row, 6), m_model->getFast(row, 7)) );
 		m_result = query.exec();
 		if (m_result)
 		{
 			MSG_OUT("DBMesoSplitTable newMesoSplit SUCCESS")
-			m_data[0] = query.lastInsertId().toString();
-			m_model->appendList(m_data);
-			m_opcode = OP_ADD;
+			m_model->setFast(row, 0, query.lastInsertId().toString());
+			m_model->setModified(false);
 		}
 		mSqlLiteDB.close();
 	}
@@ -176,11 +176,12 @@ void DBMesoSplitTable::updateMesoSplit()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		const uint row(m_execArgs.at(0).toUInt());
 		query.prepare( QStringLiteral(
 									"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', "
 									"splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', splitF=\'%6\' WHERE meso_id=%7")
-									.arg(m_data.at(2), m_data.at(3), m_data.at(4), m_data.at(5),
-										m_data.at(6), m_data.at(7), m_data.at(1)) );
+									.arg(m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4), m_model->getFast(row, 5),
+										m_model->getFast(row, 6), m_model->getFast(row, 7), m_model->getFast(row, 1)) );
 		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
