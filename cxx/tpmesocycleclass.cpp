@@ -73,7 +73,7 @@ void TPMesocycleClass::exerciseCompleted(int exercise_idx)
 		if (!m_currentExercises->exerciseEntry_const(exercise_idx+1)->property("finishButtonEnabled").toBool())
 		{
 			QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
-			QMetaObject::invokeMethod(m_CurrenttDayPage, "showExercise", Q_ARG(QQuickItem*, m_currentExercises->exerciseEntry_const(exercise_idx+1)));
+			QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView", Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx+1)->property("y").toInt() + 50));
 		}
 	}
 }
@@ -344,6 +344,17 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
+}
+
+void TPMesocycleClass::resetWorkout()
+{
+	m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
+	m_CurrenttDayModel->setTimeOut(u"--:--"_qs);
+	m_CurrenttDayModel->setDayIsFinished(false);
+	m_CurrenttDayPage->setProperty("timeIn", m_CurrenttDayModel->timeIn());
+	m_CurrenttDayPage->setProperty("timeOut", m_CurrenttDayModel->timeOut());
+	m_CurrenttDayPage->setProperty("editMode", false);
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "resetTimer", Qt::AutoConnection);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------

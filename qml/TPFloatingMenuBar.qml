@@ -104,6 +104,10 @@ Popup {
 		entriesList[id].enabled = benabled;;
 	}
 
+	function setMenuText(id: int, newText: string) {
+		entriesList[id].text = newText;
+	}
+
 	function show(targetItem: Item, pos: int) {
 		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 

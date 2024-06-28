@@ -325,12 +325,7 @@ Page {
 				leftMargin: 5
 			}
 
-			onClicked: {
-				if (mesocyclesModel.count > 0)
-					newAction(0);
-				else
-					showEmptyDatabaseMenu();
-			}
+			onClicked: newAction(0);
 		}
 
 		TPButton {

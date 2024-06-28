@@ -80,8 +80,8 @@ public:
 	void getAllMesocycles();
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name, const bool bCreatePage);
-	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, const bool bPreserveOldCalendar,
-									const bool bPreserveUntillYesterday);
+	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
+									const bool bPreserveUntillYesterday = false);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	void deleteMesocyclesTable(const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------

@@ -27,8 +27,6 @@ Page {
 
 	property bool bNewMeso: mesoId === -1
 
-	property var mesoStatisticsPage: null
-
 	Image {
 		anchors.fill: parent
 		source: "qrc:/images/app_logo.png"
@@ -43,7 +41,7 @@ Page {
 
 	header: ToolBar {
 		height: 45
-		enabled: !bNewMeso && !mesocyclesModel.modified
+		enabled: !bNewMeso
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -404,10 +402,8 @@ Page {
 						visible: mesoSplit.indexOf('A') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 2, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 2, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -436,10 +432,8 @@ Page {
 						visible: mesoSplit.indexOf('B') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 3, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 3, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -468,10 +462,8 @@ Page {
 						visible: mesoSplit.indexOf('C') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 4, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 4, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -500,10 +492,8 @@ Page {
 						visible: mesoSplit.indexOf('D') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 5, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 5, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -532,10 +522,8 @@ Page {
 						visible: mesoSplit.indexOf('E') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 6, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 6, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -564,10 +552,8 @@ Page {
 						visible: mesoSplit.indexOf('F') !== -1
 
 						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 7, text)) {
-								if (text.length >=3)
-									JSF.checkWhetherCanCreatePlan();
-							}
+							if (mesoSplitModel.set(mesoIdx, 7, text))
+								JSF.checkWhetherCanCreatePlan();
 						}
 
 						Keys.onReturnPressed: { //Alphanumeric keyboard
@@ -677,12 +663,14 @@ Page {
 	}
 
 	function saveMeso() {
-		var changeCalendar = false;
-		if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
-			changeCalendar = true;
-			bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+		if (mesocyclesModel.modified) {
+			var changeCalendar = false;
+			if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+				changeCalendar = true;
+				bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
+			}
+			appDB.saveMesocycle(bNewMeso, changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+			bNewMeso = false;
 		}
-		appDB.saveMesocycle(bNewMeso, changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
-		bNewMeso = false;
 	}
 } //Page

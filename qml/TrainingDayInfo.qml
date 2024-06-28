@@ -39,6 +39,7 @@ Page {
 	property var navButtons: null
 	property var timerDialog: null
 	property var timerDialogRequester: null
+	property var optionsMenu: null
 
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
@@ -51,6 +52,10 @@ Page {
 
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
+
+	onEditModeChanged: {
+		optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
+	}
 
 	onBExportEnabledChanged: {
 		if (imexportMenu) {
@@ -228,6 +233,17 @@ Page {
 			bShare = share;
 			show(-1);
 		}
+	}
+
+	TPBalloonTip {
+		id: resetWorkoutMsg
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"reset.png"
+		title: qsTr("Reset workout?");
+		message: qsTr("Exercises will not be afected")
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+
+		onButton1Clicked: itemManager.resetWorkout();
 	}
 
 	ScrollView {
@@ -497,7 +513,7 @@ Page {
 			TPButton {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle")
 				flat: true
-				rounded: true
+				rounded: false
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 				width: parent.width - 10
 				height: 50
@@ -873,12 +889,12 @@ Page {
 		}
 
 		TPButton {
-			id: btnEditDay
-			text: !editMode ? qsTr("Edit workout") : qsTr("Done")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit.png"
+			id: btnFinishedDayOptions
+			imageSource: "qrc:/images/"+AppSettings.iconFolder+"menu.png"
 			textUnderIcon: true
-			width: 75
+			width: 55
 			fixedSize: true
+			rounded: false
 			visible: tDayModel.dayIsFinished
 
 			anchors {
@@ -889,17 +905,7 @@ Page {
 				bottomMargin: 5
 			}
 
-			onClicked: {
-				if (!editMode) {
-					tDayModel.dayIsFinished = false;
-					visible = true;
-				}
-				else {
-					tDayModel.dayIsFinished = true;
-					btnEditDay.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
-				}
-				editMode = !editMode;
-			}
+			onClicked: showFinishedWorkoutOptions();
 		}
 
 		TPButton {
@@ -907,12 +913,13 @@ Page {
 			text: qsTr("In/Export")
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
 			textUnderIcon: true
+			rounded: false
 			visible: tDayModel.dayIsFinished
 			width: 70
 			fixedSize: true
 
 			anchors {
-				left: btnEditDay.right
+				left: btnFinishedDayOptions.right
 				leftMargin: 5
 				top: workoutLengthRow.bottom
 				bottom: parent.bottom
@@ -928,6 +935,7 @@ Page {
 			visible: splitLetter !== 'R'
 			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
 			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
+			rounded: false
 			textUnderIcon: true
 			anchors {
 				right: parent.right
@@ -1145,5 +1153,43 @@ Page {
 		hoursClock.value = hour;
 		minsClock.value = min;
 		secsClock.value = sec;
+	}
+
+	function resetTimer() {
+		hoursClock.value = Qt.binding(function() { return workoutTimer.hours; });
+		minsClock.value = Qt.binding(function() { return workoutTimer.minutes; });
+		secsClock.value = Qt.binding(function() { return workoutTimer.seconds; });
+		workoutTimer.resetTimer(false);
+	}
+
+	function showFinishedWorkoutOptions() {
+		if (optionsMenu === null) {
+			var optionsMenuMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, {});
+			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0);
+			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1);
+			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
+		}
+		optionsMenu.show(btnFinishedDayOptions, 0);
+	}
+
+	function selectedOptionsMenuOption(menuid) {
+		switch (menuid) {
+			case 0:
+				if (!editMode) {
+					tDayModel.dayIsFinished = false;
+					exercisesLayout.enabled = true;
+					btnFinishedDayOptions.visible = true;
+				}
+				else {
+					tDayModel.dayIsFinished = true;
+					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
+				}
+				editMode = !editMode;
+			break;
+			case 1:
+				resetWorkoutMsg.show(-1);
+			break;
+		}
 	}
 } // Page

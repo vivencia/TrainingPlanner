@@ -151,7 +151,7 @@ Rectangle {
 						anchors.leftMargin = 0;
 					}
 					else {
-						anchors.right = buttonText.left
+						anchors.right = button.right
 						anchors.rightMargin = 0;
 					}
 				}

@@ -83,5 +83,7 @@
         <file>images/white/import.png</file>
         <file>images/white/import-export.png</file>
         <file>images/black/set-completed.png</file>
+        <file>images/black/reset.png</file>
+        <file>images/white/reset.png</file>
     </qresource>
 </RCC>

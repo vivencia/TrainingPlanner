@@ -1072,7 +1072,8 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 	{
 		minimumStartDate.setDate(2023, 0, 2); //first monday of that year
 		startDate = QDate::currentDate();
-		endDate = m_runCommands->createFutureDate(startDate, 0, 2, 0);
+		if (bRealMeso)
+			endDate = m_runCommands->createFutureDate(startDate, 0, 2, 0);
 	}
 	else
 	{
@@ -1081,7 +1082,8 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 		else
 			minimumStartDate = QDate::currentDate();
 		startDate = minimumStartDate;
-		endDate = m_runCommands->createFutureDate(minimumStartDate, 0, 2, 0);
+		if (bRealMeso)
+			endDate = m_runCommands->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 	mesocyclesModel->appendList(QStringList() << u"-1"_qs << name << QString::number(startDate.toJulianDay()) <<
 		(bRealMeso ? QString::number(endDate.toJulianDay()) : u"0"_qs) << QString() <<
@@ -1137,10 +1139,13 @@ void DbManager::removeMesocycle(const uint meso_idx)
 {
 	const int meso_id(mesocyclesModel->getInt(meso_idx, MESOCYCLES_COL_ID));
 
-	TPMesocycleClass* meso(m_MesoManager.at(meso_idx));
 	mesocyclesModel->removeFromList(meso_idx);
-	m_MesoManager.removeAt(meso_idx);
-	delete meso;
+	if (meso_idx < m_MesoManager.count())
+	{
+		TPMesocycleClass* meso(m_MesoManager.at(meso_idx));
+		m_MesoManager.removeAt(meso_idx);
+		delete meso;
+	}
 
 	if (meso_idx == m_MesoIdx)
 	{
