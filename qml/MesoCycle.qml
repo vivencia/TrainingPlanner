@@ -639,6 +639,7 @@ Page {
 		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
 		mesoPropertiesPage.StackView.activating.connect(pageActivation);
 		mesocyclesModel.modifiedChanged.connect(saveMeso);
+		mesoSplitModel.modifiedChanged.connect(saveMeso);
 	}
 
 	function changeMuscularGroup(splitletter: string, description: string) {
@@ -659,11 +660,11 @@ Page {
 	}
 
 	function pageActivation() {
-		appDB.setWorkingMeso(mesoId, mesoIdx);
+		appDB.setWorkingMeso(mesoIdx);
 	}
 
 	function saveMeso() {
-		if (mesocyclesModel.modified) {
+		if (mesocyclesModel.modified || mesoSplitModel.modified) {
 			var changeCalendar = false;
 			if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
 				changeCalendar = true;

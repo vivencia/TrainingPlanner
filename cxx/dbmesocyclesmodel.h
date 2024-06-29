@@ -46,11 +46,12 @@ public:
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
+	int getMesoIdx(const int mesoId) const;
 	Q_INVOKABLE QString getMesoInfo(const int mesoid, const uint field) const;
-	Q_INVOKABLE int getPreviousMesoId(const int current_mesoid) const;
-	Q_INVOKABLE QDate getPreviousMesoEndDate(const int current_mesoid) const;
-	Q_INVOKABLE QDate getNextMesoStartDate(const int mesoid) const;
-	Q_INVOKABLE QDate getLastMesoEndDate() const;
+	int getPreviousMesoId(const int current_mesoid) const;
+	QDate getPreviousMesoEndDate(const int current_mesoid) const;
+	QDate getNextMesoStartDate(const int mesoid) const;
+	QDate getLastMesoEndDate() const;
 	Q_INVOKABLE int mesoThatHasDate(const QDateTime& datetime) const;
 };
 

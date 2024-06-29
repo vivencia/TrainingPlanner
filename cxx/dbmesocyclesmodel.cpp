@@ -171,6 +171,17 @@ bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value,
 	return false;
 }
 
+int DBMesocyclesModel::getMesoIdx(const int mesoId) const
+{
+	const QString strMesoId(QString::number(mesoId));
+	for(int x(0); x < count(); ++x)
+	{
+		if (getFast(x, MESOCYCLES_COL_ID) == strMesoId)
+			return x;
+	}
+	return -1;
+}
+
 QString DBMesocyclesModel::getMesoInfo(const int mesoid, const uint field) const
 {
 	for(uint x(0); x < count(); ++x)

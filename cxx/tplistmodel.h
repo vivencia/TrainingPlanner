@@ -139,6 +139,11 @@ public:
 			return -1;
 	}
 
+	inline int getIntFast(const uint row, const uint field) const
+	{
+		return row < m_modeldata.count() ? m_modeldata.at(row).at(field).toInt() : -1;
+	}
+
 	Q_INVOKABLE float getFloat(const uint row, const uint field) const
 	{
 		if (row >= 0 && row < m_indexProxy.count())

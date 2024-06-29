@@ -462,7 +462,7 @@ Page {
 	}
 
 	function pageActivation() {
-		appDB.setWorkingMeso(mesoId, mesoIdx);
+		appDB.setWorkingMeso(mesoIdx);
 	}
 
 	function saveMeso() {

@@ -139,7 +139,7 @@ Page {
 					}
 
 					onClicked: {
-						appDB.setWorkingMeso(-1, index);
+						appDB.setWorkingMeso(index);
 						appDB.getMesoCalendar(true);
 					}
 				}
@@ -159,7 +159,7 @@ Page {
 					}
 
 					onClicked: {
-						appDB.setWorkingMeso(-1, index);
+						appDB.setWorkingMeso(index);
 						appDB.createExercisesPlannerPage();
 					}
 				}
@@ -178,7 +178,7 @@ Page {
 					}
 
 					onClicked: {
-						appDB.setWorkingMeso(-1, index);
+						appDB.setWorkingMeso(index);
 						mainwindow.chooseFileToImport();
 					}
 				}
@@ -197,7 +197,7 @@ Page {
 					}
 
 					onClicked: {
-						appDB.setWorkingMeso(-1, index);
+						appDB.setWorkingMeso(index);
 						if (Qt.platform.os === "android")
 						{
 							btnImExport = this;

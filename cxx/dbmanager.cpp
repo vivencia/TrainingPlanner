@@ -91,7 +91,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(0), mb_splitsLoaded(false), mb_importMode(false), m_appSettings(appSettings),
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(99999), mb_splitsLoaded(false), mb_importMode(false), m_appSettings(appSettings),
 		m_runCommands(runcommands), m_exercisesPage(nullptr)
 {}
 
@@ -267,45 +267,6 @@ DbManager::~DbManager()
 	delete m_exercisesPage;
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
-}
-
-void DbManager::setWorkingMeso(int mesoId, const uint mesoIdx)
-{
-	if (mesoId != m_MesoId)
-	{
-		bool bFound(false);
-		if (mesoId < 0)
-		{
-			if (mesoIdx < mesocyclesModel->count())
-				mesoId = mesocyclesModel->getInt(mesoIdx, MESOCYCLES_COL_ID);
-		}
-
-		for(uint i(0); i < m_MesoManager.count(); ++i)
-		{
-			if (m_MesoManager.at(i)->mesoId() == mesoId)
-			{
-				m_currentMesoManager = m_MesoManager.at(i);
-				bFound = true;
-				break;
-			}
-		}
-
-		if (!bFound)
-		{
-			m_currentMesoManager = new TPMesocycleClass(mesoId, mesoIdx, m_QMlEngine, m_runCommands, this);
-			m_currentMesoManager->setMesocycleModel(mesocyclesModel);
-			m_MesoManager.append(m_currentMesoManager);
-			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
-			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
-		}
-		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
-		m_MesoId = mesoId;
-		m_MesoIdx = mesoIdx;
-		m_MesoIdStr = QString::number(m_MesoId);
-		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
-		mesocyclesModel->setCurrentRow(m_MesoIdx);
-		mesoSplitModel->setCurrentRow(m_MesoIdx);
-	}
 }
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
@@ -1040,18 +1001,52 @@ void DbManager::getAllMesocycles()
 
 	for(int i(0); i <= current_meso_idx; ++i)
 		getMesoSplit(mesocyclesModel->getFast(static_cast<uint>(i), 0));
-
 	if (current_meso_idx >= 0)
-		setWorkingMeso(mesocyclesModel->getInt(static_cast<uint>(current_meso_idx), 0), static_cast<uint>(current_meso_idx));
+		setWorkingMeso(static_cast<uint>(current_meso_idx));
 	else
-		setWorkingMeso(-1, 0);
+		setWorkingMeso(0);
+
 	delete worker;
+}
+
+void DbManager::setWorkingMeso(const uint meso_idx)
+{
+	if (meso_idx != m_MesoIdx)
+	{
+		m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
+		m_MesoIdx = meso_idx;
+		m_MesoIdStr = QString::number(m_MesoId);
+		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
+		mesocyclesModel->setCurrentRow(m_MesoIdx);
+		mesoSplitModel->setCurrentRow(m_MesoIdx);
+
+		bool bFound(false);
+		for(uint i(0); i < m_MesoManager.count(); ++i)
+		{
+			if (m_MesoManager.at(i)->mesoId() == m_MesoId)
+			{
+				m_currentMesoManager = m_MesoManager.at(i);
+				bFound = true;
+				break;
+			}
+		}
+
+		if (!bFound)
+		{
+			m_currentMesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, m_runCommands, this);
+			m_currentMesoManager->setMesocycleModel(mesocyclesModel);
+			m_MesoManager.append(m_currentMesoManager);
+			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
+			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
+		}
+		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
+	}
 }
 
 void DbManager::getMesocycle(const uint meso_idx)
 {
 	if (meso_idx != m_MesoIdx)
-		setWorkingMeso(mesocyclesModel->getInt(meso_idx, 0), meso_idx);
+		setWorkingMeso(meso_idx);
 
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
@@ -1093,7 +1088,7 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
 				QString() << QString() << QString() << QString() );
 
-	setWorkingMeso(-2, mesocyclesModel->count() - 1);
+	setWorkingMeso(mesocyclesModel->count()-1);
 	if (bCreatePage)
 	{
 		m_expectedPageId = mesoPageCreateId;
@@ -1117,9 +1112,9 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 		else
 		{
 			connect( this, &DbManager::databaseReady, this, [&] {
-				mesoSplitModel->setFast(m_MesoIdx, 2, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
+				mesoSplitModel->setFast(m_MesoIdx, 1, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
 				newMesoSplit();
-			} );
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		}
 		createThread(worker, [worker] () { worker->newMesocycle(); } );
 	}
@@ -1137,15 +1132,8 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 
 void DbManager::removeMesocycle(const uint meso_idx)
 {
-	const int meso_id(mesocyclesModel->getInt(meso_idx, MESOCYCLES_COL_ID));
-
+	const int meso_id(mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID));
 	mesocyclesModel->removeFromList(meso_idx);
-	if (meso_idx < m_MesoManager.count())
-	{
-		TPMesocycleClass* meso(m_MesoManager.at(meso_idx));
-		m_MesoManager.removeAt(meso_idx);
-		delete meso;
-	}
 
 	if (meso_idx == m_MesoIdx)
 	{
@@ -1155,13 +1143,28 @@ void DbManager::removeMesocycle(const uint meso_idx)
 			removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 			removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 		}
+		m_MesoManager.removeOne(m_currentMesoManager);
+		delete m_currentMesoManager;
+
 		if (m_MesoManager.count() > 0)
 		{
 			const uint idx(m_MesoManager.count() - 1);
-			setWorkingMeso(m_MesoManager.at(idx)->mesoId(), m_MesoManager.at(idx)->mesoIdx());
+			setWorkingMeso(m_MesoManager.at(idx)->mesoIdx());
 		}
 		else
-			setWorkingMeso(-1, 0);
+			setWorkingMeso(0);
+	}
+	else
+	{
+		for (uint i(0); i < m_MesoManager.count(); ++i)
+		{
+			if (m_MesoManager.at(i)->mesoIdx() == meso_idx)
+			{
+				TPMesocycleClass* meso(m_MesoManager.at(i));
+				m_MesoManager.removeAt(i);
+				delete meso;
+			}
+		}
 	}
 
 	if (meso_id >= 0)

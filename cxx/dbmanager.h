@@ -34,7 +34,6 @@ public:
 	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void restartApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
-	Q_INVOKABLE void setWorkingMeso(int mesoId, const uint mesoIdx);
 	void gotResult(TPDatabaseTable* dbObj);
 
 	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
@@ -78,6 +77,7 @@ public:
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	void getAllMesocycles();
+	Q_INVOKABLE void setWorkingMeso(const uint meso_idx);
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name, const bool bCreatePage);
 	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
