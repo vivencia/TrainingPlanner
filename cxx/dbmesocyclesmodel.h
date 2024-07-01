@@ -35,10 +35,12 @@ public:
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
 	virtual void updateFromModel(TPListModel* model) override;
+	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 
-	virtual inline bool isFieldFormatSpecial (const uint field) const override { return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE; }
-	virtual QString formatField(const QString& fieldValue) const override;
+	inline bool isFieldFormatSpecial (const uint field) const { return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE; }
+	QString formatFieldToExport(const QString& fieldValue) const;
+	QString formatFieldToImport(const QString& fieldValue) const;
 
 	uint getTotalSplits(const uint row) const;
 

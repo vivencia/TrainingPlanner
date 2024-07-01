@@ -123,31 +123,42 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
 	outFile->write(strHeader.toUtf8().constData());
 
-	uint settype(0);
-	QString value;
 	if (bFancy)
 	{
+		uint settype(0);
+		QString setsTypes, subSets;
+		bool bHasSubsSets(false);
 		for (uint i(0); i < m_ExerciseData.count(); ++i)
 		{
-			settype = setType(0, i);
 			outFile->write(QString(QString::number(i+1) + ": ").toUtf8().constData());
 			outFile->write(exerciseName(i).toUtf8().constData());
 			outFile->write("\n", 1);
 			outFile->write(tr("Number of sets: ").toUtf8().constData());
 			outFile->write(QString::number(setsNumber(i)).toUtf8().constData());
 			outFile->write("\n", 1);
-			outFile->write(tr("Type of sets: ").toUtf8().constData());
-			outFile->write(QString::number(settype).toUtf8().constData());
-			outFile->write("\n", 1);
 			outFile->write(tr("Rest time between sets: ").toUtf8().constData());
 			outFile->write(setRestTime(0, i).toUtf8().constData());
 			outFile->write("\n", 1);
-			if (settype == 2 || settype == 3 || settype == 5)
+
+			for (uint n(0); n < setsNumber(i); ++n)
+			{
+				settype = setType(n, i);
+				setsTypes += DBMesoSplitModel::formatFieldToExport(QString::number(settype)) + '|';
+				subSets += setSubSets(n, i) + '|';
+				if (settype == 2 || settype == 3 || settype == 5)
+					bHasSubsSets = true;
+			}
+			outFile->write(tr("Type of sets: ").toUtf8().constData());
+			setsTypes.chop(1);
+			outFile->write(setsTypes.toUtf8().constData());
+			setsTypes.clear();
+			if (bHasSubsSets)
 			{
 				outFile->write(tr("Number of subsets: ").toUtf8().constData());
-				outFile->write(setSubSets(0, i).toUtf8().constData());
-				outFile->write("\n", 1);
+				subSets.chop(1);
+				outFile->write(subSets.toUtf8().constData());
 			}
+			subSets.clear();
 			outFile->write(tr("Initial number of reps: ").toUtf8().constData());
 			outFile->write(setReps(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
 			outFile->write("\n", 1);
@@ -162,6 +173,7 @@ void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
 	}
 	else
 	{
+		QString value;
 		for (uint i(0); i < m_ExerciseData.count(); ++i)
 		{
 			value = m_ExerciseData.at(i)->name + record_separator + QString::number(m_ExerciseData.at(i)->nsets) +
@@ -180,8 +192,8 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 	char buf[256];
 	int sep_idx(-1);
 
-	uint exerciseNumber(0), nsets(0);
-	QString type, resttime, subsets, reps, weight, notes;
+	uint exerciseNumber(0), nsets(0), types(0);
+	QString type, resttime, subsets, reps, weight, notes, strTypes;
 
 	while (inFile->readLine(buf, sizeof(buf)) != -1) {
 		inData = buf;
@@ -202,14 +214,20 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			type = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
+			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;
 			inData = buf;
 			if ((sep_idx = inData.indexOf(':')) == -1)
 				return false;
-			resttime = inData.mid(sep_idx, inData.length() - sep_idx).trimmed().replace('|', subrecord_separator);
+			strTypes = inData.mid(sep_idx, inData.length() - sep_idx).trimmed();
+			strTypes.replace('|', subrecord_separator);
+
+			types = 0;
+			do {
+				type = DBMesoSplitModel::formatFieldToImport(runCmd()->getCompositeValue(types, strTypes)) + subrecord_separator;
+			} while (++types < nsets);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
 				return false;

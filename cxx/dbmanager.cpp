@@ -313,6 +313,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				if (dbObj->objectName() == DBMesocyclesObjectName)
 				{
 					m_MesoId = mesocyclesModel->getFast(m_MesoIdx, 0).toUInt();
+					m_appSettings->setValue("lastViewedMesoId", m_MesoId);
 					m_MesoIdStr = QString::number(m_MesoId);
 					m_currentMesoManager->setMesoId(m_MesoId);
 					if (m_currentMesoManager->getMesoPage())
@@ -997,15 +998,10 @@ void DbManager::getAllMesocycles()
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
-	const int current_meso_idx(mesocyclesModel->count()-1);
 
-	for(int i(0); i <= current_meso_idx; ++i)
-		getMesoSplit(mesocyclesModel->getFast(static_cast<uint>(i), 0));
-	if (current_meso_idx >= 0)
-		setWorkingMeso(static_cast<uint>(current_meso_idx));
-	else
-		setWorkingMeso(0);
-
+	for(uint i(0); i < mesocyclesModel->count(); ++i)
+		getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
+	setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
 	delete worker;
 }
 
@@ -1039,6 +1035,8 @@ void DbManager::setWorkingMeso(const uint meso_idx)
 			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
 			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
+		if (m_MesoId >= 0)
+			m_appSettings->setValue("lastViewedMesoId", m_MesoId);
 		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
 	}
 }

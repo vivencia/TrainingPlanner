@@ -116,6 +116,11 @@ public:
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
+	inline bool isFieldFormatSpecial (const uint field) const { return field == MESOSPLIT_COL_SETTYPE; }
+	static QString formatFieldToExport(const QString& fieldValue);
+	static QString formatFieldToImport(const QString& fieldValue);
+
+	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual const QString exportExtraInfo() const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;

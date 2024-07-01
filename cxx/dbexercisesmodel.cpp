@@ -66,6 +66,91 @@ void DBExercisesModel::updateFromModel(TPListModel* model)
 	}
 }
 
+void DBExercisesModel::exportToText(QFile* outFile, const bool bFancy) const
+{
+	QString strHeader;
+	if (bFancy)
+		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
+	else
+		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
+
+	outFile->write(strHeader.toUtf8().constData());
+	outFile->write(exportExtraInfo().toUtf8().constData());
+	if (bFancy)
+		outFile->write("\n\n", 2);
+	else
+		outFile->write("\n", 1);
+
+	if (m_exportRows.isEmpty())
+	{
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+		while (itr != itr_end)
+		{
+			for (uint i(0); i < (*itr).count(); ++i)
+			{
+				if (bFancy)
+				{
+					if (i < mColumnNames.count())
+					{
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							outFile->write((*itr).at(i).toUtf8().constData());
+							outFile->write("\n", 1);
+						}
+					}
+				}
+				else
+				{
+					outFile->write((*itr).at(i).toUtf8().constData());
+					outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
+				}
+			}
+			if (bFancy)
+				outFile->write("\n", 1);
+			else
+				outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
+			++itr;
+		}
+	}
+	else
+	{
+		for (uint x(0); x < m_exportRows.count(); ++x)
+		{
+			for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+			{
+				if (bFancy)
+				{
+					if (i < mColumnNames.count())
+					{
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							outFile->write(m_modeldata.at(m_exportRows.at(x)).at(i).toUtf8().constData());
+							outFile->write("\n", 1);
+						}
+					}
+				}
+				else
+				{
+					outFile->write(m_modeldata.at(m_exportRows.at(x)).at(i).toUtf8().constData());
+					outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
+				}
+			}
+			if (bFancy)
+				outFile->write("\n", 1);
+			else
+				outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
+		}
+	}
+	if (bFancy)
+		outFile->write(tr("##End##\n").toUtf8().constData());
+	else
+		outFile->write("##end##");
+}
+
 bool DBExercisesModel::importFromFancyText(QFile* inFile, QString& inData)
 {
 	char buf[256];

@@ -223,6 +223,101 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 	setSetsNumber(sets);
 }
 
+QString DBMesoSplitModel::formatFieldToExport(const QString& fieldValue)
+{
+	switch (fieldValue.at(0).toLatin1())
+	{
+		case '0': return tr("Regular"); break;
+		case '1': return tr("Pyramid"); break;
+		case '2': return tr("Drop Set"); break;
+		case '3': return tr("Cluster Set"); break;
+		case '4': return tr("Giant Set"); break;
+		case '5': return tr("Myo Reps"); break;
+		case '6': return tr("Inverted Pyramid"); break;
+		default: return QString(); break;
+	}
+}
+
+QString DBMesoSplitModel::formatFieldToImport(const QString& fieldValue)
+{
+	QString retStr;
+	if (fieldValue == tr("Normal"))
+		retStr = u"0"_qs;
+	else if (fieldValue == tr("Pyramid"))
+		retStr = u"1"_qs;
+	else if (fieldValue == tr("Drop Set"))
+		retStr = u"2"_qs;
+	else if (fieldValue == tr("Cluster Set"))
+		retStr = u"3"_qs;
+	else if (fieldValue == tr("Giant Set"))
+		retStr = u"4"_qs;
+	else if (fieldValue == tr("Myo Reps"))
+		retStr = u"5"_qs;
+	else if (fieldValue == tr("Inverted Pyramid"))
+		retStr = u"6"_qs;
+	else
+		retStr = u"0"_qs;
+	return retStr;
+}
+
+void DBMesoSplitModel::exportToText(QFile* outFile, const bool bFancy) const
+{
+	QString strHeader;
+	if (bFancy)
+		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
+	else
+		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
+
+	outFile->write(strHeader.toUtf8().constData());
+	outFile->write(exportExtraInfo().toUtf8().constData());
+	if (bFancy)
+		outFile->write("\n\n", 2);
+	else
+		outFile->write("\n", 1);
+
+	QString value;
+	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+	while (itr != itr_end)
+	{
+		for (uint i(0); i < (*itr).count(); ++i)
+		{
+			if (bFancy)
+			{
+				if (i < mColumnNames.count())
+				{
+					if (!mColumnNames.at(i).isEmpty())
+					{
+						outFile->write(mColumnNames.at(i).toUtf8().constData());
+						if (!isFieldFormatSpecial(i))
+							value = (*itr).at(i);
+						else
+							value = formatFieldToExport((*itr).at(i));
+						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+						outFile->write("\n", 1);
+					}
+				}
+			}
+			else
+			{
+				outFile->write((*itr).at(i).toUtf8().constData());
+				outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
+			}
+		}
+		if (bFancy)
+			outFile->write("\n", 1);
+		else
+			outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
+		++itr;
+	}
+
+	if (bFancy)
+		outFile->write(tr("##End##\n").toUtf8().constData());
+	else
+		outFile->write("##end##");
+}
+
 const QString DBMesoSplitModel::exportExtraInfo() const
 {
 	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup : QString();
@@ -252,6 +347,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 	char buf[256];
 	QStringList modeldata;
 	int sep_idx(-1);
+	uint col(1);
 
 	if (m_extraInfo.isEmpty())
 	{
@@ -262,6 +358,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			modeldata.append(u"-1"_qs); //id
 			modeldata.append(u"-1"_qs); //meso id
 			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+			col++;
 		}
 		else
 			return false;
@@ -276,13 +373,20 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			{
 				appendList(modeldata);
 				modeldata.clear();
+				col = 1;
 			}
 		}
 		else
 		{
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
-				modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+			{
+				if (isFieldFormatSpecial(col))
+					formatFieldToImport(inData.right(inData.length() - sep_idx - 2));
+				else
+					modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				col++;
+			}
 			else
 			{
 				if (inData.contains(u"##"_qs))

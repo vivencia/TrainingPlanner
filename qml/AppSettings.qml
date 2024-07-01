@@ -27,6 +27,7 @@ Settings {
 	property int fontSizeLists
 	property int fontSizeText
 	property int fontSizeTitle
+	property int lastViewedMesoId
 	property bool alwaysAskConfirmation
 	property bool firstTime
 
