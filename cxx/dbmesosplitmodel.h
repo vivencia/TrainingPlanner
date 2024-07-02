@@ -9,13 +9,14 @@
 #define MESOSPLIT_COL_SUBSETSNUMBER 3
 #define MESOSPLIT_COL_REPSNUMBER 4
 #define MESOSPLIT_COL_WEIGHT 5
-#define MESOSPLIT_COL_NOTES 6
-#define MESOSPLIT_COL_EXERCISE1REPS 7
-#define MESOSPLIT_COL_EXERCISE1WEIGHT 8
-#define MESOSPLIT_COL_EXERCISE2REPS 9
-#define MESOSPLIT_COL_EXERCISE2WEIGHT 10
-#define MESOSPLIT_COL_EXERCISE1NAME 11
-#define MESOSPLIT_COL_EXERCISE2NAME 12
+#define MESOSPLIT_COL_DROPSET 6
+#define MESOSPLIT_COL_NOTES 7
+#define MESOSPLIT_COL_EXERCISE1REPS 8
+#define MESOSPLIT_COL_EXERCISE1WEIGHT 9
+#define MESOSPLIT_COL_EXERCISE2REPS 10
+#define MESOSPLIT_COL_EXERCISE2WEIGHT 11
+#define MESOSPLIT_COL_EXERCISE1NAME 12
+#define MESOSPLIT_COL_EXERCISE2NAME 13
 
 class DBTrainingDayModel;
 class DBExercisesModel;
@@ -38,6 +39,7 @@ Q_PROPERTY(QString setsReps2 READ setsReps2 WRITE setSetsReps2)
 Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight)
 Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1)
 Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2)
+Q_PROPERTY(bool setsDropSet READ setsDropSet WRITE setSetsDropSet NOTIFY setsDropSetChanged)
 Q_PROPERTY(QString setsNotes READ setsNotes WRITE setSetsNotes)
 Q_PROPERTY(QString muscularGroup READ muscularGroup WRITE setMuscularGroup NOTIFY muscularGroupChanged)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged)
@@ -56,6 +58,7 @@ public:
 		setsWeightRole = Qt::UserRole+MESOSPLIT_COL_WEIGHT,
 		setsWeight1Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE1WEIGHT,
 		setsWeight2Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE2WEIGHT,
+		setsDropSetRole = Qt::UserRole+MESOSPLIT_COL_DROPSET,
 		setsNotesRole = Qt::UserRole+MESOSPLIT_COL_NOTES
 	};
 
@@ -79,7 +82,7 @@ public:
 
 	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 	{
-		appendList(QStringList() << exercise_name << QString::number(settype) << sets << u"0"_qs << reps << weight << u" "_qs);
+		appendList(QStringList() << exercise_name << QString::number(settype) << sets << u"0"_qs << reps << weight << u"0"_qs << u" "_qs);
 		setCurrentRow(count() - 1);
 	}
 	Q_INVOKABLE void removeExercise(const uint index) { removeFromList(index); }
@@ -107,6 +110,9 @@ public:
 	QString setsWeight2() const { return data(index(currentRow(), 0), setsWeight2Role).toString(); }
 	void setSetsWeight2(const QString& new_setsweight) { setData(index(currentRow(), 0), new_setsweight, setsWeight2Role); }
 
+	bool setsDropSet() const { return data(index(currentRow(), 0), setsDropSetRole).toString() == u"1"_qs; }
+	void setSetsDropSet(const bool bDropSet) { setData(index(currentRow(), 0), bDropSet ? u"1"_qs : u"0"_qs, setsDropSetRole); }
+
 	QString setsNotes() const { return data(index(currentRow(), 0), setsNotesRole).toString(); }
 	void setSetsNotes(const QString& new_setsnotes) { setData(index(currentRow(), 0), new_setsnotes, setsNotesRole); }
 
@@ -116,9 +122,14 @@ public:
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
-	inline bool isFieldFormatSpecial (const uint field) const { return field == MESOSPLIT_COL_SETTYPE; }
-	static QString formatFieldToExport(const QString& fieldValue);
-	static QString formatFieldToImport(const QString& fieldValue);
+	inline bool isFieldFormatSpecial (const uint field) const
+	{
+		if (!m_extraInfo.isEmpty())
+			return field == MESOSPLIT_COL_SETTYPE || field == MESOSPLIT_COL_DROPSET;
+		return false;
+	}
+	static QString formatFieldToExport(const QString& fieldValue, const uint field = MESOSPLIT_COL_SETTYPE);
+	static QString formatFieldToImport(const QString& fieldValue, const uint field = MESOSPLIT_COL_SETTYPE);
 
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual const QString exportExtraInfo() const override;
@@ -129,6 +140,7 @@ public:
 signals:
 	void muscularGroupChanged();
 	void splitLetterChanged();
+	void setsDropSetChanged();
 
 private:
 	uint m_nextAddedExercisePos;

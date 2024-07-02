@@ -312,12 +312,13 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 			case OP_ADD:
 				if (dbObj->objectName() == DBMesocyclesObjectName)
 				{
+					m_MesoIdx = mesocyclesModel->count() - 1;
 					m_MesoId = mesocyclesModel->getFast(m_MesoIdx, 0).toUInt();
 					m_appSettings->setValue("lastViewedMesoId", m_MesoId);
 					m_MesoIdStr = QString::number(m_MesoId);
 					m_currentMesoManager->setMesoId(m_MesoId);
-					if (m_currentMesoManager->getMesoPage())
-						m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
+					//if (m_currentMesoManager->getMesoPage())
+					//	m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
 				}
 			break;
 		}
@@ -1005,10 +1006,12 @@ void DbManager::getAllMesocycles()
 	delete worker;
 }
 
-void DbManager::setWorkingMeso(const uint meso_idx)
+void DbManager::setWorkingMeso(int meso_idx)
 {
 	if (meso_idx != m_MesoIdx)
 	{
+		if (meso_idx >= mesocyclesModel->count())
+			meso_idx = mesocyclesModel->count() - 1;
 		m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
 		m_MesoIdx = meso_idx;
 		m_MesoIdStr = QString::number(m_MesoId);
@@ -1141,8 +1144,11 @@ void DbManager::removeMesocycle(const uint meso_idx)
 			removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 			removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 		}
-		m_MesoManager.removeOne(m_currentMesoManager);
-		delete m_currentMesoManager;
+		if (m_currentMesoManager)
+		{
+			m_MesoManager.removeOne(m_currentMesoManager);
+			delete m_currentMesoManager;
+		}
 
 		if (m_MesoManager.count() > 0)
 		{

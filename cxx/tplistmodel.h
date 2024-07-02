@@ -40,8 +40,7 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 
-	explicit TPListModel(QObject *parent = nullptr) : QAbstractListModel(parent),
-		m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),  m_bReady(false), m_bModified(false), filterSearch_Field1(0), filterSearch_Field2(0) {}
+	explicit TPListModel(QObject *parent = nullptr);
 	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
 	{
 		copy ( db_model );

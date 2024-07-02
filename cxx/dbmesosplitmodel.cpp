@@ -21,6 +21,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 	m_roleNames[setsWeight1Role] = "setsWeight1";
 	m_roleNames[setsReps2Role] = "setsReps2";
 	m_roleNames[setsWeight2Role] = "setsWeight2";
+	m_roleNames[setsDropSetRole] = "setsDropSet";
 	m_roleNames[setsNotesRole] = "setsNotes";
 
 	mb_Complete = bComplete;
@@ -33,6 +34,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 		mColumnNames.append(tr("Number of subsets: "));
 		mColumnNames.append(tr("Baseline number of reps: "));
 		mColumnNames.append(tr("Baseline weight: "));
+		mColumnNames.append(tr("Last set is a Drop Set: "));
 		mColumnNames.append(tr("Set instructions: "));
 	}
 	else
@@ -71,6 +73,10 @@ void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
 		if (repsOrweight.endsWith(subrecord_separator))
 			repsOrweight.chop(1);
 		exerciseInfo.append(repsOrweight); //MESOSPLIT_COL_WEIGHT
+		if (tDayModel->setType(tDayModel->m_ExerciseData.at(i)->nsets - 1, i) == SET_TYPE_DROP)
+			exerciseInfo.append(u"1"_qs); //MESOSPLIT_COL_DROPSET
+		else
+			exerciseInfo.append(u"0"_qs); //MESOSPLIT_COL_DROPSET
 		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->notes.at(0)); //MESOSPLIT_COL_NOTES
 		m_modeldata.append(exerciseInfo);
 		m_indexProxy.append(i);
@@ -86,17 +92,17 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 	{
 		switch(role) {
 			case exerciseNameRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).replace(subrecord_separator, QStringLiteral(" + "));
+				return static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).replace(subrecord_separator, QStringLiteral(" + "));
 			case exerciseName1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
-				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).left(idx) :
-					m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole);
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).indexOf(subrecord_separator));
+				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
+					m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
 			}
 			case exerciseName2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).indexOf(subrecord_separator));
-				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(exerciseNameRole-Qt::UserRole)).sliced(idx+1) : tr("2: Add exercise ...");
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).indexOf(subrecord_separator));
+				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).sliced(idx+1) : tr("2: Add exercise ...");
 			}
 			case setsNumberRole:
 			case setsSubsetsRole:
@@ -104,22 +110,22 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case setsWeightRole:
 			case setsNotesRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
+			case setsDropSetRole:
+				return m_modeldata.at(row).at(MESOSPLIT_COL_DROPSET) == u"1"_qs;
 			case setsReps1Role:
 			case setsWeight1Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-3)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-3)).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-3);
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(subrecord_separator));
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-3);
 			}
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
-				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-5)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-5)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-5);
+				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).indexOf(subrecord_separator));
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-5);
 			}
 			case setTypeRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
-			case Qt::DisplayRole:
-				return m_modeldata.at(row).at(index.column());
+				return static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE)).toUInt();
 		}
 	}
 	return QVariant();
@@ -156,6 +162,10 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 			case setsSubsetsRole:
 			case setsNotesRole:
 				m_modeldata[row][role-Qt::UserRole] = value.toString();
+			break;
+			case setsDropSetRole:
+				m_modeldata[row][MESOSPLIT_COL_DROPSET] = value.toBool() ? u"1"_qs : u"0"_qs;
+				emit setsDropSetChanged();
 			break;
 			case exerciseName1Role:
 				replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 1, value.toString());
@@ -223,40 +233,50 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 	setSetsNumber(sets);
 }
 
-QString DBMesoSplitModel::formatFieldToExport(const QString& fieldValue)
+QString DBMesoSplitModel::formatFieldToExport(const QString& fieldValue, const uint field)
 {
-	switch (fieldValue.at(0).toLatin1())
+	if (field == MESOSPLIT_COL_SETTYPE)
 	{
-		case '0': return tr("Regular"); break;
-		case '1': return tr("Pyramid"); break;
-		case '2': return tr("Drop Set"); break;
-		case '3': return tr("Cluster Set"); break;
-		case '4': return tr("Giant Set"); break;
-		case '5': return tr("Myo Reps"); break;
-		case '6': return tr("Inverted Pyramid"); break;
-		default: return QString(); break;
+		switch (fieldValue.at(0).toLatin1())
+		{
+			case '0': return tr("Regular"); break;
+			case '1': return tr("Pyramid"); break;
+			case '2': return tr("Drop Set"); break;
+			case '3': return tr("Cluster Set"); break;
+			case '4': return tr("Giant Set"); break;
+			case '5': return tr("Myo Reps"); break;
+			case '6': return tr("Inverted Pyramid"); break;
+			default: return QString(); break;
+		}
 	}
+	else
+		return fieldValue == u"1"_qs ? tr("Yes") : tr("No");
 }
 
-QString DBMesoSplitModel::formatFieldToImport(const QString& fieldValue)
+QString DBMesoSplitModel::formatFieldToImport(const QString& fieldValue, const uint field)
 {
 	QString retStr;
-	if (fieldValue == tr("Normal"))
-		retStr = u"0"_qs;
-	else if (fieldValue == tr("Pyramid"))
-		retStr = u"1"_qs;
-	else if (fieldValue == tr("Drop Set"))
-		retStr = u"2"_qs;
-	else if (fieldValue == tr("Cluster Set"))
-		retStr = u"3"_qs;
-	else if (fieldValue == tr("Giant Set"))
-		retStr = u"4"_qs;
-	else if (fieldValue == tr("Myo Reps"))
-		retStr = u"5"_qs;
-	else if (fieldValue == tr("Inverted Pyramid"))
-		retStr = u"6"_qs;
+	if (field == MESOSPLIT_COL_SETTYPE)
+	{
+		if (fieldValue == tr("Regular"))
+			retStr = u"0"_qs;
+		else if (fieldValue == tr("Pyramid"))
+			retStr = u"1"_qs;
+		else if (fieldValue == tr("Drop Set"))
+			retStr = u"2"_qs;
+		else if (fieldValue == tr("Cluster Set"))
+			retStr = u"3"_qs;
+		else if (fieldValue == tr("Giant Set"))
+			retStr = u"4"_qs;
+		else if (fieldValue == tr("Myo Reps"))
+			retStr = u"5"_qs;
+		else if (fieldValue == tr("Inverted Pyramid"))
+			retStr = u"6"_qs;
+		else
+			retStr = u"0"_qs;
+	}
 	else
-		retStr = u"0"_qs;
+		retStr = fieldValue == tr("Yes") ? u"1"_qs : u"0"_qs;
 	return retStr;
 }
 
@@ -293,7 +313,7 @@ void DBMesoSplitModel::exportToText(QFile* outFile, const bool bFancy) const
 						if (!isFieldFormatSpecial(i))
 							value = (*itr).at(i);
 						else
-							value = formatFieldToExport((*itr).at(i));
+							value = formatFieldToExport((*itr).at(i), i);
 						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
 						outFile->write("\n", 1);
 					}
@@ -347,7 +367,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 	char buf[256];
 	QStringList modeldata;
 	int sep_idx(-1);
-	uint col(1);
+	uint col(0);
 
 	if (m_extraInfo.isEmpty())
 	{
@@ -358,7 +378,6 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			modeldata.append(u"-1"_qs); //id
 			modeldata.append(u"-1"_qs); //meso id
 			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
-			col++;
 		}
 		else
 			return false;
@@ -373,7 +392,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			{
 				appendList(modeldata);
 				modeldata.clear();
-				col = 1;
+				col = 0;
 			}
 		}
 		else
@@ -381,10 +400,10 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
 			{
-				if (isFieldFormatSpecial(col))
-					formatFieldToImport(inData.right(inData.length() - sep_idx - 2));
-				else
+				if (!isFieldFormatSpecial(col))
 					modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				else
+					modeldata.append(formatFieldToImport(inData.right(inData.length() - sep_idx - 2), col));
 				col++;
 			}
 			else

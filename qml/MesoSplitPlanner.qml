@@ -296,6 +296,17 @@ Frame {
 						}
 					}
 
+					TPCheckBox {
+						text: splitModel.columnLabel(6)
+						checked: splitModel.setsDropSet
+						enabled: index === splitModel.currentRow
+						visible: setType === 0 || setType === 1 || setType === 6
+						Layout.leftMargin: 5
+						Layout.fillWidth: true
+
+						onCheckedChanged: splitModel.setsDropSet = checked;
+					}
+
 					RowLayout {
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
@@ -529,7 +540,7 @@ Frame {
 					} //RowLayout
 
 					SetNotesField {
-						info: splitModel.columnLabel(6)
+						info: splitModel.columnLabel(7)
 						text: setsNotes
 						Layout.leftMargin: 5
 						Layout.fillWidth: true

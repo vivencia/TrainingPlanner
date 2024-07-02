@@ -2,7 +2,12 @@
 
 #include <QRegularExpression>
 
-void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
+TPListModel::TPListModel(QObject *parent)
+	: QAbstractListModel(parent), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
+		m_bReady(false), m_bModified(false), filterSearch_Field1(0), filterSearch_Field2(0)
+{}
+
+void tp_listmodel_swap(TPListModel& model1, TPListModel& model2)
 {
 	using std::swap;
 	swap (model1.m_modeldata, model2.m_modeldata);
@@ -10,28 +15,28 @@ void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 )
 	swap (model1.m_indexProxy, model2.m_indexProxy);
 }
 
-void TPListModel::copy ( const TPListModel& src_item )
+void TPListModel::copy(const TPListModel& src_item)
 {
 	m_modeldata = src_item.m_modeldata;
 	m_roleNames = src_item.m_roleNames;
 	m_indexProxy = src_item.m_indexProxy;
 }
 
-TPListModel::~TPListModel ()
+TPListModel::~TPListModel()
 {
 	m_modeldata.clear();
 	m_roleNames.clear();
 	m_indexProxy.clear();
 }
 
-void TPListModel::updateList (const QStringList& list, const int row)
+void TPListModel::updateList(const QStringList& list, const int row)
 {
 	const uint actual_row(m_indexProxy.at(row));
 	m_modeldata.replace(actual_row, list);
 	emit dataChanged(index(row, 0), index(row, list.count()-1));
 }
 
-void TPListModel::removeFromList (const int row)
+void TPListModel::removeFromList(const int row)
 {
 	if (row < count())
 	{
