@@ -90,9 +90,9 @@ extern "C"
 }
 #endif
 
-DbManager::DbManager(QSettings* appSettings, RunCommands* runcommands)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(99999), mb_splitsLoaded(false), mb_importMode(false), m_appSettings(appSettings),
-		m_runCommands(runcommands), m_exercisesPage(nullptr)
+DbManager::DbManager(QSettings* appSettings)
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(99999), mb_splitsLoaded(false), mb_importMode(false),
+			m_appSettings(appSettings), m_exercisesPage(nullptr)
 {}
 
 void DbManager::init()
@@ -149,47 +149,6 @@ void DbManager::exitApp()
 	::exit (0);
 }
 
-void DbManager::restartApp()
-{
-	#ifdef Q_OS_ANDROID
-	/*auto activity = QtAndroid::androidActivity();
-	auto packageManager = activity.callObjectMethod("getPackageManager",
-												"()Landroid/content/pm/PackageManager;");
-
-	auto activityIntent = packageManager.callObjectMethod("getLaunchIntentForPackage",
-													  "(Ljava/lang/String;)Landroid/content/Intent;",
-													  activity.callObjectMethod("getPackageName",
-													  "()Ljava/lang/String;").object());
-
-	auto pendingIntent = QAndroidJniObject::callStaticObjectMethod("android/app/PendingIntent", "getActivity",
-															   "(Landroid/content/Context;ILandroid/content/Intent;I)Landroid/app/PendingIntent;",
-															   activity.object(), jint(0), activityIntent.object(),
-															   QAndroidJniObject::getStaticField<jint>("android/content/Intent",
-																									   "FLAG_ACTIVITY_CLEAR_TOP"));
-
-	auto alarmManager = activity.callObjectMethod("getSystemService",
-											  "(Ljava/lang/String;)Ljava/lang/Object;",
-											  QAndroidJniObject::getStaticObjectField("android/content/Context",
-																					  "ALARM_SERVICE",
-																					  "Ljava/lang/String;").object());
-
-	alarmManager.callMethod<void>("set",
-							  "(IJLandroid/app/PendingIntent;)V",
-							  QAndroidJniObject::getStaticField<jint>("android/app/AlarmManager", "RTC"),
-							  jlong(QDateTime::currentMSecsSinceEpoch() + 100), pendingIntent.object());
-
-	qApp->quit();*/
-	#else
-	char* args[2] = { nullptr, nullptr };
-	const QString argv0(qApp->arguments().at(0));
-	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
-	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
-	::execv(args[0], args);
-	::free(args[0]);
-	exitApp();
-	#endif
-}
-
 void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 {
 	m_QMlEngine = QMlEngine;
@@ -220,7 +179,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties;
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appDB"), QVariant::fromValue(this) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("runCmd"), QVariant::fromValue(m_runCommands) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("runCmd"), QVariant::fromValue(runCmd()) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("itemManager"), QVariant::fromValue(m_currentMesoManager) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appTr"), QVariant::fromValue(appTr()) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
@@ -250,7 +209,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 #else
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
-	connect(m_runCommands, &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
+	connect(runCmd(), &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
 	connect(handlerInstance(), &URIHandler::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
 		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode));
 		QFile::remove(exportFileName());
@@ -317,8 +276,6 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					m_appSettings->setValue("lastViewedMesoId", m_MesoId);
 					m_MesoIdStr = QString::number(m_MesoId);
 					m_currentMesoManager->setMesoId(m_MesoId);
-					//if (m_currentMesoManager->getMesoPage())
-					//	m_currentMesoManager->getMesoPage()->setProperty("mesoId", m_MesoId);
 				}
 			break;
 		}
@@ -448,6 +405,17 @@ void DbManager::processArguments()
 		if (file.isFile())
 			openRequestedFile(filename);
 	}
+}
+
+void DbManager::restartApp()
+{
+	char* args[2] = { nullptr, nullptr };
+	const QString argv0(qApp->arguments().at(0));
+	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
+	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
+	::execv(args[0], args);
+	::free(args[0]);
+	exitApp();
 }
 #endif
 
@@ -623,7 +591,7 @@ void DbManager::importFromModel(TPListModel* model)
 			{
 				connect( this, &DbManager::databaseReady, this, [&,dayDate] {
 					connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
-						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
+						return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getMesoCalendar(false);
@@ -631,7 +599,7 @@ void DbManager::importFromModel(TPListModel* model)
 			else
 			{
 				connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
-						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
+						return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				getTrainingDay(dayDate);
 			}
@@ -1032,7 +1000,7 @@ void DbManager::setWorkingMeso(int meso_idx)
 
 		if (!bFound)
 		{
-			m_currentMesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, m_runCommands, this);
+			m_currentMesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, this);
 			m_currentMesoManager->setMesocycleModel(mesocyclesModel);
 			m_MesoManager.append(m_currentMesoManager);
 			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
@@ -1069,21 +1037,21 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 		minimumStartDate.setDate(2023, 0, 2); //first monday of that year
 		startDate = QDate::currentDate();
 		if (bRealMeso)
-			endDate = m_runCommands->createFutureDate(startDate, 0, 2, 0);
+			endDate = runCmd()->createFutureDate(startDate, 0, 2, 0);
 	}
 	else
 	{
 		if (mesocyclesModel->getInt(mesocyclesModel->count() - 1, 8) == 1)
-			minimumStartDate = m_runCommands->getMesoStartDate(mesocyclesModel->getLastMesoEndDate());
+			minimumStartDate = runCmd()->getMesoStartDate(mesocyclesModel->getLastMesoEndDate());
 		else
 			minimumStartDate = QDate::currentDate();
 		startDate = minimumStartDate;
 		if (bRealMeso)
-			endDate = m_runCommands->createFutureDate(minimumStartDate, 0, 2, 0);
+			endDate = runCmd()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 	mesocyclesModel->appendList(QStringList() << u"-1"_qs << name << QString::number(startDate.toJulianDay()) <<
 		(bRealMeso ? QString::number(endDate.toJulianDay()) : u"0"_qs) << QString() <<
-		(bRealMeso ? QString::number(m_runCommands->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
+		(bRealMeso ? QString::number(runCmd()->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
 		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs));
 
 	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
@@ -1097,7 +1065,7 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		m_currentMesoManager->createMesocyclePage(minimumStartDate, bRealMeso ?
-								m_runCommands->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);
+								runCmd()->createFutureDate(startDate,0,6,0) : QDate(2026,11,31), startDate);
 	}
 }
 
@@ -1148,6 +1116,7 @@ void DbManager::removeMesocycle(const uint meso_idx)
 		{
 			m_MesoManager.removeOne(m_currentMesoManager);
 			delete m_currentMesoManager;
+			m_currentMesoManager = nullptr;
 		}
 
 		if (m_MesoManager.count() > 0)
@@ -1156,7 +1125,7 @@ void DbManager::removeMesocycle(const uint meso_idx)
 			setWorkingMeso(m_MesoManager.at(idx)->mesoIdx());
 		}
 		else
-			setWorkingMeso(0);
+			setWorkingMeso(-1);
 	}
 	else
 	{
@@ -1394,7 +1363,7 @@ QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 				if (!muscularGroup2.isEmpty())
 				{
 					muscularGroupSimplified(muscularGroup2);
-					if (m_runCommands->stringsAreSimiliar(muscularGroup1, muscularGroup2))
+					if (runCmd()->stringsAreSimiliar(muscularGroup1, muscularGroup2))
 						return QString(*itr);
 				}
 			} while (++itr != itr_end);
@@ -1611,7 +1580,7 @@ void DbManager::getTrainingDay(const QDate& date)
 	if (m_currentMesoManager->gettDayPage(date) != nullptr)
 	{
 		m_currentMesoManager->setCurrenttDay(date);
-		addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
+		addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(date), m_currentMesoManager->gettDayPage(date));
 		return;
 	}
 
@@ -1625,7 +1594,7 @@ void DbManager::getTrainingDay(const QDate& date)
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id ) { if (id == tDayPageCreateId)
 		{
-			addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(date), m_currentMesoManager->gettDayPage(date));
+			addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(date), m_currentMesoManager->gettDayPage(date));
 			return getTrainingDayExercises(date);
 		} }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
@@ -1671,7 +1640,7 @@ void DbManager::clearExercises()
 
 void DbManager::loadExercisesFromDate(const QString& strDate)
 {
-	const QDate date(m_runCommands->getDateFromStrDate(strDate));
+	const QDate date(runCmd()->getDateFromStrDate(strDate));
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
 	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(QString::number(date.toJulianDay()));

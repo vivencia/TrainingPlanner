@@ -3,7 +3,7 @@
 #include "dbexercisesmodel.h"
 
 DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
-	: TPListModel{parent}, m_nextAddedExercisePos(2)
+	: TPListModel(parent), m_nextAddedExercisePos(2)
 {
 	m_tableId = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
@@ -368,6 +368,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 	QStringList modeldata;
 	int sep_idx(-1);
 	uint col(0);
+	int valueLen(0);
 
 	if (m_extraInfo.isEmpty())
 	{
@@ -400,10 +401,16 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			sep_idx = inData.indexOf(':');
 			if (sep_idx != -1)
 			{
-				if (!isFieldFormatSpecial(col))
-					modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
+				valueLen = inData.length() - sep_idx - 2;
+				if (valueLen <= 0)
+					modeldata.append(u" "_qs); //QString::split(Qt::SkipEmptyParts) will yield an empty QStringList if we dont provide at least one character
 				else
-					modeldata.append(formatFieldToImport(inData.right(inData.length() - sep_idx - 2), col));
+				{
+					if (!isFieldFormatSpecial(col))
+						modeldata.append(inData.right(valueLen).replace('|', subrecord_separator));
+					else
+						modeldata.append(formatFieldToImport(inData.right(valueLen), col));
+				}
 				col++;
 			}
 			else

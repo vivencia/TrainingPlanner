@@ -34,9 +34,14 @@ Page {
 		id: applyTip
 		message: qsTr("The App must be restarted in order to reflect the changes")
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"settings.png"
-		button1Text: qsTr("Restart now")
 
-		onButton1Clicked: appDB.restartApp();
+		function init() {
+			if (Qt.platform.os !== "android") {
+				button1Text = qsTr("Restart now");
+				applyTip.button1Clicked.connect(appDB.restartApp);
+			}
+			showTimed(4000, 0);
+		}
 	}
 
 	ScrollView {
@@ -89,7 +94,7 @@ Page {
 					}
 
 					onActivated: (index) => {
-						bNeedRestart = bModified = true;
+						bModified = true;
 					}
 				}
 			}
@@ -474,10 +479,10 @@ Page {
 
 			onClicked: {
 				bModified = false;
-				/*if (bNeedRestart) {
-					applyTip.showTimed(4000, 0);
+				if (bNeedRestart) {
+					applyTip.init();
 					bNeedRestart = false;
-				}*/
+				}
 
 				appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
 				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;

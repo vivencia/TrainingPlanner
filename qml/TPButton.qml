@@ -25,7 +25,7 @@ Rectangle {
 
 	focus: true
 	border.color: flat ? "transparent" : AppSettings.fontColor
-	radius: rounded ? height : flat ? 0 : 6
+	radius: rounded ? height : flat ? 6 : 6
 	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
 	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
 	opacity: bFollowParentsOpacity ? parent.opacity : 1
@@ -86,7 +86,7 @@ Rectangle {
 
 	gradient: Gradient {
 		orientation: Gradient.Horizontal
-		GradientStop { position: 0.0;								color: AppSettings.primaryDarkColor }
+		GradientStop { position: 0;									color: AppSettings.primaryDarkColor }
 		GradientStop { position: button.fillPosition - 0.001;		color: AppSettings.primaryLightColor }
 		GradientStop { position: button.fillPosition + 0.001;		color: AppSettings.primaryColor }
 		GradientStop { position: 1.0;								color: AppSettings.primaryDarkColor }
@@ -147,12 +147,12 @@ Rectangle {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
 					if (leftAlign) {
-						anchors.left = buttonText.right
-						anchors.leftMargin = 0;
+						anchors.right = button.right
+						anchors.rightMargin = button.rounded ? 5 : 0;
 					}
 					else {
-						anchors.right = button.right
-						anchors.rightMargin = 0;
+						anchors.left = button.left
+						anchors.leftMargin = button.rounded ? 5 : 10;
 					}
 				}
 				else {

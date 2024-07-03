@@ -11,30 +11,89 @@
 const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
 
-TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine), m_runCommands(runcmd), m_mesoComponent(nullptr),
-		m_mesoPage(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr),
-		m_calPage(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
+TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
+	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine),
+		m_mesoComponent(nullptr), m_mesoPage(nullptr), m_plannerComponent(nullptr), m_plannerPage(nullptr),
+		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr),
+		m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
 	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
 }
 
 TPMesocycleClass::~TPMesocycleClass()
 {
-	if (!m_tDayExercisesList.isEmpty())
+	if (m_mesoComponent)
 	{
-		QMap<QDate,tDayExercises*>::iterator itr(m_tDayExercisesList.begin());
-		QMap<QDate,tDayExercises*>::iterator itr_end(m_tDayExercisesList.end());
-		do
-		{
-			delete *itr;
-		} while (++itr != itr_end);
+		delete m_mesoPage;
+		delete m_mesoComponent;
 	}
-	if (m_mesosCalendarModel) delete m_mesosCalendarModel;
-	if (m_splitComponent) delete m_splitComponent;
-	if (m_calComponent) delete m_calComponent;
-	if (m_tDayComponent) delete m_tDayComponent;
-	if (m_mesoComponent) delete m_mesoComponent;
+	if (m_mesosCalendarModel)
+		delete m_mesosCalendarModel;
+
+	if (m_splitComponent)
+	{
+		QMapIterator<QChar,QQuickItem*> t(m_splitPages);
+		t.toFront();
+		while (t.hasNext()) {
+			t.next();
+			delete t.value();
+		}
+		delete m_splitComponent;
+		delete m_plannerPage;
+		delete m_plannerComponent;
+
+		QMapIterator<QChar,DBMesoSplitModel*> z(m_splitModels);
+		z.toFront();
+		while (z.hasNext()) {
+			z.next();
+			delete z.value();
+		}
+	}
+
+	if (m_calComponent)
+	{
+		delete m_calPage;
+		delete m_calComponent;
+	}
+
+	if (m_tDayComponent)
+	{
+		QMapIterator<QDate,tDayExercises*> y(m_tDayExercisesList);
+		y.toFront();
+		while (y.hasNext()) {
+			y.next();
+			delete y.value();
+		}
+		if (m_setComponents[0])
+			delete m_setComponents[0];
+		if (m_setComponents[1])
+			delete m_setComponents[1];
+		if (m_setComponents[2])
+			delete m_setComponents[2];
+		delete m_tDayExercisesComponent;
+
+		QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
+		i.toFront();
+		while (i.hasNext()) {
+			i.next();
+			delete i.value();
+		}
+		delete m_tDayComponent;
+
+		QMapIterator<QDate,DBTrainingDayModel*> x(m_tDayModels);
+		x.toFront();
+		while (x.hasNext()) {
+			x.next();
+			delete x.value();
+		}
+	}
+}
+
+void TPMesocycleClass::setMesoId(const int new_mesoid)
+{
+	m_MesoId = new_mesoid;
+	if (m_mesoPage)
+		m_mesoPage->setProperty("mesoId", m_MesoId);
 }
 
 void TPMesocycleClass::changeMesoIdxFromPages(const uint new_mesoIdx)
@@ -340,7 +399,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	} );
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
-		const QTime workoutLenght(m_runCommands->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
+		const QTime workoutLenght(runCmd()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
@@ -373,14 +432,14 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	}
 	else
 	{
-		exerciseName = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
-		exerciseName = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
-		nSets = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
-		nSets = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
-		nReps = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
-		nReps = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
-		nWeight = m_runCommands->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
-		nWeight = m_runCommands->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
+		exerciseName = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
+		exerciseName = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
+		nSets = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
+		nSets = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
+		nReps = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
+		nReps = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
+		nWeight = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
+		nWeight = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
 	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());

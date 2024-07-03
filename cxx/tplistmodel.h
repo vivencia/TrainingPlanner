@@ -41,23 +41,23 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 public:
 
 	explicit TPListModel(QObject *parent = nullptr);
-	inline TPListModel ( const TPListModel& db_model ) : TPListModel ()
+	inline TPListModel(const TPListModel& db_model) : TPListModel ()
 	{
-		copy ( db_model );
+		copy (db_model);
 	}
 
-	inline TPListModel ( TPListModel&& other ) : TPListModel ()
+	inline TPListModel(TPListModel&& other) : TPListModel ()
 	{
-		tp_listmodel_swap ( *this, other );
+		tp_listmodel_swap (*this, other);
 	}
 
-	inline const TPListModel& operator= ( TPListModel t_item )
+	inline const TPListModel& operator=(TPListModel t_item)
 	{
-		copy ( t_item );
+		copy (t_item);
 		return *this;
 	}
 
-	virtual ~TPListModel () override;
+	virtual ~TPListModel() override;
 
 	inline int tableID() const { return m_tableId; }
 	bool modified() const { return m_bModified; }

@@ -27,12 +27,11 @@ class DbManager : public QObject
 Q_OBJECT
 
 public:
-	explicit DbManager(QSettings* appSettigs, RunCommands* runcommands);
+	explicit DbManager(QSettings* appSettigs);
 	~DbManager();
 
 	void init();
 	Q_INVOKABLE void exitApp();
-	Q_INVOKABLE void restartApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void gotResult(TPDatabaseTable* dbObj);
 
@@ -42,6 +41,7 @@ public:
 
 #ifndef Q_OS_ANDROID
 	void processArguments();
+	Q_INVOKABLE void restartApp();
 #else
 	void checkPendingIntents();
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
@@ -157,7 +157,6 @@ private:
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
-	RunCommands* m_runCommands;
 	QMap<QString,int> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;

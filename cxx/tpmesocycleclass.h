@@ -9,7 +9,6 @@
 #include <QMap>
 #include <QDate>
 
-class RunCommands;
 class DBMesocyclesModel;
 class DBExercisesModel;
 
@@ -32,11 +31,11 @@ class TPMesocycleClass : public QObject
 Q_OBJECT
 
 public:
-	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, RunCommands* runcmd, QObject *parent = nullptr);
+	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent = nullptr);
 	~TPMesocycleClass();
 
 	inline int mesoId() const { return m_MesoId; }
-	inline void setMesoId(const int new_mesoid) { m_MesoId = new_mesoid; }
+	void setMesoId(const int new_mesoid);
 	inline uint mesoIdx() const { return m_MesoIdx; }
 	void changeMesoIdxFromPages(const uint new_mesoIdx);
 
@@ -145,7 +144,6 @@ private:
 	int m_MesoId;
 	uint m_MesoIdx;
 	QQmlApplicationEngine* m_QMlEngine;
-	RunCommands* m_runCommands;
 	QQuickItem* m_appStackView;
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------

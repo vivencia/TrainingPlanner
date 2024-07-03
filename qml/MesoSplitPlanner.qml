@@ -301,6 +301,7 @@ Frame {
 						checked: splitModel.setsDropSet
 						enabled: index === splitModel.currentRow
 						visible: setType === 0 || setType === 1 || setType === 6
+						textColor: "black"
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
 

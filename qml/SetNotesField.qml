@@ -10,8 +10,8 @@ Item {
 	Layout.rightMargin: 10
 	Layout.bottomMargin: 10
 
-	property alias readOnly: txtSetNotes.readOnly
-	property alias text: txtSetNotes.text
+	property alias readOnly: txtNotes.readOnly
+	property alias text: txtNotes.text
 	property alias color: label.color
 	property alias info: label.text
 	signal editFinished(string new_text)
@@ -43,16 +43,37 @@ Item {
 		}
 	} //Label
 
-	TPTextInput {
+	Flickable {
 		id: txtSetNotes
+		height: Math.min(contentHeight, 40)
+		width: parent.width - 20
+		contentHeight: txtNotes.implicitHeight
+		topMargin: 0
+		leftMargin: 0
+		rightMargin: 0
+		bottomMargin: 0
+		visible: false
+
+		TextArea.flickable: TextArea {
+			id: txtNotes
+			font.pointSize: AppSettings.fontSizeText
+			font.bold: true
+			padding: 0
+			topPadding: 5
+			leftPadding: 5
+			bottomPadding: 5
+			textMargin: 0
+			onEditingFinished: editFinished(text);
+		}
 
 		anchors {
 			left: parent.left
 			top: label.bottom
 			right: parent.right
 		}
-		visible: false
 
-		onEditingFinished: editFinished(text);
+		Component.onCompleted: vBar2.position = 0
+		ScrollBar.vertical: ScrollBar { id: vBar2 }
+		ScrollBar.horizontal: ScrollBar {}
 	}
 }
