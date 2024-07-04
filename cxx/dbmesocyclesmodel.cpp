@@ -29,15 +29,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	mColumnNames.append(tr("Drug Protocol: "));
 }
 
-void DBMesocyclesModel::updateFromModel(TPListModel* model)
-{
-	if (model->count() > 0)
-	{
-		updateList(model->m_modeldata.at(0), count() - 1);
-		setCurrentRow(count() - 1);
-	}
-}
-
 void DBMesocyclesModel::exportToText(QFile *outFile, const bool bFancy) const
 {
 	QString strHeader;
@@ -307,4 +298,33 @@ int DBMesocyclesModel::mesoThatHasDate(const QDateTime& datetime) const
 		}
 	}
 	return -5; //cannot return -1 because it will be the currentRow of mesocyclesModel when it is empty and we might get matches we do not want
+}
+
+//Called when importing from a text file
+bool DBMesocyclesModel::isDifferent(const DBMesocyclesModel* model)
+{
+	if (model->count() > 0)
+	{
+		if (count() == 0)
+			return true;
+	}
+	else
+		return false; //model is not usefull
+
+	bool bEqual(true);
+	for (uint n(0); n < count(); ++n)
+	{
+		for (uint i(1); i < model->m_modeldata.at(0).count(); ++i)
+		{
+			if (m_modeldata.at(n).at(i) != model->m_modeldata.at(0).at(i))
+			{
+				bEqual = false;
+				break;
+			}
+		}
+		if (bEqual)
+			return false;
+		bEqual = true;
+	}
+	return true;
 }

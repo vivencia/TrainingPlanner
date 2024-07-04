@@ -34,7 +34,6 @@ public:
 	};
 
 	explicit DBMesocyclesModel(QObject *parent = 0);
-	virtual void updateFromModel(TPListModel* model) override;
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 
@@ -55,6 +54,7 @@ public:
 	QDate getNextMesoStartDate(const int mesoid) const;
 	QDate getLastMesoEndDate() const;
 	Q_INVOKABLE int mesoThatHasDate(const QDateTime& datetime) const;
+	bool isDifferent(const DBMesocyclesModel* model);
 };
 
 #endif // DBMESOCYCLESMODEL_H

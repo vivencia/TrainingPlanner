@@ -186,7 +186,7 @@ public:
 	inline virtual void resetPrivateData() {}
 	inline virtual const QString exportExtraInfo() const { return QString(); }
 	inline virtual bool importExtraInfo(const QString& ) { return true; }
-	inline virtual void updateFromModel(TPListModel*) {}
+	inline virtual bool updateFromModel(const TPListModel*) { return false; }
 
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }

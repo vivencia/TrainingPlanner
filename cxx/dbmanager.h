@@ -40,10 +40,10 @@ public:
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
 #ifndef Q_OS_ANDROID
-	void processArguments();
+	Q_INVOKABLE void processArguments();
 	Q_INVOKABLE void restartApp();
 #else
-	void checkPendingIntents();
+	Q_INVOKABLE void checkPendingIntents();
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
 #endif
 
@@ -52,7 +52,7 @@ public:
 	void openRequestedFile(const QString& filename);
 	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy, QFile* &outFile) const;
 	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
-	void importFromModel(TPListModel* model);
+	bool importFromModel(TPListModel* model);
 
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
@@ -90,7 +90,7 @@ public:
 	void getMesoSplit(const QString& mesoid);
 	void newMesoSplit();
 	void updateMesoSplit();
-	void removeMesoSplit(const uint meso_id);
+	void removeMesoSplit(const QString& id);
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void createExercisesPlannerPage();
 	void loadCompleteMesoSplits(const bool bThreaded = true);

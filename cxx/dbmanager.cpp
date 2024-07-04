@@ -91,7 +91,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(99999), mb_splitsLoaded(false), mb_importMode(false),
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false),
 			m_appSettings(appSettings), m_exercisesPage(nullptr)
 {}
 
@@ -204,9 +204,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
 
 	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
-#ifndef Q_OS_ANDROID
-	processArguments();
-#else
+#ifdef Q_OS_ANDROID
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(runCmd(), &RunCommands::appResumed, this, &DbManager::checkPendingIntents);
@@ -214,7 +212,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode));
 		QFile::remove(exportFileName());
 	});
-	checkPendingIntents();
 #endif
 }
 
@@ -223,7 +220,8 @@ DbManager::~DbManager()
 	delete mesoSplitModel;
 	delete exercisesListModel;
 	delete mesocyclesModel;
-	delete m_exercisesPage;
+	if (m_exercisesPage)
+		delete m_exercisesPage;
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
 }
@@ -449,6 +447,7 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
  *	-1: Failed to open file
  *	-2: File format was not recognized
  *	-3: Nothing was imported, either because file was missing info or error in formatting
+ *	-4: File has been previously imported
  */
 int DbManager::importFromFile(QString filename, QFile* inFile)
 {
@@ -540,7 +539,10 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 	}
 
 	if (bDataImportSuccessfull)
-		importFromModel(model);
+	{
+		if (!importFromModel(model))
+			return -4;
+	}
 
 	if (!inFile->atEnd())
 		return importFromFile(filename, inFile);
@@ -548,30 +550,40 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 		return 0;
 }
 
-void DbManager::importFromModel(TPListModel* model)
+bool DbManager::importFromModel(TPListModel* model)
 {
 	mb_importMode = true;
+	bool bOK(true);
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
 			updateExercisesList(static_cast<DBExercisesModel*>(model));
 		break;
 		case MESOCYCLES_TABLE_ID:
-			createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1), false);
-			for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
-				mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
-			saveMesocycle(true, false, false, false);
+			if (mesocyclesModel->isDifferent(static_cast<DBMesocyclesModel*>(model)))
+			{
+				createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1), false);
+				for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
+					mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
+				saveMesocycle(true, false, false, false);
+			}
+			else
+				bOK = false;
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
 			if (static_cast<DBMesoSplitModel*>(model)->completeSplit())
 			{
 				DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
-				splitModel->updateFromModel(model);
-				updateMesoSplitComplete(splitModel);
-				// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
-				// by the time mb_splitsLoaded is ever checked upon
-				mb_splitsLoaded = true;
+				if (splitModel->updateFromModel(model))
+				{
+					updateMesoSplitComplete(splitModel);
+					// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
+					// by the time mb_splitsLoaded is ever checked upon
+					mb_splitsLoaded = true;
+				}
+				else
+					bOK = false;
 			}
 			else
 			{
@@ -586,32 +598,37 @@ void DbManager::importFromModel(TPListModel* model)
 		{
 			const QDate dayDate(model->getDate(0, 3));
 			DBTrainingDayModel* tDayModel(m_currentMesoManager->gettDayModel(dayDate));
-			tDayModel->updateFromModel(model);
-			if (mesoCalendarModel->count() == 0)
+			if (tDayModel->updateFromModel(model))
 			{
-				connect( this, &DbManager::databaseReady, this, [&,dayDate] {
+				if (mesoCalendarModel->count() == 0)
+				{
+					connect( this, &DbManager::databaseReady, this, [&,dayDate] {
+						connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
+							return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
+								}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+						return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					getMesoCalendar(false);
+				}
+				else
+				{
 					connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
 						return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				getMesoCalendar(false);
+					getTrainingDay(dayDate);
+				}
 			}
 			else
-			{
-				connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
-						return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
-							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				getTrainingDay(dayDate);
-			}
+				bOK = false;
 		}
 		break;
 	}
 	mb_importMode = false;
+	return bOK;
 }
 
 void DbManager::saveFileDialogClosed(QString finalFileName, bool bResultOK)
 {
-	int resultCode(-5);
+	int resultCode(-12);
 	if (finalFileName.startsWith(u"file:"_qs))
 		finalFileName.remove(0, 7); //remove file://
 	if (bResultOK)
@@ -980,6 +997,8 @@ void DbManager::setWorkingMeso(int meso_idx)
 	{
 		if (meso_idx >= mesocyclesModel->count())
 			meso_idx = mesocyclesModel->count() - 1;
+		if (meso_idx == -1)
+			meso_idx = 0;
 		m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
 		m_MesoIdx = meso_idx;
 		m_MesoIdStr = QString::number(m_MesoId);
@@ -1143,7 +1162,7 @@ void DbManager::removeMesocycle(const uint meso_idx)
 	if (meso_id >= 0)
 	{
 		removeMesoCalendar(meso_id);
-		removeMesoSplit(meso_id);
+		removeMesoSplit(mesoSplitModel->getFast(meso_idx, 0));
 		mesoSplitModel->removeFromList(meso_idx);
 		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		worker->addExecArg(QString::number(meso_id));
@@ -1184,10 +1203,10 @@ void DbManager::updateMesoSplit()
 	m_currentMesoManager->updateMuscularGroup(mesoSplitModel);
 }
 
-void DbManager::removeMesoSplit(const uint meso_id)
+void DbManager::removeMesoSplit(const QString& id)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings));
-	worker->addExecArg(QString::number(meso_id));
+	worker->addExecArg(id);
 	createThread(worker, [worker] () { return worker->removeEntry(); } );
 }
 

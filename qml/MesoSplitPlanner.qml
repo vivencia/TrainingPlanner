@@ -621,11 +621,11 @@ Frame {
 				if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter)) {
 					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, 1);
 					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
-					splitModel.currentRow = 0;
 				}
 				else
 					appendNewExerciseToDivision();
 			}
+			splitModel.currentRow = 0;
 			exercisesListModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);

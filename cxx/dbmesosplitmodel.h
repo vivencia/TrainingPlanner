@@ -110,8 +110,8 @@ public:
 	QString setsWeight2() const { return data(index(currentRow(), 0), setsWeight2Role).toString(); }
 	void setSetsWeight2(const QString& new_setsweight) { setData(index(currentRow(), 0), new_setsweight, setsWeight2Role); }
 
-	bool setsDropSet() const { return data(index(currentRow(), 0), setsDropSetRole).toString() == u"1"_qs; }
-	void setSetsDropSet(const bool bDropSet) { setData(index(currentRow(), 0), bDropSet ? u"1"_qs : u"0"_qs, setsDropSetRole); }
+	bool setsDropSet() const { return data(index(currentRow(), 0), setsDropSetRole).toBool(); }
+	void setSetsDropSet(const bool bDropSet) { setData(index(currentRow(), 0), bDropSet, setsDropSetRole); }
 
 	QString setsNotes() const { return data(index(currentRow(), 0), setsNotesRole).toString(); }
 	void setSetsNotes(const QString& new_setsnotes) { setData(index(currentRow(), 0), new_setsnotes, setsNotesRole); }
@@ -135,7 +135,7 @@ public:
 	virtual const QString exportExtraInfo() const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;
-	virtual void updateFromModel(TPListModel* model) override;
+	virtual bool updateFromModel(const TPListModel* model) override;
 
 signals:
 	void muscularGroupChanged();

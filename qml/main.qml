@@ -25,6 +25,7 @@ ApplicationWindow {
 	property var importOpenDialog: null
 	property var saveDialog: null
 	property string importExportFilename
+	property bool bBackButtonEnabled: true
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android") {
@@ -128,10 +129,20 @@ ApplicationWindow {
 		btnWorkout.enabled = Qt.binding(function() {
 			return stackView.depth === 1 && mesocyclesModel.mesoThatHasDate(new Date()) === mesocyclesModel.currentRow;
 		});
-		if (AppSettings.firstTime) {
-			AppSettings.firstTime = false;
+		if (AppSettings.firstTime)
+		{
+			bBackButtonEnabled = false;
 			stackView.push("SettingsPage.qml");
 		}
+		else
+			checkInitialArguments();
+	}
+
+	function checkInitialArguments() {
+		if (Qt.platform.os === "android")
+			appDB.checkPendingIntents();
+		else
+			appDB.processArguments();
 	}
 
 	function popFromStack(page: Item) {
@@ -247,10 +258,11 @@ ApplicationWindow {
 			case  1: return; //Wait for user to confirm whether they will really import from the file
 			case  0: message = qsTr("Import was successfull"); break;
 			case -1: message = qsTr("Failed to open file"); break;
-			case -2: message = qsTr("File type not recognized"); break;
-			case -3: message = qsTr("File is formatted wrongly or is corrupted"); break;
-			case -4: message = qsTr("Export failed"); break;
-			case -5: importExportFilename = qsTr("Saving canceled");  break;
+			case -2: message = qsTr("Error"); importExportFilename = qsTr("File type not recognized"); break;
+			case -3: message = qsTr("Error"); importExportFilename = qsTr("File is formatted wrongly or is corrupted"); break;
+			case -4: message = qsTr("Nothing to be done"); importExportFilename = qsTr("File had already been imported"); break;
+			case -11: message = qsTr("Export failed"); break;
+			case -12: importExportFilename = qsTr("Saving canceled");  break;
 			case -6:
 				message = qsTr("Nothing to save.");
 				importExportFilename = qsTr("Only exercises that do not come by default with the app can be exported");
@@ -267,7 +279,7 @@ ApplicationWindow {
 		var result;
 		switch (resultCode) {
 			case -1: result = 2; break;
-			case 0: result = -4; break;
+			case 0: result = -11; break;
 			default: result = -10; break;
 		}
 		displayResultMessage(result);

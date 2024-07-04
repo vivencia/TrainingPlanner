@@ -17,7 +17,7 @@ ToolBar {
 		text: qsTr("BACK")
 		imageSource: "qrc:/images/"+AppSettings.iconFolder+"back.png"
 		rounded: false
-		enabled: stackView.depth >= 2
+		enabled: stackView.depth >= 2 && mainwindow.bBackButtonEnabled
 		visible: stackView.depth >= 2
 		anchors {
 			left: parent.left

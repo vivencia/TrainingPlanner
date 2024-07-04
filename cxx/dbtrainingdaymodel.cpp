@@ -95,9 +95,11 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* spli
 	emit exerciseCountChanged();
 }
 
-void DBTrainingDayModel::updateFromModel(TPListModel* model)
+bool DBTrainingDayModel::updateFromModel(const TPListModel* model)
 {
-	DBTrainingDayModel* tDayModel(static_cast<DBTrainingDayModel*>(model));
+	if (model->count() == 0)
+		return false;
+	const DBTrainingDayModel* const tDayModel(static_cast<const DBTrainingDayModel*>(const_cast<TPListModel*>(model)));
 	for (uint i(0); i < tDayModel->exerciseCount(); ++i)
 	{
 		newExercise(tDayModel->exerciseName(i) , i);
@@ -111,6 +113,7 @@ void DBTrainingDayModel::updateFromModel(TPListModel* model)
 	}
 	setModified(true);
 	emit exerciseCountChanged();
+	return true;
 }
 
 void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const

@@ -69,7 +69,7 @@ Drawer {
 		Rectangle {
 			Layout.fillWidth: true
 			Layout.alignment: Qt.AlignCenter
-			height: 200
+			height: 230
 			color: "transparent"
 
 			Image {

@@ -149,12 +149,11 @@ void DBMesoSplitTable::newMesoSplit()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		const uint row(m_execArgs.at(0).toUInt());
-		query.prepare( QStringLiteral(
-									"INSERT INTO mesocycles_splits "
-									"(meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
-									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4), m_model->getFast(row, 5),
-										m_model->getFast(row, 6), m_model->getFast(row, 7)) );
+		query.prepare( QStringLiteral( "INSERT INTO mesocycles_splits "
+										"(meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
+										" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
+								.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3),
+									m_model->getFast(row, 4), m_model->getFast(row, 5), m_model->getFast(row, 6), m_model->getFast(row, 7)) );
 		m_result = query.exec();
 		if (m_result)
 		{
@@ -302,35 +301,15 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		query.prepare(QStringLiteral("SELECT id from mesocycles_splits WHERE meso_id=%1").arg(mesoId));
-		if (query.exec())
-		{
-			const bool bUpdate(query.first());
-			query.finish();
-			QString strQuery;
-			if (bUpdate)
-			{
-				strQuery = QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
-										"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "
-										"split%1_exercisesset_subsets=\'%5\', split%1_exercisesset_reps=\'%6\', "
-										"split%1_exercisesset_weight=\'%7\', split%1_exercisesset_dropset=\'%8\', "
-										"split%1_exercisesset_notes=\'%9\', split%1=\'%10\' WHERE meso_id=%11")
-									.arg(model->splitLetter(), exercises, setstypes, setsnumber, setssubsets, setsreps,
-											setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId);
-			}
-			else
-			{
-				strQuery = QStringLiteral("INSERT INTO mesocycles_splits (meso_id, split%1, split%1_exercisesnames, split%1_exercisesset_types, "
-										"split%1_exercisesset_n, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-										"split%1_exercisesset_weight, split%1_exercisesset_dropset, split%1_exercisesset_notes) "
-										"VALUES(%2,\'%3\',\'%4\',\'%5\',\'%6\',\'%7\',\'%8\',\'%9\',\'%10\',\'%11\')")
-									.arg(model->splitLetter(), mesoId, model->muscularGroup(), exercises, setstypes, setsnumber, setssubsets, setsreps,
-											setsweight, setsdropset, setsnotes);
-			}
-			query.prepare(strQuery);
-			m_result = query.exec();
-			mSqlLiteDB.close();
-		}
+		query.prepare( QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
+								"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "
+								"split%1_exercisesset_subsets=\'%5\', split%1_exercisesset_reps=\'%6\', "
+								"split%1_exercisesset_weight=\'%7\', split%1_exercisesset_dropset=\'%8\', "
+								"split%1_exercisesset_notes=\'%9\', split%1=\'%10\' WHERE meso_id=%11")
+								.arg(model->splitLetter(), exercises, setstypes, setsnumber, setssubsets, setsreps,
+										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId) );
+		m_result = query.exec();
+		mSqlLiteDB.close();
 	}
 
 	if (m_result)

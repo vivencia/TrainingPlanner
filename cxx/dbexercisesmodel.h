@@ -51,7 +51,7 @@ public:
 
 	Q_INVOKABLE virtual void clear() override;
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
-	virtual void updateFromModel(TPListModel* model) override;
+	virtual bool updateFromModel(const TPListModel* model) override;
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 

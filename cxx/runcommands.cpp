@@ -473,15 +473,13 @@ void RunCommands::setAppLocale(const QString& localeStr, const bool bChangeConfi
 
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
-	if (bChangeConfig)
-		m_appSettings->setValue("appLocale", m_appLocale->name());
 }
 
 void RunCommands::populateSettingsWithDefaultValue()
 {
 	if (m_appSettings->childKeys().isEmpty() || m_appSettings->value("appLocale").toString().isEmpty())
 	{
-		setAppLocale(QLocale::system().name(), true);
+		setAppLocale(QLocale::system().name());
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
 		m_appSettings->setValue("themeStyle", u"Material"_qs);

@@ -90,7 +90,8 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
-		switch(role) {
+		switch(role)
+		{
 			case exerciseNameRole:
 				return static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).replace(subrecord_separator, QStringLiteral(" + "));
 			case exerciseName1Role:
@@ -116,13 +117,13 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 			case setsWeight1Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-3);
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-4);
 			}
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-5);
+				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-6);
 			}
 			case setTypeRole:
 				return static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE)).toUInt();
@@ -423,7 +424,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 	return count() > 0;
 }
 
-void DBMesoSplitModel::updateFromModel(TPListModel* model)
+bool DBMesoSplitModel::updateFromModel(const TPListModel* model)
 {
 	if (model->count() > 0)
 	{
@@ -433,7 +434,9 @@ void DBMesoSplitModel::updateFromModel(TPListModel* model)
 		do {
 			appendList((*lst_itr));
 		} while (++lst_itr != lst_itrend);
-		setSplitLetter(static_cast<DBMesoSplitModel*>(model)->splitLetter());
-		setMuscularGroup(static_cast<DBMesoSplitModel*>(model)->muscularGroup());
+		setSplitLetter(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->splitLetter());
+		setMuscularGroup(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->muscularGroup());
+		return true;
 	}
+	return false;
 }

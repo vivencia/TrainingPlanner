@@ -32,6 +32,9 @@ TPMesocycleClass::~TPMesocycleClass()
 
 	if (m_splitComponent)
 	{
+		delete m_plannerPage;
+		delete m_plannerComponent;
+
 		QMapIterator<QChar,QQuickItem*> t(m_splitPages);
 		t.toFront();
 		while (t.hasNext()) {
@@ -39,8 +42,6 @@ TPMesocycleClass::~TPMesocycleClass()
 			delete t.value();
 		}
 		delete m_splitComponent;
-		delete m_plannerPage;
-		delete m_plannerComponent;
 
 		QMapIterator<QChar,DBMesoSplitModel*> z(m_splitModels);
 		z.toFront();
@@ -146,7 +147,7 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
 	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
 
-	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, 8) == 1);
+	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, MESOCYCLES_COL_REALMESO) == 1);
 	m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
 							QQmlComponent::Asynchronous);
 

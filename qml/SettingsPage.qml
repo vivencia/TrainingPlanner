@@ -485,6 +485,7 @@ Page {
 				}
 
 				appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
+				AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
 				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 				if (bFontSizeChanged) {
@@ -556,6 +557,14 @@ Page {
 					AppSettings.paneBackgroundColor = colorScheme[3];
 					AppSettings.entrySelectedColor = colorScheme[4];
 					AppSettings.disabledFontColor = colorScheme[5];
+
+					if (AppSettings.firstTime)
+					{
+						AppSettings.firstTime = false;
+						mainwindow.checkInitialArguments();
+						mainwindow.bBackButtonEnabled = true;
+					}
+					AppSettings.sync();
 				}
 			}
 		}

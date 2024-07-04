@@ -52,7 +52,7 @@ void DBExercisesModel::clear()
 	TPListModel::clear();
 }
 
-void DBExercisesModel::updateFromModel(TPListModel* model)
+bool DBExercisesModel::updateFromModel(const TPListModel* model)
 {
 	if (model->count() > 0)
 	{
@@ -63,7 +63,9 @@ void DBExercisesModel::updateFromModel(TPListModel* model)
 			m_modifiedIndices.append(lastIndex++);
 			appendList((*lst_itr));
 		} while (++lst_itr != lst_itrend);
+		return true;
 	}
+	return false;
 }
 
 void DBExercisesModel::exportToText(QFile* outFile, const bool bFancy) const
