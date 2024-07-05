@@ -95,7 +95,7 @@ void DBMesocyclesTable::newMesocycle()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		const uint row(m_execArgs.at(0).toUInt());
+		const uint row(m_model->currentRow());
 		query.prepare( QStringLiteral(
 									"INSERT INTO mesocycles_table "
 									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"

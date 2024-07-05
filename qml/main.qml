@@ -126,9 +126,8 @@ ApplicationWindow {
 
 	function init() {
 		homePage.setViewModel();
-		btnWorkout.enabled = Qt.binding(function() {
-			return stackView.depth === 1 && mesocyclesModel.mesoThatHasDate(new Date()) === mesocyclesModel.currentRow;
-		});
+		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
+		btnWorkoutEnabled();
 		if (AppSettings.firstTime)
 		{
 			bBackButtonEnabled = false;
@@ -143,6 +142,13 @@ ApplicationWindow {
 			appDB.checkPendingIntents();
 		else
 			appDB.processArguments();
+	}
+
+	function btnWorkoutEnabled() {
+		if (stackView.depth === 1)
+			btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
+		else
+			btnWorkout.enabled = false;
 	}
 
 	function popFromStack(page: Item) {

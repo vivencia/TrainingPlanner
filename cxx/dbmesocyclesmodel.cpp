@@ -156,21 +156,24 @@ QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
 uint DBMesocyclesModel::getTotalSplits(const uint row) const
 {
 	uint nSplits(0);
-	if (!m_modeldata.isEmpty())
+	if (row < m_modeldata.count())
 	{
-		const QString mesoSplit(m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT));
-		QString::const_iterator itr(mesoSplit.constBegin());
-		const QString::const_iterator itr_end(mesoSplit.constEnd());
-		QString mesoLetters;
+		if (!m_modeldata.isEmpty())
+		{
+			const QString mesoSplit(m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT));
+			QString::const_iterator itr(mesoSplit.constBegin());
+			const QString::const_iterator itr_end(mesoSplit.constEnd());
+			QString mesoLetters;
 
-		do {
-			if (static_cast<QChar>(*itr) == QChar('R'))
-				continue;
-			if (mesoLetters.contains(static_cast<QChar>(*itr)))
-				continue;
-			mesoLetters.append(static_cast<QChar>(*itr));
-			nSplits++;
-		} while (++itr != itr_end);
+			do {
+				if (static_cast<QChar>(*itr) == QChar('R'))
+					continue;
+				if (mesoLetters.contains(static_cast<QChar>(*itr)))
+					continue;
+				mesoLetters.append(static_cast<QChar>(*itr));
+				nSplits++;
+			} while (++itr != itr_end);
+		}
 	}
 	return nSplits;
 }
@@ -300,6 +303,18 @@ int DBMesocyclesModel::mesoThatHasDate(const QDateTime& datetime) const
 	return -5; //cannot return -1 because it will be the currentRow of mesocyclesModel when it is empty and we might get matches we do not want
 }
 
+bool DBMesocyclesModel::isDateWithinCurrentMeso(const QDate& date) const
+{
+	if (count() > 0)
+	{
+		if (date >= getDateFast(currentRow(), MESOCYCLES_COL_STARTDATE))
+		{
+			if (date <= getDateFast(currentRow(), MESOCYCLES_COL_ENDDATE))
+				return true;
+		}
+	}
+	return false;
+}
 //Called when importing from a text file
 bool DBMesocyclesModel::isDifferent(const DBMesocyclesModel* model)
 {

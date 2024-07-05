@@ -54,6 +54,7 @@ public:
 	QDate getNextMesoStartDate(const int mesoid) const;
 	QDate getLastMesoEndDate() const;
 	Q_INVOKABLE int mesoThatHasDate(const QDateTime& datetime) const;
+	Q_INVOKABLE bool isDateWithinCurrentMeso(const QDate& date) const;
 	bool isDifferent(const DBMesocyclesModel* model);
 };
 

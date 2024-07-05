@@ -298,8 +298,8 @@ Frame {
 
 					TPCheckBox {
 						text: splitModel.columnLabel(6)
-						checked: splitModel.setsDropSet
 						enabled: index === splitModel.currentRow
+						checked: splitModel.get(index, 6) === "1" //Cannot, for whatever reason, use the property setsDropSet
 						visible: setType === 0 || setType === 1 || setType === 6
 						textColor: "black"
 						Layout.leftMargin: 5

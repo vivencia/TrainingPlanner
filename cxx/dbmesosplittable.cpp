@@ -301,14 +301,20 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		query.prepare( QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
+		const QString strQuery(QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "
 								"split%1_exercisesset_subsets=\'%5\', split%1_exercisesset_reps=\'%6\', "
 								"split%1_exercisesset_weight=\'%7\', split%1_exercisesset_dropset=\'%8\', "
 								"split%1_exercisesset_notes=\'%9\', split%1=\'%10\' WHERE meso_id=%11")
 								.arg(model->splitLetter(), exercises, setstypes, setsnumber, setssubsets, setsreps,
-										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId) );
+										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId));
+		query.prepare( strQuery );
 		m_result = query.exec();
+		if (!m_result)
+		{
+			qDebug() << "Error";
+			qDebug() << strQuery;
+		}
 		mSqlLiteDB.close();
 	}
 

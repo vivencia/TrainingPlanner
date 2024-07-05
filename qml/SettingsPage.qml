@@ -85,16 +85,17 @@ Page {
 				TPComboBox {
 					id: cboAppLanguage
 					model: appLanguages
-					currentIndex: {
-						switch (AppSettings.appLocale) {
-							case appLocales[0]: return 0;
-							case appLocales[1]: return 1;
-							case appLocales[2]: return 2;
-						}
-					}
 
-					onActivated: (index) => {
-						bModified = true;
+					onActivated: (index) => bModified = true;
+
+					Component.onCompleted: {
+						var opt = 0;
+						switch (AppSettings.appLocale) {
+							case appLocales[0]: opt = 0; break;
+							case appLocales[1]: opt = 1; break;
+							case appLocales[2]: opt = 2; break;
+						}
+						currentIndex = opt;
 					}
 				}
 			}

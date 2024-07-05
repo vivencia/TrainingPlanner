@@ -479,7 +479,9 @@ void RunCommands::populateSettingsWithDefaultValue()
 {
 	if (m_appSettings->childKeys().isEmpty() || m_appSettings->value("appLocale").toString().isEmpty())
 	{
-		setAppLocale(QLocale::system().name());
+		const QString localeStr(QLocale::system().name());
+		setAppLocale(localeStr);
+		m_appSettings->setValue("appLocale", localeStr);
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
 		m_appSettings->setValue("themeStyle", u"Material"_qs);

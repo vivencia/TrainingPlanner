@@ -30,6 +30,7 @@
 #include <QStandardPaths>
 
 #define SPLITS_LOADED_ID 4321
+#define TEMP_CURRENTMESOMANAGER_MESOIDX 99999
 
 #ifdef Q_OS_ANDROID
 
@@ -92,7 +93,7 @@ extern "C"
 
 DbManager::DbManager(QSettings* appSettings)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false),
-			m_appSettings(appSettings), m_exercisesPage(nullptr)
+			m_currentMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr)
 {}
 
 void DbManager::init()
@@ -566,6 +567,7 @@ bool DbManager::importFromModel(TPListModel* model)
 				for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
 					mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
 				saveMesocycle(true, false, false, false);
+				emit mesocyclesModel->currentRowChanged(); //notify main.qml::btnWorkout to evaluate its enabled state
 			}
 			else
 				bOK = false;
@@ -590,6 +592,7 @@ bool DbManager::importFromModel(TPListModel* model)
 				for (uint i(0); i < 8; ++i)
 					mesoSplitModel->setFast(m_MesoIdx, i, model->getFast(0, i));
 				mesoSplitModel->setFast(m_MesoIdx, 1, m_MesoIdStr);
+				mesoSplitModel->setCurrentRow(m_MesoIdx);
 				newMesoSplit();
 			}
 		}
@@ -985,9 +988,14 @@ void DbManager::getAllMesocycles()
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
 
-	for(uint i(0); i < mesocyclesModel->count(); ++i)
-		getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
-	setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
+	if (mesocyclesModel->count() > 0)
+	{
+		for(uint i(0); i < mesocyclesModel->count(); ++i)
+			getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
+		setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
+	}
+	else
+		setWorkingMeso(TEMP_CURRENTMESOMANAGER_MESOIDX);
 	delete worker;
 }
 
@@ -995,16 +1003,27 @@ void DbManager::setWorkingMeso(int meso_idx)
 {
 	if (meso_idx != m_MesoIdx)
 	{
-		if (meso_idx >= mesocyclesModel->count())
-			meso_idx = mesocyclesModel->count() - 1;
-		if (meso_idx == -1)
-			meso_idx = 0;
-		m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
+		if (meso_idx != TEMP_CURRENTMESOMANAGER_MESOIDX)
+		{
+			if (meso_idx >= mesocyclesModel->count())
+				meso_idx = mesocyclesModel->count() - 1;
+			if (meso_idx == -1)
+				meso_idx = 0;
+			m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
+		}
 		m_MesoIdx = meso_idx;
 		m_MesoIdStr = QString::number(m_MesoId);
 		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 		mesocyclesModel->setCurrentRow(m_MesoIdx);
 		mesoSplitModel->setCurrentRow(m_MesoIdx);
+		if (m_currentMesoManager)
+		{
+			if (m_currentMesoManager->mesoIdx() == TEMP_CURRENTMESOMANAGER_MESOIDX)
+			{
+				m_MesoManager.removeOne(m_currentMesoManager);
+				delete m_currentMesoManager;
+			}
+		}
 
 		bool bFound(false);
 		for(uint i(0); i < m_MesoManager.count(); ++i)
@@ -1091,7 +1110,6 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
-	worker->addExecArg(m_MesoIdx);
 
 	if (bNewMeso)
 	{
@@ -1396,11 +1414,9 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	m_currentMesoManager->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter1.at(0))));
 	worker->addExecArg(m_MesoIdStr);
-	worker->addExecArg(splitLetter1);
 	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter2.at(0))));
 	worker2->addExecArg(m_MesoIdStr);
-	worker2->addExecArg(splitLetter2);
 	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
 }
 
