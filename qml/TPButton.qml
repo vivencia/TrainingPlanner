@@ -69,10 +69,12 @@ Rectangle {
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
 		}
 		else {
-			if (rounded) {
+			/*if (rounded) {
 				buttonText.width = fwidth*0.9;
 				buttonText.wrapMode = Text.WordWrap;
-			}
+			}*/
+			if (button.width < fwidth)
+				buttonText.elide = Text.ElideMiddle
 		}
 	}
 

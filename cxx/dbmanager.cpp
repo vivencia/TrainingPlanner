@@ -1546,6 +1546,12 @@ void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEn
 	worker->addExecArg(newSplit);
 	worker->addExecArg(bPreserveOldInfo);
 	worker->addExecArg(bPreserveOldInfoUntilToday);
+	if (!bPreserveOldInfo)
+	{
+		connect( this, &DbManager::databaseReady, this, [&,newStartDate,newEndDate,newSplit] () {
+			return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(newStartDate, newEndDate, newSplit); },
+			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	}
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
@@ -1565,6 +1571,10 @@ void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& s
 	worker->addExecArg(mesoSplit);
 	worker->addExecArg(startDate);
 	worker->addExecArg(splitLetter);
+	connect( this, &DbManager::databaseReady, this, [&,startDate,mesoSplit] () {
+			return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(
+				startDate, mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE), mesoSplit); },
+			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
 }
 

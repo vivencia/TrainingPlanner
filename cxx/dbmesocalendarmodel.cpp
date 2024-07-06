@@ -238,7 +238,7 @@ int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 {
 	for( uint i(0); i < m_modeldata.count(); ++i)
 	{
-		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(6).toUInt() == month)
+		if ( static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(0)).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
 			if (day < m_modeldata.at(i).count())
 				return static_cast<QString>(static_cast<QStringList>(m_modeldata.at(i)).at(day)).split(',').at(MESOCALENDAR_COL_TRAINING_DAY).toInt();

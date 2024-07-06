@@ -288,21 +288,6 @@ QDate DBMesocyclesModel::getLastMesoEndDate() const
 	return QDate::currentDate();
 }
 
-int DBMesocyclesModel::mesoThatHasDate(const QDateTime& datetime) const
-{
-	const QDate date(datetime.date());
-	uint mesoIdx(0);
-	for(; mesoIdx < count(); ++mesoIdx)
-	{
-		if (date >= getDateFast(mesoIdx, MESOCYCLES_COL_STARTDATE))
-		{
-			if (date <= getDateFast(mesoIdx, MESOCYCLES_COL_ENDDATE))
-				return mesoIdx;
-		}
-	}
-	return -5; //cannot return -1 because it will be the currentRow of mesocyclesModel when it is empty and we might get matches we do not want
-}
-
 bool DBMesocyclesModel::isDateWithinCurrentMeso(const QDate& date) const
 {
 	if (count() > 0)

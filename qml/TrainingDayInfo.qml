@@ -31,7 +31,7 @@ Page {
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
 	property bool editMode: false
-
+	property bool bCalendarChangedPending: false
 	property bool bAlreadyLoaded
 
 	property date previousDivisionDayDate
@@ -244,6 +244,39 @@ Page {
 		button2Text: qsTr("No")
 
 		onButton1Clicked: itemManager.resetWorkout();
+	}
+
+	TPBalloonTip {
+		id: calendarChangedWarning
+		imageSource: "qrc:/images/"+AppSettings.iconFolder+"warning.png"
+		title: qsTr("Calendar changed! Update?")
+		message: qsTr("Training division: ") + splitLetter + " -> " + newSplitLetter + qsTr("\nWorkout number: ") + tDay + " -> " + newtDay
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+
+		onButton1Clicked: acceptChanges();
+
+		function acceptChanges() {
+			bCalendarChangedPending = false;
+			splitLetter = newSplitLetter;
+			tDay = newtDay;
+			splitText = newSplitText;
+			tDayModel.setTrainingDay(tDay);
+			tDayModel.setSplitLetter(splitLetter);
+			msgClearExercises.init(1);
+			saveWorkout();
+		}
+
+		property string newSplitLetter
+		property string newtDay
+		property string newSplitText
+	}
+	function WarnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
+		bCalendarChangedPending = true;
+		calendarChangedWarning.newSplitLetter = newsplitletter;
+		calendarChangedWarning.newtDay = newtday;
+		calendarChangedWarning.newSplitText = newsplittext;
+		calendarChangedWarning.show(-1);
 	}
 
 	ScrollView {
@@ -721,12 +754,10 @@ Page {
 		}
 	} // ScrollView scrollTraining
 
-	/*Component.onDestruction: {
-		if (timerDialog !== null)
-			timerDialog.destroy();
-		if (navButtons !== null)
-			navButtons.destroy();
-	}*/
+	Component.onDestruction: {
+		if (bCalendarChangedPending)
+			calendarChangedWarning.acceptChanges();
+	}
 
 	Keys.onBackPressed: (event) => {
 		event.accepted = true;

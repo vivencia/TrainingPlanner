@@ -59,6 +59,14 @@ TPMesocycleClass::~TPMesocycleClass()
 
 	if (m_tDayComponent)
 	{
+		QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
+		i.toFront();
+		while (i.hasNext()) {
+			i.next();
+			delete i.value();
+		}
+		delete m_tDayComponent;
+
 		QMapIterator<QDate,tDayExercises*> y(m_tDayExercisesList);
 		y.toFront();
 		while (y.hasNext()) {
@@ -72,14 +80,6 @@ TPMesocycleClass::~TPMesocycleClass()
 		if (m_setComponents[2])
 			delete m_setComponents[2];
 		delete m_tDayExercisesComponent;
-
-		QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
-		i.toFront();
-		while (i.hasNext()) {
-			i.next();
-			delete i.value();
-		}
-		delete m_tDayComponent;
 
 		QMapIterator<QDate,DBTrainingDayModel*> x(m_tDayModels);
 		x.toFront();
@@ -417,6 +417,24 @@ void TPMesocycleClass::resetWorkout()
 	QMetaObject::invokeMethod(m_CurrenttDayPage, "resetTimer", Qt::AutoConnection);
 }
 
+void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate, const QString& mesoSplit)
+{
+	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
+	i.toFront();
+	while (i.hasNext()) {
+		i.next();
+		if (i.key() > startDate) //the startDate page is the page that initiated the update. No need to alter it
+		{
+			if (i.key() <= endDate)
+			{
+				QMetaObject::invokeMethod(i.value(), "WarnCalendarChanged",
+					Q_ARG(QString, m_mesosCalendarModel->getSplitLetter(i.key().month(), i.key().day())),
+					Q_ARG(QString, QString::number(m_mesosCalendarModel->getTrainingDay(i.key().month(), i.key().day()))),
+					Q_ARG(QString, mesoSplit));
+			}
+		}
+	}
+}
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 {
