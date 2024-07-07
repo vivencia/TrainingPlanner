@@ -298,8 +298,11 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
 		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		//Cannot run this query asynchronously because updateMesoSplitComplete() is itself called asynchronously for possibly multiple times in a row
+		//I can manage the threads TP creates, but I have no control over what the qsqlite driver will do. Multiple queries will yield multiple
+		//calls to write to the database and this was causing some of the queries to fail
+		//query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		//query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
 		const QString strQuery(QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "

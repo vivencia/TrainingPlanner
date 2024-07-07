@@ -806,7 +806,10 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	worker->moveToThread ( thread );
 
 	if (m_WorkerLock[worker->objectName()] <= 0)
+	{
+		MSG_OUT("Database  " << worker->objectName() << " starting immediatelly")
 		startThread(thread, worker);
+	}
 	else
 	{
 		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << m_WorkerLock[worker->objectName()])

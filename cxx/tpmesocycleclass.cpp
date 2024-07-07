@@ -427,7 +427,7 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& start
 		{
 			if (i.key() <= endDate)
 			{
-				QMetaObject::invokeMethod(i.value(), "WarnCalendarChanged",
+				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
 					Q_ARG(QString, m_mesosCalendarModel->getSplitLetter(i.key().month(), i.key().day())),
 					Q_ARG(QString, QString::number(m_mesosCalendarModel->getTrainingDay(i.key().month(), i.key().day()))),
 					Q_ARG(QString, mesoSplit));

@@ -271,7 +271,7 @@ Page {
 		property string newtDay
 		property string newSplitText
 	}
-	function WarnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
+	function warnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
 		bCalendarChangedPending = true;
 		calendarChangedWarning.newSplitLetter = newsplitletter;
 		calendarChangedWarning.newtDay = newtday;

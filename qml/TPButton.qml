@@ -25,10 +25,9 @@ Rectangle {
 
 	focus: true
 	border.color: flat ? "transparent" : AppSettings.fontColor
-	radius: rounded ? height : flat ? 6 : 6
-	width: fontMetrics.boundingRect(text).width + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 10)
-	height: fontMetrics.boundingRect("TM").height + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10)
+	radius: rounded ? height : 6
 	opacity: bFollowParentsOpacity ? parent.opacity : 1
+	color: AppSettings.primaryDarkColor
 
 	onHighlightedChanged:
 		if (highlighted) {
@@ -53,30 +52,7 @@ Rectangle {
 		font.pointSize: AppSettings.fontSizeText
 	}
 
-	Component.onCompleted: {
-		AppSettings.appFontSizeChanged.connect(resizeButton);
-		resizeButton();
-	}
-
-	function resizeButton() {
-		const fwidth = fontMetrics.boundingRect(text).width;
-		if (!fixedSize) {
-			buttonText.width = fwidth + 5
-			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 15);
-
-			const fheight = fontMetrics.boundingRect("TM").height;
-			buttonText.height = fheight + 10
-			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
-		}
-		else {
-			/*if (rounded) {
-				buttonText.width = fwidth*0.9;
-				buttonText.wrapMode = Text.WordWrap;
-			}*/
-			if (button.width < fwidth)
-				buttonText.elide = Text.ElideMiddle
-		}
-	}
+	Component.onCompleted: { AppSettings.appFontSizeChanged.connect(resizeButton); resizeButton(); }
 
 	property double fillPosition: 1
 	Behavior on fillPosition {
@@ -84,14 +60,6 @@ Rectangle {
 			id: flash
 			duration: 200
 		}
-	}
-
-	gradient: Gradient {
-		orientation: Gradient.Horizontal
-		GradientStop { position: 0;									color: AppSettings.primaryDarkColor }
-		GradientStop { position: button.fillPosition - 0.001;		color: AppSettings.primaryLightColor }
-		GradientStop { position: button.fillPosition + 0.001;		color: AppSettings.primaryColor }
-		GradientStop { position: 1.0;								color: AppSettings.primaryDarkColor }
 	}
 
 	Label {
@@ -114,11 +82,11 @@ Rectangle {
 					anchors.verticalCenter = button.verticalCenter;
 					if (leftAlign) {
 						anchors.left = button.left;
-						anchors.leftMargin = rounded ? 10 : 2;
+						anchors.leftMargin = 2;
 					}
 					else {
 						anchors.right = parent.right;
-						anchors.rightMargin = rounded ? 10 : 2;
+						anchors.rightMargin = 2;
 					}
 				}
 				else {
@@ -228,6 +196,18 @@ Rectangle {
 				bEmitSignal = false;
 				button.clicked(button.clickId);
 			}
+		}
+	}
+
+	function resizeButton() {
+		if (!fixedSize) {
+			const fwidth = fontMetrics.boundingRect(text).width;
+			buttonText.width = fwidth + 5
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 15);
+
+			const fheight = fontMetrics.boundingRect("TM").height;
+			buttonText.height = fheight + 10
+			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
 		}
 	}
 } //Rectangle

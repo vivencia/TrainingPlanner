@@ -124,7 +124,7 @@ public:
 
 	inline bool isFieldFormatSpecial (const uint field) const
 	{
-		if (!m_extraInfo.isEmpty())
+		if (mb_Complete)
 			return field == MESOSPLIT_COL_SETTYPE || field == MESOSPLIT_COL_DROPSET;
 		return false;
 	}

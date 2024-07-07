@@ -97,12 +97,14 @@ Page {
 					id: optCurrentMeso
 					text: qsTr("Current mesocycle")
 					checked: mesocyclesModel.currentRow === index;
-					width: parent.width/3
-					height: parent.height/2
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						top: parent.top
+						topMargin: 3
 						left: parent.left
+						leftMargin: 5
 					}
 
 					onClicked: mesocyclesModel.currentRow = index;
@@ -114,12 +116,14 @@ Page {
 					textUnderIcon: true
 					rounded: false
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
-					width: parent.width/3
-					height: parent.height/2
+					fixedSize: true
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						left: parent.left
-						bottom: parent.bottom
+						leftMargin: 5
+						top: optCurrentMeso.bottom
 					}
 
 					onClicked: appDB.getMesocycle(index);
@@ -130,11 +134,13 @@ Page {
 					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
-					width: parent.width/3
-					height: parent.height/2
+					fixedSize: true
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						top: parent.top
+						topMargin: 3
 						left: optCurrentMeso.right
 					}
 
@@ -148,10 +154,10 @@ Page {
 					text: qsTr("Exercises Plan")
 					rounded: false
 					textUnderIcon: true
-					fixedSize: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
-					width: parent.width/3
-					height: parent.height/2
+					fixedSize: true
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						top: btnMesoCalendar.bottom
@@ -169,11 +175,13 @@ Page {
 					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
-					width: parent.width/3
-					height: parent.height/2
+					fixedSize: true
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						top: parent.top
+						topMargin: 3
 						left: btnMesoPlan.right
 					}
 
@@ -188,8 +196,9 @@ Page {
 					rounded: false
 					textUnderIcon: true
 					imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
-					width: parent.width/3
-					height: parent.height/2
+					fixedSize: true
+					width: parent.width/3 - 3
+					height: parent.height/2 - 3
 
 					anchors {
 						top: btnImport.bottom
