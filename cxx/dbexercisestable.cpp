@@ -14,7 +14,8 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSett
 {
 	m_tableName = u"exercises_table"_qs;
 	setObjectName(DBExercisesObjectName);
-	const QString cnx_name(QStringLiteral("db_exercises_connection-") + QTime::currentTime().toString(QStringLiteral("z")));
+	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
+	const QString cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
 	const QString dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);

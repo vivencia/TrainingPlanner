@@ -109,7 +109,7 @@ Popup {
 
 	Image {
 		id: imgElement
-		source: imageSource
+		source: "qrc:/images/"+AppSettings.iconFolder+imageSource
 		fillMode: Image.PreserveAspectFit
 		asynchronous: true
 		visible: imageSource.length > 0

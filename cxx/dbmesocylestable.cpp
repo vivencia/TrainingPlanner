@@ -11,7 +11,8 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSe
 {
 	m_tableName = u"mesocycles_table"_qs;
 	setObjectName(DBMesocyclesObjectName);
-	const QString cnx_name(QStringLiteral("db_meso_connection-") + QTime::currentTime().toString(QStringLiteral("z")));
+	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
+	const QString cnx_name(QStringLiteral("db_meso_connection") + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
 	const QString dbname(dbFilePath + DBMesocyclesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);

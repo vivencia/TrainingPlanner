@@ -15,8 +15,9 @@ ToolBar {
 	TPButton {
 		id: btnBack
 		text: qsTr("BACK")
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"back.png"
+		imageSource: "back.png"
 		rounded: false
+		flat: false
 		enabled: stackView.depth >= 2 && mainwindow.bBackButtonEnabled
 		visible: stackView.depth >= 2
 		anchors {

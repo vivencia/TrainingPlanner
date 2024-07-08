@@ -57,7 +57,7 @@ Frame {
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		imageSource: "remove.png"
 
 		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
 	} //TPBalloonTip
@@ -66,7 +66,7 @@ Frame {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise?")
 		message: exerciseName + qsTr("This action cannot be undone.")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		imageSource: "remove.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: removeExercise(idxToRemove);

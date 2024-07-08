@@ -15,7 +15,8 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSett
 
 	m_tableName = u"mesocycles_splits"_qs;
 	setObjectName(DBMesoSplitObjectName);
-	const QString cnx_name( QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)) );
+	m_UniqueID = QString::number(dist(gen)).remove(0, 2).toUInt();
+	const QString cnx_name(QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)));
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBMesoSplitFileName );
 	mSqlLiteDB.setDatabaseName( dbname );

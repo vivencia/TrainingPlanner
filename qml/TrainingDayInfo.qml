@@ -157,7 +157,7 @@ Page {
 		message: qsTr("All exercises changes will be removed")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		imageSource: "remove.png"
 
 		property int opt
 
@@ -188,7 +188,7 @@ Page {
 		id: tipTimeWarn
 		title: qsTr("Attention!")
 		message: "<b>" + timeLeft + qsTr("</b> until end of training session!")
-		imageSource: "qrc:/images/"+darkIconFolder+"sound-off.png"
+		imageSource: "sound-off.png"
 		button1Text: qsTr("OK")
 
 		property string timeLeft
@@ -211,14 +211,14 @@ Page {
 		id: timerDlgMessage
 		title: qsTr("Attention!")
 		message: qsTr("Only one timer window can be opened at a time!")
-		imageSource: "qrc:/images/"+darkIconFolder+"time.png"
+		imageSource: "time.png"
 		button1Text: qsTr("OK")
 		highlightMessage: true
 	}
 
 	TPBalloonTip {
 		id: exportTypeTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		imageSource: "export.png"
 		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
 		message: label1.text
 		button1Text: qsTr("Yes")
@@ -237,7 +237,7 @@ Page {
 
 	TPBalloonTip {
 		id: resetWorkoutMsg
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"reset.png"
+		imageSource: "reset.png"
 		title: qsTr("Reset workout?");
 		message: qsTr("Exercises will not be afected")
 		button1Text: qsTr("Yes")
@@ -248,7 +248,7 @@ Page {
 
 	TPBalloonTip {
 		id: calendarChangedWarning
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"warning.png"
+		imageSource: "warning.png"
 		title: qsTr("Calendar changed! Update?")
 		message: qsTr("Training division: ") + splitLetter + " -> " + newSplitLetter + qsTr("\nWorkout number: ") + tDay + " -> " + newtDay
 		button1Text: qsTr("Yes")
@@ -545,7 +545,7 @@ Page {
 
 			TPButton {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle")
-				flat: true
+				flat: false
 				rounded: false
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 				width: parent.width - 10
@@ -673,6 +673,7 @@ Page {
 					TPButton {
 						id: btnChooseIntent
 						text: qsTr("Proceed")
+						flat: false
 						enabled: false
 						Layout.alignment: Qt.AlignCenter
 
@@ -856,6 +857,7 @@ Page {
 			TPButton {
 				id: btnStartWorkout
 				text: qsTr("Begin")
+				flat: false
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
 				enabled: !workoutTimer.active
 
@@ -904,6 +906,7 @@ Page {
 			TPButton {
 				id: btnEndWorkout
 				text: qsTr("Finish")
+				flat: false
 				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
 				enabled: workoutTimer.active
 
@@ -921,11 +924,12 @@ Page {
 
 		TPButton {
 			id: btnFinishedDayOptions
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"menu.png"
-			textUnderIcon: true
-			width: 55
-			fixedSize: true
+			imageSource: "menu.png"
 			rounded: false
+			flat: false
+			fixedSize: true
+			width: 55
+			height: 55
 			visible: tDayModel.dayIsFinished
 
 			anchors {
@@ -942,12 +946,14 @@ Page {
 		TPButton {
 			id: btnImExport
 			text: qsTr("In/Export")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
+			imageSource: "import-export.png"
 			textUnderIcon: true
 			rounded: false
-			visible: tDayModel.dayIsFinished
-			width: 70
+			flat: false
 			fixedSize: true
+			width: 70
+			height: 55
+			visible: tDayModel.dayIsFinished
 
 			anchors {
 				left: btnFinishedDayOptions.right
@@ -963,11 +969,14 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("Add exercise")
-			visible: splitLetter !== 'R'
-			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
+			imageSource: "exercises-add.png"
 			rounded: false
 			textUnderIcon: true
+			flat: false
+			height: 55
+			visible: splitLetter !== 'R'
+			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
+
 			anchors {
 				right: parent.right
 				rightMargin: 5
@@ -1019,7 +1028,7 @@ Page {
 		id: adjustCalendarBox
 		title: qsTr("Re-adjust meso calendar?")
 		checkBoxText: qsTr("Only alter this day")
-		imageSource: "qrc:/images/"+darkIconFolder+"calendar.png"
+		imageSource: "calendar.png"
 		button1Text: qsTr("Adjust")
 		button2Text: qsTr("Cancel")
 

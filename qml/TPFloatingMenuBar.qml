@@ -87,7 +87,7 @@ Popup {
 			entryComponent = Qt.createComponent("TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: "qrc:/images/"+AppSettings.iconFolder+img,
+			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img,
 				clickId: id, flat: true, rounded: false, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
 			entriesTotalHeight += button.buttonHeight;
 			button.clicked.connect(menuEntryClicked);

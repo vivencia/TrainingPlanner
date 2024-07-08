@@ -33,7 +33,7 @@ Page {
 	TPBalloonTip {
 		id: applyTip
 		message: qsTr("The App must be restarted in order to reflect the changes")
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"settings.png"
+		imageSource: "settings.png"
 
 		function init() {
 			if (Qt.platform.os !== "android") {

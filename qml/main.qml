@@ -169,7 +169,7 @@ ApplicationWindow {
 
 	TPBalloonTip {
 		id: importConfirmDialog
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		imageSource: "import.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 
@@ -251,7 +251,7 @@ ApplicationWindow {
 
 	TPBalloonTip {
 		id: activityFinishedTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+		imageSource: "import.png"
 		button1Text: "OK"
 	}
 

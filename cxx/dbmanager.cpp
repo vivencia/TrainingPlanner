@@ -279,10 +279,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 			break;
 		}
 	}
-
-	m_WorkerLock[dbObj->objectName()]--;
-	if (m_WorkerLock[dbObj->objectName()] <= 0)
-		cleanUp(dbObj);
+	cleanUp(dbObj);
 }
 
 void DbManager::verifyBackupPageProperties(QQuickItem* page) const
@@ -605,8 +602,8 @@ bool DbManager::importFromModel(TPListModel* model)
 			{
 				if (mesoCalendarModel->count() == 0)
 				{
-					connect( this, &DbManager::databaseReady, this, [&,dayDate] {
-						connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
+					connect( this, &DbManager::databaseReady, this, [&,dayDate] () {
+						connect( this, &DbManager::getPage, this, [&,dayDate] (QQuickItem* item, const uint) {
 							return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
 								}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 						return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -614,7 +611,7 @@ bool DbManager::importFromModel(TPListModel* model)
 				}
 				else
 				{
-					connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
+					connect( this, &DbManager::getPage, this, [&,dayDate] (QQuickItem* item, const uint) {
 						return addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(dayDate), item);
 							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					getTrainingDay(dayDate);
@@ -779,7 +776,6 @@ void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 	if (!thread->isFinished())
 	{
 		MSG_OUT("starting thread for " << dbObj->objectName())
-		m_WorkerLock[dbObj->objectName()]++;
 		thread->start();
 		if (dbObj->waitForThreadToFinish())
 			thread->wait();
@@ -788,33 +784,56 @@ void DbManager::startThread(QThread* thread, TPDatabaseTable* dbObj)
 
 void DbManager::cleanUp(TPDatabaseTable* dbObj)
 {
-	MSG_OUT("cleanUp: " << dbObj->objectName());
+	const uint uid(dbObj->uniqueID());
+	MSG_OUT("cleanUp: " << dbObj->objectName() << "uniqueID: " << uid);
+	emit databaseReady(dbObj->uniqueID());
 	dbObj->disconnect();
 	dbObj->deleteLater();
 	dbObj->thread()->quit();
-	MSG_OUT("calling databaseReady()");
-	emit databaseReady();
+	if (m_WorkerLock.contains(dbObj->objectName()))
+	{
+		if (m_WorkerLock.value(dbObj->objectName()).count() == 1)
+			m_WorkerLock[dbObj->objectName()].removeOne(uid);
+		if (m_WorkerLock.value(dbObj->objectName()).isEmpty())
+		{
+			MSG_OUT("Removing lock for " << dbObj->objectName())
+			m_WorkerLock.remove(dbObj->objectName());
+			if (m_WorkerLock.isEmpty())
+			{
+				MSG_OUT("All threads are finished. Disconnecting from databaseReady()")
+				disconnect(this, &DbManager::databaseReady, this, nullptr);
+			}
+		}
+	}
 }
 
 void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
 {
-	worker->setCallbackForDoneFunc( [&] (TPDatabaseTable* obj) { return gotResult(obj); } );
+	worker->setCallbackForDoneFunc([&] (TPDatabaseTable* obj) { return gotResult(obj); });
 
-	QThread *thread = new QThread ();
-	connect ( thread, &QThread::started, worker, execFunc );
-	connect ( thread, &QThread::finished, thread, &QThread::deleteLater);
-	worker->moveToThread ( thread );
+	QThread* thread(new QThread());
+	connect(thread, &QThread::started, worker, execFunc);
+	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+	worker->moveToThread(thread);
 
-	if (m_WorkerLock[worker->objectName()] <= 0)
+	if (m_WorkerLock.value(worker->objectName()).isEmpty())
 	{
 		MSG_OUT("Database  " << worker->objectName() << " starting immediatelly")
+		m_WorkerLock[worker->objectName()].append(worker->uniqueID());
 		startThread(thread, worker);
 	}
 	else
 	{
-		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << m_WorkerLock[worker->objectName()])
-		connect( this, &DbManager::databaseReady, this, [&,thread, worker] () {
-			return DbManager::startThread(thread, worker); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
+		m_WorkerLock[worker->objectName()].append(worker->uniqueID());
+		connect(this, &DbManager::databaseReady, this, [&,thread, worker] (const uint db_id) {
+			qDebug() << "databaseReady was caught. db_id is: " << db_id;
+			if (m_WorkerLock.value(worker->objectName()).contains(db_id))
+			{
+				m_WorkerLock[worker->objectName()].removeOne(db_id);
+				return DbManager::startThread(thread, worker);
+			}
+		});
 	}
 }
 
@@ -835,10 +854,11 @@ void DbManager::getAllExercises()
 	if (exercisesListModel->count() == 0)
 	{
 		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
+		worker->setUniqueID(2222);
 		createThread(worker, [worker] () { worker->getAllExercises(); } );
 	}
 	else
-		emit databaseReady();
+		emit databaseReady(2222);
 }
 
 void DbManager::newExercise( const QString& mainName, const QString& subName, const QString& muscularGroup,
@@ -898,7 +918,7 @@ void DbManager::openExercisesListPage(const bool bChooseButtonEnabled, QQuickIte
 	if (exercisesListModel->count() == 0)
 	{
 		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-		connect( this, &DbManager::databaseReady, this, [&,connectPage] { return createExercisesListPage(connectPage); },
+		connect( this, &DbManager::databaseReady, this, [&,connectPage] (const uint) { return createExercisesListPage(connectPage); },
 				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createThread(worker, [worker] () { return worker->getAllExercises(); } );
 	}
@@ -1120,7 +1140,7 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 			worker->setWaitForThreadToFinish(true);
 		else
 		{
-			connect( this, &DbManager::databaseReady, this, [&] {
+			connect( this, &DbManager::databaseReady, this, [&] () {
 				mesoSplitModel->setFast(m_MesoIdx, 1, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
 				newMesoSplit();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -1276,12 +1296,16 @@ void DbManager::loadCompleteMesoSplits(const bool bThreaded)
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
 			worker->addExecArg(m_MesoIdStr);
 			worker->addExecArg(static_cast<QChar>(*itr));
-			connect( this, &DbManager::databaseReady, this, [&] {
-				if (--m_nSplits == 0) {
-					mb_splitsLoaded = true;
-					emit internalSignal(SPLITS_LOADED_ID);
+			connect( this, &DbManager::databaseReady, this, [&,worker] (const uint db_id) {
+				if (db_id == worker->uniqueID()) {
+					qDebug() << "m_nSplits:   " << m_nSplits;
+					if (--m_nSplits == 0) {
+						disconnect(this, &DbManager::databaseReady, this, nullptr);
+						mb_splitsLoaded = true;
+						emit internalSignal(SPLITS_LOADED_ID);
+					}
 				}
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			});
 			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); } );
 		}
 		else
@@ -1503,7 +1527,7 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 		worker->addExecArg(m_MesoId);
 		if (bCreatePage)
 		{
-			connect( this, &DbManager::databaseReady, this, [&,bCreatePage] {
+			connect( this, &DbManager::databaseReady, this, [&,bCreatePage] () {
 				return getMesoCalendar(bCreatePage); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		}
 		createThread(worker, [worker] () { worker->getMesoCalendar(); });
@@ -1638,7 +1662,7 @@ void DbManager::getTrainingDay(const QDate& date)
 	worker->removeEntry();
 	worker->clearExecArgs();*/
 	worker->addExecArg(QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
+	connect( this, &DbManager::databaseReady, this, [&,date] () { return m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); },
 			static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	connect(this, &DbManager::internalSignal, this, [&,date] (const uint id ) { if (id == tDayPageCreateId)
 		{
@@ -1653,7 +1677,7 @@ void DbManager::getTrainingDayExercises(const QDate& date)
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
 	worker->addExecArg(m_MesoIdStr);
 	worker->addExecArg(QString::number(date.toJulianDay()));
-	connect( this, &DbManager::databaseReady, this, [&,date] { return verifyTDayOptions(date); },
+	connect( this, &DbManager::databaseReady, this, [&,date] () { return verifyTDayOptions(date); },
 		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
 }
@@ -1694,7 +1718,7 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 	worker->addExecArg(QString::number(date.toJulianDay()));
 
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
-	connect( this, &DbManager::databaseReady, this, [&,date] { m_currentMesoManager->currenttDayModel()->setModified(true);
+	connect( this, &DbManager::databaseReady, this, [&,date] () { m_currentMesoManager->currenttDayModel()->setModified(true);
 			 return m_currentMesoManager->createExercisesObjects(); },
 				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });

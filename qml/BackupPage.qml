@@ -37,7 +37,7 @@ Page {
 
 	TPBalloonTip {
 		id: opFinished
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"backup.png"
+		imageSource: "backup.png"
 
 		onButton1Clicked: appDB.restartApp();
 

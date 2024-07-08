@@ -136,7 +136,7 @@ public:
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 signals:
-	void databaseReady();
+	void databaseReady(const uint db_id);
 	void getPage(QQuickItem* item, const uint id);
 	void getItem(QQuickItem* item, const uint id);
 	void internalSignal(const uint id);
@@ -157,7 +157,7 @@ private:
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
-	QMap<QString,int> m_WorkerLock;
+	QMap<QString,QList<uint>> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
 	QQuickWindow* m_mainWindow;

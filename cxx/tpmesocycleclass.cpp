@@ -497,7 +497,6 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 	item->setProperty("exerciseIdx", idx);
 	item->setProperty("Layout.row", idx);
 	item->setProperty("Layout.column", 0);
-	//item->setObjectName("exercise_" + QString::number(idx));
 	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
 	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,

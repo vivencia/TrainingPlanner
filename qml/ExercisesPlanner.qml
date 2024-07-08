@@ -85,13 +85,15 @@ Page {
 		TPButton {
 			id: btnSave
 			text: qsTr("Save")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"save-day.png"
+			imageSource: "save-day.png"
 			textUnderIcon: true
+			rounded: false
+			flat: false
 			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.modified : false
 			fixedSize: true
-			rounded: false
 			width: 55
-			height: btnAddExercise.height
+			height: 55
+
 			anchors {
 				left: parent.left
 				leftMargin: 5
@@ -107,13 +109,14 @@ Page {
 		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"clear.png"
+			imageSource: "clear.png"
 			textUnderIcon: true
 			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			rounded: false
+			flat: false
 			width: 55
-			height: btnAddExercise.height
+			height: 55
 			anchors {
 				left: btnSave.right
 				leftMargin: 3
@@ -130,13 +133,14 @@ Page {
 		TPButton {
 			id: btnSwapPlan
 			text: splitView.currentIndex >= 0 ? currentPage.splitModel.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"swap.png"
+			imageSource: "swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
 			fixedSize: true
 			rounded: false
+			flat: false
 			width: 55
-			height: btnAddExercise.height
+			height: 55
 			anchors {
 				left: btnClearPlan.right
 				leftMargin: 3
@@ -149,12 +153,13 @@ Page {
 		TPButton {
 			id: btnImExport
 			text: qsTr("In/Ex")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"import-export.png"
+			imageSource: "import-export.png"
 			textUnderIcon: true
 			fixedSize: true
 			rounded: false
+			flat: false
 			width: 55
-			height: btnAddExercise.height
+			height: 55
 			anchors {
 				left: btnSwapPlan.right
 				leftMargin: 3
@@ -167,11 +172,13 @@ Page {
 		TPButton {
 			id: btnAddExercise
 			text: qsTr("+ Exercise")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises-add.png"
+			imageSource: "exercises-add.png"
 			textUnderIcon: true
 			fixedSize: true
 			rounded: false
+			flat: false
 			width: 70
+			height: 55
 			anchors {
 				right: parent.right
 				rightMargin: 5
@@ -246,7 +253,7 @@ Page {
 
 	TPBalloonTip {
 		id: exportTypeTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		imageSource: "export.png"
 		message: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")

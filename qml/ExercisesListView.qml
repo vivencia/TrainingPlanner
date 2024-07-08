@@ -212,9 +212,11 @@ Column {
 	} // txtFilter
 
 	Component.onCompleted: {
-		function setModel() {
-			appDB.databaseReady.disconnect(setModel);
-			lstExercises.model = exercisesListModel;
+		function setModel(unique_id) {
+			if (unique_id === 2222) {
+				appDB.databaseReady.disconnect(setModel);
+				lstExercises.model = exercisesListModel;
+			}
 		}
 
 		appDB.databaseReady.connect(setModel);

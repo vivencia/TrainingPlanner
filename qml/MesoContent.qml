@@ -263,10 +263,12 @@ Page {
 		TPButton {
 			id: btnShowDayInfo
 			text: qsTr("View Day")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"day-info.png"
+			imageSource: "day-info.png"
 			textUnderIcon: true
 			rounded: false
+			flat: false
 			width: 60
+			height: 55
 			fixedSize: true
 			enabled: false
 			anchors {

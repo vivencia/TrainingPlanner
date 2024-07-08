@@ -37,7 +37,7 @@ Drawer {
 	TPButton {
 		id: btnExit
 		text: qsTr("Exit")
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"application-exit.png"
+		imageSource: "application-exit.png"
 		leftAlign: false
 		rounded: false
 

@@ -61,7 +61,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 				leftMargin: 20
 			}
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
+			imageSource: "edit-mesocycle.png"
 
 			onClicked: appDB.getMesoCalendar(true);
 		}

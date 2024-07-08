@@ -11,12 +11,10 @@
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* appSettings, DBTrainingDayModel* model)
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
-	std::minstd_rand gen(std::random_device{}());
-	std::uniform_real_distribution<double> dist(0, 1);
-
 	m_tableName = u"training_day_table"_qs;
 	setObjectName(DBTrainingDayObjectName);
-	const QString cnx_name( QStringLiteral("db_trainingday_connection-") + QString::number(dist(gen)) );
+	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
+	const QString cnx_name( QStringLiteral("db_trainingday_connection") + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBTrainingDayFileName );
 	mSqlLiteDB.setDatabaseName( dbname );

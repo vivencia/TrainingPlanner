@@ -11,7 +11,8 @@ DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, QSettings* a
 {
 	m_tableName = u"mesocycles_calendar_table"_qs;
 	setObjectName(DBMesoCalendarObjectName);
-	const QString cnx_name(QStringLiteral("db_mesocal_connection-") + QTime::currentTime().toString(QStringLiteral("z")));
+	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
+	const QString cnx_name(QStringLiteral("db_mesocal_connection-") + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
 	const QString dbname(dbFilePath + DBMesoCalendarFileName);
 	mSqlLiteDB.setDatabaseName(dbname);

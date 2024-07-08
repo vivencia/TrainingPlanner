@@ -115,7 +115,7 @@ Page {
 					text: qsTr("View Meso")
 					textUnderIcon: true
 					rounded: false
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
+					imageSource: "mesocycle.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -133,7 +133,7 @@ Page {
 					text: qsTr("Calendar")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"edit-mesocycle.png"
+					imageSource: "edit-mesocycle.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -154,7 +154,7 @@ Page {
 					text: qsTr("Exercises Plan")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"exercises.png"
+					imageSource: "exercises.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -174,7 +174,7 @@ Page {
 					text: qsTr("Import")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+					imageSource: "import.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -195,7 +195,7 @@ Page {
 					text: qsTr("Export")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+					imageSource: "export.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -230,7 +230,7 @@ Page {
 
 				TPButton {
 					text: qsTr("Remove Mesocycle")
-					imageSource: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
+					imageSource: "remove.png"
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter
@@ -246,7 +246,7 @@ Page {
 					message: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
-					imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+					imageSource: "remove.png"
 
 					property int mesoidx
 					onButton1Clicked: appDB.removeMesocycle(mesoidx);
@@ -327,7 +327,9 @@ Page {
 			text: qsTr("New open-ended schedule")
 			textUnderIcon: true
 			rounded: false
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"open-schedule.png"
+			flat: false
+			imageSource: "open-schedule.png"
+
 			anchors {
 				left: parent.left
 				verticalCenter: parent.verticalCenter
@@ -340,9 +342,11 @@ Page {
 		TPButton {
 			id: btnAddMeso
 			text: qsTr("New Mesocycle")
-			imageSource: "qrc:/images/"+AppSettings.iconFolder+"mesocycle-add.png"
+			imageSource: "mesocycle-add.png"
 			textUnderIcon: true
 			rounded: false
+			flat: false
+
 			anchors {
 				right: parent.right
 				verticalCenter: parent.verticalCenter
@@ -386,7 +390,7 @@ Page {
 
 	TPBalloonTip {
 		id: exportTypeTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		imageSource: "export.png"
 		message: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")

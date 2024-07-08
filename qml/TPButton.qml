@@ -4,8 +4,6 @@ import QtQuick.Controls
 Rectangle {
 	id: button
 	property color textColor: AppSettings.fontColor
-	property alias imageMirror: buttonImage.mirror
-	property alias imageSize: buttonImage.height
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property bool textUnderIcon: false
@@ -16,10 +14,12 @@ Rectangle {
 	property bool rounded: true
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
+	property int imageSize: 20
 	property string imageSource
 	property bool bPressed: false
 	property bool bEmitSignal: false
 	property bool bFollowParentsOpacity: false
+	property var buttonImage;
 
 	signal clicked(int clickid);
 
@@ -52,7 +52,26 @@ Rectangle {
 		font.pointSize: AppSettings.fontSizeText
 	}
 
-	Component.onCompleted: { AppSettings.appFontSizeChanged.connect(resizeButton); resizeButton(); }
+	Component.onCompleted: {
+		AppSettings.appFontSizeChanged.connect(resizeButton);
+		if (imageSource.length > 0)
+		{
+			var component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				buttonImage = component.createObject(button,
+					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon, size: imageSize});
+				resizeButton();
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		else
+			resizeButton();
+	}
 
 	property double fillPosition: 1
 	Behavior on fillPosition {
@@ -98,43 +117,6 @@ Rectangle {
 			else {
 				anchors.horizontalCenter = button.horizontalCenter;
 				anchors.verticalCenter = button.verticalCenter;
-			}
-		}
-	}
-
-	Image {
-		id: buttonImage
-		height: 20
-		width: 20
-		fillMode: Image.PreserveAspectFit
-		mirror: false
-		source: imageSource
-		opacity: buttonText.opacity
-		visible: imageSource.length > 1
-
-		Component.onCompleted: {
-			if (text.length > 0) {
-				if (!textUnderIcon) {
-					anchors.verticalCenter = button.verticalCenter;
-					if (leftAlign) {
-						anchors.right = button.right
-						anchors.rightMargin = button.rounded ? 5 : 0;
-					}
-					else {
-						anchors.left = button.left
-						anchors.leftMargin = button.rounded ? 5 : 10;
-					}
-				}
-				else {
-					anchors.top = button.top;
-					anchors.topMargin = 5;
-					anchors.horizontalCenter = button.horizontalCenter;
-					anchors.bottomMargin = 10;
-				}
-			}
-			else {
-				anchors.horizontalCenter = button.horizontalCenter
-				anchors.verticalCenter = button.verticalCenter
 			}
 		}
 	}
@@ -200,14 +182,20 @@ Rectangle {
 	}
 
 	function resizeButton() {
+		const fwidth = fontMetrics.boundingRect(text).width;
+		buttonText.width = fwidth + 5
 		if (!fixedSize) {
-			const fwidth = fontMetrics.boundingRect(text).width;
-			buttonText.width = fwidth + 5
-			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : buttonImage.width + 10 : 15);
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 10 : 15);
 
 			const fheight = fontMetrics.boundingRect("TM").height;
 			buttonText.height = fheight + 10
-			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? buttonImage.height + 10 : 10 : 10);
+			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
+		}
+		else {
+			if (button.width > 0) {
+				if (fwidth >= button.width)
+					buttonText.elide = Text.ElideMiddle;
+			}
 		}
 	}
 } //Rectangle

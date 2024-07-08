@@ -35,7 +35,7 @@ Item {
 		message: lblSetNumber.text + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		imageSource: "remove.png"
 
 		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 	} //TPBalloonTip

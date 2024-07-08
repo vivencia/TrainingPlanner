@@ -30,6 +30,8 @@ public:
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
+	inline uint uniqueID() const { return m_UniqueID; }
+	inline void setUniqueID(const uint uid) { m_UniqueID = uid; }
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline void clearExecArgs() { m_execArgs.clear(); }
 	inline void changeExecArg(const QVariant& arg, const uint pos) { if (pos < m_execArgs.count()) m_execArgs[pos] = arg; }
@@ -50,7 +52,7 @@ protected:
 	TPListModel* m_model;
 	QVariantList m_execArgs;
 	QString m_tableName;
-
+	uint m_UniqueID;
 	bool m_result;
 	bool mb_waitForFinished;
 	OP_CODES m_opcode;

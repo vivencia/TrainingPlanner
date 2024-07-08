@@ -49,13 +49,13 @@ Rectangle {
 
 			TPButton {
 				id: btnShowHideList
-				imageSource: bottomPane.shown ? "qrc:/images/"+darkIconFolder+"fold-down.png" : "qrc:/images/"+darkIconFolder+"fold-up.png"
+				imageSource: bottomPane.shown ? "fold-down.png" : "fold-up.png"
 				imageSize: 60
 				onClicked: bottomPane.shown = !bottomPane.shown;
 			}
 			TPButton {
 				id: btnCloseList
-				imageSource: "qrc:/images/"+darkIconFolder+"close.png"
+				imageSource: "close.png"
 				imageSize: 60
 				onClicked: bShowSimpleExercisesList = false;
 			}

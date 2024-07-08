@@ -2,7 +2,7 @@ import QtQuick
 
 TPBalloonTip {
 	id: msgbox
-	imageSource: "qrc:/images/"+AppSettings.iconFolder+"import.png"
+	imageSource: "import.png"
 	title: qsTr("Attempt to import the file?")
 	message: importFile
 	button1Text: qsTr("Yes")

@@ -30,7 +30,7 @@ FocusScope {
 		message: tDayModel.exerciseName(exerciseIdx) + qsTr("? This action cannot be undone.")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "qrc:/images/"+darkIconFolder+"remove.png"
+		imageSource: "remove.png"
 
 		onButton1Clicked: itemManager.removeExerciseObject(exerciseIdx);
 	} //TPBalloonTip

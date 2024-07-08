@@ -329,7 +329,7 @@ Popup {
 
 		TPButton {
 			visible: !timePicker.pickMinutes
-			imageSource: timePicker.useWorkTimes? "qrc:/images/"+AppSettings.iconFolder+"work.png" : "qrc:/images/"+AppSettings.iconFolder+"time.png"
+			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
 			anchors.right: parent.right
 			anchors.top: parent.top
 			anchors.topMargin: -5

@@ -314,8 +314,11 @@ Page {
 					id:btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
-					width: toolbarExercises.buttonWidth
 					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
 
 					onClicked: {
 						if (!bNew) {
@@ -343,8 +346,11 @@ Page {
 					id:btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesListModel.currentRow >= 0
-					width: toolbarExercises.buttonWidth
 					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
 
 					onClicked: {
 						if (!bEdit) {
@@ -361,7 +367,7 @@ Page {
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
 							if (!bJustSaved)
-								exercisesList.displaySelectedExercise(exercisesListModel.currentRow);
+								exercisesList.itemClicked(exercisesListModel.currentRow, true);
 						}
 					}
 				} //btnEditExercise
@@ -370,8 +376,11 @@ Page {
 					id: btnSaveExercise
 					text: qsTr("Save")
 					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
-					width: toolbarExercises.buttonWidth
 					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
 
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
@@ -396,8 +405,11 @@ Page {
 					id: btnAddExercise
 					enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
 					text: qsTr("Add")
-					width: toolbarExercises.buttonWidth
 					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
 
 					onClicked: {
 						exerciseChosen();
@@ -410,8 +422,11 @@ Page {
 					text: qsTr("In/Export")
 					enabled: !btnSaveExercise.enabled
 					visible: !bChooseButtonEnabled
-					width: toolbarExercises.buttonWidth
 					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
 
 					onClicked: INEX.showInExMenu(pageExercises, true);
 				} // btnImExport
@@ -428,7 +443,7 @@ Page {
 
 	TPBalloonTip {
 		id: exportTypeTip
-		imageSource: "qrc:/images/"+AppSettings.iconFolder+"export.png"
+		imageSource: "export.png"
 		message: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
