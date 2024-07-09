@@ -27,7 +27,7 @@ ToolBar {
 		}
 
 		onClicked: {
-			stackView.pop();
+			popFromStack(null);
 			backButtonPressed();
 		}
 	}

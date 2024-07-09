@@ -14,6 +14,7 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSett
 	std::uniform_real_distribution<double> dist(0, 1);
 
 	m_tableName = u"mesocycles_splits"_qs;
+	m_tableID = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
 	m_UniqueID = QString::number(dist(gen)).remove(0, 2).toUInt();
 	const QString cnx_name(QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)));
@@ -150,11 +151,32 @@ void DBMesoSplitTable::newMesoSplit()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		const uint row(m_execArgs.at(0).toUInt());
-		query.prepare( QStringLiteral( "INSERT INTO mesocycles_splits "
-										"(meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
-										" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-								.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3),
-									m_model->getFast(row, 4), m_model->getFast(row, 5), m_model->getFast(row, 6), m_model->getFast(row, 7)) );
+		bool bUpdate(false);
+
+		query.prepare( QStringLiteral("SELECT id FROM mesocycles_splits WHERE meso_id=%1").arg(m_model->getFast(row, 1)) );
+		if (query.exec())
+		{
+			if (query.first())
+				bUpdate = query.value(0).toUInt() >= 0;
+			query.finish();
+		}
+
+		if (!bUpdate)
+		{
+			query.prepare( QStringLiteral("INSERT INTO mesocycles_splits "
+								"(meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
+								" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
+									.arg(m_model->getFast(row, 1), m_model->getFast(row, 2), m_model->getFast(row, 3),
+										m_model->getFast(row, 4), m_model->getFast(row, 5), m_model->getFast(row, 6), m_model->getFast(row, 7)) );
+		}
+		else
+		{
+			query.prepare( QStringLiteral(
+									"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', "
+									"splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', splitF=\'%6\' WHERE meso_id=%7")
+									.arg(m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4), m_model->getFast(row, 5),
+										m_model->getFast(row, 6), m_model->getFast(row, 7), m_model->getFast(row, 1)) );
+		}
 		m_result = query.exec();
 		if (m_result)
 		{
@@ -269,6 +291,8 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 void DBMesoSplitTable::updateMesoSplitComplete()
 {
 	m_result = false;
+	QString strQuery;
+
 	if (mSqlLiteDB.open())
 	{
 		DBMesoSplitModel* model(static_cast<DBMesoSplitModel*>(m_model));
@@ -302,23 +326,40 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		//Cannot run this query asynchronously because updateMesoSplitComplete() is itself called asynchronously for possibly multiple times in a row
 		//I can manage the threads TP creates, but I have no control over what the qsqlite driver will do. Multiple queries will yield multiple
 		//calls to write to the database and this was causing some of the queries to fail
-		//query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		//query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		const QString strQuery(QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
+		bool bUpdate(false);
+		query.prepare( QStringLiteral("SELECT id FROM mesocycles_splits WHERE meso_id=%1").arg(mesoId) );
+		if (query.exec())
+		{
+			if (query.first())
+				bUpdate = query.value(0).toUInt() >= 0;
+			query.finish();
+		}
+
+		if (!bUpdate)
+		{
+			strQuery = QStringLiteral("INSERT INTO mesocycles_splits "
+								"(meso_id, split%1_exercisesnames, split%1_exercisesset_types, split%1_exercisesset_n, "
+								"split%1_exercisesset_subsets, split%1_exercisesset_reps, split%1_exercisesset_weight, "
+								"split%1_exercisesset_dropset, split%1_exercisesset_notes, split%1, meso_id)"
+								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')")
+								.arg(model->splitLetter(), mesoId, exercises, setstypes, setsnumber, setssubsets, setsreps,
+										setsweight, setsdropset, setsnotes, model->muscularGroup());
+		}
+		else
+		{
+			strQuery = QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "
 								"split%1_exercisesset_subsets=\'%5\', split%1_exercisesset_reps=\'%6\', "
 								"split%1_exercisesset_weight=\'%7\', split%1_exercisesset_dropset=\'%8\', "
 								"split%1_exercisesset_notes=\'%9\', split%1=\'%10\' WHERE meso_id=%11")
 								.arg(model->splitLetter(), exercises, setstypes, setsnumber, setssubsets, setsreps,
-										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId));
-		query.prepare( strQuery );
-		m_result = query.exec();
-		if (!m_result)
-		{
-			qDebug() << "Error";
-			qDebug() << strQuery;
+										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId);
 		}
+		query.prepare(strQuery);
+		m_result = query.exec();
 		mSqlLiteDB.close();
 	}
 
@@ -326,11 +367,14 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 	{
 		m_model->setModified(false);
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete SUCCESS")
+		MSG_OUT(strQuery)
 	}
 	else
 	{
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("--ERROR--")
+		MSG_OUT(strQuery)
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

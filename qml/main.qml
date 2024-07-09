@@ -90,7 +90,10 @@ ApplicationWindow {
 				anchors.leftMargin: 10
 			}
 
-			onClicked: stackView.pop(stackView.get(0));
+			onClicked: {
+				stackView.pop(stackView.get(0));
+				btnWorkoutEnabled();
+			}
 		}
 
 		TabButton {
@@ -153,14 +156,12 @@ ApplicationWindow {
 
 	function popFromStack(page: Item) {
 		stackView.pop(page);
+		btnWorkoutEnabled();
 	}
 
 	function pushOntoStack(page: Item) {
 		stackView.push(page);
-	}
-
-	function stackViewPushExistingPage(page: Item) {
-		stackView.replace(stackView.currentItem, page);
+		btnWorkoutEnabled();
 	}
 
 	function createShortCut(label: string, object: Item, clickid: int) {

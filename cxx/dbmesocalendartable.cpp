@@ -10,6 +10,7 @@ DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, QSettings* a
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	m_tableName = u"mesocycles_calendar_table"_qs;
+	m_tableID = MESOCALENDAR_TABLE_ID;
 	setObjectName(DBMesoCalendarObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString cnx_name(QStringLiteral("db_mesocal_connection-") + QString::number(m_UniqueID));

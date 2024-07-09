@@ -13,6 +13,7 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSett
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	m_tableName = u"exercises_table"_qs;
+	m_tableID = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));

@@ -19,7 +19,8 @@ class TPDatabaseTable : public QObject
 
 public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
-		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), m_result(false), mb_waitForFinished(false), m_opcode(OP_NULL) {}
+		: QObject{nullptr}, m_appSettings(appSettings), m_model(model),
+			mb_resolved(false), m_result(false), mb_waitForFinished(false), m_opcode(OP_NULL) {}
 
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;
@@ -30,16 +31,18 @@ public:
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
+	inline uint tableID() const { return m_tableID; }
 	inline uint uniqueID() const { return m_UniqueID; }
 	inline void setUniqueID(const uint uid) { m_UniqueID = uid; }
+	inline bool resolved() const { return mb_resolved; }
+	inline void setResolved(const bool resolved) { mb_resolved = resolved; }
+	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
+	inline bool waitForThreadToFinish() const { return mb_waitForFinished; }
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline void clearExecArgs() { m_execArgs.clear(); }
 	inline void changeExecArg(const QVariant& arg, const uint pos) { if (pos < m_execArgs.count()) m_execArgs[pos] = arg; }
 	inline TPListModel* model() const { return m_model; }
 	void setModel(TPListModel* model) { m_model = model; }
-
-	inline void setWaitForThreadToFinish(const bool wait) { mb_waitForFinished = wait; }
-	inline bool waitForThreadToFinish() const { return mb_waitForFinished; }
 
 	void removeEntry();
 	void clearTable();
@@ -52,7 +55,9 @@ protected:
 	TPListModel* m_model;
 	QVariantList m_execArgs;
 	QString m_tableName;
+	uint m_tableID;
 	uint m_UniqueID;
+	bool mb_resolved;
 	bool m_result;
 	bool mb_waitForFinished;
 	OP_CODES m_opcode;

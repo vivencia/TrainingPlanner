@@ -10,6 +10,7 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSe
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	m_tableName = u"mesocycles_table"_qs;
+	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString cnx_name(QStringLiteral("db_meso_connection") + QString::number(m_UniqueID));

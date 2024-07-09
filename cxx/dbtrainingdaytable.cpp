@@ -12,6 +12,7 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* app
 	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
 {
 	m_tableName = u"training_day_table"_qs;
+	m_tableID = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString cnx_name( QStringLiteral("db_trainingday_connection") + QString::number(m_UniqueID));

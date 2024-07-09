@@ -129,7 +129,7 @@ Rectangle {
 
 	ListView {
 		id: calendar
-		height: cellSize * 8
+		height: cellSize * 7.5
 		visible: true
 		z: 1
 		snapMode: ListView.SnapToItem
@@ -161,7 +161,7 @@ Rectangle {
 									qsTr("Thursday"), qsTr("Friday"), qsTr("Saturday")]
 
 		delegate: Rectangle {
-			height: cellSize * 8.5
+			height: cellSize * 7
 			width: cellSize * 7
 			Rectangle {
 				id: monthYearTitle
@@ -207,6 +207,13 @@ Rectangle {
 					width: cellSize
 					radius: height * 0.5
 					enabled: model.month === monthGrid.month
+					gradient: Gradient {
+						orientation: Gradient.Vertical
+						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+						GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+						GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+						GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+					}
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
@@ -318,64 +325,31 @@ Rectangle {
 		}
 	} // ListView yearsList
 
-	Rectangle {
+
+	Row {
 		height: cellSize
+		spacing: 20
 		anchors {
 			top: calendar.bottom
 			right: parent.right
 			rightMargin: cellSize * 0.5
-			topMargin: -20
 		}
-		z: 1
-		color: "black"
-		Row {
-			layoutDirection: "RightToLeft"
-			anchors {
-				right: parent.right
-			}
-			height: parent.height
 
-			Rectangle {
-				id: okBtn
-				height: parent.height
-				width: okBtnText.contentWidth + cellSize
-				Text {
-					id: okBtnText
-					anchors.centerIn: parent
-					font.pointSize: fontSizePx * 1.8
-					font.bold: true
-					color: "black"
-					text: "OK"
-				}
-				MouseArea {
-					anchors.fill: parent
-					onClicked: {
-						if (!justCalendar)
-							okClicked(selectedDate);
-						else
-							cancelClicked();
-					}
-				}
-			}
-			Rectangle {
-				id: cancelBtn
-				height: parent.height
-				width: cancelBtnText.contentWidth + cellSize
-				visible: !justCalendar
-				Text {
-					id: cancelBtnText
-					anchors.centerIn: parent
-					font.pointSize: fontSizePx * 1.8
-					font.bold: true
-					color: "black"
-					text: qsTr("CANCEL")
-				}
-				MouseArea {
-					anchors.fill: parent
-					onClicked: {
-						cancelClicked();
-					}
-				}
+		TPButton {
+			visible: !justCalendar
+			text: qsTr("CANCEL")
+
+			onClicked: cancelClicked();
+		}
+
+		TPButton {
+			text: "OK"
+
+			onClicked: {
+				if (!justCalendar)
+					okClicked(selectedDate);
+				else
+					cancelClicked();
 			}
 		}
 	}

@@ -2,13 +2,14 @@
 #define DBMANAGER_H
 
 #include "tplistmodel.h"
+#include "tpdatabasetable.h"
 
 #include <QObject>
 #include <QMap>
 #include <QQmlComponent>
 #include <QFile>
+#include <QTimer>
 
-class TPDatabaseTable;
 class QQmlApplicationEngine;
 class QQuickItem;
 class QQuickWindow;
@@ -142,6 +143,7 @@ signals:
 	void internalSignal(const uint id);
 
 public slots:
+	void cleanUp();
 	void bridge(QQuickItem* item, const uint id);
 	void openMainMenuShortCut(const int button_id);
 
@@ -157,7 +159,6 @@ private:
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
-	QMap<QString,QList<uint>> m_WorkerLock;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
 	QQuickWindow* m_mainWindow;
@@ -166,6 +167,31 @@ private:
 	DBMesoSplitModel* mesoSplitModel;
 	DBExercisesModel* exercisesListModel;
 	DBMesoCalendarModel* mesoCalendarModel;
+
+	struct workerLocks {
+		inline TPDatabaseTable* nextObj() const { return dbObjs.at(++currentIndex); }
+		inline TPDatabaseTable* at(const uint index) const { return dbObjs.at(index); }
+		inline bool hasNext() const { return (currentIndex + 1) < dbObjs.count(); }
+		inline bool canStartThread() const { return (dbObjs.count() == 1 || dbObjs.at(currentIndex)->resolved()); }
+		inline uint count() const { return dbObjs.count(); }
+		inline void appendObj(TPDatabaseTable* dbobj) { dbObjs.append(dbobj); }
+		inline void removeAt(const uint index) { if (index < dbObjs.count()) dbObjs.removeAt(index); }
+		bool hasID(const uint id) const {
+			for (uint i(0); i < dbObjs.count(); ++i)
+			{
+				if (dbObjs.at(i)->uniqueID() == id)
+					return true;
+			}
+			return false;
+		}
+		workerLocks() : currentIndex(0) {}
+
+		private:
+			QList<TPDatabaseTable*> dbObjs;
+			mutable uint currentIndex;
+	};
+	QList<workerLocks*> m_WorkerLock;
+	QTimer m_threadCleaner;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
@@ -180,8 +206,6 @@ private:
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 	void updateDB(TPDatabaseTable* worker);
-	void startThread(QThread* thread, TPDatabaseTable* dbObj);
-	void cleanUp(TPDatabaseTable* dbObj);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
 
 	QString m_exportFileName;
