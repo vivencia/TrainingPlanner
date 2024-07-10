@@ -183,18 +183,27 @@ Rectangle {
 
 	function resizeButton() {
 		const fwidth = fontMetrics.boundingRect(text).width;
-		buttonText.width = fwidth + 5
+		const fheight = fontMetrics.boundingRect("TM").height;
 		if (!fixedSize) {
+			buttonText.width = fwidth + 5
 			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 10 : 15);
-
-			const fheight = fontMetrics.boundingRect("TM").height;
 			buttonText.height = fheight + 10
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
 		}
 		else {
 			if (button.width > 0) {
 				if (fwidth >= button.width)
-					buttonText.elide = Text.ElideMiddle;
+				{
+					if (button.height === 0) {
+						buttonText.width = button.width - 10;
+						buttonText.height = fheight * 2;
+						buttonText.wrapMode = Text.WordWrap;
+						button.height = buttonText.height + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
+
+					}
+					else
+						buttonText.elide = Text.ElideMiddle;
+				}
 			}
 		}
 	}

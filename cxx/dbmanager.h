@@ -175,7 +175,7 @@ private:
 		inline bool canStartThread() const { return (dbObjs.count() == 1 || dbObjs.at(currentIndex)->resolved()); }
 		inline uint count() const { return dbObjs.count(); }
 		inline void appendObj(TPDatabaseTable* dbobj) { dbObjs.append(dbobj); }
-		inline void removeAt(const uint index) { if (index < dbObjs.count()) dbObjs.removeAt(index); }
+		inline void removeAt(const uint index) { if (index < dbObjs.count()) { dbObjs.removeAt(index); currentIndex--; } }
 		bool hasID(const uint id) const {
 			for (uint i(0); i < dbObjs.count(); ++i)
 			{
@@ -190,7 +190,7 @@ private:
 			QList<TPDatabaseTable*> dbObjs;
 			mutable uint currentIndex;
 	};
-	QList<workerLocks*> m_WorkerLock;
+	workerLocks m_WorkerLock[APP_TABLES_NUMBER+1];
 	QTimer m_threadCleaner;
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------

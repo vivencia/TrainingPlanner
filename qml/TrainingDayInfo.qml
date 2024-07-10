@@ -549,7 +549,7 @@ Page {
 				rounded: false
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 				width: parent.width - 10
-				height: 50
+				fixedSize: true
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
