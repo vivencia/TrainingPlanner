@@ -38,7 +38,12 @@
 
 #include <QJniObject>
 #include <qnativeinterface.h>
+#include <QtGlobal>
+#if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
+#include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
+#else
 #include <QtCore/6.6.3/QtCore/private/qandroidextras_p.h>
+#endif
 
 void DbManager::checkPendingIntents()
 {

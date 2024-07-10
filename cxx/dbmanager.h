@@ -175,7 +175,7 @@ private:
 		inline bool canStartThread() const { return (dbObjs.count() == 1 || dbObjs.at(currentIndex)->resolved()); }
 		inline uint count() const { return dbObjs.count(); }
 		inline void appendObj(TPDatabaseTable* dbobj) { dbObjs.append(dbobj); }
-		inline void removeAt(const uint index) { if (index < dbObjs.count()) { dbObjs.removeAt(index); currentIndex--; } }
+		inline void removeAt(const uint index) { if (index < dbObjs.count()) { dbObjs.removeAt(index); if (currentIndex > 0) currentIndex--; } }
 		bool hasID(const uint id) const {
 			for (uint i(0); i < dbObjs.count(); ++i)
 			{
