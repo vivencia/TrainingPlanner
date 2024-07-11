@@ -47,6 +47,7 @@ public:
 	inline const QString& selectedEntriesValue_fast(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }
 	inline uint selectedEntriesCount() const { return m_selectedEntries.count(); }
 	void setLastID(uint exercisesTableLastId) { m_exercisesTableLastId = exercisesTableLastId; }
+	inline uint lastID() const { return m_exercisesTableLastId; }
 	bool collectExportData();
 
 	Q_INVOKABLE virtual void clear() override;

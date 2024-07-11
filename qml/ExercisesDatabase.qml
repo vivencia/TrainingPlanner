@@ -384,19 +384,15 @@ Page {
 
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
+						appDB.saveExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
+													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
+													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 						if (bNew) {
-							appDB.newExercise(txtExerciseName.text, txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
-											txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 							btnNewExercise.clicked();
 							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
 						}
-						else if (bEdit) {
-							exercisesListModel.setCurrentRow(exercisesListModel.currentRow);
-							appDB.updateExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
-													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
-													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
+						else if (bEdit)
 							btnEditExercise.clicked();
-						}
 						bJustSaved = false;
 					}
 				} //btnSaveExercise

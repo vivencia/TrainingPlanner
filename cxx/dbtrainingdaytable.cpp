@@ -19,8 +19,6 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, QSettings* app
 	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
 	const QString dbname( dbFilePath + DBTrainingDayFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
-	for(uint i(TDAY_EXERCISES_COL_NAMES); i <= TDAY_EXERCISES_COL_COMPLETED; i++)
-		m_data.append(QString());
 }
 
 void DBTrainingDayTable::createTable()
@@ -290,12 +288,14 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::newTrainingDay()
+void DBTrainingDayTable::saveTrainingDay()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
+		for(uint i(TDAY_EXERCISES_COL_NAMES); i <= TDAY_EXERCISES_COL_COMPLETED; i++)
+			m_data.append(QString());
 		model->getSaveInfo(m_data);
 
 		QSqlQuery query(mSqlLiteDB);
@@ -306,79 +306,65 @@ void DBTrainingDayTable::newTrainingDay()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		query.prepare( QStringLiteral(
-									"INSERT INTO training_day_table "
-									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
-									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
-									" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
-									"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')")
-									.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
-											model->timeIn(), model->timeOut(), model->location(), model->dayNotes(),
-											m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
-											m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
-											m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
-											m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED)) );
+		bool bUpdate(false);
+		QString strQuery;
 
-		m_result = query.exec();
+		if (query.exec(QStringLiteral("SELECT id FROM training_day_table WHERE date=%1").arg(m_model->getFast(0, TDAY_COL_DATE))))
+		{
+			if (query.first())
+				bUpdate = query.value(0).toUInt() >= 0;
+			query.finish();
+		}
+
+		if (bUpdate)
+		{
+			strQuery = QStringLiteral(
+							"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
+							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', ")
+								.arg(model->dateStr(), model->trainingDay(), model->splitLetter(),
+									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
+						QStringLiteral("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
+							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9")
+								.arg(m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
+									m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
+									m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
+									m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED), model->idStr());
+		}
+		else
+		{
+			strQuery = QStringLiteral(
+							"INSERT INTO training_day_table "
+							"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
+							"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
+							" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
+							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')")
+								.arg(model->mesoIdStr(), model->dateStr(), model->trainingDay(), model->splitLetter(),
+									model->timeIn(), model->timeOut(), model->location(), model->dayNotes(),
+									m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
+									m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
+									m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
+									m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED));
+		}
+		m_result = query.exec(strQuery);
+		mSqlLiteDB.close();
 		if (m_result)
 		{
-			MSG_OUT("DBTrainingDayTable newTrainingDay SUCCESS")
-			model->setId(query.lastInsertId().toString());
+			if (!bUpdate)
+				model->setId(query.lastInsertId().toString());
 			m_model->setModified(false);
+			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
+			MSG_OUT(strQuery);
 		}
-		mSqlLiteDB.close();
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBTrainingDayTable newTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBTrainingDayTable newTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBTrainingDayTable::updateTrainingDay()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
-		model->getSaveInfo(m_data);
-
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-
-		query.prepare( QStringLiteral(
-									"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
-									"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', ")
-									.arg(model->dateStr(), model->trainingDay(), model->splitLetter(),
-									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
-									QStringLiteral("exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-									"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9")
-									.arg(m_data.at(TDAY_EXERCISES_COL_NAMES), m_data.at(TDAY_EXERCISES_COL_TYPES),
-											m_data.at(TDAY_EXERCISES_COL_RESTTIMES), m_data.at(TDAY_EXERCISES_COL_SUBSETS),
-											m_data.at(TDAY_EXERCISES_COL_REPS), m_data.at(TDAY_EXERCISES_COL_WEIGHTS),
-											m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED), model->idStr()) );
-
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		MSG_OUT("DBTrainingDayTable updateTrainingDay SUCCESS")
-		m_model->setModified(false);
+		else
+		{
+			MSG_OUT("DBTrainingDayTable saveTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBTrainingDayTable saveTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("--ERROR--");
+			MSG_OUT(strQuery);
+		}
 	}
 	else
-	{
-		MSG_OUT("DBTrainingDayTable updateTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBTrainingDayTable updateTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
+		MSG_OUT("DBTrainingDayTable saveTrainingDay Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

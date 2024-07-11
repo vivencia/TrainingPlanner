@@ -101,7 +101,7 @@ Page {
 			}
 
 			onClicked: {
-				appDB.updateMesoSplitComplete(currentPage.splitModel);
+				appDB.saveMesoSplitComplete(currentPage.splitModel);
 				requestSimpleExercisesList(null, false, false);
 			}
 		}

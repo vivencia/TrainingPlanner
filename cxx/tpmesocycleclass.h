@@ -97,7 +97,7 @@ public:
 	inline QQuickItem* gettDayPage(const QDate& date) const { return m_tDayPages.value(date); }
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
-	inline void setCurrenttDay(const QDate& date) { m_CurrenttDayModel = m_tDayModels.value(date); m_CurrenttDayPage = m_tDayPages.value(date); }
+	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate, const QString& mesoSplit);
 

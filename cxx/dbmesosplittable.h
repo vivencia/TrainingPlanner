@@ -20,10 +20,9 @@ public:
 	virtual void createTable();
 	virtual void updateDatabase() {}
 	void getMesoSplit();
-	void newMesoSplit();
-	void updateMesoSplit();
+	void saveMesoSplit();
 	void getCompleteMesoSplit(const bool bEmitSignal = true);
-	void updateMesoSplitComplete();
+	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
 	void convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel);
 };

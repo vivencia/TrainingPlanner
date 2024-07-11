@@ -275,7 +275,7 @@ void TPMesocycleClass::changeMuscularGroup(DBMesoSplitModel* splitModel)
 		Q_ARG(QString, splitModel->muscularGroup()));
 }
 
-//Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml and
+//Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
 	for(uint i(0); i < 6; ++i)
@@ -415,6 +415,13 @@ void TPMesocycleClass::resetWorkout()
 	m_CurrenttDayPage->setProperty("timeOut", m_CurrenttDayModel->timeOut());
 	m_CurrenttDayPage->setProperty("editMode", false);
 	QMetaObject::invokeMethod(m_CurrenttDayPage, "resetTimer", Qt::AutoConnection);
+}
+
+void TPMesocycleClass::setCurrenttDay(const QDate& date)
+{
+	m_CurrenttDayModel = m_tDayModels.value(date);
+	m_CurrenttDayPage = m_tDayPages.value(date);
+	m_currentExercises = m_tDayExercisesList.value(date);
 }
 
 void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate, const QString& mesoSplit)
@@ -668,7 +675,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	else
 		m_currentExercises->insertSet(set_number, exercise_idx, item);
 
-	//Sets may be crated at any random order, specially when there are set objects of different kind within an exercise. m_expectedSetNumber keeps
+	//Sets may be created at any random order, specially when there are set objects of different kinds within an exercise. m_expectedSetNumber keeps
 	//track of the order in which the sets are added. When set_number is greater than m_expectedSetNumber, the set objects are not inserted into
 	//the parent layout(with setParentItem). When the expected set_number is finally created, put all sets already in the list (m_setObjects)
 	//orderly into the layout

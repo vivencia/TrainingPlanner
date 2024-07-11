@@ -21,12 +21,6 @@ public:
 	void getAllMesocycles();
 	void newMesocycle();
 	void updateMesocycle();
-
-	//Call before starting a thread
-	void setData(const QString& id, const QString& mesoName = QString(), const QString& mesoStartDate = QString(),
-						const QString& mesoEndDate = QString(), const QString& mesoNote = QString(),
-						const QString& mesoWeeks = QString(), const QString& mesoSplit = QString(),
-						const QString& mesoDrugs = QString());
 };
 
 #endif // DBMESOCYLESTABLE_H

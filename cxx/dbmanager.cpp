@@ -596,7 +596,7 @@ bool DbManager::importFromModel(TPListModel* model)
 				DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
 				if (splitModel->updateFromModel(model))
 				{
-					updateMesoSplitComplete(splitModel);
+					saveMesoSplitComplete(splitModel);
 					// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
 					// by the time mb_splitsLoaded is ever checked upon
 					mb_splitsLoaded = true;
@@ -610,7 +610,7 @@ bool DbManager::importFromModel(TPListModel* model)
 					mesoSplitModel->setFast(m_MesoIdx, i, model->getFast(0, i));
 				mesoSplitModel->setFast(m_MesoIdx, 1, m_MesoIdStr);
 				mesoSplitModel->setCurrentRow(m_MesoIdx);
-				newMesoSplit();
+				saveMesoSplit();
 			}
 		}
 		break;
@@ -873,22 +873,13 @@ void DbManager::getAllExercises()
 		emit databaseReady(2222);
 }
 
-void DbManager::newExercise( const QString& mainName, const QString& subName, const QString& muscularGroup,
+void DbManager::saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
 					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath )
-{
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
-	worker->setData(QStringLiteral("0"), mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-	createThread(worker, [worker] () { worker->newExercise(); } );
-}
-
-void DbManager::updateExercise( const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath )
+					 const QString& uWeight, const QString& mediaPath)
 {
 	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, m_appSettings, exercisesListModel));
 	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-	createThread(worker, [worker] () { return worker->updateExercise(); } );
+	createThread(worker, [worker] () { return worker->saveExercise(); } );
 }
 
 void DbManager::removeExercise(const QString& id)
@@ -1154,7 +1145,7 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 		connect( this, &DbManager::databaseReady, this, [&,worker] (const uint db_id) {
 			if (db_id == worker->uniqueID()) {
 				mesoSplitModel->setFast(m_MesoIdx, 1, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
-				newMesoSplit();
+				saveMesoSplit();
 			}
 		});
 		createThread(worker, [worker] () { worker->newMesocycle(); } );
@@ -1162,7 +1153,7 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 	else
 	{
 		createThread(worker, [worker] () { worker->updateMesocycle(); } );
-		updateMesoSplit();
+		saveMesoSplit();
 		if (bChangeCalendar)
 			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE),
 				mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE),
@@ -1241,18 +1232,11 @@ void DbManager::getMesoSplit(const QString& mesoid)
 	createThread(worker, [worker] () { worker->getMesoSplit(); } );
 }
 
-void DbManager::newMesoSplit()
+void DbManager::saveMesoSplit()
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
 	worker->addExecArg(m_MesoIdx);
-	createThread(worker, [worker] () { worker->newMesoSplit(); } );
-}
-
-void DbManager::updateMesoSplit()
-{
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	worker->addExecArg(m_MesoIdx);
-	createThread(worker, [worker] () { worker->updateMesoSplit(); } );
+	createThread(worker, [worker] () { worker->saveMesoSplit(); } );
 	m_currentMesoManager->updateMuscularGroup(mesoSplitModel);
 }
 
@@ -1367,11 +1351,11 @@ void DbManager::getCompleteMesoSplit()
 		m_currentMesoManager->createMesoSplitPage();
 }
 
-void DbManager::updateMesoSplitComplete(DBMesoSplitModel* model)
+void DbManager::saveMesoSplitComplete(DBMesoSplitModel* model)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, model));
 	worker->addExecArg(m_MesoIdStr);
-	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
+	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); } );
 }
 
 bool DbManager::mesoHasPlan(const uint meso_id, const QString& splitLetter) const
@@ -1459,10 +1443,10 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	m_currentMesoManager->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter1.at(0))));
 	worker->addExecArg(m_MesoIdStr);
-	createThread(worker, [worker] () { worker->updateMesoSplitComplete(); } );
+	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter2.at(0))));
 	worker2->addExecArg(m_MesoIdStr);
-	createThread(worker2, [worker2] () { worker2->updateMesoSplitComplete(); } );
+	createThread(worker2, [worker2] () { worker2->saveMesoSplitComplete(); } );
 }
 
 void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, const bool bFancy, QFile* outFileInUse)
@@ -1671,7 +1655,7 @@ void DbManager::getTrainingDay(const QDate& date)
 {
 	if (m_currentMesoManager->gettDayPage(date) != nullptr)
 	{
-		m_currentMesoManager->setCurrenttDay(date);
+		//m_currentMesoManager->setCurrenttDay(date);
 		addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(date), m_currentMesoManager->gettDayPage(date));
 		return;
 	}
@@ -1786,10 +1770,7 @@ void DbManager::saveTrainingDay()
 	if (m_currentMesoManager->currenttDayModel()->modified())
 	{
 		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->currenttDayModel()));
-		if (m_currentMesoManager->currenttDayModel()->id() == -1)
-			createThread(worker, [worker] () { return worker->newTrainingDay(); } );
-		else
-			createThread(worker, [worker] () { return worker->updateTrainingDay(); } );
+		createThread(worker, [worker] () { return worker->saveTrainingDay(); } );
 	}
 }
 

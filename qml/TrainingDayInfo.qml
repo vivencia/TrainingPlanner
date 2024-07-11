@@ -1176,6 +1176,7 @@ Page {
 	}
 
 	function pageActivation() {
+		itemManager.setCurrenttDay(mainDate);
 		changeComboModel();
 		if (navButtons)
 			navButtons.visible = true;

@@ -17,9 +17,6 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSe
 	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
 	const QString dbname(dbFilePath + DBMesocyclesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
-	m_data.reserve(MESOCYCLES_COL_REALMESO); //don't need COL_REALMESO to be passed via m_data
-	for(uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_COL_REALMESO; i++)
-		m_data.append(QString());
 }
 
 void DBMesocyclesTable::createTable()
@@ -156,18 +153,4 @@ void DBMesocyclesTable::updateMesocycle()
 		MSG_OUT("DBMesocyclesTable updateMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesocyclesTable::setData(const QString& id, const QString& mesoName, const QString& mesoStartDate,
-						const QString& mesoEndDate, const QString& mesoNote, const QString& mesoWeeks,
-						const QString& mesoSplit, const QString& mesoDrugs)
-{
-	m_data[MESOCYCLES_COL_ID] = id;
-	m_data[MESOCYCLES_COL_NAME] = mesoName;
-	m_data[MESOCYCLES_COL_STARTDATE] = mesoStartDate;
-	m_data[MESOCYCLES_COL_ENDDATE] = mesoEndDate;
-	m_data[MESOCYCLES_COL_NOTE] = mesoNote;
-	m_data[MESOCYCLES_COL_WEEKS] = mesoWeeks;
-	m_data[MESOCYCLES_COL_SPLIT] = mesoSplit;
-	m_data[MESOCYCLES_COL_DRUGS] = mesoDrugs;
 }

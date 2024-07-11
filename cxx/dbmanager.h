@@ -61,10 +61,7 @@ public:
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
-	Q_INVOKABLE void newExercise(const QString& mainName, const QString& subName, const QString& muscularGroup,
-									const QString& nSets, const QString& nReps, const QString& nWeight,
-									const QString& uWeight, const QString& mediaPath);
-	Q_INVOKABLE void updateExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
+	Q_INVOKABLE void saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
 									const QString& nSets, const QString& nReps, const QString& nWeight,
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
@@ -89,14 +86,13 @@ public:
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 	void getMesoSplit(const QString& mesoid);
-	void newMesoSplit();
-	void updateMesoSplit();
+	void saveMesoSplit();
 	void removeMesoSplit(const QString& id);
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	Q_INVOKABLE void createExercisesPlannerPage();
 	void loadCompleteMesoSplits(const bool bThreaded = true);
 	Q_INVOKABLE void getCompleteMesoSplit();
-	Q_INVOKABLE void updateMesoSplitComplete(DBMesoSplitModel* model);
+	Q_INVOKABLE void saveMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;

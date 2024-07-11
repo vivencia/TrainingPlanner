@@ -23,8 +23,7 @@ public:
 	void getAllExercises();
 	void updateExercisesList();
 	void updateFromModel();
-	void newExercise();
-	void updateExercise();
+	void saveExercise();
 
 	//Call before starting a thread
 	void setData(const QString& id, const QString& mainName = QString(), const QString& subName = QString(),

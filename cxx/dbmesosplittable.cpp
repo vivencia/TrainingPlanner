@@ -144,12 +144,19 @@ void DBMesoSplitTable::getMesoSplit()
 }
 
 
-void DBMesoSplitTable::newMesoSplit()
+void DBMesoSplitTable::saveMesoSplit()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 
@@ -180,7 +187,7 @@ void DBMesoSplitTable::newMesoSplit()
 		m_result = query.exec();
 		if (m_result)
 		{
-			MSG_OUT("DBMesoSplitTable newMesoSplit SUCCESS")
+			MSG_OUT("DBMesoSplitTable saveMesoSplit SUCCESS")
 			m_model->setFast(row, 0, query.lastInsertId().toString());
 			m_model->setModified(false);
 		}
@@ -189,34 +196,8 @@ void DBMesoSplitTable::newMesoSplit()
 
 	if (!m_result)
 	{
-		MSG_OUT("DBMesoSplitTable newMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable newMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesoSplitTable::updateMesoSplit()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		const uint row(m_execArgs.at(0).toUInt());
-		query.prepare( QStringLiteral(
-									"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', "
-									"splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', splitF=\'%6\' WHERE meso_id=%7")
-									.arg(m_model->getFast(row, 2), m_model->getFast(row, 3), m_model->getFast(row, 4), m_model->getFast(row, 5),
-										m_model->getFast(row, 6), m_model->getFast(row, 7), m_model->getFast(row, 1)) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-		MSG_OUT("DBMesoSplitTable updateMesoSplit SUCCESS")
-	else
-	{
-		MSG_OUT("DBMesoSplitTable updateMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable updateMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBMesoSplitTable saveMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBMesoSplitTable saveMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -288,11 +269,9 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoSplitTable::updateMesoSplitComplete()
+void DBMesoSplitTable::saveMesoSplitComplete()
 {
 	m_result = false;
-	QString strQuery;
-
 	if (mSqlLiteDB.open())
 	{
 		DBMesoSplitModel* model(static_cast<DBMesoSplitModel*>(m_model));
@@ -323,32 +302,20 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
 		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		//Cannot run this query asynchronously because updateMesoSplitComplete() is itself called asynchronously for possibly multiple times in a row
-		//I can manage the threads TP creates, but I have no control over what the qsqlite driver will do. Multiple queries will yield multiple
-		//calls to write to the database and this was causing some of the queries to fail
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
 		bool bUpdate(false);
-		query.prepare( QStringLiteral("SELECT id FROM mesocycles_splits WHERE meso_id=%1").arg(mesoId) );
-		if (query.exec())
+		QString strQuery;
+
+		if (query.exec(QStringLiteral("SELECT id FROM mesocycles_splits WHERE meso_id=%1").arg(mesoId)))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
 			query.finish();
 		}
 
-		if (!bUpdate)
-		{
-			strQuery = QStringLiteral("INSERT INTO mesocycles_splits "
-								"(meso_id, split%1_exercisesnames, split%1_exercisesset_types, split%1_exercisesset_n, "
-								"split%1_exercisesset_subsets, split%1_exercisesset_reps, split%1_exercisesset_weight, "
-								"split%1_exercisesset_dropset, split%1_exercisesset_notes, split%1, meso_id)"
-								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')")
-								.arg(model->splitLetter(), mesoId, exercises, setstypes, setsnumber, setssubsets, setsreps,
-										setsweight, setsdropset, setsnotes, model->muscularGroup());
-		}
-		else
+		if (bUpdate)
 		{
 			strQuery = QStringLiteral("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_types=\'%3\', split%1_exercisesset_n=\'%4\', "
@@ -358,24 +325,34 @@ void DBMesoSplitTable::updateMesoSplitComplete()
 								.arg(model->splitLetter(), exercises, setstypes, setsnumber, setssubsets, setsreps,
 										setsweight, setsdropset, setsnotes, model->muscularGroup(), mesoId);
 		}
-		query.prepare(strQuery);
-		m_result = query.exec();
+		else
+		{
+			strQuery = QStringLiteral("INSERT INTO mesocycles_splits "
+								"(meso_id, split%1_exercisesnames, split%1_exercisesset_types, split%1_exercisesset_n, "
+								"split%1_exercisesset_subsets, split%1_exercisesset_reps, split%1_exercisesset_weight, "
+								"split%1_exercisesset_dropset, split%1_exercisesset_notes, split%1, meso_id)"
+								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')")
+								.arg(model->splitLetter(), mesoId, exercises, setstypes, setsnumber, setssubsets, setsreps,
+										setsweight, setsdropset, setsnotes, model->muscularGroup());
+		}
+		m_result = query.exec(strQuery);
 		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		m_model->setModified(false);
-		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete SUCCESS")
-		MSG_OUT(strQuery)
+		if (m_result)
+		{
+			m_model->setModified(false);
+			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete SUCCESS")
+			MSG_OUT(strQuery)
+		}
+		else
+		{
+			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("--ERROR--")
+			MSG_OUT(strQuery)
+		}
 	}
 	else
-	{
-		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable updateMesoSplitComplete Driver error:  " << mSqlLiteDB.lastError().driverText())
-		MSG_OUT("--ERROR--")
-		MSG_OUT(strQuery)
-	}
+		MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -404,5 +381,5 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 void DBMesoSplitTable::convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel)
 {
 	static_cast<DBMesoSplitModel*>(m_model)->convertFromTDayModel(tDayModel);
-	updateMesoSplitComplete();
+	saveMesoSplitComplete();
 }

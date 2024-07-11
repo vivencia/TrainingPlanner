@@ -21,8 +21,7 @@ public:
 	void getTrainingDay();
 	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
 	void getPreviousTrainingDays();
-	void newTrainingDay();
-	void updateTrainingDay();
+	void saveTrainingDay();
 	void removeTrainingDay();
 
 private:

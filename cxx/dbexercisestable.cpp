@@ -239,76 +239,76 @@ void DBExercisesTable::updateFromModel()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBExercisesTable::newExercise()
+void DBExercisesTable::saveExercise()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		m_data[0] = QString::number(m_exercisesTableLastId++);
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
-									"INSERT INTO exercises_table"
-									"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-									" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
-									.arg(m_data.at(EXERCISES_COL_ID), m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME),
-										m_data.at(EXERCISES_COL_MUSCULARGROUP), m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER),
-										m_data.at(EXERCISES_COL_WEIGHT), m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH)) );
-		m_result = query.exec();
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
+		bool bUpdate(false);
+		QString strQuery;
+		if (query.exec(QStringLiteral("SELECT id FROM exercises_table WHERE primary_name=%1").arg(m_data.at(EXERCISES_COL_MAINNAME))))
+		{
+			if (query.first())
+				bUpdate = query.value(0).toUInt() >= 0;
+			query.finish();
+		}
+
+		if (bUpdate)
+		{
+			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
+			strQuery =  QStringLiteral(
+							"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
+							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9")
+								.arg(m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME), m_data.at(EXERCISES_COL_MUSCULARGROUP),
+									m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER), m_data.at(EXERCISES_COL_WEIGHT),
+									m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH), m_data.at(EXERCISES_COL_ID));
+		}
+		else
+		{
+			m_data[0] = QString::number(static_cast<DBExercisesModel*>(m_model)->lastID());
+			strQuery = QStringLiteral(
+							"INSERT INTO exercises_table"
+							"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
+							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0)")
+								.arg(m_data.at(EXERCISES_COL_ID), m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME),
+									m_data.at(EXERCISES_COL_MUSCULARGROUP), m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER),
+									m_data.at(EXERCISES_COL_WEIGHT), m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH));
+		}
+		m_result = query.exec(strQuery);
 		mSqlLiteDB.close();
 		if (m_result)
 		{
-			if (m_model)
+			if (bUpdate)
+				m_model->updateList(data(), m_model->currentRow());
+			else
 			{
 				m_data[EXERCISES_COL_FROMAPPLIST] = u"0"_qs;
 				m_data[EXERCISES_COL_ACTUALINDEX] = QString::number(m_model->count());
 				m_data[EXERCISES_COL_SELECTED] = u"0"_qs;
 				m_model->appendList(data());
-				static_cast<DBExercisesModel*>(m_model)->setLastID(m_exercisesTableLastId);
+				static_cast<DBExercisesModel*>(m_model)->setLastID(static_cast<DBExercisesModel*>(m_model)->lastID()+1);
 			}
+			MSG_OUT("DBExercisesTable saveExercise SUCCESS");
+			MSG_OUT(strQuery);
 		}
-	}
-
-	if (m_result)
-		MSG_OUT("DBExercisesTable newExercise SUCCESS")
-	else
-	{
-		MSG_OUT("DBExercisesTable newExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable newExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBExercisesTable::updateExercise()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-		query.prepare( QStringLiteral(
-									"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-									"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9")
-									.arg(m_data.at(EXERCISES_COL_MAINNAME), m_data.at(EXERCISES_COL_SUBNAME), m_data.at(EXERCISES_COL_MUSCULARGROUP),
-										m_data.at(EXERCISES_COL_SETSNUMBER), m_data.at(EXERCISES_COL_REPSNUMBER), m_data.at(EXERCISES_COL_WEIGHT),
-										m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH), m_data.at(EXERCISES_COL_ID)) );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-		if (m_result)
+		else
 		{
-			if (m_model)
-				m_model->updateList(data(), m_model->currentRow());
+			MSG_OUT("DBExercisesTable saveExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBExercisesTable saveExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("--ERROR--");
+			MSG_OUT(strQuery);
 		}
 	}
-
-	if (m_result)
-	{
-		MSG_OUT("DBExercisesTable updateExercise SUCCESS");
-	}
 	else
-	{
-		MSG_OUT("DBExercisesTable updateExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable updateExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
+		MSG_OUT("DBExercisesTable saveExercise Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
