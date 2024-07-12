@@ -210,9 +210,9 @@ Rectangle {
 					gradient: Gradient {
 						orientation: Gradient.Vertical
 						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-						GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-						GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-						GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+						GradientStop { position: 0.25; color: AppSettings.primaryColor; }
+						GradientStop { position: 0.50; color: AppSettings.primaryDarkColor; }
+						GradientStop { position: 0.75; color: AppSettings.primaryLightColor; }
 					}
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
@@ -329,6 +329,7 @@ Rectangle {
 	Row {
 		height: cellSize
 		spacing: 20
+		z: 1
 		anchors {
 			top: calendar.bottom
 			right: parent.right
@@ -336,8 +337,8 @@ Rectangle {
 		}
 
 		TPButton {
-			visible: !justCalendar
 			text: qsTr("CANCEL")
+			visible: !justCalendar
 
 			onClicked: cancelClicked();
 		}

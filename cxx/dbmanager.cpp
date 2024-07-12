@@ -1148,17 +1148,16 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 				saveMesoSplit();
 			}
 		});
-		createThread(worker, [worker] () { worker->newMesocycle(); } );
 	}
 	else
 	{
-		createThread(worker, [worker] () { worker->updateMesocycle(); } );
 		saveMesoSplit();
 		if (bChangeCalendar)
 			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE),
 				mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE),
 				mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT), bPreserveOldCalendar, bPreserveUntillYesterday);
 	}
+	createThread(worker, [worker] () { worker->saveMesocycle(); } );
 	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 }
 

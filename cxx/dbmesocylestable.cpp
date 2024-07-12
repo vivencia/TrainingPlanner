@@ -88,69 +88,74 @@ void DBMesocyclesTable::getAllMesocycles()
 		MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
 }
 
-void DBMesocyclesTable::newMesocycle()
+void DBMesocyclesTable::saveMesocycle()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		const uint row(m_model->currentRow());
-		query.prepare( QStringLiteral(
-									"INSERT INTO mesocycles_table "
-									"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
-									" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
-									.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
-										m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
-										m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
-										m_model->getFast(row, MESOCYCLES_COL_DRUGS)) );
-		m_result = query.exec();
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+
+		const uint row(m_execArgs.at(0).toUInt());
+		bool bUpdate(false);
+		QString strQuery;
+		if (query.exec(QStringLiteral("SELECT id FROM mesocycles_table WHERE id=%1").arg(m_model->getFast(row, MESOCYCLES_COL_ID))))
+		{
+			if (query.first())
+				bUpdate = query.value(0).toUInt() >= 0;
+			query.finish();
+		}
+
+		if (bUpdate)
+		{
+			strQuery = QStringLiteral(
+							"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=\'%2\', meso_end_date=\'%3\', "
+							"meso_note=\'%4\', meso_nweeks=\'%5\', meso_split=\'%6\', meso_drugs=\'%7\' WHERE id=%8")
+								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
+									m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
+									m_model->getFast(row, MESOCYCLES_COL_DRUGS), m_model->getFast(row, MESOCYCLES_COL_ID));
+		}
+		else
+		{
+			strQuery = QStringLiteral(
+							"INSERT INTO mesocycles_table "
+							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,meso_drugs)"
+							" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')")
+								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
+									m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
+									m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
+									m_model->getFast(row, MESOCYCLES_COL_DRUGS));
+		}
+		m_result = query.exec(strQuery);
 		if (m_result)
 		{
-			MSG_OUT("DBMesocyclesTable newMesocycle SUCCESS")
-			m_model->setFast(row, MESOCYCLES_COL_ID, query.lastInsertId().toString());
-			m_model->setFast(row, MESOCYCLES_COL_REALMESO,
-					m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
 			m_model->setModified(false);
-			m_opcode = OP_ADD;
+			if (!bUpdate)
+			{
+				m_model->setFast(row, MESOCYCLES_COL_ID, query.lastInsertId().toString());
+				m_model->setFast(row, MESOCYCLES_COL_REALMESO,
+					m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
+				m_opcode = OP_ADD;
+			}
+			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
+			MSG_OUT(strQuery);
+		}
+		else
+		{
+			MSG_OUT("DBMesocyclesTable saveMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesocyclesTable saveMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("--ERROR--");
+			MSG_OUT(strQuery);
 		}
 		mSqlLiteDB.close();
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable newMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable newMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesocyclesTable::updateMesocycle()
-{
-	m_result = false;
-	if (mSqlLiteDB.open())
-	{
-		QSqlQuery query(mSqlLiteDB);
-		const uint row(m_execArgs.at(0).toUInt());
-		const QString queryCmd(QStringLiteral(
-									"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=\'%2\', meso_end_date=\'%3\', "
-									"meso_note=\'%4\', meso_nweeks=\'%5\', meso_split=\'%6\', meso_drugs=\'%7\' WHERE id=%8")
-									.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
-										m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
-										m_model->getFast(row, MESOCYCLES_COL_DRUGS), m_model->getFast(row, MESOCYCLES_COL_ID)));
-		query.prepare( queryCmd );
-		m_result = query.exec();
-		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		MSG_OUT("DBMesocyclesTable updateMesocycle SUCCESS")
-		m_model->setModified(false);
-	}
 	else
-	{
-		MSG_OUT("DBMesocyclesTable updateMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable updateMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
+		MSG_OUT("DBMesocyclesTable saveMesocycle Could not open Database")
+
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

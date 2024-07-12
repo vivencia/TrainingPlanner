@@ -409,7 +409,8 @@ Page {
 
 					onClicked: {
 						exerciseChosen();
-						pageExercises.StackView.view.pop();
+						mainwindow.popFromStack();
+						//pageExercises.StackView.view.pop();
 					}
 				} //btnAddExercise
 

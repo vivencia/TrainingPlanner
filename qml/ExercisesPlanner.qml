@@ -35,7 +35,7 @@ Page {
 		if (exercisesPane.visible)
 			requestSimpleExercisesList(null, false, false);
 		else
-			pagePlanner.StackView.pop();
+			mainwindow.popFromStack();
 	}
 
 	SwipeView {
@@ -213,6 +213,22 @@ Page {
 			navButtons.visible = false;
 	}
 
+	function requestSimpleExercisesList(object, visible, multipleSel) {
+		itemThatRequestedSimpleList = visible ? object : null;
+		bEnableMultipleSelection = multipleSel;
+		bShowSimpleExercisesList = visible;
+		if (navButtons) {
+			if (visible)
+				navButtons.showButtons();
+			else
+				navButtons.hideButtons();
+		}
+	}
+
+	function hideSimpleExerciseList() {
+		exercisesPane.visible = false;
+	}
+
 	function createNavButtons() {
 		if (navButtons === null) {
 			var component = Qt.createComponent("PageScrollButtons.qml", Qt.Asynchronous);
@@ -227,24 +243,6 @@ Page {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-	}
-
-	function requestSimpleExercisesList(object, visible, multipleSel) {
-		itemThatRequestedSimpleList = object;
-		bEnableMultipleSelection = multipleSel;
-		bShowSimpleExercisesList = visible;
-		if (navButtons !== null) {
-			if (visible)
-				navButtons.hideButtons();
-			else
-				navButtons.showButtons();
-		}
-	}
-
-	function hideSimpleExerciseList() {
-		exercisesPane.shown = false;
-		if (navButtons !== null)
-			navButtons.showButtons();
 	}
 
 	function insertSplitPage(page: Item, idx: int) {

@@ -336,7 +336,6 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 										setsweight, setsdropset, setsnotes, model->muscularGroup());
 		}
 		m_result = query.exec(strQuery);
-		mSqlLiteDB.close();
 		if (m_result)
 		{
 			m_model->setModified(false);
@@ -350,6 +349,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 			MSG_OUT("--ERROR--")
 			MSG_OUT(strQuery)
 		}
+		mSqlLiteDB.close();
 	}
 	else
 		MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Could not open Database")

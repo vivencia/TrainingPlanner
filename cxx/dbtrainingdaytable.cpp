@@ -346,14 +346,13 @@ void DBTrainingDayTable::saveTrainingDay()
 									m_data.at(TDAY_EXERCISES_COL_NOTES), m_data.at(TDAY_EXERCISES_COL_COMPLETED));
 		}
 		m_result = query.exec(strQuery);
-		mSqlLiteDB.close();
 		if (m_result)
 		{
+			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
+			MSG_OUT(strQuery)
 			if (!bUpdate)
 				model->setId(query.lastInsertId().toString());
-			m_model->setModified(false);
-			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
-			MSG_OUT(strQuery);
+			model->setModified(false);
 		}
 		else
 		{
@@ -362,6 +361,7 @@ void DBTrainingDayTable::saveTrainingDay()
 			MSG_OUT("--ERROR--");
 			MSG_OUT(strQuery);
 		}
+		mSqlLiteDB.close();
 	}
 	else
 		MSG_OUT("DBTrainingDayTable saveTrainingDay Could not open Database")

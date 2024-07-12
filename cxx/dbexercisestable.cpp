@@ -283,7 +283,6 @@ void DBExercisesTable::saveExercise()
 									m_data.at(EXERCISES_COL_WEIGHT), m_data.at(EXERCISES_COL_WEIGHTUNIT), m_data.at(EXERCISES_COL_MEDIAPATH));
 		}
 		m_result = query.exec(strQuery);
-		mSqlLiteDB.close();
 		if (m_result)
 		{
 			if (bUpdate)
@@ -306,6 +305,7 @@ void DBExercisesTable::saveExercise()
 			MSG_OUT("--ERROR--");
 			MSG_OUT(strQuery);
 		}
+		mSqlLiteDB.close();
 	}
 	else
 		MSG_OUT("DBExercisesTable saveExercise Could not open Database")

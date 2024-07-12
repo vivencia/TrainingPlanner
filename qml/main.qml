@@ -33,7 +33,7 @@ ApplicationWindow {
 				if (event.key === Qt.Key_Back) {
 					event.accepted = true;
 					if (stackView.depth >= 2)
-						stackView.pop();
+						popFromStack();
 					else
 						close();
 				}
@@ -155,7 +155,10 @@ ApplicationWindow {
 	}
 
 	function popFromStack(page: Item) {
-		stackView.pop(page);
+		if (page)
+			stackView.pop(page);
+		else
+			stackView.pop();
 		btnWorkoutEnabled();
 	}
 

@@ -765,7 +765,7 @@ Page {
 		if (exercisesPane.visible)
 			requestSimpleExercisesList(null, false, false);
 		else
-			trainingDayPage.StackView.pop();
+			mainwindow.popFromStack();
 	}
 
 	Component.onCompleted: {
@@ -1118,10 +1118,16 @@ Page {
 		itemThatRequestedSimpleList = visible ? object : null;
 		bEnableMultipleSelection = multipleSel;
 		bShowSimpleExercisesList = visible;
+		if (navButtons) {
+			if (visible)
+				navButtons.showButtons();
+			else
+				navButtons.hideButtons();
+		}
 	}
 
 	function hideSimpleExerciseList() {
-		exercisesPane.shown = false;
+		exercisesPane.visible = false;
 	}
 
 	function requestTimerDialog(requester, message, mins, secs) {

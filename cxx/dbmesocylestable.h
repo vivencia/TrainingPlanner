@@ -19,8 +19,7 @@ public:
 	virtual void createTable();
 	virtual void updateDatabase() {}
 	void getAllMesocycles();
-	void newMesocycle();
-	void updateMesocycle();
+	void saveMesocycle();
 };
 
 #endif // DBMESOCYLESTABLE_H
