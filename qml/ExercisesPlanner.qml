@@ -34,8 +34,12 @@ Page {
 		event.accepted = true;
 		if (exercisesPane.visible)
 			requestSimpleExercisesList(null, false, false);
-		else
-			mainwindow.popFromStack();
+		else {
+			if (splitView.currentIndex === 0)
+				mainwindow.popFromStack();
+			else
+				splitView.decrementCurrentIndex();
+		}
 	}
 
 	SwipeView {

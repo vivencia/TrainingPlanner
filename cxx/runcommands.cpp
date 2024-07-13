@@ -229,7 +229,7 @@ const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, con
 	return QTime(hour, min, 0);
 }
 
-QString RunCommands::getCompositeValue(const uint idx, const QString& compositeString) const
+QString RunCommands::getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep) const
 {
 	QString::const_iterator itr(compositeString.constBegin());
 	const QString::const_iterator itr_end(compositeString.constEnd());
@@ -239,7 +239,7 @@ QString RunCommands::getCompositeValue(const uint idx, const QString& compositeS
 
 	while (itr != itr_end)
 	{
-		if ((*itr).toLatin1() == char(31))
+		if ((*itr).toLatin1() == chr_sep)
 		{
 			if (n_seps == idx)
 				return compositeString.mid(last_sep_pos, chr_pos);
@@ -253,10 +253,9 @@ QString RunCommands::getCompositeValue(const uint idx, const QString& compositeS
 	return compositeString.mid(last_sep_pos, chr_pos);
 }
 
-QString RunCommands::setCompositeValue(const uint idx, const QString newValue, QString compositeString) const
+QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
 {
-	static const QLatin1Char subrecord_separator(31);
-	int sep_pos(compositeString.indexOf(subrecord_separator));
+	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1);
 
 	if (sep_pos == -1)
@@ -266,8 +265,8 @@ QString RunCommands::setCompositeValue(const uint idx, const QString newValue, Q
 		else
 		{
 			while (++n_seps < idx)
-				compositeString += subrecord_separator;
-			return compositeString += newValue + subrecord_separator;
+				compositeString += QLatin1Char(chr_sep);
+			return compositeString += newValue + QLatin1Char(chr_sep);
 		}
 	}
 
@@ -281,11 +280,11 @@ QString RunCommands::setCompositeValue(const uint idx, const QString newValue, Q
 			return compositeString;
 		}
 		last_sep_pos = sep_pos + 1;
-		sep_pos = compositeString.indexOf(subrecord_separator, last_sep_pos);
+		sep_pos = compositeString.indexOf(chr_sep, last_sep_pos);
 	} while(sep_pos != -1);
 	while (++n_seps < idx)
-		compositeString += subrecord_separator;
-	return compositeString += newValue + subrecord_separator;
+		compositeString += chr_sep;
+	return compositeString += newValue + chr_sep;
 }
 
 bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& string2) const

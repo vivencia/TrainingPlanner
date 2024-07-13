@@ -17,6 +17,7 @@
 #define MESOSPLIT_COL_EXERCISE2WEIGHT 11
 #define MESOSPLIT_COL_EXERCISE1NAME 12
 #define MESOSPLIT_COL_EXERCISE2NAME 13
+#define MESOSPLIT_COL_WORKINGSET 14
 
 class DBTrainingDayModel;
 class DBExercisesModel;
@@ -43,6 +44,7 @@ Q_PROPERTY(bool setsDropSet READ setsDropSet WRITE setSetsDropSet NOTIFY setsDro
 Q_PROPERTY(QString setsNotes READ setsNotes WRITE setSetsNotes)
 Q_PROPERTY(QString muscularGroup READ muscularGroup WRITE setMuscularGroup NOTIFY muscularGroupChanged)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged)
+Q_PROPERTY(uint workingSet READ workingSet WRITE setWorkingSet FINAL)
 
 public:
 	enum RoleNames {
@@ -59,12 +61,16 @@ public:
 		setsWeight1Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE1WEIGHT,
 		setsWeight2Role = Qt::UserRole+MESOSPLIT_COL_EXERCISE2WEIGHT,
 		setsDropSetRole = Qt::UserRole+MESOSPLIT_COL_DROPSET,
-		setsNotesRole = Qt::UserRole+MESOSPLIT_COL_NOTES
+		setsNotesRole = Qt::UserRole+MESOSPLIT_COL_NOTES,
+		setsWorkingSetRole = Qt::UserRole+MESOSPLIT_COL_WORKINGSET
 	};
 
 	explicit DBMesoSplitModel(QObject *parent = nullptr, const bool bComplete = true);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
+
+	uint workingSet() const { return m_WorkingSet; }
+	void setWorkingSet(const uint newWorkingSet) { setData(index(currentRow(), 0), newWorkingSet, setsWorkingSetRole); }
 
 	QString muscularGroup() const { return m_muscularGroup; }
 	void setMuscularGroup(const QString& muscularGroup ) { m_muscularGroup = muscularGroup; setModified(true); emit muscularGroupChanged(); }
@@ -92,6 +98,8 @@ public:
 
 	QString setsNumber() const { return data(index(currentRow(), 0), setsNumberRole).toString(); }
 	void setSetsNumber(const QString& new_setsnumber) { setData(index(currentRow(), 0), new_setsnumber, setsNumberRole); }
+	uint setsNumberInt() const { return data(index(currentRow(), 0), setsNumberRole).toUInt(); }
+	void setSetsNumberInt(const uint new_setsnumber) { setData(index(currentRow(), 0), QString::number(new_setsnumber), setsNumberRole); }
 
 	QString setsSubsets() const { return data(index(currentRow(), 0), setsSubsetsRole).toString(); }
 	void setSetsSubsets(const QString& new_setssubsets) { setData(index(currentRow(), 0), new_setssubsets, setsSubsetsRole); }
@@ -143,7 +151,7 @@ signals:
 	void setsDropSetChanged();
 
 private:
-	uint m_nextAddedExercisePos;
+	uint m_nextAddedExercisePos, m_WorkingSet;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
 	bool mb_Complete;

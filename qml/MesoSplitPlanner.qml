@@ -268,6 +268,88 @@ Frame {
 						onMousePressAndHold: (mouse) => mouse.accepted = false;
 					} //ExerciseNameField
 
+					Pane {
+						id: paneSets
+						Layout.leftMargin: 0
+						Layout.topMargin: 0
+						Layout.bottomMargin: 10
+						Layout.fillWidth: true
+						width: lstSplitExercises.width - 50
+						height: 30
+						enabled: index === splitModel.currentRow
+
+						background: Rectangle {
+							color: "transparent"
+						}
+
+						TPRoundButton {
+							id: btnAddSet
+							imageName: "plus.png"
+							height: 30
+							width: 30
+							z:2
+
+							onClicked: setsNumber = parseInt(setsNumber) + 1
+
+							anchors {
+								left: parent.left
+								leftMargin: -15
+								verticalCenter: parent.verticalCenter
+							}
+						}
+
+						TabBar {
+							id: setsTabBar
+							width: paneSets.width-50
+							implicitWidth: width
+							contentWidth: width
+							z: 1
+
+							anchors {
+								left: btnAddSet.right
+								leftMargin: 20
+								right: btnDelSet.left
+								verticalCenter: parent.verticalCenter
+							}
+
+							Repeater {
+								id: buttonsRepeater
+								anchors.fill: parent
+								model: setsNumber
+								TabButton {
+									text: qsTr("Set # ") + parseInt(index + 1)
+									font.pointSize: AppSettings.fontSizeLists
+									height: setsTabBar.height
+									width: 70
+
+									background: Rectangle {
+										border.color: AppSettings.fontColor
+										radius: 6
+										opacity: 0.8
+										color: AppSettings.primaryDarkColor
+									}
+
+									onClicked: splitModel.workingSet = index;
+								}
+							}
+						} //setsTabBar
+
+						TPRoundButton {
+							id: btnDelSet
+							imageName: "minus.png"
+							height: 30
+							width: 30
+							z:2
+
+							anchors {
+								right: parent.right
+								verticalCenter: parent.verticalCenter
+							}
+
+							onClicked: setsNumber = parseInt(setsNumber) - 1
+						}
+					} //Row
+
 					RowLayout {
 						Layout.leftMargin: 5
 						Layout.topMargin: 5
@@ -306,34 +388,6 @@ Frame {
 						Layout.fillWidth: true
 
 						onCheckedChanged: splitModel.setsDropSet = checked;
-					}
-
-					RowLayout {
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-
-						Label {
-							text: splitModel.columnLabel(2)
-							wrapMode: Text.WordWrap
-							Layout.minimumWidth: listItem.width/2
-						}
-						SetInputField {
-							id: txtNSets
-							text: setsNumber
-							type: SetInputField.Type.SetType
-							availableWidth: listItem.width / 3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-
-							onValueChanged: (str) => setsNumber = str;
-
-							onEnterOrReturnKeyPressed: {
-								if (txtNSubsets.visible)
-									txtNSubsets.forceActiveFocus();
-								else
-									txtNReps.forceActiveFocus();
-							}
-						}
 					}
 
 					RowLayout {
@@ -556,7 +610,6 @@ Frame {
 					border.color: "transparent"
 					color: "transparent"
 					radius: 5
-
 					Component.onCompleted: setListItemHeight(this, cboSetType.currentIndex);
 				}
 

@@ -1,9 +1,10 @@
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
+#include "runcommands.h"
 
 DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
-	: TPListModel(parent), m_nextAddedExercisePos(2)
+	: TPListModel(parent), m_nextAddedExercisePos(2), m_WorkingSet(0)
 {
 	m_tableId = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
@@ -105,28 +106,39 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).indexOf(subrecord_separator));
 				return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).sliced(idx+1) : tr("2: Add exercise ...");
 			}
+			case setsNotesRole:
 			case setsNumberRole:
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
+			break;
 			case setsSubsetsRole:
 			case setsRepsRole:
 			case setsWeightRole:
-			case setsNotesRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
+			case setTypeRole:
+				if (row == 0)
+				{
+					if (m_WorkingSet == 1 && role == setsWeight1Role)
+					{
+						qDebug() << m_modeldata.at(row).at(role-Qt::UserRole-4);
+						qDebug() << runCmd()->getCompositeValue(m_WorkingSet, m_modeldata.at(row).at(role-Qt::UserRole), record_separator2.toLatin1());
+					}
+				}
+				return runCmd()->getCompositeValue(m_WorkingSet, m_modeldata.at(row).at(role-Qt::UserRole), record_separator2.toLatin1());
 			case setsDropSetRole:
 				return m_modeldata.at(row).at(MESOSPLIT_COL_DROPSET) == u"1"_qs;
 			case setsReps1Role:
 			case setsWeight1Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-4)).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-4);
+				return runCmd()->getCompositeValue(m_WorkingSet, idx != -1 ?
+						m_modeldata.at(row).at(role-Qt::UserRole-4).left(idx) : m_modeldata.at(row).at(role-Qt::UserRole-4), record_separator2.toLatin1());
 			}
 			case setsReps2Role:
 			case setsWeight2Role:
 			{
 				const int idx(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).indexOf(subrecord_separator));
-				return idx != -1 ? static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole-6)).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-6);
+				return runCmd()->getCompositeValue(m_WorkingSet, idx != -1 ?
+						m_modeldata.at(row).at(role-Qt::UserRole-6).sliced(idx+1) : m_modeldata.at(row).at(role-Qt::UserRole-6), record_separator2.toLatin1());
 			}
-			case setTypeRole:
-				return static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE)).toUInt();
 		}
 	}
 	return QVariant();
@@ -134,19 +146,22 @@ QVariant DBMesoSplitModel::data(const QModelIndex &index, int role) const
 
 void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value)
 {
-	const int idx(static_cast<QString>(m_modeldata.at(row).at(column)).indexOf(subrecord_separator));
+	QString fieldValue(runCmd()->getCompositeValue(m_WorkingSet, m_modeldata.at(row).at(column), record_separator2.toLatin1()));
+
+	const int idx(fieldValue.indexOf(subrecord_separator));
 	if (idx == -1)
-		m_modeldata[row][column] = pos == 1 ? value : m_modeldata[row][column] += subrecord_separator + value;
+		fieldValue = pos == 1 ? value : fieldValue += subrecord_separator + value;
 	else
 	{
 		if (pos == 1)
-			m_modeldata[row][column].replace(0, idx, value);
+			fieldValue.replace(0, idx, value);
 		else
 		{
-			m_modeldata[row][column].truncate(idx+1);
-			m_modeldata[row][column].append(value);
+			fieldValue.truncate(idx+1);
+			fieldValue.append(value);
 		}
 	}
+	static_cast<void>(runCmd()->setCompositeValue(m_WorkingSet, fieldValue, m_modeldata[row][column], record_separator2.toLatin1()));
 }
 
 bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, int role)
@@ -155,19 +170,25 @@ bool DBMesoSplitModel::setData(const QModelIndex &index, const QVariant& value, 
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
+			case setsNumberRole:
+			case setsNotesRole:
 			case exerciseNameRole:
+				m_modeldata[row][role-Qt::UserRole] = value.toString();
+			break;
 			case setsRepsRole:
 			case setsWeightRole:
-			case setsNumberRole:
 			case setTypeRole:
 			case setsSubsetsRole:
-			case setsNotesRole:
-				m_modeldata[row][role-Qt::UserRole] = value.toString();
+				static_cast<void>(runCmd()->setCompositeValue(m_WorkingSet, value.toString(), m_modeldata[row][role-Qt::UserRole], record_separator2.toLatin1()));
 			break;
 			case setsDropSetRole:
 				m_modeldata[row][MESOSPLIT_COL_DROPSET] = value.toBool() ? u"1"_qs : u"0"_qs;
 				emit setsDropSetChanged();
 			break;
+			case setsWorkingSetRole:
+				m_WorkingSet = value.toUInt();
+				emit dataChanged(QModelIndex(), QModelIndex(), QList<int>() << setTypeRole << setsSubsetsRole << setsRepsRole << setsWeightRole <<
+					setsReps1Role << setsReps2Role << setsWeight1Role << setsWeight2Role);
 			case exerciseName1Role:
 				replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 1, value.toString());
 				emit dataChanged(index, index, QList<int>() << exerciseNameRole);

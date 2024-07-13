@@ -4,6 +4,7 @@ Image {
 		height: size
 		width: size
 		fillMode: Image.PreserveAspectFit
+		asynchronous: true
 		source: "qrc:/images/"+AppSettings.iconFolder+imageSource
 		opacity: parent.opacity
 
