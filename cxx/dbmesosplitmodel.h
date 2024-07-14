@@ -11,13 +11,13 @@
 #define MESOSPLIT_COL_WEIGHT 5
 #define MESOSPLIT_COL_DROPSET 6
 #define MESOSPLIT_COL_NOTES 7
-#define MESOSPLIT_COL_EXERCISE1REPS 8
-#define MESOSPLIT_COL_EXERCISE1WEIGHT 9
-#define MESOSPLIT_COL_EXERCISE2REPS 10
-#define MESOSPLIT_COL_EXERCISE2WEIGHT 11
-#define MESOSPLIT_COL_EXERCISE1NAME 12
-#define MESOSPLIT_COL_EXERCISE2NAME 13
-#define MESOSPLIT_COL_WORKINGSET 14
+#define MESOSPLIT_COL_WORKINGSET 8
+#define MESOSPLIT_COL_EXERCISE1REPS 9
+#define MESOSPLIT_COL_EXERCISE1WEIGHT 10
+#define MESOSPLIT_COL_EXERCISE2REPS 11
+#define MESOSPLIT_COL_EXERCISE2WEIGHT 12
+#define MESOSPLIT_COL_EXERCISE1NAME 13
+#define MESOSPLIT_COL_EXERCISE2NAME 14
 
 class DBTrainingDayModel;
 class DBExercisesModel;
@@ -33,6 +33,7 @@ Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1)
 Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2)
 Q_PROPERTY(uint setType READ setType WRITE setSetType)
 Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber)
+Q_PROPERTY(QString workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 Q_PROPERTY(QString setsSubsets READ setsSubsets WRITE setSetsSubsets)
 Q_PROPERTY(QString setsReps READ setsReps WRITE setSetsReps)
 Q_PROPERTY(QString setsReps1 READ setsReps1 WRITE setSetsReps1)
@@ -44,7 +45,6 @@ Q_PROPERTY(bool setsDropSet READ setsDropSet WRITE setSetsDropSet NOTIFY setsDro
 Q_PROPERTY(QString setsNotes READ setsNotes WRITE setSetsNotes)
 Q_PROPERTY(QString muscularGroup READ muscularGroup WRITE setMuscularGroup NOTIFY muscularGroupChanged)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged)
-Q_PROPERTY(uint workingSet READ workingSet WRITE setWorkingSet FINAL)
 
 public:
 	enum RoleNames {
@@ -68,9 +68,6 @@ public:
 	explicit DBMesoSplitModel(QObject *parent = nullptr, const bool bComplete = true);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
-
-	uint workingSet() const { return m_WorkingSet; }
-	void setWorkingSet(const uint newWorkingSet) { setData(index(currentRow(), 0), newWorkingSet, setsWorkingSetRole); }
 
 	QString muscularGroup() const { return m_muscularGroup; }
 	void setMuscularGroup(const QString& muscularGroup ) { m_muscularGroup = muscularGroup; setModified(true); emit muscularGroupChanged(); }
@@ -98,15 +95,17 @@ public:
 
 	QString setsNumber() const { return data(index(currentRow(), 0), setsNumberRole).toString(); }
 	void setSetsNumber(const QString& new_setsnumber) { setData(index(currentRow(), 0), new_setsnumber, setsNumberRole); }
-	uint setsNumberInt() const { return data(index(currentRow(), 0), setsNumberRole).toUInt(); }
-	void setSetsNumberInt(const uint new_setsnumber) { setData(index(currentRow(), 0), QString::number(new_setsnumber), setsNumberRole); }
+
+	QString workingSet() const { return data(index(currentRow(), 0), setsWorkingSetRole).toString(); }
+	void setWorkingSet(const QString& newWorkingSet) { setData(index(currentRow(), 0), newWorkingSet, setsWorkingSetRole); }
+	inline uint getWorkingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
 
 	QString setsSubsets() const { return data(index(currentRow(), 0), setsSubsetsRole).toString(); }
 	void setSetsSubsets(const QString& new_setssubsets) { setData(index(currentRow(), 0), new_setssubsets, setsSubsetsRole); }
 
 	QString setsReps() const { return data(index(currentRow(), 0), setsRepsRole).toString(); }
 	void setSetsReps(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsRepsRole); }
-	QString setsReps1() const { return data(index(currentRow(), 0), setsRepsRole).toString(); }
+	QString setsReps1() const { return data(index(currentRow(), 0), setsReps1Role).toString(); }
 	void setSetsReps1(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsReps1Role); }
 	QString setsReps2() const { return data(index(currentRow(), 0), setsReps2Role).toString(); }
 	void setSetsReps2(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsReps2Role); }
@@ -145,13 +144,17 @@ public:
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual bool updateFromModel(const TPListModel* model) override;
 
+public slots:
+	void onCurrentRowChanged();
+
 signals:
 	void muscularGroupChanged();
 	void splitLetterChanged();
 	void setsDropSetChanged();
+	void workingSetChanged();
 
 private:
-	uint m_nextAddedExercisePos, m_WorkingSet;
+	uint m_nextAddedExercisePos;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
 	bool mb_Complete;

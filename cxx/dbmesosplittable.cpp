@@ -236,7 +236,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 				const QStringList setsnotes(query.value(7).toString().split(record_separator, Qt::SkipEmptyParts));
 
 				QStringList split_info;
-				for(uint i(0); i < setsnumber.count(); ++i)
+				for(uint i(0); i < exercises.count(); ++i)
 				{
 					split_info.append(exercises.at(i));
 					split_info.append(setstypes.at(i));
@@ -246,6 +246,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info.append(setsweight.at(i));
 					split_info.append(setsdropset.at(i));
 					split_info.append(setsnotes.at(i));
+					split_info.append(u"0"_qs); //MESOSPLIT_COL_WORKINGSET
 					m_model->appendList(split_info);
 					split_info.clear();
 				}

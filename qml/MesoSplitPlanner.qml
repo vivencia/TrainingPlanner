@@ -362,9 +362,13 @@ Frame {
 						}
 						TPComboBox {
 							id: cboSetType
-							currentIndex: setType
 							enabled: index === splitModel.currentRow
+							currentIndex: setType
 							Layout.rightMargin: 5
+							/*Component.onCompleted: {
+								currentIndex = splitModel.setType;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setType; });
+							}*/
 
 							onActivated: (index) => {
 								setListItemHeight(lstSplitExercises.currentItem, index);
@@ -402,13 +406,16 @@ Frame {
 						}
 						SetInputField {
 							id: txtNSubsets
-							text: setsSubsets
 							type: SetInputField.Type.SetType
 							availableWidth: listItem.width / 3
 							showLabel: false
 							enabled: index === splitModel.currentRow
 
 							onValueChanged: (str) => setsSubsets = str;
+							Component.onCompleted: {
+								text = splitModel.setsSubsets
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsSubsets; });
+							}
 
 							onEnterOrReturnKeyPressed: {
 								if (txtNReps.visible)
@@ -488,6 +495,10 @@ Frame {
 
 							onValueChanged: (str) => setsReps1 = str;
 							onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+							/*Component.onCompleted: {
+								text = splitModel.setsReps1;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1; });
+							}*/
 						}
 					}
 
@@ -513,6 +524,10 @@ Frame {
 
 							onValueChanged: (str) => setsReps1 = str;
 							onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
+							/*Component.onCompleted: {
+								text = splitModel.setsReps1;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1; });
+							}*/
 						}
 
 						SetInputField {
@@ -527,6 +542,10 @@ Frame {
 
 							onValueChanged: (str) => setsReps2 = str;
 							onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
+							/*Component.onCompleted: {
+								text = splitModel.setsReps2;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps2; });
+							}*/
 						}
 					} //RowLayout
 
@@ -551,6 +570,10 @@ Frame {
 							visible: cboSetType.currentIndex !== 4
 
 							onValueChanged: (str) => setsWeight1 = str;
+							/*Component.onCompleted: {
+								text = splitModel.setsWeight1;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1; });
+							}*/
 						}
 					}
 
@@ -578,6 +601,10 @@ Frame {
 
 							onValueChanged: (str) => setsWeight1 = str;
 							onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
+							/*Component.onCompleted: {
+								text = splitModel.setsWeight1;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1; });
+							}*/
 						}
 
 						SetInputField {
@@ -591,6 +618,10 @@ Frame {
 							Layout.rightMargin: listItem.width/6
 
 							onValueChanged: (str) => setsWeight2 = str;
+							/*Component.onCompleted: {
+								text = splitModel.setsWeight2;
+								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight2; });
+							}*/
 						}
 					} //RowLayout
 
