@@ -80,16 +80,15 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* spli
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
 		m_ExerciseData.append(new exerciseEntry);
-		splitModel->setCurrentRow(i);
-		m_ExerciseData[i]->name = splitModel->exerciseName();
+		m_ExerciseData[i]->name = splitModel->exerciseName(i);
 
-		const uint type(splitModel->setType());
+		const uint type(splitModel->setType(i));
 		if (type == 4)
 			m_ExerciseData[i]->name.replace(u" + "_qs, QString(subrecord_separator));
-		newFirstSet(i, type, splitModel->setsReps(), splitModel->setsWeight(), splitModel->setsSubsets(), splitModel->setsNotes());
-		newSet(splitModel->setsNumber().toUInt() - 1, i, type);
-		if (splitModel->setsDropSet())
-			changeSetType(splitModel->setsNumber().toUInt() - 1, i, type, SET_TYPE_DROP);
+		newFirstSet(i, type, splitModel->setsReps(i), splitModel->setsWeight(i), splitModel->setsSubsets(i), splitModel->setsNotes(i));
+		newSet(splitModel->setsNumber(i) - 1, i, type);
+		if (splitModel->setsDropSet(i))
+			changeSetType(splitModel->setsNumber(i) - 1, i, type, SET_TYPE_DROP);
 	}
 	setModified(true);
 	emit exerciseCountChanged();

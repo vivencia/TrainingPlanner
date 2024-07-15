@@ -28,24 +28,6 @@ class DBMesoSplitModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(QString exerciseName READ exerciseName WRITE setExerciseName)
-Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1)
-Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2)
-Q_PROPERTY(uint setType READ setType WRITE setSetType)
-Q_PROPERTY(QString setsNumber READ setsNumber WRITE setSetsNumber)
-Q_PROPERTY(QString workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
-Q_PROPERTY(QString setsSubsets READ setsSubsets WRITE setSetsSubsets)
-Q_PROPERTY(QString setsReps READ setsReps WRITE setSetsReps)
-Q_PROPERTY(QString setsReps1 READ setsReps1 WRITE setSetsReps1)
-Q_PROPERTY(QString setsReps2 READ setsReps2 WRITE setSetsReps2)
-Q_PROPERTY(QString setsWeight READ setsWeight WRITE setSetsWeight)
-Q_PROPERTY(QString setsWeight1 READ setsWeight1 WRITE setSetsWeight1)
-Q_PROPERTY(QString setsWeight2 READ setsWeight2 WRITE setSetsWeight2)
-Q_PROPERTY(bool setsDropSet READ setsDropSet WRITE setSetsDropSet NOTIFY setsDropSetChanged)
-Q_PROPERTY(QString setsNotes READ setsNotes WRITE setSetsNotes)
-Q_PROPERTY(QString muscularGroup READ muscularGroup WRITE setMuscularGroup NOTIFY muscularGroupChanged)
-Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged)
-
 public:
 	enum RoleNames {
 		exerciseNameRole = Qt::UserRole,
@@ -69,63 +51,55 @@ public:
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 
-	QString muscularGroup() const { return m_muscularGroup; }
-	void setMuscularGroup(const QString& muscularGroup ) { m_muscularGroup = muscularGroup; setModified(true); emit muscularGroupChanged(); }
+	Q_INVOKABLE QString muscularGroup() const;
+	Q_INVOKABLE void setMuscularGroup(const QString& muscularGroup);
 
-	QString splitLetter() const { return QString(m_splitLetter); }
-	void setSplitLetter(const QChar& splitLetter ) { m_splitLetter = splitLetter; setModified(true); emit splitLetterChanged(); }
-	void setSplitLetter(const QString& splitLetter ) { m_splitLetter = splitLetter.at(0); setModified(true); emit splitLetterChanged(); }
+	Q_INVOKABLE QString splitLetter() const;
+	Q_INVOKABLE void setSplitLetter(const QChar& splitLetter );
+	Q_INVOKABLE void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
-	QString exerciseName() const { return data(index(currentRow(), 0), exerciseNameRole).toString(); }
-	void setExerciseName(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseNameRole); }
-	QString exerciseName1() const { return data(index(currentRow(), 0), exerciseName1Role).toString(); }
-	void setExerciseName1(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseName1Role); }
-	QString exerciseName2() const { return data(index(currentRow(), 0), exerciseName2Role).toString(); }
-	void setExerciseName2(const QString& new_name) { setData(index(currentRow(), 0), new_name, exerciseName2Role); }
+	Q_INVOKABLE const QString exerciseName(const uint row);
+	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
+	Q_INVOKABLE QString exerciseName1(const uint row) const;
+	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);
+	Q_INVOKABLE QString exerciseName2(const uint row) const;
+	Q_INVOKABLE void setExerciseName2(const uint row, const QString& new_name);
 
-	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
-	{
-		appendList(QStringList() << exercise_name << QString::number(settype) << sets << u"0"_qs << reps << weight << u"0"_qs << u" "_qs);
-		setCurrentRow(count() - 1);
-	}
-	Q_INVOKABLE void removeExercise(const uint index) { removeFromList(index); }
+	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
+	Q_INVOKABLE void removeExercise(const uint row) { removeFromList(row); }
 
-	uint setType() const { return data(index(currentRow(), 0), setTypeRole).toUInt(); }
-	void setSetType(const uint new_type) { setData(index(currentRow(), 0), new_type, setTypeRole); }
+	Q_INVOKABLE uint setType(const uint row) const;
+	Q_INVOKABLE void setSetType(const uint row, const uint new_type);
 
-	QString setsNumber() const { return data(index(currentRow(), 0), setsNumberRole).toString(); }
-	void setSetsNumber(const QString& new_setsnumber) { setData(index(currentRow(), 0), new_setsnumber, setsNumberRole); }
+	Q_INVOKABLE uint setsNumber(const uint row) const;
+	Q_INVOKABLE void setSetsNumber(const uint row, const uint new_setsnumber);
 
-	QString workingSet() const { return data(index(currentRow(), 0), setsWorkingSetRole).toString(); }
-	void setWorkingSet(const QString& newWorkingSet) { setData(index(currentRow(), 0), newWorkingSet, setsWorkingSetRole); }
-	inline uint getWorkingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
+	Q_INVOKABLE uint workingSet(const uint row) const;
+	Q_INVOKABLE void setWorkingSet(const uint row, const uint new_workingset);
+	Q_INVOKABLE inline uint getWorkingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
 
-	QString setsSubsets() const { return data(index(currentRow(), 0), setsSubsetsRole).toString(); }
-	void setSetsSubsets(const QString& new_setssubsets) { setData(index(currentRow(), 0), new_setssubsets, setsSubsetsRole); }
+	Q_INVOKABLE QString setsSubsets(const uint row) const;
+	Q_INVOKABLE void setSetsSubsets(const uint row, const QString& new_setssubsets);
 
-	QString setsReps() const { return data(index(currentRow(), 0), setsRepsRole).toString(); }
-	void setSetsReps(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsRepsRole); }
-	QString setsReps1() const { return data(index(currentRow(), 0), setsReps1Role).toString(); }
-	void setSetsReps1(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsReps1Role); }
-	QString setsReps2() const { return data(index(currentRow(), 0), setsReps2Role).toString(); }
-	void setSetsReps2(const QString& new_setsreps) { setData(index(currentRow(), 0), new_setsreps, setsReps2Role); }
+	Q_INVOKABLE QString setsReps(const uint row) const;
+	Q_INVOKABLE void setSetsReps(const uint row, const QString& new_setsreps);
+	Q_INVOKABLE QString setsReps1(const uint row) const;
+	Q_INVOKABLE void setSetsReps1(const uint row, const QString& new_setsreps);
+	Q_INVOKABLE QString setsReps2(const uint row) const;
+	Q_INVOKABLE void setSetsReps2(const uint row, const QString& new_setsreps);
 
-	QString setsWeight() const { return data(index(currentRow(), 0), setsWeightRole).toString(); }
-	void setSetsWeight(const QString& new_setsweight) { setData(index(currentRow(), 0), new_setsweight, setsWeightRole); }
-	QString setsWeight1() const { return data(index(currentRow(), 0), setsWeight1Role).toString(); }
-	void setSetsWeight1(const QString& new_setsweight) { setData(index(currentRow(), 0), new_setsweight, setsWeight1Role); }
-	QString setsWeight2() const { return data(index(currentRow(), 0), setsWeight2Role).toString(); }
-	void setSetsWeight2(const QString& new_setsweight) { setData(index(currentRow(), 0), new_setsweight, setsWeight2Role); }
+	Q_INVOKABLE QString setsWeight(const uint row) const;
+	Q_INVOKABLE void setSetsWeight(const uint row, const QString& new_setsweight);
+	Q_INVOKABLE QString setsWeight1(const uint row) const;
+	Q_INVOKABLE void setSetsWeight1(const uint row, const QString& new_setsweight);
+	Q_INVOKABLE QString setsWeight2(const uint row) const;
+	Q_INVOKABLE void setSetsWeight2(const uint row, const QString& new_setsweight);
 
-	bool setsDropSet() const { return data(index(currentRow(), 0), setsDropSetRole).toBool(); }
-	void setSetsDropSet(const bool bDropSet) { setData(index(currentRow(), 0), bDropSet, setsDropSetRole); }
+	Q_INVOKABLE bool setsDropSet(const uint row) const;
+	Q_INVOKABLE void setSetsDropSet(const uint row, const bool bDropSet);
 
-	QString setsNotes() const { return data(index(currentRow(), 0), setsNotesRole).toString(); }
-	void setSetsNotes(const QString& new_setsnotes) { setData(index(currentRow(), 0), new_setsnotes, setsNotesRole); }
-
-	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 5; }
-	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
-	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+	Q_INVOKABLE QString setsNotes(const uint row) const;
+	Q_INVOKABLE void setSetsNotes(const uint row, const QString& new_setsnotes);
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
@@ -144,13 +118,11 @@ public:
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual bool updateFromModel(const TPListModel* model) override;
 
-public slots:
-	void onCurrentRowChanged();
-
 signals:
 	void muscularGroupChanged();
 	void splitLetterChanged();
-	void setsDropSetChanged();
+	void exerciseNameChanged();
+	void setTypeChanged();
 	void workingSetChanged();
 
 private:

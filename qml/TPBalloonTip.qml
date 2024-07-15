@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 Popup {
 	property string message: ""
@@ -112,11 +113,26 @@ Popup {
 		source: imageSource != "" ? "qrc:/images/"+AppSettings.iconFolder+imageSource : imageSource
 		fillMode: Image.PreserveAspectFit
 		asynchronous: true
-		visible: imageSource.length > 0
+		visible: false
 		width: 50
 		height: 50
 		x: 5
 		y: lblTitle.visible ? (balloon.height-height)/2 : (balloon.height-height)/3
+	}
+
+	MultiEffect {
+		id: imgEffects
+		visible: imageSource.length > 0
+		source: imgElement
+		anchors.fill: imgElement
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
 	}
 
 	Label {
@@ -127,12 +143,12 @@ Popup {
 		horizontalAlignment: Text.AlignJustify
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.Black
-		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
+		width: (imgEffects.visible ? balloon.width - imgEffects.width : balloon.width) - 25
 		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
 		visible: message.length > 0
 		padding: 0
-		x: imgElement.visible ? imgElement.width + 10 : 10
-		y: lblTitle.visible ? lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
+		x: imgEffects.visible ? imgEffects.width + 10 : 10
+		y: lblTitle.visible ? lblTitle.height + 10 : imgEffects.visible ? imgEffects.y : 10
 	}
 
 	TPButton {

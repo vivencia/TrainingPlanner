@@ -53,7 +53,7 @@ Frame {
 	TPBalloonTip {
 		id: msgDlgImport
 		title: qsTr("Import Exercises Plan?")
-		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter +
+		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter() +
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
@@ -89,7 +89,7 @@ Frame {
 
 	Label {
 		id: lblMain
-		text: qsTr("Training Division ") + splitModel.splitLetter
+		text: qsTr("Training Division ") + splitModel.splitLetter()
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
 		font.bold: true
@@ -118,7 +118,7 @@ Frame {
 
 	TPTextInput {
 		id: txtGroups
-		text: splitModel.muscularGroup
+		text: splitModel.muscularGroup()
 		width: parent.width - 20
 
 		anchors {
@@ -130,9 +130,9 @@ Frame {
 		}
 
 		onEditingFinished: {
-			splitModel.muscularGroup = text;
+			splitModel.setMuscularGroup(text);
 			exercisesListModel.makeFilterString(text);
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
 			bCanSwapPlan = swappableLetter !== "";
 			itemManager.changeMuscularGroup(splitModel);
 		}
@@ -179,7 +179,7 @@ Frame {
 				}
 			}
 
-			model: splitModel
+			model: splitModel.count
 
 			delegate: SwipeDelegate {
 				id: delegate
@@ -236,14 +236,14 @@ Frame {
 
 					ExerciseNameField {
 						id: txtExerciseName
-						text: exerciseName
+						text: splitModel.exerciseName(index)
 						Layout.leftMargin: 5
 						Layout.minimumWidth: parent.width - 20
 						Layout.maximumWidth: parent.width - 20
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
-						onExerciseChanged: (new_text) => exerciseName = new_text;
+						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
 						onItemClicked: splitModel.currentRow = index;
 
 						onRemoveButtonClicked: {
@@ -289,7 +289,7 @@ Frame {
 							width: 30
 							z:2
 
-							onClicked: setsNumber = parseInt(setsNumber) + 1
+							onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) + 1);
 
 							anchors {
 								left: parent.left
@@ -315,7 +315,8 @@ Frame {
 							Repeater {
 								id: buttonsRepeater
 								anchors.fill: parent
-								model: setsNumber
+								model: splitModel.setsNumber(index)
+
 								TabButton {
 									text: qsTr("Set # ") + parseInt(index + 1)
 									font.pointSize: AppSettings.fontSizeLists
@@ -329,7 +330,7 @@ Frame {
 										color: AppSettings.primaryDarkColor
 									}
 
-									onClicked: splitModel.workingSet = index;
+									onClicked: splitModel.setWorkingSet(splitModel.currentRow, index);
 								}
 							}
 						} //setsTabBar
@@ -346,7 +347,7 @@ Frame {
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: setsNumber = parseInt(setsNumber) - 1
+							onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) - 1);
 						}
 					} //Row
 
@@ -363,16 +364,13 @@ Frame {
 						TPComboBox {
 							id: cboSetType
 							enabled: index === splitModel.currentRow
-							currentIndex: setType
+							currentIndex: splitModel.setType(index)
 							Layout.rightMargin: 5
-							/*Component.onCompleted: {
-								currentIndex = splitModel.setType;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setType; });
-							}*/
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { currentIndex = splitModel.setType(index); });
 
 							onActivated: (index) => {
 								setListItemHeight(lstSplitExercises.currentItem, index);
-								setType = index;
+								splitModel.setType = index;
 								txtNSets.forceActiveFocus();
 								if (setType !== 4)
 									exerciseName = (qsTr("Choose exercise..."));
@@ -385,17 +383,17 @@ Frame {
 					TPCheckBox {
 						text: splitModel.columnLabel(6)
 						enabled: index === splitModel.currentRow
-						checked: splitModel.get(index, 6) === "1" //Cannot, for whatever reason, use the property setsDropSet
-						visible: setType === 0 || setType === 1 || setType === 6
+						checked: splitModel.setsDropSet(index)
+						visible: cboSetType.currentIndex === 0 || cboSetType.currentIndex === 1 || cboSetType.currentIndex === 6
 						textColor: "black"
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
 
-						onCheckedChanged: splitModel.setsDropSet = checked;
+						onCheckedChanged: splitModel.setSetsDropSet(index, checked);
 					}
 
 					RowLayout {
-						visible: setType === 2 || setType === 3 || setType === 5
+						visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
 
@@ -406,16 +404,14 @@ Frame {
 						}
 						SetInputField {
 							id: txtNSubsets
+							text: splitModel.setsSubsets(index)
 							type: SetInputField.Type.SetType
 							availableWidth: listItem.width / 3
 							showLabel: false
 							enabled: index === splitModel.currentRow
 
-							onValueChanged: (str) => setsSubsets = str;
-							Component.onCompleted: {
-								text = splitModel.setsSubsets
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsSubsets; });
-							}
+							onValueChanged: (str) => splitModel.setSetsSubsets(index, str);
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsSubsets(index); });
 
 							onEnterOrReturnKeyPressed: {
 								if (txtNReps.visible)
@@ -434,7 +430,7 @@ Frame {
 						Layout.bottomMargin: 10
 
 						Label {
-							text: exerciseName1
+							text: splitModel.exerciseName1(index)
 							font.bold: true
 							wrapMode: Text.WordWrap
 							width: listItem.width*0.5-10
@@ -453,7 +449,7 @@ Frame {
 						}
 
 						Label {
-							text: exerciseName2
+							text: splitModel.exerciseName2(index)
 							font.bold: true
 							wrapMode: Text.WordWrap
 							width: listItem.width*0.5-10
@@ -486,19 +482,16 @@ Frame {
 
 						SetInputField {
 							id: txtNReps
-							text: setsReps1
+							text: splitModel.setsReps1(index)
 							type: SetInputField.Type.RepType
 							availableWidth: listItem.width/3
 							showLabel: false
 							enabled: index === splitModel.currentRow
 							Layout.rightMargin: 5
 
-							onValueChanged: (str) => setsReps1 = str;
+							onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 							onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-							/*Component.onCompleted: {
-								text = splitModel.setsReps1;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1; });
-							}*/
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
 						}
 					}
 
@@ -514,7 +507,7 @@ Frame {
 
 						SetInputField {
 							id: txtNReps1
-							text: setsReps1
+							text: splitModel.setsReps1(index)
 							type: SetInputField.Type.RepType
 							availableWidth: listItem.width/3
 							showLabel: false
@@ -522,17 +515,14 @@ Frame {
 							Layout.alignment: Qt.AlignCenter
 							Layout.leftMargin: listItem.width/6
 
-							onValueChanged: (str) => setsReps1 = str;
+							onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 							onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
-							/*Component.onCompleted: {
-								text = splitModel.setsReps1;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1; });
-							}*/
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
 						}
 
 						SetInputField {
 							id: txtNReps2
-							text: setsReps2
+							text: splitModel.setsReps2(index)
 							type: SetInputField.Type.RepType
 							availableWidth: listItem.width/3
 							showLabel: false
@@ -540,12 +530,9 @@ Frame {
 							Layout.alignment: Qt.AlignRight
 							Layout.rightMargin: listItem.width/6
 
-							onValueChanged: (str) => setsReps2 = str;
+							onValueChanged: (str) => splitModel.setSetsReps2(index, str);
 							onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
-							/*Component.onCompleted: {
-								text = splitModel.setsReps2;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps2; });
-							}*/
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps2(index); });
 						}
 					} //RowLayout
 
@@ -562,18 +549,15 @@ Frame {
 
 						SetInputField {
 							id: txtNWeight
-							text: setsWeight1
+							text: splitModel.setsWeight1(index)
 							type: SetInputField.Type.WeightType
 							availableWidth: listItem.width / 3
 							showLabel: false
 							enabled: index === splitModel.currentRow
 							visible: cboSetType.currentIndex !== 4
 
-							onValueChanged: (str) => setsWeight1 = str;
-							/*Component.onCompleted: {
-								text = splitModel.setsWeight1;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1; });
-							}*/
+							onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
 						}
 					}
 
@@ -591,7 +575,7 @@ Frame {
 
 						SetInputField {
 							id: txtNWeight1
-							text: setsWeight1
+							text: splitModel.setsWeight1(index)
 							type: SetInputField.Type.WeightType
 							availableWidth: listItem.width/3
 							showLabel: false
@@ -599,17 +583,14 @@ Frame {
 							Layout.alignment: Qt.AlignCenter
 							Layout.leftMargin: listItem.width/6
 
-							onValueChanged: (str) => setsWeight1 = str;
+							onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
 							onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
-							/*Component.onCompleted: {
-								text = splitModel.setsWeight1;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1; });
-							}*/
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
 						}
 
 						SetInputField {
 							id: txtNWeight2
-							text: setsWeight2
+							text: splitModel.setsWeight2(index)
 							type: SetInputField.Type.WeightType
 							availableWidth: listItem.width/3
 							showLabel: false
@@ -617,21 +598,18 @@ Frame {
 							Layout.alignment: Qt.AlignRight
 							Layout.rightMargin: listItem.width/6
 
-							onValueChanged: (str) => setsWeight2 = str;
-							/*Component.onCompleted: {
-								text = splitModel.setsWeight2;
-								splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight2; });
-							}*/
+							onValueChanged: (str) => splitModel.setSetsWeight2(index, str);
+							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight2(index); });
 						}
 					} //RowLayout
 
 					SetNotesField {
 						info: splitModel.columnLabel(7)
-						text: setsNotes
+						text: splitModel.setsNotes(index)
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
 
-						onEditFinished: (new_text) => setsNotes = new_text;
+						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
 					}
 				} //ColumnLayout
 
@@ -702,7 +680,7 @@ Frame {
 			if (prevMesoId == -1) //splitModel is empty and there is no previous mesocycle
 				appendNewExerciseToDivision();
 			else if (prevMesoId >= 0) { //splitModel is empty and there is a previous mesocycle. Check if it has a plan for the letter
-				if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter)) {
+				if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter())) {
 					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, 1);
 					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
 				}
@@ -712,7 +690,7 @@ Frame {
 			splitModel.currentRow = 0;
 			exercisesListModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter);
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
 			bCanSwapPlan = swappableLetter !== "";
 		}
 		if (splitModel.count > 1) {
