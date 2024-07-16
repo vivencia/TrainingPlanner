@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
-	height: label.height + txtSetNotes.height
+	height: label.height + txtSetNotes.visible ? txtSetNotes.height : 0
 	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
@@ -20,6 +20,8 @@ Item {
 		id: label
 		text: qsTr("Notes:")
 		font.bold: true
+		height: 25
+
 		anchors {
 			left: parent.left
 			top: parent.top

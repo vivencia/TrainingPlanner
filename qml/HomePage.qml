@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 import "inexportMethods.js" as INEX
 
@@ -83,13 +84,27 @@ Page {
 
 			onClicked: appDB.getMesocycle(index);
 
-			swipe.left: Rectangle {
+			Rectangle {
 				id: optionsRec
-				width: parent.width
-				height: parent.height
-				clip: false
+				anchors.fill: parent
 				color: "steelblue"
 				radius: 6
+				layer.enabled: true
+				visible: false
+			}
+
+			swipe.left: MultiEffect {
+				id: optionsEffect
+				anchors.fill: parent
+				source: optionsRec
+				shadowEnabled: true
+				shadowOpacity: 0.5
+				blurMax: 16
+				shadowBlur: 1
+				shadowHorizontalOffset: 5
+				shadowVerticalOffset: 5
+				shadowColor: "black"
+				shadowScale: 1
 				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
@@ -99,6 +114,7 @@ Page {
 					checked: mesocyclesModel.currentRow === index;
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						top: parent.top
@@ -119,6 +135,7 @@ Page {
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						left: parent.left
@@ -137,6 +154,7 @@ Page {
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						top: parent.top
@@ -158,6 +176,7 @@ Page {
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						top: btnMesoCalendar.bottom
@@ -178,6 +197,7 @@ Page {
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						top: parent.top
@@ -199,6 +219,7 @@ Page {
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
+					z:1
 
 					anchors {
 						top: btnImport.bottom
@@ -218,19 +239,34 @@ Page {
 				}
 			} //swipe.left: Rectangle
 
-			swipe.right: Rectangle {
-				id: removeRec
-				width: parent.width
-				height: parent.height
-				clip: false
+			Rectangle {
+				id: removeBackground
+				anchors.fill: parent
 				color: "red"
 				radius: 6
+				layer.enabled: true
+				visible: false
+			}
+
+			swipe.right: MultiEffect {
+				id: removeRec
+				anchors.fill: parent
+				source: removeBackground
+				shadowEnabled: true
+				shadowOpacity: 0.5
+				blurMax: 16
+				shadowBlur: 1
+				shadowHorizontalOffset: 5
+				shadowVerticalOffset: 5
+				shadowColor: "black"
+				shadowScale: 1
 				opacity: mesoDelegate.swipe.complete ? 0.8 : 0-mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
 				TPButton {
 					text: qsTr("Remove Mesocycle")
 					imageSource: "remove.png"
+					z:1
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter
@@ -256,13 +292,30 @@ Page {
 						show(-1);
 					}
 				}
-			} //swipe.right: Rectangle
+			} //swipe.right
 
-			background: Rectangle {
+			Rectangle {
 				id: backRec
+				anchors.fill: parent
 				radius: 6
-				opacity: index === mesocyclesModel.currentRow ? 0.8 : 0.6
+				layer.enabled: true
 				color: index === mesocyclesModel.currentRow ? AppSettings.entrySelectedColor : listEntryColor2
+				visible: false
+			}
+
+			background: MultiEffect {
+				id: mesoEntryEffect
+				visible: true
+				source: backRec
+				shadowEnabled: true
+				shadowOpacity: 0.5
+				blurMax: 16
+				shadowBlur: 1
+				shadowHorizontalOffset: 5
+				shadowVerticalOffset: 5
+				shadowColor: "black"
+				shadowScale: 1
+				opacity: index === mesocyclesModel.currentRow ? 0.8 : 0.6
 			}
 
 			contentItem: Column {

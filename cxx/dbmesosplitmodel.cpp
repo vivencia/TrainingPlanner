@@ -112,7 +112,8 @@ void DBMesoSplitModel::setSplitLetter(const QChar& splitLetter)
 
 const QString DBMesoSplitModel::exerciseName(const uint row)
 {
-	return m_modeldata[row][MESOSPLIT_COL_EXERCISENAME].replace(subrecord_separator, QStringLiteral(" + "));
+	QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
+	return name.replace(subrecord_separator, QStringLiteral(" + "));
 }
 
 void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)

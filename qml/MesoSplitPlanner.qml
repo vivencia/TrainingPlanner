@@ -28,28 +28,6 @@ Frame {
 	spacing: 0
 	Layout.leftMargin: 5
 
-	Timer {
-		id: undoTimer
-		interval: 1000
-		property int idxToRemove
-
-		onTriggered: {
-			if ( removalSecs === 0 ) {
-				undoTimer.stop();
-				removeExercise(idxToRemove);
-			}
-			else {
-				removalSecs = removalSecs - 1000;
-				start();
-			}
-		}
-
-		function init(idxtoremove) {
-			idxToRemove = idxtoremove;
-			start();
-		}
-	} //Timer
-
 	TPBalloonTip {
 		id: msgDlgImport
 		title: qsTr("Import Exercises Plan?")
@@ -61,6 +39,7 @@ Frame {
 
 		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
 	} //TPBalloonTip
+
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -268,341 +247,6 @@ Frame {
 						onMousePressAndHold: (mouse) => mouse.accepted = false;
 					} //ExerciseNameField
 
-					Pane {
-						id: paneSets
-						Layout.leftMargin: 0
-						Layout.topMargin: 0
-						Layout.bottomMargin: 10
-						Layout.fillWidth: true
-						width: lstSplitExercises.width - 50
-						height: 30
-						enabled: index === splitModel.currentRow
-
-						background: Rectangle {
-							color: "transparent"
-						}
-
-						TPRoundButton {
-							id: btnAddSet
-							imageName: "plus.png"
-							height: 30
-							width: 30
-							z:2
-
-							onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) + 1);
-
-							anchors {
-								left: parent.left
-								leftMargin: -15
-								verticalCenter: parent.verticalCenter
-							}
-						}
-
-						TabBar {
-							id: setsTabBar
-							width: paneSets.width-50
-							implicitWidth: width
-							contentWidth: width
-							z: 1
-
-							anchors {
-								left: btnAddSet.right
-								leftMargin: 20
-								right: btnDelSet.left
-								verticalCenter: parent.verticalCenter
-							}
-
-							Repeater {
-								id: buttonsRepeater
-								anchors.fill: parent
-								model: splitModel.setsNumber(index)
-
-								TabButton {
-									text: qsTr("Set # ") + parseInt(index + 1)
-									font.pointSize: AppSettings.fontSizeLists
-									height: setsTabBar.height
-									width: 70
-
-									background: Rectangle {
-										border.color: AppSettings.fontColor
-										radius: 6
-										opacity: 0.8
-										color: AppSettings.primaryDarkColor
-									}
-
-									onClicked: splitModel.setWorkingSet(splitModel.currentRow, index);
-								}
-							}
-						} //setsTabBar
-
-						TPRoundButton {
-							id: btnDelSet
-							imageName: "minus.png"
-							height: 30
-							width: 30
-							z:2
-
-							anchors {
-								right: parent.right
-								verticalCenter: parent.verticalCenter
-							}
-
-							onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) - 1);
-						}
-					} //Row
-
-					RowLayout {
-						Layout.leftMargin: 5
-						Layout.topMargin: 5
-						Layout.fillWidth: true
-
-						Label {
-							text: splitModel.columnLabel(1)
-							wrapMode: Text.WordWrap
-							Layout.minimumWidth: listItem.width/2
-						}
-						TPComboBox {
-							id: cboSetType
-							enabled: index === splitModel.currentRow
-							currentIndex: splitModel.setType(index)
-							Layout.rightMargin: 5
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { currentIndex = splitModel.setType(index); });
-
-							onActivated: (index) => {
-								setListItemHeight(lstSplitExercises.currentItem, index);
-								splitModel.setType = index;
-								txtNSets.forceActiveFocus();
-								if (setType !== 4)
-									exerciseName = (qsTr("Choose exercise..."));
-								else
-									exerciseName = (qsTr("Choose exercises..."));
-							}
-						}
-					}
-
-					TPCheckBox {
-						text: splitModel.columnLabel(6)
-						enabled: index === splitModel.currentRow
-						checked: splitModel.setsDropSet(index)
-						visible: cboSetType.currentIndex === 0 || cboSetType.currentIndex === 1 || cboSetType.currentIndex === 6
-						textColor: "black"
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-
-						onCheckedChanged: splitModel.setSetsDropSet(index, checked);
-					}
-
-					RowLayout {
-						visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-
-						Label {
-							text: splitModel.columnLabel(3)
-							wrapMode: Text.WordWrap
-							Layout.minimumWidth: listItem.width/2
-						}
-						SetInputField {
-							id: txtNSubsets
-							text: splitModel.setsSubsets(index)
-							type: SetInputField.Type.SetType
-							availableWidth: listItem.width / 3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-
-							onValueChanged: (str) => splitModel.setSetsSubsets(index, str);
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsSubsets(index); });
-
-							onEnterOrReturnKeyPressed: {
-								if (txtNReps.visible)
-									txtNReps.forceActiveFocus();
-								else
-									txtNReps1.forceActiveFocus();
-							}
-						}
-					}
-
-					RowLayout {
-						visible: cboSetType.currentIndex === 4
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-						Layout.topMargin: 10
-						Layout.bottomMargin: 10
-
-						Label {
-							text: splitModel.exerciseName1(index)
-							font.bold: true
-							wrapMode: Text.WordWrap
-							width: listItem.width*0.5-10
-							Layout.alignment: Qt.AlignCenter
-							Layout.maximumWidth: width
-							Layout.minimumWidth: width
-
-							MouseArea {
-								anchors.fill: parent
-								onClicked: {
-									splitModel.currentRow = index;
-									bListRequestForExercise1 = true;
-									requestSimpleExercisesList(paneSplit, true, false, 0);
-								}
-							}
-						}
-
-						Label {
-							text: splitModel.exerciseName2(index)
-							font.bold: true
-							wrapMode: Text.WordWrap
-							width: listItem.width*0.5-10
-							Layout.alignment: Qt.AlignCenter
-							Layout.maximumWidth: width
-							Layout.minimumWidth: width
-
-							MouseArea {
-								anchors.fill: parent
-								onClicked: {
-									splitModel.currentRow = index;
-									bListRequestForExercise2 = true;
-									requestSimpleExercisesList(paneSplit, true, false, 0);
-								}
-							}
-						}
-					}
-
-					RowLayout {
-						visible: cboSetType.currentIndex !== 4
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-
-						Label {
-							text: splitModel.columnLabel(4)
-							wrapMode: Text.WordWrap
-							Layout.maximumWidth: listItem.width/2
-							Layout.minimumWidth: listItem.width/2
-						}
-
-						SetInputField {
-							id: txtNReps
-							text: splitModel.setsReps1(index)
-							type: SetInputField.Type.RepType
-							availableWidth: listItem.width/3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							Layout.rightMargin: 5
-
-							onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
-							onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
-						}
-					}
-
-					Label {
-						text: splitModel.columnLabel(4)
-						wrapMode: Text.WordWrap
-						visible: cboSetType.currentIndex === 4
-						Layout.leftMargin: 5
-					}
-
-					RowLayout {
-						visible: cboSetType.currentIndex === 4
-
-						SetInputField {
-							id: txtNReps1
-							text: splitModel.setsReps1(index)
-							type: SetInputField.Type.RepType
-							availableWidth: listItem.width/3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							Layout.alignment: Qt.AlignCenter
-							Layout.leftMargin: listItem.width/6
-
-							onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
-							onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
-						}
-
-						SetInputField {
-							id: txtNReps2
-							text: splitModel.setsReps2(index)
-							type: SetInputField.Type.RepType
-							availableWidth: listItem.width/3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							Layout.alignment: Qt.AlignRight
-							Layout.rightMargin: listItem.width/6
-
-							onValueChanged: (str) => splitModel.setSetsReps2(index, str);
-							onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps2(index); });
-						}
-					} //RowLayout
-
-					RowLayout {
-						visible: cboSetType.currentIndex !== 4
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
-
-						Label {
-							text: splitModel.columnLabel(5)
-							wrapMode: Text.WordWrap
-							Layout.minimumWidth: listItem.width/2
-						}
-
-						SetInputField {
-							id: txtNWeight
-							text: splitModel.setsWeight1(index)
-							type: SetInputField.Type.WeightType
-							availableWidth: listItem.width / 3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							visible: cboSetType.currentIndex !== 4
-
-							onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
-						}
-					}
-
-					Label {
-						text: splitModel.columnLabel(5)
-						wrapMode: Text.WordWrap
-						visible: cboSetType.currentIndex === 4
-					}
-
-					RowLayout {
-						Layout.row: 8
-						Layout.column: 0
-						Layout.columnSpan: 2
-						visible: cboSetType.currentIndex === 4
-
-						SetInputField {
-							id: txtNWeight1
-							text: splitModel.setsWeight1(index)
-							type: SetInputField.Type.WeightType
-							availableWidth: listItem.width/3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							Layout.alignment: Qt.AlignCenter
-							Layout.leftMargin: listItem.width/6
-
-							onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
-							onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
-						}
-
-						SetInputField {
-							id: txtNWeight2
-							text: splitModel.setsWeight2(index)
-							type: SetInputField.Type.WeightType
-							availableWidth: listItem.width/3
-							showLabel: false
-							enabled: index === splitModel.currentRow
-							Layout.alignment: Qt.AlignRight
-							Layout.rightMargin: listItem.width/6
-
-							onValueChanged: (str) => splitModel.setSetsWeight2(index, str);
-							Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight2(index); });
-						}
-					} //RowLayout
-
 					SetNotesField {
 						info: splitModel.columnLabel(7)
 						text: splitModel.setsNotes(index)
@@ -611,6 +255,359 @@ Frame {
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
 					}
+
+					Pane {
+						id: paneSets
+						Layout.fillWidth: true
+						Layout.bottomMargin: 5
+						height: 256
+						enabled: index === splitModel.currentRow
+
+						background: Rectangle {
+							color: "transparent"
+							radius: 6
+						}
+
+						ColumnLayout {
+							id: setsItemsLayout
+							anchors.fill: parent
+							spacing: 0
+
+							Frame {
+								Layout.fillWidth: true
+								Layout.leftMargin: -20
+								Layout.rightMargin: 10
+								Layout.bottomMargin: 10
+								Layout.topMargin: 0
+
+								background: Rectangle {
+									border.width: 0
+									color: "transparent"
+								}
+
+								TPRoundButton {
+									id: btnAddSet
+									imageName: "plus.png"
+									height: 30
+									width: 30
+									z:2
+
+									onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) + 1);
+
+									anchors {
+										left: parent.left
+										leftMargin: -5
+										verticalCenter: parent.verticalCenter
+									}
+								}
+
+								TabBar {
+									id: setsTabBar
+									width: paneSets.width-50
+									implicitWidth: width
+									contentWidth: width
+									z: 1
+
+									anchors {
+										left: btnAddSet.right
+										leftMargin: 20
+										right: btnDelSet.left
+										verticalCenter: parent.verticalCenter
+									}
+
+									Repeater {
+										id: buttonsRepeater
+										anchors.fill: parent
+										model: splitModel.setsNumber(index)
+
+										TabButton {
+											text: qsTr("Set # ") + parseInt(index + 1)
+											font.pointSize: AppSettings.fontSizeLists
+											height: setsTabBar.height
+											width: 70
+
+											background: Rectangle {
+												border.color: AppSettings.fontColor
+												radius: 6
+												opacity: 0.8
+												color: AppSettings.primaryDarkColor
+											}
+
+											onClicked: splitModel.setWorkingSet(splitModel.currentRow, index);
+										}
+									}
+								} //setsTabBar
+
+								TPRoundButton {
+									id: btnDelSet
+									imageName: "minus.png"
+									height: 30
+									width: 30
+									z:2
+
+									anchors {
+										right: parent.right
+										verticalCenter: parent.verticalCenter
+									}
+
+									onClicked: splitModel.setSetsNumber(index, splitModel.setsNumber(index) - 1);
+								}
+							} //Frame
+
+
+							RowLayout {
+								Layout.leftMargin: 5
+								Layout.topMargin: 5
+								Layout.fillWidth: true
+
+								Label {
+									text: splitModel.columnLabel(1)
+									wrapMode: Text.WordWrap
+									Layout.minimumWidth: listItem.width/2
+								}
+								TPComboBox {
+									id: cboSetType
+									enabled: index === splitModel.currentRow
+									currentIndex: splitModel.setType(index)
+									Layout.rightMargin: 5
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { currentIndex = splitModel.setType(index); });
+
+									onActivated: (index) => {
+										setListItemHeight(lstSplitExercises.currentItem, index);
+										splitModel.setType = index;
+										txtNSets.forceActiveFocus();
+										if (setType !== 4)
+											exerciseName = (qsTr("Choose exercise..."));
+										else
+											exerciseName = (qsTr("Choose exercises..."));
+									}
+								}
+							}
+
+							TPCheckBox {
+								text: splitModel.columnLabel(6)
+								enabled: index === splitModel.currentRow
+								checked: splitModel.setsDropSet(index)
+								visible: cboSetType.currentIndex === 0 || cboSetType.currentIndex === 1 || cboSetType.currentIndex === 6
+								textColor: "black"
+								Layout.leftMargin: 5
+								Layout.fillWidth: true
+
+								onCheckedChanged: splitModel.setSetsDropSet(index, checked);
+							}
+
+							RowLayout {
+								visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
+								Layout.leftMargin: 5
+								Layout.fillWidth: true
+
+								Label {
+									text: splitModel.columnLabel(3)
+									wrapMode: Text.WordWrap
+									Layout.minimumWidth: listItem.width/2
+								}
+								SetInputField {
+									id: txtNSubsets
+									text: splitModel.setsSubsets(index)
+									type: SetInputField.Type.SetType
+									availableWidth: listItem.width / 3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+
+									onValueChanged: (str) => splitModel.setSetsSubsets(index, str);
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsSubsets(index); });
+
+									onEnterOrReturnKeyPressed: {
+										if (txtNReps.visible)
+											txtNReps.forceActiveFocus();
+										else
+											txtNReps1.forceActiveFocus();
+									}
+								}
+							}
+
+							RowLayout {
+								visible: cboSetType.currentIndex === 4
+								Layout.leftMargin: 5
+								Layout.fillWidth: true
+								Layout.topMargin: 10
+								Layout.bottomMargin: 10
+
+								Label {
+									text: splitModel.exerciseName1(index)
+									font.bold: true
+									wrapMode: Text.WordWrap
+									width: listItem.width*0.5-10
+									Layout.alignment: Qt.AlignCenter
+									Layout.maximumWidth: width
+									Layout.minimumWidth: width
+
+									MouseArea {
+										anchors.fill: parent
+										onClicked: {
+											splitModel.currentRow = index;
+											bListRequestForExercise1 = true;
+											requestSimpleExercisesList(paneSplit, true, false, 0);
+										}
+									}
+								}
+
+								Label {
+									text: splitModel.exerciseName2(index)
+									font.bold: true
+									wrapMode: Text.WordWrap
+									width: listItem.width*0.5-10
+									Layout.alignment: Qt.AlignCenter
+									Layout.maximumWidth: width
+									Layout.minimumWidth: width
+
+									MouseArea {
+										anchors.fill: parent
+										onClicked: {
+											splitModel.currentRow = index;
+											bListRequestForExercise2 = true;
+											requestSimpleExercisesList(paneSplit, true, false, 0);
+										}
+									}
+								}
+							}
+
+							RowLayout {
+								visible: cboSetType.currentIndex !== 4
+								Layout.leftMargin: 5
+								Layout.fillWidth: true
+
+								Label {
+									text: splitModel.columnLabel(4)
+									wrapMode: Text.WordWrap
+									Layout.maximumWidth: listItem.width/2
+									Layout.minimumWidth: listItem.width/2
+								}
+
+								SetInputField {
+									id: txtNReps
+									text: splitModel.setsReps1(index)
+									type: SetInputField.Type.RepType
+									availableWidth: listItem.width/3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									Layout.rightMargin: 5
+
+									onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
+									onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
+								}
+							}
+
+							Label {
+								text: splitModel.columnLabel(4)
+								wrapMode: Text.WordWrap
+								visible: cboSetType.currentIndex === 4
+								Layout.leftMargin: 5
+							}
+
+							RowLayout {
+								visible: cboSetType.currentIndex === 4
+
+								SetInputField {
+									id: txtNReps1
+									text: splitModel.setsReps1(index)
+									type: SetInputField.Type.RepType
+									availableWidth: listItem.width/3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									Layout.alignment: Qt.AlignCenter
+									Layout.leftMargin: listItem.width/6
+
+									onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
+									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps1(index); });
+								}
+
+								SetInputField {
+									id: txtNReps2
+									text: splitModel.setsReps2(index)
+									type: SetInputField.Type.RepType
+									availableWidth: listItem.width/3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									Layout.alignment: Qt.AlignRight
+									Layout.rightMargin: listItem.width/6
+
+									onValueChanged: (str) => splitModel.setSetsReps2(index, str);
+									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsReps2(index); });
+								}
+							} //RowLayout
+
+							RowLayout {
+								visible: cboSetType.currentIndex !== 4
+								Layout.leftMargin: 5
+								Layout.fillWidth: true
+
+								Label {
+									text: splitModel.columnLabel(5)
+									wrapMode: Text.WordWrap
+									Layout.minimumWidth: listItem.width/2
+								}
+
+								SetInputField {
+									id: txtNWeight
+									text: splitModel.setsWeight1(index)
+									type: SetInputField.Type.WeightType
+									availableWidth: listItem.width / 3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									visible: cboSetType.currentIndex !== 4
+
+									onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
+								}
+							}
+
+							Label {
+								text: splitModel.columnLabel(5)
+								wrapMode: Text.WordWrap
+								visible: cboSetType.currentIndex === 4
+							}
+
+							RowLayout {
+								Layout.row: 8
+								Layout.column: 0
+								Layout.columnSpan: 2
+								visible: cboSetType.currentIndex === 4
+
+								SetInputField {
+									id: txtNWeight1
+									text: splitModel.setsWeight1(index)
+									type: SetInputField.Type.WeightType
+									availableWidth: listItem.width/3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									Layout.alignment: Qt.AlignCenter
+									Layout.leftMargin: listItem.width/6
+
+									onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
+									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
+								}
+
+								SetInputField {
+									id: txtNWeight2
+									text: splitModel.setsWeight2(index)
+									type: SetInputField.Type.WeightType
+									availableWidth: listItem.width/3
+									showLabel: false
+									enabled: index === splitModel.currentRow
+									Layout.alignment: Qt.AlignRight
+									Layout.rightMargin: listItem.width/6
+
+									onValueChanged: (str) => splitModel.setSetsWeight2(index, str);
+									Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight2(index); });
+								}
+							} //RowLayout
+						} //ColumnLayout
+					} //Pane
 				} //ColumnLayout
 
 				contentItem: Rectangle {
@@ -624,54 +621,12 @@ Frame {
 
 				background: Rectangle {
 					id:	backgroundColor
-					radius: 5
+					radius: 6
 					color: splitModel.currentRow === index ? AppSettings.primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;
 				onClicked: splitModel.currentRow = index;
-
-				swipe.right: Rectangle {
-					id: rec
-					width: parent.width
-					height: parent.height
-					color: SwipeDelegate.pressed ? "#555" : "#666"
-					radius: 5
-					opacity: Math.abs(delegate.swipe.position)
-					z: 2
-
-					Image {
-						source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
-						anchors.left: parent.left
-						anchors.leftMargin: 10
-						anchors.verticalCenter: parent.verticalCenter
-						width: 20
-						height: 20
-						opacity: 2 * -delegate.swipe.position
-						z:3
-					}
-
-					Label {
-						text: qsTr("Removing in " + removalSecs/1000 + "s")
-						color: AppSettings.fontColor
-						padding: 5
-						anchors.fill: parent
-						anchors.leftMargin: 40
-						horizontalAlignment: Qt.AlignLeft
-						verticalAlignment: Qt.AlignVCenter
-						opacity: delegate.swipe.complete ? 1 : 0
-						Behavior on opacity { NumberAnimation { } }
-						z:2
-					}
-
-					SwipeDelegate.onClicked: delegate.swipe.close();
-					SwipeDelegate.onPressedChanged: undoTimer.stop();
-				} //swipe.right
-
-				swipe.onCompleted: {
-					removalSecs = 4000;
-					undoTimer.init(index);
-				}
 			} //delegate: SwipeDelegate
 		} //ListView
 
