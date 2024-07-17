@@ -2,13 +2,13 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Item {
+Column {
 	height: label.height + txtSetNotes.visible ? txtSetNotes.height : 0
 	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
-	Layout.rightMargin: 10
-	Layout.bottomMargin: 10
+	spacing: 0
+	padding: 0
 
 	property alias readOnly: txtNotes.readOnly
 	property alias text: txtNotes.text
@@ -20,18 +20,17 @@ Item {
 		id: label
 		text: qsTr("Notes:")
 		font.bold: true
-		height: 25
-
-		anchors {
-			left: parent.left
-			top: parent.top
-		}
+		height: 20
+		Layout.alignment: Qt.AlignLeft
+		Layout.fillWidth: false
+		padding: 0
 
 		TPRoundButton {
 			id: button
 			anchors {
 				left: parent.right
-				verticalCenter: parent.verticalCenter
+				top: parent.top
+				topMargin: -5
 				rightMargin: 20
 			}
 			width: 25
@@ -55,6 +54,7 @@ Item {
 		rightMargin: 0
 		bottomMargin: 0
 		visible: false
+		Layout.fillWidth: true
 
 		TextArea.flickable: TextArea {
 			id: txtNotes
@@ -66,12 +66,6 @@ Item {
 			bottomPadding: 5
 			textMargin: 0
 			onEditingFinished: editFinished(text);
-		}
-
-		anchors {
-			left: parent.left
-			top: label.bottom
-			right: parent.right
 		}
 
 		Component.onCompleted: vBar2.position = 0

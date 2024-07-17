@@ -77,18 +77,23 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 
 void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel)
 {
+	uint nsets(0);
+	uint orig_workingset(0); //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
 		m_ExerciseData.append(new exerciseEntry);
 		m_ExerciseData[i]->name = splitModel->exerciseName(i);
-
-		const uint type(splitModel->setType(i));
-		if (type == 4)
-			m_ExerciseData[i]->name.replace(u" + "_qs, QString(subrecord_separator));
-		newFirstSet(i, type, splitModel->setsReps(i), splitModel->setsWeight(i), splitModel->setsSubsets(i), splitModel->setsNotes(i));
-		newSet(splitModel->setsNumber(i) - 1, i, type);
-		if (splitModel->setsDropSet(i))
-			changeSetType(splitModel->setsNumber(i) - 1, i, type, SET_TYPE_DROP);
+		m_ExerciseData[i]->name.replace(u" + "_qs, QString(subrecord_separator));
+		nsets = splitModel->setsNumber(i);
+		orig_workingset = splitModel->workingSet(i);
+		splitModel->setWorkingSet(i, 0, false);
+		newFirstSet(i, splitModel->setType(i), splitModel->setsReps(i), splitModel->setsWeight(i), splitModel->setsSubsets(i), splitModel->setsNotes(i));
+		for(uint x(1); x < nsets; ++x)
+		{
+			splitModel->setWorkingSet(i, x, false);
+			newSet(splitModel->setsNumber(i) - 1, i, splitModel->setType(i), splitModel->setsReps(i), splitModel->setsWeight(i), splitModel->setsSubsets(i));
+		}
+		splitModel->setWorkingSet(i, orig_workingset, false);
 	}
 	setModified(true);
 	emit exerciseCountChanged();

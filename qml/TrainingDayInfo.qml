@@ -220,7 +220,7 @@ Page {
 		id: exportTypeTip
 		imageSource: "export.png"
 		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
-		message: label1.text
+		message: lblHeader.text
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		checkBoxText: qsTr("Human readable?")
@@ -301,7 +301,7 @@ Page {
 			}
 
 			Label {
-				id: label1
+				id: lblHeader
 				topPadding: 20
 				bottomPadding: 20
 				Layout.fillWidth: true
@@ -310,7 +310,8 @@ Page {
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" +
-					qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>"
+					splitText !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
+										qsTr("Rest day")
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
 			}
@@ -614,7 +615,7 @@ Page {
 				Layout.rightMargin: 5
 				Layout.leftMargin: 5
 				Layout.bottomMargin: 30
-				visible: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays)
+				visible: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
 				width: parent.width - 20
 
 				property int option
@@ -649,7 +650,6 @@ Page {
 
 						onClicked: grpIntent.option = 2;
 					}
-
 					TPComboBox {
 						id: cboPreviousTDaysDates
 						textRole: ""
@@ -661,13 +661,24 @@ Page {
 					}
 
 					TPRadioButton {
+						id: optLoadFromFile
+						text: qsTr("Import workout from file")
+						visible: tDayModel.exerciseCount === 0
+						width: parent.width
+						Layout.fillWidth: true
+						Layout.alignment: Qt.AlignLeft
+
+						onClicked: grpIntent.option = 3;
+					}
+
+					TPRadioButton {
 						id: optEmptySession
 						text: qsTr("Start a new session")
 						width: parent.width
 						Layout.fillWidth: true
 						Layout.alignment: Qt.AlignLeft
 
-						onClicked: grpIntent.option = 3;
+						onClicked: grpIntent.option = 4;
 					}
 
 					TPButton {
@@ -687,7 +698,10 @@ Page {
 								case 2: //use previous day
 									appDB.loadExercisesFromDate(cboPreviousTDaysDates.currentText);
 								break;
-								case 3: //empty session
+								case 3: //import from file
+									mainwindow.chooseFileToImport();
+								break;
+								case 4: //empty session
 									bHasPreviousTDays = false;
 									bHasMesoPlan = false;
 								break;
@@ -945,7 +959,7 @@ Page {
 
 		TPButton {
 			id: btnImExport
-			text: qsTr("In/Export")
+			text: qsTr("Export")
 			imageSource: "import-export.png"
 			textUnderIcon: true
 			rounded: false
@@ -963,7 +977,7 @@ Page {
 				bottomMargin: 5
 			}
 
-			onClicked: INEX.showInExMenu(trainingDayPage, true);
+			onClicked: INEX.showInExMenu(trainingDayPage, false);
 		}
 
 		TPButton {
@@ -1229,7 +1243,8 @@ Page {
 					btnFinishedDayOptions.visible = true;
 				}
 				else {
-					tDayModel.dayIsFinished = true;
+					itemManager.rollUpExercises();
+					appDB.setDayIsFinished(mainDate, true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
 				editMode = !editMode;
