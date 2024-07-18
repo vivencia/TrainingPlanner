@@ -209,15 +209,14 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		const QString strQuery(QStringLiteral("SELECT split%1_exercisesnames, split%1_exercisesset_n split%1_exercisesset_notes, "
-						"split%1_exercisesset_types split%1_exercisesset_subsets, split%1_exercisesset_reps, "
+		const QString strQuery(QStringLiteral("SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
+						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2").arg(splitLetter).arg(mesoId));
 
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
-				MSG_OUT(strQuery)
 				m_model->clear(); //The model might have been used before, but we want a clean slate now
 				static_cast<DBMesoSplitModel*>(m_model)->setMuscularGroup(query.value(7).toString());
 
