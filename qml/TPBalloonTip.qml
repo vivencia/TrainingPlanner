@@ -32,10 +32,30 @@ Popup {
 	padding: 0
 	width: windowWidth * 0.8
 
-	background: Rectangle {
-		id: background
+	Rectangle {
+		id: backRec
+		anchors.fill: parent
 		color: backColor
 		radius: 8
+		layer.enabled: true
+		visible: false
+	}
+
+	background: backRec
+
+	MultiEffect {
+		id: backgroundEffect
+		visible: true
+		source: backRec
+		anchors.fill: backRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
 		opacity: 0.9
 	}
 

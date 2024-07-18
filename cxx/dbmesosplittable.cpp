@@ -205,20 +205,21 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 	{
 		const QString mesoId(m_execArgs.at(0).toString());
 		const QChar splitLetter(m_execArgs.at(1).toChar());
+		static_cast<DBMesoSplitModel*>(m_model)->setSplitLetter(splitLetter); //set the main property right away
 
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		query.prepare(QStringLiteral("SELECT split%1_exercisesnames, split%1_exercisesset_n split%1_exercisesset_notes, "
+		const QString strQuery(QStringLiteral("SELECT split%1_exercisesnames, split%1_exercisesset_n split%1_exercisesset_notes, "
 						"split%1_exercisesset_types split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2").arg(splitLetter).arg(mesoId));
 
-		if (query.exec())
+		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
+				MSG_OUT(strQuery)
 				m_model->clear(); //The model might have been used before, but we want a clean slate now
-				static_cast<DBMesoSplitModel*>(m_model)->setMuscularGroup(query.value(8).toString());
-				static_cast<DBMesoSplitModel*>(m_model)->setSplitLetter(splitLetter);
+				static_cast<DBMesoSplitModel*>(m_model)->setMuscularGroup(query.value(7).toString());
 
 				const QStringList exercises(query.value(MESOSPLIT_COL_EXERCISENAME).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList setsnumber(query.value(MESOSPLIT_COL_SETSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
@@ -227,7 +228,6 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 				const QStringList setssubsets(query.value(MESOSPLIT_COL_SUBSETSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList setsreps(query.value(MESOSPLIT_COL_REPSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList setsweight(query.value(MESOSPLIT_COL_WEIGHT).toString().split(record_separator, Qt::SkipEmptyParts));
-
 
 				QStringList split_info;
 				for(uint i(0); i < exercises.count(); ++i)
@@ -243,22 +243,26 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					m_model->appendList(split_info);
 					split_info.clear();
 				}
+				m_result = true;
+				m_model->setReady(true);
+				m_model->setModified(false);
 			}
 		}
+
+		if (m_result)
+		{
+			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
+			MSG_OUT(strQuery)
+		}
+		else
+		{
+			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("--ERROR--")
+			MSG_OUT(strQuery)
+		}
 		mSqlLiteDB.close();
-		m_result = true;
-		m_model->setReady(true);
-		m_model->setModified(false);
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
-
 	if (bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }

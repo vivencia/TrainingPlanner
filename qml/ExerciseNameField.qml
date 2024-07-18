@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Row {
 	spacing: 0
+	padding: 0
 	height: 60
 	z: 0
 
@@ -28,6 +29,7 @@ Row {
 		rightPadding: 20
 		z: 1
 		width: parent.width-(showRemoveButton ? 50 : 25)
+		padding: 0
 		Layout.fillHeight: true
 		Layout.maximumWidth: width
 		Layout.minimumWidth: width

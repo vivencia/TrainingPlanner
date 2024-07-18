@@ -5,6 +5,7 @@ import QtQuick.Layouts
 RadioButton {
 	id: control
 	spacing: 0
+	padding: 0
 	Layout.fillWidth: true
 
 	property string textColor: AppSettings.fontColor

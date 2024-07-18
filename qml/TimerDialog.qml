@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -9,7 +10,7 @@ Dialog {
 	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	modal: false
 	width: timePickerOnly ? 150 : windowWidth * 0.75
-	height: timePickerOnly ? 100 : windowHeight * 0.35
+	height: timePickerOnly ? 100 : windowHeight * 0.30
 	x: (windowWidth - width) / 2
 	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -35,6 +36,33 @@ Dialog {
 
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
 
+	Rectangle {
+		id: backRec
+		implicitHeight: height
+		implicitWidth: width
+		radius: 8
+		layer.enabled: true
+		visible: false
+	}
+
+	background: backRec
+
+	MultiEffect {
+		id: backgroundEffect
+		visible: true
+		source: backRec
+		anchors.fill: backRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+		opacity: 0.9
+	}
+
 	TPTimer {
 		id: mainTimer
 		interval: 1000
@@ -47,78 +75,79 @@ Dialog {
 		}
 	}
 
-	header: Rectangle {
-		id: recTitleBar
-		height: 20
-		width: dlgTimer.width
-		color: AppSettings.paneBackgroundColor
-		z: 0
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-		}
-		opacity: 0.8
+	ColumnLayout {
+		anchors.fill: parent
+		spacing: 0
 
-		Label {
-			id: lblTitle
-			text: windowTitle
-			color: AppSettings.fontColor
-			height: parent.height
-			anchors {
-				left: parent.left
-				right: parent.right
-				rightMargin: 30
-				leftMargin: 10
-				verticalCenter: parent.verticalCenter
+		Rectangle {
+			id: recTitleBar
+			height: 20
+			width: dlgTimer.width
+			color: AppSettings.paneBackgroundColor
+			z: 0
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
 			}
-			elide: Text.ElideLeft
-		}
+			opacity: 0.8
 
-		MouseArea {
-			id: titleBarMouseRegion
-			property var prevPos
-			anchors.fill: parent
-			z: 1
-			onPressed: (mouse) => {
-				prevPos = { x: mouse.x, y: mouse.y };
-			}
-			onPositionChanged: {
-				const deltaX = mouseX - prevPos.x;
-				if (Math.abs(deltaX) < 10) {
-					const deltaY = mouseY - prevPos.y;
-					if (Math.abs(deltaY) < 10) {
-						dlgTimer.x += deltaX;
-						dlgTimer.y += deltaY;
-					}
+			Label {
+				id: lblTitle
+				text: windowTitle
+				color: AppSettings.fontColor
+				height: parent.height
+				anchors {
+					left: parent.left
+					right: parent.right
+					rightMargin: 30
+					leftMargin: 10
+					verticalCenter: parent.verticalCenter
 				}
-				prevPos = { x: mouseX, y: mouseY };
+				elide: Text.ElideLeft
 			}
-		}
-
-		Image {
-			id: btnCloseWindow
-			source: "qrc:/images/"+AppSettings.iconFolder+"close.png"
-			width: parent.height
-			height: parent.height
-			anchors.right: parent.right
-			anchors.top: parent.top
-			anchors.rightMargin: 12
-			z: 2
 
 			MouseArea {
+				id: titleBarMouseRegion
 				anchors.fill: parent
-				onClicked: { dlgTimer.close(); }
+				z: 1
+
+				property var prevPos
+				onPressed: (mouse) => {
+					prevPos = { x: mouse.x, y: mouse.y };
+				}
+
+				onPositionChanged: {
+					const deltaX = mouseX - prevPos.x;
+					if (Math.abs(deltaX) < 10) {
+						const deltaY = mouseY - prevPos.y;
+						if (Math.abs(deltaY) < 10) {
+							dlgTimer.x += deltaX;
+							dlgTimer.y += deltaY;
+						}
+					}
+					prevPos = { x: mouseX, y: mouseY };
+				}
+			}
+
+			Image {
+				id: btnCloseWindow
+				source: "qrc:/images/"+AppSettings.iconFolder+"close.png"
+				width: parent.height
+				height: parent.height
+				anchors.right: parent.right
+				anchors.top: parent.top
+				anchors.rightMargin: 12
+				z: 2
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: { dlgTimer.close(); }
+				}
 			}
 		}
-	}
-
-	ColumnLayout {
-		x: 0
-		y: 0
-		spacing: 0
 
 		TPCheckBox {
 			id: chkStopWatch
@@ -359,7 +388,7 @@ Dialog {
 			spacing: txtWidth/2
 			Layout.topMargin: 3
 			Layout.preferredWidth: rowWidth
-			Layout.leftMargin: !timePickerOnly ? leftMarginValue : 50
+			Layout.leftMargin: !timePickerOnly ? 10 : 50
 			readonly property int buttonWidth: !timePickerOnly ? rowWidth/3 - 10 : 50
 
 			TPButton {

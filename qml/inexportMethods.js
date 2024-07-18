@@ -9,6 +9,9 @@ function showInExMenu(page, bImportVisible) {
 			imexportMenu.addEntry(qsTr("Share"), "export.png", 2);
 		imexportMenu.menuEntrySelected.connect(selectedMenuOption);
 	}
+	imexportMenu.enableMenuEntry(1, bExportEnabled);
+	if (Qt.platform.os === "android")
+		imexportMenu.enableMenuEntry(2, bExportEnabled);
 	imexportMenu.show(btnImExport, 0);
 }
 

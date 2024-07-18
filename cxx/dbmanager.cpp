@@ -746,6 +746,8 @@ int DbManager::parseFile(QString filename)
 
 	if (createMessage[0] || createMessage[1] || createMessage[2] || createMessage[3])
 	{
+		if (!createMessage[1] && mesocyclesModel->count() == 0)
+			return -5;
 		const QString message(tr("This will import data to create: %1"));
 		QMetaObject::invokeMethod(m_mainWindow, "confirmImport", Q_ARG(QString, message.arg(tableMessage)));
 		return 1;
@@ -1157,6 +1159,7 @@ void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, c
 				mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE),
 				mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT), bPreserveOldCalendar, bPreserveUntillYesterday);
 	}
+	worker->addExecArg(m_MesoIdx);
 	createThread(worker, [worker] () { worker->saveMesocycle(); } );
 	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
 }

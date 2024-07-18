@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 
 Rectangle {
 	id: button
@@ -19,7 +20,7 @@ Rectangle {
 	property bool bPressed: false
 	property bool bEmitSignal: false
 	property bool bFollowParentsOpacity: false
-	property var buttonImage;
+	property var buttonImage: null;
 
 	signal clicked(int clickid);
 
@@ -62,6 +63,7 @@ Rectangle {
 				buttonImage = component.createObject(button,
 					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon, size: imageSize});
 				resizeButton();
+				optionsEffect.visible = true;
 			}
 
 			if (component.status === Component.Ready)
@@ -71,6 +73,22 @@ Rectangle {
 		}
 		else
 			resizeButton();
+	}
+
+	MultiEffect {
+		id: optionsEffect
+		source: buttonImage
+		anchors.fill: buttonImage
+		saturation: button.enabled ? 0 : -1.0
+		shadowEnabled: button.enabled
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+		visible: false
 	}
 
 	property double fillPosition: 1
@@ -84,7 +102,7 @@ Rectangle {
 	Label {
 		id: buttonText
 		opacity: button.opacity
-		color: bFollowParentsOpacity ? parent.opacity : (button.enabled ? textColor : AppSettings.disabledFontColor)
+		color: button.enabled ? textColor : AppSettings.disabledFontColor
 		font.weight: Font.ExtraBold
 		font.bold: true
 		font.pointSize: AppSettings.fontSizeText*0.9

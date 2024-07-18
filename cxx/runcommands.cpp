@@ -311,6 +311,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 	strValue.replace('-', u""_qs);
 	strValue.replace('E', u""_qs);
 	strValue = strValue.trimmed();
+	const char rightmostDigit(!strValue.isEmpty() ? strValue.at(strValue.length()-1).toLatin1() : '0');
 
 	float result(m_appLocale->toFloat(strValue));
 	switch (settype)
@@ -319,47 +320,40 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 			if (strValue.contains('.') || strValue.contains(','))
 			{
 				if (bIncrease)
-					result += strValue.endsWith('5') ? 2.5 : 5.0;
+					result += rightmostDigit == '5' ? 2.5 : 5.0;
 				else
-					result -= strValue.endsWith('5') ? 2.5 : 5.0;
+					result -= rightmostDigit == '5' ? 2.5 : 5.0;
 			}
 			else
 			{
 				if (result < 40)
 				{
-					if (bIncrease)
+					switch (rightmostDigit)
 					{
-						if (strValue.endsWith('4') || strValue.endsWith('9'))
-							++result;
-						else
-							result += 2;
-					}
-					else
-					{
-						if (strValue.endsWith('6') || strValue.endsWith('1'))
-							--result;
-						else
-							result -= 2;
+						case '0':
+						case '2':
+						case '6':
+						case '8':
+							bIncrease ? result += 2 : result -= 2;
+						break;
+						case '1':
+						case '3':
+						case '4':
+						case '5':
+						case '7':
+						case '9':
+							bIncrease ? ++result : --result;
+						break;
 					}
 				}
 				else
-				{
-					if (bIncrease)
-						result += 5;
-					else
-						result -= 5;
-				}
+					bIncrease ? result += 5 : result -= 5;
 			}
-			if (bIncrease)
-			{
-				if (result > 999.99)
-					result = 999.99;
-			}
-			else
-			{
-				if (result < 0)
-					result = 0;
-			}
+			if (result > 999.99)
+				result = 999.99;
+			else if (result < 0)
+				result = 0;
+
 			strValue = QString::number(result, 'f', 2);
 			if (strValue.right(2) != u"50"_qs)
 				strValue.chop(3);
@@ -368,29 +362,14 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 
 		case 1: //SetInputField.Type.RepType
 			if (strValue.contains('.') || strValue.contains(','))
-			{
-				if (bIncrease)
-					result += 0.5;
-				else
-					result -= 0.5;
-			}
+				bIncrease ? result += 0.5 : result -= 0.5;
 			else
-			{
-				if (bIncrease)
-					++result;
-				else
-					--result;
-			}
-			if (bIncrease)
-			{
-				if (result > 100)
-					result = 100;
-			}
-			else
-			{
-				if (result < 0)
-					result = 0;
-			}
+				bIncrease ? ++result : --result;
+
+			if (result > 100)
+				result = 100;
+			else if (result < 0)
+				result = 0;
 			return QString::number(static_cast<uint>(result));
 		break;
 

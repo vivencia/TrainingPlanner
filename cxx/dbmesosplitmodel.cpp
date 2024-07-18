@@ -16,12 +16,12 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 	{
 		mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
 		mColumnNames.append(tr("Exercise name: "));
-		mColumnNames.append(tr("Set type: "));
 		mColumnNames.append(tr("Number of sets: "));
+		mColumnNames.append(tr("Set instructions: "));
+		mColumnNames.append(tr("Set type: "));
 		mColumnNames.append(tr("Number of subsets: "));
 		mColumnNames.append(tr("Reps: "));
 		mColumnNames.append(tr("Weight: "));
-		mColumnNames.append(tr("Set instructions: "));
 	}
 	else
 	{
@@ -131,7 +131,7 @@ void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
 
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList() << exercise_name << QString::number(settype) << sets << u"0"_qs << reps << weight << u"0"_qs << u" "_qs << u"0"_qs);
+	appendList(QStringList() << exercise_name << sets << u" "_qs << QString::number(settype) << u"0"_qs << reps << weight << u"0"_qs);
 	setCurrentRow(count() - 1);
 }
 
@@ -304,8 +304,8 @@ QString DBMesoSplitModel::formatFieldToExport(const QString& fieldValue)
 QString DBMesoSplitModel::formatFieldToImport(const QString& fieldValue)
 {
 	QString retStr, setTypeStr;
-	const uint n(fieldValue.count(record_separator2));
-	for (uint i(0); i < n; ++i)
+	const uint n(fieldValue.count(fancy_record_separator2));
+	for (uint i(0); i <= n; ++i)
 	{
 		setTypeStr = runCmd()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
 		if (setTypeStr == tr("Regular"))
@@ -448,6 +448,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 		{
 			if (!modeldata.isEmpty())
 			{
+				modeldata.append(u"0"_qs); //MESOSPLIT_COL_WORKINGSET
 				appendList(modeldata);
 				modeldata.clear();
 				col = 0;

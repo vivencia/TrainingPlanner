@@ -51,6 +51,7 @@ Rectangle {
 				id: btnShowHideList
 				imageSource: bottomPane.shown ? "fold-down.png" : "fold-up.png"
 				imageSize: 30
+				height: 30
 				onClicked: bottomPane.shown = !bottomPane.shown;
 			}
 			TPButton {

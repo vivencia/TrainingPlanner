@@ -271,6 +271,10 @@ ApplicationWindow {
 			case -2: message = qsTr("Error"); importExportFilename = qsTr("File type not recognized"); break;
 			case -3: message = qsTr("Error"); importExportFilename = qsTr("File is formatted wrongly or is corrupted"); break;
 			case -4: message = qsTr("Nothing to be done"); importExportFilename = qsTr("File had already been imported"); break;
+			case -5:
+				message = qsTr("No mesocycle to import into");
+				importExportFilename = qsTr("Either create a new training plan or import from a complete program file");
+			break;
 			case -11: message = qsTr("Export failed"); break;
 			case -12: importExportFilename = qsTr("Saving canceled");  break;
 			case -6:

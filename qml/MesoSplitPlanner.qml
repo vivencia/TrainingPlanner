@@ -24,7 +24,6 @@ Frame {
 
 	width: windowWidth
 	height: windowHeight - 55
-
 	padding: 0
 	spacing: 0
 	Layout.leftMargin: 5
@@ -233,7 +232,7 @@ Frame {
 
 						onEditButtonClicked: {
 							splitModel.currentRow = index;
-							requestSimpleExercisesList(paneSplit, !readOnly, setType === 4, 0);
+							requestSimpleExercisesList(paneSplit, !readOnly, cboSetType.currentIndex === 4, 0);
 						}
 
 						onMousePressed: (mouse) => {
@@ -246,10 +245,14 @@ Frame {
 						}
 
 						onMousePressAndHold: (mouse) => mouse.accepted = false;
+
+						Component.onCompleted: {
+							splitModel.exerciseNameChanged.connect(function () { text = splitModel.exerciseName(index); } );
+						}
 					} //ExerciseNameField
 
 					SetNotesField {
-						info: splitModel.columnLabel(7)
+						info: splitModel.columnLabel(2)
 						text: splitModel.setsNotes(index)
 						Layout.leftMargin: 5
 						Layout.fillWidth: true
@@ -260,7 +263,10 @@ Frame {
 					Pane {
 						id: paneSets
 						Layout.fillWidth: true
-						Layout.bottomMargin: 5
+						Layout.leftMargin: -20
+						Layout.rightMargin: 0
+						Layout.bottomMargin: 0
+						Layout.topMargin: -20
 						height: 256
 						enabled: index === splitModel.currentRow
 
@@ -271,12 +277,12 @@ Frame {
 						ColumnLayout {
 							id: setsItemsLayout
 							anchors.fill: parent
-							spacing: 0
+							spacing: 5
 
 							Frame {
 								Layout.fillWidth: true
-								Layout.leftMargin: -20
-								Layout.rightMargin: 10
+								Layout.leftMargin: 0
+								Layout.rightMargin: -10
 								Layout.bottomMargin: 10
 								Layout.topMargin: 0
 
@@ -303,7 +309,6 @@ Frame {
 
 								TabBar {
 									id: setsTabBar
-									width: paneSets.width-50
 									implicitWidth: width
 									contentWidth: width
 									z: 1
@@ -356,12 +361,11 @@ Frame {
 
 
 							RowLayout {
-								Layout.leftMargin: 5
-								Layout.topMargin: 5
+								Layout.leftMargin: 20
 								Layout.fillWidth: true
 
 								Label {
-									text: splitModel.columnLabel(1)
+									text: splitModel.columnLabel(3)
 									wrapMode: Text.WordWrap
 									Layout.minimumWidth: listItem.width/2
 								}
@@ -372,37 +376,24 @@ Frame {
 									Layout.rightMargin: 5
 									Component.onCompleted: splitModel.workingSetChanged.connect(function () { currentIndex = splitModel.setType(index); });
 
-									onActivated: (index) => {
-										setListItemHeight(lstSplitExercises.currentItem, index);
-										splitModel.setType = index;
-										txtNSets.forceActiveFocus();
-										if (setType !== 4)
-											exerciseName = (qsTr("Choose exercise..."));
+									onActivated: (cboIndex) => {
+										setListItemHeight(lstSplitExercises.currentItem, cboIndex);
+										splitModel.setSetType(index, cboIndex);
+										if (cboIndex !== 4)
+											txtExerciseName.text = (qsTr("Choose exercise..."));
 										else
-											exerciseName = (qsTr("Choose exercises..."));
+											txtExerciseName.text = (qsTr("Choose exercises..."));
 									}
 								}
 							}
 
-							TPCheckBox {
-								text: splitModel.columnLabel(6)
-								enabled: index === splitModel.currentRow
-								checked: splitModel.setsDropSet(index)
-								visible: cboSetType.currentIndex === 0 || cboSetType.currentIndex === 1 || cboSetType.currentIndex === 6
-								textColor: "black"
-								Layout.leftMargin: 5
-								Layout.fillWidth: true
-
-								onCheckedChanged: splitModel.setSetsDropSet(index, checked);
-							}
-
 							RowLayout {
 								visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
-								Layout.leftMargin: 5
+								Layout.leftMargin: 20
 								Layout.fillWidth: true
 
 								Label {
-									text: splitModel.columnLabel(3)
+									text: splitModel.columnLabel(4)
 									wrapMode: Text.WordWrap
 									Layout.minimumWidth: listItem.width/2
 								}
@@ -428,10 +419,10 @@ Frame {
 
 							RowLayout {
 								visible: cboSetType.currentIndex === 4
-								Layout.leftMargin: 5
+								Layout.leftMargin: 20
 								Layout.fillWidth: true
-								Layout.topMargin: 10
-								Layout.bottomMargin: 10
+								Layout.topMargin: 5
+								Layout.bottomMargin: 5
 
 								Label {
 									text: splitModel.exerciseName1(index)
@@ -479,8 +470,7 @@ Frame {
 								availableWidth: listItem.width/3
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
-								Layout.rightMargin: 5
-								Layout.leftMargin: 5
+								Layout.leftMargin: 20
 								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
@@ -490,15 +480,15 @@ Frame {
 
 							RowLayout {
 								visible: cboSetType.currentIndex === 4
-								Layout.leftMargin: 5
 
 								SetInputField {
 									id: txtNReps1
 									text: splitModel.setsReps1(index)
 									type: SetInputField.Type.RepType
-									availableWidth: listItem.width/3
+									availableWidth: listItem.width/2 + 10
 									enabled: index === splitModel.currentRow
-									Layout.alignment: Qt.AlignCenter
+									Layout.alignment: Qt.AlignLeft
+									Layout.leftMargin: 30
 
 									onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
@@ -528,7 +518,7 @@ Frame {
 								availableWidth: listItem.width / 3
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
-								Layout.leftMargin: 5
+								Layout.leftMargin: 20
 								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
@@ -537,17 +527,16 @@ Frame {
 
 							RowLayout {
 								visible: cboSetType.currentIndex === 4
-								Layout.leftMargin: 5
 								Layout.fillWidth: true
 
 								SetInputField {
 									id: txtNWeight1
 									text: splitModel.setsWeight1(index)
 									type: SetInputField.Type.WeightType
-									availableWidth: listItem.width/3
+									availableWidth: listItem.width/2 + 10
 									enabled: index === splitModel.currentRow
 									Layout.alignment: Qt.AlignCenter
-									Layout.leftMargin: listItem.width/6
+									Layout.leftMargin: 30
 
 									onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
@@ -558,6 +547,7 @@ Frame {
 									id: txtNWeight2
 									text: splitModel.setsWeight2(index)
 									type: SetInputField.Type.WeightType
+									showLabel: false
 									availableWidth: listItem.width/3
 									enabled: index === splitModel.currentRow
 									Layout.alignment: Qt.AlignRight
@@ -624,9 +614,9 @@ Frame {
 			vBar.setPosition(pos - vBar.size/2);
 	}
 
-	//Each layout row(10) * 32(height per row) + 30(extra space)
+	//Each layout row(10) * 32(height per row) + 20(extra space)
 	function setListItemHeight(item, settype) {
-		item.height = settype !== 4 ? 360 : 450;
+		item.height = settype !== 4 ? 340 : 430;
 	}
 
 	function removeExercise(idx: int) {

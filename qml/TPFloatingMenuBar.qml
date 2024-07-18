@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 Popup {
 	signal menuEntrySelected(id: int);
@@ -16,7 +17,36 @@ Popup {
 
 	property var entriesList: []
 	property int entriesTotalHeight: 0
+	property int largestEntryWidth: 0
 	property var entryComponent: null
+
+	Rectangle {
+		id: backRec
+		anchors.fill: parent
+		implicitHeight: entriesTotalHeight
+		implicitWidth: largestEntryWidth
+		radius: 6
+		layer.enabled: true
+		color: AppSettings.entrySelectedColor
+		visible: false
+	}
+
+	background: backRec
+
+	MultiEffect {
+		id: backgroundEffect
+		visible: true
+		source: backRec
+		anchors.fill: backRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+	}
 
 	contentItem.Keys.onBackPressed: (event) => {
 		event.accepted = true;
@@ -65,16 +95,11 @@ Popup {
 		}
 	}
 
-	background: Rectangle {
-		id: background
-		color: "transparent"
-	}
-
 	ColumnLayout {
 		id: mainLayout
 		anchors.fill: parent
 		spacing: 0
-		opacity: background.opacity
+		opacity: menu.opacity
 	}
 
 	Component.onDestruction: {
@@ -87,9 +112,11 @@ Popup {
 			entryComponent = Qt.createComponent("TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img,
-				clickId: id, flat: true, rounded: false, "Layout.fillWidth": true, "Layout.leftMargin": 5, "Layout.rightMargin": 5 });
+			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
+				rounded: false, color: "transparent", "Layout.fillWidth": true });
 			entriesTotalHeight += button.buttonHeight;
+			if (button.implicitWidth > largestEntryWidth)
+				largestEntryWidth = button.implicitWidth;
 			button.clicked.connect(menuEntryClicked);
 			entriesList.push(button);
 		}
@@ -115,10 +142,10 @@ Popup {
 		switch (pos) {
 			case 0: //top
 				xpos = point.x;
-				ypos = point.y - height;
+				ypos = point.y - entriesTotalHeight - 15;
 			break;
 			case 1: //left
-				xpos = point.x - width
+				xpos = point.x - largestEntryWidth - 15;
 				ypos = point.y;
 			break;
 			case 2: //right
@@ -133,12 +160,12 @@ Popup {
 
 		if (xpos < 0)
 			xpos = 0;
-		else if (xpos + width > parent.width - 20)
-			xpos = parent.width - width - 10;
+		else if (xpos + largestEntryWidth > parent.width - 20)
+			xpos = parent.width - largestEntryWidth - 10;
 		if (ypos < 0)
 			ypos = 0;
-		else if (ypos + height > parent.height)
-			ypos = parent.height - height - 10;
+		else if (ypos + entriesTotalHeight > parent.height)
+			ypos = parent.height - entriesTotalHeight - 10;
 		x = xpos;
 		y = ypos;
 		open();

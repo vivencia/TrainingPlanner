@@ -22,14 +22,6 @@ Page {
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
-	onBExportEnabledChanged: {
-		if (imexportMenu) {
-			imexportMenu.enableMenuEntry(1, bExportEnabled);
-			if (Qt.platform.os === "android")
-				imexportMenu.enableMenuEntry(2, bExportEnabled);
-		}
-	}
-
 	Keys.onBackPressed: (event) => {
 		event.accepted = true;
 		if (exercisesPane.visible)
