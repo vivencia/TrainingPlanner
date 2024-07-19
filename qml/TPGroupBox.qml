@@ -6,7 +6,6 @@ GroupBox {
 	padding: 0
 	spacing: 0
 	property alias text: lblText.text
-	property bool highlight: false
 
 	label: Label {
 		id: lblText
@@ -22,38 +21,5 @@ GroupBox {
 		color: "transparent"
 		border.color: AppSettings.fontColor
 		radius: 6
-	}
-
-	onHighlightChanged: {
-		if (highlight) {
-			recBack.border.width = 2;
-			anim.start();
-		}
-		else {
-			recBack.border.width = 1;
-			anim.stop();
-		}
-	}
-
-	SequentialAnimation {
-		id: anim
-		loops: Animation.Infinite
-
-		ColorAnimation {
-			target: recBack
-			property: "border.color"
-			from: AppSettings.fontColor
-			to: "gold"
-			duration: 300
-			easing.type: Easing.InOutCubic
-		}
-		ColorAnimation {
-			target: recBack
-			property: "border.color"
-			from: "gold"
-			to: AppSettings.fontColor
-			duration: 300
-			easing.type: Easing.InOutCubic
-		}
 	}
 }

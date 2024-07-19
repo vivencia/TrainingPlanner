@@ -110,20 +110,7 @@ ApplicationWindow {
 				anchors.leftMargin: 10
 			}
 
-			onClicked: {
-				function mesoCalendarOK()
-				{
-					appDB.databaseReady.disconnect(mesoCalendarOK);
-					appDB.getTrainingDay(new Date());
-				}
-
-				if (mesoCalendarModel.count > 0)
-					mesoCalendarOK();
-				else {
-					appDB.databaseReady.connect(mesoCalendarOK);
-					appDB.getMesoCalendar(false);
-				}
-			} //onClicked
+			onClicked: appDB.getTrainingDay(new Date());
 		} //TabButton
 	} //footer
 

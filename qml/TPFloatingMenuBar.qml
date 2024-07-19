@@ -27,7 +27,7 @@ Popup {
 		implicitWidth: largestEntryWidth
 		radius: 6
 		layer.enabled: true
-		color: AppSettings.entrySelectedColor
+		color: AppSettings.primaryDarkColor
 		visible: false
 	}
 
@@ -58,7 +58,7 @@ Popup {
 			target: menu
 			property: "opacity"
 			from: 0.0
-			to: 1.0
+			to: 0.9
 			duration: 300
 			easing.type: Easing.InOutCubic
 			alwaysRunToEnd: true
@@ -78,7 +78,7 @@ Popup {
 		NumberAnimation {
 			target: menu
 			property: "opacity"
-			from: 1.0
+			from: 0.9
 			to: 0.0
 			duration: 300
 			easing.type: Easing.InOutCubic

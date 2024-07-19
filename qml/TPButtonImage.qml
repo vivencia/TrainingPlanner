@@ -19,11 +19,11 @@ Image {
 					anchors.verticalCenter = parent.verticalCenter;
 					if (leftAlign) {
 						anchors.right = parent.right
-						anchors.rightMargin = parent.rounded ? 5 : 0;
+						anchors.rightMargin = 5;
 					}
 					else {
 						anchors.left = parent.left
-						anchors.leftMargin = parent.rounded ? 5 : 10;
+						anchors.leftMargin = 5;
 					}
 				}
 				else {

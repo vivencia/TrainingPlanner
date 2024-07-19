@@ -7,7 +7,7 @@ Popup {
 	closePolicy: simpleCalendar ? Popup.CloseOnPressOutside : Popup.NoAutoClose
 	width: datePickerControl.width
 	height: datePickerControl.height
-	x: (windowWidth - width) / 2 // horizontally centered
+	x: (windowWidth - width) / 3.5 // horizontally centered
 	y: (windowHeight - height) / 2 // vertically centered
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	modal: true

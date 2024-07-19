@@ -347,7 +347,29 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 					}
 				}
 				else
-					bIncrease ? result += 5 : result -= 5;
+				{
+					uint paddingValue(0);
+					switch (rightmostDigit)
+					{
+						case '0':
+							bIncrease ? paddingValue = 5 : paddingValue = -5; break;
+						case '1':
+						case '6':
+							bIncrease ? paddingValue = 4 : paddingValue = -1; break;
+						case '2':
+						case '7':
+							bIncrease ? paddingValue = 3 : paddingValue = -2; break;
+						case '3':
+						case '8':
+							bIncrease ? paddingValue = 2 : paddingValue = -3; break;
+						case '4':
+						case '9':
+							bIncrease ? paddingValue = 1 : paddingValue = -4; break;
+						case '5':
+							bIncrease ? paddingValue = 5 : paddingValue = -5; break;
+					}
+					result += paddingValue;
+				}
 			}
 			if (result > 999.99)
 				result = 999.99;
@@ -484,5 +506,9 @@ void RunCommands::populateSettingsWithDefaultValue()
 		m_appSettings->sync();
 	}
 	else
+	{
 		setAppLocale(m_appSettings->value("appLocale").toString());
+		if (m_appSettings->value("appVersion").toString() != TP_APP_VERSION)
+			m_appSettings->setValue("appVersion", TP_APP_VERSION);
+	}
 }

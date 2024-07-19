@@ -1662,11 +1662,16 @@ void DbManager::getTrainingDay(const QDate& date)
 		return;
 	}
 
+	if (mesoCalendarModel->count() == 0)
+	{
+		connect( this, &DbManager::databaseReady, this, [&,date] () { getTrainingDay(date); },
+				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		getMesoCalendar(false);
+		return;
+	}
+
 	m_expectedPageId = tDayPageCreateId;
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_currentMesoManager->gettDayModel(date)));
-	/*worker->addExecArg("13");
-	worker->removeEntry();
-	worker->clearExecArgs();*/
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date,worker] (const uint db_id) {
 				if (db_id == worker->uniqueID()) m_currentMesoManager->createTrainingDayPage(date, mesoCalendarModel); } );

@@ -17,8 +17,7 @@ Rectangle {
 	property string calendarWindowTitle
 
 	property date thisDay
-	property double mm: Screen.pixelDensity
-	property double cellSize: mm * 7
+	readonly property double cellSize: Screen.pixelDensity * 7
 	property int fontSizePx: cellSize * 0.32
 
 	signal okClicked(date selDate)

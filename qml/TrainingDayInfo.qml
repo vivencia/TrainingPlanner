@@ -378,13 +378,13 @@ Page {
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
-				visible: splitLetter !== 'R'
+				visible: !grpIntent.visible
 			}
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
 				text: tDayModel.location()
-				visible: splitLetter !== 'R'
+				visible: !grpIntent.visible
 				enabled: !tDayModel.dayIsFinished
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
@@ -537,7 +537,7 @@ Page {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
 				readOnly: !tDayModel.dayIsFinished
-				visible: splitLetter !== 'R'
+				visible: !grpIntent.visible
 				color: AppSettings.fontColor
 				Layout.leftMargin: 5
 
@@ -689,8 +689,6 @@ Page {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: {
-							grpIntent.highlight = false;
-
 							switch (grpIntent.option) {
 								case 1: //use meso plan
 									appDB.loadExercisesFromMesoPlan(splitLetter);
@@ -706,6 +704,7 @@ Page {
 									bHasMesoPlan = false;
 								break;
 							}
+							grpIntent.visible = Qt.binding(function() { return splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays); });
 						}
 					}
 				}

@@ -2,7 +2,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Controls.Material
+import QtQuick.Effects
 
 Popup {
 	id: timePicker
@@ -15,6 +15,32 @@ Popup {
 	focus: true
 	Material.elevation: 6
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+
+	Rectangle {
+		id: backRec
+		anchors.fill: parent
+		radius: 8
+		layer.enabled: true
+		visible: false
+	}
+
+	background: backRec
+
+	MultiEffect {
+		id: backgroundEffect
+		visible: true
+		source: backRec
+		anchors.fill: backRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+		opacity: 0.9
+	}
 
 	contentItem {
 		Keys.onPressed: (event) => {

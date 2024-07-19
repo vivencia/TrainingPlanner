@@ -23,7 +23,7 @@ Row {
 	TextField {
 		id: control
 		font.bold: true
-		font.pointSize: AppSettings.fontSizeText
+		font.pointSize: AppSettings.fontSize
 		readOnly: true
 		wrapMode: Text.WordWrap
 		rightPadding: 20
