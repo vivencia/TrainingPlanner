@@ -21,11 +21,10 @@ Page {
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
 	property bool bMesoNameOK: false
-	property bool bMesoSplitOK: false
-	property bool bStartDateChanged: false
-	property bool bEndDateChanged: false
-
+	property bool bMesoSplitChanged: false
 	property bool bNewMeso: mesoId === -1
+
+	property var calendarChangeDlg: null
 
 	Image {
 		anchors.fill: parent
@@ -149,11 +148,11 @@ Page {
 					}
 
 					onDateSelected: function(date) {
-						bStartDateChanged = mesocyclesModel.setDate(mesoIdx, 2, date);
-						if (bStartDateChanged) {
+						if(mesocyclesModel.setDate(mesoIdx, 2, date)) {
 							txtMesoStartDate.text = runCmd.formatDate(date);
 							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(date, mesocyclesModel.getDate(mesoIdx, 3));
 							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
+							showCalendarChangedDialog();
 						}
 						if (bNewMeso)
 							caldlg2.open();
@@ -206,11 +205,11 @@ Page {
 					}
 
 					onDateSelected: function(date) {
-						bEndDateChanged = mesocyclesModel.setDate(mesoIdx, 3, date);
-						if (bEndDateChanged) {
+						if (mesocyclesModel.setDate(mesoIdx, 3, date)) {
 							txtMesoEndDate.text = runCmd.formatDate(date);
 							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), date);
 							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
+							showCalendarChangedDialog();
 						}
 						txtMesoSplit.forceActiveFocus();
 					}
@@ -269,6 +268,7 @@ Page {
 				Layout.minimumWidth: parent.width / 2
 				ToolTip.text: qsTr("On a mesocycle, there should be at least one rest day(R)")
 
+				property bool bMesoSplitOK: false
 				TPRoundButton {
 					id: btnTrainingSplit
 					width: 40
@@ -289,8 +289,8 @@ Page {
 
 				onEditingFinished: {
 					if (bMesoSplitOK) {
-						bMesoSplitOK = mesocyclesModel.set(mesoIdx, 6, text);
-						if (bMesoSplitOK) {
+						bMesoSplitChanged = mesocyclesModel.set(mesoIdx, 6, text);
+						if (bMesoSplitChanged) {
 							mesoSplit = text;
 							JSF.checkWhetherCanCreatePlan();
 						}
@@ -308,58 +308,6 @@ Page {
 					JSF.moveFocusToNextField('0');
 				}
 			}
-
-			Frame {
-				id: frmMesoAdjust
-				Layout.fillWidth: true
-				Layout.rightMargin: 20
-				Layout.leftMargin: 5
-				visible: bNewMeso ? false : bStartDateChanged || bEndDateChanged || bMesoSplitOK
-				padding: 0
-				spacing: 0
-				height: 300
-
-				background: Rectangle {
-					border.color: AppSettings.fontColor
-					color: "transparent"
-					radius: 6
-				}
-
-				ColumnLayout {
-					id: layoutSplit
-					anchors.fill: parent
-					spacing: 0
-
-					TPCheckBox {
-						id: chkPreserveOldCalendar
-						text: qsTr("Preserve previous calendar information?")
-						checked: false
-						Layout.fillWidth: true
-						Layout.leftMargin: 5
-
-						onClicked: {
-							if (checked) {
-								if (!optPreserveOldCalendar.checked && !optPreserveOldCalendarUntilYesterday.checked)
-									optPreserveOldCalendar.checked = true;
-							}
-						}
-					} //TPCheckBox
-
-					TPRadioButton {
-						id: optPreserveOldCalendar
-						text: qsTr("All of the old information")
-						enabled: chkPreserveOldCalendar.checked
-						checked: false
-					}
-
-					TPRadioButton {
-						id: optPreserveOldCalendarUntilYesterday
-						text: qsTr("Up until yesterday - ") + runCmd.formatDate(runCmd.getDayBefore(new Date()));
-						checked: false
-						enabled: chkPreserveOldCalendar.checked //&& isDateWithinMeso(today)
-					}
-				} // ColumnLayout
-			} //Frame
 
 			Pane {
 				id: paneTrainingSplit
@@ -656,21 +604,43 @@ Page {
 
 	function pageDeActivation() {
 		if (bNewMeso)
-			appDB.removeMesocycle(mesoIdx);
+			appDB.scheduleMesocycleRemoval(mesoIdx);
 	}
 
 	function pageActivation() {
 		appDB.setWorkingMeso(mesoIdx);
 	}
 
-	function saveMeso() {
+	function showCalendarChangedDialog() {
+		if (mesoCalendarModel !== null) {
+			if (mesoCalendarModel.count > 0) {
+				if (!calendarChangeDlg) {
+					var component = Qt.createComponent("TPComplexDialog.qml", Qt.Asynchronous);
+
+					function finishCreation() {
+						calendarChangeDlg = component.createObject(this, { title:qsTr("Adjust meso calendar?"), button1Text: qsTr("Yes"),
+								button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
+						calendarChangeDlg.button1Clicked.connect();
+					}
+
+					if (component.status === Component.Ready)
+						finishCreation();
+					else
+						component.statusChanged.connect(finishCreation);
+				}
+				calendarChangeDlg.show(-1);
+			}
+		}
+	}
+
+	function saveMeso(bPreserveOldCalendar: bool, preserveOldCalendarUntilYesterday: bool) {
 		if (mesocyclesModel.modified || mesoSplitModel.modified) {
-			var changeCalendar = false;
-			if (bStartDateChanged || bEndDateChanged || bMesoSplitOK) {
+
+			if (calendar) {
 				changeCalendar = true;
 				bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
 			}
-			appDB.saveMesocycle(bNewMeso, changeCalendar, chkPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+			appDB.saveMesocycle(bNewMeso, bMesoSplitChanged, bPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
 			bNewMeso = false;
 		}
 	}

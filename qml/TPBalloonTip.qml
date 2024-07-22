@@ -136,6 +136,7 @@ Popup {
 		visible: false
 		width: 50
 		height: 50
+		layer.enabled: true
 		x: 5
 		y: lblTitle.visible ? (balloon.height-height)/2 : (balloon.height-height)/3
 	}

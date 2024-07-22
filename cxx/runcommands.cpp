@@ -348,7 +348,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 				}
 				else
 				{
-					uint paddingValue(0);
+					int paddingValue(0);
 					switch (rightmostDigit)
 					{
 						case '0':

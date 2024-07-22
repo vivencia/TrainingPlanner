@@ -111,6 +111,8 @@ set( QML_FILES
     "qml/TPImportDialog.qml"
     "qml/ImportMessageBox.qml"
     "qml/TPSaveDialog.qml"
+    "qml/TPComplexDialog.qml"
+    "qml/TPAdjustMesoCalendarFrame.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

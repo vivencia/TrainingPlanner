@@ -266,7 +266,7 @@ Page {
 				TPButton {
 					text: qsTr("Remove Mesocycle")
 					imageSource: "remove.png"
-					z:1
+					z:2
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter

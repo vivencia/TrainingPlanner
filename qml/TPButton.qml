@@ -143,6 +143,7 @@ Rectangle {
 		anchors.fill: button
 		enabled: button.enabled
 		hoverEnabled: true
+		z: button.z + 1
 
 		onClicked: (mouse) => {
 			if (enabled) {

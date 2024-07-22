@@ -32,6 +32,8 @@
 #define SPLITS_LOADED_ID 4321
 #define TEMP_CURRENTMESOMANAGER_MESOIDX 99999
 
+static TPMesocycleClass* emptyInstance(nullptr);
+
 #ifdef Q_OS_ANDROID
 
 #include "urihandler.h"
@@ -109,6 +111,8 @@ DbManager::~DbManager()
 	delete mesocyclesModel;
 	if (m_exercisesPage)
 		delete m_exercisesPage;
+	if (emptyInstance)
+		delete emptyInstance;
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
 }
@@ -1023,7 +1027,7 @@ void DbManager::getAllMesocycles()
 		setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
 	}
 	else
-		setWorkingMeso(TEMP_CURRENTMESOMANAGER_MESOIDX);
+		setWorkingMeso(-1);
 	delete worker;
 }
 
@@ -1031,26 +1035,26 @@ void DbManager::setWorkingMeso(int meso_idx)
 {
 	if (meso_idx != m_MesoIdx)
 	{
-		if (meso_idx != TEMP_CURRENTMESOMANAGER_MESOIDX)
-		{
-			if (meso_idx >= mesocyclesModel->count())
-				meso_idx = mesocyclesModel->count() - 1;
-			if (meso_idx == -1)
-				meso_idx = 0;
-			m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
-		}
+		if (meso_idx >= mesocyclesModel->count())
+			meso_idx = mesocyclesModel->count() - 1;
+
 		m_MesoIdx = meso_idx;
-		m_MesoIdStr = QString::number(m_MesoId);
-		m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
-		mesocyclesModel->setCurrentRow(m_MesoIdx);
-		mesoSplitModel->setCurrentRow(m_MesoIdx);
-		if (m_currentMesoManager)
+		if (meso_idx >= 0)
 		{
-			if (m_currentMesoManager->mesoIdx() == TEMP_CURRENTMESOMANAGER_MESOIDX)
-			{
-				m_MesoManager.removeOne(m_currentMesoManager);
-				delete m_currentMesoManager;
-			}
+			m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
+			m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
+			m_MesoIdStr = QString::number(m_MesoId);
+			mesocyclesModel->setCurrentRow(m_MesoIdx);
+			mesoSplitModel->setCurrentRow(m_MesoIdx);
+		}
+		else
+		{
+			m_MesoId = -1;
+			m_totalSplits = 0;
+			if (!emptyInstance)
+				emptyInstance = new TPMesocycleClass(-10, -10, m_QMlEngine, this);
+			m_currentMesoManager = emptyInstance;
+			return;
 		}
 
 		bool bFound(false);
@@ -1177,32 +1181,11 @@ void DbManager::removeMesocycle(const uint meso_idx)
 			removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
 			removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
 		}
-		if (m_currentMesoManager)
-		{
-			m_MesoManager.removeOne(m_currentMesoManager);
-			delete m_currentMesoManager;
-			m_currentMesoManager = nullptr;
-		}
 
-		if (m_MesoManager.count() > 0)
-		{
-			const uint idx(m_MesoManager.count() - 1);
-			setWorkingMeso(m_MesoManager.at(idx)->mesoIdx());
-		}
-		else
-			setWorkingMeso(-1);
-	}
-	else
-	{
-		for (uint i(0); i < m_MesoManager.count(); ++i)
-		{
-			if (m_MesoManager.at(i)->mesoIdx() == meso_idx)
-			{
-				TPMesocycleClass* meso(m_MesoManager.at(i));
-				m_MesoManager.removeAt(i);
-				delete meso;
-			}
-		}
+		int idx(m_MesoManager.count() - 1);
+		if (idx == meso_idx)
+			--idx;
+		setWorkingMeso(idx);
 	}
 
 	if (meso_id >= 0)
@@ -1217,6 +1200,18 @@ void DbManager::removeMesocycle(const uint meso_idx)
 		for (uint i(meso_idx+1); i < m_MesoManager.count(); ++i)
 			m_MesoManager.at(i)->changeMesoIdxFromPages(i-1);
 	}
+
+	TPMesocycleClass* tpObject(m_MesoManager.at(meso_idx));
+	m_MesoManager.removeAt(m_MesoIdx);
+	tpObject->disconnect();
+	delete tpObject;
+}
+
+//Cannot order a mesocycle removal from within the qml page that will be deleted. Defer the removal to a little time after,
+//just enough to have StackView remove the page
+void DbManager::scheduleMesocycleRemoval(const uint meso_idx)
+{
+	QTimer::singleShot(200, this, [&,meso_idx] () { removeMesocycle(meso_idx); } );
 }
 
 void DbManager::deleteMesocyclesTable(const bool bRemoveFile)
