@@ -14,7 +14,6 @@ Rectangle {
 
 	property date selectedDate: displayDate
 	property bool justCalendar: false
-	property string calendarWindowTitle
 
 	property date thisDay
 	readonly property double cellSize: Screen.pixelDensity * 7
@@ -36,31 +35,6 @@ Rectangle {
 	}
 
 	Rectangle {
-		id: windowTitelBar
-		color: AppSettings.primaryLightColor
-		visible: calendarWindowTitle.length > 0
-		width: parent.width
-		height: lblTitle.contentHeight + 10
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			top: parent.top
-		}
-
-		Label {
-			id: lblTitle
-			anchors.centerIn: parent
-			text: calendarWindowTitle
-			wrapMode: Text.WordWrap
-			width: parent.width
-			horizontalAlignment: Text.AlignJustify
-			verticalAlignment: Text.AlignJustify
-			font.bold: true
-		}
-	}
-
-	Rectangle {
 		id: titleOfDate
 		height: 2.5 * cellSize
 		width: parent.width
@@ -76,7 +50,7 @@ Rectangle {
 		z: 1
 
 		anchors {
-			top: windowTitelBar.visible ? windowTitelBar.bottom : parent.top
+			top: parent.top
 			horizontalCenter: parent.horizontalCenter
 		}
 

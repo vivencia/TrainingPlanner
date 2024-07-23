@@ -458,14 +458,14 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	}
 	else
 	{
-		exerciseName = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
-		exerciseName = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
-		nSets = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
-		nSets = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
-		nReps = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
-		nReps = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
-		nWeight = runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
-		nWeight = runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
+		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
+		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
+		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
+		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
+		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
+		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
+		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
+		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
 	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());

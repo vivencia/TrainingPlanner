@@ -18,9 +18,9 @@ Popup {
 	required property date finalDate
 
 	property bool simpleCalendar: false
-	property string windowTitle
 
 	signal dateSelected(date selDate)
+	property date selectedDate: datePickerControl.selectedDate
 
 	Rectangle {
 		id: backRec
@@ -54,7 +54,6 @@ Popup {
 		startDate: initDate
 		endDate: finalDate
 		justCalendar: simpleCalendar
-		calendarWindowTitle: windowTitle
 
 		Component.onCompleted: {
 			datePickerControl.setDate(showDate);

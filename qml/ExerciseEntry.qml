@@ -167,7 +167,7 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(0, str, nReps);
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue_QML(0, str, nReps);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 
@@ -181,7 +181,7 @@ FocusScope {
 					borderColor: "transparent"
 					visible: bCompositeExercise
 
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue(1, str, nReps);
+					onValueChanged:(str)=> nReps = runCmd.setCompositeValue_QML(1, str, nReps);
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 			}
@@ -197,7 +197,7 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(0, str, nWeight);
+					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue_QML(0, str, nWeight);
 				}
 
 				SetInputField {
@@ -211,7 +211,7 @@ FocusScope {
 					visible: bCompositeExercise
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue(1, str, nWeight);
+					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue_QML(1, str, nWeight);
 				}
 			}
 

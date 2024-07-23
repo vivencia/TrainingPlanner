@@ -21,10 +21,13 @@ Page {
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
 	property bool bMesoNameOK: false
-	property bool bMesoSplitChanged: false
 	property bool bNewMeso: mesoId === -1
 
 	property var calendarChangeDlg: null
+	property bool bChangeStartDate
+	property bool bPreserveOldCalendar: false
+	property bool bPreserveOldCalendarUntilYesterday: false
+	property bool bChangedCalendar: false
 
 	Image {
 		anchors.fill: parent
@@ -133,27 +136,16 @@ Page {
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
-				ToolTip.text: qsTr("A start date for the mesocycle is necessary")
 
 				CalendarDialog {
 					id: caldlg
 					showDate: calendarStartDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
-					windowTitle: bNewMeso ? qsTr("Please select the initial date for the mesocycle ") + txtMesoName.text : ""
 
-					onOpenedChanged: {
-						if (bNewMeso && !opened)
-							txtMesoStartDate.ToolTip.visible = !bStartDateChanged;
-					}
-
-					onDateSelected: function(date) {
-						if(mesocyclesModel.setDate(mesoIdx, 2, date)) {
-							txtMesoStartDate.text = runCmd.formatDate(date);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(date, mesocyclesModel.getDate(mesoIdx, 3));
-							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
-							showCalendarChangedDialog();
-						}
+					onDateSelected: function() {
+						bChangeStartDate = true;
+						showCalendarChangedDialog();
 						if (bNewMeso)
 							caldlg2.open();
 					}
@@ -185,32 +177,16 @@ Page {
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 				readOnly: true
-				ToolTip.text: qsTr("An end date for the mesocycle is necessary")
-
-				Keys.onReturnPressed: {
-					if (btnSaveMeso.enabled)
-						btnSaveMeso.clicked();
-				}
 
 				CalendarDialog {
 					id: caldlg2
 					showDate: mesocyclesModel.getDate(mesoIdx, 3)
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
-					windowTitle: bNewMeso ? qsTr("Please select the end date for the mesocycle ") + txtMesoName.text : ""
-
-					onOpenedChanged: {
-						if (bNewMeso && !opened)
-							txtMesoEndDate.ToolTip.visible = !bEndDateChanged;
-					}
 
 					onDateSelected: function(date) {
-						if (mesocyclesModel.setDate(mesoIdx, 3, date)) {
-							txtMesoEndDate.text = runCmd.formatDate(date);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), date);
-							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
-							showCalendarChangedDialog();
-						}
+						bChangeStartDate = false;
+						showCalendarChangedDialog();
 						txtMesoSplit.forceActiveFocus();
 					}
 				}
@@ -289,8 +265,9 @@ Page {
 
 				onEditingFinished: {
 					if (bMesoSplitOK) {
-						bMesoSplitChanged = mesocyclesModel.set(mesoIdx, 6, text);
-						if (bMesoSplitChanged) {
+						if (mesoSplit !== text) {
+							bChangedCalendar = true;
+							mesocyclesModel.set(mesoIdx, 6, text);
 							mesoSplit = text;
 							JSF.checkWhetherCanCreatePlan();
 						}
@@ -586,8 +563,8 @@ Page {
 			txtMesoName.forceActiveFocus();
 		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
 		mesoPropertiesPage.StackView.activating.connect(pageActivation);
-		mesocyclesModel.modifiedChanged.connect(saveMeso);
-		mesoSplitModel.modifiedChanged.connect(saveMeso);
+		mesocyclesModel.modifiedChanged.connect(function () { saveMeso(false); });
+		mesoSplitModel.modifiedChanged.connect(function () { saveMeso(false); });
 	}
 
 	function changeMuscularGroup(splitletter: string, description: string) {
@@ -612,36 +589,45 @@ Page {
 	}
 
 	function showCalendarChangedDialog() {
-		if (mesoCalendarModel !== null) {
-			if (mesoCalendarModel.count > 0) {
-				if (!calendarChangeDlg) {
-					var component = Qt.createComponent("TPComplexDialog.qml", Qt.Asynchronous);
+		if (!calendarChangeDlg) {
+			var component = Qt.createComponent("TPComplexDialog.qml", Qt.Asynchronous);
 
-					function finishCreation() {
-						calendarChangeDlg = component.createObject(this, { title:qsTr("Adjust meso calendar?"), button1Text: qsTr("Yes"),
-								button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
-						calendarChangeDlg.button1Clicked.connect();
-					}
-
-					if (component.status === Component.Ready)
-						finishCreation();
-					else
-						component.statusChanged.connect(finishCreation);
-				}
-				calendarChangeDlg.show(-1);
+			function finishCreation() {
+				calendarChangeDlg = component.createObject(mainwindow, { title:qsTr("Adjust meso calendar?"), button1Text: qsTr("Yes"),
+						button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
+				calendarChangeDlg.button1Clicked.connect(preserveOldCalenarInfo);
 			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
+		calendarChangeDlg.show(-1);
 	}
 
-	function saveMeso(bPreserveOldCalendar: bool, preserveOldCalendarUntilYesterday: bool) {
-		if (mesocyclesModel.modified || mesoSplitModel.modified) {
+	function preserveOldCalenarInfo() {
+		bPreserveOldCalendar = calendarChangeDlg.customBoolProperty1;
+		bPreserveOldCalendarUntilYesterday = calendarChangeDlg.customBoolProperty2;
+		bChangedCalendar = true;
+		if (bChangeStartDate) {
+			if(mesocyclesModel.setDate(mesoIdx, 2, caldlg.selectedDate))
+				txtMesoStartDate.text = runCmd.formatDate(caldlg.selectedDate);
+		}
+		else {
+			if (mesocyclesModel.setDate(mesoIdx, 3, caldlg2.selectedDate))
+				txtMesoEndDate.text = runCmd.formatDate(caldlg2.selectedDate);
+		}
+		txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
+		mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
+		bPreserveOldCalendar = bPreserveOldCalendarUntilYesterday = false;
+	}
 
-			if (calendar) {
-				changeCalendar = true;
-				bStartDateChanged = bEndDateChanged = bMesoSplitOK = false;
-			}
-			appDB.saveMesocycle(bNewMeso, bMesoSplitChanged, bPreserveOldCalendar.checked, optPreserveOldCalendarUntilYesterday.checked);
+	function saveMeso() {
+		if (mesocyclesModel.modified || mesoSplitModel.modified) {
+			appDB.saveMesocycle(bNewMeso, bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
 			bNewMeso = false;
+			bChangedCalendar = false;
 		}
 	}
 } //Page

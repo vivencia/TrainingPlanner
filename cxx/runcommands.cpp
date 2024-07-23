@@ -253,7 +253,7 @@ QString RunCommands::getCompositeValue(const uint idx, const QString& compositeS
 	return compositeString.mid(last_sep_pos, chr_pos);
 }
 
-QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
+void RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
 {
 	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1);
@@ -261,13 +261,14 @@ QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, 
 	if (sep_pos == -1)
 	{
 		if (idx == 0)
-			return compositeString = newValue;
+			compositeString = newValue;
 		else
 		{
 			while (++n_seps < idx)
 				compositeString += QLatin1Char(chr_sep);
-			return compositeString += newValue + QLatin1Char(chr_sep);
+			compositeString += newValue + QLatin1Char(chr_sep);
 		}
+		return;
 	}
 
 	uint last_sep_pos(0);
@@ -277,14 +278,14 @@ QString RunCommands::setCompositeValue(const uint idx, const QString& newValue, 
 		{
 			compositeString.remove(last_sep_pos, sep_pos - last_sep_pos);
 			compositeString.insert(last_sep_pos, newValue);
-			return compositeString;
+			return;
 		}
 		last_sep_pos = sep_pos + 1;
 		sep_pos = compositeString.indexOf(chr_sep, last_sep_pos);
 	} while(sep_pos != -1);
 	while (++n_seps < idx)
 		compositeString += chr_sep;
-	return compositeString += newValue + chr_sep;
+	compositeString += newValue + chr_sep;
 }
 
 bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& string2) const

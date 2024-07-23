@@ -4,7 +4,8 @@ import QtQuick.Layouts
 
 RadioButton {
 	id: control
-	spacing: 0
+	spacing: 5
+	padding: 0
 	Layout.fillWidth: true
 
 	property string textColor: AppSettings.fontColor
@@ -12,7 +13,7 @@ RadioButton {
 	contentItem: Label {
 		id: lblText
 		text: control.text
-		color: textColor
+		color: control.enabled ? textColor : "gray"
 		wrapMode: Text.WordWrap
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
@@ -26,7 +27,7 @@ RadioButton {
 		y: lblText.y
 		radius: 10
 		color: "transparent"
-		border.color: textColor
+		border.color: control.enabled ? textColor : "gray"
 
 		Rectangle {
 			width: 14
@@ -34,7 +35,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.checked ? AppSettings.paneBackgroundColor : "transparent"
+			color: control.checked ? control.enabled ? AppSettings.paneBackgroundColor : "gray" : "transparent"
 		}
 	}
 }

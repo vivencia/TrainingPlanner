@@ -24,17 +24,18 @@ Page {
 	property string timeOut
 
 	property string mesoSplit
-	property string mesoName
 	property string splitText
 	property bool bRealMeso: true
 	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
+	property bool pageOptionsLoaded: false
 	property bool editMode: false
 	property bool bCalendarChangedPending: false
 	property bool bAlreadyLoaded
 
 	property date previousDivisionDayDate
+	property var intentionDlg: null
 	property var btnFloat: null
 	property var navButtons: null
 	property var timerDialog: null
@@ -44,6 +45,13 @@ Page {
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
 	property var itemThatRequestedSimpleList: null
+
+	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
+
+	onPageOptionsLoadedChanged: {
+		if (pageOptionsLoaded && intentDialogShown)
+			showIntentionDialog();
+	}
 
 	signal mesoCalendarChanged()
 
@@ -66,7 +74,8 @@ Page {
 	}
 
 	onPreviousTDaysChanged: {
-		cboPreviousTDaysDates.model = previousTDays;
+		if (intentionDlg)
+			intentionDlg.customModel = previousTDays;
 	}
 
 	Image {
@@ -309,9 +318,9 @@ Page {
 				Layout.rightMargin: 10
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesoName + "</b><br>" +
-					splitText !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
-										qsTr("Rest day")
+				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(mesoIdx, 1) + "</b><br>" +
+					(splitText !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
+										qsTr("Rest day"))
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
 			}
@@ -378,13 +387,13 @@ Page {
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
 				Layout.leftMargin: 5
-				visible: !grpIntent.visible
+				visible: !intentDialogShown
 			}
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
 				text: tDayModel.location()
-				visible: !grpIntent.visible
+				visible: !intentDialogShown
 				enabled: !tDayModel.dayIsFinished
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
@@ -395,7 +404,7 @@ Page {
 
 			Frame {
 				id: frmTrainingTime
-				visible: splitLetter !== 'R' && !grpIntent.visible
+				visible: splitLetter !== 'R' && !intentDialogShown
 				enabled: !tDayModel.dayIsFinished && !workoutTimer.active
 				height: 330
 				Layout.fillWidth: true
@@ -537,7 +546,7 @@ Page {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
 				readOnly: !tDayModel.dayIsFinished
-				visible: !grpIntent.visible
+				visible: !intentDialogShown
 				color: AppSettings.fontColor
 				Layout.leftMargin: 5
 
@@ -605,108 +614,6 @@ Page {
 					}
 
 					onClicked: msgClearExercises.init(1);
-				}
-			}
-
-			TPGroupBox {
-				id: grpIntent
-				text: qsTr("What do you want to do today?")
-				Layout.fillWidth: true
-				Layout.rightMargin: 5
-				Layout.leftMargin: 5
-				Layout.bottomMargin: 30
-				visible: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
-				width: parent.width - 20
-
-				property int option
-				onOptionChanged: btnChooseIntent.enabled = true;
-
-				ColumnLayout {
-					anchors {
-						fill: parent
-						leftMargin: 5
-						rightMargin: 5
-					}
-					spacing: 0
-
-					TPRadioButton {
-						id: optMesoPlan
-						text: qsTr("Use the standard exercises plan for the division ") + splitLetter + qsTr(" of the Mesocycle")
-						visible: bHasMesoPlan
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-
-						onClicked: grpIntent.option = 1;
-					}
-
-					TPRadioButton {
-						id: optPreviousDay
-						text: qsTr("Base this session off the one from the one the days in the list below")
-						visible: bHasPreviousTDays
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-
-						onClicked: grpIntent.option = 2;
-					}
-					TPComboBox {
-						id: cboPreviousTDaysDates
-						textRole: ""
-						visible: bHasPreviousTDays
-						enabled: optPreviousDay.checked
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-					}
-
-					TPRadioButton {
-						id: optLoadFromFile
-						text: qsTr("Import workout from file")
-						visible: tDayModel.exerciseCount === 0
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-
-						onClicked: grpIntent.option = 3;
-					}
-
-					TPRadioButton {
-						id: optEmptySession
-						text: qsTr("Start a new session")
-						width: parent.width
-						Layout.fillWidth: true
-						Layout.alignment: Qt.AlignLeft
-
-						onClicked: grpIntent.option = 4;
-					}
-
-					TPButton {
-						id: btnChooseIntent
-						text: qsTr("Proceed")
-						flat: false
-						enabled: false
-						Layout.alignment: Qt.AlignCenter
-
-						onClicked: {
-							switch (grpIntent.option) {
-								case 1: //use meso plan
-									appDB.loadExercisesFromMesoPlan(splitLetter);
-								break;
-								case 2: //use previous day
-									appDB.loadExercisesFromDate(cboPreviousTDaysDates.currentText);
-								break;
-								case 3: //import from file
-									mainwindow.chooseFileToImport();
-								break;
-								case 4: //empty session
-									bHasPreviousTDays = false;
-									bHasMesoPlan = false;
-								break;
-							}
-							grpIntent.visible = Qt.binding(function() { return splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays); });
-						}
-					}
 				}
 			}
 		}// colMain
@@ -782,7 +689,6 @@ Page {
 	}
 
 	Component.onCompleted: {
-		mesoName = mesocyclesModel.get(mesoIdx, 1);
 		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
@@ -871,7 +777,7 @@ Page {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
-				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
+				visible: !tDayModel.dayIsFinished && !editMode && !intentDialogShown
 				enabled: !workoutTimer.active
 
 				onClicked: {
@@ -920,7 +826,7 @@ Page {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				flat: false
-				visible: !tDayModel.dayIsFinished && !editMode && !grpIntent.visible
+				visible: !tDayModel.dayIsFinished && !editMode && !intentDialogShown
 				enabled: workoutTimer.active
 
 				onClicked: {
@@ -1079,6 +985,44 @@ Page {
 			adjustCalendarBox.newSplitLetter = cboSplitLetter.currentValue;
 			adjustCalendarBox.show(-1);
 		}
+	}
+
+	function showIntentionDialog() {
+		if (!intentionDlg) {
+			var component = Qt.createComponent("TPComplexDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				intentionDlg = component.createObject(mainwindow, { title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
+						customItemSource:"TPTDayIntentGroup.qml", bAdjustHeightEveryOpen: true, customBoolProperty1: bHasMesoPlan,
+						customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
+				intentionDlg.button1Clicked.connect(intentChosen);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		intentionDlg.show(-1);
+	}
+
+	function intentChosen() {
+		switch (intentionDlg.customIntProperty1) {
+			case 1: //use meso plan
+				appDB.loadExercisesFromMesoPlan(splitLetter);
+			break;
+			case 2: //use previous day
+				appDB.loadExercisesFromDate(intentionDlg.customStringProperty1);
+			break;
+			case 3: //import from file
+				mainwindow.chooseFileToImport();
+			break;
+			case 4: //empty session
+				bHasPreviousTDays = false;
+				bHasMesoPlan = false;
+			break;
+		}
+		intentDialogShown = Qt.binding(function() { return splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays); });
 	}
 
 	function gotExercise() {

@@ -113,6 +113,7 @@ set( QML_FILES
     "qml/TPSaveDialog.qml"
     "qml/TPComplexDialog.qml"
     "qml/TPAdjustMesoCalendarFrame.qml"
+    "qml/TPTDayIntentGroup.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

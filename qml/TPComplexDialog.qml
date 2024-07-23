@@ -7,7 +7,6 @@ Popup {
 	property string title: ""
 	property string button1Text: ""
 	property string button2Text: ""
-	property string imageSource: ""
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property int startYPosition: 0
@@ -17,11 +16,18 @@ Popup {
 	property int startYPos: 0
 
 	property string customItemSource: ""
-	property bool customProperty1
-	property bool customProperty2
+	property var customItem: null
+	property bool customBoolProperty1
+	property bool customBoolProperty2
+	property bool customBoolProperty3
+	property int customIntProperty1
+	property string customStringProperty1
+	property var customModel: []
+	property bool bAdjustHeightEveryOpen: false
 
 	signal button1Clicked();
 	signal button2Clicked();
+	signal dialogOpened();
 
 	id: dialog
 	closePolicy: Popup.NoAutoClose
@@ -30,6 +36,9 @@ Popup {
 	spacing: 0
 	padding: 0
 	width: windowWidth * 0.9
+	height: totalHeight + 10
+
+	property int totalHeight: 0
 
 	Rectangle {
 		id: backRec
@@ -37,10 +46,10 @@ Popup {
 		color: backColor
 		radius: 8
 		layer.enabled: true
-		visible: false
+		visible: true
 	}
 
-	background: backRec
+	background: backgroundEffect
 
 	MultiEffect {
 		id: backgroundEffect
@@ -81,7 +90,7 @@ Popup {
 		NumberAnimation {
 			property: "opacity"
 			from: 0
-			to: 1
+			to: 0.9
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -98,7 +107,7 @@ Popup {
 		}
 		NumberAnimation {
 			property: "opacity"
-			from: 1
+			from: 0.9
 			to: 0
 			duration: 500
 			easing.type: Easing.InOutCubic
@@ -110,15 +119,10 @@ Popup {
 			var component = Qt.createComponent(customItemSource, Qt.Asynchronous);
 
 			function finishCreation() {
-				var item;
-				if (imageSource.length === 0) {
-					item = component.createObject(mainLayout, { text: label, "Layout.row": 1,  "Layout.column": 0, "Layout.columnSpan": 2,
-						"Layout.leftMargin": 5, "Layout.rightMargin": 5, "Layout.fillWidth": true });
-				}
-				else {
-					item = component.createObject(mainLayout, { text: label, "Layout.row": 1,  "Layout.column": 1, "Layout.rightMargin": 5,
-						"Layout.fillWidth": true });
-				}
+				customItem = component.createObject(mainLayout, { parentDlg: dialog, "Layout.row": 1,  "Layout.column": 0, "Layout.columnSpan": 2,
+						"Layout.leftMargin": 5, "Layout.rightMargin": 5, "Layout.fillWidth": true, bHasMesoPlan: customBoolProperty1,
+						bHasPreviousTDays: customBoolProperty2, noExercises: customBoolProperty3, z:2 });
+				totalHeight += customItem.height;
 			}
 
 			if (component.status === Component.Ready)
@@ -128,19 +132,20 @@ Popup {
 		}
 	}
 
-	GridLayout
-	{
+	GridLayout {
 		id: mainLayout
 		rows: 3
 		columns: 2
 		columnSpacing: 5
 		rowSpacing: 5
+		anchors.fill: parent
 
 		Label {
 			id: lblTitle
 			text: title
 			color: textColor
 			elide: Text.ElideRight
+			horizontalAlignment: Text.AlignHCenter
 			font.pointSize: AppSettings.fontSize
 			font.weight: Font.Black
 			visible: title.length > 0
@@ -150,38 +155,12 @@ Popup {
 			Layout.column: 0
 			Layout.columnSpan: 2
 			Layout.leftMargin: 5
-			Layout.topMargin: 0
+			Layout.topMargin: 10
 			Layout.rightMargin: 5
-			Layout.fillWidth: true
-		}
+			Layout.minimumWidth: mainLayout.width - 10
+			Layout.maximumWidth: mainLayout.width - 10
 
-		Image {
-			id: imgElement
-			source: imageSource != "" ? "qrc:/images/"+AppSettings.iconFolder+imageSource : imageSource
-			fillMode: Image.PreserveAspectFit
-			asynchronous: true
-			layer.enabled: true
-			visible: false
-			width: 50
-			height: 50
-		}
-
-		MultiEffect {
-			id: imgEffects
-			visible: imageSource.length > 0
-			source: imgElement
-			anchors.fill: imgElement
-			shadowEnabled: true
-			shadowOpacity: 0.5
-			blurMax: 16
-			shadowBlur: 1
-			shadowHorizontalOffset: 5
-			shadowVerticalOffset: 5
-			shadowColor: "black"
-			shadowScale: 1
-			Layout.row: 1
-			Layout.column: 0
-			Layout.leftMargin: 5
+			Component.onCompleted: totalHeight += height;
 		}
 
 		TPButton {
@@ -191,12 +170,18 @@ Popup {
 			z: 2
 			Layout.row: 2
 			Layout.column: 0
-			Layout.leftMargin: 5
+			Layout.columnSpan: button2Text.length > 0 ? 1 : 2
+			Layout.rightMargin: 5
+			Layout.bottomMargin: 10
+			Layout.topMargin: -15
+			Layout.alignment: button2Text.length > 0 ? Qt.AlignRight : Qt.AlignCenter
 
 			onClicked: {
 				button1Clicked();
 				dialog.close();
 			}
+
+			Component.onCompleted: totalHeight += height;
 		}
 
 		TPButton {
@@ -207,46 +192,21 @@ Popup {
 			Layout.row: 2
 			Layout.column: button1Text.length > 0 ? 1 : 0
 			Layout.leftMargin: 5
-			Layout.rightMargin: 5
+			Layout.bottomMargin: 10
+			Layout.topMargin: -15
+			Layout.alignment: Qt.AlignLeft
 
 			onClicked: {
 				button2Clicked();
 				dialog.close();
 			}
+
+			Component.onCompleted: totalHeight += height;
 		}
 	} //GridLayout
 
-	MouseArea {
-		id: mouseArea
-		property var prevPos
-		z: 1
-		anchors.fill: parent
-
-		onPressed: (mouse) => {
-			prevPos = { x: mouse.x, y: mouse.y };
-		}
-
-		onPositionChanged: {
-			const deltaX = mouseX - prevPos.x;
-			if ( Math.abs(deltaX) >= 10) {
-				x += deltaX;
-				if (deltaX > 0)
-					finalXPos = windowWidth + 300;
-				else
-					finalXPos = -300;
-				closeTransition.enabled = false;
-				alternateCloseTransition.start();
-				dialog.close();
-			}
-			prevPos = { x: mouseX, y: mouseY };
-		}
-	}
-
 	function show(ypos) {
-		dialog.height = lblTitle.height + lblMessage.height +
-							(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10)) +
-							(checkBoxText.length > 0 ? chkBox.height : 0);
-		dialog.x = (windowWidth - width)/2;
+		dialog.x = (windowWidth - dialog.width)/2;
 
 		if (ypos < 0)
 			ypos = (windowHeight-dialog.height)/2;
@@ -256,6 +216,10 @@ Popup {
 			startYPos = -300;
 		else
 			startYPos = windowHeight + 300;
+		if (bAdjustHeightEveryOpen) {
+			dialogOpened();
+			height += customItem.height;
+		}
 		dialog.open();
 	}
 }

@@ -276,6 +276,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 						m_currentMesoManager->currenttDayPage()->setProperty("previousTDays", QVariant::fromValue(QVariantList()));
 						m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", false);
 					}
+					m_currentMesoManager->currenttDayPage()->setProperty("pageOptionsLoaded", true);
 					delete tempModel;
 				}
 			break;
