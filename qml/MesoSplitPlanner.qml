@@ -326,10 +326,18 @@ Frame {
 										model: splitModel.setsNumber(index)
 
 										TabButton {
+											id: tabbutton
 											text: qsTr("Set # ") + parseInt(index + 1)
-											font.pointSize: AppSettings.fontSizeLists
 											height: setsTabBar.height
 											width: 70
+
+											contentItem: IconLabel {
+												spacing: tabbutton.spacing
+												display: AbstractButton.TextOnly
+												text: tabbutton.text
+												font.pointSize: AppSettings.fontSizeLists
+												color: AppSettings.fontColor
+											}
 
 											background: Rectangle {
 												border.color: AppSettings.fontColor

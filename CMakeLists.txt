@@ -114,6 +114,7 @@ set( QML_FILES
     "qml/TPComplexDialog.qml"
     "qml/TPAdjustMesoCalendarFrame.qml"
     "qml/TPTDayIntentGroup.qml"
+    "qml/TPDialogWithMessageAndCheckBox.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

@@ -288,43 +288,50 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 
 QString DBMesoSplitModel::formatFieldToExport(const QString& fieldValue)
 {
+	if (fieldValue.isEmpty())
+		return tr("Regular");
 	switch (fieldValue.at(0).toLatin1())
 	{
-		case '0': return tr("Regular"); break;
+		default: return tr("Regular"); break;
 		case '1': return tr("Pyramid"); break;
 		case '2': return tr("Drop Set"); break;
 		case '3': return tr("Cluster Set"); break;
 		case '4': return tr("Giant Set"); break;
 		case '5': return tr("Myo Reps"); break;
 		case '6': return tr("Inverted Pyramid"); break;
-		default: return QString(); break;
 	}
 }
 
 QString DBMesoSplitModel::formatFieldToImport(const QString& fieldValue)
 {
-	QString retStr, setTypeStr;
-	const uint n(fieldValue.count(fancy_record_separator2));
-	for (uint i(0); i <= n; ++i)
+	QString retStr;
+	if (!fieldValue.isEmpty())
 	{
-		setTypeStr = runCmd()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
-		if (setTypeStr == tr("Regular"))
-			retStr.append(u"0"_qs + record_separator2);
-		else if (setTypeStr == tr("Pyramid"))
-			retStr.append(u"1"_qs + record_separator2);
-		else if (setTypeStr == tr("Drop Set"))
-			retStr.append(u"2"_qs + record_separator2);
-		else if (setTypeStr == tr("Cluster Set"))
-			retStr.append(u"3"_qs + record_separator2);
-		else if (setTypeStr == tr("Giant Set"))
-			retStr.append(u"4"_qs + record_separator2);
-		else if (setTypeStr == tr("Myo Reps"))
-			retStr.append(u"5"_qs + record_separator2);
-		else if (setTypeStr == tr("Inverted Pyramid"))
+		QString setTypeStr;
+		const uint n(fieldValue.count(fancy_record_separator2));
+		for (uint i(0); i <= n; ++i)
+		{
+			setTypeStr = runCmd()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
+			if (setTypeStr == tr("Regular"))
+				retStr.append(u"0"_qs + record_separator2);
+			else if (setTypeStr == tr("Pyramid"))
+				retStr.append(u"1"_qs + record_separator2);
+			else if (setTypeStr == tr("Drop Set"))
+				retStr.append(u"2"_qs + record_separator2);
+			else if (setTypeStr == tr("Cluster Set"))
+				retStr.append(u"3"_qs + record_separator2);
+			else if (setTypeStr == tr("Giant Set"))
+				retStr.append(u"4"_qs + record_separator2);
+			else if (setTypeStr == tr("Myo Reps"))
+				retStr.append(u"5"_qs + record_separator2);
+			else if (setTypeStr == tr("Inverted Pyramid"))
 				retStr.append(u"6"_qs + record_separator2);
-		else
-			retStr.append(u"0"_qs + record_separator2);
+			else
+				retStr.append(u"0"_qs + record_separator2);
+		}
 	}
+	else
+		retStr = u"0"_qs + record_separator2;
 	return retStr;
 }
 

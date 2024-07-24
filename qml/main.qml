@@ -118,8 +118,7 @@ ApplicationWindow {
 		homePage.setViewModel();
 		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
 		btnWorkoutEnabled();
-		if (AppSettings.firstTime)
-		{
+		if (AppSettings.firstTime) {
 			bBackButtonEnabled = false;
 			stackView.push("SettingsPage.qml");
 		}
@@ -167,8 +166,8 @@ ApplicationWindow {
 		onButton1Clicked: {
 			const result = appDB.importFromFile(importExportFilename);
 			displayResultMessage(result);
+		}
 	}
-}
 
 	function confirmImport(message: string) {
 		importConfirmDialog.title = qsTr("Proceed with action?");

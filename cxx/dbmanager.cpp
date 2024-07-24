@@ -30,9 +30,6 @@
 #include <QStandardPaths>
 
 #define SPLITS_LOADED_ID 4321
-#define TEMP_CURRENTMESOMANAGER_MESOIDX 99999
-
-static TPMesocycleClass* emptyInstance(nullptr);
 
 #ifdef Q_OS_ANDROID
 
@@ -111,8 +108,6 @@ DbManager::~DbManager()
 	delete mesocyclesModel;
 	if (m_exercisesPage)
 		delete m_exercisesPage;
-	if (emptyInstance)
-		delete emptyInstance;
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
 }
@@ -207,7 +202,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoCalendarModel"), QVariant::fromValue(mesoCalendarModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("lightIconFolder"), QStringLiteral("white/") });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("darkIconFolder"), QStringLiteral("black/") });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("listEntryColor1"), QVariant(QColor(220, 227, 240)) });
@@ -215,8 +209,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mainwindow"), QVariant::fromValue(m_mainWindow) });
 
 	QQuickItem* appStackView(m_mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
-	properties.append(QQmlContext::PropertyPair{ u"appStackView"_qs, QVariant::fromValue(appStackView) });
-
 	QQuickItem* contentItem(appStackView->parentItem());
 	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height: 640 - footer.height - header.height
 	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
@@ -1027,8 +1019,6 @@ void DbManager::getAllMesocycles()
 			getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
 		setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
 	}
-	else
-		setWorkingMeso(-1);
 	delete worker;
 }
 
@@ -1052,9 +1042,6 @@ void DbManager::setWorkingMeso(int meso_idx)
 		{
 			m_MesoId = -1;
 			m_totalSplits = 0;
-			if (!emptyInstance)
-				emptyInstance = new TPMesocycleClass(-10, -10, m_QMlEngine, this);
-			m_currentMesoManager = emptyInstance;
 			return;
 		}
 
@@ -1811,6 +1798,11 @@ void DbManager::exportTrainingDay(const QDate& date, const QString& splitLetter,
 		m_mainWindow->setProperty("importExportFilename", exportFileName());
 		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
 	}
+}
+
+uint DbManager::getWorkoutNumberForTrainingDay(const QDate& date) const
+{
+	return mesoCalendarModel->getLastTrainingDayBeforeDate(date) + 1;
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

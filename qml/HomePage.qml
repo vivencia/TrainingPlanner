@@ -441,15 +441,16 @@ Page {
 		}
 	}
 
-	TPBalloonTip {
+	TPComplexDialog {
 		id: exportTypeTip
-		imageSource: "export.png"
-		message: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
+		customStringProperty1: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
+		customStringProperty2: qsTr("Human readable?")
+		customStringProperty3: "export.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		checkBoxText: qsTr("Human readable?")
+		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 
-		onButton1Clicked: appDB.exportMeso(bShare, checkBoxChecked);
+		onButton1Clicked: appDB.exportMeso(bShare, customBoolProperty1);
 
 		property bool bShare: false
 

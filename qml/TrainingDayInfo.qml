@@ -225,14 +225,15 @@ Page {
 		highlightMessage: true
 	}
 
-	TPBalloonTip {
+	TPComplexDialog {
 		id: exportTypeTip
-		imageSource: "export.png"
 		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
-		message: lblHeader.text
+		customStringProperty1: lblHeader.text
+		customStringProperty2: qsTr("Human readable?")
+		customStringProperty3: "export.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		checkBoxText: qsTr("Human readable?")
+		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 
 		onButton1Clicked: appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked);
 
@@ -957,7 +958,7 @@ Page {
 			var bDayIsFinished;
 			if (newSplitLetter !== "R") {
 				if (splitLetter == "R")
-					tDay = parseInt(mesoCalendarModel.getLastTrainingDayBeforeDate(mainDate) + 1);
+					tDay = appDB.getWorkoutNumberForTrainingDay(mainDate);
 				bDayIsFinished = tDayModel.dayIsFinished;
 			}
 			else {

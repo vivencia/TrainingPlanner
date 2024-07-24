@@ -145,13 +145,6 @@ Rectangle {
 		hoverEnabled: true
 		z: button.z + 1
 
-		onClicked: (mouse) => {
-			if (enabled) {
-				if (!mouse.wasHeld)
-					bEmitSignal = true;
-				bPressed = false;
-			}
-		}
 		onPressed: (mouse) => {
 			if (enabled) {
 				mouse.accepted = true;
@@ -163,7 +156,10 @@ Rectangle {
 		}
 		onReleased: (mouse) => {
 			mouse.accepted = true;
-			bPressed = false;
+			if (bPressed) {
+				bEmitSignal = true;
+				bPressed = false;
+			}
 		}
 
 		onEntered: button.highlighted = true;

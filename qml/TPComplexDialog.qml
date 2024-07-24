@@ -22,6 +22,8 @@ Popup {
 	property bool customBoolProperty3
 	property int customIntProperty1
 	property string customStringProperty1
+	property string customStringProperty2
+	property string customStringProperty3
 	property var customModel: []
 	property bool bAdjustHeightEveryOpen: false
 
@@ -132,6 +134,22 @@ Popup {
 		}
 	}
 
+	RoundButton {
+		icon.source: "qrc:/images/"+darkIconFolder+"close.png"
+		icon.height: 25
+		icon.width: 25
+		height: 30
+		width: 30
+		z:2
+
+		anchors {
+			top: parent.top
+			right: parent.right
+		}
+
+		onClicked: close();
+	}
+
 	GridLayout {
 		id: mainLayout
 		rows: 3
@@ -149,7 +167,7 @@ Popup {
 			font.pointSize: AppSettings.fontSize
 			font.weight: Font.Black
 			visible: title.length > 0
-			height: 30
+			height: visible ? 30 : 0
 			padding: 0
 			Layout.row: 0
 			Layout.column: 0

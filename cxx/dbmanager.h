@@ -125,6 +125,7 @@ public:
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
 	Q_INVOKABLE void exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare, const bool bFancy);
+	Q_INVOKABLE uint getWorkoutNumberForTrainingDay(const QDate& date) const;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

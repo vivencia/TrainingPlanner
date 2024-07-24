@@ -15,8 +15,6 @@ Popup {
 	property bool highlightMessage: false
 	property int startYPosition: 0
 
-	property bool checkBoxChecked: chkBox.checked
-
 	property int finalXPos: 0
 	property int finalYPos: 0
 	property int startYPos: 0
@@ -130,7 +128,7 @@ Popup {
 
 	Image {
 		id: imgElement
-		source: imageSource != "" ? "qrc:/images/"+AppSettings.iconFolder+imageSource : imageSource
+		source: imageSource != "" ? "qrc:/images/"+AppSettings.iconFolder+imageSource : ""
 		fillMode: Image.PreserveAspectFit
 		asynchronous: true
 		visible: false
@@ -177,7 +175,7 @@ Popup {
 		text: button1Text
 		visible: button1Text.length > 0
 		x: button2Text.length > 0 ? (balloon.width - implicitWidth - btn2.implicitWidth)/2 : (balloon.width - implicitWidth)/2;
-		y: balloon.height - buttonHeight - (checkBoxText.length !== 0 ? chkBox.height + 5 : 5);
+		y: balloon.height - buttonHeight - 5;
 		z: 2
 
 		onClicked: {
@@ -191,22 +189,13 @@ Popup {
 		text: button2Text
 		visible: button2Text.length > 0
 		x: button1Text.length > 0 ? btn1.x + btn1.width + 5 : (balloon.width - implicitWidth)/2;
-		y: balloon.height - buttonHeight - (checkBoxText.length !== 0 ? chkBox.height + 5 : 5);
+		y: balloon.height - buttonHeight - 5;
 		z: 2
 
 		onClicked: {
 			button2Clicked();
 			balloon.close();
 		}
-	}
-
-	TPCheckBox {
-		id: chkBox
-		text: checkBoxText
-		visible: checkBoxText.length > 0
-		x: 5
-		y: balloon.height - height - 5;
-		z: 2
 	}
 
 	SequentialAnimation {
@@ -287,8 +276,7 @@ Popup {
 
 	function show(ypos) {
 		balloon.height = lblTitle.height + lblMessage.height +
-							(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10)) +
-							(checkBoxText.length > 0 ? chkBox.height : 0);
+						(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
 		balloon.x = (windowWidth - width)/2;
 
 		if (ypos < 0)
