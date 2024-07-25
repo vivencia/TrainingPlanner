@@ -8,8 +8,8 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
-const QStringList setTypePages(QStringList() << u"qrc:/qml/SetTypeRegular.qml"_qs <<
-					u"qrc:/qml/SetTypeDrop.qml"_qs << u"qrc:/qml/SetTypeGiant.qml"_qs);
+const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
+					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine),
@@ -148,7 +148,7 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
 
 	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, MESOCYCLES_COL_REALMESO) == 1);
-	m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/OpenEndedPlan.qml"_qs),
+	m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/Pages/OpenEndedPlan.qml"_qs),
 							QQmlComponent::Asynchronous);
 
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
@@ -180,7 +180,7 @@ void TPMesocycleClass::createMesocyclePage_part2()
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 void TPMesocycleClass::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous);
+	m_plannerComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous);
 
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -209,7 +209,7 @@ void TPMesocycleClass::createPlannerPage_part2()
 void TPMesocycleClass::createMesoSplitPage()
 {
 	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
+		m_splitComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
 
 	if (m_splitComponent->status() != QQmlComponent::Ready)
 		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -289,7 +289,7 @@ void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 uint TPMesocycleClass::createMesoCalendarPage()
 {
-	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
+	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
 	m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_mesosCalendarModel));
 
@@ -329,7 +329,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 	{
 		if (m_tDayComponent == nullptr)
 		{
-			m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+			m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
 			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
 			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 		}
@@ -446,7 +446,7 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& start
 uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 {
 	if (m_tDayExercisesComponent == nullptr)
-		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
+		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 
 	QString exerciseName, nSets, nReps, nWeight;
 	if (exercisesModel->selectedEntriesCount() == 1)
@@ -518,7 +518,7 @@ void TPMesocycleClass::createExercisesObjects()
 {
 	if (m_tDayExercisesComponent == nullptr)
 	{
-		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
+		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 		if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 			connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 					{ return createExercisesObjects(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );

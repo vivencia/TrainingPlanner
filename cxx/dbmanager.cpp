@@ -30,6 +30,7 @@
 #include <QStandardPaths>
 
 #define SPLITS_LOADED_ID 4321
+static TPMesocycleClass* tempTPObj(nullptr);
 
 #ifdef Q_OS_ANDROID
 
@@ -103,6 +104,8 @@ DbManager::DbManager(QSettings* appSettings)
 DbManager::~DbManager()
 {
 	cleanUp();
+	if (tempTPObj)
+		delete tempTPObj;
 	delete mesoSplitModel;
 	delete exercisesListModel;
 	delete mesocyclesModel;
@@ -926,7 +929,7 @@ void DbManager::openExercisesListPage(const bool bChooseButtonEnabled, QQuickIte
 	}
 
 	m_exercisesProperties.insert(QStringLiteral("bChooseButtonEnabled"), bChooseButtonEnabled);
-	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
+	m_exercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
 	connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [&,connectPage](QQmlComponent::Status) {
 		return createExercisesListPage(connectPage); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 }
@@ -1018,6 +1021,11 @@ void DbManager::getAllMesocycles()
 		for(uint i(0); i < mesocyclesModel->count(); ++i)
 			getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
 		setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
+	}
+	else
+	{
+		m_currentMesoManager = new TPMesocycleClass(-10, -10, m_QMlEngine, this);
+		tempTPObj = m_currentMesoManager;
 	}
 	delete worker;
 }
@@ -1190,7 +1198,7 @@ void DbManager::removeMesocycle(const uint meso_idx)
 	}
 
 	TPMesocycleClass* tpObject(m_MesoManager.at(meso_idx));
-	m_MesoManager.removeAt(m_MesoIdx);
+	m_MesoManager.removeAt(meso_idx);
 	tpObject->disconnect();
 	delete tpObject;
 }

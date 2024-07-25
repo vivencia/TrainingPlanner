@@ -1,6 +1,6 @@
 function showInExMenu(page, bImportVisible) {
 	if (imexportMenu === null) {
-		var imexportMenuComponent = Qt.createComponent("TPFloatingMenuBar.qml");
+		var imexportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 		imexportMenu = imexportMenuComponent.createObject(page, {});
 		if (bImportVisible)
 			imexportMenu.addEntry(qsTr("Import"), "import.png", 0);

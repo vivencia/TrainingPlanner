@@ -3,6 +3,10 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import "Dialogs"
+import "Pages"
+import "TPWidgets"
+
 ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
@@ -120,7 +124,7 @@ ApplicationWindow {
 		btnWorkoutEnabled();
 		if (AppSettings.firstTime) {
 			bBackButtonEnabled = false;
-			stackView.push("SettingsPage.qml");
+			stackView.push("qrc:/qml/Pages/SettingsPage.qml");
 		}
 		else
 			checkInitialArguments();
@@ -178,7 +182,7 @@ ApplicationWindow {
 	function chooseFileToImport() {
 		if (importOpenDialog === null) {
 			function createImportDialog() {
-				var component = Qt.createComponent("TPImportDialog.qml", Qt.Asynchronous);
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					importOpenDialog = component.createObject(contentItem, {});
@@ -199,7 +203,7 @@ ApplicationWindow {
 	function chooseFolderToSave(filename: string) {
 		if (saveDialog === null) {
 			function createSaveDialog() {
-				var component = Qt.createComponent("TPSaveDialog.qml", Qt.Asynchronous);
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPSaveDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					saveDialog = component.createObject(contentItem, {});
@@ -221,7 +225,7 @@ ApplicationWindow {
 		importExportFilename = fileName;
 		if (importMessageDialog === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("ImportMessageBox.qml", Qt.Asynchronous);
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportMessageBox.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					importMessageDialog = component.createObject(contentItem, {});
