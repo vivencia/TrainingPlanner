@@ -48,6 +48,15 @@ Popup {
 		opacity: 0.9
 	}
 
+	contentItem {
+		Keys.onPressed: (event) => {
+			if (event.key === mainwindow.backKey) {
+				event.accepted = true;
+				close();
+			}
+		}
+	}
+
 	DatePicker {
 		id: datePickerControl
 		displayDate: showDate

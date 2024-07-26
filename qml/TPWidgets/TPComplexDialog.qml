@@ -239,5 +239,6 @@ Popup {
 			height += customItem.height;
 		}
 		dialog.open();
+		mainwindow.visibleMsgOrDlg = dialog;
 	}
 }

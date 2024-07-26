@@ -32,6 +32,11 @@ Rectangle {
 	opacity: bFollowParentsOpacity ? parent.opacity : 1
 	color: AppSettings.primaryDarkColor
 
+	onImageSourceChanged: {
+		if (buttonImage)
+			buttonImage.imageSource = imageSource;
+	}
+
 	onHighlightedChanged:
 		if (highlighted) {
 			fillPosition = 0;

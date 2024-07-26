@@ -396,7 +396,7 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	emit pageReady(page, tDayPageCreateId);
 
 	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
-		return enableDisableExerciseCompletedButton(exercise_idx, completed);
+							enableDisableExerciseCompletedButton(exercise_idx, completed);
 	} );
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
@@ -428,7 +428,8 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& start
 {
 	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
 	i.toFront();
-	while (i.hasNext()) {
+	while (i.hasNext())
+	{
 		i.next();
 		if (i.key() > startDate) //the startDate page is the page that initiated the update. No need to alter it
 		{
@@ -645,35 +646,31 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	//if (set_number > 0)
-	//{
-		connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
-		connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
-		if (!bNewSet)
-		{
-			if (set_number == currenttDayModel()->setsNumber(exercise_idx)-1)
-			{
-				item->setProperty("finishButtonVisible", true);
-				//Place into view: exercise entry + first set
-				QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
-							Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
-			}
-		}
-		else
-		{
-			if (set_number >= m_currentExercises->setCount(exercise_idx))
-			{
-				for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
-					m_currentExercises->setObject(exercise_idx, i)->setProperty("finishButtonVisible", false);
-				item->setProperty("finishButtonVisible", true);
-			}
-		}
-	//}
 
 	if (set_number >= m_currentExercises->setCount(exercise_idx))
 		m_currentExercises->appendSet(exercise_idx, item);
 	else
 		m_currentExercises->insertSet(set_number, exercise_idx, item);
+
+	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
+	connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
+	if (set_number == currenttDayModel()->setsNumber(exercise_idx)-1)
+	{
+		if (!bNewSet)
+		{
+			item->setProperty("finishButtonVisible", true);
+			enableDisableExerciseCompletedButton(exercise_idx, currenttDayModel()->setCompleted(set_number, exercise_idx));
+			//Place into view: exercise entry + first set
+			QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView",
+						Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
+		}
+		else
+		{
+			for (uint i(0); i < m_currentExercises->setCount(exercise_idx)-1; ++i)
+				m_currentExercises->setObject(exercise_idx, i)->setProperty("finishButtonVisible", false);
+			item->setProperty("finishButtonVisible", true);
+		}
+	}
 
 	//Sets may be created at any random order, specially when there are set objects of different kinds within an exercise. m_expectedSetNumber keeps
 	//track of the order in which the sets are added. When set_number is greater than m_expectedSetNumber, the set objects are not inserted into
@@ -782,7 +779,10 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 			if (set_number > 1)
+			{
 				m_currentExercises->setObject(exercise_idx, set_number-1)->setProperty("finishButtonVisible", true);
+				enableDisableExerciseCompletedButton(exercise_idx, currenttDayModel()->setCompleted(set_number-1, exercise_idx));
+			}
 		}
 	}
 }

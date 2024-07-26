@@ -1,24 +1,30 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
 
-Rectangle {
+Popup {
 	id: bottomPane
-	width: parent.width
+	closePolicy: Popup.NoAutoClose
+	modal: false
+	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+	spacing: 0
+	padding: 0
 	visible: bShowSimpleExercisesList
-	height: shown ? parent.height * 0.5 : btnShowHideList.height
-	color: AppSettings.primaryLightColor
-	opacity: 0.8
-	radius: 10
+	width: windowWidth
+	height: windowHeight * 0.5
+	x: 0
+	y: shown ? (640 - windowHeight)/2 + height : 640 - 30
 
-	property bool shown: true
+	property bool shown: false
 	property var currentItemThatRequestedSimpleList: null
 
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
+			focus = true;
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
 				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
@@ -27,10 +33,20 @@ Rectangle {
 		}
 	}
 
-	anchors {
-		left: parent.left
-		right: parent.right
-		bottom: parent.bottom
+	background: Rectangle {
+		id: backRec
+		anchors.fill: parent
+		color: AppSettings.primaryLightColor
+		radius: 10
+	}
+
+	contentItem {
+		Keys.onPressed: (event) => {
+			if (event.key === mainwindow.backKey) {
+				event.accepted = true;
+				close();
+			}
+		}
 	}
 
 	Behavior on height {
@@ -67,7 +83,7 @@ Rectangle {
 
 		ExercisesListView {
 			id: exercisesList
-			height: windowHeight * 0.8
+			height: bottomPane.height - 30
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 			Layout.alignment: Qt.AlignTop

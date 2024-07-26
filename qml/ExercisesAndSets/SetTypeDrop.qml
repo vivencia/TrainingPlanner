@@ -9,7 +9,8 @@ import com.vivenciasoftware.qmlcomponents
 
 Item {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight + 10
+	height: setLayout.height + 15
+	implicitHeight: setLayout.implicitHeight + 15
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 
@@ -49,7 +50,7 @@ Item {
 		id: setLayout
 		spacing: 5
 		Layout.fillWidth: true
-		Layout.bottomMargin: 10
+		Layout.bottomMargin: 5
 
 		Label {
 			id: lblSetNumber
@@ -178,6 +179,7 @@ Item {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
 			enabled: !setCompleted
+			Layout.bottomMargin: 5
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
 

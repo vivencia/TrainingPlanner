@@ -5,13 +5,13 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-Column {
+ColumnLayout {
 	height: label.height + txtSetNotes.visible ? txtSetNotes.height : 0
+	implicitHeight: height
 	width: parent.width
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	spacing: 0
-	padding: 0
 
 	property alias readOnly: txtNotes.readOnly
 	property alias text: txtNotes.text

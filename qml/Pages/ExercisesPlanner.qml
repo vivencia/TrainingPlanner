@@ -26,11 +26,8 @@ Page {
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
-	Keys.onBackPressed: (event) => {
-		event.accepted = true;
-		if (exercisesPane.visible)
-			requestSimpleExercisesList(null, false, false);
-		else {
+	Keys.onPressed: (event) => {
+		if (event.key === mainwindow.backKey) {
 			if (splitView.currentIndex === 0)
 				mainwindow.popFromStack();
 			else
@@ -42,14 +39,13 @@ Page {
 		id: splitView
 		objectName: "splitSwipeView"
 		currentIndex: -1
-		interactive: !exercisesPane.shown
+		interactive: !exercisesPane.visible
 		height: parent.height
 		anchors {
 			top: parent.top
 			left: parent.left
 			right: parent.right
 		}
-
 		onCurrentIndexChanged: currentItem.init();
 	} //SwipeView
 
@@ -57,7 +53,7 @@ Page {
 		id: indicator
 		count: splitView.count
 		currentIndex: splitView.currentIndex
-		visible: !exercisesPane.shown
+		visible: !exercisesPane.visible
 		height: 20
 		anchors {
 			bottom: parent.bottom

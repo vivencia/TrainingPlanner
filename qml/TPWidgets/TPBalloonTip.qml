@@ -290,6 +290,7 @@ Popup {
 		else
 			startYPos = windowHeight + 300;
 		balloon.open();
+		mainwindow.visibleMsgOrDlg = balloon;
 	}
 
 	function showTimed(timeout, ypos) {

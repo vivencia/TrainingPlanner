@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 
 import "../"
 import "../TPWidgets"
@@ -176,7 +175,10 @@ Column {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onCheckedChanged: bMultipleSelection = checked;
+			onCheckedChanged: {
+				exercisesListModel.clearSelectedEntries();
+				bMultipleSelection = checked;
+			}
 		}
 	}
 

@@ -753,6 +753,8 @@ bool DBTrainingDayModel::removeSet(const uint set_number, const uint exercise_id
 			m_ExerciseData.at(exercise_idx)->notes.remove(set_number);
 			m_ExerciseData.at(exercise_idx)->nsets--;
 			setModified(true);
+			emit exerciseCompleted(exercise_idx, allSetsCompleted(exercise_idx));
+			emit saveWorkout();
 			return true;
 		}
 	}
@@ -937,7 +939,7 @@ bool DBTrainingDayModel::setCompleted(const uint set_number, const uint exercise
 
 void DBTrainingDayModel::setSetCompleted(const uint set_number, const uint exercise_idx, const bool completed)
 {
-	if (set_number < m_ExerciseData.at(exercise_idx)->notes.count())
+	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 	{
 		m_ExerciseData.at(exercise_idx)->completed[set_number] = completed ? u"1"_qs : u"0"_qs;
 		emit exerciseCompleted(exercise_idx, allSetsCompleted(exercise_idx));

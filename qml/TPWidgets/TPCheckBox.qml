@@ -7,6 +7,8 @@ CheckBox {
 	id: control
 	padding: 0
 	spacing: 5
+	height: 20
+	implicitHeight: 20
 
 	property string textColor: AppSettings.fontColor
 

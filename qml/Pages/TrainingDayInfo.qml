@@ -167,35 +167,13 @@ Page {
 
 	TPBalloonTip {
 		id: msgClearExercises
-		title: opt === 0 ? qsTr("Really change split?") : qsTr("Clear exercises list?")
+		title: qsTr("Clear exercises list?")
 		message: qsTr("All exercises changes will be removed")
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "remove.png"
+		imageSource: "revert-day.png"
 
-		property int opt
-
-		onButton1Clicked: {
-			if (opt === 0) {
-				appDB.clearExercises();
-				changeSplitLetter();
-			}
-			else
-				appDB.clearExercises();
-
-		}
-
-		onButton2Clicked: {
-			if (opt === 0) {
-				cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
-											splitLetter : tDayModel.splitLetter());
-			}
-		}
-
-		function init(_opt) {
-			opt = _opt
-			show(-1);
-		}
+		onButton1Clicked: appDB.clearExercises();
 	} //TPBalloonTip
 
 	TPBalloonTip {
@@ -278,7 +256,7 @@ Page {
 			splitText = newSplitText;
 			tDayModel.setTrainingDay(tDay);
 			tDayModel.setSplitLetter(splitLetter);
-			msgClearExercises.init(1);
+			msgClearExercises.show(-1);
 			saveWorkout();
 		}
 
@@ -358,7 +336,7 @@ Page {
 					onActivated: (index) => {
 						if (cboModel.get(index).value !== splitLetter) {
 							if (exercisesLayout.children.length > 0)
-								msgClearExercises.init(0);
+								showSplitLetterChangedDialog();
 							else
 								changeSplitLetter();
 						}
@@ -392,14 +370,14 @@ Page {
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
+				visible: txtLocation.visible
 				Layout.leftMargin: 5
-				visible: !intentDialogShown
 			}
 			TPTextInput {
 				id: txtLocation
 				placeholderText: "Academia Golden Era"
 				text: tDayModel.location()
-				visible: !intentDialogShown
+				visible: splitLetter != "R"
 				enabled: !tDayModel.dayIsFinished
 				Layout.fillWidth: true
 				Layout.rightMargin: 5
@@ -552,7 +530,7 @@ Page {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
 				readOnly: !tDayModel.dayIsFinished
-				visible: !intentDialogShown
+				visible: splitLetter != "R"
 				color: AppSettings.fontColor
 				Layout.leftMargin: 5
 
@@ -619,7 +597,7 @@ Page {
 						leftMargin: 5
 					}
 
-					onClicked: msgClearExercises.init(1);
+					onClicked: msgClearExercises.show(-1);
 				}
 			}
 		}// colMain
@@ -686,14 +664,6 @@ Page {
 			calendarChangedWarning.acceptChanges();
 	}
 
-	Keys.onBackPressed: (event) => {
-		event.accepted = true;
-		if (exercisesPane.visible)
-			requestSimpleExercisesList(null, false, false);
-		else
-			mainwindow.popFromStack();
-	}
-
 	Component.onCompleted: {
 		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
 		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
@@ -746,7 +716,7 @@ Page {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 100
-		visible: !exercisesPane.shown
+		visible: !exercisesPane.visible
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -926,9 +896,8 @@ Page {
 	SimpleExercisesListPanel {
 		id: exercisesPane
 
-		onShownChanged: {
-			if (navButtons)
-				navButtons.visible = !visible;
+		onVisibleChanged: {
+			navButtons.visible = !visible;
 		}
 	}
 
@@ -1077,6 +1046,7 @@ Page {
 
 	function createNewSet(settype, exerciseidx) {
 		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
+		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
@@ -1204,5 +1174,33 @@ Page {
 				resetWorkoutMsg.show(-1);
 			break;
 		}
+	}
+
+	property var changeSplitLetterDialog: null
+	function showSplitLetterChangedDialog() {
+		if (!changeSplitLetterDialog) {
+			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				changeSplitLetterDialog = component.createObject(mainwindow, { button1Text: qsTr("Yes"), button2Text: qsTr("No"),
+					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
+					customStringProperty3: "remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
+				changeSplitLetterDialog.button1Clicked.connect( function() {
+					if (changeSplitLetterDialog.customBoolProperty1)
+						appDB.clearExercises();
+					changeSplitLetter();
+				} );
+				changeSplitLetterDialog.button2Clicked.connect( function() {
+					cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
+													splitLetter : tDayModel.splitLetter())
+				} );
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		changeSplitLetterDialog.show(-1);
 	}
 } // Page

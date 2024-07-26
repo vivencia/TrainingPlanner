@@ -30,6 +30,15 @@ Drawer {
 		opacity: 0.8
 	}
 
+	contentItem {
+		Keys.onPressed: (event) => {
+			if (event.key === mainwindow.backKey) {
+				event.accepted = true;
+				close();
+			}
+		}
+	}
+
 	onClosed: {
 		if (!bMenuClicked)
 			mainMenuClosed();

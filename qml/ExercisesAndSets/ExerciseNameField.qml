@@ -110,8 +110,8 @@ RowLayout {
 
 	TPRoundButton {
 		id: btnRemoveExercise
-		height: 25
-		width: 25
+		height: 30
+		width: 30
 		padding: 5
 		visible: showRemoveButton
 		z: 1
@@ -122,8 +122,8 @@ RowLayout {
 
 	TPRoundButton {
 		id: btnEditExercise
-		height: 25
-		width: 25
+		height: 30
+		width: 30
 		padding: 5
 		z: 1
 		imageName: "edit.png"

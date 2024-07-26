@@ -31,18 +31,30 @@ ApplicationWindow {
 	property string importExportFilename
 	property bool bBackButtonEnabled: true
 
+	property int backKey
+	property var visibleMsgOrDlg: null
+
 	Component.onCompleted: {
-		if (Qt.platform.os === "android") {
-			contentItem.Keys.pressed.connect( function(event) {
-				if (event.key === Qt.Key_Back) {
-					event.accepted = true;
+		if (Qt.platform.os === "android")
+			backKey = Qt.Key_Back;
+		else
+			backKey = Qt.Key_Left;
+
+		contentItem.Keys.pressed.connect( function(event) {
+			if (event.key === backKey) {
+				event.accepted = true;
+				if (visibleMsgOrDlg) {
+					visibleMsgOrDlg.close();
+					visibleMsgOrDlg = null;
+				}
+				else {
 					if (stackView.depth >= 2)
 						popFromStack();
 					else
 						close();
 				}
-			});
-		}
+			}
+		});
 	}
 
 	header: NavBar {

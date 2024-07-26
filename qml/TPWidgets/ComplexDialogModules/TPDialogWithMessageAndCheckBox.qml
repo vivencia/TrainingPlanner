@@ -9,7 +9,7 @@ import "../.."
 ColumnLayout {
 	id: mainLayout
 	spacing: 0
-	height: Math.max(lblMessage.height, imgEffects.height) + checkbox.height + 10
+	height: Math.max(lblMessage.height, imgEffects.height) + checkbox.height + 15
 	Layout.fillWidth: true
 
 	required property var parentDlg
@@ -20,7 +20,7 @@ ColumnLayout {
 		font.pointSize: lblMessage.font.pointSize
 	}
 
-	Row {
+	RowLayout {
 		Layout.leftMargin: 5
 		Layout.rightMargin: 5
 		Layout.topMargin: 20
@@ -64,6 +64,7 @@ ColumnLayout {
 			width: parent.width - imgEffects.width - 10
 			height: Math.ceil(fontMetrics.boundingRect(text).width / width) * 30
 			padding: 0
+			Layout.fillWidth: true
 		}
 	}
 
@@ -75,6 +76,7 @@ ColumnLayout {
 		Layout.leftMargin: 10
 		Layout.rightMargin: 5
 		Layout.topMargin: 5
+		Layout.bottomMargin: 5
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
 	} //TPCheckBox

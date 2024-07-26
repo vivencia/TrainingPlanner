@@ -66,6 +66,15 @@ Dialog {
 		opacity: 0.9
 	}
 
+	contentItem {
+		Keys.onPressed: (event) => {
+			if (event.key === mainwindow.backKey) {
+				event.accepted = true;
+				close();
+			}
+		}
+	}
+
 	TPTimer {
 		id: mainTimer
 		interval: 1000
@@ -464,10 +473,6 @@ Dialog {
 
 	function processKeyEvents(event) {
 		switch (event.key) {
-			case Qt.Key_Back:
-				event.accepted = true;
-				dlgTimer.close();
-			break;
 			case Qt.Key_Enter:
 			case Qt.Key_Return:
 				if (!timePickerOnly) {

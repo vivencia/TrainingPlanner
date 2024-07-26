@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import "../"
+import "../TPWidgets"
+
 Rectangle {
 	id: root
 	clip: true
