@@ -11,8 +11,8 @@ Popup {
 	property string button2Text: ""
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
-	property int startYPosition: 0
 
+	property int startYPosition: 0
 	property int finalXPos: 0
 	property int finalYPos: 0
 	property int startYPos: 0
@@ -28,6 +28,7 @@ Popup {
 	property string customStringProperty3
 	property var customModel: []
 	property bool bAdjustHeightEveryOpen: false
+	property bool bClosable: true
 
 	signal button1Clicked();
 	signal button2Clicked();
@@ -40,7 +41,7 @@ Popup {
 	spacing: 0
 	padding: 0
 	width: windowWidth * 0.9
-	height: totalHeight + 10
+	height: totalHeight + 20
 
 	property int totalHeight: 0
 
@@ -50,7 +51,8 @@ Popup {
 		color: backColor
 		radius: 8
 		layer.enabled: true
-		visible: true
+		visible: false
+		opacity: 0.8
 	}
 
 	background: backgroundEffect
@@ -140,6 +142,7 @@ Popup {
 		icon.width: 25
 		height: 30
 		width: 30
+		visible: bClosable
 		z:2
 
 		anchors {
@@ -191,7 +194,7 @@ Popup {
 			Layout.columnSpan: button2Text.length > 0 ? 1 : 2
 			Layout.rightMargin: 5
 			Layout.bottomMargin: 10
-			Layout.topMargin: -15
+			Layout.topMargin: -10
 			Layout.alignment: button2Text.length > 0 ? Qt.AlignRight : Qt.AlignCenter
 
 			onClicked: {
@@ -211,7 +214,7 @@ Popup {
 			Layout.column: button1Text.length > 0 ? 1 : 0
 			Layout.leftMargin: 5
 			Layout.bottomMargin: 10
-			Layout.topMargin: -15
+			Layout.topMargin: -10
 			Layout.alignment: Qt.AlignLeft
 
 			onClicked: {
@@ -239,6 +242,8 @@ Popup {
 			height += customItem.height;
 		}
 		dialog.open();
-		mainwindow.visibleMsgOrDlg = dialog;
+		if (bClosable)
+			mainwindow.visibleMsgOrDlg = dialog;
+
 	}
 }

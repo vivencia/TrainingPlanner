@@ -7,9 +7,8 @@ import "../"
 Column {
 	id: frmMesoAdjust
 	padding: 0
-	spacing: 0
+	spacing: 10
 	height: 120
-	Layout.fillWidth: true
 
 	required property var parentDlg
 

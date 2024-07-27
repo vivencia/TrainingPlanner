@@ -7,12 +7,12 @@ CheckBox {
 	id: control
 	padding: 0
 	spacing: 5
-	height: 20
-	implicitHeight: 20
+	implicitHeight: Math.max(lblText.implicitHeight, 25)
 
 	property string textColor: AppSettings.fontColor
 
 	contentItem: Text {
+		id: lblText
 		text: control.text
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold

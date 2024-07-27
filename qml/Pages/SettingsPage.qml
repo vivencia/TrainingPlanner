@@ -420,7 +420,7 @@ Page {
 					TPColorRectangle {
 						id: recColor4
 						darkColor: "#000000"
-						midColor: "#b1bab7"
+						midColor: "#9ea6a3"
 						lightColor: "#d7e2de"
 						Layout.column: 1
 						Layout.row: 3

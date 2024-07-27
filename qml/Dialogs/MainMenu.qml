@@ -148,7 +148,7 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
 			}
-			onClicked: { stackView.push("SettingsPage.qml"); menuClicked(); }
+			onClicked: { stackView.push("../Pages/SettingsPage.qml"); menuClicked(); }
 		}
 
 		TPButton {
@@ -160,7 +160,7 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
 			}
-			onClicked: { stackView.push("BackupPage.qml"); menuClicked(); }
+			onClicked: { stackView.push("../Pages/BackupPage.qml"); menuClicked(); }
 		}
 
 		Rectangle {

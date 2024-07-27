@@ -24,6 +24,7 @@ Popup {
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
+			navButtons.hideButtons(true);
 			focus = true;
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
@@ -31,12 +32,18 @@ Popup {
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
+		else
+			navButtons.showButtons(true);
+	}
+
+	function hideSimpleExerciseList() {
+		bShowSimpleExercisesList = false;
 	}
 
 	background: Rectangle {
 		id: backRec
 		anchors.fill: parent
-		color: AppSettings.primaryLightColor
+		color: AppSettings.primaryColor
 		radius: 10
 	}
 

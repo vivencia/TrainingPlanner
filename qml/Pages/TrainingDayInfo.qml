@@ -309,10 +309,8 @@ Page {
 				color: AppSettings.fontColor
 			}
 
-			GridLayout {
+			RowLayout {
 				Layout.fillWidth: true
-				columns: 2
-				rows: 2
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
 
@@ -321,8 +319,6 @@ Page {
 					color: AppSettings.fontColor
 					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
-					Layout.row: 0
-					Layout.column: 0
 				}
 
 				TPComboBox {
@@ -330,8 +326,6 @@ Page {
 					model: cboModel
 					enabled: workoutTimer.active ? false : !tDayModel.dayIsFinished
 					Layout.maximumWidth: 100
-					Layout.row: 0
-					Layout.column: 1
 
 					onActivated: (index) => {
 						if (cboModel.get(index).value !== splitLetter) {
@@ -342,48 +336,34 @@ Page {
 						}
 					}			
 				} //TPComboBox
+			}
+
+			RowLayout {
+				Layout.fillWidth: true
+				Layout.leftMargin: 5
+				Layout.rightMargin: 5
 
 				Label {
-					text: qsTr("Training Day #")
+					text: qsTr("Location:")
 					color: AppSettings.fontColor
 					font.pointSize: AppSettings.fontSizeText
 					font.bold: true
-					visible: splitLetter !== 'R'
+					visible: txtLocation.visible
 					Layout.row: 1
 					Layout.column: 0
 				}
 				TPTextInput {
-					id: txtTDay
-					text: tDay
-					width: 50
-					visible: splitLetter !== 'R'
-					readOnly: true
+					id: txtLocation
+					placeholderText: "Academia Golden Era"
+					text: tDayModel.location()
+					visible: splitLetter != "R"
+					enabled: !tDayModel.dayIsFinished
 					Layout.row: 1
 					Layout.column: 1
+					Layout.fillWidth: true
 
-					onTextChanged: tDayModel.setTrainingDay(text);
-				} //txtTDay
-			} //GridLayout
-
-			Label {
-				text: qsTr("Location:")
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
-				visible: txtLocation.visible
-				Layout.leftMargin: 5
-			}
-			TPTextInput {
-				id: txtLocation
-				placeholderText: "Academia Golden Era"
-				text: tDayModel.location()
-				visible: splitLetter != "R"
-				enabled: !tDayModel.dayIsFinished
-				Layout.fillWidth: true
-				Layout.rightMargin: 5
-				Layout.leftMargin: 5
-
-				onTextChanged: tDayModel.setLocation(text);
+					onTextChanged: tDayModel.setLocation(text);
+				}
 			}
 
 			Frame {
@@ -970,7 +950,7 @@ Page {
 
 			function finishCreation() {
 				intentionDlg = component.createObject(mainwindow, { title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
-						customItemSource:"TPTDayIntentGroup.qml", bAdjustHeightEveryOpen: true, customBoolProperty1: bHasMesoPlan,
+						customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
 						customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
 				intentionDlg.button1Clicked.connect(intentChosen);
 			}
@@ -1053,16 +1033,6 @@ Page {
 		itemThatRequestedSimpleList = visible ? object : null;
 		bEnableMultipleSelection = multipleSel;
 		bShowSimpleExercisesList = visible;
-		if (navButtons) {
-			if (visible)
-				navButtons.showButtons();
-			else
-				navButtons.hideButtons();
-		}
-	}
-
-	function hideSimpleExerciseList() {
-		exercisesPane.visible = false;
 	}
 
 	function requestTimerDialog(requester, message, mins, secs) {

@@ -7,12 +7,12 @@ import "../"
 Column {
 	id: grpIntent
 	padding: 0
-	spacing: 0
-	Layout.fillWidth: true
+	spacing: 5
 
 	required property var parentDlg
 
 	Component.onCompleted: {
+		parentDlg.bAdjustHeightEveryOpen = true;
 		parentDlg.dialogOpened.connect(resize);
 	}
 

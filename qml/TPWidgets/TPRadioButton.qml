@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
 import "../"
 
@@ -8,7 +7,8 @@ RadioButton {
 	id: control
 	spacing: 5
 	padding: 0
-	Layout.fillWidth: true
+	implicitHeight: Math.max(lblText.implicitHeight, 25)
+	implicitWidth: width
 
 	property string textColor: AppSettings.fontColor
 

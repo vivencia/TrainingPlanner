@@ -194,7 +194,7 @@ Frame {
 							enabled: index > 0
 							anchors {
 								right: btnMoveExerciseDown.left
-								rightMargin: -10
+								rightMargin: -5
 								verticalCenter: parent.verticalCenter
 							}
 
@@ -209,7 +209,7 @@ Frame {
 							enabled: index < splitModel.count-1
 							anchors {
 								right: parent.right
-								rightMargin: 20
+								rightMargin: 15
 								verticalCenter: parent.verticalCenter
 							}
 
@@ -375,6 +375,7 @@ Frame {
 
 							RowLayout {
 								Layout.leftMargin: 20
+								Layout.rightMargin: 20
 								Layout.fillWidth: true
 
 								Label {
@@ -403,6 +404,7 @@ Frame {
 							RowLayout {
 								visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
 								Layout.leftMargin: 20
+								Layout.rightMargin: 20
 								Layout.fillWidth: true
 
 								Label {
@@ -484,6 +486,7 @@ Frame {
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
 								Layout.leftMargin: 20
+								Layout.rightMargin: 20
 								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
@@ -501,7 +504,7 @@ Frame {
 									availableWidth: listItem.width/2 + 10
 									enabled: index === splitModel.currentRow
 									Layout.alignment: Qt.AlignLeft
-									Layout.leftMargin: 30
+									Layout.leftMargin: 20
 
 									onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
@@ -515,8 +518,6 @@ Frame {
 									availableWidth: listItem.width/3
 									showLabel: false
 									enabled: index === splitModel.currentRow
-									Layout.alignment: Qt.AlignRight
-									Layout.rightMargin: listItem.width/6
 
 									onValueChanged: (str) => splitModel.setSetsReps2(index, str);
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
@@ -532,6 +533,7 @@ Frame {
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
 								Layout.leftMargin: 20
+								Layout.rightMargin: 20
 								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
@@ -549,7 +551,7 @@ Frame {
 									availableWidth: listItem.width/2 + 10
 									enabled: index === splitModel.currentRow
 									Layout.alignment: Qt.AlignCenter
-									Layout.leftMargin: 30
+									Layout.leftMargin: 20
 
 									onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();

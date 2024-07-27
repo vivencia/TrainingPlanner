@@ -14,7 +14,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
 	mb_Complete = bComplete;
 	if (bComplete)
 	{
-		mColumnNames.reserve(MESOSPLIT_COL_NOTES+1);
+		mColumnNames.reserve(MESOSPLIT_COL_WORKINGSET);
 		mColumnNames.append(tr("Exercise name: "));
 		mColumnNames.append(tr("Number of sets: "));
 		mColumnNames.append(tr("Set instructions: "));
@@ -468,7 +468,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 			{
 				valueLen = inData.length() - sep_idx - 2;
 				if (valueLen <= 0)
-					modeldata.append(u" "_qs); //QString::split(Qt::SkipEmptyParts) will yield an empty QStringList if we dont provide at least one character
+					modeldata.append(u" "_qs); //QString::split(Qt::SkipEmptyParts) will yield an empty QStringList if we don't provide at least one character
 				else
 				{
 					if (!isFieldFormatSpecial(col))
@@ -489,6 +489,7 @@ bool DBMesoSplitModel::importFromFancyText(QFile* inFile, QString& inData)
 					else
 						modeldata.append(formatFieldToImport(inData.right(valueLen)));
 				}
+				//qDebug() << mColumnNames.at(col) << ":  " << modeldata.at(modeldata.count()-1); //When enabled, import worked on Android. Before, it was not working
 				col++;
 			}
 			else

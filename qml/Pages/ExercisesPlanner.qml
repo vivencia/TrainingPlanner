@@ -28,6 +28,7 @@ Page {
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
+			event.accepted = true;
 			if (splitView.currentIndex === 0)
 				mainwindow.popFromStack();
 			else
@@ -128,7 +129,7 @@ Page {
 
 		TPButton {
 			id: btnSwapPlan
-			text: splitView.currentIndex >= 0 ? currentPage.splitModel.splitLetter + " <-> " + currentPage.swappableLetter : "A <-> B"
+			text: currentPage ? currentPage.splitModel.splitLetter() + " <-> " + currentPage.swappableLetter : "A <-> B"
 			imageSource: "swap.png"
 			textUnderIcon: true
 			visible: currentPage ? currentPage.bCanSwapPlan : false
@@ -143,7 +144,7 @@ Page {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter, currentPage.swappableLetter);
+			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
 		}
 
 		TPButton {
@@ -213,16 +214,6 @@ Page {
 		itemThatRequestedSimpleList = visible ? object : null;
 		bEnableMultipleSelection = multipleSel;
 		bShowSimpleExercisesList = visible;
-		if (navButtons) {
-			if (visible)
-				navButtons.showButtons();
-			else
-				navButtons.hideButtons();
-		}
-	}
-
-	function hideSimpleExerciseList() {
-		exercisesPane.visible = false;
 	}
 
 	function createNavButtons() {
@@ -255,7 +246,7 @@ Page {
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 
 		onButton1Clicked: appDB.exportMesoSplit("X", bShare, customBoolProperty1);
-		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter, bShare, customBoolProperty1);
+		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter(), bShare, customBoolProperty1);
 
 		property bool bShare: false
 

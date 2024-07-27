@@ -6,13 +6,17 @@ import QtQuick.Effects
 import "../"
 import "../.."
 
-ColumnLayout {
+Column {
 	id: mainLayout
-	spacing: 0
-	height: Math.max(lblMessage.height, imgEffects.height) + checkbox.height + 15
-	Layout.fillWidth: true
+	padding: 0
+	spacing: 10
 
 	required property var parentDlg
+
+	Component.onCompleted: {
+		parentDlg.bAdjustHeightEveryOpen = true;
+		parentDlg.dialogOpened.connect(resize);
+	}
 
 	FontMetrics {
 		id: fontMetrics
@@ -38,7 +42,7 @@ ColumnLayout {
 
 		MultiEffect {
 			id: imgEffects
-			visible: parentDlg.customStringProperty3.length > 0
+			visible: parentDlg.customStringProperty3 !== ""
 			source: imgElement
 			shadowEnabled: true
 			shadowOpacity: 0.5
@@ -48,8 +52,8 @@ ColumnLayout {
 			shadowVerticalOffset: 5
 			shadowColor: "black"
 			shadowScale: 1
-			width: 50
-			height: 50
+			width: parentDlg.customStringProperty3 !== "" ? 50 : 0
+			height: width
 			Layout.alignment: Qt.AlignCenter
 		}
 
@@ -61,10 +65,11 @@ ColumnLayout {
 			horizontalAlignment: Text.AlignJustify
 			font.pointSize: AppSettings.fontSizeText
 			font.weight: Font.Black
-			width: parent.width - imgEffects.width - 10
+			width: mainLayout.width - imgEffects.width - 10
 			height: Math.ceil(fontMetrics.boundingRect(text).width / width) * 30
+			Layout.maximumWidth: width
+			Layout.minimumWidth: width
 			padding: 0
-			Layout.fillWidth: true
 		}
 	}
 
@@ -80,4 +85,8 @@ ColumnLayout {
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
 	} //TPCheckBox
+
+	function resize() {
+		mainLayout.height = Math.max(lblMessage.height, imgEffects.height) + checkbox.implicitHeight
+	}
 } // ColumnLayout
