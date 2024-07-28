@@ -216,7 +216,7 @@ QString RunCommands::calculateTimeDifference_str(const QString& strTimeInit, con
 	return time.toString(u"hh:mm:ss");
 }
 
-const QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
+QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
 {
 	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
 	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());

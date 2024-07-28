@@ -12,6 +12,7 @@ Column {
 	required property var parentDlg
 
 	Component.onCompleted: {
+		parentDlg.customIntProperty1 = 4;
 		parentDlg.bAdjustHeightEveryOpen = true;
 		parentDlg.dialogOpened.connect(resize);
 	}
@@ -58,6 +59,7 @@ Column {
 		id: optEmptySession
 		text: qsTr("Start a new session")
 		width: grpIntent.width
+		checked: true
 
 		onClicked: parentDlg.customIntProperty1 = 4;
 	}

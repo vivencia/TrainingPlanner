@@ -170,10 +170,13 @@ Dialog {
 			Layout.leftMargin: 10
 		} //TPCheckBox
 
-		Row {
+		GridLayout {
 			id: recStrings
 			height: 30
-			spacing: txtWidth
+			columnSpacing: 30
+			rowSpacing: 10
+			columns: 3
+			rows: 2
 			Layout.minimumWidth: rowWidth
 			Layout.maximumWidth: rowWidth
 			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 25
@@ -185,7 +188,9 @@ Dialog {
 				visible: !bJustMinsAndSecs
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.alignment: Qt.AlignHCenter
+				Layout.row: 0
+				Layout.column: 0
+				Layout.leftMargin: 5
 			}
 			Label {
 				color: "darkred"
@@ -193,7 +198,9 @@ Dialog {
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.alignment: Qt.AlignHCenter
+				Layout.row: 0
+				Layout.column: 1
+				Layout.leftMargin: -5
 			}
 			Label {
 				color: "darkred"
@@ -202,28 +209,8 @@ Dialog {
 				visible: !timePickerOnly
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
-				Layout.alignment: Qt.AlignHCenter
-			}
-		} // Rectangle recStrings
-
-
-		Row {
-			id: timerGrid
-			spacing: 10
-			Layout.topMargin: 5
-			Layout.minimumWidth: rowWidth
-			Layout.maximumWidth: rowWidth
-			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 20
-
-			Rectangle {
-				id: recNegCountDown
-				radius: 2
-				height: 3
-				width: 12
-				visible: mainTimer.stopWatch !== mainTimer.timerForward
-				color: "black"
-				opacity: 0.5
-				Layout.alignment: Qt.AlignVCenter
+				Layout.row: 0
+				Layout.column: 2
 				Layout.leftMargin: -10
 			}
 
@@ -239,6 +226,8 @@ Dialog {
 				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.row: 1
+				Layout.column: 0
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -261,18 +250,39 @@ Dialog {
 						}
 					}
 				}
-			} // txtHours
 
-			Label {
-				text: ":  "
-				font.pointSize: AppSettings.fontSizeText
-				fontSizeMode: Text.Fit
-				font.bold: true
-				color: "black"
-				visible: txtHours.visible
-				Layout.maximumWidth: 10
-				Layout.minimumWidth: 10
-			}
+				Rectangle {
+					id: recNegCountDown
+					radius: 2
+					height: 3
+					width: 12
+					visible: mainTimer.stopWatch !== mainTimer.timerForward
+					color: "black"
+					opacity: 0.5
+
+					anchors {
+						right: parent.left
+						rightMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+				}
+
+				Label {
+					text: ":"
+					font.pointSize: AppSettings.fontSizeText
+					font.bold: true
+					horizontalAlignment: Text.AlignHCenter
+					color: "black"
+					width: 10
+					visible: txtHours.visible
+
+					anchors {
+						left: parent.right
+						leftMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+				}
+			} // txtHours
 
 			TPTextInput {
 				id: txtMinutes
@@ -285,6 +295,8 @@ Dialog {
 				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.row: 1
+				Layout.column: 1
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -312,18 +324,23 @@ Dialog {
 						}
 					}
 				}
-			} // txtMinutes
 
-			Label {
-				text: ":  "
-				font.pointSize: AppSettings.fontSizeText
-				fontSizeMode: Text.Fit
-				font.bold: true
-				color: "black"
-				visible: txtSecs.visible
-				Layout.maximumWidth: 10
-				Layout.minimumWidth: 10
-			}
+				Label {
+					text: ":"
+					font.pointSize: AppSettings.fontSizeText
+					font.bold: true
+					horizontalAlignment: Text.AlignHCenter
+					color: "black"
+					width: 10
+					visible: txtSecs.visible
+
+					anchors {
+						left: parent.right
+						leftMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+				}
+			} // txtMinutes
 
 			TPTextInput {
 				id: txtSecs
@@ -337,6 +354,8 @@ Dialog {
 				horizontalAlignment: Text.AlignHCenter
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
+				Layout.row: 1
+				Layout.column: 2
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -359,7 +378,7 @@ Dialog {
 					}
 				}
 			} // txtSecs
-		} // headerGrid
+		} // GridLayout
 
 		ProgressBar {
 			id: progressBar

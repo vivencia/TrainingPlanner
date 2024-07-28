@@ -16,7 +16,6 @@ Popup {
 	y: (windowHeight - height) / 2
 	modal: true
 	focus: true
-	Material.elevation: 6
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
 	Rectangle {

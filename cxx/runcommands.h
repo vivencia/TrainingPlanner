@@ -53,7 +53,7 @@ public:
 	Q_INVOKABLE QDateTime timeFromStrTime(const QString& strTime) const { return QDateTime(QDate::currentDate(), QTime::fromString(strTime, u"hh:mm"_qs)); }
 	Q_INVOKABLE QDateTime getCurrentTime() const { return QDateTime(QDate::currentDate(), QTime::currentTime()); }
 	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
-	const QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
+	Q_INVOKABLE QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
 	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep = 31) const;
 	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep = 31) const;

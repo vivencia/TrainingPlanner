@@ -62,7 +62,10 @@ RowLayout {
 			if (readOnly) {
 				ensureVisible(0);
 				cursorPosition = 0;
-				bTextChanged = false;
+				if (bTextChanged) {
+					bTextChanged = false;
+					exerciseChanged(text);
+				}
 			}
 			else
 				cursorPosition = text.length;
@@ -70,8 +73,8 @@ RowLayout {
 
 		onEditingFinished: {
 			if (bTextChanged) {
-				exerciseChanged(text);
 				bTextChanged = false;
+				exerciseChanged(text);
 			}
 		}
 
@@ -79,8 +82,8 @@ RowLayout {
 			bTextChanged = true;
 			if (bCanEmitTextChanged) {
 				if (!readOnly) {
-					exerciseChanged(text);
 					bTextChanged = false;
+					exerciseChanged(text);
 				}
 				else {
 					ensureVisible(0);

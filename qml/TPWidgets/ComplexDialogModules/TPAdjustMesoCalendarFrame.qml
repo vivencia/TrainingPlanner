@@ -35,6 +35,7 @@ Column {
 		text: qsTr("All of the old information")
 		enabled: chkPreserveOldCalendar.checked
 		checked: false
+		width: frmMesoAdjust.width
 		Layout.leftMargin: 30
 
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
@@ -45,6 +46,7 @@ Column {
 		text: qsTr("Up until yesterday - ") + runCmd.formatDate(runCmd.getDayBefore(new Date()))
 		checked: false
 		enabled: chkPreserveOldCalendar.checked
+		width: frmMesoAdjust.width
 		Layout.leftMargin: 30
 
 		onCheckedChanged: parentDlg.customBoolProperty2 = checked;

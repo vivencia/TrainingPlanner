@@ -1695,6 +1695,7 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 
 	const QString splitletter(splitLetter.isEmpty() ? mesoCalendarModel->getSplitLetter(date.month(), date.day()-1) : splitLetter);
 	m_currentMesoManager->currenttDayPage()->setProperty("bHasMesoPlan", mesoHasPlan(m_MesoId, splitletter));
+	m_currentMesoManager->currenttDayPage()->setProperty("editMode", date != QDate::currentDate());
 
 	if (splitletter >= u"A"_qs && splitletter <= u"F"_qs)
 	{

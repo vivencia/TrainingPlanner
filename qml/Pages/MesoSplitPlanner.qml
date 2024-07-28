@@ -227,7 +227,13 @@ Frame {
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
-						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
+						onExerciseChanged: (new_text) => {
+							splitModel.setExerciseName(index, new_text);
+							if (cboSetType.currentIndex === 4) {
+								lblExercise1.text = splitModel.exerciseName1(index);
+								lblExercise2.text = splitModel.exerciseName2(index);
+							}
+						}
 						onItemClicked: splitModel.currentRow = index;
 
 						onRemoveButtonClicked: {
@@ -440,6 +446,7 @@ Frame {
 								Layout.bottomMargin: 5
 
 								Label {
+									id: lblExercise1
 									text: splitModel.exerciseName1(index)
 									font.bold: true
 									wrapMode: Text.WordWrap
@@ -459,6 +466,7 @@ Frame {
 								}
 
 								Label {
+									id: lblExercise2
 									text: splitModel.exerciseName2(index)
 									font.bold: true
 									wrapMode: Text.WordWrap

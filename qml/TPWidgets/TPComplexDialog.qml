@@ -187,6 +187,7 @@ Popup {
 		TPButton {
 			id: btn1
 			text: button1Text
+			flat: false
 			visible: button1Text.length > 0
 			z: 2
 			Layout.row: 2
@@ -208,6 +209,7 @@ Popup {
 		TPButton {
 			id: btn2
 			text: button2Text
+			flat: false
 			visible: button2Text.length > 0
 			z: 2
 			Layout.row: 2

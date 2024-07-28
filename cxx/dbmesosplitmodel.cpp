@@ -99,7 +99,8 @@ const QString DBMesoSplitModel::exerciseName(const uint row)
 
 void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 {
-	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = new_name;
+	QString name(new_name);
+	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = name.replace(u" + "_qs, QString(subrecord_separator));
 	setModified(true);
 	emit exerciseNameChanged();
 }

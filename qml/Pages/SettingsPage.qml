@@ -478,6 +478,7 @@ Page {
 			text: qsTr("Apply")
 			enabled: bModified
 			width: 80
+			flat: false
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
 

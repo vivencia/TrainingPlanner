@@ -67,7 +67,8 @@ Page {
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 
 	onEditModeChanged: {
-		optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
+		if (optionsMenu !== null)
+			optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
 	}
 
 	onBExportEnabledChanged: {
@@ -107,9 +108,10 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
 			tDayModel.setTimeIn(timeIn);
+			if (timeOut != "--:--")
+				timeManuallyEdited();
 		}
 	}
-
 	TimePicker {
 		id: dlgTimeOut
 		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtOutTime.text)
@@ -118,13 +120,15 @@ Page {
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
-			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
-			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			if (!editMode) {
-				itemManager.rollUpExercises();
-				appDB.setDayIsFinished(mainDate, true);
-			}
+			if (timeIn != "--:--")
+				timeManuallyEdited();
 		}
+	}
+	function timeManuallyEdited() {
+		const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
+		updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
+		appDB.setDayIsFinished(mainDate, true);
+		itemManager.rollUpExercises();
 	}
 
 	TimerDialog {
@@ -303,7 +307,7 @@ Page {
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(mesoIdx, 1) + "</b><br>" +
-					(splitText !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
+					(splitLetter !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
 										qsTr("Rest day"))
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
