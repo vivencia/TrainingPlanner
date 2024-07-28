@@ -23,6 +23,8 @@ Page {
 	property var itemThatRequestedSimpleList: null
 	property var navButtons: null
 
+	signal pageActivated();
+	signal pageDeActivated();
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
@@ -201,13 +203,11 @@ Page {
 	}
 
 	function pageActivation() {
-		if (navButtons)
-			navButtons.visible = true;
+		pageActivated();
 	}
 
 	function pageDeActivation() {
-		if (navButtons)
-			navButtons.visible = false;
+		pageDeActivated();
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
@@ -244,6 +244,7 @@ Page {
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		parentPage: pagePlanner
 
 		onButton1Clicked: appDB.exportMesoSplit("X", bShare, customBoolProperty1);
 		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter(), bShare, customBoolProperty1);

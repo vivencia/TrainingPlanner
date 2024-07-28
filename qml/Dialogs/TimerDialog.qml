@@ -466,14 +466,8 @@ Dialog {
 	} //ColumnLayout
 
 	Component.onCompleted: {
-		mainwindow.backButtonPressed.connect(maybeDestroy);
 		mainwindow.mainMenuOpened.connect(hideDlg);
 		mainwindow.mainMenuClosed.connect(showDlg);
-	}
-
-	function maybeDestroy() {
-		if (visible)
-			destroy();
 	}
 
 	function hideDlg() {

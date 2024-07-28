@@ -19,6 +19,7 @@ Popup {
 
 	property string customItemSource: ""
 	property var customItem: null
+	property var parentPage
 	property bool customBoolProperty1
 	property bool customBoolProperty2
 	property bool customBoolProperty3
@@ -44,6 +45,11 @@ Popup {
 	height: totalHeight + 20
 
 	property int totalHeight: 0
+
+	Component.onCompleted: {
+		parentPage.pageDeActivated.connect(function() { dialog.visible = false; });
+		parentPage.pageActivated.connect(function() { dialog.visible = true; });
+	}
 
 	Rectangle {
 		id: backRec

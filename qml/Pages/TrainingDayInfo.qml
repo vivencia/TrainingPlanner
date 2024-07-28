@@ -59,6 +59,8 @@ Page {
 	}
 
 	signal mesoCalendarChanged()
+	signal pageActivated();
+	signal pageDeActivated();
 
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
@@ -221,6 +223,7 @@ Page {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		parentPage: trainingDayPage
 
 		onButton1Clicked: appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked);
 
@@ -879,10 +882,7 @@ Page {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
-
-		onVisibleChanged: {
-			navButtons.visible = !visible;
-		}
+		onVisibleChanged: navButtons.visible = !visible;
 	}
 
 	onSplitLetterChanged: {
@@ -911,6 +911,7 @@ Page {
 		button1Text: qsTr("Adjust")
 		button2Text: qsTr("Cancel")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		parentPage: trainingDayPage
 
 		property string newSplitLetter
 
@@ -953,7 +954,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				intentionDlg = component.createObject(mainwindow, { title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
+				intentionDlg = component.createObject(mainwindow, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
 						customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
 						customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
 				intentionDlg.button1Clicked.connect(intentChosen);
@@ -1005,7 +1006,7 @@ Page {
 	function createFloatingAddSetButton(exerciseIdx: int, settype: int, nset: string) {
 		var component = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingButton.qml", Qt.Asynchronous);
 		function finishCreation() {
-			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"),
+			btnFloat = component.createObject(trainingDayPage, { text:qsTr("Add set"), parentPage: trainingDayPage,
 					image:"add-new.png", exerciseIdx:exerciseIdx, comboIndex:settype });
 			btnFloat.updateDisplayText(nset);
 			btnFloat.buttonClicked.connect(createNewSet);
@@ -1079,7 +1080,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(trainingDayPage, {});
+				navButtons = component.createObject(trainingDayPage, { parentPage: trainingDayPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
 			}
 
@@ -1093,15 +1094,11 @@ Page {
 	function pageActivation() {
 		itemManager.setCurrenttDay(mainDate);
 		changeComboModel();
-		if (navButtons)
-			navButtons.visible = true;
+		pageActivated();
 	}
 
 	function pageDeActivation() {
-		if (navButtons)
-			navButtons.visible = false;
-		if (btnFloat)
-			btnFloat.visible = false;
+		pageDeActivated();
 	}
 
 	function updateTimer(hour: int, min: int, sec: int)
@@ -1156,8 +1153,8 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				changeSplitLetterDialog = component.createObject(mainwindow, { button1Text: qsTr("Yes"), button2Text: qsTr("No"),
-					customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
+				changeSplitLetterDialog = component.createObject(mainwindow, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
+					button2Text: qsTr("No"), customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					if (changeSplitLetterDialog.customBoolProperty1)

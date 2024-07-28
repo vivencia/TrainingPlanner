@@ -11,6 +11,7 @@ Rectangle {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
 	property int exerciseIdx
+	property var parentPage
 
 	property string text
 	property string image
@@ -166,6 +167,8 @@ Rectangle {
 	Component.onCompleted: {
 		x = (windowWidth-width)/2;
 		y = windowHeight * 0.5 - height;
+		parentPage.pageDeActivated.connect(function() { button.visible = false; });
+		parentPage.pageActivated.connect(function() { button.visible = true; });
 		mainwindow.mainMenuOpened.connect(hideButtons);
 		mainwindow.mainMenuClosed.connect(showButtons);
 	}

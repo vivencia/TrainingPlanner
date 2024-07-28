@@ -14,6 +14,22 @@ Page {
 	property var imexportMenu: null
 	property var btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
 
+	signal pageActivated();
+	signal pageDeActivated();
+
+	Component.onCompleted: {
+		homePage.StackView.onDeactivating.connect(pageDeActivation);
+		homePage.StackView.activating.connect(pageActivation);
+	}
+
+	function pageDeActivation() {
+		pageDeActivated();
+	}
+
+	function pageActivation() {
+		pageActivated();
+	}
+
 	Image {
 		anchors.fill: parent
 		source: "qrc:/images/app_logo.png"
@@ -451,6 +467,7 @@ Page {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		parentPage: homePage
 
 		onButton1Clicked: appDB.exportMeso(bShare, customBoolProperty1);
 

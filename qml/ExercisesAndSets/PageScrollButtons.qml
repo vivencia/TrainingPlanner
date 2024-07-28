@@ -7,7 +7,6 @@ Rectangle {
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 
 	signal scrollTo(int pos)
-	signal backButtonWasPressed()
 
 	property bool showUpButton: true
 	property bool showDownButton: true
@@ -19,6 +18,7 @@ Rectangle {
 
 	property bool bHeld: false
 	property var prevPos
+	property var parentPage
 
 	Image {
 		id: btnUp
@@ -154,17 +154,8 @@ Rectangle {
 	Component.onCompleted: {
 		x = mainwindow.width - implicitWidth;
 		y = mainwindow.height - implicitHeight - 10
-		mainwindow.backButtonPressed.connect(maybeDestroy);
-		mainwindow.mainMenuOpened.connect(hideButtons);
-		mainwindow.mainMenuClosed.connect(showButtons);
-	}
-
-	function maybeDestroy() {
-		if (button) {
-			if (button.visible)
-				button.destroy();
-			button.backButtonWasPressed();
-		}
+		parentPage.pageDeActivated.connect(function() { button.visible = false; });
+		parentPage.pageActivated.connect(function() { button.visible = true; });
 	}
 
 	function hideButtons(directCall: bool) {

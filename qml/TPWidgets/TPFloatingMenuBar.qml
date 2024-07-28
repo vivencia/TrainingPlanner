@@ -21,6 +21,17 @@ Popup {
 	property int entriesTotalHeight: 0
 	property int largestEntryWidth: 0
 	property var entryComponent: null
+	property var parentPage
+
+	Component.onDestruction: {
+		for(var i = 0; i < entriesList.length; ++i)
+			delete entriesList[i];
+	}
+
+	Component.onCompleted: {
+		parentPage.pageDeActivated.connect(function() { menu.visible = false; });
+		parentPage.pageActivated.connect(function() { menu.visible = true; });
+	}
 
 	Rectangle {
 		id: backRec
@@ -102,11 +113,6 @@ Popup {
 		anchors.fill: parent
 		spacing: 0
 		opacity: menu.opacity
-	}
-
-	Component.onDestruction: {
-		for(var i = 0; i < entriesList.length; ++i)
-			delete entriesList[i];
 	}
 
 	function addEntry(label: string, img: string, id: int) {

@@ -32,6 +32,13 @@ Popup {
 	padding: 0
 	width: windowWidth * 0.8
 
+	Component.onCompleted: {
+		if (parent) {
+			parent.pageDeActivated.connect(function() { balloon.visible = false; });
+			parent.pageActivated.connect(function() { balloon.visible = true; });
+		}
+	}
+
 	Rectangle {
 		id: backRec
 		anchors.fill: parent

@@ -32,6 +32,9 @@ Page {
 	property bool bPreserveOldCalendarUntilYesterday: false
 	property bool bChangedCalendar: false
 
+	signal pageActivated();
+	signal pageDeActivated();
+
 	Image {
 		anchors.fill: parent
 		source: "qrc:/images/app_logo.png"
@@ -233,6 +236,7 @@ Page {
 				Layout.leftMargin: 5
 				color: AppSettings.fontColor
 			}
+
 			RegularExpressionValidator {
 				id: regEx
 				regularExpression: new RegExp(/[A-FR]+/);
@@ -269,10 +273,10 @@ Page {
 				onEditingFinished: {
 					if (bMesoSplitOK) {
 						if (mesoSplit !== text) {
-							bChangedCalendar = true;
 							mesocyclesModel.set(mesoIdx, 6, text);
 							mesoSplit = text;
 							JSF.checkWhetherCanCreatePlan();
+							showCalendarChangedDialog();
 						}
 					}
 				}
@@ -583,11 +587,13 @@ Page {
 	}
 
 	function pageDeActivation() {
+		pageDeActivated();
 		if (bNewMeso)
 			appDB.scheduleMesocycleRemoval(mesoIdx);
 	}
 
 	function pageActivation() {
+		pageActivated();
 		appDB.setWorkingMeso(mesoIdx);
 	}
 
@@ -596,8 +602,8 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				calendarChangeDlg = component.createObject(mainwindow, { title:qsTr("Adjust meso calendar?"), button1Text: qsTr("Yes"),
-						button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
+				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),
+					button1Text: qsTr("Yes"), button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
 				calendarChangeDlg.button1Clicked.connect(preserveOldCalenarInfo);
 			}
 

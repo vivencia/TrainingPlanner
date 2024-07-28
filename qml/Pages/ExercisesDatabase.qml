@@ -25,9 +25,25 @@ Page {
 	property var videoViewer: null
 
 	signal exerciseChosen()
+	signal pageActivated()
+	signal pageDeActivated()
 
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: !bChooseButtonEnabled
+
+	Component.onCompleted: {
+		pageExercises.StackView.onDeactivating.connect(pageDeActivation);
+		pageExercises.StackView.activating.connect(pageActivation);
+	}
+
+	function pageDeActivation() {
+		pageDeActivated();
+	}
+
+	function pageActivation() {
+		exercisesList.simulateMouseClick(0, true);
+		pageActivated();
+	}
 
 	onBExportEnabledChanged: {
 		if (imexportMenu) {
@@ -435,12 +451,6 @@ Page {
 		} //ColumnLayout
 	} // footer
 
-	Component.onCompleted: pageExercises.StackView.activating.connect(pageActivation);
-
-	function pageActivation() {
-		exercisesList.simulateMouseClick(0, true);
-	}
-
 	TPComplexDialog {
 		id: exportTypeTip
 		customStringProperty1: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
@@ -449,6 +459,7 @@ Page {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		parentPage: pageExercises
 
 		onButton1Clicked: appDB.exportExercisesList(bShare, checkBoxChecked);
 
