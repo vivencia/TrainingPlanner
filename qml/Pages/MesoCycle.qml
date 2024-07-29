@@ -148,6 +148,7 @@ Page {
 					showDate: calendarStartDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
+					parentPage: mesoPropertiesPage
 
 					onDateSelected: function() {
 						bChangeStartDate = true;
@@ -189,6 +190,7 @@ Page {
 					showDate: mesocyclesModel.getDate(mesoIdx, 3)
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
+					parentPage: mesoPropertiesPage
 
 					onDateSelected: function(date) {
 						bChangeStartDate = false;
