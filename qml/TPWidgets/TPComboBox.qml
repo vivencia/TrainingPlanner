@@ -86,6 +86,7 @@ ComboBox {
 		color: backgroundColor
 		opacity: 0.5
 		border.width: control.visualFocus ? 2 : 1
+		border.color: textColor
 		radius: 6
 	}
 
@@ -102,7 +103,7 @@ ComboBox {
 
 			delegate: Text {
 				text: model.key
-				color: control.highlighted ? AppSettings.primaryLightColor : AppSettings.fontColor
+				color: control.highlighted ? AppSettings.primaryLightColor : textColor
 				minimumPointSize: 8
 				fontSizeMode: Text.Fit
 				font.weight: Font.ExtraBold
@@ -113,7 +114,7 @@ ComboBox {
 		}
 
 		background: Rectangle {
-			border.color: AppSettings.fontColor
+			border.color: textColor
 			color: backgroundColor
 			opacity: 0.9
 			radius: 6

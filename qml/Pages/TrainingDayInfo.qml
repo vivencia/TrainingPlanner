@@ -37,7 +37,6 @@ Page {
 	property bool pageOptionsLoaded: false
 	property bool editMode: false
 	property bool bCalendarChangedPending: false
-	property bool bAlreadyLoaded
 
 	property date previousDivisionDayDate
 	property var intentionDlg: null
@@ -106,6 +105,7 @@ Page {
 		id: dlgTimeIn
 		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtInTime.text)
 		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtInTime.text)
+		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => {
 			timeIn = hour + ":" + minutes;
@@ -114,10 +114,12 @@ Page {
 				timeManuallyEdited();
 		}
 	}
+
 	TimePicker {
 		id: dlgTimeOut
 		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtOutTime.text)
 		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtOutTime.text)
+		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
@@ -133,15 +135,23 @@ Page {
 		itemManager.rollUpExercises();
 	}
 
-	TimerDialog {
-		id: dlgSessionLength
-		timePickerOnly: true
-		windowTitle: qsTr("Length of this training session")
+	property var dlgSessionLength: null
+	function openSessionLengthTimer() {
+		if (dlgSessionLength === null) {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
-		onUseTime: (strtime) => {
-			workoutTimer.stopWatch = false;
-			workoutTimer.prepareTimer(strtime + ":00");
+			function finishCreation() {
+				dlgSessionLength = component.createObject(trainingDayPage, { parentPage: trainingDayPage, timePickerOnly: true,
+					windowTitle: qsTr("Length of this training session") });
+				dlgSessionLength.onUseTime.connect(function(strtime) { workoutTimer.stopWatch = false; workoutTimer.prepareTimer(strtime + ":00"); } );
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
+		dlgSessionLength.show(-1);
 	}
 
 	TimePicker {
@@ -149,6 +159,7 @@ Page {
 		hrsDisplay: runCmd.getHourFromCurrentTime()
 		minutesDisplay: runCmd.getMinutesFromCurrentTime()
 		bOnlyFutureTime: true
+		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => {
 			workoutTimer.stopWatch = false;
@@ -171,29 +182,103 @@ Page {
 		}
 	}
 
-	TPBalloonTip {
-		id: msgClearExercises
-		title: qsTr("Clear exercises list?")
-		message: qsTr("All exercises changes will be removed")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "revert-day.png"
+	property var msgRemoveExercise: null
+	function showRemoveExerciseMessage(exerciseidx: int) {
+		if (!AppSettings.alwaysAskConfirmation) {
+			itemManager.removeExerciseObject(exerciseidx);
+			return;
+		}
 
-		onButton1Clicked: appDB.clearExercises();
-	} //TPBalloonTip
+		if (msgRemoveExercise === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
-	TPBalloonTip {
-		id: tipTimeWarn
-		title: qsTr("Attention!")
-		message: "<b>" + timeLeft + qsTr("</b> until end of training session!")
-		imageSource: "sound-off.png"
-		button1Text: qsTr("OK")
+				function finishCreation() {
+					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
+						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove.png" } );
+					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
+				}
 
-		property string timeLeft
-		onButton1Clicked: workoutTimer.stopAlarmSound();
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		msgRemoveExercise.message = tDayModel.exerciseName(exerciseidx) + qsTr("\nThis action cannot be undone.");
+		msgRemoveExercise.show(-1);
 	}
+
+	property var msgRemoveSet: null
+	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
+		if (!AppSettings.alwaysAskConfirmation) {
+			itemManager.removeSetObject(setnumber, exerciseidx);
+			return;
+		}
+
+		if (msgRemoveSet === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove.png",
+						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
+					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		msgRemoveSet.title = qsTr("Remove set #") + parseInt(setnumber) + "?"
+		msgRemoveSet.show(-1);
+	}
+
+	property var msgClearExercises: null
+	function showClearExercisesMessage() {
+		if (msgClearExercises === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
+						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
+					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(); } );
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		msgClearExercises.show(-1);
+	}
+
+	property var tipTimeWarn: null
 	function displayTimeWarning(timeleft: string, bmin: bool) {
-		tipTimeWarn.timeLeft = timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds"));
+		if (tipTimeWarn === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					tipTimeWarn = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Attention!"),
+						message: qsTr("All exercises changes will be removed"), button1Text: "OK", imageSource: "sound-off" } );
+					tipTimeWarn.button1Clicked.connect(function () { workoutTimer.stopAlarmSound(); } );
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
 		var timeout;
 		if (!bmin)
 		{
@@ -202,81 +287,112 @@ Page {
 		}
 		else
 			timeout = 18000;
+		tipTimeWarn.message = "<b>" + timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds")) + qsTr("</b> until end of training session!");
 		tipTimeWarn.showTimed(timeout, 0);
 	}
 
-	TPBalloonTip {
-		id: timerDlgMessage
-		title: qsTr("Attention!")
-		message: qsTr("Only one timer window can be opened at a time!")
-		imageSource: "time.png"
-		button1Text: qsTr("OK")
-		highlightMessage: true
-	}
+	property var timerDlgMessage: null
+	function showTimerDialogMessage() {
+		if (timerDlgMessage === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
-	TPComplexDialog {
-		id: exportTypeTip
-		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
-		customStringProperty1: lblHeader.text
-		customStringProperty2: qsTr("Human readable?")
-		customStringProperty3: "export.png"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
-		parentPage: trainingDayPage
+				function finishCreation() {
+					timerDlgMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Attention!"),
+						message: qsTr("Only one timer window can be opened at a time!"), highlightMessage: true,
+						button1Text: "OK", imageSource: "time.png" } );
+				}
 
-		onButton1Clicked: appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked);
-
-		property bool bShare: false
-
-		function init(share: bool) {
-			bShare = share;
-			show(-1);
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
 		}
+		timerDlgMessage.showTimed(3000, 0);
 	}
 
-	TPBalloonTip {
-		id: resetWorkoutMsg
-		imageSource: "reset.png"
-		title: qsTr("Reset workout?");
-		message: qsTr("Exercises will not be afected")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
+	property var exportMessage: null
+	function showExportMessage(share: bool) {
+		if (exportMessage === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
-		onButton1Clicked: itemManager.resetWorkout();
+				function finishCreation() {
+					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, customStringProperty1: lblHeader.text,
+						customStringProperty2: qsTr("Human readable?"), customStringProperty3: "export.png", button1Text: qsTr("Yes"), button2Text: qsTr("No"),
+						customItemSource: "TPDialogWithMessageAndCheckBox.qml" } );
+					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked); } );
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		exportMessage.title = share ? qsTr("Share workout?") : qsTr("Export workout to file?");
+		exportMessage.show(-1);
 	}
 
-	TPBalloonTip {
-		id: calendarChangedWarning
-		imageSource: "warning.png"
-		title: qsTr("Calendar changed! Update?")
-		message: qsTr("Training division: ") + splitLetter + " -> " + newSplitLetter + qsTr("\nWorkout number: ") + tDay + " -> " + newtDay
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
+	property var resetWorkoutMsg: null
+	function resetWorkoutMessage() {
+		if (resetWorkoutMsg === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
-		onButton1Clicked: acceptChanges();
+				function finishCreation() {
+					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
+						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
+					tipTimeWarn.button1Clicked.connect(function () { itemManager.resetWorkout(); } );
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		resetWorkoutMsg.show(-1);
+	}
+
+	property var calChangedWarningMessage: null
+	function warnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
 
 		function acceptChanges() {
 			bCalendarChangedPending = false;
-			splitLetter = newSplitLetter;
-			tDay = newtDay;
-			splitText = newSplitText;
+			splitLetter = newsplitletter;
+			tDay = newtday;
+			splitText = newsplittext;
 			tDayModel.setTrainingDay(tDay);
 			tDayModel.setSplitLetter(splitLetter);
-			msgClearExercises.show(-1);
+			showClearExercisesMessage();
 			saveWorkout();
 		}
 
-		property string newSplitLetter
-		property string newtDay
-		property string newSplitText
-	}
-	function warnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
+		if (calChangedWarningMessage === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					calChangedWarningMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Calendar changed! Update?"),
+						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "warning.png" } );
+					tipTimeWarn.button1Clicked.connect(acceptChanges);
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		calChangedWarningMessage.message = qsTr("Training division: ") + splitLetter + " -> " + newsplitletter + qsTr("\nWorkout number: ") + tDay + " -> " + newtday
 		bCalendarChangedPending = true;
-		calendarChangedWarning.newSplitLetter = newsplitletter;
-		calendarChangedWarning.newtDay = newtday;
-		calendarChangedWarning.newSplitText = newsplittext;
-		calendarChangedWarning.show(-1);
+		calChangedWarningMessage.show(-1);
 	}
 
 	ScrollView {
@@ -422,7 +538,7 @@ Page {
 							text: qsTr("By duration")
 							visible: optTimeConstrainedSession.checked
 							Layout.alignment: Qt.AlignCenter
-							onClicked: dlgSessionLength.open();
+							onClicked: openSessionLengthTimer();
 						}
 						TPButton {
 							id: btnTimeHour
@@ -584,7 +700,7 @@ Page {
 						leftMargin: 5
 					}
 
-					onClicked: msgClearExercises.show(-1);
+					onClicked: showClearExercisesMessage();
 				}
 			}
 		}// colMain
@@ -648,7 +764,7 @@ Page {
 
 	Component.onDestruction: {
 		if (bCalendarChangedPending)
-			calendarChangedWarning.acceptChanges();
+			calChangedWarningMessage.acceptChanges();
 	}
 
 	Component.onCompleted: {
@@ -954,7 +1070,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				intentionDlg = component.createObject(mainwindow, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
+				intentionDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
 						customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
 						customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
 				intentionDlg.button1Clicked.connect(intentChosen);
@@ -1045,7 +1161,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				timerDialog = component.createObject(trainingDayPage, { bJustMinsAndSecs:true, simpleTimer:false });
+				timerDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, bJustMinsAndSecs:true, simpleTimer:false });
 				timerDialog.onUseTime.connect(timerDialogUseButtonClicked);
 				timerDialog.onClosed.connect(timerDialogClosed);
 			}
@@ -1059,11 +1175,12 @@ Page {
 			timerDialogRequester = requester;
 			timerDialog.windowTitle = message;
 			timerDialog.initialTime = "00:" + mins + ":" + secs;
-			timerDlgMessage.close();
+			if (timerDlgMessage)
+				timerDlgMessage.close();
 			timerDialog.open();
 		}
 		else
-			timerDlgMessage.showTimed(5000, 0);
+			showTimerDialogMessage();
 	}
 
 	function timerDialogUseButtonClicked(strTime) {
@@ -1072,7 +1189,8 @@ Page {
 
 	function timerDialogClosed() {
 		timerDialogRequester = null;
-		timerDlgMessage.close();
+		if (timerDlgMessage)
+			timerDlgMessage.close();
 	}
 
 	function createNavButtons() {
@@ -1118,7 +1236,7 @@ Page {
 	function showFinishedWorkoutOptions() {
 		if (optionsMenu === null) {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, {});
+			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0);
 			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
@@ -1142,7 +1260,7 @@ Page {
 				editMode = !editMode;
 			break;
 			case 1:
-				resetWorkoutMsg.show(-1);
+				resetWorkoutMessage();
 			break;
 		}
 	}
@@ -1153,7 +1271,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				changeSplitLetterDialog = component.createObject(mainwindow, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
+				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
 					button2Text: qsTr("No"), customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
 					customStringProperty3: "remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {

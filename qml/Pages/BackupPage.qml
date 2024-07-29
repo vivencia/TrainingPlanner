@@ -41,6 +41,7 @@ Page {
 	TPBalloonTip {
 		id: opFinished
 		imageSource: "backup.png"
+		parentPage: backupPage
 
 		onButton1Clicked: appDB.restartApp();
 

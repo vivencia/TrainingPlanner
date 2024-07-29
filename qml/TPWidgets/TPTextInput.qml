@@ -37,18 +37,12 @@ TextField {
 		font.pointSize: AppSettings.fontSizeText
 	}
 
-	TPBalloonTip {
-		id: textCopiedInfo
-		height: 40
-		message: qsTr("Text copied to the clipboard")
-	}
-
 	MouseArea {
 		anchors.fill: parent
 		pressAndHoldInterval: 300
 		onPressAndHold: (mouse) => {
 			runCmd.copyToClipBoard(control.text);
-			textCopiedInfo.showTimed(3000, 0);
+			mainwindow.showTextCopiedMessage();
 		}
 		onClicked: (mouse) => {
 			mouse.accepted = false;
@@ -62,7 +56,7 @@ TextField {
 
 	background: Rectangle {
 		id: itemBack
-		border.color: "black"
+		border.color: textColor
 		color: backgroundColor
 		radius: 6
 		opacity: 0.5

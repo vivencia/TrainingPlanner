@@ -29,6 +29,7 @@ RadioButton {
 		font.weight: Font.ExtraBold
 		width: fontMetrics.boundingRect(text).width
 		leftPadding: control.indicator.width + control.spacing
+		verticalAlignment: Text.AlignVCenter
 	}
 
 	indicator: Rectangle {
@@ -46,7 +47,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.checked ? control.enabled ? AppSettings.paneBackgroundColor : "gray" : "transparent"
+			color: control.checked ? control.enabled ? textColor : "gray" : "transparent"
 		}
 	}
 }

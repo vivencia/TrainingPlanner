@@ -8,24 +8,19 @@ import "../TPWidgets"
 
 import com.vivenciasoftware.qmlcomponents
 
-Dialog {
+TPPopup {
 	id: dlgTimer
-	closePolicy: simpleTimer ? Popup.CloseOnPressOutside : Popup.NoAutoClose
-	modal: false
+	bKeepAbove: !simpleTimer
 	width: timePickerOnly ? 150 : windowWidth * 0.75
 	height: timePickerOnly ? 100 : windowHeight * 0.30
 	x: (windowWidth - width) / 2
 	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
 
 	property bool bJustMinsAndSecs: false
 	property bool simpleTimer: false
 	property bool timePickerOnly: false
 	property bool bNegCountDown: false
 	property bool bTextChanged: false //The user changed the input values and clicked USE before starting the timer(if ever). So we use the values provided by he user
-	property bool bTempHide: false
 	property string windowTitle
 	property string initialTime
 
@@ -38,42 +33,6 @@ Dialog {
 	onClosed: mainTimer.stopTimer();
 
 	onInitialTimeChanged: mainTimer.prepareTimer(initialTime);
-
-	Rectangle {
-		id: backRec
-		implicitHeight: height
-		implicitWidth: width
-		radius: 8
-		layer.enabled: true
-		visible: false
-	}
-
-	background: backRec
-
-	MultiEffect {
-		id: backgroundEffect
-		visible: true
-		source: backRec
-		anchors.fill: backRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-		opacity: 0.9
-	}
-
-	contentItem {
-		Keys.onPressed: (event) => {
-			if (event.key === mainwindow.backKey) {
-				event.accepted = true;
-				close();
-			}
-		}
-	}
 
 	TPTimer {
 		id: mainTimer
@@ -164,10 +123,10 @@ Dialog {
 		TPCheckBox {
 			id: chkStopWatch
 			text: qsTr("Stopwatch")
-			textColor: "darkred"
 			checked: false
 			visible: !timePickerOnly
 			Layout.leftMargin: 10
+			Layout.bottomMargin: 10
 		} //TPCheckBox
 
 		GridLayout {
@@ -182,7 +141,7 @@ Dialog {
 			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 25
 
 			Label {
-				color: "darkred"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Hours")
 				visible: !bJustMinsAndSecs
@@ -193,7 +152,7 @@ Dialog {
 				Layout.leftMargin: 5
 			}
 			Label {
-				color: "darkred"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
@@ -203,7 +162,7 @@ Dialog {
 				Layout.leftMargin: -5
 			}
 			Label {
-				color: "darkred"
+				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeLists
 				text: qsTr("Seconds")
 				visible: !timePickerOnly
@@ -389,8 +348,8 @@ Dialog {
 			to: 0
 			value: mainTimer.progressValue
 			indeterminate: mainTimer.stopWatch
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
+			Layout.topMargin: 5
+			Layout.bottomMargin: 5
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
 			Layout.leftMargin: leftMarginValue
@@ -398,7 +357,7 @@ Dialog {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: "black"
+				color: AppSettings.fontColor
 				opacity: 0.5
 				radius: 3
 			}
@@ -425,6 +384,7 @@ Dialog {
 			TPButton {
 				id: btnStartPause
 				text: mainTimer.active ? qsTr("Pause") : mainTimer.paused ? qsTr("Continue") : qsTr("Start")
+				flat: false
 				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
 				visible: !timePickerOnly
 				Layout.minimumWidth: btnsRow.buttonWidth
@@ -441,6 +401,7 @@ Dialog {
 			TPButton {
 				id: btnReset
 				text: qsTr("Reset")
+				flat: false
 				visible: !timePickerOnly
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth
@@ -451,6 +412,7 @@ Dialog {
 			TPButton {
 				id: btnUseTime
 				text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
+				flat: false
 				Layout.minimumWidth: btnsRow.buttonWidth
 				Layout.maximumWidth: btnsRow.buttonWidth
 
@@ -464,25 +426,6 @@ Dialog {
 			}
 		} //Row
 	} //ColumnLayout
-
-	Component.onCompleted: {
-		mainwindow.mainMenuOpened.connect(hideDlg);
-		mainwindow.mainMenuClosed.connect(showDlg);
-	}
-
-	function hideDlg() {
-		if (visible) {
-			bTempHide = true;
-			visible = false;
-		}
-	}
-
-	function showDlg() {
-		if (bTempHide) {
-			visible = true;
-			bTempHide = false;
-		}
-	}
 
 	function processKeyEvents(event) {
 		switch (event.key) {

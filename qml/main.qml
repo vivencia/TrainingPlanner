@@ -32,7 +32,6 @@ ApplicationWindow {
 	property bool bBackButtonEnabled: true
 
 	property int backKey
-	property var visibleMsgOrDlg: null
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")
@@ -43,16 +42,10 @@ ApplicationWindow {
 		contentItem.Keys.pressed.connect( function(event) {
 			if (event.key === backKey) {
 				event.accepted = true;
-				if (visibleMsgOrDlg) {
-					visibleMsgOrDlg.close();
-					visibleMsgOrDlg = null;
-				}
-				else {
-					if (stackView.depth >= 2)
-						popFromStack();
-					else
-						close();
-				}
+				if (stackView.depth >= 2)
+					popFromStack();
+				else
+					close();
 			}
 		});
 	}
@@ -178,6 +171,7 @@ ApplicationWindow {
 		imageSource: "import.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
+		parentPage: homePage
 
 		onButton1Clicked: {
 			const result = appDB.importFromFile(importExportFilename);
@@ -240,7 +234,7 @@ ApplicationWindow {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportMessageBox.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					importMessageDialog = component.createObject(contentItem, {});
+					importMessageDialog = component.createObject(contentItem, { parentPage: homePage });
 					importMessageDialog.init(fileName);
 				}
 
@@ -256,9 +250,20 @@ ApplicationWindow {
 	}
 
 	TPBalloonTip {
+		id: textCopiedInfo
+		height: 40
+		message: qsTr("Text copied to the clipboard")
+		parentPage: homePage
+	}
+	function showTextCopiedMessage() {
+		textCopiedInfo.showTimed(3000, 0);
+	}
+
+	TPBalloonTip {
 		id: activityFinishedTip
 		imageSource: "import.png"
 		button1Text: "OK"
+		parentPage: homePage
 	}
 
 	function displayResultMessage(result: int) {

@@ -37,6 +37,7 @@ Page {
 		id: applyTip
 		message: qsTr("The App must be restarted in order to reflect the changes")
 		imageSource: "settings.png"
+		parentPage: settingsPage
 
 		function init() {
 			if (Qt.platform.os !== "android") {

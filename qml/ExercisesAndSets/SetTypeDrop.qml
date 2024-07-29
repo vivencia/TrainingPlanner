@@ -27,6 +27,7 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 	signal exerciseCompleted(int exercise_idx)
+	signal showRemoveSetMessage(int set_number, int exercise_idx)
 
 	onFocusChanged: {
 		if (focus) {
@@ -42,6 +43,7 @@ Item {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "remove.png"
+		parentPage: trainingDayPage
 
 		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
 	} //TPBalloonTip
@@ -83,12 +85,7 @@ Item {
 				width: 25
 				imageName: "remove.png"
 
-				onClicked: {
-					if (AppSettings.alwaysAskConfirmation)
-						msgDlgRemove.show(-1);
-					else
-						itemManager.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
 
 			TPCheckBox {

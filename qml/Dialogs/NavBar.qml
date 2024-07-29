@@ -70,8 +70,8 @@ ToolBar {
 				var component = Qt.createComponent("qrc:/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					mainCalendar = component.createObject(mainwindow, { showDate:new Date(), simpleCalendar:true,
-						initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
+					mainCalendar = component.createObject(mainwindow, { parentPage: homePage, showDate:new Date(),
+						simpleCalendar:true, initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
 				}
 
 				if (component.status === Component.Ready)
@@ -102,7 +102,7 @@ ToolBar {
 				var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					mainTimer = component.createObject(mainwindow, { simpleTimer:true });
+					mainTimer = component.createObject(mainwindow, { parentPage: homePage, simpleTimer:true });
 				}
 
 				if (component.status === Component.Ready)

@@ -301,6 +301,7 @@ Page {
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
 					imageSource: "remove.png"
+					parentPage: homePage
 
 					property int mesoidx
 					onButton1Clicked: appDB.removeMesocycle(mesoidx);

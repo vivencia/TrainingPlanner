@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 import "../"
 
-Popup {
+TPPopup {
 	property string title: ""
 	property string button1Text: ""
 	property string button2Text: ""
@@ -14,12 +14,9 @@ Popup {
 
 	property int startYPosition: 0
 	property int finalXPos: 0
-	property int finalYPos: 0
-	property int startYPos: 0
 
 	property string customItemSource: ""
 	property var customItem: null
-	property var parentPage
 	property bool customBoolProperty1
 	property bool customBoolProperty2
 	property bool customBoolProperty3
@@ -30,53 +27,16 @@ Popup {
 	property var customModel: []
 	property bool bAdjustHeightEveryOpen: false
 	property bool bClosable: true
+	property int totalHeight: 0
 
 	signal button1Clicked();
 	signal button2Clicked();
 	signal dialogOpened();
 
 	id: dialog
-	closePolicy: Popup.NoAutoClose
-	modal: false
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
+	bKeepAbove: true
 	width: windowWidth * 0.9
 	height: totalHeight + 20
-
-	property int totalHeight: 0
-
-	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { dialog.visible = false; });
-		parentPage.pageActivated.connect(function() { dialog.visible = true; });
-	}
-
-	Rectangle {
-		id: backRec
-		anchors.fill: parent
-		color: backColor
-		radius: 8
-		layer.enabled: true
-		visible: false
-		opacity: 0.8
-	}
-
-	background: backgroundEffect
-
-	MultiEffect {
-		id: backgroundEffect
-		visible: true
-		source: backRec
-		anchors.fill: backRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-	}
 
 	NumberAnimation {
 		id: alternateCloseTransition
@@ -88,41 +48,6 @@ Popup {
 		to: finalXPos
 		duration: 500
 		easing.type: Easing.InOutCubic
-	}
-
-	enter: Transition {
-		NumberAnimation {
-			property: "y"
-			from: startYPos
-			to: finalYPos
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-		NumberAnimation {
-			property: "opacity"
-			from: 0
-			to: 0.9
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-	}
-
-	exit: Transition {
-		id: closeTransition
-		NumberAnimation {
-			property: "y"
-			from: finalYPos
-			to: startYPos
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-		NumberAnimation {
-			property: "opacity"
-			from: 0.9
-			to: 0
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
 	}
 
 	onCustomItemSourceChanged: {
@@ -250,8 +175,5 @@ Popup {
 			height += customItem.height;
 		}
 		dialog.open();
-		if (bClosable)
-			mainwindow.visibleMsgOrDlg = dialog;
-
 	}
 }

@@ -25,17 +25,7 @@ Rectangle {
 	signal okClicked(date selDate)
 	signal cancelClicked
 
-	Keys.onPressed: (event) => {
-		if (event.key === Qt.Key_Back) {
-			event.accepted = true;
-			close();
-		}
-	}
-
-	Component.onCompleted: {
-		thisDay = new Date();
-		root.forceActiveFocus();
-	}
+	Component.onCompleted: thisDay = new Date();
 
 	Rectangle {
 		id: titleOfDate

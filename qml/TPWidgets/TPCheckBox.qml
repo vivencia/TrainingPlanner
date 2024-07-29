@@ -5,32 +5,40 @@ import "../"
 
 CheckBox {
 	id: control
-	padding: 0
 	spacing: 5
+	padding: 0
 	implicitHeight: Math.max(lblText.implicitHeight, 25)
+	width: lblText.width
+	implicitWidth: width
 
 	property string textColor: AppSettings.fontColor
+
+	FontMetrics {
+		id: fontMetrics
+		font.family: lblText.font.family
+		font.pointSize: lblText.font.pointSize
+		font.weight: lblText.font.weight
+	}
 
 	contentItem: Text {
 		id: lblText
 		text: control.text
+		color: control.enabled ? textColor : "gray"
+		wrapMode: Text.WordWrap
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
-		wrapMode: Text.WordWrap
-		opacity: enabled ? 1.0 : 0.3
-		verticalAlignment: Text.AlignVCenter
+		width: fontMetrics.boundingRect(text).width
 		leftPadding: control.indicator.width + control.spacing
-		color: textColor
 	}
 
 	indicator: Rectangle {
 		implicitWidth: 20
 		implicitHeight: 20
-		x: control.leftPadding
-		y: (control.height-height)/2
+		x: 3
+		y: lblText.y
 		radius: 4
 		color: "transparent"
-		border.color: textColor
+		border.color: control.enabled ? textColor : "gray"
 
 		Rectangle {
 			width: 10
@@ -38,7 +46,7 @@ CheckBox {
 			x: 5
 			y: 5
 			radius: 2
-			color: control.checked ? AppSettings.paneBackgroundColor : "transparent"
+			color: control.checked ? control.enabled ? textColor : "gray" : "transparent"
 		}
 	}
 }

@@ -7,51 +7,13 @@ import QtQuick.Effects
 import "../"
 import "../TPWidgets"
 
-Popup {
+TPPopup {
 	id: timePicker
-	closePolicy: Popup.CloseOnPressOutside
+	bKeepAbove: true
 	width: windowWidth * 0.78
 	height: windowHeight * 0.60
 	x: (windowWidth - width) / 2
 	y: (windowHeight - height) / 2
-	modal: true
-	focus: true
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-
-	Rectangle {
-		id: backRec
-		anchors.fill: parent
-		radius: 8
-		layer.enabled: true
-		visible: false
-	}
-
-	background: backRec
-
-	MultiEffect {
-		id: backgroundEffect
-		visible: true
-		source: backRec
-		anchors.fill: backRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-		opacity: 0.9
-	}
-
-	contentItem {
-		Keys.onPressed: (event) => {
-			if (event.key === Qt.Key_Back) {
-				event.accepted = true;
-				close();
-			}
-		}
-	}
 
 	property bool isOK: false
 	property int timeButtonsPaneSize: timePicker.width

@@ -125,6 +125,16 @@ void TPMesocycleClass::requestFloatingButton(const QVariant& exercise_idx, const
 								Q_ARG(int, set_type.toInt()), Q_ARG(QString, nset.toString()));
 }
 
+void TPMesocycleClass::showRemoveExerciseMessage(int exercise_idx)
+{
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "showRemoveExerciseMessage", Q_ARG(int, exercise_idx));
+}
+
+void TPMesocycleClass::showRemoveSetMessage(int set_number, int exercise_idx)
+{
+	QMetaObject::invokeMethod(m_CurrenttDayPage, "showRemoveSetMessage", Q_ARG(int, set_number), Q_ARG(int, exercise_idx));
+}
+
 void TPMesocycleClass::exerciseCompleted(int exercise_idx)
 {
 	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
@@ -471,6 +481,7 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("trainingDayPage"), QVariant::fromValue(m_CurrenttDayPage));
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
@@ -509,6 +520,7 @@ void TPMesocycleClass::createExerciseObject_part2(const int object_idx)
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
 	connect( item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,
 						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)) );
+	connect( item, SIGNAL(showRemoveExerciseMessage(int)), this, SLOT(showRemoveExerciseMessage(int)) );
 
 	m_currentExercises->appendExerciseEntry(item);
 	emit itemReady(item, tDayExerciseCreateId);
@@ -654,6 +666,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 
 	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
+	connect( item, SIGNAL(showRemoveSetMessage(int,int)), this, SLOT(showRemoveSetMessage(int,int)) );
 	if (set_number == currenttDayModel()->setsNumber(exercise_idx)-1)
 	{
 		if (!bNewSet)

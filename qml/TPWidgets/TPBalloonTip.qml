@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 import "../"
 
-Popup {
+TPPopup {
 	property string message: ""
 	property string title: ""
 	property string button1Text: ""
@@ -15,56 +15,16 @@ Popup {
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property bool highlightMessage: false
-	property int startYPosition: 0
 
+	property int startYPosition: 0
 	property int finalXPos: 0
-	property int finalYPos: 0
-	property int startYPos: 0
 
 	signal button1Clicked();
 	signal button2Clicked();
 
 	id: balloon
-	closePolicy: Popup.NoAutoClose
-	modal: false
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
+	bKeepAbove: true
 	width: windowWidth * 0.8
-
-	Component.onCompleted: {
-		if (parent) {
-			parent.pageDeActivated.connect(function() { balloon.visible = false; });
-			parent.pageActivated.connect(function() { balloon.visible = true; });
-		}
-	}
-
-	Rectangle {
-		id: backRec
-		anchors.fill: parent
-		color: backColor
-		radius: 8
-		layer.enabled: true
-		visible: false
-	}
-
-	background: backRec
-
-	MultiEffect {
-		id: backgroundEffect
-		visible: true
-		source: backRec
-		anchors.fill: backRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-		opacity: 0.9
-	}
 
 	NumberAnimation {
 		id: alternateCloseTransition
@@ -76,41 +36,6 @@ Popup {
 		to: finalXPos
 		duration: 500
 		easing.type: Easing.InOutCubic
-	}
-
-	enter: Transition {
-		NumberAnimation {
-			property: "y"
-			from: startYPos
-			to: finalYPos
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-		NumberAnimation {
-			property: "opacity"
-			from: 0
-			to: 1
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-	}
-
-	exit: Transition {
-		id: closeTransition
-		NumberAnimation {
-			property: "y"
-			from: finalYPos
-			to: startYPos
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
-		NumberAnimation {
-			property: "opacity"
-			from: 1
-			to: 0
-			duration: 500
-			easing.type: Easing.InOutCubic
-		}
 	}
 
 	FontMetrics {
@@ -182,6 +107,7 @@ Popup {
 	TPButton {
 		id: btn1
 		text: button1Text
+		flat: false
 		visible: button1Text.length > 0
 		x: button2Text.length > 0 ? (balloon.width - implicitWidth - btn2.implicitWidth)/2 : (balloon.width - implicitWidth)/2;
 		y: balloon.height - buttonHeight - 5;
@@ -196,6 +122,7 @@ Popup {
 	TPButton {
 		id: btn2
 		text: button2Text
+		flat: false
 		visible: button2Text.length > 0
 		x: button1Text.length > 0 ? btn1.x + btn1.width + 5 : (balloon.width - implicitWidth)/2;
 		y: balloon.height - buttonHeight - 5;
@@ -297,7 +224,6 @@ Popup {
 		else
 			startYPos = windowHeight + 300;
 		balloon.open();
-		mainwindow.visibleMsgOrDlg = balloon;
 	}
 
 	function showTimed(timeout, ypos) {

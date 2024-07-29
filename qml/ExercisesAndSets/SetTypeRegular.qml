@@ -26,6 +26,7 @@ Item {
 
 	signal requestTimerDialogSignal(Item requester, var args)
 	signal exerciseCompleted(int exercise_idx)
+	signal showRemoveSetMessage(int set_number, int exercise_idx)
 
 	readonly property int controlWidth: setItem.width - 20
 
@@ -36,17 +37,6 @@ Item {
 		if (focus)
 			txtNReps.forceActiveFocus();
 	}
-
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Set")
-		message: lblSetNumber.text + qsTr("? This action cannot be undone.")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "remove.png"
-
-		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
-	} //TPBalloonTip
 
 	ColumnLayout {
 		id: setLayout
@@ -85,12 +75,7 @@ Item {
 				width: 30
 				imageName: "remove.png"
 
-				onClicked: {
-					if (AppSettings.alwaysAskConfirmation)
-						msgDlgRemove.show(-1);
-					else
-						itemManager.removeSetObject(setNumber, exerciseIdx);
-				}
+				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
 
 			TPCheckBox {

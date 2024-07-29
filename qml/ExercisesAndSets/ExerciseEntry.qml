@@ -15,6 +15,7 @@ FocusScope {
 
 	property DBTrainingDayModel tDayModel
 	property int exerciseIdx
+	property var trainingDayPage
 
 	property int setNbr: 0
 	property string nSets
@@ -26,17 +27,7 @@ FocusScope {
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
-
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Exercise")
-		message: tDayModel.exerciseName(exerciseIdx) + qsTr("? This action cannot be undone.")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "remove.png"
-
-		onButton1Clicked: itemManager.removeExerciseObject(exerciseIdx);
-	} //TPBalloonTip
+	signal showRemoveExerciseMessage(int exerciseidx)
 
 	Frame {
 		id: paneExercise
@@ -151,7 +142,7 @@ FocusScope {
 						itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 						itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 					}
-					onRemoveButtonClicked: msgDlgRemove.show(exerciseItem.y)
+					onRemoveButtonClicked: showRemoveExerciseMessage(exerciseIdx);
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
 					onItemClicked: paneExerciseShowHide(false, false);
 				}
