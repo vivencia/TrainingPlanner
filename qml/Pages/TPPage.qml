@@ -15,8 +15,10 @@ Page {
 	signal pageDeActivated();
 
 	Component.onCompleted: {
-		tpPage.StackView.onDeactivating.connect(pageDeActivation);
-		tpPage.StackView.activating.connect(pageActivation);
+		mainwindow.pageActivated_main.connect(pageActivation);
+		mainwindow.pageDeActivated_main.connect(pageDeActivation);
+		//tpPage.StackView.onDeactivating.connect(pageDeActivation);
+		//tpPage.StackView.activating.connect(pageActivation);
 	}
 
 	Image {
@@ -32,11 +34,17 @@ Page {
 		opacity: 0.7
 	}
 
-	function pageDeActivation() {
-		pageDeActivated();
+	function pageDeActivation(page: Item) {
+		if (page !== null) {
+			if (page.objectName === tpPage.objectName)
+				pageDeActivated();
+		}
 	}
 
-	function pageActivation() {
-		pageActivated();
+	function pageActivation(page: Item) {
+		if (page !== null) {
+			if (page.objectName === tpPage.objectName)
+				pageActivated();
+		}
 	}
 }

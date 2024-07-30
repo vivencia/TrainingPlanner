@@ -96,7 +96,9 @@ ApplicationWindow {
 			}
 
 			onClicked: {
+				pageDeActivated_main(stackView.currentItem);
 				stackView.pop(stackView.get(0));
+				pageActivated_main(stackView.currentItem);
 				btnWorkoutEnabled();
 			}
 		}
@@ -145,16 +147,22 @@ ApplicationWindow {
 			btnWorkout.enabled = false;
 	}
 
+	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item) {
+		pageDeActivated_main(stackView.currentItem);
 		if (page)
 			stackView.pop(page);
 		else
 			stackView.pop();
+		pageActivated_main(stackView.currentItem);
 		btnWorkoutEnabled();
 	}
 
+	signal pageActivated_main(Item page);
 	function pushOntoStack(page: Item) {
+		pageDeActivated_main(stackView.currentItem);
 		stackView.push(page);
+		pageActivated_main(page);
 		btnWorkoutEnabled();
 	}
 

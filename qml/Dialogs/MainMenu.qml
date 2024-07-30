@@ -140,7 +140,12 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
 			}
-			onClicked: { stackView.push("../Pages/SettingsPage.qml"); close(); }
+			onClicked: {
+				pageDeActivated_main(stackView.currentItem);
+				stackView.push("../Pages/SettingsPage.qml");
+				pageDeActivated_main(stackView.currentItem);
+				close();
+			}
 		}
 
 		TPButton {
@@ -152,7 +157,12 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
 			}
-			onClicked: { stackView.push("../Pages/BackupPage.qml"); close(); }
+			onClicked: {
+				pageDeActivated_main(stackView.currentItem);
+				stackView.push("../Pages/BackupPage.qml");
+				pageDeActivated_main(stackView.currentItem);
+				close();
+			}
 		}
 
 		Rectangle {

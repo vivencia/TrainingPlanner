@@ -8,7 +8,7 @@ Popup {
 	id: tppopup
 	objectName: "TPPopup"
 	closePolicy: bKeepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
-	modal: bKeepAbove
+	//modal: bKeepAbove
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0

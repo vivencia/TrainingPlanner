@@ -9,6 +9,7 @@ import "../TPWidgets"
 
 TPPage {
 	id: homePage
+	objectName: "homePage"
 	property date minimumStartDate;
 	property var newMesoMenu: null
 	property var imexportMenu: null

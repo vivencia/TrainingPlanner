@@ -18,13 +18,6 @@ Rectangle {
 	signal controlMoved(int xpos, int ypos)
 	property bool bVisible: false
 
-	onVisibleChanged: {
-		console.log(objName);
-		console.log(parentPage.objectName);
-		console.log(visible);
-		console.log(bVisible);
-	}
-
 	Component.onCompleted: {
 		parentPage.pageDeActivated.connect(function() { bVisible = control.visible; control.visible = false; });
 		parentPage.pageActivated.connect(function() { if (bVisible) control.visible = true; });

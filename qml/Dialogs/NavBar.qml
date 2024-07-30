@@ -28,7 +28,7 @@ ToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: popFromStack(null);
+		onClicked: popFromStack();
 	}
 
 	RoundButton {

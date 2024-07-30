@@ -63,7 +63,7 @@ TPPage {
 	footer: ToolBar {
 		id: splitToolBar
 		width: parent.width
-		height: 55
+		height: footerHeight
 		visible: !bShowSimpleExercisesList
 
 		background: Rectangle {
@@ -86,8 +86,8 @@ TPPage {
 			flat: false
 			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.modified : false
 			fixedSize: true
-			width: 55
-			height: 55
+			width: footerHeight
+			height: footerHeight
 
 			anchors {
 				left: parent.left
@@ -110,8 +110,8 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: 55
-			height: 55
+			width: footerHeight
+			height: footerHeight
 			anchors {
 				left: btnSave.right
 				leftMargin: 3
@@ -134,8 +134,8 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: 55
-			height: 55
+			width: footerHeight
+			height: footerHeight
 			anchors {
 				left: btnClearPlan.right
 				leftMargin: 3
@@ -153,8 +153,8 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: 55
-			height: 55
+			width: footerHeight
+			height: footerHeight
 			anchors {
 				left: btnSwapPlan.right
 				leftMargin: 3
@@ -173,7 +173,7 @@ TPPage {
 			rounded: false
 			flat: false
 			width: 70
-			height: 55
+			height: footerHeight
 			anchors {
 				right: parent.right
 				rightMargin: 5
