@@ -8,7 +8,7 @@ import "../TPWidgets"
 Rectangle {
 	id: root
 	clip: true
-	height: cellSize * ( justCalendar ? 11 : 12.5 )
+	height: cellSize * 10.5
 	width: cellSize * 8
 
 	required property date displayDate
@@ -95,7 +95,6 @@ Rectangle {
 
 	ListView {
 		id: calendar
-		height: cellSize * 7.5
 		visible: true
 		z: 1
 		snapMode: ListView.SnapToItem
@@ -104,6 +103,7 @@ Rectangle {
 
 		anchors {
 			top: titleOfDate.bottom
+			bottom: parent.bottom
 			left: parent.left
 			right: parent.right
 			leftMargin: cellSize * 0.5
@@ -171,8 +171,9 @@ Rectangle {
 				delegate: Rectangle {
 					height: cellSize
 					width: cellSize
-					radius: height * 0.5
-					enabled: model.month === monthGrid.month
+					radius: cellSize * 0.5
+					opacity: monthGrid.month === model.month ? 1 : 0.5
+
 					gradient: Gradient {
 						orientation: Gradient.Vertical
 						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
@@ -184,17 +185,6 @@ Rectangle {
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
 
-					Component.onCompleted: {
-						var colorValue = "transparent";
-						if ( highlighted )
-							return AppSettings.primaryLightColor;
-						else {
-							if ( monthGrid.month === model.month )
-								colorValue =  AppSettings.paneBackgroundColor;
-						}
-						color = colorValue
-					}
-
 					Text {
 						anchors.centerIn: parent
 						text: model.day
@@ -202,8 +192,7 @@ Rectangle {
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
-						visible: parent.enabled
-						color: todayDate ? "red" : parent.highlighted ? "black" : "white"
+						color: todayDate ? "red" : parent.highlighted ? "black" : monthGrid.month === model.month ? "white" : "gray"
 					}
 					MouseArea {
 						anchors.fill: parent
@@ -290,36 +279,6 @@ Rectangle {
 			calendar.visible = true;
 		}
 	} // ListView yearsList
-
-
-	Row {
-		height: cellSize
-		spacing: 20
-		z: 1
-		anchors {
-			top: calendar.bottom
-			right: parent.right
-			rightMargin: cellSize * 0.5
-		}
-
-		TPButton {
-			text: qsTr("CANCEL")
-			visible: !justCalendar
-
-			onClicked: cancelClicked();
-		}
-
-		TPButton {
-			text: "OK"
-
-			onClicked: {
-				if (!justCalendar)
-					okClicked(selectedDate);
-				else
-					cancelClicked();
-			}
-		}
-	}
 
 	function setDate(newDate) {
 		selectedDate = newDate;

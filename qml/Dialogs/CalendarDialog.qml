@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import QtQuick.Layouts
 
 import "../TPWidgets"
 
@@ -8,7 +8,7 @@ TPPopup {
     id: calendarPopup
 	bKeepAbove: !simpleCalendar
 	width: datePickerControl.width
-	height: datePickerControl.height
+	height: datePickerControl.height + 30
 	x: (windowWidth - width) / 2 // horizontally centered
 	y: (windowHeight - height) / 2 // vertically centered
 
@@ -19,25 +19,59 @@ TPPopup {
 	property bool simpleCalendar: false
 
 	signal dateSelected(date selDate)
-	property date selectedDate: datePickerControl.selectedDate
 
-	DatePicker {
-		id: datePickerControl
-		displayDate: showDate
-		startDate: initDate
-		endDate: finalDate
-		justCalendar: simpleCalendar
+	ColumnLayout {
+		anchors.fill: parent
+		spacing: 0
 
-		Component.onCompleted: {
-			datePickerControl.setDate(showDate);
+		DatePicker {
+			id: datePickerControl
+			displayDate: showDate
+			startDate: initDate
+			endDate: finalDate
+			justCalendar: simpleCalendar
+
+			Component.onCompleted: datePickerControl.setDate(showDate);
 		}
 
-		onOkClicked: (selDate) => {
-			dateSelected(selDate)
-			calendarPopup.close()
-		}
-		onCancelClicked: {
-			calendarPopup.close()
+		Pane {
+			height: 25
+			Layout.fillWidth: true
+
+			background: Rectangle {
+				color: "transparent"
+			}
+
+			TPButton {
+				id: btnOK
+				text: "OK"
+				flat: false
+
+				anchors {
+					right: parent.right
+					rightMargin: 5
+					verticalCenter: parent.verticalCenter
+				}
+
+				onClicked: {
+					dateSelected(datePickerControl.selectedDate)
+					calendarPopup.close();
+				}
+			}
+
+			TPButton {
+				text: qsTr("CANCEL")
+				flat: false
+				visible: !simpleCalendar
+
+				anchors {
+					right: btnOK.left
+					rightMargin: 30
+					verticalCenter: parent.verticalCenter
+				}
+
+				onClicked: calendarPopup.close()
+			}
 		}
 	}
 }

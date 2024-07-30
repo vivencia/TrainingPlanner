@@ -12,11 +12,9 @@ import "../TPWidgets"
 
 import com.vivenciasoftware.qmlcomponents
 
-Page {
+TPPage {
 	id: trainingDayPage
 	objectName: "trainingDayPage"
-	width: windowWidth
-	height: windowHeight
 
 	required property date mainDate
 	required property int mesoId
@@ -52,14 +50,17 @@ Page {
 
 	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
 
+	onPageActivated: {
+		itemManager.setCurrenttDay(mainDate);
+		changeComboModel();
+	}
+
 	onPageOptionsLoadedChanged: {
 		if (pageOptionsLoaded && intentDialogShown)
 			showIntentionDialog();
 	}
 
 	signal mesoCalendarChanged()
-	signal pageActivated();
-	signal pageDeActivated();
 
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
@@ -83,18 +84,6 @@ Page {
 	onPreviousTDaysChanged: {
 		if (intentionDlg)
 			intentionDlg.customModel = previousTDays;
-	}
-
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
 	}
 
 	ListModel {
@@ -819,7 +808,6 @@ Page {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 100
-		visible: !exercisesPane.visible
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -1198,7 +1186,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(trainingDayPage, { parentPage: trainingDayPage });
+				navButtons = component.createObject(trainingDayPage, { ownerPage: trainingDayPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
 			}
 
@@ -1207,16 +1195,6 @@ Page {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-	}
-
-	function pageActivation() {
-		itemManager.setCurrenttDay(mainDate);
-		changeComboModel();
-		pageActivated();
-	}
-
-	function pageDeActivation() {
-		pageDeActivated();
 	}
 
 	function updateTimer(hour: int, min: int, sec: int)

@@ -3,16 +3,14 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import com.vivenciasoftware.qmlcomponents
 
-import "../"
 import "../jsfunctions.js" as JSF
+import "../"
 import "../Dialogs"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: mesoPropertiesPage
 	objectName: "mesoPage"
-	width: windowWidth
-	height: windowHeight
 
 	required property int mesoId
 	required property int mesoIdx
@@ -32,23 +30,25 @@ Page {
 	property bool bPreserveOldCalendarUntilYesterday: false
 	property bool bChangedCalendar: false
 
-	signal pageActivated();
-	signal pageDeActivated();
-
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
+	Component.onCompleted: {
+		JSF.checkWhetherCanCreatePlan();
+		if (bNewMeso)
+			txtMesoName.forceActiveFocus();
+		mesocyclesModel.modifiedChanged.connect(function () { saveMeso(false); });
+		mesoSplitModel.modifiedChanged.connect(function () { saveMeso(false); });
 	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
+
+	onPageActivated: {
+		appDB.setWorkingMeso(mesoIdx);
+	}
+
+	onPageDeActivated: {
+		if (bNewMeso)
+			appDB.scheduleMesocycleRemoval(mesoIdx);
 	}
 
 	header: ToolBar {
-		height: 45
+		height: headerHeight
 		enabled: !bNewMeso
 
 		background: Rectangle {
@@ -566,16 +566,6 @@ Page {
 		} //ColumnLayout
 	} //ScrollView
 
-	Component.onCompleted: {
-		JSF.checkWhetherCanCreatePlan();
-		if (bNewMeso)
-			txtMesoName.forceActiveFocus();
-		mesoPropertiesPage.StackView.onDeactivating.connect(pageDeActivation);
-		mesoPropertiesPage.StackView.activating.connect(pageActivation);
-		mesocyclesModel.modifiedChanged.connect(function () { saveMeso(false); });
-		mesoSplitModel.modifiedChanged.connect(function () { saveMeso(false); });
-	}
-
 	function changeMuscularGroup(splitletter: string, description: string) {
 		switch (splitletter) {
 			case 'A': txtSplitA.text = description; break;
@@ -586,17 +576,6 @@ Page {
 			case 'F': txtSplitF.text = description; break;
 		}
 		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-	}
-
-	function pageDeActivation() {
-		pageDeActivated();
-		if (bNewMeso)
-			appDB.scheduleMesocycleRemoval(mesoIdx);
-	}
-
-	function pageActivation() {
-		pageActivated();
-		appDB.setWorkingMeso(mesoIdx);
 	}
 
 	function showCalendarChangedDialog() {

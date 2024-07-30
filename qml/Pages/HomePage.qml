@@ -7,47 +7,19 @@ import "../"
 import "../inexportMethods.js" as INEX
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: homePage
 	property date minimumStartDate;
 	property var newMesoMenu: null
 	property var imexportMenu: null
 	property var btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
 
-	signal pageActivated();
-	signal pageDeActivated();
-
-	Component.onCompleted: {
-		homePage.StackView.onDeactivating.connect(pageDeActivation);
-		homePage.StackView.activating.connect(pageActivation);
-	}
-
-	function pageDeActivation() {
-		pageDeActivated();
-	}
-
-	function pageActivation() {
-		pageActivated();
-	}
-
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
-	}
-
 	header: ToolBar {
 		topPadding: 5
 		bottomPadding: 20
 		leftPadding: 10
 		rightPadding: 10
-		height: 60
+		height: headerHeight
 
 		background: Rectangle {
 			gradient: Gradient {

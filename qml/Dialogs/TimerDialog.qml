@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 
 import "../"
 import "../TPWidgets"
@@ -85,7 +84,7 @@ TPPopup {
 				anchors.fill: parent
 				z: 1
 
-				property var prevPos
+				property point prevPos
 				onPressed: (mouse) => {
 					prevPos = { x: mouse.x, y: mouse.y };
 				}

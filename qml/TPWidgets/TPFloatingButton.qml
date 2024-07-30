@@ -3,31 +3,26 @@ import QtQuick.Controls
 
 import "../"
 
-Rectangle {
+TPFloatingControl {
 	id: button
-	color: AppSettings.primaryColor
-	opacity: bHeld ? 0.7 : 1
+	objName: "floatingButton"
 	radius: width / 2
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-
-	property int exerciseIdx
-	property var parentPage
-
-	property string text
-	property string image
-	property bool bHasText: text.length > 1
-	property bool bHasImage: image.length > 1
-	property int comboIndex
-
-	property bool bHeld: false
-
-	signal buttonClicked(int settype, int exerciseidx)
-	property bool bEmitSignal: false
-
-	property int textAndImageSize: (bHasText ? buttonText.width + (bHasImage ? buttonImage.width: 0) : bHasImage ? buttonImage.width: 0)
-
 	height: cboSetType.height + 10;
 	width: cboSetType.width + textAndImageSize + 50
+	x: (windowWidth-width)/2;
+	y: windowHeight * 0.5 - height;
+	color: AppSettings.primaryDarkColor
+	dragWidget: buttonText
+
+	property int exerciseIdx
+	property string image
+	property alias text: buttonText.text
+	property int comboIndex
+	property int textAndImageSize: buttonText.width + buttonImage.width
+
+	signal buttonClicked(int settype, int exerciseidx)
+
+	onClicked: buttonClicked(comboIndex, exerciseIdx);
 
 	ToolButton {
 		id: btnClose
@@ -43,7 +38,7 @@ Rectangle {
 
 		Image {
 			anchors.fill: parent
-			source: "qrc:/images/"+darkIconFolder+"close.png";
+			source: "qrc:/images/"+AppSettings.iconFolder+"close.png";
 		}
 	}
 
@@ -69,7 +64,6 @@ Rectangle {
 		width: 100
 		minimumPointSize: 8
 		fontSizeMode: Text.Fit
-		visible: bHasText
 		z: 0
 
 		anchors {
@@ -81,7 +75,6 @@ Rectangle {
 
 	Image {
 		id: buttonImage
-		visible: bHasImage
 		source: "qrc:/images/"+AppSettings.iconFolder+image;
 		width: 20
 		height: 20
@@ -93,97 +86,7 @@ Rectangle {
 		}
 	}
 
-	MouseArea {
-		property var prevPos
-		anchors {
-			top: parent.top
-			bottom: parent.bottom
-			left: cboSetType.right
-			right: parent.right
-		}
-
-		z: 1
-
-		onClicked: (mouse) => {
-			if (!mouse.wasHeld)
-				bEmitSignal = true;
-		}
-
-		onReleased: {
-			bHeld = false;
-		}
-
-		onPressed: (mouse) => {
-			prevPos = { x: mouse.x, y: mouse.y };
-			bHeld = true;
-			anim.start();
-		}
-
-		onPositionChanged: {
-			if (bHeld) {
-				const deltaX = mouseX - prevPos.x;
-				if (Math.abs(deltaX) < 10) {
-					const deltaY = mouseY - prevPos.y;
-					if (Math.abs(deltaY) < 10) {
-						button.x += deltaX;
-						button.y += deltaY;
-					}
-				}
-				prevPos = { x: mouseX, y: mouseY };
-			}
-		}
-	}
-
-	SequentialAnimation {
-		id: anim
-		alwaysRunToEnd: true
-
-		// Expand the button
-		PropertyAnimation {
-			target: button
-			property: "scale"
-			to: 1.5
-			duration: 200
-			easing.type: Easing.InOutCubic
-		}
-
-		// Shrink back to normal
-		PropertyAnimation {
-			target: button
-			property: "scale"
-			to: 1.0
-			duration: 200
-			easing.type: Easing.InOutCubic
-		}
-
-		onFinished: {
-			if (bEmitSignal) {
-				bEmitSignal = false;
-				buttonClicked(comboIndex, exerciseIdx);
-			}
-		}
-	}
-
-	Component.onCompleted: {
-		x = (windowWidth-width)/2;
-		y = windowHeight * 0.5 - height;
-		parentPage.pageDeActivated.connect(function() { button.visible = false; });
-		parentPage.pageActivated.connect(function() { button.visible = true; });
-		mainwindow.mainMenuOpened.connect(hideButtons);
-		mainwindow.mainMenuClosed.connect(showButtons);
-	}
-
 	function updateDisplayText(nset: string) {
 		buttonText.text = button.text + " #" + nset;
-	}
-
-	function hideButtons(directCall: bool) {
-		if (directCall)
-			button.visible = false;
-	}
-
-	function showButtons(directCall: bool) {
-		if (directCall)
-			button.visible = true;
 	}
 }

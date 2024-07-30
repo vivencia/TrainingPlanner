@@ -24,7 +24,7 @@ Popup {
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
-			navButtons.hideButtons(true);
+			navButtons.visible = false;
 			focus = true;
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
@@ -33,7 +33,7 @@ Popup {
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
 		else
-			navButtons.showButtons(true);
+			navButtons.visible = true;
 	}
 
 	function hideSimpleExerciseList() {

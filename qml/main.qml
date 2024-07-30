@@ -16,10 +16,6 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
-	signal backButtonPressed();
-	signal mainMenuOpened();
-	signal mainMenuClosed();
-
 	readonly property string lightIconFolder: "white/"
 	readonly property string darkIconFolder: "black/"
 	readonly property int windowWidth: width

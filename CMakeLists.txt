@@ -61,10 +61,10 @@ set( QM_FILES
 )
 
 set( QML_FILES
-    "qml/jsfunctions.js"
-    "qml/inexportMethods.js"
     "qml/AppSettings.qml"
     "qml/ImageViewer.qml"
+    "qml/inexportMethods.js"
+    "qml/jsfunctions.js"
     "qml/main.qml"
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
@@ -93,11 +93,13 @@ set( QML_FILES
     "qml/Pages/MesoSplitPlanner.qml"
     "qml/Pages/OpenEndedPlan.qml"
     "qml/Pages/SettingsPage.qml"
+    "qml/Pages/TPPage.qml"
     "qml/Pages/TrainingDayInfo.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
     "qml/TPWidgets/TPButtonImage.qml"
     "qml/TPWidgets/TPFloatingButton.qml"
+    "qml/TPWidgets/TPFloatingControl.qml"
     "qml/TPWidgets/TPCheckBox.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"

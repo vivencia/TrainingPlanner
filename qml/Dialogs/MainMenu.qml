@@ -14,7 +14,6 @@ Drawer {
 	edge: Qt.LeftEdge
 	opacity: 0.8
 
-	property bool bMenuClicked: false
 	property var stackWindows: []
 	property var buttonComponent: null
 
@@ -38,13 +37,6 @@ Drawer {
 			}
 		}
 	}
-
-	onClosed: {
-		if (!bMenuClicked)
-			mainMenuClosed();
-	}
-
-	onOpened: mainMenuOpened();
 
 	TPButton {
 		id: btnExit
@@ -135,7 +127,7 @@ Drawer {
 
 			onClicked: {
 				appDB.openExercisesListPage(false);
-				menuClicked();
+				close();
 			}
 		}
 
@@ -148,7 +140,7 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
 			}
-			onClicked: { stackView.push("../Pages/SettingsPage.qml"); menuClicked(); }
+			onClicked: { stackView.push("../Pages/SettingsPage.qml"); close(); }
 		}
 
 		TPButton {
@@ -160,7 +152,7 @@ Drawer {
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
 			}
-			onClicked: { stackView.push("../Pages/BackupPage.qml"); menuClicked(); }
+			onClicked: { stackView.push("../Pages/BackupPage.qml"); close(); }
 		}
 
 		Rectangle {
@@ -175,20 +167,6 @@ Drawer {
 			Layout.fillHeight: true
 		}
 	} //ColumnLayout
-
-	Component.onCompleted: mainwindow.backButtonPressed.connect(maybeRestore);
-
-	function menuClicked() {
-		bMenuClicked = true;
-		close ();
-	}
-
-	function maybeRestore() {
-		if (!drawer.visible && bMenuClicked) {
-			drawer.open();
-			bMenuClicked = false;
-		}
-	}
 
 	function createShortCut(label: string, object: Item, clickid: int) {
 		if (!buttonComponent)

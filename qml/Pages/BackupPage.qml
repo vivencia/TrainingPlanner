@@ -6,7 +6,7 @@ import QtQuick.Dialogs
 import "../"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: backupPage
 	objectName: "backupPage"
 
@@ -26,17 +26,7 @@ Page {
 	property bool bCanRestore: restoreCount > 0
 	property bool bNeedCheck: false
 
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
-	}
+	Component.onCompleted: appDB.verifyBackupPageProperties(backupPage);
 
 	TPBalloonTip {
 		id: opFinished
@@ -349,6 +339,4 @@ Page {
 			}
 		} //ColumLayout
 	} //ScrollView
-
-	Component.onCompleted: appDB.verifyBackupPageProperties(backupPage);
 } //Page

@@ -5,11 +5,9 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: settingsPage
 	objectName: "settingsPage"
-	width: mainwindow.width
-	height: mainwindow.contentItem.height
 
 	property bool bModified: false
 	property bool bNeedRestart: false
@@ -20,18 +18,6 @@ Page {
 	property int optStyleChosen: 0
 	property int colorSchemeChosen: 0
 	property var colorScheme: []
-
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
-	}
 
 	TPBalloonTip {
 		id: applyTip

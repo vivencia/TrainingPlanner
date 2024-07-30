@@ -40,7 +40,7 @@ Frame {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		imageSource: "remove.png"
-		parentPage: pagePlanner
+		parentPage: parentItem
 
 		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
 	} //TPBalloonTip
@@ -54,7 +54,7 @@ Frame {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: removeExercise(idxToRemove);
-		parentPage: pagePlanner
+		parentPage: parentItem
 
 		property int idxToRemove
 		property string exerciseName

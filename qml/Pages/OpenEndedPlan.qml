@@ -8,11 +8,9 @@ import "../jsfunctions.js" as JSF
 import "../Dialogs"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: openEndedPage
 	objectName: "openEndedPage"
-	width: windowWidth
-	height: windowHeight
 
 	required property int mesoId
 	required property int mesoIdx
@@ -29,20 +27,15 @@ Page {
 
 	property bool bNewMeso: mesoId === -1
 
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
+	onPageDeActivated: {
+		if (bNewMeso)
+			appDB.removeMesocycle(mesoIdx);
 	}
 
+	onPageActivated: appDB.setWorkingMeso(mesoIdx);
+
 	header: ToolBar {
-		height: 45
+		height: headerHeight
 		enabled: !bNewMeso
 
 		background: Rectangle {
@@ -440,8 +433,6 @@ Page {
 
 	Component.onCompleted: {
 		JSF.checkWhetherCanCreatePlan();
-		openEndedPage.StackView.onDeactivating.connect(pageDeActivation);
-		openEndedPage.StackView.activating.connect(pageActivation);
 		mesocyclesModel.modifiedChanged.connect(saveMeso);
 		mesoSplitModel.modifiedChanged.connect(saveMeso);
 	}
@@ -456,15 +447,6 @@ Page {
 			case 'F': txtSplitF.text = description; break;
 		}
 		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-	}
-
-	function pageDeActivation() {
-		if (bNewMeso)
-			appDB.removeMesocycle(mesoIdx);
-	}
-
-	function pageActivation() {
-		appDB.setWorkingMeso(mesoIdx);
 	}
 
 	function saveMeso() {

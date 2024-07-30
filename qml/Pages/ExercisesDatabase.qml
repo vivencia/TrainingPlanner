@@ -9,10 +9,9 @@ import "../inexportMethods.js" as INEX
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: pageExercises
-	width: windowWidth
-	height: windowHeight
+	objectName: "exercisesDatabase"
 	title: "Exercises Page"
 
 	property string strMediaPath
@@ -25,25 +24,11 @@ Page {
 	property var videoViewer: null
 
 	signal exerciseChosen()
-	signal pageActivated()
-	signal pageDeActivated()
 
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: !bChooseButtonEnabled
 
-	Component.onCompleted: {
-		pageExercises.StackView.onDeactivating.connect(pageDeActivation);
-		pageExercises.StackView.activating.connect(pageActivation);
-	}
-
-	function pageDeActivation() {
-		pageDeActivated();
-	}
-
-	function pageActivation() {
-		exercisesList.simulateMouseClick(0, true);
-		pageActivated();
-	}
+	onPageActivated: exercisesList.simulateMouseClick(0, true);
 
 	onBExportEnabledChanged: {
 		if (imexportMenu) {
@@ -51,18 +36,6 @@ Page {
 			if (Qt.platform.os === "android")
 				imexportMenu.enableMenuEntry(2, bExportEnabled);
 		}
-	}
-
-	Image { //Avoid painting the same area several times. Use Item as root element rather than Rectangle to avoid painting the background several times.
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-	background: Rectangle {
-		color: AppSettings.primaryDarkColor
-		opacity: 0.7
 	}
 
 	ScrollView {

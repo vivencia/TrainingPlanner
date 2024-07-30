@@ -28,10 +28,7 @@ ToolBar {
 			verticalCenter: parent.verticalCenter
 		}
 
-		onClicked: {
-			popFromStack(null);
-			backButtonPressed();
-		}
+		onClicked: popFromStack(null);
 	}
 
 	RoundButton {

@@ -5,107 +5,22 @@ import QtQuick.Effects
 
 import "../"
 
-Popup {
+TPPopup {
 	signal menuEntrySelected(id: int);
 
 	id: menu
-	closePolicy: Popup.CloseOnPressOutside
-	modal: false
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
-	opacity: 1
+	bKeepAbove: false
 	height: entriesTotalHeight
+	width: largestEntryWidth
 
 	property var entriesList: []
 	property int entriesTotalHeight: 0
 	property int largestEntryWidth: 0
 	property var entryComponent: null
-	property var parentPage
 
 	Component.onDestruction: {
 		for(var i = 0; i < entriesList.length; ++i)
 			delete entriesList[i];
-	}
-
-	Component.onCompleted: {
-		parentPage.pageDeActivated.connect(function() { menu.visible = false; });
-		parentPage.pageActivated.connect(function() { menu.visible = true; });
-	}
-
-	Rectangle {
-		id: backRec
-		anchors.fill: parent
-		implicitHeight: entriesTotalHeight
-		implicitWidth: largestEntryWidth
-		radius: 6
-		layer.enabled: true
-		color: AppSettings.primaryDarkColor
-		visible: false
-	}
-
-	background: backRec
-
-	MultiEffect {
-		id: backgroundEffect
-		visible: true
-		source: backRec
-		anchors.fill: backRec
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-	}
-
-	contentItem.Keys.onBackPressed: (event) => {
-		event.accepted = true;
-		close();
-	}
-
-	enter: Transition {
-		NumberAnimation {
-			target: menu
-			property: "opacity"
-			from: 0.0
-			to: 0.9
-			duration: 300
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
-		NumberAnimation {
-			target: menu
-			property: "scale"
-			from: 0.0
-			to: 1.0
-			duration: 300
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
-	}
-
-	exit: Transition {
-		NumberAnimation {
-			target: menu
-			property: "opacity"
-			from: 0.9
-			to: 0.0
-			duration: 300
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
-		NumberAnimation {
-			target: menu
-			property: "scale"
-			from: 1.0
-			to: 0.0
-			duration: 300
-			easing.type: Easing.InOutCubic
-			alwaysRunToEnd: true
-		}
 	}
 
 	ColumnLayout {
@@ -176,6 +91,8 @@ Popup {
 			ypos = parent.height - entriesTotalHeight - 10;
 		x = xpos;
 		y = ypos;
+		if (ypos > windowHeight/2)
+			startYPos = windowHeight;
 		open();
 	}
 

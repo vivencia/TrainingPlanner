@@ -11,11 +11,9 @@ import "../ExercisesAndSets"
 
 import com.vivenciasoftware.qmlcomponents
 
-Page {
+TPPage {
 	id: pagePlanner
 	objectName: "exercisesPlanner"
-	width: windowWidth
-	height: windowHeight
 
 	property alias currentPage: splitView.currentItem
 	property bool bEnableMultipleSelection: false
@@ -23,8 +21,6 @@ Page {
 	property var itemThatRequestedSimpleList: null
 	property var navButtons: null
 
-	signal pageActivated();
-	signal pageDeActivated();
 	property var imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
@@ -221,7 +217,7 @@ Page {
 			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				navButtons = component.createObject(pagePlanner, {});
+				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
 				navButtons.scrollTo.connect(currentPage.setScrollBarPosition);
 			}
 

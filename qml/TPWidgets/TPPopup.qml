@@ -14,24 +14,16 @@ Popup {
 	padding: 0
 	focus: true
 
-	required property var parentPage
+	required property Page parentPage
 	property bool bKeepAbove
 	property bool bVisible: false
-	property bool _dontChangeBVisible: false
 	property int finalYPos: y
 	property int startYPos: 0
 
-	onVisibleChanged: {
-		if (!_dontChangeBVisible)
-			bVisible = visible;
-	}
-
 	Component.onCompleted: {
 		if (bKeepAbove) {
-			//if (parentPage && parentPage !== undefined && parentPage !== this) {
-				parentPage.pageDeActivated.connect(function() { _dontChangeBVisible = true; tppopup.visible = false; });
-				parentPage.pageActivated.connect(function() { if (bVisible) tppopup.visible = true; _dontChangeBVisible = false; });
-			//}
+			parentPage.pageDeActivated.connect(function() { bVisible = tppopup.visible; tppopup.visible = false; });
+			parentPage.pageActivated.connect(function() { if (bVisible) tppopup.visible = true; });
 		}
 	}
 

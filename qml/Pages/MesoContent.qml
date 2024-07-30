@@ -6,33 +6,24 @@ import com.vivenciasoftware.qmlcomponents
 import "../"
 import "../TPWidgets"
 
-Page {
+TPPage {
 	id: mesoContentPage
 	objectName: "mesoCalendarPage"
-	width: windowWidth
-	height: windowHeight
 
 	required property int mesoIdx
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
 	property date _today
-
 	property string splitLetter
 	property string trainingDay
 	property string splitContent
 	property bool bCanViewDay
 	property bool bAlreadyLoaded: false
 
-	Image {
-		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
-		opacity: 0.6
-	}
-
 	header: ToolBar {
+		height: headerHeight
+
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
@@ -236,7 +227,7 @@ Page {
 
 	footer: ToolBar {
 		width: parent.width
-		height: 55
+		height: footerHeight
 
 		background: Rectangle {
 			gradient: Gradient {

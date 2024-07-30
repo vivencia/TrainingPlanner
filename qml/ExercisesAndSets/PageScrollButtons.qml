@@ -2,169 +2,82 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import "../TPWidgets"
+
 Rectangle {
 	id: button
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
+	height: btnUp.height + btnDown.height
+	width: btnUp.width
+	visible: false
 
 	signal scrollTo(int pos)
 
 	property bool showUpButton: true
 	property bool showDownButton: true
-	property var currentButton: null
+	property Page ownerPage
 
-	implicitHeight: btnUp.height + btnDown.height
-	implicitWidth: btnUp.width
-	color: "transparent"
-
-	property bool bHeld: false
-	property var prevPos
-	property var parentPage
-
-	Image {
+	TPFloatingControl {
 		id: btnUp
-		source: "qrc:/images/"+darkIconFolder+"downward.png"
-		mirrorVertically: true
+		objName: "btnUp"
+		parentPage: ownerPage
 		width: 30
 		height: 30
-		visible: showUpButton
+		radius: 30
+		color: "transparent"
+		dragWidget: img1
+		x: windowWidth - width;
+		y: 640 - 2*height - 10
+		emitMoveSignal: true
 
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
+		onControlMoved: (xpos, ypos) => {
+			btnDown.x = xpos;
+			btnDown.y = y + 30;
 		}
 
-		MouseArea {
+		Image {
+			id: img1
+			source: "qrc:/images/"+darkIconFolder+"downward.png"
 			anchors.fill: parent
+			mirrorVertically: true
+			visible: showUpButton
+		}
 
-			onClicked: (mouse) => {
-				if (!mouse.wasHeld) {
-					currentButton = btnUp;
-					anim.start();
-				}
-			}
-
-			onReleased: {
-				bHeld = false;
-			}
-
-			onPressed: (mouse) => {
-				prevPos = { x: mouse.x, y: mouse.y };
-				bHeld = true;
-			}
-
-			onPositionChanged: {
-				if (bHeld) {
-					if (mouseX - prevPos.x < Math.abs(4)) {
-						if (mouseY - prevPos.y < Math.abs(4)) {
-							button.x += mouseX - prevPos.x;
-							button.y += mouseY - prevPos.y;
-						}
-					}
-					prevPos = { x: mouseX, y: mouseY };
-				}
-			}
-		} //MouseArea
+		onClicked: {
+			scrollTo(0);
+			showUpButton = false;
+			showDownButton = true;
+		}
 	}
 
-	Image {
+	TPFloatingControl {
 		id: btnDown
-		source: "qrc:/images/"+darkIconFolder+"downward.png"
+		objName: "btnDown"
+		parentPage: ownerPage
 		width: 30
 		height: 30
-		visible: showDownButton
+		radius: 30
+		color: "transparent"
+		dragWidget: img2
+		x: windowWidth - width;
+		y: 640 - height - 10
+		emitMoveSignal: true
 
-		anchors {
-			bottom: parent.bottom
-			left: parent.left
-			right: parent.right
+		onControlMoved: (xpos, ypos) => {
+			btnUp.x = xpos;
+			btnUp.y = y - 30;
 		}
 
-		MouseArea {
+		Image {
+			id: img2
+			source: "qrc:/images/"+darkIconFolder+"downward.png"
 			anchors.fill: parent
-
-			onClicked: (mouse) => {
-				if (!mouse.wasHeld) {
-					currentButton = btnDown;
-					anim.start();
-				}
-			}
-
-			onReleased: {
-				bHeld = false;
-			}
-
-			onPressed: (mouse) => {
-				prevPos = { x: mouse.x, y: mouse.y };
-				bHeld = true;
-			}
-
-			onPositionChanged: {
-				if (bHeld) {
-					const deltaX = mouseX - prevPos.x;
-					if (Math.abs(deltaX) < 10) {
-						const deltaY = mouseY - prevPos.y;
-						if (Math.abs(deltaY) < 10) {
-							button.x += deltaX;
-							button.y += deltaY;
-						}
-					}
-					prevPos = { x: mouseX, y: mouseY };
-				}
-			}
-		} //MouseArea
-	}
-
-	SequentialAnimation {
-		id: anim
-		alwaysRunToEnd: true
-
-		// Expand the button
-		PropertyAnimation {
-			target: currentButton
-			property: "scale"
-			to: 1.5
-			duration: 200
-			easing.type: Easing.InOutCubic
+			visible: showDownButton
 		}
 
-		// Shrink back to normal
-		PropertyAnimation {
-			target: currentButton
-			property: "scale"
-			to: 1.0
-			duration: 200
-			easing.type: Easing.InOutCubic
+		onClicked: {
+			scrollTo(1);
+			showUpButton = true;
+			showDownButton = false;
 		}
-
-		onFinished: {
-			if (currentButton == btnUp) {
-				scrollTo(0);
-				showUpButton = false;
-				showDownButton = true;
-			}
-			else {
-				scrollTo(1);
-				showUpButton = true;
-				showDownButton = false;
-			}
-		}
-	}
-
-	Component.onCompleted: {
-		x = mainwindow.width - implicitWidth;
-		y = mainwindow.height - implicitHeight - 10
-		parentPage.pageDeActivated.connect(function() { button.visible = false; });
-		parentPage.pageActivated.connect(function() { button.visible = true; });
-	}
-
-	function hideButtons(directCall: bool) {
-		if (directCall)
-			button.visible = false;
-	}
-
-	function showButtons(directCall: bool) {
-		if (directCall)
-			button.visible = true;
 	}
 }

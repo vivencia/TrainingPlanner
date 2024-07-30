@@ -36,18 +36,6 @@ Item {
 		}
 	}
 
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Set")
-		message: lblSetNumber.text + qsTr("? This action cannot be undone.")
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "remove.png"
-		parentPage: trainingDayPage
-
-		onButton1Clicked: itemManager.removeSetObject(setNumber, exerciseIdx);
-	} //TPBalloonTip
-
 	ColumnLayout {
 		id: setLayout
 		spacing: 5
