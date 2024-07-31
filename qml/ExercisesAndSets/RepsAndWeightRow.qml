@@ -2,29 +2,35 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import "../TPWidgets"
 import com.vivenciasoftware.qmlcomponents
 
-RowLayout {
+Item {
 	id: mainRow
+	implicitWidth: controlWidth
+	implicitHeight: 30
+
 	required property DBTrainingDayModel tDayModel
 	required property int rowIdx
-
+	readonly property int controlWidth: windowWidth
 	property var nextRowObj: null
 	property bool bBtnAddEnabled: true
 
-	signal addSubSet(int id, bool bnew)
-	signal delSubSet(int id)
-
-	Layout.fillWidth: true
-	spacing: 0
-	height: 40
+	signal addSubSet(int row, bool bnew)
+	signal delSubSet(int row)
 
 	SetInputField {
 		id: txtNReps
 		type: SetInputField.Type.RepType
 		text: tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
-		availableWidth: windowWidth/4 + 10
+		availableWidth: controlWidth/3
 		showLabel: false
+
+		anchors {
+			left: parent.left
+			top: parent.top
+			bottom: parent.bottom
+		}
 
 		onValueChanged: (str) => {
 			tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
@@ -38,18 +44,23 @@ RowLayout {
 	StackLayout {
 		id: stack1
 		currentIndex: 0
+		width: 30
+		height: parent.height
+
+		anchors {
+			left: txtNReps.right
+			verticalCenter: parent.verticalCenter
+		}
 
 		Item {
-			width: 30
-			height: 30
+			width: parent.width
+			height: parent.height
 		}
 
 		TPRoundButton {
 			id: btnCopyValue
-			Layout.maximumWidth: 30
-			Layout.minimumWidth: 30
-			Layout.maximumHeight: 30
-			Layout.minimumHeight: 30
+			width: parent.width
+			height: parent.height
 			imageName: "copy-setvalue.png"
 
 			onClicked: {
@@ -63,8 +74,14 @@ RowLayout {
 		id: txtNWeight
 		type: SetInputField.Type.WeightType
 		text: tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
-		availableWidth: windowWidth/4 + 20
+		availableWidth: controlWidth/3
+		implicitHeight: 30
 		showLabel: false
+
+		anchors {
+			left: stack1.right
+			verticalCenter: parent.verticalCenter
+		}
 
 		onEnterOrReturnKeyPressed: {
 			if (nextRowObj !== null)
@@ -86,17 +103,18 @@ RowLayout {
 	StackLayout {
 		id: stack2
 		currentIndex: 0
+		width: 85
+		implicitWidth: 85
+		height: parent.height
 
-		Row {
-			TPRoundButton {
-				id: btnInsertAnotherRow
-				width: 25
-				height: 25
-				visible: bBtnAddEnabled
-				imageName: "add-new.png"
+		anchors {
+			left: txtNWeight.right
+			verticalCenter: parent.verticalCenter
+		}
 
-				onClicked: addSubSet(rowIdx+1, true);
-			} //bntInsertAnotherRow
+		Item {
+			implicitWidth: 85
+			implicitHeight: 30
 
 			TPRoundButton {
 				id: btnRemoveRow
@@ -105,16 +123,36 @@ RowLayout {
 				visible: rowIdx > 0
 				imageName: "remove.png"
 
+				anchors {
+					left: parent.left
+					leftMargin: -5
+					verticalCenter: parent.verticalCenter
+				}
+
 				onClicked: delSubSet(rowIdx);
 			} //btnRemoveRow
+
+			TPRoundButton {
+				id: btnInsertAnotherRow
+				width: 25
+				height: 25
+				visible: bBtnAddEnabled
+				imageName: "add-new.png"
+
+				anchors {
+					left: btnRemoveRow.right
+					leftMargin: -10
+					verticalCenter: parent.verticalCenter
+				}
+
+				onClicked: addSubSet(rowIdx+1, true);
+			} //bntInsertAnotherRow
 		}
 
 		TPRoundButton {
 			id: btnCopyValue2
-			Layout.maximumWidth: 30
-			Layout.minimumWidth: 30
-			Layout.maximumHeight: 30
-			Layout.minimumHeight: 30
+			width: 30
+			height: parent.height
 			imageName: "copy-setvalue.png"
 
 			onClicked: {

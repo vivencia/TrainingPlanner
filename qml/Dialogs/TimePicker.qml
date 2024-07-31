@@ -409,7 +409,7 @@ TPPopup {
 						minimumPointSize: 8
 						fontSizeMode: Text.Fit
 						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						color: innerButton.checked || innerButton.highlighted ? AppSettings.primaryDarkColor : AppSettings.primaryColor
+						color: AppSettings.fontColor
 						horizontalAlignment: Text.AlignHCenter
 						verticalAlignment: Text.AlignVCenter
 						rotation: -innerButton.angle
@@ -430,7 +430,7 @@ TPPopup {
 				id: outerButton
 				focusPolicy: Qt.NoFocus
 				text: timePicker.pickMinutes? modelData.m : timePicker.useWorkTimes? modelData.d : modelData.c1
-				font.bold: checked || timePicker.pickMinutes && timePicker.onlyQuartersAllowed
+				font.bold: true
 				anchors.centerIn: parent
 				width: 40
 				height: 40
@@ -477,7 +477,7 @@ TPPopup {
 					minimumPointSize: 10
 					fontSizeMode: Text.Fit
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: outerButton.checked || outerButton.highlighted ? "black" : timePicker.pickMinutes && timePicker.onlyQuartersAllowed? AppSettings.primaryColor : "black"
+					color: AppSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					rotation: -outerButton.angle
@@ -499,7 +499,7 @@ TPPopup {
 			height: timePicker.timeButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
-			color: AppSettings.primaryColor
+			color: AppSettings.fontColor
 		}
 
 		Rectangle { // line to inner buttons
@@ -510,7 +510,7 @@ TPPopup {
 			height: timePicker.innerButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
-			color: AppSettings.primaryColor
+			color: AppSettings.fontColor
 		}
 
 		Rectangle {

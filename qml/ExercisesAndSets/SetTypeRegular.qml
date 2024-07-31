@@ -23,15 +23,14 @@ Item {
 	property bool finishButtonVisible: false
 	property bool finishButtonEnabled: false
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
-
-	signal requestTimerDialogSignal(Item requester, var args)
-	signal exerciseCompleted(int exercise_idx)
-	signal showRemoveSetMessage(int set_number, int exercise_idx)
-
 	readonly property int controlWidth: setItem.width - 20
 
 	readonly property var myoLabels: setType === 5 ? [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
+
+	signal requestTimerDialogSignal(Item requester, var args)
+	signal exerciseCompleted(int exercise_idx)
+	signal showRemoveSetMessage(int set_number, int exercise_idx)
 
 	onFocusChanged: {
 		if (focus)

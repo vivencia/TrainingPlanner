@@ -8,6 +8,7 @@ RoundButton {
 	focusPolicy: Qt.NoFocus
 	implicitWidth: width
 	implicitHeight: height
+	padding: 0
 	property string imageName
 
 	Image {

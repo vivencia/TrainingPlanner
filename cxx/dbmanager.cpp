@@ -1670,6 +1670,7 @@ void DbManager::getTrainingDay(const QDate& date)
 				if (id == tDayPageCreateId)
 				{
 					addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(date), m_currentMesoManager->gettDayPage(date));
+					m_currentMesoManager->currenttDayPage()->setProperty("dayIsNotCurrent", date != QDate::currentDate());
 					getTrainingDayExercises(date);
 				} }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 	createThread(worker, [worker] () { return worker->getTrainingDay(); } );
@@ -1695,7 +1696,6 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 
 	const QString splitletter(splitLetter.isEmpty() ? mesoCalendarModel->getSplitLetter(date.month(), date.day()-1) : splitLetter);
 	m_currentMesoManager->currenttDayPage()->setProperty("bHasMesoPlan", mesoHasPlan(m_MesoId, splitletter));
-	m_currentMesoManager->currenttDayPage()->setProperty("editMode", date != QDate::currentDate());
 
 	if (splitletter >= u"A"_qs && splitletter <= u"F"_qs)
 	{

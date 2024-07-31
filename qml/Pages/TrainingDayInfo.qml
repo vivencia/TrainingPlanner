@@ -34,6 +34,7 @@ TPPage {
 	property bool bHasMesoPlan: false
 	property bool pageOptionsLoaded: false
 	property bool editMode: false
+	property bool dayIsNotCurrent: false
 	property bool bCalendarChangedPending: false
 
 	property date previousDivisionDayDate
@@ -506,7 +507,7 @@ TPPage {
 						onClicked: {
 							if (checked) {
 								workoutTimer.stopWatch = true;
-								workoutTimer.prepareTimer("");
+								workoutTimer.prepareTimer(timeIn);
 							}
 						}
 					}
@@ -844,13 +845,14 @@ TPPage {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
-				visible: !tDayModel.dayIsFinished && !editMode && !intentDialogShown
+				visible: dayIsNotCurrent ? false : !tDayModel.dayIsFinished && !editMode && !intentDialogShown
 				enabled: !workoutTimer.active
 
 				onClicked: {
-					workoutTimer.startTimer();
+					workoutTimer.startTimer(timeIn);
+					if (timeIn.indexOf("-") !== -1)
+						timeIn = runCmd.getCurrentTimeString();
 					exercisesLayout.enabled = true;
-					timeIn = runCmd.getCurrentTimeString();
 					tDayModel.setTimeIn(timeIn);
 					workoutTimer.timeWarning.connect(displayTimeWarning);
 				}
@@ -893,7 +895,7 @@ TPPage {
 				id: btnEndWorkout
 				text: qsTr("Finish")
 				flat: false
-				visible: !tDayModel.dayIsFinished && !editMode && !intentDialogShown
+				visible: btnStartWorkout.visible
 				enabled: workoutTimer.active
 
 				onClicked: {
@@ -916,7 +918,7 @@ TPPage {
 			fixedSize: true
 			width: 55
 			height: 55
-			visible: tDayModel.dayIsFinished
+			visible: tDayModel.dayIsFinished || dayIsNotCurrent
 
 			anchors {
 				left: parent.left

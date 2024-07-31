@@ -9,6 +9,7 @@ Rectangle {
 	height: btnUp.height + btnDown.height
 	width: btnUp.width
 	visible: false
+	color: "transparent"
 
 	signal scrollTo(int pos)
 

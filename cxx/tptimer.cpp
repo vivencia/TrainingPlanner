@@ -26,7 +26,7 @@ void TPTimer::setRunCommandsObject(RunCommands *runCmd)
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_originalStartTime = strStartTime;
+	m_originalStartTime = strStartTime.contains('-') ? QString() : strStartTime;
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -36,13 +36,16 @@ void TPTimer::prepareTimer(const QString& strStartTime)
 	emit progressValueChanged();
 }
 
-void TPTimer::startTimer()
+void TPTimer::startTimer(const QString& initialTimeOfDay)
 {
 	if (!mb_paused)
 	{
 		m_elapsedTime.setHMS(0, 0, 0);
 		m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
-		m_timeOfDay = QTime::currentTime();
+		if (initialTimeOfDay.isEmpty() || initialTimeOfDay.contains('-'))
+			m_timeOfDay = QTime::currentTime();
+		else
+			m_timeOfDay = runCmd()->timeFromStrTime(initialTimeOfDay);
 	}
 	else
 	{
@@ -89,7 +92,7 @@ void TPTimer::resetTimer(const bool start)
 	stopAlarmSound();
 	prepareFromString();
 	if (start)
-		startTimer();
+		startTimer(QString());
 	else
 	{
 		emit hoursChanged();

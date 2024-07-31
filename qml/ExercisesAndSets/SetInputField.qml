@@ -24,6 +24,7 @@ FocusScope {
 	signal enterOrReturnKeyPressed()
 
 	implicitWidth: availableWidth
+	width: availableWidth
 	implicitHeight: 40
 
 	enum Type {

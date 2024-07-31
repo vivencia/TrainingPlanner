@@ -33,7 +33,7 @@ public:
 
 	Q_INVOKABLE void setRunCommandsObject(RunCommands *runCmd);
 	Q_INVOKABLE void prepareTimer(const QString& strStartTime);
-	Q_INVOKABLE void startTimer();
+	Q_INVOKABLE void startTimer(const QString& initialTimeOfDay);
 	Q_INVOKABLE void stopTimer();
 	Q_INVOKABLE void pauseTimer();
 	Q_INVOKABLE void resetTimer(const bool start);

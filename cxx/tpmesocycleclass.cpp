@@ -707,6 +707,8 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
 		QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 	}
+	else if (set_type == SET_TYPE_DROP)
+		QMetaObject::invokeMethod(item, "init");
 
 	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");

@@ -13,6 +13,7 @@ Item {
 	implicitHeight: setLayout.implicitHeight + 15
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
+	Layout.rightMargin: 5
 
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
@@ -24,6 +25,7 @@ Item {
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
 	property var subSetComponent: null
+	readonly property int controlWidth: setItem.width - 20
 
 	signal requestTimerDialogSignal(Item requester, var args)
 	signal exerciseCompleted(int exercise_idx)
@@ -38,7 +40,7 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		spacing: 5
+		enabled: !tDayModel.dayIsFinished
 		Layout.fillWidth: true
 		Layout.bottomMargin: 5
 
@@ -69,8 +71,8 @@ Item {
 				id: btnRemoveSet
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: cboSetType.right
-				height: 25
-				width: 25
+				height: 30
+				width: 30
 				imageName: "remove.png"
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
@@ -117,10 +119,11 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			text: tDayModel.setRestTime(setNumber, exerciseIdx);
-			availableWidth: setItem.width
+			availableWidth: controlWidth
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
 			enabled: !setCompleted
+			Layout.leftMargin: 5
 
 			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 
@@ -130,40 +133,65 @@ Item {
 			}
 		}
 
-		ColumnLayout {
-			id: subSetsLayout
-			enabled: !setCompleted
-			Layout.fillWidth: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 20
+		Pane {
+			implicitWidth: controlWidth
+			implicitHeight: (tDayModel.setSubSets_int(setNumber, exerciseIdx) + 1) * 35
+			padding: 0
+			clip: true
+			Layout.leftMargin: 5
+			Layout.topMargin: 5
 
-			RowLayout {
-				Layout.fillWidth: true
+			background: Rectangle {
+				color: "transparent"
+			}
 
-				Label {
-					text: qsTr("Reps:")
-					width: setItem.width/2
-					font.bold: true
-					Layout.alignment: Qt.AlignCenter
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
-				}
+			Label {
+				id: lblReps
+				text: qsTr("Reps:")
+				width: controlWidth/2
+				font.bold: true
 
-				Label {
-					text: qsTr("Weight:")
-					width: setItem.width/2
-					font.bold: true
-					Layout.alignment: Qt.AlignCenter
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
+				anchors {
+					left: parent.left
+					top: parent.top
 				}
 			}
-		} //subSetsLayout
+
+			Label {
+				text: qsTr("Weight:")
+				width: controlWidth/2
+				font.bold: true
+
+				anchors {
+					left: lblReps.right
+					right: parent.right
+					top: parent.top
+				}
+			}
+
+			ColumnLayout {
+				id: subSetsLayout
+				enabled: !setCompleted
+				spacing: 5
+				width: controlWidth
+
+				anchors {
+					top: lblReps.bottom
+					topMargin: 5
+					left: parent.left
+					right: parent.right
+					bottom: parent.bottom
+					bottomMargin: 10
+				}
+			}
+		}
 
 		SetNotesField {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
 			enabled: !setCompleted
+			width: controlWidth
+			Layout.leftMargin: 5
 			Layout.bottomMargin: 5
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
@@ -182,7 +210,7 @@ Item {
 		}
 	} // setLayout
 
-	Component.onCompleted: {
+	function init() {
 		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);
 		for (var i = 0; i < nsubsets; ++i)
 			addSubSet(i, false);
@@ -196,7 +224,7 @@ Item {
 			subSetComponent = Qt.createComponent("qrc:/qml/ExercisesAndSets/RepsAndWeightRow.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var rowSprite = subSetComponent.createObject(subSetsLayout, { width:windowWidth, tDayModel:tDayModel, rowIdx:idx });
+			var rowSprite = subSetComponent.createObject(subSetsLayout, { tDayModel:tDayModel, rowIdx:idx });
 			subSetList.push({"Object" : rowSprite});
 			rowSprite.delSubSet.connect(removeSubSet);
 			rowSprite.addSubSet.connect(addSubSet);
