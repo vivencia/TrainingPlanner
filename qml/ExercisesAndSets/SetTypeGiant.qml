@@ -11,6 +11,7 @@ Item {
 	id: setItem
 	height: setLayout.height + 15
 	implicitHeight: setLayout.implicitHeight + 15
+	enabled: tDayModel.dayIsEditable
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
@@ -114,10 +115,11 @@ Item {
 			id: txtRestTime
 			type: SetInputField.Type.TimeType
 			text: tDayModel.setRestTime(setNumber, exerciseIdx);
-			availableWidth: setItem.width
+			availableWidth: setItem.width - 20
 			windowTitle: lblSetNumber.text
 			visible: setNumber > 0
 			enabled: !setCompleted
+			Layout.leftMargin: 5
 
 			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 

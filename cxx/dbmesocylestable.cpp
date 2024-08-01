@@ -73,19 +73,18 @@ void DBMesocyclesTable::getAllMesocycles()
 					m_model->appendList(meso_info);
 					meso_info.clear();
 				} while ( query.next () );
+				m_result = true;
 			}
 		}
-		mSqlLiteDB.close();
-		m_result = true;
+		if (!m_result)
+		{
+			MSG_OUT("DBMesocyclesTable getAllMesocycles Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesocyclesTable getAllMesocycles Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+			MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
+		mSqlLiteDB.close();	
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable getAllMesocycles Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable getAllMesocycles Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
 }
 
 void DBMesocyclesTable::saveMesocycle()

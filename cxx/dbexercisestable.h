@@ -6,9 +6,7 @@
 #include <QObject>
 #include <QSettings>
 
-class DBExercisesModel;
-
-static const QString DBExercisesFileName ( QStringLiteral("ExercisesList.db.sqlite") );
+static const QString DBExercisesFileName(QStringLiteral("ExercisesList.db.sqlite"));
 
 class DBExercisesModel;
 

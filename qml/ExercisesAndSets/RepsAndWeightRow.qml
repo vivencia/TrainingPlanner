@@ -118,8 +118,8 @@ Item {
 
 			TPRoundButton {
 				id: btnRemoveRow
-				width: 25
-				height: 25
+				width: 30
+				height: 30
 				visible: rowIdx > 0
 				imageName: "remove.png"
 
@@ -134,14 +134,14 @@ Item {
 
 			TPRoundButton {
 				id: btnInsertAnotherRow
-				width: 25
-				height: 25
+				width: 30
+				height: 30
 				visible: bBtnAddEnabled
 				imageName: "add-new.png"
 
 				anchors {
 					left: btnRemoveRow.right
-					leftMargin: -10
+					leftMargin: -5
 					verticalCenter: parent.verticalCenter
 				}
 

@@ -11,6 +11,7 @@ Item {
 	id: setItem
 	height: setLayout.height + 15
 	implicitHeight: setLayout.implicitHeight + 15
+	enabled: tDayModel.dayIsEditable
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
@@ -39,7 +40,6 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		enabled: !tDayModel.dayIsFinished
 		Layout.fillWidth: true
 		Layout.bottomMargin: 5
 

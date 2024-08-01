@@ -22,12 +22,14 @@ static const uint MESOCYCLES_TABLE_ID(0x0002);
 static const uint MESOSPLIT_TABLE_ID(0x0003);
 static const uint MESOCALENDAR_TABLE_ID(0x0004);
 static const uint TRAININGDAY_TABLE_ID(0x0005);
+static const uint USER_TABLE_ID(0x0006);
 
 static const QString DBExercisesObjectName(QStringLiteral("Exercises"));
 static const QString DBMesocyclesObjectName(QStringLiteral("Mesocycles"));
 static const QString DBMesoSplitObjectName(QStringLiteral("MesocyclesSplits"));
 static const QString DBMesoCalendarObjectName(QStringLiteral("MesoCalendar"));
 static const QString DBTrainingDayObjectName(QStringLiteral("TrainingDay"));
+static const QString DBUserObjectName(QStringLiteral("UserProfile"));
 
 class TPListModel : public QAbstractListModel
 {
@@ -227,6 +229,7 @@ protected:
 	friend class DBMesoSplitModel;
 	friend class DBMesoCalendarModel;
 	friend class DBTrainingDayModel;
+	friend class DBUserModel;
 };
 
 #endif // TPLISTMODEL_H

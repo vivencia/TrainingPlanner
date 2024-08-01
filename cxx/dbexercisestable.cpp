@@ -52,15 +52,15 @@ void DBExercisesTable::createTable()
 								)
 		);
 		m_result = query.exec();
+		if (!m_result)
+		{
+			MSG_OUT("DBExercisesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBExercisesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+			MSG_OUT("DBExercisesTable createTable SUCCESS")
 		mSqlLiteDB.close();
 	}
-	if (!m_result)
-	{
-		MSG_OUT("DBExercisesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBExercisesTable createTable SUCCESS")
 }
 
 void DBExercisesTable::getAllExercises()
@@ -101,16 +101,15 @@ void DBExercisesTable::getAllExercises()
 		else //for some reason the database table is empty. Populate it with the app provided exercises list
 			updateExercisesList();
 		m_model->setReady(m_model->count() > 0);
+		if (!m_result)
+		{
+			MSG_OUT("DBExercisesTable getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBExercisesTable getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+			MSG_OUT("DBExercisesTable getAllExercises SUCCESS")
 		mSqlLiteDB.close();
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBExercisesTable getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBExercisesTable getAllExercises SUCCESS")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

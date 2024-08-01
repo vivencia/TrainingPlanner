@@ -551,8 +551,8 @@ void TPMesocycleClass::createExercisesObjects()
 		}
 		//When tDay exercises are created after a meso plan or a previous workout,
 		//only allow the user to start interacting with them after btnStartWorkout is clicked
-		QQuickItem* exercisesLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
-		exercisesLayout->setProperty("enabled", false);
+		//QQuickItem* exercisesLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
+		//exercisesLayout->setProperty("enabled", false);
 	}
 }
 

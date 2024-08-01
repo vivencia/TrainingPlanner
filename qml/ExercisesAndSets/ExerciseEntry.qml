@@ -71,7 +71,7 @@ FocusScope {
 			width: 30
 			padding: 5
 			enabled: exerciseIdx > 0
-			visible: !tDayModel.dayIsFinished
+			visible: tDayModel.dayIsEditable
 			imageName: "up.png"
 			anchors {
 				left: parent.left
@@ -88,7 +88,7 @@ FocusScope {
 			width: 30
 			padding: 5
 			enabled: exerciseIdx < tDayModel.exerciseCount-1
-			visible: !tDayModel.dayIsFinished
+			visible: tDayModel.dayIsEditable
 			imageName: "down.png"
 			anchors {
 				left: parent.left
@@ -104,7 +104,6 @@ FocusScope {
 			id: layoutMain
 			anchors.fill: parent
 			spacing: 0
-			enabled: !tDayModel.dayIsFinished
 
 			RowLayout {
 				spacing: 0
@@ -130,6 +129,7 @@ FocusScope {
 				ExerciseNameField {
 					id: txtExerciseName
 					text: tDayModel.exerciseName(exerciseIdx)
+					bEditable: tDayModel.dayIsEditable
 					width: windowWidth - 45
 					height: 70
 					Layout.minimumWidth: width
@@ -149,6 +149,7 @@ FocusScope {
 			} //Row txtExerciseName
 
 			Row {
+				enabled: tDayModel.dayIsEditable
 				Layout.topMargin: 10
 				Layout.leftMargin: 5
 
@@ -180,6 +181,7 @@ FocusScope {
 			}
 
 			Row {
+				enabled: tDayModel.dayIsEditable
 				Layout.leftMargin: 5
 
 				SetInputField {
@@ -215,6 +217,7 @@ FocusScope {
 			}
 
 			RowLayout {
+				enabled: tDayModel.dayIsEditable
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5

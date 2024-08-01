@@ -58,7 +58,7 @@ TPFloatingControl {
 
 	Label {
 		id: buttonText
-		color: "black"
+		color: AppSettings.fontColor
 		font.bold: true
 		padding: 0
 		width: 100

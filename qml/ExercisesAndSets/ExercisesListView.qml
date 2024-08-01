@@ -162,7 +162,7 @@ Column {
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		color: AppSettings.fontColor
-		width: parent.width - 25
+		width: parent.width - 10
 
 		TPCheckBox {
 			id: chkMultipleSelection

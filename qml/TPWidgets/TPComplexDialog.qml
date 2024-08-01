@@ -110,8 +110,6 @@ TPPopup {
 			Layout.rightMargin: 5
 			Layout.minimumWidth: mainLayout.width - 10
 			Layout.maximumWidth: mainLayout.width - 10
-
-			Component.onCompleted: totalHeight += height;
 		}
 
 		TPButton {
@@ -171,7 +169,7 @@ TPPopup {
 			startYPos = windowHeight + 300;
 		if (bAdjustHeightEveryOpen) {
 			dialogOpened();
-			height += customItem.height;
+			totalHeight = lblTitle.height + 2*btn1.height + customItem.height + 20;
 		}
 		dialog.open();
 	}

@@ -57,11 +57,14 @@ TPPage {
 
 	ListView {
 		id: mesosListView
-		anchors.fill: parent
-		anchors.leftMargin: 10
-		anchors.rightMargin: 10
-		anchors.topMargin: 40
 		spacing: 10
+
+		anchors {
+			fill: parent
+			leftMargin: 10
+			rightMargin: 10
+			topMargin: 40
+		}
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
@@ -71,7 +74,7 @@ TPPage {
 		delegate: SwipeDelegate {
 			id: mesoDelegate
 			width: ListView.view.width
-			height: 110
+			height: mesoContent.childrenRect.height + 20
 
 			onClicked: appDB.getMesocycle(index);
 

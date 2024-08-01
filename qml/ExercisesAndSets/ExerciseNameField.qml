@@ -15,6 +15,7 @@ RowLayout {
 	property bool showRemoveButton: true
 	property bool bCanEmitTextChanged: false
 	property bool bTextChanged: false
+	property bool bEditable: true
 
 	signal exerciseChanged(string new_exercise)
 	signal removeButtonClicked()
@@ -117,6 +118,7 @@ RowLayout {
 		width: 30
 		padding: 5
 		visible: showRemoveButton
+		enabled: bEditable
 		z: 1
 		imageName: "remove.png"
 
@@ -128,6 +130,7 @@ RowLayout {
 		height: 30
 		width: 30
 		padding: 5
+		enabled: bEditable
 		z: 1
 		imageName: "edit.png"
 

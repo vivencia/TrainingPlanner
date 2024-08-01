@@ -41,6 +41,7 @@ QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
+Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
 
 public:
 	explicit DBTrainingDayModel(QObject* parent = nullptr);
@@ -57,11 +58,14 @@ public:
 	virtual bool importFromText(const QString& data) override;
 
 	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
-
+	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
+
 	bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished);
-	void moveExercise(const uint from, const uint to);
+
+	bool dayIsEditable() const { return mb_DayIsEditable; }
+	void setDayIsEditable(const bool editable) { mb_DayIsEditable = editable; emit dayIsEditableChanged(); }
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(TDAY_COL_ID); }
@@ -159,6 +163,7 @@ signals:
 	void exerciseCountChanged();
 	void compositeExerciseChanged(const uint exercise_idx);
 	void dayIsFinishedChanged();
+	void dayIsEditableChanged();
 	void exerciseCompleted(const uint exercise_idx, const bool completed);
 
 private:
@@ -177,7 +182,7 @@ private:
 	};
 
 	QList<exerciseEntry*> m_ExerciseData;
-	bool mb_DayIsFinished;
+	bool mb_DayIsFinished, mb_DayIsEditable;
 	QMap<uint, bool> m_CompositeExerciseList;
 
 	friend class DBMesoSplitModel;

@@ -220,6 +220,7 @@ TPPopup {
 	Pane {
 		id: headerPane
 		padding: 0
+		focus: true
 
 		width: parent.width
 		height: parent.height * 0.20
@@ -309,20 +310,28 @@ TPPopup {
 
 		TPButton {
 			text: qsTr("Now")
-			anchors.top: parent.top
-			anchors.topMargin: -5
-			anchors.left: parent.left
-			anchors.leftMargin: 5
+			flat: false
+
+			anchors {
+				top: parent.top
+				topMargin: -5
+				left: parent.left
+				leftMargin: 5
+			}
+
 			onClicked: timePicker.setDisplay(runCmd.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
 		TPButton {
 			visible: !timePicker.pickMinutes
 			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
-			anchors.right: parent.right
-			anchors.top: parent.top
-			anchors.topMargin: -5
-			anchors.rightMargin: 5
+
+			anchors {
+				right: parent.right
+				top: parent.top
+				topMargin: -5
+				rightMargin: 5
+			}
 
 			onClicked: {
 				timePicker.useWorkTimes = !timePicker.useWorkTimes
@@ -542,18 +551,29 @@ TPPopup {
 
 		TPButton {
 			text: qsTr("Cancel")
-			anchors.top: parent.top
-			anchors.left: parent.left
-			anchors.leftMargin: 5
-			//anchors.topMargin: -10
+			flat: false
+
+			anchors {
+				top: parent.top
+				left: parent.left
+				leftMargin: 5
+				topMargin: -10
+			}
+
 			onClicked: timePicker.close();
 		}
 
 		TPButton {
 			text: qsTr("OK")
-			anchors.top: parent.top
-			anchors.right: parent.right
-			anchors.rightMargin: 5
+			flat: false
+
+			anchors {
+				top: parent.top
+				right: parent.right
+				rightMargin: 5
+				topMargin: -10
+			}
+
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
 				timePicker.isOK = true;

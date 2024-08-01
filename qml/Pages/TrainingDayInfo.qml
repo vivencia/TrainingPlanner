@@ -38,7 +38,7 @@ TPPage {
 	property bool bCalendarChangedPending: false
 
 	property date previousDivisionDayDate
-	property var intentionDlg: null
+	property var intentDlg: null
 	property var btnFloat: null
 	property var navButtons: null
 	property var timerDialog: null
@@ -57,8 +57,10 @@ TPPage {
 	}
 
 	onPageOptionsLoadedChanged: {
-		if (pageOptionsLoaded && intentDialogShown)
+		if (pageOptionsLoaded && intentDialogShown) {
 			showIntentionDialog();
+			pageOptionsLoaded = false;
+		}
 	}
 
 	signal mesoCalendarChanged()
@@ -80,11 +82,6 @@ TPPage {
 			if (Qt.platform.os === "android")
 				imexportMenu.enableMenuEntry(2, bExportEnabled);
 		}
-	}
-
-	onPreviousTDaysChanged: {
-		if (intentionDlg)
-			intentionDlg.customModel = previousTDays;
 	}
 
 	ListModel {
@@ -470,7 +467,7 @@ TPPage {
 					placeholderText: "Academia Golden Era"
 					text: tDayModel.location()
 					visible: splitLetter != "R"
-					enabled: !tDayModel.dayIsFinished
+					enabled: tDayModel.dayIsEditable
 					Layout.row: 1
 					Layout.column: 1
 					Layout.fillWidth: true
@@ -482,7 +479,7 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: splitLetter !== 'R' && !intentDialogShown
-				enabled: !tDayModel.dayIsFinished && !workoutTimer.active
+				enabled: workoutTimer.active ? false : tDayModel.dayIsEditable
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
@@ -622,7 +619,7 @@ TPPage {
 			SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
-				readOnly: !tDayModel.dayIsFinished
+				readOnly: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
 				visible: splitLetter != "R"
 				color: AppSettings.fontColor
 				Layout.leftMargin: 5
@@ -679,7 +676,7 @@ TPPage {
 					id: btnClearExercises
 					width: 40
 					height: 40
-					enabled: !tDayModel.dayIsFinished
+					enabled: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
 					visible: exercisesLayout.children.length > 0
 					ToolTip.text: "Remove all exercises"
 					imageName: "revert-day.png"
@@ -741,7 +738,6 @@ TPPage {
 
 		function scrollToPos(y_pos) {
 			contentItem.contentY = y_pos;
-			navButtons.visible = true;
 		}
 
 		function setScrollBarPosition(pos) {
@@ -854,6 +850,7 @@ TPPage {
 						timeIn = runCmd.getCurrentTimeString();
 					exercisesLayout.enabled = true;
 					tDayModel.setTimeIn(timeIn);
+					tDayModel.dayIsEditable = true;
 					workoutTimer.timeWarning.connect(displayTimeWarning);
 				}
 			}
@@ -904,6 +901,7 @@ TPPage {
 					updateTimer(sessionLength.getHours(), sessionLength.getMinutes(), sessionLength.getSeconds());
 					timeOut = runCmd.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
+					tDayModel.dayIsEditable = false;
 					itemManager.rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 				}
@@ -963,7 +961,8 @@ TPPage {
 			flat: false
 			height: 55
 			visible: splitLetter !== 'R'
-			enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
+			//enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
+			enabled: tDayModel.dayIsEditable
 
 			anchors {
 				right: parent.right
@@ -1056,14 +1055,14 @@ TPPage {
 	}
 
 	function showIntentionDialog() {
-		if (!intentionDlg) {
+		if (!intentDlg) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				intentionDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"), button1Text: qsTr("Proceed"),
-						customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
-						customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
-				intentionDlg.button1Clicked.connect(intentChosen);
+				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"),
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
+					customModel: previousTDays,	customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
+				intentDlg.button1Clicked.connect(intentChosen);
 			}
 
 			if (component.status === Component.Ready)
@@ -1071,16 +1070,16 @@ TPPage {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		intentionDlg.show(-1);
+		intentDlg.show(-1);
 	}
 
 	function intentChosen() {
-		switch (intentionDlg.customIntProperty1) {
+		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
 				appDB.loadExercisesFromMesoPlan(splitLetter);
 			break;
 			case 2: //use previous day
-				appDB.loadExercisesFromDate(intentionDlg.customStringProperty1);
+				appDB.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
 				mainwindow.chooseFileToImport();
@@ -1228,8 +1227,8 @@ TPPage {
 		switch (menuid) {
 			case 0:
 				if (!editMode) {
-					tDayModel.dayIsFinished = false;
-					exercisesLayout.enabled = true;
+					//tDayModel.dayIsFinished = false;
+					//exercisesLayout.enabled = true;
 					btnFinishedDayOptions.visible = true;
 				}
 				else {
@@ -1238,6 +1237,7 @@ TPPage {
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
 				editMode = !editMode;
+				tDayModel.dayIsEditable = editMode;
 			break;
 			case 1:
 				resetWorkoutMessage();

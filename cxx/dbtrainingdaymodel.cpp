@@ -8,7 +8,7 @@
 static QString multiUseString;
 
 DBTrainingDayModel::DBTrainingDayModel(QObject* parent)
-	: TPListModel{parent}, mb_DayIsFinished(false)
+	: TPListModel{parent}, mb_DayIsFinished(false), mb_DayIsEditable(false)
 {
 	m_tableId = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);

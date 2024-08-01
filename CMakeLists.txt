@@ -25,7 +25,6 @@ set( SOURCES
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/urihandler.h cxx/urihandler.cpp
-	cxx/graph.h cxx/graph.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
@@ -33,6 +32,7 @@ set( SOURCES
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
 	cxx/dbtrainingdaytable.h cxx/dbtrainingdaytable.cpp
+	cxx/dbusertable.h cxx/dbusertable.cpp
 
 	cxx/tplistmodel.h cxx/tplistmodel.cpp
 	cxx/dbexercisesmodel.h cxx/dbexercisesmodel.cpp
@@ -40,6 +40,7 @@ set( SOURCES
 	cxx/dbmesosplitmodel.h cxx/dbmesosplitmodel.cpp
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
 	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
+	cxx/dbusermodel.h cxx/dbusermodel.cpp
 )
 
 set( JAVASOURCES

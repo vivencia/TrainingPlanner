@@ -269,7 +269,8 @@ void DBTrainingDayTable::getPreviousTrainingDays()
 				if (!query.value(0).toString().isEmpty())
 					dates.append(formatDate(query.value(1).toUInt()));
 				} while (query.previous());
-				static_cast<DBTrainingDayModel*>(m_model)->appendList(dates);
+				if (!dates.isEmpty())
+					static_cast<DBTrainingDayModel*>(m_model)->appendList(dates);
 			}
 		}
 		m_opcode = OP_READ;

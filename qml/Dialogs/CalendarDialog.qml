@@ -30,6 +30,7 @@ TPPopup {
 			startDate: initDate
 			endDate: finalDate
 			justCalendar: simpleCalendar
+			focus: true
 
 			Component.onCompleted: datePickerControl.setDate(showDate);
 		}
