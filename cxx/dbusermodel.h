@@ -7,10 +7,15 @@
 #define USER_COL_NAME 1
 #define USER_COL_BIRTHDAY 2
 #define USER_COL_SEX 3
-#define USER_COL_CONTACT 4
-#define USER_COL_ROLE 5
-#define USER_COL_GOAL 6
-#define USER_COL_COACH 7
+#define USER_COL_PHONE 4
+#define USER_COL_EMAIL 5
+#define USER_COL_SOCIALMEDIA 6
+#define USER_COL_ROLE 7
+#define USER_COL_GOAL 8
+#define USER_COL_AVATAR 9
+#define USER_COL_COACH 10
+
+#define USER_TOTAL_COLS USER_COL_COACH + 1
 
 class DBUserModel : public TPListModel
 {
@@ -25,9 +30,12 @@ public:
 		nameRole = Qt::UserRole+USER_COL_NAME,
 		birthdayRole = Qt::UserRole+USER_COL_BIRTHDAY,
 		sexRole = Qt::UserRole+USER_COL_SEX,
-		contactRole = Qt::UserRole+USER_COL_CONTACT,
+		phoneRole = Qt::UserRole+USER_COL_PHONE,
+		emailRole = Qt::UserRole+USER_COL_EMAIL,
+		socialRole = Qt::UserRole+USER_COL_SOCIALMEDIA,
 		roleRole = Qt::UserRole+USER_COL_ROLE,
 		goalRole = Qt::UserRole+USER_COL_GOAL,
+		avatarRole = Qt::UserRole+USER_COL_AVATAR,
 		coachRole = Qt::UserRole+USER_COL_COACH
 	};
 
@@ -37,7 +45,7 @@ public:
 	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 
-	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
+	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return USER_TOTAL_COLS; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 

@@ -48,16 +48,6 @@ FocusScope {
 			}
 		}
 
-		MouseArea {
-			enabled: tDayModel.dayIsFinished
-			z:2
-			anchors.fill: parent
-			onClicked: (mouse) => {
-				if (mouse.y < txtExerciseName.height)
-					btnFoldIcon.clicked();
-			}
-		}
-
 		background: Rectangle {
 			color: exerciseIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
 			border.color: "transparent"

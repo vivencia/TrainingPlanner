@@ -444,121 +444,87 @@ TPPage {
 		} //ColumnLayout
 	} //ScrollView
 
-	footer: ToolBar {
-		id: mesoCycleToolBar
-		width: parent.width
-		height: 55
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
+	function apply() {
+		bModified = false;
+		if (bNeedRestart) {
+			applyTip.init();
+			bNeedRestart = false;
 		}
 
-		TPButton {
-			id: btnApplyChanges
-			text: qsTr("Apply")
-			enabled: bModified
-			width: 80
-			flat: false
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
+		appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
+		AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
+		AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
-			onClicked: {
-				bModified = false;
-				if (bNeedRestart) {
-					applyTip.init();
-					bNeedRestart = false;
-				}
+		if (bFontSizeChanged) {
+			AppSettings.fontSize = fontPSize;
+			AppSettings.fontSizeTitle = fontPSize * 1.5
+			AppSettings.fontSizeLists = fontPSize * 0.7
+			AppSettings.fontSizeText = fontPSize * 0.9
+			bFontSizeChanged = false;
+		}
 
-				appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
-				AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
-				AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
-
-				if (bFontSizeChanged) {
-					AppSettings.fontSize = fontPSize;
-					AppSettings.fontSizeTitle = fontPSize * 1.5
-					AppSettings.fontSizeLists = fontPSize * 0.7
-					AppSettings.fontSizeText = fontPSize * 0.9
-					bFontSizeChanged = false;
-				}
-
-				if (optStyleChosen !== 0) {
-					switch (optStyleChosen) {
-						case 1:
-							AppSettings.themeStyle = "Basic";
-						break;
-						case 2:
-							AppSettings.themeStyle = "Fusion";
-						break;
-						case 3:
-							AppSettings.themeStyle = "Imagine";
-						break;
-						case 4:
-							AppSettings.themeStyle = "Material";
-						break;
-						case 5:
-							AppSettings.themeStyle = "Universal";
-						break;
-					}
-					optStyleChosen = 0;
-				}
-
-				if (colorSchemeChosen !== 0) {
-					switch (colorSchemeChosen) {
-						case 1:
-							AppSettings.colorScheme = "Blue";
-							AppSettings.fontColor = "white";
-							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "lightgray"];
-						break;
-						case 2:
-							AppSettings.colorScheme = "Green";
-							AppSettings.fontColor = "white";
-							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "lightgray"];
-						break;
-						case 3:
-							AppSettings.colorScheme = "Red";
-							AppSettings.fontColor = "white";
-							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "lightgray"];
-						break;
-						case 4:
-							AppSettings.colorScheme = "Dark";
-							AppSettings.fontColor = "white";
-							AppSettings.iconFolder = "white/"
-							colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "lightgray"];
-						break;
-						case 5:
-							AppSettings.colorScheme = "Light";
-							AppSettings.fontColor = "black";
-							AppSettings.iconFolder = "black/"
-							colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "white"];
-						break;
-					}
-					colorSchemeChosen = 0;
-					AppSettings.primaryDarkColor = colorScheme[0];
-					AppSettings.primaryColor = colorScheme[1];
-					AppSettings.primaryLightColor = colorScheme[2];
-					AppSettings.paneBackgroundColor = colorScheme[3];
-					AppSettings.entrySelectedColor = colorScheme[4];
-					AppSettings.disabledFontColor = colorScheme[5];
-
-					if (AppSettings.firstTime)
-					{
-						AppSettings.firstTime = false;
-						mainwindow.checkInitialArguments();
-						mainwindow.bBackButtonEnabled = true;
-					}
-					AppSettings.sync();
-				}
+		if (optStyleChosen !== 0) {
+			switch (optStyleChosen) {
+				case 1:
+					AppSettings.themeStyle = "Basic";
+				break;
+				case 2:
+					AppSettings.themeStyle = "Fusion";
+				break;
+				case 3:
+					AppSettings.themeStyle = "Imagine";
+				break;
+				case 4:
+					AppSettings.themeStyle = "Material";
+				break;
+				case 5:
+					AppSettings.themeStyle = "Universal";
+				break;
 			}
+			optStyleChosen = 0;
+		}
+
+		if (colorSchemeChosen !== 0) {
+			switch (colorSchemeChosen) {
+				case 1:
+					AppSettings.colorScheme = "Blue";
+					AppSettings.fontColor = "white";
+					AppSettings.iconFolder = "white/"
+					colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "lightgray"];
+				break;
+				case 2:
+					AppSettings.colorScheme = "Green";
+					AppSettings.fontColor = "white";
+					AppSettings.iconFolder = "white/"
+					colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "lightgray"];
+				break;
+				case 3:
+					AppSettings.colorScheme = "Red";
+					AppSettings.fontColor = "white";
+					AppSettings.iconFolder = "white/"
+					colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "lightgray"];
+				break;
+				case 4:
+					AppSettings.colorScheme = "Dark";
+					AppSettings.fontColor = "white";
+					AppSettings.iconFolder = "white/"
+					colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "lightgray"];
+				break;
+				case 5:
+					AppSettings.colorScheme = "Light";
+					AppSettings.fontColor = "black";
+					AppSettings.iconFolder = "black/"
+					colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "white"];
+				break;
+			}
+			colorSchemeChosen = 0;
+			AppSettings.primaryDarkColor = colorScheme[0];
+			AppSettings.primaryColor = colorScheme[1];
+			AppSettings.primaryLightColor = colorScheme[2];
+			AppSettings.paneBackgroundColor = colorScheme[3];
+			AppSettings.entrySelectedColor = colorScheme[4];
+			AppSettings.disabledFontColor = colorScheme[5];
+			AppSettings.sync();
 		}
 	}
 }

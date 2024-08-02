@@ -98,4 +98,20 @@ Popup {
 			easing.type: Easing.InOutCubic
 		}
 	}
+
+	function createMovableRegion(widget: Item) {
+		function createMouseArea() {
+			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPMovablePopup.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				var mousearea = component.createObject(tppopup, { movingWidget: widget });
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		createMouseArea();
+	}
 }

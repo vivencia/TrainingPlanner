@@ -11,19 +11,25 @@ DBUserModel::DBUserModel(QObject *parent)
 	m_roleNames[nameRole] = "userName";
 	m_roleNames[birthdayRole] = "userBirthday";
 	m_roleNames[sexRole] = "userSex";
-	m_roleNames[contactRole] = "userContact";
+	m_roleNames[phoneRole] = "userPhone";
+	m_roleNames[emailRole] = "userEmail";
+	m_roleNames[socialRole] = "userSocial";
 	m_roleNames[roleRole] = "userRole";
 	m_roleNames[goalRole] = "userGoal";
+	m_roleNames[avatarRole] = "userAvatar";
 	m_roleNames[coachRole] = "userCoach";
 
-	mColumnNames.reserve(USER_COL_COACH+1);
+	mColumnNames.reserve(USER_TOTAL_COLS);
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Name: "));
 	mColumnNames.append(tr("Birthday: "));
 	mColumnNames.append(tr("Sex: "));
-	mColumnNames.append(tr("Contact(s): "));
+	mColumnNames.append(tr("Phone(s): "));
+	mColumnNames.append(tr("E-mail(s): "));
+	mColumnNames.append(tr("Social Media: "));
 	mColumnNames.append(tr("Role: "));
 	mColumnNames.append(tr("Goal: "));
+	mColumnNames.append(QString());
 	mColumnNames.append(tr("Coach: "));
 }
 
@@ -156,15 +162,10 @@ QVariant DBUserModel::data(const QModelIndex &index, int role) const
 		switch(role) {
 			case idRole:
 				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
-			case nameRole:
-			case sexRole:
-			case contactRole:
-			case roleRole:
-			case goalRole:
-			case coachRole:
-				return m_modeldata.at(row).at(role-Qt::UserRole);
 			case birthdayRole:
 				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
+			default:
+				return m_modeldata.at(row).at(role-Qt::UserRole);
 		}
 	}
 	return QVariant();
@@ -176,21 +177,16 @@ bool DBUserModel::setData(const QModelIndex &index, const QVariant& value, int r
 	if( row >= 0 && row < m_modeldata.count() )
 	{
 		switch(role) {
-			case idRole:
-			case nameRole:
-			case sexRole:
-			case contactRole:
-			case roleRole:
-			case goalRole:
-			case coachRole:
+			default:
 				m_modeldata[row][role-Qt::UserRole] = value.toString();
 				emit dataChanged(index, index, QList<int>() << role);
-				return true;
+			break;
 			case birthdayRole:
 				m_modeldata[row][role-Qt::UserRole] = QString::number(value.toDate().toJulianDay());
 				emit dataChanged(index, index, QList<int>() << role);
-				return true;
+			break;
 		}
+		return true;
 	}
 	return false;
 }

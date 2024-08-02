@@ -25,6 +25,7 @@ Rectangle {
 		height: 30
 		radius: 30
 		color: "transparent"
+		visible: showUpButton
 		dragWidget: img1
 		x: windowWidth - width;
 		y: 640 - 2*height - 10
@@ -40,7 +41,6 @@ Rectangle {
 			source: "qrc:/images/"+darkIconFolder+"downward.png"
 			anchors.fill: parent
 			mirrorVertically: true
-			visible: showUpButton
 		}
 
 		onClicked: {
@@ -57,6 +57,7 @@ Rectangle {
 		width: 30
 		height: 30
 		radius: 30
+		visible: showDownButton
 		color: "transparent"
 		dragWidget: img2
 		x: windowWidth - width;
@@ -72,7 +73,6 @@ Rectangle {
 			id: img2
 			source: "qrc:/images/"+darkIconFolder+"downward.png"
 			anchors.fill: parent
-			visible: showDownButton
 		}
 
 		onClicked: {

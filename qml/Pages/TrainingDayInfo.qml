@@ -845,10 +845,11 @@ TPPage {
 				enabled: !workoutTimer.active
 
 				onClicked: {
-					workoutTimer.startTimer(timeIn);
-					if (timeIn.indexOf("-") !== -1)
+					if (timeIn.indexOf("-") !== -1) {
 						timeIn = runCmd.getCurrentTimeString();
-					exercisesLayout.enabled = true;
+						workoutTimer.prepareTimer(timeIn);
+					}
+					workoutTimer.startTimer(timeIn);
 					tDayModel.setTimeIn(timeIn);
 					tDayModel.dayIsEditable = true;
 					workoutTimer.timeWarning.connect(displayTimeWarning);
@@ -1226,11 +1227,8 @@ TPPage {
 	function selectedOptionsMenuOption(menuid) {
 		switch (menuid) {
 			case 0:
-				if (!editMode) {
-					//tDayModel.dayIsFinished = false;
-					//exercisesLayout.enabled = true;
+				if (!editMode)
 					btnFinishedDayOptions.visible = true;
-				}
 				else {
 					itemManager.rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);

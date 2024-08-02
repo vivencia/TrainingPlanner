@@ -64,6 +64,8 @@ TPPopup {
 			}
 			opacity: 0.8
 
+			Component.onCompleted: createMovableRegion(recTitleBar);
+
 			Label {
 				id: lblTitle
 				text: windowTitle
@@ -77,29 +79,6 @@ TPPopup {
 					verticalCenter: parent.verticalCenter
 				}
 				elide: Text.ElideLeft
-			}
-
-			MouseArea {
-				id: titleBarMouseRegion
-				anchors.fill: parent
-				z: 1
-
-				property point prevPos
-				onPressed: (mouse) => {
-					prevPos = { x: mouse.x, y: mouse.y };
-				}
-
-				onPositionChanged: {
-					const deltaX = mouseX - prevPos.x;
-					if (Math.abs(deltaX) < 10) {
-						const deltaY = mouseY - prevPos.y;
-						if (Math.abs(deltaY) < 10) {
-							dlgTimer.x += deltaX;
-							dlgTimer.y += deltaY;
-						}
-					}
-					prevPos = { x: mouseX, y: mouseY };
-				}
 			}
 
 			Image {

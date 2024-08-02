@@ -109,7 +109,10 @@ Item {
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: setCompleted = false;
+					onClicked: {
+						setCompleted = false;
+						tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
+					}
 				}
 			}
 		}

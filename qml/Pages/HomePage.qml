@@ -81,7 +81,7 @@ TPPage {
 			Rectangle {
 				id: optionsRec
 				anchors.fill: parent
-				color: "steelblue"
+				color: "lightgray"
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -236,7 +236,7 @@ TPPage {
 			Rectangle {
 				id: removeBackground
 				anchors.fill: parent
-				color: "red"
+				color: "lightgray"
 				radius: 6
 				layer.enabled: true
 				visible: false

@@ -132,17 +132,34 @@ Drawer {
 		}
 
 		TPButton {
-			id: btnSettingsTheme
+			id: btnSettings
 			text: qsTr("Settings")
 			Layout.fillWidth: true
 
 			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
 				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "settingsPage"; })
+				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
 			}
 			onClicked: {
 				pageDeActivated_main(stackView.currentItem);
-				stackView.push("../Pages/SettingsPage.qml");
+				stackView.push("../Pages/ConfigurationPage.qml");
+				pageDeActivated_main(stackView.currentItem);
+				close();
+			}
+		}
+
+		TPButton {
+			id: btnUser
+			text: qsTr("Profile")
+			Layout.fillWidth: true
+
+			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+				stackView.currentItem
+				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
+			}
+			onClicked: {
+				pageDeActivated_main(stackView.currentItem);
+				stackView.push("../Pages/ConfigurationPage.qml", { startPageIndex: 1 });
 				pageDeActivated_main(stackView.currentItem);
 				close();
 			}

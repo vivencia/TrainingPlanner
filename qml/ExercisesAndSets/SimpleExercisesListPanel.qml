@@ -14,9 +14,9 @@ Popup {
 	padding: 0
 	visible: bShowSimpleExercisesList
 	width: windowWidth
-	height: windowHeight * 0.5
+	height: shown ? windowHeight * 0.5 : 30
 	x: 0
-	y: shown ? (640 - windowHeight)/2 + height : 640 - 30
+	y: 0
 
 	property bool shown: false
 	property var currentItemThatRequestedSimpleList: null
@@ -66,24 +66,46 @@ Popup {
 		anchors.fill: parent
 		spacing: 0
 
-		RowLayout {
+		Rectangle {
+			id: recTitleBar
+			height: 30
+			color: AppSettings.paneBackgroundColor
+			z: 0
 			Layout.fillWidth: true
-			spacing: 20
-			Layout.leftMargin: 10
-			Layout.bottomMargin: 2
-			Layout.topMargin: 3
+
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 
 			TPButton {
 				id: btnShowHideList
-				imageSource: bottomPane.shown ? "fold-down.png" : "fold-up.png"
+				imageSource: bottomPane.shown ? "fold-up.png" : "fold-down.png"
 				imageSize: 30
 				height: 30
+
+				anchors {
+					left: parent.left
+					verticalCenter: parent.verticalCenter
+				}
+
 				onClicked: bottomPane.shown = !bottomPane.shown;
 			}
+
 			TPButton {
 				id: btnCloseList
 				imageSource: "close.png"
 				imageSize: 20
+
+				anchors {
+					right: parent.right
+					verticalCenter: parent.verticalCenter
+				}
+
 				onClicked: bShowSimpleExercisesList = false;
 			}
 		}

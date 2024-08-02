@@ -1724,7 +1724,10 @@ void DbManager::loadExercisesFromDate(const QString& strDate)
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
 	connect( this, &DbManager::databaseReady, this, [&,date,worker] (const uint db_id) {
 				if (db_id == worker->uniqueID()) {
-					m_currentMesoManager->currenttDayModel()->setModified(true);
+					if (m_currentMesoManager->currenttDayModel()->date() != QDate::currentDate())
+						m_currentMesoManager->currenttDayModel()->setDayIsFinished(true);
+					else
+						m_currentMesoManager->currenttDayModel()->setModified(true);
 					return m_currentMesoManager->createExercisesObjects();
 				} });
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
@@ -1743,6 +1746,8 @@ void DbManager::loadExercisesFromMesoPlan(const QString& splitLetter)
 	{
 		m_currentMesoManager->currenttDayModel()->convertMesoSplitModelToTDayModel(m_currentMesoManager->getSplitModel(splitletter));
 		m_currentMesoManager->createExercisesObjects();
+		if (m_currentMesoManager->currenttDayModel()->date() != QDate::currentDate())
+			m_currentMesoManager->currenttDayModel()->setDayIsFinished(true);
 	}
 }
 

@@ -168,7 +168,7 @@ Frame {
 
 			delegate: SwipeDelegate {
 				id: delegate
-				spacing: 0
+				spacing: 10
 				padding: 0
 				implicitWidth: lstSplitExercises.width
 				implicitHeight: listItem.height
@@ -176,7 +176,7 @@ Frame {
 				ColumnLayout {
 					id: contentsLayout
 					anchors.fill: parent
-					spacing: 2
+					spacing: 5
 
 					TPRadioButton {
 						id: optCurrentExercise
@@ -293,11 +293,9 @@ Frame {
 							spacing: 5
 
 							Frame {
-								Layout.fillWidth: true
-								Layout.leftMargin: 0
-								Layout.rightMargin: -10
-								Layout.bottomMargin: 10
-								Layout.topMargin: 0
+								Layout.minimumWidth: listItem.width
+								Layout.maximumWidth: listItem.width
+								clip: true
 
 								background: Rectangle {
 									border.width: 0
@@ -324,11 +322,12 @@ Frame {
 									id: setsTabBar
 									implicitWidth: width
 									contentWidth: width
+									clip: true
 									z: 1
 
 									anchors {
 										left: btnAddSet.right
-										leftMargin: 20
+										leftMargin: 5
 										right: btnDelSet.left
 										verticalCenter: parent.verticalCenter
 									}
@@ -373,6 +372,7 @@ Frame {
 
 									anchors {
 										right: parent.right
+										rightMargin: -10
 										verticalCenter: parent.verticalCenter
 									}
 
@@ -384,12 +384,12 @@ Frame {
 							RowLayout {
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
-								Layout.fillWidth: true
 
 								Label {
 									text: splitModel.columnLabel(3)
 									wrapMode: Text.WordWrap
-									Layout.minimumWidth: listItem.width/2
+									Layout.minimumWidth: listItem.width/2 - 40
+									Layout.maximumWidth: listItem.width/2 - 40
 								}
 								TPComboBox {
 									id: cboSetType
@@ -492,12 +492,11 @@ Frame {
 								id: txtNReps
 								text: splitModel.setsReps1(index)
 								type: SetInputField.Type.RepType
-								availableWidth: listItem.width/3
+								availableWidth: listItem.width - 40
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
-								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -539,12 +538,11 @@ Frame {
 								id: txtNWeight
 								text: splitModel.setsWeight1(index)
 								type: SetInputField.Type.WeightType
-								availableWidth: listItem.width / 3
+								availableWidth: listItem.width - 40
 								enabled: index === splitModel.currentRow
 								visible: cboSetType.currentIndex !== 4
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
-								Layout.fillWidth: true
 
 								onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
 								Component.onCompleted: splitModel.workingSetChanged.connect(function () { text = splitModel.setsWeight1(index); });
@@ -624,12 +622,6 @@ Frame {
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
 			bCanSwapPlan = swappableLetter !== "";
 		}
-		if (splitModel.count > 1) {
-			if (parentItem.navButtons !== null)
-				parentItem.navButtons.showButtons();
-			else
-				parentItem.createNavButtons();
-		}
 	}
 
 	function setScrollBarPosition(pos) {
@@ -641,7 +633,17 @@ Frame {
 
 	//Each layout row(10) * 32(height per row) + 20(extra space)
 	function setListItemHeight(item, settype) {
-		item.height = settype !== 4 ? 340 : 430;
+		var nheight;
+		switch (settype) {
+			case 4:
+				nheight = 360; break;
+			case 3:
+			case 5:
+				nheight = 340; break;
+			default:
+				nheight = 300; break;
+		}
+		item.height = nheight;
 	}
 
 	function removeExercise(idx: int) {

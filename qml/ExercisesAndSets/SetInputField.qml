@@ -25,7 +25,7 @@ FocusScope {
 
 	implicitWidth: availableWidth
 	width: availableWidth
-	implicitHeight: 40
+	implicitHeight: 30
 
 	enum Type {
 		WeightType,

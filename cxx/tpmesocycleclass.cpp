@@ -549,10 +549,6 @@ void TPMesocycleClass::createExercisesObjects()
 			createExerciseObject_part2(i);
 			m_currentExercises->exerciseEntry(i)->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
 		}
-		//When tDay exercises are created after a meso plan or a previous workout,
-		//only allow the user to start interacting with them after btnStartWorkout is clicked
-		//QQuickItem* exercisesLayout(m_CurrenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
-		//exercisesLayout->setProperty("enabled", false);
 	}
 }
 

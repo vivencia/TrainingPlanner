@@ -45,7 +45,10 @@ TPPage {
 			left: parent.left
 			right: parent.right
 		}
-		onCurrentIndexChanged: currentItem.init();
+		onCurrentIndexChanged: {
+			createNavButtons();
+			currentItem.init();
+		}
 	} //SwipeView
 
 	PageIndicator {
@@ -54,6 +57,32 @@ TPPage {
 		currentIndex: splitView.currentIndex
 		visible: !exercisesPane.visible
 		height: 20
+
+		delegate: Label {
+			width: 20
+			height: 20
+			text: splitView.itemAt(index).splitModel.splitLetter()
+			color: AppSettings.fontColor
+			font.bold: true
+			fontSizeMode: Text.Fit
+			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
+
+			required property int index
+
+			background: Rectangle {
+				radius: width/2
+				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
+				color: "black"
+			}
+
+			Behavior on opacity {
+				OpacityAnimator {
+					duration: 200
+				}
+			}
+		}
+
 		anchors {
 			bottom: parent.bottom
 			horizontalCenter: parent.horizontalCenter
@@ -64,7 +93,6 @@ TPPage {
 		id: splitToolBar
 		width: parent.width
 		height: footerHeight
-		visible: !bShowSimpleExercisesList
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -181,8 +209,7 @@ TPPage {
 			}
 
 			onClicked: {
-				if (navButtons === null)
-					createNavButtons();
+				createNavButtons();
 				currentPage.appendNewExerciseToDivision();
 			}
 		} //btnAddExercise
@@ -192,19 +219,7 @@ TPPage {
 		id: exercisesPane
 	}
 
-	Component.onCompleted: {
-		appDB.getCompleteMesoSplit();
-		pagePlanner.StackView.activating.connect(pageActivation);
-		pagePlanner.StackView.onDeactivating.connect(pageDeActivation);
-	}
-
-	function pageActivation() {
-		pageActivated();
-	}
-
-	function pageDeActivation() {
-		pageDeActivated();
-	}
+	Component.onCompleted: appDB.getCompleteMesoSplit();
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
 		itemThatRequestedSimpleList = visible ? object : null;
@@ -218,7 +233,7 @@ TPPage {
 
 			function finishCreation() {
 				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
-				navButtons.scrollTo.connect(currentPage.setScrollBarPosition);
+				navButtons.scrollTo.connect(setScrollBarPosition);
 			}
 
 			if (component.status === Component.Ready)
@@ -226,6 +241,11 @@ TPPage {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
+	}
+
+	function setScrollBarPosition(pos) {
+		if (currentPage)
+			currentPage.setScrollBarPosition(pos);
 	}
 
 	function insertSplitPage(page: Item, idx: int) {

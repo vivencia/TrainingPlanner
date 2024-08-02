@@ -124,13 +124,16 @@ Column {
 
 				Image {
 					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
-					anchors.left: parent.left
-					anchors.leftMargin: 10
-					anchors.verticalCenter: parent.verticalCenter
 					width: 20
 					height: 20
 					opacity: 2 * -delegate.swipe.position
 					z:2
+
+					anchors {
+						left: parent.left
+						leftMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
 				}
 
 				Label {
@@ -162,7 +165,7 @@ Column {
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		color: AppSettings.fontColor
-		width: parent.width - 10
+		width: parent.width/2 - 10
 
 		TPCheckBox {
 			id: chkMultipleSelection
@@ -171,7 +174,7 @@ Column {
 			height: 25
 
 			anchors {
-				right: parent.right
+				left: parent.right
 				verticalCenter: parent.verticalCenter
 			}
 
