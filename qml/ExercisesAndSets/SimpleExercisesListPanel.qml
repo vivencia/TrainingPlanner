@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 
 Popup {
-	id: bottomPane
+	id: dlgExercisesList
 	closePolicy: Popup.NoAutoClose
 	modal: false
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -82,24 +82,31 @@ Popup {
 			}
 			opacity: 0.8
 
+			TPMovablePopup {
+				movableWidget: dlgExercisesList
+				movingWidget: recTitleBar
+			}
+
 			TPButton {
 				id: btnShowHideList
-				imageSource: bottomPane.shown ? "fold-up.png" : "fold-down.png"
+				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
 				imageSize: 30
 				height: 30
+				z: 2
 
 				anchors {
 					left: parent.left
 					verticalCenter: parent.verticalCenter
 				}
 
-				onClicked: bottomPane.shown = !bottomPane.shown;
+				onClicked: dlgExercisesList.shown = !dlgExercisesList.shown;
 			}
 
 			TPButton {
 				id: btnCloseList
 				imageSource: "close.png"
 				imageSize: 20
+				z: 2
 
 				anchors {
 					right: parent.right
@@ -112,7 +119,7 @@ Popup {
 
 		ExercisesListView {
 			id: exercisesList
-			height: bottomPane.height - 30
+			height: dlgExercisesList.height - 30
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 			Layout.alignment: Qt.AlignTop

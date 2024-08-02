@@ -988,7 +988,6 @@ TPPage {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
-		onVisibleChanged: navButtons.visible = !visible;
 	}
 
 	onSplitLetterChanged: {

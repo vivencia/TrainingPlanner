@@ -64,8 +64,6 @@ TPPopup {
 			}
 			opacity: 0.8
 
-			Component.onCompleted: createMovableRegion(recTitleBar);
-
 			Label {
 				id: lblTitle
 				text: windowTitle
@@ -79,6 +77,11 @@ TPPopup {
 					verticalCenter: parent.verticalCenter
 				}
 				elide: Text.ElideLeft
+
+				TPMovablePopup {
+					movableWidget: dlgTimer
+					movingWidget: lblTitle
+				}
 			}
 
 			Image {
