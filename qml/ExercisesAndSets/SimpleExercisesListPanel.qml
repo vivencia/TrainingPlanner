@@ -82,7 +82,7 @@ Popup {
 			}
 			opacity: 0.8
 
-			TPMovablePopup {
+			TPMouseArea {
 				movableWidget: dlgExercisesList
 				movingWidget: recTitleBar
 			}

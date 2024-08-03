@@ -47,7 +47,7 @@ Rectangle {
 		onFinished: clicked();
 	}
 
-	TPMovablePopup {
+	TPMouseArea {
 		movingWidget: dragWidget
 		movableWidget: control
 

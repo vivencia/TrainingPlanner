@@ -78,7 +78,7 @@ TPPopup {
 				}
 				elide: Text.ElideLeft
 
-				TPMovablePopup {
+				TPMouseArea {
 					movableWidget: dlgTimer
 					movingWidget: lblTitle
 				}

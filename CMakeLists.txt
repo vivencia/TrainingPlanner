@@ -112,7 +112,7 @@ set( QML_FILES
     "qml/TPWidgets/TPGroupBox.qml"
     "qml/TPWidgets/TPImportDialog.qml"
     "qml/TPWidgets/TPImportMessageBox.qml"
-    "qml/TPWidgets/TPMovablePopup.qml"
+    "qml/TPWidgets/TPMouseArea.qml"
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPRadioButton.qml"
     "qml/TPWidgets/TPSaveDialog.qml"

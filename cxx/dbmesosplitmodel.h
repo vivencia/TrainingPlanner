@@ -21,6 +21,9 @@ class DBMesoSplitModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
+Q_PROPERTY(int nbrSets READ nbrSets NOTIFY nbrSetsChanged)
+Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
+
 public:
 	explicit DBMesoSplitModel(QObject *parent = nullptr, const bool bComplete = true);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
@@ -44,7 +47,10 @@ public:
 	Q_INVOKABLE void removeExercise(const uint row) { removeFromList(row); }
 
 	Q_INVOKABLE uint setsNumber(const uint row) const;
-	Q_INVOKABLE void setSetsNumber(const uint row, const uint new_setsnumber);
+	void setSetsNumber(const uint row, const uint new_setsnumber);
+	Q_INVOKABLE void addSet(const uint row);
+	Q_INVOKABLE void delSet(const uint row);
+	int nbrSets() const { return 1; }
 
 	Q_INVOKABLE QString setsNotes(const uint row) const;
 	Q_INVOKABLE void setSetsNotes(const uint row, const QString& new_setsnotes);
@@ -69,9 +75,10 @@ public:
 	Q_INVOKABLE QString setsWeight2(const uint row) const;
 	Q_INVOKABLE void setSetsWeight2(const uint row, const QString& new_setsweight);
 
-	Q_INVOKABLE uint workingSet(const uint row) const;
-	Q_INVOKABLE void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
-	Q_INVOKABLE inline uint getWorkingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
+	uint workingSet() const { return workingSet(currentRow()); }
+	inline uint workingSet(const int row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
+	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
+	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
@@ -96,6 +103,7 @@ signals:
 	void exerciseNameChanged();
 	void setTypeChanged();
 	void workingSetChanged();
+	void nbrSetsChanged();
 
 private:
 	uint m_nextAddedExercisePos;
