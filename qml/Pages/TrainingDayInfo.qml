@@ -38,16 +38,16 @@ TPPage {
 	property bool bCalendarChangedPending: false
 
 	property date previousDivisionDayDate
-	property var intentDlg: null
-	property var btnFloat: null
-	property var navButtons: null
-	property var timerDialog: null
+	property TPComplexDialog intentDlg: null
+	property TPFloatingButton btnFloat: null
+	property PageScrollButtons navButtons: null
+	property TimerDialog timerDialog: null
 	property var timerDialogRequester: null
-	property var optionsMenu: null
+	property TPFloatingMenuBar optionsMenu: null
 
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
-	property var itemThatRequestedSimpleList: null
+	property Item itemThatRequestedSimpleList: null
 
 	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
 
@@ -68,7 +68,7 @@ TPPage {
 	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
 
-	property var imexportMenu: null
+	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
 
 	onEditModeChanged: {
@@ -122,7 +122,7 @@ TPPage {
 		itemManager.rollUpExercises();
 	}
 
-	property var dlgSessionLength: null
+	property TimerDialog dlgSessionLength: null
 	function openSessionLengthTimer() {
 		if (dlgSessionLength === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
@@ -169,7 +169,7 @@ TPPage {
 		}
 	}
 
-	property var msgRemoveExercise: null
+	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
 			itemManager.removeExerciseObject(exerciseidx);
@@ -197,7 +197,7 @@ TPPage {
 		msgRemoveExercise.show(-1);
 	}
 
-	property var msgRemoveSet: null
+	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
 			itemManager.removeSetObject(setnumber, exerciseidx);
@@ -225,7 +225,7 @@ TPPage {
 		msgRemoveSet.show(-1);
 	}
 
-	property var msgClearExercises: null
+	property TPBalloonTip msgClearExercises: null
 	function showClearExercisesMessage() {
 		if (msgClearExercises === null) {
 			function createMessageBox() {
@@ -247,7 +247,7 @@ TPPage {
 		msgClearExercises.show(-1);
 	}
 
-	property var tipTimeWarn: null
+	property TPBalloonTip tipTimeWarn: null
 	function displayTimeWarning(timeleft: string, bmin: bool) {
 		if (tipTimeWarn === null) {
 			function createMessageBox() {
@@ -278,7 +278,7 @@ TPPage {
 		tipTimeWarn.showTimed(timeout, 0);
 	}
 
-	property var timerDlgMessage: null
+	property TPBalloonTip timerDlgMessage: null
 	function showTimerDialogMessage() {
 		if (timerDlgMessage === null) {
 			function createMessageBox() {
@@ -300,7 +300,7 @@ TPPage {
 		timerDlgMessage.showTimed(3000, 0);
 	}
 
-	property var exportMessage: null
+	property TPComplexDialog exportMessage: null
 	function showExportMessage(share: bool) {
 		if (exportMessage === null) {
 			function createMessageBox() {
@@ -324,7 +324,7 @@ TPPage {
 		exportMessage.show(-1);
 	}
 
-	property var resetWorkoutMsg: null
+	property TPBalloonTip resetWorkoutMsg: null
 	function resetWorkoutMessage() {
 		if (resetWorkoutMsg === null) {
 			function createMessageBox() {
@@ -346,7 +346,7 @@ TPPage {
 		resetWorkoutMsg.show(-1);
 	}
 
-	property var calChangedWarningMessage: null
+	property TPBalloonTip calChangedWarningMessage: null
 	function warnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
 
 		function acceptChanges() {
@@ -976,10 +976,6 @@ TPPage {
 			property bool bFirstClick: true
 
 			onClicked: {
-				if (navButtons)
-					navButtons.visible = false;
-				if (btnFloat)
-					btnFloat.visible = false;
 				appDB.openExercisesListPage(true, bFirstClick ? trainingDayPage : null);
 				bFirstClick = false;
 			}
@@ -988,6 +984,7 @@ TPPage {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
+		parentPage: trainingDayPage
 	}
 
 	onSplitLetterChanged: {
@@ -1242,7 +1239,7 @@ TPPage {
 		}
 	}
 
-	property var changeSplitLetterDialog: null
+	property TPComplexDialog changeSplitLetterDialog: null
 	function showSplitLetterChangedDialog() {
 		if (!changeSplitLetterDialog) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);

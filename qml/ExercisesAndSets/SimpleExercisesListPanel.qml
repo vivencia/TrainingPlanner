@@ -5,13 +5,9 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-Popup {
+TPPopup {
 	id: dlgExercisesList
-	closePolicy: Popup.NoAutoClose
-	modal: false
-	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
-	spacing: 0
-	padding: 0
+	bKeepAbove: true
 	visible: bShowSimpleExercisesList
 	width: windowWidth
 	height: shown ? windowHeight * 0.5 : 30
@@ -19,7 +15,7 @@ Popup {
 	y: 0
 
 	property bool shown: false
-	property var currentItemThatRequestedSimpleList: null
+	property Item currentItemThatRequestedSimpleList: null
 
 	onVisibleChanged: {
 		shown = visible;

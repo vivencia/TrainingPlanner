@@ -14,7 +14,6 @@ Drawer {
 	edge: Qt.LeftEdge
 	opacity: 0.8
 
-	property var stackWindows: []
 	property var buttonComponent: null
 
 	background: Rectangle {

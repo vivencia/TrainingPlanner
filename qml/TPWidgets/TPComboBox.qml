@@ -28,7 +28,7 @@ ComboBox {
 		id: delegate
 		width: control.width
 		required property var model
-		required property var index
+		required property int index
 
 		contentItem: Label {
 			//text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData

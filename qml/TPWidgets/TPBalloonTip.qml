@@ -158,7 +158,7 @@ TPPopup {
 
 	MouseArea {
 		id: mouseArea
-		property var prevPos
+		property point prevPos
 		z: 1
 		anchors.fill: parent
 

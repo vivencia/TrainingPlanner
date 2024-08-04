@@ -18,10 +18,9 @@ TPPage {
 	property alias currentPage: splitView.currentItem
 	property bool bEnableMultipleSelection: false
 	property bool bShowSimpleExercisesList: false
-	property var itemThatRequestedSimpleList: null
-	property var navButtons: null
-
-	property var imexportMenu: null
+	property Item itemThatRequestedSimpleList: null
+	property PageScrollButtons navButtons: null
+	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	Keys.onPressed: (event) => {
@@ -217,6 +216,7 @@ TPPage {
 
 	SimpleExercisesListPanel {
 		id: exercisesPane
+		parentPage: pagePlanner
 	}
 
 	Component.onCompleted: appDB.getCompleteMesoSplit();

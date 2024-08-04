@@ -25,7 +25,7 @@ TPPage {
 
 	signal exerciseChosen()
 
-	property var imexportMenu: null
+	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: !bChooseButtonEnabled
 
 	onPageActivated: exercisesList.simulateMouseClick(0, true);
@@ -484,7 +484,7 @@ TPPage {
 	}
 
 	function generateObject(obj) {
-		var component = Qt.createComponent(obj === 0 ? "ImageViewer.qml" : "VideoPlayer.qml", Qt.Asynchronous);
+		var component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
 		function finishCreation(Obj) {
 			if (Obj === 0)
 				imageViewer = component.createObject(layoutMain, { mediaSource:strMediaPath });

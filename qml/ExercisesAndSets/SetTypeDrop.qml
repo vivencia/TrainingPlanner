@@ -25,7 +25,7 @@ Item {
 	property bool finishButtonEnabled: false
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
-	property var subSetComponent: null
+	property RepsAndWeightRow subSetComponent: null
 	readonly property int controlWidth: setItem.width - 20
 
 	signal requestTimerDialogSignal(Item requester, var args)

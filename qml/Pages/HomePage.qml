@@ -11,9 +11,10 @@ TPPage {
 	id: homePage
 	objectName: "homePage"
 	property date minimumStartDate;
-	property var newMesoMenu: null
-	property var imexportMenu: null
-	property var btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
+	property TPFloatingMenuBar newMesoMenu: null
+	property TPFloatingMenuBar imexportMenu: null
+	property TPButton btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
+	property bool bExportEnabled: true
 
 	header: ToolBar {
 		topPadding: 5
@@ -225,7 +226,7 @@ TPPage {
 						if (Qt.platform.os === "android")
 						{
 							btnImExport = this;
-							INEX.showInExMenu(homePage, true);
+							INEX.showInExMenu(homePage, false);
 						}
 						else
 							exportTypeTip.init(false);

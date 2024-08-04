@@ -67,7 +67,7 @@ FocusScope {
 	property var validatorType: [val_weigth, val_rep, val_time, val_set]
 	property var maxLen: [5,4,5,1]
 	property var labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
-	property var origText
+	property string origText
 
 	Rectangle {
 		anchors.fill: parent

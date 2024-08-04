@@ -15,7 +15,6 @@ FocusScope {
 
 	property DBTrainingDayModel tDayModel
 	property int exerciseIdx
-	property var trainingDayPage
 
 	property int setNbr: 0
 	property string nSets

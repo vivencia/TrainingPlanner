@@ -22,7 +22,7 @@ Rectangle {
 	property bool bPressed: false
 	property bool bEmitSignal: false
 	property bool bFollowParentsOpacity: false
-	property var buttonImage: null;
+	property TPButtonImage buttonImage: null;
 
 	signal clicked(int clickid);
 

@@ -12,7 +12,7 @@ Frame {
 	id: paneSplit
 	objectName: "mesoSplitPlanner"
 
-	required property var parentItem
+	required property TPPage parentItem
 	required property DBMesoSplitModel splitModel
 
 	property bool bAlreadyLoaded: false
@@ -290,7 +290,6 @@ Frame {
 						ColumnLayout {
 							id: setsItemsLayout
 							anchors.fill: parent
-							enabled: index === splitModel.currentRow
 							spacing: 5
 
 							Frame {
@@ -358,7 +357,7 @@ Frame {
 												border.color: AppSettings.fontColor
 												radius: 6
 												opacity: 0.8
-												color: checked ? AppSettings.primaryDarkColor : AppSettings.primaryColor
+												color: enabled ? checked ? AppSettings.primaryDarkColor : AppSettings.primaryColor : "gray"
 											}
 
 											onClicked: splitModel.workingSet = index;
@@ -397,7 +396,7 @@ Frame {
 								TPComboBox {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
-									currentIndex: splitModel.workingSet === index ? splitModel.setType(index) : splitModel.setType(index)
+									currentIndex: splitModel.workingSet === setsTabBar.currentIndex ? splitModel.setType(index) : splitModel.setType(index)
 									Layout.rightMargin: 5
 
 									onActivated: (cboIndex) => {
@@ -424,12 +423,21 @@ Frame {
 								}
 								SetInputField {
 									id: txtNSubsets
-									text: splitModel.workingSet === index ? splitModel.setsSubsets(index) : splitModel.setsSubsets(index)
+									text: splitModel.setsSubsets(index)
 									type: SetInputField.Type.SetType
 									availableWidth: listItem.width / 3
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetsSubsets(index, str);
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsSubsets(index);
+											}
+										});
+									}
 
 									onEnterOrReturnKeyPressed: {
 										if (txtNReps.visible)
@@ -490,7 +498,7 @@ Frame {
 
 							SetInputField {
 								id: txtNReps
-								text: splitModel.workingSet === index ? splitModel.setsReps1(index) : splitModel.setsReps1(index)
+								text: splitModel.setsReps1(index)
 								type: SetInputField.Type.RepType
 								availableWidth: listItem.width - 40
 								visible: cboSetType.currentIndex !== 4
@@ -499,6 +507,14 @@ Frame {
 
 								onValueChanged: (str) => splitModel.setSetsReps1(index, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+								Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsReps1(index);
+											}
+										});
+									}
 							}
 
 							RowLayout {
@@ -506,7 +522,7 @@ Frame {
 
 								SetInputField {
 									id: txtNReps1
-									text: splitModel.workingSet === index ? splitModel.setsReps1(index) : splitModel.setsReps1(index)
+									text: splitModel.setsReps1(index)
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width/2 + 10
 									Layout.alignment: Qt.AlignLeft
@@ -514,31 +530,57 @@ Frame {
 
 									onValueChanged: (str) => splitModel.setSetsReps1 (index, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsReps1(index);
+											}
+										});
+									}
 								}
 
 								SetInputField {
 									id: txtNReps2
-									text: splitModel.workingSet === index ? splitModel.setsReps2(index) : splitModel.setsReps2(index)
+									text: splitModel.setsReps2(index)
 									type: SetInputField.Type.RepType
 									availableWidth: listItem.width/3
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetsReps2(index, str);
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsReps2(index);
+											}
+										});
+									}
 								}
 							} //RowLayout
 
 							SetInputField {
 								id: txtNWeight
-								text: splitModel.workingSet === index ? splitModel.setsWeight1(index) : splitModel.setsWeight1(index)
+								text: splitModel.setsWeight1(index)
 								type: SetInputField.Type.WeightType
 								availableWidth: listItem.width - 40
-
 								visible: cboSetType.currentIndex !== 4
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
 
 								onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
+
+								Component.onCompleted: {
+									splitModel.workingSetChanged.connect(function() {
+										if (!visible) return;
+										if (index === splitModel.currentRow) {
+											text = splitModel.setsWeight1(index);
+										}
+									});
+								}
 							}
 
 							RowLayout {
@@ -547,28 +589,44 @@ Frame {
 
 								SetInputField {
 									id: txtNWeight1
-									text: splitModel.workingSet === index ? splitModel.setsWeight1(index) : splitModel.setsWeight1(index)
+									text: splitModel.setsWeight1(index)
 									type: SetInputField.Type.WeightType
 									availableWidth: listItem.width/2 + 10
-
 									Layout.alignment: Qt.AlignCenter
 									Layout.leftMargin: 20
 
 									onValueChanged: (str) => splitModel.setSetsWeight1(index, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsWeight1(index);
+											}
+										});
+									}
 								}
 
 								SetInputField {
 									id: txtNWeight2
-									text: splitModel.workingSet === index ? splitModel.setsWeight2(index) : splitModel.setsWeight2(index)
+									text: splitModel.setsWeight2(index)
 									type: SetInputField.Type.WeightType
 									showLabel: false
 									availableWidth: listItem.width/3
-
 									Layout.alignment: Qt.AlignRight
 									Layout.rightMargin: listItem.width/6
 
 									onValueChanged: (str) => splitModel.setSetsWeight2(index, str);
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function() {
+											if (!visible) return;
+											if (index === splitModel.currentRow) {
+												text = splitModel.setsWeight2(index);
+											}
+										});
+									}
 								}
 							} //RowLayout
 						} //ColumnLayout
