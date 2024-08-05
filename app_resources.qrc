@@ -87,5 +87,7 @@
         <file>images/white/reset.png</file>
         <file>images/black/warning.png</file>
         <file>images/white/warning.png</file>
+        <file>images/white/next.png</file>
+        <file>images/black/next.png</file>
     </qresource>
 </RCC>

@@ -97,6 +97,7 @@ TPPage {
 					showDate: calendarStartDate
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
+					parentPage: openEndedPage
 
 					onOpenedChanged: {
 						if (bNewMeso && !opened)

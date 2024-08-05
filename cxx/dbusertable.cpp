@@ -89,14 +89,13 @@ void DBUserTable::getAllUsers()
 		m_model->setReady(m_result);
 		if (!m_result)
 		{
-			MSG_OUT("DBUserTable getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBUserTable getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("DBUserTable getAllUsers Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBUserTable getAllUsers Driver error:  " << mSqlLiteDB.lastError().driverText())
 		}
 		else
-			MSG_OUT("DBUserTable getAllExercises SUCCESS")
+			MSG_OUT("DBUserTable getAllUsers SUCCESS")
 		mSqlLiteDB.close();
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBUserTable::saveUser()

@@ -21,9 +21,6 @@ ApplicationWindow {
 	readonly property int windowWidth: width
 	readonly property int windowHeight: contentItem.height
 
-	property var importMessageDialog: null
-	property var importOpenDialog: null
-	property var saveDialog: null
 	property string importExportFilename
 	property bool bBackButtonEnabled: true
 
@@ -125,12 +122,30 @@ ApplicationWindow {
 		homePage.setViewModel();
 		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
 		btnWorkoutEnabled();
-		if (AppSettings.firstTime) {
+		if (userModel.count === 0) {
 			bBackButtonEnabled = false;
-			stackView.push("qrc:/qml/Pages/SettingsPage.qml");
+			showFirstUseTimeDialog();
 		}
 		else
 			checkInitialArguments();
+	}
+
+	property var firstTimeDlg: null
+	function showFirstUseTimeDialog() {
+		function createFirstTimeDialog() {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				firstTimeDlg = component.createObject(homePage, { parentPage: homePage });
+				firstTimeDlg.open();
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		createFirstTimeDialog();
 	}
 
 	function checkInitialArguments() {
@@ -189,6 +204,7 @@ ApplicationWindow {
 		importConfirmDialog.show(-1);
 	}
 
+	property TPImportDialog importOpenDialog: null
 	function chooseFileToImport() {
 		if (importOpenDialog === null) {
 			function createImportDialog() {
@@ -210,6 +226,7 @@ ApplicationWindow {
 			importOpenDialog.open();
 	}
 
+	property TPSaveDialog saveDialog: null
 	function chooseFolderToSave(filename: string) {
 		if (saveDialog === null) {
 			function createSaveDialog() {
@@ -231,6 +248,7 @@ ApplicationWindow {
 			saveDialog.init(filename);
 	}
 
+	property TPImportMessageBox importMessageDialog: null
 	function tryToOpenFile(fileName: string) {
 		importExportFilename = fileName;
 		if (importMessageDialog === null) {

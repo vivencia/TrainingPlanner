@@ -70,6 +70,7 @@ set( QML_FILES
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/DatePicker.qml"
+    "qml/Dialogs/FirstTimeDialog.qml"
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/NavBar.qml"
     "qml/Dialogs/TimePicker.qml"
@@ -121,6 +122,7 @@ set( QML_FILES
     "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
     "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
+    "qml/User/UserPersonalData.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

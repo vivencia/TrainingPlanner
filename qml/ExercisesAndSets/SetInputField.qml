@@ -21,7 +21,6 @@ FocusScope {
 	property color backColor: "white"
 
 	signal valueChanged(string str)
-	signal enterOrReturnKeyPressed()
 
 	implicitWidth: availableWidth
 	width: availableWidth
@@ -151,14 +150,7 @@ FocusScope {
 				verticalCenter: parent.verticalCenter
 			}
 
-			Keys.onReturnPressed: { //Alphanumeric keyboard
-				bClearInput = true;
-				enterOrReturnKeyPressed();
-			}
-			Keys.onEnterPressed: { //Numeric keyboard
-				bClearInput = true;
-				enterOrReturnKeyPressed();
-			}
+			onEnterOrReturnKeyPressed: bClearInput = true;
 
 			onActiveFocusChanged: {
 				if (activeFocus) {

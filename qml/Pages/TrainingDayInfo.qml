@@ -805,6 +805,7 @@ TPPage {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 100
+		visible: splitLetter !== 'R'
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -821,7 +822,6 @@ TPPage {
 			id: workoutLengthRow
 			height: 50
 			spacing: 5
-			visible: splitLetter !== 'R'
 			anchors {
 				left: parent.left
 				leftMargin: 5

@@ -20,7 +20,6 @@ TPPopup {
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
-			navButtons.visible = false;
 			focus = true;
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
 				exercisesList.setFilter();
@@ -28,28 +27,10 @@ TPPopup {
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
-		else
-			navButtons.visible = true;
 	}
 
 	function hideSimpleExerciseList() {
 		bShowSimpleExercisesList = false;
-	}
-
-	background: Rectangle {
-		id: backRec
-		anchors.fill: parent
-		color: AppSettings.primaryColor
-		radius: 10
-	}
-
-	contentItem {
-		Keys.onPressed: (event) => {
-			if (event.key === mainwindow.backKey) {
-				event.accepted = true;
-				close();
-			}
-		}
 	}
 
 	Behavior on height {

@@ -6,19 +6,6 @@ DBUserModel::DBUserModel(QObject *parent)
 	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
 
-	// Set names to the role name hash container (QHash<int, QByteArray>)
-	m_roleNames[idRole] = "userId";
-	m_roleNames[nameRole] = "userName";
-	m_roleNames[birthdayRole] = "userBirthday";
-	m_roleNames[sexRole] = "userSex";
-	m_roleNames[phoneRole] = "userPhone";
-	m_roleNames[emailRole] = "userEmail";
-	m_roleNames[socialRole] = "userSocial";
-	m_roleNames[roleRole] = "userRole";
-	m_roleNames[goalRole] = "userGoal";
-	m_roleNames[avatarRole] = "userAvatar";
-	m_roleNames[coachRole] = "userCoach";
-
 	mColumnNames.reserve(USER_TOTAL_COLS);
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Name: "));

@@ -14,6 +14,8 @@
 #include "dbmesocalendarmodel.h"
 #include "dbtrainingdaytable.h"
 #include "dbtrainingdaymodel.h"
+#include "dbusertable.h"
+#include "dbusermodel.h"
 
 #include <QGuiApplication>
 #include <QSettings>
@@ -155,6 +157,13 @@ void DbManager::init()
 		db_tday->createTable();
 		delete db_tday;
 	}
+	f_info.setFile(m_DBFilePath + DBUserFileName);
+	if (!f_info.isReadable())
+	{
+		DBUserTable* db_user(new DBUserTable(m_DBFilePath, m_appSettings));
+		db_user->createTable();
+		delete db_user;
+	}
 
 	getExercisesListVersion();
 	exercisesListModel = new DBExercisesModel(this);
@@ -179,10 +188,8 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
+	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
-
-	mesoSplitModel = new DBMesoSplitModel(this, false);
-	mesocyclesModel = new DBMesocyclesModel(this);
 
 	//Enable only when necessary to avoid problems
 	/*if (m_appSettings->value("appVersion") != TP_APP_VERSION)
@@ -193,6 +200,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 	}*/
 
+	getAllUsers();
 	getAllMesocycles();
 
 	m_mainWindow = static_cast<QQuickWindow*>(m_QMlEngine->rootObjects().at(0));
@@ -202,6 +210,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("runCmd"), QVariant::fromValue(runCmd()) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("itemManager"), QVariant::fromValue(m_currentMesoManager) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appTr"), QVariant::fromValue(appTr()) });
+	properties.append(QQmlContext::PropertyPair{ QStringLiteral("userModel"), QVariant::fromValue(userModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
@@ -862,6 +871,34 @@ void DbManager::bridge(QQuickItem* item, const uint id) {
 	}
 }
 
+//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
+void DbManager::getAllUsers()
+{
+	userModel = new DBUserModel(this);
+	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
+	worker->getAllUsers();
+	delete worker;
+}
+
+void DbManager::getUserInfo(const QString& username)
+{
+}
+
+void DbManager::saveUser(const QString& username)
+{
+}
+
+void DbManager::removeUser(const QString& username)
+{
+}
+
+void DbManager::deleteUserTable(const bool bRemoveFile)
+{
+	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
+	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
+}
+//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
+
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DbManager::getAllExercises()
 {
@@ -1013,6 +1050,8 @@ void DbManager::exportExercisesList(const bool bShare, const bool bFancy)
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DbManager::getAllMesocycles()
 {
+	mesocyclesModel = new DBMesocyclesModel(this);
+	mesoSplitModel = new DBMesoSplitModel(this, false);
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
 

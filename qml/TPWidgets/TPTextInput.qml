@@ -24,6 +24,8 @@ TextField {
 	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 10
 
+	signal enterOrReturnKeyPressed()
+
 	onHighlightChanged: {
 		if (highlight)
 			anim.start();
@@ -69,6 +71,17 @@ TextField {
 		width: 20
 		height: 20
 		visible: highlight
+	}
+
+	Keys.onPressed: (event) => {
+		switch (event.key) {
+			case Qt.Key_Enter:
+			case Qt.Key_Return:
+				event.accepted = true;
+				enterOrReturnKeyPressed();
+			break;
+			default: return;
+		}
 	}
 
 	SequentialAnimation {

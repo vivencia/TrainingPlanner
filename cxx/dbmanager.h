@@ -19,6 +19,7 @@ class DBExercisesModel;
 class DBMesoSplitModel;
 class DBMesoCalendarModel;
 class DBTrainingDayModel;
+class DBUserModel;
 class RunCommands;
 class TPMesocycleClass;
 
@@ -58,6 +59,14 @@ public:
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
 	Q_INVOKABLE void exportMeso(const bool bShare, const bool bFancy);
+
+	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
+	void getAllUsers();
+	Q_INVOKABLE void getUserInfo(const QString& username);
+	Q_INVOKABLE void saveUser(const QString& username);
+	Q_INVOKABLE void removeUser(const QString& username);
+	void deleteUserTable(const bool bRemoveFile);
+	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
@@ -161,6 +170,7 @@ private:
 	TPMesocycleClass* m_currentMesoManager;
 	QQuickWindow* m_mainWindow;
 
+	DBUserModel* userModel;
 	DBMesocyclesModel* mesocyclesModel;
 	DBMesoSplitModel* mesoSplitModel;
 	DBExercisesModel* exercisesListModel;
