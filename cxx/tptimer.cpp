@@ -26,7 +26,7 @@ void TPTimer::setRunCommandsObject(RunCommands *runCmd)
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_originalStartTime = strStartTime.contains('-') ? QString() : strStartTime;
+	m_originalStartTime = strStartTime.contains('-') ? u"00:00:00"_qs : strStartTime;
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -311,15 +311,18 @@ void TPTimer::calcTime()
 
 void TPTimer::correctTimer()
 {
-	static_cast<void>(calculateTimeBetweenTimes(m_timeOfDay, QTime::currentTime()));
-	if (mb_timerForward)
-		static_cast<void>(calculateTimeBetweenTimes(m_initialTime, m_elapsedTime));
-	else
-		static_cast<void>(calculateTimeBetweenTimes(m_elapsedTime, m_initialTime));
-	m_hours = m_elapsedTime.hour();
-	emit hoursChanged();
-	m_minutes = m_elapsedTime.minute();
-	emit minutesChanged();
-	m_seconds = m_elapsedTime.second();
-	emit secondsChanged();
+	if (isActive() && !paused())
+	{
+		static_cast<void>(calculateTimeBetweenTimes(m_timeOfDay, QTime::currentTime()));
+		if (mb_timerForward)
+			static_cast<void>(calculateTimeBetweenTimes(m_initialTime, m_elapsedTime));
+		else
+			static_cast<void>(calculateTimeBetweenTimes(m_elapsedTime, m_initialTime));
+		m_hours = m_elapsedTime.hour();
+		emit hoursChanged();
+		m_minutes = m_elapsedTime.minute();
+		emit minutesChanged();
+		m_seconds = m_elapsedTime.second();
+		emit secondsChanged();
+	}
 }

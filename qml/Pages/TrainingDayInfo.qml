@@ -845,10 +845,9 @@ TPPage {
 				enabled: !workoutTimer.active
 
 				onClicked: {
-					if (timeIn.indexOf("-") !== -1) {
-						timeIn = runCmd.getCurrentTimeString();
-						workoutTimer.prepareTimer(timeIn);
-					}
+					if (timeIn.indexOf("-") === -1)
+						workoutTimer.prepareTimer(runCmd.getCurrentTimeString());
+					timeIn = runCmd.getCurrentTimeString();
 					workoutTimer.startTimer(timeIn);
 					tDayModel.setTimeIn(timeIn);
 					tDayModel.dayIsEditable = true;

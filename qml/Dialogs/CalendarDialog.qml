@@ -10,7 +10,7 @@ TPPopup {
 	width: datePickerControl.width
 	height: datePickerControl.height + 30
 	x: (windowWidth - width) / 2 // horizontally centered
-	y: (windowHeight - height) / 2 // vertically centered
+	finalYPos: (windowHeight - height) / 2 // vertically centered
 
 	required property date showDate
 	required property date initDate

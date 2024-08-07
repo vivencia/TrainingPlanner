@@ -207,7 +207,7 @@ Item {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
-				availableWidth: setItem.width/4 + 15
+				availableWidth: setItem.width/3
 				showLabel: false
 				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
 
@@ -279,7 +279,7 @@ Item {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
 				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
-				availableWidth: setItem.width/4 + 15
+				availableWidth: setItem.width/3
 				showLabel: false
 				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
 

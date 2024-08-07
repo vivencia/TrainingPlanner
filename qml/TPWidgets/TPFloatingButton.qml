@@ -16,7 +16,7 @@ TPFloatingControl {
 
 	property int exerciseIdx
 	property string image
-	property alias text: buttonText.text
+	property string text
 	property int comboIndex
 	property int textAndImageSize: buttonText.width + buttonImage.width
 

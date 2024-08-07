@@ -90,7 +90,7 @@ TPPopup {
 		else if (ypos + entriesTotalHeight > parent.height)
 			ypos = parent.height - entriesTotalHeight - 10;
 		x = xpos;
-		y = ypos;
+		finalYPos = ypos;
 		if (ypos > windowHeight/2)
 			startYPos = windowHeight;
 		open();

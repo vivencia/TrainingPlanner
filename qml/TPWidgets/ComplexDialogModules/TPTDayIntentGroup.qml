@@ -44,6 +44,10 @@ Column {
 		Layout.leftMargin: 20
 
 		onActivated: (index) => parentDlg.customStringProperty1 = currentText;
+		onEnabledChanged: {
+			if (enabled)
+				parentDlg.customStringProperty1 = currentText;
+		}
 	}
 
 	TPRadioButton {

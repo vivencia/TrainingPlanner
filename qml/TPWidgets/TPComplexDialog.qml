@@ -162,7 +162,7 @@ TPPopup {
 		if (ypos < 0)
 			ypos = (windowHeight-dialog.height)/2;
 
-		dialog.y = finalYPos = ypos;
+		finalYPos = ypos;
 		if (ypos <= windowHeight/2)
 			startYPos = -300;
 		else

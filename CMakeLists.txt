@@ -122,7 +122,9 @@ set( QML_FILES
     "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
     "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
+    "qml/User/UserContact.qml"
     "qml/User/UserPersonalData.qml"
+    "qml/User/UserWelcome.qml"
 )
 
 qt_add_resources(${RESOURCE_FILES})

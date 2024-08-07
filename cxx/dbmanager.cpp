@@ -878,6 +878,13 @@ void DbManager::getAllUsers()
 	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
 	worker->getAllUsers();
 	delete worker;
+	if (userModel->count() == 0)
+	{
+		userModel->setIsEmpty(true);
+		userModel->appendList(QStringList() << u"-1"_qs << tr("New user") << u"2451544"_qs << QString() << QString() <<
+			QString() << QString() << tr("Athlete") << QString() << u"0"_qs << QString());
+		userModel->setCurrentRow(0);
+	}
 }
 
 void DbManager::getUserInfo(const QString& username)

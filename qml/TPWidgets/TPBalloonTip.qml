@@ -218,7 +218,7 @@ TPPopup {
 		if (ypos < 0)
 			ypos = (windowHeight-balloon.height)/2;
 
-		balloon.y = finalYPos = ypos;
+		finalYPos = ypos;
 		if (ypos <= windowHeight/2)
 			startYPos = -300;
 		else

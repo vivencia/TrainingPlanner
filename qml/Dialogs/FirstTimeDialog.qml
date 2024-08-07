@@ -10,9 +10,11 @@ TPPopup {
 	bKeepAbove: true
 	modal: true
 	width: windowWidth - 50
-	height: 210
-	x: (windowWidth - width) / 2 // horizontally centered
-	y: (windowHeight - height) / 2 // vertically centered
+	height: moduleHeight
+	x: (windowWidth - width)/2 // horizontally centered
+	finalYPos: (windowHeight - height)/2 // vertically centered
+
+	readonly property int moduleHeight: usrData.implicitHeight + frmFooter.height
 
 	StackLayout {
 		id: stackLayout
@@ -24,14 +26,28 @@ TPPopup {
 			bottom: frmFooter.top
 		}
 
-		UserPersonalData {
+		UserWelcome {
+			availableWidth: firstTimeDlg.width - 20
+			availableHeight: moduleHeight
+		}
 
+		UserPersonalData {
+			id: usrData
+		}
+
+		UserContact {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 	}
 
 	Frame {
 		id: frmFooter
 		height: 30
+		background: Rectangle {
+			border.width: 0
+			radius: 8
+		}
 
 		anchors {
 			left: parent.left
@@ -43,6 +59,7 @@ TPPopup {
 			id: btnPrev
 			text: qsTr("Previous")
 			imageSource: "back.png"
+			leftAlign: false
 			enabled: stackLayout.currentIndex > 0
 
 			anchors {
@@ -58,11 +75,11 @@ TPPopup {
 			id: btnNext
 			text: qsTr("Next")
 			imageSource: "next.png"
+			//enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
 			enabled: stackLayout.currentIndex < stackLayout.count
 
 			anchors {
 				right: parent.right
-				rightMargin: 20
 				verticalCenter: parent.verticalCenter
 			}
 

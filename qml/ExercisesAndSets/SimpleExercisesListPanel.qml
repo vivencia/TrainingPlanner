@@ -12,7 +12,7 @@ TPPopup {
 	width: windowWidth
 	height: shown ? windowHeight * 0.5 : 30
 	x: 0
-	y: 0
+	finalYPos: 0
 
 	property bool shown: false
 	property Item currentItemThatRequestedSimpleList: null

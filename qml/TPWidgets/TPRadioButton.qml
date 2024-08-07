@@ -8,7 +8,7 @@ RadioButton {
 	spacing: 5
 	padding: 0
 	implicitHeight: Math.max(lblText.implicitHeight, 25)
-	width: lblText.width
+	width: fontMetrics.boundingRect(text).width + 25
 	implicitWidth: width
 
 	property string textColor: AppSettings.fontColor
@@ -27,7 +27,6 @@ RadioButton {
 		wrapMode: Text.WordWrap
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
-		width: fontMetrics.boundingRect(text).width
 		leftPadding: control.indicator.width + control.spacing
 		verticalAlignment: Text.AlignVCenter
 	}

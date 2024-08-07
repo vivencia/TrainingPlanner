@@ -12,7 +12,7 @@ TPPopup {
 	width: windowWidth * 0.78
 	height: windowHeight * 0.60
 	x: (windowWidth - width) / 2
-	y: (windowHeight - height) / 2
+	finalYPos: (windowHeight - height) / 2
 
 	property bool isOK: false
 	property int timeButtonsPaneSize: timePicker.width

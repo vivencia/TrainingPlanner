@@ -13,7 +13,7 @@ TPPopup {
 	width: timePickerOnly ? 150 : windowWidth * 0.75
 	height: timePickerOnly ? 100 : windowHeight * 0.30
 	x: (windowWidth - width) / 2
-	y: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
+	finalYPos: simpleTimer ? (windowHeight - height) / 2 - tabMain.height : 0 // align vertically centered
 
 	property bool bJustMinsAndSecs: false
 	property bool simpleTimer: false

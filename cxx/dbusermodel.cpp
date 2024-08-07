@@ -1,7 +1,7 @@
 #include "dbusermodel.h"
 
 DBUserModel::DBUserModel(QObject *parent)
-	: TPListModel(parent)
+	: TPListModel(parent), mb_empty(false)
 {
 	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
@@ -139,41 +139,4 @@ bool DBUserModel::importFromFancyText(QFile* inFile, QString& inData)
 		}
 	}
 	return count() > 0;
-}
-
-QVariant DBUserModel::data(const QModelIndex &index, int role) const
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			case idRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
-			case birthdayRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
-			default:
-				return m_modeldata.at(row).at(role-Qt::UserRole);
-		}
-	}
-	return QVariant();
-}
-
-bool DBUserModel::setData(const QModelIndex &index, const QVariant& value, int role)
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			default:
-				m_modeldata[row][role-Qt::UserRole] = value.toString();
-				emit dataChanged(index, index, QList<int>() << role);
-			break;
-			case birthdayRole:
-				m_modeldata[row][role-Qt::UserRole] = QString::number(value.toDate().toJulianDay());
-				emit dataChanged(index, index, QList<int>() << role);
-			break;
-		}
-		return true;
-	}
-	return false;
 }

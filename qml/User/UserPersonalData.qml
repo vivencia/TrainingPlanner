@@ -8,10 +8,16 @@ import "../TPWidgets"
 import "../Dialogs"
 
 Frame {
-	height: 175
+	spacing: controlsSpacing
+	padding: 0
+	implicitHeight: allControlsHeight + controlsSpacing
 
-	property bool bReady: readyBlocks[0] && readyBlocks[1] && readyBlocks[2]
+	property bool bReady: bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2]
 	property var readyBlocks: [false,false,false]
+	readonly property int nControls: 5
+	readonly property int controlsHeight: 30
+	readonly property int allControlsHeight: nControls*controlsHeight
+	readonly property int controlsSpacing: 10
 
 	Label {
 		id: lblName
@@ -19,11 +25,14 @@ Frame {
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
-		height: 25
+		height: controlsHeight
+		padding: 0
+		bottomInset: 0
+		topInset: 0
+		bottomPadding: 0
 
 		anchors {
 			top: parent.top
-			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -33,9 +42,13 @@ Frame {
 
 	TPTextInput {
 		id: txtName
-		text: userModel.userName
-		height: 25
+		height: controlsHeight
 		ToolTip.text: qsTr("The name is too short")
+
+		Component.onCompleted: {
+			text = userModel.userName;
+			readyBlocks[0] = !userModel.isEmpty();
+		}
 
 		onTextChanged: userModel.userName = text;
 
@@ -55,11 +68,12 @@ Frame {
 				ToolTip.visible = true;
 				readyBlocks[0] = false;
 			}
+			bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
 		}
 
 		anchors {
 			top: lblName.bottom
-			topMargin: 5
+			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -73,11 +87,12 @@ Frame {
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
-		height: 25
+		height: controlsHeight
+		padding: 0
 
 		anchors {
 			top: txtName.bottom
-			topMargin: 5
+			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -87,10 +102,12 @@ Frame {
 
 	TPTextInput {
 		id: txtBirthdate
-		text: userModel.userBirthday
+		text: runCmd.formatDate(userModel.birthDate)
 		readOnly: true
-		enabled: userModel.count > 0
-		height: 25
+		enabled: !userModel.isEmpty()
+		height: controlsHeight
+
+		Component.onCompleted: readyBlocks[1] = !userModel.isEmpty();
 
 		onTextEdited: {
 			frmSex.enabled = acceptableInput;
@@ -99,31 +116,32 @@ Frame {
 
 		anchors {
 			top: lblBirthdate.bottom
-			topMargin: 5
+			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
-			rightMargin: 5
+			rightMargin: btnBirthDate.width + 5
 		}
 
 		CalendarDialog {
 			id: caldlg
-			showDate: new Date()
+			showDate: userModel.birthDate
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
 			parentPage: homePage
 
 			onDateSelected: (date) => {
-				txtBirthdate = runCmd.formatDate(date);
+				userModel.birthDate = date;
 				readyBlocks[1] = true;
 				frmSex.enabled = true;
+				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
 			}
 		}
 
 		TPRoundButton {
-			id: btnStartDate
+			id: btnBirthDate
 			width: 25
-			height: 25
+			height: controlsHeight
 			imageName: "calendar.png"
 
 			onClicked: caldlg.open();
@@ -133,17 +151,38 @@ Frame {
 		}
 	}
 
-	Frame {
+	Pane {
 		id: frmSex
-		enabled: userModel.count > 0
-		height: 25
+		enabled: !userModel.isEmpty()
+		height: controlsHeight
+		padding: 0
+		spacing: 0
+
+		Component.onCompleted: readyBlocks[2] = !userModel.isEmpty();
+
+		background: Rectangle {
+			color: "transparent"
+		}
+
+		anchors {
+			top: txtBirthdate.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 
 		TPRadioButton {
 			text: qsTr("Male")
-			height: 25
-			checked: userModel.userSex === qsTr("Male")
+			height: controlsHeight
+			checked: userModel.sex === qsTr("Male")
 
-			onClicked: readyBlocks[2] = true;
+			onCheckedChanged: if (checked) userModel.sex = qsTr("Male");
+
+			onClicked: {
+				readyBlocks[2] = true;
+				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
+			}
 
 			anchors {
 				verticalCenter: parent.verticalCenter
@@ -154,25 +193,21 @@ Frame {
 
 		TPRadioButton {
 			text: qsTr("Female")
-			height: 25
-			checked: userModel.userSex === qsTr("Female")
+			height: controlsHeight
+			checked: userModel.sex === qsTr("Female")
 
-			onClicked: readyBlocks[2] = true;
+			onCheckedChanged: if (checked) userModel.sex = qsTr("Female");
+
+			onClicked: {
+				readyBlocks[2] = true;
+				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
+			}
 
 			anchors {
 				verticalCenter: parent.verticalCenter
 				right: parent.right
 				rightMargin: 10
 			}
-		}
-
-		anchors {
-			top: txtBirthdate.bottom
-			topMargin: 5
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
 		}
 	}
 }

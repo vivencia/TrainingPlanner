@@ -6,6 +6,7 @@ import "../"
 import "../TPWidgets"
 
 FocusScope {
+	id: control
 	required property int type
 	required property int availableWidth
 
@@ -21,6 +22,7 @@ FocusScope {
 	property color backColor: "white"
 
 	signal valueChanged(string str)
+	signal enterOrReturnKeyPressed()
 
 	implicitWidth: availableWidth
 	width: availableWidth
@@ -150,7 +152,10 @@ FocusScope {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onEnterOrReturnKeyPressed: bClearInput = true;
+			onEnterOrReturnKeyPressed: {
+				bClearInput = true;
+				control.enterOrReturnKeyPressed();
+			}
 
 			onActiveFocusChanged: {
 				if (activeFocus) {

@@ -122,11 +122,11 @@ ApplicationWindow {
 		homePage.setViewModel();
 		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
 		btnWorkoutEnabled();
-		if (userModel.count === 0) {
+		/*if (userModel.isEmpty()) {
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
 		}
-		else
+		else*/
 			checkInitialArguments();
 	}
 
