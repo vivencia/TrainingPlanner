@@ -125,10 +125,16 @@ ApplicationWindow {
 		/*if (userModel.isEmpty()) {
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
+			//firstTimeDlg.open();
 		}
 		else*/
 			checkInitialArguments();
 	}
+
+	/*FirstTimeDialog {
+		id: firstTimeDlg
+		parentPage: homePage
+	}*/
 
 	property var firstTimeDlg: null
 	function showFirstUseTimeDialog() {

@@ -1,6 +1,7 @@
 #include "translationclass.h"
 #include "runcommands.h"
 #include "dbmanager.h"
+#include "tpimageprovider.h"
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -84,6 +85,7 @@ int main(int argc, char *argv[])
 	new URIHandler(&db, &db);
 	#endif
 	QQmlApplicationEngine engine;
+	engine.addImageProvider(QLatin1String("tpimageprovider"), new TPImageProvider());
 
 	QString db_filepath (appSettings.value("dbFilePath").toString());
 	if (db_filepath.isEmpty())

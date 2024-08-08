@@ -2,11 +2,10 @@ function showInExMenu(page, bImportVisible) {
 	if (imexportMenu === null) {
 		var imexportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 		imexportMenu = imexportMenuComponent.createObject(page, { parentPage: page });
-		if (bImportVisible)
-			imexportMenu.addEntry(qsTr("Import"), "import.png", 0);
-		imexportMenu.addEntry(qsTr("Export"), "save-day.png", 1);
+		imexportMenu.addEntry(qsTr("Import"), "import.png", 0, bImportVisible);
+		imexportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
 		if (Qt.platform.os === "android")
-			imexportMenu.addEntry(qsTr("Share"), "export.png", 2);
+			imexportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
 		imexportMenu.menuEntrySelected.connect(selectedMenuOption);
 	}
 	imexportMenu.enableMenuEntry(1, bExportEnabled);

@@ -1,15 +1,16 @@
 import QtQuick
 import QtQuick.Controls
 
-import com.vivenciasoftware.qmlcomponents
+//import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
-import "../Dialogs"
 
 Frame {
-	property bool bReady: readyBlocks[0] & readyBlocks[1] & readyBlocks[2]
-	property var readyBlocks: [false,false,false]
+	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
+	property bool bPhoneOK: false
+	property bool bEmailOK: true
+	property bool bSocialOK: true
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 25
 	readonly property int allControlsHeight: nControls*controlsHeight
@@ -45,7 +46,7 @@ Frame {
 
 		Component.onCompleted: {
 			text = userModel.phone;
-			readyBlocks[0] = !userModel.isEmpty();
+			bPhoneOK = !userModel.isEmpty();
 		}
 
 		onActiveFocusChanged: {
@@ -66,16 +67,13 @@ Frame {
 
 		onTextEdited: {
 			if (text.length === 20) {
-				txtEmail.enabled = true;
 				ToolTip.visible = false;
-				readyBlocks[0] = true;
+				bPhoneOK = true;
 			}
 			else {
-				txtEmail.enabled = false;
 				ToolTip.visible = true;
-				readyBlocks[0] = false;
+				bPhoneOK = false;
 			}
-			bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
 		}
 
 		anchors {
@@ -110,31 +108,22 @@ Frame {
 	TPTextInput {
 		id: txtEmail
 		height: controlsHeight
-		enabled: !userModel.isEmpty()
+		enabled: bPhoneOK
 		ToolTip.text: qsTr("Invalid email address")
 
-		Component.onCompleted: {
-			text = userModel.email;
-			readyBlocks[1] = !userModel.isEmpty();
-		}
+		Component.onCompleted: text = userModel.email;
 
 		onTextChanged: userModel.email = text;
 
 		onTextEdited: {
-			if (text.length > 0) {
-				if (text.indexOf("@") !== -1) {
-					if (text.indexOf(".") !== -1) {
-						txtSocial.enabled = true;
-						ToolTip.visible = false;
-						readyBlocks[1] = true;
-						return;
-					}
-				}
+			if (text.length === 0 || text.indexOf("@") !== -1 || text.indexOf(".") !== -1) {
+				ToolTip.visible = false;
+				bEmailOK = true;
 			}
-			txtSocial.enabled = false;
-			ToolTip.visible = true;
-			readyBlocks[1] = false;
-			bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
+			else {
+				ToolTip.visible = true;
+				bEmailOK = false;
+			}
 		}
 
 		anchors {
@@ -169,20 +158,15 @@ Frame {
 	TPTextInput {
 		id: txtSocial
 		height: controlsHeight
-		enabled: !userModel.isEmpty()
-		ToolTip.text: qsTr("Social media address is too short")
+		enabled: bEmailOK
+		ToolTip.text: qsTr("Social media address is invalid")
 
-		Component.onCompleted: {
-			text = userModel.socialMedia;
-			readyBlocks[2] = !userModel.isEmpty();
-		}
-
+		Component.onCompleted: text = userModel.socialMedia;
 		onTextChanged: userModel.socialMedia = text;
 
 		onTextEdited: {
-			readyBlocks[2] = text.length > 5 || text.length === 0
-			ToolTip.visible = readyBlocks[2];
-			bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
+			bSocialOK = text.length > 10 || text.length === 0
+			ToolTip.visible = bSocialOK;
 		}
 
 		anchors {

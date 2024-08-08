@@ -25,6 +25,7 @@ set( SOURCES
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/urihandler.h cxx/urihandler.cpp
+	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
@@ -122,8 +123,10 @@ set( QML_FILES
     "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
     "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
+    "qml/User/AvatarsPopup.qml"
     "qml/User/UserContact.qml"
     "qml/User/UserPersonalData.qml"
+    "qml/User/UserProfile.qml"
     "qml/User/UserWelcome.qml"
 )
 

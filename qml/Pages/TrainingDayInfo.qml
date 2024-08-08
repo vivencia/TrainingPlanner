@@ -479,7 +479,7 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: splitLetter !== 'R' && !intentDialogShown
-				enabled: workoutTimer.active ? false : tDayModel.dayIsEditable
+				enabled: workoutTimer.active ? false : !editMode && !tDayModel.dayIsFinished
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5

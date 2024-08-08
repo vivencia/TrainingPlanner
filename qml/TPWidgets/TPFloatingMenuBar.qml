@@ -30,17 +30,21 @@ TPPopup {
 		opacity: menu.opacity
 	}
 
-	function addEntry(label: string, img: string, id: int) {
+	function addEntry(label: string, img: string, id: int, bvisible: bool) {
 		if (!entryComponent)
 			entryComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
 				rounded: false, color: "transparent", "Layout.fillWidth": true });
-			entriesTotalHeight += button.buttonHeight;
-			if (button.implicitWidth > largestEntryWidth)
-				largestEntryWidth = button.implicitWidth;
-			button.clicked.connect(menuEntryClicked);
+			if (bvisible) {
+				entriesTotalHeight += button.buttonHeight;
+				if (button.implicitWidth > largestEntryWidth)
+					largestEntryWidth = button.implicitWidth;
+				button.clicked.connect(menuEntryClicked);
+			}
+			else
+				button.visible = false;
 			entriesList.push(button);
 		}
 

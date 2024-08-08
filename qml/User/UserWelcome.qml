@@ -13,13 +13,10 @@ Label {
 	color: AppSettings.fontColor
 	font.pointSize: AppSettings.fontSize
 
-	property int availableWidth
-	property int availableHeight
 	readonly property bool bReady: true
 	property int linearWidth: fontMetrics.boundingRect(text).width + 10
 
-	width: availableWidth - 20
-	topPadding: (moduleHeight - Math.ceil(linearWidth/availableWidth) * 30)/2
+	topPadding: (height - Math.ceil(linearWidth/availableWidth) * 30)/2
 	leftPadding: 30
 	rightPadding: 30
 

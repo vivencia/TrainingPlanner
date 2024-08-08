@@ -26,9 +26,14 @@ TPPopup {
 			bottom: frmFooter.top
 		}
 
+		UserProfile {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
+		}
+
 		UserWelcome {
-			availableWidth: firstTimeDlg.width - 20
-			availableHeight: moduleHeight
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 
 		UserPersonalData {

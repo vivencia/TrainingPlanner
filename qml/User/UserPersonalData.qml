@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import com.vivenciasoftware.qmlcomponents
+//import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -12,8 +12,10 @@ Frame {
 	padding: 0
 	implicitHeight: allControlsHeight + controlsSpacing
 
-	property bool bReady: bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2]
-	property var readyBlocks: [false,false,false]
+	property bool bReady: bReady = bNameOK & bBirthDateOK & bSexOK
+	property bool bNameOK: false
+	property bool bBirthDateOK: false
+	property bool bSexOK: false
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 30
 	readonly property int allControlsHeight: nControls*controlsHeight
@@ -47,7 +49,7 @@ Frame {
 
 		Component.onCompleted: {
 			text = userModel.userName;
-			readyBlocks[0] = !userModel.isEmpty();
+			bNameOK = !userModel.isEmpty();
 		}
 
 		onTextChanged: userModel.userName = text;
@@ -59,16 +61,13 @@ Frame {
 
 		onTextEdited: {
 			if (text.length >=5) {
-				txtBirthdate.enabled = true;
 				ToolTip.visible = false;
-				readyBlocks[0] = true;
+				bNameOK = true;
 			}
 			else {
-				txtBirthdate.enabled = false;
 				ToolTip.visible = true;
-				readyBlocks[0] = false;
+				bNameOK = false;
 			}
-			bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
 		}
 
 		anchors {
@@ -104,10 +103,10 @@ Frame {
 		id: txtBirthdate
 		text: runCmd.formatDate(userModel.birthDate)
 		readOnly: true
-		enabled: !userModel.isEmpty()
+		enabled: bNameOK
 		height: controlsHeight
 
-		Component.onCompleted: readyBlocks[1] = !userModel.isEmpty();
+		Component.onCompleted: bBirthDateOK = !userModel.isEmpty();
 
 		onTextEdited: {
 			frmSex.enabled = acceptableInput;
@@ -132,9 +131,7 @@ Frame {
 
 			onDateSelected: (date) => {
 				userModel.birthDate = date;
-				readyBlocks[1] = true;
-				frmSex.enabled = true;
-				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
+				bBirthDateOK = true;
 			}
 		}
 
@@ -153,12 +150,12 @@ Frame {
 
 	Pane {
 		id: frmSex
-		enabled: !userModel.isEmpty()
+		enabled: bBirthDateOK
 		height: controlsHeight
 		padding: 0
 		spacing: 0
 
-		Component.onCompleted: readyBlocks[2] = !userModel.isEmpty();
+		Component.onCompleted: bSexOK = !userModel.isEmpty();
 
 		background: Rectangle {
 			color: "transparent"
@@ -178,11 +175,7 @@ Frame {
 			checked: userModel.sex === qsTr("Male")
 
 			onCheckedChanged: if (checked) userModel.sex = qsTr("Male");
-
-			onClicked: {
-				readyBlocks[2] = true;
-				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
-			}
+			onClicked: bSexOK = true;
 
 			anchors {
 				verticalCenter: parent.verticalCenter
@@ -197,11 +190,7 @@ Frame {
 			checked: userModel.sex === qsTr("Female")
 
 			onCheckedChanged: if (checked) userModel.sex = qsTr("Female");
-
-			onClicked: {
-				readyBlocks[2] = true;
-				bReady = readyBlocks[0] & readyBlocks[1] & readyBlocks[2];
-			}
+			onClicked: bSexOK = true;
 
 			anchors {
 				verticalCenter: parent.verticalCenter

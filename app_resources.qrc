@@ -89,5 +89,8 @@
         <file>images/white/warning.png</file>
         <file>images/white/next.png</file>
         <file>images/black/next.png</file>
+        <file>images/avatars.png</file>
+        <file>images/black/choose_avatar.png</file>
+        <file>images/white/choose_avatar.png</file>
     </qresource>
 </RCC>
