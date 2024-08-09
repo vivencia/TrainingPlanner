@@ -81,15 +81,7 @@ TPPage {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
 
-			onClicked: {
-				currentPage.apply();
-				if (AppSettings.firstTime)
-				{
-					AppSettings.firstTime = false;
-					mainwindow.checkInitialArguments();
-					mainwindow.bBackButtonEnabled = true;
-				}
-			}
+			onClicked: currentPage.apply();
 		}
 	}
 }

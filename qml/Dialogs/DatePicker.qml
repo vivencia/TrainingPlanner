@@ -47,7 +47,7 @@ Rectangle {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		Text {
+		TextField {
 			id: selectedYear
 			text: calendar.currentYear
 			leftPadding: cellSize * 0.5
@@ -55,17 +55,74 @@ Rectangle {
 			verticalAlignment: Text.AlignVCenter
 			font.pointSize: fontSizePx * 2
 			font.bold: true
+			readOnly: true
+			inputMethodHints: Qt.ImhDigitsOnly
+			validator: IntValidator { id: val; bottom: startDate.getFullYear(); top: endDate.getFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
 			color: AppSettings.fontColor
+			z: 1
+
+			property bool yearOK
+
+			background: Rectangle {
+				height: cellSize * 2
+				width: parent.width
+				border.color: "transparent"
+				color: "transparent"
+			}
+
 			anchors {
 				top: parent.top
 				left: parent.left
 				right: parent.right
 			}
 
-			MouseArea {
-				anchors.fill: parent
-				onClicked: yearsList.visible ? yearsList.hide() : yearsList.show();
+			onTextEdited: filterInput();
+
+			Keys.onPressed: (event) => {
+				switch (event.key) {
+					case Qt.Key_Enter:
+					case Qt.Key_Return:
+						if (selectedYear.yearOK) {
+							event.accepted = true;
+							yearChosen(parseInt(text));
+						}
+					break;
+					default: return;
+				}
+			}
+
+			onPressed: {
+				if (yearsList.visible) {
+					if (text.length === 0)
+						text = Qt.binding(function() { return calendar.currentYear; });
+					readOnly = true;
+					yearsList.hide();
+				}
+				else {
+					readOnly = false;
+					clear();
+					forceActiveFocus();
+					filterInput();
+					yearsList.show();
+				}
+			}
+
+			function filterInput() {
+				yearsModel.clear();
+				var topYear, bottomYear;
+				yearOK = false;
+				switch (text.length) {
+					case 1: bottomYear = parseInt(text) * 1000; topYear = bottomYear + 999; break;
+					case 2: bottomYear = parseInt(text) * 100; topYear = bottomYear + 99; break;
+					case 3: bottomYear = parseInt(text) * 10; topYear = bottomYear + 9; break;
+					case 4: bottomYear = topYear = parseInt(text); yearOK = true; break;
+					default: bottomYear = val.bottom; topYear = val.top; break;
+				}
+				for (var year = val.bottom; year <= val.top; year++) {
+					if (year >= bottomYear && year <= topYear)
+						yearsModel.append({name: year});
+				}
 			}
 		}
 
@@ -212,7 +269,7 @@ Rectangle {
 	ListView {
 		id: yearsList
 		visible: false
-		z: 2
+		z: 1
 		anchors.fill: calendar
 
 		property int currentYear
@@ -244,26 +301,7 @@ Rectangle {
 			}
 			MouseArea {
 				anchors.fill: parent
-				onClicked: {
-					var nyear, nmonth, nday;
-					nyear = yearsList.startYear + index;
-					if (nyear === startDate.getFullYear()) {
-						nmonth = startDate.getMonth();
-						nday = startDate.getDate();
-					}
-					else {
-						nmonth = endDate.getMonth();
-						nday = endDate.getDate();
-					}
-					setDate(new Date(nyear, nmonth, nday));
-					yearsList.hide();
-				}
-			}
-		}
-
-		Component.onCompleted: {
-			for (var year = startYear; year <= endYear; year++) {
-				yearsModel.append({name: year});
+				onClicked: yearChosen(yearsModel.get(index).name);
 			}
 		}
 
@@ -280,13 +318,19 @@ Rectangle {
 		}
 	} // ListView yearsList
 
+	function yearChosen(year: int) {
+		setDate(new Date(year, showDate.getMonth(), showDate.getDate()));
+		selectedYear.readOnly = true;
+		yearsList.hide();
+	}
+
 	function setDate(newDate) {
 		selectedDate = newDate;
 		calendar.currentIndex = calendarModel.indexOf(selectedDate);
 		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
-		calendar.currentDay = displayDate.getDate();
-		calendar.currentMonth = displayDate.getMonth();
-		calendar.currentYear = displayDate.getFullYear();
-		calendar.dayOfWeek = displayDate.getDay();
+		calendar.currentDay = selectedDate.getDate();
+		calendar.currentMonth = selectedDate.getMonth();
+		calendar.currentYear = selectedDate.getFullYear();
+		calendar.dayOfWeek = selectedDate.getDay();
 	}
 }

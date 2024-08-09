@@ -2,17 +2,16 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 
-//import com.vivenciasoftware.qmlcomponents
+import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
 
 Frame {
 	id: frmUserProfile
-	property bool bReady: bRoleOK & bGoalOK & bAvatarOK
+	property bool bReady: bRoleOK & bGoalOK
 	property bool bRoleOK: false
 	property bool bGoalOK: false
-	property bool bAvatarOK: false
 	readonly property int nControls: 6
 	readonly property int controlsHeight: 25
 	readonly property int allControlsHeight: nControls*controlsHeight
@@ -143,8 +142,6 @@ Frame {
 		border.width: 1
 		border.color: AppSettings.fontColor
 
-		Component.onCompleted: avatarId = userModel.avatar
-
 		Image {
 			anchors.fill: parent
 			source: userModel.avatar
@@ -202,5 +199,12 @@ Frame {
 
 	function selectAvatar(id: int) {
 		userModel.avatar = "image://tpimageprovider/" + parseInt(id);
+	}
+	function selectExternalAvatar(filename: string) {
+		userModel.avatar = filename;
+	}
+
+	function focusOnFirstField() {
+		return;
 	}
 }

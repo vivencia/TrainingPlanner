@@ -26,11 +26,6 @@ TPPopup {
 			bottom: frmFooter.top
 		}
 
-		UserProfile {
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
-		}
-
 		UserWelcome {
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
@@ -41,6 +36,16 @@ TPPopup {
 		}
 
 		UserContact {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
+		}
+
+		UserProfile {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
+		}
+
+		UserReady {
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
 		}
@@ -80,15 +85,25 @@ TPPopup {
 			id: btnNext
 			text: qsTr("Next")
 			imageSource: "next.png"
-			//enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
-			enabled: stackLayout.currentIndex < stackLayout.count
+			enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
 
 			anchors {
 				right: parent.right
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: stackLayout.currentIndex++;
+			onClicked: {
+				if (stackLayout.currentIndex === stackLayout.count - 1) {
+					mainwindow.checkInitialArguments();
+					mainwindow.bBackButtonEnabled = true;
+					close();
+				}
+				else {
+					appDB.saveUser();
+					stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
+				}
+				stackLayout.currentIndex++;
+			}
 		}
 	}
 }

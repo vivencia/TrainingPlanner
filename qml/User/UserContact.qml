@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-//import com.vivenciasoftware.qmlcomponents
+import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -61,7 +61,7 @@ Frame {
 		onTextChanged: userModel.phone = text;
 
 		onEnterOrReturnKeyPressed: {
-			if (txtEmail.enabled)
+			if (bPhoneOK)
 				txtEmail.forceActiveFocus();
 		}
 
@@ -116,7 +116,7 @@ Frame {
 		onTextChanged: userModel.email = text;
 
 		onTextEdited: {
-			if (text.length === 0 || text.indexOf("@") !== -1 || text.indexOf(".") !== -1) {
+			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
 				ToolTip.visible = false;
 				bEmailOK = true;
 			}
@@ -124,6 +124,11 @@ Frame {
 				ToolTip.visible = true;
 				bEmailOK = false;
 			}
+		}
+
+		onEnterOrReturnKeyPressed: {
+			if (bEmailOK)
+				txtSocial.forceActiveFocus();
 		}
 
 		anchors {
@@ -177,5 +182,10 @@ Frame {
 			right: parent.right
 			rightMargin: 5
 		}
+	}
+
+	function focusOnFirstField() {
+		if (txtPhone.text.length < 20)
+			txtPhone.forceActiveFocus();
 	}
 }

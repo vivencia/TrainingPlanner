@@ -63,7 +63,7 @@ public:
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();
 	Q_INVOKABLE void getUserInfo(const QString& username);
-	Q_INVOKABLE void saveUser(const QString& username);
+	Q_INVOKABLE void saveUser();
 	Q_INVOKABLE void removeUser(const QString& username);
 	void deleteUserTable(const bool bRemoveFile);
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------

@@ -122,17 +122,17 @@ ApplicationWindow {
 		homePage.setViewModel();
 		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
 		btnWorkoutEnabled();
-		/*if (userModel.isEmpty()) {
+		if (userModel.isEmpty()) {
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
-			//firstTimeDlg.open();
+			//firstTimeDlgg.open();
 		}
-		else*/
+		else
 			checkInitialArguments();
 	}
 
 	/*FirstTimeDialog {
-		id: firstTimeDlg
+		id: firstTimeDlgg
 		parentPage: homePage
 	}*/
 

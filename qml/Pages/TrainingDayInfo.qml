@@ -1212,8 +1212,8 @@ TPPage {
 		if (optionsMenu === null) {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
-			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0);
-			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1);
+			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
+			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
 		}
 		optionsMenu.show(btnFinishedDayOptions, 0);

@@ -16,7 +16,7 @@ static const QLatin1Char record_separator(29);
 static const QLatin1Char record_separator2(30);
 static const QLatin1Char subrecord_separator(31);
 
-static const uint APP_TABLES_NUMBER(5);
+static const uint APP_TABLES_NUMBER(6);
 static const uint EXERCISES_TABLE_ID(0x0001);
 static const uint MESOCYCLES_TABLE_ID(0x0002);
 static const uint MESOSPLIT_TABLE_ID(0x0003);

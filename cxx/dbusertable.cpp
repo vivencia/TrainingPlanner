@@ -125,8 +125,8 @@ void DBUserTable::saveUser()
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			strQuery =  QStringLiteral(
-				"UPDATE user_table SET name=\'%1\', birthdaye=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						   "role=\'%7\', goal=\'%8\', avatar=\'%9\', coach=\'%10\', WHERE id=%11")
+				"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
+						   "role=\'%7\', goal=\'%8\', avatar=\'%9\', coach=\'%10\' WHERE id=%11")
 				.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY), m_model->getFast(row, USER_COL_SEX),
 					m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL), m_model->getFast(row, USER_COL_SOCIALMEDIA),
 					m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL), m_model->getFast(row, USER_COL_AVATAR),
@@ -135,10 +135,10 @@ void DBUserTable::saveUser()
 		else
 		{
 			strQuery = QStringLiteral(
-				"INSERT INTO user_table"
-				"(id,name,birthday,sex,phone,email,social,role,goal,avatar,coach)"
-				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\')")
-					.arg(m_model->getFast(row, USER_COL_ID), m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
+				"INSERT INTO user_table "
+				"(name,birthday,sex,phone,email,social,role,goal,avatar,coach)"
+				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')")
+					.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
 					m_model->getFast(row, USER_COL_SEX), m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL),
 					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL),
 					m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_COACH));
@@ -149,19 +149,19 @@ void DBUserTable::saveUser()
 			m_model->setModified(false);
 			if (!bUpdate)
 				m_model->setFast(row, USER_COL_ID, query.lastInsertId().toString());
-			MSG_OUT("DBUserTable saveExercise SUCCESS");
+			MSG_OUT("DBUserTable saveUser SUCCESS");
 			MSG_OUT(strQuery);
 		}
 		else
 		{
-			MSG_OUT("DBUserTable saveExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBUserTable saveExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT("DBUserTable saveUser Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBUserTable saveUser Driver error:  " << mSqlLiteDB.lastError().driverText())
 			MSG_OUT("--ERROR--");
 			MSG_OUT(strQuery);
 		}
 		mSqlLiteDB.close();
 	}
 	else
-		MSG_OUT("DBUserTable saveExercise Could not open Database")
+		MSG_OUT("DBUserTable saveUser Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

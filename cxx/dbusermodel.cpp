@@ -1,7 +1,7 @@
 #include "dbusermodel.h"
 
 DBUserModel::DBUserModel(QObject *parent)
-	: TPListModel(parent), mb_empty(false)
+	: TPListModel(parent), mb_empty(false), m_userRow(0)
 {
 	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
@@ -18,6 +18,16 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(tr("Goal: "));
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Coach: "));
+}
+
+int DBUserModel::loadUserInfo(const QString& name)
+{
+	for (uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(USER_COL_NAME) == name)
+			return i;
+	}
+	return -1;
 }
 
 bool DBUserModel::updateFromModel(const TPListModel* model)

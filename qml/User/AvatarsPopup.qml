@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
+import QtCore
 
 import "../TPWidgets"
 import ".."
@@ -50,9 +52,7 @@ TPPopup {
 				top: parent.top
 			}
 
-			onClicked: {
-				avatarsDlg.close();
-			}
+			onClicked: fileDialog.open();
 		}
 
 		anchors {
@@ -68,6 +68,8 @@ TPPopup {
 		delegate: Rectangle {
 			width: windowWidth/5
 			height: width
+			border.color: "black"
+			border.width: 2
 			x: (index % 5) * width
 			y: Math.floor(index / 5) * width
 
@@ -93,4 +95,17 @@ TPPopup {
 		}
 	}
 
+	FileDialog {
+		id: fileDialog
+		title: qsTr("Choose an image to be used as the avatar for the profile")
+		nameFilters: [qsTr("Images") + "(*.png *.jpg *.jpeg)"]
+		options: FileDialog.ReadOnly
+		currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+		fileMode: FileDialog.OpenFile
+
+		onAccepted: {
+			callerWidget.selectExternalAvatar(selectedFile);
+			avatarsDlg.close();
+		}
+	}
 }

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-//import com.vivenciasoftware.qmlcomponents
+import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -12,7 +12,7 @@ Frame {
 	padding: 0
 	implicitHeight: allControlsHeight + controlsSpacing
 
-	property bool bReady: bReady = bNameOK & bBirthDateOK & bSexOK
+	property bool bReady: bNameOK && bBirthDateOK && bSexOK
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
 	property bool bSexOK: false
@@ -55,8 +55,8 @@ Frame {
 		onTextChanged: userModel.userName = text;
 
 		onEnterOrReturnKeyPressed: {
-			if (txtBirthdate.enabled)
-				txtBirthdate.forceActiveFocus();
+			if (bNameOK)
+				btnBirthDate.clicked();
 		}
 
 		onTextEdited: {
@@ -175,7 +175,7 @@ Frame {
 			checked: userModel.sex === qsTr("Male")
 
 			onCheckedChanged: if (checked) userModel.sex = qsTr("Male");
-			onClicked: bSexOK = true;
+			onClicked: bSexOK = true
 
 			anchors {
 				verticalCenter: parent.verticalCenter
@@ -198,5 +198,10 @@ Frame {
 				rightMargin: 10
 			}
 		}
+	}
+
+	function focusOnFirstField() {
+		if (txtName.text.length === 0)
+			txtName.forceActiveFocus();
 	}
 }

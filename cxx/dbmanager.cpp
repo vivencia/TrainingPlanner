@@ -878,25 +878,41 @@ void DbManager::getAllUsers()
 	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
 	worker->getAllUsers();
 	delete worker;
-	if (userModel->count() == 0)
+
+	bool noUsers(userModel->count() == 0);
+	if (!noUsers)
+		noUsers = userModel->userName().isEmpty();
+	if (noUsers)
 	{
 		userModel->setIsEmpty(true);
-		userModel->appendList(QStringList() << u"-1"_qs << tr("New user") << u"2451544"_qs << QString() << QString() <<
-			QString() << QString() << tr("Athlete") << QString() << u"image://tpimageprovider/0"_qs << QString());
-		userModel->setCurrentRow(0);
+		userModel->appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
+			QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs << QString());
 	}
 }
 
 void DbManager::getUserInfo(const QString& username)
 {
+	const int row(userModel->loadUserInfo(username));
+	if (row >= 0)
+		userModel->setCurrentViewedUser(row);
 }
 
-void DbManager::saveUser(const QString& username)
+void DbManager::saveUser()
 {
+	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
+	worker->addExecArg(userModel->currentViewedUser());
+	createThread(worker, [worker] () { worker->saveUser(); } );
 }
 
 void DbManager::removeUser(const QString& username)
 {
+	const int row(userModel->loadUserInfo(username));
+	if (row >= 0 && row != userModel->currentRow())
+	{
+		DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
+		worker->addExecArg(userModel->userId(row));
+		createThread(worker, [worker] () { return worker->removeEntry(); } );
+	}
 }
 
 void DbManager::deleteUserTable(const bool bRemoveFile)

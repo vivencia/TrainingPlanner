@@ -127,6 +127,7 @@ set( QML_FILES
     "qml/User/UserContact.qml"
     "qml/User/UserPersonalData.qml"
     "qml/User/UserProfile.qml"
+    "qml/User/UserReady.qml"
     "qml/User/UserWelcome.qml"
 )
 
