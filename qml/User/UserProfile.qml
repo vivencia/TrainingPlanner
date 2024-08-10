@@ -55,12 +55,12 @@ Frame {
 
 		ListModel {
 			id: roleModel
-			ListElement { text: qsTr("Occasional Gym Goer"); value: 0; icon: ""; }
-			ListElement { text: qsTr("Serious Gym Goer"); value: 1; icon: ""; }
-			ListElement { text: qsTr("Aspiring Athlete"); value: 2; icon: ""; }
-			ListElement { text: qsTr("Amateur Athlete"); value: 3; icon: ""; }
-			ListElement { text: qsTr("Professional Athlete"); value: 4; icon: ""; }
-			ListElement { text: qsTr("Other"); value: 5; icon: ""; }
+			ListElement { text: qsTr("Occasional Gym Goer"); value: 0; }
+			ListElement { text: qsTr("Serious Gym Goer"); value: 1; }
+			ListElement { text: qsTr("Aspiring Athlete"); value: 2; }
+			ListElement { text: qsTr("Amateur Athlete"); value: 3; }
+			ListElement { text: qsTr("Professional Athlete"); value: 4; }
+			ListElement { text: qsTr("Other"); value: 5; }
 		}
 
 		Component.onCompleted: {
@@ -108,14 +108,14 @@ Frame {
 
 		ListModel {
 			id: goalModel
-			ListElement { text: qsTr("General Fitness"); value: 0; icon: ""; }
-			ListElement { text: qsTr("Loose Weight"); value: 1; icon: ""; }
-			ListElement { text: qsTr("Improve Health"); value: 2; icon: ""; }
-			ListElement { text: qsTr("Support for Other Sport"); value: 3; icon: ""; }
-			ListElement { text: qsTr("Muscle Gain"); value: 4; icon: ""; }
-			ListElement { text: qsTr("Strength"); value: 5; icon: ""; }
-			ListElement { text: qsTr("Bodybuilding"); value: 6; icon: ""; }
-			ListElement { text: qsTr("Other"); value: 7; icon: ""; }
+			ListElement { text: qsTr("General Fitness"); value: 0; }
+			ListElement { text: qsTr("Loose Weight"); value: 1; }
+			ListElement { text: qsTr("Improve Health"); value: 2; }
+			ListElement { text: qsTr("Support for Other Sport"); value: 3; }
+			ListElement { text: qsTr("Muscle Gain"); value: 4; }
+			ListElement { text: qsTr("Strength"); value: 5; }
+			ListElement { text: qsTr("Bodybuilding"); value: 6; }
+			ListElement { text: qsTr("Other"); value: 7; }
 		}
 
 		Component.onCompleted: {

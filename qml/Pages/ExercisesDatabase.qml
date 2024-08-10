@@ -12,7 +12,6 @@ import "../TPWidgets"
 TPPage {
 	id: pageExercises
 	objectName: "exercisesDatabase"
-	title: "Exercises Page"
 
 	property string strMediaPath
 	property bool bCanEdit: false

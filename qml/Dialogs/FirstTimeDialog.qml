@@ -33,6 +33,7 @@ TPPopup {
 
 		UserPersonalData {
 			id: usrData
+			parentPage: firstTimeDlg.parentPage
 		}
 
 		UserContact {

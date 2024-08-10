@@ -50,6 +50,7 @@ Item {
 				id: cboSetType
 				currentIndex: setType
 				enabled: !setCompleted
+				model: mainwindow.setTypesModel
 
 				anchors {
 					left: parent.right

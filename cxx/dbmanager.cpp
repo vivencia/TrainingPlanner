@@ -100,7 +100,7 @@ extern "C"
 
 DbManager::DbManager(QSettings* appSettings)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false),
-			m_currentMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr)
+			m_currentMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr)
 {}
 
 DbManager::~DbManager()
@@ -112,7 +112,15 @@ DbManager::~DbManager()
 	delete exercisesListModel;
 	delete mesocyclesModel;
 	if (m_exercisesPage)
+	{
 		delete m_exercisesPage;
+		delete m_exercisesComponent;
+	}
+	if (m_settingsPage)
+	{
+		delete m_settingsPage;
+		delete m_settingsComponent;
+	}
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
 }
@@ -1883,6 +1891,41 @@ uint DbManager::getWorkoutNumberForTrainingDay(const QDate& date) const
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+void DbManager::openSettingsPage(const uint startPageIndex)
+{
+	if (m_settingsPage != nullptr)
+	{
+		m_settingsPage->setProperty("startPageIndex", startPageIndex);
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_settingsPage));
+		return;
+	}
+
+	m_settingsProperties.insert(QStringLiteral("startPageIndex"), startPageIndex);
+	m_settingsComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ConfigurationPage.qml"_qs), QQmlComponent::Asynchronous);
+	connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
+		return createSettingsPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
+void DbManager::createSettingsPage()
+{
+	#ifdef DEBUG
+	if (m_settingsComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_settingsComponent->errorString();
+		for (uint i(0); i < m_settingsComponent->errors().count(); ++i)
+			qDebug() << m_settingsComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	if (m_settingsComponent->status() == QQmlComponent::Ready)
+	{
+		m_settingsPage = static_cast<QQuickItem*>(m_settingsComponent->createWithInitialProperties(m_settingsProperties, m_QMlEngine->rootContext()));
+		m_QMlEngine->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
+		m_settingsPage->setParentItem(m_mainWindow->contentItem());
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_settingsPage));
+	}
+}
+
 void DbManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
 	if (m_mainMenuShortcutPages.contains(page))

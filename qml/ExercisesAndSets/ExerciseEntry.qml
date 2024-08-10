@@ -216,6 +216,7 @@ FocusScope {
 				TPComboBox {
 					id: cboSetType
 					currentIndex: tDayModel.setType(0, exerciseIdx)
+					model: mainwindow.setTypesModel
 
 					onActivated: (index)=> {
 						switch(index) {

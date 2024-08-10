@@ -115,7 +115,7 @@ Drawer {
 		}
 
 		TPButton {
-			id: btnSettingsExDB
+			id: btnExercises
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
 
@@ -135,14 +135,13 @@ Drawer {
 			text: qsTr("Settings")
 			Layout.fillWidth: true
 
-			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
 			}
+
 			onClicked: {
-				pageDeActivated_main(stackView.currentItem);
-				stackView.push("../Pages/ConfigurationPage.qml");
-				pageDeActivated_main(stackView.currentItem);
+				appDB.openSettingsPage(0);
 				close();
 			}
 		}
@@ -152,14 +151,13 @@ Drawer {
 			text: qsTr("Profile")
 			Layout.fillWidth: true
 
-			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
 				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
 			}
+
 			onClicked: {
-				pageDeActivated_main(stackView.currentItem);
-				stackView.push("../Pages/ConfigurationPage.qml", { startPageIndex: 1 });
-				pageDeActivated_main(stackView.currentItem);
+				appDB.openSettingsPage(1);
 				close();
 			}
 		}

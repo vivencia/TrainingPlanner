@@ -138,6 +138,9 @@ public:
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
+	void createSettingsPage();
+
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
@@ -209,6 +212,10 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	QQuickItem* m_settingsPage;
+	QQmlComponent* m_settingsComponent;
+	QVariantMap m_settingsProperties;
+
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------

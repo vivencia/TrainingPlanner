@@ -6,8 +6,10 @@ import com.vivenciasoftware.qmlcomponents
 import ".."
 import "../TPWidgets"
 import "../Dialogs"
+import "../Pages"
 
 Frame {
+	id: frmUserData
 	spacing: controlsSpacing
 	padding: 0
 	implicitHeight: allControlsHeight + controlsSpacing
@@ -17,6 +19,7 @@ Frame {
 		color: "transparent"
 	}
 
+	required property TPPage parentPage
 	property bool bReady: bNameOK && bBirthDateOK && bSexOK
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
@@ -132,7 +135,7 @@ Frame {
 			showDate: userModel.birthDate
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
-			parentPage: homePage
+			parentPage: frmUserData.parentPage
 
 			onDateSelected: (date) => {
 				userModel.birthDate = date;

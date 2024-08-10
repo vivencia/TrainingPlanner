@@ -45,6 +45,7 @@ TPFloatingControl {
 	TPComboBox {
 		id: cboSetType
 		currentIndex: comboIndex
+		model: mainwindow.setTypesModel
 		z: 0
 
 		anchors {

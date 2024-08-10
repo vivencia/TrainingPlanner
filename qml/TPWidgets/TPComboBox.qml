@@ -9,21 +9,10 @@ ComboBox {
 	implicitHeight: 25
 	textRole: "text"
 	valueRole: "value"
-	model: setTypesModel
 
 	property string textColor: AppSettings.fontColor
 	property string backgroundColor: AppSettings.primaryDarkColor
-
-	ListModel {
-		id: setTypesModel
-		ListElement { text: qsTr("Regular"); value: 0; icon: ""; }
-		ListElement { text: qsTr("Pyramid"); value: 1; icon: ""; }
-		ListElement { text: qsTr("Drop Set"); value: 2; icon: ""; }
-		ListElement	{ text: qsTr("Cluster Set"); value: 3; icon: ""; }
-		ListElement { text: qsTr("Giant Set"); value: 4; icon: ""; }
-		ListElement { text: qsTr("Myo Reps"); value: 5; icon: ""; }
-		ListElement { text: qsTr("Inverted Pyramid"); value: 6; icon: ""; }
-	}
+	property bool completeModel: false
 
 	FontMetrics {
 		id: fontMetrics
@@ -46,14 +35,14 @@ ComboBox {
 			fontSizeMode: Text.Fit
 			font.weight: Font.ExtraBold
 			verticalAlignment: Text.AlignVCenter
-			leftPadding: model.icon.length === 0 ? 0 : 10
+			leftPadding: completeModel ? 10 : 0
 
 			Image {
 				id: lblImg
-				visible: model.icon.length > 0
+				visible: completeModel
 				fillMode: Image.PreserveAspectFit
 				asynchronous: true
-				source: model.icon.length > 0 ? model.icon : ""
+				source: completeModel > 0 ? model.icon : ""
 				width: 20
 				height: 20
 

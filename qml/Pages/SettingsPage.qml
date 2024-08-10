@@ -12,12 +12,18 @@ TPPage {
 	property bool bModified: false
 	property bool bNeedRestart: false
 	property bool bFontSizeChanged: false
-	property var appLanguages: [ { text:"English", value: 0 }, { text:"Português", value: 1 }, { text:"Deutsch", value: 2} ]
 	property var appLocales: ["en_US", "pt_BR", "de_DE"]
 	property int fontPSize : AppSettings.fontSize
 	property int optStyleChosen: 0
 	property int colorSchemeChosen: 0
 	property var colorScheme: []
+
+	ListModel {
+		id: appLanguages
+		ListElement { text: "English"; value: 0; }
+		ListElement { text: "Português"; value: 1; }
+		ListElement { text: "Deutsch"; value: 2; }
+	}
 
 	TPBalloonTip {
 		id: applyTip

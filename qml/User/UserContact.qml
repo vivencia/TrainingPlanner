@@ -171,6 +171,7 @@ Frame {
 		id: cboSocial
 		height: controlsHeight
 		model: socialModel
+		completeModel: true
 		width: parent.width*0.35
 
 		ListModel {
@@ -179,7 +180,7 @@ Frame {
 			ListElement { text: qsTr("Twitter"); icon: "qrc:/images/twitter.png"; value: 1; }
 			ListElement { text: qsTr("Instagram"); icon: "qrc:/images/instagram.png"; value: 2; }
 			ListElement { text: qsTr("Facebook"); icon: "qrc:/images/facebook.png"; value: 3; }
-			ListElement { text: qsTr("Other"); icon: ""; value: 4; }
+			ListElement { text: qsTr("Other"); icon: "qrc:/images/www.png"; value: 4; }
 		}
 
 		onActivated: (index) => {

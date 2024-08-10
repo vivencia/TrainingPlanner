@@ -65,8 +65,8 @@ TPPage {
 
 	signal mesoCalendarChanged()
 
-	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
-							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
+	property var splitModel: [ { value:'A', text:'A', icon:"" }, { value:'B', text:'B', icon:"" }, { value:'C', text:'C', icon:"" },
+							{ value:'D', text:'D', icon:"" }, { value:'E', text:'E', icon:"" }, { value:'F', text:'F', icon:"" }, { value:'R', text:'R', icon:"" } ]
 
 	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0

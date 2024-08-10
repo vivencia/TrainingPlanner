@@ -100,5 +100,6 @@
         <file>images/instagram.png</file>
         <file>images/facebook.png</file>
         <file>images/twitter.png</file>
+        <file>images/www.png</file>
     </qresource>
 </RCC>

@@ -42,6 +42,7 @@ TPPage {
 			UserPersonalData {
 				id: usrData
 				width: windowWidth - 20
+				parentPage: userPage
 			}
 
 			UserContact {

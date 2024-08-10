@@ -396,6 +396,7 @@ Frame {
 								TPComboBox {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
+									model: mainwindow.setTypesModel
 									currentIndex: splitModel.workingSet === setsTabBar.currentIndex ? splitModel.setType(index) : splitModel.setType(index)
 									Layout.rightMargin: 5
 
