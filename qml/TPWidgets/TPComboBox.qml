@@ -14,9 +14,16 @@ ComboBox {
 	property string textColor: AppSettings.fontColor
 	property string backgroundColor: AppSettings.primaryDarkColor
 
-	readonly property var setTypesModel: [ { text:qsTr("Regular"), value:0 }, { text:qsTr("Pyramid"), value:1 }, { text:qsTr("Drop Set"), value:2 },
-							{ text:qsTr("Cluster Set"), value:3 }, { text:qsTr("Giant Set"), value:4 }, { text:qsTr("Myo Reps"), value:5 },
-							{ text:qsTr("Inverted Pyramid"), value:6 } ]
+	ListModel {
+		id: setTypesModel
+		ListElement { text: qsTr("Regular"); value: 0; icon: ""; }
+		ListElement { text: qsTr("Pyramid"); value: 1; icon: ""; }
+		ListElement { text: qsTr("Drop Set"); value: 2; icon: ""; }
+		ListElement	{ text: qsTr("Cluster Set"); value: 3; icon: ""; }
+		ListElement { text: qsTr("Giant Set"); value: 4; icon: ""; }
+		ListElement { text: qsTr("Myo Reps"); value: 5; icon: ""; }
+		ListElement { text: qsTr("Inverted Pyramid"); value: 6; icon: ""; }
+	}
 
 	FontMetrics {
 		id: fontMetrics
@@ -39,6 +46,23 @@ ComboBox {
 			fontSizeMode: Text.Fit
 			font.weight: Font.ExtraBold
 			verticalAlignment: Text.AlignVCenter
+			leftPadding: model.icon.length === 0 ? 0 : 10
+
+			Image {
+				id: lblImg
+				visible: model.icon.length > 0
+				fillMode: Image.PreserveAspectFit
+				asynchronous: true
+				source: model.icon.length > 0 ? model.icon : ""
+				width: 20
+				height: 20
+
+				anchors {
+					left: parent.left
+					leftMargin: -12
+					verticalCenter: parent.verticalCenter
+				}
+			}
 		}
 		highlighted: control.highlightedIndex === index
 	}
@@ -69,7 +93,7 @@ ComboBox {
 		}
 	}
 
-	contentItem: Text {
+	contentItem: Label {
 		text: control.displayText
 		leftPadding: 5
 		rightPadding: control.indicator.width + control.spacing

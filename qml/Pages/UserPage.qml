@@ -4,12 +4,18 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import "../User"
+
+import com.vivenciasoftware.qmlcomponents
 
 TPPage {
 	id: userPage
 	objectName: "userPage"
+	width: windowWidth
+	height: windowHeight
 
-	property bool bModified: false
+	property bool bModified: userModel.modified
+	readonly property int moduleHeight: usrData.implicitHeight
 
 	ScrollView {
 		anchors.fill: parent
@@ -21,7 +27,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
-			spacing: 5
+			spacing: 10
 
 			Label {
 				text: qsTr("User Settings")
@@ -32,6 +38,28 @@ TPPage {
 				Layout.fillWidth: true
 				Layout.topMargin: 20
 			}
+
+			UserPersonalData {
+				id: usrData
+				width: windowWidth - 20
+			}
+
+			UserContact {
+				id: usrContact
+				width: windowWidth - 20
+				height: moduleHeight
+			}
+
+			UserProfile {
+				id: usrProfile
+				width: windowWidth - 20
+				height: moduleHeight
+				parentPage: userPage
+			}
 		}
+	}
+
+	function apply() {
+		appDB.saveUser();
 	}
 }

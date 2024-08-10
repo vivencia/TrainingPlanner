@@ -6,16 +6,26 @@ import com.vivenciasoftware.qmlcomponents
 
 import ".."
 import "../TPWidgets"
+import "../Pages"
 
 Frame {
 	id: frmUserProfile
+	implicitHeight: height
+	implicitWidth: width
+	spacing: 0
+	padding: 0
+
+	background: Rectangle {
+		border.color: "transparent"
+		color: "transparent"
+	}
+
 	property bool bReady: bRoleOK & bGoalOK
 	property bool bRoleOK: false
 	property bool bGoalOK: false
-	readonly property int nControls: 6
 	readonly property int controlsHeight: 25
-	readonly property int allControlsHeight: nControls*controlsHeight
 	readonly property int controlsSpacing: 10
+	required property TPPage parentPage
 
 	Label {
 		id: lblRole
@@ -43,12 +53,18 @@ Frame {
 		model: roleModel
 		width: parent.width*0.80
 
-		readonly property var roleModel: [ { text:qsTr("Occasional Gym Goer"), value:0 }, { text:qsTr("Serious Gym Goer"), value:1 },
-				{ text:qsTr("Aspiring Athlete"), value:2 }, { text:qsTr("Amateur Athlete"), value:3 }, { text:qsTr("Professional Athlete"), value:4 },
-				{ text:qsTr("Other"), value:5 } ]
+		ListModel {
+			id: roleModel
+			ListElement { text: qsTr("Occasional Gym Goer"); value: 0; icon: ""; }
+			ListElement { text: qsTr("Serious Gym Goer"); value: 1; icon: ""; }
+			ListElement { text: qsTr("Aspiring Athlete"); value: 2; icon: ""; }
+			ListElement { text: qsTr("Amateur Athlete"); value: 3; icon: ""; }
+			ListElement { text: qsTr("Professional Athlete"); value: 4; icon: ""; }
+			ListElement { text: qsTr("Other"); value: 5; icon: ""; }
+		}
 
 		Component.onCompleted: {
-			currentIndex = indexOfValue(userModel.role);
+			currentIndex = find(userModel.role);
 			bRoleOK = !userModel.isEmpty();
 		}
 
@@ -90,13 +106,20 @@ Frame {
 		model: goalModel
 		width: parent.width*0.80
 
-		readonly property var goalModel: [ { text:qsTr("General Fitness"), value:0 }, { text:qsTr("Loose Weight"), value:1 },
-				{ text:qsTr("Improve Health"), value:2 }, { text:qsTr("Support for Other Sport"), value:3 },
-				{ text:qsTr("Muscle Gain"), value:4 }, { text:qsTr("Strength"), value:5 }, { text:qsTr("Bodybuilding"), value:6 },
-				{ text:qsTr("Other"), value:7 }]
+		ListModel {
+			id: goalModel
+			ListElement { text: qsTr("General Fitness"); value: 0; icon: ""; }
+			ListElement { text: qsTr("Loose Weight"); value: 1; icon: ""; }
+			ListElement { text: qsTr("Improve Health"); value: 2; icon: ""; }
+			ListElement { text: qsTr("Support for Other Sport"); value: 3; icon: ""; }
+			ListElement { text: qsTr("Muscle Gain"); value: 4; icon: ""; }
+			ListElement { text: qsTr("Strength"); value: 5; icon: ""; }
+			ListElement { text: qsTr("Bodybuilding"); value: 6; icon: ""; }
+			ListElement { text: qsTr("Other"); value: 7; icon: ""; }
+		}
 
 		Component.onCompleted: {
-			currentIndex = indexOfValue(userModel.goal);
+			currentIndex = find(userModel.goal);
 			bGoalOK = !userModel.isEmpty();
 		}
 

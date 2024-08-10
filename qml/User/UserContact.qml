@@ -7,14 +7,22 @@ import ".."
 import "../TPWidgets"
 
 Frame {
+	implicitHeight: height
+	implicitWidth: width
+	padding: 0
+	spacing: 0
+
+	background: Rectangle {
+		border.color: "transparent"
+		color: "transparent"
+	}
+
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
 	property bool bPhoneOK: false
 	property bool bEmailOK: true
 	property bool bSocialOK: true
-	readonly property int nControls: 5
-	readonly property int controlsHeight: 25
-	readonly property int allControlsHeight: nControls*controlsHeight
 	readonly property int controlsSpacing: 10
+	readonly property int controlsHeight: height / 6
 
 	Label {
 		id: lblPhone
@@ -26,7 +34,6 @@ Frame {
 		padding: 0
 		bottomInset: 0
 		topInset: 0
-		bottomPadding: 0
 
 		anchors {
 			top: parent.top
@@ -160,18 +167,24 @@ Frame {
 		}
 	}
 
-	TPTextInput {
-		id: txtSocial
+	TPComboBox {
+		id: cboSocial
 		height: controlsHeight
-		enabled: bEmailOK
-		ToolTip.text: qsTr("Social media address is invalid")
+		model: socialModel
+		width: parent.width*0.35
 
-		Component.onCompleted: text = userModel.socialMedia;
-		onTextChanged: userModel.socialMedia = text;
+		ListModel {
+			id: socialModel
+			ListElement { text: qsTr("YouTube"); icon: "qrc:/images/youtube.png"; value: 0; }
+			ListElement { text: qsTr("Twitter"); icon: "qrc:/images/twitter.png"; value: 1; }
+			ListElement { text: qsTr("Instagram"); icon: "qrc:/images/instagram.png"; value: 2; }
+			ListElement { text: qsTr("Facebook"); icon: "qrc:/images/facebook.png"; value: 3; }
+			ListElement { text: qsTr("Other"); icon: ""; value: 4; }
+		}
 
-		onTextEdited: {
-			bSocialOK = text.length > 10 || text.length === 0
-			ToolTip.visible = bSocialOK;
+		onActivated: (index) => {
+			txtSocial.text = runCmd.getCompositeValue(index, userModel.socialMedia);
+			txtSocial.forceActiveFocus();
 		}
 
 		anchors {
@@ -179,6 +192,29 @@ Frame {
 			topMargin: -10
 			left: parent.left
 			leftMargin: 5
+		}
+	}
+
+	TPTextInput {
+		id: txtSocial
+		height: controlsHeight
+		enabled: bEmailOK
+		width: parent.width*0.65
+		ToolTip.text: qsTr("Social media address is invalid")
+
+		Component.onCompleted: text = runCmd.getCompositeValue(cboSocial.currentIndex, userModel.socialMedia);
+		onTextChanged: userModel.socialMedia = runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia);
+
+		onTextEdited: {
+			bSocialOK = text.length > 10 || text.length === 0
+			ToolTip.visible = !bSocialOK;
+		}
+
+		anchors {
+			top: lblSocial.bottom
+			topMargin: -10
+			left: cboSocial.right
+			leftMargin: 0
 			right: parent.right
 			rightMargin: 5
 		}

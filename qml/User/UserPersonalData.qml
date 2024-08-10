@@ -12,6 +12,11 @@ Frame {
 	padding: 0
 	implicitHeight: allControlsHeight + controlsSpacing
 
+	background: Rectangle {
+		border.color: "transparent"
+		color: "transparent"
+	}
+
 	property bool bReady: bNameOK && bBirthDateOK && bSexOK
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
@@ -172,10 +177,14 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Male")
 			height: controlsHeight
-			checked: userModel.sex === qsTr("Male")
 
 			onCheckedChanged: if (checked) userModel.sex = qsTr("Male");
-			onClicked: bSexOK = true
+			onClicked: bSexOK = true;
+
+			Component.onCompleted: {
+				checked = userModel.sex === qsTr("Male");
+				bSexOK = true;
+			}
 
 			anchors {
 				verticalCenter: parent.verticalCenter
@@ -187,10 +196,14 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Female")
 			height: controlsHeight
-			checked: userModel.sex === qsTr("Female")
 
 			onCheckedChanged: if (checked) userModel.sex = qsTr("Female");
 			onClicked: bSexOK = true;
+
+			Component.onCompleted: {
+				checked = userModel.sex === qsTr("Female");
+				bSexOK = true;
+			}
 
 			anchors {
 				verticalCenter: parent.verticalCenter

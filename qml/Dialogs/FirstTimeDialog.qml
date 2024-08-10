@@ -43,6 +43,7 @@ TPPopup {
 		UserProfile {
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
+			parentPage: firstTimeDlg.parentPage
 		}
 
 		UserReady {

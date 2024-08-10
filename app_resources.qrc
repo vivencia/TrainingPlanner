@@ -92,5 +92,13 @@
         <file>images/avatars.png</file>
         <file>images/black/choose_avatar.png</file>
         <file>images/white/choose_avatar.png</file>
+        <file>images/black/user-add.png</file>
+        <file>images/black/user-del.png</file>
+        <file>images/white/user-add.png</file>
+        <file>images/white/user-del.png</file>
+        <file>images/youtube.png</file>
+        <file>images/instagram.png</file>
+        <file>images/facebook.png</file>
+        <file>images/twitter.png</file>
     </qresource>
 </RCC>
