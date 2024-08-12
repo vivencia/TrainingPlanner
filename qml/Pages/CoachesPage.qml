@@ -9,13 +9,50 @@ import "../User"
 import com.vivenciasoftware.qmlcomponents
 
 TPPage {
-	id: userPage
-	objectName: "userPage"
+	id: coachesPage
+	objectName: "coachesPage"
 	width: windowWidth
 	height: windowHeight
 
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrData.implicitHeight
+
+	onPageActivated: userModel.findFirstUser(true);
+
+	Row {
+		spacing: 10
+		padding: 5
+
+		RoundButton {
+			id: btnAdd
+			icon.source: "qrc:/images/user-add.png"
+		}
+
+		RoundButton {
+			id: btnDel
+			icon.source: "qrc:/images/user-del.png"
+		}
+
+		RoundButton {
+			id: btnFirst
+			icon.source: "qrc:/images/first.png"
+		}
+
+		RoundButton {
+			id: btnPrev
+			icon.source: "qrc:/images/prev.png"
+		}
+
+		RoundButton {
+			id: btnNext
+			icon.source: "qrc:/images/next.png"
+		}
+
+		RoundButton {
+			id: btnLast
+			icon.source: "qrc:/images/last.png"
+		}
+	}
 
 	ScrollView {
 		anchors.fill: parent
@@ -30,7 +67,7 @@ TPPage {
 			spacing: 10
 
 			Label {
-				text: qsTr("User Settings")
+				text: qsTr("Coaches or Trainers")
 				color: AppSettings.fontColor
 				font.bold: true
 				font.pointSize: AppSettings.fontSizeTitle
@@ -56,30 +93,6 @@ TPPage {
 				width: windowWidth - 20
 				height: moduleHeight
 				parentPage: userPage
-			}
-
-			UserCoach {
-				id: usrCoach
-				width: windowWidth - 20
-				height: moduleHeight
-			}
-
-			TPButton {
-				id: btnManageCoach
-				text: qsTr("Manage coach(es)/trainer(s)")
-				visible: userModel.coach >= 3
-				Layout.alignment: Qt.AlignCenter
-
-				onClicked: appDB.openCoachesPage();
-			}
-
-			TPButton {
-				id: btnManageClients
-				text: qsTr("Manage clients")
-				visible: userModel.coach === 2
-				Layout.alignment: Qt.AlignCenter
-
-				onClicked: appDB.openClientsPage();
 			}
 		}
 	}

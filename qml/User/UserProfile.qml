@@ -15,6 +15,24 @@ Frame {
 	spacing: 0
 	padding: 0
 
+	ListModel {
+		id: roleModelUser
+		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; }
+		ListElement { text: qsTr("Serious Gym Goer"); value: 1; }
+		ListElement { text: qsTr("Aspiring Athlete"); value: 2; }
+		ListElement { text: qsTr("Amateur Athlete"); value: 3; }
+		ListElement { text: qsTr("Professional Athlete"); value: 4; }
+		ListElement { text: qsTr("Other"); value: 5; }
+	}
+
+	ListModel {
+		id: roleModelCoach
+		ListElement { text: qsTr("Personal Trainer"); value: 0; }
+		ListElement { text: qsTr("Athletes coach"); value: 1; }
+		ListElement { text: qsTr("Physical Therapist"); value: 2; }
+		ListElement { text: qsTr("Other"); value: 5; }
+	}
+
 	background: Rectangle {
 		border.color: "transparent"
 		color: "transparent"
@@ -50,18 +68,8 @@ Frame {
 	TPComboBox {
 		id: cboRole
 		height: controlsHeight
-		model: roleModel
+		model: userModel.coach !== 2 ? roleModelUser : roleModelCoach
 		width: parent.width*0.80
-
-		ListModel {
-			id: roleModel
-			ListElement { text: qsTr("Occasional Gym Goer"); value: 0; }
-			ListElement { text: qsTr("Serious Gym Goer"); value: 1; }
-			ListElement { text: qsTr("Aspiring Athlete"); value: 2; }
-			ListElement { text: qsTr("Amateur Athlete"); value: 3; }
-			ListElement { text: qsTr("Professional Athlete"); value: 4; }
-			ListElement { text: qsTr("Other"); value: 5; }
-		}
 
 		Component.onCompleted: {
 			currentIndex = find(userModel.role);

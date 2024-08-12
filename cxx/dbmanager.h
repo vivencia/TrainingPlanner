@@ -140,6 +140,11 @@ public:
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
 	void createSettingsPage();
+	Q_INVOKABLE void openClientsPage();
+	void createClientsPage();
+	void prepareCoachesPage();
+	Q_INVOKABLE void openCoachesPage();
+	void createCoachesPage();
 
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
@@ -212,8 +217,8 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	QQuickItem* m_settingsPage;
-	QQmlComponent* m_settingsComponent;
+	QQuickItem* m_settingsPage, *m_clientsPage, *m_coachesPage;
+	QQmlComponent* m_settingsComponent, *m_clientsComponent, *m_coachesComponent;
 	QVariantMap m_settingsProperties;
 
 	QList<QQuickItem*> m_mainMenuShortcutPages;

@@ -43,7 +43,8 @@ void DBUserTable::createTable()
 										"role TEXT,"
 										"goal TEXT,"
 										"avatar TEXT,"
-										"coach TEXT"
+										"coach INTEGER DEFAULT 0,"
+										"current_coach INTEGER"
 									")"
 								)
 		);
@@ -78,7 +79,7 @@ void DBUserTable::getAllUsers()
 
 				do
 				{
-					for (i = USER_COL_ID; i <= USER_COL_COACH; ++i)
+					for (i = USER_COL_ID; i < USER_TOTAL_COLS; ++i)
 						user_info.append(query.value(static_cast<int>(i)).toString());
 					m_model->appendList(user_info);
 					user_info.clear();
@@ -126,7 +127,7 @@ void DBUserTable::saveUser()
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			strQuery =  QStringLiteral(
 				"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						   "role=\'%7\', goal=\'%8\', avatar=\'%9\', coach=\'%10\' WHERE id=%11")
+						   "role=\'%7\', goal=\'%8\', avatar=\'%9\', coach=%10 WHERE id=%11")
 				.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY), m_model->getFast(row, USER_COL_SEX),
 					m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL), m_model->getFast(row, USER_COL_SOCIALMEDIA),
 					m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL), m_model->getFast(row, USER_COL_AVATAR),
@@ -137,7 +138,7 @@ void DBUserTable::saveUser()
 			strQuery = QStringLiteral(
 				"INSERT INTO user_table "
 				"(name,birthday,sex,phone,email,social,role,goal,avatar,coach)"
-				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')")
+				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', %10)")
 					.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
 					m_model->getFast(row, USER_COL_SEX), m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL),
 					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL),

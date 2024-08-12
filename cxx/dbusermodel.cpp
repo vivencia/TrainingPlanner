@@ -1,7 +1,7 @@
 #include "dbusermodel.h"
 
 DBUserModel::DBUserModel(QObject *parent)
-	: TPListModel(parent), mb_empty(false), m_userRow(0)
+	: TPListModel(parent), mb_empty(false), m_userRow(0), m_searchRow(-1)
 {
 	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
@@ -28,6 +28,70 @@ int DBUserModel::loadUserInfo(const QString& name)
 			return i;
 	}
 	return -1;
+}
+
+int DBUserModel::findFirstUser(const bool bCoach)
+{
+	int searchRow(1);
+	for (; searchRow < m_modeldata.count(); ++searchRow)
+	{
+		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		{
+			m_searchRow = searchRow;
+			break;
+		}
+	}
+	return m_searchRow;
+}
+
+int DBUserModel::findNextUser(const bool bCoach)
+{
+	if (m_searchRow == m_modeldata.count() - 1)
+		return m_searchRow;
+	else if (m_searchRow <= 0)
+		return findFirstUser(bCoach);
+
+	int searchRow(m_searchRow + 1);
+	for (; searchRow < m_modeldata.count(); ++searchRow)
+	{
+		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		{
+			m_searchRow = searchRow;
+			break;
+		}
+	}
+	return m_searchRow;
+}
+
+int DBUserModel::findPrevUser(const bool bCoach)
+{
+	if (m_searchRow <= 1)
+		return findFirstUser(bCoach);
+
+	int searchRow(m_searchRow);
+	for (; searchRow >= 0; --searchRow)
+	{
+		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		{
+			m_searchRow = searchRow;
+			break;
+		}
+	}
+	return m_searchRow;
+}
+
+int DBUserModel::findLastUser(const bool bCoach)
+{
+	int searchRow(m_modeldata.count() - 1);
+	for (; searchRow >= 0; --searchRow)
+	{
+		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		{
+			m_searchRow = searchRow;
+			break;
+		}
+	}
+	return m_searchRow;
 }
 
 bool DBUserModel::updateFromModel(const TPListModel* model)

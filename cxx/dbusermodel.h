@@ -14,8 +14,9 @@
 #define USER_COL_GOAL 8
 #define USER_COL_AVATAR 9
 #define USER_COL_COACH 10
+#define USER_COL_DEFAULT_COACH 11
 
-#define USER_TOTAL_COLS USER_COL_COACH + 1
+#define USER_TOTAL_COLS USER_COL_DEFAULT_COACH + 1
 
 class DBUserModel : public TPListModel
 {
@@ -32,12 +33,17 @@ Q_PROPERTY(QString socialMedia READ socialMedia WRITE setSocialMedia NOTIFY soci
 Q_PROPERTY(QString role READ role WRITE setRole NOTIFY roleChanged FINAL)
 Q_PROPERTY(QString goal READ goal WRITE setGoal NOTIFY goalChanged FINAL)
 Q_PROPERTY(QString avatar READ avatar WRITE setAvatar NOTIFY avatarChanged FINAL)
-Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
+Q_PROPERTY(int coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
+Q_PROPERTY(int defaultCoach READ defaultCoach WRITE setDefaultCoach NOTIFY defaultCoachChanged FINAL)
 
 public:
 	explicit DBUserModel(QObject *parent = nullptr);
 
 	int loadUserInfo(const QString& name);
+	Q_INVOKABLE int findFirstUser(const bool bCoach = false);
+	Q_INVOKABLE int findNextUser(const bool bCoach = false);
+	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
+	Q_INVOKABLE int findLastUser(const bool bCoach = false);
 	inline void setCurrentViewedUser(const uint user_row) { m_userRow = user_row; }
 	inline uint currentViewedUser() const { return m_userRow; }
 
@@ -60,8 +66,10 @@ public:
 	inline void setGoal(const QString& new_goal) { m_modeldata[m_userRow][USER_COL_GOAL] = new_goal; emit goalChanged(); setModified(true); }
 	inline QString avatar() const { return m_modeldata.at(m_userRow).at(USER_COL_AVATAR); }
 	inline void setAvatar(const QString& new_avatar) { m_modeldata[m_userRow][USER_COL_AVATAR] = new_avatar; emit avatarChanged(); setModified(true); }
-	inline QString coach() const { return m_modeldata.at(m_userRow).at(USER_COL_COACH); }
-	inline void setCoach(const QString& new_coach) { m_modeldata[m_userRow][USER_COL_COACH] = new_coach; emit coachChanged(); setModified(true); }
+	inline int coach() const { return m_modeldata.at(m_userRow).at(USER_COL_COACH).toInt(); }
+	inline void setCoach(const int new_coach_opt) { m_modeldata[m_userRow][USER_COL_COACH] = QString::number(new_coach_opt); emit coachChanged(); setModified(true); }
+	inline int defaultCoach() const { return m_modeldata.at(m_userRow).at(USER_COL_DEFAULT_COACH).toInt(); }
+	inline void setDefaultCoach(const int new_default_coach) { m_modeldata[m_userRow][USER_COL_DEFAULT_COACH] = QString::number(new_default_coach); emit defaultCoachChanged(); setModified(true); }
 
 	Q_INVOKABLE inline bool isEmpty() const { return mb_empty; }
 	inline void setIsEmpty(const bool empty) { mb_empty = empty; }
@@ -81,9 +89,11 @@ signals:
 	void goalChanged();
 	void avatarChanged();
 	void coachChanged();
+	void defaultCoachChanged();
 
 private:
 	bool mb_empty;
 	uint m_userRow;
+	int m_searchRow;
 };
 #endif // DBUSERMODEL_H

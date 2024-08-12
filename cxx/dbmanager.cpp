@@ -100,7 +100,8 @@ extern "C"
 
 DbManager::DbManager(QSettings* appSettings)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false),
-			m_currentMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr)
+			m_currentMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr),
+			m_settingsPage(nullptr), m_clientsPage(nullptr), m_coachesPage(nullptr)
 {}
 
 DbManager::~DbManager()
@@ -120,6 +121,16 @@ DbManager::~DbManager()
 	{
 		delete m_settingsPage;
 		delete m_settingsComponent;
+	}
+	if (m_clientsPage)
+	{
+		delete m_clientsPage;
+		delete m_clientsComponent;
+	}
+	if (m_coachesPage)
+	{
+		delete m_coachesPage;
+		delete m_coachesComponent;
 	}
 	for(uint i(0); i < m_MesoManager.count(); ++i)
 		delete m_MesoManager.at(i);
@@ -1923,6 +1934,88 @@ void DbManager::createSettingsPage()
 		m_QMlEngine->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
 		m_settingsPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_settingsPage));
+	}
+}
+
+void DbManager::openClientsPage()
+{
+	if (m_clientsPage != nullptr)
+	{
+		m_clientsPage->setProperty("startPageIndex", startPageIndex);
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsPage));
+		return;
+	}
+
+	m_clientsComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ClientsPage.qml"_qs), QQmlComponent::Asynchronous);
+	connect(m_clientsComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
+		return createClientsPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
+void DbManager::createClientsPage()
+{
+	#ifdef DEBUG
+	if (m_clientsComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_clientsComponent->errorString();
+		for (uint i(0); i < m_clientsComponent->errors().count(); ++i)
+			qDebug() << m_clientsComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	if (m_clientsComponent->status() == QQmlComponent::Ready)
+	{
+		m_clientsPage = static_cast<QQuickItem*>(m_clientsComponent->create(m_QMlEngine->rootContext()));
+		m_QMlEngine->setObjectOwnership(m_clientsPage, QQmlEngine::CppOwnership);
+		m_clientsPage->setParentItem(m_mainWindow->contentItem());
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsPage));
+	}
+}
+
+void DbManager::prepareCoachesPage()
+{
+	const int coach_row(userModel->findFirstUser(true));
+	if (coach_row == -1)
+	{
+		userModel->appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
+			QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs << QString());
+	}
+	else
+	{
+		userModel->setCurrentViewedUser(coach_row);
+	}
+}
+
+void DbManager::openCoachesPage()
+{
+	if (m_coachesPage != nullptr)
+	{
+		m_coachesPage->setProperty("startPageIndex", startPageIndex);
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_coachesPage));
+		return;
+	}
+
+	m_coachesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/CoachesPage.qml"_qs), QQmlComponent::Asynchronous);
+	connect(m_coachesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
+		return createCoachesPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
+void DbManager::createCoachesPage()
+{
+	#ifdef DEBUG
+	if (m_coachesComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_coachesComponent->errorString();
+		for (uint i(0); i < m_coachesComponent->errors().count(); ++i)
+			qDebug() << m_coachesComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	if (m_coachesComponent->status() == QQmlComponent::Ready)
+	{
+		m_coachesPage = static_cast<QQuickItem*>(m_coachesComponent->create(m_QMlEngine->rootContext()));
+		m_QMlEngine->setObjectOwnership(m_coachesPage, QQmlEngine::CppOwnership);
+		m_coachesPage->setParentItem(m_mainWindow->contentItem());
+		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_coachesPage));
 	}
 }
 

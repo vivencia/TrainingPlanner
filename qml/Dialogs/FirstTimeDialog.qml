@@ -7,6 +7,7 @@ import "../User"
 
 TPPopup {
 	id: firstTimeDlg
+	objectName: "firstTimerDlg"
 	bKeepAbove: true
 	modal: true
 	width: windowWidth - 50
@@ -37,6 +38,11 @@ TPPopup {
 		}
 
 		UserContact {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
+		}
+
+		UserCoach {
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
 		}

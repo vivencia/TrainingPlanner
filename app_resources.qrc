@@ -92,14 +92,16 @@
         <file>images/avatars.png</file>
         <file>images/black/choose_avatar.png</file>
         <file>images/white/choose_avatar.png</file>
-        <file>images/black/user-add.png</file>
-        <file>images/black/user-del.png</file>
-        <file>images/white/user-add.png</file>
-        <file>images/white/user-del.png</file>
         <file>images/youtube.png</file>
         <file>images/instagram.png</file>
         <file>images/facebook.png</file>
         <file>images/twitter.png</file>
         <file>images/www.png</file>
+        <file>images/add.png</file>
+        <file>images/del.png</file>
+        <file>images/first.png</file>
+        <file>images/last.png</file>
+        <file>images/next.png</file>
+        <file>images/prev.png</file>
     </qresource>
 </RCC>
