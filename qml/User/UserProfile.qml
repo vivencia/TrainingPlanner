@@ -10,9 +10,9 @@ import "../Pages"
 
 Frame {
 	id: frmUserProfile
-	implicitHeight: height
 	implicitWidth: width
-	spacing: 0
+	implicitHeight: allControlsHeight + nControls*controlsSpacing
+	spacing: 5
 	padding: 0
 
 	ListModel {
@@ -38,17 +38,20 @@ Frame {
 		color: "transparent"
 	}
 
+	property int allControlsHeight: nControls*controlsHeight
 	property bool bReady: bRoleOK & bGoalOK
 	property bool bRoleOK: false
 	property bool bGoalOK: false
+	readonly property int nControls: 4
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
 	required property TPPage parentPage
 
 	Label {
-		id: lblRole
+		id: lblUserRole
 		text: userModel.columnLabel(7)
 		color: AppSettings.fontColor
+		visible: userModel.appUseMode !== 2
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		height: controlsHeight
@@ -58,6 +61,13 @@ Frame {
 		bottomPadding: 0
 		width: parent.width*0.2
 
+		onHeightChanged: {
+			if (visible)
+				allControlsHeight += height;
+			else
+				allControlsHeight -= height;
+		}
+
 		anchors {
 			top: parent.top
 			left: parent.left
@@ -66,9 +76,10 @@ Frame {
 	}
 
 	TPComboBox {
-		id: cboRole
+		id: cboUserRole
+		model: roleModelUser
+		visible: userModel.appUseMode !== 2
 		height: controlsHeight
-		model: userModel.coach !== 2 ? roleModelUser : roleModelCoach
 		width: parent.width*0.80
 
 		Component.onCompleted: {
@@ -84,7 +95,7 @@ Frame {
 		anchors {
 			top: parent.top
 			topMargin: -5
-			left: lblRole.right
+			left: lblUserRole.right
 			leftMargin: 0
 		}
 	}
@@ -92,6 +103,7 @@ Frame {
 	Label {
 		id: lblGoal
 		text: userModel.columnLabel(8)
+		visible: userModel.appUseMode !== 2
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
@@ -99,8 +111,15 @@ Frame {
 		padding: 0
 		width: parent.width*0.2
 
+		onHeightChanged: {
+			if (visible)
+				allControlsHeight += height;
+			else
+				allControlsHeight -= height;
+		}
+
 		anchors {
-			top: lblRole.bottom
+			top: lblUserRole.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
@@ -109,9 +128,10 @@ Frame {
 
 	TPComboBox {
 		id: cboGoal
-		height: controlsHeight
-		enabled: bRoleOK
 		model: goalModel
+		visible: userModel.appUseMode !== 2
+		enabled: bRoleOK
+		height: controlsHeight
 		width: parent.width*0.80
 
 		ListModel {
@@ -145,6 +165,59 @@ Frame {
 	}
 
 	Label {
+		id: lblCoachRole
+		text: userModel.columnLabel(7)
+		color: AppSettings.fontColor
+		visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
+		font.pointSize: AppSettings.fontSizeText
+		font.bold: true
+		height: controlsHeight
+		padding: 0
+		bottomInset: 0
+		topInset: 0
+		bottomPadding: 0
+		width: parent.width*0.2
+
+		onHeightChanged: {
+			if (visible)
+				allControlsHeight += height;
+			else
+				allControlsHeight -= height;
+		}
+
+		anchors {
+			top: lblGoal.visible ? lblGoal.bottom : parent.top
+			left: parent.left
+			leftMargin: 5
+		}
+	}
+
+	TPComboBox {
+		id: cboCoachRole
+		model: roleModelCoach
+		visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
+		height: controlsHeight
+		width: parent.width*0.80
+
+		Component.onCompleted: {
+			currentIndex = find(userModel.coachRole);
+			bRoleOK = !userModel.isEmpty();
+		}
+
+		onActivated: (index) => {
+			userModel.coachRole = textAt(index);
+			bRoleOK = true;
+		}
+
+		anchors {
+			top: lblCoachRole.top
+			topMargin: -5
+			left: lblCoachRole.right
+			leftMargin: 0
+		}
+	}
+
+	Label {
 		id: lblAvatar
 		text: qsTr("Avatar:")
 		color: AppSettings.fontColor
@@ -164,7 +237,7 @@ Frame {
 
 	Rectangle {
 		id: recAvatar
-		height: parent.height - 2*controlsHeight
+		height: 4*controlsHeight
 		width: height
 		radius: height/2
 		layer.enabled: true
@@ -172,6 +245,8 @@ Frame {
 		color: "transparent"
 		border.width: 1
 		border.color: AppSettings.fontColor
+
+		Component.onCompleted: allControlsHeight += height;
 
 		Image {
 			anchors.fill: parent

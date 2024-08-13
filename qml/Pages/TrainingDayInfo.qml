@@ -43,11 +43,6 @@ TPPage {
 	property PageScrollButtons navButtons: null
 	property TimerDialog timerDialog: null
 	property var timerDialogRequester: null
-	property TPFloatingMenuBar optionsMenu: null
-
-	property bool bEnableMultipleSelection: false
-	property bool bShowSimpleExercisesList: false
-	property Item itemThatRequestedSimpleList: null
 
 	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
 
@@ -65,8 +60,8 @@ TPPage {
 
 	signal mesoCalendarChanged()
 
-	property var splitModel: [ { value:'A', text:'A', icon:"" }, { value:'B', text:'B', icon:"" }, { value:'C', text:'C', icon:"" },
-							{ value:'D', text:'D', icon:"" }, { value:'E', text:'E', icon:"" }, { value:'F', text:'F', icon:"" }, { value:'R', text:'R', icon:"" } ]
+	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
+							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
 
 	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
@@ -118,8 +113,17 @@ TPPage {
 	function timeManuallyEdited() {
 		const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
 		updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-		appDB.setDayIsFinished(mainDate, true);
-		itemManager.rollUpExercises();
+
+		if (editMode) {
+			appDB.setDayIsFinished(mainDate, true);
+			itemManager.rollUpExercises();
+		}
+		else {
+			if (runCmd.areDatesTheSame(mainDate, new Date())) {
+				workoutTimer.stopWatch = false;
+				workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(runCmd.getCurrentTimeString(), timeOut));
+			}
+		}
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -221,7 +225,7 @@ TPPage {
 			}
 			createMessageBox();
 		}
-		msgRemoveSet.title = qsTr("Remove set #") + parseInt(setnumber) + "?"
+		msgRemoveSet.title = qsTr("Remove set #") + parseInt(setnumber + 1) + "?"
 		msgRemoveSet.show(-1);
 	}
 
@@ -1136,9 +1140,9 @@ TPPage {
 	}
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
-		itemThatRequestedSimpleList = visible ? object : null;
-		bEnableMultipleSelection = multipleSel;
-		bShowSimpleExercisesList = visible;
+		exercisesPane.itemThatRequestedSimpleList = visible ? object : null;
+		exercisesPane.bEnableMultipleSelection = multipleSel;
+		exercisesPane.visible = visible;
 	}
 
 	function requestTimerDialog(requester, message, mins, secs) {
@@ -1208,6 +1212,7 @@ TPPage {
 		workoutTimer.resetTimer(false);
 	}
 
+	property TPFloatingMenuBar optionsMenu: null
 	function showFinishedWorkoutOptions() {
 		if (optionsMenu === null) {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");

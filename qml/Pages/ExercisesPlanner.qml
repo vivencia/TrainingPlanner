@@ -16,9 +16,6 @@ TPPage {
 	objectName: "exercisesPlanner"
 
 	property alias currentPage: splitView.currentItem
-	property bool bEnableMultipleSelection: false
-	property bool bShowSimpleExercisesList: false
-	property Item itemThatRequestedSimpleList: null
 	property PageScrollButtons navButtons: null
 	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
@@ -222,9 +219,9 @@ TPPage {
 	Component.onCompleted: appDB.getCompleteMesoSplit();
 
 	function requestSimpleExercisesList(object, visible, multipleSel) {
-		itemThatRequestedSimpleList = visible ? object : null;
-		bEnableMultipleSelection = multipleSel;
-		bShowSimpleExercisesList = visible;
+		exercisesPane.itemThatRequestedSimpleList = visible ? object : null;
+		exercisesPane.bEnableMultipleSelection = multipleSel;
+		exercisesPane.visible = visible;
 	}
 
 	function createNavButtons() {

@@ -11,11 +11,11 @@ TPPopup {
 	bKeepAbove: true
 	modal: true
 	width: windowWidth - 50
-	height: moduleHeight
+	height: moduleHeight + frmFooter.height
 	x: (windowWidth - width)/2 // horizontally centered
 	finalYPos: (windowHeight - height)/2 // vertically centered
 
-	readonly property int moduleHeight: usrData.implicitHeight + frmFooter.height
+	readonly property int moduleHeight: usrProfile.implicitHeight
 
 	StackLayout {
 		id: stackLayout
@@ -33,8 +33,9 @@ TPPopup {
 		}
 
 		UserPersonalData {
-			id: usrData
 			parentPage: firstTimeDlg.parentPage
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 
 		UserContact {
@@ -48,9 +49,9 @@ TPPopup {
 		}
 
 		UserProfile {
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			id: usrProfile
 			parentPage: firstTimeDlg.parentPage
+			width: firstTimeDlg.width - 20
 		}
 
 		UserReady {

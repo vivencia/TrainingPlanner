@@ -15,7 +15,9 @@ TPPage {
 	height: windowHeight
 
 	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrData.implicitHeight
+	readonly property int moduleHeight: usrProfile.implicitHeight
+
+	onPageActivated: userModel.setCurrentViewedUser(0);
 
 	ScrollView {
 		anchors.fill: parent
@@ -41,8 +43,9 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
-				width: windowWidth - 20
 				parentPage: userPage
+				width: windowWidth - 20
+				height: moduleHeight
 			}
 
 			UserContact {
@@ -51,17 +54,16 @@ TPPage {
 				height: moduleHeight
 			}
 
-			UserProfile {
-				id: usrProfile
-				width: windowWidth - 20
-				height: moduleHeight
-				parentPage: userPage
-			}
-
 			UserCoach {
 				id: usrCoach
 				width: windowWidth - 20
 				height: moduleHeight
+			}
+
+			UserProfile {
+				id: usrProfile
+				parentPage: userPage
+				width: windowWidth - 20
 			}
 
 			TPButton {
@@ -70,16 +72,16 @@ TPPage {
 				visible: userModel.coach >= 3
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: appDB.openCoachesPage();
+				onClicked: appDB.createClientsOrCoachesPage(true);
 			}
 
 			TPButton {
 				id: btnManageClients
 				text: qsTr("Manage clients")
-				visible: userModel.coach === 2
+				visible: userModel.coach === 2 || userModel.coach === 4
 				Layout.alignment: Qt.AlignCenter
 
-				onClicked: appDB.openClientsPage();
+				onClicked: appDB.createClientsOrCoachesPage(false);
 			}
 		}
 	}

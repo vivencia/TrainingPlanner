@@ -20,6 +20,55 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(tr("Coach: "));
 }
 
+/*switch (userModel->mainUserAppUseMode())
+	{
+		case COACH_OPT_SINGLE_USER: return;
+		case COACH_OPT_SINGLE_COACH: bShowUsers = true; bShowCoaches = false; break;
+		case COACH_OPT_SINGLE_USER_WITH_COACH: break;
+		case COACH_OPT_COACH_USER_WITH_COACHES: bShowUsers = true; break;
+	}
+	*/
+void DBUserModel::addUser(const bool coach)
+{
+	uint use_mode(1);
+	uint cur_coach(0);
+	uint cur_client(0);
+	if (!m_modeldata.isEmpty())
+	{
+		switch (m_modeldata.at(0).at(USER_COL_APP_USE_MODE).toInt())
+		{
+			case 1: case 3: if (!coach) return; use_mode = 2; cur_coach = 1; break;
+			case 2: if (coach) return; use_mode = 0; cur_client = 1; break;
+			case 4:
+				if (coach)
+				{
+					use_mode = 2;
+					cur_coach = 1;
+				}
+				else
+				{
+					use_mode = 0;
+					cur_client = 1;
+				}
+			break;
+		}
+	}
+	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
+		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs <<
+		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
+	m_userRow = m_modeldata.count() - 1;
+}
+
+void DBUserModel::removeUser(const int row)
+{
+	if (row >= 1 && row < m_modeldata.count())
+	{
+		removeRow(row);
+		if (row <= m_userRow)
+			m_userRow--;
+	}
+}
+
 int DBUserModel::loadUserInfo(const QString& name)
 {
 	for (uint i(0); i < m_modeldata.count(); ++i)
@@ -35,7 +84,7 @@ int DBUserModel::findFirstUser(const bool bCoach)
 	int searchRow(1);
 	for (; searchRow < m_modeldata.count(); ++searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -54,7 +103,7 @@ int DBUserModel::findNextUser(const bool bCoach)
 	int searchRow(m_searchRow + 1);
 	for (; searchRow < m_modeldata.count(); ++searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -71,7 +120,7 @@ int DBUserModel::findPrevUser(const bool bCoach)
 	int searchRow(m_searchRow);
 	for (; searchRow >= 0; --searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -85,7 +134,7 @@ int DBUserModel::findLastUser(const bool bCoach)
 	int searchRow(m_modeldata.count() - 1);
 	for (; searchRow >= 0; --searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_COACH) == bCoach ? u"2"_qs : u"0"_qs)
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
 		{
 			m_searchRow = searchRow;
 			break;

@@ -14,6 +14,7 @@ Column {
 	property bool canDoMultipleSelection: false
 
 	signal exerciseEntrySelected(int idx)
+	signal itemDoubleClicked()
 
 	//When the list is shared among several objects, if a previous object requested multiple selection and the current
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
@@ -252,7 +253,7 @@ Column {
 					exerciseEntrySelected(idx);
 			}
 			else {
-				hideSimpleExerciseList();
+				itemDoubleClicked();
 				return;
 			}
 		}

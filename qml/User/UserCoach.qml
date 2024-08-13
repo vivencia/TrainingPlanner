@@ -26,14 +26,14 @@ Frame {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 
-		onCheckedChanged: if (checked) userModel.coach = 1 + chkHaveCoach.checked ? 2 : 0;
+		onCheckedChanged: if (checked) userModel.appUseMode = 1 + chkHaveCoach.checked ? 2 : 0;
 		onClicked: {
-			bCoachOK = userModel.coach !== 2;
+			bCoachOK = userModel.appUseMode !== 2;
 			optCoachUse.checked = false;
 		}
 
 		Component.onCompleted: {
-			checked = userModel.coach === 1 || userModel.coach === 3;
+			checked = userModel.appUseMode === 1 || userModel.appUseMode === 3;
 			bCoachOK = true;
 		}
 
@@ -51,14 +51,14 @@ Frame {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 
-		onCheckedChanged: if (checked) userModel.coach = 2 + chkHaveCoach.checked ? 2 : 0;
+		onCheckedChanged: if (checked) userModel.appUseMode = 2 + chkHaveCoach.checked ? 2 : 0;
 		onClicked: {
-			bCoachOK = userModel.coach !== 2;
+			bCoachOK = userModel.appUseMode !== 2;
 			optPersonalUse.checked = false;
 		}
 
 		Component.onCompleted: {
-			checked = userModel.coach === 2 || userModel.coach === 4;
+			checked = userModel.appUseMode === 2 || userModel.appUseMode === 4;
 			bCoachOK = true;
 		}
 
@@ -76,11 +76,11 @@ Frame {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
 
-		onCheckedChanged: if (checked) userModel.coach = 2 + optPersonalUse.checked ? 1 : optCoachUse.checked ? 2 : 0
-		onClicked: bCoachOK = userModel.coach !== 2;
+		onCheckedChanged: if (checked) userModel.appUseMode = 2 + optPersonalUse.checked ? 1 : optCoachUse.checked ? 2 : 0
+		onClicked: bCoachOK = userModel.appUseMode !== 2;
 
 		Component.onCompleted: {
-			checked = userModel.coach === 3 || userModel.coach === 4;
+			checked = userModel.appUseMode === 3 || userModel.appUseMode === 4;
 			bCoachOK = true;
 		}
 
@@ -107,5 +107,9 @@ Frame {
 			right: parent.right
 			rightMargin: 10
 		}
+	}
+
+	function focusOnFirstField() {
+		optPersonalUse.forceActiveFocus();
 	}
 }

@@ -8,7 +8,6 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgExercisesList
 	bKeepAbove: true
-	visible: bShowSimpleExercisesList
 	width: windowWidth
 	height: shown ? windowHeight * 0.5 : 30
 	x: 0
@@ -16,6 +15,8 @@ TPPopup {
 
 	property bool shown: false
 	property Item currentItemThatRequestedSimpleList: null
+	property bool bEnableMultipleSelection: false
+	property Item itemThatRequestedSimpleList: null
 
 	onVisibleChanged: {
 		shown = visible;
@@ -27,10 +28,6 @@ TPPopup {
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
-	}
-
-	function hideSimpleExerciseList() {
-		bShowSimpleExercisesList = false;
 	}
 
 	Behavior on height {
@@ -110,6 +107,8 @@ TPPopup {
 				if (itemThatRequestedSimpleList)
 					itemThatRequestedSimpleList.changeExercise(true);
 			}
+
+			onItemDoubleClicked: dlgExercisesList.visible = false;
 		}
 	}
 }

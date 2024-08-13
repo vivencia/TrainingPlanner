@@ -41,10 +41,12 @@ void DBUserTable::createTable()
 										"email TEXT,"
 										"social TEXT,"
 										"role TEXT,"
+										"coach_role TEXT,"
 										"goal TEXT,"
 										"avatar TEXT,"
-										"coach INTEGER DEFAULT 0,"
-										"current_coach INTEGER"
+										"use_mode INTEGER DEFAULT 1,"
+										"current_coach INTEGER, "
+										"current_user INTEGER"
 									")"
 								)
 		);
@@ -127,22 +129,24 @@ void DBUserTable::saveUser()
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			strQuery =  QStringLiteral(
 				"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						   "role=\'%7\', goal=\'%8\', avatar=\'%9\', coach=%10 WHERE id=%11")
+						   "role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14")
 				.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY), m_model->getFast(row, USER_COL_SEX),
 					m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL), m_model->getFast(row, USER_COL_SOCIALMEDIA),
-					m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL), m_model->getFast(row, USER_COL_AVATAR),
-					m_model->getFast(row, USER_COL_COACH), m_model->getFast(row, USER_COL_ID));
+					m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE), m_model->getFast(row, USER_COL_GOAL),
+					m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_APP_USE_MODE), m_model->getFast(row, USER_COL_CURRENT_COACH),
+					m_model->getFast(row, USER_COL_CURRENT_USER), m_model->getFast(row, USER_COL_ID));
 		}
 		else
 		{
 			strQuery = QStringLiteral(
 				"INSERT INTO user_table "
-				"(name,birthday,sex,phone,email,social,role,goal,avatar,coach)"
-				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', %10)")
+				"(name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
+				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)")
 					.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
 					m_model->getFast(row, USER_COL_SEX), m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL),
-					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_ROLE), m_model->getFast(row, USER_COL_GOAL),
-					m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_COACH));
+					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE),
+					m_model->getFast(row, USER_COL_GOAL), m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_APP_USE_MODE),
+					m_model->getFast(row, USER_COL_CURRENT_COACH), m_model->getFast(row, USER_COL_CURRENT_USER));
 		}
 		m_result = query.exec(strQuery);
 		if (m_result)

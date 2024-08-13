@@ -37,6 +37,7 @@ TPPage {
 
 		ColumnLayout {
 			anchors.fill: parent
+			spacing: 0
 
 			Label {
 				id: lbl1
@@ -53,11 +54,11 @@ TPPage {
 				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2)) +
 						qsTr("</b>  through  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3)) + "</b>"
-				font.pointSize: AppSettings.fontSizeLists
+				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
 				Layout.leftMargin: 5
-				Layout.bottomMargin: 2
+				Layout.bottomMargin: 5
 			}
 		}
 	}

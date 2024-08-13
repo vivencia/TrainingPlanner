@@ -37,6 +37,7 @@ public:
 	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
 	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
 	Q_INVOKABLE QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
+	Q_INVOKABLE bool areDatesTheSame(const QDate& date1, const QDate& date2) const { return date1 == date2; }
 
 	Q_INVOKABLE QString formatTime(const QDateTime& time, const bool use_hours = false, const bool use_secs = false) const
 	{ return time.toString((use_hours ? u"hh:mm"_qs : u"mm"_qs) + (use_secs ? u":ss"_qs : u""_qs)); }

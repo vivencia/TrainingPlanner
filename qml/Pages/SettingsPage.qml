@@ -107,7 +107,7 @@ TPPage {
 
 			TPCheckBox {
 				id: chkAskConfirmation
-				text: qsTr("Always ask the user confirmation before any attempted deletion")
+				text: qsTr("Always ask the user confirmation before starting any - potencially destructive - action")
 				checked: AppSettings.alwaysAskConfirmation
 				Layout.fillWidth: true
 				Layout.leftMargin: 10

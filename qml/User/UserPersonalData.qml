@@ -12,7 +12,8 @@ Frame {
 	id: frmUserData
 	spacing: controlsSpacing
 	padding: 0
-	implicitHeight: allControlsHeight + controlsSpacing
+	implicitHeight: height
+	implicitWidth: width
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -26,7 +27,6 @@ Frame {
 	property bool bSexOK: false
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 30
-	readonly property int allControlsHeight: nControls*controlsHeight
 	readonly property int controlsSpacing: 10
 
 	Label {
