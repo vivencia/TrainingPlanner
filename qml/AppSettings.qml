@@ -29,7 +29,6 @@ Settings {
 	property int fontSizeTitle
 	property int lastViewedMesoId
 	property bool alwaysAskConfirmation
-	property bool firstTime
 
 	onFontSizeChanged: appFontSizeChanged();
 }

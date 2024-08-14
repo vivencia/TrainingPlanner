@@ -163,8 +163,6 @@ Frame {
 		padding: 0
 		spacing: 0
 
-		Component.onCompleted: bSexOK = !userModel.isEmpty();
-
 		background: Rectangle {
 			color: "transparent"
 		}

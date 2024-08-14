@@ -19,8 +19,8 @@ class TPDatabaseTable : public QObject
 
 public:
 	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
-		: QObject{nullptr}, m_appSettings(appSettings), m_model(model),
-			mb_resolved(false), m_result(false), mb_waitForFinished(false), m_opcode(OP_NULL) {}
+		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), mb_resolved(false), m_result(false),
+			mb_waitForFinished(false), m_opcode(OP_NULL), doneFunc(nullptr) {}
 
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;

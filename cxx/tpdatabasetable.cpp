@@ -26,7 +26,8 @@ void TPDatabaseTable::removeEntry()
 		MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	if (doneFunc)
+		doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void TPDatabaseTable::clearTable()
@@ -48,6 +49,8 @@ void TPDatabaseTable::clearTable()
 		MSG_OUT(m_tableName << " clearTable Database error:  " << mSqlLiteDB.lastError().databaseText())
 		MSG_OUT(m_tableName << " clearTable Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
+	if (doneFunc)
+		doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void TPDatabaseTable::removeDBFile()
@@ -63,5 +66,6 @@ void TPDatabaseTable::removeDBFile()
 	}
 	else
 		MSG_OUT(m_tableName << " removeDBFile error: Could not remove file " << mDBFile.fileName())
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	if (doneFunc)
+		doneFunc(static_cast<TPDatabaseTable*>(this));
 }

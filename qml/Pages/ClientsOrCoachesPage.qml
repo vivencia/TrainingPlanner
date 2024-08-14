@@ -17,10 +17,9 @@ TPPage {
 	property bool showUsers
 	property bool showCoaches
 	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrData.implicitHeight
-	property TPBalloonTip msgRemoveUser: null
+	readonly property int moduleHeight: usrProfile.moduleHeight
 
-	onPageActivated: userModel.findFirstUser(bCoach);
+	onPageActivated: userModel.findFirstUser(showCoaches);
 
 	Row {
 		id: controlsRow
@@ -34,44 +33,44 @@ TPPage {
 			right: parent.right
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnAdd
-			icon.source: "qrc:/images/user-add.png"
+			imageName: "qrc:/images/add.png"
 
 			onClicked: userModel.addUser(showCoaches);
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnDel
-			icon.source: "qrc:/images/user-del.png"
+			imageName: "qrc:/images/del.png"
 
 			onClicked: showRemoveMessage();
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnFirst
-			icon.source: "qrc:/images/first.png"
+			imageName: "qrc:/images/first.png"
 
 			onClicked: userModel.setCurrentViewedUser(userModel.findFirstUser(showCoaches));
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnPrev
-			icon.source: "qrc:/images/prev.png"
+			imageName: "qrc:/images/prev.png"
 
 			onClicked: userModel.setCurrentViewedUser(userModel.findPrevUser(showCoaches));
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnNext
-			icon.source: "qrc:/images/next.png"
+			imageName: "qrc:/images/next.png"
 
 			onClicked: userModel.setCurrentViewedUser(userModel.findNextUser(showCoaches));
 		}
 
-		RoundButton {
+		TPRoundButton {
 			id: btnLast
-			icon.source: "qrc:/images/last.png"
+			imageName: "qrc:/images/last.png"
 
 			onClicked: userModel.setCurrentViewedUser(userModel.findLastUser(showCoaches));
 		}
@@ -135,8 +134,9 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
+				parentPage: coachesOrClientsPage
 				width: windowWidth - 20
-				parentPage: userPage
+				height: moduleHeight
 			}
 
 			UserContact {
@@ -147,9 +147,8 @@ TPPage {
 
 			UserProfile {
 				id: usrProfile
+				parentPage: coachesOrClientsPage
 				width: windowWidth - 20
-				height: moduleHeight
-				parentPage: userPage
 			}
 		}
 	}

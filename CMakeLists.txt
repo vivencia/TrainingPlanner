@@ -88,7 +88,7 @@ set( QML_FILES
     "qml/ExercisesAndSets/SetTypeGiant.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
     "qml/Pages/BackupPage.qml"
-    "qml/Pages/CliensOrCoachesPage.qml"
+    "qml/Pages/ClientsOrCoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
     "qml/Pages/ExercisesDatabase.qml"
     "qml/Pages/ExercisesPlanner.qml"

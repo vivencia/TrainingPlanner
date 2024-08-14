@@ -503,13 +503,8 @@ void RunCommands::populateSettingsWithDefaultValue()
 		m_appSettings->setValue("fontSizeTitle", 18);
 		m_appSettings->setValue("lastViewedMesoId", 0);
 		m_appSettings->setValue("alwaysAskConfirmation", true);
-		m_appSettings->setValue("firstTime", true);
 		m_appSettings->sync();
 	}
 	else
-	{
 		setAppLocale(m_appSettings->value("appLocale").toString());
-		if (m_appSettings->value("appVersion").toString() != TP_APP_VERSION)
-			m_appSettings->setValue("appVersion", TP_APP_VERSION);
-	}
 }

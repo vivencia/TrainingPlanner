@@ -15,7 +15,7 @@ TPPopup {
 	x: (windowWidth - width)/2 // horizontally centered
 	finalYPos: (windowHeight - height)/2 // vertically centered
 
-	readonly property int moduleHeight: usrProfile.implicitHeight
+	readonly property int moduleHeight: usrProfile.moduleHeight
 
 	StackLayout {
 		id: stackLayout

@@ -10,7 +10,7 @@ Frame {
 	implicitHeight: height
 	implicitWidth: width
 	padding: 0
-	spacing: 0
+	spacing: controlsSpacing
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -20,14 +20,14 @@ Frame {
 	property bool bReady: bCoachOK
 	property bool bCoachOK: false
 	readonly property int controlsSpacing: 10
-	readonly property int controlsHeight: height / 6
 
 	TPRadioButton {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 
-		onCheckedChanged: if (checked) userModel.appUseMode = 1 + chkHaveCoach.checked ? 2 : 0;
 		onClicked: {
+			if (checked)
+				userModel.appUseMode = 1 + chkHaveCoach.checked ? 2 : 0;
 			bCoachOK = userModel.appUseMode !== 2;
 			optCoachUse.checked = false;
 		}
@@ -51,8 +51,9 @@ Frame {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 
-		onCheckedChanged: if (checked) userModel.appUseMode = 2 + chkHaveCoach.checked ? 2 : 0;
 		onClicked: {
+			if (checked)
+				userModel.appUseMode = 2 + chkHaveCoach.checked ? 2 : 0;
 			bCoachOK = userModel.appUseMode !== 2;
 			optPersonalUse.checked = false;
 		}
@@ -64,7 +65,7 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: controlsSpacing
+			topMargin: 3*controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -75,9 +76,13 @@ Frame {
 	TPCheckBox {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
+		checked: false
 
-		onCheckedChanged: if (checked) userModel.appUseMode = 2 + optPersonalUse.checked ? 1 : optCoachUse.checked ? 2 : 0
-		onClicked: bCoachOK = userModel.appUseMode !== 2;
+		onClicked: {
+			if (checked)
+				userModel.appUseMode = 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0))
+			bCoachOK = userModel.appUseMode !== 2;
+		}
 
 		Component.onCompleted: {
 			checked = userModel.appUseMode === 3 || userModel.appUseMode === 4;
@@ -86,7 +91,7 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: controlsSpacing
+			topMargin: 3*controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

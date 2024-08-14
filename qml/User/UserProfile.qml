@@ -11,7 +11,7 @@ import "../Pages"
 Frame {
 	id: frmUserProfile
 	implicitWidth: width
-	implicitHeight: allControlsHeight + nControls*controlsSpacing
+	implicitHeight: moduleHeight;
 	spacing: 5
 	padding: 0
 
@@ -38,11 +38,33 @@ Frame {
 		color: "transparent"
 	}
 
-	property int allControlsHeight: nControls*controlsHeight
+	Component.onCompleted: { calculateTotalHeight(); userModel.appUseModeChanged.connect(calculateTotalHeight); }
+
+	function calculateTotalHeight() {
+		var allControlsHeight = recAvatar.height + 2*controlsSpacing;
+		switch (userModel.appUseMode) {
+			case 2:
+				allControlsHeight += lblCoachRole.height + 2*controlsSpacing;
+				allControlsHeight -= (lblUserRole.height + lblGoal.height + 2*controlsSpacing);
+			break;
+			case 0:
+			case 1:
+			case 3:
+				allControlsHeight-= (lblCoachRole.height + 2*controlsSpacing);
+				allControlsHeight += lblUserRole.height + lblGoal.height + 4*controlsSpacing;
+			break;
+			case 4:
+				allControlsHeight += lblCoachRole.height + 2*controlsSpacing;
+				allControlsHeight += lblUserRole.height + lblGoal.height + 4*controlsSpacing;
+			break;
+		}
+		moduleHeight = allControlsHeight;
+	}
+
 	property bool bReady: bRoleOK & bGoalOK
 	property bool bRoleOK: false
 	property bool bGoalOK: false
-	readonly property int nControls: 4
+	property int moduleHeight
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
 	required property TPPage parentPage
@@ -59,14 +81,7 @@ Frame {
 		bottomInset: 0
 		topInset: 0
 		bottomPadding: 0
-		width: parent.width*0.2
-
-		onHeightChanged: {
-			if (visible)
-				allControlsHeight += height;
-			else
-				allControlsHeight -= height;
-		}
+		width: parent.width*0.15
 
 		anchors {
 			top: parent.top
@@ -83,12 +98,12 @@ Frame {
 		width: parent.width*0.80
 
 		Component.onCompleted: {
-			currentIndex = find(userModel.role);
+			currentIndex = find(userModel.userRole);
 			bRoleOK = !userModel.isEmpty();
 		}
 
 		onActivated: (index) => {
-			userModel.role = textAt(index);
+			userModel.userRole = textAt(index);
 			bRoleOK = true;
 		}
 
@@ -109,14 +124,7 @@ Frame {
 		font.bold: true
 		height: controlsHeight
 		padding: 0
-		width: parent.width*0.2
-
-		onHeightChanged: {
-			if (visible)
-				allControlsHeight += height;
-			else
-				allControlsHeight -= height;
-		}
+		width: parent.width*0.15
 
 		anchors {
 			top: lblUserRole.bottom
@@ -176,14 +184,7 @@ Frame {
 		bottomInset: 0
 		topInset: 0
 		bottomPadding: 0
-		width: parent.width*0.2
-
-		onHeightChanged: {
-			if (visible)
-				allControlsHeight += height;
-			else
-				allControlsHeight -= height;
-		}
+		width: parent.width*0.15
 
 		anchors {
 			top: lblGoal.visible ? lblGoal.bottom : parent.top
@@ -242,8 +243,6 @@ Frame {
 		layer.enabled: true
 		visible: false
 		color: "transparent"
-
-		Component.onCompleted: allControlsHeight += height;
 
 		Image {
 			anchors.fill: parent

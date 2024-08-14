@@ -204,14 +204,14 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 
-	//Enable only when necessary to avoid problems
-	/*if (m_appSettings->value("appVersion") != TP_APP_VERSION)
+	if (m_appSettings->value("appVersion") != TP_APP_VERSION)
 	{
-		//All the update code goes in here
+		//All update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
-		updateDB(new DBTrainingDayTable(m_DBFilePath, m_appSettings));
+		DBUserTable user(m_DBFilePath, m_appSettings);
+		user.removeDBFile();
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
-	}*/
+	}
 
 	getAllUsers();
 	getAllMesocycles();

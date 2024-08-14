@@ -15,16 +15,22 @@ TPPage {
 	height: windowHeight
 
 	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrProfile.implicitHeight
+	readonly property int moduleHeight: usrProfile.moduleHeight
 
 	onPageActivated: userModel.setCurrentViewedUser(0);
 
 	ScrollView {
-		anchors.fill: parent
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
+
+		anchors {
+			top: parent.top
+			left: parent.left
+			right: parent.right
+			bottom: rowBtnsManage.top
+		}
 
 		ColumnLayout {
 			id: colMain
@@ -65,24 +71,37 @@ TPPage {
 				parentPage: userPage
 				width: windowWidth - 20
 			}
+		}
+	}
 
-			TPButton {
-				id: btnManageCoach
-				text: qsTr("Manage coach(es)/trainer(s)")
-				visible: userModel.coach >= 3
-				Layout.alignment: Qt.AlignCenter
+	RowLayout {
+		id: rowBtnsManage
+		height: 50
 
-				onClicked: appDB.createClientsOrCoachesPage(true);
-			}
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
 
-			TPButton {
-				id: btnManageClients
-				text: qsTr("Manage clients")
-				visible: userModel.coach === 2 || userModel.coach === 4
-				Layout.alignment: Qt.AlignCenter
+		TPButton {
+			id: btnManageCoach
+			text: qsTr("Manage coach(es)/trainer(s)")
+			flat: false
+			visible: userModel.appUseMode >= 3
+			Layout.alignment: Qt.AlignCenter
 
-				onClicked: appDB.createClientsOrCoachesPage(false);
-			}
+			onClicked: appDB.openClientsOrCoachesPage(true);
+		}
+
+		TPButton {
+			id: btnManageClients
+			text: qsTr("Manage clients")
+			flat: false
+			visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
+			Layout.alignment: Qt.AlignCenter
+
+			onClicked: appDB.openClientsOrCoachesPage(false);
 		}
 	}
 

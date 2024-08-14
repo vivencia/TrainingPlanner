@@ -8,7 +8,7 @@
 #include <QUrl>
 #include <QDateTime>
 
-static const QString TP_APP_VERSION(QStringLiteral("v20240724-A"));
+static const QString TP_APP_VERSION(QStringLiteral("v20240814-B"));
 
 class QSettings;
 class QFileDialog;

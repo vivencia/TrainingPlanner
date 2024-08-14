@@ -12,7 +12,7 @@ RoundButton {
 	property string imageName
 
 	Image {
-		source: "qrc:/images/"+darkIconFolder+imageName
+		source: imageName.indexOf("qrc") === -1 ? "qrc:/images/"+darkIconFolder+imageName : imageName
 		asynchronous: true
 		fillMode: Image.PreserveAspectFit
 		anchors.verticalCenter: parent.verticalCenter
