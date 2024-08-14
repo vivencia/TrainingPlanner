@@ -176,7 +176,7 @@ Column {
 
 			anchors {
 				left: parent.right
-				verticalCenter: parent.verticalCenter
+				top: parent.top
 			}
 
 			onCheckedChanged: {

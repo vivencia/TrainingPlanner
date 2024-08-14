@@ -23,6 +23,9 @@ Item {
 
 	property bool finishButtonVisible: false
 	property bool finishButtonEnabled: false
+	property bool copyTypeButtonVisible: false
+	property bool copyRepsButtonVisible: false
+	property bool copyWeightButtonVisible: false
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	readonly property int controlWidth: setItem.width - 20
 
@@ -62,18 +65,42 @@ Item {
 				}
 
 				onActivated: (index)=> {
-					if (index !== setType)
+					if (index !== setType) {
+						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+							copyTypeButtonVisible = true;
 						itemManager.changeSetType(setNumber, exerciseIdx, index);
+					}
+				}
+			}
+
+			TPRoundButton {
+				id: btnCopyValue3
+				visible: copyTypeButtonVisible
+				imageName: "copy-setvalue.png"
+				width: 25
+				height: 25
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: cboSetType.right
+				}
+
+				onClicked: {
+					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
+					copyTypeButtonVisible = false;
 				}
 			}
 
 			TPRoundButton {
 				id: btnRemoveSet
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: cboSetType.right
 				height: 30
 				width: 30
 				imageName: "remove.png"
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: btnCopyValue3.visible ? btnCopyValue3.right : cboSetType.right
+				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
@@ -178,14 +205,14 @@ Item {
 				id: txtNReps
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, exerciseIdx);
-				availableWidth: !btnCopyValue.visible ? controlWidth : controlWidth - 40
+				availableWidth: !copyRepsButtonVisible ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
 				Layout.leftMargin: 5
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue.visible = true;
+						copyRepsButtonVisible = true;
 					if (setType === 3)
 						changeTotalRepsLabel();
 				}
@@ -195,7 +222,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue
-				visible: false
+				visible: copyRepsButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -205,7 +232,7 @@ Item {
 
 				onClicked: {
 					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber);
-					btnCopyValue.visible = false;
+					copyRepsButtonVisible = false;
 				}
 			}
 		} //RowLayout
@@ -218,13 +245,13 @@ Item {
 				id: txtNWeight
 				type: SetInputField.Type.WeightType
 				text: tDayModel.setWeight(setNumber, exerciseIdx);
-				availableWidth: !btnCopyValue2.visible ? controlWidth : controlWidth - 40
+				availableWidth: !copyWeightButtonVisible ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue2.visible = true;
+						copyWeightButtonVisible = true;
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -236,7 +263,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue2
-				visible: false
+				visible: copyWeightButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -246,7 +273,7 @@ Item {
 
 				onClicked: {
 					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber);
-					btnCopyValue2.visible = false;
+					copyWeightButtonVisible = false;
 				}
 			}
 		} //RowLayout
@@ -289,8 +316,9 @@ Item {
 	}
 
 	function hideCopyButtons() {
-		btnCopyValue.visible = false;
-		btnCopyValue2.visible = false;
+		copyTypeButtonVisible = false;
+		copyRepsButtonVisible = false;
+		copyWeightButtonVisible = false;
 	}
 
 	function changeReps(new_value: string, idx: int) {
@@ -301,5 +329,9 @@ Item {
 
 	function changeWeight(new_value: string, idx: int) {
 		txtNWeight.text = new_value;
+	}
+
+	function changeSetType(new_type: int) {
+		cboSetType.currentIndex = new_type;
 	}
 } // Item

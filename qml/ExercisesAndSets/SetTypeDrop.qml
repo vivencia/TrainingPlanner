@@ -23,9 +23,12 @@ Item {
 
 	property bool finishButtonVisible: false
 	property bool finishButtonEnabled: false
+	property bool copyTypeButtonVisible: false
+	property bool copyRepsButtonVisible: false
+	property bool copyWeightButtonVisible: false
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
-	property RepsAndWeightRow subSetComponent: null
+	property var subSetComponent: null
 	readonly property int controlWidth: setItem.width - 20
 
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -63,18 +66,42 @@ Item {
 				}
 
 				onActivated: (index)=> {
-					if (index !== setType)
+					if (index !== setType) {
+						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+							copyTypeButtonVisible = true;
 						itemManager.changeSetType(setNumber, exerciseIdx, index);
+					}
+				}
+			}
+
+			TPRoundButton {
+				id: btnCopyValue
+				visible: copyTypeButtonVisible
+				imageName: "copy-setvalue.png"
+				width: 25
+				height: 25
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: cboSetType.right
+				}
+
+				onClicked: {
+					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
+					copyTypeButtonVisible = false;
 				}
 			}
 
 			TPRoundButton {
 				id: btnRemoveSet
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: cboSetType.right
+				imageName: "remove.png"
 				height: 30
 				width: 30
-				imageName: "remove.png"
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: copyTypeButtonVisible ? btnCopyValue.right : cboSetType.right
+				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
@@ -211,6 +238,8 @@ Item {
 		}
 	} // setLayout
 
+	Component.onCompleted: tDayModel.saveWorkout.connect(function() { copyTypeButtonVisible = false; });
+
 	function init() {
 		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);
 		for (var i = 0; i < nsubsets; ++i)
@@ -277,5 +306,9 @@ Item {
 	function changeWeight(new_value: string, idx: int) {
 		if (idx < subSetList.length)
 			subSetList[idx].Object.changeWeight(new_value);
+	}
+
+	function changeSetType(new_type: int) {
+		cboSetType.currentIndex = new_type;
 	}
 } // Item

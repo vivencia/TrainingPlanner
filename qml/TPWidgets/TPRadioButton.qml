@@ -28,7 +28,7 @@ RadioButton {
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		leftPadding: control.indicator.width + control.spacing
-		verticalAlignment: Text.AlignVCenter
+		topPadding: fontMetrics.boundingRect(text).width > control.width ? -4 : 2
 	}
 
 	indicator: Rectangle {

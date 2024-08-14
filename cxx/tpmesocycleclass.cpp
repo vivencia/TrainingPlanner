@@ -481,7 +481,6 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("trainingDayPage"), QVariant::fromValue(m_CurrenttDayPage));
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
@@ -654,6 +653,11 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
 
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+
+	//Default values for these properties. They are only modified, on the c++ side, in changeSetType().
+	m_setObjectProperties.insert(u"copyTypeButtonVisible"_qs, false);
+	m_setObjectProperties.insert(u"copyRepsButtonVisible"_qs, false);
+	m_setObjectProperties.insert(u"copyWeightButtonVisible"_qs, false);
 
 	if (set_number >= m_currentExercises->setCount(exercise_idx))
 		m_currentExercises->appendSet(exercise_idx, item);
@@ -839,10 +843,13 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 			}
 		}
 
+		m_setObjectProperties.insert(u"copyTypeButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTypeButtonVisible").toBool());
+		m_setObjectProperties.insert(u"copyRepsButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyRepsButtonVisible").toBool());
+		m_setObjectProperties.insert(u"copyWeightButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyWeightButtonVisible").toBool());
 		m_currentExercises->removeSet(exercise_idx, set_number);
 
 		m_expectedSetNumber = 100; //do not trigger the itemReady signal nor add the object to the parent layout
-		connect(this, &TPMesocycleClass::itemReady, this, [&, set_number, exercise_idx](QQuickItem*, uint)
+		connect(this, &TPMesocycleClass::itemReady, this, [&,set_number,exercise_idx](QQuickItem*, uint)
 			{ return changeSetType(set_number, exercise_idx, 100); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
 		createSetObject(new_type, set_number, exercise_idx, false);
 		return;
@@ -873,6 +880,19 @@ QQuickItem* TPMesocycleClass::nextSetObject(const uint exercise_idx, const uint 
 		}
 	}
 	return nullptr;
+}
+
+void TPMesocycleClass::copyTypeValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set)
+{
+	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	const uint set_type(m_CurrenttDayModel->setType(set_number, exercise_idx));
+	const uint nsets(exercise_obj->m_setObjects.count());
+
+	for (uint i(set_number+1); i < nsets; ++i)
+	{
+		changeSetType(i, exercise_idx, set_type);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeSetType", Q_ARG(int, static_cast<int>(set_type)));
+	}
 }
 
 void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set)

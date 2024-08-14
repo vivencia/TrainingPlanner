@@ -115,11 +115,11 @@ TPPopup {
 			height: 30
 			columnSpacing: 30
 			rowSpacing: 10
-			columns: 3
+			columns: !bJustMinsAndSecs ? 3 : 2
 			rows: 2
-			Layout.minimumWidth: rowWidth
-			Layout.maximumWidth: rowWidth
-			Layout.leftMargin: !timePickerOnly ? bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue : 25
+			Layout.minimumWidth: !bJustMinsAndSecs ? rowWidth : rowWidth * 0.6
+			Layout.maximumWidth: !bJustMinsAndSecs ? rowWidth : rowWidth * 0.6
+			Layout.leftMargin: !timePickerOnly ? (bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue) : 25
 
 			Label {
 				color: AppSettings.fontColor
@@ -139,7 +139,7 @@ TPPopup {
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 				Layout.row: 0
-				Layout.column: 1
+				Layout.column: !bJustMinsAndSecs ? 1 : 0
 				Layout.leftMargin: -5
 			}
 			Label {
@@ -150,7 +150,7 @@ TPPopup {
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 				Layout.row: 0
-				Layout.column: 2
+				Layout.column: !bJustMinsAndSecs ? 2 : 1
 				Layout.leftMargin: -10
 			}
 
@@ -236,7 +236,7 @@ TPPopup {
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 				Layout.row: 1
-				Layout.column: 1
+				Layout.column: !bJustMinsAndSecs ? 1 : 0
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -295,7 +295,7 @@ TPPopup {
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
 				Layout.row: 1
-				Layout.column: 2
+				Layout.column: !bJustMinsAndSecs ? 2 : 1
 
 				Keys.onPressed: (event) => processKeyEvents(event);
 
@@ -373,7 +373,7 @@ TPPopup {
 
 				onClicked: {
 					if (!mainTimer.active)
-						mainTimer.startTimer();
+						mainTimer.startTimer("-");
 					else
 						mainTimer.stopTimer();
 				}

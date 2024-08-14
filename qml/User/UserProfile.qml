@@ -239,12 +239,9 @@ Frame {
 		id: recAvatar
 		height: 4*controlsHeight
 		width: height
-		radius: height/2
 		layer.enabled: true
 		visible: false
 		color: "transparent"
-		border.width: 1
-		border.color: AppSettings.fontColor
 
 		Component.onCompleted: allControlsHeight += height;
 

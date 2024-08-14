@@ -37,8 +37,21 @@ void DBUserModel::addUser(const bool coach)
 	{
 		switch (m_modeldata.at(0).at(USER_COL_APP_USE_MODE).toInt())
 		{
-			case 1: case 3: if (!coach) return; use_mode = 2; cur_coach = 1; break;
-			case 2: if (coach) return; use_mode = 0; cur_client = 1; break;
+			case 1:
+			case 3:
+				if (!coach)
+					return;
+				use_mode = 2;
+				cur_coach = 1;
+			break;
+
+			case 2:
+				if (coach)
+					return;
+				use_mode = 0;
+				cur_client = 1;
+			break;
+
 			case 4:
 				if (coach)
 				{

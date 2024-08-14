@@ -103,23 +103,27 @@ TPPage {
 		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtOutTime.text)
 		parentPage: trainingDayPage
 
+		Component.onCompleted: {
+			if (runCmd.areDatesTheSame(mainDate, new Date()))
+				bOnlyFutureTime = true;
+		}
+
 		onTimeSet: (hour, minutes) => {
 			timeOut = hour + ":" + minutes;
 			tDayModel.setTimeOut(timeOut);
-			if (timeIn != "--:--")
-				timeManuallyEdited();
+			timeManuallyEdited();
 		}
 	}
 	function timeManuallyEdited() {
-		const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
-		updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-
 		if (editMode) {
+			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
+			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
 			appDB.setDayIsFinished(mainDate, true);
 			itemManager.rollUpExercises();
 		}
 		else {
 			if (runCmd.areDatesTheSame(mainDate, new Date())) {
+				optTimeConstrainedSession.checked = true;
 				workoutTimer.stopWatch = false;
 				workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(runCmd.getCurrentTimeString(), timeOut));
 			}
@@ -142,7 +146,7 @@ TPPage {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		dlgSessionLength.show(-1);
+		dlgSessionLength.open();
 	}
 
 	TimePicker {
@@ -567,6 +571,7 @@ TPPage {
 							width: 40
 							height: 40
 							imageName: "time.png"
+							enabled: editMode || !runCmd.areDatesTheSame(mainDate, new Date())
 
 							anchors {
 								top: parent.top

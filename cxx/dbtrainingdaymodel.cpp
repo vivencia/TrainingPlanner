@@ -805,12 +805,28 @@ void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercis
 			else if (new_type == SET_TYPE_CLUSTER)
 				m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_qs;
 		break;
-		case SET_TYPE_DROP:
+
 		case SET_TYPE_GIANT:
-			if (new_type != SET_TYPE_DROP && new_type != SET_TYPE_GIANT)
+		case SET_TYPE_DROP:
+			if (new_type == SET_TYPE_DROP)
 			{
-				m_ExerciseData.at(exercise_idx)->reps[set_number] = reps.left(reps.indexOf(subrecord_separator));
-				m_ExerciseData.at(exercise_idx)->weight[set_number] = weight.left(weight.indexOf(subrecord_separator));
+				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_qs;
+				const QString new_reps(runCmd()->getCompositeValue(0, reps));
+				m_ExerciseData.at(exercise_idx)->reps[set_number] = new_reps + dropSetReps(new_reps);
+				const QString new_weight(runCmd()->getCompositeValue(0, weight));
+				m_ExerciseData.at(exercise_idx)->weight[set_number] = new_weight + dropSetWeight(new_weight);
+			}
+			else if (new_type == SET_TYPE_GIANT)
+			{
+				runCmd()->setCompositeValue(0, runCmd()->getCompositeValue(0, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
+				runCmd()->setCompositeValue(1, runCmd()->getCompositeValue(1, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
+				runCmd()->setCompositeValue(0, runCmd()->getCompositeValue(0, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
+				runCmd()->setCompositeValue(1, runCmd()->getCompositeValue(1, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
+			}
+			else
+			{
+				m_ExerciseData.at(exercise_idx)->reps[set_number] = runCmd()->getCompositeValue(0, reps);
+				m_ExerciseData.at(exercise_idx)->weight[set_number] = runCmd()->getCompositeValue(0, weight);
 				if (new_type == SET_TYPE_CLUSTER)
 					m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_qs;
 			}

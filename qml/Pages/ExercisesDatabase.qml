@@ -289,6 +289,11 @@ TPPage {
 					strMediaPath = exercisesListModel.get(index, 8);
 					displaySelectedMedia();
 				}
+
+				onItemDoubleClicked: {
+					if (btnAddExercise.enabled)
+						chooseExercise();
+				}
 			}
 
 			RowLayout {
@@ -398,11 +403,7 @@ TPPage {
 					rounded: false
 					flat: false
 
-					onClicked: {
-						exerciseChosen();
-						mainwindow.popFromStack();
-						//pageExercises.StackView.view.pop();
-					}
+					onClicked: chooseExercise();
 				} //btnAddExercise
 
 				TPButton {
@@ -452,6 +453,11 @@ TPPage {
 			close();
 			displaySelectedMedia();
 		}
+	}
+
+	function chooseExercise() {
+		exerciseChosen();
+		mainwindow.popFromStack();
 	}
 
 	function displaySelectedMedia() {

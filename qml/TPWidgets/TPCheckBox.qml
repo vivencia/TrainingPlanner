@@ -7,8 +7,9 @@ CheckBox {
 	id: control
 	spacing: 5
 	padding: 0
+	topPadding: 0
 	implicitHeight: Math.max(lblText.implicitHeight, 25)
-	width: lblText.width
+	width: fontMetrics.boundingRect(text).width + 25
 	implicitWidth: width
 
 	property string textColor: AppSettings.fontColor
@@ -20,15 +21,15 @@ CheckBox {
 		font.weight: lblText.font.weight
 	}
 
-	contentItem: Text {
+	contentItem: Label {
 		id: lblText
 		text: control.text
 		color: control.enabled ? textColor : "gray"
 		wrapMode: Text.WordWrap
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
-		width: fontMetrics.boundingRect(text).width
 		leftPadding: control.indicator.width + control.spacing
+		topPadding: fontMetrics.boundingRect(text).width > control.width ? -4 : 2
 	}
 
 	indicator: Rectangle {

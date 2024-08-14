@@ -23,6 +23,9 @@ Item {
 
 	property bool finishButtonVisible: false
 	property bool finishButtonEnabled: false
+	property bool copyTypeButtonVisible: false
+	property bool copyRepsButtonVisible: false
+	property bool copyWeightButtonVisible: false
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var ownerExercise
 
@@ -59,18 +62,42 @@ Item {
 				}
 
 				onActivated: (index)=> {
-					if (index !== setType)
+					if (index !== setType) {
+						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
+							copyTypeButtonVisible = true;
 						itemManager.changeSetType(setNumber, exerciseIdx, index);
+					}
+				}
+			}
+
+			TPRoundButton {
+				id: btnCopyValue5
+				visible: copyTypeButtonVisible
+				imageName: "copy-setvalue.png"
+				width: 25
+				height: 25
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: cboSetType.right
+				}
+
+				onClicked: {
+					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
+					copyTypeButtonVisible = false;
 				}
 			}
 
 			TPRoundButton {
 				id: btnRemoveSet
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: cboSetType.right
+				imageName: "remove.png"
 				height: 30
 				width: 30
-				imageName: "remove.png"
+
+				anchors {
+					verticalCenter: parent.verticalCenter
+					left: btnCopyValue5.visible ? btnCopyValue5.right : cboSetType.right
+				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
@@ -175,14 +202,14 @@ Item {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
-				availableWidth: !btnCopyValue.visible ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: !copyRepsButtonVisible ? setItem.width/2 + 10 : setItem.width/3
 				Layout.alignment: Qt.AlignLeft
-				showLabel: !btnCopyValue.visible
+				showLabel: !copyRepsButtonVisible
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 0, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue.visible = true;
+						copyRepsButtonVisible = true;
 				}
 
 				onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
@@ -190,7 +217,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue
-				visible: false
+				visible: copyRepsButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -200,7 +227,7 @@ Item {
 
 				onClicked: {
 					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 0);
-					visible = false;
+					copyRepsButtonVisible = false;
 				}
 			}
 
@@ -210,12 +237,12 @@ Item {
 				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
+				Layout.alignment: !copyRepsButtonVisible ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					tDayModel.setSetReps(setNumber, exerciseIdx, 1, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue2.visible = true;
+						copyRepsButtonVisible = true;
 				}
 
 				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
@@ -223,7 +250,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue2
-				visible: false
+				visible: copyRepsButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -233,7 +260,7 @@ Item {
 
 				onClicked: {
 					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 1);
-					visible = false;
+					copyRepsButtonVisible = false;
 				}
 			}
 		}
@@ -247,14 +274,14 @@ Item {
 				id: txtNWeight1
 				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				type: SetInputField.Type.WeightType
-				availableWidth: !btnCopyValue.visible ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: !copyWeightButtonVisible ? setItem.width/2 + 10 : setItem.width/3
 				Layout.alignment: Qt.AlignLeft
-				showLabel: !btnCopyValue3.visible
+				showLabel: !copyWeightButtonVisible
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 0, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue3.visible = true;
+						copyWeightButtonVisible = true;
 				}
 
 				onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
@@ -262,7 +289,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue3
-				visible: false
+				visible: copyWeightButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -282,12 +309,12 @@ Item {
 				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.alignment: !btnCopyValue2.visible ? Qt.AlignRight : Qt.AlignLeft
+				Layout.alignment: !copyWeightButtonVisible ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					tDayModel.setSetWeight(setNumber, exerciseIdx, 1, str);
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-						btnCopyValue4.visible = true;
+						copyWeightButtonVisible = true;
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -299,7 +326,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue4
-				visible: false
+				visible: copyWeightButtonVisible
 				imageName: "copy-setvalue.png"
 				Layout.minimumHeight: 30
 				Layout.maximumHeight: 30
@@ -349,10 +376,9 @@ Item {
 	}
 
 	function hideCopyButtons() {
-		btnCopyValue.visible = false;
-		btnCopyValue2.visible = false;
-		btnCopyValue3.visible = false;
-		btnCopyValue4.visible = false;
+		copyTypeButtonVisible = false;
+		copyRepsButtonVisible = false;
+		copyWeightButtonVisible = false;
 	}
 
 	function changeReps(new_value: string, idx: int) {
@@ -367,6 +393,10 @@ Item {
 			txtNWeight1.text = new_value;
 		else
 			txtNWeight2.text = new_value;
+	}
+
+	function changeSetType(new_type: int) {
+		cboSetType.currentIndex = new_type;
 	}
 
 	function liberateSignals(liberate: bool) {

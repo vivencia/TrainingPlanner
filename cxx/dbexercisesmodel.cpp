@@ -301,6 +301,8 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 	{
 		if (m_selectedEntries.at(i).real_index == real_item_pos)
 		{
+			if (max_selected == 1) //Item is double clicked. Do not deselect it
+				return false;
 			idx = i;
 			break;
 		}
