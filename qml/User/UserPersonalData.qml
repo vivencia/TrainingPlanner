@@ -21,6 +21,7 @@ Frame {
 	}
 
 	required property TPPage parentPage
+	required property int userRow
 	property bool bReady: bNameOK && bBirthDateOK && bSexOK
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
@@ -53,14 +54,12 @@ Frame {
 	TPTextInput {
 		id: txtName
 		height: controlsHeight
+		text: userModel.userName(userRow);
 		ToolTip.text: qsTr("The name is too short")
 
-		Component.onCompleted: {
-			text = userModel.userName;
-			bNameOK = !userModel.isEmpty();
-		}
+		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
-		onTextChanged: userModel.userName = text;
+		onTextChanged: userModel.setUserName(userRow, text);
 
 		onEnterOrReturnKeyPressed: {
 			if (bNameOK)
@@ -68,7 +67,7 @@ Frame {
 		}
 
 		onTextEdited: {
-			if (text.length >=5) {
+			if (text.length >= 5) {
 				ToolTip.visible = false;
 				bNameOK = true;
 			}
@@ -109,12 +108,12 @@ Frame {
 
 	TPTextInput {
 		id: txtBirthdate
-		text: runCmd.formatDate(userModel.birthDate)
+		text: runCmd.formatDate(userModel.birthDate(userRow))
 		readOnly: true
 		enabled: bNameOK
 		height: controlsHeight
 
-		Component.onCompleted: bBirthDateOK = !userModel.isEmpty();
+		Component.onCompleted: bBirthDateOK = userModel.birthDate(userRow).length >= 9;
 
 		onTextEdited: {
 			frmSex.enabled = acceptableInput;
@@ -132,13 +131,13 @@ Frame {
 
 		CalendarDialog {
 			id: caldlg
-			showDate: userModel.birthDate
+			showDate: userModel.birthDate(userRow)
 			initDate: new Date(1940, 0, 1)
 			finalDate: new Date()
 			parentPage: frmUserData.parentPage
 
 			onDateSelected: (date) => {
-				userModel.birthDate = date;
+				userModel.setBirthDate(userRow, date);
 				bBirthDateOK = true;
 			}
 		}
@@ -163,6 +162,8 @@ Frame {
 		padding: 0
 		spacing: 0
 
+		Component.onCompleted: bSexOK = userModel.sex(userRow).length > 1
+
 		background: Rectangle {
 			color: "transparent"
 		}
@@ -178,13 +179,12 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Male")
 			height: controlsHeight
+			checked: userModel.sex(userRow) === qsTr("Male")
 
-			onCheckedChanged: if (checked) userModel.sex = qsTr("Male");
-			onClicked: bSexOK = true;
-
-			Component.onCompleted: {
-				checked = userModel.sex === qsTr("Male");
+			onClicked: {
 				bSexOK = true;
+				if (checked)
+					userModel.setSex(userRow, qsTr("Male"));
 			}
 
 			anchors {
@@ -197,13 +197,12 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Female")
 			height: controlsHeight
+			checked: userModel.sex === qsTr("Female");
 
-			onCheckedChanged: if (checked) userModel.sex = qsTr("Female");
-			onClicked: bSexOK = true;
-
-			Component.onCompleted: {
-				checked = userModel.sex === qsTr("Female");
+			onClicked: {
 				bSexOK = true;
+				if (checked)
+					userModel.setSex(userRow, qsTr("Female"));
 			}
 
 			anchors {
@@ -215,7 +214,11 @@ Frame {
 	}
 
 	function focusOnFirstField() {
-		if (txtName.text.length === 0)
+		if (!bNameOK)
 			txtName.forceActiveFocus();
+		else if (!bBirthDateOK)
+			caldlg.open();
+		else
+			frmSex.forceActiveFocus();
 	}
 }

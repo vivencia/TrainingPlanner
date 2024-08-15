@@ -23,9 +23,10 @@ Item {
 
 	property bool finishButtonVisible: false
 	property bool finishButtonEnabled: false
-	property bool copyTypeButtonVisible: false
-	property bool copyRepsButtonVisible: false
-	property bool copyWeightButtonVisible: false
+	property string copyTypeButtonValue: ""
+	property string copyTimeButtonValue: ""
+	property string copyRepsButtonValue: ""
+	property string copyWeightButtonValue: ""
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
 	property var subSetComponent: null
@@ -67,8 +68,12 @@ Item {
 
 				onActivated: (index)=> {
 					if (index !== setType) {
-						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-							copyTypeButtonVisible = true;
+						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
+							if (copyTypeButtonValue === cboSetType.textAt(index))
+								copyTypeButtonValue = "";
+							else if (copyTypeButtonValue === "")
+								copyTypeButtonValue = tDayModel.setType(setNumber, exerciseIdx).toString();
+						}
 						itemManager.changeSetType(setNumber, exerciseIdx, index);
 					}
 				}
@@ -76,7 +81,7 @@ Item {
 
 			TPRoundButton {
 				id: btnCopyValue
-				visible: copyTypeButtonVisible
+				visible: copyTypeButtonValue !== ""
 				imageName: "copy-setvalue.png"
 				width: 25
 				height: 25
@@ -88,7 +93,7 @@ Item {
 
 				onClicked: {
 					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
-					copyTypeButtonVisible = false;
+					copyTypeButtonValue = "";
 				}
 			}
 
@@ -100,7 +105,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: copyTypeButtonVisible ? btnCopyValue.right : cboSetType.right
+					left: copyTypeButtonValue ? btnCopyValue.right : cboSetType.right
 				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
@@ -143,21 +148,48 @@ Item {
 			}
 		}
 
-		SetInputField {
-			id: txtRestTime
-			type: SetInputField.Type.TimeType
-			text: tDayModel.setRestTime(setNumber, exerciseIdx);
-			availableWidth: controlWidth
-			windowTitle: lblSetNumber.text
+		RowLayout {
 			visible: setNumber > 0
 			enabled: !setCompleted
 			Layout.leftMargin: 5
 
-			onValueChanged: (str) => tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
+			SetInputField {
+				id: txtRestTime
+				type: SetInputField.Type.TimeType
+				text: tDayModel.setRestTime(setNumber, exerciseIdx);
+				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
+				windowTitle: lblSetNumber.text
 
-			onEnterOrReturnKeyPressed: {
-				if (subSetList.length > 0)
-					subSetList[0].Object.forceActiveFocus();
+				onValueChanged: (str) => {
+					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
+						if (copyTimeButtonValue === str)
+							copyTimeButtonValue = "";
+						else if (copyTimeButtonValue === "")
+							copyTimeButtonValue = tDayModel.setRestTime(setNumber, exerciseIdx);
+					}
+					tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
+				}
+
+				onEnterOrReturnKeyPressed: {
+					if (subSetList.length > 0)
+						subSetList[0].Object.forceActiveFocus();
+				}
+			}
+
+			TPRoundButton {
+				id: btnCopyTimeValue
+				visible: copyTimeButtonValue !== ""
+				imageName: "copy-setvalue.png"
+				Layout.minimumHeight: 30
+				Layout.maximumHeight: 30
+				Layout.minimumWidth: 30
+				Layout.maximumWidth: 30
+				Layout.alignment: Qt.AlignRight
+
+				onClicked: {
+					itemManager.copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
+					copyTimeButtonValue = "";
+				}
 			}
 		}
 
@@ -238,7 +270,7 @@ Item {
 		}
 	} // setLayout
 
-	Component.onCompleted: tDayModel.saveWorkout.connect(function() { copyTypeButtonVisible = false; });
+	Component.onCompleted: tDayModel.saveWorkout.connect(function() { copyTypeButtonValue = false; });
 
 	function init() {
 		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);
@@ -298,6 +330,14 @@ Item {
 		requestTimerDialogSignal(requester, args);
 	}
 
+	function changeSetType(new_type: int) {
+		cboSetType.currentIndex = new_type;
+	}
+
+	function changeTime(new_time: string) {
+		txtRestTime.text = new_time;
+	}
+
 	function changeReps(new_value: string, idx: int) {
 		if (idx < subSetList.length)
 			subSetList[idx].Object.changeReps(new_value);
@@ -306,9 +346,5 @@ Item {
 	function changeWeight(new_value: string, idx: int) {
 		if (idx < subSetList.length)
 			subSetList[idx].Object.changeWeight(new_value);
-	}
-
-	function changeSetType(new_type: int) {
-		cboSetType.currentIndex = new_type;
 	}
 } // Item

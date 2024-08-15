@@ -26,7 +26,9 @@ void TPTimer::setRunCommandsObject(RunCommands *runCmd)
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_originalStartTime = strStartTime.contains('-') ? u"00:00:00"_qs : strStartTime;
+	m_originalStartTime = strStartTime.contains('-') ?
+				u"00:00:00"_qs :
+				runCmd()->calculateTimeDifference_str(strStartTime, runCmd()->getCurrentTimeString());
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();

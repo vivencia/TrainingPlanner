@@ -14,8 +14,8 @@ TPPopup {
 	finalYPos: 0
 
 	property bool shown: false
-	property Item currentItemThatRequestedSimpleList: null
 	property bool bEnableMultipleSelection: false
+	property Item currentItemThatRequestedSimpleList: null
 	property Item itemThatRequestedSimpleList: null
 
 	onVisibleChanged: {
@@ -87,7 +87,7 @@ TPPopup {
 					verticalCenter: parent.verticalCenter
 				}
 
-				onClicked: bShowSimpleExercisesList = false;
+				onClicked: dlgExercisesList.visible = false;
 			}
 		}
 

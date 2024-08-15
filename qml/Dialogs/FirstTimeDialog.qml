@@ -33,23 +33,27 @@ TPPopup {
 		}
 
 		UserPersonalData {
+			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
 		}
 
 		UserContact {
+			userRow: 0
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
 		}
 
 		UserCoach {
+			userRow: 0
 			width: firstTimeDlg.width - 20
 			height: moduleHeight
 		}
 
 		UserProfile {
 			id: usrProfile
+			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			width: firstTimeDlg.width - 20
 		}
@@ -108,7 +112,7 @@ TPPopup {
 					close();
 				}
 				else {
-					appDB.saveUser();
+					appDB.saveUser(0);
 					stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
 				}
 				stackLayout.currentIndex++;

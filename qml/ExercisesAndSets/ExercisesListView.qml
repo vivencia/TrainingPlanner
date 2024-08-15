@@ -46,6 +46,66 @@ Column {
 		}
 	} //Timer
 
+	Label {
+		Layout.leftMargin: 5
+		text: qsTr("Search: ")
+		font.pointSize: AppSettings.fontSizeText
+		font.weight: Font.ExtraBold
+		color: AppSettings.fontColor
+		width: parent.width/3
+
+		TPCheckBox {
+			id: chkMultipleSelection
+			text: qsTr("Multiple selection")
+			enabled: canDoMultipleSelection
+			height: 25
+			width: mainItem.width/2
+
+			anchors {
+				left: parent.right
+				top: parent.top
+			}
+
+			onCheckedChanged: {
+				exercisesListModel.clearSelectedEntries();
+				bMultipleSelection = checked;
+			}
+		}
+	}
+
+	TPTextInput {
+		id: txtFilter
+		readOnly: !mainItem.enabled
+		enabled: exercisesListModel.count > 0
+		width: parent.width
+		Layout.fillWidth: true
+		Layout.maximumHeight: 30
+		Layout.topMargin: 5
+		clip: true
+
+		ToolButton {
+			id: btnClearText
+			anchors.left: txtFilter.right
+			anchors.leftMargin: -30
+			anchors.verticalCenter: txtFilter.verticalCenter
+			height: 20
+			width: 20
+
+			Image {
+				source: "qrc:/images/"+AppSettings.iconFolder+"edit-clear.png"
+				anchors.fill: parent
+				height: 20
+				width: 20
+			}
+			onClicked: {
+				txtFilter.clear();
+				txtFilter.forceActiveFocus();
+			}
+		}
+
+		onTextChanged: exercisesListModel.setFilter(text, false);
+	} // txtFilter
+
 	ListView {
 		id: lstExercises
 		width: parent.width
@@ -159,65 +219,6 @@ Column {
 			}
 		} // SwipeDelegate
 	} // ListView
-
-	Label {
-		Layout.leftMargin: 5
-		text: qsTr("Search: ")
-		font.pointSize: AppSettings.fontSizeText
-		font.weight: Font.ExtraBold
-		color: AppSettings.fontColor
-		width: parent.width/2 - 10
-
-		TPCheckBox {
-			id: chkMultipleSelection
-			text: qsTr("Multiple selection")
-			enabled: canDoMultipleSelection
-			height: 25
-
-			anchors {
-				left: parent.right
-				top: parent.top
-			}
-
-			onCheckedChanged: {
-				exercisesListModel.clearSelectedEntries();
-				bMultipleSelection = checked;
-			}
-		}
-	}
-
-	TPTextInput {
-		id: txtFilter
-		readOnly: !mainItem.enabled
-		enabled: exercisesListModel.count > 0
-		width: parent.width
-		Layout.fillWidth: true
-		Layout.maximumHeight: 30
-		Layout.topMargin: 5
-		clip: true
-
-		ToolButton {
-			id: btnClearText
-			anchors.left: txtFilter.right
-			anchors.leftMargin: -30
-			anchors.verticalCenter: txtFilter.verticalCenter
-			height: 20
-			width: 20
-
-			Image {
-				source: "qrc:/images/"+AppSettings.iconFolder+"edit-clear.png"
-				anchors.fill: parent
-				height: 20
-				width: 20
-			}
-			onClicked: {
-				txtFilter.clear();
-				txtFilter.forceActiveFocus();
-			}
-		}
-
-		onTextChanged: exercisesListModel.setFilter(text, false);
-	} // txtFilter
 
 	Component.onCompleted: {
 		function setModel(unique_id) {

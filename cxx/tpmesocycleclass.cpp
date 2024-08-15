@@ -655,9 +655,10 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 
 	//Default values for these properties. They are only modified, on the c++ side, in changeSetType().
-	m_setObjectProperties.insert(u"copyTypeButtonVisible"_qs, false);
-	m_setObjectProperties.insert(u"copyRepsButtonVisible"_qs, false);
-	m_setObjectProperties.insert(u"copyWeightButtonVisible"_qs, false);
+	m_setObjectProperties.insert(u"copyTypeButtonValue"_qs, QString());
+	m_setObjectProperties.insert(u"copyTimeButtonValue"_qs, QString());
+	m_setObjectProperties.insert(u"copyRepsButtonValue"_qs, QString());
+	m_setObjectProperties.insert(u"copyWeightButtonValue"_qs, QString());
 
 	if (set_number >= m_currentExercises->setCount(exercise_idx))
 		m_currentExercises->appendSet(exercise_idx, item);
@@ -843,9 +844,10 @@ void TPMesocycleClass::changeSetType(const uint set_number, const uint exercise_
 			}
 		}
 
-		m_setObjectProperties.insert(u"copyTypeButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTypeButtonVisible").toBool());
-		m_setObjectProperties.insert(u"copyRepsButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyRepsButtonVisible").toBool());
-		m_setObjectProperties.insert(u"copyWeightButtonVisible"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyWeightButtonVisible").toBool());
+		m_setObjectProperties.insert(u"copyTypeButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTypeButtonValue").toString());
+		m_setObjectProperties.insert(u"copyTimeButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTimeButtonValue").toString());
+		m_setObjectProperties.insert(u"copyRepsButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyRepsButtonValue").toString());
+		m_setObjectProperties.insert(u"copyWeightButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyWeightButtonValue").toString());
 		m_currentExercises->removeSet(exercise_idx, set_number);
 
 		m_expectedSetNumber = 100; //do not trigger the itemReady signal nor add the object to the parent layout
@@ -882,7 +884,7 @@ QQuickItem* TPMesocycleClass::nextSetObject(const uint exercise_idx, const uint 
 	return nullptr;
 }
 
-void TPMesocycleClass::copyTypeValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set)
+void TPMesocycleClass::copyTypeValueIntoOtherSets(const uint exercise_idx, const uint set_number)
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
 	const uint set_type(m_CurrenttDayModel->setType(set_number, exercise_idx));
@@ -892,6 +894,22 @@ void TPMesocycleClass::copyTypeValueIntoOtherSets(const uint exercise_idx, const
 	{
 		changeSetType(i, exercise_idx, set_type);
 		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeSetType", Q_ARG(int, static_cast<int>(set_type)));
+	}
+}
+
+void TPMesocycleClass::copyTimeValueIntoOtherSets(const uint exercise_idx, const uint set_number)
+{
+	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	uint set_type(0);
+	QString updatedValue;
+	const uint nsets(exercise_obj->m_setObjects.count());
+
+	for (uint i(set_number+1); i < nsets; ++i)
+	{
+		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
+		updatedValue = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type, i-1);
+		m_CurrenttDayModel->setSetRestTime(i, exercise_idx, updatedValue);
+		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeTime", Q_ARG(QString, updatedValue));
 	}
 }
 

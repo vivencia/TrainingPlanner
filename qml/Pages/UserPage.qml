@@ -17,7 +17,10 @@ TPPage {
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrProfile.moduleHeight
 
-	onPageActivated: userModel.setCurrentViewedUser(0);
+	Component.onCompleted: {
+		userModeChanged(0);
+		userModel.appUseModeChanged.connect(userModeChanged);
+	}
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -49,6 +52,7 @@ TPPage {
 
 			UserPersonalData {
 				id: usrData
+				userRow: 0
 				parentPage: userPage
 				width: windowWidth - 20
 				height: moduleHeight
@@ -56,18 +60,21 @@ TPPage {
 
 			UserContact {
 				id: usrContact
+				userRow: 0
 				width: windowWidth - 20
 				height: moduleHeight
 			}
 
 			UserCoach {
 				id: usrCoach
+				userRow: 0
 				width: windowWidth - 20
 				height: moduleHeight
 			}
 
 			UserProfile {
 				id: usrProfile
+				userRow: 0
 				parentPage: userPage
 				width: windowWidth - 20
 			}
@@ -88,7 +95,6 @@ TPPage {
 			id: btnManageCoach
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
-			visible: userModel.appUseMode >= 3
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: appDB.openClientsOrCoachesPage(true);
@@ -98,14 +104,20 @@ TPPage {
 			id: btnManageClients
 			text: qsTr("Manage clients")
 			flat: false
-			visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: appDB.openClientsOrCoachesPage(false);
 		}
 	}
 
+	function userModeChanged(row: int) {
+		if (row !== 0)
+			return;
+		btnManageCoach.visible = userModel.appUseMode(0) >= 3;
+		btnManageClients.visible = userModel.appUseMode(0) === 2 || userModel.appUseMode(0) === 4;
+	}
+
 	function apply() {
-		appDB.saveUser();
+		appDB.saveUser(0);
 	}
 }

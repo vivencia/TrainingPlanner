@@ -17,24 +17,20 @@ Frame {
 		color: "transparent"
 	}
 
-	property bool bReady: bCoachOK
+	required property int userRow
+	property bool bReady: true
 	property bool bCoachOK: false
 	readonly property int controlsSpacing: 10
 
 	TPRadioButton {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
+		checked: userModel.appUseMode(userRow) === 1 || userModel.appUseMode(userRow) === 3;
 
 		onClicked: {
 			if (checked)
-				userModel.appUseMode = 1 + chkHaveCoach.checked ? 2 : 0;
-			bCoachOK = userModel.appUseMode !== 2;
+				userModel.setAppUseMode(userRow, 1 + (chkHaveCoach.checked ? 2 : 0));
 			optCoachUse.checked = false;
-		}
-
-		Component.onCompleted: {
-			checked = userModel.appUseMode === 1 || userModel.appUseMode === 3;
-			bCoachOK = true;
 		}
 
 		anchors {
@@ -50,22 +46,17 @@ Frame {
 	TPRadioButton {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
+		checked: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4;
 
 		onClicked: {
 			if (checked)
-				userModel.appUseMode = 2 + chkHaveCoach.checked ? 2 : 0;
-			bCoachOK = userModel.appUseMode !== 2;
+				userModel.setAppUseMode(userRow, 2 + (chkHaveCoach.checked ? 2 : 0));
 			optPersonalUse.checked = false;
-		}
-
-		Component.onCompleted: {
-			checked = userModel.appUseMode === 2 || userModel.appUseMode === 4;
-			bCoachOK = true;
 		}
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: 3*controlsSpacing
+			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -76,22 +67,18 @@ Frame {
 	TPCheckBox {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
-		checked: false
+		checked: userModel.appUseMode(userRow) === 3 || userModel.appUseMode(userRow) === 4;
 
 		onClicked: {
 			if (checked)
-				userModel.appUseMode = 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0))
-			bCoachOK = userModel.appUseMode !== 2;
-		}
-
-		Component.onCompleted: {
-			checked = userModel.appUseMode === 3 || userModel.appUseMode === 4;
-			bCoachOK = true;
+				userModel.setAppUseMode(userRow, 2 + (optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0)));
+			else
+				userModel.setAppUseMode(userRow, optPersonalUse.checked ? 1 : (optCoachUse.checked ? 2 : 0));
 		}
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: 3*controlsSpacing
+			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

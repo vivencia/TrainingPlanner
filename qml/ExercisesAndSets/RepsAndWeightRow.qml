@@ -33,9 +33,13 @@ Item {
 		}
 
 		onValueChanged: (str) => {
+			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
+				if (copyRepsButtonValue === str)
+					copyRepsButtonValue = "";
+				else if (copyRepsButtonValue === "")
+					copyRepsButtonValue = tDayModel.setReps(setNumber, rowIdx, exerciseIdx);
+			}
 			tDayModel.setSetReps(setNumber, exerciseIdx, rowIdx, str);
-			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-				stack1.currentIndex = 1;
 		}
 
 		onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -43,7 +47,7 @@ Item {
 
 	StackLayout {
 		id: stack1
-		currentIndex: 0
+		currentIndex: copyRepsButtonValue !== "" ? 1 : 0
 		width: 30
 		height: parent.height
 
@@ -65,7 +69,7 @@ Item {
 
 			onClicked: {
 				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
-				stack1.currentIndex = 0;
+				copyRepsButtonValue = "";
 			}
 		}
 	}
@@ -94,15 +98,19 @@ Item {
 		}
 
 		onValueChanged: (str) => {
+			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
+				if (copyWeightButtonValue === str)
+					copyWeightButtonValue = "";
+				else if (copyWeightButtonValue === "")
+					copyWeightButtonValue = tDayModel.setWeight(setNumber, rowIdx, exerciseIdx);
+			}
 			tDayModel.setSetWeight(setNumber, exerciseIdx, rowIdx, str);
-			if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1)
-					stack2.currentIndex = 1;
 		}
 	} //txtNWeight
 
 	StackLayout {
 		id: stack2
-		currentIndex: 0
+		currentIndex: copyWeightButtonValue !== "" ? 1 : 0
 		width: 85
 		implicitWidth: 85
 		height: parent.height
@@ -157,7 +165,7 @@ Item {
 
 			onClicked: {
 				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
-				stack2.currentIndex = 0;
+				copyWeightButtonValue = "";
 			}
 		}
 	}

@@ -124,7 +124,8 @@ public:
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text, const bool bChangeModel = true);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set = 0);
+	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint exercise_idx, const uint set_number);
+	Q_INVOKABLE void copyTimeValueIntoOtherSets(const uint exercise_idx, const uint set_number);
 	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set = 0);
 	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint exercise_idx, const uint set_number, const uint sub_set = 0);
 	void enableDisableExerciseCompletedButton(const uint exercise_idx, const bool completed);

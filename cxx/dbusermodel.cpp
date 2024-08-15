@@ -1,7 +1,7 @@
 #include "dbusermodel.h"
 
 DBUserModel::DBUserModel(QObject *parent)
-	: TPListModel(parent), mb_empty(false), m_userRow(0), m_searchRow(-1)
+	: TPListModel(parent), mb_empty(false), m_searchRow(-1)
 {
 	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
@@ -20,15 +20,7 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(tr("Coach: "));
 }
 
-/*switch (userModel->mainUserAppUseMode())
-	{
-		case COACH_OPT_SINGLE_USER: return;
-		case COACH_OPT_SINGLE_COACH: bShowUsers = true; bShowCoaches = false; break;
-		case COACH_OPT_SINGLE_USER_WITH_COACH: break;
-		case COACH_OPT_COACH_USER_WITH_COACHES: bShowUsers = true; break;
-	}
-	*/
-void DBUserModel::addUser(const bool coach)
+int DBUserModel::addUser(const bool bCoach)
 {
 	uint use_mode(1);
 	uint cur_coach(0);
@@ -37,23 +29,23 @@ void DBUserModel::addUser(const bool coach)
 	{
 		switch (m_modeldata.at(0).at(USER_COL_APP_USE_MODE).toInt())
 		{
-			case 1:
-			case 3:
-				if (!coach)
-					return;
+			case APP_USE_MODE_SINGLE_USER:
+			case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+				if (!bCoach)
+					return -1;
 				use_mode = 2;
 				cur_coach = 1;
 			break;
 
-			case 2:
-				if (coach)
-					return;
+			case APP_USE_MODE_SINGLE_COACH:
+				if (bCoach)
+					return -1;
 				use_mode = 0;
 				cur_client = 1;
 			break;
 
-			case 4:
-				if (coach)
+			case APP_USE_MODE_COACH_USER_WITH_COACHES:
+				if (bCoach)
 				{
 					use_mode = 2;
 					cur_coach = 1;
@@ -69,32 +61,23 @@ void DBUserModel::addUser(const bool coach)
 	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
 		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
-	m_userRow = m_modeldata.count() - 1;
+	return m_modeldata.count() - 1;
 }
 
-void DBUserModel::removeUser(const int row)
+uint DBUserModel::removeUser(const int row, const bool bCoach)
 {
 	if (row >= 1 && row < m_modeldata.count())
 	{
 		removeRow(row);
-		if (row <= m_userRow)
-			m_userRow--;
+		return findNextUser(bCoach);
 	}
-}
-
-int DBUserModel::loadUserInfo(const QString& name)
-{
-	for (uint i(0); i < m_modeldata.count(); ++i)
-	{
-		if (m_modeldata.at(i).at(USER_COL_NAME) == name)
-			return i;
-	}
-	return -1;
+	return row;
 }
 
 int DBUserModel::findFirstUser(const bool bCoach)
 {
 	int searchRow(1);
+	m_searchRow = -1;
 	for (; searchRow < m_modeldata.count(); ++searchRow)
 	{
 		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
@@ -154,6 +137,124 @@ int DBUserModel::findLastUser(const bool bCoach)
 		}
 	}
 	return m_searchRow;
+}
+
+void DBUserModel::setUserName(const int row, const QString& new_name)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_NAME] = new_name;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setBirthDate(const int row, const QDate& new_date)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
+		setModified(true);
+	}
+}
+
+void DBUserModel::setSex(const int row, const QString& new_sex)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_SEX] = new_sex;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setPhone(const int row, const QString& new_phone)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_PHONE] = new_phone;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setEmail(const int row, const QString& new_email)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_EMAIL] = new_email;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setSocialMedia(const int row, const QString& new_social)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_SOCIALMEDIA] = new_social;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setUserRole(const int row, const QString& new_role)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_USERROLE] = new_role;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setCoachRole(const int row, const QString& new_role)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_COACHROLE] = new_role;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setGoal(const int row, const QString& new_goal)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_GOAL] = new_goal;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setAvatar(const int row, const QString& new_avatar)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_AVATAR] = new_avatar;
+		setModified(true);
+	}
+}
+
+void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+		emit appUseModeChanged(row);
+		setModified(true);
+	}
+}
+
+void DBUserModel::setCurrentCoach(const int row, const int new_current_coach)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_CURRENT_COACH] = QString::number(new_current_coach);
+		setModified(true);
+	}
+}
+
+void DBUserModel::setCurrentUser(const int row, const int new_current_user)
+{
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		m_modeldata[row][USER_COL_CURRENT_USER] = QString::number(new_current_user);
+		setModified(true);
+	}
 }
 
 bool DBUserModel::updateFromModel(const TPListModel* model)

@@ -14,12 +14,27 @@ TPPage {
 	width: windowWidth
 	height: windowHeight
 
+	property int curUserRow
 	property bool showUsers
 	property bool showCoaches
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrProfile.moduleHeight
 
-	onPageActivated: userModel.findFirstUser(showCoaches);
+	Label {
+		id: lblMain
+		text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
+		color: AppSettings.fontColor
+		font.bold: true
+		font.pointSize: AppSettings.fontSizeTitle
+		horizontalAlignment: Text.AlignHCenter
+
+		anchors {
+			top: parent.top
+			topMargin: 20
+			left: parent.left
+			right: parent.right
+		}
+	}
 
 	Row {
 		id: controlsRow
@@ -28,51 +43,65 @@ TPPage {
 		height: 30
 
 		anchors {
-			top: parent.top
+			top: lblMain.bottom
+			topMargin: 20
 			left: parent.left
+			leftMargin: (windowWidth - controlsRow.childrenRect.width)/2
 			right: parent.right
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnAdd
-			imageName: "qrc:/images/add.png"
+			imageSource: "qrc:/images/add.png"
+			width: 30
+			height: 30
 
-			onClicked: userModel.addUser(showCoaches);
+			onClicked: curUserRow = userModel.addUser(showCoaches);
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnDel
-			imageName: "qrc:/images/del.png"
+			imageSource: "qrc:/images/del.png"
+			width: 30
+			height: 30
 
 			onClicked: showRemoveMessage();
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnFirst
-			imageName: "qrc:/images/first.png"
+			imageSource: "qrc:/images/first.png"
+			width: 30
+			height: 30
 
-			onClicked: userModel.setCurrentViewedUser(userModel.findFirstUser(showCoaches));
+			onClicked: curUserRow = userModel.findFirstUser(showCoaches);
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnPrev
-			imageName: "qrc:/images/prev.png"
+			imageSource: "qrc:/images/prev.png"
+			width: 30
+			height: 30
 
-			onClicked: userModel.setCurrentViewedUser(userModel.findPrevUser(showCoaches));
+			onClicked: curUserRow = userModel.findPrevUser(showCoaches);
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnNext
-			imageName: "qrc:/images/next.png"
+			imageSource: "qrc:/images/next.png"
+			width: 30
+			height: 30
 
-			onClicked: userModel.setCurrentViewedUser(userModel.findNextUser(showCoaches));
+			onClicked: curUserRow = userModel.findNextUser(showCoaches);
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnLast
-			imageName: "qrc:/images/last.png"
+			imageSource: "qrc:/images/last.png"
+			width: 30
+			height: 30
 
-			onClicked: userModel.setCurrentViewedUser(userModel.findLastUser(showCoaches));
+			onClicked: curUserRow = userModel.findLastUser(showCoaches);
 		}
 	}
 
@@ -83,24 +112,23 @@ TPPage {
 
 		anchors {
 			top: controlsRow.bottom
+			topMargin: 10
 			left: parent.left
 			right: parent.right
 		}
 
-		onCheckedChanged: {
+		onClicked: {
 			if (showCoaches)
-				userModel.currentCoach = checked ? userModel.currentViewedUser() : 0;
+				userModel.setCurrentCoach(curUserRow, checked ? curUserRow : 0);
 			else
-				userModel.currentUser = checked ? userModel.currentViewedUser() : 0;
+				userModel.setCurrentUser(curUserRow, checked ? curUserRow : 0);
 		}
-
-		onClicked: bCoachOK = userModel.coach !== 2;
 
 		Component.onCompleted: {
 			if (showCoaches)
-				checked = userModel.currentCoach === userModel.currentViewedUser();
+				checked = userModel.currentCoach(curUserRow) === curUserRow;
 			else
-				checked = userModel.currentUser === userModel.currentViewedUser();
+				checked = userModel.currentUser(curUserRow) === curUserRow;
 		}
 	}
 
@@ -122,18 +150,9 @@ TPPage {
 			anchors.fill: parent
 			spacing: 10
 
-			Label {
-				text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
-				color: AppSettings.fontColor
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeTitle
-				horizontalAlignment: Text.AlignHCenter
-				Layout.fillWidth: true
-				Layout.topMargin: 20
-			}
-
 			UserPersonalData {
 				id: usrData
+				userRow: curUserRow
 				parentPage: coachesOrClientsPage
 				width: windowWidth - 20
 				height: moduleHeight
@@ -141,22 +160,51 @@ TPPage {
 
 			UserContact {
 				id: usrContact
+				userRow: curUserRow
 				width: windowWidth - 20
 				height: moduleHeight
 			}
 
 			UserProfile {
 				id: usrProfile
+				userRow: curUserRow
 				parentPage: coachesOrClientsPage
 				width: windowWidth - 20
 			}
 		}
 	}
 
+	footer: ToolBar {
+		width: parent.width
+		height: footerHeight
+
+		background: Rectangle {
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
+		}
+
+		TPButton {
+			text: qsTr("Save")
+			enabled: userModel.modified
+			width: 80
+			flat: false
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: appDB.saveUser(curUserRow);
+		}
+	}
+
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage() {
 		if (!AppSettings.alwaysAskConfirmation) {
-			userModel.removeUser(userModel.currentViewedUser());
+			curUserRow = appDB.removeUser(curUserRow, showCoaches);
 			return;
 		}
 
@@ -165,9 +213,9 @@ TPPage {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(trainingDayPage, { parentPage: coachesOrClientsPage, imageSource: "remove.png",
+					msgRemoveUser = component.createObject(coachesOrClientsPage, { parentPage: coachesOrClientsPage, imageSource: "remove.png",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveUser.button1Clicked.connect(function () { userModel.removeUser(userModel.currentViewedUser()); } );
+					msgRemoveUser.button1Clicked.connect(function () { curUserRow = appDB.removeUser(curUserRow, showCoaches); } );
 				}
 
 				if (component.status === Component.Ready)

@@ -15,6 +15,15 @@ Frame {
 	spacing: 5
 	padding: 0
 
+	required property int userRow
+	property bool bReady: bRoleOK & bGoalOK
+	property bool bRoleOK: false
+	property bool bGoalOK: false
+	property int moduleHeight
+	readonly property int controlsHeight: 25
+	readonly property int controlsSpacing: 10
+	required property TPPage parentPage
+
 	ListModel {
 		id: roleModelUser
 		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; }
@@ -38,9 +47,15 @@ Frame {
 		color: "transparent"
 	}
 
-	Component.onCompleted: { calculateTotalHeight(); userModel.appUseModeChanged.connect(calculateTotalHeight); }
+	Component.onCompleted: {
+		calculateTotalHeight(userRow);
+		userModel.appUseModeChanged.connect(calculateTotalHeight);
+	}
 
-	function calculateTotalHeight() {
+	function calculateTotalHeight(user_row: int) {
+		if (user_row !== userRow)
+			return;
+
 		var allControlsHeight = recAvatar.height + 2*controlsSpacing;
 		switch (userModel.appUseMode) {
 			case 2:
@@ -58,22 +73,14 @@ Frame {
 				allControlsHeight += lblUserRole.height + lblGoal.height + 4*controlsSpacing;
 			break;
 		}
-		moduleHeight = allControlsHeight;
+		moduleHeight = allControlsHeight + 40;
 	}
-
-	property bool bReady: bRoleOK & bGoalOK
-	property bool bRoleOK: false
-	property bool bGoalOK: false
-	property int moduleHeight
-	readonly property int controlsHeight: 25
-	readonly property int controlsSpacing: 10
-	required property TPPage parentPage
 
 	Label {
 		id: lblUserRole
 		text: userModel.columnLabel(7)
 		color: AppSettings.fontColor
-		visible: userModel.appUseMode !== 2
+		visible: userModel.appUseMode(userRow) !== 2
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		height: controlsHeight
@@ -93,17 +100,17 @@ Frame {
 	TPComboBox {
 		id: cboUserRole
 		model: roleModelUser
-		visible: userModel.appUseMode !== 2
+		visible: lblUserRole.visible
 		height: controlsHeight
 		width: parent.width*0.80
 
 		Component.onCompleted: {
-			currentIndex = find(userModel.userRole);
-			bRoleOK = !userModel.isEmpty();
+			currentIndex = find(userModel.userRole(userRow));
+			bRoleOK = userModel.userRole(userRow).length > 1
 		}
 
 		onActivated: (index) => {
-			userModel.userRole = textAt(index);
+			userModel.setUserRole(userRow, textAt(index));
 			bRoleOK = true;
 		}
 
@@ -118,7 +125,7 @@ Frame {
 	Label {
 		id: lblGoal
 		text: userModel.columnLabel(8)
-		visible: userModel.appUseMode !== 2
+		visible: userModel.appUseMode(userRow) !== 2
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
@@ -137,7 +144,7 @@ Frame {
 	TPComboBox {
 		id: cboGoal
 		model: goalModel
-		visible: userModel.appUseMode !== 2
+		visible: lblGoal.visible
 		enabled: bRoleOK
 		height: controlsHeight
 		width: parent.width*0.80
@@ -155,12 +162,12 @@ Frame {
 		}
 
 		Component.onCompleted: {
-			currentIndex = find(userModel.goal);
-			bGoalOK = !userModel.isEmpty();
+			currentIndex = find(userModel.goal(userRow));
+			bGoalOK = userModel.goal(userRow).length > 1
 		}
 
 		onActivated: (index) => {
-			userModel.goal = textAt(index);
+			userModel.setGoal(userRow, textAt(index));
 			bGoalOK = true;
 		}
 
@@ -176,7 +183,7 @@ Frame {
 		id: lblCoachRole
 		text: userModel.columnLabel(7)
 		color: AppSettings.fontColor
-		visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
+		visible: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		height: controlsHeight
@@ -196,17 +203,17 @@ Frame {
 	TPComboBox {
 		id: cboCoachRole
 		model: roleModelCoach
-		visible: userModel.appUseMode === 2 || userModel.appUseMode === 4
+		visible: lblCoachRole.visible
 		height: controlsHeight
 		width: parent.width*0.80
 
 		Component.onCompleted: {
-			currentIndex = find(userModel.coachRole);
-			bRoleOK = !userModel.isEmpty();
+			currentIndex = find(userModel.coachRole(userRow));
+			bRoleOK = userModel.coachRole(userRow).length > 1
 		}
 
 		onActivated: (index) => {
-			userModel.coachRole = textAt(index);
+			userModel.setCoachRole(userRow, textAt(index));
 			bRoleOK = true;
 		}
 
@@ -245,8 +252,10 @@ Frame {
 		color: "transparent"
 
 		Image {
+			id: imgAvatar
 			anchors.fill: parent
-			source: userModel.avatar
+			source: userModel.avatar(userRow)
+			asynchronous: true
 		}
 
 		anchors {
@@ -300,10 +309,13 @@ Frame {
 	}
 
 	function selectAvatar(id: int) {
-		userModel.avatar = "image://tpimageprovider/" + parseInt(id);
+		userModel.setAvatar(userRow, "image://tpimageprovider/" + parseInt(id));
+		imgAvatar.source = userModel.avatar(userRow);
 	}
+
 	function selectExternalAvatar(filename: string) {
-		userModel.avatar = filename;
+		userModel.setAvatar(userRow, filename);
+		imgAvatar.source = userModel.avatar(userRow);
 	}
 
 	function focusOnFirstField() {

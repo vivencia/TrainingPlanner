@@ -17,12 +17,13 @@ Frame {
 		color: "transparent"
 	}
 
+	required property int userRow
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
 	property bool bPhoneOK: false
 	property bool bEmailOK: true
 	property bool bSocialOK: true
-	readonly property int controlsSpacing: 10
-	readonly property int controlsHeight: height / 6
+	readonly property int controlsSpacing: 5
+	readonly property int controlsHeight: 25
 
 	Label {
 		id: lblPhone
@@ -34,6 +35,7 @@ Frame {
 		padding: 0
 		bottomInset: 0
 		topInset: 0
+		bottomPadding: 0
 
 		anchors {
 			top: parent.top
@@ -47,25 +49,22 @@ Frame {
 	TPTextInput {
 		id: txtPhone
 		height: controlsHeight
+		text: userModel.phone(userRow)
 		inputMethodHints: Qt.ImhDigitsOnly
-		inputMask: "+55 \\ (99\\) 99999\\-9999;_"
+		inputMask: "+55 \\(99\\) 99999\\-9999;_"
 		ToolTip.text: qsTr("Invalid phone number")
 
-		Component.onCompleted: {
-			text = userModel.phone;
-			bPhoneOK = !userModel.isEmpty();
-		}
+		Component.onCompleted: bPhoneOK = userModel.phone(userRow).length >= 19
+		onTextChanged: userModel.setPhone(userRow, text);
 
 		onActiveFocusChanged: {
 			if (activeFocus) {
-				if (text.length < 20)
+				if (text.length < 19)
 					cursorPosition = 5;
 				else
-					cursorPosition = 20;
+					cursorPosition = 19;
 			}
 		}
-
-		onTextChanged: userModel.phone = text;
 
 		onEnterOrReturnKeyPressed: {
 			if (bPhoneOK)
@@ -73,7 +72,7 @@ Frame {
 		}
 
 		onTextEdited: {
-			if (text.length === 20) {
+			if (text.length === 19) {
 				ToolTip.visible = false;
 				bPhoneOK = true;
 			}
@@ -101,6 +100,10 @@ Frame {
 		font.bold: true
 		height: controlsHeight
 		padding: 0
+		bottomInset: 0
+		topInset: 0
+		topPadding: 0
+		bottomPadding: 0
 
 		anchors {
 			top: txtPhone.bottom
@@ -114,13 +117,17 @@ Frame {
 
 	TPTextInput {
 		id: txtEmail
+		text: userModel.email(userRow)
 		height: controlsHeight
 		enabled: bPhoneOK
 		ToolTip.text: qsTr("Invalid email address")
 
-		Component.onCompleted: text = userModel.email;
+		Component.onCompleted: {
+			const str = userModel.email(userRow);
+			bEmailOK = (str.length === 0 || (str.indexOf("@") !== -1 && str.indexOf(".") !== -1));
+		}
 
-		onTextChanged: userModel.email = text;
+		onTextChanged: userModel.setEmail(userRow, text);
 
 		onTextEdited: {
 			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
@@ -184,7 +191,7 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			txtSocial.text = runCmd.getCompositeValue(index, userModel.socialMedia);
+			txtSocial.text = runCmd.getCompositeValue(index, userModel.socialMedia(userRow));
 			txtSocial.forceActiveFocus();
 		}
 
@@ -198,13 +205,13 @@ Frame {
 
 	TPTextInput {
 		id: txtSocial
+		text: runCmd.getCompositeValue(cboSocial.currentIndex, userModel.socialMedia(userRow));
 		height: controlsHeight
 		enabled: bEmailOK
 		width: parent.width*0.65
 		ToolTip.text: qsTr("Social media address is invalid")
 
-		Component.onCompleted: text = runCmd.getCompositeValue(cboSocial.currentIndex, userModel.socialMedia);
-		onTextChanged: userModel.socialMedia = runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia);
+		onTextChanged: userModel.setSocialMedia(userRow, runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
 
 		onTextEdited: {
 			bSocialOK = text.length > 10 || text.length === 0
@@ -222,7 +229,11 @@ Frame {
 	}
 
 	function focusOnFirstField() {
-		if (txtPhone.text.length < 20)
+		if (!bPhoneOK)
 			txtPhone.forceActiveFocus();
+		else if (!bEmailOK)
+			txtEmail.forceActiveFocus();
+		else
+			txtSocial.forceActiveFocus();
 	}
 }

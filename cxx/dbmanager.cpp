@@ -208,8 +208,8 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	{
 		//All update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
-		DBUserTable user(m_DBFilePath, m_appSettings);
-		user.removeDBFile();
+		//DBUserTable user(m_DBFilePath, m_appSettings);
+		//user.removeDBFile();
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 	}
 
@@ -894,7 +894,7 @@ void DbManager::getAllUsers()
 
 	bool noUsers(userModel->count() == 0);
 	if (!noUsers)
-		noUsers = userModel->userName().isEmpty();
+		noUsers = userModel->userName(0).isEmpty();
 	if (noUsers)
 	{
 		userModel->setIsEmpty(true);
@@ -902,30 +902,23 @@ void DbManager::getAllUsers()
 	}
 }
 
-void DbManager::getUserInfo(const QString& username)
-{
-	const int row(userModel->loadUserInfo(username));
-	if (row >= 0)
-		userModel->setCurrentViewedUser(row);
-}
-
-void DbManager::saveUser()
+void DbManager::saveUser(const uint row)
 {
 	DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
-	worker->addExecArg(userModel->currentViewedUser());
+	worker->addExecArg(row);
 	createThread(worker, [worker] () { worker->saveUser(); } );
 }
 
-void DbManager::removeUser(const QString& username)
+int DbManager::removeUser(const uint row, const bool bCoach)
 {
-	const int row(userModel->loadUserInfo(username));
-	if (row >= 0 && row != userModel->currentRow())
+	if (row >= 1)
 	{
 		DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
 		worker->addExecArg(userModel->userId(row));
 		createThread(worker, [worker] () { return worker->removeEntry(); } );
-		userModel->removeUser(row);
+		return userModel->removeUser(row, bCoach);
 	}
+	return -1;
 }
 
 void DbManager::deleteUserTable(const bool bRemoveFile)
@@ -1941,8 +1934,40 @@ void DbManager::openClientsOrCoachesPage(const bool bManageCoaches)
 		return;
 	}
 
-	m_clientsOrCoachesProperties.insert(QStringLiteral("showUsers"), !bManageCoaches);
-	m_clientsOrCoachesProperties.insert(QStringLiteral("showCoaches"), bManageCoaches);
+	bool showUsers(false);
+	bool showCoaches(false);
+	int curUserRow(0);
+	switch (userModel->appUseMode(0))
+	{
+		case APP_USE_MODE_SINGLE_USER: return;
+		case APP_USE_MODE_SINGLE_COACH:
+			if (bManageCoaches)
+				return;
+			if ((curUserRow = userModel->findFirstUser(false)) < 0)
+				curUserRow = userModel->addUser(false);
+			showUsers = true;
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+			if (!bManageCoaches)
+				return;
+			if ((curUserRow = userModel->findFirstUser(true)) < 0)
+				curUserRow = userModel->addUser(true);
+			showCoaches = true;
+		break;
+		case APP_USE_MODE_COACH_USER_WITH_COACHES:
+		{
+			showUsers = (curUserRow = userModel->findFirstUser(false)) > 0;
+			if (!showUsers)
+				showCoaches = (curUserRow = userModel->findFirstUser(true)) > 0;
+			if (!showUsers && !showCoaches)
+				curUserRow = userModel->addUser(false);
+			showUsers = showCoaches = true;
+		}
+	}
+
+	m_clientsOrCoachesProperties.insert(QStringLiteral("showUsers"), showUsers);
+	m_clientsOrCoachesProperties.insert(QStringLiteral("showCoaches"), showCoaches);
+	m_clientsOrCoachesProperties.insert(QStringLiteral("curUserRow"), curUserRow);
 	m_clientsOrCoachesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_qs), QQmlComponent::Asynchronous);
 	connect(m_clientsOrCoachesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
 		return createClientsOrCoachesPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
