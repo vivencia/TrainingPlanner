@@ -15,7 +15,7 @@ TPPage {
 	height: windowHeight
 
 	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrProfile.moduleHeight
+	readonly property int moduleHeight: usrContact.moduleHeight
 
 	Component.onCompleted: {
 		userModeChanged(0);
@@ -62,7 +62,7 @@ TPPage {
 				id: usrContact
 				userRow: 0
 				width: windowWidth - 20
-				height: moduleHeight
+				Layout.topMargin: -30
 			}
 
 			UserCoach {
@@ -70,6 +70,7 @@ TPPage {
 				userRow: 0
 				width: windowWidth - 20
 				height: moduleHeight
+				Layout.topMargin: 20
 			}
 
 			UserProfile {
@@ -77,6 +78,7 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				width: windowWidth - 20
+				height: moduleHeight
 			}
 		}
 	}

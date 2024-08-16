@@ -57,7 +57,7 @@ Item {
 				id: cboSetType
 				currentIndex: setType
 				enabled: !setCompleted
-				model: mainwindow.setTypesModel
+				model: AppSettings.setTypesModel
 
 				anchors {
 					left: parent.right
@@ -237,7 +237,7 @@ Item {
 				id: txtNReps
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, exerciseIdx);
-				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
+				availableWidth: copyRepsButtonValue === "" ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
 				Layout.leftMargin: 5
 
@@ -281,7 +281,7 @@ Item {
 				id: txtNWeight
 				type: SetInputField.Type.WeightType
 				text: tDayModel.setWeight(setNumber, exerciseIdx);
-				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
+				availableWidth: copyWeightButtonValue === "" ? controlWidth : controlWidth - 40
 				alternativeLabels: myoLabels
 
 				onValueChanged: (str) => {

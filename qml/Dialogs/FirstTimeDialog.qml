@@ -15,7 +15,7 @@ TPPopup {
 	x: (windowWidth - width)/2 // horizontally centered
 	finalYPos: (windowHeight - height)/2 // vertically centered
 
-	readonly property int moduleHeight: usrProfile.moduleHeight
+	readonly property int moduleHeight: usrContact.moduleHeight
 
 	StackLayout {
 		id: stackLayout
@@ -40,9 +40,9 @@ TPPopup {
 		}
 
 		UserContact {
+			id: usrContact
 			userRow: 0
 			width: firstTimeDlg.width - 20
-			height: moduleHeight
 		}
 
 		UserCoach {
@@ -52,10 +52,10 @@ TPPopup {
 		}
 
 		UserProfile {
-			id: usrProfile
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 
 		UserReady {

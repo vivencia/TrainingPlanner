@@ -11,7 +11,7 @@ import "../Pages"
 Frame {
 	id: frmUserProfile
 	implicitWidth: width
-	implicitHeight: moduleHeight;
+	implicitHeight: height
 	spacing: 5
 	padding: 0
 
@@ -19,7 +19,6 @@ Frame {
 	property bool bReady: bRoleOK & bGoalOK
 	property bool bRoleOK: false
 	property bool bGoalOK: false
-	property int moduleHeight
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
 	required property TPPage parentPage
@@ -45,35 +44,6 @@ Frame {
 	background: Rectangle {
 		border.color: "transparent"
 		color: "transparent"
-	}
-
-	Component.onCompleted: {
-		calculateTotalHeight(userRow);
-		userModel.appUseModeChanged.connect(calculateTotalHeight);
-	}
-
-	function calculateTotalHeight(user_row: int) {
-		if (user_row !== userRow)
-			return;
-
-		var allControlsHeight = recAvatar.height + 2*controlsSpacing;
-		switch (userModel.appUseMode) {
-			case 2:
-				allControlsHeight += lblCoachRole.height + 2*controlsSpacing;
-				allControlsHeight -= (lblUserRole.height + lblGoal.height + 2*controlsSpacing);
-			break;
-			case 0:
-			case 1:
-			case 3:
-				allControlsHeight-= (lblCoachRole.height + 2*controlsSpacing);
-				allControlsHeight += lblUserRole.height + lblGoal.height + 4*controlsSpacing;
-			break;
-			case 4:
-				allControlsHeight += lblCoachRole.height + 2*controlsSpacing;
-				allControlsHeight += lblUserRole.height + lblGoal.height + 4*controlsSpacing;
-			break;
-		}
-		moduleHeight = allControlsHeight + 40;
 	}
 
 	Label {
@@ -236,7 +206,7 @@ Frame {
 		width: parent.width*0.2
 
 		anchors {
-			top: lblGoal.bottom
+			top: lblCoachRole.visible ? lblCoachRole.bottom : lblGoal.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5

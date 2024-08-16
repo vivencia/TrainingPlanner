@@ -103,5 +103,9 @@
         <file>images/last.png</file>
         <file>images/next.png</file>
         <file>images/prev.png</file>
+        <file>images/telegram.png</file>
+        <file>images/whatsapp.png</file>
+        <file>images/white/openurl.png</file>
+        <file>images/black/openurl.png</file>
     </qresource>
 </RCC>

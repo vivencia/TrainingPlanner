@@ -42,7 +42,7 @@ ComboBox {
 				visible: completeModel
 				fillMode: Image.PreserveAspectFit
 				asynchronous: true
-				source: completeModel > 0 ? model.icon : ""
+				source: completeModel ? model.icon : ""
 				width: 20
 				height: 20
 
@@ -84,13 +84,28 @@ ComboBox {
 
 	contentItem: Label {
 		text: control.displayText
-		leftPadding: 5
 		rightPadding: control.indicator.width + control.spacing
 		color: control.enabled ? textColor : "gray"
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		verticalAlignment: Text.AlignVCenter
 		elide: Text.ElideRight
+		leftPadding: completeModel ? 30 : 5
+	}
+
+	Image {
+		visible: completeModel
+		fillMode: Image.PreserveAspectFit
+		asynchronous: true
+		source: completeModel ? control.model.get(control.currentIndex).icon : ""
+		width: 18
+		height: 18
+
+		anchors {
+			left: parent.left
+			leftMargin: 5
+			verticalCenter: parent.verticalCenter
+		}
 	}
 
 	background: Rectangle {

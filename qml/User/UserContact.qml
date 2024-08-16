@@ -7,7 +7,8 @@ import ".."
 import "../TPWidgets"
 
 Frame {
-	implicitHeight: height
+	id: frmContact
+	implicitHeight: moduleHeight;
 	implicitWidth: width
 	padding: 0
 	spacing: 0
@@ -24,6 +25,7 @@ Frame {
 	property bool bSocialOK: true
 	readonly property int controlsSpacing: 5
 	readonly property int controlsHeight: 25
+	readonly property int moduleHeight: 7*controlsHeight
 
 	Label {
 		id: lblPhone
@@ -48,14 +50,15 @@ Frame {
 
 	TPTextInput {
 		id: txtPhone
-		height: controlsHeight
 		text: userModel.phone(userRow)
 		inputMethodHints: Qt.ImhDigitsOnly
-		inputMask: "+55 \\(99\\) 99999\\-9999;_"
+		inputMask: "+55\\(99\\)99999\\-9999\\"
 		ToolTip.text: qsTr("Invalid phone number")
+		height: controlsHeight
+		width: frmContact.width*0.7
 
 		Component.onCompleted: bPhoneOK = userModel.phone(userRow).length >= 19
-		onTextChanged: userModel.setPhone(userRow, text);
+		onEditingFinished: userModel.setPhone(userRow, text);
 
 		onActiveFocusChanged: {
 			if (activeFocus) {
@@ -75,6 +78,7 @@ Frame {
 			if (text.length === 19) {
 				ToolTip.visible = false;
 				bPhoneOK = true;
+				userModel.setPhone(userRow, text);
 			}
 			else {
 				ToolTip.visible = true;
@@ -84,12 +88,41 @@ Frame {
 
 		anchors {
 			top: lblPhone.bottom
-			topMargin: -10
 			left: parent.left
 			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
 		}
+	}
+
+	TPButton {
+		id: btnWhatsApp
+		imageSource: "qrc:/images/whatsapp.png"
+		enabled: bPhoneOK
+		visible: userRow !== 0
+		width: 30
+		height: 30
+
+		anchors {
+			left: txtPhone.right
+			verticalCenter: txtPhone.verticalCenter
+		}
+
+		onClicked: appDB.startChatApp(userModel.phone(userRow), "WhatsApp");
+	}
+
+	TPButton {
+		id: btnTelegram
+		imageSource: "qrc:/images/telegram.png"
+		enabled: bPhoneOK
+		visible: userRow !== 0
+		width: 30
+		height: 30
+
+		anchors {
+			left: btnWhatsApp.right
+			verticalCenter: txtPhone.verticalCenter
+		}
+
+		onClicked: appDB.startChatApp(userModel.phone(userRow), "Telegram");
 	}
 
 	Label {
@@ -127,12 +160,14 @@ Frame {
 			bEmailOK = (str.length === 0 || (str.indexOf("@") !== -1 && str.indexOf(".") !== -1));
 		}
 
-		onTextChanged: userModel.setEmail(userRow, text);
+		onEditingFinished: userModel.setEmail(userRow, text);
 
 		onTextEdited: {
 			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
 				ToolTip.visible = false;
 				bEmailOK = true;
+				if (text.length > 10)
+					userModel.setEmail(userRow, text);
 			}
 			else {
 				ToolTip.visible = true;
@@ -147,7 +182,6 @@ Frame {
 
 		anchors {
 			top: lblEmail.bottom
-			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -179,7 +213,7 @@ Frame {
 		height: controlsHeight
 		model: socialModel
 		completeModel: true
-		width: parent.width*0.35
+		width: parent.width*0.50
 
 		ListModel {
 			id: socialModel
@@ -197,7 +231,6 @@ Frame {
 
 		anchors {
 			top: lblSocial.bottom
-			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 		}
@@ -208,24 +241,56 @@ Frame {
 		text: runCmd.getCompositeValue(cboSocial.currentIndex, userModel.socialMedia(userRow));
 		height: controlsHeight
 		enabled: bEmailOK
-		width: parent.width*0.65
+		width: parent.width*0.90
 		ToolTip.text: qsTr("Social media address is invalid")
 
-		onTextChanged: userModel.setSocialMedia(userRow, runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
+		onEditingFinished: userModel.setSocialMedia(userRow, runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
 
 		onTextEdited: {
-			bSocialOK = text.length > 10 || text.length === 0
+			if (text.length > 10)
+				bSocialOK = true;
+			else if (text.length === 0)
+				bSocialOK === userModel.isEmpty();
+			else
+				bSocialOK = false;
 			ToolTip.visible = !bSocialOK;
 		}
 
-		anchors {
-			top: lblSocial.bottom
-			topMargin: -10
-			left: cboSocial.right
-			leftMargin: 0
-			right: parent.right
-			rightMargin: 5
+		onTextChanged: {
+			if (activeFocus) {
+				if (text.length > 10) {
+					bSocialOK = true;
+					userModel.setSocialMedia(userRow, runCmd.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
+				}
+				else if (text.length === 0)
+					bSocialOK === userModel.isEmpty();
+				else
+					bSocialOK = false;
+			}
 		}
+
+		anchors {
+			top: cboSocial.bottom
+			topMargin: controlsSpacing
+			left: parent.left
+			leftMargin: 5
+		}
+	}
+
+	TPButton {
+		id: btnOpenSocialMedia
+		imageSource: "openurl.png"
+		enabled: bSocialOK
+		visible: userRow !== 0
+		width: 30
+		height: 30
+
+		anchors {
+			left: txtSocial.right
+			verticalCenter: txtSocial.verticalCenter
+		}
+
+		onClicked: appDB.openURL(txtSocial.text);
 	}
 
 	function focusOnFirstField() {

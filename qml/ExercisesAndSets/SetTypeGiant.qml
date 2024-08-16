@@ -54,7 +54,7 @@ Item {
 				id: cboSetType
 				currentIndex: setType
 				enabled: !setCompleted
-				model: mainwindow.setTypesModel
+				model: AppSettings.setTypesModel
 
 				anchors {
 					left: parent.right
@@ -234,7 +234,7 @@ Item {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
-				availableWidth: !copyRepsButtonValue ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: copyRepsButtonValue === "" ? setItem.width/2 + 10 : setItem.width/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyRepsButtonValue
 
@@ -273,7 +273,7 @@ Item {
 				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.alignment: !copyRepsButtonValue ? Qt.AlignRight : Qt.AlignLeft
+				Layout.alignment: copyRepsButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
@@ -314,7 +314,7 @@ Item {
 				id: txtNWeight1
 				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				type: SetInputField.Type.WeightType
-				availableWidth: !copyWeightButtonValue ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: copyWeightButtonValue === "" ? setItem.width/2 + 10 : setItem.width/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyWeightButtonValue
 
@@ -353,7 +353,7 @@ Item {
 				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
 				availableWidth: setItem.width/3
 				showLabel: false
-				Layout.alignment: !copyWeightButtonValue ? Qt.AlignRight : Qt.AlignLeft
+				Layout.alignment: copyWeightButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {

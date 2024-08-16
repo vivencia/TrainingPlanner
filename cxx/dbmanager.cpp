@@ -47,7 +47,7 @@ static TPMesocycleClass* tempTPObj(nullptr);
 #include <QtCore/6.6.3/QtCore/private/qandroidextras_p.h>
 #endif
 
-void DbManager::checkPendingIntents()
+void DbManager::checkPendingIntents() const
 {
 	QJniObject activity = QNativeInterface::QAndroidApplication::context();
 	if(activity.isValid())
@@ -74,7 +74,7 @@ void DbManager::checkPendingIntents()
  * If a requestId was set we want to get the Activity Result back (recommended)
  * We need the Request Id and Result Id to control our workflow
 */
-bool DbManager::sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId)
+bool DbManager::sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const
 {
 	QJniObject jsPath = QJniObject::fromString(filePath);
 	QJniObject jsTitle = QJniObject::fromString(title);
@@ -91,6 +91,22 @@ bool DbManager::sendFile(const QString& filePath, const QString& title, const QS
 	return true;
 }
 
+void DbManager::androidOpenURL(const QString& address) const
+{
+	QString url;
+	if (!address.startsWith(u"http"_qs))
+		url = u"https://" + address;
+	else
+		url = address;
+
+	QJniObject jsPath = QJniObject::fromString(url);
+	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+													"openURL",
+													"(Ljava/lang/String;)Z",
+													jsPath.object<jstring>());
+	if(!ok)
+		MSG_OUT("Unable to open the address: " << address)
+}
 #else
 extern "C"
 {
@@ -808,6 +824,36 @@ void DbManager::exportMeso(const bool bShare, const bool bFancy)
 		m_mainWindow->setProperty("importExportFilename", exportFileName());
 		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
 	}
+}
+
+void DbManager::openURL(const QString& address) const
+{
+	#ifdef Q_OS_ANDROID
+	androidOpenURL(address);
+	#else
+	auto* __restrict proc(new QProcess ());
+	proc->startDetached(u"xdg-open"_qs, QStringList() << address);
+	delete proc;
+	#endif
+}
+
+void DbManager::startChatApp(const QString& phone, const QString& appname) const
+{
+	QString phoneNumbers;
+	QString::const_iterator itr(phone.constBegin());
+	const QString::const_iterator itr_end(phone.constEnd());
+	do {
+		if ((*itr).isDigit())
+			phoneNumbers += *itr;
+	} while (++itr != itr_end);
+
+	QString address;
+	if (appname.contains(u"Whats"_qs))
+		address = u"https://wa.me/"_qs + phoneNumbers;
+	else
+		address = u"https://t.me/+"_qs + phoneNumbers;
+
+	openURL(address);
 }
 
 void DbManager::updateDB(TPDatabaseTable* worker)

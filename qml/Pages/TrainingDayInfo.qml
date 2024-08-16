@@ -487,7 +487,7 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: splitLetter !== 'R' && !intentDialogShown
-				enabled: workoutTimer.active ? false : !editMode && !tDayModel.dayIsFinished
+				enabled: workoutTimer.active ? false : editMode
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
@@ -1223,7 +1223,7 @@ TPPage {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
-			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
+			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, runCmd.areDatesTheSame(mainDate, new Date()));
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
 		}
 		optionsMenu.show(btnFinishedDayOptions, 0);

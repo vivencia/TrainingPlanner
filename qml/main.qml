@@ -136,16 +136,6 @@ ApplicationWindow {
 		parentPage: homePage
 	}*/
 
-	property ListModel setTypesModel: ListModel {
-		ListElement { text: qsTr("Regular"); value: 0; }
-		ListElement { text: qsTr("Pyramid"); value: 1; }
-		ListElement { text: qsTr("Drop Set"); value: 2; }
-		ListElement	{ text: qsTr("Cluster Set"); value: 3; }
-		ListElement { text: qsTr("Giant Set"); value: 4; }
-		ListElement { text: qsTr("Myo Reps"); value: 5; }
-		ListElement { text: qsTr("Inverted Pyramid"); value: 6; }
-	}
-
 	property var firstTimeDlg: null
 	function showFirstUseTimeDialog() {
 		function createFirstTimeDialog() {

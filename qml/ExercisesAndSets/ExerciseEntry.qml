@@ -216,9 +216,9 @@ FocusScope {
 				TPComboBox {
 					id: cboSetType
 					currentIndex: tDayModel.setType(0, exerciseIdx)
-					model: mainwindow.setTypesModel
+					model: AppSettings.setTypesModel
 
-					onActivated: (index)=> {
+					onActivated: (index) => {
 						switch(index) {
 							case 2: nSets = "1"; break; //DropSet
 							case 3: nSets = "2"; break; //ClusterSet

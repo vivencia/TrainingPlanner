@@ -18,7 +18,7 @@ TPPage {
 	property bool showUsers
 	property bool showCoaches
 	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrProfile.moduleHeight
+	readonly property int moduleHeight: usrContact.moduleHeight
 
 	Label {
 		id: lblMain
@@ -162,14 +162,16 @@ TPPage {
 				id: usrContact
 				userRow: curUserRow
 				width: windowWidth - 20
-				height: moduleHeight
+				Layout.topMargin: -30
 			}
 
 			UserProfile {
 				id: usrProfile
 				userRow: curUserRow
 				parentPage: coachesOrClientsPage
+				height: moduleHeight
 				width: windowWidth - 20
+				Layout.topMargin: 20
 			}
 		}
 	}

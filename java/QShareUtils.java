@@ -97,6 +97,21 @@ public class QShareUtils {
 	return false;
     }
 
+    public static boolean openURL(String url) {
+	if (QtNative.activity() == null) {
+	    return false;
+	}
+
+	Intent intent = new Intent();
+	intent.setAction(Intent.ACTION_VIEW);
+	intent.setData(Uri.parse(url));
+	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+	    QtNative.activity().startActivity(intent);
+	    return true;
+	}
+	return false;
+    }
+
     // thx @oxied and @pooks for the idea:
     // https://stackoverflow.com/a/18835895/135559 theIntent is already configured
     // with all needed properties and flags so we only have to add the packageName

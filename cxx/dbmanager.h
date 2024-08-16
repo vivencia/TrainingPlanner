@@ -45,8 +45,9 @@ public:
 	Q_INVOKABLE void processArguments();
 	Q_INVOKABLE void restartApp();
 #else
-	Q_INVOKABLE void checkPendingIntents();
-	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId);
+	Q_INVOKABLE void checkPendingIntents() const;
+	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
+	void androidOpenURL(const QString& address) const;
 #endif
 
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
@@ -59,6 +60,8 @@ public:
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
 	Q_INVOKABLE void exportMeso(const bool bShare, const bool bFancy);
+	Q_INVOKABLE void openURL(const QString& address) const;
+	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();
