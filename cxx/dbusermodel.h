@@ -42,6 +42,10 @@ public:
 	Q_INVOKABLE int findNextUser(const bool bCoach = false);
 	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
 	Q_INVOKABLE int findLastUser(const bool bCoach = false);
+	Q_INVOKABLE QString getCurrentUserName(const bool bCoach) const;
+
+	Q_INVOKABLE QStringList getCoaches() const;
+	Q_INVOKABLE QStringList getClients() const;
 
 	Q_INVOKABLE inline int userId(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_ID).toInt() : -1; }
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : QString(); }
@@ -69,11 +73,11 @@ public:
 	Q_INVOKABLE void setGoal(const int row, const QString& new_goal);
 	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_AVATAR) : QString(); }
 	Q_INVOKABLE void setAvatar(const int row, const QString& new_avatar);
-	Q_INVOKABLE inline int appUseMode(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_APP_USE_MODE).toInt() : 0; }
+	Q_INVOKABLE inline int appUseMode(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_APP_USE_MODE).toUInt() : 0; }
 	Q_INVOKABLE void setAppUseMode(const int row, const int new_use_opt);
-	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_COACH).toInt() : 0; }
+	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_COACH).toUInt() : 0; }
 	Q_INVOKABLE void setCurrentCoach(const int row, const int new_current_coach);
-	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_USER).toInt() : 0; }
+	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_USER).toUInt() : 0; }
 	Q_INVOKABLE void setCurrentUser(const int row, const int new_current_user);
 
 	Q_INVOKABLE inline bool isEmpty() const { return mb_empty; }

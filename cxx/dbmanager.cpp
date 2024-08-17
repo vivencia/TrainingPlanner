@@ -108,14 +108,16 @@ void DbManager::androidOpenURL(const QString& address) const
 		MSG_OUT("Unable to open the address: " << address)
 }
 
-bool DbManager::sendMail(const QString& address, const QString& subject) const
+bool DbManager::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
 {
-	QJniObject jsPath = QJniObject::fromString(address);
+	const QString attachment_file(attachment.isEmpty() ? QString() : u"file://" + attachment);
+	QJniObject jsAddress = QJniObject::fromString(address);
 	QJniObject jsSubject = QJniObject::fromString(subject);
+	QJniObject jsAttach = QJniObject::fromString(attachment_file);
 	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
-													"sendMail",
-													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
-													jsPath.object<jstring>(), jsSubject.object<jstring>());
+													"sendEmail",
+													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+													jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>());
 	return ok;
 }
 #else
@@ -235,6 +237,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	{
 		//All update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		updateDB(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		//DBUserTable user(m_DBFilePath, m_appSettings);
 		//user.removeDBFile();
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
@@ -550,7 +553,7 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 		if (inData.indexOf(DBMesoSplitObjectName) != -1)
 			model = new DBMesoSplitModel(this);
 		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
-			model = new DBMesocyclesModel(this);
+			model = new DBMesocyclesModel(this, userModel);
 		else if (inData.indexOf(DBTrainingDayObjectName) != -1)
 			model = new DBTrainingDayModel(this);
 		else if (inData.indexOf(DBExercisesObjectName) != -1)
@@ -573,10 +576,10 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 		inData.chop(1);
 		switch (inData.toUInt())
 		{
-			case EXERCISES_TABLE_ID: model = new DBExercisesModel; break;
-			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel; break;
-			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel; break;
-			case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel; break;
+			case EXERCISES_TABLE_ID: model = new DBExercisesModel(this); break;
+			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel(this, userModel); break;
+			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel(this); break;
+			case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel(this); break;
 			default:
 				return -2;
 		}
@@ -867,10 +870,10 @@ void DbManager::startChatApp(const QString& phone, const QString& appname) const
 	openURL(address);
 }
 
-void DbManager::sendMail(const QString& address, const QString& subject) const
+void DbManager::sendMail(const QString& address, const QString& subject, const QString& attachment_file) const
 {
 	#ifdef Q_OS_ANDROID
-	if (!androidSendMail(address, subject))
+	if (!androidSendMail(address, subject, attachment_file))
 	{
 		if (userModel->email(0).contains(u"gmail.com"_qs))
 		{
@@ -880,7 +883,8 @@ void DbManager::sendMail(const QString& address, const QString& subject) const
 	}
 	#else
 	const QStringList args (QStringList() <<
-		u"--utf8"_qs << u"--subject"_qs << QChar('\'') + subject + QChar('\'') << QChar('\'') + address + QChar('\''));
+		u"--utf8"_qs << u"--subject"_qs << QChar('\'') + subject + QChar('\'') << u"--attach"_qs << attachment_file <<
+			QChar('\'') + address + QChar('\''));
 	auto* __restrict proc(new QProcess ());
 	proc->start(u"xdg-email"_qs, args);
 	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus)
@@ -1167,7 +1171,7 @@ void DbManager::exportExercisesList(const bool bShare, const bool bFancy)
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DbManager::getAllMesocycles()
 {
-	mesocyclesModel = new DBMesocyclesModel(this);
+	mesocyclesModel = new DBMesocyclesModel(this, userModel);
 	mesoSplitModel = new DBMesoSplitModel(this, false);
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
@@ -1274,7 +1278,7 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 	mesocyclesModel->appendList(QStringList() << u"-1"_qs << name << QString::number(startDate.toJulianDay()) <<
 		(bRealMeso ? QString::number(endDate.toJulianDay()) : u"0"_qs) << QString() <<
 		(bRealMeso ? QString::number(runCmd()->calculateNumberOfWeeks(startDate, endDate)) : u"0"_qs) <<
-		u"ABCR"_qs << QString() << (bRealMeso ? u"1"_qs : u"0"_qs));
+		u"ABCR"_qs << QString() << QString() << QString() << QString() << (bRealMeso ? u"1"_qs : u"0"_qs));
 
 	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
 				QString() << QString() << QString() << QString() );

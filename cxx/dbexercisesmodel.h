@@ -39,7 +39,7 @@ public:
 		selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
 	};
 
-	explicit DBExercisesModel(QObject *parent = 0);
+	explicit DBExercisesModel(QObject* parent = nullptr);
 
 	Q_INVOKABLE void clearSelectedEntries();
 	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);

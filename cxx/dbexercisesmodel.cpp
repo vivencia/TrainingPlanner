@@ -1,6 +1,6 @@
 #include "dbexercisesmodel.h"
 
-DBExercisesModel::DBExercisesModel(QObject *parent)
+DBExercisesModel::DBExercisesModel(QObject* parent)
 	: TPListModel(parent), m_selectedEntryToReplace(0)
 {
 	m_tableId = EXERCISES_TABLE_ID;

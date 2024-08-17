@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
+import QtCore
 import com.vivenciasoftware.qmlcomponents
 
 import "../jsfunctions.js" as JSF
@@ -113,17 +115,187 @@ TPPage {
 						bMesoNameOK = mesocyclesModel.set(mesoIdx, 1, text);
 				}
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
+				onEnterOrReturnKeyPressed: {
+					if (cboCoach.visible)
+						cboCoach.forceActiveFocus();
+					else
+						cboClients.forceActiveFocus();
+				}
+			}
+
+			Row {
+				visible: userModel.appUseMode(0) >= 3
+				height: 30
+				spacing: 5
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				Label {
+					text: mesocyclesModel.columnLabel(7)
+					font.bold: true
+					color: AppSettings.fontColor
+					width: (parent.width - 20)*0.4
+				}
+
+				TPComboBox {
+					id: cboCoach
+					model: userModel.getCoaches()
+					width: (parent.width - 20)*0.65
+
+					Component.onCompleted: {
+						console.log(model.length);
+						for(var i = 0; i < model.length; ++i)
+							console.log(model[i]);
+						if (!bNewMeso)
+							currentIndex = find(mesocyclesModel.get(mesoIdx, 7));
+						else
+							currentIndex = find(userModel.getCurrentUserName(true));
+						if (currentIndex === -1)
+							currentIndex = 0;
+					}
+
+					onActivated: (index) => mesocyclesModel.set(mesoIdx, 7, textAt(index));
+				}
+			}
+
+			Row {
+				visible: userModel.appUseMode(0) === 2 || userModel.appUseMode(0) === 4
+				height: 30
+				spacing: 5
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				Label {
+					text: mesocyclesModel.columnLabel(8)
+					font.bold: true
+					color: AppSettings.fontColor
+					width: (parent.width - 20)*0.3
+				}
+
+				TPComboBox {
+					id: cboClients
+					model: userModel.getClients()
+					width: (parent.width - 20)*0.65
+
+					Component.onCompleted: {
+						if (!bNewMeso)
+							currentIndex = find(mesocyclesModel.get(mesoIdx, 8));
+						else
+							currentIndex = find(userModel.getCurrentUserName(false));
+						if (currentIndex === -1)
+							currentIndex = 0;
+					}
+
+					onActivated: (index) => mesocyclesModel.set(mesoIdx, 8, textAt(index));
+				}
+			}
+
+			Row {
+				height: 30
+				spacing: 5
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				Label {
+					text: mesocyclesModel.columnLabel(10)
+					font.bold: true
+					color: AppSettings.fontColor
+					width: (parent.width - 20)*0.2
+				}
+
+				TPComboBox {
+					id: cboMesoType
+					model: mesoTypeModel
+					width: (parent.width - 20)*0.75
+
+					Component.onCompleted: {
+						currentIndex = find(mesocyclesModel.get(mesoIdx, 10));
+						if (currentIndex === -1)
+							currentIndex = 5;
+					}
+
+					onActivated: (index) => {
+						if (index < 5)
+							mesocyclesModel.set(mesoIdx, 10, textAt(index));
+						else
+							txtMesoTypeOther.forceActiveFocus();
+					}
+
+					ListModel {
+						id: mesoTypeModel
+						ListElement { text: qsTr("Weigth Loss"); value: 0; }
+						ListElement { text: qsTr("Muscle Gain"); value: 1; }
+						ListElement { text: qsTr("Bulking"); value: 2; }
+						ListElement { text: qsTr("Strength Build-up"); value: 3; }
+						ListElement { text: qsTr("Recovery"); value: 4; }
+						ListElement { text: qsTr("Other"); value: 5; }
+					}
+				}
+			}
+
+			TPTextInput {
+				id: txtMesoTypeOther
+				text: mesocyclesModel.get(mesoIdx, 10)
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+				visible: cboMesoType.currentIndex === 5
+
+				onEditingFinished: userModel.setGoal(userRow, text);
+
+				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
+			}
+
+			Label {
+				text: qsTr("Instructions file")
+				font.bold: true
+				Layout.alignment: Qt.AlignLeft
+				Layout.leftMargin: 5
+				color: AppSettings.fontColor
+			}
+
+			TPTextInput {
+				id: txtMesoFile
+				text: mesocyclesModel.get(mesoIdx, 9)
+				width: (parent.width - 20)*0.8
+				Layout.leftMargin: 5
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
+
+				onEditingFinished: mesocyclesModel.set(mesoIdx, 9, text);
+
+				onEnterOrReturnKeyPressed: {
 					if (bNewMeso)
 						caldlg.open();
 					else
 						txtMesoSplit.forceActiveFocus();
 				}
-				Keys.onEnterPressed: { //Numeric keyboard
-					if (bNewMeso)
-						caldlg.open();
-					else
-						txtMesoSplit.forceActiveFocus();
+
+				TPButton {
+					id: btnChooseMesoFile
+					imageSource: "qrc:/images/choose_avatar.png"
+					width: 30
+					height: 30
+
+					anchors {
+						left: txtMesoFile.right
+						verticalCenter: txtMesoFile.verticalCenter
+					}
+
+					onClicked: fileDialog.open();
+				}
+
+				FileDialog {
+					id: fileDialog
+					title: qsTr("Choose the instruction's file for this mesocycles")
+					nameFilters: [qsTr("PDF Files") + "(*.pdf)"]
+					options: FileDialog.ReadOnly
+					currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+					fileMode: FileDialog.OpenFile
+
+					onAccepted: {
+						txtMesoFile.text = selectedFile;
+						mesocyclesModel.set(mesoIdx, 9, selectedFile);
+					}
 				}
 			}
 
@@ -283,12 +455,7 @@ TPPage {
 					}
 				}
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
-					if (!paneTrainingSplit.shown)
-						btnTrainingSplit.clicked();
-					JSF.moveFocusToNextField('0');
-				}
-				Keys.onEnterPressed: { //Numeric keyboard
+				onEnterOrReturnKeyPressed: {
 					if (!paneTrainingSplit.shown)
 						btnTrainingSplit.clicked();
 					JSF.moveFocusToNextField('0');
@@ -340,12 +507,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('A');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('A');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('A');
 					}
 
 					Label {
@@ -370,12 +532,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('B');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('B');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('B');
 					}
 
 					Label {
@@ -400,12 +557,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('C');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('C');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('C');
 					}
 
 					Label {
@@ -430,12 +582,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('D');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('D');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('D');
 					}
 
 					Label {
@@ -460,12 +607,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('E');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('E');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('E');
 					}
 
 					Label {
@@ -490,12 +632,7 @@ TPPage {
 								JSF.checkWhetherCanCreatePlan();
 						}
 
-						Keys.onReturnPressed: { //Alphanumeric keyboard
-							JSF.moveFocusToNextField('F');
-						}
-						Keys.onEnterPressed: { //Numeric keyboard
-							JSF.moveFocusToNextField('F');
-						}
+						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('F');
 					}
 
 					TPButton {
@@ -510,32 +647,6 @@ TPPage {
 					} //TPButton
 				} //GridLayout
 			} //Pane
-
-			Label {
-				text: mesocyclesModel.columnLabel(7)
-				font.bold: true
-				Layout.leftMargin: 5
-				color: AppSettings.fontColor
-			}
-			Flickable {
-				Layout.fillWidth: true
-				Layout.rightMargin: 20
-				Layout.leftMargin: 10
-				height: Math.min(contentHeight, 60)
-				width: parent.width - 20
-				contentHeight: txtMesoDrugs.implicitHeight
-
-				TextArea.flickable: TextArea {
-					id: txtMesoDrugs
-					text: mesocyclesModel.get(mesoIdx, 7)
-					color: AppSettings.fontColor
-
-					onEditingFinished: mesocyclesModel.set(mesoIdx, 7, text);
-				}
-				Component.onCompleted: vBar.position = 0
-				ScrollBar.vertical: ScrollBar { id: vBar }
-				ScrollBar.horizontal: ScrollBar {}
-			}
 
 			Label {
 				text: mesocyclesModel.columnLabel(4)

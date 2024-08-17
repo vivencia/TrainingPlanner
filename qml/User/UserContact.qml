@@ -201,7 +201,7 @@ Frame {
 			verticalCenter: txtEmail.verticalCenter
 		}
 
-		onClicked: appDB.sendMail(txtEmail.text, "");
+		onClicked: appDB.sendMail(txtEmail.text, "", "");
 	}
 
 	Label {

@@ -112,7 +112,7 @@ public class QShareUtils {
 	return false;
     }
 
-    public static bool sendEmail(String addresse, String subject) {
+    public static boolean sendEmail(String address, String subject, String attachment) {
 	if (QtNative.activity() == null) {
 	    return false;
 	}
@@ -120,15 +120,24 @@ public class QShareUtils {
 	Intent intent = new Intent();
 	intent.setAction(Intent.ACTION_SENDTO);
 	intent.setData(Uri.parse("mailto:")); // only email apps should handle this
-	intent.putExtra(Intent.EXTRA_EMAIL, addresse);
+	String[] addresses = new String[] { address };
+	intent.putExtra(Intent.EXTRA_EMAIL, addresses);
 	intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+
+	if (!attachment.isEmpty()) {
+	    final Context context = QtNative.activity();
+	    Uri uri = Uri.parse(attachment);
+	    context.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	    intent.putExtra(Intent.EXTRA_STREAM, uri);
+	}
+
 	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-	    QtNative.activity().startActivity(intent);
+	    //QtNative.activity().startActivity(intent);
+	    QtNative.activity().startActivity(Intent.createChooser(intent, "Send mail..."));
 	    return true;
 	}
 	return false;
     }
-}
 
     // thx @oxied and @pooks for the idea:
     // https://stackoverflow.com/a/18835895/135559 theIntent is already configured

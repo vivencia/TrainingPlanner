@@ -1,24 +1,22 @@
 #include "dbmesocyclesmodel.h"
+#include "dbusermodel.h"
 #include "runcommands.h"
 
-DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
-	: TPListModel(parent)
+DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
+	: TPListModel(parent), m_userModel(userModel)
 {
 	m_tableId = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 
-	// Set names to the role name hash container (QHash<int, QByteArray>)
-	m_roleNames[mesoIdRole] = "mesoId";
 	m_roleNames[mesoNameRole] = "mesoName";
 	m_roleNames[mesoStartDateRole] = "mesoStartDate";
 	m_roleNames[mesoEndDateRole] = "mesoEndDate";
 	m_roleNames[mesoNoteRole] = "mesoNote";
 	m_roleNames[mesoWeeksRole] = "mesoWeeks";
 	m_roleNames[mesoSplitRole] = "mesoSplit";
-	m_roleNames[mesoDrugsRole] = "mesoDrugs";
 	m_roleNames[realMesoRole] = "realMeso";
 
-	mColumnNames.reserve(MESOCYCLES_COL_DRUGS+1);
+	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Mesocycle's name: "));
 	mColumnNames.append(tr("Start date: "));
@@ -26,7 +24,27 @@ DBMesocyclesModel::DBMesocyclesModel(QObject *parent)
 	mColumnNames.append(tr("Mesocycle's considerations: "));
 	mColumnNames.append(tr("Number of weeks: "));
 	mColumnNames.append(tr("Weekly Training Division: "));
-	mColumnNames.append(tr("Drug Protocol: "));
+
+	QString strCoach;
+	QString strClient;
+	switch (m_userModel->appUseMode(0))
+	{
+		case APP_USE_MODE_SINGLE_USER: break;
+		case APP_USE_MODE_SINGLE_COACH:
+			strClient = tr("Client: ");
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+			strCoach = tr("Coach/Trainer: ");
+		break;
+		case APP_USE_MODE_COACH_USER_WITH_COACHES:
+			strClient = tr("Client: ");
+			strCoach = tr("Coach/Trainer: ");
+		break;
+	}
+	mColumnNames.append(strCoach);
+	mColumnNames.append(strClient);
+	mColumnNames.append(QString());
+	mColumnNames.append(tr("Type: "));
 }
 
 void DBMesocyclesModel::exportToText(QFile *outFile, const bool bFancy) const
@@ -153,6 +171,26 @@ QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
 	return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
 }
 
+QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
+{
+	const int row(index.row());
+	if( row >= 0 && row < m_modeldata.count() )
+	{
+		switch(role) {
+			case mesoStartDateRole:
+			case mesoEndDateRole:
+				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
+			case mesoNameRole:
+			case mesoNoteRole:
+			case mesoWeeksRole:
+			case mesoSplitRole:
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
+			case realMesoRole:
+				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)) == QStringLiteral("1");
+		}
+	}
+	return QString();
+}
 uint DBMesocyclesModel::getTotalSplits(const uint row) const
 {
 	uint nSplits(0);
@@ -176,56 +214,6 @@ uint DBMesocyclesModel::getTotalSplits(const uint row) const
 		}
 	}
 	return nSplits;
-}
-
-QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			case mesoIdRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toUInt();
-			case mesoStartDateRole:
-			case mesoEndDateRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
-			case mesoNameRole:
-			case mesoNoteRole:
-			case mesoWeeksRole:
-			case mesoSplitRole:
-			case mesoDrugsRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
-			case realMesoRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)) == QStringLiteral("1");
-			case Qt::DisplayRole:
-				return m_modeldata.at(row).at(index.column());
-		}
-	}
-	return QVariant();
-}
-
-bool DBMesocyclesModel::setData(const QModelIndex &index, const QVariant& value, int role)
-{
-	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
-	{
-		switch(role) {
-			case mesoIdRole:
-			case mesoNameRole:
-			case mesoStartDateRole:
-			case mesoEndDateRole:
-			case mesoNoteRole:
-			case mesoWeeksRole:
-			case mesoSplitRole:
-			case mesoDrugsRole:
-			case realMesoRole:
-				m_modeldata[row][role-Qt::UserRole] = value.toString();
-				setModified(true);
-				emit dataChanged(index, index, QList<int>() << role);
-				return true;
-		}
-	}
-	return false;
 }
 
 int DBMesocyclesModel::getMesoIdx(const int mesoId) const

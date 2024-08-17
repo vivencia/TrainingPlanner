@@ -25,7 +25,7 @@ Q_PROPERTY(int nbrSets READ nbrSets NOTIFY nbrSetsChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
 public:
-	explicit DBMesoSplitModel(QObject *parent = nullptr, const bool bComplete = true);
+	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 

@@ -422,7 +422,7 @@ TPPage {
 	function showEmptyDatabaseMenu() {
 		if (newMesoMenu === null) {
 			var newMesoMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			newMesoMenu = newMesoMenuMenuComponent.createObject(homePage, {});
+			newMesoMenu = newMesoMenuMenuComponent.createObject(homePage, { parentPage: homePage });
 			newMesoMenu.addEntry(qsTr("Create new mesocycle"), "mesocycle-add.png", 0, true);
 			newMesoMenu.addEntry(qsTr("Import mesocycle from file"), "import.png", 1, true);
 			newMesoMenu.menuEntrySelected.connect(selectedNewMesoMenuOption);
