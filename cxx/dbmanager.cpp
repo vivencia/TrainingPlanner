@@ -107,6 +107,17 @@ void DbManager::androidOpenURL(const QString& address) const
 	if(!ok)
 		MSG_OUT("Unable to open the address: " << address)
 }
+
+bool DbManager::sendMail(const QString& address, const QString& subject) const
+{
+	QJniObject jsPath = QJniObject::fromString(address);
+	QJniObject jsSubject = QJniObject::fromString(subject);
+	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+													"sendMail",
+													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
+													jsPath.object<jstring>(), jsSubject.object<jstring>());
+	return ok;
+}
 #else
 extern "C"
 {
@@ -854,6 +865,37 @@ void DbManager::startChatApp(const QString& phone, const QString& appname) const
 		address = u"https://t.me/+"_qs + phoneNumbers;
 
 	openURL(address);
+}
+
+void DbManager::sendMail(const QString& address, const QString& subject) const
+{
+	#ifdef Q_OS_ANDROID
+	if (!androidSendMail(address, subject))
+	{
+		if (userModel->email(0).contains(u"gmail.com"_qs))
+		{
+			const QString gmailURL(QStringLiteral("https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3").arg(userModel->email(0), address, subject));
+			openURL(gmailURL);
+		}
+	}
+	#else
+	const QStringList args (QStringList() <<
+		u"--utf8"_qs << u"--subject"_qs << QChar('\'') + subject + QChar('\'') << QChar('\'') + address + QChar('\''));
+	auto* __restrict proc(new QProcess ());
+	proc->start(u"xdg-email"_qs, args);
+	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus)
+	{
+		if (exitCode != 0)
+		{
+			if (userModel->email(0).contains(u"gmail.com"_qs))
+			{
+				const QString gmailURL(QStringLiteral("https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3").arg(userModel->email(0), address, subject));
+				openURL(gmailURL);
+			}
+		}
+		proc->deleteLater();
+	});
+	#endif
 }
 
 void DbManager::updateDB(TPDatabaseTable* worker)

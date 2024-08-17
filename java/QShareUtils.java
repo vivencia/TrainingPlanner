@@ -112,6 +112,24 @@ public class QShareUtils {
 	return false;
     }
 
+    public static bool sendEmail(String addresse, String subject) {
+	if (QtNative.activity() == null) {
+	    return false;
+	}
+
+	Intent intent = new Intent();
+	intent.setAction(Intent.ACTION_SENDTO);
+	intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+	intent.putExtra(Intent.EXTRA_EMAIL, addresse);
+	intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+	    QtNative.activity().startActivity(intent);
+	    return true;
+	}
+	return false;
+    }
+}
+
     // thx @oxied and @pooks for the idea:
     // https://stackoverflow.com/a/18835895/135559 theIntent is already configured
     // with all needed properties and flags so we only have to add the packageName

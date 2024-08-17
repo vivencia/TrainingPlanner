@@ -374,7 +374,7 @@ TPPage {
 
 				function finishCreation() {
 					calChangedWarningMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Calendar changed! Update?"),
-						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "warning.png" } );
+						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "qrc:/images/warning.png" } );
 					tipTimeWarn.button1Clicked.connect(acceptChanges);
 				}
 

@@ -82,16 +82,11 @@
         <file>images/black/import.png</file>
         <file>images/white/import.png</file>
         <file>images/white/import-export.png</file>
-        <file>images/black/set-completed.png</file>
         <file>images/black/reset.png</file>
         <file>images/white/reset.png</file>
-        <file>images/black/warning.png</file>
-        <file>images/white/warning.png</file>
         <file>images/white/next.png</file>
         <file>images/black/next.png</file>
         <file>images/avatars.png</file>
-        <file>images/black/choose_avatar.png</file>
-        <file>images/white/choose_avatar.png</file>
         <file>images/youtube.png</file>
         <file>images/instagram.png</file>
         <file>images/facebook.png</file>
@@ -107,5 +102,9 @@
         <file>images/whatsapp.png</file>
         <file>images/white/openurl.png</file>
         <file>images/black/openurl.png</file>
+        <file>images/email.png</file>
+        <file>images/choose_avatar.png</file>
+        <file>images/warning.png</file>
+        <file>images/set-completed.png</file>
     </qresource>
 </RCC>

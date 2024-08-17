@@ -128,7 +128,7 @@ Item {
 
 			Image {
 				id: imgCompleted
-				source: "qrc:/images/"+darkIconFolder+"set-completed.png"
+				source: "qrc:/images/set-completed.png"
 				asynchronous: true
 				fillMode: Image.PreserveAspectFit
 				visible: setCompleted

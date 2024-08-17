@@ -151,9 +151,10 @@ Frame {
 	TPTextInput {
 		id: txtEmail
 		text: userModel.email(userRow)
-		height: controlsHeight
 		enabled: bPhoneOK
 		ToolTip.text: qsTr("Invalid email address")
+		height: controlsHeight
+		width: parent.width*0.9
 
 		Component.onCompleted: {
 			const str = userModel.email(userRow);
@@ -184,9 +185,23 @@ Frame {
 			top: lblEmail.bottom
 			left: parent.left
 			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
 		}
+	}
+
+	TPButton {
+		id: btnSendEMail
+		imageSource: "qrc:/images/email.png"
+		enabled: bEmailOK
+		visible: userRow !== 0
+		width: 30
+		height: 30
+
+		anchors {
+			left: txtEmail.right
+			verticalCenter: txtEmail.verticalCenter
+		}
+
+		onClicked: appDB.sendMail(txtEmail.text, "");
 	}
 
 	Label {
