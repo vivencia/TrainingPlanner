@@ -36,16 +36,37 @@ TPPage {
 		JSF.checkWhetherCanCreatePlan();
 		if (bNewMeso)
 			txtMesoName.forceActiveFocus();
-		mesocyclesModel.modifiedChanged.connect(function () { saveMeso(false); });
-		mesoSplitModel.modifiedChanged.connect(function () { saveMeso(false); });
+		mesocyclesModel.modifiedChanged.connect(saveMeso);
+		mesoSplitModel.modifiedChanged.connect(saveMeso);
+		userModel.userAdded.connect(updateCoachesModel);
+		if (bNewMeso) {
+			mesocyclesModel.set(mesoIdx, 7, cboCoaches.textAt(cboCoaches.currentIndex));
+			mesocyclesModel.set(mesoIdx, 8, cboClients.textAt(cboCoaches.currentIndex));
+		}
+	}
+
+	function updateCoachesModel(use_mode: int) {
+		if (use_mode === 2 || use_mode === 4) {
+			const coaches = userModel.getCoaches();
+			coachesModel.clear();
+			for(var i = 0; i < coaches.length; ++i)
+				coachesModel.append({ "text": coaches[i], "value": i});
+		}
+		else if (use_mode === 0) {
+			const clients = userModel.getClients();
+			clientsModel.clear();
+			for(var x = 0; x < clients.length; ++x)
+				clientsModel.append({ "text": clients[i], "value": i});
+		}
 	}
 
 	onPageActivated: {
+		bNewMeso: mesoId === -1
 		appDB.setWorkingMeso(mesoIdx);
 	}
 
 	onPageDeActivated: {
-		if (bNewMeso)
+		if (mesoId === -1)
 			appDB.scheduleMesocycleRemoval(mesoIdx);
 	}
 
@@ -116,8 +137,8 @@ TPPage {
 				}
 
 				onEnterOrReturnKeyPressed: {
-					if (cboCoach.visible)
-						cboCoach.forceActiveFocus();
+					if (cboCoaches.visible)
+						cboCoaches.forceActiveFocus();
 					else
 						cboClients.forceActiveFocus();
 				}
@@ -138,14 +159,15 @@ TPPage {
 				}
 
 				TPComboBox {
-					id: cboCoach
-					model: userModel.getCoaches()
+					id: cboCoaches
 					width: (parent.width - 20)*0.65
 
+					model: ListModel {
+						id: coachesModel
+					}
+
 					Component.onCompleted: {
-						console.log(model.length);
-						for(var i = 0; i < model.length; ++i)
-							console.log(model[i]);
+						updateCoachesModel(2);
 						if (!bNewMeso)
 							currentIndex = find(mesocyclesModel.get(mesoIdx, 7));
 						else
@@ -174,10 +196,14 @@ TPPage {
 
 				TPComboBox {
 					id: cboClients
-					model: userModel.getClients()
 					width: (parent.width - 20)*0.65
 
+					model: ListModel {
+						id: clientsModel
+					}
+
 					Component.onCompleted: {
+						updateCoachesModel(0);
 						if (!bNewMeso)
 							currentIndex = find(mesocyclesModel.get(mesoIdx, 8));
 						else
@@ -211,11 +237,11 @@ TPPage {
 					Component.onCompleted: {
 						currentIndex = find(mesocyclesModel.get(mesoIdx, 10));
 						if (currentIndex === -1)
-							currentIndex = 5;
+							currentIndex = 6;
 					}
 
 					onActivated: (index) => {
-						if (index < 5)
+						if (index < 6)
 							mesocyclesModel.set(mesoIdx, 10, textAt(index));
 						else
 							txtMesoTypeOther.forceActiveFocus();
@@ -226,9 +252,10 @@ TPPage {
 						ListElement { text: qsTr("Weigth Loss"); value: 0; }
 						ListElement { text: qsTr("Muscle Gain"); value: 1; }
 						ListElement { text: qsTr("Bulking"); value: 2; }
-						ListElement { text: qsTr("Strength Build-up"); value: 3; }
-						ListElement { text: qsTr("Recovery"); value: 4; }
-						ListElement { text: qsTr("Other"); value: 5; }
+						ListElement { text: qsTr("Pre-contest"); value: 3; }
+						ListElement { text: qsTr("Strength Build-up"); value: 4; }
+						ListElement { text: qsTr("Recovery"); value: 5; }
+						ListElement { text: qsTr("Other"); value: 6; }
 					}
 				}
 			}
@@ -236,12 +263,11 @@ TPPage {
 			TPTextInput {
 				id: txtMesoTypeOther
 				text: mesocyclesModel.get(mesoIdx, 10)
+				width: parent.width - 20
+				visible: cboMesoType.currentIndex === 6
 				Layout.leftMargin: 5
-				Layout.fillWidth: true
-				visible: cboMesoType.currentIndex === 5
 
-				onEditingFinished: userModel.setGoal(userRow, text);
-
+				onEditingFinished: mesocyclesModel.set(mesoIdx, 10, text);
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
@@ -324,9 +350,10 @@ TPPage {
 
 					onDateSelected: function() {
 						bChangeStartDate = true;
-						showCalendarChangedDialog();
 						if (bNewMeso)
 							caldlg2.open();
+						else
+							showCalendarChangedDialog();
 					}
 				}
 
@@ -366,8 +393,9 @@ TPPage {
 
 					onDateSelected: function(date) {
 						bChangeStartDate = false;
-						showCalendarChangedDialog();
 						txtMesoSplit.forceActiveFocus();
+						if (!bNewMeso)
+							showCalendarChangedDialog();
 					}
 				}
 
@@ -450,7 +478,8 @@ TPPage {
 							mesocyclesModel.set(mesoIdx, 6, text);
 							mesoSplit = text;
 							JSF.checkWhetherCanCreatePlan();
-							showCalendarChangedDialog();
+							if (!bNewMeso)
+								showCalendarChangedDialog();
 						}
 					}
 				}
@@ -725,10 +754,9 @@ TPPage {
 	}
 
 	function saveMeso() {
-		if (mesocyclesModel.modified || mesoSplitModel.modified) {
-			appDB.saveMesocycle(bNewMeso, bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
-			bNewMeso = false;
-			bChangedCalendar = false;
-		}
+		appDB.saveMesocycle(bNewMeso, bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
+		if (bNewMeso)
+			mesoId = mesocyclesModel.getInt(mesoIdx, 0);
+		bChangedCalendar = false;
 	}
 } //Page

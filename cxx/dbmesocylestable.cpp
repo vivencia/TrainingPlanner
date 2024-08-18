@@ -187,7 +187,7 @@ void DBMesocyclesTable::saveMesocycle()
 		{
 			strQuery = QStringLiteral(
 							"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
-							"meso_note=\'%4\', meso_nweeks=\'%5\', meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
+							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
 							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12")
 								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
 									m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
@@ -199,9 +199,9 @@ void DBMesocyclesTable::saveMesocycle()
 		{
 			strQuery = QStringLiteral(
 							"INSERT INTO mesocycles_table "
-							"(id,meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
+							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-							" VALUES(%1, \'%2\', %3, %4, \'%5\', %6, \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', %12")
+							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)")
 								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
 									m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
 									m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),

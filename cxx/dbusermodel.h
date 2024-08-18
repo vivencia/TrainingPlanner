@@ -89,6 +89,7 @@ public:
 
 signals:
 	void appUseModeChanged(const int row);
+	void userAdded(const uint use_mode);
 
 private:
 	bool mb_empty;

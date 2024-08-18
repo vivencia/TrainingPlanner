@@ -62,6 +62,8 @@ int DBUserModel::addUser(const bool bCoach)
 	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
 		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
+	if (m_modeldata.count() > 1)
+		emit userAdded(use_mode);
 	return m_modeldata.count() - 1;
 }
 

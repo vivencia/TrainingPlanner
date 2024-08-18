@@ -15,6 +15,7 @@ TPPopup {
 	required property date showDate
 	required property date initDate
 	required property date finalDate
+	readonly property date selectedDate: datePickerControl.selectedDate
 
 	property bool simpleCalendar: false
 
