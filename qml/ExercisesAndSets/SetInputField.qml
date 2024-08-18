@@ -91,14 +91,13 @@ FocusScope {
 			}
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnIncreaseMinutes
-			padding: 0
-			spacing: 2
-			width: 25
-			height: 25
+			imageSource: "qrc:/images/plus.png"
+			width: 20
+			height: 20
 			visible: type === SetInputField.Type.TimeType
-			imageName: "plus.png"
+
 
 			anchors {
 				left: lblMain.visible ? lblMain.right : parent.left
@@ -113,13 +112,11 @@ FocusScope {
 			}
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnDecrease
-			padding: 0
-			spacing: 2
-			width: 25
-			height: 25
-			imageName: "minus.png"
+			imageSource: "qrc:/images/minus.png"
+			width: 20
+			height: 20
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
@@ -186,13 +183,11 @@ FocusScope {
 			}
 		} //TextInput
 
-		TPRoundButton {
+		TPButton {
 			id: btnIncrease
-			padding: 0
-			spacing: 2
-			width: 25
-			height: 25
-			imageName: "plus.png"
+			imageSource: "qrc:/images/plus.png"
+			width: 20
+			height: 20
 
 			anchors {
 				left: txtMain.right
@@ -208,14 +203,12 @@ FocusScope {
 			}
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnDecreaseSeconds
-			padding: 0
-			spacing: 2
+			imageSource: "qrc:/images/minus.png"
 			width: 20
 			height: 20
 			visible: type === SetInputField.Type.TimeType
-			imageName: "minus.png"
 
 			anchors {
 				left: btnIncrease.right

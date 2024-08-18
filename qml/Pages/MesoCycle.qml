@@ -26,7 +26,7 @@ TPPage {
 	property bool bMesoNameOK: false
 	property bool bNewMeso: mesoId === -1
 
-	property var calendarChangeDlg: null
+	property bool bCalendarCreated: false
 	property bool bChangeStartDate
 	property bool bPreserveOldCalendar: false
 	property bool bPreserveOldCalendarUntilYesterday: false
@@ -60,10 +60,7 @@ TPPage {
 		}
 	}
 
-	onPageActivated: {
-		bNewMeso: mesoId === -1
-		appDB.setWorkingMeso(mesoIdx);
-	}
+	onPageActivated: appDB.setWorkingMeso(mesoIdx);
 
 	onPageDeActivated: {
 		if (mesoId === -1)
@@ -72,7 +69,7 @@ TPPage {
 
 	header: ToolBar {
 		height: headerHeight
-		enabled: !bNewMeso
+		enabled: mesoId !== -1
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -449,6 +446,7 @@ TPPage {
 				id: txtMesoSplit
 				text: mesocyclesModel.get(mesoIdx, 6)
 				validator: regEx
+				maximumLength: 7
 				width: txtMesoStartDate.width
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -720,6 +718,8 @@ TPPage {
 		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
 	}
 
+	property bool alreadyCalled: false
+	property TPComplexDialog calendarChangeDlg: null
 	function showCalendarChangedDialog() {
 		if (!calendarChangeDlg) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
@@ -728,6 +728,7 @@ TPPage {
 				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),
 					button1Text: qsTr("Yes"), button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
 				calendarChangeDlg.button1Clicked.connect(preserveOldCalenarInfo);
+				calendarChangeDlg.button2Clicked.connect(function() { alreadyCalled = false; }); //A "No", warrants a possible new confirmation
 			}
 
 			if (component.status === Component.Ready)
@@ -735,7 +736,22 @@ TPPage {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		calendarChangeDlg.show(-1);
+		if (alreadyCalled) {
+			if (AppSettings.alwaysAskConfirmation) {
+				if (!bNewMeso)
+					calendarChangeDlg.show(-1);
+				else
+					if (bCalendarCreated)
+						preserveOldCalenarInfo();
+			}
+			else
+				preserveOldCalenarInfo();
+		}
+		else {
+			if (!bNewMeso || bCalendarCreated)
+				calendarChangeDlg.show(-1);
+			alreadyCalled = true;
+		}
 	}
 
 	function preserveOldCalenarInfo() {
@@ -756,7 +772,7 @@ TPPage {
 	}
 
 	function saveMeso() {
-		appDB.saveMesocycle(bNewMeso, bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
+		appDB.saveMesocycle(bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
 		if (bNewMeso)
 			mesoId = mesocyclesModel.getInt(mesoIdx, 0);
 		bChangedCalendar = false;

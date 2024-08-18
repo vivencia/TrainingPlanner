@@ -45,7 +45,7 @@ public:
 	void createMesocyclePage_part2();
 
 	inline void setMesocycleModel(DBMesocyclesModel* model) { m_MesocyclesModel = model; }
-	inline QQuickItem* getMesoPage() const { return m_mesoPage; }
+	inline QQuickItem* getMesoPage() { return m_mesoPage; }
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------

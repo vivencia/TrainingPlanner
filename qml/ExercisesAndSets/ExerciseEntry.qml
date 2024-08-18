@@ -255,7 +255,6 @@ FocusScope {
 				TPButton {
 					id: btnAddSet
 					imageSource: "qrc:/images/add-new.png"
-					backgroundColor: "transparent"
 					Layout.leftMargin: 30
 
 					onClicked: {

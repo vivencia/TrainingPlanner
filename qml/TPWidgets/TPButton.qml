@@ -9,7 +9,7 @@ Rectangle {
 	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
-	property string backgroundColor: AppSettings.primaryDarkColor
+	property string backgroundColor: text.length > 0 ? AppSettings.primaryDarkColor : "transparent"
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false

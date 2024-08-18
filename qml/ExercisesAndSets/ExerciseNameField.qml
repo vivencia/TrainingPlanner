@@ -116,7 +116,6 @@ RowLayout {
 	TPButton {
 		id: btnRemoveExercise
 		imageSource: "qrc:/images/remove.png"
-		backgroundColor: "transparent"
 		height: 20
 		width: 20
 		visible: showRemoveButton
@@ -130,7 +129,6 @@ RowLayout {
 	TPButton {
 		id: btnEditExercise
 		imageSource: "edit.png"
-		backgroundColor: "transparent"
 		height: 20
 		width: 20
 		enabled: bEditable

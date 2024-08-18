@@ -52,7 +52,7 @@ TPPage {
 
 		TPButton {
 			id: btnAdd
-			imageSource: "qrc:/images/add.png"
+			imageSource: "qrc:/images/add-new.png"
 			width: 30
 			height: 30
 
@@ -61,7 +61,7 @@ TPPage {
 
 		TPButton {
 			id: btnDel
-			imageSource: "qrc:/images/del.png"
+			imageSource: "qrc:/images/remove.png"
 			width: 30
 			height: 30
 

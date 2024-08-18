@@ -90,8 +90,6 @@
         <file>images/facebook.png</file>
         <file>images/twitter.png</file>
         <file>images/www.png</file>
-        <file>images/add.png</file>
-        <file>images/del.png</file>
         <file>images/first.png</file>
         <file>images/last.png</file>
         <file>images/next.png</file>
@@ -106,5 +104,7 @@
         <file>images/set-completed.png</file>
         <file>images/remove.png</file>
         <file>images/add-new.png</file>
+        <file>images/minus.png</file>
+        <file>images/plus.png</file>
     </qresource>
 </RCC>

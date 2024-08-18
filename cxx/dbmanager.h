@@ -91,8 +91,8 @@ public:
 	Q_INVOKABLE void setWorkingMeso(int meso_idx);
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name, const bool bCreatePage);
-	Q_INVOKABLE void saveMesocycle(const bool bNewMeso, const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
-									const bool bPreserveUntillYesterday = false);
+	Q_INVOKABLE void saveMesocycle(const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
+								   const bool bPreserveUntillYesterday = false);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void scheduleMesocycleRemoval(const uint meso_idx);
 	void deleteMesocyclesTable(const bool bRemoveFile);

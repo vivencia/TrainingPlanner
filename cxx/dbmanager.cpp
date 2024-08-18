@@ -237,7 +237,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	{
 		//All update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
-		updateDB(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
+		//updateDB(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		//DBUserTable user(m_DBFilePath, m_appSettings);
 		//user.removeDBFile();
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
@@ -635,7 +635,7 @@ bool DbManager::importFromModel(TPListModel* model)
 				createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1), false);
 				for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
 					mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
-				saveMesocycle(true, false, false, false);
+				saveMesocycle(false, false, false);
 				emit mesocyclesModel->currentRowChanged(); //notify main.qml::btnWorkout to evaluate its enabled state
 			}
 			else
@@ -1295,11 +1295,11 @@ void DbManager::createNewMesocycle(const bool bRealMeso, const QString& name, co
 	}
 }
 
-void DbManager::saveMesocycle(const bool bNewMeso, const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
+void DbManager::saveMesocycle(const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 
-	if (bNewMeso)
+	if (mesocyclesModel->getIntFast(m_MesoIdx, MESOCYCLES_COL_ID) == -1)
 	{
 		if (mb_importMode)
 			worker->setWaitForThreadToFinish(true);
@@ -1707,6 +1707,8 @@ void DbManager::createMesoCalendar()
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
+	if (m_currentMesoManager->getMesoPage())
+		m_currentMesoManager->getMesoPage()->setProperty("bCalendarCreated", true);
 }
 
 void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,

@@ -5,11 +5,10 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 	const QString mesoid( QString::number(mesoId) );
 	const int startmonth( startDate.month() );
 	const int endmonth( endDate.month() );
+	int splitIdx(startDate.dayOfWeek() - 1);
 
 	uint nMonths( endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1 );
-
 	uint trainingDayNumber(0), trainingDayNumberTotal(0);
-	int splitIdx(0);
 	uint i(0);
 	uint month( startmonth );
 	uint year( startDate.year() );
