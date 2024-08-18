@@ -62,7 +62,7 @@ TPPopup {
 
 	Image {
 		id: imgElement
-		source: imageSource != "" ? "qrc:/images/"+AppSettings.iconFolder+imageSource : ""
+		source: imageSource.length > 0 ? (imageSource.indexOf("qrc") === -1 ? "qrc:/images/"+AppSettings.iconFolder+imageSource : imageSource) : ""
 		fillMode: Image.PreserveAspectFit
 		asynchronous: true
 		visible: false

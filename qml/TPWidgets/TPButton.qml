@@ -9,6 +9,7 @@ Rectangle {
 	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
+	property string backgroundColor: AppSettings.primaryDarkColor
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false
@@ -30,7 +31,7 @@ Rectangle {
 	border.color: flat ? "transparent" : AppSettings.fontColor
 	radius: rounded ? height : 6
 	opacity: bFollowParentsOpacity ? parent.opacity : 1
-	color: AppSettings.primaryDarkColor
+	color: backgroundColor
 
 	onImageSourceChanged: {
 		if (buttonImage)

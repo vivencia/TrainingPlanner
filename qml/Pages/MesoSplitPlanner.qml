@@ -39,7 +39,7 @@ Frame {
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "remove.png"
+		imageSource: "qrc:/images/remove.png"
 		parentPage: parentItem
 
 		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
@@ -50,7 +50,7 @@ Frame {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise?")
 		message: exerciseName + qsTr("This action cannot be undone.")
-		imageSource: "remove.png"
+		imageSource: "qrc:/images/remove.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: removeExercise(idxToRemove);

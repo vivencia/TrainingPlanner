@@ -124,12 +124,13 @@ Item {
 			implicitWidth: 85
 			implicitHeight: 30
 
-			TPRoundButton {
+			TPButton {
 				id: btnRemoveRow
-				width: 30
-				height: 30
+				imageSource: "qrc:/images/remove.png"
+				backgroundColor: "transparent"
 				visible: rowIdx > 0
-				imageName: "remove.png"
+				width: 20
+				height: 20
 
 				anchors {
 					left: parent.left
@@ -140,12 +141,13 @@ Item {
 				onClicked: delSubSet(rowIdx);
 			} //btnRemoveRow
 
-			TPRoundButton {
+			TPButton {
 				id: btnInsertAnotherRow
+				imageSource: "qrc:/images/add-new.png"
+				backgroundColor: "transparent"
+				visible: bBtnAddEnabled
 				width: 30
 				height: 30
-				visible: bBtnAddEnabled
-				imageName: "add-new.png"
 
 				anchors {
 					left: btnRemoveRow.right

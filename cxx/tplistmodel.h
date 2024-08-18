@@ -118,6 +118,8 @@ public:
 			if (getFast(m_indexProxy.at(row), field) != value)
 			{
 				m_modeldata[m_indexProxy.at(row)][field] = value;
+				if (m_roleNames.contains(Qt::UserRole+field))
+					emit dataChanged(index(row, 0), index(row, 0), QList<int>() << Qt::UserRole+field);
 				setModified(true);
 				return true;
 			}

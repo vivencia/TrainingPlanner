@@ -27,8 +27,6 @@
         <file>images/black/add-new.png</file>
         <file>images/white/work.png</file>
         <file>images/white/time.png</file>
-        <file>images/black/remove.png</file>
-        <file>images/white/remove.png</file>
         <file>images/black/save-day.png</file>
         <file>images/black/revert-day.png</file>
         <file>images/white/revert-day.png</file>
@@ -106,5 +104,7 @@
         <file>images/choose_avatar.png</file>
         <file>images/warning.png</file>
         <file>images/set-completed.png</file>
+        <file>images/remove.png</file>
+        <file>images/add-new.png</file>
     </qresource>
 </RCC>

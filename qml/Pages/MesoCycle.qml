@@ -265,6 +265,8 @@ TPPage {
 				text: mesocyclesModel.get(mesoIdx, 10)
 				width: parent.width - 20
 				visible: cboMesoType.currentIndex === 6
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
 				Layout.leftMargin: 5
 
 				onEditingFinished: mesocyclesModel.set(mesoIdx, 10, text);

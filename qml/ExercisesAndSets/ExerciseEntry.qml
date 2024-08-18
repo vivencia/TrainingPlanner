@@ -252,15 +252,11 @@ FocusScope {
 					onValueChanged: (str)=> nSets = str;
 				}
 
-				TPRoundButton {
+				TPButton {
 					id: btnAddSet
-					imageName: "add-new.png"
-					focus: true
-					Layout.minimumHeight: 40
-					Layout.maximumHeight: 40
-					Layout.minimumWidth: 40
-					Layout.maximumWidth: 40
-					Layout.leftMargin: 20
+					imageSource: "qrc:/images/add-new.png"
+					backgroundColor: "transparent"
+					Layout.leftMargin: 30
 
 					onClicked: {
 						createSetObject(cboSetType.currentIndex, parseInt(nSets), nReps, nWeight);

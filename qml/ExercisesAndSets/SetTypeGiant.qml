@@ -28,6 +28,7 @@ Item {
 	property string copyRepsButtonValue: ""
 	property string copyWeightButtonValue: ""
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
+	readonly property int controlWidth: setItem.width - 20
 	property var ownerExercise
 
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -93,9 +94,10 @@ Item {
 				}
 			}
 
-			TPRoundButton {
+			TPButton {
 				id: btnRemoveSet
-				imageName: "remove.png"
+				imageSource: "qrc:/images/remove.png"
+				backgroundColor: "transparent"
 				height: 30
 				width: 30
 
@@ -195,7 +197,7 @@ Item {
 				objectName: "txtExercise1"
 				text: tDayModel.exerciseName1(exerciseIdx)
 				showRemoveButton: false
-				width: setItem.width/2-10
+				width: controlWidth/2 + 10
 				Layout.alignment: Qt.AlignLeft
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -212,7 +214,7 @@ Item {
 				objectName: "txtExercise2"
 				text: tDayModel.exerciseName2(exerciseIdx)
 				showRemoveButton: false
-				width: setItem.width/2-10
+				width: controlWidth/2 + 10
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -234,7 +236,7 @@ Item {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
-				availableWidth: copyRepsButtonValue === "" ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: copyRepsButtonValue === "" ? controlWidth/2 + 20 : controlWidth/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyRepsButtonValue
 
@@ -271,7 +273,7 @@ Item {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
-				availableWidth: setItem.width/3
+				availableWidth: controlWidth/3
 				showLabel: false
 				Layout.alignment: copyRepsButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
@@ -314,7 +316,7 @@ Item {
 				id: txtNWeight1
 				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				type: SetInputField.Type.WeightType
-				availableWidth: copyWeightButtonValue === "" ? setItem.width/2 + 10 : setItem.width/3
+				availableWidth: copyWeightButtonValue === "" ? controlWidth/2 + 20 : controlWidth/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyWeightButtonValue
 
@@ -351,7 +353,7 @@ Item {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
 				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
-				availableWidth: setItem.width/3
+				availableWidth: controlWidth/3 + 10
 				showLabel: false
 				Layout.alignment: copyWeightButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 

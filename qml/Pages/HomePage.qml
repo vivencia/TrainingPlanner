@@ -260,7 +260,7 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove Mesocycle")
-					imageSource: "remove.png"
+					imageSource: "qrc:/images/remove.png"
 					z:2
 
 					anchors {
@@ -277,7 +277,7 @@ TPPage {
 					message: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
-					imageSource: "remove.png"
+					imageSource: "qrc:/images/remove.png"
 					parentPage: homePage
 
 					property int mesoidx

@@ -97,11 +97,12 @@ Item {
 				}
 			}
 
-			TPRoundButton {
+			TPButton {
 				id: btnRemoveSet
-				imageName: "remove.png"
-				height: 30
-				width: 30
+				imageSource: "qrc:/images/remove.png"
+				backgroundColor: "transparent"
+				height: 20
+				width: 20
 
 				anchors {
 					verticalCenter: parent.verticalCenter

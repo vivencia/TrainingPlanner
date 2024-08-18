@@ -184,7 +184,7 @@ Column {
 				radius: 5
 
 				Image {
-					source: "qrc:/images/"+AppSettings.iconFolder+"remove.png"
+					source: "qrc:/images/remove.png"
 					width: 20
 					height: 20
 					opacity: 2 * -delegate.swipe.position

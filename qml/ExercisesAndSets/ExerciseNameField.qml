@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 
 RowLayout {
-	spacing: 0
+	spacing: 5
 	height: 60
 	z: 0
 
@@ -32,7 +32,8 @@ RowLayout {
 		wrapMode: Text.WordWrap
 		z: 1
 		width: parent.width-(showRemoveButton ? 50 : 25)
-		padding: 0
+		leftPadding: 0
+		rightPadding: 0
 		height: parent.height
 		Layout.maximumWidth: width
 		Layout.minimumWidth: width
@@ -112,27 +113,29 @@ RowLayout {
 		}
 	}
 
-	TPRoundButton {
+	TPButton {
 		id: btnRemoveExercise
-		height: 30
-		width: 30
-		padding: 5
+		imageSource: "qrc:/images/remove.png"
+		backgroundColor: "transparent"
+		height: 20
+		width: 20
 		visible: showRemoveButton
 		enabled: bEditable
+		Layout.leftMargin: -10
 		z: 1
-		imageName: "remove.png"
 
 		onClicked: removeButtonClicked();
 	} //btnRemoveExercise
 
-	TPRoundButton {
+	TPButton {
 		id: btnEditExercise
-		height: 30
-		width: 30
-		padding: 5
+		imageSource: "edit.png"
+		backgroundColor: "transparent"
+		height: 20
+		width: 20
 		enabled: bEditable
 		z: 1
-		imageName: "edit.png"
+		Layout.leftMargin: -10
 
 		onClicked: {
 			control.readOnly = !control.readOnly;

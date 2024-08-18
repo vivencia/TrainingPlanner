@@ -190,7 +190,7 @@ TPPage {
 
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
-						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove.png" } );
+						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "qrc:/images/remove.png" } );
 					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
 				}
 
@@ -217,7 +217,7 @@ TPPage {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove.png",
+					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "qrc:/images/remove.png",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
 					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
 				}
@@ -1256,7 +1256,7 @@ TPPage {
 			function finishCreation() {
 				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
 					button2Text: qsTr("No"), customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
-					customStringProperty3: "remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
+					customStringProperty3: "qrc:/images/remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					if (changeSplitLetterDialog.customBoolProperty1)
 						appDB.clearExercises();
