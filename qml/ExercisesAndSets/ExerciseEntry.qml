@@ -20,6 +20,10 @@ FocusScope {
 	property string nSets
 	property string nReps
 	property string nWeight
+	property string nRestTime
+	property bool bCanEditRestTimeTracking
+	property bool bTrackRestTime
+	property bool bAutoRestTime
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 	property bool bCompositeExercise
@@ -150,28 +154,9 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue_QML(0, str, nReps);
+					onValueChanged: (str) => nReps = runCmd.setCompositeValue_QML(0, str, nReps);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
-
-				SetInputField {
-					id: txtNReps2
-					text: runCmd.getCompositeValue(1, nReps)
-					type: SetInputField.Type.RepType
-					showLabel: false
-					availableWidth: layoutMain.width / 2
-					backColor: "transparent"
-					borderColor: "transparent"
-					visible: bCompositeExercise
-
-					onValueChanged:(str)=> nReps = runCmd.setCompositeValue_QML(1, str, nReps);
-					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-				}
-			}
-
-			Row {
-				enabled: tDayModel.dayIsEditable
-				Layout.leftMargin: 5
 
 				SetInputField {
 					id: txtNWeight
@@ -181,22 +166,89 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue_QML(0, str, nWeight);
+					onValueChanged: (str) => nWeight = runCmd.setCompositeValue_QML(0, str, nWeight);
+				}
+			}
+
+			Row {
+				enabled: tDayModel.dayIsEditable
+				visible: bCompositeExercise
+				Layout.leftMargin: 5
+
+				SetInputField {
+					id: txtNReps2
+					text: runCmd.getCompositeValue(1, nReps)
+					type: SetInputField.Type.RepType
+					availableWidth: layoutMain.width / 2
+					backColor: "transparent"
+					borderColor: "transparent"
+
+					onValueChanged: (str) => nReps = runCmd.setCompositeValue_QML(1, str, nReps);
+					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight2
 					text: runCmd.getCompositeValue(1, nWeight)
 					type: SetInputField.Type.WeightType
-					showLabel: false
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
-					visible: bCompositeExercise
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged:(str)=> nWeight = runCmd.setCompositeValue_QML(1, str, nWeight);
+					onValueChanged: (str) => nWeight = runCmd.setCompositeValue_QML(1, str, nWeight);
 				}
+			}
+
+			Row {
+				id: trackRestTimeRow
+				enabled: bCanEditRestTimeTracking
+				Layout.leftMargin: 5
+
+				TPCheckBox {
+					id: chkTrackRestTime
+					text: qsTr("Track rest times?")
+					textColor: "black"
+
+					Component.onCompleted: checked = bTrackRestTime;
+
+					onClicked: {
+						bTrackRestTime = checked;
+						if (!bTrackRestTime) bAutoRestTime = false;
+						tDayModel.setTrackRestTime(bTrackRestTime, exerciseIdx);
+					}
+				}
+
+				TPCheckBox {
+					id: chkAutoRestTime
+					text: qsTr("Auto tracking")
+					textColor: "black"
+					enabled: bTrackRestTime
+					checked: bAutoRestTime
+
+					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
+					onClicked: {
+						bAutoRestTime = checked;
+						tDayModel.setAutoRestTime(bAutoRestTime, exerciseIdx);
+						if (bAutoRestTime)
+							nRestTime = "00:00";
+						else
+							nRestTime = tDayModel.nextSetSuggestedTime(exerciseIdx, cboSetType.currentIndex, 0);
+					}
+				}
+			}
+
+			SetInputField {
+				id: txtRestTime
+				type: SetInputField.Type.TimeType
+				text: tDayModel.nextSetSuggestedTime(exerciseIdx, cboSetType.currentIndex, 0);
+				availableWidth: paneExercise.width/2
+				backColor: "transparent"
+				borderColor: "transparent"
+				enabled: bTrackRestTime && !bAutoRestTime
+				Layout.leftMargin: 5
+
+				onValueChanged: (str) => nRestTime = str;
 			}
 
 			Label {
@@ -237,6 +289,8 @@ FocusScope {
 							if (index === 4)
 								bCompositeExercise = true;
 						}
+						if (bTrackRestTime && !bAutoRestTime)
+							nRestTime = tDayModel.nextSetSuggestedTime(exerciseIdx, index, 0);
 					}
 				}
 
@@ -258,11 +312,13 @@ FocusScope {
 					Layout.leftMargin: 30
 
 					onClicked: {
-						createSetObject(cboSetType.currentIndex, parseInt(nSets), nReps, nWeight);
+						itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
+						setNbr += parseInt(nSets);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
 					}
 				}
 			} // RowLayout
+
 			ColumnLayout {
 				id: exerciseSetsLayout
 				objectName: "exerciseSetsLayout"
@@ -341,18 +397,13 @@ FocusScope {
 		if (cxx_cal)
 			itemManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
 		else {
-			if (up) --exerciseIdx
+			if (up) --exerciseIdx;
 			else ++exerciseIdx;
 		}
 
 		lblExerciseNumber.text = parseInt(exerciseIdx + 1) + ":";
 		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
 		exerciseItem.Layout.row = exerciseIdx;
-	}
-
-	function createSetObject(type: int, n: int, nreps: string, nweight: string) {
-		itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + n, type, nreps, nweight);
-		setNbr += n;
 	}
 
 	function paneExerciseShowHide(show: bool, force: bool) {

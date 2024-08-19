@@ -6,8 +6,10 @@ import "../"
 CheckBox {
 	id: control
 	spacing: 5
-	padding: 0
-	topPadding: 0
+	topPadding: 5
+	leftPadding: 5
+	bottomPadding: 0
+	rightPadding: 0
 	implicitHeight: Math.max(lblText.implicitHeight, 25)
 	width: fontMetrics.boundingRect(text).width + 25
 	implicitWidth: width

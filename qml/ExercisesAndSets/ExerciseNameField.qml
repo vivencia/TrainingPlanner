@@ -32,7 +32,7 @@ RowLayout {
 		wrapMode: Text.WordWrap
 		z: 1
 		width: parent.width-(showRemoveButton ? 50 : 25)
-		leftPadding: 0
+		leftPadding: 15
 		rightPadding: 0
 		height: parent.height
 		Layout.maximumWidth: width

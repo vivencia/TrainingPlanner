@@ -49,10 +49,12 @@ Column {
 	Label {
 		Layout.leftMargin: 5
 		text: qsTr("Search: ")
+		verticalAlignment: Text.AlignVCenter
 		font.pointSize: AppSettings.fontSizeText
 		font.weight: Font.ExtraBold
 		color: AppSettings.fontColor
 		width: parent.width/3
+		height: 25
 
 		TPCheckBox {
 			id: chkMultipleSelection

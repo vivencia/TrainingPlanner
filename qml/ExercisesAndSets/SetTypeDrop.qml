@@ -27,6 +27,7 @@ Item {
 	property string copyTimeButtonValue: ""
 	property string copyRepsButtonValue: ""
 	property string copyWeightButtonValue: ""
+	property int setMode: 0
 	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
 	property var subSetList: []
 	property var subSetComponent: null
@@ -79,12 +80,11 @@ Item {
 				}
 			}
 
-			TPRoundButton {
+			TPButton {
 				id: btnCopyValue
 				visible: copyTypeButtonValue !== ""
-				imageName: "copy-setvalue.png"
-				width: 25
-				height: 25
+				imageSource: "qrc:/images/copy-setvalue.png"
+				imageSize: 25
 
 				anchors {
 					verticalCenter: parent.verticalCenter
@@ -112,45 +112,55 @@ Item {
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
 			}
 
-			TPCheckBox {
-				id: chkSetCompleted
-				text: qsTr("Completed")
-				textColor: "black"
-				checked: setCompleted
+			TPButton {
+				id: btnManageSet
+				text: setMode === 0 ? qsTr("Mark set as Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Stop Rest"))
+				flat: false
 				visible: !setCompleted
-				height: 25
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: btnRemoveSet.right
 
-				onCheckedChanged: {
-					setCompleted = checked;
-					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
+				onClicked: {
+					switch(setMode) {
+						case 0:
+							stopRestTimer();
+							setCompleted = true;
+							tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
+						break;
+						case 1:
+							setMode = 2;
+							startRestTimer();
+						break;
+						case 2:
+							setMode = 0;
+							stopRestTimer();
+						break;
+					}
 				}
 			}
 
-			Image {
+			TPButton {
 				id: imgCompleted
-				source: "qrc:/images/set-completed.png"
-				asynchronous: true
-				fillMode: Image.PreserveAspectFit
+				imageSource: "qrc:/images/set-completed.png"
 				visible: setCompleted
-				width: 30
-				height: 30
+				imageSize: 25
+
 				anchors {
 					verticalCenter: parent.verticalCenter
 					left: btnRemoveSet.right
 					leftMargin: 40
 				}
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: setCompleted = false;
+				onClicked: {
+					setCompleted = false;
+					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
+					findSetMode();
 				}
 			}
 		}
 
 		RowLayout {
-			visible: setNumber > 0
+			visible: setNumber > 0 && tDayModel.trackRestTime(exerciseIdx)
 			enabled: !setCompleted
 			Layout.leftMargin: 5
 
@@ -160,6 +170,7 @@ Item {
 				text: tDayModel.setRestTime(setNumber, exerciseIdx);
 				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
 				windowTitle: lblSetNumber.text
+				showButtons: tDayModel.autoRestTime(exerciseIdx)
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
@@ -171,20 +182,14 @@ Item {
 					tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
 				}
 
-				onEnterOrReturnKeyPressed: {
-					if (subSetList.length > 0)
-						subSetList[0].Object.forceActiveFocus();
-				}
+				onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 			}
 
-			TPRoundButton {
+			TPButton {
 				id: btnCopyTimeValue
 				visible: copyTimeButtonValue !== ""
-				imageName: "copy-setvalue.png"
-				Layout.minimumHeight: 30
-				Layout.maximumHeight: 30
-				Layout.minimumWidth: 30
-				Layout.maximumWidth: 30
+				imageSource: "qrc:/images/copy-setvalue.png"
+				imageSize: 25
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {
@@ -271,7 +276,10 @@ Item {
 		}
 	} // setLayout
 
-	Component.onCompleted: tDayModel.saveWorkout.connect(function() { copyTypeButtonValue = false; });
+	Component.onCompleted: {
+		findSetMode();
+		tDayModel.saveWorkout.connect(function() { copyTypeButtonValue = false; });
+	}
 
 	function init() {
 		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);
@@ -347,5 +355,39 @@ Item {
 	function changeWeight(new_value: string, idx: int) {
 		if (idx < subSetList.length)
 			subSetList[idx].Object.changeWeight(new_value);
+	}
+
+	TPTimer {
+		id: setTimer
+		alarmSoundFile: "qrc:/sounds/timer-end.wav"
+		stopWatch: true
+		interval: 1000
+
+		Component.onCompleted: setRunCommandsObject(runCmd);
+	}
+
+	function findSetMode() {
+		if (setNumber > 0) {
+			if (tDayModel.trackRestTime(exerciseIdx)) {
+				if (tDayModel.autoRestTime(exerciseIdx)) {
+					setMode = 1;
+					return;
+				}
+			}
+		}
+		setMode = 0;
+	}
+
+	function startRestTimer() {
+		setTimer.prepareTimer("-");
+		txtRestTime.text = Qt.binding( function() { return setTimer.strMinutes + ":" + setTimer.strSeconds; } );
+		setTimer.startTimer("-");
+	}
+
+	function stopRestTimer() {
+		if (setTimer.active) {
+			setTimer.stopTimer();
+			tDayModel.setSetRestTime(setNumber, exerciseIdx, txtRestTime.text);
+		}
 	}
 } // Item

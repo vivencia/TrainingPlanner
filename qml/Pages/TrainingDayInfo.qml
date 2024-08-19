@@ -165,7 +165,6 @@ TPPage {
 
 	TPTimer {
 		id: workoutTimer
-		alarmSoundFile: "qrc:/sounds/timer-end.wav"
 		stopWatch: true
 		interval: 1000
 

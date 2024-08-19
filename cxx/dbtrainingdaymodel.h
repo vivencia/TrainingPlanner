@@ -57,15 +57,15 @@ public:
 	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 	virtual bool importFromText(const QString& data) override;
 
-	Q_INVOKABLE void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
+	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 
-	bool dayIsFinished() const { return mb_DayIsFinished; }
-	void setDayIsFinished(const bool finished);
+	inline bool dayIsEditable() const { return mb_DayIsEditable; }
+	inline void setDayIsEditable(const bool editable) { mb_DayIsEditable = editable; emit dayIsEditableChanged(); }
 
-	bool dayIsEditable() const { return mb_DayIsEditable; }
-	void setDayIsEditable(const bool editable) { mb_DayIsEditable = editable; emit dayIsEditableChanged(); }
+	inline bool dayIsFinished() const { return mb_DayIsFinished; }
+	void setDayIsFinished(const bool finished);
 
 	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(TDAY_COL_ID); }
@@ -106,6 +106,12 @@ public:
 	const uint exerciseCount() const { return m_ExerciseData.count(); }
 	Q_INVOKABLE const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
 
+	Q_INVOKABLE inline bool trackRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_TrackRestTime; }
+	Q_INVOKABLE inline void setTrackRestTime(const bool track_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
+
+	Q_INVOKABLE inline bool autoRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_AutoRestTime; }
+	Q_INVOKABLE inline void setAutoRestTime(const bool auto_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_AutoRestTime = auto_resttime; }
+
 	Q_INVOKABLE QString exerciseName(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName(const QString& new_name, const uint exercise_idx);
 	void newExercise(const QString& new_exercise, const uint idx);
@@ -118,13 +124,13 @@ public:
 	Q_INVOKABLE QString exerciseName2(const uint exercise_idx) const;
 	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
 
-	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight,
-						const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);
-	const QString& nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
+	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
+					 const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);
+	Q_INVOKABLE QString nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
 	const QString& nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	const QString& nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
-	void newSet(const uint set_number, const uint exercise_idx, const uint type,
-					const QString& nReps = QString(), const QString& nWeight = QString(), const QString& nSubSets = QString());
+	void newSet(const uint set_number, const uint exercise_idx, const uint type, const QString& nReps = QString(),
+					const QString& nWeight = QString(), const QString& nRestTime = QString(), const QString& nSubSets = QString());
 	bool removeSet(const uint set_number, const uint exercise_idx);
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
@@ -178,6 +184,7 @@ private:
 		QStringList weight;
 		QStringList notes;
 		QStringList completed;
+		bool mb_TrackRestTime, mb_AutoRestTime;
 
 		exerciseEntry() : nsets(0) {}
 	};

@@ -37,6 +37,186 @@ TPPage {
 		}
 	}
 
+	header: ToolBar {
+		id: bottomPane
+		width: parent.width
+		height: parent.height * 0.5
+		spacing: 0
+		padding: 0
+
+		background: Rectangle {
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
+		}
+
+		ColumnLayout {
+			width: parent.width
+			height: parent.height
+			spacing: 0
+
+			ExercisesListView {
+				id: exercisesList
+				canDoMultipleSelection: bChooseButtonEnabled
+				Layout.fillWidth: true
+				Layout.topMargin: 0
+				Layout.alignment: Qt.AlignTop
+				Layout.rightMargin: 5
+				Layout.fillHeight: true
+				Layout.leftMargin: 5
+				Layout.bottomMargin: 5
+
+				onExerciseEntrySelected: (index, multipleSelection) => {
+					if (multipleSelection === 2) return;
+					txtExerciseName.text = exercisesListModel.get(index, 1);
+					txtExerciseSubName.text = exercisesListModel.get(index, 2);
+					txtMuscularGroup.text = exercisesListModel.get(index, 3);
+					txtNSets.text = exercisesListModel.get(index, 4);
+					txtNReps.text = exercisesListModel.get(index, 5);
+					txtNWeight.text = exercisesListModel.get(index, 6);
+					strMediaPath = exercisesListModel.get(index, 8);
+					displaySelectedMedia();
+				}
+
+				onItemDoubleClicked: {
+					if (btnAddExercise.enabled)
+						chooseExercise();
+				}
+			}
+
+			RowLayout {
+				id: toolbarExercises
+				Layout.fillWidth: true
+				Layout.maximumHeight: 30
+				Layout.leftMargin: 5
+				Layout.bottomMargin: 5
+				spacing: 5
+
+				readonly property int buttonWidth: Math.ceil(pageExercises.width/5.5)
+
+				TPButton {
+					id:btnNewExercise
+					text: qsTr("New")
+					enabled: !bEdit
+					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
+
+					onClicked: {
+						if (!bNew) {
+							bNew = true;
+							bCanEdit = true;
+							scrollExercises.ScrollBar.vertical.setPosition(0);
+							txtExerciseName.forceActiveFocus();
+							txtExerciseName.clear();
+							txtExerciseSubName.clear();
+							txtMuscularGroup.clear();
+							strMediaPath = "qrc:/images/no_image.jpg";
+							exercisesList.enabled = false;
+							text = qsTr("Cancel");
+						}
+						else {
+							bNew = false;
+							bCanEdit = false;
+							exercisesList.enabled = true;
+							text = qsTr("New");
+						}
+					}
+				} //btnNewExercise
+
+				TPButton {
+					id:btnEditExercise
+					text: qsTr("Edit")
+					enabled: !bNew && exercisesListModel.currentRow >= 0
+					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
+
+					onClicked: {
+						if (!bEdit) {
+							bCanEdit = true;
+							bEdit = true;
+							scrollExercises.ScrollBar.vertical.setPosition(0);
+							txtExerciseName.forceActiveFocus();
+							exercisesList.enabled = false;
+							text = qsTr("Cancel");
+						}
+						else {
+							bCanEdit = false;
+							bEdit = false;
+							exercisesList.enabled = true;
+							text = qsTr("Edit");
+							if (!bJustSaved)
+								exercisesList.itemClicked(exercisesListModel.currentRow, true);
+						}
+					}
+				} //btnEditExercise
+
+				TPButton {
+					id: btnSaveExercise
+					text: qsTr("Save")
+					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
+					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
+
+					onClicked: {
+						bJustSaved = true; //Do not issue displaySelectedExercise()
+						appDB.saveExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
+													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
+													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
+						if (bNew) {
+							btnNewExercise.clicked();
+							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
+						}
+						else if (bEdit)
+							btnEditExercise.clicked();
+						bJustSaved = false;
+					}
+				} //btnSaveExercise
+
+				TPButton {
+					id: btnAddExercise
+					enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
+					text: qsTr("Add")
+					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
+
+					onClicked: chooseExercise();
+				} //btnAddExercise
+
+				TPButton {
+					id: btnImExport
+					text: qsTr("In/Export")
+					enabled: !btnSaveExercise.enabled
+					visible: !bChooseButtonEnabled
+					fixedSize: true
+					width: toolbarExercises.buttonWidth
+					height: 25
+					rounded: false
+					flat: false
+
+					onClicked: INEX.showInExMenu(pageExercises, true);
+				} // btnImExport
+
+			} // Row
+		} //ColumnLayout
+	} // header
+
 	ScrollView {
 		id: scrollExercises
 		anchors.fill: parent
@@ -243,186 +423,6 @@ TPPage {
 			}
 		} // ColumnLayout
 	} // ScrollView
-
-	footer: ToolBar {
-		id: bottomPane
-		width: parent.width
-		height: parent.height * 0.5
-		spacing: 0
-		padding: 0
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
-
-		ColumnLayout{
-			width: parent.width
-			height: parent.height
-			spacing: 0
-
-			ExercisesListView {
-				id: exercisesList
-				canDoMultipleSelection: bChooseButtonEnabled
-				Layout.fillWidth: true
-				Layout.topMargin: 0
-				Layout.alignment: Qt.AlignTop
-				Layout.rightMargin: 5
-				Layout.fillHeight: true
-				Layout.leftMargin: 5
-				Layout.bottomMargin: 5
-
-				onExerciseEntrySelected: (index, multipleSelection) => {
-					if (multipleSelection === 2) return;
-					txtExerciseName.text = exercisesListModel.get(index, 1);
-					txtExerciseSubName.text = exercisesListModel.get(index, 2);
-					txtMuscularGroup.text = exercisesListModel.get(index, 3);
-					txtNSets.text = exercisesListModel.get(index, 4);
-					txtNReps.text = exercisesListModel.get(index, 5);
-					txtNWeight.text = exercisesListModel.get(index, 6);
-					strMediaPath = exercisesListModel.get(index, 8);
-					displaySelectedMedia();
-				}
-
-				onItemDoubleClicked: {
-					if (btnAddExercise.enabled)
-						chooseExercise();
-				}
-			}
-
-			RowLayout {
-				id: toolbarExercises
-				Layout.fillWidth: true
-				Layout.maximumHeight: 30
-				Layout.leftMargin: 5
-				Layout.bottomMargin: 5
-				spacing: 5
-
-				readonly property int buttonWidth: Math.ceil(pageExercises.width/5.5)
-
-				TPButton {
-					id:btnNewExercise
-					text: qsTr("New")
-					enabled: !bEdit
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: {
-						if (!bNew) {
-							bNew = true;
-							bCanEdit = true;
-							scrollExercises.ScrollBar.vertical.setPosition(0);
-							txtExerciseName.forceActiveFocus();
-							txtExerciseName.clear();
-							txtExerciseSubName.clear();
-							txtMuscularGroup.clear();
-							strMediaPath = "qrc:/images/no_image.jpg";
-							exercisesList.enabled = false;
-							text = qsTr("Cancel");
-						}
-						else {
-							bNew = false;
-							bCanEdit = false;
-							exercisesList.enabled = true;
-							text = qsTr("New");
-						}
-					}
-				} //btnNewExercise
-
-				TPButton {
-					id:btnEditExercise
-					text: qsTr("Edit")
-					enabled: !bNew && exercisesListModel.currentRow >= 0
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: {
-						if (!bEdit) {
-							bCanEdit = true;
-							bEdit = true;
-							scrollExercises.ScrollBar.vertical.setPosition(0);
-							txtExerciseName.forceActiveFocus();
-							exercisesList.enabled = false;
-							text = qsTr("Cancel");
-						}
-						else {
-							bCanEdit = false;
-							bEdit = false;
-							exercisesList.enabled = true;
-							text = qsTr("Edit");
-							if (!bJustSaved)
-								exercisesList.itemClicked(exercisesListModel.currentRow, true);
-						}
-					}
-				} //btnEditExercise
-
-				TPButton {
-					id: btnSaveExercise
-					text: qsTr("Save")
-					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: {
-						bJustSaved = true; //Do not issue displaySelectedExercise()
-						appDB.saveExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
-													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
-													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
-						if (bNew) {
-							btnNewExercise.clicked();
-							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
-						}
-						else if (bEdit)
-							btnEditExercise.clicked();
-						bJustSaved = false;
-					}
-				} //btnSaveExercise
-
-				TPButton {
-					id: btnAddExercise
-					enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
-					text: qsTr("Add")
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: chooseExercise();
-				} //btnAddExercise
-
-				TPButton {
-					id: btnImExport
-					text: qsTr("In/Export")
-					enabled: !btnSaveExercise.enabled
-					visible: !bChooseButtonEnabled
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: INEX.showInExMenu(pageExercises, true);
-				} // btnImExport
-
-			} // Row
-		} //ColumnLayout
-	} // footer
 
 	TPComplexDialog {
 		id: exportTypeTip

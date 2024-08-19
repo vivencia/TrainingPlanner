@@ -61,11 +61,10 @@ Item {
 			height: parent.height
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnCopyValue
-			width: parent.width
-			height: parent.height
-			imageName: "copy-setvalue.png"
+			imageSource: "qrc:/images/copy-setvalue.png"
+			imageSize: 25
 
 			onClicked: {
 				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
@@ -159,11 +158,10 @@ Item {
 			} //bntInsertAnotherRow
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnCopyValue2
-			width: 30
-			height: parent.height
-			imageName: "copy-setvalue.png"
+			imageSource: "qrc:/images/copy-setvalue.png"
+			imageSize: 25
 
 			onClicked: {
 				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);

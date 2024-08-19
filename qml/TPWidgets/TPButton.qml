@@ -87,7 +87,6 @@ Rectangle {
 		id: optionsEffect
 		source: buttonImage
 		anchors.fill: buttonImage
-		saturation: button.enabled ? 0 : -1.0
 		shadowEnabled: button.enabled
 		shadowOpacity: 0.5
 		blurMax: 16

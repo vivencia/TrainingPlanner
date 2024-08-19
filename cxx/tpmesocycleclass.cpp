@@ -459,7 +459,7 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	if (m_tDayExercisesComponent == nullptr)
 		m_tDayExercisesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 
-	QString exerciseName, nSets, nReps, nWeight;
+	QString exerciseName, nSets, nReps, nWeight, nRestTime;
 	if (exercisesModel->selectedEntriesCount() == 1)
 	{
 		exerciseName = exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2);
@@ -480,10 +480,30 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
+
+	bool bTrackRestTime(false), bAutoRestTime(false);
+	const int exercise_idx(m_currentExercises->exercisesCount());
+
+	if (exercise_idx > 1)
+	{
+		bTrackRestTime = m_CurrenttDayModel->trackRestTime(exercise_idx-1);
+		bAutoRestTime = m_CurrenttDayModel->autoRestTime(exercise_idx-1);
+		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, SET_TYPE_REGULAR, 0);
+	}
+	else
+		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
+
+	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
+	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
+
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("nRestTime"), nRestTime);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("bTrackRestTime"), bTrackRestTime);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("bAutoRestTime"), bAutoRestTime);
+	m_tDayExerciseEntryProperties.insert(QStringLiteral("bCanEditRestTimeTracking"), true);
 	m_tDayExerciseEntryProperties.insert(QStringLiteral("bCompositeExercise"), m_CurrenttDayModel->compositeExercise(m_CurrenttDayModel->exerciseCount()-1));
 
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
@@ -611,7 +631,7 @@ void TPMesocycleClass::rollUpExercises() const
 
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 void TPMesocycleClass::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
-										const QString& nReps, const QString& nWeight)
+										const QString& nReps, const QString& nWeight, const QString& nRestTime)
 {
 	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
 	if (m_setComponents[set_type_cpp] == nullptr)
@@ -621,9 +641,9 @@ void TPMesocycleClass::createSetObject(const uint set_type, const uint set_numbe
 	if (bNewSet)
 	{
 		if (set_number == 0)
-			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight);
+			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight, nRestTime);
 		else
-			currenttDayModel()->newSet(set_number, exercise_idx, set_type, nReps, nWeight);
+			currenttDayModel()->newSet(set_number, exercise_idx, set_type, nReps, nWeight, nRestTime);
 		m_expectedSetNumber = set_number;
 	}
 
@@ -711,18 +731,11 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	else if (set_type == SET_TYPE_DROP)
 		QMetaObject::invokeMethod(item, "init");
 
-	//After any set added, by default, set the number of sets to be added afterwards is one at a time, and set the suggested reps and weight for the next set
+	//After any set added, by default, set the number of sets to be added afterwards to 1, and set the suggested rest time, reps and weight for the next set based on this last one
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");
-	QString suggestedValue(m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
-	int idx(suggestedValue.indexOf(subrecord_separator));
-	if (idx != -1)
-		suggestedValue = suggestedValue.left(idx);
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", suggestedValue);
-	suggestedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type);
-	idx = suggestedValue.indexOf(subrecord_separator);
-	if (idx != -1)
-		suggestedValue = suggestedValue.left(idx);
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", suggestedValue);
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nRestTime", m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type));
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type));
 }
 
 void TPMesocycleClass::createSetObjects(const uint exercise_idx)
@@ -744,7 +757,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx)
 
 //Convenience function for ExerciseEntry::createSetObject. Create last_set - first_set sets on the fly as per user command
 void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
-							const QString& nReps, const QString& nWeight)
+							const QString& nReps, const QString& nWeight, const QString& nRestTime)
 {
 	if (!nReps.isEmpty())
 	{
@@ -756,7 +769,7 @@ void TPMesocycleClass::createSetObjects(const uint exercise_idx, const uint firs
 					return createSetObjects(exercise_idx, first_set, last_set, set_type);
 				}
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-		createSetObject(set_type, first_set, exercise_idx, true, nReps, nWeight);
+		createSetObject(set_type, first_set, exercise_idx, true, nReps, nWeight, nRestTime);
 		m_expectedSetNumber = first_set;
 		return;
 	}
@@ -790,7 +803,9 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 		m_currentExercises->removeSet(exercise_idx, set_number);
 		const uint nsets(m_currentExercises->setCount(exercise_idx));
 		m_currentExercises->exerciseEntry(exercise_idx)->setProperty("setNbr", nsets);
-		if (nsets > 0 && set_number == nsets) //last set was removed, update suggested values for a possible set addition
+		if (nsets == 0)
+			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", true);
+		else if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
 		{
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
@@ -957,6 +972,7 @@ void TPMesocycleClass::enableDisableExerciseCompletedButton(const uint exercise_
 {
 	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
 	const uint nsets(exercise_obj->m_setObjects.count());
+	bool noSetsCompleted(true);
 	for (uint i(0); i < nsets; ++i)
 	{
 		if (exercise_obj->m_setObjects.at(i)->property("finishButtonVisible").toBool())
@@ -964,7 +980,10 @@ void TPMesocycleClass::enableDisableExerciseCompletedButton(const uint exercise_
 			exercise_obj->m_setObjects.at(i)->setProperty("finishButtonEnabled", completed);
 			break;
 		}
+		if (exercise_obj->m_setObjects.at(i)->property("setCompleted").toBool())
+			noSetsCompleted = false;
 	}
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 

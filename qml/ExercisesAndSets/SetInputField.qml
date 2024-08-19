@@ -11,6 +11,7 @@ FocusScope {
 	required property int availableWidth
 
 	property bool showLabel: true
+	property bool showButtons: true
 	property alias text: txtMain.text
 	property string windowTitle
 	property var alternativeLabels: []
@@ -96,7 +97,7 @@ FocusScope {
 			imageSource: "qrc:/images/plus.png"
 			width: 20
 			height: 20
-			visible: type === SetInputField.Type.TimeType
+			visible: showButtons && type === SetInputField.Type.TimeType
 
 
 			anchors {
@@ -117,6 +118,7 @@ FocusScope {
 			imageSource: "qrc:/images/minus.png"
 			width: 20
 			height: 20
+			visible: showButtons
 
 			anchors {
 				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
@@ -188,6 +190,7 @@ FocusScope {
 			imageSource: "qrc:/images/plus.png"
 			width: 20
 			height: 20
+			visible: showButtons
 
 			anchors {
 				left: txtMain.right
@@ -208,7 +211,7 @@ FocusScope {
 			imageSource: "qrc:/images/minus.png"
 			width: 20
 			height: 20
-			visible: type === SetInputField.Type.TimeType
+			visible: showButtons && type === SetInputField.Type.TimeType
 
 			anchors {
 				left: btnIncrease.right

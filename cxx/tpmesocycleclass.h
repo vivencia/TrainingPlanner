@@ -115,11 +115,11 @@ public:
 
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 	Q_INVOKABLE void createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
-							const QString& nReps = QString(), const QString& nWeight = QString());
+									 const QString& nReps = QString(), const QString& nWeight = QString(), const QString& nRestTime = QString());
 	void createSetObject_part2(const uint set_type = 0, const uint set_number = 0, const uint exercise_idx = 0, const bool bNewSet = false);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx);
 	Q_INVOKABLE void createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
-							const QString& nReps = QString(), const QString& nWeight = QString());
+									  const QString& nReps = QString(), const QString& nWeight = QString(), const QString& nRestTime = QString());
 	Q_INVOKABLE void removeSetObject(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE void changeSetsExerciseLabels(const uint exercise_idx, const uint label_idx, const QString& new_text, const bool bChangeModel = true);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint exercise_idx, const uint new_type);
