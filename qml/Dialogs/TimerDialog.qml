@@ -39,10 +39,7 @@ TPPopup {
 		alarmSoundFile: "qrc:/sounds/timer-end.wav"
 		stopWatch: chkStopWatch.checked
 
-		Component.onCompleted: {
-			setRunCommandsObject(runCmd);
-			addWarningAtSecond(15);
-		}
+		Component.onCompleted: addWarningAtSecond(15);
 	}
 
 	ColumnLayout {

@@ -36,7 +36,7 @@ public:
 	Q_INVOKABLE void setSplitLetter(const QChar& splitLetter );
 	Q_INVOKABLE void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
-	Q_INVOKABLE const QString exerciseName(const uint row);
+	Q_INVOKABLE const QString exerciseName(const int row);
 	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName1(const uint row) const;
 	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);

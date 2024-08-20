@@ -8,6 +8,7 @@ Image {
 	fillMode: Image.PreserveAspectFit
 	asynchronous: true
 	source: imageSource.indexOf("qrc") === -1 ? "qrc:/images/"+AppSettings.iconFolder+imageSource : imageSource
+	//source: imageSource.indexOf("png") !== -1 ? "image://tpimageprovider/"+AppSettings.iconFolder+imageSource : "image://tpimageprovider/" + imageSource
 	opacity: parent.opacity
 
 	property string imageSource

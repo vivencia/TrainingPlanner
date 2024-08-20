@@ -27,8 +27,10 @@ Item {
 	property string copyTimeButtonValue: ""
 	property string copyRepsButtonValue: ""
 	property string copyWeightButtonValue: ""
-	property int setMode: 0
-	property bool setCompleted: tDayModel.setCompleted(setNumber, exerciseIdx)
+	property bool setCompleted
+	property bool bTrackRestTime
+	property bool bAutoRestTime
+	property int setMode
 	readonly property int controlWidth: setItem.width - 20
 	property var ownerExercise
 
@@ -111,29 +113,13 @@ Item {
 
 			TPButton {
 				id: btnManageSet
-				text: setMode === 0 ? qsTr("Mark set as Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Stop Rest"))
+				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
 				flat: false
 				visible: !setCompleted
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.left: btnRemoveSet.right
 
-				onClicked: {
-					switch(setMode) {
-						case 0:
-							stopRestTimer();
-							setCompleted = true;
-							tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
-						break;
-						case 1:
-							setMode = 2;
-							startRestTimer();
-						break;
-						case 2:
-							setMode = 0;
-							stopRestTimer();
-						break;
-					}
-				}
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
 			}
 
 			TPButton {
@@ -148,16 +134,12 @@ Item {
 					leftMargin: 40
 				}
 
-				onClicked: {
-					setCompleted = false;
-					tDayModel.setSetCompleted(setNumber, exerciseIdx, setCompleted);
-					findSetMode();
-				}
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
 			}
 		}
 
 		RowLayout {
-			visible: setNumber > 0 && tDayModel.trackRestTime(exerciseIdx)
+			visible: setNumber > 0 && bTrackRestTime
 			enabled: !setCompleted
 			Layout.leftMargin: 5
 
@@ -167,7 +149,7 @@ Item {
 				text: tDayModel.setRestTime(setNumber, exerciseIdx);
 				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
 				windowTitle: lblSetNumber.text
-				showButtons: tDayModel.autoRestTime(exerciseIdx)
+				showButtons: !bAutoRestTime
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
@@ -457,37 +439,7 @@ Item {
 		txtExercise2.bCanEmitTextChanged = liberate;
 	}
 
-	TPTimer {
-		id: setTimer
-		alarmSoundFile: "qrc:/sounds/timer-end.wav"
-		stopWatch: true
-		interval: 1000
-
-		Component.onCompleted: setRunCommandsObject(runCmd);
-	}
-
-	function findSetMode() {
-		if (setNumber > 0) {
-			if (tDayModel.trackRestTime(exerciseIdx)) {
-				if (tDayModel.autoRestTime(exerciseIdx)) {
-					setMode = 1;
-					return;
-				}
-			}
-		}
-		setMode = 0;
-	}
-
-	function startRestTimer() {
-		setTimer.prepareTimer("-");
-		txtRestTime.text = Qt.binding( function() { return setTimer.strMinutes + ":" + setTimer.strSeconds; } );
-		setTimer.startTimer("-");
-	}
-
-	function stopRestTimer() {
-		if (setTimer.active) {
-			setTimer.stopTimer();
-			tDayModel.setSetRestTime(setNumber, exerciseIdx, txtRestTime.text);
-		}
+	function updateRestTime(str_time: string) {
+		txtRestTime.text = str_time;
 	}
 } // Item

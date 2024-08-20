@@ -115,7 +115,7 @@ RowLayout {
 
 	TPButton {
 		id: btnRemoveExercise
-		imageSource: "qrc:/images/remove.png"
+		imageSource: "remove"
 		height: 20
 		width: 20
 		visible: showRemoveButton

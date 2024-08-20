@@ -214,8 +214,7 @@ FocusScope {
 
 					onClicked: {
 						bTrackRestTime = checked;
-						if (!bTrackRestTime) bAutoRestTime = false;
-						tDayModel.setTrackRestTime(bTrackRestTime, exerciseIdx);
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 
@@ -229,11 +228,7 @@ FocusScope {
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
 					onClicked: {
 						bAutoRestTime = checked;
-						tDayModel.setAutoRestTime(bAutoRestTime, exerciseIdx);
-						if (bAutoRestTime)
-							nRestTime = "00:00";
-						else
-							nRestTime = tDayModel.nextSetSuggestedTime(exerciseIdx, cboSetType.currentIndex, 0);
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 			}
@@ -309,6 +304,7 @@ FocusScope {
 				TPButton {
 					id: btnAddSet
 					imageSource: "qrc:/images/add-new.png"
+					imageSize: 30
 					Layout.leftMargin: 30
 
 					onClicked: {

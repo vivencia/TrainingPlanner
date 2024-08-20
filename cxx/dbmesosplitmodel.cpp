@@ -91,10 +91,14 @@ void DBMesoSplitModel::setSplitLetter(const QChar& splitLetter)
 	emit splitLetterChanged();
 }
 
-const QString DBMesoSplitModel::exerciseName(const uint row)
+const QString DBMesoSplitModel::exerciseName(const int row)
 {
-	QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
-	return name.replace(subrecord_separator, QStringLiteral(" + "));
+	if (row >= 0 && row < m_modeldata.count())
+	{
+		QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
+		return name.replace(subrecord_separator, u" + "_qs);
+	}
+	return QString();
 }
 
 void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)

@@ -169,7 +169,6 @@ TPPage {
 		interval: 1000
 
 		Component.onCompleted: {
-			setRunCommandsObject(runCmd);
 			addWarningAtMinute(15);
 			addWarningAtMinute(5);
 			addWarningAtMinute(1);

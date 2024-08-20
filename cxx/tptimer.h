@@ -31,7 +31,6 @@ public:
 	explicit TPTimer(QObject* parent = nullptr);
 	virtual ~TPTimer();
 
-	Q_INVOKABLE void setRunCommandsObject(RunCommands *runCmd);
 	Q_INVOKABLE void prepareTimer(const QString& strStartTime);
 	Q_INVOKABLE void startTimer(const QString& initialTimeOfDay);
 	Q_INVOKABLE void stopTimer();

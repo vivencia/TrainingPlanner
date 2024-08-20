@@ -627,6 +627,19 @@ void TPMesocycleClass::rollUpExercises() const
 		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	QMetaObject::invokeMethod(m_CurrenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }
+
+void TPMesocycleClass::manageRestTime(const uint exercise_idx, const bool bTrackRestTime, bool bAutoRestTime, const uint new_set_type)
+{
+	if (!bTrackRestTime)
+		bAutoRestTime = false;
+	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
+	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
+	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nRestTime", bAutoRestTime ?
+											u"00:00"_qs :
+											m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, new_set_type, 0));
+
+	enableDisableSetsRestTime(exercise_idx, bTrackRestTime, bAutoRestTime);
+}
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
@@ -669,9 +682,11 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
 	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
 	m_setObjectProperties.insert(QStringLiteral("setType"), set_type);
+	m_setObjectProperties.insert(QStringLiteral("setCompleted"), m_CurrenttDayModel->setCompleted(set_number, exercise_idx));
+	m_setObjectProperties.insert(u"bTrackRestTime"_qs, m_CurrenttDayModel->trackRestTime(exercise_idx));
+	m_setObjectProperties.insert(u"bAutoRestTime"_qs, m_CurrenttDayModel->autoRestTime(exercise_idx));
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
 								createWithInitialProperties(m_setObjectProperties, m_QMlEngine->rootContext())));
-
 	m_QMlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 
 	//Default values for these properties. They are only modified, on the c++ side, in changeSetType().
@@ -685,6 +700,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 	else
 		m_currentExercises->insertSet(set_number, exercise_idx, item);
 
+	findSetMode(exercise_idx, set_number);
 	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
 	connect( item, SIGNAL(showRemoveSetMessage(int,int)), this, SLOT(showRemoveSetMessage(int,int)) );
@@ -985,6 +1001,89 @@ void TPMesocycleClass::enableDisableExerciseCompletedButton(const uint exercise_
 	}
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
 }
+
+void TPMesocycleClass::enableDisableSetsRestTime(const uint exercise_idx, const uint bTrackRestTime,
+								const uint bAutoRestTime, const uint except_set_number)
+{
+	const uint nsets(m_currentExercises->setCount(exercise_idx));
+	for(uint i(1); i < nsets; ++i)
+	{
+		if (i != except_set_number)
+		{
+			if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
+			{
+				m_currentExercises->setObject(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
+				m_currentExercises->setObject(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
+			}
+		}
+	}
+}
+
+void TPMesocycleClass::findSetMode(const uint exercise_idx, const uint set_number)
+{
+	int set_mode(0);
+	if (set_number > 0)
+	{
+		if (m_CurrenttDayModel->trackRestTime(exercise_idx))
+		{
+			if (m_CurrenttDayModel->autoRestTime(exercise_idx))
+				set_mode = 1;
+		}
+	}
+	m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setMode", set_mode);
+}
+
+void TPMesocycleClass::changeSetMode(const uint exercise_idx, const uint set_number)
+{
+	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	uint set_mode(set_object->property("setMode").toUInt());
+	switch(set_mode)
+	{
+		case 0:
+			set_object->setProperty("setCompleted", true);
+			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, true);
+			return;
+		break;
+		case 1:
+			set_mode = 2;
+			startRestTimer(exercise_idx, set_number);
+		break;
+		case 2:
+			set_mode = 0;
+			stopRestTimer(exercise_idx, set_number);
+		break;
+	}
+	set_object->setProperty("setMode", set_mode);
+}
+
+void TPMesocycleClass::startRestTimer(const uint exercise_idx, const uint set_number)
+{
+	TPTimer* set_timer(m_currentExercises->setTimer(exercise_idx));
+	set_timer->setInterval(1000);
+	set_timer->setStopWatch(true);
+	set_timer->prepareTimer(u"-"_qs);
+	enableDisableSetsRestTime(exercise_idx, false, false, set_number); //Prevent the user from starting the timer for another set before finishing this one
+	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	connect(set_timer, &TPTimer::secondsChanged, this, [&,set_timer] () {
+		QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
+	});
+	connect(set_timer, &TPTimer::minutesChanged, this, [&,set_timer] () {
+		QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
+	});
+	set_timer->startTimer(u"-"_qs);
+}
+
+void TPMesocycleClass::stopRestTimer(const uint exercise_idx, const uint set_number)
+{
+	TPTimer* set_timer(m_currentExercises->setTimer(exercise_idx));
+	if (set_timer->isActive())
+	{
+		set_timer->stopTimer();
+		disconnect(set_timer, nullptr, nullptr, nullptr);
+		enableDisableSetsRestTime(exercise_idx, true, true, set_number);
+		m_CurrenttDayModel->setSetRestTime(set_number, exercise_idx, set_timer->strMinutes() + ':' + set_timer->strSeconds());
+	}
+}
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 void TPMesocycleClass::tDayExercises::appendExerciseEntry(QQuickItem* new_exerciseItem)
@@ -1001,6 +1100,8 @@ void TPMesocycleClass::tDayExercises::removeExerciseEntry(const uint exercise_id
 		exerciseObj->m_setObjects.at(x)->deleteLater();
 	exerciseObj->m_setObjects.clear();
 	exerciseObj->m_exerciseEntry->deleteLater();
+	if (exerciseObj->m_setTimer)
+		exerciseObj->m_setTimer->deleteLater();
 	exerciseObjects.removeAt(exercise_idx);
 	delete exerciseObj;
 }

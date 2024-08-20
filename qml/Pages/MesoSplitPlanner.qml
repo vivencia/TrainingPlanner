@@ -49,22 +49,12 @@ Frame {
 	TPBalloonTip {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise?")
-		message: exerciseName + qsTr("This action cannot be undone.")
+		message: splitModel.exerciseName(splitModel.currentRow) + qsTr("\nThis action cannot be undone.")
 		imageSource: "qrc:/images/remove.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: removeExercise(idxToRemove);
 		parentPage: parentItem
-
-		property int idxToRemove
-		property string exerciseName
-
-		function init(idxtoremove: int, pos: int) {
-			idxToRemove = idxtoremove;
-			splitModel.currentRow = idxtoremove;
-			exerciseName = splitModel.exerciseName;
-			show(pos);
-		}
 	} //TPBalloonTip
 
 	background: Rectangle {
@@ -240,7 +230,7 @@ Frame {
 
 						onRemoveButtonClicked: {
 							splitModel.currentRow = index;
-							msgDlgRemove.init(index, 0);
+							msgDlgRemove.show(0);
 						}
 
 						onEditButtonClicked: {
