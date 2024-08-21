@@ -224,7 +224,6 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 {
 	m_QMlEngine = QMlEngine;
 
-	//QML type registration
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");

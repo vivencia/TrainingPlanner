@@ -69,9 +69,8 @@ Rectangle {
 
 			function finishCreation() {
 				buttonImage = component.createObject(button,
-					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon, size: imageSize});
+					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon, imgSize: imageSize});
 				resizeButton();
-				optionsEffect.visible = true;
 			}
 
 			if (component.status === Component.Ready)
@@ -81,21 +80,6 @@ Rectangle {
 		}
 		else
 			resizeButton();
-	}
-
-	MultiEffect {
-		id: optionsEffect
-		source: buttonImage
-		anchors.fill: buttonImage
-		shadowEnabled: button.enabled
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-		visible: false
 	}
 
 	property double fillPosition: 1

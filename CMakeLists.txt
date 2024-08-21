@@ -26,6 +26,7 @@ set( SOURCES
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/urihandler.h cxx/urihandler.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
+	cxx/tpimage.h cxx/tpimage.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
