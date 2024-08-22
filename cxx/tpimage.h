@@ -5,8 +5,6 @@
 #include <QQuickPaintedItem>
 #include <QImage>
 
-class QGraphicsEffect;
-
 class TPImage : public QQuickPaintedItem
 {
 
@@ -23,11 +21,14 @@ public:
 	inline QString source() const { return mSource; }
 	void setSource(const QString& source);
 	inline bool dropShadow() const { return mDropShadow; }
-	inline void setDropShadow(const bool drop_shadow) { mDropShadow = drop_shadow; }
+	void setDropShadow(const bool drop_shadow);
 	inline int imgSize() const { return mSize.width(); }
 	void setImgSize(const int size);
 
 	void paint(QPainter* painter);
+
+public slots:
+	void checkEnabled(const bool bCallUpdate = true);
 
 signals:
 	void sourceChanged();
@@ -37,7 +38,7 @@ private:
 	QString mSource;
 	QImage mImage;
 	QImage mImageDisabled;
-	QImage mImageEffect;
+	QImage mImageShadow;
 	QImage* m_imageToPaint;
 	QSize mSize;
 	bool mDropShadow;
@@ -45,7 +46,7 @@ private:
 
 	void scaleImage();
 	void convertToGrayScale();
-	void applyEffectToImage(QGraphicsEffect* effect, int extent = 0);
+	void createDropShadowImage();
 };
 
 #endif // TPIMAGE_H

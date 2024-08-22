@@ -94,7 +94,7 @@ FocusScope {
 
 		TPButton {
 			id: btnIncreaseMinutes
-			imageSource: "qrc:/images/plus.png"
+			imageSource: "plus"
 			width: 20
 			height: 20
 			visible: showButtons && type === SetInputField.Type.TimeType
@@ -115,7 +115,7 @@ FocusScope {
 
 		TPButton {
 			id: btnDecrease
-			imageSource: "qrc:/images/minus.png"
+			imageSource: "minus"
 			width: 20
 			height: 20
 			visible: showButtons
@@ -187,7 +187,7 @@ FocusScope {
 
 		TPButton {
 			id: btnIncrease
-			imageSource: "qrc:/images/plus.png"
+			imageSource: "plus"
 			width: 20
 			height: 20
 			visible: showButtons
@@ -208,7 +208,7 @@ FocusScope {
 
 		TPButton {
 			id: btnDecreaseSeconds
-			imageSource: "qrc:/images/minus.png"
+			imageSource: "minus"
 			width: 20
 			height: 20
 			visible: showButtons && type === SetInputField.Type.TimeType
