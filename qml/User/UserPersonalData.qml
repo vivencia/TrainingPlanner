@@ -142,16 +142,14 @@ Frame {
 			}
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnBirthDate
-			width: 25
-			height: controlsHeight
-			imageName: "calendar.png"
-
-			onClicked: caldlg.open();
-
+			imageSource: "calendar.png"
+			imageSize: 30
 			anchors.left: txtBirthdate.right
 			anchors.verticalCenter: txtBirthdate.verticalCenter
+
+			onClicked: caldlg.open();
 		}
 	}
 

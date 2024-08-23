@@ -85,7 +85,7 @@ Item {
 			TPButton {
 				id: btnCopyValue
 				visible: copyTypeButtonValue !== ""
-				imageSource: "qrc:/images/copy-setvalue.png"
+				imageSource: "copy-setvalue"
 				imageSize: 25
 
 				anchors {
@@ -101,8 +101,7 @@ Item {
 
 			TPButton {
 				id: btnRemoveSet
-				imageSource: "qrc:/images/remove.png"
-				backgroundColor: "transparent"
+				imageSource: "remove"
 				height: 20
 				width: 20
 
@@ -127,7 +126,7 @@ Item {
 
 			TPButton {
 				id: imgCompleted
-				imageSource: "qrc:/images/set-completed.png"
+				imageSource: "set-completed"
 				visible: setCompleted
 				imageSize: 25
 
@@ -170,7 +169,7 @@ Item {
 			TPButton {
 				id: btnCopyTimeValue
 				visible: copyTimeButtonValue !== ""
-				imageSource: "qrc:/images/copy-setvalue.png"
+				imageSource: "copy-setvalue"
 				imageSize: 25
 				Layout.alignment: Qt.AlignRight
 

@@ -95,7 +95,7 @@ Frame {
 
 	TPButton {
 		id: btnWhatsApp
-		imageSource: "qrc:/images/whatsapp.png"
+		imageSource: "whatsapp"
 		enabled: bPhoneOK
 		visible: userRow !== 0
 		width: 30
@@ -111,7 +111,7 @@ Frame {
 
 	TPButton {
 		id: btnTelegram
-		imageSource: "qrc:/images/telegram.png"
+		imageSource: "telegram"
 		enabled: bPhoneOK
 		visible: userRow !== 0
 		width: 30
@@ -190,7 +190,7 @@ Frame {
 
 	TPButton {
 		id: btnSendEMail
-		imageSource: "qrc:/images/email.png"
+		imageSource: "email"
 		enabled: bEmailOK
 		visible: userRow !== 0
 		width: 30
@@ -294,7 +294,7 @@ Frame {
 
 	TPButton {
 		id: btnOpenSocialMedia
-		imageSource: "openurl.png"
+		imageSource: "openurl"
 		enabled: bSocialOK
 		visible: userRow !== 0
 		width: 30

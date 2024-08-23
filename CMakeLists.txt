@@ -120,7 +120,6 @@ set( QML_FILES
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPRadioButton.qml"
     "qml/TPWidgets/TPSaveDialog.qml"
-    "qml/TPWidgets/TPRoundButton.qml"
     "qml/TPWidgets/TPTextInput.qml"
     "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"

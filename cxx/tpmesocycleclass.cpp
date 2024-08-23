@@ -1040,9 +1040,12 @@ void TPMesocycleClass::changeSetMode(const uint exercise_idx, const uint set_num
 	switch(set_mode)
 	{
 		case 0:
-			set_object->setProperty("setCompleted", true);
-			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, true);
+		{
+			const bool b_set_completed(set_object->property("setCompleted").toBool());
+			set_object->setProperty("setCompleted", !b_set_completed);
+			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, !b_set_completed);
 			return;
+		}
 		break;
 		case 1:
 			set_mode = 2;

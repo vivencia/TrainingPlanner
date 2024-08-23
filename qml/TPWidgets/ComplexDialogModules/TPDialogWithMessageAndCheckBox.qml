@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 
 import "../"
 import "../.."
+import com.vivenciasoftware.qmlcomponents
 
 Column {
 	id: mainLayout
@@ -31,30 +31,11 @@ Column {
 		Layout.fillWidth: true
 		spacing: 5
 
-		Image {
+		TPImage {
 			id: imgElement
 			source: parentDlg.customStringProperty3 !== "" ? "qrc:/images/"+AppSettings.iconFolder+parentDlg.customStringProperty3 : ""
-			fillMode: Image.PreserveAspectFit
-			asynchronous: true
-			visible: false
-			layer.enabled: true
-		}
-
-		MultiEffect {
-			id: imgEffects
 			visible: parentDlg.customStringProperty3 !== ""
-			source: imgElement
-			shadowEnabled: true
-			shadowOpacity: 0.5
-			blurMax: 16
-			shadowBlur: 1
-			shadowHorizontalOffset: 5
-			shadowVerticalOffset: 5
-			shadowColor: "black"
-			shadowScale: 1
 			width: parentDlg.customStringProperty3 !== "" ? 50 : 0
-			height: width
-			Layout.alignment: Qt.AlignCenter
 		}
 
 		Label {
@@ -65,7 +46,7 @@ Column {
 			horizontalAlignment: Text.AlignJustify
 			font.pointSize: AppSettings.fontSizeText
 			font.weight: Font.Black
-			width: mainLayout.width - imgEffects.width - 10
+			width: mainLayout.width - imgElement.width - 10
 			height: Math.ceil(fontMetrics.boundingRect(text).width / width) * 30
 			Layout.maximumWidth: width
 			Layout.minimumWidth: width
@@ -87,6 +68,6 @@ Column {
 	} //TPCheckBox
 
 	function resize() {
-		mainLayout.height = Math.max(lblMessage.height, imgEffects.height) + checkbox.implicitHeight
+		mainLayout.height = Math.max(lblMessage.height, imgElement.height) + checkbox.implicitHeight
 	}
 } // ColumnLayout

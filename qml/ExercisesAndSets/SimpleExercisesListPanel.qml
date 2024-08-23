@@ -79,6 +79,7 @@ TPPopup {
 			TPButton {
 				id: btnCloseList
 				imageSource: "close.png"
+				hasDropShadow: false
 				imageSize: 20
 				z: 2
 

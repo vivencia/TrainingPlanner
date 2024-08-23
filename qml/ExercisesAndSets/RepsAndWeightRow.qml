@@ -63,7 +63,7 @@ Item {
 
 		TPButton {
 			id: btnCopyValue
-			imageSource: "qrc:/images/copy-setvalue.png"
+			imageSource: "copy-setvalue"
 			imageSize: 25
 
 			onClicked: {
@@ -125,8 +125,7 @@ Item {
 
 			TPButton {
 				id: btnRemoveRow
-				imageSource: "qrc:/images/remove.png"
-				backgroundColor: "transparent"
+				imageSource: "remove"
 				visible: rowIdx > 0
 				width: 20
 				height: 20
@@ -142,8 +141,7 @@ Item {
 
 			TPButton {
 				id: btnInsertAnotherRow
-				imageSource: "qrc:/images/add-new.png"
-				backgroundColor: "transparent"
+				imageSource: "add-new"
 				visible: bBtnAddEnabled
 				width: 30
 				height: 30
@@ -160,7 +158,7 @@ Item {
 
 		TPButton {
 			id: btnCopyValue2
-			imageSource: "qrc:/images/copy-setvalue.png"
+			imageSource: "copy-setvalue"
 			imageSize: 25
 
 			onClicked: {

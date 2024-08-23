@@ -264,7 +264,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 
 	QQuickItem* appStackView(m_mainWindow->findChild<QQuickItem*>(u"appStackView"_qs));
 	QQuickItem* contentItem(appStackView->parentItem());
-	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height: 640 - footer.height - header.height
+	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
 	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
 
 	m_QMlEngine->rootContext()->setContextProperties(properties);

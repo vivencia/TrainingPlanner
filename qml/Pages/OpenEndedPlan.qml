@@ -56,7 +56,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 				leftMargin: 20
 			}
-			imageSource: "edit-mesocycle.png"
+			imageSource: "meso-calendar.png"
 
 			onClicked: appDB.getMesoCalendar(true);
 		}
@@ -114,13 +114,12 @@ TPPage {
 					}
 				}
 
-				TPRoundButton {
+				TPButton {
 					id: btnStartDate
+					imageSource: "calendar.png"
+					imageSize: 40
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
-					width: 40
-					height: 40
-					imageName: "calendar.png"
 
 					onClicked: caldlg.open();
 				}
@@ -147,19 +146,6 @@ TPPage {
 				Layout.minimumWidth: parent.width / 2
 				ToolTip.text: qsTr("There should be at least one rest day(R) in any program")
 
-				TPRoundButton {
-					id: btnTrainingSplit
-					width: 40
-					height: 40
-					anchors {
-						left: txtMesoSplit.right
-						verticalCenter: txtMesoSplit.verticalCenter
-						leftMargin: 10
-					}
-					imageName: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
-					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
-				}
-
 				onTextEdited: {
 					bMesoSplitOK = text.indexOf('R') !== -1;
 					ToolTip.visible = !bMesoSplitOK;
@@ -175,16 +161,26 @@ TPPage {
 					}
 				}
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
+				onEnterOrReturnKeyPressed: {
 					if (!paneTrainingSplit.shown)
 						btnTrainingSplit.clicked();
 					JSF.moveFocusToNextField('0');
 				}
-				Keys.onEnterPressed: { //Numeric keyboard
-					if (!paneTrainingSplit.shown)
-						btnTrainingSplit.clicked();
-					JSF.moveFocusToNextField('0');
+
+				TPButton {
+					id: btnTrainingSplit
+					imageSource: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
+					imageSize: 40
+
+					anchors {
+						left: txtMesoSplit.right
+						verticalCenter: txtMesoSplit.verticalCenter
+						leftMargin: 10
+					}
+
+					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
 				}
+
 			}
 
 			Pane {

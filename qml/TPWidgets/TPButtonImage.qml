@@ -8,7 +8,6 @@ TPImage {
 	width: imgSize + 10
 	source: imageSource.indexOf("png") !== -1 ? AppSettings.iconFolder+imageSource : imageSource
 	opacity: parent.opacity
-	//layer.enabled: false
 
 	property string imageSource
 	property bool bIconOnly: false

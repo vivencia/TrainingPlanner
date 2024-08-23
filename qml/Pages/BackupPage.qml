@@ -102,11 +102,10 @@ TPPage {
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-				TPRoundButton {
+				TPButton {
 					id: btnChooseBackupFolder
-					imageName: "folder-backup.png"
-					width: 40
-					height: 40
+					imageSource: "backup-folder"
+					imageSize: 30
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.left: parent.right
 					onClicked: folderDialog.open();
@@ -228,11 +227,10 @@ TPPage {
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-				TPRoundButton {
+				TPButton {
 					id: btnChooseFolder
-					imageName: "folder-backup.png"
-					width: 40
-					height: 40
+					imageSource: "backup-folder"
+					imageSize: 30
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.left: parent.right
 					onClicked: folderDialog.open();

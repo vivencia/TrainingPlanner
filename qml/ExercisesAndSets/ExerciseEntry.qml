@@ -58,14 +58,15 @@ FocusScope {
 			radius: 10
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnMoveExerciseUp
-			height: 30
-			width: 30
-			padding: 5
+			imageSource: "up"
+			hasDropShadow: false
 			enabled: exerciseIdx > 0
 			visible: tDayModel.dayIsEditable
-			imageName: "up.png"
+			height: 30
+			width: 30
+
 			anchors {
 				left: parent.left
 				leftMargin: 0
@@ -75,14 +76,16 @@ FocusScope {
 
 			onClicked: moveExercise(true, true);
 		}
-		TPRoundButton {
+
+		TPButton {
 			id: btnMoveExerciseDown
-			height: 30
-			width: 30
-			padding: 5
+			imageSource: "down"
+			hasDropShadow: false
 			enabled: exerciseIdx < tDayModel.exerciseCount-1
 			visible: tDayModel.dayIsEditable
-			imageName: "down.png"
+			height: 30
+			width: 30
+
 			anchors {
 				left: parent.left
 				leftMargin: 20
@@ -103,11 +106,9 @@ FocusScope {
 				Layout.fillWidth: true
 				Layout.topMargin: 5
 
-				TPRoundButton {
+				TPButton {
 					id: btnFoldIcon
-					height: 25
-					width: 25
-					imageName: paneExercise.shown ? "fold-up.png" : "fold-down.png"
+					imageSource: paneExercise.shown ? "fold-up.png" : "fold-down.png"
 					onClicked: paneExerciseShowHide(false, false);
 					z: 1
 				}
@@ -303,7 +304,7 @@ FocusScope {
 
 				TPButton {
 					id: btnAddSet
-					imageSource: "qrc:/images/add-new.png"
+					imageSource: "add-new"
 					imageSize: 30
 					Layout.leftMargin: 30
 

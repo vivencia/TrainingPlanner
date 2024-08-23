@@ -82,6 +82,7 @@ TPPopup {
 			id: btnPrev
 			text: qsTr("Previous")
 			imageSource: "back.png"
+			hasDropShadow: false
 			leftAlign: false
 			enabled: stackLayout.currentIndex > 0
 
@@ -98,6 +99,7 @@ TPPopup {
 			id: btnNext
 			text: qsTr("Next")
 			imageSource: "next.png"
+			hasDropShadow: false
 			enabled: stackLayout.currentIndex < stackLayout.count ? stackLayout.itemAt(stackLayout.currentIndex).bReady : false
 
 			anchors {

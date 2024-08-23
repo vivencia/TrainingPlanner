@@ -28,17 +28,16 @@ ColumnLayout {
 		Layout.fillWidth: false
 		padding: 0
 
-		TPRoundButton {
+		TPButton {
 			id: button
+			imageSource: "fold-down.png"
+
 			anchors {
 				left: parent.right
 				top: parent.top
 				topMargin: -5
 				rightMargin: 20
 			}
-			width: 25
-			height: 25
-			imageName: "fold-down.png"
 
 			onClicked: {
 				txtSetNotes.visible = !txtSetNotes.visible;

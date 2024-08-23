@@ -84,12 +84,13 @@ TPPage {
 
 		TPButton {
 			text: qsTr("Calendar")
+			imageSource: "meso-calendar.png"
+
 			anchors {
 				left: parent.left
 				verticalCenter: parent.verticalCenter
 				leftMargin: 20
 			}
-			imageSource: "edit-mesocycle.png"
 
 			onClicked: appDB.getMesoCalendar(true);
 		}
@@ -297,7 +298,7 @@ TPPage {
 
 				TPButton {
 					id: btnChooseMesoFile
-					imageSource: "qrc:/images/choose_avatar.png"
+					imageSource: "choose_avatar"
 					width: 30
 					height: 30
 
@@ -356,13 +357,12 @@ TPPage {
 					}
 				}
 
-				TPRoundButton {
+				TPButton {
 					id: btnStartDate
+					imageSource: "calendar.png"
+					imageSize: 40
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
-					width: 40
-					height: 40
-					imageName: "calendar.png"
 
 					onClicked: caldlg.open();
 				}
@@ -398,13 +398,12 @@ TPPage {
 					}
 				}
 
-				TPRoundButton {
+				TPButton {
 					id: btnEndDate
+					imageSource: "calendar.png"
+					imageSize: 40
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
-					width: 40
-					height: 40
-					imageName: "calendar.png"
 
 					onClicked: caldlg2.open();
 				}
@@ -454,18 +453,6 @@ TPPage {
 				ToolTip.text: qsTr("On a mesocycle, there should be at least one rest day(R)")
 
 				property bool bMesoSplitOK: false
-				TPRoundButton {
-					id: btnTrainingSplit
-					width: 40
-					height: 40
-					anchors {
-						left: txtMesoSplit.right
-						verticalCenter: txtMesoSplit.verticalCenter
-						leftMargin: 10
-					}
-					imageName: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
-					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
-				}
 
 				onTextEdited: {
 					bMesoSplitOK = text.indexOf('R') !== -1;
@@ -488,6 +475,20 @@ TPPage {
 					if (!paneTrainingSplit.shown)
 						btnTrainingSplit.clicked();
 					JSF.moveFocusToNextField('0');
+				}
+
+				TPButton {
+					id: btnTrainingSplit
+					imageSource: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
+					imageSize: 40
+
+					anchors {
+						left: txtMesoSplit.right
+						verticalCenter: txtMesoSplit.verticalCenter
+						leftMargin: 10
+					}
+
+					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
 				}
 			}
 
@@ -673,7 +674,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onClicked: appDB.createExercisesPlannerPage();
-					} //TPButton
+					}
 				} //GridLayout
 			} //Pane
 

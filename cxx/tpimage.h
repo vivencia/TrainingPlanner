@@ -47,6 +47,8 @@ private:
 	void scaleImage();
 	void convertToGrayScale();
 	void createDropShadowImage();
+	void grayScale(QImage& dstImg, const QImage& srcImg);
+	void blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, const int radius, const bool alphaOnly = false);
 };
 
 #endif // TPIMAGE_H

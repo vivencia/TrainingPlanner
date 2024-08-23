@@ -52,7 +52,7 @@ TPPage {
 
 		TPButton {
 			id: btnAdd
-			imageSource: "qrc:/images/add-new.png"
+			imageSource: "add-new"
 			width: 30
 			height: 30
 
@@ -61,7 +61,7 @@ TPPage {
 
 		TPButton {
 			id: btnDel
-			imageSource: "qrc:/images/remove.png"
+			imageSource: "remove"
 			width: 30
 			height: 30
 
@@ -70,7 +70,7 @@ TPPage {
 
 		TPButton {
 			id: btnFirst
-			imageSource: "qrc:/images/first.png"
+			imageSource: "first"
 			width: 30
 			height: 30
 
@@ -79,7 +79,7 @@ TPPage {
 
 		TPButton {
 			id: btnPrev
-			imageSource: "qrc:/images/prev.png"
+			imageSource: "prev"
 			width: 30
 			height: 30
 
@@ -88,7 +88,7 @@ TPPage {
 
 		TPButton {
 			id: btnNext
-			imageSource: "qrc:/images/next.png"
+			imageSource: "next"
 			width: 30
 			height: 30
 
@@ -97,7 +97,7 @@ TPPage {
 
 		TPButton {
 			id: btnLast
-			imageSource: "qrc:/images/last.png"
+			imageSource: "last"
 			width: 30
 			height: 30
 

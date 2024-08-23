@@ -42,7 +42,7 @@ TPPopup {
 
 		TPButton {
 			id: btnChooseImage
-			imageSource: "qrc:/images/choose_avatar.png"
+			imageSource: "choose_avatar"
 			width: 25
 			height: 25
 

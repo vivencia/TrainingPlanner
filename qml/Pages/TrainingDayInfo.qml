@@ -564,11 +564,10 @@ TPPage {
 							}
 						}
 
-						TPRoundButton {
+						TPButton {
 							id: btnInTime
-							width: 40
-							height: 40
-							imageName: "time.png"
+							imageSource: "time.png"
+							imageSize: 30
 							enabled: editMode || !runCmd.areDatesTheSame(mainDate, new Date())
 
 							anchors {
@@ -605,11 +604,10 @@ TPPage {
 							}
 						}
 
-						TPRoundButton {
+						TPButton {
 							id: btnOutTime
-							width: 40
-							height: 40
-							imageName: "time.png"
+							imageSource: "time.png"
+							imageSize: 30
 
 							anchors {
 								top: parent.top
@@ -679,14 +677,13 @@ TPPage {
 					opacity: 0.8
 				}
 
-				TPRoundButton {
+				TPButton {
 					id: btnClearExercises
-					width: 40
-					height: 40
-					enabled: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
+					imageSource: "revert-day.png"
+					imageSize: 20
+					enabled: tDayModel.dayIsEditable
 					visible: exercisesLayout.children.length > 0
 					ToolTip.text: "Remove all exercises"
-					imageName: "revert-day.png"
 
 					anchors {
 						left: parent.left
@@ -968,7 +965,6 @@ TPPage {
 			flat: false
 			height: 55
 			visible: splitLetter !== 'R'
-			//enabled: !tDayModel.dayIsFinished ? editMode ? splitLetter !== 'R' : splitLetter !== 'R' && workoutTimer.active : false;
 			enabled: tDayModel.dayIsEditable
 
 			anchors {

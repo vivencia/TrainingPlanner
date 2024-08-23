@@ -6,7 +6,6 @@
         <file>images/black/calendar.png</file>
         <file>images/black/close.png</file>
         <file>images/black/exercises-add.png</file>
-        <file>images/black/exercises.png</file>
         <file>images/black/mesocycle-add.png</file>
         <file>images/black/mesocycle.png</file>
         <file>images/black/settings.png</file>
@@ -14,7 +13,6 @@
         <file>images/white/calendar.png</file>
         <file>images/white/close.png</file>
         <file>images/white/exercises-add.png</file>
-        <file>images/white/exercises.png</file>
         <file>images/white/mesocycle-add.png</file>
         <file>images/white/mesocycle.png</file>
         <file>images/white/settings.png</file>
@@ -33,8 +31,6 @@
         <file>images/white/save-day.png</file>
         <file>images/white/edit.png</file>
         <file>images/black/edit.png</file>
-        <file>images/black/edit-mesocycle.png</file>
-        <file>images/white/edit-mesocycle.png</file>
         <file>images/white/day-info.png</file>
         <file>images/black/day-info.png</file>
         <file>images/black/menu.png</file>
@@ -49,28 +45,17 @@
         <file>images/black/edit-clear.png</file>
         <file>images/app_logo.png</file>
         <file>images/app_icon.png</file>
-        <file>images/point-down.png</file>
         <file>images/white/open-schedule.png</file>
         <file>images/black/open-schedule.png</file>
         <file>images/white/edit-clear.png</file>
         <file>images/black/sound-off.png</file>
         <file>images/white/sound-off.png</file>
-        <file>images/indicator.png</file>
-        <file>images/black/statistics.png</file>
-        <file>images/white/statistics.png</file>
         <file>images/black/clear.png</file>
         <file>images/white/clear.png</file>
-        <file>images/black/up.png</file>
-        <file>images/white/up.png</file>
-        <file>images/black/down.png</file>
-        <file>images/white/down.png</file>
         <file>images/black/home.png</file>
         <file>images/white/home.png</file>
         <file>images/black/swap.png</file>
         <file>images/white/swap.png</file>
-        <file>images/black/folder-backup.png</file>
-        <file>images/black/backup.png</file>
-        <file>images/white/backup.png</file>
         <file>images/black/application-exit.png</file>
         <file>images/white/application-exit.png</file>
         <file>images/black/export.png</file>
@@ -106,5 +91,18 @@
         <file>images/minus.png</file>
         <file>images/plus.png</file>
         <file>images/copy-setvalue.png</file>
+        <file>images/backup-folder.png</file>
+        <file>images/backup.png</file>
+        <file>images/black/meso-calendar.png</file>
+        <file>images/white/meso-calendar.png</file>
+        <file>images/down.png</file>
+        <file>images/up.png</file>
+        <file>images/calendar.png</file>
+        <file>images/timer.png</file>
+        <file>images/mainmenu.png</file>
+        <file>images/black/workout.png</file>
+        <file>images/white/workout.png</file>
+        <file>images/white/meso-splitplanner.png</file>
+        <file>images/black/meso-splitplanner.png</file>
     </qresource>
 </RCC>

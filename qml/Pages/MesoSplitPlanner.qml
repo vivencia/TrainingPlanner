@@ -39,7 +39,7 @@ Frame {
 						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		imageSource: "qrc:/images/remove.png"
+		imageSource: "remove"
 		parentPage: parentItem
 
 		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
@@ -50,7 +50,7 @@ Frame {
 		id: msgDlgRemove
 		title: qsTr("Remove Exercise?")
 		message: splitModel.exerciseName(splitModel.currentRow) + qsTr("\nThis action cannot be undone.")
-		imageSource: "qrc:/images/remove.png"
+		imageSource: "remove"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		onButton1Clicked: removeExercise(idxToRemove);
@@ -177,13 +177,14 @@ Frame {
 
 						onClicked: splitModel.currentRow = index;
 
-						TPRoundButton {
+						TPButton {
 							id: btnMoveExerciseUp
-							imageName: "up.png"
+							imageSource: "up"
+							hasDropShadow: false
 							height: 30
 							width: 30
-							padding: 5
-							enabled: index > 0
+							enabled: index === splitModel.currentRow ? index > 0 : false
+
 							anchors {
 								right: btnMoveExerciseDown.left
 								rightMargin: -5
@@ -192,13 +193,15 @@ Frame {
 
 							onClicked: splitModel.moveRow(index,index-1);
 						}
-						TPRoundButton {
+
+						TPButton {
 							id: btnMoveExerciseDown
-							imageName: "down.png"
+							imageSource: "down"
+							hasDropShadow: false
 							height: 30
 							width: 30
-							padding: 0
-							enabled: index < splitModel.count-1
+							enabled: index === splitModel.currentRow ? index < splitModel.count-1 : false
+
 							anchors {
 								right: parent.right
 								rightMargin: 15
@@ -212,6 +215,7 @@ Frame {
 					ExerciseNameField {
 						id: txtExerciseName
 						text: splitModel.exerciseName(index)
+						enabled: index === splitModel.currentRow
 						Layout.leftMargin: 5
 						Layout.minimumWidth: parent.width - 20
 						Layout.maximumWidth: parent.width - 20
@@ -292,11 +296,11 @@ Frame {
 									color: "transparent"
 								}
 
-								TPRoundButton {
+								TPButton {
 									id: btnAddSet
-									imageName: "plus.png"
-									height: 30
-									width: 30
+									imageSource: "plus"
+									hasDropShadow: false
+									imageSize: 30
 									z:2
 
 									onClicked: splitModel.addSet(index)
@@ -355,11 +359,11 @@ Frame {
 									}
 								} //setsTabBar
 
-								TPRoundButton {
+								TPButton {
 									id: btnDelSet
-									imageName: "minus.png"
-									height: 30
-									width: 30
+									imageSource: "minus"
+									hasDropShadow: false
+									imageSize: 30
 									z:2
 
 									anchors {

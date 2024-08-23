@@ -966,7 +966,7 @@ bool DBTrainingDayModel::setCompleted(const uint set_number, const uint exercise
 {
 	if (exercise_idx < m_ExerciseData.count())
 	{
-		if (set_number < m_ExerciseData.at(exercise_idx)->notes.count())
+		if (set_number < m_ExerciseData.at(exercise_idx)->completed.count())
 			return m_ExerciseData.at(exercise_idx)->completed.at(set_number) == u"1"_qs;
 	}
 	return false;

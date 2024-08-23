@@ -145,7 +145,7 @@ TPPage {
 					text: qsTr("Calendar")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "edit-mesocycle.png"
+					imageSource: "meso-calendar.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -167,7 +167,7 @@ TPPage {
 					text: qsTr("Exercises Plan")
 					rounded: false
 					textUnderIcon: true
-					imageSource: "exercises.png"
+					imageSource: "meso-splitplanner.png"
 					fixedSize: true
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -260,7 +260,7 @@ TPPage {
 
 				TPButton {
 					text: qsTr("Remove Mesocycle")
-					imageSource: "qrc:/images/remove.png"
+					imageSource: "remove"
 					z:2
 
 					anchors {

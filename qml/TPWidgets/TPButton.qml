@@ -20,6 +20,7 @@ Rectangle {
 	property int clickId: -1
 	property int imageSize: 20
 	property string imageSource
+	property bool hasDropShadow: true
 	property bool bPressed: false
 	property bool bEmitSignal: false
 	property bool bFollowParentsOpacity: false
@@ -69,7 +70,8 @@ Rectangle {
 
 			function finishCreation() {
 				buttonImage = component.createObject(button,
-					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon, imgSize: imageSize});
+					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
+							imgSize: imageSize, dropShadow: hasDropShadow});
 				resizeButton();
 			}
 

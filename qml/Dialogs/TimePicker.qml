@@ -325,6 +325,7 @@ TPPopup {
 		TPButton {
 			visible: !timePicker.pickMinutes
 			imageSource: timePicker.useWorkTimes? "work.png" : "time.png"
+			hasDropShadow: false
 
 			anchors {
 				right: parent.right
@@ -341,10 +342,13 @@ TPPopup {
 		TPButton {
 			visible: timePicker.pickMinutes
 			text: timePicker.onlyQuartersAllowed? "15min" : "5min"
-			anchors.right: parent.right
-			anchors.top: parent.top
-			anchors.topMargin: -5
-			anchors.rightMargin: 5
+
+			anchors {
+				right: parent.right
+				top: parent.top
+				topMargin: -5
+				rightMargin: 5
+			}
 
 			onClicked: {
 				timePicker.onlyQuartersAllowed = !timePicker.onlyQuartersAllowed

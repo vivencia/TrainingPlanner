@@ -94,12 +94,11 @@ RowLayout {
 			}
 		}
 
-		TPRoundButton {
+		TPButton {
 			id: btnClearText
-			height: 20
-			width: 20
+			imageSource: "edit-clear.png"
 			visible: !control.readOnly
-			imageName: "edit-clear.png"
+
 			anchors {
 				right: control.right
 				rightMargin: 5

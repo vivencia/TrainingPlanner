@@ -76,52 +76,10 @@ ApplicationWindow {
 		}
 	}
 
-	footer: TabBar {
-		id: tabMain
-
-		TabButton {
-			text: qsTr("HOME")
-			enabled: stackView.depth >= 2
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"home.png"
-				height: 30
-				width: 30
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: parent.left
-				anchors.leftMargin: 10
-			}
-
-			onClicked: {
-				pageDeActivated_main(stackView.currentItem);
-				stackView.pop(stackView.get(0));
-				pageActivated_main(stackView.currentItem);
-				btnWorkoutEnabled();
-			}
-		}
-
-		TabButton {
-			id: btnWorkout
-			text: "          " + qsTr("Today's Workout")
-			font.pointSize: AppSettings.fontSizeText
-
-			Image {
-				source: "qrc:/images/"+darkIconFolder+"exercises.png"
-				height: 40
-				width: 40
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: parent.left
-				anchors.leftMargin: 10
-			}
-
-			onClicked: appDB.getTrainingDay(new Date());
-		} //TabButton
-	} //footer
-
 	function init() {
 		homePage.setViewModel();
-		mesocyclesModel.currentRowChanged.connect(btnWorkoutEnabled);
-		btnWorkoutEnabled();
+		mesocyclesModel.currentRowChanged.connect(navBar.btnWorkoutEnabled);
+		navBar.btnWorkoutEnabled();
 		if (userModel.isEmpty()) {
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
@@ -161,13 +119,6 @@ ApplicationWindow {
 			appDB.processArguments();
 	}
 
-	function btnWorkoutEnabled() {
-		if (stackView.depth === 1)
-			btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
-		else
-			btnWorkout.enabled = false;
-	}
-
 	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item) {
 		pageDeActivated_main(stackView.currentItem);
@@ -176,7 +127,7 @@ ApplicationWindow {
 		else
 			stackView.pop();
 		pageActivated_main(stackView.currentItem);
-		btnWorkoutEnabled();
+		navBar.btnWorkoutEnabled();
 	}
 
 	signal pageActivated_main(Item page);
@@ -184,7 +135,7 @@ ApplicationWindow {
 		pageDeActivated_main(stackView.currentItem);
 		stackView.push(page);
 		pageActivated_main(page);
-		btnWorkoutEnabled();
+		navBar.btnWorkoutEnabled();
 	}
 
 	function createShortCut(label: string, object: Item, clickid: int) {

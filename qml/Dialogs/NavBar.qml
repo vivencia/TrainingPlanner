@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../TPWidgets"
+import com.vivenciasoftware.qmlcomponents
 
 ToolBar {
 	id: root
@@ -16,12 +17,11 @@ ToolBar {
 
 	TPButton {
 		id: btnBack
-		text: qsTr("BACK")
 		imageSource: "back.png"
-		rounded: false
-		flat: false
+		hasDropShadow: false
 		enabled: stackView.depth >= 2 && mainwindow.bBackButtonEnabled
 		visible: stackView.depth >= 2
+
 		anchors {
 			left: parent.left
 			leftMargin: 5
@@ -31,18 +31,55 @@ ToolBar {
 		onClicked: popFromStack();
 	}
 
-	RoundButton {
-		id: btnSettings
-		anchors.right: parent.right
-		anchors.rightMargin: 5
+	TPButton {
+		id: btnHome
+		imageSource: "home.png"
+		hasDropShadow: false
+		enabled: btnBack.enabled
+		visible: btnBack.visible
 
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"menu.png"
-			width: 20
-			height: 20
+		anchors {
+			left: btnBack.right
+			leftMargin: 10
+			verticalCenter: parent.verticalCenter
+		}
+
+		onClicked: {
+			pageDeActivated_main(stackView.currentItem);
+			stackView.pop(stackView.get(0));
+			pageActivated_main(stackView.currentItem);
+			btnWorkoutEnabled();
+		}
+	}
+
+	TPButton {
+		id: btnWorkout
+		imageSource: "workout.png"
+		hasDropShadow: false
+
+		onClicked: appDB.getTrainingDay(new Date());
+
+		anchors {
+			left: btnHome.right
+			leftMargin: 10
+			verticalCenter: parent.verticalCenter
+		}
+	}
+
+	RoundButton {
+		id: btnMainMenu
+		padding: 0
+		anchors.right: parent.right
+		anchors.rightMargin: 0
+
+		TPImage {
+			source: "mainmenu"
+			dropShadow: false
+			imgSize: 30
+			width: imgSize
+			height: imgSize
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
-			fillMode: Image.PreserveAspectFit
 		}
 
 		onClicked: mainMenu.open();
@@ -50,16 +87,18 @@ ToolBar {
 
 	RoundButton {
 		id: btnCalendar
-		anchors.right: btnSettings.left
-		anchors.rightMargin: 5
+		padding: 0
+		anchors.right: btnMainMenu.left
+		anchors.rightMargin: 0
 
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"calendar.png"
-			width: 20
-			height: 20
+		TPImage {
+			source: "calendar"
+			dropShadow: false
+			imgSize: 30
+			width: imgSize
+			height: imgSize
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
-			fillMode: Image.PreserveAspectFit
 		}
 
 		onClicked: {
@@ -82,16 +121,18 @@ ToolBar {
 
 	RoundButton {
 		id: btnTimer
+		padding: 0
 		anchors.right: btnCalendar.left
-		anchors.rightMargin: 5
+		anchors.rightMargin: 0
 
-		Image {
-			source: "qrc:/images/"+darkIconFolder+"time.png"
-			width: 20
-			height: 20
+		TPImage {
+			source: "timer"
+			dropShadow: false
+			imgSize: 30
+			width: imgSize
+			height: imgSize
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
-			fillMode: Image.PreserveAspectFit
 		}
 
 		onClicked: {
@@ -116,5 +157,12 @@ ToolBar {
 			mainCalendar.destroy();
 		if (mainTimer !== null)
 			mainTimer.destroy();
+	}
+
+	function btnWorkoutEnabled() {
+		if (stackView.depth === 1)
+			btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
+		else
+			btnWorkout.enabled = false;
 	}
 }
