@@ -1,9 +1,14 @@
 #include "tpimage.h"
+#include "tpimageprovider.h"
 
 #include <QPainter>
+#include <QGraphicsDropShadowEffect>
+#include <QGraphicsEffect>
+#include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
 
 TPImage::TPImage(QQuickItem* parent)
-	: QQuickPaintedItem(parent), mSize(20, 20), mDropShadow(true), mbCanUpdate(true)
+	: QQuickPaintedItem(parent), mSize(20, 20), mDropShadow(true), mbCanUpdate(true), mShadowEffect(nullptr)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 }
@@ -12,21 +17,26 @@ void TPImage::setSource(const QString& source)
 {
 	if (!source.isEmpty() && mSource != source)
 	{
-		mbCanUpdate = false;
 		if (source.contains(u"png"_qs))
 			mSource = u":/images/"_qs + source;
 		else
-			mSource = u":/images/"_qs + source + u".png"_qs;
+		{
+			if (source.contains(u"provider"_qs))
+			{
+				mSource = source;
+				mImage = tpImageProvider()->getAvatar(mSource);
+				scaleImage();
+				emit sourceChanged();
+				return;
+			}
+			else
+				mSource = u":/images/"_qs + source + u".png"_qs;
+		}
 		if (mImage.load(mSource))
 		{
-			m_imageToPaint = &mImage;
-			if (mSize.isNull())
-				setImgSize(20);
-			else
-				scaleImage();
+			scaleImage();
 			emit sourceChanged();
 		}
-		mbCanUpdate = true;
 	}
 }
 
@@ -51,8 +61,6 @@ void TPImage::paint(QPainter* painter)
 {
 	if (!mbCanUpdate)
 		return;
-	if (m_imageToPaint->isNull())
-		return;
 
 	QPointF center(boundingRect().center() - m_imageToPaint->rect().center());
 
@@ -61,20 +69,20 @@ void TPImage::paint(QPainter* painter)
 	if (center.y() < 0)
 		center.setY(0);
 	painter->drawImage(center, *m_imageToPaint);
-	if (isEnabled())
-	{
-		if (mDropShadow)
-			painter->drawImage(center + QPointF(5, 5), mImageShadow);
-	}
 }
 
 void TPImage::checkEnabled(const bool bCallUpdate)
 {
 	if (isEnabled())
 	{
-		m_imageToPaint = &mImage;
-		if (mDropShadow && mImageShadow.isNull())
-			createDropShadowImage();
+		if (!mDropShadow)
+			m_imageToPaint = &mImage;
+		else
+		{
+			if (mImageShadow.isNull())
+				createDropShadowImage();
+			m_imageToPaint = &mImageShadow;
+		}
 	}
 	else
 	{
@@ -109,14 +117,31 @@ void TPImage::createDropShadowImage()
 {
 	if (!mImage.isNull())
 	{
-		blurred(mImageShadow, mImage, mImage.rect(), 3);
-		grayScale(mImageShadow, mImageShadow);
+		if (!mShadowEffect)
+			mShadowEffect = new QGraphicsDropShadowEffect();
+		mShadowEffect->setOffset(5, 5);
+		mShadowEffect->setBlurRadius(5);
+		applyEffectToImage(mImageShadow, mImage, mShadowEffect, 5);
 	}
+}
+
+void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphicsEffect* effect, const int extent)
+{
+	QGraphicsScene scene;
+	QGraphicsPixmapItem item;
+	item.setPixmap(QPixmap::fromImage(srcImg));
+	item.setGraphicsEffect(effect);
+	scene.addItem(&item);
+	dstImg = srcImg.scaled(srcImg.size()+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
+	dstImg.fill(Qt::transparent);
+	QPainter ptr(&dstImg);
+	scene.render(&ptr, QRectF(), QRectF( -extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
 {
-	dstImg = dstImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
+	dstImg = srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
 	const uint imgHeight(dstImg.height());
 	const uint imgWidth(dstImg.width());
 	uint x(0), y(0), ci(0);
@@ -134,7 +159,7 @@ void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
 	}
 }
 
-void TPImage::blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, const int radius, const bool alphaOnly)
+/*void TPImage::blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, const int radius, const bool alphaOnly)
 {
 	dstImg = srcImg.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
@@ -202,4 +227,4 @@ void TPImage::blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, c
 			for (i = i1; i <= i2; i++)
 				p[i] = (rgba[i] += ((p[i] << 4) - rgba[i]) * alpha / 16) >> 4;
 	}
-}
+}*/

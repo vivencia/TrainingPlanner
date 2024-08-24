@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import com.vivenciasoftware.qmlcomponents
 
 Drawer {
 	id: drawer
@@ -15,6 +16,15 @@ Drawer {
 	opacity: 0.8
 
 	property var buttonComponent: null
+
+	onOpened: {
+		if (userModel.avatar(0) !== imgAvatar.source) {
+			imgAvatar.source = userModel.avatar(0);
+			imgAvatar.update();
+		}
+		if (userModel.userName(0) !== lblAvatar.text)
+			lblAvatar.text = userModel.userName(0);
+	}
 
 	background: Rectangle {
 		id: backgrundRec
@@ -65,46 +75,64 @@ Drawer {
 			bottom: btnExit.top
 			leftMargin: 5
 			rightMargin: 5
-			topMargin: 10
+			topMargin: 0
 			bottomMargin: 5
 		}
 
-		Rectangle {
+		TPImage {
+			id: imgLogo
+			source: "app_icon"
+			dropShadow: false
+			imgSize: 90
+			width: 100
+			height: 100
+			Layout.alignment: Qt.AlignHCenter
+			Layout.topMargin: 0
+		}
+
+		Label {
+			text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
+			wrapMode: Text.WordWrap
+			font.bold: true
+			font.pointSize: AppSettings.fontSizeText
+			horizontalAlignment: Text.AlignHCenter
+			color: AppSettings.fontColor
 			Layout.fillWidth: true
-			Layout.alignment: Qt.AlignCenter
-			height: 230
-			color: "transparent"
+			Layout.topMargin: 0
+		}
 
-			Image {
-				id: imgLogo
-				source: "qrc:/images/app_icon.png"
-				fillMode: Image.PreserveAspectFit
-				height: 150
-				width: 150
+		TPImage {
+			id: imgAvatar
+			dropShadow: true
+			imgSize: 90
+			width: 100
+			height: 100
+			Layout.alignment: Qt.AlignHCenter
+			Layout.topMargin: 0
 
-				anchors {
-					left: parent.left
-					right: parent.right
-					top: parent.top
-					bottomMargin: 10
+			MouseArea {
+				anchors.fill: parent
+				enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
+					stackView.currentItem
+					!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
+				}
+
+				onClicked: {
+					appDB.openSettingsPage(1);
+					close();
 				}
 			}
+		}
 
-			Label {
-				text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
-				wrapMode: Text.WordWrap
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeText
-				horizontalAlignment: Text.AlignHCenter
-				color: AppSettings.fontColor
-
-				anchors {
-					left: parent.left
-					right: parent.right
-					top: imgLogo.bottom
-					topMargin: 20
-				}
-			}
+		Label {
+			id: lblAvatar
+			wrapMode: Text.WordWrap
+			font.bold: true
+			font.pointSize: AppSettings.fontSizeText
+			horizontalAlignment: Text.AlignHCenter
+			color: AppSettings.fontColor
+			Layout.fillWidth: true
+			Layout.topMargin: 0
 		}
 
 		Rectangle {
@@ -142,22 +170,6 @@ Drawer {
 
 			onClicked: {
 				appDB.openSettingsPage(0);
-				close();
-			}
-		}
-
-		TPButton {
-			id: btnUser
-			text: qsTr("Profile")
-			Layout.fillWidth: true
-
-			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
-				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "configurationPage"; })
-			}
-
-			onClicked: {
-				appDB.openSettingsPage(1);
 				close();
 			}
 		}

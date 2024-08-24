@@ -11,6 +11,8 @@ ToolBar {
 	id: root
 	width: parent.width
 	height: 40
+	spacing: 0
+	padding: 0
 
 	property var mainCalendar: null
 	property var mainTimer: null
@@ -24,7 +26,7 @@ ToolBar {
 
 		anchors {
 			left: parent.left
-			leftMargin: 5
+			leftMargin: 0
 			verticalCenter: parent.verticalCenter
 		}
 
@@ -40,7 +42,7 @@ ToolBar {
 
 		anchors {
 			left: btnBack.right
-			leftMargin: 10
+			leftMargin: -5
 			verticalCenter: parent.verticalCenter
 		}
 
@@ -54,6 +56,9 @@ ToolBar {
 
 	TPButton {
 		id: btnWorkout
+		text: qsTr("Today's workout")
+		leftAlign: true
+		backgroundColor: "transparent"
 		imageSource: "workout.png"
 		hasDropShadow: false
 
@@ -61,7 +66,7 @@ ToolBar {
 
 		anchors {
 			left: btnHome.right
-			leftMargin: 10
+			leftMargin: -5
 			verticalCenter: parent.verticalCenter
 		}
 	}
@@ -89,7 +94,7 @@ ToolBar {
 		id: btnCalendar
 		padding: 0
 		anchors.right: btnMainMenu.left
-		anchors.rightMargin: 0
+		anchors.rightMargin: -5
 
 		TPImage {
 			source: "calendar"
@@ -123,7 +128,7 @@ ToolBar {
 		id: btnTimer
 		padding: 0
 		anchors.right: btnCalendar.left
-		anchors.rightMargin: 0
+		anchors.rightMargin: -5
 
 		TPImage {
 			source: "timer"

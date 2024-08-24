@@ -4,8 +4,8 @@ import "../"
 import com.vivenciasoftware.qmlcomponents
 
 TPImage {
-	height: imgSize + 10
-	width: imgSize + 10
+	height: imgSize + 12
+	width: imgSize + 12
 	source: imageSource.indexOf("png") !== -1 ? AppSettings.iconFolder+imageSource : imageSource
 	opacity: parent.opacity
 
@@ -28,7 +28,7 @@ TPImage {
 			}
 			else {
 				anchors.top = parent.top;
-				anchors.topMargin = 0;
+				anchors.topMargin = -5;
 				anchors.horizontalCenter = parent.horizontalCenter;
 				anchors.bottomMargin = 10;
 			}

@@ -11,9 +11,16 @@ class TPImageProvider : public QQuickImageProvider
 {
 
 public:
-	TPImageProvider() : QQuickImageProvider(QQuickImageProvider::Pixmap, QQmlImageProviderBase::ForceAsynchronousImageLoading) {}
+	TPImageProvider();
+	QImage requestImage(const QString& strid, QSize* size, const QSize& requestedSize) override;
+	QImage getAvatar(const uint id);
+	QImage getAvatar(const QString& imagePath);
 
-	QPixmap requestPixmap(const QString& strid, QSize* size, const QSize& requestedSize) override;
+private:
+	QImage mAllAvatars;
+	static TPImageProvider* mtpImageProvider;
+
+	friend TPImageProvider* tpImageProvider();
 };
 
 class ImageProviderExtensionPlugin : public QQmlEngineExtensionPlugin
@@ -29,5 +36,10 @@ public:
 		engine->addImageProvider("TPImageProvider", new TPImageProvider);
 	}
 };
+
+inline TPImageProvider* tpImageProvider()
+{
+	return TPImageProvider::mtpImageProvider;
+}
 
 #endif // TPIMAGEPROVIDER_H

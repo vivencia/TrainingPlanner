@@ -5,6 +5,9 @@
 #include <QQuickPaintedItem>
 #include <QImage>
 
+class QGraphicsEffect;
+class QGraphicsDropShadowEffect;
+
 class TPImage : public QQuickPaintedItem
 {
 
@@ -43,12 +46,13 @@ private:
 	QSize mSize;
 	bool mDropShadow;
 	bool mbCanUpdate;
+	QGraphicsDropShadowEffect* mShadowEffect;
 
 	void scaleImage();
 	void convertToGrayScale();
 	void createDropShadowImage();
 	void grayScale(QImage& dstImg, const QImage& srcImg);
-	void blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, const int radius, const bool alphaOnly = false);
+	void applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphicsEffect* effect, const int extent = 0);
 };
 
 #endif // TPIMAGE_H
