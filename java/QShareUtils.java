@@ -139,6 +139,29 @@ public class QShareUtils {
 	return false;
     }
 
+    public static boolean viewFile(String filePath, String title, String mimeType) {
+	if (QtNative.activity() == null) {
+	    return false;
+	}
+
+	Intent intent = new Intent();
+	intent.setAction(Intent.ACTION_VIEW);
+	intent.setType(mimeType);
+
+	File fileToShare = new File(filePath);
+	// Using FileProvider you must get the URI from FileProvider using your AUTHORITY
+	Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
+	intent.setData(uri);
+	//intent.putExtra(Intent.EXTRA_STREAM, uri);
+	QtNative.activity().grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+	    QtNative.activity().startActivity(Intent.createChooser(intent, title));
+	    return true;
+	}
+	return false;
+    }
+
     // thx @oxied and @pooks for the idea:
     // https://stackoverflow.com/a/18835895/135559 theIntent is already configured
     // with all needed properties and flags so we only have to add the packageName

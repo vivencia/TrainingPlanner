@@ -81,9 +81,19 @@ void RunCommands::copyToClipBoard(const QString& text) const
 
 bool RunCommands::canReadFile(const QString& filename) const
 {
+	qDebug() << "%%%%%%%%%%%%%%%%";
+	qDebug() << filename;
 	QFileInfo file(filename);
 	if (file.isFile())
-		return file.isReadable();
+	{
+		if (file.isReadable()) {
+			qDebug() << "file is readable";
+			return true;
+		}
+		qDebug() << "file is not readable";
+		return false;
+	}
+	qDebug() << "File is not file";
 	return false;
 }
 

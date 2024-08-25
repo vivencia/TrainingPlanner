@@ -337,8 +337,8 @@ TPPage {
 						fileMode: FileDialog.OpenFile
 
 						onAccepted: {
-							txtMesoFile.text = selectedFile;
-							mesocyclesModel.set(mesoIdx, 9, selectedFile);
+							txtMesoFile.text = runCmd.getCorrectPath(currentFile);
+							mesocyclesModel.set(mesoIdx, 9, txtMesoFile.text);
 						}
 					}
 				}

@@ -58,7 +58,7 @@ Frame {
 		bottomInset: 0
 		topInset: 0
 		bottomPadding: 0
-		width: parent.width*0.15
+		width: parent.width*0.20
 
 		anchors {
 			top: parent.top
@@ -101,7 +101,7 @@ Frame {
 		font.bold: true
 		height: controlsHeight
 		padding: 0
-		width: parent.width*0.15
+		width: parent.width*0.20
 
 		anchors {
 			top: lblUserRole.bottom

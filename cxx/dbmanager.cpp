@@ -39,8 +39,8 @@ static TPMesocycleClass* tempTPObj(nullptr);
 #include "urihandler.h"
 
 #include <QJniObject>
-#include <qnativeinterface.h>
 #include <QtGlobal>
+#include <qnativeinterface.h>
 #if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
 #include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
 #else
@@ -121,11 +121,21 @@ bool DbManager::androidSendMail(const QString& address, const QString& subject, 
 	return ok;
 }
 
-void DbManager::cleanAppDataFilesPath()
+bool DbManager::viewFile(const QString& filePath, const QString& title, const QString& mimeType) const
 {
-	QDirIterator it(mAppDataFilesPath, (u"*.txt"_qs, u"*.pdf"_qs, u"*.odt"_qs, u"*.docx"_qs, u"*.doc"_qs), QDir::Files);
-	while (it.hasNext())
-		QFile::remove(it.next());
+	QJniObject jsPath = QJniObject::fromString(filePath);
+	QJniObject jsTitle = QJniObject::fromString(title);
+	QJniObject jsMimeType = QJniObject::fromString(mimeType);
+	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+													"viewFile",
+													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>());
+	if(!ok)
+	{
+		MSG_OUT("Unable to resolve view activity from Java")
+		return false;
+	}
+	return true;
 }
 #else
 extern "C"
@@ -142,9 +152,6 @@ DbManager::DbManager(QSettings* appSettings)
 DbManager::~DbManager()
 {
 	cleanUp();
-	#ifdef Q_OS_ANDROID
-	cleanAppDataFilesPath();
-	#endif
 	if (tempTPObj)
 		delete tempTPObj;
 	delete mesoSplitModel;
@@ -280,8 +287,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	m_QMlEngine->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(m_mainWindow, "init", Qt::AutoConnection);
-
-	mAppDataFilesPath = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation).value(0) + u"/"_qs;
+	mAppDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_qs;
 #ifdef Q_OS_ANDROID
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
@@ -913,26 +919,31 @@ void DbManager::sendMail(const QString& address, const QString& subject, const Q
 
 void DbManager::viewExternalFile(const QString& filename) const
 {
-	if (!runCmd()->canReadFile(filename))
+	qDebug() << "=================";
+	qDebug() << filename;
+	if (!runCmd()->canReadFile(runCmd()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString localFile(mAppDataFilesPath + QFileInfo(filename).fileName());
-	if (QFile::copy(localFile))
+	QString mimeType, title;
+	if (filename.endsWith(u".pdf"_qs))
 	{
-		QString mimeType;
-		if (localFile.endsWith(u".pdf"_qs))
-			mimeType = u"application/pdf"_qs;
-		else
-		{
-			if (mimeType.endsWith(u".odt"_qs))
-				mimeType = u"application/vnd.oasis.opendocument.text"_qs;
-			else if (mimeType.endsWith(u"docx"_qs))
-				mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
-			else
-				mimeType = u"application/msword"_qs;
-		}
-		sendFile(exportFileName(), tr("Send file"), mimeType, 10);
+		mimeType = u"application/pdf"_qs;
+		title = tr("View PDF file");
 	}
+	else
+	{
+		if (mimeType.endsWith(u".odt"_qs))
+		{
+			mimeType = u"application/vnd.oasis.opendocument.text"_qs;
+			title = tr("View Open Office/Google Workspace file");
+		}
+		else if (mimeType.endsWith(u"docx"_qs))
+			mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
+		else
+			mimeType = u"application/msword"_qs;
+		title = tr("View MS Word file");
+	}
+	viewFile(filename, title, mimeType);
 	#else
 	openURL(filename);
 	#endif

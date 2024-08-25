@@ -66,7 +66,7 @@ ToolBar {
 
 		anchors {
 			left: btnHome.right
-			leftMargin: 0
+			leftMargin: -10
 			verticalCenter: parent.verticalCenter
 		}
 	}
