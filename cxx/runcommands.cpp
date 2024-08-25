@@ -3,6 +3,7 @@
 #include <QSettings>
 #include <QLocale>
 #include <QClipboard>
+#include <QFileInfo>
 #include <QGuiApplication>
 
 RunCommands* RunCommands::app_runcmd(nullptr);
@@ -76,6 +77,14 @@ QString RunCommands::getAppDir(const QString& dbFile)
 void RunCommands::copyToClipBoard(const QString& text) const
 {
 	qApp->clipboard()->setText(text);
+}
+
+bool RunCommands::canReadFile(const QString& filename) const
+{
+	QFileInfo file(filename);
+	if (file.isFile())
+		return file.isReadable();
+	return false;
 }
 
 QString RunCommands::formatDate(const QDate& date) const

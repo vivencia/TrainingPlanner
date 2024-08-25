@@ -194,7 +194,7 @@ Rectangle {
 		const fheight = fontMetrics.boundingRect("TM").height;
 		if (!fixedSize) {
 			buttonText.width = fwidth + 5
-			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 10 : 15);
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 20 : 15);
 			buttonText.height = fheight + 10
 			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
 		}

@@ -100,7 +100,7 @@ TPPage {
 				shadowVerticalOffset: 5
 				shadowColor: "black"
 				shadowScale: 1
-				opacity: mesoDelegate.swipe.complete ? 0.7 : mesoDelegate.swipe.position
+				opacity: mesoDelegate.swipe.complete ? 1.0 : mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
 
 				TPRadioButton {
@@ -261,6 +261,7 @@ TPPage {
 				TPButton {
 					text: qsTr("Remove Mesocycle")
 					imageSource: "remove"
+					hasDropShadow: false
 					z:2
 
 					anchors {

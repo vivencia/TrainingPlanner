@@ -6,7 +6,6 @@
 #include <QImage>
 
 class QGraphicsEffect;
-class QGraphicsDropShadowEffect;
 
 class TPImage : public QQuickPaintedItem
 {
@@ -46,9 +45,8 @@ private:
 	QSize mSize;
 	bool mDropShadow;
 	bool mbCanUpdate;
-	QGraphicsDropShadowEffect* mShadowEffect;
 
-	void scaleImage();
+	void scaleImage(const bool bCallUpdate);
 	void convertToGrayScale();
 	void createDropShadowImage();
 	void grayScale(QImage& dstImg, const QImage& srcImg);

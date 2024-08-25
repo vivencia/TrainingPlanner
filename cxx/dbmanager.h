@@ -49,6 +49,7 @@ public:
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
 	void androidOpenURL(const QString& address) const;
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
+	void cleanAppDataFilesPath();
 #endif
 
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
@@ -64,6 +65,7 @@ public:
 	Q_INVOKABLE void openURL(const QString& address) const;
 	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
 	Q_INVOKABLE void sendMail(const QString& address, const QString& subject, const QString& attachment_file) const;
+	Q_INVOKABLE void viewExternalFile(const QString& filename) const;
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();

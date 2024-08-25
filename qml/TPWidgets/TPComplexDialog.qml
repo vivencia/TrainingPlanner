@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../"
+import com.vivenciasoftware.qmlcomponents
 
 TPPopup {
 	property string title: ""
@@ -66,13 +67,13 @@ TPPopup {
 		}
 	}
 
-	RoundButton {
-		icon.source: "qrc:/images/"+darkIconFolder+"close.png"
-		icon.height: 25
-		icon.width: 25
+	TPButton {
+		imageSource: "close.png"
+		hasDropShadow: false
+		visible: bClosable
 		height: 30
 		width: 30
-		visible: bClosable
+
 		z:2
 
 		anchors {

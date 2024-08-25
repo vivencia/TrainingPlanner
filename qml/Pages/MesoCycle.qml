@@ -85,6 +85,7 @@ TPPage {
 		TPButton {
 			text: qsTr("Calendar")
 			imageSource: "meso-calendar.png"
+			imageSize: 20
 
 			anchors {
 				left: parent.left
@@ -142,7 +143,7 @@ TPPage {
 				}
 			}
 
-			Row {
+			RowLayout {
 				visible: userModel.appUseMode(0) >= 3
 				height: 30
 				spacing: 5
@@ -150,15 +151,23 @@ TPPage {
 				Layout.fillWidth: true
 
 				Label {
+					id: lblCoaches
 					text: mesocyclesModel.columnLabel(7)
 					font.bold: true
 					color: AppSettings.fontColor
-					width: (parent.width - 20)*0.4
+					width: fontMetrics.boundingRect(text).width
+
+					FontMetrics {
+						id: fontMetrics
+						font.family: lblCoaches.font.family
+						font.pointSize: AppSettings.fontSizeText
+					}
 				}
 
 				TPComboBox {
 					id: cboCoaches
-					width: (parent.width - 20)*0.65
+					width: (parent.width - 20)*0.7
+					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: coachesModel
@@ -178,7 +187,7 @@ TPPage {
 				}
 			}
 
-			Row {
+			RowLayout {
 				visible: userModel.appUseMode(0) === 2 || userModel.appUseMode(0) === 4
 				height: 30
 				spacing: 5
@@ -186,15 +195,23 @@ TPPage {
 				Layout.fillWidth: true
 
 				Label {
+					id: lblClients
 					text: mesocyclesModel.columnLabel(8)
 					font.bold: true
 					color: AppSettings.fontColor
-					width: (parent.width - 20)*0.3
+					width: fontMetrics2.boundingRect(text).width
+
+					FontMetrics {
+						id: fontMetrics2
+						font.family: lblClients.font.family
+						font.pointSize: AppSettings.fontSizeText
+					}
 				}
 
 				TPComboBox {
 					id: cboClients
-					width: (parent.width - 20)*0.65
+					width: (parent.width - 20)*0.7
+					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: clientsModel
@@ -214,7 +231,7 @@ TPPage {
 				}
 			}
 
-			Row {
+			RowLayout {
 				height: 30
 				spacing: 5
 				Layout.leftMargin: 5
@@ -230,7 +247,8 @@ TPPage {
 				TPComboBox {
 					id: cboMesoType
 					model: mesoTypeModel
-					width: (parent.width - 20)*0.75
+					width: (mesoPropertiesPage.width - 20)*0.75
+					Layout.minimumWidth: width
 
 					Component.onCompleted: {
 						currentIndex = find(mesocyclesModel.get(mesoIdx, 10));
@@ -271,6 +289,7 @@ TPPage {
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
+
 			Label {
 				text: qsTr("Instructions file")
 				font.bold: true
@@ -279,49 +298,59 @@ TPPage {
 				color: AppSettings.fontColor
 			}
 
-			TPTextInput {
-				id: txtMesoFile
-				text: mesocyclesModel.get(mesoIdx, 9)
-				width: (parent.width - 20)*0.8
+			RowLayout {
+				height: 30
+				spacing: 0
 				Layout.leftMargin: 5
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
+				Layout.fillWidth: true
 
-				onEditingFinished: mesocyclesModel.set(mesoIdx, 9, text);
+				TPTextInput {
+					id: txtMesoFile
+					text: mesocyclesModel.get(mesoIdx, 9)
+					width: (mesoPropertiesPage.width - 20)*0.8
+					Layout.minimumWidth: width
 
-				onEnterOrReturnKeyPressed: {
-					if (bNewMeso)
-						caldlg.open();
-					else
-						txtMesoSplit.forceActiveFocus();
+					onEditingFinished: mesocyclesModel.set(mesoIdx, 9, text);
+
+					onEnterOrReturnKeyPressed: {
+						if (bNewMeso)
+							caldlg.open();
+						else
+							txtMesoSplit.forceActiveFocus();
+					}
 				}
 
 				TPButton {
 					id: btnChooseMesoFile
-					imageSource: "choose_avatar"
-					width: 30
-					height: 30
-
-					anchors {
-						left: txtMesoFile.right
-						verticalCenter: txtMesoFile.verticalCenter
-					}
+					imageSource: "choose-file"
+					imageSize: 25
+					Layout.leftMargin: -5
 
 					onClicked: fileDialog.open();
+
+					FileDialog {
+						id: fileDialog
+						title: qsTr("Choose the instruction's file for this mesocycles")
+						nameFilters: [qsTr("PDF Files") + " (*.pdf)", qsTr("Documents") + " (*.doc *.docx *.odt)"]
+						options: FileDialog.ReadOnly
+						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+						fileMode: FileDialog.OpenFile
+
+						onAccepted: {
+							txtMesoFile.text = selectedFile;
+							mesocyclesModel.set(mesoIdx, 9, selectedFile);
+						}
+					}
 				}
 
-				FileDialog {
-					id: fileDialog
-					title: qsTr("Choose the instruction's file for this mesocycles")
-					nameFilters: [qsTr("PDF Files") + "(*.pdf)"]
-					options: FileDialog.ReadOnly
-					currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-					fileMode: FileDialog.OpenFile
+				TPButton {
+					id: btnOpenMesoFile
+					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
+					imageSize: 25
+					visible: runCmd.canReadFile(txtMesoFile.text);
+					Layout.leftMargin: -15
 
-					onAccepted: {
-						txtMesoFile.text = selectedFile;
-						mesocyclesModel.set(mesoIdx, 9, selectedFile);
-					}
+					onClicked: appDB.viewExternalFile(txtMesoFile.text);
 				}
 			}
 
@@ -360,7 +389,7 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					imageSize: 40
+					imageSize: 30
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 
@@ -401,7 +430,7 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					imageSize: 40
+					imageSize: 30
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
 
@@ -479,7 +508,7 @@ TPPage {
 
 				TPButton {
 					id: btnTrainingSplit
-					imageSource: paneTrainingSplit.visible ? "fold-up.png" : "fold-down.png"
+					imageSource: paneTrainingSplit.shown ? "fold-up.png" : "fold-down.png"
 					imageSize: 40
 
 					anchors {
@@ -494,18 +523,20 @@ TPPage {
 
 			Pane {
 				id: paneTrainingSplit
-				Layout.fillWidth: true
-				Layout.leftMargin: 20
-				property bool shown: false
 				visible: height > 0
 				height: shown ? implicitHeight : 0
+				padding: 0
+				Layout.fillWidth: true
+				Layout.leftMargin: 20
+
+				property bool shown: false
+
 				Behavior on height {
 					NumberAnimation {
 						duration: 300
 						easing.type: Easing.InOutBack
 					}
 				}
-				padding: 0
 
 				background: Rectangle {
 					color: "transparent"

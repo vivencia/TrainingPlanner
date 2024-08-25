@@ -120,6 +120,13 @@ bool DbManager::androidSendMail(const QString& address, const QString& subject, 
 													jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>());
 	return ok;
 }
+
+void DbManager::cleanAppDataFilesPath()
+{
+	QDirIterator it(mAppDataFilesPath, (u"*.txt"_qs, u"*.pdf"_qs, u"*.odt"_qs, u"*.docx"_qs, u"*.doc"_qs), QDir::Files);
+	while (it.hasNext())
+		QFile::remove(it.next());
+}
 #else
 extern "C"
 {
@@ -135,6 +142,9 @@ DbManager::DbManager(QSettings* appSettings)
 DbManager::~DbManager()
 {
 	cleanUp();
+	#ifdef Q_OS_ANDROID
+	cleanAppDataFilesPath();
+	#endif
 	if (tempTPObj)
 		delete tempTPObj;
 	delete mesoSplitModel;
@@ -898,6 +908,33 @@ void DbManager::sendMail(const QString& address, const QString& subject, const Q
 		}
 		proc->deleteLater();
 	});
+	#endif
+}
+
+void DbManager::viewExternalFile(const QString& filename) const
+{
+	if (!runCmd()->canReadFile(filename))
+		return;
+	#ifdef Q_OS_ANDROID
+	const QString localFile(mAppDataFilesPath + QFileInfo(filename).fileName());
+	if (QFile::copy(localFile))
+	{
+		QString mimeType;
+		if (localFile.endsWith(u".pdf"_qs))
+			mimeType = u"application/pdf"_qs;
+		else
+		{
+			if (mimeType.endsWith(u".odt"_qs))
+				mimeType = u"application/vnd.oasis.opendocument.text"_qs;
+			else if (mimeType.endsWith(u"docx"_qs))
+				mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
+			else
+				mimeType = u"application/msword"_qs;
+		}
+		sendFile(exportFileName(), tr("Send file"), mimeType, 10);
+	}
+	#else
+	openURL(filename);
 	#endif
 }
 

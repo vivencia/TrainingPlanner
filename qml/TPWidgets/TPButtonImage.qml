@@ -28,7 +28,7 @@ TPImage {
 			}
 			else {
 				anchors.top = parent.top;
-				anchors.topMargin = -5;
+				anchors.topMargin = 0;
 				anchors.horizontalCenter = parent.horizontalCenter;
 				anchors.bottomMargin = 10;
 			}

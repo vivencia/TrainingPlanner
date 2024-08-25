@@ -57,7 +57,7 @@ ToolBar {
 	TPButton {
 		id: btnWorkout
 		text: qsTr("Today's workout")
-		leftAlign: true
+		leftAlign: false
 		backgroundColor: "transparent"
 		imageSource: "workout.png"
 		hasDropShadow: false
@@ -66,7 +66,7 @@ ToolBar {
 
 		anchors {
 			left: btnHome.right
-			leftMargin: -5
+			leftMargin: 0
 			verticalCenter: parent.verticalCenter
 		}
 	}

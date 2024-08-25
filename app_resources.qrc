@@ -104,5 +104,8 @@
         <file>images/white/workout.png</file>
         <file>images/white/meso-splitplanner.png</file>
         <file>images/black/meso-splitplanner.png</file>
+        <file>images/doc-icon.png</file>
+        <file>images/choose-file.png</file>
+        <file>images/pdf-icon.png</file>
     </qresource>
 </RCC>

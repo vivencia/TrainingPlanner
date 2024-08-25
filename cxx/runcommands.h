@@ -25,6 +25,7 @@ public:
 	Q_INVOKABLE int getFileType( const QString& filename );
 	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
+	Q_INVOKABLE bool canReadFile(const QString& filename) const;
 
 	inline QLocale* appLocale() const { return m_appLocale; }
 	inline QString getDBFileName() const { return m_dbFileName; }

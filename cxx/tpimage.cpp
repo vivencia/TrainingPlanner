@@ -8,7 +8,7 @@
 #include <QGraphicsPixmapItem>
 
 TPImage::TPImage(QQuickItem* parent)
-	: QQuickPaintedItem(parent), mSize(20, 20), mDropShadow(true), mbCanUpdate(true), mShadowEffect(nullptr)
+	: QQuickPaintedItem(parent), mSize(20, 20), mDropShadow(true), mbCanUpdate(true)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 }
@@ -25,7 +25,7 @@ void TPImage::setSource(const QString& source)
 			{
 				mSource = source;
 				mImage = tpImageProvider()->getAvatar(mSource);
-				scaleImage();
+				scaleImage(true);
 				emit sourceChanged();
 				return;
 			}
@@ -34,7 +34,7 @@ void TPImage::setSource(const QString& source)
 		}
 		if (mImage.load(mSource))
 		{
-			scaleImage();
+			scaleImage(true);
 			emit sourceChanged();
 		}
 	}
@@ -52,7 +52,7 @@ void TPImage::setImgSize(const int size)
 	{
 		mSize.setWidth(size);
 		mSize.setHeight(size);
-		scaleImage();
+		scaleImage(false);
 		emit imgSizeChanged();
 	}
 }
@@ -94,16 +94,19 @@ void TPImage::checkEnabled(const bool bCallUpdate)
 		update();
 }
 
-void TPImage::scaleImage()
+void TPImage::scaleImage(const bool bCallUpdate)
 {
 	if (!mImage.isNull())
 	{
-		mbCanUpdate = false;
-		mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-		mImageDisabled = QImage();
-		mImageShadow = QImage();
-		mbCanUpdate = true;
-		checkEnabled(false);
+		if (mSize != mImage.size())
+		{
+			mbCanUpdate = false;
+			mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			mImageDisabled = QImage();
+			mImageShadow = QImage();
+			mbCanUpdate = true;
+		}
+		checkEnabled(bCallUpdate);
 	}
 }
 
@@ -117,11 +120,10 @@ void TPImage::createDropShadowImage()
 {
 	if (!mImage.isNull())
 	{
-		if (!mShadowEffect)
-			mShadowEffect = new QGraphicsDropShadowEffect();
-		mShadowEffect->setOffset(5, 5);
-		mShadowEffect->setBlurRadius(5);
-		applyEffectToImage(mImageShadow, mImage, mShadowEffect, 5);
+		QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
+		shadowEffect->setOffset(5, 5);
+		shadowEffect->setBlurRadius(5);
+		applyEffectToImage(mImageShadow, mImage, shadowEffect, 5);
 	}
 }
 
