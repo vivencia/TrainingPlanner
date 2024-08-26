@@ -83,7 +83,6 @@ Drawer {
 			id: imgLogo
 			source: "app_icon"
 			dropShadow: false
-			imgSize: 90
 			width: 100
 			height: 100
 			Layout.alignment: Qt.AlignHCenter
@@ -104,7 +103,6 @@ Drawer {
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
-			imgSize: 90
 			width: 100
 			height: 100
 			Layout.alignment: Qt.AlignHCenter

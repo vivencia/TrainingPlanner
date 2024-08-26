@@ -20,7 +20,6 @@ Rectangle {
 
 	TPFloatingControl {
 		id: btnUp
-		objName: "btnUp"
 		parentPage: ownerPage
 		width: 30
 		height: 30
@@ -40,7 +39,7 @@ Rectangle {
 		TPImage {
 			id: img1
 			source: "upward"
-			imgSize: 30
+			dropShadow: false
 			width: 30
 			height: 30
 		}
@@ -54,7 +53,6 @@ Rectangle {
 
 	TPFloatingControl {
 		id: btnDown
-		objName: "btnDown"
 		parentPage: ownerPage
 		width: 30
 		height: 30
@@ -74,7 +72,7 @@ Rectangle {
 		TPImage {
 			id: img2
 			source: "downward"
-			imgSize: 30
+			dropShadow: false
 			width: 30
 			height: 30
 		}

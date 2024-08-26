@@ -34,7 +34,6 @@ Column {
 		TPImage {
 			id: imgElement
 			source: parentDlg.customStringProperty3.indexOf("png") !== -1 ? AppSettings.iconFolder+parentDlg.customStringProperty3 : parentDlg.customStringProperty3
-			imgSize: 50
 			visible: parentDlg.customStringProperty3 !== ""
 			width: parentDlg.customStringProperty3 !== "" ? 50 : 0
 			height: width

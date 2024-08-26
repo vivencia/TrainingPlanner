@@ -188,7 +188,6 @@ Column {
 
 				TPImage {
 					source: "remove"
-					imgSize: 20
 					width: 20
 					height: 20
 					opacity: 2 * -delegate.swipe.position

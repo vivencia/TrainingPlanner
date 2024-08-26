@@ -64,8 +64,9 @@ TPPopup {
 			TPButton {
 				id: btnShowHideList
 				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
-				imageSize: 30
-				height: 30
+				hasDropShadow: false
+				imageSize: 25
+				height: 25
 				z: 2
 
 				anchors {

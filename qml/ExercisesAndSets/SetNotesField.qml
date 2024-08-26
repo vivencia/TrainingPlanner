@@ -31,6 +31,9 @@ ColumnLayout {
 		TPButton {
 			id: button
 			imageSource: "fold-down.png"
+			hasDropShadow: false
+			width: 20
+			height: 20
 
 			anchors {
 				left: parent.right
