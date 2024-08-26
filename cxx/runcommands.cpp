@@ -3,7 +3,6 @@
 #include <QSettings>
 #include <QLocale>
 #include <QClipboard>
-#include <QFileInfo>
 #include <QGuiApplication>
 
 RunCommands* RunCommands::app_runcmd(nullptr);
@@ -29,7 +28,7 @@ RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	});
 }
 
-const QString RunCommands::getCorrectPath(const QUrl& url)
+const QString RunCommands::getCorrectPath(const QUrl& url) const
 {
 	#ifdef DEBUG
 	qDebug() << "input url:  " << url;
@@ -42,7 +41,7 @@ const QString RunCommands::getCorrectPath(const QUrl& url)
 	//#endif
 }
 
-int RunCommands::getFileType( const QString& filename )
+int RunCommands::getFileType( const QString& filename ) const
 {
 	#ifdef Q_OS_ANDROID
 		if ( filename.contains(QStringLiteral("video%"), Qt::CaseInsensitive))
@@ -81,19 +80,9 @@ void RunCommands::copyToClipBoard(const QString& text) const
 
 bool RunCommands::canReadFile(const QString& filename) const
 {
-	qDebug() << "%%%%%%%%%%%%%%%%";
-	qDebug() << filename;
 	QFileInfo file(filename);
 	if (file.isFile())
-	{
-		if (file.isReadable()) {
-			qDebug() << "file is readable";
-			return true;
-		}
-		qDebug() << "file is not readable";
-		return false;
-	}
-	qDebug() << "File is not file";
+		return file.isReadable();
 	return false;
 }
 

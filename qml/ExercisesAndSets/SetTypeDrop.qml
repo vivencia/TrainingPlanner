@@ -86,7 +86,8 @@ Item {
 				id: btnCopyValue
 				visible: copyTypeButtonValue !== ""
 				imageSource: "copy-setvalue"
-				imageSize: 25
+				width: 25
+				height: 25
 
 				anchors {
 					verticalCenter: parent.verticalCenter
@@ -102,8 +103,8 @@ Item {
 			TPButton {
 				id: btnRemoveSet
 				imageSource: "remove"
-				height: 20
-				width: 20
+				height: 25
+				width: 25
 
 				anchors {
 					verticalCenter: parent.verticalCenter
@@ -128,7 +129,8 @@ Item {
 				id: imgCompleted
 				imageSource: "set-completed"
 				visible: setCompleted
-				imageSize: 25
+				height: 30
+				width: 30
 
 				anchors {
 					verticalCenter: parent.verticalCenter
@@ -170,7 +172,8 @@ Item {
 				id: btnCopyTimeValue
 				visible: copyTimeButtonValue !== ""
 				imageSource: "copy-setvalue"
-				imageSize: 25
+				width: 25
+				height: 25
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {

@@ -40,7 +40,6 @@ static TPMesocycleClass* tempTPObj(nullptr);
 
 #include <QJniObject>
 #include <QtGlobal>
-#include <QDirIterator>
 #include <qnativeinterface.h>
 #if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
 #include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
@@ -122,36 +121,20 @@ bool DbManager::androidSendMail(const QString& address, const QString& subject, 
 	return ok;
 }
 
-bool DbManager::viewFile(const QString& filePath, const QString& title, const QString& mimeType) const
+bool DbManager::viewFile(const QString& filePath, const QString& title) const
 {
 	QJniObject jsPath = QJniObject::fromString(filePath);
 	QJniObject jsTitle = QJniObject::fromString(title);
-	QJniObject jsMimeType = QJniObject::fromString(mimeType);
 	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"viewFile",
-													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
-													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>());
+													"(Ljava/lang/String;Ljava/lang/String;)Z",
+													jsPath.object<jstring>(), jsTitle.object<jstring>());
 	if(!ok)
 	{
 		MSG_OUT("Unable to resolve view activity from Java")
 		return false;
 	}
 	return true;
-}
-
-void DbManager::cleanAppDataFilesPath()
-{
-	//QDirIterator it(mAppDataFilesPath, QStringList() << u"*.txt"_qs << u"*.pdf"_qs << u"*.odt"_qs << u"*.docx"_qs << u"*.doc"_qs, QDir::Files);
-	QDirIterator it(mAppDataFilesPath, QStringList() << u"*.*"_qs, QDir::Files);
-	while (it.hasNext())
-	{
-		QString filename(it.next());
-		qDebug() << filename;
-		if (QFile::remove(filename))
-			qDebug() << "------------- " << "removed file:  " << filename;
-		else
-			qDebug() << "------------- " << "did not removed file:  " << filename;
-	}
 }
 #else
 extern "C"
@@ -168,9 +151,6 @@ DbManager::DbManager(QSettings* appSettings)
 DbManager::~DbManager()
 {
 	cleanUp();
-	#ifdef Q_OS_ANDROID
-	cleanAppDataFilesPath();
-	#endif
 	if (tempTPObj)
 		delete tempTPObj;
 	delete mesoSplitModel;
@@ -941,36 +921,13 @@ void DbManager::sendMail(const QString& address, const QString& subject, const Q
 
 void DbManager::viewExternalFile(const QString& filename) const
 {
-	qDebug() << "=================";
-	qDebug() << filename;
 	if (!runCmd()->canReadFile(runCmd()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
 	const QString localFile(mAppDataFilesPath + u"tempfile"_qs + filename.right(4));
+	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
-	{
-		QString mimeType, title;
-		if (localFile.endsWith(u".pdf"_qs))
-		{
-			mimeType = u"application/pdf"_qs;
-			title = tr("View PDF file");
-		}
-		else
-		{
-			if (mimeType.endsWith(u".odt"_qs))
-			{
-				mimeType = u"application/vnd.oasis.opendocument.text"_qs;
-				title = tr("View Open Office/Google Workspace file");
-			}
-			else if (mimeType.endsWith(u"docx"_qs))
-				mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
-			else
-				mimeType = u"application/msword"_qs;
-			title = tr("View MS Word file");
-		}
-		qDebug() << "Starting viewFile with args: " << localFile << ",   " << title << ",  " << mimeType;
-		viewFile(localFile, title, mimeType);
-	}
+		viewFile(localFile, tr("View file with..."));
 	else
 		qDebug() << "coud not copy:  " << filename << "    to   " << localFile;
 	#else

@@ -306,7 +306,7 @@ TPPage {
 
 				TPTextInput {
 					id: txtMesoFile
-					text: mesocyclesModel.get(mesoIdx, 9)
+					text: runCmd.getFileName(mesocyclesModel.get(mesoIdx, 9))
 					width: (mesoPropertiesPage.width - 20)*0.8
 					Layout.minimumWidth: width
 
@@ -323,7 +323,6 @@ TPPage {
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					imageSize: 25
 					Layout.leftMargin: -5
 
 					onClicked: fileDialog.open();
@@ -337,8 +336,8 @@ TPPage {
 						fileMode: FileDialog.OpenFile
 
 						onAccepted: {
-							txtMesoFile.text = runCmd.getCorrectPath(currentFile);
-							mesocyclesModel.set(mesoIdx, 9, txtMesoFile.text);
+							txtMesoFile.text = runCmd.getFileName(selectedFile);
+							mesocyclesModel.set(mesoIdx, 9, selectedFile);
 						}
 					}
 				}
@@ -346,11 +345,10 @@ TPPage {
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					imageSize: 25
-					visible: runCmd.canReadFile(txtMesoFile.text);
-					Layout.leftMargin: -15
+					visible: runCmd.canReadFile(mesocyclesModel.get(mesoIdx, 9))
+					Layout.leftMargin: -10
 
-					onClicked: appDB.viewExternalFile(txtMesoFile.text);
+					onClicked: appDB.viewExternalFile(mesocyclesModel.get(mesoIdx, 9));
 				}
 			}
 
@@ -389,7 +387,6 @@ TPPage {
 				TPButton {
 					id: btnStartDate
 					imageSource: "calendar.png"
-					imageSize: 30
 					anchors.left: txtMesoStartDate.right
 					anchors.verticalCenter: txtMesoStartDate.verticalCenter
 
@@ -430,7 +427,6 @@ TPPage {
 				TPButton {
 					id: btnEndDate
 					imageSource: "calendar.png"
-					imageSize: 30
 					anchors.left: txtMesoEndDate.right
 					anchors.verticalCenter: txtMesoEndDate.verticalCenter
 
@@ -509,7 +505,7 @@ TPPage {
 				TPButton {
 					id: btnTrainingSplit
 					imageSource: paneTrainingSplit.shown ? "fold-up.png" : "fold-down.png"
-					imageSize: 40
+					hasDropShadow: false
 
 					anchors {
 						left: txtMesoSplit.right

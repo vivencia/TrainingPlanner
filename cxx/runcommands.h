@@ -7,6 +7,7 @@
 #include <QQmlEngine>
 #include <QUrl>
 #include <QDateTime>
+#include <QFileInfo>
 
 static const QString TP_APP_VERSION(QStringLiteral("v20240818-B"));
 
@@ -21,8 +22,9 @@ Q_OBJECT
 public:
 	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
 	~RunCommands() { delete m_appLocale; }
-	Q_INVOKABLE const QString getCorrectPath( const QUrl& url );
-	Q_INVOKABLE int getFileType( const QString& filename );
+	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
+	Q_INVOKABLE int getFileType(const QString& filename) const;
+	Q_INVOKABLE inline QString getFileName(const QString& filepath) const { return QFileInfo(filepath).fileName(); };
 	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 	Q_INVOKABLE bool canReadFile(const QString& filename) const;

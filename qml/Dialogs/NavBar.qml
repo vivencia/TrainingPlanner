@@ -26,7 +26,7 @@ ToolBar {
 
 		anchors {
 			left: parent.left
-			leftMargin: 0
+			leftMargin: 5
 			verticalCenter: parent.verticalCenter
 		}
 
@@ -42,7 +42,6 @@ ToolBar {
 
 		anchors {
 			left: btnBack.right
-			leftMargin: -5
 			verticalCenter: parent.verticalCenter
 		}
 
@@ -66,7 +65,6 @@ ToolBar {
 
 		anchors {
 			left: btnHome.right
-			leftMargin: -10
 			verticalCenter: parent.verticalCenter
 		}
 	}

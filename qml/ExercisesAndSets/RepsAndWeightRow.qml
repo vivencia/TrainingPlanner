@@ -64,7 +64,8 @@ Item {
 		TPButton {
 			id: btnCopyValue
 			imageSource: "copy-setvalue"
-			imageSize: 25
+			height: 25
+			width: 25
 
 			onClicked: {
 				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
@@ -127,8 +128,8 @@ Item {
 				id: btnRemoveRow
 				imageSource: "remove"
 				visible: rowIdx > 0
-				width: 20
-				height: 20
+				width: 25
+				height: 25
 
 				anchors {
 					left: parent.left
@@ -143,8 +144,8 @@ Item {
 				id: btnInsertAnotherRow
 				imageSource: "add-new"
 				visible: bBtnAddEnabled
-				width: 30
-				height: 30
+				width: 25
+				height: 25
 
 				anchors {
 					left: btnRemoveRow.right
@@ -159,7 +160,8 @@ Item {
 		TPButton {
 			id: btnCopyValue2
 			imageSource: "copy-setvalue"
-			imageSize: 25
+			height: 25
+			width: 25
 
 			onClicked: {
 				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);

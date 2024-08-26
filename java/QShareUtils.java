@@ -139,7 +139,7 @@ public class QShareUtils {
 	return false;
     }
 
-    public static boolean viewFile(String filePath, String title, String mimeType) {
+    public static boolean viewFile(String filePath, String title) {
 	if (QtNative.activity() == null) {
 	    return false;
 	}

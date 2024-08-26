@@ -31,7 +31,7 @@ RowLayout {
 		readOnly: true
 		wrapMode: Text.WordWrap
 		z: 1
-		width: parent.width-(showRemoveButton ? 50 : 25)
+		width: parent.width-(showRemoveButton ? 55 : 25)
 		leftPadding: 15
 		rightPadding: 0
 		height: parent.height
@@ -96,7 +96,7 @@ RowLayout {
 
 		TPButton {
 			id: btnClearText
-			imageSource: "edit-clear.png"
+			imageSource: darkIconFolder+"edit-clear.png"
 			visible: !control.readOnly
 
 			anchors {

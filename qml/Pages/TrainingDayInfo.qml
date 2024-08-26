@@ -425,7 +425,6 @@ TPPage {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
-				Layout.topMargin: -10
 
 				Label {
 					text: qsTr("Training Division:")

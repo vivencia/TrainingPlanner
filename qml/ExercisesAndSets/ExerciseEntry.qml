@@ -111,7 +111,9 @@ FocusScope {
 				TPButton {
 					id: btnFoldIcon
 					imageSource: paneExercise.shown ? "fold-up.png" : "fold-down.png"
+					hasDropShadow: false
 					onClicked: paneExerciseShowHide(false, false);
+					Layout.leftMargin: 8
 					z: 1
 				}
 
@@ -121,18 +123,18 @@ FocusScope {
 					font.bold: true
 					font.pointSize: AppSettings.fontSizeText
 					width: 15
-					Layout.leftMargin: -5
+					Layout.leftMargin: 0
 				}
 
 				ExerciseNameField {
 					id: txtExerciseName
 					text: tDayModel.exerciseName(exerciseIdx)
 					bEditable: tDayModel.dayIsEditable
-					width: windowWidth - 45
+					width: windowWidth - 55
 					height: 70
 					Layout.minimumWidth: width
 					Layout.maximumWidth: width
-					Layout.leftMargin: -10
+					Layout.leftMargin: 0
 
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => {

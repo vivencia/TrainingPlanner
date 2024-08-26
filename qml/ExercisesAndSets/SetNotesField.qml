@@ -38,7 +38,6 @@ ColumnLayout {
 			anchors {
 				left: parent.right
 				top: parent.top
-				topMargin: -5
 				rightMargin: 20
 			}
 
