@@ -20,7 +20,7 @@ public:
 	virtual void updateDatabase();
 	void getTrainingDay();
 	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
-	void getPreviousTrainingDays();
+	void getPreviousTrainingDaysInfo();
 	void saveTrainingDay();
 	void removeTrainingDay();
 

@@ -50,6 +50,7 @@ public:
 	void androidOpenURL(const QString& address) const;
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
 	bool viewFile(const QString& filePath, const QString& title, const QString& mimeType) const;
+	void cleanAppDataFilesPath();
 #endif
 
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
+import com.vivenciasoftware.qmlcomponents
 
 ComboBox {
 	id: control
@@ -37,12 +38,11 @@ ComboBox {
 			verticalAlignment: Text.AlignVCenter
 			leftPadding: completeModel ? 10 : 0
 
-			Image {
+			TPImage {
 				id: lblImg
 				visible: completeModel
-				fillMode: Image.PreserveAspectFit
-				asynchronous: true
 				source: completeModel ? model.icon : ""
+				imgSize: 20
 				width: 20
 				height: 20
 
@@ -93,10 +93,8 @@ ComboBox {
 		leftPadding: completeModel ? 30 : 5
 	}
 
-	Image {
+	TPImage {
 		visible: completeModel
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
 		source: completeModel ? control.model.get(control.currentIndex).icon : ""
 		width: 18
 		height: 18
@@ -136,7 +134,6 @@ ComboBox {
 				fontSizeMode: Text.Fit
 				font.weight: Font.ExtraBold
 				elide: Text.ElideRight
-				padding: 0
 			}
 			ScrollIndicator.vertical: ScrollIndicator { }
 		}

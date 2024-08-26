@@ -80,9 +80,8 @@ ToolBar {
 		TPImage {
 			source: "mainmenu"
 			dropShadow: false
-			imgSize: 30
-			width: imgSize
-			height: imgSize
+			width: 30
+			height: 30
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
 		}
@@ -99,9 +98,8 @@ ToolBar {
 		TPImage {
 			source: "calendar"
 			dropShadow: false
-			imgSize: 30
-			width: imgSize
-			height: imgSize
+			width: 30
+			height: 30
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
 		}
@@ -133,9 +131,8 @@ ToolBar {
 		TPImage {
 			source: "timer"
 			dropShadow: false
-			imgSize: 30
-			width: imgSize
-			height: imgSize
+			width: 30
+			height: 30
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
 		}

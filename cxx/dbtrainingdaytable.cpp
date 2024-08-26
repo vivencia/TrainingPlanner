@@ -250,42 +250,67 @@ QString DBTrainingDayTable::formatDate(const uint julianDay) const
 	return runCmd()->appLocale()->toString(date, QStringLiteral("ddd d/M/yyyy"));
 }
 
-void DBTrainingDayTable::getPreviousTrainingDays()
+void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("SELECT exercises,date FROM training_day_table WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 LIMIT 10")
+		QString strQuery(QStringLiteral("SELECT exercises,date FROM training_day_table WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 ORDER BY date DESC LIMIT 10")
 							.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString(), m_execArgs.at(2).toString()));
-
-		if (query.exec())
+		if (query.exec(strQuery))
 		{
-			if (query.last())
+			if (query.first())
 			{
 				QStringList dates;
 				do {
 				if (!query.value(0).toString().isEmpty())
 					dates.append(formatDate(query.value(1).toUInt()));
-				} while (query.previous());
+				} while (query.next());
 				if (!dates.isEmpty())
-					static_cast<DBTrainingDayModel*>(m_model)->appendList(dates);
+					m_model->appendList(dates);
+			}
+			query.finish();
+			m_opcode = OP_READ;
+			m_result = true;
+		}
+		else
+		{
+			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery);
+		}
+
+		strQuery = QStringLiteral("SELECT location FROM training_day_table WHERE meso_id=%1 AND date<%3 ORDER BY date DESC LIMIT 5")
+				.arg(m_execArgs.at(0).toString(), m_execArgs.at(2).toString());
+		if (query.exec(strQuery))
+		{
+			QString lastLocation;
+			if (query.first())
+			{
+				do {
+					lastLocation = query.value(0).toString();
+					if (!lastLocation.isEmpty())
+						break;
+				} while (query.next());
+			}
+			if (!lastLocation.isEmpty())
+			{
+				m_model->appendList(QStringList(9));
+				m_model->setFast(m_model->count()-1, TDAY_COL_LOCATION, lastLocation);
+				m_opcode = OP_READ;
+				m_result = true;
 			}
 		}
-		m_opcode = OP_READ;
+		else
+		{
+			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery);
+		}
 		mSqlLiteDB.close();
-		m_result = true;
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBTrainingDayTable getPreviousTrainingDays SUCCESS")
-
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

@@ -38,10 +38,11 @@ FocusScope {
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height + 30
 		implicitHeight: layoutMain.implicitHeight + 10
-		implicitWidth: parent.width
+		implicitWidth: width
 		width: windowWidth - 10
 		clip: true
 		padding: 0
+		spacing: 0
 		z: 0
 		Layout.fillWidth: true
 
@@ -104,6 +105,7 @@ FocusScope {
 			RowLayout {
 				spacing: 0
 				Layout.fillWidth: true
+				Layout.leftMargin: -10
 				Layout.topMargin: 5
 
 				TPButton {
@@ -116,8 +118,10 @@ FocusScope {
 				Label {
 					id: lblExerciseNumber
 					text: parseInt(exerciseIdx + 1) + ":"
+					font.bold: true
 					font.pointSize: AppSettings.fontSizeText
 					width: 15
+					Layout.leftMargin: -5
 				}
 
 				ExerciseNameField {
@@ -142,7 +146,7 @@ FocusScope {
 				}
 			} //Row txtExerciseName
 
-			Row {
+			RowLayout {
 				enabled: tDayModel.dayIsEditable
 				Layout.topMargin: 10
 				Layout.leftMargin: 5
@@ -171,7 +175,7 @@ FocusScope {
 				}
 			}
 
-			Row {
+			RowLayout {
 				enabled: tDayModel.dayIsEditable
 				visible: bCompositeExercise
 				Layout.leftMargin: 5
@@ -201,15 +205,17 @@ FocusScope {
 				}
 			}
 
-			Row {
+			RowLayout {
 				id: trackRestTimeRow
-				enabled: bCanEditRestTimeTracking
+				enabled: tDayModel.dayIsEditable && bCanEditRestTimeTracking
+				Layout.fillWidth: true
 				Layout.leftMargin: 5
 
 				TPCheckBox {
 					id: chkTrackRestTime
 					text: qsTr("Track rest times?")
 					textColor: "black"
+					width: paneExercise.width/2 - 10
 
 					Component.onCompleted: checked = bTrackRestTime;
 
@@ -223,6 +229,7 @@ FocusScope {
 					id: chkAutoRestTime
 					text: qsTr("Auto tracking")
 					textColor: "black"
+					width: paneExercise.width/2 - 10
 					enabled: bTrackRestTime
 					checked: bAutoRestTime
 

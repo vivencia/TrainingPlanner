@@ -18,7 +18,7 @@ Rectangle {
 	property bool rounded: true
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
-	property int imageSize: 20
+	property int imageSize: hasDropShadow ? 30 : 20
 	property string imageSource
 	property bool hasDropShadow: true
 	property bool bPressed: false
@@ -71,7 +71,7 @@ Rectangle {
 			function finishCreation() {
 				buttonImage = component.createObject(button,
 					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
-							imgSize: imageSize, dropShadow: hasDropShadow});
+							width: imageSize, height: imageSize, dropShadow: hasDropShadow});
 				resizeButton();
 			}
 
@@ -194,9 +194,9 @@ Rectangle {
 		const fheight = fontMetrics.boundingRect("TM").height;
 		if (!fixedSize) {
 			buttonText.width = fwidth + 5
-			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 20 : 15);
+			implicitWidth = fwidth + (imageSource.length > 1 ? textUnderIcon ? 10 : imageSize + 10 : 15);
 			buttonText.height = fheight + 10
-			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
+			implicitHeight = fheight + (imageSource.length > 1 ? textUnderIcon ? imageSize : 10 : 10);
 		}
 		else {
 			if (button.width > 0) {

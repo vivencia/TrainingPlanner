@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
+import com.vivenciasoftware.qmlcomponents
 
 TPFloatingControl {
 	id: button
@@ -36,9 +37,9 @@ TPFloatingControl {
 		}
 		onClicked: button.visible = false;
 
-		Image {
+		TPImage {
 			anchors.fill: parent
-			source: "qrc:/images/"+AppSettings.iconFolder+"close.png";
+			source: AppSettings.iconFolder+"close.png";
 		}
 	}
 
@@ -76,7 +77,7 @@ TPFloatingControl {
 
 	Image {
 		id: buttonImage
-		source: "qrc:/images/"+AppSettings.iconFolder+image;
+		source: AppSettings.iconFolder+image;
 		width: 20
 		height: 20
 		z: 0

@@ -390,10 +390,7 @@ Item {
 		}
 	} //ColumnLayout setLayout
 
-	Component.onCompleted: {
-		findSetMode();
-		tDayModel.saveWorkout.connect(hideCopyButtons);
-	}
+	Component.onCompleted: tDayModel.saveWorkout.connect(hideCopyButtons);
 
 	function changeExerciseText(textObj: var, newtext: string)
 	{

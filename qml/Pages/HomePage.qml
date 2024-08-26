@@ -6,6 +6,7 @@ import QtQuick.Effects
 import "../"
 import "../inexportMethods.js" as INEX
 import "../TPWidgets"
+import com.vivenciasoftware.qmlcomponents
 
 TPPage {
 	id: homePage
@@ -38,15 +39,16 @@ TPPage {
 		RowLayout {
 			anchors.fill: parent
 
-			Image {
-				source: "qrc:/images/"+AppSettings.iconFolder+"mesocycle.png"
+			TPImage {
+				source: "app_icon"
+				dropShadow: false
 				width: 50
 				height: 50
 				Layout.alignment: Qt.AlignCenter
 			}
 
 			Label {
-				text: qsTr("Training Program")
+				text: qsTr("Training Organizer")
 				color: AppSettings.fontColor
 				font.weight: Font.ExtraBold
 				font.pointSize: AppSettings.fontSizeTitle
@@ -278,7 +280,7 @@ TPPage {
 					message: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
-					imageSource: "qrc:/images/remove.png"
+					imageSource: "remove"
 					parentPage: homePage
 
 					property int mesoidx

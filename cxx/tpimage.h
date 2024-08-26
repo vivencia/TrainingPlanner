@@ -31,6 +31,7 @@ public:
 
 public slots:
 	void checkEnabled(const bool bCallUpdate = true);
+	void maybeResize();
 
 signals:
 	void sourceChanged();
@@ -42,7 +43,7 @@ private:
 	QImage mImageDisabled;
 	QImage mImageShadow;
 	QImage* m_imageToPaint;
-	QSize mSize;
+	QSize mSize, mNominalSize;
 	bool mDropShadow;
 	bool mbCanUpdate;
 

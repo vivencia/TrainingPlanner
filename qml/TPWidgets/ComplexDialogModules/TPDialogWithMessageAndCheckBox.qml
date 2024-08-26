@@ -37,6 +37,7 @@ Column {
 			imgSize: 50
 			visible: parentDlg.customStringProperty3 !== ""
 			width: parentDlg.customStringProperty3 !== "" ? 50 : 0
+			height: width
 		}
 
 		Label {

@@ -4,8 +4,6 @@ import "../"
 import com.vivenciasoftware.qmlcomponents
 
 TPImage {
-	height: imgSize + 12
-	width: imgSize + 12
 	source: imageSource.indexOf("png") !== -1 ? AppSettings.iconFolder+imageSource : imageSource
 	opacity: parent.opacity
 

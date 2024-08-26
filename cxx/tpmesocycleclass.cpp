@@ -1012,6 +1012,7 @@ void TPMesocycleClass::enableDisableSetsRestTime(const uint exercise_idx, const 
 		{
 			if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
 			{
+				findSetMode(exercise_idx, i);
 				m_currentExercises->setObject(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
 				m_currentExercises->setObject(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
 			}

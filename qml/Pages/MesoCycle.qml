@@ -166,7 +166,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboCoaches
-					width: (parent.width - 20)*0.7
+					width: parent.width - lblCoaches.width - 20
 					Layout.minimumWidth: width
 
 					model: ListModel {

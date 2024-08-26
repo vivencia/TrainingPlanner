@@ -6,9 +6,11 @@
     <files-path name="my_images" path="myfile/"/>
     <files-path name="files" path="." />
     <files-path name="files_path" path="/"/>
+    <files-path name="." path="/"/>
 
     <external-path name="external" path="." />
     <external-path name="external_files" path="."/>
+
     <external-path name="images" path="Pictures" />
     <external-path name="my_images" path="." />
 

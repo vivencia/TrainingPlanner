@@ -315,20 +315,18 @@ TPPage {
 				Layout.topMargin: 10
 				z: 1
 
-				Image {
-					anchors.left: lblDefaults.right
-					anchors.leftMargin: -20
-					anchors.verticalCenter: lblDefaults.verticalCenter
-					source: paneExerciseDefaults.shown ? "qrc:/images/"+AppSettings.iconFolder+"fold-up.png" : "qrc:/images/"+AppSettings.iconFolder+"fold-down.png"
+				TPButton {
+					imageSource: paneExerciseDefaults.shown ? "fold-up.png" : "fold-down.png"
+					imageSize: 20
 					height: 20
 					width: 20
-					z: 0
-				}
 
-				MouseArea {
-					anchors.fill: parent
+					anchors {
+						left: lblDefaults.right
+						leftMargin: -20
+						verticalCenter: lblDefaults.verticalCenter
+					}
 					onClicked: paneExerciseDefaults.shown = !paneExerciseDefaults.shown
-					z:2
 				}
 			} //Label
 

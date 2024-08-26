@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import com.vivenciasoftware.qmlcomponents
 
 Column {
 	id: mainItem
@@ -85,20 +86,20 @@ Column {
 		Layout.topMargin: 5
 		clip: true
 
-		ToolButton {
+		TPButton {
 			id: btnClearText
-			anchors.left: txtFilter.right
-			anchors.leftMargin: -30
-			anchors.verticalCenter: txtFilter.verticalCenter
+			imageSource: "edit-clear.png"
+			hasDropShadow: false
+			imageSize: 20
 			height: 20
 			width: 20
 
-			Image {
-				source: "qrc:/images/"+AppSettings.iconFolder+"edit-clear.png"
-				anchors.fill: parent
-				height: 20
-				width: 20
+			anchors {
+				left: txtFilter.right
+				leftMargin: -30
+				verticalCenter: txtFilter.verticalCenter
 			}
+
 			onClicked: {
 				txtFilter.clear();
 				txtFilter.forceActiveFocus();
@@ -185,8 +186,9 @@ Column {
 				color: SwipeDelegate.pressed ? "#555" : "#666"
 				radius: 5
 
-				Image {
-					source: "qrc:/images/remove.png"
+				TPImage {
+					source: "remove"
+					imgSize: 20
 					width: 20
 					height: 20
 					opacity: 2 * -delegate.swipe.position

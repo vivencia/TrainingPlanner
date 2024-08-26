@@ -41,7 +41,7 @@ ColumnLayout {
 
 			onClicked: {
 				txtSetNotes.visible = !txtSetNotes.visible;
-				imageName = txtSetNotes.visible ? "fold-up.png" : "fold-down.png"
+				imageSource = txtSetNotes.visible ? "fold-up.png" : "fold-down.png"
 			}
 		}
 	} //Label

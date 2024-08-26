@@ -35,9 +35,6 @@
         <file>images/black/day-info.png</file>
         <file>images/black/menu.png</file>
         <file>images/white/menu.png</file>
-        <file>images/black/downward.png</file>
-        <file>images/black/minus.png</file>
-        <file>images/black/plus.png</file>
         <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
@@ -107,5 +104,7 @@
         <file>images/doc-icon.png</file>
         <file>images/choose-file.png</file>
         <file>images/pdf-icon.png</file>
+        <file>images/upward.png</file>
+        <file>images/downward.png</file>
     </qresource>
 </RCC>

@@ -25,26 +25,23 @@ TPPage {
 	property string splitLetter
 	property string timeIn
 	property string timeOut
-
 	property string mesoSplit
 	property string splitText
+	property string lastWorkOutLocation
 	property bool bRealMeso: true
-	property var previousTDays: []
 	property bool bHasPreviousTDays: false
 	property bool bHasMesoPlan: false
 	property bool pageOptionsLoaded: false
 	property bool editMode: false
 	property bool dayIsNotCurrent: false
 	property bool bCalendarChangedPending: false
-
-	property date previousDivisionDayDate
+	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
+	property var previousTDays: []
+	property var timerDialogRequester: null
 	property TPComplexDialog intentDlg: null
 	property TPFloatingButton btnFloat: null
 	property PageScrollButtons navButtons: null
 	property TimerDialog timerDialog: null
-	property var timerDialogRequester: null
-
-	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
 
 	onPageActivated: {
 		itemManager.setCurrenttDay(mainDate);
@@ -188,7 +185,7 @@ TPPage {
 
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
-						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "qrc:/images/remove.png" } );
+						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
 					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
 				}
 
@@ -215,7 +212,7 @@ TPPage {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "qrc:/images/remove.png",
+					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
 					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
 				}
@@ -372,7 +369,7 @@ TPPage {
 
 				function finishCreation() {
 					calChangedWarningMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Calendar changed! Update?"),
-						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "qrc:/images/warning.png" } );
+						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "warning" } );
 					tipTimeWarn.button1Clicked.connect(acceptChanges);
 				}
 
@@ -406,16 +403,12 @@ TPPage {
 				top: parent.top
 				left: parent.left
 				right: parent.right
-				topMargin: 5
 			}
 
 			Label {
 				id: lblHeader
-				topPadding: 20
-				bottomPadding: 20
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
-				Layout.rightMargin: 10
+				topPadding: 15
+				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
 				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(mesoIdx, 1) + "</b><br>" +
@@ -423,12 +416,16 @@ TPPage {
 										qsTr("Rest day"))
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
+				Layout.fillWidth: true
+				Layout.leftMargin: 10
+				Layout.rightMargin: 10
 			}
 
 			RowLayout {
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
+				Layout.topMargin: -10
 
 				Label {
 					text: qsTr("Training Division:")
@@ -470,7 +467,7 @@ TPPage {
 				}
 				TPTextInput {
 					id: txtLocation
-					placeholderText: "Academia Golden Era"
+					placeholderText: lastWorkOutLocation
 					text: tDayModel.location()
 					visible: splitLetter != "R"
 					enabled: tDayModel.dayIsEditable
@@ -572,7 +569,7 @@ TPPage {
 
 							anchors {
 								top: parent.top
-								topMargin: -15
+								topMargin: -5
 								left: txtInTime.right
 							}
 
@@ -611,7 +608,7 @@ TPPage {
 
 							anchors {
 								top: parent.top
-								topMargin: -15
+								topMargin: -5
 								left: txtOutTime.right
 							}
 
@@ -856,6 +853,8 @@ TPPage {
 					tDayModel.setTimeIn(timeIn);
 					tDayModel.dayIsEditable = true;
 					workoutTimer.timeWarning.connect(displayTimeWarning);
+					if (tDayModel.location().length === 0)
+						 tDayModel.setLocation(txtLocation.placeholderText);
 				}
 			}
 
@@ -915,6 +914,7 @@ TPPage {
 		TPButton {
 			id: btnFinishedDayOptions
 			imageSource: "menu.png"
+			backgroundColor: AppSettings.primaryDarkColor
 			rounded: false
 			flat: false
 			fixedSize: true
@@ -1250,7 +1250,7 @@ TPPage {
 			function finishCreation() {
 				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
 					button2Text: qsTr("No"), customStringProperty1: qsTr("Really change split?"), customStringProperty2: qsTr("Clear exercises list?"),
-					customStringProperty3: "qrc:/images/remove.png", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
+					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					if (changeSplitLetterDialog.customBoolProperty1)
 						appDB.clearExercises();

@@ -144,17 +144,21 @@ public class QShareUtils {
 	    return false;
 	}
 
-	Intent intent = new Intent();
-	intent.setAction(Intent.ACTION_VIEW);
-	intent.setType(mimeType);
-
 	File fileToShare = new File(filePath);
 	// Using FileProvider you must get the URI from FileProvider using your AUTHORITY
-	Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
-	intent.setData(uri);
-	//intent.putExtra(Intent.EXTRA_STREAM, uri);
+	//Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
+	Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare).normalizeScheme();
 	QtNative.activity().grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	//QtNative.activity().grantUriPermission("android", uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+	Intent intent = ShareCompat.IntentBuilder.from(QtNative.activity()).getIntent();
+	//Intent intent = new Intent();
+	intent.setAction(Intent.ACTION_VIEW);
+	//intent.setType(mimeType);
+	intent.setType(QtNative.activity().getContentResolver().getType(uri));
+	intent.setData(uri);
+	//intent.putExtra(Intent.EXTRA_STREAM, fileToShare);
 	intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	//intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
 	    QtNative.activity().startActivity(Intent.createChooser(intent, title));
 	    return true;
@@ -367,7 +371,7 @@ public class QShareUtils {
 	return createCustomChooserAndStartActivity(sendIntent, title, requestId, uri);
     }
 
-    public static boolean viewFile(String filePath, String title, String mimeType, int requestId) {
+    public static boolean viewFile_orig(String filePath, String title, String mimeType, int requestId) {
 	if (QtNative.activity() == null) {
 	    return false;
 	}

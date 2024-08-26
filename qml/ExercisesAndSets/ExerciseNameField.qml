@@ -119,7 +119,7 @@ RowLayout {
 		width: 20
 		visible: showRemoveButton
 		enabled: bEditable
-		Layout.leftMargin: -10
+		Layout.leftMargin: -12
 		z: 1
 
 		onClicked: removeButtonClicked();
@@ -132,7 +132,7 @@ RowLayout {
 		width: 20
 		enabled: bEditable
 		z: 1
-		Layout.leftMargin: -10
+		Layout.leftMargin: -15
 
 		onClicked: {
 			control.readOnly = !control.readOnly;

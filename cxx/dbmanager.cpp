@@ -40,6 +40,7 @@ static TPMesocycleClass* tempTPObj(nullptr);
 
 #include <QJniObject>
 #include <QtGlobal>
+#include <QDirIterator>
 #include <qnativeinterface.h>
 #if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
 #include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
@@ -137,6 +138,21 @@ bool DbManager::viewFile(const QString& filePath, const QString& title, const QS
 	}
 	return true;
 }
+
+void DbManager::cleanAppDataFilesPath()
+{
+	//QDirIterator it(mAppDataFilesPath, QStringList() << u"*.txt"_qs << u"*.pdf"_qs << u"*.odt"_qs << u"*.docx"_qs << u"*.doc"_qs, QDir::Files);
+	QDirIterator it(mAppDataFilesPath, QStringList() << u"*.*"_qs, QDir::Files);
+	while (it.hasNext())
+	{
+		QString filename(it.next());
+		qDebug() << filename;
+		if (QFile::remove(filename))
+			qDebug() << "------------- " << "removed file:  " << filename;
+		else
+			qDebug() << "------------- " << "did not removed file:  " << filename;
+	}
+}
 #else
 extern "C"
 {
@@ -152,6 +168,9 @@ DbManager::DbManager(QSettings* appSettings)
 DbManager::~DbManager()
 {
 	cleanUp();
+	#ifdef Q_OS_ANDROID
+	cleanAppDataFilesPath();
+	#endif
 	if (tempTPObj)
 		delete tempTPObj;
 	delete mesoSplitModel;
@@ -332,6 +351,9 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 					{
 						m_currentMesoManager->currenttDayPage()->setProperty("previousTDays", QVariant::fromValue(tempModel->getRow_const(0)));
 						m_currentMesoManager->currenttDayPage()->setProperty("bHasPreviousTDays", true);
+						if (tempModel->count() == 2)
+							m_currentMesoManager->currenttDayPage()->setProperty("lastWorkOutLocation",
+								QVariant::fromValue(tempModel->getRow_const(1).at(TDAY_COL_LOCATION)));
 					}
 					else
 					{
@@ -924,26 +946,33 @@ void DbManager::viewExternalFile(const QString& filename) const
 	if (!runCmd()->canReadFile(runCmd()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	QString mimeType, title;
-	if (filename.endsWith(u".pdf"_qs))
+	const QString localFile(mAppDataFilesPath + u"tempfile"_qs + filename.right(4));
+	if (QFile::copy(filename, localFile))
 	{
-		mimeType = u"application/pdf"_qs;
-		title = tr("View PDF file");
+		QString mimeType, title;
+		if (localFile.endsWith(u".pdf"_qs))
+		{
+			mimeType = u"application/pdf"_qs;
+			title = tr("View PDF file");
+		}
+		else
+		{
+			if (mimeType.endsWith(u".odt"_qs))
+			{
+				mimeType = u"application/vnd.oasis.opendocument.text"_qs;
+				title = tr("View Open Office/Google Workspace file");
+			}
+			else if (mimeType.endsWith(u"docx"_qs))
+				mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
+			else
+				mimeType = u"application/msword"_qs;
+			title = tr("View MS Word file");
+		}
+		qDebug() << "Starting viewFile with args: " << localFile << ",   " << title << ",  " << mimeType;
+		viewFile(localFile, title, mimeType);
 	}
 	else
-	{
-		if (mimeType.endsWith(u".odt"_qs))
-		{
-			mimeType = u"application/vnd.oasis.opendocument.text"_qs;
-			title = tr("View Open Office/Google Workspace file");
-		}
-		else if (mimeType.endsWith(u"docx"_qs))
-			mimeType = u"application/vnd.openxmlformats-officedocument.wordprocessingml.document"_qs;
-		else
-			mimeType = u"application/msword"_qs;
-		title = tr("View MS Word file");
-	}
-	viewFile(filename, title, mimeType);
+		qDebug() << "coud not copy:  " << filename << "    to   " << localFile;
 	#else
 	openURL(filename);
 	#endif
@@ -1913,7 +1942,7 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 		worker->addExecArg(m_MesoIdStr);
 		worker->addExecArg(splitletter);
 		worker->addExecArg(QString::number(date.toJulianDay()));
-		createThread(worker, [worker] () { return worker->getPreviousTrainingDays(); } );
+		createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); } );
 	}
 }
 

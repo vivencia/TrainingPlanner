@@ -232,11 +232,11 @@ Frame {
 
 		ListModel {
 			id: socialModel
-			ListElement { text: "YouTube"; icon: "qrc:/images/youtube.png"; value: 0; }
-			ListElement { text: "Twitter"; icon: "qrc:/images/twitter.png"; value: 1; }
-			ListElement { text: "Instagram"; icon: "qrc:/images/instagram.png"; value: 2; }
-			ListElement { text: "Facebook"; icon: "qrc:/images/facebook.png"; value: 3; }
-			ListElement { text: qsTr("Other"); icon: "qrc:/images/www.png"; value: 4; }
+			ListElement { text: "YouTube"; icon: "youtube"; value: 0; }
+			ListElement { text: "Twitter"; icon: "twitter"; value: 1; }
+			ListElement { text: "Instagram"; icon: "instagram"; value: 2; }
+			ListElement { text: "Facebook"; icon: "facebook"; value: 3; }
+			ListElement { text: qsTr("Other"); icon: "www"; value: 4; }
 		}
 
 		onActivated: (index) => {

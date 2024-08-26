@@ -8,9 +8,10 @@
 #include <QGraphicsPixmapItem>
 
 TPImage::TPImage(QQuickItem* parent)
-	: QQuickPaintedItem(parent), mSize(20, 20), mDropShadow(true), mbCanUpdate(true)
+	: QQuickPaintedItem(parent), mDropShadow(true), mbCanUpdate(true)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
+	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
 }
 
 void TPImage::setSource(const QString& source)
@@ -25,7 +26,7 @@ void TPImage::setSource(const QString& source)
 			{
 				mSource = source;
 				mImage = tpImageProvider()->getAvatar(mSource);
-				scaleImage(true);
+				maybeResize();
 				emit sourceChanged();
 				return;
 			}
@@ -34,7 +35,7 @@ void TPImage::setSource(const QString& source)
 		}
 		if (mImage.load(mSource))
 		{
-			scaleImage(true);
+			maybeResize();
 			emit sourceChanged();
 		}
 	}
@@ -48,10 +49,10 @@ void TPImage::setDropShadow(const bool drop_shadow)
 
 void TPImage::setImgSize(const int size)
 {
-	if (size != mSize.width())
+	if (size != mNominalSize.width())
 	{
-		mSize.setWidth(size);
-		mSize.setHeight(size);
+		mNominalSize.setWidth(size);
+		mNominalSize.setHeight(size);
 		scaleImage(false);
 		emit imgSizeChanged();
 	}
@@ -60,6 +61,8 @@ void TPImage::setImgSize(const int size)
 void TPImage::paint(QPainter* painter)
 {
 	if (!mbCanUpdate)
+		return;
+	if (mSource.isEmpty())
 		return;
 
 	QPointF center(boundingRect().center() - m_imageToPaint->rect().center());
@@ -96,18 +99,27 @@ void TPImage::checkEnabled(const bool bCallUpdate)
 
 void TPImage::scaleImage(const bool bCallUpdate)
 {
-	if (!mImage.isNull())
+	if (!mImage.isNull() && !mNominalSize.isEmpty())
 	{
-		if (mSize != mImage.size())
-		{
-			mbCanUpdate = false;
-			mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-			mImageDisabled = QImage();
-			mImageShadow = QImage();
-			mbCanUpdate = true;
-		}
+		mbCanUpdate = false;
+		mSize = mNominalSize-QSize(qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05));
+		mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		mImageDisabled = QImage();
+		mImageShadow = QImage();
+		mbCanUpdate = true;
 		checkEnabled(bCallUpdate);
 	}
+}
+
+void TPImage::maybeResize()
+{
+	if (mSource.isEmpty())
+		return;
+	if (mNominalSize.width() != width())
+		mNominalSize.setWidth(width());
+	if (mNominalSize.height() != height())
+		mNominalSize.setHeight(height());
+	scaleImage(true);
 }
 
 void TPImage::convertToGrayScale()
@@ -121,9 +133,9 @@ void TPImage::createDropShadowImage()
 	if (!mImage.isNull())
 	{
 		QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
-		shadowEffect->setOffset(5, 5);
+		shadowEffect->setOffset(3, 3);
 		shadowEffect->setBlurRadius(5);
-		applyEffectToImage(mImageShadow, mImage, shadowEffect, 5);
+		applyEffectToImage(mImageShadow, mImage, shadowEffect, 3);
 	}
 }
 
@@ -134,11 +146,11 @@ void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = srcImg.scaled(srcImg.size()+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	dstImg = srcImg.scaled(mNominalSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr(&dstImg);
-	scene.render(&ptr, QRectF(), QRectF( -extent, -extent, dstImg.width(), dstImg.height()));
+	scene.render(&ptr, QRectF(0, 0, mSize.width(), mSize.height()), QRectF( -extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)

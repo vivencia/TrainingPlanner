@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 import "../TPWidgets"
+import com.vivenciasoftware.qmlcomponents
 
 Rectangle {
 	id: button
@@ -36,11 +37,12 @@ Rectangle {
 			btnDown.y = y + 30;
 		}
 
-		Image {
+		TPImage {
 			id: img1
-			source: "qrc:/images/"+darkIconFolder+"downward.png"
-			anchors.fill: parent
-			mirrorVertically: true
+			source: "upward"
+			imgSize: 30
+			width: 30
+			height: 30
 		}
 
 		onClicked: {
@@ -69,10 +71,12 @@ Rectangle {
 			btnUp.y = y - 30;
 		}
 
-		Image {
+		TPImage {
 			id: img2
-			source: "qrc:/images/"+darkIconFolder+"downward.png"
-			anchors.fill: parent
+			source: "downward"
+			imgSize: 30
+			width: 30
+			height: 30
 		}
 
 		onClicked: {

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
+import com.vivenciasoftware.qmlcomponents
 
 Page {
 	id: tpPage
@@ -21,11 +22,10 @@ Page {
 		//tpPage.StackView.activating.connect(pageActivation);
 	}
 
-	Image {
+	TPImage {
 		anchors.fill: parent
-		source: "qrc:/images/app_logo.png"
-		fillMode: Image.PreserveAspectFit
-		asynchronous: true
+		source: "app_logo"
+		dropShadow: false
 		opacity: 0.6
 	}
 

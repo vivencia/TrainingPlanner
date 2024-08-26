@@ -81,15 +81,19 @@ TPPopup {
 				}
 			}
 
-			Image {
+			TPImage {
 				id: btnCloseWindow
-				source: "qrc:/images/"+AppSettings.iconFolder+"close.png"
-				width: parent.height
-				height: parent.height
-				anchors.right: parent.right
-				anchors.top: parent.top
-				anchors.rightMargin: 12
+				source: "close.png"
+				dropShadow: false
+				imgSize: parent.height
+				width: imgSize
+				height: imgSize
 				z: 2
+				anchors {
+					right: parent.right
+					top: parent.top
+					rightMargin: 12
+				}
 
 				MouseArea {
 					anchors.fill: parent
