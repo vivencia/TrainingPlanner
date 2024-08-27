@@ -103,8 +103,8 @@ Item {
 			TPButton {
 				id: btnRemoveSet
 				imageSource: "remove"
-				height: 25
-				width: 25
+				height: 20
+				width: 20
 
 				anchors {
 					verticalCenter: parent.verticalCenter

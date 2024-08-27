@@ -39,7 +39,6 @@
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
         <file>translations/tplanner.de_DE.qm</file>
-        <file>images/black/edit-clear.png</file>
         <file>images/app_logo.png</file>
         <file>images/app_icon.png</file>
         <file>images/white/open-schedule.png</file>
@@ -106,5 +105,6 @@
         <file>images/pdf-icon.png</file>
         <file>images/upward.png</file>
         <file>images/downward.png</file>
+        <file>images/edit-clear.png</file>
     </qresource>
 </RCC>

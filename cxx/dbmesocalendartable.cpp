@@ -320,29 +320,64 @@ void DBMesoCalendarTable::updateDayIsFinished()
 	{
 		const QDate date(m_execArgs.at(0).toDate());
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3").arg(
-				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())) );
-		if (query.exec())
+		QString strQuery;
+		strQuery = QStringLiteral("SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3").arg(
+				QString::number(date.year()),QString::number(date.month()), QString::number(date.day()));
+		if (query.exec(strQuery))
 		{
 			query.first();
 			const QString strId(query.value(0).toString());
 			query.finish();
-			query.prepare( QStringLiteral(
-									"UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2")
-									.arg(m_execArgs.at(1).toBool() ? u"1"_qs : u"0"_qs, strId) );
-			m_result = query.exec();
+			strQuery = QStringLiteral("UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2")
+									.arg(m_execArgs.at(1).toBool() ? u"1"_qs : u"0"_qs, strId);
+			m_result = query.exec(strQuery);
+		}
+		if (m_result)
+			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished SUCCESS")
+		else
+		{
+			MSG_OUT(strQuery)
+			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
 		}
 		mSqlLiteDB.close();
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoCalendarTable updateDayIsFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoCalendarTable updateDayIsFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
 	else
-		MSG_OUT("DBMesoCalendarTable updateDayIsFinished SUCCESS")
+	{
+		MSG_OUT("DBMesoCalendarTable::updateDayIsFinished(): could not open database");
+		MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
+	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
+void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
+{
+	if (mSqlLiteDB.open())
+	{
+		QSqlQuery query(mSqlLiteDB);
+		const QString strQuery(QStringLiteral("SELECT meso_id,training_day,training_split,training_complete "
+											  "FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3").arg(
+				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+			{
+				dayInfoList.append(query.value(0).toString());
+				dayInfoList.append(query.value(1).toString());
+				dayInfoList.append(query.value(2).toString());
+				dayInfoList.append(query.value(3).toString());
+			}
+			MSG_OUT("DBMesoCalendarTable::isDayFinished SUCCESS")
+		}
+		else
+		{
+			MSG_OUT(strQuery)
+			MSG_OUT("DBMesoCalendarTable::isDayFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoCalendarTable::isDayFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		mSqlLiteDB.close();
+	}
 }
 
 void DBMesoCalendarTable::changeMesoCalendar()

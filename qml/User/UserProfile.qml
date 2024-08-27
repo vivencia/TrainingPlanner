@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 
 import com.vivenciasoftware.qmlcomponents
 
@@ -213,19 +212,15 @@ Frame {
 		}
 	}
 
-	Rectangle {
-		id: recAvatar
-		height: 4*controlsHeight
-		width: height
-		layer.enabled: true
-		visible: false
-		color: "transparent"
+	TPImage {
+		id: imgAvatar
+		source: userModel.avatar(userRow)
+		height: 100
+		width: 100
 
-		Image {
-			id: imgAvatar
+		MouseArea {
 			anchors.fill: parent
-			source: userModel.avatar(userRow)
-			asynchronous: true
+			onClicked: showAvatarsPopup();
 		}
 
 		anchors {
@@ -233,26 +228,6 @@ Frame {
 			topMargin: -10
 			left: lblAvatar.right
 			leftMargin: 30
-		}
-	}
-
-	MultiEffect {
-		id: recAvatarEffect
-		visible: true
-		source: recAvatar
-		anchors.fill: recAvatar
-		shadowEnabled: true
-		shadowOpacity: 0.5
-		blurMax: 16
-		shadowBlur: 1
-		shadowHorizontalOffset: 5
-		shadowVerticalOffset: 5
-		shadowColor: "black"
-		shadowScale: 1
-
-		MouseArea {
-			anchors.fill: parent
-			onClicked: showAvatarsPopup();
 		}
 	}
 
@@ -264,7 +239,7 @@ Frame {
 
 				function finishCreation() {
 					chooseAvatarDlg = component.createObject(parentPage, { parentPage: parentPage,
-							targetImageItem: recAvatarEffect, callerWidget: frmUserProfile });
+							targetImageItem: imgAvatar, callerWidget: frmUserProfile });
 					chooseAvatarDlg.open();
 				}
 

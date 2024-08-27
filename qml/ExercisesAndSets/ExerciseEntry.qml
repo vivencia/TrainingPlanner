@@ -36,7 +36,7 @@ FocusScope {
 		id: paneExercise
 		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height + 30
+		height: shown ? implicitHeight : txtExerciseName.height + 20
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: width
 		width: windowWidth - 10
@@ -110,7 +110,7 @@ FocusScope {
 
 				TPButton {
 					id: btnFoldIcon
-					imageSource: paneExercise.shown ? "fold-up.png" : "fold-down.png"
+					imageSource: paneExercise.shown ? "black/fold-up.png" : "black/fold-down.png"
 					hasDropShadow: false
 					onClicked: paneExerciseShowHide(false, false);
 					Layout.leftMargin: 8
@@ -147,6 +147,42 @@ FocusScope {
 					onItemClicked: paneExerciseShowHide(false, false);
 				}
 			} //Row txtExerciseName
+
+			RowLayout {
+				id: trackRestTimeRow
+				enabled: tDayModel.dayIsEditable && bCanEditRestTimeTracking
+				Layout.fillWidth: true
+				Layout.leftMargin: 5
+
+				TPCheckBox {
+					id: chkTrackRestTime
+					text: qsTr("Track rest times?")
+					textColor: "black"
+					width: paneExercise.width/2 - 10
+
+					Component.onCompleted: checked = bTrackRestTime;
+
+					onClicked: {
+						bTrackRestTime = checked;
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+					}
+				}
+
+				TPCheckBox {
+					id: chkAutoRestTime
+					text: qsTr("Auto tracking")
+					textColor: "black"
+					width: paneExercise.width/2 - 10
+					enabled: bTrackRestTime
+					checked: bAutoRestTime
+
+					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
+					onClicked: {
+						bAutoRestTime = checked;
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+					}
+				}
+			}
 
 			RowLayout {
 				enabled: tDayModel.dayIsEditable
@@ -204,42 +240,6 @@ FocusScope {
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
 					onValueChanged: (str) => nWeight = runCmd.setCompositeValue_QML(1, str, nWeight);
-				}
-			}
-
-			RowLayout {
-				id: trackRestTimeRow
-				enabled: tDayModel.dayIsEditable && bCanEditRestTimeTracking
-				Layout.fillWidth: true
-				Layout.leftMargin: 5
-
-				TPCheckBox {
-					id: chkTrackRestTime
-					text: qsTr("Track rest times?")
-					textColor: "black"
-					width: paneExercise.width/2 - 10
-
-					Component.onCompleted: checked = bTrackRestTime;
-
-					onClicked: {
-						bTrackRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
-					}
-				}
-
-				TPCheckBox {
-					id: chkAutoRestTime
-					text: qsTr("Auto tracking")
-					textColor: "black"
-					width: paneExercise.width/2 - 10
-					enabled: bTrackRestTime
-					checked: bAutoRestTime
-
-					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
-					onClicked: {
-						bAutoRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
-					}
 				}
 			}
 

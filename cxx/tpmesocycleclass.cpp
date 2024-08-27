@@ -1006,6 +1006,7 @@ void TPMesocycleClass::enableDisableSetsRestTime(const uint exercise_idx, const 
 								const uint bAutoRestTime, const uint except_set_number)
 {
 	const uint nsets(m_currentExercises->setCount(exercise_idx));
+	QString strRestTime;
 	for(uint i(1); i < nsets; ++i)
 	{
 		if (i != except_set_number)
@@ -1015,6 +1016,12 @@ void TPMesocycleClass::enableDisableSetsRestTime(const uint exercise_idx, const 
 				findSetMode(exercise_idx, i);
 				m_currentExercises->setObject(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
 				m_currentExercises->setObject(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
+				if (bAutoRestTime)
+					strRestTime = u"00:00"_qs;
+				else if (bTrackRestTime)
+					strRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, m_CurrenttDayModel->setType(i, exercise_idx), i);
+				m_CurrenttDayModel->setSetRestTime(i, exercise_idx, strRestTime);
+				QMetaObject::invokeMethod(m_currentExercises->setObject(exercise_idx, i), "updateRestTime", Q_ARG(QString, strRestTime));
 			}
 		}
 	}

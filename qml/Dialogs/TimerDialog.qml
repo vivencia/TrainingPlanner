@@ -81,13 +81,12 @@ TPPopup {
 				}
 			}
 
-			TPImage {
+			TPButton {
 				id: btnCloseWindow
-				source: "close.png"
-				dropShadow: false
+				imageSource: "close.png"
+				hasDropShadow: false
 				width: 20
 				height: 20
-				z: 2
 
 				anchors {
 					right: parent.right
@@ -95,10 +94,7 @@ TPPopup {
 					rightMargin: 12
 				}
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: { dlgTimer.close(); }
-				}
+				onClicked: { dlgTimer.close(); }
 			}
 		}
 

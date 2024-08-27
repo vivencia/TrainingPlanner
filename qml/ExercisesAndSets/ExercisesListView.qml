@@ -88,7 +88,7 @@ Column {
 
 		TPButton {
 			id: btnClearText
-			imageSource: "edit-clear.png"
+			imageSource: "edit-clear"
 			hasDropShadow: false
 			imageSize: 20
 			height: 20

@@ -96,7 +96,7 @@ RowLayout {
 
 		TPButton {
 			id: btnClearText
-			imageSource: darkIconFolder+"edit-clear.png"
+			imageSource: "edit-clear"
 			visible: !control.readOnly
 
 			anchors {
@@ -127,7 +127,7 @@ RowLayout {
 
 	TPButton {
 		id: btnEditExercise
-		imageSource: "edit.png"
+		imageSource: "black/edit"
 		height: 20
 		width: 20
 		enabled: bEditable

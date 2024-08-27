@@ -30,7 +30,7 @@ ColumnLayout {
 
 		TPButton {
 			id: button
-			imageSource: "fold-down.png"
+			imageSource: color + (txtSetNotes.visible ? "/fold-up.png" : "/fold-down.png")
 			hasDropShadow: false
 			width: 20
 			height: 20
@@ -41,10 +41,7 @@ ColumnLayout {
 				rightMargin: 20
 			}
 
-			onClicked: {
-				txtSetNotes.visible = !txtSetNotes.visible;
-				imageSource = txtSetNotes.visible ? "fold-up.png" : "fold-down.png"
-			}
+			onClicked: txtSetNotes.visible = !txtSetNotes.visible;
 		}
 	} //Label
 

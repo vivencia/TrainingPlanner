@@ -7,6 +7,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 
+#define DROP_SHADOW_EXTENT 5
+
 TPImage::TPImage(QQuickItem* parent)
 	: QQuickPaintedItem(parent), mDropShadow(true), mbCanUpdate(true)
 {
@@ -102,7 +104,10 @@ void TPImage::scaleImage(const bool bCallUpdate)
 	if (!mImage.isNull() && !mNominalSize.isEmpty())
 	{
 		mbCanUpdate = false;
-		mSize = mNominalSize-QSize(qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05));
+		if (mDropShadow)
+			mSize = mNominalSize-QSize(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
+		else
+			mSize = mNominalSize-QSize(qCeil(mNominalSize.width()*0.05), qCeil(mNominalSize.height()*0.05));
 		mImage = mImage.scaled(mSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 		mImageDisabled = QImage();
 		mImageShadow = QImage();
@@ -115,11 +120,15 @@ void TPImage::maybeResize()
 {
 	if (mSource.isEmpty())
 		return;
-	if (mNominalSize.width() != width())
-		mNominalSize.setWidth(width());
+	if (width() <= 0 || height() <= 0)
+		return;
+
 	if (mNominalSize.height() != height())
+	{
 		mNominalSize.setHeight(height());
-	scaleImage(true);
+		mNominalSize.setWidth(width());
+		scaleImage(true);
+	}
 }
 
 void TPImage::convertToGrayScale()
@@ -133,9 +142,9 @@ void TPImage::createDropShadowImage()
 	if (!mImage.isNull())
 	{
 		QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
-		shadowEffect->setOffset(3, 3);
-		shadowEffect->setBlurRadius(5);
-		applyEffectToImage(mImageShadow, mImage, shadowEffect, 3);
+		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
+		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
+		applyEffectToImage(mImageShadow, mImage, shadowEffect, DROP_SHADOW_EXTENT);
 	}
 }
 
@@ -146,11 +155,11 @@ void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphics
 	item.setPixmap(QPixmap::fromImage(srcImg));
 	item.setGraphicsEffect(effect);
 	scene.addItem(&item);
-	dstImg = srcImg.scaled(mNominalSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	dstImg = srcImg.scaled(mSize+QSize(extent*2, extent*2), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr(&dstImg);
-	scene.render(&ptr, QRectF(0, 0, mSize.width(), mSize.height()), QRectF( -extent, -extent, dstImg.width(), dstImg.height()));
+	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()), QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)

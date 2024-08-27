@@ -23,6 +23,10 @@ class DBUserModel;
 class RunCommands;
 class TPMesocycleClass;
 
+#ifdef Q_OS_ANDROID
+class TPAndroidNotification;
+#endif
+
 class DbManager : public QObject
 {
 
@@ -50,6 +54,7 @@ public:
 	void androidOpenURL(const QString& address) const;
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
 	bool viewFile(const QString& filePath, const QString& title) const;
+	void appStartUpNotifications();
 #endif
 
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
@@ -180,6 +185,9 @@ private:
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
 	QQuickWindow* m_mainWindow;
+	#ifdef Q_OS_ANDROID
+	TPAndroidNotification* m_AndroidNotification;
+	#endif
 
 	DBUserModel* userModel;
 	DBMesocyclesModel* mesocyclesModel;

@@ -75,12 +75,14 @@ TPFloatingControl {
 		}
 	}
 
-	Image {
+	TPImage {
 		id: buttonImage
-		source: AppSettings.iconFolder+image;
+		source: image
+		dropShadow: false
 		width: 20
 		height: 20
 		z: 0
+
 		anchors {
 			right: parent.right
 			rightMargin: 10

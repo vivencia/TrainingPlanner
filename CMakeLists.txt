@@ -27,6 +27,7 @@ set( SOURCES
 	cxx/urihandler.h cxx/urihandler.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
+	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
@@ -49,6 +50,7 @@ set( JAVASOURCES
     java/TPActivity.java
     java/QShareUtils.java
     java/QSharePathResolver.java
+    java/NotificationClient.java
 )
 
 set( TRANSLATIONS_DIR

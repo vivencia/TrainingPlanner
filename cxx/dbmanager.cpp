@@ -37,6 +37,7 @@ static TPMesocycleClass* tempTPObj(nullptr);
 #ifdef Q_OS_ANDROID
 
 #include "urihandler.h"
+#include "tpandroidnotification.h"
 
 #include <QJniObject>
 #include <QtGlobal>
@@ -136,6 +137,36 @@ bool DbManager::viewFile(const QString& filePath, const QString& title) const
 	}
 	return true;
 }
+
+void DbManager::appStartUpNotifications()
+{
+	m_AndroidNotification = new TPAndroidNotification(this);
+	if (mesocyclesModel->count() > 0)
+	{
+		DBMesoCalendarTable* calTable(new DBMesoCalendarTable(m_DBFilePath, m_appSettings));
+		QStringList dayInfoList;
+		calTable->dayInfo(QDate::currentDate(), dayInfoList);
+		if (!dayInfoList.isEmpty())
+		{
+			if (dayInfoList.at(0) == m_MesoIdStr)
+			{
+				QString message;
+				const QString splitLetter(dayInfoList.at(2));
+				if (splitLetter != u"N"_qs) //day is training day
+				{
+					if (dayInfoList.at(3) == u"1"_qs) //day is completed
+						message = tr("Your training routine seems to go well. Workout for the day is concluded");
+					else
+						message = tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter;
+				}
+				else
+					message = tr("Enjoy your day of rest from workouts!");
+				m_AndroidNotification->sendNotification(tr("Training Planner"), message);
+			}
+		}
+		delete calTable;
+	}
+}
 #else
 extern "C"
 {
@@ -150,6 +181,9 @@ DbManager::DbManager(QSettings* appSettings)
 
 DbManager::~DbManager()
 {
+	#ifdef Q_OS_ANDROID
+	delete m_AndroidNotification;
+	#endif
 	cleanUp();
 	if (tempTPObj)
 		delete tempTPObj;
@@ -295,9 +329,9 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 		QMetaObject::invokeMethod(m_mainWindow, "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode));
 		QFile::remove(exportFileName());
 	});
+	appStartUpNotifications();
 #endif
 }
-
 
 void DbManager::gotResult(TPDatabaseTable* dbObj)
 {
