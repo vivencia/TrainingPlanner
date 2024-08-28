@@ -34,7 +34,7 @@ Q_OBJECT
 
 public:
 	explicit DbManager(QSettings* appSettigs);
-	~DbManager();
+	//virtual ~DbManager() override;
 
 	void init();
 	Q_INVOKABLE void exitApp();
@@ -167,6 +167,7 @@ signals:
 
 public slots:
 	void cleanUp();
+	void cleanUpThreads();
 	void bridge(QQuickItem* item, const uint id);
 	void openMainMenuShortCut(const int button_id);
 

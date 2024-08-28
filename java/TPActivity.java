@@ -1,15 +1,12 @@
 package org.vivenciasoftware.TrainingPlanner;
 
-import android.app.Notification;
-import android.content.Intent;
 import org.qtproject.qt.android.bindings.QtActivity;
+import org.qtproject.qt.android.QtNative;
 
 import android.os.*;
 import android.content.*;
 import android.app.*;
-
 import java.lang.String;
-import android.content.Intent;
 import java.io.File;
 import android.net.Uri;
 import android.util.Log;
@@ -18,6 +15,7 @@ import android.webkit.MimeTypeMap;
 
 import org.vivenciasoftware.TrainingPlanner.QShareUtils;
 import org.vivenciasoftware.TrainingPlanner.QSharePathResolver;
+import org.vivenciasoftware.TrainingPlanner.TPBroadcastReceiver;
 
 public class TPActivity extends QtActivity
 {
@@ -45,6 +43,10 @@ public class TPActivity extends QtActivity
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
 	  Log.d("ekkescorner", "onCreate QShareActivity");
+	  TPBroadcastReceiver broadCast = new TPBroadcastReceiver();
+	  IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+	  QtNative.activity().registerReceiver(broadCast, intentFilter);
+
 	  // now we're checking if the App was started from another Android App via Intent
 	  Intent theIntent = getIntent();
 	  if (theIntent != null){

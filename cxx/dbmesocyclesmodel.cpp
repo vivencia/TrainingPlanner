@@ -272,7 +272,7 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
 	if (count() > 0)
-		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.last().at(MESOCYCLES_COL_ENDDATE)).toLongLong());
+		return QDate::fromJulianDay(static_cast<QString>(m_modeldata.constLast().at(MESOCYCLES_COL_ENDDATE)).toLongLong());
 	return QDate::currentDate();
 }
 

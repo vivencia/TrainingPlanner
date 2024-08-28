@@ -3,45 +3,65 @@
 
 package org.vivenciasoftware.TrainingPlanner;
 
+import org.qtproject.qt.android.QtNative;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.BitmapFactory;
 import android.app.NotificationChannel;
 import android.util.Log;
+import androidx.core.app.ShareCompat;
 
 public class NotificationClient
 {
-    public static void notify(Context context, String title, String message) {
+    public static void notify(String title, String message, String action, int id) {
 	try {
+	    final Context context = QtNative.activity();
+	    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
+
 	    NotificationManager m_notificationManager = (NotificationManager)
 		    context.getSystemService(Context.NOTIFICATION_SERVICE);
+	    NotificationChannel notificationChannel;
+	    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
+	    m_notificationManager.createNotificationChannel(notificationChannel);
 
-	    Notification.Builder m_builder;
-	    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-		int importance = NotificationManager.IMPORTANCE_DEFAULT;
-		NotificationChannel notificationChannel;
-		notificationChannel = new NotificationChannel("TP", "TrainingPlanner", importance);
-		m_notificationManager.createNotificationChannel(notificationChannel);
-		m_builder = new Notification.Builder(context, notificationChannel.getId());
-	    } else {
-		m_builder = new Notification.Builder(context);
-	    }
+	    Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+	    // Set the Activity to start in a new, empty task.
+	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	    notifyIntent.putExtra("TP_ACTION", action);
+	    // Create the PendingIntent.
+	    PendingIntent notifyPendingIntent = PendingIntent.getBroadcast(context, id, notifyIntent,
+		PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-	    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
+	    Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
 	    m_builder.setSmallIcon(R.drawable.icon)
 		    .setLargeIcon(icon)
 		    .setContentTitle(title)
 		    .setContentText(message)
 		    .setDefaults(Notification.DEFAULT_SOUND)
 		    .setColor(Color.GREEN)
-		    .setAutoCancel(true);
+		    .setAutoCancel(true)
+		    .setContentIntent(notifyPendingIntent);
 
-	    m_notificationManager.notify(0, m_builder.build());
+	    m_notificationManager.notify(id, m_builder.build());
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+    }
+
+    public static void cancelNotify(int id) {
+	try {
+	    final Context context = QtNative.activity();
+	    NotificationManager m_notificationManager = (NotificationManager)
+		    context.getSystemService(Context.NOTIFICATION_SERVICE);
+	    m_notificationManager.cancel(id);
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
     }
 }
+

@@ -3,6 +3,7 @@
 #ifdef Q_OS_ANDROID
 
 #include "dbmanager.h"
+#include "tpandroidnotification.h"
 
 #include <jni.h>
 #include <QFile>
@@ -107,6 +108,12 @@ void URIHandler::onActivityResult(int requestCode, int resultCode)
 	emit activityFinishedResult(requestCode, resultCode);
 }
 
+void URIHandler::startNotificationAction(const QString& action)
+{
+	if (action.toUInt() == WORKOUT_NOTIFICATION)
+		m_appDB->getTrainingDay(QDate::currentDate());
+}
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -148,6 +155,16 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 	Q_UNUSED (obj)
 	Q_UNUSED (env)
 	handlerInstance()->onActivityResult(requestCode, resultCode);
+	return;
+}
+
+JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPBroadcastReceiver_notificationActionReceived(
+						JNIEnv *env, jobject obj, jstring action)
+{
+	Q_UNUSED (obj)
+	const char *actionStr = env->GetStringUTFChars(action, NULL);
+	handlerInstance()->startNotificationAction(actionStr);
+	env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }
 

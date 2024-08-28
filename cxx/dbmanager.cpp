@@ -161,7 +161,7 @@ void DbManager::appStartUpNotifications()
 				}
 				else
 					message = tr("Enjoy your day of rest from workouts!");
-				m_AndroidNotification->sendNotification(tr("Training Planner"), message);
+				m_AndroidNotification->sendNotification(tr("Training Planner"), message, WORKOUT_NOTIFICATION);
 			}
 		}
 		delete calTable;
@@ -177,36 +177,8 @@ extern "C"
 DbManager::DbManager(QSettings* appSettings)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
 		m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr), m_clientsOrCoachesPage(nullptr)
-{}
-
-DbManager::~DbManager()
 {
-	#ifdef Q_OS_ANDROID
-	delete m_AndroidNotification;
-	#endif
-	cleanUp();
-	if (tempTPObj)
-		delete tempTPObj;
-	delete mesoSplitModel;
-	delete exercisesListModel;
-	delete mesocyclesModel;
-	if (m_exercisesPage)
-	{
-		delete m_exercisesPage;
-		delete m_exercisesComponent;
-	}
-	if (m_settingsPage)
-	{
-		delete m_settingsPage;
-		delete m_settingsComponent;
-	}
-	if (m_clientsOrCoachesPage)
-	{
-		delete m_clientsOrCoachesPage;
-		delete m_clientsOrCoachesComponent;
-	}
-	for(uint i(0); i < m_MesoManager.count(); ++i)
-		delete m_MesoManager.at(i);
+	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(cleanUp()));
 }
 
 void DbManager::init()
@@ -263,11 +235,38 @@ void DbManager::init()
 		updateExercisesList();
 }
 
+void DbManager::cleanUp()
+{
+	#ifdef Q_OS_ANDROID
+	delete m_AndroidNotification;
+	#endif
+	cleanUpThreads();
+	if (tempTPObj)
+		delete tempTPObj;
+	if (m_exercisesPage)
+	{
+		delete m_exercisesPage;
+		delete m_exercisesComponent;
+	}
+	if (m_settingsPage)
+	{
+		delete m_settingsPage;
+		delete m_settingsComponent;
+	}
+	if (m_clientsOrCoachesPage)
+	{
+		delete m_clientsOrCoachesPage;
+		delete m_clientsOrCoachesComponent;
+	}
+	for(uint i(0); i < m_MesoManager.count(); ++i)
+		delete m_MesoManager.at(i);
+}
+
 void DbManager::exitApp()
 {
-	qApp->exit (0);
+	qApp->exit(0);
 	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
-	::exit (0);
+	::exit(0);
 }
 
 void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
@@ -987,7 +986,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 	{
 		MSG_OUT("Connecting timer")
 		m_threadCleaner.setInterval(60000);
-		connect(&m_threadCleaner, &QTimer::timeout, this, [&] { return cleanUp(); });
+		connect(&m_threadCleaner, &QTimer::timeout, this, [&] { return cleanUpThreads(); });
 		m_threadCleaner.start();
 	}
 
@@ -1003,7 +1002,7 @@ void DbManager::createThread(TPDatabaseTable* worker, const std::function<void(v
 		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
 }
 
-void DbManager::cleanUp()
+void DbManager::cleanUpThreads()
 {
 	TPDatabaseTable* dbObj(nullptr);
 	bool locks_empty(true);
@@ -1015,7 +1014,7 @@ void DbManager::cleanUp()
 			dbObj = m_WorkerLock[x].at(i);
 			if (dbObj->resolved())
 			{
-				MSG_OUT("cleanUp: " << dbObj->objectName() << "uniqueID: " << dbObj->uniqueID());
+				MSG_OUT("cleanUpThreads: " << dbObj->objectName() << "uniqueID: " << dbObj->uniqueID());
 				dbObj->disconnect();
 				dbObj->deleteLater();
 				m_WorkerLock[x].removeAt(i);

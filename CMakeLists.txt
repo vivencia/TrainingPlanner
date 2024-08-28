@@ -51,6 +51,7 @@ set( JAVASOURCES
     java/QShareUtils.java
     java/QSharePathResolver.java
     java/NotificationClient.java
+    java/TPBroadcastReceiver.java
 )
 
 set( TRANSLATIONS_DIR

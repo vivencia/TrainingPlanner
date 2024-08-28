@@ -80,6 +80,13 @@
 			<meta-data android:name="android.app.static_init_classes" android:value="-- %%INSERT_INIT_CLASSES%% --"/>
 		</activity>
 
+		<!-- If this receiver listens for broadcasts sent from the system or from other apps, even other apps that you own, set android:exported to "true". -->
+		<receiver android:name=".TPBroadcastReceiver" android:exported="false">
+			<intent-filter>
+				<action android:name="org.vivenciasoftware.TrainingPlanner.TP_BROADCAST" />
+			</intent-filter>
+		</receiver>
+
 		<!-- For adding service(s) please check: https://wiki.qt.io/AndroidServices -->
 		<!-- Register the File Provider for document sharing -->
 		<provider android:name="androidx.core.content.FileProvider" android:authorities="org.vivenciasoftware.TrainingPlanner.fileprovider" android:grantUriPermissions="true" android:exported="false">

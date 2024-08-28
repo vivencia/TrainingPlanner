@@ -110,8 +110,9 @@ FocusScope {
 
 				TPButton {
 					id: btnFoldIcon
-					imageSource: paneExercise.shown ? "black/fold-up.png" : "black/fold-down.png"
+					imageSource: paneExercise.shown ? "black/fold-up" : "black/fold-down"
 					hasDropShadow: false
+					imageSize: 18
 					onClicked: paneExerciseShowHide(false, false);
 					Layout.leftMargin: 8
 					z: 1

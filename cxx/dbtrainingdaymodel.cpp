@@ -628,7 +628,7 @@ QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const 
 		if (m_ExerciseData.at(exercise_idx)->mb_AutoRestTime)
 			return u"00:00"_qs;
 		multiUseString = set_number == 100 ?
-			m_ExerciseData.at(exercise_idx)->resttime.last() :
+			m_ExerciseData.at(exercise_idx)->resttime.constLast() :
 			m_ExerciseData.at(exercise_idx)->resttime.at(set_number);
 	}
 
@@ -655,8 +655,8 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 {
 	if (set_number == 100)
 	{
-		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->reps.last() :
-							m_ExerciseData.at(exercise_idx)->reps.last().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
+		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->reps.constLast() :
+							m_ExerciseData.at(exercise_idx)->reps.constLast().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
 	}
 	else
 	{
@@ -689,8 +689,8 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 {
 	if (set_number == 100)
 	{
-		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.last() :
-							m_ExerciseData.at(exercise_idx)->weight.last().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
+		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.constLast() :
+							m_ExerciseData.at(exercise_idx)->weight.constLast().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
 	}
 	else
 	{
@@ -739,12 +739,12 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 				m_ExerciseData.at(exercise_idx)->resttime.append(nRestTime.isEmpty() ? nextSetSuggestedTime(exercise_idx, type) : nRestTime);
 				m_ExerciseData.at(exercise_idx)->reps.append(nReps.isEmpty() ? nextSetSuggestedReps(exercise_idx, type) : nReps);
 				m_ExerciseData.at(exercise_idx)->weight.append(nWeight.isEmpty() ? nextSetSuggestedWeight(exercise_idx, type) : nWeight);
-				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.last());
+				m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.constLast());
 				m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
 				m_ExerciseData.at(exercise_idx)->subsets.append(nSubSets.isEmpty() ?
 						(type != SET_TYPE_MYOREPS ?
-							m_ExerciseData.at(exercise_idx)->subsets.last() :
-							QString::number(m_ExerciseData.at(exercise_idx)->subsets.last().toInt() + 1))
+							m_ExerciseData.at(exercise_idx)->subsets.constLast() :
+							QString::number(m_ExerciseData.at(exercise_idx)->subsets.constLast().toInt() + 1))
 						 : nSubSets);
 
 				n_exercises = m_ExerciseData.at(exercise_idx)->type.count();
@@ -889,9 +889,9 @@ void DBTrainingDayModel::newSetSubSet(const uint set_number, const uint exercise
 	{
 		m_ExerciseData.at(exercise_idx)->subsets[set_number] = QString::number(m_ExerciseData.at(exercise_idx)->subsets.at(set_number).toUInt() + 1);
 		m_ExerciseData.at(exercise_idx)->reps[set_number].append(QString::number(
-			m_ExerciseData.at(exercise_idx)->reps.last().split(subrecord_separator, Qt::SkipEmptyParts).last().toUInt() - 2) + subrecord_separator);
+			m_ExerciseData.at(exercise_idx)->reps.constLast().split(subrecord_separator, Qt::SkipEmptyParts).constLast().toUInt() - 2) + subrecord_separator);
 		m_ExerciseData.at(exercise_idx)->weight[set_number].append(QString::number(
-			m_ExerciseData.at(exercise_idx)->weight.last().split(subrecord_separator, Qt::SkipEmptyParts).last().toUInt() - 10) + subrecord_separator);
+			m_ExerciseData.at(exercise_idx)->weight.constLast().split(subrecord_separator, Qt::SkipEmptyParts).constLast().toUInt() - 10) + subrecord_separator);
 		setModified(true);
 	}
 }
