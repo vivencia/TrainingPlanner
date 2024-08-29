@@ -82,18 +82,18 @@ public:
 
 	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
 
-	inline bool isFieldFormatSpecial (const uint field) const
+	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		if (mb_Complete)
 			return field == MESOSPLIT_COL_SETTYPE;
 		return false;
 	}
-	static QString formatFieldToExport(const QString& fieldValue);
-	static QString formatFieldToImport(const QString& fieldValue);
+	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
+	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 
-	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
+	virtual void exportToText(QFile* outFile) const override;
 	virtual const QString exportExtraInfo() const override;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual bool updateFromModel(const TPListModel* model) override;
 

@@ -422,17 +422,15 @@ TPPage {
 		} // ColumnLayout
 	} // ScrollView
 
-	TPComplexDialog {
+	TPBalloonTip {
 		id: exportTypeTip
-		customStringProperty1: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
-		customStringProperty2: qsTr("Human readable?")
-		customStringProperty3: "export.png"
+		title: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
+		imageSource:  "export"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 		parentPage: pageExercises
 
-		onButton1Clicked: appDB.exportExercisesList(bShare, checkBoxChecked);
+		onButton1Clicked: appDB.exportExercisesList(bShare);
 
 		property bool bShare: false
 

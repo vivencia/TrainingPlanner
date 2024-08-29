@@ -208,27 +208,63 @@ void TPListModel::setExportFiter(const QString& filter, const uint field)
 	}
 }
 
-bool TPListModel::importFromText(const QString& data)
+void TPListModel::exportToText(QFile* outFile) const
 {
-	int chr_pos1(data.indexOf(':'));
-	int  chr_pos2(data.indexOf('\n', chr_pos1+1));
-	const uint dataSize(data.length());
-	QStringList modeldata;
+	const QString strHeader(u"##"_qs + objectName() + u"\n\n"_qs);
+	outFile->write(strHeader.toUtf8().constData());
+	outFile->write(exportExtraInfo().toUtf8().constData());
+	outFile->write("\n\n", 2);
 
-	chr_pos1 = ++chr_pos2 + 1;
-	do {
-		switch (data.at(chr_pos1).toLatin1())
+	QString value;
+	if (m_exportRows.isEmpty())
+	{
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+		while (itr != itr_end)
 		{
-			case 29: //record_separator
-				modeldata.append(data.mid(chr_pos2, chr_pos1 - chr_pos2));
-				chr_pos2 = chr_pos1 + 1;
-			break;
-			case 30: //record_separator2
-				appendList(modeldata);
-				modeldata.clear();
-				chr_pos2 = chr_pos1 + 1;
-			break;
+			for (uint i(0); i < (*itr).count(); ++i)
+			{
+				if (i < mColumnNames.count())
+				{
+					if (!mColumnNames.at(i).isEmpty())
+					{
+						outFile->write(mColumnNames.at(i).toUtf8().constData());
+						if (!isFieldFormatSpecial(i))
+							value = (*itr).at(i);
+						else
+							value = formatFieldToExport(i, (*itr).at(i));
+						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+						outFile->write("\n", 1);
+					}
+				}
+			}
+			outFile->write("\n", 1);
+			++itr;
 		}
-	} while (++chr_pos1 < dataSize);
-	return count() > 0;
+	}
+	else
+	{
+		for (uint x(0); x < m_exportRows.count(); ++x)
+		{
+			for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+			{
+				if (i < mColumnNames.count())
+				{
+					if (!mColumnNames.at(i).isEmpty())
+					{
+						outFile->write(mColumnNames.at(i).toUtf8().constData());
+						if (!isFieldFormatSpecial(i))
+							value = m_modeldata.at(m_exportRows.at(x)).at(i);
+						else
+							value = formatFieldToExport(i, m_modeldata.at(m_exportRows.at(x)).at(i));
+						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+						outFile->write("\n", 1);
+					}
+				}
+			}
+			outFile->write("\n", 1);
+		}
+	}
+	outFile->write(tr("##End##\n").toUtf8().constData());
 }

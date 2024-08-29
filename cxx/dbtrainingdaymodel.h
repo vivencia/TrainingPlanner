@@ -53,9 +53,10 @@ public:
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel);
 	virtual bool updateFromModel(const TPListModel* model) override;
 
-	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
-	virtual bool importFromText(const QString& data) override;
+	const QString& formatSetTypeToExport(const QString& fieldValue) const;
+	virtual void exportToText(QFile* outFile) const override;
+	const QString& formatSetTypeToImport(const QString& fieldValue) const;
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
 
 	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);

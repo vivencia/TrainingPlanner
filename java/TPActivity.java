@@ -44,7 +44,7 @@ public class TPActivity extends QtActivity
       super.onCreate(savedInstanceState);
 	  Log.d("ekkescorner", "onCreate QShareActivity");
 	  TPBroadcastReceiver broadCast = new TPBroadcastReceiver();
-	  IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+	  IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner");
 	  QtNative.activity().registerReceiver(broadCast, intentFilter);
 
 	  // now we're checking if the App was started from another Android App via Intent

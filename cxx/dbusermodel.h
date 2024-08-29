@@ -43,6 +43,7 @@ public:
 	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
 	Q_INVOKABLE int findLastUser(const bool bCoach = false);
 	Q_INVOKABLE QString getCurrentUserName(const bool bCoach) const;
+	const int getRowByCoachName(const QString& coachname) const;
 
 	Q_INVOKABLE QStringList getCoaches() const;
 	Q_INVOKABLE QStringList getClients() const;
@@ -83,9 +84,15 @@ public:
 	Q_INVOKABLE inline bool isEmpty() const { return mb_empty; }
 	void setIsEmpty(const bool empty) { mb_empty = empty; }
 
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	{
+		return field == USER_COL_BIRTHDAY || field == USER_COL_AVATAR;
+	}
+	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
+	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 	virtual bool updateFromModel(const TPListModel* model) override;
-	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
+
 
 signals:
 	void appUseModeChanged(const int row);

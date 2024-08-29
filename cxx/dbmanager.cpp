@@ -542,7 +542,7 @@ void DbManager::openRequestedFile(const QString &filename)
 	QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, filename));
 }
 
-bool DbManager::exportToFile(const TPListModel* model, const QString& filename, const bool bFancy, QFile* &outFile) const
+bool DbManager::exportToFile(const TPListModel* model, const QString& filename, QFile* &outFile) const
 {
 	QString fname(filename);
 	if (filename.startsWith(u"file:"_qs))
@@ -555,7 +555,7 @@ bool DbManager::exportToFile(const TPListModel* model, const QString& filename, 
 	}
 	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
-		model->exportToText(outFile, bFancy);
+		model->exportToText(outFile);
 		outFile->close();
 		return true;
 	}
@@ -639,26 +639,7 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 	if (!model->importExtraInfo(inData))
 		return -4;
 
-	bool bDataImportSuccessfull(false);
-	if (bFancy)
-		bDataImportSuccessfull = model->importFromFancyText(inFile, inData);
-	else
-	{
-		const QString data(inFile->readAll());
-		if (!data.isEmpty())
-		{
-			sep_idx = data.indexOf(u"##0x"_qs);
-			if (sep_idx == -1)
-				bDataImportSuccessfull = model->importFromText(data);
-			else
-			{
-				inFile->seek(sep_idx);
-				bDataImportSuccessfull = model->importFromText(data.left(sep_idx));
-			}
-		}
-	}
-
-	if (bDataImportSuccessfull)
+	if (model->importFromText(inFile, inData))
 	{
 		if (!importFromModel(model))
 			return -4;
@@ -858,7 +839,7 @@ int DbManager::parseFile(QString filename)
 		return -3;
 }
 
-void DbManager::exportMeso(const bool bShare, const bool bFancy)
+void DbManager::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	if (!mb_splitsLoaded)
 		loadCompleteMesoSplits(false);
@@ -867,11 +848,17 @@ void DbManager::exportMeso(const bool bShare, const bool bFancy)
 	QFile* outFile(nullptr);
 	mesocyclesModel->setExportRow(m_MesoIdx);
 
-	if (exportToFile(mesocyclesModel, exportFileName(), bFancy, outFile))
+	if (bCoachInfo)
+	{
+		userModel->setExportRow(userModel->getRowByCoachName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_COACH)));
+		exportToFile(userModel, exportFileName(), outFile);
+	}
+
+	if (exportToFile(mesocyclesModel, exportFileName(), outFile))
 	{
 		mesoSplitModel->setExportRow(m_MesoIdx);
-		exportToFile(mesoSplitModel, QString(), bFancy, outFile);
-		exportMesoSplit(u"X"_qs, bShare, bFancy, outFile);
+		exportToFile(mesoSplitModel, QString(), outFile);
+		exportMesoSplit(u"X"_qs, bShare, outFile);
 
 		#ifdef Q_OS_ANDROID
 		if (bShare)
@@ -1204,7 +1191,7 @@ void DbManager::getExercisesListVersion()
 	}
 }
 
-void DbManager::exportExercisesList(const bool bShare, const bool bFancy)
+void DbManager::exportExercisesList(const bool bShare)
 {
 	const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
 	setExportFileName(suggestedName);
@@ -1214,7 +1201,7 @@ void DbManager::exportExercisesList(const bool bShare, const bool bFancy)
 		return;
 	}
 	QFile* outFile(nullptr);
-	if (exportToFile(exercisesListModel, exportFileName(), bFancy, outFile))
+	if (exportToFile(exercisesListModel, exportFileName(), outFile))
 	{
 		#ifdef Q_OS_ANDROID
 		if (bShare)
@@ -1668,7 +1655,7 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 	createThread(worker2, [worker2] () { worker2->saveMesoSplitComplete(); } );
 }
 
-void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, const bool bFancy, QFile* outFileInUse)
+void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, QFile* outFileInUse)
 {
 	QString mesoSplit;
 	QString suggestedName;
@@ -1706,7 +1693,7 @@ void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, c
 		if (mesoLetters.contains(static_cast<QChar>(*itr)))
 			continue;
 		mesoLetters.append(static_cast<QChar>(*itr));
-		bExportToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), exportFileName(), bFancy, outFile);
+		bExportToFileOk &= exportToFile(m_currentMesoManager->getSplitModel(static_cast<QChar>(*itr)), exportFileName(), outFile);
 	} while (++itr != itr_end);
 
 	if (outFileInUse)
@@ -2018,12 +2005,12 @@ void DbManager::deleteTrainingDayTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
-void DbManager::exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare, const bool bFancy)
+void DbManager::exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare)
 {
 	const QString suggestedName(tr(" - Workout ") + splitLetter + u".txt"_qs);
 	setExportFileName(suggestedName);
 	QFile* outFile(nullptr);
-	if (exportToFile(m_currentMesoManager->gettDayModel(date), exportFileName(), bFancy, outFile))
+	if (exportToFile(m_currentMesoManager->gettDayModel(date), exportFileName(), outFile))
 	{
 		#ifdef Q_OS_ANDROID
 		if (bShare)

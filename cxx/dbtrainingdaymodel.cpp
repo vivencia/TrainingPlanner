@@ -6,6 +6,7 @@
 #include <QtMath>
 
 static QString multiUseString;
+static const QLatin1Char fancy_record_separator2(';');
 
 DBTrainingDayModel::DBTrainingDayModel(QObject* parent)
 	: TPListModel{parent}, mb_DayIsFinished(false), mb_DayIsEditable(false)
@@ -122,83 +123,113 @@ bool DBTrainingDayModel::updateFromModel(const TPListModel* model)
 	return true;
 }
 
-void DBTrainingDayModel::exportToText(QFile* outFile, const bool bFancy) const
+const QString& DBTrainingDayModel::formatSetTypeToExport(const QString& fieldValue) const
+{
+	if (fieldValue.isEmpty())
+		multiUseString = tr("Regular");
+	switch (fieldValue.at(0).toLatin1())
+	{
+		default: multiUseString = tr("Regular"); break;
+		case '1': multiUseString = tr("Pyramid"); break;
+		case '2': multiUseString = tr("Drop Set"); break;
+		case '3': multiUseString = tr("Cluster Set"); break;
+		case '4': multiUseString = tr("Giant Set"); break;
+		case '5': multiUseString = tr("Myo Reps"); break;
+		case '6': multiUseString = tr("Inverted Pyramid"); break;
+	}
+	return multiUseString;
+}
+
+void DBTrainingDayModel::exportToText(QFile* outFile) const
 {
 	if (exerciseCount() == 0)
 		return;
 
-	QString strHeader;
-	if (bFancy)
-		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
-	else
-		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
+	const QString strHeader(u"##"_qs + objectName() + u"\n\n"_qs);
 	outFile->write(strHeader.toUtf8().constData());
+	outFile->write(exportExtraInfo().toUtf8().constData());
+	outFile->write("\n\n", 2);
 
-	if (bFancy)
+	uint settype(0);
+	QString setsTypes, subSets;
+	bool bHasSubsSets(false);
+	for (uint i(0); i < m_ExerciseData.count(); ++i)
 	{
-		uint settype(0);
-		QString setsTypes, subSets;
-		bool bHasSubsSets(false);
-		for (uint i(0); i < m_ExerciseData.count(); ++i)
-		{
-			outFile->write(QString(QString::number(i+1) + ": ").toUtf8().constData());
-			outFile->write(exerciseName(i).toUtf8().constData());
-			outFile->write("\n", 1);
-			outFile->write(tr("Number of sets: ").toUtf8().constData());
-			outFile->write(QString::number(setsNumber(i)).toUtf8().constData());
-			outFile->write("\n", 1);
-			outFile->write(tr("Rest time between sets: ").toUtf8().constData());
-			outFile->write(setRestTime(0, i).toUtf8().constData());
-			outFile->write("\n", 1);
+		outFile->write(QString(QString::number(i+1) + ": ").toUtf8().constData());
+		outFile->write(exerciseName(i).toUtf8().constData());
+		outFile->write("\n", 1);
+		outFile->write(tr("Number of sets: ").toUtf8().constData());
+		outFile->write(QString::number(setsNumber(i)).toUtf8().constData());
+		outFile->write("\n", 1);
+		outFile->write(tr("Rest time between sets: ").toUtf8().constData());
+		outFile->write(setRestTime(0, i).toUtf8().constData());
+		outFile->write("\n", 1);
 
-			for (uint n(0); n < setsNumber(i); ++n)
-			{
-				settype = setType(n, i);
-				setsTypes += DBMesoSplitModel::formatFieldToExport(QString::number(settype)) + '|';
-				subSets += setSubSets(n, i) + '|';
-				if (settype == 2 || settype == 3 || settype == 5)
-					bHasSubsSets = true;
-			}
-			outFile->write(tr("Type of sets: ").toUtf8().constData());
-			setsTypes.chop(1);
-			outFile->write(setsTypes.toUtf8().constData());
-			setsTypes.clear();
-			if (bHasSubsSets)
-			{
-				outFile->write(tr("Number of subsets: ").toUtf8().constData());
-				subSets.chop(1);
-				outFile->write(subSets.toUtf8().constData());
-			}
-			subSets.clear();
-			outFile->write(tr("Initial number of reps: ").toUtf8().constData());
-			outFile->write(setReps(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
-			outFile->write("\n", 1);
-			outFile->write(tr("Initial weight: ").toUtf8().constData());
-			outFile->write(setWeight(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
-			outFile->write("\n", 1);
-			outFile->write(tr("Note for the sets: ").toUtf8().constData());
-			outFile->write(setNotes(0, i).toUtf8().constData());
-			outFile->write("\n\n", 2);
-		}
-		outFile->write(tr("##End##\n").toUtf8().constData());
-	}
-	else
-	{
-		QString value;
-		for (uint i(0); i < m_ExerciseData.count(); ++i)
+		for (uint n(0); n < setsNumber(i); ++n)
 		{
-			value = m_ExerciseData.at(i)->name + record_separator + QString::number(m_ExerciseData.at(i)->nsets) +
-						record_separator + m_ExerciseData.at(i)->type.at(0) + record_separator + m_ExerciseData.at(i)->resttime.at(0) +
-						record_separator + m_ExerciseData.at(i)->subsets.at(0) + record_separator + m_ExerciseData.at(i)->reps.at(0) +
-						record_separator + m_ExerciseData.at(i)->weight.at(0) + record_separator + m_ExerciseData.at(i)->notes.at(0) +
-						record_separator2;
-			outFile->write(value.toUtf8().constData());
+			settype = setType(n, i);
+			setsTypes += formatSetTypeToExport(QString::number(settype)) + '|';
+			subSets += setSubSets(n, i) + '|';
+			if (settype == 2 || settype == 3 || settype == 5)
+				bHasSubsSets = true;
 		}
-		outFile->write("##end##");
+		outFile->write(tr("Type of sets: ").toUtf8().constData());
+		setsTypes.chop(1);
+		outFile->write(setsTypes.toUtf8().constData());
+		setsTypes.clear();
+		if (bHasSubsSets)
+		{
+			outFile->write(tr("Number of subsets: ").toUtf8().constData());
+			subSets.chop(1);
+			outFile->write(subSets.toUtf8().constData());
+		}
+		subSets.clear();
+		outFile->write(tr("Initial number of reps: ").toUtf8().constData());
+		outFile->write(setReps(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
+		outFile->write("\n", 1);
+		outFile->write(tr("Initial weight: ").toUtf8().constData());
+		outFile->write(setWeight(0, 1).replace(subrecord_separator, '|').toUtf8().constData());
+		outFile->write("\n", 1);
+		outFile->write(tr("Note for the sets: ").toUtf8().constData());
+		outFile->write(setNotes(0, i).toUtf8().constData());
+		outFile->write("\n\n", 2);
 	}
+	outFile->write(tr("##End##\n").toUtf8().constData());
 }
 
-bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
+const QString& DBTrainingDayModel::formatSetTypeToImport(const QString& fieldValue) const
+{
+	if (!fieldValue.isEmpty())
+	{
+		QString setTypeStr;
+		const uint n(fieldValue.count(fancy_record_separator2));
+		for (uint i(0); i <= n; ++i)
+		{
+			setTypeStr = runCmd()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
+			if (setTypeStr == tr("Regular"))
+				multiUseString.append(u"0"_qs + record_separator2);
+			else if (setTypeStr == tr("Pyramid"))
+				multiUseString.append(u"1"_qs + record_separator2);
+			else if (setTypeStr == tr("Drop Set"))
+				multiUseString.append(u"2"_qs + record_separator2);
+			else if (setTypeStr == tr("Cluster Set"))
+				multiUseString.append(u"3"_qs + record_separator2);
+			else if (setTypeStr == tr("Giant Set"))
+				multiUseString.append(u"4"_qs + record_separator2);
+			else if (setTypeStr == tr("Myo Reps"))
+				multiUseString.append(u"5"_qs + record_separator2);
+			else if (setTypeStr == tr("Inverted Pyramid"))
+				multiUseString.append(u"6"_qs + record_separator2);
+			else
+				multiUseString.append(u"0"_qs + record_separator2);
+		}
+	}
+	else
+		multiUseString = u"0"_qs + record_separator2;
+	return multiUseString;
+}
+
+bool DBTrainingDayModel::importFromText(QFile* inFile, QString& inData)
 {
 	char buf[256];
 	int sep_idx(-1);
@@ -237,7 +268,7 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 
 			types = 0;
 			do {
-				type = DBMesoSplitModel::formatFieldToImport(runCmd()->getCompositeValue(types, strTypes)) + subrecord_separator;
+				type = formatSetTypeToImport(runCmd()->getCompositeValue(types, strTypes)) + subrecord_separator;
 			} while (++types < nsets);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
@@ -286,64 +317,6 @@ bool DBTrainingDayModel::importFromFancyText(QFile* inFile, QString& inData)
 		}
 	}
 	return exerciseCount() > 0;
-}
-
-bool DBTrainingDayModel::importFromText(const QString& data)
-{
-	if (!this->TPListModel::importFromText(data))
-		return false;
-
-	int chr_pos1(data.indexOf(record_separator2));
-	int chr_pos2(data.indexOf(record_separator2, chr_pos1+1));
-	int rec_sep1(chr_pos1+1);
-	int rec_sep2(data.indexOf(record_separator, rec_sep1));
-	const uint dataSize(data.length());
-
-	uint exerciseNumber(0), nsets(0);
-	QString type, resttime, subsets, reps, weight, notes;
-
-	while (chr_pos2 > 0 && chr_pos2 < dataSize) {
-		newExercise(data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1), exerciseNumber);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		nsets = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1).toUInt();
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		type = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		resttime = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		subsets = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		reps = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		weight = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		notes = data.mid(rec_sep1, rec_sep2 - rec_sep1 - 1);
-		rec_sep1= rec_sep2+1;
-		rec_sep2 = data.indexOf(record_separator, rec_sep1);
-
-		newFirstSet(exerciseNumber, type.toUInt(), reps, weight, resttime, subsets, notes);
-		for (uint i(1); i < nsets; ++i)
-			newSet(i, exerciseNumber, type.toUInt());
-
-		chr_pos1 = chr_pos2+1;
-		chr_pos2 = data.indexOf(record_separator2, chr_pos1+1);
-		exerciseNumber++;
-	}
-	return count() > 0;
 }
 
 void DBTrainingDayModel::setDayIsFinished(const bool finished)

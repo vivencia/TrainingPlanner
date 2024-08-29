@@ -7,6 +7,7 @@ import org.qtproject.qt.android.QtNative;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.pm.PackageManager;
 import android.content.Intent;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -29,9 +30,12 @@ public class NotificationClient
 	    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
 	    m_notificationManager.createNotificationChannel(notificationChannel);
 
-	    Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+	    //Intent notifyIntent = context.getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+
 	    // Set the Activity to start in a new, empty task.
-	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	    Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner");
+	    //notifyIntent.setAction(Intent.ACTION_VIEW);
+	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 	    notifyIntent.putExtra("TP_ACTION", action);
 	    // Create the PendingIntent.
 	    PendingIntent notifyPendingIntent = PendingIntent.getBroadcast(context, id, notifyIntent,

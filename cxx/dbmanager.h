@@ -60,13 +60,13 @@ public:
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
 	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
-	Q_INVOKABLE bool exportToFile(const TPListModel* model, const QString& filename, const bool bFancy, QFile* &outFile) const;
+	bool exportToFile(const TPListModel* model, const QString& filename, QFile* &outFile) const;
 	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
 	bool importFromModel(TPListModel* model);
 
 	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
 	Q_INVOKABLE int parseFile(QString filename);
-	Q_INVOKABLE void exportMeso(const bool bShare, const bool bFancy);
+	Q_INVOKABLE void exportMeso(const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE void openURL(const QString& address) const;
 	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
 	Q_INVOKABLE void sendMail(const QString& address, const QString& subject, const QString& attachment_file) const;
@@ -90,7 +90,7 @@ public:
 	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
 	void createExercisesListPage(QQuickItem *connectPage);
 	void getExercisesListVersion();
-	Q_INVOKABLE void exportExercisesList(const bool bShare, const bool bFancy);
+	Q_INVOKABLE void exportExercisesList(const bool bShare);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -118,7 +118,7 @@ public:
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	Q_INVOKABLE QString checkIfSplitSwappable(const QString& splitLetter) const;
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
-	Q_INVOKABLE void exportMesoSplit(const QString& splitLetter, const bool bShare, const bool bFancy, QFile *outFileInUse = nullptr);
+	Q_INVOKABLE void exportMesoSplit(const QString& splitLetter, const bool bShare, QFile* outFileInUse = nullptr);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -144,7 +144,7 @@ public:
 	Q_INVOKABLE void saveTrainingDay();
 	Q_INVOKABLE void removeTrainingDay();
 	Q_INVOKABLE void deleteTrainingDayTable(const bool bRemoveFile);
-	Q_INVOKABLE void exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare, const bool bFancy);
+	Q_INVOKABLE void exportTrainingDay(const QDate& date, const QString& splitLetter, const bool bShare);
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay(const QDate& date) const;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

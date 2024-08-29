@@ -249,18 +249,16 @@ TPPage {
 		splitView.insertItem(idx, page);
 	}
 
-	TPComplexDialog {
+	TPBalloonTip {
 		id: exportTypeTip
-		customStringProperty1: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
-		customStringProperty2: qsTr("Human readable?")
-		customStringProperty3: "export.png"
+		title: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
+		imageSource: "export"
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
-		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 		parentPage: pagePlanner
 
-		onButton1Clicked: appDB.exportMesoSplit("X", bShare, customBoolProperty1);
-		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter(), bShare, customBoolProperty1);
+		onButton1Clicked: appDB.exportMesoSplit("X", bShare);
+		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter(), bShare);
 
 		property bool bShare: false
 

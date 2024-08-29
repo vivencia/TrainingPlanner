@@ -47,65 +47,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 	mColumnNames.append(tr("Type: "));
 }
 
-void DBMesocyclesModel::exportToText(QFile *outFile, const bool bFancy) const
-{
-	QString strHeader;
-	if (bFancy)
-		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
-	else
-		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
-
-	outFile->write(strHeader.toUtf8().constData());
-	outFile->write(exportExtraInfo().toUtf8().constData());
-	if (bFancy)
-		outFile->write("\n\n", 2);
-	else
-		outFile->write("\n", 1);
-
-	QString value;
-	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
-
-	while (itr != itr_end)
-	{
-		for (uint i(0); i < (*itr).count(); ++i)
-		{
-			if (bFancy)
-			{
-				if (i < mColumnNames.count())
-				{
-					if (!mColumnNames.at(i).isEmpty())
-					{
-						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						if (!isFieldFormatSpecial(i))
-							value = (*itr).at(i);
-						else
-							value = formatFieldToExport((*itr).at(i));
-						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
-						outFile->write("\n", 1);
-					}
-				}
-			}
-			else
-			{
-				outFile->write((*itr).at(i).toUtf8().constData());
-				outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
-			}
-		}
-		if (bFancy)
-			outFile->write("\n", 1);
-		else
-			outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
-		++itr;
-	}
-
-	if (bFancy)
-		outFile->write(tr("##End##\n").toUtf8().constData());
-	else
-		outFile->write("##end##");
-}
-
-bool DBMesocyclesModel::importFromFancyText(QFile* inFile, QString& inData)
+bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
 {
 	char buf[256];
 	QStringList modeldata;
@@ -161,9 +103,12 @@ bool DBMesocyclesModel::importFromFancyText(QFile* inFile, QString& inData)
 	return count() > 0;
 }
 
-QString DBMesocyclesModel::formatFieldToExport(const QString &fieldValue) const
+QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
-	return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	if (field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE)
+		return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	else
+		return QString();
 }
 
 QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const

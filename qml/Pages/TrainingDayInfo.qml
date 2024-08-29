@@ -303,17 +303,16 @@ TPPage {
 		timerDlgMessage.showTimed(3000, 0);
 	}
 
-	property TPComplexDialog exportMessage: null
+	property TPBalloonTip exportMessage: null
 	function showExportMessage(share: bool) {
 		if (exportMessage === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, customStringProperty1: lblHeader.text,
-						customStringProperty2: qsTr("Human readable?"), customStringProperty3: "export.png", button1Text: qsTr("Yes"), button2Text: qsTr("No"),
-						customItemSource: "TPDialogWithMessageAndCheckBox.qml" } );
-					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(mainDate, splitLetter, bShare, checkBoxChecked); } );
+					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, message: lblHeader.text,
+						imageSource: "export", button1Text: qsTr("Yes"), button2Text: qsTr("No") });
+					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(mainDate, splitLetter, bShare); } );
 				}
 
 				if (component.status === Component.Ready)

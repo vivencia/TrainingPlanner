@@ -39,11 +39,14 @@ public:
 	};
 
 	explicit DBMesocyclesModel(QObject* parent, DBUserModel* userModel);
-	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
 
-	inline bool isFieldFormatSpecial (const uint field) const { return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE; }
-	QString formatFieldToExport(const QString& fieldValue) const;
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	{
+		return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE;
+	}
+
+	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const QString& fieldValue) const;
 
 	Q_INVOKABLE inline bool isRealMeso(const uint row) const {

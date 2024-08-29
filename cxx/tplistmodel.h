@@ -88,11 +88,12 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
-	inline void setExportRow(const uint row) { m_exportRows.clear(); m_exportRows.append(row); }
+	inline void setExportRow(const int row) { if (row >= 0) { m_exportRows.clear(); m_exportRows.append(row); } }
 	void setExportFiter(const QString& filter, const uint field);
-	virtual void exportToText(QFile* outFile, const bool bFancy) const { Q_UNUSED(outFile); Q_UNUSED(bFancy); }
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) { Q_UNUSED(inFile); Q_UNUSED(inData); return false; }
-	virtual bool importFromText(const QString& data);
+	virtual void exportToText(QFile* outFile) const;
+	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
+	virtual inline QString formatFieldToExport(const uint, const QString&) const { return QString(); }
+	virtual bool importFromText(QFile* inFile, QString& inData) { Q_UNUSED(inFile); Q_UNUSED(inData); return false; }
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }

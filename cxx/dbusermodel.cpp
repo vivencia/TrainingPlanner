@@ -1,10 +1,11 @@
 #include "dbusermodel.h"
+#include "runcommands.h"
 
 DBUserModel::DBUserModel(QObject *parent)
 	: TPListModel(parent), mb_empty(false), m_searchRow(-1)
 {
 	m_tableId = EXERCISES_TABLE_ID;
-	setObjectName(DBExercisesObjectName);
+	setObjectName(DBUserObjectName);
 
 	mColumnNames.reserve(USER_TOTAL_COLS);
 	mColumnNames.append(QString());
@@ -148,6 +149,17 @@ QString DBUserModel::getCurrentUserName(const bool bCoach) const
 	return row > 0 ? m_modeldata.at(row).at(USER_COL_NAME) : QString();
 }
 
+const int DBUserModel::getRowByCoachName(const QString& coachname) const
+{
+	for (uint i(1); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
+			if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)
+				return i;
+	}
+	return -1;
+}
+
 QStringList DBUserModel::getCoaches() const
 {
 	QStringList coaches;
@@ -288,6 +300,33 @@ void DBUserModel::setCurrentUser(const int row, const int new_current_user)
 	}
 }
 
+QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const
+{
+	if (field == USER_COL_BIRTHDAY)
+		return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	else
+	{
+		if (fieldValue.contains(u"tpimageprovider"_qs))
+			return fieldValue.right(fieldValue.length()-24);
+		else
+
+		{
+			if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == tr("Male"))
+				return u"Avatar-5"_qs;
+			else
+				return u"Avatar-0"_qs;
+		}
+	}
+}
+
+QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldValue) const
+{
+	if (field == USER_COL_BIRTHDAY)
+		return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
+	else
+		return u"image://tpimageprovider/" + fieldValue.right(fieldValue.length()-7);
+}
+
 bool DBUserModel::updateFromModel(const TPListModel* model)
 {
 	if (model->count() > 0)
@@ -304,67 +343,14 @@ bool DBUserModel::updateFromModel(const TPListModel* model)
 	return false;
 }
 
-void DBUserModel::exportToText(QFile* outFile, const bool bFancy) const
-{
-	QString strHeader;
-	if (bFancy)
-		strHeader = u"##"_qs + objectName() + u"\n\n"_qs;
-	else
-		strHeader = u"##0x0"_qs + QString::number(m_tableId) + u"\n"_qs;
-
-	outFile->write(strHeader.toUtf8().constData());
-	outFile->write(exportExtraInfo().toUtf8().constData());
-	if (bFancy)
-		outFile->write("\n\n", 2);
-	else
-		outFile->write("\n", 1);
-
-	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
-
-	while (itr != itr_end)
-	{
-		for (uint i(0); i < (*itr).count(); ++i)
-		{
-			if (bFancy)
-			{
-				if (i < mColumnNames.count())
-				{
-					if (!mColumnNames.at(i).isEmpty())
-					{
-						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						outFile->write((*itr).at(i).toUtf8().constData());
-						outFile->write("\n", 1);
-					}
-				}
-			}
-			else
-			{
-				outFile->write((*itr).at(i).toUtf8().constData());
-					outFile->write(QByteArray(1, record_separator.toLatin1()), 1);
-			}
-		}
-		if (bFancy)
-			outFile->write("\n", 1);
-		else
-			outFile->write(QByteArray(1, record_separator2.toLatin1()), 1);
-		++itr;
-	}
-
-	if (bFancy)
-		outFile->write(tr("##End##\n").toUtf8().constData());
-	else
-		outFile->write("##end##");
-}
-
-bool DBUserModel::importFromFancyText(QFile* inFile, QString& inData)
+bool DBUserModel::importFromText(QFile* inFile, QString& inData)
 {
 	char buf[256];
 	QStringList modeldata;
 	uint col(1);
 	QString value;
 
-	//Because a DBMesocyclesModel does not have an extra info to export nor import, inFile is already at the
+	//Because a DBUserModel does not have an extra info to export nor import, inFile is already at the
 	//first relevant information of the meso, its name
 	inData.chop(1);
 	int sep_idx(inData.indexOf(':'));

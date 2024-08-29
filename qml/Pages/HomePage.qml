@@ -443,7 +443,7 @@ TPPage {
 	TPComplexDialog {
 		id: exportTypeTip
 		customStringProperty1: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
-		customStringProperty2: qsTr("Human readable?")
+		customStringProperty2: qsTr("Include Coach data?")
 		customStringProperty3: "export.png"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")

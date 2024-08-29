@@ -53,8 +53,7 @@ public:
 	Q_INVOKABLE virtual void clear() override;
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
 	virtual bool updateFromModel(const TPListModel* model) override;
-	virtual void exportToText(QFile* outFile, const bool bFancy) const override;
-	virtual bool importFromFancyText(QFile* inFile, QString& inData) override;
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
