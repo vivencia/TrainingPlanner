@@ -923,8 +923,11 @@ void TPMesocycleClass::copyTypeValueIntoOtherSets(const uint exercise_idx, const
 
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
-		changeSetType(i, exercise_idx, set_type);
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeSetType", Q_ARG(int, static_cast<int>(set_type)));
+		if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
+		{
+			changeSetType(i, exercise_idx, set_type);
+			QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeSetType", Q_ARG(int, static_cast<int>(set_type)));
+		}
 	}
 }
 
@@ -937,10 +940,13 @@ void TPMesocycleClass::copyTimeValueIntoOtherSets(const uint exercise_idx, const
 
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
-		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
-		updatedValue = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type, i-1);
-		m_CurrenttDayModel->setSetRestTime(i, exercise_idx, updatedValue);
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeTime", Q_ARG(QString, updatedValue));
+		if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
+		{
+			set_type = m_CurrenttDayModel->setType(i, exercise_idx);
+			updatedValue = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type, i-1);
+			m_CurrenttDayModel->setSetRestTime(i, exercise_idx, updatedValue);
+			QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeTime", Q_ARG(QString, updatedValue));
+		}
 	}
 }
 
@@ -953,14 +959,16 @@ void TPMesocycleClass::copyRepsValueIntoOtherSets(const uint exercise_idx, const
 
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
-		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
-		updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i-1, sub_set);
-		if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
-			m_CurrenttDayModel->setSetReps(i, exercise_idx, sub_set, updatedValue);
-		else
-			m_CurrenttDayModel->setSetReps(i, exercise_idx, updatedValue);
-
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+		if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
+		{
+			set_type = m_CurrenttDayModel->setType(i, exercise_idx);
+			updatedValue = m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, i-1, sub_set);
+			if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
+				m_CurrenttDayModel->setSetReps(i, exercise_idx, sub_set, updatedValue);
+			else
+				m_CurrenttDayModel->setSetReps(i, exercise_idx, updatedValue);
+			QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeReps", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+		}
 	}
 }
 
@@ -973,14 +981,16 @@ void TPMesocycleClass::copyWeightValueIntoOtherSets(const uint exercise_idx, con
 
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
-		set_type = m_CurrenttDayModel->setType(i, exercise_idx);
-		updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i-1, sub_set);
-		if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
-			m_CurrenttDayModel->setSetWeight(i, exercise_idx, sub_set, updatedValue);
-		else
-			m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);
-
-		QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+		if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
+		{
+			set_type = m_CurrenttDayModel->setType(i, exercise_idx);
+			updatedValue = m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, i-1, sub_set);
+			if (set_type == SET_TYPE_DROP || set_type == SET_TYPE_GIANT)
+				m_CurrenttDayModel->setSetWeight(i, exercise_idx, sub_set, updatedValue);
+			else
+				m_CurrenttDayModel->setSetWeight(i, exercise_idx, updatedValue);
+			QMetaObject::invokeMethod(exercise_obj->m_setObjects.at(i), "changeWeight", Q_ARG(QString, updatedValue), Q_ARG(int, sub_set));
+		}
 	}
 }
 
@@ -1104,15 +1114,15 @@ void TPMesocycleClass::tDayExercises::appendExerciseEntry(QQuickItem* new_exerci
 	exerciseObjects.append(exerciseObj);
 }
 
-void TPMesocycleClass::tDayExercises::removeExerciseEntry(const uint exercise_idx)
+void TPMesocycleClass::tDayExercises::removeExerciseEntry(const uint exercise_idx, const bool bDeleteNow)
 {
 	exerciseObject* exerciseObj(exerciseObjects.at(exercise_idx));
 	for (uint x(0); x < exerciseObj->m_setObjects.count(); ++x)
-		exerciseObj->m_setObjects.at(x)->deleteLater();
+		bDeleteNow ? delete exerciseObj->m_setObjects.at(x) : exerciseObj->m_setObjects.at(x)->deleteLater();
 	exerciseObj->m_setObjects.clear();
-	exerciseObj->m_exerciseEntry->deleteLater();
 	if (exerciseObj->m_setTimer)
-		exerciseObj->m_setTimer->deleteLater();
+		bDeleteNow ? delete exerciseObj->m_setTimer : exerciseObj->m_setTimer->deleteLater();
+	bDeleteNow ? delete exerciseObj->m_exerciseEntry : exerciseObj->m_exerciseEntry->deleteLater();
 	exerciseObjects.removeAt(exercise_idx);
 	delete exerciseObj;
 }

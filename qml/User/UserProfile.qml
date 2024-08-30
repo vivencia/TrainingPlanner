@@ -238,8 +238,7 @@ Frame {
 				var component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					chooseAvatarDlg = component.createObject(parentPage, { parentPage: parentPage,
-							targetImageItem: imgAvatar, callerWidget: frmUserProfile });
+					chooseAvatarDlg = component.createObject(parentPage, { userRow: frmUserProfile.userRow, parentPage: parentPage, callerWidget: frmUserProfile });
 					chooseAvatarDlg.open();
 				}
 
@@ -253,8 +252,8 @@ Frame {
 		chooseAvatarDlg.open();
 	}
 
-	function selectAvatar(id: int) {
-		userModel.setAvatar(userRow, "image://tpimageprovider/" + parseInt(id));
+	function selectAvatar(id: string) {
+		userModel.setAvatar(userRow, "image://tpimageprovider/" + id);
 		imgAvatar.source = userModel.avatar(userRow);
 	}
 

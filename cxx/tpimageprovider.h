@@ -13,7 +13,7 @@ class TPImageProvider : public QQuickImageProvider
 public:
 	TPImageProvider();
 	QImage requestImage(const QString& strid, QSize* size, const QSize& requestedSize) override;
-	QImage getAvatar(const uint id);
+	QImage getAvatar(const uint id, const QString& strSex);
 	QImage getAvatar(const QString& imagePath);
 
 private:

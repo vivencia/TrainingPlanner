@@ -48,10 +48,39 @@ Item {
 		Layout.fillWidth: true
 		Layout.bottomMargin: 5
 
+		Item {
+			Layout.fillWidth: true
+			height: 30
+
+			TPButton {
+				id: btnManageSet
+				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
+				flat: false
+				visible: !setCompleted
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+			}
+
+			TPButton {
+				id: imgCompleted
+				imageSource: "set-completed"
+				visible: setCompleted
+				height: 30
+				width: 30
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+			}
+		}
+
 		Label {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+			Layout.topMargin: 10
 			Layout.bottomMargin: 10
 
 			TPComboBox {
@@ -59,6 +88,7 @@ Item {
 				currentIndex: setType
 				enabled: !setCompleted
 				model: AppSettings.setTypesModel
+				implicitWidth: 160
 
 				anchors {
 					left: parent.right
@@ -89,6 +119,7 @@ Item {
 				anchors {
 					verticalCenter: parent.verticalCenter
 					left: cboSetType.right
+					leftMargin: 10
 				}
 
 				onClicked: {
@@ -106,36 +137,10 @@ Item {
 				anchors {
 					verticalCenter: parent.verticalCenter
 					left: btnCopyValue5.visible ? btnCopyValue5.right : cboSetType.right
+					leftMargin: 10
 				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
-			}
-
-			TPButton {
-				id: btnManageSet
-				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
-				flat: false
-				visible: !setCompleted
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: btnRemoveSet.right
-
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
-			}
-
-			TPButton {
-				id: imgCompleted
-				imageSource: "set-completed"
-				visible: setCompleted
-				height: 30
-				width: 30
-
-				anchors {
-					verticalCenter: parent.verticalCenter
-					left: btnRemoveSet.right
-					leftMargin: 40
-				}
-
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
 			}
 		}
 
@@ -190,9 +195,9 @@ Item {
 				text: tDayModel.exerciseName1(exerciseIdx)
 				showRemoveButton: false
 				width: controlWidth/2 + 10
-				Layout.alignment: Qt.AlignLeft
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
+				Layout.leftMargin: -10
 
 				onExerciseChanged: (new_text) => {
 					tDayModel.setExerciseName1(new_text, exerciseIdx);
@@ -210,6 +215,7 @@ Item {
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
+				Layout.leftMargin: -10
 
 				onExerciseChanged: (new_text) => {
 					tDayModel.setExerciseName2(new_text, exerciseIdx);
@@ -228,7 +234,7 @@ Item {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
-				availableWidth: copyRepsButtonValue === "" ? controlWidth/2 + 20 : controlWidth/3
+				availableWidth: copyRepsButtonValue === "" ? controlWidth/2 + 10 : controlWidth/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyRepsButtonValue
 
@@ -265,7 +271,7 @@ Item {
 				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
 				availableWidth: controlWidth/3
 				showLabel: false
-				Layout.alignment: copyRepsButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
+				//Layout.alignment: copyRepsButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
@@ -304,7 +310,7 @@ Item {
 				id: txtNWeight1
 				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
 				type: SetInputField.Type.WeightType
-				availableWidth: copyWeightButtonValue === "" ? controlWidth/2 + 20 : controlWidth/3
+				availableWidth: copyWeightButtonValue === "" ? controlWidth/2 + 10 : controlWidth/3
 				Layout.alignment: Qt.AlignLeft
 				showLabel: !copyWeightButtonValue
 
@@ -341,7 +347,7 @@ Item {
 				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
 				availableWidth: controlWidth/3 + 10
 				showLabel: false
-				Layout.alignment: copyWeightButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
+				//Layout.alignment: copyWeightButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
 				onValueChanged: (str) => {
 					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {

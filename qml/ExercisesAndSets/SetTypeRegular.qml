@@ -50,10 +50,39 @@ Item {
 		Layout.fillWidth: true
 		Layout.bottomMargin: 5
 
+		Item {
+			Layout.fillWidth: true
+			height: 30
+
+			TPButton {
+				id: btnManageSet
+				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
+				flat: false
+				visible: !setCompleted
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+			}
+
+			TPButton {
+				id: imgCompleted
+				imageSource: "set-completed"
+				visible: setCompleted
+				height: 30
+				width: 30
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+			}
+		}
+
 		Label {
 			id: lblSetNumber
 			text: qsTr("Set #") + (setNumber + 1).toString()
 			font.bold: true
+			Layout.topMargin: 10
 			Layout.bottomMargin: 10
 
 			TPComboBox {
@@ -61,6 +90,7 @@ Item {
 				currentIndex: setType
 				enabled: !setCompleted
 				model: AppSettings.setTypesModel
+				implicitWidth: 160
 
 				anchors {
 					left: parent.right
@@ -91,6 +121,7 @@ Item {
 				anchors {
 					verticalCenter: parent.verticalCenter
 					left: cboSetType.right
+					leftMargin: 10
 				}
 
 				onClicked: {
@@ -108,36 +139,10 @@ Item {
 				anchors {
 					verticalCenter: parent.verticalCenter
 					left: btnCopyValue3.visible ? btnCopyValue3.right : cboSetType.right
+					leftMargin: 10
 				}
 
 				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
-			}
-
-			TPButton {
-				id: btnManageSet
-				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
-				flat: false
-				visible: !setCompleted
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.left: btnRemoveSet.right
-
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
-			}
-
-			TPButton {
-				id: imgCompleted
-				imageSource: "set-completed"
-				visible: setCompleted
-				height: 50
-				width: 50
-
-				anchors {
-					verticalCenter: parent.verticalCenter
-					left: btnRemoveSet.right
-					leftMargin: 40
-				}
-
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
 			}
 		}
 

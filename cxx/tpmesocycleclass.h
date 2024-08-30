@@ -211,7 +211,7 @@ private:
 		inline uint exercisesCount() const { return exerciseObjects.count(); }
 
 		void appendExerciseEntry(QQuickItem* new_exerciseItem);
-		void removeExerciseEntry(const uint exercise_idx);
+		void removeExerciseEntry(const uint exercise_idx, const bool bDeleteNow = false);
 		void removeSet(const uint exercise_idx, const uint set_number);
 
 		inline void insertSet(const uint set_number, const uint exercise_idx, QQuickItem* new_setObject)
@@ -223,15 +223,15 @@ private:
 			exerciseObjects.at(exercise_idx)->m_setObjects.append(new_setObject);
 		}
 
-		inline void clear()
+		inline void clear(const bool bDeleteNow = false)
 		{
 			for (int i(exerciseObjects.count() - 1); i >= 0 ; --i)
-				removeExerciseEntry(i);
+				removeExerciseEntry(i, bDeleteNow);
 		}
 
 		~tDayExercises()
 		{
-			clear();
+			clear(true);
 		}
 	};
 

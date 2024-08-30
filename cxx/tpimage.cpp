@@ -26,10 +26,14 @@ void TPImage::setSource(const QString& source)
 		{
 			if (source.contains(u"provider"_qs))
 			{
-				mSource = source;
-				mImage = tpImageProvider()->getAvatar(mSource);
-				maybeResize();
-				emit sourceChanged();
+				mImage = tpImageProvider()->getAvatar(source);
+				if (!mImage.isNull())
+				{
+					mSource = source;
+					maybeResize();
+					emit sourceChanged();
+					update();
+				}
 				return;
 			}
 			else

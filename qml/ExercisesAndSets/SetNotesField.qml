@@ -30,7 +30,7 @@ ColumnLayout {
 
 		TPButton {
 			id: button
-			imageSource: color + (txtSetNotes.visible ? "/fold-up.png" : "/fold-down.png")
+			imageSource: txtSetNotes.visible ? "black/fold-up" : "black/fold-down"
 			hasDropShadow: false
 			width: 20
 			height: 20

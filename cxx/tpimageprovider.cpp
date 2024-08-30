@@ -19,24 +19,38 @@ QImage TPImageProvider::requestImage(const QString& strid, QSize* size, const QS
 	if (size)
 		*size = QSize(avatarWidth, avatarHeight);
 
-	const int id(strid.toInt());
-	if (id == -1)
-		return mAllAvatars;
-	else
-		return getAvatar(static_cast<uint>(id));
+	const uint id(strid.right(strid.length() - 1).toUInt());
+	return getAvatar(static_cast<uint>(id), strid.left(1));
 }
 
 QImage TPImageProvider::getAvatar(const QString& imagePath)
 {
 	const QString avatarId(imagePath.right(imagePath.length() - imagePath.lastIndexOf('/') - 1));
 	bool bOK(false);
-	const int id(avatarId.toUInt(&bOK));
-	return bOK ? getAvatar(id) : QImage();
+	const int id(avatarId.right(avatarId.length() - 1).toUInt(&bOK));
+	return bOK ? getAvatar(id, avatarId.left(1)) : QImage();
 }
 
-QImage TPImageProvider::getAvatar(const uint id)
+QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)
 {
 	const uint x((id % 5) * avatarWidth);
-	const uint y(::floor(id / 5) * avatarHeight);
+	uint y(0);
+	if (strSex == u"m"_qs)
+	{
+		if (id >= 5)
+			y = ::floor((id+10) / 5) * avatarHeight;
+		else
+			y = ::floor((id+5) / 5) * avatarHeight;
+	}
+	else
+	{
+		if (id >= 10)
+			y = ::floor((id+10) / 5) * avatarHeight;
+		else if (id >= 5)
+			y = ::floor((id+5) / 5) * avatarHeight;
+		else
+			y = 0;
+	}
 	return mAllAvatars.copy(QRect(x, y, avatarWidth, avatarHeight));
 }
+

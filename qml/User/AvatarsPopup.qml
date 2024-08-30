@@ -10,11 +10,11 @@ TPPopup {
 	id: avatarsDlg
 	bKeepAbove: false
 	width: windowWidth
-	height: windowWidth + 30
+	height: (repeater.bMale ? 2*windowWidth/5 : 3*windowWidth/5) + 30
 	x: 0
-	finalYPos: targetImageItem.y + 10
+	finalYPos: (windowHeight-height)/2;
 
-	required property Item targetImageItem
+	required property int userRow
 	required property Item callerWidget
 
 	Rectangle {
@@ -63,7 +63,11 @@ TPPopup {
 	}
 
 	Repeater {
-		model: 25
+		id: repeater
+		model: bMale ? 10 : 15
+
+		readonly property bool bMale: userModel.sex(userRow) === qsTr("Male")
+		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
 			width: windowWidth/5
@@ -71,24 +75,23 @@ TPPopup {
 			border.color: "black"
 			border.width: 2
 			x: (index % 5) * width
-			y: Math.floor(index / 5) * width
+			y: Math.floor(index / 5) * height
 
 			Image {
 				anchors.fill: parent
-				source: "image://tpimageprovider/" + parseInt(index)
+				source: "image://tpimageprovider/" + repeater.strSex + parseInt(index)
 			}
 
 			MouseArea {
 				anchors.fill: parent
 				onClicked: {
-					callerWidget.selectAvatar(index);
+					callerWidget.selectAvatar(repeater.strSex + parseInt(index));
 					avatarsDlg.close();
 				}
 			}
 		}
 
 		anchors {
-			top: parent.top
 			left: parent.left
 			right: parent.right
 			bottom: footerBar.top
