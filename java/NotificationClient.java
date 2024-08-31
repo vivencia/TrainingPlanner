@@ -30,19 +30,19 @@ public class NotificationClient
 	    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
 	    m_notificationManager.createNotificationChannel(notificationChannel);
 
-	    //Intent notifyIntent = context.getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner.NOTIFICATION_ACTION");
+	    Intent launchIntent = QtNative.activity().getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
+	    launchIntent.setAction(Intent.ACTION_MAIN);
+	    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+	    launchIntent.putExtra("TP_ACTION", action);
+	    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+	    if (launchIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+		//QtNative.activity().startActivity(launchIntent);
 
-	    // Set the Activity to start in a new, empty task.
-	    Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner");
-	    //notifyIntent.setAction(Intent.ACTION_VIEW);
-	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-	    notifyIntent.putExtra("TP_ACTION", action);
-	    // Create the PendingIntent.
-	    PendingIntent notifyPendingIntent = PendingIntent.getBroadcast(context, id, notifyIntent,
-		PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+		PendingIntent notifyPendingIntent = PendingIntent.getActivity(context, id, launchIntent,
+			PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-	    Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
-	    m_builder.setSmallIcon(R.drawable.icon)
+		Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
+		m_builder.setSmallIcon(R.drawable.icon)
 		    .setLargeIcon(icon)
 		    .setContentTitle(title)
 		    .setContentText(message)
@@ -52,6 +52,18 @@ public class NotificationClient
 		    .setContentIntent(notifyPendingIntent);
 
 	    m_notificationManager.notify(id, m_builder.build());
+	    }
+	    else
+		Log.i("************* NotificationClient ***************      ", "Could not resolve activity");
+
+	    /*Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner");
+	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+	    notifyIntent.putExtra("TP_ACTION", action);
+	    // Create the PendingIntent.
+	    PendingIntent notifyPendingIntent = PendingIntent.getBroadcast(context, id, notifyIntent,
+		PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);*/
+
+
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}

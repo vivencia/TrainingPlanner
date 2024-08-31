@@ -275,6 +275,7 @@ FocusScope {
 					id: cboSetType
 					currentIndex: tDayModel.setType(0, exerciseIdx)
 					model: AppSettings.setTypesModel
+					implicitWidth: 160
 
 					onActivated: (index) => {
 						switch(index) {

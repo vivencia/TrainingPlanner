@@ -158,7 +158,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 	return;
 }
 
-JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPBroadcastReceiver_notificationActionReceived(
+JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_notificationActionReceived(
 						JNIEnv *env, jobject obj, jstring action)
 {
 	Q_UNUSED (obj)

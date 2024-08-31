@@ -161,7 +161,7 @@ void DbManager::appStartUpNotifications()
 				}
 				else
 					message = tr("Enjoy your day of rest from workouts!");
-				m_AndroidNotification->sendNotification(tr("Training Planner"), message, WORKOUT_NOTIFICATION);
+				m_AndroidNotification->sendNotification(u"Training Planner"_qs, message, WORKOUT_NOTIFICATION);
 			}
 		}
 		delete calTable;

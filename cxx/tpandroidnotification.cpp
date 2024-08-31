@@ -26,6 +26,7 @@ TPAndroidNotification::TPAndroidNotification(QObject* parent)
 
 TPAndroidNotification::~TPAndroidNotification()
 {
+	return;
 	QMapIterator<uint, QList<uint>> it(m_Ids);
 	it.toFront();
 	while (it.hasNext())

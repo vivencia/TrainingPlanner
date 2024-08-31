@@ -113,7 +113,7 @@ Frame {
 		enabled: bNameOK
 		height: controlsHeight
 
-		Component.onCompleted: bBirthDateOK = userModel.birthDate(userRow).length >= 9;
+		Component.onCompleted: bBirthDateOK = userModel.birthDate(userRow) !== new Date();
 
 		onTextEdited: {
 			frmSex.enabled = acceptableInput;
@@ -160,7 +160,7 @@ Frame {
 		padding: 0
 		spacing: 0
 
-		Component.onCompleted: bSexOK = userModel.sex(userRow).length > 1
+		Component.onCompleted: bSexOK = userModel.sex(userRow).length > 1;
 
 		background: Rectangle {
 			color: "transparent"

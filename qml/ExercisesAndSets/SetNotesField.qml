@@ -13,9 +13,9 @@ ColumnLayout {
 	Layout.leftMargin: 5
 	spacing: 0
 
+	property string foreColor: "black"
 	property alias readOnly: txtNotes.readOnly
 	property alias text: txtNotes.text
-	property alias color: label.color
 	property alias info: label.text
 	signal editFinished(string new_text)
 
@@ -27,10 +27,11 @@ ColumnLayout {
 		Layout.alignment: Qt.AlignLeft
 		Layout.fillWidth: false
 		padding: 0
+		color: foreColor
 
 		TPButton {
 			id: button
-			imageSource: txtSetNotes.visible ? "black/fold-up" : "black/fold-down"
+			imageSource: foreColor + (txtSetNotes.visible ? "/fold-up" : "/fold-down")
 			hasDropShadow: false
 			width: 20
 			height: 20

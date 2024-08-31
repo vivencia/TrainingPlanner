@@ -621,7 +621,7 @@ TPPage {
 				text: tDayModel.dayNotes()
 				readOnly: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
 				visible: splitLetter != "R"
-				color: AppSettings.fontColor
+				foreColor: AppSettings.fontColor
 				Layout.leftMargin: 5
 
 				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);

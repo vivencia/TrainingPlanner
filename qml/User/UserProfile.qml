@@ -47,7 +47,7 @@ Frame {
 
 	Label {
 		id: lblUserRole
-		text: userModel.columnLabel(7)
+		text: userModel.columnLabel(8)
 		color: AppSettings.fontColor
 		visible: userModel.appUseMode(userRow) !== 2
 		font.pointSize: AppSettings.fontSizeText
@@ -93,7 +93,7 @@ Frame {
 
 	Label {
 		id: lblGoal
-		text: userModel.columnLabel(8)
+		text: userModel.columnLabel(9)
 		visible: userModel.appUseMode(userRow) !== 2
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
@@ -150,7 +150,7 @@ Frame {
 
 	Label {
 		id: lblCoachRole
-		text: userModel.columnLabel(7)
+		text: userModel.columnLabel(8)
 		color: AppSettings.fontColor
 		visible: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4
 		font.pointSize: AppSettings.fontSizeText
@@ -196,7 +196,7 @@ Frame {
 
 	Label {
 		id: lblAvatar
-		text: qsTr("Avatar:")
+		text: userModel.columnLabel(10)
 		color: AppSettings.fontColor
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true

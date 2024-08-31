@@ -157,7 +157,6 @@ TPPopup {
 					finalXPos = windowWidth + 300;
 				else
 					finalXPos = -300;
-				closeTransition.enabled = false;
 				alternateCloseTransition.start();
 				balloon.close();
 			}

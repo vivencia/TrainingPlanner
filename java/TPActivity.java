@@ -15,7 +15,7 @@ import android.webkit.MimeTypeMap;
 
 import org.vivenciasoftware.TrainingPlanner.QShareUtils;
 import org.vivenciasoftware.TrainingPlanner.QSharePathResolver;
-import org.vivenciasoftware.TrainingPlanner.TPBroadcastReceiver;
+//import org.vivenciasoftware.TrainingPlanner.TPBroadcastReceiver;
 
 public class TPActivity extends QtActivity
 {
@@ -28,10 +28,14 @@ public class TPActivity extends QtActivity
     public static native void fireActivityResult(int requestCode, int resultCode);
     //
     public static native boolean checkFileExists(String url);
+    //
+    public static native void notificationActionReceived(String action);
 
     public static boolean isIntentPending;
     public static boolean isInitialized;
     public static String workingDirPath;
+
+    public final static String TAG = "************** TPActivity ***************      ";
 
     // Use a custom Chooser without providing own App as share target !
     // see QShareUtils.java createCustomChooserAndStartActivity()
@@ -42,10 +46,12 @@ public class TPActivity extends QtActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
-	  Log.d("ekkescorner", "onCreate QShareActivity");
-	  TPBroadcastReceiver broadCast = new TPBroadcastReceiver();
-	  IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner");
-	  QtNative.activity().registerReceiver(broadCast, intentFilter);
+	  Log.d(TAG, "onCreate QShareActivity");
+
+	  //Use, in the future, for system broadcasts, or some possible internal broadcast
+	  //TPBroadcastReceiver broadCast = new TPBroadcastReceiver();
+	  //IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner");
+	  //QtNative.activity().registerReceiver(broadCast, intentFilter);
 
 	  // now we're checking if the App was started from another Android App via Intent
 	  Intent theIntent = getIntent();
@@ -67,7 +73,7 @@ public class TPActivity extends QtActivity
     // but working well using Xiaomi FileManager App
     @Override
     public void onDestroy() {
-	Log.d("ekkescorner", "onDestroy QShareActivity");
+	Log.d(TAG, "onDestroy QShareActivity");
 	// super.onDestroy();
 	// System.exit() closes the App before doing onCreate() again
 	// then the App was restarted, but looses context
@@ -109,7 +115,7 @@ public class TPActivity extends QtActivity
     // if we are opened from other apps:
     @Override
     public void onNewIntent(Intent intent) {
-      Log.d("ekkescorner", "onNewIntent");
+      Log.d(TAG, "onNewIntent");
       super.onNewIntent(intent);
       setIntent(intent);
       // Intent will be processed, if all is initialized and Qt / QML can handle the event
@@ -123,19 +129,22 @@ public class TPActivity extends QtActivity
     public void checkPendingIntents(String workingDir) {
 	isInitialized = true;
 	workingDirPath = workingDir;
-	Log.d("ekkescorner", workingDirPath);
+	Log.d(TAG, workingDirPath);
 	if(isIntentPending) {
 	    isIntentPending = false;
-	    Log.d("ekkescorner", "checkPendingIntents: true");
+	    Log.d(TAG, "checkPendingIntents: true");
 	    processIntent();
 	} else {
-	    Log.d("ekkescorner", "nothingPending");
+	    Log.d(TAG, "nothingPending");
 	}
     } // checkPendingIntents
 
     // process the Intent if Action is SEND or VIEW
     private void processIntent(){
-      Intent intent = getIntent();
+	Intent intent = getIntent();
+
+	Log.d(TAG, "processIntent()");
+	Log.d(TAG, intent.getAction());
 
       Uri intentUri;
       String intentScheme;
@@ -148,7 +157,16 @@ public class TPActivity extends QtActivity
 	     intentAction = "SEND";
 	      Bundle bundle = intent.getExtras();
 	      intentUri = (Uri)bundle.get(Intent.EXTRA_STREAM);
+    } else if (intent.getAction().equals("android.intent.action.MAIN")){
+	Bundle extras = intent.getExtras();
+	if(extras != null) {
+	    String action = extras.getString("TP_ACTION");
+	    Log.i("TPBroadcastReceiver action requested: ", action);
+	    notificationActionReceived(action);
+	}
+	return;
       } else {
+
 	      Log.d("ekkescorner Intent unknown action:", intent.getAction());
 	      return;
       }
@@ -189,9 +207,9 @@ public class TPActivity extends QtActivity
       ContentResolver cR = this.getContentResolver();
       MimeTypeMap mime = MimeTypeMap.getSingleton();
       String fileExtension = mime.getExtensionFromMimeType(cR.getType(intentUri));
-      Log.d("ekkescorner","Intent extension: "+fileExtension);
+      Log.d(TAG,"Intent extension: "+fileExtension);
       String mimeType = cR.getType(intentUri);
-      Log.d("ekkescorner"," Intent MimeType: "+mimeType);
+      Log.d(TAG," Intent MimeType: "+mimeType);
       String name = QShareUtils.getContentName(cR, intentUri);
       if(name != null) {
 	   Log.d("ekkescorner Intent Name:", name);

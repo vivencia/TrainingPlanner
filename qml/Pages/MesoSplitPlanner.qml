@@ -391,6 +391,7 @@ Frame {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
 									model: AppSettings.setTypesModel
+									implicitWidth: 160
 									currentIndex: splitModel.workingSet === setsTabBar.currentIndex ? splitModel.setType(index) : splitModel.setType(index)
 									Layout.rightMargin: 5
 

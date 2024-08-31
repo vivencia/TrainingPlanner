@@ -13,12 +13,15 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(tr("Birthday: "));
 	mColumnNames.append(tr("Sex: "));
 	mColumnNames.append(tr("Phone: "));
-	mColumnNames.append(tr("E-mail: "));
+	mColumnNames.append(u"E-mail: "_qs);
 	mColumnNames.append(tr("Social Media: "));
+	mColumnNames.append(QString());
 	mColumnNames.append(tr("Role: "));
 	mColumnNames.append(tr("Goal: "));
+	mColumnNames.append(u"Avatar: "_qs);
 	mColumnNames.append(QString());
-	mColumnNames.append(tr("Coach: "));
+	mColumnNames.append(QString());
+	mColumnNames.append(QString());
 }
 
 int DBUserModel::addUser(const bool bCoach)

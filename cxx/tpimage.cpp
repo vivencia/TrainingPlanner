@@ -30,9 +30,9 @@ void TPImage::setSource(const QString& source)
 				if (!mImage.isNull())
 				{
 					mSource = source;
+					mNominalSize.setHeight(0);
 					maybeResize();
 					emit sourceChanged();
-					update();
 				}
 				return;
 			}

@@ -27,6 +27,12 @@ TPMesocycleClass::~TPMesocycleClass()
 		delete m_mesoPage;
 		delete m_mesoComponent;
 	}
+	if (m_calComponent)
+	{
+		delete m_calPage;
+		delete m_calComponent;
+	}
+
 	if (m_mesosCalendarModel)
 		delete m_mesosCalendarModel;
 
@@ -49,12 +55,6 @@ TPMesocycleClass::~TPMesocycleClass()
 			z.next();
 			delete z.value();
 		}
-	}
-
-	if (m_calComponent)
-	{
-		delete m_calPage;
-		delete m_calComponent;
 	}
 
 	if (m_tDayComponent)
