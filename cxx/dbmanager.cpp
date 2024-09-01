@@ -52,16 +52,8 @@ void DbManager::checkPendingIntents() const
 {
 	QJniObject activity = QNativeInterface::QAndroidApplication::context();
 	if(activity.isValid())
-	{
-		// create a Java String for the Working Dir Path
-		QJniObject jniWorkingDir = QJniObject::fromString(mAppDataFilesPath);
-		if(!jniWorkingDir.isValid())
-		{
-			MSG_OUT("QJniObject jniWorkingDir not valid.WorkingDir not valid")
-			return;
-		}
-		activity.callMethod<void>("checkPendingIntents","(Ljava/lang/String;)V", jniWorkingDir.object<jstring>());
-		MSG_OUT("checkPendingIntents: " << mAppDataFilesPath)
+	{	
+		activity.callMethod<void>("checkPendingIntents","()V");
 		return;
 	}
 	MSG_OUT("checkPendingIntents: Activity not valid")
@@ -152,7 +144,7 @@ void DbManager::appStartUpNotifications()
 			{
 				QString message;
 				const QString splitLetter(dayInfoList.at(2));
-				if (splitLetter != u"N"_qs) //day is training day
+				if (splitLetter != u"R"_qs) //day is training day
 				{
 					if (dayInfoList.at(3) == u"1"_qs) //day is completed
 						message = tr("Your training routine seems to go well. Workout for the day is concluded");
@@ -539,7 +531,8 @@ void DbManager::restartApp()
 
 void DbManager::openRequestedFile(const QString &filename)
 {
-	QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, filename));
+	const QString nameOnly(filename.right(filename.length() - filename.lastIndexOf('/') - 1));
+	QMetaObject::invokeMethod(m_mainWindow, "tryToOpenFile", Q_ARG(QString, filename), Q_ARG(QString, nameOnly));
 }
 
 bool DbManager::exportToFile(const TPListModel* model, const QString& filename, QFile* &outFile) const

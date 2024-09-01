@@ -20,64 +20,53 @@ import androidx.core.app.ShareCompat;
 public class NotificationClient
 {
     public static void notify(String title, String message, String action, int id) {
-	try {
-	    final Context context = QtNative.activity();
-	    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
+		try {
+		    final Context context = QtNative.activity();
+		    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
 
-	    NotificationManager m_notificationManager = (NotificationManager)
-		    context.getSystemService(Context.NOTIFICATION_SERVICE);
-	    NotificationChannel notificationChannel;
-	    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
-	    m_notificationManager.createNotificationChannel(notificationChannel);
+		    NotificationManager m_notificationManager = (NotificationManager)
+			    context.getSystemService(Context.NOTIFICATION_SERVICE);
+		    NotificationChannel notificationChannel;
+		    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
+		    m_notificationManager.createNotificationChannel(notificationChannel);
 
-	    Intent launchIntent = QtNative.activity().getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
-	    launchIntent.setAction(Intent.ACTION_MAIN);
-	    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-	    launchIntent.putExtra("TP_ACTION", action);
-	    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-	    if (launchIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-		//QtNative.activity().startActivity(launchIntent);
+		    Intent launchIntent = QtNative.activity().getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
+		    launchIntent.setAction(Intent.ACTION_MAIN);
+		    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		    launchIntent.putExtra("TP_ACTION", action);
+		    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		    if (launchIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+				PendingIntent notifyPendingIntent = PendingIntent.getActivity(context, id, launchIntent,
+					PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-		PendingIntent notifyPendingIntent = PendingIntent.getActivity(context, id, launchIntent,
-			PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+				Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
+				m_builder.setSmallIcon(R.drawable.icon)
+				    .setLargeIcon(icon)
+				    .setContentTitle(title)
+				    .setContentText(message)
+				    .setDefaults(Notification.DEFAULT_SOUND)
+				    .setColor(Color.GREEN)
+				    .setAutoCancel(true)
+				    .setContentIntent(notifyPendingIntent);
 
-		Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
-		m_builder.setSmallIcon(R.drawable.icon)
-		    .setLargeIcon(icon)
-		    .setContentTitle(title)
-		    .setContentText(message)
-		    .setDefaults(Notification.DEFAULT_SOUND)
-		    .setColor(Color.GREEN)
-		    .setAutoCancel(true)
-		    .setContentIntent(notifyPendingIntent);
-
-	    m_notificationManager.notify(id, m_builder.build());
-	    }
-	    else
-		Log.i("************* NotificationClient ***************      ", "Could not resolve activity");
-
-	    /*Intent notifyIntent = new Intent("org.vivenciasoftware.TrainingPlanner");
-	    notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-	    notifyIntent.putExtra("TP_ACTION", action);
-	    // Create the PendingIntent.
-	    PendingIntent notifyPendingIntent = PendingIntent.getBroadcast(context, id, notifyIntent,
-		PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);*/
-
-
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+				m_notificationManager.notify(id, m_builder.build());
+		    }
+		    else
+				Log.i("************* NotificationClient ***************      ", "Could not resolve activity");
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
     }
 
     public static void cancelNotify(int id) {
-	try {
-	    final Context context = QtNative.activity();
-	    NotificationManager m_notificationManager = (NotificationManager)
-		    context.getSystemService(Context.NOTIFICATION_SERVICE);
-	    m_notificationManager.cancel(id);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+		try {
+		    final Context context = QtNative.activity();
+		    NotificationManager m_notificationManager = (NotificationManager)
+			    context.getSystemService(Context.NOTIFICATION_SERVICE);
+		    m_notificationManager.cancel(id);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
     }
 }
 

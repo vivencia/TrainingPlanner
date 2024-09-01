@@ -206,15 +206,14 @@ ApplicationWindow {
 	}
 
 	property TPImportMessageBox importMessageDialog: null
-	function tryToOpenFile(fileName: string) {
-		importExportFilename = fileName;
+	function tryToOpenFile(fileName: string, name: string) {
 		if (importMessageDialog === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportMessageBox.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					importMessageDialog = component.createObject(contentItem, { parentPage: homePage });
-					importMessageDialog.init(fileName);
+					importMessageDialog.init(fileName, name);
 				}
 
 				if (component.status === Component.Ready)
@@ -225,7 +224,7 @@ ApplicationWindow {
 			createMessageBox();
 		}
 		else
-			importMessageDialog.init(importExportFilename);
+			importMessageDialog.init(fileName);
 	}
 
 	TPBalloonTip {

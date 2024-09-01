@@ -14,139 +14,124 @@ import android.provider.MediaStore;
 import android.content.ContentUris;
 import android.os.Environment;
 import android.content.ContentResolver;
+import android.util.Log;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
-import android.util.Log;
 import java.lang.NumberFormatException;
 
-public class QSharePathResolver {
+public class QSharePathResolver
+{
+	public final static String TAG = "************** QSharePathResolver ***************	  ";
+
     public static String getRealPathFromURI(final Context context, final Uri uri) {
+		Log.d("************** QSharePathResolver::getRealPathFromURI ***************	  ", uri.getAuthority());
+		if (DocumentsContract.isDocumentUri(context, uri)) { // DocumentProvider
+			if (isExternalStorageDocument(uri)) { // ExternalStorageProvider
+				Log.d(TAG," isExternalStorageDocument");
+				final String docId = DocumentsContract.getDocumentId(uri);
+				final String[] split = docId.split(":");
+				final String type = split[0];
 
-	final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+				if ("primary".equalsIgnoreCase(type))
+					return Environment.getExternalStorageDirectory() + "/" + split[1];
+				// TODO handle non-primary volumes
+			}
+			else if (isDownloadsDocument(uri)) { // DownloadsProvider
+				Log.d(TAG," isDownloadsDocument");
+				final String id = DocumentsContract.getDocumentId(uri);
+				Log.d(TAG," getDocumentId "+id);
+				long longId = 0;
+				try
+				{
+					longId = Long.valueOf(id);
+				}
+				catch(NumberFormatException nfe)
+				{
+					return getDataColumn(context, uri, null, null);
+				}
+				final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), longId);
+				return getDataColumn(context, contentUri, null, null);
+			}
+			else if (isMediaDocument(uri)) { // MediaProvider
+				Log.d(TAG," isMediaDocument");
+				final String docId = DocumentsContract.getDocumentId(uri);
+				final String[] split = docId.split(":");
+				final String type = split[0];
 
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            // ExternalStorageProvider
-            if (isExternalStorageDocument(uri)) {
-                Log.d("ekkescorner"," isExternalStorageDocument");
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
+				Uri contentUri = null;
+				if ("image".equals(type))
+					contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+				else if ("video".equals(type))
+					contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+				else if ("audio".equals(type))
+					contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }
+				final String selection = "_id=?";
+				final String[] selectionArgs = new String[] { split[1] };
+				return getDataColumn(context, contentUri, selection, selectionArgs);
+			}
+			else if ("content".equalsIgnoreCase(uri.getScheme())) {
+				Log.d(TAG," is uri.getScheme()");
+				// Return the remote address
+				if (isGooglePhotosUri(uri))
+					return uri.getLastPathSegment();
+				return getDataColumn(context, uri, null, null);
+			}
+			else { // Other Providers
+				Log.d("************** QSharePathResolver::getRealPathFromURI ***************	  ","is Other Provider");
+				try {
+					InputStream attachment = context.getContentResolver().openInputStream(uri);
+					if (attachment != null) {
+						String filename = getContentName(context.getContentResolver(), uri);
+						if (filename != null) {
+							File file = new File(context.getCacheDir(), filename);
+							FileOutputStream tmp = new FileOutputStream(file);
+							byte[] buffer = new byte[1024];
+							while (attachment.read(buffer) > 0) {
+								tmp.write(buffer);
+							}
+							tmp.close();
+							attachment.close();
+							return file.getAbsolutePath();
+						}
+					}
+				} catch (Exception e) {
+					// TODO SIGNAL shareError()
+					return null;
+				}
+			}
+		}
+		else if ("content".equalsIgnoreCase(uri.getScheme())) { // MediaStore (and general)
+			Log.d("************** QSharePathResolver::getRealPathFromURI ***************	  ","NOT DocumentsContract.isDocumentUri");
+			Log.d(TAG," is uri.getScheme()");
+			// Return the remote address
+			if (isGooglePhotosUri(uri))
+				return uri.getLastPathSegment();
+			Log.d(TAG," return: getDataColumn ");
+			return getDataColumn(context, uri, null, null);
+		}
+		else if ("file".equalsIgnoreCase(uri.getScheme())) { // File
+			Log.d("************** QSharePathResolver::getRealPathFromURI ***************	  ","NOT DocumentsContract.isDocumentUri");
+			Log.d(TAG," is file scheme");
+			return uri.getPath();
+		}
+		return null;
+    } //getRealPathFromURI
 
-                // TODO handle non-primary volumes
-            }
-            // DownloadsProvider
-	    else if (isDownloadsDocument(uri)) {
-                Log.d("ekkescorner"," isDownloadsDocument");
-                final String id = DocumentsContract.getDocumentId(uri);
-                Log.d("ekkescorner"," getDocumentId "+id);
-                long longId = 0;
-                try
-                  {
-                    longId = Long.valueOf(id);
-                  }
-                  catch(NumberFormatException nfe)
-                  {
-                      return getDataColumn(context, uri, null, null);
-                  }
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), longId);
-
-                return getDataColumn(context, contentUri, null, null);
-            }
-            // MediaProvider
-            else if (isMediaDocument(uri)) {
-                Log.d("ekkescorner"," isMediaDocument");
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                Uri contentUri = null;
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                }
-
-                final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
-                        split[1]
-                };
-
-                return getDataColumn(context, contentUri, selection, selectionArgs);
-            }
-            else if ("content".equalsIgnoreCase(uri.getScheme())) {
-                Log.d("ekkescorner"," is uri.getScheme()");
-                // Return the remote address
-                if (isGooglePhotosUri(uri))
-                    return uri.getLastPathSegment();
-
-                return getDataColumn(context, uri, null, null);
-            }
-            // Other Providers
-            else{
-                Log.d("ekkescorner ","is Other Provider");
-                try {
-                    InputStream attachment = context.getContentResolver().openInputStream(uri);
-                    if (attachment != null) {
-                        String filename = getContentName(context.getContentResolver(), uri);
-                        if (filename != null) {
-                            File file = new File(context.getCacheDir(), filename);
-                            FileOutputStream tmp = new FileOutputStream(file);
-                            byte[] buffer = new byte[1024];
-                            while (attachment.read(buffer) > 0) {
-                                tmp.write(buffer);
-                            }
-                            tmp.close();
-                            attachment.close();
-                            return file.getAbsolutePath();
-                        }
-                    }
-                } catch (Exception e) {
-                    // TODO SIGNAL shareError()
-                    return null;
-                }
-            }
-        }
-        // MediaStore (and general)
-        else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            Log.d("ekkescorner ","NOT DocumentsContract.isDocumentUri");
-            Log.d("ekkescorner"," is uri.getScheme()");
-            // Return the remote address
-            if (isGooglePhotosUri(uri))
-                return uri.getLastPathSegment();
-            Log.d("ekkescorner"," return: getDataColumn ");
-            return getDataColumn(context, uri, null, null);
-        }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            Log.d("ekkescorner ","NOT DocumentsContract.isDocumentUri");
-            Log.d("ekkescorner"," is file scheme");
-            return uri.getPath();
-        }
-
-        return null;
-    }
-
-    private static String getContentName(ContentResolver resolver, Uri uri) {
-        Cursor cursor = resolver.query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-        if (nameIndex >= 0) {
-            String name = cursor.getString(nameIndex);
-            cursor.close();
-            return name;
-        }
-        cursor.close();
-        return null;
-    }
+	private static String getContentName(ContentResolver resolver, Uri uri) {
+		Cursor cursor = resolver.query(uri, null, null, null, null);
+		cursor.moveToFirst();
+		int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+		if (nameIndex >= 0) {
+			String name = cursor.getString(nameIndex);
+			cursor.close();
+			return name;
+		}
+		cursor.close();
+		return null;
+	}
 
     /**
      * Get the value of the data column for this Uri. This is useful for

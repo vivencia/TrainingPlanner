@@ -60,8 +60,7 @@ void URIHandler::setFileReceivedAndSaved(const QString& url) const
 	// check if File exists
 	QFileInfo fileInfo(androidUrl);
 	if (fileInfo.exists())
-		//emit fileReceivedAndSaved(androidUrl)
-		;
+		m_appDB->openRequestedFile(androidUrl);
 	else
 		MSG_OUT("setFileReceivedAndSaved: FILE does NOT exist ")
 }

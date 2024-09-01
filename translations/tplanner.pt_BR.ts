@@ -682,116 +682,116 @@
 <context>
     <name>DbManager</name>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="806"/>
+        <location filename="../cxx/dbmanager.cpp" line="799"/>
         <source>a new Training Split Exercise Plan</source>
         <translation>um novo plano de divisão de exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="810"/>
-        <location filename="../cxx/dbmanager.cpp" line="812"/>
+        <location filename="../cxx/dbmanager.cpp" line="803"/>
+        <location filename="../cxx/dbmanager.cpp" line="805"/>
         <source>new Training Split Exercise Plans</source>
         <translation>novo planos de divisão de exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="818"/>
+        <location filename="../cxx/dbmanager.cpp" line="811"/>
         <source>One Training Day</source>
         <translation>Um treino</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="822"/>
+        <location filename="../cxx/dbmanager.cpp" line="815"/>
         <source>An updated exercises database list</source>
         <translation>Uma lista de exercícios atualizada</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="824"/>
+        <location filename="../cxx/dbmanager.cpp" line="817"/>
         <source>and an updated exercises database list</source>
         <translation>e uma lista atualizada de exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="834"/>
+        <location filename="../cxx/dbmanager.cpp" line="827"/>
         <source>This will import data to create: %1</source>
         <translation>Isto irá importar dados para criar: %1</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="950"/>
+        <location filename="../cxx/dbmanager.cpp" line="943"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1196"/>
+        <location filename="../cxx/dbmanager.cpp" line="1189"/>
         <source>TrainingPlanner Exercises List.txt</source>
         <translation>Lista de exercícios do app TrainingPlanner.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="865"/>
-        <location filename="../cxx/dbmanager.cpp" line="1208"/>
-        <location filename="../cxx/dbmanager.cpp" line="1713"/>
-        <location filename="../cxx/dbmanager.cpp" line="2017"/>
+        <location filename="../cxx/dbmanager.cpp" line="858"/>
+        <location filename="../cxx/dbmanager.cpp" line="1201"/>
+        <location filename="../cxx/dbmanager.cpp" line="1706"/>
+        <location filename="../cxx/dbmanager.cpp" line="2010"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="158"/>
+        <location filename="../cxx/dbmanager.cpp" line="150"/>
         <source>Your training routine seems to go well. Workout for the day is concluded</source>
         <translation>Seu programa de treino está indo bem. Treino do dia concluído</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="160"/>
+        <location filename="../cxx/dbmanager.cpp" line="152"/>
         <source>Today is training day. Start your workout number </source>
         <translation>Hoje é dia de treino. Comece seu treino número </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="160"/>
+        <location filename="../cxx/dbmanager.cpp" line="152"/>
         <source> division: </source>
         <translation> divisão: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="163"/>
+        <location filename="../cxx/dbmanager.cpp" line="155"/>
         <source>Enjoy your day of rest from workouts!</source>
         <translation>Aproveite seu dia de dancanso dos treinos!</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="816"/>
+        <location filename="../cxx/dbmanager.cpp" line="809"/>
         <source>an entire Mesocycle Plan, including </source>
         <translation>um planejamento de mesociclo completo, incluindo </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="846"/>
+        <location filename="../cxx/dbmanager.cpp" line="839"/>
         <source> - TP Complete Meso.txt</source>
         <translation> - TP Mesociclo Completo.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1466"/>
-        <location filename="../cxx/dbmanager.cpp" line="1471"/>
+        <location filename="../cxx/dbmanager.cpp" line="1459"/>
+        <location filename="../cxx/dbmanager.cpp" line="1464"/>
         <source>Exercises Planner: </source>
         <translation>Programa de Exercícios: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1669"/>
+        <location filename="../cxx/dbmanager.cpp" line="1662"/>
         <source> - Exercises Plan.txt</source>
         <translation> - Plano de Exercícios.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1674"/>
+        <location filename="../cxx/dbmanager.cpp" line="1667"/>
         <source> - Exercises Plan - Split </source>
         <translation> - Plano de exercícios - Divisão </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="1748"/>
-        <location filename="../cxx/dbmanager.cpp" line="1753"/>
+        <location filename="../cxx/dbmanager.cpp" line="1741"/>
+        <location filename="../cxx/dbmanager.cpp" line="1746"/>
         <source>Calendar: </source>
         <translation>Calendário: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="2010"/>
+        <location filename="../cxx/dbmanager.cpp" line="2003"/>
         <source> - Workout </source>
         <translation> - Treino </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmanager.cpp" line="710"/>
-        <location filename="../cxx/dbmanager.cpp" line="718"/>
-        <location filename="../cxx/dbmanager.cpp" line="1867"/>
-        <location filename="../cxx/dbmanager.cpp" line="1887"/>
+        <location filename="../cxx/dbmanager.cpp" line="703"/>
+        <location filename="../cxx/dbmanager.cpp" line="711"/>
+        <location filename="../cxx/dbmanager.cpp" line="1860"/>
+        <location filename="../cxx/dbmanager.cpp" line="1880"/>
         <source>Workout: </source>
         <translation>Treino: </translation>
     </message>
@@ -2371,88 +2371,88 @@ Para começar, vamos configurar o aplicativo criando seu perfil.</translation>
         <translation>Proceder com a acção?</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="234"/>
+        <location filename="../qml/main.qml" line="233"/>
         <source>Text copied to the clipboard</source>
         <translation>Texto copiado para a área de transferência</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="252"/>
+        <location filename="../qml/main.qml" line="251"/>
         <source>Saved successfully to</source>
         <translation>Salvo com sucesso em</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="253"/>
+        <location filename="../qml/main.qml" line="252"/>
         <source>Export successfully</source>
         <translation>Arquivo exportado com sucesso</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="255"/>
+        <location filename="../qml/main.qml" line="254"/>
         <source>Import was successfull</source>
         <translation>Arquivo importado com sucesso</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="256"/>
+        <location filename="../qml/main.qml" line="255"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="257"/>
+        <location filename="../qml/main.qml" line="256"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
+        <location filename="../qml/main.qml" line="256"/>
         <location filename="../qml/main.qml" line="257"/>
-        <location filename="../qml/main.qml" line="258"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="258"/>
+        <location filename="../qml/main.qml" line="257"/>
         <source>File is formatted wrongly or is corrupted</source>
         <translation>Formato desconhecido ou arquivo corrompido</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="259"/>
+        <location filename="../qml/main.qml" line="258"/>
         <source>Nothing to be done</source>
         <translation>Nada a ser feito</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="259"/>
+        <location filename="../qml/main.qml" line="258"/>
         <source>File had already been imported</source>
         <translation>Arquivo já havia sido importado antes</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="261"/>
+        <location filename="../qml/main.qml" line="260"/>
         <source>No mesocycle to import into</source>
         <translation>Nenhum mesociclo ou programa para importar</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="262"/>
+        <location filename="../qml/main.qml" line="261"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation>Crie um novo programa ou importe um programa completo de um arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="264"/>
+        <location filename="../qml/main.qml" line="263"/>
         <source>Export failed</source>
         <translation>Falha ao exportar</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="265"/>
+        <location filename="../qml/main.qml" line="264"/>
         <source>Saving canceled</source>
         <translation>Processo de salvar arquivo cancelado</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="267"/>
+        <location filename="../qml/main.qml" line="266"/>
         <source>Nothing to save.</source>
         <translation>Nada para salvar.</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="268"/>
+        <location filename="../qml/main.qml" line="267"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation>Somente exercícios adicionados - que não vieram pré incluídos no programa - podem ser exportados ou compartilhados</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="270"/>
+        <location filename="../qml/main.qml" line="269"/>
         <source>Something went wrong</source>
         <translation>Algo deu errado</translation>
     </message>

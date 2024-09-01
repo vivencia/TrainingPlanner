@@ -50,7 +50,7 @@ import java.util.List;
 public class QShareUtils {
     // reference Authority as defined in AndroidManifest.xml
     private static String AUTHORITY = "org.vivenciasoftware.TrainingPlanner.fileprovider";
-    private static String TAG = "QShareUtils";
+    private static String TAG = "****************** QShareUtils ******************    ";
 
     protected QShareUtils() {
 	// Log.d(TAG, "QShareUtils()");
@@ -472,10 +472,10 @@ public class QShareUtils {
 		String name = getContentName(cR, uri);
 		if (name != null) {
 		    filePath = fileLocation + "/" + name;
-		    // Log.d(TAG, "- create File" + filePath);
+		    Log.d(TAG, "- create File:   " + filePath);
 		    File f = new File(filePath);
 		    FileOutputStream tmp = new FileOutputStream(f);
-		    // Log.d(TAG, "- create File new FileOutputStream");
+		    Log.d(TAG, "- create File new FileOutputStream");
 
 		    int bufferSize = 1024;
 		    byte[] buffer = new byte[bufferSize];
