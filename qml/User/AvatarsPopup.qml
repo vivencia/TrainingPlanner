@@ -3,6 +3,8 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtCore
 
+import com.vivenciasoftware.qmlcomponents
+
 import "../TPWidgets"
 import ".."
 
@@ -77,9 +79,10 @@ TPPopup {
 			x: (index % 5) * width
 			y: Math.floor(index / 5) * height
 
-			Image {
-				anchors.fill: parent
+			TPImage {
 				source: "image://tpimageprovider/" + repeater.strSex + parseInt(index)
+				dropShadow: false
+				anchors.fill: parent
 			}
 
 			MouseArea {

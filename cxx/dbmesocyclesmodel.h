@@ -52,6 +52,10 @@ public:
 	Q_INVOKABLE inline bool isRealMeso(const uint row) const {
 		return getFast(row, MESOCYCLES_COL_REALMESO) == QStringLiteral("1");
 	}
+	Q_INVOKABLE inline void setIsRealMeso(const uint row, const bool bRealMeso) {
+		setFast(row, MESOCYCLES_COL_REALMESO, bRealMeso ? u"1"_qs : u"0"_qs);
+		emit realMesoChanged(row);
+	}
 
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 
@@ -64,6 +68,10 @@ public:
 	QDate getLastMesoEndDate() const;
 	Q_INVOKABLE bool isDateWithinCurrentMeso(const QDate& date) const;
 	bool isDifferent(const DBMesocyclesModel* model);
+	void updateColumnLabels();
+
+signals:
+	void realMesoChanged(const uint meso_idx);
 
 private:
 	DBUserModel* m_userModel;

@@ -97,7 +97,7 @@ public:
 	void getAllMesocycles();
 	Q_INVOKABLE void setWorkingMeso(int meso_idx);
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
-	Q_INVOKABLE void createNewMesocycle(const bool bRealMeso, const QString& name, const bool bCreatePage);
+	Q_INVOKABLE void createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void saveMesocycle(const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
 								   const bool bPreserveUntillYesterday = false);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
@@ -174,6 +174,8 @@ public slots:
 private:
 	int m_MesoId;
 	int m_MesoIdx;
+	int m_ClientMesoId;
+	int m_ClientMesoIdx;
 	uint m_expectedPageId;
 	bool mb_splitsLoaded;
 	bool mb_importMode;
@@ -185,6 +187,7 @@ private:
 	QQmlApplicationEngine* m_QMlEngine;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
+	TPMesocycleClass* m_clientMesoManager;
 	QQuickWindow* m_mainWindow;
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;

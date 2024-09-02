@@ -5,15 +5,15 @@ import "../"
 import com.vivenciasoftware.qmlcomponents
 
 ComboBox {
+	property string textColor: AppSettings.fontColor
+	property string backgroundColor: AppSettings.primaryDarkColor
+	property bool completeModel: false
+
 	id: control
 	implicitWidth: 120//fontMetrics.boundingRect("LorenIpsuM").width + 15
 	implicitHeight: 25
 	textRole: "text"
 	valueRole: "value"
-
-	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor
-	property bool completeModel: false
 
 	FontMetrics {
 		id: fontMetrics

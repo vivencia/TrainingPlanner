@@ -24,7 +24,7 @@
 #define APP_USE_MODE_SINGLE_USER 1
 #define APP_USE_MODE_SINGLE_COACH 2
 #define APP_USE_MODE_SINGLE_USER_WITH_COACH 3
-#define APP_USE_MODE_COACH_USER_WITH_COACHES 4
+#define APP_USE_MODE_COACH_USER_WITH_COACH 4
 
 class DBUserModel : public TPListModel
 {
@@ -44,6 +44,7 @@ public:
 	Q_INVOKABLE int findLastUser(const bool bCoach = false);
 	Q_INVOKABLE QString getCurrentUserName(const bool bCoach) const;
 	const int getRowByCoachName(const QString& coachname) const;
+	Q_INVOKABLE const int getRowByName(const QString& username) const;
 
 	Q_INVOKABLE QStringList getCoaches() const;
 	Q_INVOKABLE QStringList getClients() const;

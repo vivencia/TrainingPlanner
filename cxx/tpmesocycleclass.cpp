@@ -157,10 +157,7 @@ void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
 	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
 
-	const bool bRealMeso(m_MesocyclesModel->getInt(m_MesoIdx, MESOCYCLES_COL_REALMESO) == 1);
-	m_mesoComponent = new QQmlComponent(m_QMlEngine, bRealMeso? QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs) : QUrl(u"qrc:/qml/Pages/OpenEndedPlan.qml"_qs),
-							QQmlComponent::Asynchronous);
-
+	m_mesoComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs), QQmlComponent::Asynchronous);
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return TPMesocycleClass::createMesocyclePage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -181,7 +178,6 @@ void TPMesocycleClass::createMesocyclePage_part2()
 	}
 	#endif
 	m_QMlEngine->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
-
 	m_mesoPage->setParentItem(m_appStackView);
 	emit pageReady(m_mesoPage, mesoPageCreateId);
 }
@@ -1062,6 +1058,8 @@ void TPMesocycleClass::changeSetMode(const uint exercise_idx, const uint set_num
 			const bool b_set_completed(set_object->property("setCompleted").toBool());
 			set_object->setProperty("setCompleted", !b_set_completed);
 			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, !b_set_completed);
+			if (b_set_completed) //set was completed before, now it is not
+				findSetMode(exercise_idx, set_number);
 			return;
 		}
 		break;

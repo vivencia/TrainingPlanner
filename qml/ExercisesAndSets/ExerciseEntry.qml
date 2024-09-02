@@ -317,7 +317,7 @@ FocusScope {
 					id: btnAddSet
 					imageSource: "add-new"
 					imageSize: 30
-					Layout.leftMargin: 30
+					Layout.leftMargin: 15
 
 					onClicked: {
 						itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);

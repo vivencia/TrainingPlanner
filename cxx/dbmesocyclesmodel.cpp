@@ -18,33 +18,18 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 
 	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 	mColumnNames.append(QString());
-	mColumnNames.append(tr("Mesocycle's name: "));
+	mColumnNames.append(tr("Plan's name: "));
 	mColumnNames.append(tr("Start date: "));
 	mColumnNames.append(tr("End date: "));
-	mColumnNames.append(tr("Mesocycle's considerations: "));
+	mColumnNames.append(tr("Plan's considerations: "));
 	mColumnNames.append(tr("Number of weeks: "));
 	mColumnNames.append(tr("Weekly Training Division: "));
-
-	QString strCoach;
-	QString strClient;
-	switch (m_userModel->appUseMode(0))
-	{
-		case APP_USE_MODE_SINGLE_USER: break;
-		case APP_USE_MODE_SINGLE_COACH:
-			strClient = tr("Client: ");
-		break;
-		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-			strCoach = tr("Coach/Trainer: ");
-		break;
-		case APP_USE_MODE_COACH_USER_WITH_COACHES:
-			strClient = tr("Client: ");
-			strCoach = tr("Coach/Trainer: ");
-		break;
-	}
-	mColumnNames.append(strCoach);
-	mColumnNames.append(strClient);
+	mColumnNames.append(QString()); //Coach
+	mColumnNames.append(QString()); //Client
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Type: "));
+
+	updateColumnLabels();
 }
 
 bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
@@ -260,4 +245,26 @@ bool DBMesocyclesModel::isDifferent(const DBMesocyclesModel* model)
 		bEqual = true;
 	}
 	return true;
+}
+
+void DBMesocyclesModel::updateColumnLabels()
+{
+	QString strCoach;
+	QString strClient;
+	switch (m_userModel->appUseMode(0))
+	{
+		case APP_USE_MODE_SINGLE_USER: break;
+		case APP_USE_MODE_SINGLE_COACH:
+			strClient = tr("Client: ");
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+			strCoach = tr("Coach/Trainer: ");
+		break;
+		case APP_USE_MODE_COACH_USER_WITH_COACH:
+			strClient = tr("Client: ");
+			strCoach = tr("Coach/Trainer: ");
+		break;
+	}
+	mColumnNames[MESOCYCLES_COL_COACH] = strCoach;
+	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
 }

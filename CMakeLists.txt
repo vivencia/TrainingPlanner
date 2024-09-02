@@ -100,7 +100,6 @@ set( QML_FILES
     "qml/Pages/MesoContent.qml"
     "qml/Pages/MesoCycle.qml"
     "qml/Pages/MesoSplitPlanner.qml"
-    "qml/Pages/OpenEndedPlan.qml"
     "qml/Pages/SettingsPage.qml"
     "qml/Pages/TPPage.qml"
     "qml/Pages/TrainingDayInfo.qml"

@@ -49,23 +49,7 @@ ToolBar {
 			pageDeActivated_main(stackView.currentItem);
 			stackView.pop(stackView.get(0));
 			pageActivated_main(stackView.currentItem);
-			btnWorkoutEnabled();
-		}
-	}
-
-	TPButton {
-		id: btnWorkout
-		text: qsTr("Today's workout")
-		leftAlign: false
-		backgroundColor: "transparent"
-		imageSource: "workout.png"
-		hasDropShadow: false
-
-		onClicked: appDB.getTrainingDay(new Date());
-
-		anchors {
-			left: btnHome.right
-			verticalCenter: parent.verticalCenter
+			workoutButtonEnabled();
 		}
 	}
 
@@ -157,12 +141,5 @@ ToolBar {
 			mainCalendar.destroy();
 		if (mainTimer !== null)
 			mainTimer.destroy();
-	}
-
-	function btnWorkoutEnabled() {
-		if (stackView.depth === 1)
-			btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
-		else
-			btnWorkout.enabled = false;
 	}
 }

@@ -49,7 +49,7 @@ int DBUserModel::addUser(const bool bCoach)
 				cur_client = 1;
 			break;
 
-			case APP_USE_MODE_COACH_USER_WITH_COACHES:
+			case APP_USE_MODE_COACH_USER_WITH_COACH:
 				if (bCoach)
 				{
 					use_mode = APP_USE_MODE_SINGLE_COACH;
@@ -159,6 +159,16 @@ const int DBUserModel::getRowByCoachName(const QString& coachname) const
 		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
 			if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)
 				return i;
+	}
+	return -1;
+}
+
+const int DBUserModel::getRowByName(const QString& username) const
+{
+	for (uint i(1); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(USER_COL_NAME) == username)
+			return i;
 	}
 	return -1;
 }

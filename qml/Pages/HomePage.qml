@@ -107,7 +107,7 @@ TPPage {
 
 				TPRadioButton {
 					id: optCurrentMeso
-					text: qsTr("Current mesocycle")
+					text: qsTr("Current plan")
 					checked: mesocyclesModel.currentRow === index;
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
@@ -125,7 +125,7 @@ TPPage {
 
 				TPButton {
 					id: btnMesoInfo
-					text: qsTr("View Meso")
+					text: qsTr("View Plan")
 					textUnderIcon: true
 					rounded: false
 					imageSource: "mesocycle.png"
@@ -163,7 +163,26 @@ TPPage {
 						appDB.setWorkingMeso(index);
 						appDB.getMesoCalendar(true);
 					}
+
+					Component.onCompleted: {
+						enableButton(index);
+						userModel.appUseModeChanged.connect(function(userrow) { enableButton(index); });
+						mesocyclesModel.realMesoChanged.connect(enableButton);
+					}
+
+					function enableButton(mesoidx) {
+						var bEnabled = userModel.appUseMode(0) !== 2;
+						if (bEnabled) {
+							if (mesoidx === index) {
+								bEnabled = mesocyclesModel.isRealMeso(index);
+								if (bEnabled)
+									bEnabled = mesocyclesModel.get(index, 8) === userModel.userName(0);
+							}
+						}
+						enabled = bEnabled;
+					}
 				}
+
 				TPButton {
 					id: btnMesoPlan
 					text: qsTr("Exercises Plan")
@@ -261,7 +280,7 @@ TPPage {
 				Behavior on opacity { NumberAnimation { } }
 
 				TPButton {
-					text: qsTr("Remove Mesocycle")
+					text: qsTr("Remove Plan")
 					imageSource: "remove"
 					hasDropShadow: false
 					z:2
@@ -276,8 +295,8 @@ TPPage {
 
 				TPBalloonTip {
 					id: msgDlg
-					title: qsTr("Remove Mesocycle?")
-					message: qsTr("This action cannot be undone. Note: removing a Mesocycle does not remove the records of the days within it.")
+					title: qsTr("Remove Plan?")
+					message: qsTr("This action cannot be undone. Note: removing a Plan does not remove the records of the days within it.")
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
 					imageSource: "remove"
@@ -375,12 +394,12 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnAddOpenSchedule
-			text: qsTr("New open-ended schedule")
+			id: btnAddMeso
+			text: qsTr("New Training Plan")
+			imageSource: "mesocycle-add.png"
 			textUnderIcon: true
 			rounded: false
 			flat: false
-			imageSource: "open-schedule.png"
 
 			anchors {
 				left: parent.left
@@ -388,13 +407,18 @@ TPPage {
 				leftMargin: 5
 			}
 
-			onClicked: newAction(0);
+			onClicked: {
+				if (mesocyclesModel.count > 0)
+					appDB.createNewMesocycle(true);
+				else
+					showEmptyDatabaseMenu();
+			}
 		}
 
 		TPButton {
-			id: btnAddMeso
-			text: qsTr("New Mesocycle")
-			imageSource: "mesocycle-add.png"
+			id: btnWorkout
+			text: qsTr("Today's workout")
+			imageSource: "workout.png"
 			textUnderIcon: true
 			rounded: false
 			flat: false
@@ -405,18 +429,9 @@ TPPage {
 				rightMargin: 5
 			}
 
-			onClicked: {
-				if (mesocyclesModel.count > 0)
-					newAction(1);
-				else
-					showEmptyDatabaseMenu();
-			}
+			onClicked: appDB.getTrainingDay(new Date());
 		}
 	} // footer
-
-	function newAction(opt) {
-		appDB.createNewMesocycle(opt, opt === 1 ? qsTr("New Mesocycle") : qsTr("New Training Plan"), true);
-	}
 
 	function setViewModel() {
 		mesosListView.model = mesocyclesModel;
@@ -426,8 +441,8 @@ TPPage {
 		if (newMesoMenu === null) {
 			var newMesoMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			newMesoMenu = newMesoMenuMenuComponent.createObject(homePage, { parentPage: homePage });
-			newMesoMenu.addEntry(qsTr("Create new mesocycle"), "mesocycle-add.png", 0, true);
-			newMesoMenu.addEntry(qsTr("Import mesocycle from file"), "import.png", 1, true);
+			newMesoMenu.addEntry(qsTr("Create new plan"), "mesocycle-add.png", 0, true);
+			newMesoMenu.addEntry(qsTr("Import plan from file"), "import.png", 1, true);
 			newMesoMenu.menuEntrySelected.connect(selectedNewMesoMenuOption);
 		}
 		newMesoMenu.show(btnAddMeso, 0);
@@ -440,9 +455,24 @@ TPPage {
 		}
 	}
 
+	function btnWorkoutEnabled() {
+		var bMesoOK = mesocyclesModel.count > 0;
+		var bHasWorkOuts = false;
+		if (bMesoOK) {
+			bHasWorkOuts = userModel.appUseMode(0) !== 2;
+			if (bHasWorkOuts) {
+				if (stackView.depth === 1)
+					btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
+				else
+					btnWorkout.enabled = false;
+			}
+		}
+		btnWorkout.visible = bHasWorkOuts;
+	}
+
 	TPComplexDialog {
 		id: exportTypeTip
-		customStringProperty1: bShare ? qsTr("Share complete mesocycle?") : qsTr("Export complete mesocycle to file?")
+		customStringProperty1: bShare ? qsTr("Share complete plan?") : qsTr("Export complete plan to file?")
 		customStringProperty2: qsTr("Include Coach data?")
 		customStringProperty3: "export.png"
 		button1Text: qsTr("Yes")

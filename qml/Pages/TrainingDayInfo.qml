@@ -754,7 +754,7 @@ TPPage {
 
 	Component.onCompleted: {
 		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
-		bRealMeso = mesocyclesModel.get(mesoIdx, 3) !== "0";
+		bRealMeso = mesocyclesModel.get(mesoIdx, 11) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		tDayModel.saveWorkout.connect(saveWorkout);

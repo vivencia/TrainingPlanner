@@ -139,7 +139,6 @@ void DBMesocyclesTable::getAllMesocycles()
 				{
 					for (i = MESOCYCLES_COL_ID; i < MESOCYCLES_TOTAL_COLS; ++i)
 						meso_info.append(query.value(static_cast<int>(i)).toString());
-					meso_info.append(query.value(MESOCYCLES_COL_ENDDATE).toInt() != 0 ? QStringLiteral("1") : QStringLiteral("0")); //MESOCYCLES_COL_REALMESO
 					m_model->appendList(meso_info);
 					meso_info.clear();
 				} while ( query.next () );

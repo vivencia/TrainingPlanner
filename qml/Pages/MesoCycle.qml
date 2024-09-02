@@ -25,40 +25,13 @@ TPPage {
 
 	property bool bMesoNameOK: false
 	property bool bNewMeso: mesoId === -1
-
+	property bool bRealMeso: true
+	property bool bOwnMeso: true
 	property bool bCalendarCreated: false
 	property bool bChangeStartDate
 	property bool bPreserveOldCalendar: false
 	property bool bPreserveOldCalendarUntilYesterday: false
 	property bool bChangedCalendar: false
-
-	Component.onCompleted: {
-		JSF.checkWhetherCanCreatePlan();
-		if (bNewMeso)
-			txtMesoName.forceActiveFocus();
-		mesocyclesModel.modifiedChanged.connect(saveMeso);
-		mesoSplitModel.modifiedChanged.connect(saveMeso);
-		userModel.userAdded.connect(updateCoachesModel);
-		if (bNewMeso) {
-			mesocyclesModel.set(mesoIdx, 7, cboCoaches.textAt(cboCoaches.currentIndex));
-			mesocyclesModel.set(mesoIdx, 8, cboClients.textAt(cboCoaches.currentIndex));
-		}
-	}
-
-	function updateCoachesModel(use_mode: int) {
-		if (use_mode === 2 || use_mode === 4) {
-			const coaches = userModel.getCoaches();
-			coachesModel.clear();
-			for(var i = 0; i < coaches.length; ++i)
-				coachesModel.append({ "text": coaches[i], "value": i});
-		}
-		else if (use_mode === 0) {
-			const clients = userModel.getClients();
-			clientsModel.clear();
-			for(var x = 0; x < clients.length; ++x)
-				clientsModel.append({ "text": clients[i], "value": i});
-		}
-	}
 
 	onPageActivated: appDB.setWorkingMeso(mesoIdx);
 
@@ -86,6 +59,7 @@ TPPage {
 			text: qsTr("Calendar")
 			imageSource: "meso-calendar.png"
 			imageSize: 20
+			visible: bRealMeso
 
 			anchors {
 				left: parent.left
@@ -123,7 +97,7 @@ TPPage {
 				Layout.minimumWidth: parent.width / 2
 				Layout.maximumWidth: parent.width - 20
 				wrapMode: Text.WordWrap
-				ToolTip.text: qsTr("Mesocycle name too short")
+				ToolTip.text: qsTr("Name too short")
 
 				onTextEdited: {
 					bMesoNameOK = text.length >= 5;
@@ -155,7 +129,7 @@ TPPage {
 					text: mesocyclesModel.columnLabel(7)
 					font.bold: true
 					color: AppSettings.fontColor
-					width: fontMetrics.boundingRect(text).width
+					width: windowWidth/2 - 10
 
 					FontMetrics {
 						id: fontMetrics
@@ -166,7 +140,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboCoaches
-					width: parent.width - lblCoaches.width - 20
+					implicitWidth: windowWidth/2
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -180,15 +154,33 @@ TPPage {
 						else
 							currentIndex = find(userModel.getCurrentUserName(true));
 						if (currentIndex === -1)
-							currentIndex = 0;
+							displayText = qsTr("(Select coach ...)");
 					}
 
-					onActivated: (index) => mesocyclesModel.set(mesoIdx, 7, textAt(index));
+					onActivated: (index) => {
+						mesocyclesModel.set(mesoIdx, 7, textAt(index));
+						displayText = currentText;
+					}
+				}
+			}
+
+
+			TPCheckBox {
+				text: qsTr("This plan is for myself")
+				checked: bOwnMeso
+				visible: userModel.appUseMode(0) >= 3
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				onClicked: {
+					bOwnMeso = checked;
+					if (bOwnMeso)
+						mesocyclesModel.set(mesoIdx, 8, userModel.userName(0));
 				}
 			}
 
 			RowLayout {
-				visible: userModel.appUseMode(0) === 2 || userModel.appUseMode(0) === 4
+				visible: userModel.appUseMode(0) === 2 ? true : !bOwnMeso
 				height: 30
 				spacing: 5
 				Layout.leftMargin: 5
@@ -210,7 +202,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboClients
-					width: (parent.width - 20)*0.7
+					implicitWidth: parent.width - 20 - lblClients.width
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -224,10 +216,13 @@ TPPage {
 						else
 							currentIndex = find(userModel.getCurrentUserName(false));
 						if (currentIndex === -1)
-							currentIndex = 0;
+							displayText = qsTr("(Select client ...)");
 					}
 
-					onActivated: (index) => mesocyclesModel.set(mesoIdx, 8, textAt(index));
+					onActivated: (index) => {
+						mesocyclesModel.set(mesoIdx, 8, textAt(index));
+						displayText = currentText;
+					}
 				}
 			}
 
@@ -394,20 +389,37 @@ TPPage {
 				}
 			}
 
+			TPCheckBox {
+				text: qsTr("Mesocycle-style plan")
+				checked: bRealMeso
+				Layout.leftMargin: 5
+				Layout.fillWidth: true
+
+				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
+
+				onClicked: {
+					bRealMeso = checked;
+					mesocyclesModel.set(mesoIdx, 11, bRealMeso ? "1" : "0");
+					if (!bRealMeso)
+						mesocyclesModel.set(mesoIdx, 3, "0");
+				}
+			}
+
 			Label {
 				text: mesocyclesModel.columnLabel(3)
 				font.bold: true
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
 				color: AppSettings.fontColor
+				visible: bRealMeso
+				Layout.leftMargin: 5
 			}
 			TPTextInput {
 				id: txtMesoEndDate
 				text: runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3))
+				readOnly: true
+				visible: bRealMeso
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
-				readOnly: true
 
 				CalendarDialog {
 					id: caldlg2
@@ -438,20 +450,22 @@ TPPage {
 				id: lblnWeeks
 				text: mesocyclesModel.columnLabel(5)
 				font.bold: true
+				color: AppSettings.fontColor
+				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
 				Layout.minimumWidth: 50
 				Layout.maximumWidth: 50
-				color: AppSettings.fontColor
 			}
 
 			TPTextInput {
 				id: txtMesoNWeeks
 				text: mesocyclesModel.get(mesoIdx, 5)
+				readOnly: true
 				width: txtMesoEndDate.width
+				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				readOnly: true
 			}
 
 			Label {
@@ -734,6 +748,37 @@ TPPage {
 		} //ColumnLayout
 	} //ScrollView
 
+	Component.onCompleted: {
+		JSF.checkWhetherCanCreatePlan();
+		if (bNewMeso)
+			txtMesoName.forceActiveFocus();
+		mesocyclesModel.modifiedChanged.connect(saveMeso);
+		mesoSplitModel.modifiedChanged.connect(saveMeso);
+		userModel.userAdded.connect(updateCoachesModel);
+	}
+
+	function updateCoachesModel(use_mode: int) {
+		if (use_mode === 2 || use_mode === 4) {
+			const coaches = userModel.getCoaches();
+			coachesModel.clear();
+			for(var i = 0; i < coaches.length; ++i)
+				coachesModel.append({ "text": coaches[i], "value": i});
+		}
+		else if (use_mode === 0) {
+			const clients = userModel.getClients();
+			clientsModel.clear();
+			for(var x = 0; x < clients.length; ++x)
+				clientsModel.append({ "text": clients[i], "value": i});
+		}
+	}
+
+	function saveMeso() {
+		appDB.saveMesocycle(bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
+		if (bNewMeso)
+			mesoId = mesocyclesModel.getInt(mesoIdx, 0);
+		bChangedCalendar = false;
+	}
+
 	function changeMuscularGroup(splitletter: string, description: string) {
 		switch (splitletter) {
 			case 'A': txtSplitA.text = description; break;
@@ -797,12 +842,5 @@ TPPage {
 		txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
 		mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
 		bPreserveOldCalendar = bPreserveOldCalendarUntilYesterday = false;
-	}
-
-	function saveMeso() {
-		appDB.saveMesocycle(bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
-		if (bNewMeso)
-			mesoId = mesocyclesModel.getInt(mesoIdx, 0);
-		bChangedCalendar = false;
 	}
 } //Page
