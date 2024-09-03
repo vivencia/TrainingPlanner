@@ -106,5 +106,7 @@
         <file>images/upward.png</file>
         <file>images/downward.png</file>
         <file>images/edit-clear.png</file>
+        <file>images/manage-coaches.png</file>
+        <file>images/manage-clients.png</file>
     </qresource>
 </RCC>

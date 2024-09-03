@@ -151,8 +151,9 @@ public:
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
 	void createSettingsPage();
-	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageCoaches);
+	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	void createClientsOrCoachesPage();
+	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
 
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
@@ -174,8 +175,6 @@ public slots:
 private:
 	int m_MesoId;
 	int m_MesoIdx;
-	int m_ClientMesoId;
-	int m_ClientMesoIdx;
 	uint m_expectedPageId;
 	bool mb_splitsLoaded;
 	bool mb_importMode;
@@ -187,7 +186,6 @@ private:
 	QQmlApplicationEngine* m_QMlEngine;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
-	TPMesocycleClass* m_clientMesoManager;
 	QQuickWindow* m_mainWindow;
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
@@ -232,7 +230,7 @@ private:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	QQuickItem* m_settingsPage, *m_clientsOrCoachesPage;
+	QQuickItem* m_settingsPage, *m_clientsOrCoachesPage, *m_userPage;
 	QQmlComponent* m_settingsComponent, *m_clientsOrCoachesComponent;
 	QVariantMap m_settingsProperties, m_clientsOrCoachesProperties;
 

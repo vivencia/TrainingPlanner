@@ -14,26 +14,16 @@ TPPage {
 	width: windowWidth
 	height: windowHeight
 
+	property int useMode
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrContact.moduleHeight
-
-	Component.onCompleted: {
-		userModeChanged(0);
-		userModel.appUseModeChanged.connect(userModeChanged);
-	}
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.implicitHeight
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-			bottom: rowBtnsManage.top
-		}
+		anchors.fill: parent
 
 		ColumnLayout {
 			id: colMain
@@ -83,40 +73,49 @@ TPPage {
 		}
 	}
 
-	RowLayout {
-		id: rowBtnsManage
-		height: 50
+	footer: ToolBar {
+		id: coachsClientsToolBar
+		width: parent.width
+		height: footerHeight
 
-		anchors {
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
+		background: Rectangle {
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
 		}
 
 		TPButton {
 			id: btnManageCoach
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
-			Layout.alignment: Qt.AlignCenter
+			visible: useMode >= 3
 
-			onClicked: appDB.openClientsOrCoachesPage(true);
+			anchors {
+				horizontalCenter: parent.horizontalCenter
+				top: parent.top
+			}
+
+			onClicked: appDB.openClientsOrCoachesPage(false, true);
 		}
 
 		TPButton {
 			id: btnManageClients
 			text: qsTr("Manage clients")
 			flat: false
-			Layout.alignment: Qt.AlignCenter
+			visible: useMode === 2 || useMode === 4
 
-			onClicked: appDB.openClientsOrCoachesPage(false);
+			anchors {
+				horizontalCenter: parent.horizontalCenter
+				top: btnManageCoach.bottom
+			}
+
+			onClicked: appDB.openClientsOrCoachesPage(true, false);
 		}
-	}
-
-	function userModeChanged(row: int) {
-		if (row !== 0)
-			return;
-		btnManageCoach.visible = userModel.appUseMode(0) >= 3;
-		btnManageClients.visible = userModel.appUseMode(0) === 2 || userModel.appUseMode(0) === 4;
 	}
 
 	function apply() {

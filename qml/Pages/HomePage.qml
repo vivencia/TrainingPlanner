@@ -76,6 +76,9 @@ TPPage {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
+
+			property bool realMeso: mesocyclesModel.isRealMeso(index)
+
 			width: ListView.view.width
 			height: mesoContent.childrenRect.height + 20
 
@@ -83,11 +86,11 @@ TPPage {
 
 			Rectangle {
 				id: optionsRec
-				anchors.fill: parent
 				color: "lightgray"
 				radius: 6
 				layer.enabled: true
 				visible: false
+				anchors.fill: parent
 			}
 
 			swipe.left: MultiEffect {
@@ -173,11 +176,8 @@ TPPage {
 					function enableButton(mesoidx) {
 						var bEnabled = userModel.appUseMode(0) !== 2;
 						if (bEnabled) {
-							if (mesoidx === index) {
-								bEnabled = mesocyclesModel.isRealMeso(index);
-								if (bEnabled)
-									bEnabled = mesocyclesModel.get(index, 8) === userModel.userName(0);
-							}
+							if (mesoidx === index)
+								bEnabled = mesocyclesModel.get(index, 8) === userModel.userName(0);
 						}
 						enabled = bEnabled;
 					}
@@ -373,6 +373,13 @@ TPPage {
 					color: AppSettings.fontColor
 					opacity: backRec.opacity
 				}
+			}
+
+			Component.onCompleted: {
+				mesocyclesModel.realMesoChanged.connect(function (mesoidx) {
+					if (mesoidx === index)
+						realMeso = mesocyclesModel.isRealMeso(index);
+				});
 			}
 		} //delegate
 	} //ListView

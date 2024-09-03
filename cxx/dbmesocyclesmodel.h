@@ -2,6 +2,7 @@
 #define DBMESOCYCLESMODEL_H
 
 #include "tplistmodel.h"
+#include "dbusermodel.h"
 
 #define MESOCYCLES_COL_ID 0
 #define MESOCYCLES_COL_NAME 1
@@ -49,15 +50,29 @@ public:
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const QString& fieldValue) const;
 
-	Q_INVOKABLE inline bool isRealMeso(const uint row) const {
+	Q_INVOKABLE inline bool isOwnMeso(const uint row) const
+	{
+		return getFast(row, MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
+	}
+
+	Q_INVOKABLE inline bool isRealMeso(const uint row) const
+	{
 		return getFast(row, MESOCYCLES_COL_REALMESO) == QStringLiteral("1");
 	}
-	Q_INVOKABLE inline void setIsRealMeso(const uint row, const bool bRealMeso) {
-		setFast(row, MESOCYCLES_COL_REALMESO, bRealMeso ? u"1"_qs : u"0"_qs);
+
+	Q_INVOKABLE inline void setIsRealMeso(const uint row, const bool bRealMeso)
+	{
+		set(row, MESOCYCLES_COL_REALMESO, bRealMeso ? u"1"_qs : u"0"_qs);
 		emit realMesoChanged(row);
 	}
 
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
+
+	Q_INVOKABLE inline QDate getEndDate(const uint row) const
+	{
+		return isRealMeso(row) ? QDate::fromJulianDay(m_modeldata.at(row).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
+							QDate::currentDate().addDays(730);
+	}
 
 	uint getTotalSplits(const uint row) const;
 	int getMesoIdx(const int mesoId) const;

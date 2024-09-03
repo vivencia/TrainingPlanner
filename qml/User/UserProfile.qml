@@ -47,7 +47,7 @@ Frame {
 
 	Label {
 		id: lblUserRole
-		text: userModel.columnLabel(8)
+		text: userModel.columnLabel(7)
 		color: AppSettings.fontColor
 		visible: userModel.appUseMode(userRow) !== 2
 		font.pointSize: AppSettings.fontSizeText
@@ -100,6 +100,9 @@ Frame {
 		font.bold: true
 		height: controlsHeight
 		padding: 0
+		bottomInset: 0
+		topInset: 0
+		bottomPadding: 0
 		width: parent.width*0.20
 
 		anchors {
@@ -164,6 +167,7 @@ Frame {
 
 		anchors {
 			top: lblGoal.visible ? lblGoal.bottom : parent.top
+			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 		}
@@ -190,7 +194,7 @@ Frame {
 			top: lblCoachRole.top
 			topMargin: -5
 			left: lblCoachRole.right
-			leftMargin: 0
+			leftMargin: 20
 		}
 	}
 

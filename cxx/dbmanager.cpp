@@ -167,7 +167,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), m_ClientMesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
+	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
 		m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr), m_clientsOrCoachesPage(nullptr)
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(cleanUp()));
@@ -344,8 +344,8 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				{
 					if (mesoCalendarModel->count() == 0)
 					{
-						mesoCalendarModel->createModel( m_MesoId, mesocyclesModel->getDateFast(m_MesoIdx, 2),
-								mesocyclesModel->getDateFast(m_MesoIdx, 3), mesocyclesModel->getFast(m_MesoIdx, 6) );
+						mesoCalendarModel->createModel( m_MesoId, mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE),
+							mesocyclesModel->getEndDate(m_MesoIdx), mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT) );
 						createMesoCalendar();
 					}
 				}
@@ -1239,6 +1239,13 @@ void DbManager::getAllMesocycles()
 		if (user_row == 0) {
 			mesocyclesModel->updateColumnLabels();
 			QMetaObject::invokeMethod(m_mainWindow, "workoutButtonEnabled", Qt::AutoConnection);
+
+			m_userPage->setProperty("useMode", userModel->appUseMode(0));
+			for (uint i (0); i < m_MesoManager.count(); ++i)
+			{
+				if (m_MesoManager.at(i)->getMesoPage())
+					m_MesoManager.at(i)->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
+			}
 		}
 	});
 }
@@ -1250,18 +1257,8 @@ void DbManager::setWorkingMeso(int meso_idx)
 		if (meso_idx >= mesocyclesModel->count())
 			meso_idx = mesocyclesModel->count() - 1;
 
-		if (mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_CLIENT) != userModel->userName(0))
-		{
-			m_ClientMesoIdx = meso_idx;
-			m_ClientMesoId = mesocyclesModel->getIntFast(m_ClientMesoIdx, MESOCYCLES_COL_ID);
-		}
-		else
-		{
-			m_MesoIdx = meso_idx;
-			m_ClientMesoIdx = m_ClientMesoId = -2;
-		}
-
-		if (m_ClientMesoIdx == -2)
+		m_MesoIdx = meso_idx;
+		if (meso_idx >= 0)
 		{
 			m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
 			m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
@@ -1289,28 +1286,15 @@ void DbManager::setWorkingMeso(int meso_idx)
 
 		if (!bFound)
 		{
-			TPMesocycleClass* mesoManager(nullptr);
-			if (m_ClientMesoIdx == -2)
-			{
-				m_currentMesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, this);
-				mesoManager = m_currentMesoManager;
-			}
-			else
-			{
-				m_clientMesoManager = new TPMesocycleClass(m_ClientMesoId, m_ClientMesoIdx, m_QMlEngine, this);
-				mesoManager = m_clientMesoManager;
-			}
-
-			mesoManager->setMesocycleModel(mesocyclesModel);
-			m_MesoManager.append(mesoManager);
-			connect(mesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
-			connect(mesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
+			m_currentMesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, this);
+			m_currentMesoManager->setMesocycleModel(mesocyclesModel);
+			m_MesoManager.append(m_currentMesoManager);
+			connect(m_currentMesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
+			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
 		if (m_MesoId >= 0)
 			m_appSettings->setValue("lastViewedMesoId", m_MesoId);
-
-		if (m_ClientMesoIdx == -2)
-			mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
+		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
 	}
 }
 
@@ -1321,15 +1305,17 @@ void DbManager::getMesocycle(const uint meso_idx)
 
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
-		const bool bOwnMeso(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_CLIENT) == userModel->userName(0));
-		m_currentMesoManager->getMesoPage()->setProperty("bOwnMeso", bOwnMeso);
 		addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
 		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
-	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == mesoPageCreateId)
+	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) {
+			if (id == mesoPageCreateId)
+			{
+				m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
 				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			}
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createMesocyclePage();
 }
 
@@ -1356,7 +1342,7 @@ void DbManager::createNewMesocycle(const bool bCreatePage)
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(runCmd()->calculateNumberOfWeeks(startDate, endDate)) <<
 		u"ABCR"_qs << QString() << userModel->userName(0) << QString() << QString() << u"1"_qs);
 	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
-				QString() << QString() << QString() << QString() );
+				QString() << QString() << QString() << QString());
 
 	setWorkingMeso(mesocyclesModel->count()-1);
 	if (bCreatePage)
@@ -1389,8 +1375,7 @@ void DbManager::saveMesocycle(const bool bChangeCalendar, const bool bPreserveOl
 	{
 		saveMesoSplit();
 		if (bChangeCalendar)
-			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE),
-				mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE),
+			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE), mesocyclesModel->getEndDate(m_MesoIdx),
 				mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT), bPreserveOldCalendar, bPreserveUntillYesterday);
 	}
 	worker->addExecArg(m_MesoIdx);
@@ -1829,8 +1814,8 @@ void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& s
 	connect( this, &DbManager::databaseReady, this, [&,worker,startDate,mesoSplit] (const uint db_id) {
 				if (db_id == worker->uniqueID())
 				{
-					return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(
-					startDate, mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_ENDDATE), mesoSplit);
+					return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(startDate,
+										mesocyclesModel->getEndDate(m_MesoIdx), mesoSplit);
 				} });
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
 }
@@ -2086,53 +2071,21 @@ void DbManager::createSettingsPage()
 		m_QMlEngine->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
 		m_settingsPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_settingsPage));
+		m_userPage = m_settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
+		m_userPage->setProperty("useMode", userModel->appUseMode(0));
 	}
 }
 
-void DbManager::openClientsOrCoachesPage(const bool bManageCoaches)
+void DbManager::openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
 {
+	setClientsOrCoachesPagesProperties(bManageClients, bManageCoaches);
+
 	if (m_clientsOrCoachesPage != nullptr)
 	{
-		m_clientsOrCoachesPage->setProperty("showUsers", !bManageCoaches);
-		m_clientsOrCoachesPage->setProperty("showCoaches", bManageCoaches);
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
 		return;
 	}
 
-	bool showUsers(false);
-	bool showCoaches(false);
-	int curUserRow(0);
-	switch (userModel->appUseMode(0))
-	{
-		case APP_USE_MODE_SINGLE_USER: return;
-		case APP_USE_MODE_SINGLE_COACH:
-			if (bManageCoaches)
-				return;
-			if ((curUserRow = userModel->findFirstUser(false)) < 0)
-				curUserRow = userModel->addUser(false);
-			showUsers = true;
-		break;
-		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-			if (!bManageCoaches)
-				return;
-			if ((curUserRow = userModel->findFirstUser(true)) < 0)
-				curUserRow = userModel->addUser(true);
-			showCoaches = true;
-		break;
-		case APP_USE_MODE_COACH_USER_WITH_COACH:
-		{
-			showUsers = (curUserRow = userModel->findFirstUser(false)) > 0;
-			if (!showUsers)
-				showCoaches = (curUserRow = userModel->findFirstUser(true)) > 0;
-			if (!showUsers && !showCoaches)
-				curUserRow = userModel->addUser(false);
-			showUsers = showCoaches = true;
-		}
-	}
-
-	m_clientsOrCoachesProperties.insert(QStringLiteral("showUsers"), showUsers);
-	m_clientsOrCoachesProperties.insert(QStringLiteral("showCoaches"), showCoaches);
-	m_clientsOrCoachesProperties.insert(QStringLiteral("curUserRow"), curUserRow);
 	m_clientsOrCoachesComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_qs), QQmlComponent::Asynchronous);
 	connect(m_clientsOrCoachesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
 		return createClientsOrCoachesPage(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -2156,6 +2109,61 @@ void DbManager::createClientsOrCoachesPage()
 		m_QMlEngine->setObjectOwnership(m_clientsOrCoachesPage, QQmlEngine::CppOwnership);
 		m_clientsOrCoachesPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
+	}
+}
+
+void DbManager::setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches)
+{
+	bool showUsers(false);
+	bool showCoaches(false);
+	int curUserRow(0);
+	switch (userModel->appUseMode(0))
+	{
+		case APP_USE_MODE_SINGLE_USER: return;
+		case APP_USE_MODE_SINGLE_COACH:
+			if (bManageClients)
+			{
+				if ((curUserRow = userModel->findFirstUser(false)) < 0)
+					curUserRow = userModel->addUser(false);
+				showUsers = true;
+			}
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+			if (bManageCoaches)
+			{
+				if ((curUserRow = userModel->findFirstUser(true)) < 0)
+					curUserRow = userModel->addUser(true);
+				showCoaches = true;
+			}
+		break;
+		case APP_USE_MODE_COACH_USER_WITH_COACH:
+		{
+			if (bManageClients)
+			{
+				if ((curUserRow = userModel->findFirstUser(false)) < 0)
+					curUserRow = userModel->addUser(false);
+				showUsers = true;
+			}
+			if (bManageCoaches)
+			{
+				if ((curUserRow = userModel->findFirstUser(true)) < 0)
+					curUserRow = userModel->addUser(true);
+				showCoaches = true;
+			}
+		}
+	}
+
+	if (m_clientsOrCoachesPage)
+	{
+		m_clientsOrCoachesPage->setProperty("showUsers", showUsers);
+		m_clientsOrCoachesPage->setProperty("showCoaches", showCoaches);
+		m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+	}
+	else
+	{
+		m_clientsOrCoachesProperties.insert(u"showUsers"_qs, showUsers);
+		m_clientsOrCoachesProperties.insert(u"showCoaches"_qs, showCoaches);
+		m_clientsOrCoachesProperties.insert(u"curUserRow"_qs, curUserRow);
 	}
 }
 

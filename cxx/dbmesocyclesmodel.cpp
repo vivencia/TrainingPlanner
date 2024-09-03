@@ -1,5 +1,4 @@
 #include "dbmesocyclesmodel.h"
-#include "dbusermodel.h"
 #include "runcommands.h"
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)

@@ -15,8 +15,8 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(tr("Phone: "));
 	mColumnNames.append(u"E-mail: "_qs);
 	mColumnNames.append(tr("Social Media: "));
-	mColumnNames.append(QString());
-	mColumnNames.append(tr("Role: "));
+	mColumnNames.append(tr("Your are: "));
+	mColumnNames.append(tr("Professional job: "));
 	mColumnNames.append(tr("Goal: "));
 	mColumnNames.append(u"Avatar: "_qs);
 	mColumnNames.append(QString());

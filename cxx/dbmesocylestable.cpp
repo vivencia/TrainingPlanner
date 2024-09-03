@@ -179,8 +179,7 @@ void DBMesocyclesTable::saveMesocycle()
 			query.finish();
 		}
 
-		m_model->setFast(row, MESOCYCLES_COL_REALMESO,
-			m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != QStringLiteral("0") ? QStringLiteral("1") : QStringLiteral("0"));
+		m_model->setFast(row, MESOCYCLES_COL_REALMESO, m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != u"0"_qs ? u"1"_qs : u"0"_qs);
 
 		if (bUpdate)
 		{
