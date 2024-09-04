@@ -35,10 +35,11 @@ Rectangle {
 			minimumPointSize: 8
 			fontSizeMode: Text.Fit
 			horizontalAlignment: Text.AlignHCenter
+			leftPadding: 5
 			font.bold: true
 			color: AppSettings.fontColor
 			text: String(index).length == 1 ? "0" + index : index
-			anchors.horizontalCenter: parent.horizontalCenter
+			//anchors.horizontalCenter: parent.horizontalCenter
 		}
 	}
 }

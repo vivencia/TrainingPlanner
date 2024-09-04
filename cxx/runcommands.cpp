@@ -509,7 +509,7 @@ void RunCommands::populateSettingsWithDefaultValue()
 		m_appSettings->setValue("fontSizeLists", 8);
 		m_appSettings->setValue("fontSizeText", 10);
 		m_appSettings->setValue("fontSizeTitle", 18);
-		m_appSettings->setValue("lastViewedMesoId", 0);
+		m_appSettings->setValue("lastViewedMesoIdx", 0);
 		m_appSettings->setValue("alwaysAskConfirmation", true);
 		m_appSettings->sync();
 	}

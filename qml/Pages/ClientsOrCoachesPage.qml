@@ -15,6 +15,8 @@ TPPage {
 	height: windowHeight
 
 	property int curUserRow
+	property int firstUserRow
+	property int lastUserRow
 	property bool showUsers
 	property bool showCoaches
 	property bool bModified: userModel.modified
@@ -56,12 +58,22 @@ TPPage {
 			width: 30
 			height: 30
 
-			onClicked: curUserRow = userModel.addUser(showCoaches);
+			onClicked: {
+				const _lastUserRow = userModel.addUser(showCoaches);
+				if (_lastUserRow > 0) {
+					curUserRow = _lastUserRow;
+					lastUserRow = _lastUserRow;
+					if (firstUserRow == -1)
+						firstUserRow = _lastUserRow;
+					usrData.focusOnFirstField();
+				}
+			}
 		}
 
 		TPButton {
 			id: btnDel
 			imageSource: "remove"
+			enabled: curUserRow >= 1
 			width: 30
 			height: 30
 
@@ -71,43 +83,70 @@ TPPage {
 		TPButton {
 			id: btnFirst
 			imageSource: "first"
+			enabled: curUserRow !== firstUserRow
 			width: 30
 			height: 30
 
-			onClicked: curUserRow = userModel.findFirstUser(showCoaches);
+			onClicked: {
+				const _firstUserRow = userModel.findFirstUser(showCoaches);
+				if (_firstUserRow > 0) {
+					curUserRow = _firstUserRow;
+					if (firstUserRow !== _firstUserRow)
+						firstUserRow = _firstUserRow;
+				}
+			}
 		}
 
 		TPButton {
 			id: btnPrev
 			imageSource: "prev"
+			enabled: curUserRow !== firstUserRow
 			width: 30
 			height: 30
 
-			onClicked: curUserRow = userModel.findPrevUser(showCoaches);
+			onClicked: {
+				const _prevUserRow = userModel.findPrevUser(showCoaches);
+				if (_prevUserRow > 0)
+					curUserRow = _prevUserRow;
+			}
 		}
 
 		TPButton {
 			id: btnNext
 			imageSource: "next"
+			enabled: curUserRow !== lastUserRow
 			width: 30
 			height: 30
 
-			onClicked: curUserRow = userModel.findNextUser(showCoaches);
+			onClicked: {
+				const _nextUserRow = userModel.findNextUser(showCoaches);
+				if (_nextUserRow > 0)
+					curUserRow = _nextUserRow;
+			}
 		}
 
 		TPButton {
 			id: btnLast
 			imageSource: "last"
+			enabled: curUserRow !== lastUserRow
 			width: 30
 			height: 30
 
-			onClicked: curUserRow = userModel.findLastUser(showCoaches);
+			onClicked: {
+				const _lastUserRow = userModel.findLastUser(showCoaches);
+				if (_lastUserRow > 0) {
+					curUserRow = _lastUserRow;
+					if (_lastUserRow !== _lastUserRow)
+						_lastUserRow = _lastUserRow;
+				}
+			}
 		}
 	}
 
 	TPCheckBox {
 		id: chkCurrent
 		text: showCoaches ? qsTr("Default Coach/Trainer") : qsTr("Default Client")
+		enabled: curUserRow > 0
 		height: 25
 
 		anchors {
@@ -154,6 +193,7 @@ TPPage {
 				id: usrData
 				userRow: curUserRow
 				parentPage: coachesOrClientsPage
+				enabled: curUserRow > 0
 				width: windowWidth - 20
 				height: moduleHeight
 			}
@@ -161,6 +201,7 @@ TPPage {
 			UserContact {
 				id: usrContact
 				userRow: curUserRow
+				enabled: curUserRow > 0
 				width: windowWidth - 20
 				Layout.topMargin: -30
 			}
@@ -169,6 +210,7 @@ TPPage {
 				id: usrProfile
 				userRow: curUserRow
 				parentPage: coachesOrClientsPage
+				enabled: curUserRow > 0
 				height: moduleHeight
 				width: windowWidth - 20
 				Layout.topMargin: 20
@@ -206,7 +248,7 @@ TPPage {
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage() {
 		if (!AppSettings.alwaysAskConfirmation) {
-			curUserRow = appDB.removeUser(curUserRow, showCoaches);
+			appDB.removeUser(curUserRow, showCoaches);
 			return;
 		}
 
@@ -217,7 +259,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveUser = component.createObject(coachesOrClientsPage, { parentPage: coachesOrClientsPage, imageSource: "remove.png",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveUser.button1Clicked.connect(function () { curUserRow = appDB.removeUser(curUserRow, showCoaches); } );
+					msgRemoveUser.button1Clicked.connect(function () { appDB.removeUser(curUserRow, showCoaches); } );
 				}
 
 				if (component.status === Component.Ready)

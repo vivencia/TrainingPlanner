@@ -57,15 +57,15 @@ Frame {
 		height: controlsHeight
 		width: frmContact.width*0.7
 
-		Component.onCompleted: bPhoneOK = userModel.phone(userRow).length >= 19
+		Component.onCompleted: bPhoneOK = userModel.phone(userRow).length >= 17
 		onEditingFinished: userModel.setPhone(userRow, text);
 
 		onActiveFocusChanged: {
 			if (activeFocus) {
-				if (text.length < 19)
+				if (text.length < 17)
 					cursorPosition = 5;
 				else
-					cursorPosition = 19;
+					cursorPosition = 17;
 			}
 		}
 
@@ -75,7 +75,7 @@ Frame {
 		}
 
 		onTextEdited: {
-			if (text.length === 19) {
+			if (text.length === 17) {
 				ToolTip.visible = false;
 				bPhoneOK = true;
 				userModel.setPhone(userRow, text);

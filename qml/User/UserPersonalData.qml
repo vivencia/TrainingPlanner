@@ -59,11 +59,14 @@ Frame {
 
 		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
-		onTextChanged: userModel.setUserName(userRow, text);
+		onTextChanged: {
+			userModel.setUserName(userRow, text);
+			bNameOK = text.length >= 5;
+		}
 
 		onEnterOrReturnKeyPressed: {
 			if (bNameOK)
-				btnBirthDate.clicked();
+				caldlg.open();
 		}
 
 		onTextEdited: {
@@ -138,6 +141,7 @@ Frame {
 
 			onDateSelected: (date) => {
 				userModel.setBirthDate(userRow, date);
+				txtBirthdate.text = runCmd.formatDate(date);
 				bBirthDateOK = true;
 			}
 		}

@@ -123,7 +123,7 @@ TPPage {
 						leftMargin: 5
 					}
 
-					onClicked: mesocyclesModel.currentRow = index;
+					onClicked: appDB.setWorkingMeso(index);
 				}
 
 				TPButton {
@@ -143,7 +143,10 @@ TPPage {
 						top: optCurrentMeso.bottom
 					}
 
-					onClicked: appDB.getMesocycle(index);
+					onClicked: {
+						appDB.setWorkingMeso(index);
+						appDB.getMesocycle(index);
+					}
 				}
 				TPButton {
 					id: btnMesoCalendar

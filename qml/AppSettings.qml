@@ -28,7 +28,7 @@ Settings {
 	property int fontSizeLists
 	property int fontSizeText
 	property int fontSizeTitle
-	property int lastViewedMesoId
+	property int lastViewedMesoIdx
 	property bool alwaysAskConfirmation
 
 	onFontSizeChanged: appFontSizeChanged();

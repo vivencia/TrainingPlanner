@@ -93,11 +93,13 @@ TPPage {
 			TPTextInput {
 				id: txtMesoName
 				text: mesocyclesModel.get(mesoIdx, 1);
-				Layout.alignment: Qt.AlignHCenter
-				Layout.minimumWidth: parent.width / 2
-				Layout.maximumWidth: parent.width - 20
 				wrapMode: Text.WordWrap
 				ToolTip.text: qsTr("Name too short")
+				width: parent.width - 20
+				Layout.alignment: Qt.AlignHCenter
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
+
 
 				onTextEdited: {
 					bMesoNameOK = text.length >= 5;

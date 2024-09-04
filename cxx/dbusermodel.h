@@ -77,9 +77,9 @@ public:
 	Q_INVOKABLE void setAvatar(const int row, const QString& new_avatar);
 	Q_INVOKABLE inline int appUseMode(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_APP_USE_MODE).toUInt() : 0; }
 	Q_INVOKABLE void setAppUseMode(const int row, const int new_use_opt);
-	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_COACH).toUInt() : 0; }
+	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_COACH).toUInt() : -1; }
 	Q_INVOKABLE void setCurrentCoach(const int row, const int new_current_coach);
-	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_USER).toUInt() : 0; }
+	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_CURRENT_USER).toUInt() : -1; }
 	Q_INVOKABLE void setCurrentUser(const int row, const int new_current_user);
 
 	Q_INVOKABLE inline bool isEmpty() const { return mb_empty; }

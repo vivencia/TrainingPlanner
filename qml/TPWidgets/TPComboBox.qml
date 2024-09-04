@@ -40,9 +40,9 @@ ComboBox {
 
 			TPImage {
 				id: lblImg
-				visible: completeModel
 				source: completeModel ? model.icon : ""
-				imgSize: 20
+				dropShadow: false
+				visible: completeModel
 				width: 20
 				height: 20
 
@@ -96,6 +96,7 @@ ComboBox {
 	TPImage {
 		visible: completeModel
 		source: completeModel ? control.model.get(control.currentIndex).icon : ""
+		dropShadow: false
 		width: 18
 		height: 18
 

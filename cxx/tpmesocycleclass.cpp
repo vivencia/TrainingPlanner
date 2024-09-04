@@ -348,7 +348,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 			const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
 			const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
 
-			//Because TrainingDayInfo.qml now uses the model directly, we need to have an working model before the page is created
+			//Because TrainingDayInfo.qml uses the model directly, we need to have an working model before the page is created
 			if (m_CurrenttDayModel->count() == 0)
 			{
 				m_CurrenttDayModel->appendRow();

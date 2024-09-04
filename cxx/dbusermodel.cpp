@@ -27,8 +27,8 @@ DBUserModel::DBUserModel(QObject *parent)
 int DBUserModel::addUser(const bool bCoach)
 {
 	uint use_mode(1);
-	uint cur_coach(0);
-	uint cur_client(0);
+	int cur_coach(-1);
+	int cur_client(-1);
 	if (!m_modeldata.isEmpty())
 	{
 		switch (m_modeldata.at(0).at(USER_COL_APP_USE_MODE).toInt())
@@ -39,26 +39,26 @@ int DBUserModel::addUser(const bool bCoach)
 				if (!bCoach)
 					return -1;
 				use_mode = APP_USE_MODE_SINGLE_COACH;
-				cur_coach = 1;
+				cur_coach = findLastUser(true);
 			break;
 
 			case APP_USE_MODE_SINGLE_COACH:
 				if (bCoach)
 					return -1;
 				use_mode = APP_USE_MODE_SINGLE_USER;
-				cur_client = 1;
+				cur_client = findLastUser(false);
 			break;
 
 			case APP_USE_MODE_COACH_USER_WITH_COACH:
 				if (bCoach)
 				{
 					use_mode = APP_USE_MODE_SINGLE_COACH;
-					cur_coach = 1;
+					cur_coach = findLastUser(true);
 				}
 				else
 				{
 					use_mode = APP_USE_MODE_SINGLE_USER;
-					cur_client = 1;
+					cur_client = findLastUser(false);
 				}
 			break;
 		}
@@ -176,6 +176,8 @@ const int DBUserModel::getRowByName(const QString& username) const
 QStringList DBUserModel::getCoaches() const
 {
 	QStringList coaches;
+	if (appUseMode(0) >= APP_USE_MODE_SINGLE_USER_WITH_COACH)
+		coaches.append(m_modeldata.at(0).at(USER_COL_NAME));
 	for (uint i(1); i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)

@@ -375,7 +375,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				{
 					m_MesoIdx = mesocyclesModel->count() - 1;
 					m_MesoId = mesocyclesModel->getFast(m_MesoIdx, 0).toUInt();
-					m_appSettings->setValue("lastViewedMesoId", m_MesoId);
+					m_appSettings->setValue("lastViewedMesoIdx", m_MesoIdx);
 					m_MesoIdStr = QString::number(m_MesoId);
 					m_currentMesoManager->setMesoId(m_MesoId);
 				}
@@ -884,6 +884,8 @@ void DbManager::openURL(const QString& address) const
 
 void DbManager::startChatApp(const QString& phone, const QString& appname) const
 {
+	if (phone.length() < 17)
+		return;
 	QString phoneNumbers;
 	QString::const_iterator itr(phone.constBegin());
 	const QString::const_iterator itr_end(phone.constEnd());
@@ -1048,16 +1050,24 @@ void DbManager::saveUser(const uint row)
 	createThread(worker, [worker] () { worker->saveUser(); } );
 }
 
-int DbManager::removeUser(const uint row, const bool bCoach)
+void DbManager::removeUser(const uint row, const bool bCoach)
 {
 	if (row >= 1)
 	{
 		DBUserTable* worker(new DBUserTable(m_DBFilePath, m_appSettings, userModel));
 		worker->addExecArg(userModel->userId(row));
 		createThread(worker, [worker] () { return worker->removeEntry(); } );
-		return userModel->removeUser(row, bCoach);
+		const int curUserRow(userModel->removeUser(row, bCoach));
+		int firstUserRow(-1), lastUserRow(-1);
+		if (curUserRow > 0)
+		{
+			firstUserRow = userModel->findFirstUser(bCoach);
+			lastUserRow = userModel->findLastUser(bCoach);
+		}
+		m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+		m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+		m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
 	}
-	return -1;
 }
 
 void DbManager::deleteUserTable(const bool bRemoveFile)
@@ -1227,7 +1237,7 @@ void DbManager::getAllMesocycles()
 	{
 		for(uint i(0); i < mesocyclesModel->count(); ++i)
 			getMesoSplit(mesocyclesModel->getFast(i, MESOCYCLES_COL_ID));
-		setWorkingMeso(m_appSettings->value("lastViewedMesoId", 0).toUInt());
+		setWorkingMeso(m_appSettings->value("lastViewedMesoIdx", 0).toUInt());
 	}
 	else
 	{
@@ -1293,7 +1303,10 @@ void DbManager::setWorkingMeso(int meso_idx)
 			connect(m_currentMesoManager, SIGNAL(itemReady(QQuickItem*,uint)), this, SIGNAL(getItem(QQuickItem*,uint)));
 		}
 		if (m_MesoId >= 0)
-			m_appSettings->setValue("lastViewedMesoId", m_MesoId);
+		{
+			m_appSettings->setValue("lastViewedMesoIdx", m_MesoIdx);
+			m_appSettings->sync();
+		}
 		mesoCalendarModel = m_currentMesoManager->mesoCalendarModel();
 	}
 }
@@ -1866,7 +1879,6 @@ void DbManager::getTrainingDay(const QDate& date)
 {
 	if (m_currentMesoManager->gettDayPage(date) != nullptr)
 	{
-		//m_currentMesoManager->setCurrenttDay(date);
 		addMainMenuShortCut(tr("Workout: ") + runCmd()->formatDate(date), m_currentMesoManager->gettDayPage(date));
 		return;
 	}
@@ -2114,56 +2126,47 @@ void DbManager::createClientsOrCoachesPage()
 
 void DbManager::setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches)
 {
-	bool showUsers(false);
-	bool showCoaches(false);
-	int curUserRow(0);
-	switch (userModel->appUseMode(0))
+	int curUserRow(0), firstUserRow(-1), lastUserRow(-1);
+
+	if (userModel->appUseMode(0) == APP_USE_MODE_SINGLE_USER)
+		return;
+
+	if (bManageClients)
 	{
-		case APP_USE_MODE_SINGLE_USER: return;
-		case APP_USE_MODE_SINGLE_COACH:
-			if (bManageClients)
-			{
-				if ((curUserRow = userModel->findFirstUser(false)) < 0)
-					curUserRow = userModel->addUser(false);
-				showUsers = true;
-			}
-		break;
-		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-			if (bManageCoaches)
-			{
-				if ((curUserRow = userModel->findFirstUser(true)) < 0)
-					curUserRow = userModel->addUser(true);
-				showCoaches = true;
-			}
-		break;
-		case APP_USE_MODE_COACH_USER_WITH_COACH:
+		if (userModel->appUseMode(0) == APP_USE_MODE_SINGLE_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
 		{
-			if (bManageClients)
-			{
-				if ((curUserRow = userModel->findFirstUser(false)) < 0)
-					curUserRow = userModel->addUser(false);
-				showUsers = true;
-			}
-			if (bManageCoaches)
-			{
-				if ((curUserRow = userModel->findFirstUser(true)) < 0)
-					curUserRow = userModel->addUser(true);
-				showCoaches = true;
-			}
+			firstUserRow = userModel->findFirstUser(false);
+			lastUserRow = userModel->findLastUser(false);
+			curUserRow = userModel->currentUser(0);
+		}
+	}
+
+	if (bManageCoaches)
+	{
+		if (userModel->appUseMode(0) == APP_USE_MODE_SINGLE_USER_WITH_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
+		{
+			firstUserRow = userModel->findFirstUser(true);
+			lastUserRow = userModel->findLastUser(true);
+			curUserRow = userModel->currentCoach(0);
 		}
 	}
 
 	if (m_clientsOrCoachesPage)
 	{
-		m_clientsOrCoachesPage->setProperty("showUsers", showUsers);
-		m_clientsOrCoachesPage->setProperty("showCoaches", showCoaches);
 		m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+		m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+		m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
+		m_clientsOrCoachesPage->setProperty("showUsers", bManageClients);
+		m_clientsOrCoachesPage->setProperty("showCoaches", bManageCoaches);
+
 	}
 	else
 	{
-		m_clientsOrCoachesProperties.insert(u"showUsers"_qs, showUsers);
-		m_clientsOrCoachesProperties.insert(u"showCoaches"_qs, showCoaches);
 		m_clientsOrCoachesProperties.insert(u"curUserRow"_qs, curUserRow);
+		m_clientsOrCoachesProperties.insert(u"firstUserRow"_qs, firstUserRow);
+		m_clientsOrCoachesProperties.insert(u"lastUserRow"_qs, lastUserRow);
+		m_clientsOrCoachesProperties.insert(u"showUsers"_qs, bManageClients);
+		m_clientsOrCoachesProperties.insert(u"showCoaches"_qs, bManageCoaches);
 	}
 }
 
