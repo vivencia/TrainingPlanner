@@ -22,6 +22,11 @@ FocusScope {
 	property color inputColor: AppSettings.fontColor
 	property color backColor: "white"
 
+	readonly property var validatorType: [val_weigth, val_rep, val_time, val_set]
+	readonly property var maxLen: [5,4,5,1]
+	readonly property var labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
+	property string origText
+
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
 
@@ -65,11 +70,6 @@ FocusScope {
 		bottom: 0
 		top: 9
 	}
-
-	property var validatorType: [val_weigth, val_rep, val_time, val_set]
-	property var maxLen: [5,4,5,1]
-	property var labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
-	property string origText
 
 	Rectangle {
 		anchors.fill: parent

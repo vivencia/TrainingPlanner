@@ -34,6 +34,8 @@ TextField {
 	MouseArea {
 		anchors.fill: parent
 		pressAndHoldInterval: 300
+		enabled: parent.enabled ? true : !parent.readOnly
+
 		onPressAndHold: (mouse) => {
 			runCmd.copyToClipBoard(control.text);
 			mainwindow.showTextCopiedMessage();

@@ -2,6 +2,7 @@
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
 #include "runcommands.h"
+#include "dbmanager.h"
 
 static const QLatin1Char fancy_record_separator2(';');
 

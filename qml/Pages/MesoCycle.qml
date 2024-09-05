@@ -5,7 +5,6 @@ import QtQuick.Dialogs
 import QtCore
 import com.vivenciasoftware.qmlcomponents
 
-import "../jsfunctions.js" as JSF
 import "../"
 import "../Dialogs"
 import "../TPWidgets"
@@ -323,8 +322,6 @@ TPPage {
 					onEnterOrReturnKeyPressed: {
 						if (bNewMeso)
 							caldlg.open();
-						else
-							txtMesoSplit.forceActiveFocus();
 					}
 				}
 
@@ -451,7 +448,6 @@ TPPage {
 						bCanSave = bNewMeso;
 						if (mesocyclesModel.setDate(mesoIdx, 3, caldlg2.selectedDate)) {
 							txtMesoEndDate.text = runCmd.formatDate(caldlg2.selectedDate)
-							txtMesoSplit.forceActiveFocus();
 							if (!bNewMeso)
 								showCalendarChangedDialog();
 						}
@@ -490,270 +486,26 @@ TPPage {
 				Layout.leftMargin: 5
 			}
 
-			Label {
-				text: mesocyclesModel.columnLabel(6)
-				font.bold: true
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
-				color: AppSettings.fontColor
-			}
-
-			RegularExpressionValidator {
-				id: regEx
-				regularExpression: new RegExp(/[A-FR]+/);
-			}
-			TPTextInput {
-				id: txtMesoSplit
-				text: mesocyclesModel.get(mesoIdx, 6)
-				validator: regEx
-				maximumLength: 7
-				width: txtMesoStartDate.width
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
-				Layout.minimumWidth: parent.width / 2
-				ToolTip.text: qsTr("On a mesocycle, there should be at least one rest day(R)")
-
-				property bool bMesoSplitOK: false
-
-				onTextEdited: {
-					bMesoSplitOK = text.indexOf('R') !== -1;
-					ToolTip.visible = !bMesoSplitOK;
-				}
-
-				onEditingFinished: {
-					if (bMesoSplitOK) {
-						if (mesoSplit !== text) {
-							mesocyclesModel.set(mesoIdx, 6, text);
-							mesoSplit = text;
-							JSF.checkWhetherCanCreatePlan();
-							if (!bNewMeso)
-								showCalendarChangedDialog();
-						}
-					}
-				}
-
-				onEnterOrReturnKeyPressed: {
-					if (!paneTrainingSplit.shown)
-						btnTrainingSplit.clicked();
-					JSF.moveFocusToNextField('0');
-				}
-
-				TPButton {
-					id: btnTrainingSplit
-					imageSource: paneTrainingSplit.shown ? "fold-up.png" : "fold-down.png"
-					hasDropShadow: false
-
-					anchors {
-						left: txtMesoSplit.right
-						verticalCenter: txtMesoSplit.verticalCenter
-						leftMargin: 10
-					}
-
-					onClicked: paneTrainingSplit.shown = !paneTrainingSplit.shown
-				}
-			}
-
-			Pane {
-				id: paneTrainingSplit
-				visible: height > 0
-				height: shown ? implicitHeight : 0
-				padding: 0
+			MesoSplitSetup {
+				id: mesoSplitSetup
 				Layout.fillWidth: true
-				Layout.leftMargin: 20
-
-				property bool shown: false
-
-				Behavior on height {
-					NumberAnimation {
-						duration: 300
-						easing.type: Easing.InOutBack
-					}
-				}
-
-				background: Rectangle {
-					color: "transparent"
-				}
-
-				GridLayout {
-					anchors.fill: parent
-					columns: 2
-					rows: 7
-					Label {
-						text: qsTr("Day A: ")
-						font.bold: true
-						Layout.row: 0
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitA.visible
-					}
-					TPTextInput {
-						id: txtSplitA
-						text: mesoSplitModel.get(mesoIdx, 2)
-						Layout.row: 0
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('A') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 2, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('A');
-					}
-
-					Label {
-						text: qsTr("Day B: ")
-						font.bold: true
-						Layout.row: 1
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitB.visible
-					}
-					TPTextInput {
-						id: txtSplitB
-						text: mesoSplitModel.get(mesoIdx, 3)
-						Layout.row: 1
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('B') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 3, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('B');
-					}
-
-					Label {
-						text: qsTr("Day C: ")
-						font.bold: true
-						Layout.row: 2
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitC.visible
-					}
-					TPTextInput {
-						id: txtSplitC
-						text: mesoSplitModel.get(mesoIdx, 4)
-						Layout.row: 2
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('C') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 4, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('C');
-					}
-
-					Label {
-						text: qsTr("Day D: ")
-						font.bold: true
-						Layout.row: 3
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitD.visible
-					}
-					TPTextInput {
-						id: txtSplitD
-						text: mesoSplitModel.get(mesoIdx, 5)
-						Layout.row: 3
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('D') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 5, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('D');
-					}
-
-					Label {
-						text: qsTr("Day E: ")
-						font.bold: true
-						Layout.row: 4
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitE.visible
-					}
-					TPTextInput {
-						id: txtSplitE
-						text: mesoSplitModel.get(mesoIdx, 6)
-						Layout.row: 4
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('E') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 6, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('E');
-					}
-
-					Label {
-						text: qsTr("Day F: ")
-						font.bold: true
-						Layout.row: 5
-						Layout.column: 0
-						color: AppSettings.fontColor
-						visible: txtSplitF.visible
-					}
-					TPTextInput {
-						id: txtSplitF
-						text: mesoSplitModel.get(mesoIdx, 7)
-						Layout.row: 5
-						Layout.column: 1
-						Layout.fillWidth: true
-						Layout.rightMargin: 20
-						visible: mesoSplit.indexOf('F') !== -1
-
-						onEditingFinished: {
-							if (mesoSplitModel.set(mesoIdx, 7, text))
-								JSF.checkWhetherCanCreatePlan();
-						}
-
-						onEnterOrReturnKeyPressed: JSF.moveFocusToNextField('F');
-					}
-
-					TPButton {
-						id: btnCreateExercisePlan
-						text: qsTr("Exercises Planner")
-						Layout.row: 6
-						Layout.column: 0
-						Layout.columnSpan: 2
-						Layout.alignment: Qt.AlignCenter
-
-						onClicked: appDB.createExercisesPlannerPage();
-					}
-				} //GridLayout
-			} //Pane
+				Layout.leftMargin: -10
+			}
 
 			Label {
 				text: mesocyclesModel.columnLabel(4)
 				font.bold: true
-				Layout.leftMargin: 5
 				color: AppSettings.fontColor
+				Layout.leftMargin: 5
+				Layout.topMargin: 10
 			}
 			Flickable {
-				Layout.fillWidth: true
-				Layout.rightMargin: 20
-				Layout.leftMargin: 10
 				height: Math.min(contentHeight, 60)
-				width: parent.width - 20
+				width: parent.width - 25
 				contentHeight: txtMesoNotes.implicitHeight
+				Layout.leftMargin: 5
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
 
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
@@ -771,7 +523,6 @@ TPPage {
 	} //ScrollView
 
 	Component.onCompleted: {
-		JSF.checkWhetherCanCreatePlan();
 		if (bNewMeso)
 			txtMesoName.forceActiveFocus();
 		mesocyclesModel.modifiedChanged.connect(saveMeso);

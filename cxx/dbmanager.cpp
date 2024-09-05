@@ -1018,6 +1018,7 @@ void DbManager::bridge(QQuickItem* item, const uint id) {
 	MSG_OUT("bridge  id " << id)
 	MSG_OUT("bridge item " << item->objectName())
 	emit getPage(item, id);
+
 	if (id == m_expectedPageId)
 	{
 		emit internalSignal(id);

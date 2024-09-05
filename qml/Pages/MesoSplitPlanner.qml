@@ -328,8 +328,8 @@ Frame {
 
 									Repeater {
 										id: buttonsRepeater
-										anchors.fill: parent
 										model: splitModel.nbrSets === 1 ? splitModel.setsNumber(index) : splitModel.setsNumber(index)
+										anchors.fill: parent
 
 										TabButton {
 											id: tabbutton
