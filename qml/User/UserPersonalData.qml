@@ -59,9 +59,9 @@ Frame {
 
 		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
-		onTextChanged: {
-			userModel.setUserName(userRow, text);
-			bNameOK = text.length >= 5;
+		onEditingFinished: {
+			if (bNameOK)
+				userModel.setUserName(userRow, text);
 		}
 
 		onEnterOrReturnKeyPressed: {
@@ -164,7 +164,7 @@ Frame {
 		padding: 0
 		spacing: 0
 
-		Component.onCompleted: bSexOK = userModel.sex(userRow).length > 1;
+		Component.onCompleted: bSexOK = userModel.sex(userRow) <= 1;
 
 		background: Rectangle {
 			color: "transparent"
@@ -181,12 +181,12 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Male")
 			height: controlsHeight
-			checked: userModel.sex(userRow) === qsTr("Male")
+			checked: userModel.sex(userRow) === 0
 
 			onClicked: {
 				bSexOK = true;
 				if (checked)
-					userModel.setSex(userRow, qsTr("Male"));
+					userModel.setSex(userRow, 0);
 			}
 
 			anchors {
@@ -199,12 +199,12 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Female")
 			height: controlsHeight
-			checked: userModel.sex === qsTr("Female");
+			checked: userModel.sex === 1;
 
 			onClicked: {
 				bSexOK = true;
 				if (checked)
-					userModel.setSex(userRow, qsTr("Female"));
+					userModel.setSex(userRow, 1);
 			}
 
 			anchors {

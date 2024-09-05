@@ -59,8 +59,8 @@ public:
 			QDate::currentDate();
 	}
 	Q_INVOKABLE void setBirthDate(const int row, const QDate& new_date);
-	Q_INVOKABLE inline QString sex(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_SEX) : QString(); }
-	Q_INVOKABLE void setSex(const int row, const QString& new_sex);
+	Q_INVOKABLE inline uint sex(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_SEX).toUInt() : 2; }
+	Q_INVOKABLE void setSex(const int row, const uint new_sex);
 	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_PHONE) : QString(); }
 	Q_INVOKABLE void setPhone(const int row, const QString& new_phone);
 	Q_INVOKABLE inline QString email(const int row) const { return row >= 0 ? m_modeldata.at(row).at(USER_COL_EMAIL) : QString(); }
@@ -97,7 +97,7 @@ public:
 
 signals:
 	void appUseModeChanged(const int row);
-	void userAdded(const uint use_mode);
+	void userAdded(const uint row);
 
 private:
 	bool mb_empty;

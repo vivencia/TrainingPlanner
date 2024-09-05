@@ -68,7 +68,7 @@ TPPopup {
 		id: repeater
 		model: bMale ? 10 : 15
 
-		readonly property bool bMale: userModel.sex(userRow) === qsTr("Male")
+		readonly property bool bMale: userModel.sex(userRow) === 0
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {

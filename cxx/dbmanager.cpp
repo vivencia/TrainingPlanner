@@ -2152,6 +2152,8 @@ void DbManager::setClientsOrCoachesPagesProperties(const bool bManageClients, co
 		}
 	}
 
+	if (curUserRow == 0)
+		curUserRow = lastUserRow;
 	if (m_clientsOrCoachesPage)
 	{
 		m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);

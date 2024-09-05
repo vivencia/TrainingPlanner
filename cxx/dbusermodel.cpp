@@ -45,7 +45,7 @@ int DBUserModel::addUser(const bool bCoach)
 			case APP_USE_MODE_SINGLE_COACH:
 				if (bCoach)
 					return -1;
-				use_mode = APP_USE_MODE_SINGLE_USER;
+				use_mode = APP_USE_MODE_CLIENTS;
 				cur_client = findLastUser(false);
 			break;
 
@@ -57,7 +57,7 @@ int DBUserModel::addUser(const bool bCoach)
 				}
 				else
 				{
-					use_mode = APP_USE_MODE_SINGLE_USER;
+					use_mode = APP_USE_MODE_CLIENTS;
 					cur_client = findLastUser(false);
 				}
 			break;
@@ -66,8 +66,6 @@ int DBUserModel::addUser(const bool bCoach)
 	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
 		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
-	if (m_modeldata.count() > 1)
-		emit userAdded(use_mode);
 	return m_modeldata.count() - 1;
 }
 
@@ -120,7 +118,7 @@ int DBUserModel::findPrevUser(const bool bCoach)
 	if (m_searchRow <= 1)
 		return findFirstUser(bCoach);
 
-	int searchRow(m_searchRow);
+	int searchRow(m_searchRow - 1);
 	for (; searchRow >= 0; --searchRow)
 	{
 		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_qs : u"0"_qs))
@@ -203,6 +201,8 @@ void DBUserModel::setUserName(const int row, const QString& new_name)
 	{
 		m_modeldata[row][USER_COL_NAME] = new_name;
 		setModified(true);
+		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == u"-1"_qs)
+			emit userAdded(row);
 	}
 }
 
@@ -215,11 +215,11 @@ void DBUserModel::setBirthDate(const int row, const QDate& new_date)
 	}
 }
 
-void DBUserModel::setSex(const int row, const QString& new_sex)
+void DBUserModel::setSex(const int row, const uint new_sex)
 {
 	if (row >= 0 && row < m_modeldata.count())
 	{
-		m_modeldata[row][USER_COL_SEX] = new_sex;
+		m_modeldata[row][USER_COL_SEX] = QString::number(new_sex);
 		setModified(true);
 	}
 }
@@ -326,7 +326,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 		else
 
 		{
-			if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == tr("Male"))
+			if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == u"0"_qs)
 				return u"Avatar-5"_qs;
 			else
 				return u"Avatar-0"_qs;

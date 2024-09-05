@@ -149,7 +149,9 @@ TPPage {
 					}
 
 					Component.onCompleted: {
-						updateCoachesModel(2);
+						const coaches = userModel.getCoaches();
+						for(var i = 0; i < coaches.length; ++i)
+							coachesModel.append({ "text": coaches[i], "value": i});
 						if (!bNewMeso)
 							currentIndex = find(mesocyclesModel.get(mesoIdx, 7));
 						else
@@ -215,7 +217,9 @@ TPPage {
 					}
 
 					Component.onCompleted: {
-						updateCoachesModel(0);
+						const clients = userModel.getClients();
+						for(var x = 0; x < clients.length; ++x)
+							clientsModel.append({ "text": clients[x], "value": x});
 						if (!bNewMeso)
 							currentIndex = find(mesocyclesModel.get(mesoIdx, 8));
 						else
@@ -534,7 +538,8 @@ TPPage {
 		userModel.userAdded.connect(updateCoachesModel);
 	}
 
-	function updateCoachesModel(use_mode: int) {
+	function updateCoachesModel(userrow: int) {
+		const use_mode = userModel.appUseMode(userrow);
 		if (use_mode === 2 || use_mode === 4) {
 			const coaches = userModel.getCoaches();
 			coachesModel.clear();
@@ -545,7 +550,7 @@ TPPage {
 			const clients = userModel.getClients();
 			clientsModel.clear();
 			for(var x = 0; x < clients.length; ++x)
-				clientsModel.append({ "text": clients[i], "value": i});
+				clientsModel.append({ "text": clients[x], "value": x});
 		}
 	}
 

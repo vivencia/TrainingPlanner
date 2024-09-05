@@ -12,10 +12,9 @@ Pane {
 
 	readonly property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
-	readonly property var dayOfWeek: [ qsTr("Mon."), qsTr("Tue."), qsTr("Wed."), qsTr("Thu."), qsTr("Fri."), qsTr("Sat."), qsTr("Sun.") ]
-	readonly property int col1Width: width/8
-	readonly property int col2Width: width/6
-	readonly property int col3Width: width/2
+	readonly property int col1Width: width*0.15
+	readonly property int col2Width: width*0.15
+	readonly property int col3Width: width*0.6
 
 	background: Rectangle {
 		color: "transparent"
@@ -66,7 +65,7 @@ Pane {
 				Layout.fillWidth: true
 
 				Label {
-					text: dayOfWeek[index]
+					text: qsTr("Day ") + parseInt(index) + ":"
 					font.bold: true
 					color: AppSettings.fontColor
 					width: col1Width
