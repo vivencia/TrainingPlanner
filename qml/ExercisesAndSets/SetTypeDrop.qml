@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 
 import "../"
 import "../TPWidgets"
@@ -21,18 +22,20 @@ Item {
 	required property int setNumber
 	required property int setType
 
-	property bool finishButtonVisible: false
-	property bool finishButtonEnabled: false
 	property string copyTypeButtonValue: ""
 	property string copyTimeButtonValue: ""
 	property string copyRepsButtonValue: ""
 	property string copyWeightButtonValue: ""
+	property bool finishButtonVisible: false
+	property bool finishButtonEnabled: false
 	property bool setCompleted
 	property bool bTrackRestTime
 	property bool bAutoRestTime
+	property bool bCurrentSet
 	property int setMode
 	property var subSetList: []
 	property var subSetComponent: null
+
 	readonly property int controlWidth: setItem.width - 20
 
 	signal requestTimerDialogSignal(Item requester, var args)
@@ -46,14 +49,41 @@ Item {
 		}
 	}
 
+	Rectangle {
+		id: indicatorRec
+		visible: false
+		color: AppSettings.entrySelectedColor
+		layer.enabled: true
+		border.color: "#707d8d"
+		border.width: 1
+		anchors.fill: parent
+	}
+
+	MultiEffect {
+		id: currentSetEffect
+		visible: bCurrentSet
+		source: indicatorRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+		opacity: 0.5
+		anchors.fill: parent
+	}
+
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
 		Layout.bottomMargin: 5
 
 		Item {
-			Layout.fillWidth: true
 			height: 30
+			Layout.fillWidth: true
+			Layout.topMargin: 10
 
 			TPButton {
 				id: btnManageSet

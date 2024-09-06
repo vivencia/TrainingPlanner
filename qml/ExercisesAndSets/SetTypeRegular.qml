@@ -22,19 +22,19 @@ Item {
 	required property int setNumber
 	required property int setType
 
-	property bool finishButtonVisible: false
-	property bool finishButtonEnabled: false
 	property string copyTypeButtonValue: ""
 	property string copyTimeButtonValue: ""
 	property string copyRepsButtonValue: ""
 	property string copyWeightButtonValue: ""
+	property bool finishButtonVisible: false
+	property bool finishButtonEnabled: false
 	property bool setCompleted
 	property bool bTrackRestTime
 	property bool bAutoRestTime
 	property bool bCurrentSet
 	property int setMode
-	readonly property int controlWidth: setItem.width - 20
 
+	readonly property int controlWidth: setItem.width - 20
 	readonly property var myoLabels: setType === 5 ? [ qsTr("Weight:"), setNumber === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
 
@@ -79,8 +79,9 @@ Item {
 		Layout.bottomMargin: 5
 
 		Item {
-			Layout.fillWidth: true
 			height: 30
+			Layout.fillWidth: true
+			Layout.topMargin: 10
 
 			TPButton {
 				id: btnManageSet

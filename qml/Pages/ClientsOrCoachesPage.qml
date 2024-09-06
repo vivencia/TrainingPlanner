@@ -11,8 +11,6 @@ import com.vivenciasoftware.qmlcomponents
 TPPage {
 	id: coachesOrClientsPage
 	objectName: "coachesOrClientsPage"
-	width: windowWidth
-	height: windowHeight
 
 	property int curUserRow
 	property int firstUserRow

@@ -18,8 +18,6 @@ Page {
 	Component.onCompleted: {
 		mainwindow.pageActivated_main.connect(pageActivation);
 		mainwindow.pageDeActivated_main.connect(pageDeActivation);
-		//tpPage.StackView.onDeactivating.connect(pageDeActivation);
-		//tpPage.StackView.activating.connect(pageActivation);
 	}
 
 	TPImage {

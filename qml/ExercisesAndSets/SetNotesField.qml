@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 
 ColumnLayout {
-	height: label.height + txtSetNotes.visible ? txtSetNotes.height : 0
+	height: label.height + (txtSetNotes.visible ? txtSetNotes.height + 5 : 20)
 	implicitHeight: height
 	width: parent.width
 	Layout.fillWidth: true
