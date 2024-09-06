@@ -27,7 +27,7 @@ ColumnLayout {
 		Layout.alignment: Qt.AlignLeft
 		Layout.fillWidth: false
 		padding: 0
-		color: foreColor
+		color: enabled ? foreColor : "gray"
 
 		TPButton {
 			id: button

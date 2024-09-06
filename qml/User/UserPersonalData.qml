@@ -199,7 +199,7 @@ Frame {
 		TPRadioButton {
 			text: qsTr("Female")
 			height: controlsHeight
-			checked: userModel.sex === 1;
+			checked: userModel.sex(userRow) === 1
 
 			onClicked: {
 				bSexOK = true;

@@ -697,6 +697,7 @@ void TPMesocycleClass::createSetObject_part2(const uint set_type, const uint set
 		m_currentExercises->insertSet(set_number, exercise_idx, item);
 
 	findSetMode(exercise_idx, set_number);
+	findCurrentSet(exercise_idx, set_number);
 	connect( item, SIGNAL(requestTimerDialogSignal(QQuickItem*,const QVariant&)), this, SLOT(requestTimerDialog(QQuickItem*,const QVariant&)) );
 	connect( item, SIGNAL(exerciseCompleted(int)), this, SLOT(exerciseCompleted(int)) );
 	connect( item, SIGNAL(showRemoveSetMessage(int,int)), this, SLOT(showRemoveSetMessage(int,int)) );
@@ -816,7 +817,10 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 		const uint nsets(m_currentExercises->setCount(exercise_idx));
 		m_currentExercises->exerciseEntry(exercise_idx)->setProperty("setNbr", nsets);
 		if (nsets == 0)
+		{
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", true);
+			return;
+		}
 		else if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
 		{
 			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
@@ -827,6 +831,7 @@ void TPMesocycleClass::removeSetObject(const uint set_number, const uint exercis
 				enableDisableExerciseCompletedButton(exercise_idx, currenttDayModel()->setCompleted(set_number-1, exercise_idx));
 			}
 		}
+		findCurrentSet(exercise_idx, set_number-1);
 	}
 }
 
@@ -1047,6 +1052,21 @@ void TPMesocycleClass::findSetMode(const uint exercise_idx, const uint set_numbe
 	m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setMode", set_mode);
 }
 
+void TPMesocycleClass::findCurrentSet(const uint exercise_idx, const uint set_number)
+{
+	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	if (set_object)
+	{
+		if (!currenttDayModel()->setCompleted(set_number, exercise_idx))
+		{
+			if (set_number > 0)
+				set_object->setProperty("bCurrentSet", currenttDayModel()->setCompleted(set_number-1, exercise_idx));
+			else
+				set_object->setProperty("bCurrentSet", true);
+		}
+	}
+}
+
 void TPMesocycleClass::changeSetMode(const uint exercise_idx, const uint set_number)
 {
 	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
@@ -1055,11 +1075,19 @@ void TPMesocycleClass::changeSetMode(const uint exercise_idx, const uint set_num
 	{
 		case 0:
 		{
-			const bool b_set_completed(set_object->property("setCompleted").toBool());
-			set_object->setProperty("setCompleted", !b_set_completed);
-			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, !b_set_completed);
-			if (b_set_completed) //set was completed before, now it is not
+			const bool b_set_completed(!set_object->property("setCompleted").toBool());
+			set_object->setProperty("setCompleted", b_set_completed);
+			m_CurrenttDayModel->setSetCompleted(set_number, exercise_idx, b_set_completed);
+			set_object->setProperty("bCurrentSet", !b_set_completed);
+			if (!b_set_completed) //set was completed before, now it is not
 				findSetMode(exercise_idx, set_number);
+
+			QQuickItem* next_set_object = nextSetObject(exercise_idx, set_number);
+			if (next_set_object)
+			{
+				if (!currenttDayModel()->setCompleted(set_number+1, exercise_idx))
+					next_set_object->setProperty("bCurrentSet", b_set_completed);
+			}
 			return;
 		}
 		break;

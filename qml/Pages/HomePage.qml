@@ -345,36 +345,28 @@ TPPage {
 				spacing: 2
 
 				Label {
-					text: mesocyclesModel.columnLabel(1) + "<b>" + mesoName + "</b>"
+					text: mesoName
 					color: AppSettings.fontColor
-					width: mesoDelegate.width
-					elide: Text.ElideRight
-					opacity: backRec.opacity
 				}
 				Label {
-					text: realMeso ?
-							mesocyclesModel.columnLabel(2) + "<b>" + runCmd.formatDate(mesoStartDate) + "</b>" :
-							qsTr("Program start date: ") + "<b>" + runCmd.formatDate(mesoStartDate) + "</b>"
+					text: mesoCoach
 					color: AppSettings.fontColor
-					opacity: backRec.opacity
 				}
 				Label {
-					text: realMeso ?
-							mesocyclesModel.columnLabel(3) + "<b>" + runCmd.formatDate(mesoEndDate) + "</b>" :
-							qsTr("Open-ended program - no end date set")
+					text: mesoClient
 					color: AppSettings.fontColor
-					opacity: backRec.opacity
 				}
 				Label {
-					text: mesocyclesModel.columnLabel(5) + "<b>" + mesoWeeks + "</b>"
+					text: mesoStartDate
 					color: AppSettings.fontColor
-					visible: realMeso
-					opacity: backRec.opacity
 				}
 				Label {
-					text: mesocyclesModel.columnLabel(6) + "<b>" + mesoSplit + "</b>"
+					text: mesoEndDate
 					color: AppSettings.fontColor
-					opacity: backRec.opacity
+				}
+				Label {
+					text: mesoSplit
+					color: AppSettings.fontColor
 				}
 			}
 

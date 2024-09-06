@@ -317,29 +317,38 @@ void DBUserModel::setCurrentUser(const int row, const int new_current_user)
 
 QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const
 {
-	if (field == USER_COL_BIRTHDAY)
-		return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-	else
+	switch (field)
 	{
-		if (fieldValue.contains(u"tpimageprovider"_qs))
-			return fieldValue.right(fieldValue.length()-24);
-		else
-
-		{
-			if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == u"0"_qs)
-				return u"Avatar-5"_qs;
+		case USER_COL_BIRTHDAY:
+			return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+		case USER_COL_SEX:
+			return fieldValue == u"0"_qs ? tr("Male") : tr("Female");
+		case USER_COL_AVATAR:
+			if (fieldValue.contains(u"tpimageprovider"_qs))
+				return fieldValue.right(fieldValue.length()-24);
 			else
-				return u"Avatar-0"_qs;
-		}
+			{
+				if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == u"0"_qs)
+					return u"Avatar-5"_qs;
+				else
+					return u"Avatar-0"_qs;
+			}
+		default: return QString();
 	}
 }
 
 QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldValue) const
 {
-	if (field == USER_COL_BIRTHDAY)
-		return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
-	else
-		return u"image://tpimageprovider/" + fieldValue.right(fieldValue.length()-7);
+	switch (field)
+	{
+		case USER_COL_BIRTHDAY:
+			return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
+		case USER_COL_SEX:
+			return fieldValue == tr("Male") ? u"0"_qs : u"1"_qs;
+		case USER_COL_AVATAR:
+			return u"image://tpimageprovider/" + fieldValue.right(fieldValue.length()-7);
+		default: return QString();
+	}
 }
 
 bool DBUserModel::updateFromModel(const TPListModel* model)

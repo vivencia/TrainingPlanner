@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 
 import "../"
 import "../TPWidgets"
@@ -30,6 +31,7 @@ Item {
 	property bool setCompleted
 	property bool bTrackRestTime
 	property bool bAutoRestTime
+	property bool bCurrentSet
 	property int setMode
 	readonly property int controlWidth: setItem.width - 20
 
@@ -43,6 +45,32 @@ Item {
 	onFocusChanged: {
 		if (focus)
 			txtNReps.forceActiveFocus();
+	}
+
+	Rectangle {
+		id: indicatorRec
+		visible: false
+		color: AppSettings.entrySelectedColor
+		layer.enabled: true
+		border.color: "#707d8d"
+		border.width: 1
+		anchors.fill: parent
+	}
+
+	MultiEffect {
+		id: currentSetEffect
+		visible: bCurrentSet
+		source: indicatorRec
+		shadowEnabled: true
+		shadowOpacity: 0.5
+		blurMax: 16
+		shadowBlur: 1
+		shadowHorizontalOffset: 5
+		shadowVerticalOffset: 5
+		shadowColor: "black"
+		shadowScale: 1
+		opacity: 0.5
+		anchors.fill: parent
 	}
 
 	ColumnLayout {
@@ -348,6 +376,7 @@ Item {
 
 	function hideCopyButtons() {
 		copyTypeButtonValue = "";
+		copyTimeButtonValue = "";
 		copyRepsButtonValue = "";
 		copyWeightButtonValue = "";
 	}

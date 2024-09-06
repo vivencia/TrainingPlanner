@@ -15,8 +15,9 @@ Frame {
 	padding: 0
 
 	required property int userRow
-	property bool bReady: bRoleOK & bGoalOK
-	property bool bRoleOK: false
+	property bool bReady: (bClientRoleOK || bCoachRoleOK) & bGoalOK
+	property bool bCoachRoleOK: false
+	property bool bClientRoleOK: false
 	property bool bGoalOK: false
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
@@ -45,6 +46,16 @@ Frame {
 		color: "transparent"
 	}
 
+	onUserRowChanged: {
+		cboUserRole.currentIndex = cboUserRole.find(userModel.userRole(userRow));
+		bClientRoleOK = userModel.userRole(userRow).length > 1;
+		cboGoal.currentIndex = cboGoal.find(userModel.goal(userRow));
+		bGoalOK = userModel.goal(userRow).length > 1;
+		cboCoachRole.currentIndex = cboCoachRole.find(userModel.coachRole(userRow));
+		bCoachRoleOK = userModel.coachRole(userRow).length > 1;
+	}
+
+	Component.onCompleted: console.log("User profile completed");
 	Label {
 		id: lblUserRole
 		text: userModel.columnLabel(7)
@@ -73,21 +84,21 @@ Frame {
 		height: controlsHeight
 		width: parent.width*0.80
 
-		Component.onCompleted: {
-			currentIndex = find(userModel.userRole(userRow));
-			bRoleOK = userModel.userRole(userRow).length > 1
-		}
-
-		onActivated: (index) => {
-			userModel.setUserRole(userRow, textAt(index));
-			bRoleOK = true;
-		}
-
 		anchors {
 			top: parent.top
 			topMargin: -5
 			left: lblUserRole.right
 			leftMargin: 0
+		}
+
+		onActivated: (index) => {
+			userModel.setUserRole(userRow, textAt(index));
+			bClientRoleOK = true;
+		}
+
+		Component.onCompleted: {
+			currentIndex = find(userModel.userRole(userRow));
+			bClientRoleOK = userModel.userRole(userRow).length > 1;
 		}
 	}
 
@@ -117,7 +128,7 @@ Frame {
 		id: cboGoal
 		model: goalModel
 		visible: lblGoal.visible
-		enabled: bRoleOK
+		enabled: bClientRoleOK || bCoachRoleOK
 		height: controlsHeight
 		width: parent.width*0.80
 
@@ -133,9 +144,11 @@ Frame {
 			ListElement { text: qsTr("Other"); value: 7; }
 		}
 
-		Component.onCompleted: {
-			currentIndex = find(userModel.goal(userRow));
-			bGoalOK = userModel.goal(userRow).length > 1
+		anchors {
+			top: lblGoal.top
+			topMargin: -5
+			left: lblGoal.right
+			leftMargin: 0
 		}
 
 		onActivated: (index) => {
@@ -143,11 +156,9 @@ Frame {
 			bGoalOK = true;
 		}
 
-		anchors {
-			top: lblGoal.top
-			topMargin: -5
-			left: lblGoal.right
-			leftMargin: 0
+		Component.onCompleted: {
+			currentIndex = find(userModel.goal(userRow));
+			bGoalOK = userModel.goal(userRow).length > 1;
 		}
 	}
 
@@ -180,21 +191,21 @@ Frame {
 		height: controlsHeight
 		width: parent.width*0.80
 
-		Component.onCompleted: {
-			currentIndex = find(userModel.coachRole(userRow));
-			bRoleOK = userModel.coachRole(userRow).length > 1
-		}
-
-		onActivated: (index) => {
-			userModel.setCoachRole(userRow, textAt(index));
-			bRoleOK = true;
-		}
-
 		anchors {
 			top: lblCoachRole.top
 			topMargin: -5
 			left: lblCoachRole.right
 			leftMargin: 20
+		}
+
+		onActivated: (index) => {
+			userModel.setCoachRole(userRow, textAt(index));
+			bCoachRoleOK = true;
+		}
+
+		Component.onCompleted: {
+			currentIndex = find(userModel.coachRole(userRow));
+			bCoachRoleOK = userModel.coachRole(userRow).length > 1;
 		}
 	}
 

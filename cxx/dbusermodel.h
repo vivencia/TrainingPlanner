@@ -88,7 +88,14 @@ public:
 	virtual bool importFromText(QFile* inFile, QString& inData) override;
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
-		return field == USER_COL_BIRTHDAY || field == USER_COL_AVATAR;
+		switch (field)
+		{
+			default: return false;
+			case USER_COL_BIRTHDAY:
+			case USER_COL_AVATAR:
+			case USER_COL_SEX:
+				return true;
+		}
 	}
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;

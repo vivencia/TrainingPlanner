@@ -331,7 +331,8 @@ FocusScope {
 				id: exerciseSetsLayout
 				objectName: "exerciseSetsLayout"
 				spacing: 0
-				Layout.fillWidth: true
+				width: windowWidth - 10
+				//Layout.fillWidth: true
 				Layout.fillHeight: true
 			}
 		} // ColumnLayout layoutMain

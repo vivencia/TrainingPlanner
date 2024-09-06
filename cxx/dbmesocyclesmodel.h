@@ -33,10 +33,9 @@ public:
 		mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
 		mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
 		mesoEndDateRole = Qt::UserRole+MESOCYCLES_COL_ENDDATE,
-		mesoNoteRole = Qt::UserRole+MESOCYCLES_COL_NOTE,
-		mesoWeeksRole = Qt::UserRole+MESOCYCLES_COL_WEEKS,
 		mesoSplitRole = Qt::UserRole+MESOCYCLES_COL_SPLIT,
-		realMesoRole = Qt::UserRole+MESOCYCLES_COL_REALMESO
+		mesoCoachRole = Qt::UserRole+MESOCYCLES_COL_COACH,
+		mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
 	};
 
 	explicit DBMesocyclesModel(QObject* parent, DBUserModel* userModel);

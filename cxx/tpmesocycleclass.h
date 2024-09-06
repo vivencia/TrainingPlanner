@@ -133,6 +133,7 @@ public:
 	void enableDisableExerciseCompletedButton(const uint exercise_idx, const bool completed);
 	void enableDisableSetsRestTime(const uint exercise_idx, const uint bTrackRestTime, const uint bAutoRestTime, const uint except_set_number = 0);
 	void findSetMode(const uint exercise_idx, const uint set_number);
+	void findCurrentSet(const uint exercise_idx, const uint set_number);
 	Q_INVOKABLE void changeSetMode(const uint exercise_idx, const uint set_number);
 	void startRestTimer(const uint exercise_idx, const uint set_number);
 	void stopRestTimer(const uint exercise_idx, const uint set_number);

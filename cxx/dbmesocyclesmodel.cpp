@@ -10,10 +10,9 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 	m_roleNames[mesoNameRole] = "mesoName";
 	m_roleNames[mesoStartDateRole] = "mesoStartDate";
 	m_roleNames[mesoEndDateRole] = "mesoEndDate";
-	m_roleNames[mesoNoteRole] = "mesoNote";
-	m_roleNames[mesoWeeksRole] = "mesoWeeks";
 	m_roleNames[mesoSplitRole] = "mesoSplit";
-	m_roleNames[realMesoRole] = "realMeso";
+	m_roleNames[mesoCoachRole] = "mesoCoach";
+	m_roleNames[mesoClientRole] = "mesoClient";
 
 	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 	mColumnNames.append(QString());
@@ -105,17 +104,28 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 	const int row(index.row());
 	if( row >= 0 && row < m_modeldata.count() )
 	{
-		switch(role) {
-			case mesoStartDateRole:
-			case mesoEndDateRole:
-				return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)).toLongLong());
+		switch(role)
+		{
 			case mesoNameRole:
-			case mesoNoteRole:
-			case mesoWeeksRole:
+				if (m_userModel->userName(0) == m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT))
+					return QVariant(u"<b>**  "_qs + m_modeldata.at(row).at(MESOCYCLES_COL_NAME) + u"  **</b>"_qs);
+				else
+					return QVariant(u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_NAME) + u"</b>"_qs);
+			case mesoStartDateRole:
+				return QVariant(mColumnNames[MESOCYCLES_COL_STARTDATE] + u"<b>"_qs +
+					runCmd()->formatDate(getDateFast(row, MESOCYCLES_COL_STARTDATE)) + u"</b>"_qs);
+			case mesoEndDateRole:
+				return QVariant(mColumnNames[MESOCYCLES_COL_ENDDATE] + u"<b>"_qs +
+					runCmd()->formatDate(getDateFast(row, MESOCYCLES_COL_ENDDATE)) + u"</b>"_qs);
 			case mesoSplitRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole));
-			case realMesoRole:
-				return static_cast<QString>(m_modeldata.at(row).at(role-Qt::UserRole)) == QStringLiteral("1");
+				return QVariant(mColumnNames[MESOCYCLES_COL_SPLIT] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT) + u"</b>"_qs);
+			case mesoCoachRole:
+				if (!m_modeldata.at(row).at(MESOCYCLES_COL_COACH).isEmpty())
+					return QVariant(mColumnNames[MESOCYCLES_COL_COACH] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_COACH) + u"</b>"_qs);
+			case mesoClientRole:
+				if (!m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT).isEmpty())
+					return QVariant(mColumnNames[MESOCYCLES_COL_CLIENT] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT) + u"</b>"_qs);
+
 		}
 	}
 	return QString();

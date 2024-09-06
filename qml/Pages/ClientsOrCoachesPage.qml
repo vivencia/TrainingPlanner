@@ -22,6 +22,13 @@ TPPage {
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrContact.moduleHeight
 
+	onCurUserRowChanged: {
+		if (showCoaches)
+			chkCurrent.checked = userModel.currentCoach(0) === curUserRow;
+		else
+			chkCurrent.checked = userModel.currentUser(0) === curUserRow;
+	}
+
 	Label {
 		id: lblMain
 		text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
@@ -158,16 +165,10 @@ TPPage {
 
 		onClicked: {
 			if (showCoaches)
-				userModel.setCurrentCoach(curUserRow, checked ? curUserRow : 0);
+				userModel.setCurrentCoach(0, checked ? curUserRow : -1);
 			else
-				userModel.setCurrentUser(curUserRow, checked ? curUserRow : 0);
-		}
-
-		Component.onCompleted: {
-			if (showCoaches)
-				checked = userModel.currentCoach(curUserRow) === curUserRow;
-			else
-				checked = userModel.currentUser(curUserRow) === curUserRow;
+				userModel.setCurrentUser(0, checked ? curUserRow : -1);
+			appDB.saveUser(0);
 		}
 	}
 

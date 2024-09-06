@@ -36,7 +36,7 @@ Pane {
 	TPTextInput {
 		id: txtMesoSplit
 		text: mesocyclesModel.get(mesoIdx, 6)
-		ToolTip.text: qsTr("On a mesocycle, there should be at least one rest day(R)")
+		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		readOnly: true
 		width: parent.width*0.3
 
