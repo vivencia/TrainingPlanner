@@ -97,7 +97,7 @@ set( QML_FILES
     "qml/Pages/ExercisesDatabase.qml"
     "qml/Pages/ExercisesPlanner.qml"
     "qml/Pages/HomePage.qml"
-    "qml/Pages/MesoContent.qml"
+	"qml/Pages/MesoCalendar.qml"
     "qml/Pages/MesoCycle.qml"
     "qml/Pages/MesoSplitPlanner.qml"
     "qml/Pages/MesoSplitSetup.qml"

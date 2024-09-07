@@ -274,13 +274,6 @@ void TPMesocycleClass::swapPlans(const QString& splitLetter1, const QString& spl
 	m_splitModels[splitLetter2.at(0)] = tempSplit;
 }
 
-//Updates MesoCycle.qml and, consequently, m_MesocyclesModel with changes originating in MesoSplitPlanner
-void TPMesocycleClass::changeMuscularGroup(DBMesoSplitModel* splitModel)
-{
-	QMetaObject::invokeMethod(m_mesoPage, "changeMuscularGroup", Q_ARG(QString, splitModel->splitLetter()),
-		Q_ARG(QString, splitModel->muscularGroup()));
-}
-
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
@@ -295,7 +288,7 @@ void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 uint TPMesocycleClass::createMesoCalendarPage()
 {
-	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoContent.qml"_qs), QQmlComponent::Asynchronous);
+	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoCalendar.qml"_qs), QQmlComponent::Asynchronous);
 	m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
 	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_mesosCalendarModel));
 

@@ -95,6 +95,7 @@ public:
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 	void getAllMesocycles();
+	void setOwnerMeso(const uint meso_idx);
 	Q_INVOKABLE void setWorkingMeso(int meso_idx);
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bCreatePage);
@@ -186,7 +187,9 @@ private:
 	QQmlApplicationEngine* m_QMlEngine;
 	QList<TPMesocycleClass*> m_MesoManager;
 	TPMesocycleClass* m_currentMesoManager;
+	TPMesocycleClass* m_ownerMesoManager;
 	QQuickWindow* m_mainWindow;
+
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
 	#endif

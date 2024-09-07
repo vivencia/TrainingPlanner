@@ -51,6 +51,7 @@ Item {
 		visible: false
 		color: AppSettings.entrySelectedColor
 		layer.enabled: true
+		radius: 5
 		border.color: "#707d8d"
 		border.width: 1
 		anchors.fill: parent
@@ -415,7 +416,10 @@ Item {
 			id: btnShowHideNotes
 			text: tDayModel.setNotes(setNumber, exerciseIdx)
 			enabled: !setCompleted
-			Layout.bottomMargin: 5
+			Layout.leftMargin: 5
+			Layout.rightMargin: 5
+			Layout.fillWidth: true
+
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
 		}
 

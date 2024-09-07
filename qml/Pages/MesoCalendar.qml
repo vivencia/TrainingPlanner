@@ -7,7 +7,7 @@ import "../"
 import "../TPWidgets"
 
 TPPage {
-	id: mesoContentPage
+	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
 	required property int mesoIdx
@@ -15,10 +15,6 @@ TPPage {
 
 	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
 	property date _today
-	property string splitLetter
-	property string trainingDay
-	property string splitContent
-	property bool bCanViewDay
 	property bool bAlreadyLoaded: false
 
 	header: ToolBar {
@@ -244,7 +240,7 @@ TPPage {
 		Label {
 			id: lblInfo
 			color: AppSettings.fontColor
-			width: parent.width - btnShowDayInfo.width - 10
+			width: parent.width - btnViewWorkout.width - 10
 			wrapMode: Text.WordWrap
 			font.pointSize: AppSettings.fontSizeText
 			font.bold: true
@@ -256,9 +252,9 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnShowDayInfo
-			text: qsTr("View Day")
-			imageSource: "day-info.png"
+			id: btnViewWorkout
+			text: qsTr("Workout")
+			imageSource: "workout.png"
 			textUnderIcon: true
 			rounded: false
 			flat: false
@@ -266,6 +262,7 @@ TPPage {
 			height: 55
 			fixedSize: true
 			enabled: false
+
 			anchors {
 				right: parent.right
 				rightMargin: 5
@@ -276,7 +273,7 @@ TPPage {
 		}
 	} // footer: ToolBar
 
-	Component.onCompleted: mesoContentPage.StackView.activating.connect(pageActivation);
+	Component.onCompleted: mesoCalendarPage.StackView.activating.connect(pageActivation);
 
 	function pageActivation() {
 		_today = new Date();
@@ -298,30 +295,10 @@ TPPage {
 	//Month: JS 0-11 TP: 1-12
 	//Date: JS 1-31 TP:0-30
 	function selectDay(year, month, day) {
-		btnShowDayInfo.enabled = mesoCalendarModel.isPartOfMeso(month+1, day-1);
-
-		if (btnShowDayInfo.enabled) {
-			splitLetter = mesoCalendarModel.getSplitLetter(month+1, day-1);
-			trainingDay = mesoCalendarModel.getTrainingDay(month+1, day-1);
-			getDivisionContent(splitLetter);
-		}
 		calendar.currentDay = day;
 		calendar.currentMonth = month;
 		calendar.currentYear = year;
 		calendar.dayInfoDate = new Date(year, month, day);
-		lblInfo.text = runCmd.formatDate(calendar.dayInfoDate) + (btnShowDayInfo.enabled ? qsTr(": Workout #") + trainingDay + qsTr(" Split: ") +
-					splitLetter + " - " + splitContent : qsTr("Selected day is not part of the current mesocycle"));
-	}
-
-	function getDivisionContent(splitletter) {
-		switch (splitletter) {
-			case 'A': splitContent = mesoSplitModel.get(mesoIdx, 2); break;
-			case 'B': splitContent = mesoSplitModel.get(mesoIdx, 3); break;
-			case 'C': splitContent = mesoSplitModel.get(mesoIdx, 4); break;
-			case 'D': splitContent = mesoSplitModel.get(mesoIdx, 5); break;
-			case 'E': splitContent = mesoSplitModel.get(mesoIdx, 6); break;
-			case 'F': splitContent = mesoSplitModel.get(mesoIdx, 7); break;
-			default: splitContent = "";
-		}
+		lblInfo.text = mesoCalendarModel.getInfoLabelText(year, month+1, day-1);
 	}
 } //Page

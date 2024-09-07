@@ -68,21 +68,11 @@ void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
 	setReady(true);
 }
 
-QString DBMesoSplitModel::muscularGroup() const
-{
-	return m_muscularGroup;
-}
-
 void DBMesoSplitModel::setMuscularGroup(const QString& muscularGroup)
 {
 	m_muscularGroup = muscularGroup;
 	setModified(true);
-	emit muscularGroupChanged();
-}
-
-QString DBMesoSplitModel::splitLetter() const
-{
-	return QString(m_splitLetter);
+	emit muscularGroupChanged(static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A'), QString(m_splitLetter));
 }
 
 void DBMesoSplitModel::setSplitLetter(const QChar& splitLetter)

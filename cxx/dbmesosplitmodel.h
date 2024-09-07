@@ -29,12 +29,12 @@ public:
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 
-	Q_INVOKABLE QString muscularGroup() const;
+	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
 	Q_INVOKABLE void setMuscularGroup(const QString& muscularGroup);
 
-	Q_INVOKABLE QString splitLetter() const;
+	Q_INVOKABLE inline QString splitLetter() const { return QString(m_splitLetter); }
 	Q_INVOKABLE void setSplitLetter(const QChar& splitLetter );
-	Q_INVOKABLE void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
+	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
 	Q_INVOKABLE const QString exerciseName(const int row);
 	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
@@ -98,7 +98,7 @@ public:
 	virtual bool updateFromModel(const TPListModel* model) override;
 
 signals:
-	void muscularGroupChanged();
+	void muscularGroupChanged(const int splitIndex, const QString& splitLetter);
 	void splitLetterChanged();
 	void exerciseNameChanged();
 	void setTypeChanged();

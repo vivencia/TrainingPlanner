@@ -32,6 +32,11 @@ Frame {
 	spacing: 0
 	Layout.leftMargin: 5
 
+	background: Rectangle {
+		border.color: "transparent"
+		radius: 5
+	}
+
 	TPBalloonTip {
 		id: msgDlgImport
 		title: qsTr("Import Exercises Plan?")
@@ -56,11 +61,6 @@ Frame {
 		onButton1Clicked: removeExercise(idxToRemove);
 		parentPage: parentItem
 	} //TPBalloonTip
-
-	background: Rectangle {
-		border.color: "transparent"
-		radius: 5
-	}
 
 	Label {
 		id: lblMain
@@ -106,10 +106,25 @@ Frame {
 
 		onEditingFinished: {
 			splitModel.setMuscularGroup(text);
+			//triggers muscularGroupChanged that is captured by MesoSplitSetup on MesoCycle.qml,
+			//which will update its visual items and the main mesoSplitmodel
+			mesoSplitModel.setMuscularGroup(text);
 			exercisesListModel.makeFilterString(text);
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
 			bCanSwapPlan = swappableLetter !== "";
-			itemManager.changeMuscularGroup(splitModel);
+		}
+
+		Component.onCompleted: mesoSplitModel.muscularGroupChanged.connect(updateMuscularGroup);
+
+		function updateMuscularGroup(splitindex: int, splitletter: string) {
+			if (splitModel.splitLetter() === splitletter) {
+				const musculargroup = mesoSplitModel.muscularGroup();
+				splitModel.setMuscularGroup(musculargroup);
+				text = musculargroup;
+				exercisesListModel.makeFilterString(musculargroup);
+				swappableLetter = appDB.checkIfSplitSwappable(splitletter);
+				bCanSwapPlan = swappableLetter !== "";
+			}
 		}
 	}
 

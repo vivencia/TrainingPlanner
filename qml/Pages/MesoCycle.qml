@@ -563,18 +563,6 @@ TPPage {
 		}
 	}
 
-	function changeMuscularGroup(splitletter: string, description: string) {
-		switch (splitletter) {
-			case 'A': txtSplitA.text = description; break;
-			case 'B': txtSplitB.text = description; break;
-			case 'C': txtSplitC.text = description; break;
-			case 'D': txtSplitD.text = description; break;
-			case 'E': txtSplitE.text = description; break;
-			case 'F': txtSplitF.text = description; break;
-		}
-		appDB.updateMesoSplit(txtSplitA.text, txtSplitB.text, txtSplitC.text, txtSplitD.text, txtSplitE.text, txtSplitF.text);
-	}
-
 	property bool alreadyCalled: false
 	property TPComplexDialog calendarChangeDlg: null
 	function showCalendarChangedDialog() {

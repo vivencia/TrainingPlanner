@@ -1,4 +1,6 @@
 #include "dbmesocalendarmodel.h"
+#include "dbmesosplitmodel.h"
+#include "runcommands.h"
 
 void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit)
 {
@@ -231,6 +233,23 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 		}
 	}
 	emit calendarChanged();
+}
+
+QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month, const uint day) const
+{
+	const bool bDayOK(isPartOfMeso(month, day));
+	if (bDayOK)
+	{
+		const QString splitLetter(getSplitLetter(month, day));
+		const QDate date(year, month, day);
+		if (splitLetter != u"R")
+			return runCmd()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
+					splitLetter + u" - "_qs + m_mesoSplitModel->getFast(m_mesoSplitModel->currentRow(), (static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A')) + 2);
+		else
+			return runCmd()->formatDate(date) + tr(": Rest day");
+	}
+	else
+		return tr("Selected day is not part of the current mesocycle");
 }
 
 int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const

@@ -12,6 +12,8 @@
 #define MESOCALENDAR_COL_MONTH 6
 #define MESOCALENDAR_COL_DAY 7
 
+class DBMesoSplitModel;
+
 class DBMesoCalendarModel : public TPListModel
 {
 
@@ -30,6 +32,7 @@ public:
 	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
 	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished);
 
+	inline void setMainMesoSplitModel(DBMesoSplitModel* mesoSplitModel) { m_mesoSplitModel = mesoSplitModel; }
 	Q_INVOKABLE int getMesoId() const
 	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(MESOCALENDAR_COL_MESOID).toUInt() : -1;	}
 
@@ -53,6 +56,7 @@ public:
 		return 0;
 	}
 
+	Q_INVOKABLE QString getInfoLabelText(const uint year, const uint month, const uint day) const;
 	Q_INVOKABLE int getTrainingDay(const uint month, const uint day) const;
 	Q_INVOKABLE QString getSplitLetter(const uint month, const uint day) const;
 	Q_INVOKABLE bool isTrainingDay(const uint month, const uint day) const;
@@ -63,6 +67,9 @@ public:
 
 signals:
 	void calendarChanged();
+
+private:
+	DBMesoSplitModel* m_mesoSplitModel;
 };
 
 #endif // DBMESOCALENDARMODEL_H

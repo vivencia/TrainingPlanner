@@ -104,6 +104,18 @@ Pane {
 					}
 				}
 			} //RowLayout
+
+			Component.onCompleted: mesoSplitModel.muscularGroupChanged.connect(updateMuscularGroup);
+
+			function updateMuscularGroup(splitindex: int, splitletter: string) {
+				const musculargroup = mesoSplitModel.muscularGroup();
+				for (var i = 0; i < 7; ++i) {
+					if (itemAt(i).cboSplit.currentIndex === splitindex)
+						itemAt(splitindex).txtSplit.text = musculargroup;
+				}
+				mesoSplitModel.set(mesoIdx, splitindex + 2, musculargroup);
+			}
+
 		} //Repeater
 	} //GridLayout
 
