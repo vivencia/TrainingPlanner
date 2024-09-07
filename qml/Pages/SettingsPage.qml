@@ -458,7 +458,7 @@ TPPage {
 		}
 
 		appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
-		AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
+		//AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
 		AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 		if (bFontSizeChanged) {

@@ -130,6 +130,7 @@ set( QML_FILES
     "qml/User/AvatarsPopup.qml"
     "qml/User/UserCoach.qml"
     "qml/User/UserContact.qml"
+    "qml/User/UserLanguage.qml"
     "qml/User/UserPersonalData.qml"
     "qml/User/UserProfile.qml"
     "qml/User/UserReady.qml"

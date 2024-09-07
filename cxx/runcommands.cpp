@@ -5,6 +5,18 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
+#ifdef Q_OS_ANDROID
+	#define FONT_POINT_SIZE 15
+	#define FONT_POINT_SIZE_LISTS 11
+	#define FONT_POINT_SIZE_TEXT 13
+	#define FONT_POINT_SIZE_TITLE 20
+#else
+	#define FONT_POINT_SIZE 12
+	#define FONT_POINT_SIZE_LISTS 8
+	#define FONT_POINT_SIZE_TEXT 10
+	#define FONT_POINT_SIZE_TITLE 18
+#endif
+
 RunCommands* RunCommands::app_runcmd(nullptr);
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
@@ -456,7 +468,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 	}
 }
 
-void RunCommands::setAppLocale(const QString& localeStr, const bool bChangeConfig)
+void RunCommands::setAppLocale(const QString& localeStr)
 {
 	if (m_appLocale)
 		delete m_appLocale;
@@ -486,11 +498,8 @@ void RunCommands::setAppLocale(const QString& localeStr, const bool bChangeConfi
 
 void RunCommands::populateSettingsWithDefaultValue()
 {
-	if (m_appSettings->childKeys().isEmpty() || m_appSettings->value("appLocale").toString().isEmpty())
+	if (m_appSettings->value("appVersion").toString().isEmpty())
 	{
-		const QString localeStr(QLocale::system().name());
-		setAppLocale(localeStr);
-		m_appSettings->setValue("appLocale", localeStr);
 		m_appSettings->setValue("appVersion", TP_APP_VERSION);
 		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
 		m_appSettings->setValue("themeStyle", u"Material"_qs);
@@ -505,14 +514,12 @@ void RunCommands::populateSettingsWithDefaultValue()
 		m_appSettings->setValue("fontColor", u"white"_qs);
 		m_appSettings->setValue("disabledFontColor", u"lightgray"_qs);
 		m_appSettings->setValue("iconFolder", u"white/"_qs);
-		m_appSettings->setValue("fontSize", 12);
-		m_appSettings->setValue("fontSizeLists", 8);
-		m_appSettings->setValue("fontSizeText", 10);
-		m_appSettings->setValue("fontSizeTitle", 18);
+		m_appSettings->setValue("fontSize", FONT_POINT_SIZE);
+		m_appSettings->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
+		m_appSettings->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
+		m_appSettings->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
 		m_appSettings->setValue("lastViewedMesoIdx", 0);
 		m_appSettings->setValue("alwaysAskConfirmation", true);
 		m_appSettings->sync();
 	}
-	else
-		setAppLocale(m_appSettings->value("appLocale").toString());
 }

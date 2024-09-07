@@ -36,7 +36,6 @@
         <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
-        <file>translations/tplanner.de_DE.qm</file>
         <file>images/app_logo.png</file>
         <file>images/app_icon.png</file>
         <file>images/white/open-schedule.png</file>
@@ -106,5 +105,6 @@
         <file>images/edit-clear.png</file>
         <file>images/manage-coaches.png</file>
         <file>images/manage-clients.png</file>
+        <file>translations/tplanner.de_DE.qm</file>
     </qresource>
 </RCC>

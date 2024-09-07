@@ -19,12 +19,18 @@ TPPopup {
 
 	StackLayout {
 		id: stackLayout
+		currentIndex: appTr.translatorOK() ? 1 : 0
 
 		anchors {
 			left: parent.left
 			right: parent.right
 			top: parent.top
 			bottom: frmFooter.top
+		}
+
+		UserLanguage {
+			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 
 		UserWelcome {
@@ -114,8 +120,10 @@ TPPopup {
 					close();
 				}
 				else {
-					appDB.saveUser(0);
-					stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
+					if (stackLayout.currentIndex >= 2)
+						appDB.saveUser(0);
+					if (stackLayout.currentIndex >= 1)
+						stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
 				}
 				stackLayout.currentIndex++;
 			}

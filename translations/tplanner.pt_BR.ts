@@ -988,12 +988,12 @@
 <context>
     <name>FirstTimeDialog</name>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="83"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="89"/>
         <source>Previous</source>
         <translation>Anterior</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="100"/>
+        <location filename="../qml/Dialogs/FirstTimeDialog.qml" line="106"/>
         <source>Next</source>
         <translation>Próximo</translation>
     </message>

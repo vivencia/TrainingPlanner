@@ -15,6 +15,7 @@ public:
 	explicit TranslationClass(const QSettings& settingsObj);
 	virtual ~TranslationClass() override;
 
+	Q_INVOKABLE inline bool translatorOK() const { return mbOK; }
 	void selectLanguage();
 	Q_INVOKABLE void switchToLanguage(const QString& language);
 	inline void setQMLEngine(QQmlEngine* engine) { mQMLEngine = engine; }
@@ -24,6 +25,7 @@ private:
 	QSettings* mSettingsObj;
 	QQmlEngine* mQMLEngine;
 
+	bool mbOK;
 	static TranslationClass* app_tr;
 	friend TranslationClass* appTr();
 };

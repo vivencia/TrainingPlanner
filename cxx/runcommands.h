@@ -70,7 +70,7 @@ public:
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
-	void setAppLocale(const QString& localeStr, const bool bChangeConfig = false);
+	void setAppLocale(const QString& localeStr);
 	void populateSettingsWithDefaultValue();
 
 signals:
