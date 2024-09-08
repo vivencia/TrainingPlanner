@@ -26,17 +26,20 @@ TPPage {
 	property bool bNewMeso: mesoId === -1
 	property bool bRealMeso: mesocyclesModel.isRealMeso(mesoIdx)
 	property bool bOwnMeso: mesocyclesModel.isOwnMeso(mesoIdx)
-	property bool bCalendarCreated: false
 	property bool bPreserveOldCalendar: false
 	property bool bPreserveOldCalendarUntilYesterday: false
-	property bool bChangedCalendar: false
+	property bool bCalendarChanged: false
 	property bool bCanSave: true
 
 	onPageActivated: appDB.setWorkingMeso(mesoIdx);
 
 	onPageDeActivated: {
-		if (mesoId === -1)
-			appDB.scheduleMesocycleRemoval(mesoIdx);
+		if (bNewMeso) {
+			if (mesocyclesModel.get(mesoIdx, 0) >= 0)
+				bNewMeso = false;
+			else
+				appDB.scheduleMesocycleRemoval(mesoIdx);
+		}
 	}
 
 	header: ToolBar {
@@ -556,10 +559,10 @@ TPPage {
 
 	function saveMeso() {
 		if (bCanSave) {
-			appDB.saveMesocycle(bChangedCalendar, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
+			appDB.saveMesocycle(bCalendarChanged, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
 			if (bNewMeso)
 				mesoId = mesocyclesModel.getInt(mesoIdx, 0);
-			bChangedCalendar = false;
+			bCalendarChanged = false;
 		}
 	}
 
@@ -572,7 +575,7 @@ TPPage {
 			function finishCreation() {
 				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),
 					button1Text: qsTr("Yes"), button2Text: qsTr("No"), customItemSource:"TPAdjustMesoCalendarFrame.qml" });
-				calendarChangeDlg.button1Clicked.connect(preserveOldCalenarInfo);
+				calendarChangeDlg.button1Clicked.connect(changeCalendar);
 				calendarChangeDlg.button2Clicked.connect(function() { alreadyCalled = false; }); //A "No", warrants a possible new confirmation
 			}
 
@@ -581,32 +584,21 @@ TPPage {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		if (alreadyCalled) {
-			if (AppSettings.alwaysAskConfirmation) {
-				if (!bNewMeso)
-					calendarChangeDlg.show(-1);
-				else
-					if (bCalendarCreated)
-						preserveOldCalenarInfo();
-			}
-			else
-				preserveOldCalenarInfo();
-		}
+		if (alreadyCalled)
+			changeCalendar();
 		else {
-			if (!bNewMeso || bCalendarCreated)
-				calendarChangeDlg.show(-1);
+			calendarChangeDlg.show(-1);
 			alreadyCalled = true;
 		}
 	}
 
-	function preserveOldCalenarInfo() {
+	function changeCalendar() {
 		bPreserveOldCalendar = calendarChangeDlg.customBoolProperty1;
 		bPreserveOldCalendarUntilYesterday = calendarChangeDlg.customBoolProperty2;
-		bChangedCalendar = true;
+		bCalendarChanged = true;
 		txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
 		mesocyclesModel.modified = false; //force emit modifiedChanged()
 		bCanSave = true;
 		mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
-		bPreserveOldCalendar = bPreserveOldCalendarUntilYesterday = false;
 	}
 } //Page

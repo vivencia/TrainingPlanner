@@ -6,15 +6,22 @@ import ".."
 import "../TPWidgets"
 
 ColumnLayout {
-	spacing: 10
+	spacing: controlsSpacing
+	Layout.rightMargin: 10
+	Layout.leftMargin: 10
 
 	property bool bReady: false
+	readonly property int moduleHeight: availableHeight
+	readonly property int nControls: 2
+	readonly property int controlsHeight: 25
+	readonly property int controlsSpacing: 10
 
 	TPRadioButton {
 		id: optEn
 		text: "Application Language: English"
 		checked: false
 		Layout.fillWidth: true
+		Layout.topMargin: (moduleHeight - nControls*controlsHeight - controlsSpacing)/2
 
 		onClicked: {
 			optBr.checked = !checked;

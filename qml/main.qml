@@ -80,13 +80,18 @@ ApplicationWindow {
 		homePage.setViewModel();
 		mesocyclesModel.currentRowChanged.connect(workoutButtonEnabled);
 		workoutButtonEnabled();
-		if (userModel.isEmpty()) {
+
+		var userOK = !userModel.isEmpty();
+		if (userOK)
+			userOK = userModel.goal(0).length > 0;
+
+		if (userOK)
+			checkInitialArguments();
+		else {
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
 			//firstTimeDlgg.open();
-		}
-		else
-			checkInitialArguments();
+		}	
 	}
 
 	function workoutButtonEnabled() {

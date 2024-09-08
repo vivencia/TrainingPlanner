@@ -31,7 +31,7 @@ void TPImage::setSource(const QString& source)
 				{
 					mSource = source;
 					mNominalSize.setHeight(0);
-					maybeResize();
+					maybeResize(true);
 					emit sourceChanged();
 				}
 				return;
@@ -41,7 +41,7 @@ void TPImage::setSource(const QString& source)
 		}
 		if (mImage.load(mSource))
 		{
-			maybeResize();
+			maybeResize(true);
 			emit sourceChanged();
 		}
 	}
@@ -120,7 +120,7 @@ void TPImage::scaleImage(const bool bCallUpdate)
 	}
 }
 
-void TPImage::maybeResize()
+void TPImage::maybeResize(const bool bForceResize)
 {
 	if (mSource.isEmpty())
 		return;
@@ -132,6 +132,11 @@ void TPImage::maybeResize()
 		mNominalSize.setHeight(height());
 		mNominalSize.setWidth(width());
 		scaleImage(true);
+	}
+	else
+	{
+		if (bForceResize)
+			scaleImage(true);
 	}
 }
 

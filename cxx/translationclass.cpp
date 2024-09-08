@@ -32,11 +32,9 @@ void TranslationClass::selectLanguage()
 	}
 	if (mbOK)
 	{
+		runCmd()->setAppLocale(strLocale);
 		if (bConfigEmpty)
-		{
-			runCmd()->setAppLocale(strLocale);
 			mSettingsObj->setValue("appLocale", strLocale);
-		}
 	}
 	else
 		runCmd()->setAppLocale(u"en_US"_qs); //If any part of the program calls RunCommands::appLocale() we will hava an error

@@ -63,8 +63,8 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << QString() << QString() <<
-		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/0"_qs <<
+	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << u"0"_qs << QString() <<
+		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/m5"_qs <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
 	return m_modeldata.count() - 1;
 }
@@ -329,9 +329,9 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 			else
 			{
 				if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == u"0"_qs)
-					return u"Avatar-5"_qs;
+					return u"Avatar-m5"_qs;
 				else
-					return u"Avatar-0"_qs;
+					return u"Avatar-f0"_qs;
 			}
 		default: return QString();
 	}

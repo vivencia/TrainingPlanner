@@ -31,7 +31,7 @@ public:
 
 public slots:
 	void checkEnabled(const bool bCallUpdate = true);
-	void maybeResize();
+	void maybeResize(const bool bForceResize = false);
 
 signals:
 	void sourceChanged();

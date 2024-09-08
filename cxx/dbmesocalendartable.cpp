@@ -197,21 +197,22 @@ void DBMesoCalendarTable::getMesoCalendar()
 						mesocal_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
 					m_model->appendList(mesocal_info);
 				}
+				m_model->setReady(true);
+				m_result = true;
 			}
 		}
-		m_model->setReady(true);
-		m_opcode = OP_READ;
+		if (!m_result)
+		{
+			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars SUCCESS")
 		mSqlLiteDB.close();
-		m_result = true;
-	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars SUCCESS")
+		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Database error:  Could not open Database")
+
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

@@ -134,8 +134,10 @@ Pane {
 			const ok = txtMesoSplit.text.indexOf("R") !== -1;
 			btnCreateExercisePlan.enabled = ok;
 			txtMesoSplit.ToolTip.visible = !ok;
-			if (ok)
+			if (ok) {
 				mesocyclesModel.set(mesoIdx, 6, txtMesoSplit.text);
+				showCalendarChangedDialog();
+			}
 		}
 	}
 

@@ -168,7 +168,8 @@ extern "C"
 
 DbManager::DbManager(QSettings* appSettings)
 	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
-		m_ownerMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr), m_clientsOrCoachesPage(nullptr)
+		m_ownerMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr), m_clientsOrCoachesPage(nullptr),
+		m_userPage(nullptr)
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(cleanUp()));
 }
@@ -329,7 +330,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 	const QString dbObjName(dbObj->objectName());
 	if (dbObj->result())
 	{
-		switch (static_cast<DBMesocyclesTable*>(dbObj)->opCode())
+		switch (dbObj->opCode())
 		{
 			default:
 			break;
@@ -340,18 +341,7 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 				m_appSettings->setValue("exercisesListVersion", m_exercisesListVersion);
 			break;
 			case OP_READ:
-				if (dbObjName == DBMesoCalendarObjectName)
-				{
-					if (mesoCalendarModel->count() == 0)
-					{
-						mesoCalendarModel->createModel(m_ownerMesoManager->mesoId(),
-							mesocyclesModel->getDateFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_STARTDATE),
-							mesocyclesModel->getEndDate(m_ownerMesoManager->mesoIdx()),
-							mesocyclesModel->getFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT));
-						createMesoCalendar();
-					}
-				}
-				else if (dbObjName == DBTrainingDayObjectName)
+				if (dbObjName == DBTrainingDayObjectName)
 				{
 					DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(static_cast<DBTrainingDayTable*>(dbObj)->model()));
 					if (tempModel->count() > 0)
@@ -384,6 +374,21 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 			break;
 		}
 	}
+	else
+	{
+		if (dbObjName == DBMesoCalendarObjectName)
+		{
+			if (mesoCalendarModel->count() == 0)
+			{
+				mesoCalendarModel->createModel(m_ownerMesoManager->mesoId(),
+					mesocyclesModel->getDateFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_STARTDATE),
+					mesocyclesModel->getEndDate(m_ownerMesoManager->mesoIdx()),
+					mesocyclesModel->getFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT));
+				createMesoCalendar();
+			}
+		}
+	}
+
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
@@ -1261,7 +1266,8 @@ void DbManager::getAllMesocycles()
 			mesocyclesModel->updateColumnLabels();
 			QMetaObject::invokeMethod(m_mainWindow, "workoutButtonEnabled", Qt::AutoConnection);
 
-			m_userPage->setProperty("useMode", userModel->appUseMode(0));
+			if (m_userPage)
+				m_userPage->setProperty("useMode", userModel->appUseMode(0));
 			for (uint i (0); i < m_MesoManager.count(); ++i)
 			{
 				if (m_MesoManager.at(i)->getMesoPage())
@@ -1304,7 +1310,7 @@ void DbManager::setWorkingMeso(int meso_idx)
 			return;
 		}
 
-		TPMesocycleClass* mesoManager(m_MesoManager.at(meso_idx));
+		TPMesocycleClass* mesoManager(meso_idx < m_MesoManager.count() ? m_MesoManager.at(meso_idx) : nullptr);
 		if (!mesoManager)
 		{
 			mesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, this);
@@ -1340,12 +1346,12 @@ void DbManager::getMesocycle(const uint meso_idx)
 		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
-	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) {
-			if (id == mesoPageCreateId)
-			{
-				m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
-				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
-			}
+	connect(this, &DbManager::internalSignal, this, [&] (const uint id) {
+		if (id == mesoPageCreateId)
+		{
+			m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
+			addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+		}
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createMesocyclePage();
 }
@@ -1371,7 +1377,7 @@ void DbManager::createNewMesocycle(const bool bCreatePage)
 
 	mesocyclesModel->appendList(QStringList() << u"-1"_qs << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(runCmd()->calculateNumberOfWeeks(startDate, endDate)) <<
-		u"ABCR"_qs << QString() << userModel->userName(0) << QString() << QString() << u"1"_qs);
+		u"ABCDERR"_qs << QString() << userModel->userName(0) << QString() << QString() << u"1"_qs);
 	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
 				QString() << QString() << QString() << QString());
 
@@ -1379,9 +1385,13 @@ void DbManager::createNewMesocycle(const bool bCreatePage)
 	if (bCreatePage)
 	{
 		m_expectedPageId = mesoPageCreateId;
-		connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == mesoPageCreateId)
+		connect(this, &DbManager::internalSignal, this, [&] (const uint id) {
+			if (id == mesoPageCreateId)
+			{
+				m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
 				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			}
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		m_currentMesoManager->createMesocyclePage(minimumStartDate, runCmd()->createFutureDate(startDate,0,6,0));
 	}
 }
@@ -1806,8 +1816,6 @@ void DbManager::createMesoCalendar()
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
 	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
-	if (m_currentMesoManager->getMesoPage())
-		m_currentMesoManager->getMesoPage()->setProperty("bCalendarCreated", true);
 }
 
 void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,

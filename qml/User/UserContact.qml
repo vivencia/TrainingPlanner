@@ -25,7 +25,7 @@ Frame {
 	property bool bSocialOK: true
 	readonly property int controlsSpacing: 5
 	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: 7*controlsHeight
+	readonly property int moduleHeight: 7*controlsHeight + 10
 
 	Label {
 		id: lblPhone
@@ -34,10 +34,6 @@ Frame {
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		bottomPadding: 0
 
 		anchors {
 			top: parent.top
@@ -63,7 +59,7 @@ Frame {
 		onActiveFocusChanged: {
 			if (activeFocus) {
 				if (text.length < 17)
-					cursorPosition = 5;
+					cursorPosition = 4;
 				else
 					cursorPosition = 17;
 			}
@@ -88,6 +84,7 @@ Frame {
 
 		anchors {
 			top: lblPhone.bottom
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}
@@ -132,11 +129,6 @@ Frame {
 		font.pointSize: AppSettings.fontSizeText
 		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		topPadding: 0
-		bottomPadding: 0
 
 		anchors {
 			top: txtPhone.bottom
@@ -183,6 +175,7 @@ Frame {
 
 		anchors {
 			top: lblEmail.bottom
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}
@@ -246,6 +239,7 @@ Frame {
 
 		anchors {
 			top: lblSocial.bottom
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}

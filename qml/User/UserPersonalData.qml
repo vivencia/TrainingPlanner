@@ -185,8 +185,10 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
-				if (checked)
+				if (checked) {
 					userModel.setSex(userRow, 0);
+					userModel.setAvatar(userRow, "image://tpimageprovider/m5");
+				}
 			}
 
 			anchors {
@@ -203,8 +205,10 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
-				if (checked)
+				if (checked) {
 					userModel.setSex(userRow, 1);
+					userModel.setAvatar(userRow, "image://tpimageprovider/f0");
+				}
 			}
 
 			anchors {

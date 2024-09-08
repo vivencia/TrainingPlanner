@@ -452,7 +452,7 @@ TPPage {
 
 	function selectedNewMesoMenuOption(menuid) {
 		switch (menuid) {
-			case 0: newAction(1); break;
+			case 0: appDB.createNewMesocycle(true); break;
 			case 1: mainwindow.chooseFileToImport(); break;
 		}
 	}

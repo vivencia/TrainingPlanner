@@ -49,14 +49,18 @@ public:
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const QString& fieldValue) const;
 
-	Q_INVOKABLE inline bool isOwnMeso(const uint row) const
+	Q_INVOKABLE inline bool isOwnMeso(const int row) const
 	{
-		return getFast(row, MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
+		if (row >= 0 && row < m_modeldata.count())
+			return getFast(row, MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
+		return false;
 	}
 
-	Q_INVOKABLE inline bool isRealMeso(const uint row) const
+	Q_INVOKABLE inline bool isRealMeso(const int row) const
 	{
-		return getFast(row, MESOCYCLES_COL_REALMESO) == QStringLiteral("1");
+		if (row >= 0 && row < m_modeldata.count())
+			return getFast(row, MESOCYCLES_COL_REALMESO) == QStringLiteral("1");
+		return false;
 	}
 
 	Q_INVOKABLE inline void setIsRealMeso(const uint row, const bool bRealMeso)

@@ -55,7 +55,6 @@ Frame {
 		bCoachRoleOK = userModel.coachRole(userRow).length > 1;
 	}
 
-	Component.onCompleted: console.log("User profile completed");
 	Label {
 		id: lblUserRole
 		text: userModel.columnLabel(7)
@@ -233,16 +232,16 @@ Frame {
 		height: 100
 		width: 100
 
+		anchors {
+			top: lblAvatar.top
+			topMargin: 0
+			left: lblAvatar.right
+			leftMargin: 30
+		}
+
 		MouseArea {
 			anchors.fill: parent
 			onClicked: showAvatarsPopup();
-		}
-
-		anchors {
-			top: lblAvatar.top
-			topMargin: -10
-			left: lblAvatar.right
-			leftMargin: 30
 		}
 	}
 
