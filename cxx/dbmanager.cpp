@@ -140,7 +140,7 @@ void DbManager::appStartUpNotifications()
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())
 		{
-			if (dayInfoList.at(0) == m_MesoIdStr)
+			if (dayInfoList.at(0).toUInt() == m_currentMesoManager->mesoId())
 			{
 				QString message;
 				const QString splitLetter(dayInfoList.at(2));
@@ -167,7 +167,7 @@ extern "C"
 #endif
 
 DbManager::DbManager(QSettings* appSettings)
-	: QObject (nullptr), m_MesoId(-2), m_MesoIdx(-2), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
+	: QObject (nullptr), mb_splitsLoaded(false), mb_importMode(false), m_currentMesoManager(nullptr),
 		m_ownerMesoManager(nullptr), m_appSettings(appSettings), m_exercisesPage(nullptr), m_settingsPage(nullptr), m_clientsOrCoachesPage(nullptr),
 		m_userPage(nullptr)
 {
@@ -296,7 +296,7 @@ void DbManager::setQmlEngine(QQmlApplicationEngine* QMlEngine)
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("appTr"), QVariant::fromValue(appTr()) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("userModel"), QVariant::fromValue(userModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesocyclesModel"), QVariant::fromValue(mesocyclesModel) });
-	properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
+	//properties.append(QQmlContext::PropertyPair{ QStringLiteral("mesoSplitModel"), QVariant::fromValue(mesoSplitModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("exercisesListModel"), QVariant::fromValue(exercisesListModel) });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("lightIconFolder"), QStringLiteral("white/") });
 	properties.append(QQmlContext::PropertyPair{ QStringLiteral("darkIconFolder"), QStringLiteral("black/") });
@@ -365,27 +365,13 @@ void DbManager::gotResult(TPDatabaseTable* dbObj)
 			case OP_ADD:
 				if (dbObjName == DBMesocyclesObjectName)
 				{
-					m_MesoIdx = mesocyclesModel->count() - 1;
+					/*m_MesoIdx = mesocyclesModel->count() - 1;
 					m_MesoId = mesocyclesModel->getFast(m_MesoIdx, 0).toUInt();
 					m_appSettings->setValue("lastViewedMesoIdx", m_MesoIdx);
-					m_MesoIdStr = QString::number(m_MesoId);
-					m_currentMesoManager->setMesoId(m_MesoId);
+					QString::number(m_currentMesoManager->mesoId()) = QString::number(m_MesoId);
+					m_currentMesoManager->setMesoId(m_MesoId);*/
 				}
 			break;
-		}
-	}
-	else
-	{
-		if (dbObjName == DBMesoCalendarObjectName)
-		{
-			if (mesoCalendarModel->count() == 0)
-			{
-				mesoCalendarModel->createModel(m_ownerMesoManager->mesoId(),
-					mesocyclesModel->getDateFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_STARTDATE),
-					mesocyclesModel->getEndDate(m_ownerMesoManager->mesoIdx()),
-					mesocyclesModel->getFast(m_ownerMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT));
-				createMesoCalendar();
-			}
 		}
 	}
 
@@ -666,8 +652,8 @@ bool DbManager::importFromModel(TPListModel* model)
 			{
 				createNewMesocycle(false);
 				for (uint i(MESOCYCLES_COL_ID); i <= MESOCYCLES_COL_REALMESO; ++i)
-					mesocyclesModel->setFast(m_MesoIdx, i, model->getFast(0, i));
-				saveMesocycle(false, false, false);
+					mesocyclesModel->setFast(m_currentMesoManager->mesoIdx(), i, model->getFast(0, i));
+				saveMesocycle();
 				emit mesocyclesModel->currentRowChanged(); //notify main.qml::btnWorkout to evaluate its enabled state
 			}
 			else
@@ -691,9 +677,8 @@ bool DbManager::importFromModel(TPListModel* model)
 			else
 			{
 				for (uint i(0); i < 8; ++i)
-					mesoSplitModel->setFast(m_MesoIdx, i, model->getFast(0, i));
-				mesoSplitModel->setFast(m_MesoIdx, 1, m_MesoIdStr);
-				mesoSplitModel->setCurrentRow(m_MesoIdx);
+					mesocyclesModel->mesoSplitModel()->setFast(m_currentMesoManager->mesoIdx(), i, model->getFast(0, i));
+				mesocyclesModel->mesoSplitModel()->setFast(m_currentMesoManager->mesoIdx(), 1, QString::number(m_currentMesoManager->mesoId()));
 				saveMesoSplit();
 			}
 		}
@@ -704,7 +689,7 @@ bool DbManager::importFromModel(TPListModel* model)
 			DBTrainingDayModel* tDayModel(m_currentMesoManager->gettDayModel(dayDate));
 			if (tDayModel->updateFromModel(model))
 			{
-				if (mesoCalendarModel->count() == 0)
+				if (mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->count() == 0)
 				{
 					connect( this, &DbManager::databaseReady, this, [&,dayDate] () {
 						connect( this, &DbManager::getPage, this, [&,dayDate] (QQuickItem* item, const uint) {
@@ -844,21 +829,21 @@ void DbManager::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	if (!mb_splitsLoaded)
 		loadCompleteMesoSplits(false);
-	const QString suggestedName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
+	const QString suggestedName(mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
 	setExportFileName(suggestedName);
 	QFile* outFile(nullptr);
-	mesocyclesModel->setExportRow(m_MesoIdx);
+	mesocyclesModel->setExportRow(m_currentMesoManager->mesoIdx());
 
 	if (bCoachInfo)
 	{
-		userModel->setExportRow(userModel->getRowByCoachName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_COACH)));
+		userModel->setExportRow(userModel->getRowByCoachName(mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_COACH)));
 		exportToFile(userModel, exportFileName(), outFile);
 	}
 
 	if (exportToFile(mesocyclesModel, exportFileName(), outFile))
 	{
-		mesoSplitModel->setExportRow(m_MesoIdx);
-		exportToFile(mesoSplitModel, QString(), outFile);
+		mesocyclesModel->mesoSplitModel()->setExportRow(m_currentMesoManager->mesoIdx());
+		exportToFile(mesocyclesModel->mesoSplitModel(), QString(), outFile);
 		exportMesoSplit(u"X"_qs, bShare, outFile);
 
 		#ifdef Q_OS_ANDROID
@@ -1237,7 +1222,6 @@ void DbManager::exportExercisesList(const bool bShare)
 void DbManager::getAllMesocycles()
 {
 	mesocyclesModel = new DBMesocyclesModel(this, userModel);
-	mesoSplitModel = new DBMesoSplitModel(this, false);
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 	worker->getAllMesocycles();
 
@@ -1289,23 +1273,18 @@ void DbManager::setOwnerMeso(const uint meso_idx)
 
 void DbManager::setWorkingMeso(int meso_idx)
 {
-	if (meso_idx != m_MesoIdx)
+	if (meso_idx != (m_currentMesoManager ? m_currentMesoManager->mesoIdx() : -2))
 	{
 		if (meso_idx >= mesocyclesModel->count())
 			meso_idx = mesocyclesModel->count() - 1;
 
-		m_MesoIdx = meso_idx;
 		if (meso_idx >= 0)
 		{
-			m_MesoId = mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID);
 			m_totalSplits = mesocyclesModel->getTotalSplits(meso_idx);
-			m_MesoIdStr = QString::number(meso_idx);
 			mesocyclesModel->setCurrentRow(meso_idx);
-			mesoSplitModel->setCurrentRow(meso_idx);
 		}
 		else
 		{
-			m_MesoId = -1;
 			m_totalSplits = 0;
 			return;
 		}
@@ -1313,7 +1292,7 @@ void DbManager::setWorkingMeso(int meso_idx)
 		TPMesocycleClass* mesoManager(meso_idx < m_MesoManager.count() ? m_MesoManager.at(meso_idx) : nullptr);
 		if (!mesoManager)
 		{
-			mesoManager = new TPMesocycleClass(m_MesoId, m_MesoIdx, m_QMlEngine, this);
+			mesoManager = new TPMesocycleClass(mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID), meso_idx, m_QMlEngine, this);
 			mesoManager->setMesocycleModel(mesocyclesModel);
 			m_MesoManager.append(mesoManager);
 			connect(mesoManager, SIGNAL(pageReady(QQuickItem*,uint)), this, SLOT(bridge(QQuickItem*,uint)));
@@ -1321,28 +1300,21 @@ void DbManager::setWorkingMeso(int meso_idx)
 		}
 		m_currentMesoManager = mesoManager;
 		if (mesocyclesModel->isOwnMeso(meso_idx))
-		{
 			m_ownerMesoManager = mesoManager;
-			mesoCalendarModel = m_ownerMesoManager->mesoCalendarModel();
-			mesoCalendarModel->setMainMesoSplitModel(mesoSplitModel);
-		}
 
-		if (m_MesoId >= 0)
-		{
-			m_appSettings->setValue("lastViewedMesoIdx", m_MesoIdx);
-			m_appSettings->sync();
-		}
+		m_appSettings->setValue("lastViewedMesoIdx", meso_idx);
+		m_appSettings->sync();
 	}
 }
 
 void DbManager::getMesocycle(const uint meso_idx)
 {
-	if (meso_idx != m_MesoIdx)
+	if (meso_idx != m_currentMesoManager->mesoIdx())
 		setWorkingMeso(meso_idx);
 
 	if (m_currentMesoManager->getMesoPage() != nullptr)
 	{
-		addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+		addMainMenuShortCut(mesocyclesModel->getFast(meso_idx, 1), m_currentMesoManager->getMesoPage());
 		return;
 	}
 	m_expectedPageId = mesoPageCreateId;
@@ -1350,7 +1322,7 @@ void DbManager::getMesocycle(const uint meso_idx)
 		if (id == mesoPageCreateId)
 		{
 			m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
-			addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+			addMainMenuShortCut(mesocyclesModel->getFast(meso_idx, 1), m_currentMesoManager->getMesoPage());
 		}
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createMesocyclePage();
@@ -1375,11 +1347,9 @@ void DbManager::createNewMesocycle(const bool bCreatePage)
 		endDate = runCmd()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 
-	mesocyclesModel->appendList(QStringList() << u"-1"_qs << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
+	mesocyclesModel->newMesocycle(QStringList() << u"-1"_qs << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(runCmd()->calculateNumberOfWeeks(startDate, endDate)) <<
 		u"ABCDERR"_qs << QString() << userModel->userName(0) << QString() << QString() << u"1"_qs);
-	mesoSplitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
-				QString() << QString() << QString() << QString());
 
 	setWorkingMeso(mesocyclesModel->count()-1);
 	if (bCreatePage)
@@ -1389,66 +1359,60 @@ void DbManager::createNewMesocycle(const bool bCreatePage)
 			if (id == mesoPageCreateId)
 			{
 				m_currentMesoManager->getMesoPage()->setProperty("useMode", userModel->appUseMode(0));
-				addMainMenuShortCut(mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getMesoPage());
+				addMainMenuShortCut(mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), 1), m_currentMesoManager->getMesoPage());
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		m_currentMesoManager->createMesocyclePage(minimumStartDate, runCmd()->createFutureDate(startDate,0,6,0));
 	}
 }
 
-void DbManager::saveMesocycle(const bool bChangeCalendar, const bool bPreserveOldCalendar, const bool bPreserveUntillYesterday)
+void DbManager::saveMesocycle()
 {
 	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings, mesocyclesModel));
 
-	if (mesocyclesModel->getIntFast(m_MesoIdx, MESOCYCLES_COL_ID) == -1)
+	if (mesocyclesModel->getIntFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_ID) == -1)
 	{
 		if (mb_importMode)
 			worker->setWaitForThreadToFinish(true);
 
 		connect( this, &DbManager::databaseReady, this, [&,worker] (const uint db_id) {
 			if (db_id == worker->uniqueID()) {
-				mesoSplitModel->setFast(m_MesoIdx, 1, mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_ID));
+				mesocyclesModel->mesoSplitModel()->setFast(m_currentMesoManager->mesoIdx(), 1,
+								mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_ID));
 				saveMesoSplit();
 			}
 		});
 	}
 	else
-	{
 		saveMesoSplit();
-		if (bChangeCalendar)
-			changeMesoCalendar(mesocyclesModel->getDateFast(m_MesoIdx, MESOCYCLES_COL_STARTDATE), mesocyclesModel->getEndDate(m_MesoIdx),
-				mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT), bPreserveOldCalendar, bPreserveUntillYesterday);
-	}
-	worker->addExecArg(m_MesoIdx);
+
+	worker->addExecArg(m_currentMesoManager->mesoIdx());
 	createThread(worker, [worker] () { worker->saveMesocycle(); } );
-	m_totalSplits = mesocyclesModel->getTotalSplits(m_MesoIdx);
+	m_totalSplits = mesocyclesModel->getTotalSplits(m_currentMesoManager->mesoIdx());
 }
 
 void DbManager::removeMesocycle(const uint meso_idx)
 {
 	const int meso_id(mesocyclesModel->getIntFast(meso_idx, MESOCYCLES_COL_ID));
-	mesocyclesModel->removeFromList(meso_idx);
 
 	if (m_ownerMesoManager->mesoIdx() == meso_idx)
 		m_ownerMesoManager = nullptr;
 
-	if (meso_idx == m_MesoIdx)
+	if (meso_idx == m_currentMesoManager->mesoIdx())
+	{
+		removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
+		removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
+	}
+	if (meso_idx == m_ownerMesoManager->mesoIdx())
 	{
 		removeMainMenuShortCut(m_currentMesoManager->getCalendarPage());
 		removeMainMenuShortCut(m_currentMesoManager->getExercisesPlannerPage());
-		removeMainMenuShortCut(m_currentMesoManager->getMesoPage());
-
-		int idx(m_MesoManager.count() - 1);
-		if (idx == meso_idx)
-			--idx;
-		setWorkingMeso(idx);
 	}
 
 	if (meso_id >= 0)
 	{
 		removeMesoCalendar(meso_id);
-		removeMesoSplit(mesoSplitModel->getFast(meso_idx, 0));
-		mesoSplitModel->removeFromList(meso_idx);
+		removeMesoSplit(mesocyclesModel->mesoSplitModel()->getFast(meso_idx, 0));
 		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, m_appSettings));
 		worker->addExecArg(QString::number(meso_id));
 		createThread(worker, [worker] () { return worker->removeEntry(); } );
@@ -1462,6 +1426,9 @@ void DbManager::removeMesocycle(const uint meso_idx)
 	tpObject->disconnect();
 	delete tpObject;
 
+	mesocyclesModel->delMesocycle(meso_idx);
+	if (!m_MesoManager.isEmpty())
+		setWorkingMeso(m_MesoManager.count() - 1);
 	if (!m_ownerMesoManager)
 	{
 		for(int i(mesocyclesModel->count() - 1); i >= 0; --i)
@@ -1487,17 +1454,17 @@ void DbManager::deleteMesocyclesTable(const bool bRemoveFile)
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 void DbManager::getMesoSplit(const QString& mesoid)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesocyclesModel->mesoSplitModel()));
 	worker->addExecArg(mesoid);
 	createThread(worker, [worker] () { worker->getMesoSplit(); } );
 }
 
 void DbManager::saveMesoSplit()
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
-	worker->addExecArg(m_MesoIdx);
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesocyclesModel->mesoSplitModel()));
+	worker->addExecArg(m_currentMesoManager->mesoIdx());
 	createThread(worker, [worker] () { worker->saveMesoSplit(); } );
-	m_currentMesoManager->updateMuscularGroup(mesoSplitModel);
+	m_currentMesoManager->updateMuscularGroup(mesocyclesModel->mesoSplitModel());
 }
 
 void DbManager::removeMesoSplit(const QString& id)
@@ -1509,7 +1476,7 @@ void DbManager::removeMesoSplit(const QString& id)
 
 void DbManager::deleteMesoSplitTable(const bool bRemoveFile)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesoSplitModel));
+	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, mesocyclesModel->mesoSplitModel()));
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
@@ -1517,19 +1484,21 @@ void DbManager::createExercisesPlannerPage()
 {
 	if (m_currentMesoManager->getExercisesPlannerPage())
 	{
-		addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getExercisesPlannerPage());
+		addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), 1),
+									m_currentMesoManager->getExercisesPlannerPage());
 		return;
 	}
 	m_expectedPageId = exercisesPlannerCreateId;
 	connect(this, &DbManager::internalSignal, this, [&] (const uint id ) { if (id == exercisesPlannerCreateId)
-				addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_MesoIdx, 1), m_currentMesoManager->getExercisesPlannerPage());
+				addMainMenuShortCut(tr("Exercises Planner: ") + mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_NAME),
+								m_currentMesoManager->getExercisesPlannerPage());
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	m_currentMesoManager->createPlannerPage();
 }
 
 void DbManager::loadCompleteMesoSplits(const bool bThreaded)
 {
-	const QString mesoSplit(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT));
+	const QString mesoSplit(mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT));
 	QString mesoLetters;
 	DBMesoSplitModel* splitModel(nullptr);
 	m_nSplits = m_totalSplits;
@@ -1551,7 +1520,7 @@ void DbManager::loadCompleteMesoSplits(const bool bThreaded)
 		if (bThreaded)
 		{
 			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel));
-			worker->addExecArg(m_MesoIdStr);
+			worker->addExecArg(QString::number(m_currentMesoManager->mesoId()));
 			worker->addExecArg(static_cast<QChar>(*itr));
 			if (!connected)
 			{
@@ -1575,7 +1544,7 @@ void DbManager::loadCompleteMesoSplits(const bool bThreaded)
 			if (!worker2)
 			{
 				worker2 = new DBMesoSplitTable(m_DBFilePath, m_appSettings, splitModel);
-				worker2->addExecArg(m_MesoIdStr);
+				worker2->addExecArg(QString::number(m_currentMesoManager->mesoId()));
 				worker2->addExecArg(static_cast<QChar>(*itr));
 			}
 			else
@@ -1614,7 +1583,7 @@ void DbManager::getCompleteMesoSplit()
 void DbManager::saveMesoSplitComplete(DBMesoSplitModel* model)
 {
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, model));
-	worker->addExecArg(m_MesoIdStr);
+	worker->addExecArg(QString::number(m_currentMesoManager->mesoId()));
 	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); } );
 }
 
@@ -1667,13 +1636,13 @@ static void muscularGroupSimplified(QString& muscularGroup)
 
 QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 {
-	if (mesoHasPlan(m_MesoId, splitLetter))
+	if (mesoHasPlan(m_currentMesoManager->mesoId(), splitLetter))
 	{
-		QString muscularGroup1(mesoSplitModel->get(m_MesoIdx, static_cast<int>(splitLetter.at(0).toLatin1()) - static_cast<int>('A') + 2));
+		QString muscularGroup1(mesocyclesModel->getMuscularGroup(m_currentMesoManager->mesoIdx(), splitLetter));
 		if (!muscularGroup1.isEmpty())
 		{
 			QString muscularGroup2;
-			const QString mesoSplit(mesocyclesModel->get(m_MesoIdx, 6));
+			const QString mesoSplit(mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT));
 			muscularGroupSimplified(muscularGroup1);
 
 			QString::const_iterator itr(mesoSplit.constBegin());
@@ -1685,7 +1654,7 @@ QString DbManager::checkIfSplitSwappable(const QString& splitLetter) const
 				else if (static_cast<QChar>(*itr) == splitLetter.at(0))
 					continue;
 
-				muscularGroup2 = mesoSplitModel->get(m_MesoIdx, static_cast<int>((*itr).toLatin1()) - static_cast<int>('A') + 2);
+				muscularGroup2 = mesocyclesModel->getMuscularGroup(m_currentMesoManager->mesoIdx(), *itr);
 				if (!muscularGroup2.isEmpty())
 				{
 					muscularGroupSimplified(muscularGroup2);
@@ -1702,10 +1671,10 @@ void DbManager::swapMesoPlans(const QString& splitLetter1, const QString& splitL
 {
 	m_currentMesoManager->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter1.at(0))));
-	worker->addExecArg(m_MesoIdStr);
+	worker->addExecArg(QString::number(m_currentMesoManager->mesoId()));
 	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, m_appSettings, m_currentMesoManager->getSplitModel(splitLetter2.at(0))));
-	worker2->addExecArg(m_MesoIdStr);
+	worker2->addExecArg(QString::number(m_currentMesoManager->mesoId()));
 	createThread(worker2, [worker2] () { worker2->saveMesoSplitComplete(); } );
 }
 
@@ -1719,20 +1688,21 @@ void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, Q
 	{
 		if (splitLetter == u"X"_qs)
 		{
-			mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
-			suggestedName = mesocyclesModel->getFast(m_MesoIdx, 1) + tr(" - Exercises Plan.txt");
+			mesoSplit = mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT);
+			suggestedName = mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_NAME) + tr(" - Exercises Plan.txt");
 		}
 		else
 		{
 			mesoSplit = splitLetter;
-			suggestedName = mesocyclesModel->getFast(m_MesoIdx, 1) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
+			suggestedName = mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_NAME) +
+								tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
 		}
 		setExportFileName(suggestedName);
 	}
 	else
 	{
 		outFile = outFileInUse;
-		mesoSplit = mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_SPLIT);
+		mesoSplit = mesocyclesModel->getFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_SPLIT);
 	}
 
 	QString mesoLetters;
@@ -1783,9 +1753,10 @@ void DbManager::exportMesoSplit(const QString& splitLetter, const bool bShare, Q
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 void DbManager::getMesoCalendar(const bool bCreatePage)
 {
-	if (!mesoCalendarModel->isReady())
+	if (!mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->isReady())
 	{
-		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+		DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+										mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
 		worker->addExecArg(m_ownerMesoManager->mesoId());
 		if (bCreatePage)
 		{
@@ -1812,68 +1783,65 @@ void DbManager::getMesoCalendar(const bool bCreatePage)
 	}
 }
 
-void DbManager::createMesoCalendar()
+void DbManager::changeMesoCalendar(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	createThread(worker, [worker] () { worker->createMesoCalendar(); } );
-}
-
-void DbManager::changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
-								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday)
-{
-	if (!mesoCalendarModel->isReady())
+	if (!mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->isReady())
 	{
-		connect(this, &DbManager::databaseReady, this, [&,newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday] ()
+		connect(this, &DbManager::databaseReady, this, [&,bPreserveOldInfo,bPreserveOldInfoUntilDayBefore] ()
 		{
-			return changeMesoCalendar(newStartDate,newEndDate,newSplit,bPreserveOldInfo,bPreserveOldInfoUntilToday);
+			return changeMesoCalendar(bPreserveOldInfo, bPreserveOldInfoUntilDayBefore);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(false);
 		return;
 	}
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
-	worker->addExecArg(m_ownerMesoManager->mesoId());
-	worker->addExecArg(newStartDate);
-	worker->addExecArg(newEndDate);
-	worker->addExecArg(newSplit);
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+									mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
+	const QDate endDate(bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
+					QDate::currentDate() :
+					mesocyclesModel->getDate(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_ENDDATE));
 	worker->addExecArg(bPreserveOldInfo);
-	worker->addExecArg(bPreserveOldInfoUntilToday);
+	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
+	worker->addExecArg(endDate);
 	if (!bPreserveOldInfo)
 	{
-		connect( this, &DbManager::databaseReady, this, [&,worker,newStartDate,newEndDate,newSplit] (const uint db_id) {
-				if (db_id == worker->uniqueID())
-					return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(newStartDate, newEndDate, newSplit); });
+		connect( this, &DbManager::databaseReady, this, [&,worker,endDate] (const uint db_id) {
+			if (db_id == worker->uniqueID())
+				return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(
+					mesocyclesModel->getDateFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_STARTDATE), endDate);
+		});
 	}
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); } );
 }
 
-void DbManager::updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter)
+void DbManager::updateMesoCalendarModel(const QDate& startDate, const QString& newSplitLetter)
 {
-	if (!mesoCalendarModel->isReady())
+	if (!mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->isReady())
 	{
-		connect(this, &DbManager::databaseReady, this, [&,mesoSplit,startDate,splitLetter] ()
+		connect(this, &DbManager::databaseReady, this, [&,startDate,newSplitLetter] ()
 		{
-			return updateMesoCalendarModel(mesoSplit,startDate,splitLetter);
+			return updateMesoCalendarModel(startDate,newSplitLetter);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(false);
 		return;
 	}
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+									mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
 	worker->addExecArg(m_ownerMesoManager->mesoId()); //needed for DBMesoCalendarTable::removeMesoCalendar()
-	worker->addExecArg(mesoSplit);
 	worker->addExecArg(startDate);
-	worker->addExecArg(splitLetter);
-	connect( this, &DbManager::databaseReady, this, [&,worker,startDate,mesoSplit] (const uint db_id) {
+	worker->addExecArg(newSplitLetter);
+	connect( this, &DbManager::databaseReady, this, [&,worker,startDate] (const uint db_id) {
 				if (db_id == worker->uniqueID())
 				{
 					return m_currentMesoManager->updateOpenTDayPagesWithNewCalendarInfo(startDate,
-										mesocyclesModel->getEndDate(m_ownerMesoManager->mesoIdx()), mesoSplit);
+						mesocyclesModel->getDateFast(m_currentMesoManager->mesoIdx(), MESOCYCLES_COL_ENDDATE));
 				} });
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); } );
 }
 
 void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit, const bool bDayIsFinished)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+									mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
 	worker->addExecArg(calDate);
 	worker->setData(QString::number(calNDay), calSplit, bDayIsFinished ? u"1"_qs : u"0"_qs);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
@@ -1881,7 +1849,7 @@ void DbManager::updateMesoCalendarEntry(const QDate& calDate, const uint calNDay
 
 void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
 {
-	if (!mesoCalendarModel->isReady())
+	if (!mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->isReady())
 	{
 		connect(this, &DbManager::databaseReady, this, [&,date,bFinished] ()
 		{
@@ -1891,8 +1859,9 @@ void DbManager::setDayIsFinished(const QDate& date, const bool bFinished)
 		return;
 	}
 	m_currentMesoManager->gettDayModel(date)->setDayIsFinished(bFinished);
-	mesoCalendarModel->setDayIsFinished(date, bFinished);
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())->setDayIsFinished(date, bFinished);
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+									mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
 	worker->addExecArg(date);
 	worker->addExecArg(bFinished);
 	createThread(worker, [worker] () { worker->updateDayIsFinished(); } );
@@ -1907,7 +1876,8 @@ void DbManager::removeMesoCalendar(const uint meso_id)
 
 void DbManager::deleteMesoCalendarTable(const bool bRemoveFile)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings, mesoCalendarModel));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, m_appSettings,
+									mesocyclesModel->mesoCalendarModel(m_currentMesoManager->mesoIdx())));
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
@@ -1921,7 +1891,7 @@ void DbManager::getTrainingDay(const QDate& date)
 		return;
 	}
 
-	if (mesoCalendarModel->count() == 0)
+	if (mesocyclesModel->mesoCalendarModel(m_ownerMesoManager->mesoIdx())->count() == 0)
 	{
 		connect( this, &DbManager::databaseReady, this, [&,date] () { getTrainingDay(date); },
 				static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -1933,7 +1903,7 @@ void DbManager::getTrainingDay(const QDate& date)
 	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, m_ownerMesoManager->gettDayModel(date)));
 	worker->addExecArg(QString::number(date.toJulianDay()));
 	connect( this, &DbManager::databaseReady, this, [&,date,worker] (const uint db_id) {
-				if (db_id == worker->uniqueID()) m_ownerMesoManager->createTrainingDayPage(date, mesoCalendarModel); } );
+				if (db_id == worker->uniqueID()) m_ownerMesoManager->createTrainingDayPage(date); } );
 	connect( this, &DbManager::internalSignal, this, [&,date] (const uint id ) {
 				if (id == tDayPageCreateId)
 				{
@@ -1962,14 +1932,16 @@ void DbManager::verifyTDayOptions(const QDate& date, const QString& splitLetter)
 		return;
 	}
 
-	const QString splitletter(splitLetter.isEmpty() ? mesoCalendarModel->getSplitLetter(date.month(), date.day()-1) : splitLetter);
+	const QString splitletter(splitLetter.isEmpty() ?
+			mesocyclesModel->mesoCalendarModel(m_ownerMesoManager->mesoIdx())->getSplitLetter(date.month(), date.day()-1) :
+			splitLetter);
 	m_ownerMesoManager->currenttDayPage()->setProperty("bHasMesoPlan", mesoHasPlan(m_ownerMesoManager->mesoId(), splitletter));
 
 	if (splitletter >= u"A"_qs && splitletter <= u"F"_qs)
 	{
 		DBTrainingDayModel* tempModel(new DBTrainingDayModel(this));
 		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, m_appSettings, tempModel));
-		worker->addExecArg(m_MesoIdStr);
+		worker->addExecArg(QString::number(m_ownerMesoManager->mesoId()));
 		worker->addExecArg(splitletter);
 		worker->addExecArg(QString::number(date.toJulianDay()));
 		createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); } );
@@ -2084,7 +2056,7 @@ void DbManager::exportTrainingDay(const QDate& date, const QString& splitLetter,
 
 uint DbManager::getWorkoutNumberForTrainingDay(const QDate& date) const
 {
-	return mesoCalendarModel->getLastTrainingDayBeforeDate(date) + 1;
+	return mesocyclesModel->mesoCalendarModel(m_ownerMesoManager->mesoIdx())->getLastTrainingDayBeforeDate(date) + 1;
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 

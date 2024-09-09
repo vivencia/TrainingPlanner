@@ -1,12 +1,23 @@
 #include "dbmesocalendarmodel.h"
+#include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "runcommands.h"
 
-void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit)
+DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const uint mesoIdx)
+	: TPListModel(parentModel), m_parentModel(parentModel), mMesoIdx(mesoIdx)
 {
-	const QString mesoid( QString::number(mesoId) );
-	const int startmonth( startDate.month() );
-	const int endmonth( endDate.month() );
+	m_tableId = MESOCALENDAR_TABLE_ID;
+	setObjectName(DBMesoCalendarObjectName);
+}
+
+void DBMesoCalendarModel::createModel()
+{
+	const QString strMesoId(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_ID));
+	const QDate startDate(m_parentModel->getDateFast(mMesoIdx, MESOCYCLES_COL_STARTDATE));
+	const QDate endDate(m_parentModel->getDateFast(mMesoIdx, MESOCYCLES_COL_ENDDATE));
+	const QString strSplit(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_SPLIT));
+	const uint startmonth(startDate.month());
+	const uint endmonth(endDate.month());
 	int splitIdx(startDate.dayOfWeek() - 1);
 
 	uint nMonths( endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1 );
@@ -35,7 +46,7 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 		if (firstDay > 1)
 		{
 			for( ; day < firstDay; ++day)
-				month_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
+				month_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
 			firstDay = 0;
 		}
 		for( ; day <= lastDay; day++ ) {
@@ -47,8 +58,8 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 			else
 				trainingDayNumber = 0;
 
-			month_info.append(QStringLiteral("-1,") + mesoid + ',' + QString::number(trainingDayNumber) + ',' +
-								strSplit.at(splitIdx) + u",0," + strYear + ',' + strMonth);
+			month_info.append(u"-1,"_qs + strMesoId + ',' + QString::number(trainingDayNumber) + ',' +
+								strSplit.at(splitIdx) + u",0,"_qs + strYear + ',' + strMonth);
 			splitIdx++;
 			if (splitIdx == strSplit.length())
 				splitIdx = 0;
@@ -65,18 +76,17 @@ void DBMesoCalendarModel::createModel(const uint mesoId, const QDate& startDate,
 	if (day < lastDay)
 	{
 		for( ; day <= lastDay; ++day)
-			month_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
+			month_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
 		appendList(month_info);
 	}
 }
 
-void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
-								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday)
+void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate)
 {
 	if (!bPreserveOldInfo)
 	{
 		clear();
-		createModel(mesoId, newStartDate, newEndDate, newSplit);
+		createModel();
 		return;
 	}
 
@@ -91,9 +101,8 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 	const uint old_firsyear(m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
 
 	QList<QStringList> oldInfo;
-	const QDate today(QDate::currentDate());
-	const uint old_lastmonth(bPreserveOldInfoUntilToday ? today.month() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
-	const uint old_lastyear(bPreserveOldInfoUntilToday ? today.year() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
+	const uint old_lastmonth(bPreserveOldInfoUntilDayBefore ? endDate.month() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
+	const uint old_lastyear(bPreserveOldInfoUntilDayBefore ? endDate.year() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
 
 	uint i(0);
 	for(; i < m_modeldata.count(); ++i)
@@ -120,10 +129,10 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 			}
 		}
 	}
-	const uint old_lastday(bPreserveOldInfoUntilToday ? today.day() - 1 : day);
+	const uint old_lastday(bPreserveOldInfoUntilDayBefore ? endDate.day() - 1 : day);
 
 	clear();
-	createModel(mesoId, newStartDate, newEndDate, newSplit);
+	createModel();
 
 	uint year(0), month(0), y(0), lastday(0);
 	for(i = 0; i < m_modeldata.count(); ++i)
@@ -146,13 +155,14 @@ void DBMesoCalendarModel::changeModel(const uint mesoId, const QDate& newStartDa
 	emit calendarChanged();
 }
 
-void DBMesoCalendarModel::updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter)
+void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& newSplitLetter)
 {
+	const QString mesoSplit(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_SPLIT));
 	uint year(startDate.year());
 	uint month(startDate.month());
 	uint day(startDate.day()-1);
 	int tday(0);
-	int idx(mesoSplit.indexOf(splitLetter));
+	int idx(mesoSplit.indexOf(newSplitLetter));
 
 	for(uint i(0); i < m_modeldata.count(); ++i)
 	{
@@ -244,7 +254,7 @@ QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month,
 		const QDate date(year, month, day);
 		if (splitLetter != u"R")
 			return runCmd()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
-					splitLetter + u" - "_qs + m_mesoSplitModel->get(m_mesoSplitModel->currentRow(), (static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A')) + 2);
+					splitLetter + u" - "_qs + m_parentModel->mesoSplitModel()->get(mMesoIdx, (static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A')) + 2);
 		else
 			return runCmd()->formatDate(date) + tr(": Rest day");
 	}

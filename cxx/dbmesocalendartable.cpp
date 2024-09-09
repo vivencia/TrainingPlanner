@@ -197,9 +197,15 @@ void DBMesoCalendarTable::getMesoCalendar()
 						mesocal_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
 					m_model->appendList(mesocal_info);
 				}
-				m_model->setReady(true);
-				m_result = true;
 			}
+			else
+			{
+				DBMesoCalendarModel* mesoCalendarModel = static_cast<DBMesoCalendarModel*>(m_model);
+				mesoCalendarModel->createModel();
+				saveMesoCalendar();
+			}
+			m_model->setReady(true);
+			m_result = true;
 		}
 		if (!m_result)
 		{
@@ -216,7 +222,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBMesoCalendarTable::createMesoCalendar()
+void DBMesoCalendarTable::saveMesoCalendar()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
@@ -270,11 +276,11 @@ void DBMesoCalendarTable::createMesoCalendar()
 
 	if (!m_result)
 	{
-		MSG_OUT("DBMesoCalendarTable createMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoCalendarTable createMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT("DBMesoCalendarTable saveMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBMesoCalendarTable saveMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	else
-		MSG_OUT("DBMesoCalendarTable createMesoCalendar SUCCESS")
+		MSG_OUT("DBMesoCalendarTable saveMesoCalendar SUCCESS")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -383,18 +389,16 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 
 void DBMesoCalendarTable::changeMesoCalendar()
 {
-	static_cast<DBMesoCalendarModel*>(m_model)->changeModel(m_execArgs.at(0).toUInt(), m_execArgs.at(1).toDate(),
-			m_execArgs.at(2).toDate(), m_execArgs.at(3).toString(), m_execArgs.at(4).toBool(), m_execArgs.at(5).toBool());
+	static_cast<DBMesoCalendarModel*>(m_model)->changeModel(m_execArgs.at(0).toBool(), m_execArgs.at(1).toBool(), m_execArgs.at(2).toDate());
 	removeMesoCalendar();
-	createMesoCalendar();
+	saveMesoCalendar();
 }
 
 void DBMesoCalendarTable::updateMesoCalendar()
 {
-	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(1).toString(), m_execArgs.at(2).toDate(),
-										m_execArgs.at(3).toString());
+	static_cast<DBMesoCalendarModel*>(m_model)->updateModel(m_execArgs.at(0).toDate(), m_execArgs.at(1).toString());
 	removeMesoCalendar();
-	createMesoCalendar();
+	saveMesoCalendar();
 }
 
 void DBMesoCalendarTable::removeMesoCalendar()
@@ -403,18 +407,16 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral("DELETE FROM mesocycles_calendar_table WHERE meso_id=") + m_execArgs.at(0).toString() );
-		m_result = query.exec();
+		m_result = query.exec(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_qs + static_cast<DBMesoCalendarModel*>(m_model)->getMesoId());
+		if (m_result)
+			MSG_OUT("DBExercisesTable removeMesoCalendar SUCCESS")
+		else
+		{
+			MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
 		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-		MSG_OUT("DBExercisesTable removeMesoCalendar SUCCESS")
-	else
-	{
-		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
+	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 

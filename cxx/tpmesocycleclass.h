@@ -2,7 +2,6 @@
 #define TPMESOCYCLECLASS_H
 
 #include "dbmesosplitmodel.h"
-#include "dbmesocalendarmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "tptimer.h"
 
@@ -73,16 +72,10 @@ public:
 	void createMesoCalendarPage_part2();
 
 	inline QQuickItem* getCalendarPage() const { return m_calPage; }
-	inline DBMesoCalendarModel* mesoCalendarModel()
-	{
-		if (!m_mesosCalendarModel)
-			m_mesosCalendarModel = new DBMesoCalendarModel;
-		return m_mesosCalendarModel;
-	}
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-	uint createTrainingDayPage(const QDate& date, DBMesoCalendarModel* mesoCal);
+	uint createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
 	Q_INVOKABLE void resetWorkout();
 
@@ -99,7 +92,7 @@ public:
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
-	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate, const QString& mesoSplit);
+	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);
@@ -178,7 +171,6 @@ private:
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
-	DBMesoCalendarModel* m_mesosCalendarModel;
 	QQmlComponent* m_calComponent;
 	QQuickItem* m_calPage;
 	QVariantMap m_calProperties;

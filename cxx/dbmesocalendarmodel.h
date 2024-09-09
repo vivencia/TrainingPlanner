@@ -12,7 +12,7 @@
 #define MESOCALENDAR_COL_MONTH 6
 #define MESOCALENDAR_COL_DAY 7
 
-class DBMesoSplitModel;
+class DBMesocyclesModel;
 
 class DBMesoCalendarModel : public TPListModel
 {
@@ -21,20 +21,18 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
+	explicit DBMesoCalendarModel(DBMesocyclesModel* parentModel, const uint mesoIdx);
 
-	explicit DBMesoCalendarModel(QObject *parent = 0) : TPListModel{parent}
-	{	m_tableId = MESOCALENDAR_TABLE_ID;	setObjectName(DBMesoCalendarObjectName); }
-
-	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
-	Q_INVOKABLE void createModel(const uint mesoId, const QDate& startDate, const QDate& endDate, const QString& strSplit);
-	void changeModel(const uint mesoId, const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
-								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
-	void updateModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
+	//Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
+	void createModel();
+	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
+	void updateModel(const QDate& startDate, const QString& newSplitLetter);
 	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished);
 
-	inline void setMainMesoSplitModel(DBMesoSplitModel* mesoSplitModel) { m_mesoSplitModel = mesoSplitModel; }
-	Q_INVOKABLE int getMesoId() const
-	{	return count() > 0 ? static_cast<QString>(m_modeldata.at(0).at(0)).split(',').at(MESOCALENDAR_COL_MESOID).toUInt() : -1;	}
+	inline QString getMesoId() const
+	{
+		return count() > 0 ? m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID) : "-1";
+	}
 
 	Q_INVOKABLE uint getMonth(const uint index) const
 	{
@@ -69,7 +67,8 @@ signals:
 	void calendarChanged();
 
 private:
-	DBMesoSplitModel* m_mesoSplitModel;
+	DBMesocyclesModel* m_parentModel;
+	uint mMesoIdx;
 };
 
 #endif // DBMESOCALENDARMODEL_H

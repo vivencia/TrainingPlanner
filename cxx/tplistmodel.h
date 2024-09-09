@@ -43,7 +43,7 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 
-	explicit TPListModel(QObject *parent = nullptr);
+	explicit TPListModel(QObject* parent = nullptr);
 	inline TPListModel(const TPListModel& db_model) : TPListModel ()
 	{
 		copy (db_model);

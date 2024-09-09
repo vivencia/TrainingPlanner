@@ -20,6 +20,8 @@
 #define MESOCYCLES_TOTAL_COLS MESOCYCLES_COL_REALMESO + 1
 
 class DBUserModel;
+class DBMesoSplitModel;
+class DBMesoCalendarModel;
 
 class DBMesocyclesModel : public TPListModel
 {
@@ -39,6 +41,12 @@ public:
 	};
 
 	explicit DBMesocyclesModel(QObject* parent, DBUserModel* userModel);
+	~DBMesocyclesModel();
+
+	void newMesocycle(const QStringList& infolist);
+	void delMesocycle(const uint meso_idx);
+	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
+	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
 	virtual bool importFromText(QFile* inFile, QString& inData) override;
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
@@ -48,6 +56,15 @@ public:
 
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const QString& fieldValue) const;
+
+	Q_INVOKABLE bool setMesoStartDate(const uint row, const QDate& new_date);
+	Q_INVOKABLE bool setMesoEndDate(const uint row, const QDate& new_date);
+	Q_INVOKABLE bool setMesoSplit(const uint row, const QString& new_split);
+
+	//mesoSplitModel is not accessed directly, only through here
+	Q_INVOKABLE QString getSplitLetter(const uint meso_idx, const uint day_of_week) const;
+	Q_INVOKABLE QString getMuscularGroup(const uint meso_idx, const QString& splitLetter) const;
+	Q_INVOKABLE void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue);
 
 	Q_INVOKABLE inline bool isOwnMeso(const int row) const
 	{
@@ -69,13 +86,13 @@ public:
 		emit realMesoChanged(row);
 	}
 
-	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
-
 	Q_INVOKABLE inline QDate getEndDate(const uint row) const
 	{
 		return isRealMeso(row) ? QDate::fromJulianDay(m_modeldata.at(row).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
 							QDate::currentDate().addDays(730);
 	}
+
+	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 
 	uint getTotalSplits(const uint row) const;
 	int getMesoIdx(const int mesoId) const;
@@ -89,10 +106,14 @@ public:
 	void updateColumnLabels();
 
 signals:
+	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void realMesoChanged(const uint meso_idx);
+	void muscularGroupChanged(const int splitIndex, const QString& splitLetter);
 
 private:
 	DBUserModel* m_userModel;
+	DBMesoSplitModel* m_splitModel;
+	QMap<uint,DBMesoCalendarModel*> m_calendarModelList;
 };
 
 #endif // DBMESOCYCLESMODEL_H

@@ -19,7 +19,7 @@ public:
 	virtual void createTable();
 	virtual void updateDatabase();
 	void getMesoCalendar();
-	void createMesoCalendar();
+	void saveMesoCalendar();
 	void updateMesoCalendarEntry();
 	void updateDayIsFinished();
 	void dayInfo(const QDate& date, QStringList& dayInfoList);

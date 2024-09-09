@@ -6,8 +6,8 @@
 
 static const QLatin1Char fancy_record_separator2(';');
 
-DBMesoSplitModel::DBMesoSplitModel(QObject *parent, const bool bComplete)
-	: TPListModel(parent), m_nextAddedExercisePos(2)
+DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
+	: TPListModel(parent), m_nextAddedExercisePos(2), m_MesoIdx(meso_idx)
 {
 	m_tableId = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
@@ -66,20 +66,6 @@ void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
 		exerciseInfo.clear();
 	}
 	setReady(true);
-}
-
-void DBMesoSplitModel::setMuscularGroup(const QString& muscularGroup)
-{
-	m_muscularGroup = muscularGroup;
-	setModified(true);
-	emit muscularGroupChanged(static_cast<int>(m_splitLetter.cell()) - static_cast<int>('A'), QString(m_splitLetter));
-}
-
-void DBMesoSplitModel::setSplitLetter(const QChar& splitLetter)
-{
-	m_splitLetter = splitLetter;
-	setModified(true);
-	emit splitLetterChanged();
 }
 
 const QString DBMesoSplitModel::exerciseName(const int row)

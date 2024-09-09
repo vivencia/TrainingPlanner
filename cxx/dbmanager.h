@@ -99,8 +99,7 @@ public:
 	Q_INVOKABLE void setWorkingMeso(int meso_idx);
 	Q_INVOKABLE void getMesocycle(const uint meso_idx);
 	Q_INVOKABLE void createNewMesocycle(const bool bCreatePage);
-	Q_INVOKABLE void saveMesocycle(const bool bChangeCalendar = false, const bool bPreserveOldCalendar = false,
-								   const bool bPreserveUntillYesterday = false);
+	Q_INVOKABLE void saveMesocycle();
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void scheduleMesocycleRemoval(const uint meso_idx);
 	void deleteMesocyclesTable(const bool bRemoveFile);
@@ -124,10 +123,8 @@ public:
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getMesoCalendar(const bool bCreatePage);
-	Q_INVOKABLE void createMesoCalendar();
-	Q_INVOKABLE void changeMesoCalendar(const QDate& newStartDate, const QDate& newEndDate, const QString& newSplit,
-								const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilToday);
-	Q_INVOKABLE void updateMesoCalendarModel(const QString& mesoSplit, const QDate& startDate, const QString& splitLetter);
+	Q_INVOKABLE void changeMesoCalendar(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
+	Q_INVOKABLE void updateMesoCalendarModel(const QDate& startDate, const QString& newSplitLetter);
 	Q_INVOKABLE void updateMesoCalendarEntry(const QDate& calDate, const uint calNDay, const QString& calSplit, const bool bDayIsFinished);
 	Q_INVOKABLE void setDayIsFinished(const QDate& date, const bool bFinished);
 	Q_INVOKABLE void removeMesoCalendar(const uint meso_id);
@@ -174,14 +171,11 @@ public slots:
 	void openMainMenuShortCut(const int button_id);
 
 private:
-	int m_MesoId;
-	int m_MesoIdx;
 	uint m_expectedPageId;
 	bool mb_splitsLoaded;
 	bool mb_importMode;
 	uint m_nSplits;
 	uint m_totalSplits;
-	QString m_MesoIdStr;
 	QString m_DBFilePath;
 	QSettings* m_appSettings;
 	QQmlApplicationEngine* m_QMlEngine;
@@ -196,9 +190,7 @@ private:
 
 	DBUserModel* userModel;
 	DBMesocyclesModel* mesocyclesModel;
-	DBMesoSplitModel* mesoSplitModel;
 	DBExercisesModel* exercisesListModel;
-	DBMesoCalendarModel* mesoCalendarModel;
 
 	struct workerLocks {
 		inline TPDatabaseTable* nextObj() const { return dbObjs.at(++currentIndex); }

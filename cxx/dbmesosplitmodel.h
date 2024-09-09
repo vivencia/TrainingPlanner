@@ -25,15 +25,16 @@ Q_PROPERTY(int nbrSets READ nbrSets NOTIFY nbrSetsChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
 public:
-	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true);
+	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true, const int meso_idx = -1);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
+	Q_INVOKABLE inline int mesoIdx() const { return m_MesoIdx; }
 
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
-	Q_INVOKABLE void setMuscularGroup(const QString& muscularGroup);
+	Q_INVOKABLE inline void setMuscularGroup(const QString& muscularGroup) { m_muscularGroup = muscularGroup; }
 
 	Q_INVOKABLE inline QString splitLetter() const { return QString(m_splitLetter); }
-	Q_INVOKABLE void setSplitLetter(const QChar& splitLetter );
+	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
 	Q_INVOKABLE const QString exerciseName(const int row);
@@ -98,8 +99,6 @@ public:
 	virtual bool updateFromModel(const TPListModel* model) override;
 
 signals:
-	void muscularGroupChanged(const int splitIndex, const QString& splitLetter);
-	void splitLetterChanged();
 	void exerciseNameChanged();
 	void setTypeChanged();
 	void workingSetChanged();
@@ -107,6 +106,7 @@ signals:
 
 private:
 	uint m_nextAddedExercisePos;
+	int m_MesoIdx;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
 	bool mb_Complete;

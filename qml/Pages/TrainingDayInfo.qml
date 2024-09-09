@@ -987,18 +987,7 @@ TPPage {
 		parentPage: trainingDayPage
 	}
 
-	onSplitLetterChanged: {
-		switch (splitLetter) {
-			case 'A': splitText = mesoSplitModel.get(mesoIdx, 2); break;
-			case 'B': splitText = mesoSplitModel.get(mesoIdx, 3); break;
-			case 'C': splitText = mesoSplitModel.get(mesoIdx, 4); break;
-			case 'D': splitText = mesoSplitModel.get(mesoIdx, 5); break;
-			case 'E': splitText = mesoSplitModel.get(mesoIdx, 6); break;
-			case 'F': splitText = mesoSplitModel.get(mesoIdx, 7); break;
-			default: return;
-		}
-		exercisesListModel.makeFilterString(splitText);
-	}
+	onSplitLetterChanged: exercisesListModel.makeFilterString(mesocyclesModel.getMuscularGroup(mesoIdx, splitLetter));
 
 	function saveWorkout() {
 		appDB.saveTrainingDay();
@@ -1031,7 +1020,7 @@ TPPage {
 			if (customBoolProperty1)
 				appDB.updateMesoCalendarEntry(mainDate, tDay, newSplitLetter, bDayIsFinished);
 			else
-				appDB.updateMesoCalendarModel(mesoSplit, mainDate, newSplitLetter);
+				appDB.updateMesoCalendarModel(mainDate, newSplitLetter);
 			splitLetter = newSplitLetter;
 			tDayModel.setTrainingDay(tDay);
 			tDayModel.setSplitLetter(splitLetter);

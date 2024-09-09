@@ -1,4 +1,6 @@
 #include "dbmesocyclesmodel.h"
+#include "dbmesocalendarmodel.h"
+#include "dbmesosplitmodel.h"
 #include "runcommands.h"
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
@@ -28,6 +30,36 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 	mColumnNames.append(tr("Type: "));
 
 	updateColumnLabels();
+
+	m_splitModel = new DBMesoSplitModel(this, false, -1);
+}
+
+DBMesocyclesModel::~DBMesocyclesModel()
+{
+	delete m_splitModel;
+	QMapIterator<uint,DBMesoCalendarModel*> c(m_calendarModelList);
+	c.toFront();
+	while (c.hasNext()) {
+		c.next();
+		delete c.value();
+	}
+}
+
+void DBMesocyclesModel::newMesocycle(const QStringList& infolist)
+{
+	appendList(infolist);
+	m_splitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
+		QString() << QString() << QString() << QString());
+	const uint meso_idx(count()-1);
+	m_calendarModelList.insert(meso_idx, new DBMesoCalendarModel(this, meso_idx));
+}
+
+void DBMesocyclesModel::delMesocycle(const uint meso_idx)
+{
+	DBMesoCalendarModel* mesoCal = m_calendarModelList.value(meso_idx);
+	delete mesoCal;
+	removeFromList(meso_idx);
+	m_splitModel->removeFromList(meso_idx);
 }
 
 bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
@@ -99,6 +131,66 @@ QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
 	return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
 }
 
+bool DBMesocyclesModel::setMesoStartDate(const uint row, const QDate& new_date)
+{
+	const QString strJulianDate(QString::number(new_date.toJulianDay()));
+	if (strJulianDate != getFast(row, MESOCYCLES_COL_STARTDATE))
+	{
+		setFast(row, MESOCYCLES_COL_STARTDATE, strJulianDate);
+		emit mesoCalendarFieldsChanged(row);
+		return true;
+	}
+	return false;
+}
+
+bool DBMesocyclesModel::setMesoEndDate(const uint row, const QDate& new_date)
+{
+	const QString strJulianDate(QString::number(new_date.toJulianDay()));
+	if (strJulianDate != getFast(row, MESOCYCLES_COL_ENDDATE))
+	{
+		setFast(row, MESOCYCLES_COL_ENDDATE, strJulianDate);
+		emit mesoCalendarFieldsChanged(row);
+		return true;
+	}
+	return false;
+}
+
+bool DBMesocyclesModel::setMesoSplit(const uint row, const QString& new_split)
+{
+	if (new_split != getFast(row, MESOCYCLES_COL_SPLIT))
+	{
+		setFast(row, MESOCYCLES_COL_SPLIT, new_split);
+		emit mesoCalendarFieldsChanged(row);
+		return true;
+	}
+	return false;
+}
+
+QString DBMesocyclesModel::getSplitLetter(const uint meso_idx, const uint day_of_week) const
+{
+	if (day_of_week >= 0 && day_of_week <= 6)
+		return getFast(meso_idx, MESOCYCLES_COL_SPLIT).at(day_of_week);
+	return QString();
+}
+
+QString DBMesocyclesModel::getMuscularGroup(const uint meso_idx, const QString& splitLetter) const
+{
+	return splitLetter != u"R"_qs ?
+		m_splitModel->getFast(meso_idx, static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A') + 2) :
+		tr("Rest day");
+}
+
+void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue)
+{
+	const uint splitField(static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A') + 2);
+	if (splitField < 6)
+	{
+		m_splitModel->setFast(meso_idx, splitField, newSplitValue);
+		emit modifiedChanged();
+		emit muscularGroupChanged(splitField, splitLetter);
+	}
+}
+
 QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());
@@ -130,6 +222,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 	}
 	return QString();
 }
+
 uint DBMesocyclesModel::getTotalSplits(const uint row) const
 {
 	uint nSplits(0);

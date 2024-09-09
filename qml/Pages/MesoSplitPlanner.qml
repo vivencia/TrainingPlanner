@@ -106,19 +106,17 @@ Frame {
 
 		onEditingFinished: {
 			splitModel.setMuscularGroup(text);
-			//triggers muscularGroupChanged that is captured by MesoSplitSetup on MesoCycle.qml,
-			//which will update its visual items and the main mesoSplitmodel
-			mesoSplitModel.setMuscularGroup(text);
+			mesocyclesModel.setMuscularGroup(splitModel.mesoIdx(), splitModel.splitLetter(), text);
 			exercisesListModel.makeFilterString(text);
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
 			bCanSwapPlan = swappableLetter !== "";
 		}
 
-		Component.onCompleted: mesoSplitModel.muscularGroupChanged.connect(updateMuscularGroup);
+		Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
 
 		function updateMuscularGroup(splitindex: int, splitletter: string) {
 			if (splitModel.splitLetter() === splitletter) {
-				const musculargroup = mesoSplitModel.muscularGroup();
+				const musculargroup = mesocyclesModel.getMuscularGroup(splitModel.mesoIdx(), splitletter);
 				splitModel.setMuscularGroup(musculargroup);
 				text = musculargroup;
 				exercisesListModel.makeFilterString(musculargroup);

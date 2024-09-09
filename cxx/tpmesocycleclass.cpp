@@ -1,6 +1,7 @@
 #include "tpmesocycleclass.h"
 #include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
+#include "dbmesocalendarmodel.h"
 #include "runcommands.h"
 
 #include <QQmlApplicationEngine>
@@ -13,9 +14,8 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetT
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
 	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine),
-		m_mesoComponent(nullptr), m_mesoPage(nullptr), m_plannerComponent(nullptr), m_plannerPage(nullptr),
-		m_splitComponent(nullptr), m_mesosCalendarModel(nullptr), m_calComponent(nullptr), m_calPage(nullptr),
-		m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
+		m_mesoComponent(nullptr), m_mesoPage(nullptr), m_plannerComponent(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr),
+		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
 	m_appStackView = m_QMlEngine->rootObjects().at(0)->findChild<QQuickItem*>(u"appStackView"_qs);
 }
@@ -32,9 +32,6 @@ TPMesocycleClass::~TPMesocycleClass()
 		delete m_calPage;
 		delete m_calComponent;
 	}
-
-	if (m_mesosCalendarModel)
-		delete m_mesosCalendarModel;
 
 	if (m_splitComponent)
 	{
@@ -290,7 +287,7 @@ uint TPMesocycleClass::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoCalendar.qml"_qs), QQmlComponent::Asynchronous);
 	m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_mesosCalendarModel));
+	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_MesocyclesModel->mesoCalendarModel(m_MesoIdx)));
 
 	if (m_calComponent->status() != QQmlComponent::Ready)
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -302,27 +299,24 @@ uint TPMesocycleClass::createMesoCalendarPage()
 
 void TPMesocycleClass::createMesoCalendarPage_part2()
 {
-	if (m_mesosCalendarModel->isReady())
+	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, m_QMlEngine->rootContext()));
+	#ifdef DEBUG
+	if (m_calComponent->status() == QQmlComponent::Error)
 	{
-		m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, m_QMlEngine->rootContext()));
-		#ifdef DEBUG
-		if (m_calComponent->status() == QQmlComponent::Error)
-		{
-			qDebug() << m_calComponent->errorString();
-			for (uint i(0); i < m_calComponent->errors().count(); ++i)
-				qDebug() << m_calComponent->errors().at(i).description();
-			return;
-		}
-		#endif
-		m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
-		m_calPage->setParentItem(m_appStackView);
-		emit pageReady(m_calPage, calPageCreateId);
+		qDebug() << m_calComponent->errorString();
+		for (uint i(0); i < m_calComponent->errors().count(); ++i)
+			qDebug() << m_calComponent->errors().at(i).description();
+		return;
 	}
+	#endif
+	m_QMlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
+	m_calPage->setParentItem(m_appStackView);
+	emit pageReady(m_calPage, calPageCreateId);
 }
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarModel* mesoCal)
+uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 {
 	if (!m_tDayPages.contains(date))
 	{
@@ -338,6 +332,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date, DBMesoCalendarMo
 			m_currentExercises = new tDayExercises;
 			m_tDayExercisesList.insert(date, m_currentExercises);
 
+			DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
 			const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
 			const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
 
@@ -396,7 +391,9 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 
 	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
 							enableDisableExerciseCompletedButton(exercise_idx, completed);
-	} );
+	});
+	//DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
+
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
 		const QTime workoutLenght(runCmd()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
@@ -423,10 +420,11 @@ void TPMesocycleClass::setCurrenttDay(const QDate& date)
 	m_currentExercises = m_tDayExercisesList.value(date);
 }
 
-void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate, const QString& mesoSplit)
+void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
 {
 	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
 	i.toFront();
+	DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
 	while (i.hasNext())
 	{
 		i.next();
@@ -435,9 +433,10 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& start
 			if (i.key() <= endDate)
 			{
 				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
-					Q_ARG(QString, m_mesosCalendarModel->getSplitLetter(i.key().month(), i.key().day())),
-					Q_ARG(QString, QString::number(m_mesosCalendarModel->getTrainingDay(i.key().month(), i.key().day()))),
-					Q_ARG(QString, mesoSplit));
+					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
+					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
+					Q_ARG(QString, m_MesocyclesModel->getMuscularGroup(m_MesoIdx,
+						m_MesocyclesModel->mesoCalendarModel(m_MesoIdx)->getSplitLetter(startDate.month(), startDate.day()))));
 			}
 		}
 	}

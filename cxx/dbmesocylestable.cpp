@@ -135,11 +135,12 @@ void DBMesocyclesTable::getAllMesocycles()
 			{
 				QStringList meso_info;
 				uint i(0);
+				DBMesocyclesModel* model(static_cast<DBMesocyclesModel*>(m_model));
 				do
 				{
 					for (i = MESOCYCLES_COL_ID; i < MESOCYCLES_TOTAL_COLS; ++i)
 						meso_info.append(query.value(static_cast<int>(i)).toString());
-					m_model->appendList(meso_info);
+					model->newMesocycle(meso_info);
 					meso_info.clear();
 				} while ( query.next () );
 				m_result = true;

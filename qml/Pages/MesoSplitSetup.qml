@@ -79,18 +79,15 @@ Pane {
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {
-						txtSplit.text = cboindex < 6 ? mesoSplitModel.get(mesoIdx, cboindex + 2) : qsTr("Rest day");
+						txtSplit.text = mesocyclesModel.getMuscularGroup(mesoIdx, currentValue);
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
-						txtMesoSplit.forceActiveFocus();
+						txtSplit.forceActiveFocus();
 					}
 
 					Component.onCompleted: {
-						var idx = indexOfValue(mesocyclesModel.get(mesoIdx, 6).charAt(index));
-						if (idx < 0)
-							idx = 6;
-						currentIndex = idx;
-						txtSplit.text = idx < 6 ? mesoSplitModel.get(mesoIdx, idx + 2) : qsTr("Rest day");
+						currentIndex = indexOfValue(mesocyclesModel.getSplitLetter(mesoIdx, index));
+						txtSplit.text = mesocyclesModel.getMuscularGroup(mesoIdx, valueAt(index));
 					}
 				}
 
@@ -98,22 +95,23 @@ Pane {
 					id: txtSplit
 					implicitWidth: col3Width
 
-					onEditingFinished: {
-						if (cboSplit.currentIndex !== 6)
-							mesoSplitModel.set(mesoIdx, cboSplit.currentIndex + 2, text);
+					onEditingFinished: mesocyclesModel.setMuscularGroup(mesoIdx, cboSplit.currentText, text);
+
+					onEnterOrReturnKeyPressed: {
+						if (index < 6)
+							itemAt(index+1).cboSplit.forceActiveFocus();
 					}
 				}
 			} //RowLayout
 
-			Component.onCompleted: mesoSplitModel.muscularGroupChanged.connect(updateMuscularGroup);
+			Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
 
 			function updateMuscularGroup(splitindex: int, splitletter: string) {
-				const musculargroup = mesoSplitModel.muscularGroup();
+				const musculargroup = mesocyclesModel.getMuscularGroup(mesoIdx, splitletter);
 				for (var i = 0; i < 7; ++i) {
 					if (itemAt(i).cboSplit.currentIndex === splitindex)
 						itemAt(splitindex).txtSplit.text = musculargroup;
 				}
-				mesoSplitModel.set(mesoIdx, splitindex + 2, musculargroup);
 			}
 
 		} //Repeater
@@ -134,10 +132,8 @@ Pane {
 			const ok = txtMesoSplit.text.indexOf("R") !== -1;
 			btnCreateExercisePlan.enabled = ok;
 			txtMesoSplit.ToolTip.visible = !ok;
-			if (ok) {
-				mesocyclesModel.set(mesoIdx, 6, txtMesoSplit.text);
-				showCalendarChangedDialog();
-			}
+			if (ok)
+				mesocyclesModel.setMesoSplit(mesoIdx, txtMesoSplit.text);
 		}
 	}
 
@@ -153,5 +149,9 @@ Pane {
 		}
 
 		onClicked: appDB.createExercisesPlannerPage();
+	}
+
+	function forcusOnFirstItem() {
+		splitRepeater.itemAt(0).cboSplit.forceActiveFocus();
 	}
 } //Pane
