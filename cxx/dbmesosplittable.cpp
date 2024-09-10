@@ -100,42 +100,45 @@ void DBMesoSplitTable::createTable()
 }
 
 
-void DBMesoSplitTable::getMesoSplit()
+void DBMesoSplitTable::getAllMesoSplits()
 {
 	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QString mesoId(m_execArgs.at(0).toString());
-
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits WHERE meso_id=") + mesoId );
+		query.setForwardOnly(true);
+		const QString strQuery(u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_qs);
 
-		if (query.exec())
+		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
-				QStringList split_info;
-				uint i(0);
-				for (i = 0; i < 8; ++i)
-					split_info.append(query.value(static_cast<int>(i)).toString());
-				m_model->appendList(split_info);
+				uint meso_idx(0);
+				do
+				{
+					if (meso_idx < m_model->count())
+					{
+						for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+							m_model->setFast(meso_idx, i, query.value(i).toString());
+					}
+					++meso_idx;
+				} while (query.next ());
 				m_result = true;
 			}
 		}
+		if (!m_result)
+		{
+			MSG_OUT("DBMesoSplitTable getAllMesoSplits Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoSplitTable getAllMesoSplits Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+			MSG_OUT("DBMesoSplitTable getAllMesoSplits SUCCESS")
+		MSG_OUT(strQuery);
 		mSqlLiteDB.close();
 	}
-
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoSplitTable getMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable getMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
 	else
-		MSG_OUT("DBMesoSplitTable getMesoSplit SUCCESS")
-
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+		MSG_OUT("DBMesoSplitTable getAllMesoSplits ERROR: Could not open database")
 }
 
 

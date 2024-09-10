@@ -59,7 +59,7 @@ public:
 	inline DBMesoSplitModel* getSplitModel(const QChar& splitLetter)
 	{
 		if (!m_splitModels.contains(splitLetter))
-			m_splitModels.insert(splitLetter, new DBMesoSplitModel(this));
+			m_splitModels.insert(splitLetter, new DBMesoSplitModel(this, true, m_MesoIdx));
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
@@ -82,7 +82,7 @@ public:
 	inline DBTrainingDayModel* gettDayModel(const QDate& date)
 	{
 		if (!m_tDayModels.contains(date))
-			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(this));
+			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(m_MesoIdx, this));
 		else
 			m_CurrenttDayModel = m_tDayModels.value(date);
 		return m_CurrenttDayModel;

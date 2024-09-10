@@ -80,10 +80,8 @@ signals:
 private:
 	QString m_dbFileName;
 	QString m_appPrivateDir;
-	QSettings* m_appSettings;
 	QLocale* m_appLocale;
 
-	static RunCommands* app_runcmd;
 	bool mb_appSuspended;
 
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
@@ -92,10 +90,14 @@ private:
 		return newTime.toString(u"hh:mm"_qs);
 	}
 
+	static RunCommands* app_runcmd;
 	friend RunCommands* runCmd();
+
+	static QSettings* app_settings;
+	friend QSettings* appSettings();
 };
 
 inline RunCommands* runCmd() { return RunCommands::app_runcmd; }
-
+inline QSettings* appSettings() { return RunCommands::app_settings; }
 
 #endif // RUNCOMMANDS_H

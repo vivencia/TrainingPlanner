@@ -28,8 +28,11 @@ CheckBox {
 		text: control.text
 		color: control.enabled ? textColor : "gray"
 		wrapMode: Text.WordWrap
+		font.weight: Font.Bold
+		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
 		font.pointSize: AppSettings.fontSizeText
-		font.weight: Font.ExtraBold
+		minimumPointSize: 8
+		maximumLineCount: 2
 		leftPadding: control.indicator.width + control.spacing
 		topPadding: fontMetrics.boundingRect(text).width > control.width ? -4 : 2
 	}

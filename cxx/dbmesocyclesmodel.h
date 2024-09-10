@@ -43,58 +43,60 @@ public:
 	explicit DBMesocyclesModel(QObject* parent, DBUserModel* userModel);
 	~DBMesocyclesModel();
 
-	void newMesocycle(const QStringList& infolist);
+	const uint newMesocycle(const QStringList& infolist);
 	void delMesocycle(const uint meso_idx);
+	void finishedLoadingFromDatabase();
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
-	virtual bool importFromText(QFile* inFile, QString& inData) override;
-	virtual inline bool isFieldFormatSpecial (const uint field) const override
-	{
-		return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE;
-	}
+	inline int currentOwnMeso() const { return m_currentOwnMeso; }
+	inline int currentOwnMesoId() const { return m_currentOwnMeso != -1 ? getIntFast(m_currentOwnMeso, MESOCYCLES_COL_ID) : -1; }
+	inline const QString& currentOwnMesoStrId() const { return m_currentOwnMeso != -1 ? getFast(m_currentOwnMeso, MESOCYCLES_COL_ID) : STR_MINUS_ONE; }
+	inline int currentOtherMeso() const { return m_currentOtherMeso; }
+	inline int currentOtherMesoId() const { return m_currentOtherMeso != -1 ? getIntFast(m_currentOtherMeso, MESOCYCLES_COL_ID) : -1; }
+	inline const QString& currentOtherMesoStrId() const { return m_currentOtherMeso != -1 ? getFast(m_currentOtherMeso, MESOCYCLES_COL_ID) : STR_MINUS_ONE; }
+	void setCurrentMeso(const uint meso_idx);
 
-	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
-	QString formatFieldToImport(const QString& fieldValue) const;
-
-	Q_INVOKABLE bool setMesoStartDate(const uint row, const QDate& new_date);
-	Q_INVOKABLE bool setMesoEndDate(const uint row, const QDate& new_date);
-	Q_INVOKABLE bool setMesoSplit(const uint row, const QString& new_split);
+	Q_INVOKABLE bool setMesoStartDate(const uint meso_idx, const QDate& new_date);
+	Q_INVOKABLE bool setMesoEndDate(const uint meso_idx, const QDate& new_date);
+	Q_INVOKABLE bool setMesoSplit(const uint meso_idx, const QString& new_split);
 
 	//mesoSplitModel is not accessed directly, only through here
 	Q_INVOKABLE QString getSplitLetter(const uint meso_idx, const uint day_of_week) const;
 	Q_INVOKABLE QString getMuscularGroup(const uint meso_idx, const QString& splitLetter) const;
 	Q_INVOKABLE void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue);
 
-	Q_INVOKABLE inline bool isOwnMeso(const int row) const
+	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.at(meso_idx); }
+
+	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const
 	{
-		if (row >= 0 && row < m_modeldata.count())
-			return getFast(row, MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
+		if (meso_idx >= 0 && meso_idx < m_modeldata.count())
+			return getFast(meso_idx, MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
 		return false;
 	}
+	Q_INVOKABLE void setOwnMeso(const int meso_idx, const bool bOwnMeso);
 
-	Q_INVOKABLE inline bool isRealMeso(const int row) const
+	Q_INVOKABLE inline bool isRealMeso(const int meso_idx) const
 	{
-		if (row >= 0 && row < m_modeldata.count())
-			return getFast(row, MESOCYCLES_COL_REALMESO) == QStringLiteral("1");
+		if (meso_idx >= 0 && meso_idx < m_modeldata.count())
+			return getFast(meso_idx, MESOCYCLES_COL_REALMESO) == STR_ONE;
 		return false;
 	}
-
-	Q_INVOKABLE inline void setIsRealMeso(const uint row, const bool bRealMeso)
+	Q_INVOKABLE inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
-		set(row, MESOCYCLES_COL_REALMESO, bRealMeso ? u"1"_qs : u"0"_qs);
-		emit realMesoChanged(row);
+		set(meso_idx, MESOCYCLES_COL_REALMESO, bRealMeso ? STR_ONE : STR_ZERO);
+		emit realMesoChanged(meso_idx);
 	}
 
-	Q_INVOKABLE inline QDate getEndDate(const uint row) const
+	Q_INVOKABLE inline QDate getEndDate(const uint meso_idx) const
 	{
-		return isRealMeso(row) ? QDate::fromJulianDay(m_modeldata.at(row).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
+		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
 							QDate::currentDate().addDays(730);
 	}
 
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
 
-	uint getTotalSplits(const uint row) const;
+	void getTotalSplits(const uint meso_idx);
 	int getMesoIdx(const int mesoId) const;
 	Q_INVOKABLE QString getMesoInfo(const int mesoid, const uint field) const;
 	int getPreviousMesoId(const int current_mesoid) const;
@@ -105,6 +107,15 @@ public:
 	bool isDifferent(const DBMesocyclesModel* model);
 	void updateColumnLabels();
 
+	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	{
+		return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE;
+	}
+
+	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
+	QString formatFieldToImport(const QString& fieldValue) const;
+
 signals:
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void realMesoChanged(const uint meso_idx);
@@ -114,6 +125,10 @@ private:
 	DBUserModel* m_userModel;
 	DBMesoSplitModel* m_splitModel;
 	QMap<uint,DBMesoCalendarModel*> m_calendarModelList;
+	QList<uint> m_ownMesoIdxs;
+	QList<uint> m_otherMesoIdxs;
+	QList<uint> m_totalSplits;
+	int m_currentOwnMeso, m_currentOtherMeso;
 };
 
 #endif // DBMESOCYCLESMODEL_H

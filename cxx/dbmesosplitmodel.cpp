@@ -497,6 +497,7 @@ bool DBMesoSplitModel::updateFromModel(const TPListModel* model)
 		} while (++lst_itr != lst_itrend);
 		setSplitLetter(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->splitLetter());
 		setMuscularGroup(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->muscularGroup());
+		m_MesoIdx = static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->mesoIdx();
 		return true;
 	}
 	return false;

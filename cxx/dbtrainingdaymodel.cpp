@@ -8,8 +8,8 @@
 static QString multiUseString;
 static const QLatin1Char fancy_record_separator2(';');
 
-DBTrainingDayModel::DBTrainingDayModel(QObject* parent)
-	: TPListModel{parent}, mb_DayIsFinished(false), mb_DayIsEditable(false)
+DBTrainingDayModel::DBTrainingDayModel(const uint meso_idx, QObject* parent)
+	: TPListModel{parent}, mb_DayIsFinished(false), mb_DayIsEditable(false), m_mesoIdx(meso_idx)
 {
 	m_tableId = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);

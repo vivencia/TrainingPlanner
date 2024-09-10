@@ -19,7 +19,7 @@ public:
 
 	virtual void createTable();
 	virtual void updateDatabase() {}
-	void getMesoSplit();
+	void getAllMesoSplits();
 	void saveMesoSplit();
 	void getCompleteMesoSplit(const bool bEmitSignal = true);
 	void saveMesoSplitComplete();

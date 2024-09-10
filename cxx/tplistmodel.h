@@ -24,12 +24,16 @@ static const uint MESOCALENDAR_TABLE_ID(0x0004);
 static const uint TRAININGDAY_TABLE_ID(0x0005);
 static const uint USER_TABLE_ID(0x0006);
 
-static const QString DBExercisesObjectName(QStringLiteral("Exercises"));
-static const QString DBMesocyclesObjectName(QStringLiteral("Mesocycles"));
-static const QString DBMesoSplitObjectName(QStringLiteral("MesocyclesSplits"));
-static const QString DBMesoCalendarObjectName(QStringLiteral("MesoCalendar"));
-static const QString DBTrainingDayObjectName(QStringLiteral("TrainingDay"));
-static const QString DBUserObjectName(QStringLiteral("UserProfile"));
+static const QString DBExercisesObjectName(u"Exercises"_qs);
+static const QString DBMesocyclesObjectName(u"Mesocycles"_qs);
+static const QString DBMesoSplitObjectName(u"MesocyclesSplits"_qs);
+static const QString DBMesoCalendarObjectName(u"MesoCalendar"_qs);
+static const QString DBTrainingDayObjectName(u"TrainingDay"_qs);
+static const QString DBUserObjectName(u"UserProfile"_qs);
+
+static const QString STR_MINUS_ONE(u"-1"_qs);
+static const QString STR_ZERO(u"0"_qs);
+static const QString STR_ONE(u"1"_qs);
 
 class TPListModel : public QAbstractListModel
 {

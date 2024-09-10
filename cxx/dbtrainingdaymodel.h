@@ -44,9 +44,10 @@ Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY d
 Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject* parent = nullptr);
+	explicit DBTrainingDayModel(const uint meso_idx, QObject* parent = nullptr);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
+	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	void getSaveInfo(QStringList& data) const;
@@ -193,6 +194,7 @@ private:
 	QList<exerciseEntry*> m_ExerciseData;
 	bool mb_DayIsFinished, mb_DayIsEditable;
 	QMap<uint, bool> m_CompositeExerciseList;
+	uint m_mesoIdx;
 
 	friend class DBMesoSplitModel;
 };

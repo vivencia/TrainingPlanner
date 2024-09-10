@@ -18,11 +18,14 @@
 #endif
 
 RunCommands* RunCommands::app_runcmd(nullptr);
+QSettings* RunCommands::app_settings(nullptr);
 
 RunCommands::RunCommands( QSettings* settings, QObject *parent )
-	: QObject(parent), m_appSettings(settings), m_appLocale(nullptr), mb_appSuspended(false)
+	: QObject(parent), m_appLocale(nullptr), mb_appSuspended(false)
 {
 	app_runcmd = this;
+	app_settings = settings;
+
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)
 		{
@@ -498,28 +501,29 @@ void RunCommands::setAppLocale(const QString& localeStr)
 
 void RunCommands::populateSettingsWithDefaultValue()
 {
-	if (m_appSettings->value("appVersion").toString().isEmpty())
+	if (appSettings()->value("appVersion").toString().isEmpty())
 	{
-		m_appSettings->setValue("appVersion", TP_APP_VERSION);
-		m_appSettings->setValue("weightUnit", u"(kg)"_qs);
-		m_appSettings->setValue("themeStyle", u"Material"_qs);
-		m_appSettings->setValue("colorScheme", u"Blue"_qs);
-		m_appSettings->setValue("primaryDarkColor", u"#1976D2"_qs);
-		m_appSettings->setValue("primaryColor", u"#25b5f3"_qs);
-		m_appSettings->setValue("primaryLightColor", u"#BBDEFB"_qs);
-		m_appSettings->setValue("paneBackgroundColor", u"#1976d2"_qs);
-		m_appSettings->setValue("entrySelectedColor", u"#6495ed"_qs);
-		m_appSettings->setValue("exercisesListVersion", u"0"_qs);
-		m_appSettings->setValue("backupFolder", u""_qs);
-		m_appSettings->setValue("fontColor", u"white"_qs);
-		m_appSettings->setValue("disabledFontColor", u"lightgray"_qs);
-		m_appSettings->setValue("iconFolder", u"white/"_qs);
-		m_appSettings->setValue("fontSize", FONT_POINT_SIZE);
-		m_appSettings->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
-		m_appSettings->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
-		m_appSettings->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
-		m_appSettings->setValue("lastViewedMesoIdx", 0);
-		m_appSettings->setValue("alwaysAskConfirmation", true);
-		m_appSettings->sync();
+		appSettings()->setValue("appVersion", TP_APP_VERSION);
+		appSettings()->setValue("weightUnit", u"(kg)"_qs);
+		appSettings()->setValue("themeStyle", u"Material"_qs);
+		appSettings()->setValue("colorScheme", u"Blue"_qs);
+		appSettings()->setValue("primaryDarkColor", u"#1976D2"_qs);
+		appSettings()->setValue("primaryColor", u"#25b5f3"_qs);
+		appSettings()->setValue("primaryLightColor", u"#BBDEFB"_qs);
+		appSettings()->setValue("paneBackgroundColor", u"#1976d2"_qs);
+		appSettings()->setValue("entrySelectedColor", u"#6495ed"_qs);
+		appSettings()->setValue("exercisesListVersion", u"0"_qs);
+		appSettings()->setValue("backupFolder", u""_qs);
+		appSettings()->setValue("fontColor", u"white"_qs);
+		appSettings()->setValue("disabledFontColor", u"lightgray"_qs);
+		appSettings()->setValue("iconFolder", u"white/"_qs);
+		appSettings()->setValue("fontSize", FONT_POINT_SIZE);
+		appSettings()->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
+		appSettings()->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
+		appSettings()->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
+		appSettings()->setValue("lastViewedOwnMesoIdx", -1);
+		appSettings()->setValue("lastViewedOtherMesoIdx", -1);
+		appSettings()->setValue("alwaysAskConfirmation", true);
+		appSettings()->sync();
 	}
 }

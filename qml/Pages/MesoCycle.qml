@@ -183,7 +183,7 @@ TPPage {
 
 				onClicked: {
 					bOwnMeso = checked;
-					mesocyclesModel.set(mesoIdx, 8, bOwnMeso ? userModel.userName(0) : userModel.getCurrentUserName(false));
+					mesocyclesModel.setOwnMeso(bOwnMeso);
 				}
 			}
 

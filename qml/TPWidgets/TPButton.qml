@@ -98,6 +98,8 @@ Rectangle {
 		color: button.enabled ? textColor : AppSettings.disabledFontColor
 		font.weight: Font.ExtraBold
 		font.bold: true
+		minimumPointSize: 8
+		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
 		font.pointSize: AppSettings.fontSizeText*0.9
 		leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5

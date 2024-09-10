@@ -12,6 +12,8 @@
 #define MESOSPLIT_COL_WEIGHT 6
 #define MESOSPLIT_COL_WORKINGSET 7
 
+#define SIMPLE_MESOSPLIT_TOTAL_COLS 8
+
 class DBTrainingDayModel;
 class DBExercisesModel;
 

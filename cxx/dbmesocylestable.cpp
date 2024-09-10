@@ -126,10 +126,10 @@ void DBMesocyclesTable::getAllMesocycles()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT * FROM mesocycles_table") );
+		query.setForwardOnly(true);
+		const QString strQuery(u"SELECT * FROM mesocycles_table"_qs);
 
-		if (query.exec())
+		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
@@ -142,7 +142,8 @@ void DBMesocyclesTable::getAllMesocycles()
 						meso_info.append(query.value(static_cast<int>(i)).toString());
 					model->newMesocycle(meso_info);
 					meso_info.clear();
-				} while ( query.next () );
+				} while (query.next ());
+				model->finishedLoadingFromDatabase();
 				m_result = true;
 			}
 		}
@@ -153,8 +154,11 @@ void DBMesocyclesTable::getAllMesocycles()
 		}
 		else
 			MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
+		MSG_OUT(strQuery);
 		mSqlLiteDB.close();	
 	}
+	else
+		MSG_OUT("DBMesocyclesTable getAllMesocycles ERROR: Could not open database")
 }
 
 void DBMesocyclesTable::saveMesocycle()

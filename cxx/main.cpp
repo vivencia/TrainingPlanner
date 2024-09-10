@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	DbManager db(&appSettings);
+	DbManager db();
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);
 	#endif

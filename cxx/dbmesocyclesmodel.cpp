@@ -3,6 +3,8 @@
 #include "dbmesosplitmodel.h"
 #include "runcommands.h"
 
+#include <QSettings>
+
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 	: TPListModel(parent), m_userModel(userModel)
 {
@@ -45,13 +47,21 @@ DBMesocyclesModel::~DBMesocyclesModel()
 	}
 }
 
-void DBMesocyclesModel::newMesocycle(const QStringList& infolist)
+const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 {
 	appendList(infolist);
-	m_splitModel->appendList(QStringList() << u"-1"_qs << u"-1"_qs << QString() << QString() <<
+	m_splitModel->appendList(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
 		QString() << QString() << QString() << QString());
 	const uint meso_idx(count()-1);
 	m_calendarModelList.insert(meso_idx, new DBMesoCalendarModel(this, meso_idx));
+	m_totalSplits.append(0);
+	getTotalSplits(meso_idx);
+	if (isOwnMeso(meso_idx))
+		m_ownMesoIdxs.append(meso_idx);
+	else
+		m_otherMesoIdxs.append(meso_idx);
+
+	return meso_idx;
 }
 
 void DBMesocyclesModel::delMesocycle(const uint meso_idx)
@@ -60,107 +70,81 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 	delete mesoCal;
 	removeFromList(meso_idx);
 	m_splitModel->removeFromList(meso_idx);
-}
-
-bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
-{
-	char buf[256];
-	QStringList modeldata;
-	uint col(1);
-	QString value;
-
-	//Because a DBMesocyclesModel does not have an extra info to export nor import, inFile is already at the
-	//first relevant information of the meso, its name
-	inData.chop(1);
-	int sep_idx(inData.indexOf(':'));
-	if (sep_idx != -1)
+	m_totalSplits.removeAt(meso_idx);
+	if (isOwnMeso(meso_idx))
 	{
-		value = inData.right(inData.length() - sep_idx - 2);
-		modeldata.append(u"-1"_qs); //id
-		modeldata.append(value); //meso name
-		col++;
+		static_cast<void>(m_ownMesoIdxs.removeOne(meso_idx));
+		if (m_currentOwnMeso == meso_idx)
+			m_currentOwnMeso = m_ownMesoIdxs.isEmpty() ? -1 : m_ownMesoIdxs.last();
 	}
 	else
-		return false;
+	{
+		static_cast<void>(m_otherMesoIdxs.removeOne(meso_idx));
+		if (m_currentOtherMeso == meso_idx)
+			m_currentOtherMeso = m_otherMesoIdxs.isEmpty() ? -1 : m_otherMesoIdxs.last();
+	}
+}
 
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
+void DBMesocyclesModel::finishedLoadingFromDatabase()
+{
+	setReady(true);
+	m_currentOwnMeso = appSettings()->value("lastViewedOwnMesoIdx").toInt();
+	m_currentOtherMeso = appSettings()->value("lastViewedOtherMesoIdx").toInt();
+}
+
+void DBMesocyclesModel::setCurrentMeso(const uint meso_idx)
+{
+	if (isOwnMeso(meso_idx))
+	{
+		if (m_ownMesoIdxs.contains(meso_idx))
 		{
-			if (!modeldata.isEmpty())
-			{
-				modeldata.append(modeldata.at(MESOCYCLES_COL_ENDDATE).toInt() != 0 ? u"1"_qs : u"0"_qs); //MESOCYCLES_COL_REALMESO
-				appendList(modeldata);
-				modeldata.clear();
-				col = 1;
-			}
-		}
-		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-			{
-				value = inData.right(inData.length() - sep_idx - 2);
-				if (isFieldFormatSpecial(col))
-					modeldata.append(formatFieldToImport(value));
-				else
-					modeldata.append(value);
-				col++;
-			}
-			else
-			{
-				if (inData.contains(u"##"_qs))
-					break;
-			}
+			m_currentOwnMeso = meso_idx;
+			appSettings()->setValue("lastViewedOwnMesoIdx", meso_idx);
+			appSettings()->sync();
 		}
 	}
-	return count() > 0;
-}
-
-QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
-{
-	if (field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE)
-		return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 	else
-		return QString();
+	{
+		if (m_otherMesoIdxs.contains(meso_idx))
+		{
+			m_currentOtherMeso = meso_idx;
+			appSettings()->setValue("lastViewedOtherMesoIdx", meso_idx);
+			appSettings()->sync();
+		}
+	}
 }
 
-QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
-{
-	return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
-}
-
-bool DBMesocyclesModel::setMesoStartDate(const uint row, const QDate& new_date)
+bool DBMesocyclesModel::setMesoStartDate(const uint meso_idx, const QDate& new_date)
 {
 	const QString strJulianDate(QString::number(new_date.toJulianDay()));
-	if (strJulianDate != getFast(row, MESOCYCLES_COL_STARTDATE))
+	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_STARTDATE))
 	{
-		setFast(row, MESOCYCLES_COL_STARTDATE, strJulianDate);
-		emit mesoCalendarFieldsChanged(row);
+		setFast(meso_idx, MESOCYCLES_COL_STARTDATE, strJulianDate);
+		emit mesoCalendarFieldsChanged(meso_idx);
 		return true;
 	}
 	return false;
 }
 
-bool DBMesocyclesModel::setMesoEndDate(const uint row, const QDate& new_date)
+bool DBMesocyclesModel::setMesoEndDate(const uint meso_idx, const QDate& new_date)
 {
 	const QString strJulianDate(QString::number(new_date.toJulianDay()));
-	if (strJulianDate != getFast(row, MESOCYCLES_COL_ENDDATE))
+	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_ENDDATE))
 	{
-		setFast(row, MESOCYCLES_COL_ENDDATE, strJulianDate);
-		emit mesoCalendarFieldsChanged(row);
+		setFast(meso_idx, MESOCYCLES_COL_ENDDATE, strJulianDate);
+		emit mesoCalendarFieldsChanged(meso_idx);
 		return true;
 	}
 	return false;
 }
 
-bool DBMesocyclesModel::setMesoSplit(const uint row, const QString& new_split)
+bool DBMesocyclesModel::setMesoSplit(const uint meso_idx, const QString& new_split)
 {
-	if (new_split != getFast(row, MESOCYCLES_COL_SPLIT))
+	if (new_split != getFast(meso_idx, MESOCYCLES_COL_SPLIT))
 	{
-		setFast(row, MESOCYCLES_COL_SPLIT, new_split);
-		emit mesoCalendarFieldsChanged(row);
+		setFast(meso_idx, MESOCYCLES_COL_SPLIT, new_split);
+		emit mesoCalendarFieldsChanged(meso_idx);
+		getTotalSplits(meso_idx);
 		return true;
 	}
 	return false;
@@ -188,6 +172,23 @@ void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& spl
 		m_splitModel->setFast(meso_idx, splitField, newSplitValue);
 		emit modifiedChanged();
 		emit muscularGroupChanged(splitField, splitLetter);
+	}
+}
+
+void DBMesocyclesModel::setOwnMeso(const int row, const bool bOwnMeso)
+{
+	set(row, MESOCYCLES_COL_CLIENT, bOwnMeso ? m_userModel->userName(0) : m_userModel->getCurrentUserName(false));
+	if (!bOwnMeso)
+	{
+		static_cast<void>(m_ownMesoIdxs.removeOne(row));
+		if (!m_otherMesoIdxs.contains(row))
+			m_otherMesoIdxs.append(row);
+	}
+	else
+	{
+		static_cast<void>(m_otherMesoIdxs.removeOne(row));
+		if (!m_ownMesoIdxs.contains(row))
+			m_ownMesoIdxs.append(row);
 	}
 }
 
@@ -223,14 +224,14 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 	return QString();
 }
 
-uint DBMesocyclesModel::getTotalSplits(const uint row) const
+void DBMesocyclesModel::getTotalSplits(const uint meso_idx)
 {
 	uint nSplits(0);
-	if (row < m_modeldata.count())
+	if (meso_idx < m_modeldata.count())
 	{
 		if (!m_modeldata.isEmpty())
 		{
-			const QString mesoSplit(m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT));
+			const QString mesoSplit(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_SPLIT));
 			QString::const_iterator itr(mesoSplit.constBegin());
 			const QString::const_iterator itr_end(mesoSplit.constEnd());
 			QString mesoLetters;
@@ -245,7 +246,7 @@ uint DBMesocyclesModel::getTotalSplits(const uint row) const
 			} while (++itr != itr_end);
 		}
 	}
-	return nSplits;
+	m_totalSplits[meso_idx] = nSplits;
 }
 
 int DBMesocyclesModel::getMesoIdx(const int mesoId) const
@@ -369,4 +370,73 @@ void DBMesocyclesModel::updateColumnLabels()
 	}
 	mColumnNames[MESOCYCLES_COL_COACH] = strCoach;
 	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
+}
+
+bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
+{
+	char buf[256];
+	QStringList modeldata;
+	uint col(1);
+	QString value;
+
+	//Because a DBMesocyclesModel does not have an extra info to export nor import, inFile is already at the
+	//first relevant information of the meso, its name
+	inData.chop(1);
+	int sep_idx(inData.indexOf(':'));
+	if (sep_idx != -1)
+	{
+		value = inData.right(inData.length() - sep_idx - 2);
+		modeldata.append(STR_MINUS_ONE); //id
+		modeldata.append(value); //meso name
+		col++;
+	}
+	else
+		return false;
+
+	while (inFile->readLine(buf, sizeof(buf)) != -1) {
+		inData = buf;
+		inData.chop(1);
+		if (inData.isEmpty())
+		{
+			if (!modeldata.isEmpty())
+			{
+				modeldata.append(modeldata.at(MESOCYCLES_COL_ENDDATE).toInt() != 0 ? STR_ONE : STR_ZERO); //MESOCYCLES_COL_REALMESO
+				appendList(modeldata);
+				modeldata.clear();
+				col = 1;
+			}
+		}
+		else
+		{
+			sep_idx = inData.indexOf(':');
+			if (sep_idx != -1)
+			{
+				value = inData.right(inData.length() - sep_idx - 2);
+				if (isFieldFormatSpecial(col))
+					modeldata.append(formatFieldToImport(value));
+				else
+					modeldata.append(value);
+				col++;
+			}
+			else
+			{
+				if (inData.contains(u"##"_qs))
+					break;
+			}
+		}
+	}
+	return count() > 0;
+}
+
+QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
+{
+	if (field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE)
+		return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+	else
+		return QString();
+}
+
+QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
+{
+	return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
 }

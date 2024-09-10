@@ -23,7 +23,7 @@ QML_ELEMENT
 public:
 	explicit DBMesoCalendarModel(DBMesocyclesModel* parentModel, const uint mesoIdx);
 
-	//Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 8; }
+	inline uint mesoIdx() const { return mMesoIdx; }
 	void createModel();
 	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
 	void updateModel(const QDate& startDate, const QString& newSplitLetter);
