@@ -1,14 +1,14 @@
 #include <QSoundEffect>
 
 #include "tptimer.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 TPTimer::TPTimer(QObject* parent)
 	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), m_totalSeconds(0), mb_stopWatch(true),
 		mb_timerForward(true), mb_paused(false), m_alarmSound(nullptr)
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
-	connect(runCmd(), &RunCommands::appResumed, this, &TPTimer::correctTimer);
+	connect(appUtils(), &RunCommands::appResumed, this, &TPTimer::correctTimer);
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
 	m_originalStartTime = u"00:00:00"_qs;
@@ -24,7 +24,7 @@ void TPTimer::prepareTimer(const QString& strStartTime)
 {
 	m_originalStartTime = strStartTime.contains('-') ?
 				u"00:00:00"_qs :
-				runCmd()->calculateTimeDifference_str(strStartTime, runCmd()->getCurrentTimeString());
+				appUtils()->calculateTimeDifference_str(strStartTime, appUtils()->getCurrentTimeString());
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -43,7 +43,7 @@ void TPTimer::startTimer(const QString& initialTimeOfDay)
 		if (initialTimeOfDay.contains('-'))
 			m_timeOfDay = QTime::currentTime();
 		else
-			m_timeOfDay = runCmd()->timeFromStrTime(initialTimeOfDay);
+			m_timeOfDay = appUtils()->timeFromStrTime(initialTimeOfDay);
 	}
 	else
 	{

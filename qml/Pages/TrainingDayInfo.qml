@@ -17,8 +17,6 @@ TPPage {
 	objectName: "trainingDayPage"
 
 	required property date mainDate
-	required property int mesoId
-	required property int mesoIdx
 	required property DBTrainingDayModel tDayModel
 
 	property string tDay
@@ -44,7 +42,7 @@ TPPage {
 	property TimerDialog timerDialog: null
 
 	onPageActivated: {
-		itemManager.setCurrenttDay(mainDate);
+		appDB.itemManager(tDayModel.mesoIdx).setCurrenttDay(mainDate);
 		changeComboModel();
 	}
 
@@ -82,8 +80,8 @@ TPPage {
 
 	TimePicker {
 		id: dlgTimeIn
-		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtInTime.text)
-		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtInTime.text)
+		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtInTime.text)
+		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtInTime.text)
 		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => {
@@ -96,12 +94,12 @@ TPPage {
 
 	TimePicker {
 		id: dlgTimeOut
-		hrsDisplay: runCmd.getHourOrMinutesFromStrTime(txtOutTime.text)
-		minutesDisplay: runCmd.getMinutesOrSeconsFromStrTime(txtOutTime.text)
+		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
+		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
 		parentPage: trainingDayPage
 
 		Component.onCompleted: {
-			if (runCmd.areDatesTheSame(mainDate, new Date()))
+			if (appUtils.areDatesTheSame(mainDate, new Date()))
 				bOnlyFutureTime = true;
 		}
 
@@ -113,16 +111,16 @@ TPPage {
 	}
 	function timeManuallyEdited() {
 		if (editMode) {
-			const workoutLenght = runCmd.calculateTimeDifference(timeIn, timeOut);
+			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			appDB.setDayIsFinished(mainDate, true);
-			itemManager.rollUpExercises();
+			appDB.setDayIsFinished(tDayModel, true);
+			appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
 		}
 		else {
-			if (runCmd.areDatesTheSame(mainDate, new Date())) {
+			if (appUtils.areDatesTheSame(mainDate, new Date())) {
 				optTimeConstrainedSession.checked = true;
 				workoutTimer.stopWatch = false;
-				workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(runCmd.getCurrentTimeString(), timeOut));
+				workoutTimer.prepareTimer(appUtils.calculateTimeDifference_str(appUtils.getCurrentTimeString(), timeOut));
 			}
 		}
 	}
@@ -148,15 +146,15 @@ TPPage {
 
 	TimePicker {
 		id: dlgTimeEndSession
-		hrsDisplay: runCmd.getHourFromCurrentTime()
-		minutesDisplay: runCmd.getMinutesFromCurrentTime()
+		hrsDisplay: appUtils.getHourFromCurrentTime()
+		minutesDisplay: appUtils.getMinutesFromCurrentTime()
 		bOnlyFutureTime: true
 		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => {
 			workoutTimer.stopWatch = false;
-			workoutTimer.prepareTimer(runCmd.calculateTimeDifference_str(
-					runCmd.getCurrentTimeString(), hour + ":" + minutes));
+			workoutTimer.prepareTimer(appUtils.calculateTimeDifference_str(
+					appUtils.getCurrentTimeString(), hour + ":" + minutes));
 		}
 	}
 
@@ -175,7 +173,7 @@ TPPage {
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			itemManager.removeExerciseObject(exerciseidx);
+			appDB.itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx);
 			return;
 		}
 
@@ -186,7 +184,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -203,7 +201,7 @@ TPPage {
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			itemManager.removeSetObject(setnumber, exerciseidx);
+			appDB.itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx);
 			return;
 		}
 
@@ -214,7 +212,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
+					msgRemoveSet.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -237,7 +235,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(); } );
+					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(tDayModel); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -335,7 +333,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
-					tipTimeWarn.button1Clicked.connect(function () { itemManager.resetWorkout(); } );
+					tipTimeWarn.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -410,7 +408,7 @@ TPPage {
 				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + runCmd.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(mesoIdx, 1) + "</b><br>" +
+				text: "<b>" + appUtils.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(tDayModel.mesoIdx, 1) + "</b><br>" +
 					(splitLetter !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
 										qsTr("Rest day"))
 				font.pointSize: AppSettings.fontSizeTitle
@@ -563,7 +561,7 @@ TPPage {
 							id: btnInTime
 							imageSource: "time.png"
 							imageSize: 30
-							enabled: editMode || !runCmd.areDatesTheSame(mainDate, new Date())
+							enabled: editMode || !appUtils.areDatesTheSame(mainDate, new Date())
 
 							anchors {
 								top: parent.top
@@ -753,8 +751,8 @@ TPPage {
 	}
 
 	Component.onCompleted: {
-		mesoSplit = mesocyclesModel.get(mesoIdx, 6);
-		bRealMeso = mesocyclesModel.get(mesoIdx, 11) !== "0";
+		mesoSplit = mesocyclesModel.get(tDayModel.mesoIdx, 6);
+		bRealMeso = mesocyclesModel.get(tDayModel.mesoIdx, 11) !== "0";
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		tDayModel.saveWorkout.connect(saveWorkout);
@@ -845,8 +843,8 @@ TPPage {
 
 				onClicked: {
 					if (timeIn.indexOf("-") === -1)
-						workoutTimer.prepareTimer(runCmd.getCurrentTimeString());
-					timeIn = runCmd.getCurrentTimeString();
+						workoutTimer.prepareTimer(appUtils.getCurrentTimeString());
+					timeIn = appUtils.getCurrentTimeString();
 					workoutTimer.startTimer(timeIn);
 					tDayModel.setTimeIn(timeIn);
 					tDayModel.dayIsEditable = true;
@@ -900,10 +898,10 @@ TPPage {
 					workoutTimer.stopTimer();
 					const sessionLength = workoutTimer.elapsedTime();
 					updateTimer(sessionLength.getHours(), sessionLength.getMinutes(), sessionLength.getSeconds());
-					timeOut = runCmd.getCurrentTimeString();
+					timeOut = appUtils.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsEditable = false;
-					itemManager.rollUpExercises();
+					appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 				}
 			}
@@ -987,7 +985,7 @@ TPPage {
 		parentPage: trainingDayPage
 	}
 
-	onSplitLetterChanged: exercisesListModel.makeFilterString(mesocyclesModel.getMuscularGroup(mesoIdx, splitLetter));
+	onSplitLetterChanged: exercisesListModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
 
 	function saveWorkout() {
 		appDB.saveTrainingDay();
@@ -1016,17 +1014,18 @@ TPPage {
 			else {
 				tDay = 0;
 				bDayIsFinished = false;
+				tDayModel.dayIsFinished(false);
 			}
-			if (customBoolProperty1)
-				appDB.updateMesoCalendarEntry(mainDate, tDay, newSplitLetter, bDayIsFinished);
-			else
-				appDB.updateMesoCalendarModel(mainDate, newSplitLetter);
 			splitLetter = newSplitLetter;
 			tDayModel.setTrainingDay(tDay);
 			tDayModel.setSplitLetter(splitLetter);
+			if (customBoolProperty1)
+				appDB.updateMesoCalendarEntry(tDayModel);
+			else
+				appDB.updateMesoCalendarModel(tDayModel);
 			saveWorkout();
 			if (splitLetter !== "R")
-				appDB.verifyTDayOptions(mainDate, splitLetter);
+				appDB.verifyTDayOptions(tDayModel);
 		}
 
 		onButton2Clicked:
@@ -1087,7 +1086,7 @@ TPPage {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		itemManager.createExerciseObject(exercisesListModel);
+		appDB.itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesListModel);
 	}
 
 	function placeSetIntoView(ypos: int) {
@@ -1121,7 +1120,7 @@ TPPage {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
+		appDB.itemManager(tDayModel.mesoIdx).createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
 		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
@@ -1204,7 +1203,7 @@ TPPage {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
-			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, runCmd.areDatesTheSame(mainDate, new Date()));
+			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, appUtils.areDatesTheSame(mainDate, new Date()));
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
 		}
 		optionsMenu.show(btnFinishedDayOptions, 0);
@@ -1216,7 +1215,7 @@ TPPage {
 				if (!editMode)
 					btnFinishedDayOptions.visible = true;
 				else {
-					itemManager.rollUpExercises();
+					appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}

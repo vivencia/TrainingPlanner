@@ -92,7 +92,7 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: appDB.itemManager(tDayModel.mesoIdx()).changeSetMode(exerciseIdx, setNumber);
 			}
 
 			TPButton {
@@ -104,7 +104,7 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: appDB.itemManager(tDayModel.mesoIdx()).changeSetMode(exerciseIdx, setNumber);
 			}
 		}
 
@@ -136,7 +136,7 @@ Item {
 							else if (copyTypeButtonValue === "")
 								copyTypeButtonValue = tDayModel.setType(setNumber, exerciseIdx).toString();
 						}
-						itemManager.changeSetType(setNumber, exerciseIdx, index);
+						appDB.itemManager(tDayModel.mesoIdx()).changeSetType(setNumber, exerciseIdx, index);
 					}
 				}
 			}
@@ -155,7 +155,7 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
 					copyTypeButtonValue = "";
 				}
 			}
@@ -216,7 +216,7 @@ Item {
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {
-					itemManager.copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
 					copyTimeButtonValue = "";
 				}
 			}
@@ -290,7 +290,7 @@ Item {
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {
-					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyRepsValueIntoOtherSets(exerciseIdx, setNumber);
 					copyRepsButtonValue = "";
 				}
 			}
@@ -318,7 +318,7 @@ Item {
 				}
 
 				onEnterOrReturnKeyPressed: {
-					const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+					const nextSet = appDB.itemManager(tDayModel.mesoIdx()).nextSetObject(exerciseIdx, setNumber);
 					if (nextSet)
 						nextSet.forceActiveFocus();
 				}
@@ -333,7 +333,7 @@ Item {
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {
-					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyWeightValueIntoOtherSets(exerciseIdx, setNumber);
 					copyWeightButtonValue = "";
 				}
 			}

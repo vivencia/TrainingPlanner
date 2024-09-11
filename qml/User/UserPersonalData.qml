@@ -111,7 +111,7 @@ Frame {
 
 	TPTextInput {
 		id: txtBirthdate
-		text: runCmd.formatDate(userModel.birthDate(userRow))
+		text: appUtils.formatDate(userModel.birthDate(userRow))
 		readOnly: true
 		enabled: bNameOK
 		height: controlsHeight
@@ -141,7 +141,7 @@ Frame {
 
 			onDateSelected: (date) => {
 				userModel.setBirthDate(userRow, date);
-				txtBirthdate.text = runCmd.formatDate(date);
+				txtBirthdate.text = appUtils.formatDate(date);
 				bBirthDateOK = true;
 			}
 		}

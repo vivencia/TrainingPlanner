@@ -106,9 +106,9 @@ Frame {
 
 		onEditingFinished: {
 			splitModel.setMuscularGroup(text);
-			mesocyclesModel.setMuscularGroup(splitModel.mesoIdx(), splitModel.splitLetter(), text);
+			mesocyclesModel.setMuscularGroup(splitModel.mesoIdx, splitModel.splitLetter(), text);
 			exercisesListModel.makeFilterString(text);
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 			bCanSwapPlan = swappableLetter !== "";
 		}
 
@@ -116,11 +116,11 @@ Frame {
 
 		function updateMuscularGroup(splitindex: int, splitletter: string) {
 			if (splitModel.splitLetter() === splitletter) {
-				const musculargroup = mesocyclesModel.getMuscularGroup(splitModel.mesoIdx(), splitletter);
+				const musculargroup = mesocyclesModel.getMuscularGroup(splitModel.mesoIdx, splitletter);
 				splitModel.setMuscularGroup(musculargroup);
 				text = musculargroup;
 				exercisesListModel.makeFilterString(musculargroup);
-				swappableLetter = appDB.checkIfSplitSwappable(splitletter);
+				swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 				bCanSwapPlan = swappableLetter !== "";
 			}
 		}
@@ -677,7 +677,7 @@ Frame {
 			splitModel.currentRow = 0;
 			exercisesListModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel.splitLetter());
+			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 			bCanSwapPlan = swappableLetter !== "";
 		}
 	}

@@ -1,5 +1,5 @@
 #include "translationclass.h"
-#include "runcommands.h"
+#include "tputils.h"
 #include "dbmanager.h"
 #include "tpimageprovider.h"
 #include "tpimage.h"
@@ -73,15 +73,15 @@ int main(int argc, char *argv[])
 	app.setApplicationName("Training Planner");
 
 	QSettings appSettings;
-	RunCommands runCmd(&appSettings);
-	runCmd.populateSettingsWithDefaultValue();
+	TPUtils appUtils(&appSettings);
+	appUtils.populateSettingsWithDefaultValue();
 
 	TranslationClass trClass(appSettings);
 	trClass.selectLanguage();
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	DbManager db();
+	DbManager db;
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);
 	#endif
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	QString db_filepath (appSettings.value("dbFilePath").toString());
 	if (db_filepath.isEmpty())
 	{
-		db_filepath = runCmd.getAppDir(engine.offlineStoragePath());
+		db_filepath = appUtils.getAppDir(engine.offlineStoragePath());
 		appSettings.setValue("dbFilePath", db_filepath);
 		appSettings.sync();
 	}

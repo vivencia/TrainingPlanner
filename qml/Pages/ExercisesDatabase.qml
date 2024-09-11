@@ -445,7 +445,7 @@ TPPage {
 		title: qsTr("Please choose a media file");
 
 		onAccepted: {
-			strMediaPath = runCmd.getCorrectPath(currentFile);
+			strMediaPath = appUtils.getCorrectPath(currentFile);
 			close();
 			displaySelectedMedia();
 		}
@@ -459,7 +459,7 @@ TPPage {
 	function displaySelectedMedia() {
 		if (strMediaPath.length < 5)
 			return;
-		var mediaType = runCmd.getFileType(strMediaPath);
+		var mediaType = appUtils.getFileType(strMediaPath);
 		if ( mediaType === 1) { //video
 			if (imageViewer !== null) {
 				imageViewer.destroy();

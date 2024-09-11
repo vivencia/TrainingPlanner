@@ -43,11 +43,12 @@ QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
+Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 
-	explicit TPListModel(QObject* parent = nullptr);
+	explicit TPListModel(QObject* parent = nullptr, int meso_idx = -1);
 	inline TPListModel(const TPListModel& db_model) : TPListModel ()
 	{
 		copy (db_model);
@@ -74,6 +75,16 @@ public:
 		{
 			m_bModified = bModified;
 			emit modifiedChanged();
+		}
+	}
+
+	inline int mesoIdx() const { return m_mesoIdx; }
+	inline void setMesoIdx(const int new_mesoidx)
+	{
+		if (new_mesoidx != m_mesoIdx)
+		{
+			m_mesoIdx = new_mesoidx;
+			emit mesoIdxChanged();
 		}
 	}
 
@@ -206,6 +217,7 @@ public:
 
 signals:
 	void countChanged();
+	void mesoIdxChanged();
 	void currentRowChanged();
 	void modifiedChanged();
 
@@ -221,6 +233,7 @@ protected:
 	QHash<int, QByteArray> m_roleNames;
 	QList<QString> mColumnNames;
 
+	int m_mesoIdx;
 	int m_currentRow;
 	uint m_tableId;
 	bool m_bFilterApplied, m_bReady, m_bModified;

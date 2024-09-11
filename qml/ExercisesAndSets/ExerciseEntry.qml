@@ -140,8 +140,8 @@ FocusScope {
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => {
 						tDayModel.setExerciseName(new_text, exerciseIdx);
-						itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-						itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+						appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+						appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 					}
 					onRemoveButtonClicked: showRemoveExerciseMessage(exerciseIdx);
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
@@ -165,7 +165,7 @@ FocusScope {
 
 					onClicked: {
 						bTrackRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+						appDB.itemManager(tDayModel.mesoIdx()).manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 
@@ -180,7 +180,7 @@ FocusScope {
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
 					onClicked: {
 						bAutoRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+						appDB.itemManager(tDayModel.mesoIdx()).manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 			}
@@ -192,25 +192,25 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps
-					text: runCmd.getCompositeValue(0, nReps)
+					text: appUtils.getCompositeValue(0, nReps)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nReps = runCmd.setCompositeValue_QML(0, str, nReps);
+					onValueChanged: (str) => nReps = appUtils.setCompositeValue_QML(0, str, nReps);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight
-					text: runCmd.getCompositeValue(0, nWeight)
+					text: appUtils.getCompositeValue(0, nWeight)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nWeight = runCmd.setCompositeValue_QML(0, str, nWeight);
+					onValueChanged: (str) => nWeight = appUtils.setCompositeValue_QML(0, str, nWeight);
 				}
 			}
 
@@ -221,26 +221,26 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps2
-					text: runCmd.getCompositeValue(1, nReps)
+					text: appUtils.getCompositeValue(1, nReps)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nReps = runCmd.setCompositeValue_QML(1, str, nReps);
+					onValueChanged: (str) => nReps = appUtils.setCompositeValue_QML(1, str, nReps);
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight2
-					text: runCmd.getCompositeValue(1, nWeight)
+					text: appUtils.getCompositeValue(1, nWeight)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged: (str) => nWeight = runCmd.setCompositeValue_QML(1, str, nWeight);
+					onValueChanged: (str) => nWeight = appUtils.setCompositeValue_QML(1, str, nWeight);
 				}
 			}
 
@@ -320,7 +320,7 @@ FocusScope {
 					Layout.leftMargin: 15
 
 					onClicked: {
-						itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
+						appDB.itemManager(tDayModel.mesoIdx()).createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
 						setNbr += parseInt(nSets);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
 					}
@@ -347,8 +347,8 @@ FocusScope {
 		//a simple exercise, those variables will be cluttered with useless info that will stream down to the sets being created
 		//We catch that condition now and clear the variables;
 		if (bCompositeExercise2 && !bCompositeExercise) {
-			nWeight = runCmd.getCompositeValue(0, nWeight);
-			nReps = runCmd.getCompositeValue(0, nReps);
+			nWeight = appUtils.getCompositeValue(0, nWeight);
+			nReps = appUtils.getCompositeValue(0, nReps);
 		}
 	}
 
@@ -356,16 +356,16 @@ FocusScope {
 		var interruptSignals = true;
 		if (bListRequestForExercise1) {
 			if (fromList)
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
 			else
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
 			if (fromList)
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
 			else
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			bListRequestForExercise2 = false;
 		}
 		else
@@ -376,9 +376,9 @@ FocusScope {
 			else
 			{
 				if (bListRequestForExercise1)
-					itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+					appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 				else if (bListRequestForExercise2)
-					itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+					appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			}
 		}
 
@@ -404,7 +404,7 @@ FocusScope {
 
 	function moveExercise(up: bool, cxx_cal: bool) {
 		if (cxx_cal)
-			itemManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
+			appDB.itemManager(tDayModel.mesoIdx()).moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
 		else {
 			if (up) --exerciseIdx;
 			else ++exerciseIdx;
@@ -418,7 +418,7 @@ FocusScope {
 	function paneExerciseShowHide(show: bool, force: bool) {
 		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
-			itemManager.createSetObjects(exerciseIdx);
+			appDB.itemManager(tDayModel.mesoIdx()).createSetObjects(exerciseIdx);
 	}
 
 	function liberateSignals(liberate: bool) {

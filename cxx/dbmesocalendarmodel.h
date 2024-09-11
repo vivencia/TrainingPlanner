@@ -21,9 +21,8 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
-	explicit DBMesoCalendarModel(DBMesocyclesModel* parentModel, const uint mesoIdx);
+	explicit DBMesoCalendarModel(DBMesocyclesModel* parentModel, const int meso_idx);
 
-	inline uint mesoIdx() const { return mMesoIdx; }
 	void createModel();
 	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
 	void updateModel(const QDate& startDate, const QString& newSplitLetter);
@@ -68,7 +67,6 @@ signals:
 
 private:
 	DBMesocyclesModel* m_parentModel;
-	uint mMesoIdx;
 };
 
 #endif // DBMESOCALENDARMODEL_H

@@ -68,7 +68,7 @@ Item {
 			width: 25
 
 			onClicked: {
-				itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
+				appDB.itemManager(tDayModel.mesoIdx()).copyRepsValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
 				copyRepsButtonValue = "";
 			}
 		}
@@ -91,7 +91,7 @@ Item {
 			if (nextRowObj !== null)
 				nextRowObj.forceActiveFocus();
 			else {
-				const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
+				const nextSet = appDB.itemManager(tDayModel.mesoIdx()).nextSetObject(exerciseIdx, setNumber);
 				if (nextSet)
 					nextSet.forceActiveFocus();
 			}
@@ -164,7 +164,7 @@ Item {
 			width: 25
 
 			onClicked: {
-				itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
+				appDB.itemManager(tDayModel.mesoIdx()).copyWeightValueIntoOtherSets(exerciseIdx, setNumber, rowIdx);
 				copyWeightButtonValue = "";
 			}
 		}

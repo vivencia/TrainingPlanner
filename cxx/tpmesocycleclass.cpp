@@ -2,7 +2,7 @@
 #include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendarmodel.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
@@ -13,7 +13,7 @@ const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetT
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
 
 TPMesocycleClass::TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent)
-	: QObject{parent}, m_MesoId(meso_id), m_MesoIdx(meso_idx), m_QMlEngine(QMlEngine),
+	: QObject{parent}, m_mesoId(meso_id), m_mesoIdx(meso_idx), m_QMlEngine(QMlEngine),
 		m_mesoComponent(nullptr), m_mesoPage(nullptr), m_plannerComponent(nullptr), m_plannerPage(nullptr), m_splitComponent(nullptr),
 		m_calComponent(nullptr), m_calPage(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr), m_setComponents{nullptr}
 {
@@ -89,18 +89,28 @@ TPMesocycleClass::~TPMesocycleClass()
 
 void TPMesocycleClass::setMesoId(const int new_mesoid)
 {
-	m_MesoId = new_mesoid;
+	m_mesoId = new_mesoid;
 	if (m_mesoPage)
-		m_mesoPage->setProperty("mesoId", m_MesoId);
+		m_mesoPage->setProperty("mesoId", m_mesoId);
 }
 
-void TPMesocycleClass::changeMesoIdxFromPages(const uint new_mesoIdx)
+void TPMesocycleClass::changeMesoIdxFromPagesAndModels(const uint new_mesoidx)
 {
+	m_mesoIdx = new_mesoidx;
 	if (m_mesoPage)
-		m_mesoPage->setProperty("mesoIdx", new_mesoIdx);
-	if (m_calPage)
-		m_calPage->setProperty("mesoIdx", new_mesoIdx);
-	m_MesoIdx = new_mesoIdx;
+		m_mesoPage->setProperty("mesoIdx", new_mesoidx);
+	QMapIterator<QDate,DBTrainingDayModel*> x(m_tDayModels);
+	x.toFront();
+	while (x.hasNext()) {
+		x.next();
+		x.value()->setMesoIdx(new_mesoidx);
+	}
+	QMapIterator<QChar,DBMesoSplitModel*> z(m_splitModels);
+	z.toFront();
+	while (z.hasNext()) {
+		z.next();
+		z.value()->setMesoIdx(new_mesoidx);
+	}
 }
 
 void TPMesocycleClass::requestTimerDialog(QQuickItem* requester, const QVariant& args)
@@ -148,11 +158,11 @@ void TPMesocycleClass::exerciseCompleted(int exercise_idx)
 
 void TPMesocycleClass::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
-	m_mesoProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-	m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_MesoId));
-	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_MesoId));
-	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_MesoIdx, 2));
+	m_mesoProperties.insert(QStringLiteral("mesoId"), m_mesoId);
+	m_mesoProperties.insert(QStringLiteral("mesoIdx"), m_mesoIdx);
+	m_mesoProperties.insert(QStringLiteral("minimumMesoStartDate"), !minimumMesoStartDate.isNull() ? minimumMesoStartDate : m_MesocyclesModel->getPreviousMesoEndDate(m_mesoId));
+	m_mesoProperties.insert(QStringLiteral("maximumMesoEndDate"), !maximumMesoEndDate.isNull() ? maximumMesoEndDate : m_MesocyclesModel->getNextMesoStartDate(m_mesoId));
+	m_mesoProperties.insert(QStringLiteral("calendarStartDate"), !calendarStartDate.isNull() ? calendarStartDate: m_MesocyclesModel->getDate(m_mesoIdx, 2));
 
 	m_mesoComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs), QQmlComponent::Asynchronous);
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
@@ -251,7 +261,7 @@ void TPMesocycleClass::createMesoSplitPage_part2()
 			item->setParentItem(m_plannerPage);
 			if (splitModel->count() == 0)
 			{
-				prevMesoId = m_MesocyclesModel->getPreviousMesoId(m_MesoId);
+				prevMesoId = m_MesocyclesModel->getPreviousMesoId(m_mesoId);
 				item->setProperty("prevMesoId", prevMesoId);
 			}
 			connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
@@ -286,8 +296,8 @@ void TPMesocycleClass::updateMuscularGroup(DBMesoSplitModel* splitModel)
 uint TPMesocycleClass::createMesoCalendarPage()
 {
 	m_calComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/MesoCalendar.qml"_qs), QQmlComponent::Asynchronous);
-	m_calProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_MesocyclesModel->mesoCalendarModel(m_MesoIdx)));
+	m_calProperties.insert(QStringLiteral("mesoIdx"), m_mesoIdx);
+	m_calProperties.insert(QStringLiteral("mesoCalendarModel"), QVariant::fromValue(m_MesocyclesModel->mesoCalendarModel(m_mesoIdx)));
 
 	if (m_calComponent->status() != QQmlComponent::Ready)
 		connect(m_calComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -321,18 +331,14 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 	if (!m_tDayPages.contains(date))
 	{
 		if (m_tDayComponent == nullptr)
-		{
 			m_tDayComponent = new QQmlComponent(m_QMlEngine, QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
-			m_tDayProperties.insert(QStringLiteral("mesoId"), m_MesoId);
-			m_tDayProperties.insert(QStringLiteral("mesoIdx"), m_MesoIdx);
-		}
 
 		if (!m_tDayExercisesList.contains(date))
 		{
 			m_currentExercises = new tDayExercises;
 			m_tDayExercisesList.insert(date, m_currentExercises);
 
-			DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
+			const DBMesoCalendarModel* mesoCal(m_MesocyclesModel->mesoCalendarModel(m_mesoIdx));
 			const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
 			const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
 
@@ -340,7 +346,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 			if (m_CurrenttDayModel->count() == 0)
 			{
 				m_CurrenttDayModel->appendRow();
-				m_CurrenttDayModel->setMesoId(QString::number(m_MesoId));
+				m_CurrenttDayModel->setMesoId(QString::number(m_mesoId));
 				m_CurrenttDayModel->setDate(date);
 				m_CurrenttDayModel->setSplitLetter(splitLetter);
 				m_CurrenttDayModel->setTrainingDay(tday);
@@ -392,11 +398,10 @@ void TPMesocycleClass::createTrainingDayPage_part2()
 	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
 							enableDisableExerciseCompletedButton(exercise_idx, completed);
 	});
-	//DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
 
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
-		const QTime workoutLenght(runCmd()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
+		const QTime workoutLenght(appUtils()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
 		QMetaObject::invokeMethod(m_CurrenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
@@ -420,11 +425,13 @@ void TPMesocycleClass::setCurrenttDay(const QDate& date)
 	m_currentExercises = m_tDayExercisesList.value(date);
 }
 
-void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
+void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const DBTrainingDayModel* tDayModel)
 {
 	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
 	i.toFront();
-	DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(m_MesoIdx);
+	DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(tDayModel->mesoIdx());
+	const QDate startDate(tDayModel->getDateFast(0, TDAY_COL_DATE));
+	const QDate endDate(m_MesocyclesModel->getDateFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ENDDATE));
 	while (i.hasNext())
 	{
 		i.next();
@@ -435,8 +442,8 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const QDate& start
 				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
 					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
 					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
-					Q_ARG(QString, m_MesocyclesModel->getMuscularGroup(m_MesoIdx,
-						m_MesocyclesModel->mesoCalendarModel(m_MesoIdx)->getSplitLetter(startDate.month(), startDate.day()))));
+					Q_ARG(QString, m_MesocyclesModel->getMuscularGroup(tDayModel->mesoIdx(),
+						m_MesocyclesModel->mesoCalendarModel(tDayModel->mesoIdx())->getSplitLetter(startDate.month(), startDate.day()))));
 			}
 		}
 	}
@@ -457,14 +464,14 @@ uint TPMesocycleClass::createExerciseObject(DBExercisesModel* exercisesModel)
 	}
 	else
 	{
-		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
-		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
-		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
-		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
-		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
-		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
-		runCmd()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
-		runCmd()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
+		appUtils()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2), exerciseName);
+		appUtils()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(1, 2), exerciseName);
+		appUtils()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 4), nSets);
+		appUtils()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 4), nSets);
+		appUtils()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 5), nReps);
+		appUtils()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 5), nReps);
+		appUtils()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
+		appUtils()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
 	}
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());

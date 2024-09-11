@@ -37,7 +37,7 @@ TextField {
 		enabled: parent.enabled ? true : !parent.readOnly
 
 		onPressAndHold: (mouse) => {
-			runCmd.copyToClipBoard(control.text);
+			appUtils.copyToClipBoard(control.text);
 			mainwindow.showTextCopiedMessage();
 		}
 		onClicked: (mouse) => {

@@ -1,15 +1,15 @@
 #include "dbtrainingdaymodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbexercisesmodel.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 #include <QtMath>
 
 static QString multiUseString;
 static const QLatin1Char fancy_record_separator2(';');
 
-DBTrainingDayModel::DBTrainingDayModel(const uint meso_idx, QObject* parent)
-	: TPListModel{parent}, mb_DayIsFinished(false), mb_DayIsEditable(false), m_mesoIdx(meso_idx)
+DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const int meso_idx)
+	: TPListModel(parent, meso_idx), mb_DayIsFinished(false), mb_DayIsEditable(false)
 {
 	m_tableId = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
@@ -205,7 +205,7 @@ const QString& DBTrainingDayModel::formatSetTypeToImport(const QString& fieldVal
 		const uint n(fieldValue.count(fancy_record_separator2));
 		for (uint i(0); i <= n; ++i)
 		{
-			setTypeStr = runCmd()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
+			setTypeStr = appUtils()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
 			if (setTypeStr == tr("Regular"))
 				multiUseString.append(u"0"_qs + record_separator2);
 			else if (setTypeStr == tr("Pyramid"))
@@ -268,7 +268,7 @@ bool DBTrainingDayModel::importFromText(QFile* inFile, QString& inData)
 
 			types = 0;
 			do {
-				type = formatSetTypeToImport(runCmd()->getCompositeValue(types, strTypes)) + subrecord_separator;
+				type = formatSetTypeToImport(appUtils()->getCompositeValue(types, strTypes)) + subrecord_separator;
 			} while (++types < nsets);
 
 			if (inFile->readLine(buf, sizeof(buf)) == -1)
@@ -495,8 +495,8 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 
 static inline QString dropSetReps(const QString& reps)
 {
-	const float value(runCmd()->appLocale()->toFloat(reps));
-	QString value1(runCmd()->appLocale()->toString(qCeil(value * 0.8)));
+	const float value(appUtils()->appLocale()->toFloat(reps));
+	QString value1(appUtils()->appLocale()->toString(qCeil(value * 0.8)));
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.right(2) != u"50"_qs)
@@ -504,7 +504,7 @@ static inline QString dropSetReps(const QString& reps)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(runCmd()->appLocale()->toString(qCeil(value * 0.8 * 0.8)));
+	QString value2(appUtils()->appLocale()->toString(qCeil(value * 0.8 * 0.8)));
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.right(2) != u"50"_qs)
@@ -517,8 +517,8 @@ static inline QString dropSetReps(const QString& reps)
 
 static inline QString dropSetWeight(const QString& weight)
 {
-	const float value(runCmd()->appLocale()->toFloat(weight));
-	QString value1(runCmd()->appLocale()->toString(value * 0.5, 'f', 2));
+	const float value(appUtils()->appLocale()->toFloat(weight));
+	QString value1(appUtils()->appLocale()->toString(value * 0.5, 'f', 2));
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.right(2) != u"50"_qs)
@@ -526,7 +526,7 @@ static inline QString dropSetWeight(const QString& weight)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(runCmd()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2));
+	QString value2(appUtils()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2));
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.right(2) != u"50"_qs)
@@ -641,12 +641,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx,
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(runCmd()->appLocale()->toFloat(multiUseString));
+		float lastSetValue(appUtils()->appLocale()->toFloat(multiUseString));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue = qCeil(lastSetValue * 0.8);
 		else
 			lastSetValue = qCeil(lastSetValue * 1.25);
-		multiUseString = runCmd()->appLocale()->toString(static_cast<int>(lastSetValue));
+		multiUseString = appUtils()->appLocale()->toString(static_cast<int>(lastSetValue));
 		if (multiUseString.contains('.') || multiUseString.contains(','))
 		{
 			if (multiUseString.right(2) != u"50"_qs)
@@ -675,12 +675,12 @@ const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_id
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(runCmd()->appLocale()->toFloat(multiUseString));
+		float lastSetValue(appUtils()->appLocale()->toFloat(multiUseString));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue *= 1.2;
 		else
 			lastSetValue *= 0.8;
-		multiUseString = runCmd()->appLocale()->toString(lastSetValue, 'f', 2);
+		multiUseString = appUtils()->appLocale()->toString(lastSetValue, 'f', 2);
 		if (multiUseString.contains('.') || multiUseString.contains(','))
 		{
 			if (multiUseString.right(2) != u"50"_qs)
@@ -803,22 +803,22 @@ void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercis
 			if (new_type == SET_TYPE_DROP)
 			{
 				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_qs;
-				const QString new_reps(runCmd()->getCompositeValue(0, reps));
+				const QString new_reps(appUtils()->getCompositeValue(0, reps));
 				m_ExerciseData.at(exercise_idx)->reps[set_number] = new_reps + dropSetReps(new_reps);
-				const QString new_weight(runCmd()->getCompositeValue(0, weight));
+				const QString new_weight(appUtils()->getCompositeValue(0, weight));
 				m_ExerciseData.at(exercise_idx)->weight[set_number] = new_weight + dropSetWeight(new_weight);
 			}
 			else if (new_type == SET_TYPE_GIANT)
 			{
-				runCmd()->setCompositeValue(0, runCmd()->getCompositeValue(0, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
-				runCmd()->setCompositeValue(1, runCmd()->getCompositeValue(1, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
-				runCmd()->setCompositeValue(0, runCmd()->getCompositeValue(0, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
-				runCmd()->setCompositeValue(1, runCmd()->getCompositeValue(1, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
+				appUtils()->setCompositeValue(0, appUtils()->getCompositeValue(0, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
+				appUtils()->setCompositeValue(1, appUtils()->getCompositeValue(1, reps), m_ExerciseData.at(exercise_idx)->reps[set_number]);
+				appUtils()->setCompositeValue(0, appUtils()->getCompositeValue(0, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
+				appUtils()->setCompositeValue(1, appUtils()->getCompositeValue(1, weight), m_ExerciseData.at(exercise_idx)->weight[set_number]);
 			}
 			else
 			{
-				m_ExerciseData.at(exercise_idx)->reps[set_number] = runCmd()->getCompositeValue(0, reps);
-				m_ExerciseData.at(exercise_idx)->weight[set_number] = runCmd()->getCompositeValue(0, weight);
+				m_ExerciseData.at(exercise_idx)->reps[set_number] = appUtils()->getCompositeValue(0, reps);
+				m_ExerciseData.at(exercise_idx)->weight[set_number] = appUtils()->getCompositeValue(0, weight);
 				if (new_type == SET_TYPE_CLUSTER)
 					m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_qs;
 			}

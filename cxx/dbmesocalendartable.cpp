@@ -290,6 +290,7 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 	if (mSqlLiteDB.open())
 	{
 		const QDate date(m_execArgs.at(0).toDate());
+
 		QSqlQuery query(mSqlLiteDB);
 		query.prepare( QStringLiteral("SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3").arg(
 				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())) );
@@ -298,14 +299,15 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			query.first();
 			const QString strId(query.value(0).toString());
 			query.finish();
-			query.prepare( QStringLiteral(
-									"UPDATE mesocycles_calendar_table SET training_day=%1, "
-									"training_split=\'%2\', training_complete=%3 WHERE id=%4")
-									.arg(m_data.at(0), m_data.at(1), m_data.at(2), strId) );
-			m_result = query.exec();
+			const QString strTrainingDay(m_execArgs.at(1).toString());
+			const QString strSplit(m_execArgs.at(2).toString());
+			const QString strDayCompleted(m_execArgs.at(3).toString());
+			m_result = query.exec(u"UPDATE mesocycles_calendar_table SET training_day=%1, "
+										"training_split=\'%2\', training_complete=%3 WHERE id=%4"_qs
+											.arg(strTrainingDay, strSplit, strDayCompleted, strId));
 			if (m_result)
 			{
-				static_cast<DBMesoCalendarModel*>(m_model)->updateDay(date, m_data.at(0), m_data.at(1), m_data.at(2));
+				static_cast<DBMesoCalendarModel*>(m_model)->updateDay(date, strTrainingDay, strSplit, strDayCompleted);
 				MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry SUCCESS")
 			}
 		}
@@ -418,11 +420,4 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		mSqlLiteDB.close();
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBMesoCalendarTable::setData(const QString& calNDay, const QString& calSplit, const QString& dayIsFinished)
-{
-	m_data[0] = calNDay;
-	m_data[1] = calSplit;
-	m_data[2] = dayIsFinished;
 }

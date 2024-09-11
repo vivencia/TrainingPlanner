@@ -43,7 +43,7 @@ Column {
 
 	TPRadioButton {
 		id: optPreserveOldCalendarUntilYesterday
-		text: qsTr("Up until yesterday - ") + runCmd.formatDate(runCmd.getDayBefore(new Date()))
+		text: qsTr("Up until yesterday - ") + appUtils.formatDate(appUtils.getDayBefore(new Date()))
 		checked: false
 		enabled: chkPreserveOldCalendar.checked
 		width: frmMesoAdjust.width

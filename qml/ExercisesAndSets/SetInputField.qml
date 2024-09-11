@@ -109,7 +109,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				txtMain.text = runCmd.addTimeToStrTime(txtMain.text, 1, 0)
+				txtMain.text = appUtils.addTimeToStrTime(txtMain.text, 1, 0)
 				valueChanged(txtMain.text);
 			}
 		}
@@ -131,7 +131,7 @@ FocusScope {
 
 			onClicked: {
 				bClearInput = false;
-				txtMain.text = runCmd.setTypeOperation(type, false, txtMain.text !== "" ? txtMain.text : origText)
+				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text !== "" ? txtMain.text : origText)
 				valueChanged(txtMain.text);
 			}
 		}
@@ -204,7 +204,7 @@ FocusScope {
 
 			onClicked: {
 				bClearInput = false;
-				txtMain.text = runCmd.setTypeOperation(type, true, txtMain.text !== "" ? txtMain.text : origText)
+				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text !== "" ? txtMain.text : origText)
 				valueChanged(txtMain.text);
 			}
 		}
@@ -227,7 +227,7 @@ FocusScope {
 			onClicked: {
 				const secs = parseInt(txtMain.text.substring(3, 5));
 				const nbr = secs > 5 ? -5 : -1;
-				txtMain.text = runCmd.addTimeToStrTime(txtMain.text, 0, nbr);
+				txtMain.text = appUtils.addTimeToStrTime(txtMain.text, 0, nbr);
 				valueChanged(txtMain.text);
 			}
 		}

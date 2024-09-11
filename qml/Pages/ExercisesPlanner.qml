@@ -166,7 +166,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
+			onClicked: appDB.swapMesoPlans(currentPage.splitModel.mesoIdx(), currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
 		}
 
 		TPButton {
@@ -216,8 +216,6 @@ TPPage {
 		parentPage: pagePlanner
 	}
 
-	Component.onCompleted: appDB.getCompleteMesoSplit();
-
 	function requestSimpleExercisesList(object, visible, multipleSel) {
 		exercisesPane.itemThatRequestedSimpleList = visible ? object : null;
 		exercisesPane.bEnableMultipleSelection = multipleSel;
@@ -257,8 +255,8 @@ TPPage {
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner
 
-		onButton1Clicked: appDB.exportMesoSplit("X", bShare);
-		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.splitLetter(), bShare);
+		onButton1Clicked: appDB.exportMesoSplit(currentPage.splitModel.mesoIdx(), "X", bShare);
+		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.mesoIdx(), currentPage.splitModel.splitLetter(), bShare);
 
 		property bool bShare: false
 

@@ -20,7 +20,7 @@ set( SOURCES
 	cxx/main.cpp
 
 	cxx/translationclass.cpp cxx/translationclass.h
-	cxx/runcommands.cpp cxx/runcommands.h
+	cxx/tputils.cpp cxx/tputils.h
 	cxx/dbmanager.h cxx/dbmanager.cpp
 	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
 	cxx/tptimer.h cxx/tptimer.cpp

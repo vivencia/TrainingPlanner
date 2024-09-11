@@ -2,8 +2,8 @@
 
 #include <QRegularExpression>
 
-TPListModel::TPListModel(QObject *parent)
-	: QAbstractListModel(parent), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
+TPListModel::TPListModel(QObject* parent, int meso_idx)
+	: QAbstractListModel(parent), m_mesoIdx(meso_idx), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
 		m_bReady(false), m_bModified(false), filterSearch_Field1(0), filterSearch_Field2(0)
 {}
 

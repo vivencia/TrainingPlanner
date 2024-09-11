@@ -78,8 +78,8 @@ ApplicationWindow {
 
 	function init() {
 		homePage.setViewModel();
-		mesocyclesModel.currentRowChanged.connect(workoutButtonEnabled);
-		workoutButtonEnabled();
+		mesocyclesModel.mostRecentOwnMesoChanged.connect(workoutButtonEnabled);
+		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 
 		var userOK = !userModel.isEmpty();
 		if (userOK)
@@ -94,8 +94,8 @@ ApplicationWindow {
 		}	
 	}
 
-	function workoutButtonEnabled() {
-		homePage.btnWorkoutEnabled();
+	function workoutButtonEnabled(ownmesoidx: int) {
+		homePage.btnWorkoutEnabled(ownmesoidx);
 	}
 
 	/*FirstTimeDialog {
@@ -136,7 +136,7 @@ ApplicationWindow {
 		else
 			stackView.pop();
 		pageActivated_main(stackView.currentItem);
-		workoutButtonEnabled();
+		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 	}
 
 	signal pageActivated_main(Item page);
@@ -146,7 +146,7 @@ ApplicationWindow {
 		pageDeActivated_main(stackView.currentItem);
 		stackView.push(page);
 		pageActivated_main(page);
-		workoutButtonEnabled();
+		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 	}
 
 	function createShortCut(label: string, object: Item, clickid: int) {

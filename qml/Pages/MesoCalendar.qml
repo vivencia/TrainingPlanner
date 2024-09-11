@@ -10,10 +10,9 @@ TPPage {
 	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
-	required property int mesoIdx
 	required property DBMesoCalendarModel mesoCalendarModel
 
-	readonly property string mesoName: mesocyclesModel.get(mesoIdx, 1)
+	readonly property string mesoName: mesocyclesModel.get(mesoCalendarModel.mesoIdx, 1)
 	property date _today
 	property bool bAlreadyLoaded: false
 
@@ -48,8 +47,8 @@ TPPage {
 				id: lbl2
 				color: AppSettings.fontColor
 				wrapMode: Text.WordWrap
-				text: qsTr("from  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2)) +
-						qsTr("</b>  through  <b>") + runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3)) + "</b>"
+				text: qsTr("from  <b>") + appUtils.formatDate(mesocyclesModel.getDate(mesoCalendarModel.mesoIdx, 2)) +
+						qsTr("</b>  through  <b>") + appUtils.formatDate(mesocyclesModel.getDate(mesoCalendarModel.mesoIdx, 3)) + "</b>"
 				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
@@ -269,7 +268,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.getTrainingDay(calendar.dayInfoDate);
+			onClicked: appDB.getTrainingDay(mesoCalendarModel.mesoIdx, calendar.dayInfoDate);
 		}
 	} // footer: ToolBar
 

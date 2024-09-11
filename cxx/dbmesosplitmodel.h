@@ -30,7 +30,6 @@ public:
 	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true, const int meso_idx = -1);
 	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
-	Q_INVOKABLE inline int mesoIdx() const { return m_MesoIdx; }
 
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
 	Q_INVOKABLE inline void setMuscularGroup(const QString& muscularGroup) { m_muscularGroup = muscularGroup; }
@@ -108,7 +107,6 @@ signals:
 
 private:
 	uint m_nextAddedExercisePos;
-	int m_MesoIdx;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
 	bool mb_Complete;

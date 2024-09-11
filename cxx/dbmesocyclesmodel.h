@@ -29,6 +29,8 @@ class DBMesocyclesModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
+Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged)
+
 public:
 
 	enum RoleNames {
@@ -49,13 +51,10 @@ public:
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
-	inline int currentOwnMeso() const { return m_currentOwnMeso; }
-	inline int currentOwnMesoId() const { return m_currentOwnMeso != -1 ? getIntFast(m_currentOwnMeso, MESOCYCLES_COL_ID) : -1; }
-	inline const QString& currentOwnMesoStrId() const { return m_currentOwnMeso != -1 ? getFast(m_currentOwnMeso, MESOCYCLES_COL_ID) : STR_MINUS_ONE; }
-	inline int currentOtherMeso() const { return m_currentOtherMeso; }
-	inline int currentOtherMesoId() const { return m_currentOtherMeso != -1 ? getIntFast(m_currentOtherMeso, MESOCYCLES_COL_ID) : -1; }
-	inline const QString& currentOtherMesoStrId() const { return m_currentOtherMeso != -1 ? getFast(m_currentOtherMeso, MESOCYCLES_COL_ID) : STR_MINUS_ONE; }
-	void setCurrentMeso(const uint meso_idx);
+	inline int currentMesoIdx() const { return m_currentMesoIdx; }
+	void setCurrentMesoIdx(const uint meso_idx);
+	Q_INVOKABLE inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
+	void findNextOwnMeso();
 
 	Q_INVOKABLE bool setMesoStartDate(const uint meso_idx, const QDate& new_date);
 	Q_INVOKABLE bool setMesoEndDate(const uint meso_idx, const QDate& new_date);
@@ -84,8 +83,8 @@ public:
 	}
 	Q_INVOKABLE inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
-		set(meso_idx, MESOCYCLES_COL_REALMESO, bRealMeso ? STR_ONE : STR_ZERO);
-		emit realMesoChanged(meso_idx);
+		if (set(meso_idx, MESOCYCLES_COL_REALMESO, bRealMeso ? STR_ONE : STR_ZERO))
+			emit realMesoChanged(meso_idx);
 	}
 
 	Q_INVOKABLE inline QDate getEndDate(const uint meso_idx) const
@@ -103,7 +102,7 @@ public:
 	QDate getPreviousMesoEndDate(const int current_mesoid) const;
 	QDate getNextMesoStartDate(const int mesoid) const;
 	QDate getLastMesoEndDate() const;
-	Q_INVOKABLE bool isDateWithinCurrentMeso(const QDate& date) const;
+	Q_INVOKABLE bool isDateWithinMeso(const uint meso_idx, const QDate& date) const;
 	bool isDifferent(const DBMesocyclesModel* model);
 	void updateColumnLabels();
 
@@ -119,16 +118,17 @@ public:
 signals:
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void realMesoChanged(const uint meso_idx);
+	void isOwnMesoChanged(const uint meso_idx);
 	void muscularGroupChanged(const int splitIndex, const QString& splitLetter);
+	void mostRecentOwnMesoChanged(const int meso_idx);
+	void currentMesoIdxChanged();
 
 private:
 	DBUserModel* m_userModel;
 	DBMesoSplitModel* m_splitModel;
-	QMap<uint,DBMesoCalendarModel*> m_calendarModelList;
-	QList<uint> m_ownMesoIdxs;
-	QList<uint> m_otherMesoIdxs;
+	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<uint> m_totalSplits;
-	int m_currentOwnMeso, m_currentOtherMeso;
+	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
 };
 
 #endif // DBMESOCYCLESMODEL_H

@@ -1,6 +1,6 @@
 #include "dbtrainingdaytable.h"
 #include "dbtrainingdaymodel.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
@@ -247,7 +247,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
 	const QDate date(QDate::fromJulianDay(julianDay));
-	return runCmd()->appLocale()->toString(date, QStringLiteral("ddd d/M/yyyy"));
+	return appUtils()->appLocale()->toString(date, QStringLiteral("ddd d/M/yyyy"));
 }
 
 void DBTrainingDayTable::getPreviousTrainingDaysInfo()

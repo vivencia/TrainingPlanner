@@ -199,14 +199,14 @@ TPPopup {
 	function buttonsIsEnabled(buttonText: string, bHour: bool) : bool {
 		if (bOnlyFutureTime) {
 			if (bHour)
-				return parseInt(buttonText) >= parseInt(runCmd.getHourFromCurrentTime());
+				return parseInt(buttonText) >= parseInt(appUtils.getHourFromCurrentTime());
 			else {
-				if (parseInt(hrsDisplay) > parseInt(runCmd.getHourFromCurrentTime()))
+				if (parseInt(hrsDisplay) > parseInt(appUtils.getHourFromCurrentTime()))
 					return true;
-				else if (parseInt(hrsDisplay) < parseInt(runCmd.getHourFromCurrentTime()))
+				else if (parseInt(hrsDisplay) < parseInt(appUtils.getHourFromCurrentTime()))
 					return false;
 				else
-					return parseInt(buttonText) >= parseInt(runCmd.getMinutesFromCurrentTime())
+					return parseInt(buttonText) >= parseInt(appUtils.getMinutesFromCurrentTime())
 			}
 		}
 		else
@@ -319,7 +319,7 @@ TPPopup {
 				leftMargin: 5
 			}
 
-			onClicked: timePicker.setDisplay(runCmd.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
+			onClicked: timePicker.setDisplay(appUtils.getCurrentTimeString(), timePicker.onlyQuartersAllowed, timePicker.useWorkTimes)
 		}
 
 		TPButton {

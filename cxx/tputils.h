@@ -1,5 +1,5 @@
-#ifndef RUNCOMMANDS_H
-#define RUNCOMMANDS_H
+#ifndef TPUTILS_H
+#define TPUTILS_H
 
 #include "tptimer.h"
 
@@ -14,14 +14,14 @@ static const QString TP_APP_VERSION(QStringLiteral("v20240818-B"));
 class QSettings;
 class QFileDialog;
 
-class RunCommands : public QObject
+class TPUtils : public QObject
 {
 
 Q_OBJECT
 
 public:
-	explicit RunCommands( QSettings* settings, QObject *parent = nullptr );
-	~RunCommands() { delete m_appLocale; }
+	explicit TPUtils(QSettings* settings, QObject* parent = nullptr);
+	~TPUtils() { delete m_appLocale; }
 	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString& filename) const;
 	Q_INVOKABLE inline QString getFileName(const QString& filepath) const { return QFileInfo(filepath).fileName(); };
@@ -90,14 +90,14 @@ private:
 		return newTime.toString(u"hh:mm"_qs);
 	}
 
-	static RunCommands* app_runcmd;
-	friend RunCommands* runCmd();
+	static TPUtils* app_utils;
+	friend TPUtils* appUtils();
 
 	static QSettings* app_settings;
 	friend QSettings* appSettings();
 };
 
-inline RunCommands* runCmd() { return RunCommands::app_runcmd; }
-inline QSettings* appSettings() { return RunCommands::app_settings; }
+inline TPUtils* appUtils() { return TPUtils::app_utils; }
+inline QSettings* appSettings() { return TPUtils::app_settings; }
 
-#endif // RUNCOMMANDS_H
+#endif // TPUTILS_H

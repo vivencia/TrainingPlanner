@@ -26,9 +26,6 @@ public:
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 	void removeMesoCalendar();
-
-	//Call before starting a thread
-	void setData(const QString& calNDay, const QString& calSplit, const QString& dayIsFinished);
 };
 
 #endif // DBMESOCALENDARTABLE_H

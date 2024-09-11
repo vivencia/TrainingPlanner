@@ -398,7 +398,7 @@ TPPopup {
 					if (timePickerOnly)
 						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
 					else
-						useTime(runCmd.formatTime(mainTimer.currentElapsedTime(), false, true));
+						useTime(appUtils.formatTime(mainTimer.currentElapsedTime(), false, true));
 					dlgTimer.close();
 				} //btnUseTime
 			}

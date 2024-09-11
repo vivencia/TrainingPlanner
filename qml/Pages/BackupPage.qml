@@ -69,7 +69,7 @@ TPPage {
 
 		onAccepted: {
 			bNeedCheck = true;
-			AppSettings.backupFolder = runCmd.getCorrectPath(currentFolder);
+			AppSettings.backupFolder = appUtils.getCorrectPath(currentFolder);
 			close();
 		}
 	}

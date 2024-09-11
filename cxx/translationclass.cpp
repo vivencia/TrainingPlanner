@@ -1,5 +1,5 @@
 #include "translationclass.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 #include <QQmlEngine>
 
@@ -32,12 +32,12 @@ void TranslationClass::selectLanguage()
 	}
 	if (mbOK)
 	{
-		runCmd()->setAppLocale(strLocale);
+		appUtils()->setAppLocale(strLocale);
 		if (bConfigEmpty)
 			mSettingsObj->setValue("appLocale", strLocale);
 	}
 	else
-		runCmd()->setAppLocale(u"en_US"_qs); //If any part of the program calls RunCommands::appLocale() we will hava an error
+		appUtils()->setAppLocale(u"en_US"_qs); //If any part of the program calls RunCommands::appLocale() we will hava an error
 }
 
 void TranslationClass::switchToLanguage(const QString& language)
@@ -49,7 +49,7 @@ void TranslationClass::switchToLanguage(const QString& language)
 		mbOK = mTranslator->load(QStringLiteral("tplanner.%1.qm").arg(language), QStringLiteral(":/translations/"), QStringLiteral("qm"));
 	if (mbOK)
 	{
-		runCmd()->setAppLocale(language);
+		appUtils()->setAppLocale(language);
 		mSettingsObj->setValue("appLocale", language);
 		if (!bEnglish)
 			qApp->installTranslator(mTranslator);

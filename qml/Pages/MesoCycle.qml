@@ -67,7 +67,7 @@ TPPage {
 				leftMargin: 20
 			}
 
-			onClicked: appDB.getMesoCalendar(true);
+			onClicked: appDB.getMesoCalendar(mesoIdx, true);
 		}
 	}
 
@@ -318,7 +318,7 @@ TPPage {
 
 				TPTextInput {
 					id: txtMesoFile
-					text: runCmd.getFileName(mesocyclesModel.get(mesoIdx, 9))
+					text: appUtils.getFileName(mesocyclesModel.get(mesoIdx, 9))
 					width: (mesoPropertiesPage.width - 20)*0.8
 					Layout.minimumWidth: width
 
@@ -346,7 +346,7 @@ TPPage {
 						fileMode: FileDialog.OpenFile
 
 						onAccepted: {
-							txtMesoFile.text = runCmd.getFileName(selectedFile);
+							txtMesoFile.text = appUtils.getFileName(selectedFile);
 							mesocyclesModel.set(mesoIdx, 9, selectedFile);
 						}
 					}
@@ -355,7 +355,7 @@ TPPage {
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: runCmd.canReadFile(mesocyclesModel.get(mesoIdx, 9))
+					visible: appUtils.canReadFile(mesocyclesModel.get(mesoIdx, 9))
 					Layout.leftMargin: -10
 
 					onClicked: appDB.viewExternalFile(mesocyclesModel.get(mesoIdx, 9));
@@ -372,7 +372,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 2))
+				text: appUtils.formatDate(mesocyclesModel.getDate(mesoIdx, 2))
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
@@ -387,8 +387,8 @@ TPPage {
 
 					onDateSelected: function() {
 						if (mesocyclesModel.setMesoStartDate(mesoIdx, caldlg.selectedDate)) {
-							txtMesoStartDate.text = runCmd.formatDate(caldlg.selectedDate);
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
+							txtMesoStartDate.text = appUtils.formatDate(caldlg.selectedDate);
+							txtMesoNWeeks.text = appUtils.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
 							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
 							if (bNewMeso && bRealMeso)
 								caldlg2.open();
@@ -418,7 +418,7 @@ TPPage {
 					bRealMeso = checked;
 					mesocyclesModel.setIsRealMeso(mesoIdx, bRealMeso);
 					mesocyclesModel.setDate(mesoIdx, 3, bRealMeso ? maximumMesoEndDate : mesocyclesModel.getEndDate(mesoIdx));
-					txtMesoEndDate.text = runCmd.formatDate(mesocyclesModel.getEndDate(mesoIdx));
+					txtMesoEndDate.text = appUtils.formatDate(mesocyclesModel.getEndDate(mesoIdx));
 					if (!bNewMeso)
 						showCalendarChangedDialog();
 				}
@@ -433,7 +433,7 @@ TPPage {
 			}
 			TPTextInput {
 				id: txtMesoEndDate
-				text: runCmd.formatDate(mesocyclesModel.getDate(mesoIdx, 3))
+				text: appUtils.formatDate(mesocyclesModel.getDate(mesoIdx, 3))
 				readOnly: true
 				visible: bRealMeso
 				Layout.fillWidth: false
@@ -449,8 +449,8 @@ TPPage {
 
 					onDateSelected: function(date) {
 						if (mesocyclesModel.setMesoEndDate(mesoIdx, caldlg2.selectedDate)) {
-							txtMesoEndDate.text = runCmd.formatDate(caldlg2.selectedDate)
-							txtMesoNWeeks.text = runCmd.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
+							txtMesoEndDate.text = appUtils.formatDate(caldlg2.selectedDate)
+							txtMesoNWeeks.text = appUtils.calculateNumberOfWeeks(mesocyclesModel.getDate(mesoIdx, 2), mesocyclesModel.getDate(mesoIdx, 3));
 							mesocyclesModel.set(mesoIdx, 5, txtMesoNWeeks.text);
 						}
 						mesoSplitSetup.forcusOnFirstItem();
@@ -588,6 +588,6 @@ TPPage {
 	function changeCalendar() {
 		bPreserveOldCalendar = calendarChangeDlg.customBoolProperty1;
 		bPreserveOldCalendarUntilYesterday = calendarChangeDlg.customBoolProperty2;
-		appDB.changeMesoCalendar(bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
+		appDB.changeMesoCalendar(mesoIdx, bPreserveOldCalendar, bPreserveOldCalendarUntilYesterday);
 	}
 } //Page

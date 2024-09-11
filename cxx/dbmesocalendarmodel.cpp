@@ -1,10 +1,10 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
-#include "runcommands.h"
+#include "tputils.h"
 
-DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const uint mesoIdx)
-	: TPListModel(parentModel), m_parentModel(parentModel), mMesoIdx(mesoIdx)
+DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const int meso_idx)
+	: TPListModel(parentModel, meso_idx), m_parentModel(parentModel)
 {
 	m_tableId = MESOCALENDAR_TABLE_ID;
 	setObjectName(DBMesoCalendarObjectName);
@@ -12,10 +12,10 @@ DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const u
 
 void DBMesoCalendarModel::createModel()
 {
-	const QString strMesoId(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_ID));
-	const QDate startDate(m_parentModel->getDateFast(mMesoIdx, MESOCYCLES_COL_STARTDATE));
-	const QDate endDate(m_parentModel->getDateFast(mMesoIdx, MESOCYCLES_COL_ENDDATE));
-	const QString strSplit(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_SPLIT));
+	const QString strMesoId(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_ID));
+	const QDate startDate(m_parentModel->getDateFast(mesoIdx(), MESOCYCLES_COL_STARTDATE));
+	const QDate endDate(m_parentModel->getDateFast(mesoIdx(), MESOCYCLES_COL_ENDDATE));
+	const QString strSplit(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
 	const uint startmonth(startDate.month());
 	const uint endmonth(endDate.month());
 	int splitIdx(startDate.dayOfWeek() - 1);
@@ -157,7 +157,7 @@ void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bP
 
 void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& newSplitLetter)
 {
-	const QString mesoSplit(m_parentModel->getFast(mMesoIdx, MESOCYCLES_COL_SPLIT));
+	const QString mesoSplit(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
 	uint year(startDate.year());
 	uint month(startDate.month());
 	uint day(startDate.day()-1);
@@ -253,10 +253,10 @@ QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month,
 		const QString splitLetter(getSplitLetter(month, day));
 		const QDate date(year, month, day);
 		if (splitLetter != u"R")
-			return runCmd()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
-					splitLetter + u" - "_qs + m_parentModel->mesoSplitModel()->get(mMesoIdx, (static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A')) + 2);
+			return appUtils()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
+					splitLetter + u" - "_qs + m_parentModel->mesoSplitModel()->get(mesoIdx(), (static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A')) + 2);
 		else
-			return runCmd()->formatDate(date) + tr(": Rest day");
+			return appUtils()->formatDate(date) + tr(": Rest day");
 	}
 	else
 		return tr("Selected day is not part of the current mesocycle");

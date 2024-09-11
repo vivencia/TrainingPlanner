@@ -82,7 +82,7 @@ TPPage {
 			width: ListView.view.width
 			height: mesoContent.childrenRect.height + 20
 
-			onClicked: appDB.getMesocycle(index);
+			onClicked: appDB.getMesocyclePage(index);
 
 			Rectangle {
 				id: optionsRec
@@ -123,7 +123,7 @@ TPPage {
 						leftMargin: 5
 					}
 
-					onClicked: appDB.setWorkingMeso(index);
+					onClicked: mesocyclesModel.setCurrentMesoIdx(index);
 				}
 
 				TPButton {
@@ -143,11 +143,9 @@ TPPage {
 						top: optCurrentMeso.bottom
 					}
 
-					onClicked: {
-						appDB.setWorkingMeso(index);
-						appDB.getMesocycle(index);
-					}
+					onClicked: appDB.getMesocyclePage(index);
 				}
+
 				TPButton {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
@@ -155,6 +153,7 @@ TPPage {
 					textUnderIcon: true
 					imageSource: "meso-calendar.png"
 					fixedSize: true
+					enabled: mesocyclesModel.isOwnMeso(index)
 					width: parent.width/3 - 3
 					height: parent.height/2 - 3
 					z:1
@@ -165,25 +164,12 @@ TPPage {
 						left: optCurrentMeso.right
 					}
 
-					onClicked: {
-						appDB.setWorkingMeso(index);
-						appDB.getMesoCalendar(true);
-					}
+					onClicked: appDB.getMesoCalendar(index, true);
 
-					Component.onCompleted: {
-						enableButton(index);
-						userModel.appUseModeChanged.connect(function(userrow) { enableButton(index); });
-						mesocyclesModel.realMesoChanged.connect(enableButton);
-					}
-
-					function enableButton(mesoidx) {
-						var bEnabled = userModel.appUseMode(0) !== 2;
-						if (bEnabled) {
-							if (mesoidx === index)
-								bEnabled = mesocyclesModel.get(index, 8) === userModel.userName(0);
-						}
-						enabled = bEnabled;
-					}
+					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx)
+						{ if (mesoidx === index)
+							enabled = mesocyclesModel.isOwnMeso(mesoidx);
+						});
 				}
 
 				TPButton {
@@ -202,11 +188,9 @@ TPPage {
 						left: btnMesoInfo.right
 					}
 
-					onClicked: {
-						appDB.setWorkingMeso(index);
-						appDB.createExercisesPlannerPage();
-					}
+					onClicked: appDB.getExercisesPlannerPage(index);
 				}
+
 				TPButton {
 					id: btnImport
 					text: qsTr("Import")
@@ -224,11 +208,9 @@ TPPage {
 						left: btnMesoPlan.right
 					}
 
-					onClicked: {
-						appDB.setWorkingMeso(index);
-						mainwindow.chooseFileToImport();
-					}
+					onClicked: mainwindow.chooseFileToImport();
 				}
+
 				TPButton {
 					id: btnExport
 					text: qsTr("Export")
@@ -246,14 +228,13 @@ TPPage {
 					}
 
 					onClicked: {
-						appDB.setWorkingMeso(index);
 						if (Qt.platform.os === "android")
 						{
 							btnImExport = this;
-							INEX.showInExMenu(homePage, false);
+							INEX.showInExMenu(index, homePage, false);
 						}
 						else
-							exportTypeTip.init(false);
+							exportTypeTip.init(index, false);
 					}
 				}
 			} //swipe.left: Rectangle
@@ -431,7 +412,7 @@ TPPage {
 				rightMargin: 5
 			}
 
-			onClicked: appDB.getTrainingDay(new Date());
+			onClicked: appDB.getTrainingDay(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
 		}
 	} // footer
 
@@ -457,19 +438,15 @@ TPPage {
 		}
 	}
 
-	function btnWorkoutEnabled() {
-		var bMesoOK = mesocyclesModel.count > 0;
-		var bHasWorkOuts = false;
-		if (bMesoOK) {
-			bHasWorkOuts = userModel.appUseMode(0) !== 2;
-			if (bHasWorkOuts) {
-				if (stackView.depth === 1)
-					btnWorkout.enabled = mesocyclesModel.isDateWithinCurrentMeso(new Date());
-				else
-					btnWorkout.enabled = false;
-			}
+	function btnWorkoutEnabled(own_mesoidx) {
+		if (own_mesoidx >= 0) {
+			if (stackView.depth === 1)
+				btnWorkout.enabled = mesocyclesModel.isDateWithinMeso(own_mesoidx, new Date());
+			else
+				btnWorkout.enabled = false;
 		}
-		btnWorkout.visible = bHasWorkOuts;
+		else
+			btnWorkout.visible = false;
 	}
 
 	TPComplexDialog {
@@ -482,11 +459,13 @@ TPPage {
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 		parentPage: homePage
 
-		onButton1Clicked: appDB.exportMeso(bShare, customBoolProperty1);
+		onButton1Clicked: appDB.exportMeso(mesoIdx, bShare, customBoolProperty1);
 
-		property bool bShare: false
+		property int mesoIdx
+		property bool bShare
 
-		function init(share: bool) {
+		function init(meso_idx: int, share: bool) {
+			mesoIdx = meso_idx;
 			bShare = share;
 			show(-1);
 		}

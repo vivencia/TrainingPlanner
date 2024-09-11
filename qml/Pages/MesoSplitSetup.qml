@@ -148,7 +148,7 @@ Pane {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		onClicked: appDB.createExercisesPlannerPage();
+		onClicked: appDB.getExercisesPlannerPage(mesoIdx);
 	}
 
 	function forcusOnFirstItem() {

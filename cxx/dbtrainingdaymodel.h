@@ -44,10 +44,9 @@ Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY d
 Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(const uint meso_idx, QObject* parent = nullptr);
+	explicit DBTrainingDayModel(QObject* parent = nullptr, const int meso_idx = -1);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
-	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	void getSaveInfo(QStringList& data) const;
@@ -69,44 +68,44 @@ public:
 	inline bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished);
 
-	Q_INVOKABLE const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
+	Q_INVOKABLE inline const int id() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_ID).toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(0).at(TDAY_COL_ID); }
 	inline void setId(const QString& new_id) { m_modeldata[0][TDAY_COL_ID] = new_id; }
 
-	Q_INVOKABLE const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_MESOID).toInt(): -1; }
+	Q_INVOKABLE inline const int mesoId() const { return count() == 1 ? m_modeldata.at(0).at(TDAY_COL_MESOID).toInt(): -1; }
 	inline const QString& mesoIdStr() const { return m_modeldata.at(0).at(TDAY_COL_MESOID); }
 	Q_INVOKABLE inline void setMesoId(const QString& mesoid) { m_modeldata[0][TDAY_COL_MESOID] = mesoid; }
 
-	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(0).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
+	/*Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(0).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
 	inline const QString& dateStr() const { return m_modeldata.at(0).at(TDAY_COL_DATE); }
-	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[0][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }
+	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[0][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }*/
 
-	Q_INVOKABLE QString trainingDay() const { return m_modeldata.at(0).at(TDAY_COL_TRAININGDAYNUMBER); }
+	Q_INVOKABLE inline QString trainingDay() const { return m_modeldata.at(0).at(TDAY_COL_TRAININGDAYNUMBER); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
 	//is changed even for the first time, i.e., when the page is receiving default values
-	Q_INVOKABLE void setTrainingDay(const QString& trainingday )
+	Q_INVOKABLE inline void setTrainingDay(const QString& trainingday )
 	{ if (trainingday != m_modeldata.at(0).at(TDAY_COL_TRAININGDAYNUMBER)) { m_modeldata[0][TDAY_COL_TRAININGDAYNUMBER] = trainingday; setModified(true); } }
 
-	Q_INVOKABLE QString splitLetter() const { return m_modeldata.at(0).at(TDAY_COL_SPLITLETTER); }
-	Q_INVOKABLE void setSplitLetter(const QString& splitletter )
+	Q_INVOKABLE inline QString splitLetter() const { return m_modeldata.at(0).at(TDAY_COL_SPLITLETTER); }
+	Q_INVOKABLE inline void setSplitLetter(const QString& splitletter )
 	{ if (splitletter != m_modeldata.at(0).at(TDAY_COL_SPLITLETTER)) { m_modeldata[0][TDAY_COL_SPLITLETTER] = splitletter; setModified(true); } }
 
-	Q_INVOKABLE QString timeIn() const { return m_modeldata.at(0).at(TDAY_COL_TIMEIN); }
-	Q_INVOKABLE void setTimeIn(const QString& timein)
+	Q_INVOKABLE inline QString timeIn() const { return m_modeldata.at(0).at(TDAY_COL_TIMEIN); }
+	Q_INVOKABLE inline void setTimeIn(const QString& timein)
 	{ if (timein != m_modeldata.at(0).at(TDAY_COL_TIMEIN)) { m_modeldata[0][TDAY_COL_TIMEIN] = timein; setModified(true); } }
 
-	Q_INVOKABLE QString timeOut() const { return m_modeldata.at(0).at(TDAY_COL_TIMEOUT); }
-	Q_INVOKABLE void setTimeOut(const QString& timeout)
+	Q_INVOKABLE inline QString timeOut() const { return m_modeldata.at(0).at(TDAY_COL_TIMEOUT); }
+	Q_INVOKABLE inline void setTimeOut(const QString& timeout)
 	{ if (timeout != m_modeldata.at(0).at(TDAY_COL_TIMEOUT)) { m_modeldata[0][TDAY_COL_TIMEOUT] = timeout; setModified(true); } }
 
-	Q_INVOKABLE QString location() const { return m_modeldata.at(0).at(TDAY_COL_LOCATION); }
-	Q_INVOKABLE void setLocation(const QString& location) { m_modeldata[0][TDAY_COL_LOCATION] = location; setModified(true); }
+	Q_INVOKABLE inline QString location() const { return m_modeldata.at(0).at(TDAY_COL_LOCATION); }
+	Q_INVOKABLE inline void setLocation(const QString& location) { m_modeldata[0][TDAY_COL_LOCATION] = location; setModified(true); }
 
-	Q_INVOKABLE QString dayNotes() const { return m_modeldata.at(0).at(TDAY_COL_NOTES); }
-	Q_INVOKABLE void setDayNotes(const QString& day_notes) { m_modeldata[0][TDAY_COL_NOTES] = day_notes; setModified(true); }
+	Q_INVOKABLE inline QString dayNotes() const { return m_modeldata.at(0).at(TDAY_COL_NOTES); }
+	Q_INVOKABLE inline void setDayNotes(const QString& day_notes) { m_modeldata[0][TDAY_COL_NOTES] = day_notes; setModified(true); }
 
-	const uint exerciseCount() const { return m_ExerciseData.count(); }
-	Q_INVOKABLE const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
+	const uint inline exerciseCount() const { return m_ExerciseData.count(); }
+	Q_INVOKABLE inline const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
 
 	Q_INVOKABLE inline bool trackRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_TrackRestTime; }
 	Q_INVOKABLE inline void setTrackRestTime(const bool track_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
@@ -194,7 +193,6 @@ private:
 	QList<exerciseEntry*> m_ExerciseData;
 	bool mb_DayIsFinished, mb_DayIsEditable;
 	QMap<uint, bool> m_CompositeExerciseList;
-	uint m_mesoIdx;
 
 	friend class DBMesoSplitModel;
 };

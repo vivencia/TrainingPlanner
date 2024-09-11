@@ -1,4 +1,4 @@
-#include "runcommands.h"
+#include "tputils.h"
 
 #include <QSettings>
 #include <QLocale>
@@ -17,13 +17,13 @@
 	#define FONT_POINT_SIZE_TITLE 18
 #endif
 
-RunCommands* RunCommands::app_runcmd(nullptr);
-QSettings* RunCommands::app_settings(nullptr);
+TPUtils* TPUtils::app_utils(nullptr);
+QSettings* TPUtils::app_settings(nullptr);
 
-RunCommands::RunCommands( QSettings* settings, QObject *parent )
+TPUtils::TPUtils( QSettings* settings, QObject *parent )
 	: QObject(parent), m_appLocale(nullptr), mb_appSuspended(false)
 {
-	app_runcmd = this;
+	app_utils = this;
 	app_settings = settings;
 
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
@@ -43,7 +43,7 @@ RunCommands::RunCommands( QSettings* settings, QObject *parent )
 	});
 }
 
-const QString RunCommands::getCorrectPath(const QUrl& url) const
+const QString TPUtils::getCorrectPath(const QUrl& url) const
 {
 	#ifdef DEBUG
 	qDebug() << "input url:  " << url;
@@ -56,7 +56,7 @@ const QString RunCommands::getCorrectPath(const QUrl& url) const
 	//#endif
 }
 
-int RunCommands::getFileType( const QString& filename ) const
+int TPUtils::getFileType( const QString& filename ) const
 {
 	#ifdef Q_OS_ANDROID
 		if ( filename.contains(QStringLiteral("video%"), Qt::CaseInsensitive))
@@ -77,7 +77,7 @@ int RunCommands::getFileType( const QString& filename ) const
 	#endif
 }
 
-QString RunCommands::getAppDir(const QString& dbFile)
+QString TPUtils::getAppDir(const QString& dbFile)
 {
 	if (!dbFile.isEmpty())
 	{
@@ -88,12 +88,12 @@ QString RunCommands::getAppDir(const QString& dbFile)
 	return m_appPrivateDir;
 }
 
-void RunCommands::copyToClipBoard(const QString& text) const
+void TPUtils::copyToClipBoard(const QString& text) const
 {
 	qApp->clipboard()->setText(text);
 }
 
-bool RunCommands::canReadFile(const QString& filename) const
+bool TPUtils::canReadFile(const QString& filename) const
 {
 	QFileInfo file(filename);
 	if (file.isFile())
@@ -101,18 +101,18 @@ bool RunCommands::canReadFile(const QString& filename) const
 	return false;
 }
 
-QString RunCommands::formatDate(const QDate& date) const
+QString TPUtils::formatDate(const QDate& date) const
 {
 	return m_appLocale->toString(date, u"ddd d/M/yyyy"_qs);
 }
 
-QString RunCommands::formatTodayDate() const
+QString TPUtils::formatTodayDate() const
 {
 	const QDate today(QDate::currentDate());
 	return m_appLocale->toString(today, u"ddd d/M/yyyy"_qs);
 }
 
-QDate RunCommands::getDateFromStrDate(const QString& strDate) const
+QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 {
 	const QStringView strdate(strDate);
 	//if (appLocale->name() == u"pt_BR"_qs)
@@ -147,7 +147,7 @@ QDate RunCommands::getDateFromStrDate(const QString& strDate) const
 	}*/
 }
 
-uint RunCommands::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
+uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
 {
 	uint n(0);
 	const uint week1(date1.weekNumber());
@@ -162,14 +162,14 @@ uint RunCommands::calculateNumberOfWeeks(const QDate& date1, const QDate& date2)
 	return n+1; //+1 include current week
 }
 
-QDate RunCommands::getMesoStartDate(const QDate& lastMesoEndDate) const
+QDate TPUtils::getMesoStartDate(const QDate& lastMesoEndDate) const
 {
 	const uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
 	const QDate date (lastMesoEndDate);
 	return date.addDays(daysToNextMonday[date.dayOfWeek()-1]);
 }
 
-QDate RunCommands::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const
+QDate TPUtils::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const
 {
 	QDate newDate(date);
 	if (days > 0)
@@ -182,7 +182,7 @@ QDate RunCommands::createFutureDate(const QDate& date, const uint years, const u
 	return newDate;
 }
 
-QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
+QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
 {
 	int secs(QStringView{strTime}.mid(3, 2).toUInt());
 	int mins(QStringView{strTime}.left(2).toUInt());
@@ -209,37 +209,37 @@ QString RunCommands::addTimeToStrTime(const QString& strTime, const int addmins,
 	return ret;
 }
 
-QString RunCommands::formatFutureTime(const QDateTime& addTime) const
+QString TPUtils::formatFutureTime(const QDateTime& addTime) const
 {
 	const QTime time(addTime.time());
 	return addToTime(QTime::currentTime(), time.hour(), time.minute());
 }
 
-QString RunCommands::addToTime(const QString& origTime, const uint hours, const uint mins) const
+QString TPUtils::addToTime(const QString& origTime, const uint hours, const uint mins) const
 {
 	const QTime time(origTime.left(2).toUInt(), origTime.right(2).toUInt());
 	return addToTime(time, hours, mins);
 }
 
-QString RunCommands::getHourOrMinutesFromStrTime(const QString& strTime) const
+QString TPUtils::getHourOrMinutesFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.left(idx) : QString();
 }
 
-QString RunCommands::getMinutesOrSeconsFromStrTime(const QString& strTime) const
+QString TPUtils::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.mid(idx+1) : QString();
 }
 
-QString RunCommands::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
+QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
 {
 	const QTime time(calculateTimeDifference(strTimeInit, strTimeFinal));
 	return time.toString(u"hh:mm:ss");
 }
 
-QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
+QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
 {
 	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
 	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());
@@ -252,7 +252,7 @@ QTime RunCommands::calculateTimeDifference(const QString& strTimeInit, const QSt
 	return QTime(hour, min, 0);
 }
 
-QString RunCommands::getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep) const
+QString TPUtils::getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep) const
 {
 	QString::const_iterator itr(compositeString.constBegin());
 	const QString::const_iterator itr_end(compositeString.constEnd());
@@ -276,7 +276,7 @@ QString RunCommands::getCompositeValue(const uint idx, const QString& compositeS
 	return compositeString.mid(last_sep_pos, chr_pos);
 }
 
-void RunCommands::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
+void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
 {
 	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1);
@@ -311,7 +311,7 @@ void RunCommands::setCompositeValue(const uint idx, const QString& newValue, QSt
 	compositeString += newValue + chr_sep;
 }
 
-bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& string2) const
+bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2) const
 {
 	const QStringList words2(string2.split(' '));
 	QStringList::const_iterator itr(words2.begin());
@@ -329,7 +329,7 @@ bool RunCommands::stringsAreSimiliar(const QString& string1, const QString& stri
 	return false;
 }
 
-QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
+QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
 {
 	strValue.replace('.', ',');
 	strValue.replace('-', u""_qs);
@@ -471,7 +471,7 @@ QString RunCommands::setTypeOperation(const uint settype, const bool bIncrease, 
 	}
 }
 
-void RunCommands::setAppLocale(const QString& localeStr)
+void TPUtils::setAppLocale(const QString& localeStr)
 {
 	if (m_appLocale)
 		delete m_appLocale;
@@ -499,7 +499,7 @@ void RunCommands::setAppLocale(const QString& localeStr)
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 }
 
-void RunCommands::populateSettingsWithDefaultValue()
+void TPUtils::populateSettingsWithDefaultValue()
 {
 	if (appSettings()->value("appVersion").toString().isEmpty())
 	{

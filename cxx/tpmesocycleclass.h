@@ -34,10 +34,10 @@ public:
 	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent = nullptr);
 	~TPMesocycleClass();
 
-	inline int mesoId() const { return m_MesoId; }
+	inline int mesoId() const { return m_mesoId; }
 	void setMesoId(const int new_mesoid);
-	inline uint mesoIdx() const { return m_MesoIdx; }
-	void changeMesoIdxFromPages(const uint new_mesoIdx);
+	inline uint mesoIdx() const { return m_mesoIdx; }
+	void changeMesoIdxFromPagesAndModels(const uint new_mesoidx);
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
@@ -59,7 +59,7 @@ public:
 	inline DBMesoSplitModel* getSplitModel(const QChar& splitLetter)
 	{
 		if (!m_splitModels.contains(splitLetter))
-			m_splitModels.insert(splitLetter, new DBMesoSplitModel(this, true, m_MesoIdx));
+			m_splitModels.insert(splitLetter, new DBMesoSplitModel(this, true, m_mesoIdx));
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
@@ -82,7 +82,7 @@ public:
 	inline DBTrainingDayModel* gettDayModel(const QDate& date)
 	{
 		if (!m_tDayModels.contains(date))
-			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(m_MesoIdx, this));
+			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx));
 		else
 			m_CurrenttDayModel = m_tDayModels.value(date);
 		return m_CurrenttDayModel;
@@ -92,7 +92,7 @@ public:
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
-	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
+	void updateOpenTDayPagesWithNewCalendarInfo(const DBTrainingDayModel* tDayModel);
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);
@@ -146,8 +146,8 @@ signals:
 	void itemReady(QQuickItem* item, const uint id);
 
 private:
-	int m_MesoId;
-	uint m_MesoIdx;
+	int m_mesoId;
+	uint m_mesoIdx;
 	QQmlApplicationEngine* m_QMlEngine;
 	QQuickItem* m_appStackView;
 

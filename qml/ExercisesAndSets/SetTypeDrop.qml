@@ -94,7 +94,7 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: appDB.itemManager(tDayModel.mesoIdx()).changeSetMode(exerciseIdx, setNumber);
 			}
 
 			TPButton {
@@ -106,7 +106,7 @@ Item {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: appDB.itemManager(tDayModel.mesoIdx()).changeSetMode(exerciseIdx, setNumber);
 			}
 		}
 
@@ -138,7 +138,7 @@ Item {
 							else if (copyTypeButtonValue === "")
 								copyTypeButtonValue = tDayModel.setType(setNumber, exerciseIdx).toString();
 						}
-						itemManager.changeSetType(setNumber, exerciseIdx, index);
+						appDB.itemManager(tDayModel.mesoIdx()).changeSetType(setNumber, exerciseIdx, index);
 					}
 				}
 			}
@@ -157,7 +157,7 @@ Item {
 				}
 
 				onClicked: {
-					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
 					copyTypeButtonValue = "";
 				}
 			}
@@ -213,7 +213,7 @@ Item {
 				Layout.alignment: Qt.AlignRight
 
 				onClicked: {
-					itemManager.copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
+					appDB.itemManager(tDayModel.mesoIdx()).copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
 					copyTimeButtonValue = "";
 				}
 			}

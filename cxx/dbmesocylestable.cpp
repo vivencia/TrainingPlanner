@@ -139,8 +139,8 @@ void DBMesocyclesTable::getAllMesocycles()
 				do
 				{
 					for (i = MESOCYCLES_COL_ID; i < MESOCYCLES_TOTAL_COLS; ++i)
-						meso_info.append(query.value(static_cast<int>(i)).toString());
-					model->newMesocycle(meso_info);
+						meso_info.append(query.value(i).toString());
+					static_cast<void>(model->newMesocycle(meso_info));
 					meso_info.clear();
 				} while (query.next ());
 				model->finishedLoadingFromDatabase();

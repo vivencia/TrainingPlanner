@@ -1,5 +1,5 @@
 #include "dbusermodel.h"
-#include "runcommands.h"
+#include "tputils.h"
 
 DBUserModel::DBUserModel(QObject *parent)
 	: TPListModel(parent), mb_empty(false), m_searchRow(-1)
@@ -320,7 +320,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 	switch (field)
 	{
 		case USER_COL_BIRTHDAY:
-			return runCmd()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 		case USER_COL_SEX:
 			return fieldValue == u"0"_qs ? tr("Male") : tr("Female");
 		case USER_COL_AVATAR:
@@ -342,7 +342,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 	switch (field)
 	{
 		case USER_COL_BIRTHDAY:
-			return QString::number(runCmd()->getDateFromStrDate(fieldValue).toJulianDay());
+			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
 		case USER_COL_SEX:
 			return fieldValue == tr("Male") ? u"0"_qs : u"1"_qs;
 		case USER_COL_AVATAR:

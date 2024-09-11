@@ -39,6 +39,7 @@ public:
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void gotResult(TPDatabaseTable* dbObj);
 
+	Q_INVOKABLE inline TPMesocycleClass* itemManager(const uint meso_idx) const { return m_mesoManager.at(meso_idx); }
 	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
@@ -106,13 +107,13 @@ public:
 	void saveMesoSplit(const uint meso_idx);
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
-	Q_INVOKABLE void createExercisesPlannerPage(const uint meso_idx);
+	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	void loadCompleteMesoSplits(const uint meso_idx, const bool bThreaded = true);
-	Q_INVOKABLE void getCompleteMesoSplit(const uint meso_idx);
-	Q_INVOKABLE void saveMesoSplitComplete(const uint meso_idx, DBMesoSplitModel* model);
+	void getCompleteMesoSplit(const uint meso_idx);
+	Q_INVOKABLE void saveMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
-	Q_INVOKABLE QString checkIfSplitSwappable(const uint meso_idx, const QString& splitLetter) const;
+	Q_INVOKABLE QString checkIfSplitSwappable(const DBMesoSplitModel* splitModel) const;
 	Q_INVOKABLE void swapMesoPlans(const uint meso_idx, const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void exportMesoSplit(const uint meso_idx, const QString& splitLetter, const bool bShare, QFile* outFileInUse = nullptr);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -120,19 +121,18 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getMesoCalendar(const uint meso_idx, const bool bCreatePage);
 	Q_INVOKABLE void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
-	Q_INVOKABLE void updateMesoCalendarModel(const uint meso_idx, const QDate& startDate, const QString& newSplitLetter);
-	Q_INVOKABLE void updateMesoCalendarEntry(const uint meso_idx, const QDate& calDate, const uint calNDay,
-													const QString& calSplit, const bool bDayIsFinished);
-	Q_INVOKABLE void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
-	Q_INVOKABLE void removeMesoCalendar(const uint meso_id);
-	Q_INVOKABLE void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
+	Q_INVOKABLE void updateMesoCalendarModel(const DBTrainingDayModel* const tDayModel);
+	Q_INVOKABLE void updateMesoCalendarEntry(const DBTrainingDayModel* const tDayModel);
+	Q_INVOKABLE void setDayIsFinished(DBTrainingDayModel* const tDayModel, const bool bFinished);
+	void removeMesoCalendar(const uint meso_id);
+	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getTrainingDay(const uint meso_idx, const QDate& date);
 	void getTrainingDayExercises(const uint meso_idx, const QDate& date);
-	Q_INVOKABLE void verifyTDayOptions(const uint meso_idx, const QDate& date, const QString& splitLetter = QString());
-	Q_INVOKABLE void clearExercises(const uint meso_idx);
+	Q_INVOKABLE void verifyTDayOptions(const DBTrainingDayModel* const tDayModel);
+	Q_INVOKABLE void clearExercises(DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void loadExercisesFromDate(const uint meso_idx, const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(const uint meso_idx, const QString& splitLetter);
 	Q_INVOKABLE void convertTDayToPlan(const uint meso_idx, DBTrainingDayModel* tDayModel);
@@ -173,7 +173,7 @@ private:
 	bool mb_importMode;
 	QString m_DBFilePath;
 	QQmlApplicationEngine* m_QMlEngine;
-	QList<TPMesocycleClass*> m_MesoManager;
+	QList<TPMesocycleClass*> m_mesoManager;
 	QQuickWindow* m_mainWindow;
 
 	#ifdef Q_OS_ANDROID
