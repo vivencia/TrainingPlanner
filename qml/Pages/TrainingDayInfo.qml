@@ -310,7 +310,7 @@ TPPage {
 				function finishCreation() {
 					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, message: lblHeader.text,
 						imageSource: "export", button1Text: qsTr("Yes"), button2Text: qsTr("No") });
-					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(mainDate, splitLetter, bShare); } );
+					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(tDayModel, bShare); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -988,7 +988,7 @@ TPPage {
 	onSplitLetterChanged: exercisesListModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
 
 	function saveWorkout() {
-		appDB.saveTrainingDay();
+		appDB.saveTrainingDay(tDayModel);
 	}
 
 	TPComplexDialog {
@@ -1008,7 +1008,7 @@ TPPage {
 			var bDayIsFinished;
 			if (newSplitLetter !== "R") {
 				if (splitLetter == "R")
-					tDay = appDB.getWorkoutNumberForTrainingDay(mainDate);
+					tDay = appDB.getWorkoutNumberForTrainingDay(tDayModel);
 				bDayIsFinished = tDayModel.dayIsFinished;
 			}
 			else {
@@ -1061,10 +1061,10 @@ TPPage {
 	function intentChosen() {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				appDB.loadExercisesFromMesoPlan(splitLetter);
+				appDB.loadExercisesFromMesoPlan(tDayModel.mesoIdx, splitLetter);
 			break;
 			case 2: //use previous day
-				appDB.loadExercisesFromDate(intentDlg.customStringProperty1);
+				appDB.loadExercisesFromDate(tDayModel.mesoIdx, intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
 				mainwindow.chooseFileToImport();

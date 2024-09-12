@@ -7,8 +7,8 @@
 
 #include <random>
 
-DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* model)
+	: TPDatabaseTable(static_cast<TPListModel*>(model))
 {
 	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
@@ -17,8 +17,8 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, QSettings* appSett
 	m_tableID = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
 	m_UniqueID = QString::number(dist(gen)).remove(0, 2).toUInt();
-	const QString cnx_name(QStringLiteral("db_mesosplit_connection-") + QString::number(dist(gen)));
-	mSqlLiteDB = QSqlDatabase::addDatabase( QStringLiteral("QSQLITE"), cnx_name );
+	const QString cnx_name(u"db_mesosplit_connection-"_qs + QString::number(dist(gen)));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name );
 	const QString dbname( dbFilePath + DBMesoSplitFileName );
 	mSqlLiteDB.setDatabaseName( dbname );
 }
@@ -34,8 +34,7 @@ void DBMesoSplitTable::createTable()
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-		query.prepare( QStringLiteral(
-									"CREATE TABLE IF NOT EXISTS mesocycles_splits ("
+		const QString strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_splits ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
 										"splitA TEXT, "
@@ -85,18 +84,19 @@ void DBMesoSplitTable::createTable()
 										"splitF_exercisesset_types TEXT DEFAULT \"\", "
 										"splitF_exercisesset_subsets TEXT DEFAULT \"\", "
 										"splitF_exercisesset_reps TEXT DEFAULT \"\", "
-										"splitF_exercisesset_weight TEXT DEFAULT \"\")" ));
+										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_qs);
 
-		m_result = query.exec();
+		m_result = query.exec(strQuery);
+		if (!m_result)
+		{
+			MSG_OUT("DBMesoSplitTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesoSplitTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery)
+		}
+		else
+			MSG_OUT("DBMesoSplitTable createTable SUCCESS")
 		mSqlLiteDB.close();
 	}
-	if (!m_result)
-	{
-		MSG_OUT("DBMesoSplitTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesoSplitTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesoSplitTable createTable SUCCESS")
 }
 
 
@@ -376,7 +376,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 	return m_result;
 }
 
-void DBMesoSplitTable::convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel)
+void DBMesoSplitTable::convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel)
 {
 	static_cast<DBMesoSplitModel*>(m_model)->convertFromTDayModel(tDayModel);
 	saveMesoSplitComplete();

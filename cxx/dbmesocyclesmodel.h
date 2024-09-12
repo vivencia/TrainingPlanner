@@ -65,7 +65,7 @@ public:
 	Q_INVOKABLE QString getMuscularGroup(const uint meso_idx, const QString& splitLetter) const;
 	Q_INVOKABLE void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue);
 
-	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.at(meso_idx); }
+	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.value(meso_idx); }
 
 	Q_INVOKABLE inline bool isOwnMeso(const int meso_idx) const
 	{
@@ -126,8 +126,8 @@ signals:
 private:
 	DBUserModel* m_userModel;
 	DBMesoSplitModel* m_splitModel;
-	QList<DBMesoCalendarModel*> m_calendarModelList;
-	QList<uint> m_totalSplits;
+	QMap<uint,DBMesoCalendarModel*> m_calendarModelList;
+	QMap<uint,uint> m_totalSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
 };
 

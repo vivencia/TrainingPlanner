@@ -1,14 +1,13 @@
 #include "dbusertable.h"
 #include "dbusermodel.h"
-#include "tputils.h"
 
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QFile>
 #include <QTime>
 
-DBUserTable::DBUserTable(const QString& dbFilePath, QSettings* appSettings, DBUserModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
+	: TPDatabaseTable(static_cast<TPListModel*>(model))
 {
 	m_tableName = u"user_table"_qs;
 	m_tableID = USER_TABLE_ID;
@@ -64,15 +63,14 @@ void DBUserTable::createTable()
 
 void DBUserTable::getAllUsers()
 {
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT * FROM user_table") );
+		query.setForwardOnly(true);
 
-		if (query.exec())
+		if (query.exec(u"SELECT * FROM user_table"_qs))
 		{
 			if (query.first ())
 			{
@@ -117,7 +115,7 @@ void DBUserTable::saveUser()
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(QStringLiteral("SELECT id FROM user_table WHERE id=%1").arg(m_model->getFast(row, USER_COL_ID))))
+		if (query.exec(u"SELECT id FROM user_table WHERE id=%1"_qs.arg(m_model->getFast(row, USER_COL_ID))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -127,9 +125,8 @@ void DBUserTable::saveUser()
 		if (bUpdate)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			strQuery =  QStringLiteral(
-				"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						   "role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14")
+			strQuery = u"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
+						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14"_qs
 				.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY), m_model->getFast(row, USER_COL_SEX),
 					m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL), m_model->getFast(row, USER_COL_SOCIALMEDIA),
 					m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE), m_model->getFast(row, USER_COL_GOAL),
@@ -138,10 +135,9 @@ void DBUserTable::saveUser()
 		}
 		else
 		{
-			strQuery = QStringLiteral(
-				"INSERT INTO user_table "
+			strQuery = u"INSERT INTO user_table "
 				"(name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
-				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)")
+				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)"_qs
 					.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
 					m_model->getFast(row, USER_COL_SEX), m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL),
 					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE),

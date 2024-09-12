@@ -8,7 +8,7 @@ TPTimer::TPTimer(QObject* parent)
 		mb_timerForward(true), mb_paused(false), m_alarmSound(nullptr)
 {
 	connect(this, &QTimer::timeout, this, &TPTimer::calcTime);
-	connect(appUtils(), &RunCommands::appResumed, this, &TPTimer::correctTimer);
+	connect(appUtils(), &TPUtils::appResumed, this, &TPTimer::correctTimer);
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
 	m_originalStartTime = u"00:00:00"_qs;

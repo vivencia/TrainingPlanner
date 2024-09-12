@@ -22,6 +22,7 @@ TPPage {
 	property date maximumMesoEndDate
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
+	property bool bDoNotRemoveMeso: false
 	property bool bMesoNameOK: false
 	property bool bNewMeso: mesoId === -1
 	property bool bRealMeso: mesocyclesModel.isRealMeso(mesoIdx)
@@ -29,14 +30,21 @@ TPPage {
 	property bool bPreserveOldCalendar: false
 	property bool bPreserveOldCalendarUntilYesterday: false
 
-	onPageActivated: appDB.setWorkingMeso(mesoIdx);
+	onPageActivated: {
+		appDB.setWorkingMeso(mesoIdx);
+		if (bDoNotRemoveMeso)
+			bDoNotRemoveMeso = false;
+	}
 
 	onPageDeActivated: {
-		if (bNewMeso) {
-			if (mesocyclesModel.get(mesoIdx, 0) >= 0)
-				bNewMeso = false;
-			else
-				appDB.scheduleMesocycleRemoval(mesoIdx);
+		if (!bDoNotRemoveMeso)
+		{
+			if (bNewMeso) {
+				if (mesocyclesModel.get(mesoIdx, 0) >= 0)
+					bNewMeso = false;
+				else
+					appDB.scheduleMesocycleRemoval(mesoIdx);
+			}
 		}
 	}
 
@@ -67,7 +75,10 @@ TPPage {
 				leftMargin: 20
 			}
 
-			onClicked: appDB.getMesoCalendar(mesoIdx, true);
+			onClicked: {
+				bDoNotRemoveMeso = true;
+				appDB.getMesoCalendar(mesoIdx, true);
+			}
 		}
 	}
 
@@ -170,7 +181,10 @@ TPPage {
 				TPButton {
 					imageSource: "manage-coaches"
 
-					onClicked: appDB.openClientsOrCoachesPage(false, true);
+					onClicked: {
+						bDoNotRemoveMeso = true;
+						appDB.openClientsOrCoachesPage(false, true);
+					}
 				}
 			}
 
@@ -239,7 +253,10 @@ TPPage {
 					id: btnManageClients
 					imageSource: "manage-clients"
 
-					onClicked: appDB.openClientsOrCoachesPage(true, false);
+					onClicked: {
+						bDoNotRemoveMeso = true;
+						appDB.openClientsOrCoachesPage(true, false);
+					}
 				}
 			}
 
@@ -554,7 +571,7 @@ TPPage {
 	}
 
 	function saveMeso() {
-		appDB.saveMesocycle();
+		appDB.saveMesocycle(mesoIdx);
 		if (bNewMeso)
 			mesoId = mesocyclesModel.getInt(mesoIdx, 0);
 	}

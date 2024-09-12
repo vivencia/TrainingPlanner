@@ -49,7 +49,7 @@ public:
 
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
-	void getSaveInfo(QStringList& data) const;
+	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel);
 	virtual bool updateFromModel(const TPListModel* model) override;
 

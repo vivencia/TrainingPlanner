@@ -347,7 +347,7 @@ uint TPMesocycleClass::createTrainingDayPage(const QDate& date)
 			{
 				m_CurrenttDayModel->appendRow();
 				m_CurrenttDayModel->setMesoId(QString::number(m_mesoId));
-				m_CurrenttDayModel->setDate(date);
+				m_CurrenttDayModel->setDate(0, TDAY_COL_DATE, date);
 				m_CurrenttDayModel->setSplitLetter(splitLetter);
 				m_CurrenttDayModel->setTrainingDay(tday);
 				m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
@@ -425,13 +425,11 @@ void TPMesocycleClass::setCurrenttDay(const QDate& date)
 	m_currentExercises = m_tDayExercisesList.value(date);
 }
 
-void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const DBTrainingDayModel* tDayModel)
+void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate)
 {
 	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
 	i.toFront();
-	DBMesoCalendarModel* mesoCal = m_MesocyclesModel->mesoCalendarModel(tDayModel->mesoIdx());
-	const QDate startDate(tDayModel->getDateFast(0, TDAY_COL_DATE));
-	const QDate endDate(m_MesocyclesModel->getDateFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ENDDATE));
+	const DBMesoCalendarModel* const mesoCal(m_MesocyclesModel->mesoCalendarModel(meso_idx));
 	while (i.hasNext())
 	{
 		i.next();
@@ -442,8 +440,7 @@ void TPMesocycleClass::updateOpenTDayPagesWithNewCalendarInfo(const DBTrainingDa
 				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
 					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
 					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
-					Q_ARG(QString, m_MesocyclesModel->getMuscularGroup(tDayModel->mesoIdx(),
-						m_MesocyclesModel->mesoCalendarModel(tDayModel->mesoIdx())->getSplitLetter(startDate.month(), startDate.day()))));
+					Q_ARG(QString, m_MesocyclesModel->getMuscularGroup(meso_idx, mesoCal->getSplitLetter(startDate.month(), startDate.day()))));
 			}
 		}
 	}

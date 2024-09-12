@@ -4,9 +4,8 @@
 #include "tpdatabasetable.h"
 
 #include <QObject>
-#include <QSettings>
 
-static const QString DBExercisesFileName(QStringLiteral("ExercisesList.db.sqlite"));
+static const QString DBExercisesFileName(u"ExercisesList.db.sqlite"_qs);
 
 class DBExercisesModel;
 
@@ -14,7 +13,7 @@ class DBExercisesTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model = nullptr);
+	explicit DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model = nullptr);
 
 	virtual void createTable();
 	virtual void updateDatabase() {}

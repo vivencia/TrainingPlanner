@@ -4,17 +4,16 @@
 #include "tpdatabasetable.h"
 
 #include <QObject>
-#include <QSettings>
 
 class DBTrainingDayModel;
 
-static const QString DBTrainingDayFileName ( QStringLiteral("TrainingDay.db.sqlite") );
+static const QString DBTrainingDayFileName(u"TrainingDay.db.sqlite"_qs);
 
 class DBTrainingDayTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBTrainingDayTable(const QString& dbFilePath, QSettings* appSettings, DBTrainingDayModel* model = nullptr);
+	explicit DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model = nullptr);
 
 	virtual void createTable();
 	virtual void updateDatabase();

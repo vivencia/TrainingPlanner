@@ -6,20 +6,17 @@
 #include <QTime>
 #include <QFile>
 
-DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model)
+	: TPDatabaseTable(static_cast<TPListModel*>(model))
 {
 	m_tableName = u"mesocycles_calendar_table"_qs;
 	m_tableID = MESOCALENDAR_TABLE_ID;
 	setObjectName(DBMesoCalendarObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString cnx_name(QStringLiteral("db_mesocal_connection-") + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString cnx_name(u"db_mesocal_connection-"_qs + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
 	const QString dbname(dbFilePath + DBMesoCalendarFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
-	m_data.reserve(3);
-	for(uint i(0); i < 3; i++)
-		m_data.append(QString());
 }
 
 void DBMesoCalendarTable::createTable()

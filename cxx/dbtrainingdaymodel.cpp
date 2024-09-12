@@ -51,8 +51,12 @@ void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClear
 	emit exerciseCountChanged();
 }
 
-void DBTrainingDayModel::getSaveInfo(QStringList& data) const
+const QStringList DBTrainingDayModel::getSaveInfo() const
 {
+	QStringList data;
+	for(uint i(TDAY_EXERCISES_COL_NAMES); i <= TDAY_EXERCISES_COL_COMPLETED; i++)
+		data.append(QString());
+
 	for(uint i(0); i < m_ExerciseData.count(); ++i)
 	{
 		data[TDAY_EXERCISES_COL_NAMES].append(m_ExerciseData.at(i)->name + record_separator2);
@@ -74,6 +78,7 @@ void DBTrainingDayModel::getSaveInfo(QStringList& data) const
 		data[TDAY_EXERCISES_COL_NOTES].append(record_separator2);
 		data[TDAY_EXERCISES_COL_COMPLETED].append(record_separator2);
 	}
+	return data;
 }
 
 void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel)

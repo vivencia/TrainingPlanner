@@ -26,7 +26,7 @@ RadioButton {
 		color: control.enabled ? textColor : "gray"
 		wrapMode: Text.WordWrap
 		font.weight: Font.Bold
-		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
+		fontSizeMode: Text.Fit
 		font.pointSize: AppSettings.fontSizeText
 		minimumPointSize: 8
 		maximumLineCount: 2

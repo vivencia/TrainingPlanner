@@ -9,15 +9,15 @@
 
 uint DBExercisesTable::m_exercisesTableLastId(1000);
 
-DBExercisesTable::DBExercisesTable(const QString& dbFilePath, QSettings* appSettings, DBExercisesModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+DBExercisesTable::DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model)
+	: TPDatabaseTable(static_cast<TPListModel*>(model))
 {
 	m_tableName = u"exercises_table"_qs;
 	m_tableID = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString cnx_name(u"db_exercises_connection"_qs + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
 	const QString dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 	m_data.reserve(EXERCISES_COL_SELECTED+1);
@@ -36,8 +36,7 @@ void DBExercisesTable::createTable()
 		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-		query.prepare( QStringLiteral(
-									"CREATE TABLE IF NOT EXISTS exercises_table ("
+		const QString strQuery(u"CREATE TABLE IF NOT EXISTS exercises_table ("
 										"id INTEGER PRIMARY KEY,"
 										"primary_name TEXT,"
 										"secondary_name TEXT,"
@@ -48,14 +47,14 @@ void DBExercisesTable::createTable()
 										"weight_unit TEXT,"
 										"media_path TEXT,"
 										"from_list INTEGER"
-									")"
-								)
+									")"_qs
 		);
-		m_result = query.exec();
+		m_result = query.exec(strQuery);
 		if (!m_result)
 		{
 			MSG_OUT("DBExercisesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBExercisesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery)
 		}
 		else
 			MSG_OUT("DBExercisesTable createTable SUCCESS")
@@ -65,15 +64,13 @@ void DBExercisesTable::createTable()
 
 void DBExercisesTable::getAllExercises()
 {
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly( true );
-		query.prepare( QStringLiteral("SELECT * FROM exercises_table") );
-
-		if (query.exec())
+		query.setForwardOnly(true);
+		if (query.exec(u"SELECT * FROM exercises_table"_qs))
 		{
 			if (query.first ())
 			{
@@ -141,11 +138,10 @@ void DBExercisesTable::updateExercisesList()
 		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
 		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
 
-		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
-		const QString query_cmd( QStringLiteral(
-								"INSERT INTO exercises_table "
+		const QString strWeightUnit(appSettings()->value("weightUnit").toString());
+		const QString query_cmd(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)") );
+								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)"_qs);
 
 		uint idx ( 0 );
 		mSqlLiteDB.transaction();
@@ -164,27 +160,25 @@ void DBExercisesTable::updateExercisesList()
 				fields = static_cast<QString>(*itr).split(';');
 				query.exec(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), strWeightUnit));
 				m_model->appendList(QStringList()
-								<< QString::number(idx) << fields.at(0) << fields.at(1) << fields.at(2).trimmed()
-								<< QStringLiteral("4") << QStringLiteral("12") << QStringLiteral("20")
-								<< strWeightUnit << QStringLiteral("qrc:/images/no_image.jpg") << u"1"_qs << QString::number(idx) << u"0"_qs );
+								<< QString::number(idx) << fields.at(0) << fields.at(1) << fields.at(2).trimmed() << u"4"_qs << u"12"_qs << u"20"_qs
+								<< strWeightUnit << u"qrc:/images/no_image.jpg"_qs << STR_ONE << QString::number(idx) << STR_ZERO );
 			}
 		}
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
 		m_opcode = OP_UPDATE_LIST;
+		if (!m_result)
+		{
+			MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBExercisesTable updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+		{
+			MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
+		}
 		mSqlLiteDB.close();
 	}
 	m_ExercisesList.clear();
-
-	if (!m_result)
-	{
-		MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-	{
-		MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
-	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
@@ -204,7 +198,7 @@ void DBExercisesTable::updateFromModel()
 		TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
 		static_cast<DBExercisesModel*>(m_model)->updateFromModel(model);
 
-		const QString strWeightUnit (m_appSettings->value("weightUnit").toString());
+		const QString strWeightUnit(appSettings()->value("weightUnit").toString());
 		const QString query_cmd( QStringLiteral(
 								"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
@@ -223,17 +217,17 @@ void DBExercisesTable::updateFromModel()
 		static_cast<DBExercisesModel*>(m_model)->setLastID(idx);
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
+		if (!m_result)
+		{
+			MSG_OUT("DBExercisesTable updateExercisesListFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBExercisesTable updateExercisesListFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
+		}
+		else
+		{
+			m_model->clearModifiedIndices();
+			MSG_OUT("DBExercisesTable updateExercisesListFromModel SUCCESS")
+		}
 		mSqlLiteDB.close();
-	}
-	if (!m_result)
-	{
-		MSG_OUT("DBExercisesTable updateExercisesListFromModel Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable updateExercisesListFromModel Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-	{
-		m_model->clearModifiedIndices();
-		MSG_OUT("DBExercisesTable updateExercisesListFromModel SUCCESS")
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

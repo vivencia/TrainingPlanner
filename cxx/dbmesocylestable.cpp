@@ -6,15 +6,15 @@
 #include <QTime>
 #include <QFile>
 
-DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model)
-	: TPDatabaseTable(appSettings, static_cast<TPListModel*>(model))
+DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
+	: TPDatabaseTable(static_cast<TPListModel*>(model))
 {
 	m_tableName = u"mesocycles_table"_qs;
 	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString cnx_name(QStringLiteral("db_meso_connection") + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString cnx_name(u"db_meso_connection"_qs + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
 	const QString dbname(dbFilePath + DBMesocyclesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -24,8 +24,7 @@ void DBMesocyclesTable::createTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare( QStringLiteral(
-									"CREATE TABLE IF NOT EXISTS mesocycles_table ("
+		const QString strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
 										"meso_start_date INTEGER,"
@@ -38,19 +37,19 @@ void DBMesocyclesTable::createTable()
 										"meso_program_file TEXT,"
 										"meso_type TEXT,"
 										"real_meso INTEGER"
-									")"
-								)
+									")"_qs
 		);
-		m_result = query.exec();
+		m_result = query.exec(strQuery);
+		if (!m_result)
+		{
+			MSG_OUT("DBMesocyclesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT("DBMesocyclesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery)
+		}
+		else
+			MSG_OUT("DBMesocyclesTable createTable SUCCESS")
 		mSqlLiteDB.close();
 	}
-	if (!m_result)
-	{
-		MSG_OUT("DBMesocyclesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBMesocyclesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-	}
-	else
-		MSG_OUT("DBMesocyclesTable createTable SUCCESS")
 }
 
 void DBMesocyclesTable::updateDatabase()
@@ -61,7 +60,7 @@ void DBMesocyclesTable::updateDatabase()
 		QSqlQuery query(mSqlLiteDB);
 		QStringList oldTableInfo;
 		query.setForwardOnly(true);
-		if (query.exec( QStringLiteral("SELECT * FROM mesocycles_table")))
+		if (query.exec(u"SELECT * FROM mesocycles_table"_qs))
 		{
 			if (query.first ())
 			{
@@ -70,7 +69,7 @@ void DBMesocyclesTable::updateDatabase()
 							query.value(MESOCYCLES_COL_STARTDATE).toString() << query.value(MESOCYCLES_COL_ENDDATE).toString() <<
 							query.value(MESOCYCLES_COL_NOTE).toString() << query.value(MESOCYCLES_COL_WEEKS).toString() <<
 							query.value(MESOCYCLES_COL_SPLIT).toString() << QString() << QString() << QString() << QString() <<
-							(query.value(MESOCYCLES_COL_ENDDATE).toUInt() != 0 ? u"1"_qs : u"0"_qs);
+							(query.value(MESOCYCLES_COL_ENDDATE).toUInt() != 0 ? STR_ONE : STR_ZERO);
 				} while (query.next());
 			}
 			m_result = oldTableInfo.count() > 0;
@@ -121,7 +120,7 @@ void DBMesocyclesTable::updateDatabase()
 
 void DBMesocyclesTable::getAllMesocycles()
 {
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
@@ -177,21 +176,18 @@ void DBMesocyclesTable::saveMesocycle()
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(QStringLiteral("SELECT id FROM mesocycles_table WHERE id=%1").arg(m_model->getFast(row, MESOCYCLES_COL_ID))))
+		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(m_model->getFast(row, MESOCYCLES_COL_ID))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
 			query.finish();
 		}
 
-		m_model->setFast(row, MESOCYCLES_COL_REALMESO, m_model->getFast(row, MESOCYCLES_COL_ENDDATE) != u"0"_qs ? u"1"_qs : u"0"_qs);
-
 		if (bUpdate)
 		{
-			strQuery = QStringLiteral(
-							"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
+			strQuery = u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
 							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
-							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12")
+							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12"_qs
 								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
 									m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
 									m_model->getFast(row, MESOCYCLES_COL_COACH), m_model->getFast(row, MESOCYCLES_COL_CLIENT),
@@ -200,11 +196,10 @@ void DBMesocyclesTable::saveMesocycle()
 		}
 		else
 		{
-			strQuery = QStringLiteral(
-							"INSERT INTO mesocycles_table "
+			strQuery = u"INSERT INTO mesocycles_table "
 							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
-							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)")
+							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)"_qs
 								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
 									m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
 									m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),

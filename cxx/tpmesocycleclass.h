@@ -92,7 +92,7 @@ public:
 	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
-	void updateOpenTDayPagesWithNewCalendarInfo(const DBTrainingDayModel* tDayModel);
+	void updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate);
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);

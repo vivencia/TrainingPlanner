@@ -73,6 +73,8 @@ Frame {
 			top: parent.top
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 	}
 
@@ -84,10 +86,12 @@ Frame {
 		width: parent.width*0.80
 
 		anchors {
-			top: parent.top
+			top: lblUserRole.bottom
 			topMargin: -5
-			left: lblUserRole.right
-			leftMargin: 0
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 
 		onActivated: (index) => {
@@ -120,6 +124,8 @@ Frame {
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 	}
 
@@ -144,10 +150,12 @@ Frame {
 		}
 
 		anchors {
-			top: lblGoal.top
+			top: lblGoal.bottom
 			topMargin: -5
-			left: lblGoal.right
-			leftMargin: 0
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 
 		onActivated: (index) => {
@@ -180,6 +188,8 @@ Frame {
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 	}
 
@@ -191,10 +201,12 @@ Frame {
 		width: parent.width*0.80
 
 		anchors {
-			top: lblCoachRole.top
+			top: lblCoachRole.bottom
 			topMargin: -5
-			left: lblCoachRole.right
-			leftMargin: 20
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 
 		onActivated: (index) => {

@@ -18,8 +18,8 @@ class TPDatabaseTable : public QObject
 {
 
 public:
-	explicit TPDatabaseTable(QSettings* appSettings, TPListModel* model)
-		: QObject{nullptr}, m_appSettings(appSettings), m_model(model), mb_resolved(false), m_result(false),
+	explicit TPDatabaseTable(TPListModel* model)
+		: QObject{nullptr}, m_model(model), mb_resolved(false), m_result(false),
 			mb_waitForFinished(false), m_opcode(OP_NULL), doneFunc(nullptr) {}
 
 	virtual void createTable() = 0;
@@ -50,7 +50,6 @@ public:
 
 protected:
 	QSqlDatabase mSqlLiteDB;
-	QSettings* m_appSettings;
 	QStringList m_data;
 	TPListModel* m_model;
 	QVariantList m_execArgs;

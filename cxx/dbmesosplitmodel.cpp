@@ -37,7 +37,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 	}
 }
 
-void DBMesoSplitModel::convertFromTDayModel(DBTrainingDayModel* tDayModel)
+void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDayModel)
 {
 	m_modeldata.clear();
 	m_indexProxy.clear();

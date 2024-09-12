@@ -4,18 +4,17 @@
 #include "tpdatabasetable.h"
 
 #include <QObject>
-#include <QSettings>
 
 class DBMesoSplitModel;
 class DBTrainingDayModel;
 
-static const QString DBMesoSplitFileName ( QStringLiteral("MesocyclesSplits.db.sqlite") );
+static const QString DBMesoSplitFileName(u"MesocyclesSplits.db.sqlite"_qs);
 
 class DBMesoSplitTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesoSplitTable(const QString& dbFilePath, QSettings* appSettings, DBMesoSplitModel* model = nullptr);
+	explicit DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* model = nullptr);
 
 	virtual void createTable();
 	virtual void updateDatabase() {}
@@ -24,7 +23,7 @@ public:
 	void getCompleteMesoSplit(const bool bEmitSignal = true);
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
-	void convertTDayExercisesToMesoPlan(DBTrainingDayModel* tDayModel);
+	void convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel);
 };
 
 #endif // DBMESOSPLITTABLE_H

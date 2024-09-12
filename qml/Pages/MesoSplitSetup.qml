@@ -99,7 +99,7 @@ Pane {
 
 					onEnterOrReturnKeyPressed: {
 						if (index < 6)
-							itemAt(index+1).cboSplit.forceActiveFocus();
+							splitRepeater.itemAt(index+1).cboSplit.forceActiveFocus();
 					}
 				}
 			} //RowLayout

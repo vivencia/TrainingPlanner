@@ -4,17 +4,16 @@
 #include "tpdatabasetable.h"
 
 #include <QObject>
-#include <QSettings>
 
 class DBMesocyclesModel;
 
-static const QString DBMesocyclesFileName ( QStringLiteral("Mesocycles.db.sqlite") );
+static const QString DBMesocyclesFileName(u"Mesocycles.db.sqlite"_qs);
 
 class DBMesocyclesTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesocyclesTable(const QString& dbFilePath, QSettings* appSettings, DBMesocyclesModel* model = nullptr);
+	explicit DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model = nullptr);
 
 	virtual void createTable();
 	virtual void updateDatabase();

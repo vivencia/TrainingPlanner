@@ -4,17 +4,16 @@
 #include "tpdatabasetable.h"
 
 #include <QObject>
-#include <QSettings>
 
 class DBMesoCalendarModel;
 
-static const QString DBMesoCalendarFileName ( QStringLiteral("MesoCalendar.db.sqlite") );
+static const QString DBMesoCalendarFileName(u"MesoCalendar.db.sqlite"_qs);
 
 class DBMesoCalendarTable : public TPDatabaseTable
 {
 
 public:
-	explicit DBMesoCalendarTable(const QString& dbFilePath, QSettings* appSettings, DBMesoCalendarModel* model = nullptr);
+	explicit DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model = nullptr);
 
 	virtual void createTable();
 	virtual void updateDatabase();

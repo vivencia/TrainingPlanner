@@ -59,7 +59,7 @@ public:
 	void setExportFileName(const QString& filename) { m_exportFileName = mAppDataFilesPath + filename;}
 	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
-	bool exportToFile(const TPListModel* model, const QString& filename, QFile* &outFile) const;
+	bool exportToFile(const TPListModel* const model, const QString& filename, QFile* &outFile) const;
 	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
 	bool importFromModel(TPListModel* model);
 
@@ -135,12 +135,12 @@ public:
 	Q_INVOKABLE void clearExercises(DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void loadExercisesFromDate(const uint meso_idx, const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan(const uint meso_idx, const QString& splitLetter);
-	Q_INVOKABLE void convertTDayToPlan(const uint meso_idx, DBTrainingDayModel* tDayModel);
-	Q_INVOKABLE void saveTrainingDay(const uint meso_idx);
-	Q_INVOKABLE void removeTrainingDay(const uint meso_idx);
-	Q_INVOKABLE void deleteTrainingDayTable(const uint meso_idx, const bool bRemoveFile);
-	Q_INVOKABLE void exportTrainingDay(const uint meso_idx, const QDate& date, const QString& splitLetter, const bool bShare);
-	Q_INVOKABLE uint getWorkoutNumberForTrainingDay(const uint meso_idx, const QDate& date) const;
+	Q_INVOKABLE void convertTDayToPlan(const DBTrainingDayModel* const tDayModel);
+	Q_INVOKABLE void saveTrainingDay(DBTrainingDayModel* const tDayModel);
+	void removeTrainingDay(const uint meso_idx);
+	void deleteTrainingDayTable(const uint meso_idx, const bool bRemoveFile);
+	Q_INVOKABLE void exportTrainingDay(const DBTrainingDayModel* tDayModel, const bool bShare);
+	Q_INVOKABLE uint getWorkoutNumberForTrainingDay(const DBTrainingDayModel* const tDayModel) const;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
@@ -173,7 +173,7 @@ private:
 	bool mb_importMode;
 	QString m_DBFilePath;
 	QQmlApplicationEngine* m_QMlEngine;
-	QList<TPMesocycleClass*> m_mesoManager;
+	QMap<uint,TPMesocycleClass*> m_mesoManager;
 	QQuickWindow* m_mainWindow;
 
 	#ifdef Q_OS_ANDROID

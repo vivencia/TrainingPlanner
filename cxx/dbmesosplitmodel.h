@@ -28,7 +28,7 @@ Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetC
 
 public:
 	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true, const int meso_idx = -1);
-	void convertFromTDayModel(DBTrainingDayModel* tDayModel);
+	void convertFromTDayModel(const DBTrainingDayModel* const tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
