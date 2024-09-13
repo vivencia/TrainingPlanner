@@ -1,5 +1,5 @@
-#ifndef DBMANAGER_H
-#define DBMANAGER_H
+#ifndef DBINTERFACE_H
+#define DBINTERFACE_H
 
 #include "tplistmodel.h"
 #include "tpdatabasetable.h"
@@ -20,26 +20,26 @@ class DBMesoCalendarModel;
 class DBTrainingDayModel;
 class DBUserModel;
 class RunCommands;
-class TPMesocycleClass;
+class QmlItemManager;
 
 #ifdef Q_OS_ANDROID
 class TPAndroidNotification;
 #endif
 
-class DbManager : public QObject
+class DBInterface : public QObject
 {
 
 Q_OBJECT
 
 public:
-	explicit DbManager();
+	explicit DBInterface();
 
 	void init();
 	Q_INVOKABLE void exitApp();
 	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void gotResult(TPDatabaseTable* dbObj);
 
-	Q_INVOKABLE inline TPMesocycleClass* itemManager(const uint meso_idx) const { return m_mesoManager.at(meso_idx); }
+	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_mesoManager.at(meso_idx); }
 	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
 	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
@@ -80,14 +80,13 @@ public:
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
+	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage);
 	Q_INVOKABLE void saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
 									const QString& nSets, const QString& nReps, const QString& nWeight,
 									const QString& uWeight, const QString& mediaPath);
 	Q_INVOKABLE void removeExercise(const QString& id);
 	Q_INVOKABLE void deleteExercisesTable(const bool bRemoveFile);
 	Q_INVOKABLE void updateExercisesList(DBExercisesModel* model = nullptr);
-	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
-	void createExercisesListPage(QQuickItem *connectPage);
 	void getExercisesListVersion();
 	Q_INVOKABLE void exportExercisesList(const bool bShare);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -143,18 +142,6 @@ public:
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay(const DBTrainingDayModel* const tDayModel) const;
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
-	void createSettingsPage();
-	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
-	void createClientsOrCoachesPage();
-	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
-
-	void addMainMenuShortCut(const QString& label, QQuickItem* page);
-	void removeMainMenuShortCut(QQuickItem* page);
-	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-
 signals:
 	void databaseReady(const uint db_id);
 	void getPage(QQuickItem* item, const uint id);
@@ -165,7 +152,6 @@ public slots:
 	void cleanUp();
 	void cleanUpThreads();
 	void bridge(QQuickItem* item, const uint id);
-	void openMainMenuShortCut(const int button_id);
 
 private:
 	uint m_expectedPageId;
@@ -173,8 +159,7 @@ private:
 	bool mb_importMode;
 	QString m_DBFilePath;
 	QQmlApplicationEngine* m_QMlEngine;
-	QMap<uint,TPMesocycleClass*> m_mesoManager;
-	QQuickWindow* m_mainWindow;
+	QMap<uint,QmlItemManager*> m_mesoManager;
 
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
@@ -211,19 +196,7 @@ private:
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
-	QQuickItem* m_exercisesPage;
-	QQmlComponent* m_exercisesComponent;
-	QVariantMap m_exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	QQuickItem* m_settingsPage, *m_clientsOrCoachesPage, *m_userPage;
-	QQmlComponent* m_settingsComponent, *m_clientsOrCoachesComponent;
-	QVariantMap m_settingsProperties, m_clientsOrCoachesProperties;
-
-	QList<QQuickItem*> m_mainMenuShortcutPages;
-	QList<QQuickItem*> m_mainMenuShortcutEntries;
-	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
@@ -232,4 +205,4 @@ private:
 	QString mAppDataFilesPath;
 };
 
-#endif // DBMANAGER_H
+#endif // DBINTERFACE_H

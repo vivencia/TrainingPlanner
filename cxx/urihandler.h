@@ -8,7 +8,7 @@
 #include <QObject>
 #include <QFileInfo>
 
-class DbManager;
+class DBInterface;
 
 class URIHandler : public QObject
 {
@@ -16,7 +16,7 @@ class URIHandler : public QObject
 Q_OBJECT
 
 public:
-	explicit URIHandler(DbManager* appDB, QObject* parent = nullptr);
+	explicit URIHandler(DBInterface* appDB, QObject* parent = nullptr);
 
 	void setFileUrlReceived(const QString &url) const;
 	void setFileReceivedAndSaved(const QString& url) const;
@@ -28,7 +28,7 @@ signals:
 	void activityFinishedResult(const int requestCode, const int resultCode);
 
 private:
-	DbManager* m_appDB;
+	DBInterface* m_appDB;
 	static URIHandler* s_instance;
 
 	friend URIHandler* handlerInstance();

@@ -1,6 +1,6 @@
 #include "translationclass.h"
 #include "tputils.h"
-#include "dbmanager.h"
+#include "dbinterface.h"
 #include "tpimageprovider.h"
 #include "tpimage.h"
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
 	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
 
-	DbManager db;
+	DBInterface db;
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);
 	#endif

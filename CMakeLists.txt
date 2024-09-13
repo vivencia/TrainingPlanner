@@ -21,8 +21,9 @@ set( SOURCES
 
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h
-	cxx/dbmanager.h cxx/dbmanager.cpp
-	cxx/tpmesocycleclass.h cxx/tpmesocycleclass.cpp
+	cxx/dbinterface.h cxx/dbinterface.cpp
+	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
+	cxx/tpmesocyclesmanager.h cxx/tpmesocyclesmanager.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/urihandler.h cxx/urihandler.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp

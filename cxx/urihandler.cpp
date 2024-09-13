@@ -2,7 +2,7 @@
 
 #ifdef Q_OS_ANDROID
 
-#include "dbmanager.h"
+#include "DBInterface.h"
 #include "tpandroidnotification.h"
 
 #include <jni.h>
@@ -10,7 +10,7 @@
 
 URIHandler* URIHandler::s_instance(nullptr);
 
-URIHandler::URIHandler(DbManager* appDB, QObject* parent)
+URIHandler::URIHandler(DBInterface* appDB, QObject* parent)
 		: QObject(parent), m_appDB(appDB)
 {
 	if (!URIHandler::s_instance)

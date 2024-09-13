@@ -2,7 +2,7 @@
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
 #include "tputils.h"
-#include "dbmanager.h"
+#include "dbinterface.h"
 
 static const QLatin1Char fancy_record_separator2(';');
 

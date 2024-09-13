@@ -1,5 +1,5 @@
-#ifndef TPMESOCYCLECLASS_H
-#define TPMESOCYCLECLASS_H
+#ifndef QMLITEMMANAGER_H
+#define QMLITEMMANAGER_H
 
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
@@ -25,27 +25,36 @@ static const uint tDaySetCreateId(140);
 static const uint menuShortCutCreatedId(200);
 static const uint exercisesPlannerCreateId(235);
 
-class TPMesocycleClass : public QObject
+class QmlItemManager : public QObject
 {
 
 Q_OBJECT
 
 public:
-	TPMesocycleClass(const int meso_id, const uint meso_idx, QQmlApplicationEngine* QMlEngine, QObject *parent = nullptr);
-	~TPMesocycleClass();
+	QmlItemManager(const int meso_id, const uint meso_idx, QObject* parent = nullptr);
+	~QmlItemManager();
+	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 
 	inline int mesoId() const { return m_mesoId; }
 	void setMesoId(const int new_mesoid);
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	void changeMesoIdxFromPagesAndModels(const uint new_mesoidx);
 
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
+	void createExercisesListPage(QQuickItem* connectPage);
+
+	inline void setExercisesModel(DBExercisesModel* model) { m_ExercisesModel = model; }
+	inline QQuickItem* getExercisesPage() { return m_exercisesPage; }
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
 								const QDate& calendarStartDate = QDate());
 	void createMesocyclePage_part2();
 
-	inline void setMesocycleModel(DBMesocyclesModel* model) { m_MesocyclesModel = model; }
-	inline QQuickItem* getMesoPage() { return m_mesoPage; }
+	inline void setMesocycleModel(DBMesocyclesModel* model) { m_mesocyclesModel = model; }
+	void getMesoPage();
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
@@ -133,6 +142,20 @@ public:
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
+	void createSettingsPage();
+	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
+	void createClientsOrCoachesPage();
+	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	void addMainMenuShortCut(const QString& label, QQuickItem* page);
+	void removeMainMenuShortCut(QQuickItem* page);
+	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
 public slots:
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
@@ -140,6 +163,7 @@ public slots:
 	void showRemoveExerciseMessage(int exercise_idx);
 	void showRemoveSetMessage(int set_number, int exercise_idx);
 	void exerciseCompleted(int exercise_idx);
+	void openMainMenuShortCut(const int button_id);
 
 signals:
 	void pageReady(QQuickItem* item, const uint id);
@@ -148,11 +172,18 @@ signals:
 private:
 	int m_mesoId;
 	uint m_mesoIdx;
-	QQmlApplicationEngine* m_QMlEngine;
 	QQuickItem* m_appStackView;
+	QQuickWindow* m_mainWindow;
+
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	DBExercisesModel* m_ExercisesModel;
+	QQuickItem* m_exercisesPage;
+	QQmlComponent* m_exercisesComponent;
+	QVariantMap m_exercisesProperties;
+	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
-	DBMesocyclesModel* m_MesocyclesModel;
+	DBMesocyclesModel* m_mesocyclesModel;
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
@@ -248,5 +279,25 @@ private:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+	QQuickItem* m_settingsPage, *m_clientsOrCoachesPage, *m_userPage;
+	QQmlComponent* m_settingsComponent, *m_clientsOrCoachesComponent;
+	QVariantMap m_settingsProperties, m_clientsOrCoachesProperties;
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	QList<QQuickItem*> m_mainMenuShortcutPages;
+	QList<QQuickItem*> m_mainMenuShortcutEntries;
+
+	static QQmlApplicationEngine* app_qml_engine;
+	friend QQmlApplicationEngine* appQmlEngine();
+	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
-#endif // TPMESOCYCLECLASS_H
+
+inline QQmlApplicationEngine* appQmlEngine()
+{
+	return QmlItemManager::app_qml_engine;
+}
+
+#endif // QMLITEMMANAGER_H
