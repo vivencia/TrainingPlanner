@@ -1,16 +1,17 @@
 #include "translationclass.h"
 #include "tputils.h"
+#include "qmlitemmanager.h"
 
-#include <QQmlEngine>
+#include <QSettings>
+#include <QQmlApplicationEngine>
 
 TranslationClass* TranslationClass::app_tr(nullptr);
 
-TranslationClass::TranslationClass (const QSettings& settingsObj)
+TranslationClass::TranslationClass ()
 {
 	app_tr = this;
 	mbOK = true;
 	mTranslator = new QTranslator (this);
-	mSettingsObj = const_cast<QSettings*>(&settingsObj);
 }
 
 TranslationClass::~TranslationClass()
@@ -20,7 +21,7 @@ TranslationClass::~TranslationClass()
 
 void TranslationClass::selectLanguage()
 {
-	QString strLocale(mSettingsObj->value("appLocale").toString());
+	QString strLocale(appSettings()->value("appLocale").toString());
 	const bool bConfigEmpty(strLocale.isEmpty());
 	if (bConfigEmpty)
 		strLocale = QLocale::system().name();
@@ -34,7 +35,7 @@ void TranslationClass::selectLanguage()
 	{
 		appUtils()->setAppLocale(strLocale);
 		if (bConfigEmpty)
-			mSettingsObj->setValue("appLocale", strLocale);
+			appSettings()->setValue("appLocale", strLocale);
 	}
 	else
 		appUtils()->setAppLocale(u"en_US"_qs); //If any part of the program calls RunCommands::appLocale() we will hava an error
@@ -50,9 +51,9 @@ void TranslationClass::switchToLanguage(const QString& language)
 	if (mbOK)
 	{
 		appUtils()->setAppLocale(language);
-		mSettingsObj->setValue("appLocale", language);
+		appSettings()->setValue("appLocale", language);
 		if (!bEnglish)
 			qApp->installTranslator(mTranslator);
-		mQMLEngine->retranslate();
+		appQmlEngine()->retranslate();
 	}
 }

@@ -50,8 +50,9 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 		QString() << QString() << QString() << QString());
 
 	const uint meso_idx(count()-1);
-	m_calendarModelList.insert(meso_idx, new DBMesoCalendarModel(this, meso_idx));
 	m_splitModel->setMesoIdx(meso_idx);
+	m_calendarModelList.append(new DBMesoCalendarModel(this, meso_idx));
+	m_totalSplits.append(0);
 	getTotalSplits(meso_idx);
 	if (isOwnMeso(meso_idx))
 	{
@@ -64,7 +65,7 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 
 void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 {
-	delete m_calendarModelList.value(meso_idx);
+	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
 	m_totalSplits.remove(meso_idx);
 
@@ -243,7 +244,7 @@ void DBMesocyclesModel::getTotalSplits(const uint meso_idx)
 			} while (++itr != itr_end);
 		}
 	}
-	m_totalSplits.insert(meso_idx, nSplits);
+	m_totalSplits[meso_idx] = nSplits;
 }
 
 int DBMesocyclesModel::getMesoIdx(const int mesoId) const

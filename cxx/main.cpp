@@ -5,11 +5,8 @@
 #include "tpimage.h"
 
 #include <QApplication>
-#include <QQmlApplicationEngine>
 #include <QtQml/qqmlextensionplugin.h>
-#include <QSettings>
-#include <QQmlContext>
-#include <QQuickStyle>
+#include <QQmlApplicationEngine>
 
 #ifdef Q_OS_ANDROID
 
@@ -74,29 +71,17 @@ int main(int argc, char *argv[])
 
 	QSettings appSettings;
 	TPUtils appUtils(&appSettings);
-	appUtils.populateSettingsWithDefaultValue();
-
-	TranslationClass trClass(appSettings);
+	TranslationClass trClass{};
 	trClass.selectLanguage();
 
-	QQuickStyle::setStyle(appSettings.value("themeStyle").toString());
-
-	DBInterface db;
+	DBInterface db{};
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);
 	#endif
+
 	QQmlApplicationEngine engine;
 	engine.addImageProvider(QLatin1String("tpimageprovider"), new TPImageProvider());
 	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
-
-	QString db_filepath (appSettings.value("dbFilePath").toString());
-	if (db_filepath.isEmpty())
-	{
-		db_filepath = appUtils.getAppDir(engine.offlineStoragePath());
-		appSettings.setValue("dbFilePath", db_filepath);
-		appSettings.sync();
-	}
-	db.init();
 
 	const QUrl url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -106,8 +91,7 @@ int main(int argc, char *argv[])
 	if (engine.rootObjects().isEmpty())
 		return -1;
 
-	trClass.setQMLEngine(&engine);
-	db.setQmlEngine(&engine);
+	db.init(&engine);
 
 	return app.exec();
 }

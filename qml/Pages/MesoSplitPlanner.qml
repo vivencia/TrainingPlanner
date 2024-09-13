@@ -107,7 +107,7 @@ Frame {
 		onEditingFinished: {
 			splitModel.setMuscularGroup(text);
 			mesocyclesModel.setMuscularGroup(splitModel.mesoIdx, splitModel.splitLetter(), text);
-			exercisesListModel.makeFilterString(text);
+			exercisesModel.makeFilterString(text);
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 			bCanSwapPlan = swappableLetter !== "";
 		}
@@ -119,7 +119,7 @@ Frame {
 				const musculargroup = mesocyclesModel.getMuscularGroup(splitModel.mesoIdx, splitletter);
 				splitModel.setMuscularGroup(musculargroup);
 				text = musculargroup;
-				exercisesListModel.makeFilterString(musculargroup);
+				exercisesModel.makeFilterString(musculargroup);
 				swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 				bCanSwapPlan = swappableLetter !== "";
 			}
@@ -675,7 +675,7 @@ Frame {
 					appendNewExerciseToDivision();
 			}
 			splitModel.currentRow = 0;
-			exercisesListModel.makeFilterString(txtGroups.text);
+			exercisesModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 			bCanSwapPlan = swappableLetter !== "";
@@ -715,23 +715,23 @@ Frame {
 
 	function changeExercise(fromList: bool) {
 		if (bListRequestForExercise1) {
-			splitModel.exerciseName1 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
-			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
-			splitModel.setsReps1 = exercisesListModel.selectedEntriesValue(0, 5);
-			splitModel.setsWeight1 = exercisesListModel.selectedEntriesValue(0, 6);
+			splitModel.exerciseName1 = exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2);
+			splitModel.setsNumber = exercisesModel.selectedEntriesValue(0, 4);
+			splitModel.setsReps1 = exercisesModel.selectedEntriesValue(0, 5);
+			splitModel.setsWeight1 = exercisesModel.selectedEntriesValue(0, 6);
 			bListRequestForExercise1 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else if (bListRequestForExercise2) {
-			splitModel.exerciseName2 = exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2);
-			splitModel.setsNumber = exercisesListModel.selectedEntriesValue(0, 4);
-			splitModel.setsReps2 = exercisesListModel.selectedEntriesValue(0, 5);
-			splitModel.setsWeight2 = exercisesListModel.selectedEntriesValue(0, 6);
+			splitModel.exerciseName2 = exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2);
+			splitModel.setsNumber = exercisesModel.selectedEntriesValue(0, 4);
+			splitModel.setsReps2 = exercisesModel.selectedEntriesValue(0, 5);
+			splitModel.setsWeight2 = exercisesModel.selectedEntriesValue(0, 6);
 			bListRequestForExercise2 = false;
 			requestSimpleExercisesList(null, false, false, 0);
 		}
 		else
-			splitModel.changeExercise(exercisesListModel);
+			splitModel.changeExercise(exercisesModel);
 	}
 
 	function appendNewExerciseToDivision() {

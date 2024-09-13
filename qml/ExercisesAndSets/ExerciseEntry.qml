@@ -356,14 +356,14 @@ FocusScope {
 		var interruptSignals = true;
 		if (bListRequestForExercise1) {
 			if (fromList)
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
 				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
 			if (fromList)
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, exercisesListModel.selectedEntriesValue(0, 1) + " - " + exercisesListModel.selectedEntriesValue(0, 2));
+				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
 				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			bListRequestForExercise2 = false;
@@ -372,7 +372,7 @@ FocusScope {
 		{
 			interruptSignals = false;
 			if (fromList)
-				tDayModel.changeExerciseName(exerciseIdx, exercisesListModel);
+				tDayModel.changeExerciseName(exerciseIdx, exercisesModel);
 			else
 			{
 				if (bListRequestForExercise1)

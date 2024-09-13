@@ -126,8 +126,8 @@ signals:
 private:
 	DBUserModel* m_userModel;
 	DBMesoSplitModel* m_splitModel;
-	QMap<uint,DBMesoCalendarModel*> m_calendarModelList;
-	QMap<uint,uint> m_totalSplits;
+	QList<DBMesoCalendarModel*> m_calendarModelList;
+	QList<uint> m_totalSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
 };
 

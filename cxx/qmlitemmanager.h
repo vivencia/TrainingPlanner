@@ -9,6 +9,8 @@
 #include <QMap>
 #include <QDate>
 
+class DBInterface;
+class DBUserModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
 
@@ -31,36 +33,30 @@ class QmlItemManager : public QObject
 Q_OBJECT
 
 public:
-	QmlItemManager(const int meso_id, const uint meso_idx, QObject* parent = nullptr);
+	QmlItemManager(const uint meso_idx, QObject* parent = nullptr);
 	~QmlItemManager();
-	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
+	static void configureQmlEngine(DBInterface* db_interface);
 
-	inline int mesoId() const { return m_mesoId; }
-	void setMesoId(const int new_mesoid);
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	void changeMesoIdxFromPagesAndModels(const uint new_mesoidx);
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	Q_INVOKABLE void openExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
-	void createExercisesListPage(QQuickItem* connectPage);
-
-	inline void setExercisesModel(DBExercisesModel* model) { m_ExercisesModel = model; }
-	inline QQuickItem* getExercisesPage() { return m_exercisesPage; }
+	void createExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	void createExercisesListPage_part2(QQuickItem* connectPage);
+	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
 								const QDate& calendarStartDate = QDate());
 	void createMesocyclePage_part2();
-
-	inline void setMesocycleModel(DBMesocyclesModel* model) { m_mesocyclesModel = model; }
 	void getMesoPage();
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 	Q_INVOKABLE void createPlannerPage();
 	void createPlannerPage_part2();
-	inline QQuickItem* getExercisesPlannerPage() const { return m_plannerPage; }
+	void getExercisesPlannerPage();
 
 	void createMesoSplitPage();
 	void createMesoSplitPage_part2();
@@ -79,13 +75,13 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 	uint createMesoCalendarPage();
 	void createMesoCalendarPage_part2();
-
-	inline QQuickItem* getCalendarPage() const { return m_calPage; }
+	void getCalendarPage();
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 	uint createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
+	void getTrainingDayPage(const QDate& date);
 	Q_INVOKABLE void resetWorkout();
 
 	inline DBTrainingDayModel* gettDayModel(const QDate& date)
@@ -96,13 +92,12 @@ public:
 			m_CurrenttDayModel = m_tDayModels.value(date);
 		return m_CurrenttDayModel;
 	}
-	inline QQuickItem* gettDayPage(const QDate& date) const { return m_tDayPages.value(date); }
+
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
-	inline QQuickItem* currenttDayPage() const { return m_CurrenttDayPage; }
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 	void updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate);
-
+	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);
 	void createExerciseObject_part2(const int object_idx = -1);
@@ -148,6 +143,7 @@ public:
 	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	void createClientsOrCoachesPage();
 	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
+	void removeUser(const uint user_row, const bool bCoach);
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
@@ -166,24 +162,24 @@ public slots:
 	void openMainMenuShortCut(const int button_id);
 
 signals:
-	void pageReady(QQuickItem* item, const uint id);
 	void itemReady(QQuickItem* item, const uint id);
 
 private:
-	int m_mesoId;
 	uint m_mesoIdx;
-	QQuickItem* m_appStackView;
-	QQuickWindow* m_mainWindow;
+	static QQuickWindow* app_MainWindow;
+	static QQuickItem* app_StackView;
+	friend QQuickWindow* appMainWindow();
+	friend QQuickItem* appStackView();
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	DBExercisesModel* m_ExercisesModel;
-	QQuickItem* m_exercisesPage;
-	QQmlComponent* m_exercisesComponent;
-	QVariantMap m_exercisesProperties;
+	static DBExercisesModel* exercisesModel;
+	static QQmlComponent* exercisesComponent;
+	static QQuickItem* exercisesPage;
+	static QVariantMap exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
-	DBMesocyclesModel* m_mesocyclesModel;
+	static DBMesocyclesModel* mesocyclesModel;
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
@@ -265,7 +261,7 @@ private:
 	QVariantMap m_tDayProperties;
 	QQmlComponent* m_tDayComponent;
 	DBTrainingDayModel* m_CurrenttDayModel;
-	QQuickItem* m_CurrenttDayPage;
+	QQuickItem* m_currenttDayPage;
 
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	QVariantMap m_tDayExerciseEntryProperties;
@@ -281,23 +277,18 @@ private:
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
-	QQuickItem* m_settingsPage, *m_clientsOrCoachesPage, *m_userPage;
-	QQmlComponent* m_settingsComponent, *m_clientsOrCoachesComponent;
-	QVariantMap m_settingsProperties, m_clientsOrCoachesProperties;
+	static DBUserModel* userModel;
+	static QQuickItem* settingsPage, *clientsOrCoachesPage, *userPage;
+	static QQmlComponent* settingsComponent, *clientsOrCoachesComponent;
+	static QVariantMap settingsProperties, clientsOrCoachesProperties;
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
-
-	static QQmlApplicationEngine* app_qml_engine;
-	friend QQmlApplicationEngine* appQmlEngine();
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 
-inline QQmlApplicationEngine* appQmlEngine()
-{
-	return QmlItemManager::app_qml_engine;
-}
-
+inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
+inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
 #endif // QMLITEMMANAGER_H

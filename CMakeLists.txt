@@ -23,7 +23,7 @@ set( SOURCES
 	cxx/tputils.cpp cxx/tputils.h
 	cxx/dbinterface.h cxx/dbinterface.cpp
 	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
-	cxx/tpmesocyclesmanager.h cxx/tpmesocyclesmanager.cpp
+
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/urihandler.h cxx/urihandler.cpp
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp

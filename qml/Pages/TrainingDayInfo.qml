@@ -27,8 +27,8 @@ TPPage {
 	property string splitText
 	property string lastWorkOutLocation
 	property bool bRealMeso: true
-	property bool bHasPreviousTDays: false
-	property bool bHasMesoPlan: false
+	property bool bHasPreviousTDays
+	property bool bHasMesoPlan
 	property bool pageOptionsLoaded: false
 	property bool editMode: false
 	property bool dayIsNotCurrent: false
@@ -985,7 +985,7 @@ TPPage {
 		parentPage: trainingDayPage
 	}
 
-	onSplitLetterChanged: exercisesListModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
+	onSplitLetterChanged: exercisesModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
 
 	function saveWorkout() {
 		appDB.saveTrainingDay(tDayModel);
@@ -1086,7 +1086,7 @@ TPPage {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		appDB.itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesListModel);
+		appDB.itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesModel);
 	}
 
 	function placeSetIntoView(ypos: int) {

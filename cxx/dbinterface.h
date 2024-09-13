@@ -34,15 +34,14 @@ Q_OBJECT
 public:
 	explicit DBInterface();
 
-	void init();
+	void init(QQmlApplicationEngine* qml_engine);
 	Q_INVOKABLE void exitApp();
-	void setQmlEngine(QQmlApplicationEngine* QMlEngine);
 	void gotResult(TPDatabaseTable* dbObj);
 
-	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_mesoManager.at(meso_idx); }
-	Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
-	Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
-	Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
+	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
+	//Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
+	//Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
+	//Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;
 
 #ifndef Q_OS_ANDROID
 	Q_INVOKABLE void processArguments();
@@ -76,11 +75,12 @@ public:
 	Q_INVOKABLE void saveUser(const uint row);
 	Q_INVOKABLE void removeUser(const uint row, const bool bCoach);
 	void deleteUserTable(const bool bRemoveFile);
+	inline DBUserModel* UserModel() const { return userModel; }
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	Q_INVOKABLE void getAllExercises();
-	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage);
+	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	Q_INVOKABLE void saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
 									const QString& nSets, const QString& nReps, const QString& nWeight,
 									const QString& uWeight, const QString& mediaPath);
@@ -89,6 +89,7 @@ public:
 	Q_INVOKABLE void updateExercisesList(DBExercisesModel* model = nullptr);
 	void getExercisesListVersion();
 	Q_INVOKABLE void exportExercisesList(const bool bShare);
+	inline DBExercisesModel* ExercisesModel() const { return exercisesModel; }
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -100,6 +101,7 @@ public:
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void scheduleMesocycleRemoval(const uint meso_idx);
 	void deleteMesocyclesTable(const bool bRemoveFile);
+	inline DBMesocyclesModel* MesoModel() const { return mesocyclesModel; }
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -144,22 +146,18 @@ public:
 
 signals:
 	void databaseReady(const uint db_id);
-	void getPage(QQuickItem* item, const uint id);
-	void getItem(QQuickItem* item, const uint id);
 	void internalSignal(const uint id);
 
 public slots:
 	void cleanUp();
 	void cleanUpThreads();
-	void bridge(QQuickItem* item, const uint id);
 
 private:
-	uint m_expectedPageId;
 	bool mb_splitsLoaded;
 	bool mb_importMode;
 	QString m_DBFilePath;
 	QQmlApplicationEngine* m_QMlEngine;
-	QMap<uint,QmlItemManager*> m_mesoManager;
+	QList<QmlItemManager*> m_itemManager;
 
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
@@ -167,7 +165,7 @@ private:
 
 	DBUserModel* userModel;
 	DBMesocyclesModel* mesocyclesModel;
-	DBExercisesModel* exercisesListModel;
+	DBExercisesModel* exercisesModel;
 
 	struct workerLocks {
 		inline TPDatabaseTable* nextObj() const { return dbObjs.at(++currentIndex); }
@@ -204,5 +202,4 @@ private:
 	QString m_exportFileName;
 	QString mAppDataFilesPath;
 };
-
 #endif // DBINTERFACE_H

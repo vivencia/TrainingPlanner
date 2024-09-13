@@ -73,13 +73,13 @@ TPPage {
 
 				onExerciseEntrySelected: (index, multipleSelection) => {
 					if (multipleSelection === 2) return;
-					txtExerciseName.text = exercisesListModel.get(index, 1);
-					txtExerciseSubName.text = exercisesListModel.get(index, 2);
-					txtMuscularGroup.text = exercisesListModel.get(index, 3);
-					txtNSets.text = exercisesListModel.get(index, 4);
-					txtNReps.text = exercisesListModel.get(index, 5);
-					txtNWeight.text = exercisesListModel.get(index, 6);
-					strMediaPath = exercisesListModel.get(index, 8);
+					txtExerciseName.text = exercisesModel.get(index, 1);
+					txtExerciseSubName.text = exercisesModel.get(index, 2);
+					txtMuscularGroup.text = exercisesModel.get(index, 3);
+					txtNSets.text = exercisesModel.get(index, 4);
+					txtNReps.text = exercisesModel.get(index, 5);
+					txtNWeight.text = exercisesModel.get(index, 6);
+					strMediaPath = exercisesModel.get(index, 8);
 					displaySelectedMedia();
 				}
 
@@ -134,7 +134,7 @@ TPPage {
 				TPButton {
 					id:btnEditExercise
 					text: qsTr("Edit")
-					enabled: !bNew && exercisesListModel.currentRow >= 0
+					enabled: !bNew && exercisesModel.currentRow >= 0
 					fixedSize: true
 					width: toolbarExercises.buttonWidth
 					height: 25
@@ -156,7 +156,7 @@ TPPage {
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
 							if (!bJustSaved)
-								exercisesList.itemClicked(exercisesListModel.currentRow, true);
+								exercisesList.itemClicked(exercisesModel.currentRow, true);
 						}
 					}
 				} //btnEditExercise
@@ -173,12 +173,12 @@ TPPage {
 
 					onClicked: {
 						bJustSaved = true; //Do not issue displaySelectedExercise()
-						appDB.saveExercise(exercisesListModel.get(exercisesListModel.currentRow, 0), txtExerciseName.text,
+						appDB.saveExercise(exercisesModel.get(exercisesModel.currentRow, 0), txtExerciseName.text,
 													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
 													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
 						if (bNew) {
 							btnNewExercise.clicked();
-							exercisesList.simulateMouseClick(exercisesListModel.count - 1);
+							exercisesList.simulateMouseClick(exercisesModel.count - 1);
 						}
 						else if (bEdit)
 							btnEditExercise.clicked();
@@ -188,7 +188,7 @@ TPPage {
 
 				TPButton {
 					id: btnAddExercise
-					enabled: bChooseButtonEnabled && !bCanEdit && exercisesListModel.currentRow >= 0
+					enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
 					text: qsTr("Add")
 					fixedSize: true
 					width: toolbarExercises.buttonWidth
@@ -232,7 +232,7 @@ TPPage {
 			width: pageExercises.width
 
 			Label {
-				text: exercisesListModel.columnLabel(1)
+				text: exercisesModel.columnLabel(1)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -256,7 +256,7 @@ TPPage {
 			}
 
 			Label {
-				text: exercisesListModel.columnLabel(2)
+				text: exercisesModel.columnLabel(2)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -280,7 +280,7 @@ TPPage {
 			}
 
 			Label {
-				text: exercisesListModel.columnLabel(3)
+				text: exercisesModel.columnLabel(3)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true
@@ -365,7 +365,7 @@ TPPage {
 						id: txtNSets
 						type: SetInputField.Type.SetType
 						availableWidth: parent.width*0.6
-						alternativeLabels: ["", "", "", exercisesListModel.columnLabel(4)]
+						alternativeLabels: ["", "", "", exercisesModel.columnLabel(4)]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -378,7 +378,7 @@ TPPage {
 						id: txtNReps
 						type: SetInputField.Type.RepType
 						availableWidth: parent.width*0.6
-						alternativeLabels: ["", exercisesListModel.columnLabel(5)]
+						alternativeLabels: ["", exercisesModel.columnLabel(5)]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -391,7 +391,7 @@ TPPage {
 						id: txtNWeight
 						type: SetInputField.Type.WeightType
 						availableWidth: parent.width*0.6
-						alternativeLabels: [exercisesListModel.columnLabel(6), ""]
+						alternativeLabels: [exercisesModel.columnLabel(6), ""]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: AppSettings.fontColor
@@ -403,7 +403,7 @@ TPPage {
 			} //Pane
 
 			Label {
-				text: exercisesListModel.columnLabel(8)
+				text: exercisesModel.columnLabel(8)
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSizeText
 				font.bold: true

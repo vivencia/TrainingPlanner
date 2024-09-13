@@ -4,6 +4,7 @@
 #include <QLocale>
 #include <QClipboard>
 #include <QGuiApplication>
+#include <QQuickStyle>
 
 #ifdef Q_OS_ANDROID
 	#define FONT_POINT_SIZE 15
@@ -19,12 +20,17 @@
 
 TPUtils* TPUtils::app_utils(nullptr);
 QSettings* TPUtils::app_settings(nullptr);
+QQmlApplicationEngine* TPUtils::app_qml_engine(nullptr);
 
-TPUtils::TPUtils( QSettings* settings, QObject *parent )
-	: QObject(parent), m_appLocale(nullptr), mb_appSuspended(false)
+TPUtils::TPUtils(QSettings* settings, QObject* parent)
+	: QObject{parent}, m_appLocale(nullptr), mb_appSuspended(false)
 {
 	app_utils = this;
 	app_settings = settings;
+	QString style(appSettings()->value("themeStyle").toString());
+	if (style.isEmpty())
+		style = u"Material"_qs;
+	QQuickStyle::setStyle(style);
 
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)

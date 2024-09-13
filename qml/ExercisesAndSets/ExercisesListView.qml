@@ -70,7 +70,7 @@ Column {
 			}
 
 			onCheckedChanged: {
-				exercisesListModel.clearSelectedEntries();
+				exercisesModel.clearSelectedEntries();
 				bMultipleSelection = checked;
 			}
 		}
@@ -79,7 +79,7 @@ Column {
 	TPTextInput {
 		id: txtFilter
 		readOnly: !mainItem.enabled
-		enabled: exercisesListModel.count > 0
+		enabled: exercisesModel.count > 0
 		width: parent.width
 		Layout.fillWidth: true
 		Layout.maximumHeight: 30
@@ -106,7 +106,7 @@ Column {
 			}
 		}
 
-		onTextChanged: exercisesListModel.setFilter(text, false);
+		onTextChanged: exercisesModel.setFilter(text, false);
 	} // txtFilter
 
 	ListView {
@@ -150,7 +150,7 @@ Column {
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: exercisesListModel.currentRow === index ? AppSettings.fontColor : "black"
+				color: exercisesModel.currentRow === index ? AppSettings.fontColor : "black"
 				font.pointSize: AppSettings.fontSizeLists
 				padding: 0
 			}
@@ -227,7 +227,7 @@ Column {
 		function setModel(unique_id) {
 			if (unique_id === 2222) {
 				appDB.databaseReady.disconnect(setModel);
-				lstExercises.model = exercisesListModel;
+				lstExercises.model = exercisesModel;
 			}
 		}
 
@@ -236,23 +236,23 @@ Column {
 	}
 
 	function removeExercise(removeIdx) {
-		const actualIndex = exercisesListModel.getInt(removeIdx, 9); //position of item in the main model
+		const actualIndex = exercisesModel.getInt(removeIdx, 9); //position of item in the main model
 		var i;
 
 		function readyToContinue() {
 			appDB.databaseReady.disconnect(readyToContinue);
-			if (exercisesListModel.currentRow >= removeIdx)
-				simulateMouseClick(exercisesListModel.currentRow);
+			if (exercisesModel.currentRow >= removeIdx)
+				simulateMouseClick(exercisesModel.currentRow);
 		}
-		exercisesListModel.setCurrentRow(actualIndex);
-		appDB.removeExercise(exercisesListModel.getInt(actualIndex, 0));
+		exercisesModel.setCurrentRow(actualIndex);
+		appDB.removeExercise(exercisesModel.getInt(actualIndex, 0));
 		appDB.databaseReady.connect(readyToContinue);
 	}
 
 	function itemClicked(idx: int, emit_signal: bool) {
 		if (!bMultipleSelection) {
-			if (exercisesListModel.manageSelectedEntries(idx, 1)) {
-				exercisesListModel.currentRow = idx;
+			if (exercisesModel.manageSelectedEntries(idx, 1)) {
+				exercisesModel.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -262,8 +262,8 @@ Column {
 			}
 		}
 		else {
-			if (exercisesListModel.manageSelectedEntries(idx, 2)) {
-				exercisesListModel.currentRow = idx;
+			if (exercisesModel.manageSelectedEntries(idx, 2)) {
+				exercisesModel.currentRow = idx;
 				if (emit_signal)
 					exerciseEntrySelected(idx);
 			}
@@ -277,6 +277,6 @@ Column {
 	}
 
 	function setFilter() {
-		txtFilter.text = exercisesListModel.getFilter();
+		txtFilter.text = exercisesModel.getFilter();
 	}
 }

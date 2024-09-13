@@ -12,6 +12,7 @@
 static const QString TP_APP_VERSION(QStringLiteral("v20240818-B"));
 
 class QSettings;
+class QQmlApplicationEngine;
 class QFileDialog;
 
 class TPUtils : public QObject
@@ -95,9 +96,14 @@ private:
 
 	static QSettings* app_settings;
 	friend QSettings* appSettings();
+
+	static QQmlApplicationEngine* app_qml_engine;
+	friend QQmlApplicationEngine* appQmlEngine();
+	friend class DBInterface;
 };
 
 inline TPUtils* appUtils() { return TPUtils::app_utils; }
 inline QSettings* appSettings() { return TPUtils::app_settings; }
+inline QQmlApplicationEngine* appQmlEngine() { return TPUtils::app_qml_engine; }
 
 #endif // TPUTILS_H
