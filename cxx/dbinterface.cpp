@@ -29,6 +29,10 @@
 
 #define SPLITS_LOADED_ID 4321
 
+static DBUserModel appUserModel;
+static DBMesocyclesModel appMesocyclesModel;
+static DBExercisesModel appExercisesModel;
+
 #ifdef Q_OS_ANDROID
 
 #include "urihandler.h"
@@ -226,7 +230,7 @@ void DBInterface::init(QQmlApplicationEngine* qml_engine)
 	}
 
 	getExercisesListVersion();
-	exercisesModel = new DBExercisesModel(this);
+	exercisesModel = &appExercisesModel;
 	if (m_exercisesListVersion != appSettings()->value("exercisesListVersion").toString())
 		updateExercisesList();
 
@@ -523,7 +527,7 @@ int DBInterface::importFromFile(QString filename, QFile* inFile)
 		if (inData.indexOf(DBMesoSplitObjectName) != -1)
 			model = new DBMesoSplitModel(this);
 		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
-			model = new DBMesocyclesModel(this, userModel);
+			model = new DBMesocyclesModel(this);
 		//else if (inData.indexOf(DBTrainingDayObjectName) != -1)
 			//model = new DBTrainingDayModel(this);
 		else if (inData.indexOf(DBExercisesObjectName) != -1)
@@ -547,7 +551,7 @@ int DBInterface::importFromFile(QString filename, QFile* inFile)
 		switch (inData.toUInt())
 		{
 			case EXERCISES_TABLE_ID: model = new DBExercisesModel(this); break;
-			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel(this, userModel); break;
+			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel(this); break;
 			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel(this); break;
 			//case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel(this); break;
 			default:
@@ -764,7 +768,7 @@ void DBInterface::exportMeso(const uint meso_idx, const bool bShare, const bool 
 	{
 		mesocyclesModel->mesoSplitModel()->setExportRow(meso_idx);
 		exportToFile(mesocyclesModel->mesoSplitModel(), QString(), outFile);
-		exportMesoSplit(meso_idx, u"X"_qs, bShare, outFile);
+		exportMesoSplit(itemManager(meso_idx), u"X"_qs, bShare, outFile);
 
 		#ifdef Q_OS_ANDROID
 		if (bShare)
@@ -929,10 +933,9 @@ void DBInterface::cleanUpThreads()
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 void DBInterface::getAllUsers()
 {
-	userModel = new DBUserModel(this);
-	DBUserTable* worker(new DBUserTable(m_DBFilePath, userModel));
-	worker->getAllUsers();
-	delete worker;
+	userModel = &appUserModel;
+	DBUserTable worker{m_DBFilePath, userModel};
+	worker.getAllUsers();
 
 	bool noUsers(userModel->count() == 0);
 	if (!noUsers)
@@ -1031,18 +1034,18 @@ void DBInterface::updateExercisesList(DBExercisesModel* model)
 
 void DBInterface::getExercisesListVersion()
 {
-	m_exercisesListVersion = QStringLiteral("0");
-	QFile exercisesListFile( QStringLiteral(":/extras/exerciseslist.lst") );
-	if ( exercisesListFile.open( QIODeviceBase::ReadOnly|QIODeviceBase::Text ) )
+	m_exercisesListVersion = STR_ZERO;
+	QFile exercisesListFile(u":/extras/exerciseslist.lst"_qs);
+	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[20] = { 0 };
 		qint64 lineLength;
 		QString line;
-		lineLength = exercisesListFile.readLine( buf, sizeof(buf) );
+		lineLength = exercisesListFile.readLine(buf, sizeof(buf));
 		if (lineLength > 0)
 		{
 			line = buf;
-			if (line.startsWith(QStringLiteral("#Vers")))
+			if (line.startsWith(u"#Vers"_qs))
 				m_exercisesListVersion = line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
@@ -1082,17 +1085,16 @@ void DBInterface::exportExercisesList(const bool bShare)
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 void DBInterface::getAllMesocycles()
 {
-	mesocyclesModel = new DBMesocyclesModel(this, userModel);
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, mesocyclesModel));
-	worker->getAllMesocycles();
-	delete worker;
+	mesocyclesModel = &appMesocyclesModel;
+	mesocyclesModel->setUserModel(appUserModel);
+	DBMesocyclesTable worker{m_DBFilePath, mesocyclesModel};
+	worker.getAllMesocycles();
 
 	const uint n_mesos(mesocyclesModel->count());
 	if (n_mesos > 0)
 	{
-		DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, mesocyclesModel->mesoSplitModel()));
-		worker2->getAllMesoSplits();
-		delete worker2;
+		DBMesoSplitTable worker2{m_DBFilePath, mesocyclesModel->mesoSplitModel()};
+		worker2.getAllMesoSplits();
 
 		m_itemManager.reserve(n_mesos);
 		for (uint i(0); i < n_mesos; ++i)
@@ -1126,9 +1128,9 @@ uint DBInterface::createNewMesocycle(const bool bCreatePage)
 		endDate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 
-	const uint meso_idx = mesocyclesModel->newMesocycle(QStringList() << u"-1"_qs << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
+	const uint meso_idx = mesocyclesModel->newMesocycle(QStringList() << STR_MINUS_ONE << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startDate, endDate)) <<
-		u"ABCDERR"_qs << QString() << userModel->userName(0) << QString() << QString() << u"1"_qs);
+		u"ABCDERR"_qs << QString() << userModel->userName(0) << QString() << QString() << STR_ONE);
 
 	if (bCreatePage)
 	{
@@ -1219,10 +1221,9 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
-void DBInterface::getExercisesPlannerPage(const uint meso_idx)
+void DBInterface::getExercisesPlannerPage(QmlItemManager* const itemMngr)
 {
-	getCompleteMesoSplit(meso_idx);
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
+	getCompleteMesoSplit(itemMngr->mesoIdx());
 	itemMngr->getExercisesPlannerPage();
 }
 
@@ -1356,7 +1357,7 @@ static void muscularGroupSimplified(QString& muscularGroup)
 	}
 }
 
-QString DBInterface::checkIfSplitSwappable(const DBMesoSplitModel* splitModel) const
+QString DBInterface::checkIfSplitSwappable(const DBMesoSplitModel* const splitModel) const
 {
 	const uint meso_idx(splitModel->mesoIdx());
 	const QString splitLetter(splitModel->splitLetter());
@@ -1391,23 +1392,23 @@ QString DBInterface::checkIfSplitSwappable(const DBMesoSplitModel* splitModel) c
 	return QString();
 }
 
-void DBInterface::swapMesoPlans(const uint meso_idx, const QString& splitLetter1, const QString& splitLetter2)
+void DBInterface::swapMesoPlans(QmlItemManager* const itemMngr, const QString& splitLetter1, const QString& splitLetter2)
 {
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
 	itemMngr->swapPlans(splitLetter1, splitLetter2);
 	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, itemMngr->getSplitModel(splitLetter1.at(0))));
-	worker->addExecArg(mesocyclesModel->getFast(meso_idx, MESOCYCLES_COL_ID));
+	worker->addExecArg(mesocyclesModel->getFast(itemMngr->mesoIdx(), MESOCYCLES_COL_ID));
 	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); } );
 	DBMesoSplitTable* worker2(new DBMesoSplitTable(m_DBFilePath, itemMngr->getSplitModel(splitLetter2.at(0))));
-	worker2->addExecArg(mesocyclesModel->getFast(meso_idx, MESOCYCLES_COL_ID));
+	worker2->addExecArg(mesocyclesModel->getFast(itemMngr->mesoIdx(), MESOCYCLES_COL_ID));
 	createThread(worker2, [worker2] () { worker2->saveMesoSplitComplete(); });
 }
 
-void DBInterface::exportMesoSplit(const uint meso_idx, const QString& splitLetter, const bool bShare, QFile* outFileInUse)
+void DBInterface::exportMesoSplit(const QmlItemManager* const itemMngr, const QString& splitLetter, const bool bShare, QFile* outFileInUse)
 {
 	QString mesoSplit;
 	QString suggestedName;
 	QFile* outFile(nullptr);
+	const uint meso_idx(itemMngr->mesoIdx());
 
 	if (!outFileInUse)
 	{
@@ -1435,14 +1436,14 @@ void DBInterface::exportMesoSplit(const uint meso_idx, const QString& splitLette
 
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
 	do {
 		if (static_cast<QChar>(*itr) == QChar('R'))
 			continue;
 		if (mesoLetters.contains(static_cast<QChar>(*itr)))
 			continue;
 		mesoLetters.append(static_cast<QChar>(*itr));
-		bExportToFileOk &= exportToFile(itemMngr->getSplitModel(static_cast<QChar>(*itr)), exportFileName(), outFile);
+		bExportToFileOk &= exportToFile(const_cast<QmlItemManager*>(itemMngr)->getSplitModel(static_cast<QChar>(*itr)),
+											exportFileName(), outFile);
 	} while (++itr != itr_end);
 
 	if (outFileInUse)
@@ -1567,7 +1568,6 @@ void DBInterface::setDayIsFinished(DBTrainingDayModel* const tDayModel, const bo
 		getMesoCalendar(meso_idx, false);
 		return;
 	}
-	QmlItemManager* itemMngr(m_itemManager.at(meso_idx));
 	tDayModel->setDayIsFinished(bFinished);
 	const QDate date(tDayModel->getDateFast(0, TDAY_COL_DATE));
 	mesocyclesModel->mesoCalendarModel(meso_idx)->setDayIsFinished(date, bFinished);
@@ -1602,7 +1602,7 @@ void DBInterface::getTrainingDay(const uint meso_idx, const QDate& date)
 		getMesoCalendar(meso_idx, false);
 		return;
 	}
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
+	QmlItemManager* itemMngr(itemManager(meso_idx));
 	if (!itemMngr->currenttDayModel()->isReady())
 	{
 		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, itemMngr->gettDayModel(date)));
@@ -1630,39 +1630,36 @@ void DBInterface::verifyTDayOptions(const DBTrainingDayModel* const tDayModel)
 	const uint meso_idx(tDayModel->mesoIdx());
 	QmlItemManager* itemMngr(m_itemManager.at(meso_idx));
 	if (itemMngr->currenttDayModel()->exerciseCount() > 0)
-	{
 		itemMngr->createExercisesObjects();
-		return;
-	}
-
-	/*const QString splitletter(splitLetter.isEmpty() ?
+	else
+	{
+		/*const QString splitletter(splitLetter.isEmpty() ?
 			mesocyclesModel->mesoCalendarModel(meso_idx)->getSplitLetter(date.month(), date.day()-1) :
 			splitLetter);*/
-	if (tDayModel->splitLetter() >= u"A"_qs && tDayModel->splitLetter() <= u"F"_qs)
-	{
-		DBTrainingDayModel* tempModel{new DBTrainingDayModel(this, meso_idx)};
-		DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tempModel)};
-		worker->addExecArg(mesocyclesModel->getFast(meso_idx, MESOCYCLES_COL_ID));
-		worker->addExecArg(tDayModel->splitLetter());
-		worker->addExecArg(tDayModel->getFast(0, TDAY_COL_DATE));
-		createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); } );
+		if (tDayModel->splitLetter() >= u"A"_qs && tDayModel->splitLetter() <= u"F"_qs)
+		{
+			DBTrainingDayModel* tempModel{new DBTrainingDayModel(this, meso_idx)};
+			DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tempModel)};
+			worker->addExecArg(mesocyclesModel->getFast(meso_idx, MESOCYCLES_COL_ID));
+			worker->addExecArg(tDayModel->splitLetter());
+			worker->addExecArg(tDayModel->getFast(0, TDAY_COL_DATE));
+			createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); } );
+		}
 	}
 }
 
-void DBInterface::clearExercises(DBTrainingDayModel* const tDayModel)
+void DBInterface::clearExercises(QmlItemManager* const itemMngr)
 {
-	QmlItemManager* itemMngr(m_itemManager.at(tDayModel->mesoIdx()));
 	itemMngr->clearExercises();
-	verifyTDayOptions(tDayModel);
+	verifyTDayOptions(itemMngr->currenttDayModel());
 }
 
-void DBInterface::loadExercisesFromDate(const uint meso_idx, const QString& strDate)
+void DBInterface::loadExercisesFromDate(QmlItemManager* const itemMngr, const QString& strDate)
 {
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
-	DBTrainingDayModel* tDayModel = itemMngr->currenttDayModel();
+	DBTrainingDayModel* tDayModel(itemMngr->currenttDayModel());
 	const QDate date(appUtils()->getDateFromStrDate(strDate));
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, tDayModel));
-	worker->addExecArg(mesocyclesModel->getFast(meso_idx, MESOCYCLES_COL_ID));
+	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
+	worker->addExecArg(mesocyclesModel->getFast(itemMngr->mesoIdx(), MESOCYCLES_COL_ID));
 	worker->addExecArg(QString::number(date.toJulianDay()));
 
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
@@ -1679,21 +1676,20 @@ void DBInterface::loadExercisesFromDate(const uint meso_idx, const QString& strD
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
 }
 
-void DBInterface::loadExercisesFromMesoPlan(const uint meso_idx, const QString& splitLetter)
+void DBInterface::loadExercisesFromMesoPlan(QmlItemManager* const itemMngr, const QString& splitLetter)
 {
 	const QChar splitletter(splitLetter.at(0));
 	if (!mb_splitsLoaded)
 	{
-		connect( this, &DBInterface::internalSignal, this, [&,meso_idx,splitLetter] (const uint id) {
+		connect( this, &DBInterface::internalSignal, this, [&,itemMngr,splitLetter] (const uint id) {
 			if (id == SPLITS_LOADED_ID)
-				loadExercisesFromMesoPlan(meso_idx, splitLetter);
+				loadExercisesFromMesoPlan(itemMngr, splitLetter);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		loadCompleteMesoSplits(meso_idx);
+		loadCompleteMesoSplits(itemMngr->mesoIdx());
 	}
 	else
 	{
-		QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
-		DBTrainingDayModel* tDayModel = itemMngr->currenttDayModel();
+		DBTrainingDayModel* tDayModel(itemMngr->currenttDayModel());
 		tDayModel->convertMesoSplitModelToTDayModel(itemMngr->getSplitModel(splitletter));
 		itemMngr->createExercisesObjects();
 		if (tDayModel->getDateFast(0, TDAY_COL_DATE) != QDate::currentDate())
@@ -1713,7 +1709,7 @@ void DBInterface::convertTDayToPlan(const DBTrainingDayModel* const tDayModel)
 	}
 	else
 	{
-		QmlItemManager* itemMngr = m_itemManager.at(tDayModel->mesoIdx());
+		QmlItemManager* itemMngr(m_itemManager.at(tDayModel->mesoIdx()));
 		DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, itemMngr->getSplitModel(tDayModel->splitLetter().at(0))));
 		worker->addExecArg(mesocyclesModel->getFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ID));
 		worker->addExecArg(tDayModel->splitLetter());
@@ -1725,22 +1721,22 @@ void DBInterface::saveTrainingDay(DBTrainingDayModel* const tDayModel)
 {
 	if (tDayModel->modified())
 	{
-		DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, tDayModel));
+		DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 		createThread(worker, [worker] () { return worker->saveTrainingDay(); });
 	}
 }
 
 void DBInterface::removeTrainingDay(const uint meso_idx)
 {
-	DBTrainingDayModel* tDayModel = m_itemManager.at(meso_idx)->currenttDayModel();
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, tDayModel));
+	DBTrainingDayModel* tDayModel(m_itemManager.at(meso_idx)->currenttDayModel());
+	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 	createThread(worker, [worker] () { return worker->removeTrainingDay(); } );
 }
 
 void DBInterface::deleteTrainingDayTable(const uint meso_idx, const bool bRemoveFile)
 {
-	DBTrainingDayModel* tDayModel = m_itemManager.at(meso_idx)->currenttDayModel();
-	DBTrainingDayTable* worker(new DBTrainingDayTable(m_DBFilePath, tDayModel));
+	DBTrainingDayModel* tDayModel(m_itemManager.at(meso_idx)->currenttDayModel());
+	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 

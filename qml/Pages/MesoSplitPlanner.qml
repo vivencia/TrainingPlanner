@@ -14,6 +14,7 @@ Frame {
 
 	required property TPPage parentItem
 	required property DBMesoSplitModel splitModel
+	required property QmlItemManager itemManager
 
 	property bool bAlreadyLoaded: false
 	property int removalSecs: 0
@@ -106,7 +107,7 @@ Frame {
 
 		onEditingFinished: {
 			splitModel.setMuscularGroup(text);
-			mesocyclesModel.setMuscularGroup(splitModel.mesoIdx, splitModel.splitLetter(), text);
+			mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, splitModel.splitLetter(), text);
 			exercisesModel.makeFilterString(text);
 			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
 			bCanSwapPlan = swappableLetter !== "";
@@ -116,7 +117,7 @@ Frame {
 
 		function updateMuscularGroup(splitindex: int, splitletter: string) {
 			if (splitModel.splitLetter() === splitletter) {
-				const musculargroup = mesocyclesModel.getMuscularGroup(splitModel.mesoIdx, splitletter);
+				const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
 				splitModel.setMuscularGroup(musculargroup);
 				text = musculargroup;
 				exercisesModel.makeFilterString(musculargroup);

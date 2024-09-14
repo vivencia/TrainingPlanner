@@ -42,8 +42,9 @@ public:
 		mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
 	};
 
-	explicit DBMesocyclesModel(QObject* parent, DBUserModel* userModel);
+	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
+	void setUserModel(DBUserModel& usermodel);
 
 	const uint newMesocycle(const QStringList& infolist);
 	void delMesocycle(const uint meso_idx);

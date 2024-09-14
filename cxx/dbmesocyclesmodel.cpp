@@ -5,8 +5,8 @@
 
 #include <QSettings>
 
-DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
-	: TPListModel(parent), m_userModel(userModel), m_mostRecentOwnMesoIdx(-1)
+DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
+	: TPListModel{parent}, m_userModel(nullptr), m_mostRecentOwnMesoIdx(-1)
 {
 	m_tableId = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
@@ -31,8 +31,6 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, DBUserModel* userModel)
 	mColumnNames.append(QString());
 	mColumnNames.append(tr("Type: "));
 
-	updateColumnLabels();
-
 	m_splitModel = new DBMesoSplitModel(this, false, -1);
 }
 
@@ -41,6 +39,12 @@ DBMesocyclesModel::~DBMesocyclesModel()
 	delete m_splitModel;
 	for (uint i(0); i < m_calendarModelList.count(); ++i)
 		delete m_calendarModelList[i];
+}
+
+void DBMesocyclesModel::setUserModel(DBUserModel& usermodel)
+{
+	m_userModel = &usermodel;
+	updateColumnLabels();
 }
 
 const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)

@@ -37,12 +37,13 @@ void QmlItemManager::configureQmlEngine(DBInterface* db_interface)
 	mesocyclesModel = db_interface->MesoModel();
 	exercisesModel = db_interface->ExercisesModel();
 
+	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
 	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
 	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
 	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
-	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
+	qmlRegisterType<QmlItemManager>("com.vivenciasoftware.qmlcomponents", 1, 0, "QmlItemManager");
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 
 	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
@@ -71,13 +72,6 @@ void QmlItemManager::configureQmlEngine(DBInterface* db_interface)
 
 const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
-
-QmlItemManager::QmlItemManager(const uint meso_idx, QObject* parent)
-	: QObject{parent}, m_mesoIdx(meso_idx),
-		m_mesoComponent(nullptr), m_plannerComponent(nullptr),
-		m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
-		m_setComponents{nullptr}
-{}
 
 QmlItemManager::~QmlItemManager()
 {
@@ -168,25 +162,6 @@ QmlItemManager::~QmlItemManager()
 	}
 }
 
-void QmlItemManager::changeMesoIdxFromPagesAndModels(const uint new_mesoidx)
-{
-	m_mesoIdx = new_mesoidx;
-	if (m_mesoPage)
-		m_mesoPage->setProperty("mesoIdx", new_mesoidx);
-	QMapIterator<QDate,DBTrainingDayModel*> x(m_tDayModels);
-	x.toFront();
-	while (x.hasNext()) {
-		x.next();
-		x.value()->setMesoIdx(new_mesoidx);
-	}
-	QMapIterator<QChar,DBMesoSplitModel*> z(m_splitModels);
-	z.toFront();
-	while (z.hasNext()) {
-		z.next();
-		z.value()->setMesoIdx(new_mesoidx);
-	}
-}
-
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
 {
 	const QVariantList strargs(args.toList());
@@ -230,21 +205,21 @@ void QmlItemManager::exerciseCompleted(int exercise_idx)
 }
 
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
-void QmlItemManager::createExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
+void QmlItemManager::createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
 {
-	exercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesDatabase.qml"_qs), QQmlComponent::Asynchronous);
+	exercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesPage.qml"_qs), QQmlComponent::Asynchronous);
 	exercisesProperties.insert(u"bChooseButtonEnabled"_qs, bChooseButtonEnabled);
 	if (exercisesComponent->status() != QQmlComponent::Ready)
 	{
 		connect(exercisesComponent, &QQmlComponent::statusChanged, this, [&,connectPage] (QQmlComponent::Status) {
-			return createExercisesListPage_part2(connectPage);
+			return createExercisesPage_part2(connectPage);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 	else
-		createExercisesListPage_part2(connectPage);
+		createExercisesPage_part2(connectPage);
 }
 
-void QmlItemManager::createExercisesListPage_part2(QQuickItem* connectPage)
+void QmlItemManager::createExercisesPage_part2(QQuickItem* connectPage)
 {
 	#ifdef DEBUG
 	if (exercisesComponent->status() == QQmlComponent::Error)
@@ -270,7 +245,7 @@ void QmlItemManager::createExercisesListPage_part2(QQuickItem* connectPage)
 void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
 {
 	if (!exercisesComponent)
-		createExercisesListPage(bChooseButtonEnabled, connectPage);
+		createExercisesPage(bChooseButtonEnabled, connectPage);
 	else
 	{
 		exercisesPage->setProperty("bChooseButtonEnabled", bChooseButtonEnabled);
@@ -289,8 +264,7 @@ void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled, QQuickIte
 void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
 	const int meso_id(mesocyclesModel->getIntFast(m_mesoIdx, MESOCYCLES_COL_ID));
-	m_mesoProperties.insert(u"mesoId"_qs, meso_id);
-	m_mesoProperties.insert(u"mesoIdx"_qs, m_mesoIdx);
+	m_mesoProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
 	m_mesoProperties.insert(u"minimumMesoStartDate"_qs, !minimumMesoStartDate.isNull() ?
 								minimumMesoStartDate : mesocyclesModel->getPreviousMesoEndDate(meso_id));
 	m_mesoProperties.insert(u"maximumMesoEndDate"_qs, !maximumMesoEndDate.isNull() ?
@@ -341,7 +315,7 @@ void QmlItemManager::getMesoPage()
 void QmlItemManager::createPlannerPage()
 {
 	m_plannerComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous);
-
+	m_plannerProperties[u"itemManager"_qs] = QVariant::fromValue(this);
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return QmlItemManager::createPlannerPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -409,8 +383,9 @@ void QmlItemManager::createMesoSplitPage_part2()
 		{
 			splitModel = m_splitModels.value(i.key());
 			m_createdSplits.append(i.key());
-			m_splitProperties[QStringLiteral("splitModel")] = QVariant::fromValue(splitModel);
-			m_splitProperties[QStringLiteral("parentItem")] = QVariant::fromValue(m_plannerPage);
+			m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
+			m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
+			m_splitProperties[u"itemManager"_qs] = QVariant::fromValue(this);
 			QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));
 			appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 			item->setParentItem(m_plannerPage);
@@ -524,12 +499,13 @@ uint QmlItemManager::createTrainingDayPage(const QDate& date)
 					m_CurrenttDayModel->setDayIsFinished(true);
 			}
 
-			m_tDayProperties.insert(QStringLiteral("mainDate"), date);
-			m_tDayProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
-			m_tDayProperties.insert(QStringLiteral("tDay"), tday);
-			m_tDayProperties.insert(QStringLiteral("splitLetter"), splitLetter);
-			m_tDayProperties.insert(QStringLiteral("timeIn"), m_CurrenttDayModel->timeIn());
-			m_tDayProperties.insert(QStringLiteral("timeOut"), m_CurrenttDayModel->timeOut());
+			m_tDayProperties.insert(u"mainDate"_qs, date);
+			m_tDayProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
+			m_tDayProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));
+			m_tDayProperties.insert(u"tDay"_qs, tday);
+			m_tDayProperties.insert(u"splitLetter"_qs, splitLetter);
+			m_tDayProperties.insert(u"timeIn"_qs, m_CurrenttDayModel->timeIn());
+			m_tDayProperties.insert(u"timeOut"_qs, m_CurrenttDayModel->timeOut());
 		}
 
 		if (m_tDayComponent->status() != QQmlComponent::Ready)
@@ -580,6 +556,19 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 		createTrainingDayPage(date);
 	else
 		addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
+}
+
+DBTrainingDayModel* QmlItemManager::gettDayModel(const QDate& date)
+{
+	if (!m_tDayModels.contains(date))
+	{
+		m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx);
+		connect(this, &QmlItemManager::mesoIdxChanged, m_CurrenttDayModel, [&] { m_CurrenttDayModel->setMesoIdx(m_mesoIdx); });
+		m_tDayModels.insert(date, m_CurrenttDayModel);
+	}
+	else
+		m_CurrenttDayModel = m_tDayModels.value(date);
+	return m_CurrenttDayModel;
 }
 
 void QmlItemManager::resetWorkout()
@@ -649,7 +638,7 @@ uint QmlItemManager::createExerciseObject(DBExercisesModel* exercisesModel)
 	if (m_tDayExercisesComponent == nullptr)
 		m_tDayExercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 
-	QString exerciseName, nSets, nReps, nWeight, nRestTime;
+	QString exerciseName, nSets, nReps, nWeight;
 	if (exercisesModel->selectedEntriesCount() == 1)
 	{
 		exerciseName = exercisesModel->selectedEntriesValue_fast(0, 1) + u" - "_qs + exercisesModel->selectedEntriesValue_fast(0, 2);
@@ -668,33 +657,11 @@ uint QmlItemManager::createExerciseObject(DBExercisesModel* exercisesModel)
 		appUtils()->setCompositeValue(0, exercisesModel->selectedEntriesValue_fast(0, 6), nWeight);
 		appUtils()->setCompositeValue(1, exercisesModel->selectedEntriesValue_fast(1, 6), nWeight);
 	}
+	m_tDayExerciseEntryProperties.insert(u"nSets"_qs, nSets);
+	m_tDayExerciseEntryProperties.insert(u"nReps"_qs, nReps);
+	m_tDayExerciseEntryProperties.insert(u"nWeight"_qs, nWeight);
 
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
-
-	bool bTrackRestTime(false), bAutoRestTime(false);
-	const int exercise_idx(m_currentExercises->exercisesCount());
-
-	if (exercise_idx > 1)
-	{
-		bTrackRestTime = m_CurrenttDayModel->trackRestTime(exercise_idx-1);
-		bAutoRestTime = m_CurrenttDayModel->autoRestTime(exercise_idx-1);
-		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, SET_TYPE_REGULAR, 0);
-	}
-	else
-		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
-
-	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
-	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
-
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("nSets"), nSets);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("nReps"), nReps);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("nWeight"), nWeight);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("nRestTime"), nRestTime);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("bTrackRestTime"), bTrackRestTime);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("bAutoRestTime"), bAutoRestTime);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("bCanEditRestTimeTracking"), true);
-	m_tDayExerciseEntryProperties.insert(QStringLiteral("bCompositeExercise"), m_CurrenttDayModel->compositeExercise(m_CurrenttDayModel->exerciseCount()-1));
 
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -716,14 +683,36 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 	}
 	#endif
 
-	const int idx(object_idx >= 0 ? object_idx : m_currentExercises->exerciseObjects.count());
+	QString nRestTime;
+	bool bTrackRestTime(false), bAutoRestTime(false);
+	const int exercise_idx(object_idx >= 0 ? object_idx : m_currentExercises->exerciseObjects.count());
+
+	if (exercise_idx > 1)
+	{
+		bTrackRestTime = m_CurrenttDayModel->trackRestTime(exercise_idx-1);
+		bAutoRestTime = m_CurrenttDayModel->autoRestTime(exercise_idx-1);
+		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, SET_TYPE_REGULAR, 0);
+	}
+	else
+		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
+	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
+	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
+
+	m_tDayExerciseEntryProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
+	m_tDayExerciseEntryProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));
+	m_tDayExerciseEntryProperties.insert(u"exerciseIdx"_qs, exercise_idx);
+	m_tDayExerciseEntryProperties.insert(u"nRestTime"_qs, nRestTime);
+	m_tDayExerciseEntryProperties.insert(u"bTrackRestTime"_qs, bTrackRestTime);
+	m_tDayExerciseEntryProperties.insert(u"bAutoRestTime"_qs, bAutoRestTime);
+	m_tDayExerciseEntryProperties.insert(u"bCanEditRestTimeTracking"_qs, true);
+	m_tDayExerciseEntryProperties.insert(u"bCompositeExercise"_qs, m_CurrenttDayModel->compositeExercise(m_CurrenttDayModel->exerciseCount()-1));
+
 	QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-	QQuickItem* parentLayout(m_currenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
+	QQuickItem* parentLayout(m_currenttDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_qs));
 	item->setParentItem(parentLayout);
-	item->setProperty("exerciseIdx", idx);
-	item->setProperty("Layout.row", idx);
+	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
 	connect( item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)) );
@@ -750,7 +739,6 @@ void QmlItemManager::createExercisesObjects()
 	}
 	else
 	{
-		m_tDayExerciseEntryProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 		m_currenttDayPage->setProperty("bHasMesoPlan", false);
 		m_currenttDayPage->setProperty("bHasPreviousTDays", false);
 		for(uint i(0); i < m_CurrenttDayModel->exerciseCount(); ++i)
@@ -840,7 +828,6 @@ void QmlItemManager::createSetObject(const uint set_type, const uint set_number,
 	if (m_setComponents[set_type_cpp] == nullptr)
 		m_setComponents[set_type_cpp] = new QQmlComponent(appQmlEngine(), QUrl(setTypePages[set_type_cpp]), QQmlComponent::Asynchronous);
 
-	m_setObjectProperties.insert(QStringLiteral("tDayModel"), QVariant::fromValue(m_CurrenttDayModel));
 	if (bNewSet)
 	{
 		if (set_number == 0)
@@ -869,10 +856,12 @@ void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_n
 	}
 	#endif
 
-	m_setObjectProperties.insert(QStringLiteral("exerciseIdx"), exercise_idx);
-	m_setObjectProperties.insert(QStringLiteral("setNumber"), set_number);
-	m_setObjectProperties.insert(QStringLiteral("setType"), set_type);
-	m_setObjectProperties.insert(QStringLiteral("setCompleted"), m_CurrenttDayModel->setCompleted(set_number, exercise_idx));
+	m_setObjectProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
+	m_setObjectProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));
+	m_setObjectProperties.insert(u"exerciseIdx"_qs, exercise_idx);
+	m_setObjectProperties.insert(u"setNumber"_qs, set_number);
+	m_setObjectProperties.insert(u"setType"_qs, set_type);
+	m_setObjectProperties.insert(u"setCompleted"_qs, m_CurrenttDayModel->setCompleted(set_number, exercise_idx));
 	m_setObjectProperties.insert(u"bTrackRestTime"_qs, m_CurrenttDayModel->trackRestTime(exercise_idx));
 	m_setObjectProperties.insert(u"bAutoRestTime"_qs, m_CurrenttDayModel->autoRestTime(exercise_idx));
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->

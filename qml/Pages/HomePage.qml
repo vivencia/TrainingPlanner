@@ -188,7 +188,7 @@ TPPage {
 						left: btnMesoInfo.right
 					}
 
-					onClicked: appDB.getExercisesPlannerPage(index);
+					onClicked: appDB.getExercisesPlannerPage(appDB.itemManager(index));
 				}
 
 				TPButton {

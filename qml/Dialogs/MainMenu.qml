@@ -145,9 +145,9 @@ Drawer {
 			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
 
-			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
+			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
 				stackView.currentItem
-				!stackView.find((item, index) => { return item.title === "Exercises Page"; })
+				!stackView.find((item, index) => { return item.objectName === "exercisesPage"; })
 			}
 
 			onClicked: {
@@ -208,7 +208,7 @@ Drawer {
 
 		function finishCreation() {
 			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, "Layout.fillWidth": true });
-			button.clicked.connect(appDB.openMainMenuShortCut);
+			button.clicked.connect(openMainMenuShortCut);
 			appDB.addMainMenuShortCutEntry(button);
 		}
 

@@ -31,18 +31,23 @@ class QmlItemManager : public QObject
 {
 
 Q_OBJECT
+Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 
 public:
-	QmlItemManager(const uint meso_idx, QObject* parent = nullptr);
+	QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
+		: QObject{parent}, m_mesoIdx(meso_idx),
+			m_mesoComponent(nullptr), m_plannerComponent(nullptr),
+			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
+			m_setComponents{nullptr} {}
 	~QmlItemManager();
 	static void configureQmlEngine(DBInterface* db_interface);
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
-	void changeMesoIdxFromPagesAndModels(const uint new_mesoidx);
+	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	void createExercisesListPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
-	void createExercisesListPage_part2(QQuickItem* connectPage);
+	void createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	void createExercisesPage_part2(QQuickItem* connectPage);
 	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
@@ -64,7 +69,11 @@ public:
 	inline DBMesoSplitModel* getSplitModel(const QChar& splitLetter)
 	{
 		if (!m_splitModels.contains(splitLetter))
-			m_splitModels.insert(splitLetter, new DBMesoSplitModel(this, true, m_mesoIdx));
+		{
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, m_mesoIdx)};
+			connect(this, &QmlItemManager::mesoIdxChanged, splitModel, [&,splitModel] { splitModel->setMesoIdx(m_mesoIdx); });
+			m_splitModels.insert(splitLetter, splitModel);
+		}
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
@@ -82,18 +91,10 @@ public:
 	uint createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
 	void getTrainingDayPage(const QDate& date);
-	Q_INVOKABLE void resetWorkout();
 
-	inline DBTrainingDayModel* gettDayModel(const QDate& date)
-	{
-		if (!m_tDayModels.contains(date))
-			m_tDayModels.insert(date, m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx));
-		else
-			m_CurrenttDayModel = m_tDayModels.value(date);
-		return m_CurrenttDayModel;
-	}
-
+	DBTrainingDayModel* gettDayModel(const QDate& date);
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
+	Q_INVOKABLE void resetWorkout();
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 	void updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate);
@@ -163,6 +164,7 @@ public slots:
 
 signals:
 	void itemReady(QQuickItem* item, const uint id);
+	void mesoIdxChanged();
 
 private:
 	uint m_mesoIdx;
@@ -187,8 +189,8 @@ private:
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 	QQmlComponent* m_plannerComponent;
-	QVariantMap m_plannerProperties;
 	QQuickItem* m_plannerPage;
+	QVariantMap m_plannerProperties;
 
 	QQmlComponent* m_splitComponent;
 	QMap<QChar,QQuickItem*> m_splitPages;

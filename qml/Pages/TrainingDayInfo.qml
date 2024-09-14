@@ -17,6 +17,7 @@ TPPage {
 	objectName: "trainingDayPage"
 
 	required property date mainDate
+	required property QmlItemManager itemManager
 	required property DBTrainingDayModel tDayModel
 
 	property string tDay
@@ -42,7 +43,7 @@ TPPage {
 	property TimerDialog timerDialog: null
 
 	onPageActivated: {
-		appDB.itemManager(tDayModel.mesoIdx).setCurrenttDay(mainDate);
+		itemManager.setCurrenttDay(mainDate)
 		changeComboModel();
 	}
 
@@ -114,7 +115,7 @@ TPPage {
 			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
 			appDB.setDayIsFinished(tDayModel, true);
-			appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
+			itemManager(tDayModel.mesoIdx).rollUpExercises();
 		}
 		else {
 			if (appUtils.areDatesTheSame(mainDate, new Date())) {
@@ -173,7 +174,7 @@ TPPage {
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			appDB.itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx);
+			itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx);
 			return;
 		}
 
@@ -184,7 +185,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -201,7 +202,7 @@ TPPage {
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			appDB.itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx);
+			itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx);
 			return;
 		}
 
@@ -212,7 +213,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveSet.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx); } );
+					msgRemoveSet.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -235,7 +236,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(tDayModel); } );
+					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(itemManager); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -333,7 +334,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
-					tipTimeWarn.button1Clicked.connect(function () { appDB.itemManager(tDayModel.mesoIdx).resetWorkout(); } );
+					tipTimeWarn.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -901,7 +902,7 @@ TPPage {
 					timeOut = appUtils.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsEditable = false;
-					appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
+					itemManager(tDayModel.mesoIdx).rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 				}
 			}
@@ -1025,7 +1026,7 @@ TPPage {
 				appDB.updateMesoCalendarModel(tDayModel);
 			saveWorkout();
 			if (splitLetter !== "R")
-				appDB.verifyTDayOptions(tDayModel);
+				appDB.verifyTDayOptions(itemManager);
 		}
 
 		onButton2Clicked:
@@ -1061,10 +1062,10 @@ TPPage {
 	function intentChosen() {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				appDB.loadExercisesFromMesoPlan(tDayModel.mesoIdx, splitLetter);
+				appDB.loadExercisesFromMesoPlan(itemManager, splitLetter);
 			break;
 			case 2: //use previous day
-				appDB.loadExercisesFromDate(tDayModel.mesoIdx, intentDlg.customStringProperty1);
+				appDB.loadExercisesFromDate(itemManager, intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
 				mainwindow.chooseFileToImport();
@@ -1086,7 +1087,7 @@ TPPage {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		appDB.itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesModel);
+		itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesModel);
 	}
 
 	function placeSetIntoView(ypos: int) {
@@ -1120,7 +1121,7 @@ TPPage {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		appDB.itemManager(tDayModel.mesoIdx).createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
+		itemManager(tDayModel.mesoIdx).createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
 		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
@@ -1215,7 +1216,7 @@ TPPage {
 				if (!editMode)
 					btnFinishedDayOptions.visible = true;
 				else {
-					appDB.itemManager(tDayModel.mesoIdx).rollUpExercises();
+					itemManager(tDayModel.mesoIdx).rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}

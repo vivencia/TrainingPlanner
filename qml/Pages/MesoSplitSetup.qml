@@ -35,7 +35,7 @@ Pane {
 
 	TPTextInput {
 		id: txtMesoSplit
-		text: mesocyclesModel.get(mesoIdx, 6)
+		text: mesocyclesModel.get(itemManager.mesoIdx, 6)
 		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		readOnly: true
 		width: parent.width*0.3
@@ -79,15 +79,15 @@ Pane {
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {
-						txtSplit.text = mesocyclesModel.getMuscularGroup(mesoIdx, currentValue);
+						txtSplit.text = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, currentValue);
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						txtSplit.forceActiveFocus();
 					}
 
 					Component.onCompleted: {
-						currentIndex = indexOfValue(mesocyclesModel.getSplitLetter(mesoIdx, index));
-						txtSplit.text = mesocyclesModel.getMuscularGroup(mesoIdx, valueAt(index));
+						currentIndex = indexOfValue(mesocyclesModel.getSplitLetter(itemManager.mesoIdx, index));
+						txtSplit.text = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, valueAt(index));
 					}
 				}
 
@@ -95,7 +95,7 @@ Pane {
 					id: txtSplit
 					implicitWidth: col3Width
 
-					onEditingFinished: mesocyclesModel.setMuscularGroup(mesoIdx, cboSplit.currentText, text);
+					onEditingFinished: mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, cboSplit.currentText, text);
 
 					onEnterOrReturnKeyPressed: {
 						if (index < 6)
@@ -107,7 +107,7 @@ Pane {
 			Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
 
 			function updateMuscularGroup(splitindex: int, splitletter: string) {
-				const musculargroup = mesocyclesModel.getMuscularGroup(mesoIdx, splitletter);
+				const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
 				for (var i = 0; i < 7; ++i) {
 					if (itemAt(i).cboSplit.currentIndex === splitindex)
 						itemAt(splitindex).txtSplit.text = musculargroup;
@@ -133,7 +133,7 @@ Pane {
 			btnCreateExercisePlan.enabled = ok;
 			txtMesoSplit.ToolTip.visible = !ok;
 			if (ok)
-				mesocyclesModel.setMesoSplit(mesoIdx, txtMesoSplit.text);
+				mesocyclesModel.setMesoSplit(itemManager.mesoIdx, txtMesoSplit.text);
 		}
 	}
 
@@ -148,7 +148,7 @@ Pane {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		onClicked: appDB.getExercisesPlannerPage(mesoIdx);
+		onClicked: appDB.getExercisesPlannerPage(itemManager);
 	}
 
 	function forcusOnFirstItem() {

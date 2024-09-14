@@ -95,7 +95,7 @@ set( QML_FILES
     "qml/Pages/BackupPage.qml"
     "qml/Pages/ClientsOrCoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
-    "qml/Pages/ExercisesDatabase.qml"
+	"qml/Pages/ExercisesPage.qml"
     "qml/Pages/ExercisesPlanner.qml"
     "qml/Pages/HomePage.qml"
 	"qml/Pages/MesoCalendar.qml"

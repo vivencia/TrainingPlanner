@@ -10,8 +10,8 @@ import "../ExercisesAndSets"
 import "../TPWidgets"
 
 TPPage {
-	id: pageExercises
-	objectName: "exercisesDatabase"
+	id: exercisesPage
+	objectName: "exercisesPage"
 
 	property string strMediaPath
 	property bool bCanEdit: false
@@ -97,7 +97,7 @@ TPPage {
 				Layout.bottomMargin: 5
 				spacing: 5
 
-				readonly property int buttonWidth: Math.ceil(pageExercises.width/5.5)
+				readonly property int buttonWidth: Math.ceil(exercisesPage.width/5.5)
 
 				TPButton {
 					id:btnNewExercise
@@ -210,7 +210,7 @@ TPPage {
 					rounded: false
 					flat: false
 
-					onClicked: INEX.showInExMenu(pageExercises, true);
+					onClicked: INEX.showInExMenu(exercisesPage, true);
 				} // btnImExport
 
 			} // Row
@@ -229,7 +229,7 @@ TPPage {
 
 		ColumnLayout {
 			id: layoutMain
-			width: pageExercises.width
+			width: exercisesPage.width
 
 			Label {
 				text: exercisesModel.columnLabel(1)
@@ -428,7 +428,7 @@ TPPage {
 		imageSource:  "export"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		parentPage: pageExercises
+		parentPage: exercisesPage
 
 		onButton1Clicked: appDB.exportExercisesList(bShare);
 

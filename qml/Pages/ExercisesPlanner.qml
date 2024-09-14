@@ -15,6 +15,7 @@ TPPage {
 	id: pagePlanner
 	objectName: "exercisesPlanner"
 
+	required property QmlItemManager itemManager
 	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
 	property TPFloatingMenuBar imexportMenu: null
@@ -166,7 +167,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.swapMesoPlans(currentPage.splitModel.mesoIdx(), currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
+			onClicked: appDB.swapMesoPlans(itemManager, currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
 		}
 
 		TPButton {
@@ -255,8 +256,8 @@ TPPage {
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner
 
-		onButton1Clicked: appDB.exportMesoSplit(currentPage.splitModel.mesoIdx(), "X", bShare);
-		onButton2Clicked: appDB.exportMesoSplit(currentPage.splitModel.mesoIdx(), currentPage.splitModel.splitLetter(), bShare);
+		onButton1Clicked: appDB.exportMesoSplit(itemManager, "X", bShare);
+		onButton2Clicked: appDB.exportMesoSplit(itemManager, currentPage.splitModel.splitLetter(), bShare);
 
 		property bool bShare: false
 

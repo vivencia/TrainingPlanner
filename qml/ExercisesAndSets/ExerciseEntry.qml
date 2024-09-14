@@ -13,7 +13,8 @@ FocusScope {
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
 
-	property DBTrainingDayModel tDayModel
+	required property QmlItemManager itemManager
+	required property DBTrainingDayModel tDayModel
 	property int exerciseIdx
 
 	property int setNbr: 0
@@ -140,8 +141,8 @@ FocusScope {
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => {
 						tDayModel.setExerciseName(new_text, exerciseIdx);
-						appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-						appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+						itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+						itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 					}
 					onRemoveButtonClicked: showRemoveExerciseMessage(exerciseIdx);
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
@@ -165,7 +166,7 @@ FocusScope {
 
 					onClicked: {
 						bTrackRestTime = checked;
-						appDB.itemManager(tDayModel.mesoIdx()).manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 
@@ -180,7 +181,7 @@ FocusScope {
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
 					onClicked: {
 						bAutoRestTime = checked;
-						appDB.itemManager(tDayModel.mesoIdx()).manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 			}
@@ -320,7 +321,7 @@ FocusScope {
 					Layout.leftMargin: 15
 
 					onClicked: {
-						appDB.itemManager(tDayModel.mesoIdx()).createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
+						itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
 						setNbr += parseInt(nSets);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
 					}
@@ -356,16 +357,16 @@ FocusScope {
 		var interruptSignals = true;
 		if (bListRequestForExercise1) {
 			if (fromList)
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
+				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
 			if (fromList)
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
+				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
-				appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			bListRequestForExercise2 = false;
 		}
 		else
@@ -376,9 +377,9 @@ FocusScope {
 			else
 			{
 				if (bListRequestForExercise1)
-					appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+					itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 				else if (bListRequestForExercise2)
-					appDB.itemManager(tDayModel.mesoIdx()).changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+					itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			}
 		}
 
@@ -404,7 +405,7 @@ FocusScope {
 
 	function moveExercise(up: bool, cxx_cal: bool) {
 		if (cxx_cal)
-			appDB.itemManager(tDayModel.mesoIdx()).moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
+			itemManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
 		else {
 			if (up) --exerciseIdx;
 			else ++exerciseIdx;
@@ -418,7 +419,7 @@ FocusScope {
 	function paneExerciseShowHide(show: bool, force: bool) {
 		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
-			appDB.itemManager(tDayModel.mesoIdx()).createSetObjects(exerciseIdx);
+			itemManager.createSetObjects(exerciseIdx);
 	}
 
 	function liberateSignals(liberate: bool) {
