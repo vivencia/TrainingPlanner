@@ -59,7 +59,8 @@ TPAppControl::TPAppControl()
 	appDBInterface()->init();
 
 	QmlItemManager::configureQmlEngine();
-	//mAppDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_qs;
+	createItemManager();
+
 #ifdef Q_OS_ANDROID
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
@@ -80,6 +81,13 @@ TPAppControl::TPAppControl()
 	appQmlEngine()->load(url);
 	if (appQmlEngine()->rootObjects().isEmpty())
 		QCoreApplication::exit(-1);
+}
+
+void TPAppControl::cleanUp()
+{
+	appDBInterface()->cleanUpThreads();
+	for(uint i(0); i < m_itemManager.count(); ++i)
+		delete m_itemManager.at(i);
 }
 
 void TPAppControl::populateSettingsWithDefaultValue()
@@ -109,4 +117,12 @@ void TPAppControl::populateSettingsWithDefaultValue()
 		appSettings()->setValue("alwaysAskConfirmation", true);
 		appSettings()->sync();
 	}
+}
+
+void TPAppControl::createItemManager()
+{
+	const uint n_mesos(appMesoModel()->count());
+	m_itemManager.reserve(n_mesos);
+	for (uint i(0); i < n_mesos; ++i)
+		m_itemManager.append(new QmlItemManager{i});
 }

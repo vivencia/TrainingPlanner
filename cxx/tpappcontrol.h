@@ -7,18 +7,25 @@ class DBInterface;
 class DBUserModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
+class QmlItemManager;
 
 class QQmlApplicationEngine;
 class QSettings;
+
+#include <QList>
 
 class TPAppControl
 {
 
 public:
 	TPAppControl();
+	void cleanUp();
+
+	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
 
 private:
 	void populateSettingsWithDefaultValue();
+	void createItemManager();
 
 	static TPAppControl* app_control;
 	friend TPAppControl* appControl();
@@ -46,6 +53,8 @@ private:
 
 	static QQmlApplicationEngine* app_qml_engine;
 	friend QQmlApplicationEngine* appQmlEngine();
+
+	QList<QmlItemManager*> m_itemManager;
 };
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
