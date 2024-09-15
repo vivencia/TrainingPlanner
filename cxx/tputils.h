@@ -11,8 +11,6 @@
 
 static const QString TP_APP_VERSION(QStringLiteral("v20240818-B"));
 
-class QSettings;
-class QQmlApplicationEngine;
 class QFileDialog;
 
 class TPUtils : public QObject
@@ -21,7 +19,7 @@ class TPUtils : public QObject
 Q_OBJECT
 
 public:
-	explicit TPUtils(QSettings* settings, QObject* parent = nullptr);
+	explicit TPUtils(QObject* parent = nullptr);
 	~TPUtils() { delete m_appLocale; }
 	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString& filename) const;
@@ -90,20 +88,6 @@ private:
 		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
-
-	static TPUtils* app_utils;
-	friend TPUtils* appUtils();
-
-	static QSettings* app_settings;
-	friend QSettings* appSettings();
-
-	static QQmlApplicationEngine* app_qml_engine;
-	friend QQmlApplicationEngine* appQmlEngine();
-	friend class DBInterface;
 };
-
-inline TPUtils* appUtils() { return TPUtils::app_utils; }
-inline QSettings* appSettings() { return TPUtils::app_settings; }
-inline QQmlApplicationEngine* appQmlEngine() { return TPUtils::app_qml_engine; }
 
 #endif // TPUTILS_H

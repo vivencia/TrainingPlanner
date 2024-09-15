@@ -1,12 +1,6 @@
-#include "translationclass.h"
-#include "tputils.h"
-#include "dbinterface.h"
-#include "tpimageprovider.h"
-#include "tpimage.h"
+#include "tpappcontrol.h"
 
 #include <QApplication>
-#include <QtQml/qqmlextensionplugin.h>
-#include <QQmlApplicationEngine>
 
 #ifdef Q_OS_ANDROID
 
@@ -65,33 +59,10 @@ int main(int argc, char *argv[])
 	qInstallMessageHandler(tpMessageHandler);
 	#endif*/
 
-	app.setOrganizationName("Vivencia Software");
-	app.setOrganizationDomain("org.vivenciasoftware");
-	app.setApplicationName("Training Planner");
-
-	QSettings appSettings;
-	TPUtils appUtils(&appSettings);
-	TranslationClass trClass{};
-	trClass.selectLanguage();
-
-	DBInterface db{};
-	#ifdef Q_OS_ANDROID
-	new URIHandler(&db, &db);
-	#endif
-
-	QQmlApplicationEngine engine;
-	engine.addImageProvider(QLatin1String("tpimageprovider"), new TPImageProvider());
-	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
-
-	const QUrl url(u"qrc:/qml/main.qml"_qs);
-	QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-					&app, [url](QObject *obj, const QUrl &objUrl) { if (!obj && url == objUrl) QCoreApplication::exit(-1); });
-	engine.addImportPath(QStringLiteral(":/"));
-	engine.load(url);
-	if (engine.rootObjects().isEmpty())
-		return -1;
-
-	db.init(&engine);
+	app.setOrganizationName(u"Vivencia Software"_qs);
+	app.setOrganizationDomain(u"org.vivenciasoftware"_qs);
+	app.setApplicationName(u"Training Planner"_qs);
+	TPAppControl tpApp{};
 
 	return app.exec();
 }

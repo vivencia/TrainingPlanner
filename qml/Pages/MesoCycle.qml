@@ -49,7 +49,7 @@ TPPage {
 
 	header: ToolBar {
 		height: headerHeight
-		enabled: mesocyclesModel(itemManager.mesoIdx, 0) !== -1
+		enabled: mesocyclesModel.get(itemManager.mesoIdx, 0) !== -1
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -182,7 +182,7 @@ TPPage {
 
 					onClicked: {
 						bDoNotRemoveMeso = true;
-						appDB.openClientsOrCoachesPage(false, true);
+						rootItemsManager.openClientsOrCoachesPage(false, true);
 					}
 				}
 			}

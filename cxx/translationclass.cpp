@@ -5,11 +5,8 @@
 #include <QSettings>
 #include <QQmlApplicationEngine>
 
-TranslationClass* TranslationClass::app_tr(nullptr);
-
 TranslationClass::TranslationClass ()
 {
-	app_tr = this;
 	mbOK = true;
 	mTranslator = new QTranslator (this);
 }

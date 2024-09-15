@@ -44,7 +44,7 @@ public:
 
 	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
-	void setUserModel(DBUserModel& usermodel);
+	void setUserModel(DBUserModel* usermodel);
 
 	const uint newMesocycle(const QStringList& infolist);
 	void delMesocycle(const uint meso_idx);
@@ -53,7 +53,7 @@ public:
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
 	inline int currentMesoIdx() const { return m_currentMesoIdx; }
-	void setCurrentMesoIdx(const uint meso_idx);
+	Q_INVOKABLE void setCurrentMesoIdx(const uint meso_idx);
 	Q_INVOKABLE inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 	void findNextOwnMeso();
 

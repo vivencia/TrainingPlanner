@@ -40,7 +40,7 @@ public:
 			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
 			m_setComponents{nullptr} {}
 	~QmlItemManager();
-	static void configureQmlEngine(DBInterface* db_interface);
+	static void configureQmlEngine();
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
@@ -100,7 +100,7 @@ public:
 	void updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate);
 	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
-	Q_INVOKABLE uint createExerciseObject(DBExercisesModel* exercisesModel);
+	Q_INVOKABLE uint createExerciseObject();
 	void createExerciseObject_part2(const int object_idx = -1);
 	void createExercisesObjects();
 
@@ -174,14 +174,12 @@ private:
 	friend QQuickItem* appStackView();
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
-	static DBExercisesModel* exercisesModel;
 	static QQmlComponent* exercisesComponent;
 	static QQuickItem* exercisesPage;
 	static QVariantMap exercisesProperties;
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
-	static DBMesocyclesModel* mesocyclesModel;
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
@@ -279,7 +277,6 @@ private:
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
-	static DBUserModel* userModel;
 	static QQuickItem* settingsPage, *clientsOrCoachesPage, *userPage;
 	static QQmlComponent* settingsComponent, *clientsOrCoachesComponent;
 	static QVariantMap settingsProperties, clientsOrCoachesProperties;
@@ -289,8 +286,18 @@ private:
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+
+	static QmlItemManager* app_rootItemsManager;
+	friend QmlItemManager* rootItemsManager();
 };
 
 inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
 inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
+
+inline QmlItemManager* rootItemsManager()
+{
+	if (!QmlItemManager::app_rootItemsManager)
+		QmlItemManager::app_rootItemsManager = new QmlItemManager(0xFFFF);
+	return QmlItemManager::app_rootItemsManager;
+}
 #endif // QMLITEMMANAGER_H

@@ -34,7 +34,7 @@ Q_OBJECT
 public:
 	explicit DBInterface();
 
-	void init(QQmlApplicationEngine* qml_engine);
+	void init();
 	Q_INVOKABLE void exitApp();
 	void gotResult(TPDatabaseTable* dbObj);
 
@@ -75,7 +75,6 @@ public:
 	Q_INVOKABLE void saveUser(const uint row);
 	Q_INVOKABLE void removeUser(const uint row, const bool bCoach);
 	void deleteUserTable(const bool bRemoveFile);
-	inline DBUserModel* UserModel() const { return userModel; }
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -89,7 +88,6 @@ public:
 	Q_INVOKABLE void updateExercisesList(DBExercisesModel* model = nullptr);
 	void getExercisesListVersion();
 	Q_INVOKABLE void exportExercisesList(const bool bShare);
-	inline DBExercisesModel* ExercisesModel() const { return exercisesModel; }
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -101,7 +99,6 @@ public:
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void scheduleMesocycleRemoval(const uint meso_idx);
 	void deleteMesocyclesTable(const bool bRemoveFile);
-	inline DBMesocyclesModel* MesoModel() const { return mesocyclesModel; }
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
@@ -162,10 +159,6 @@ private:
 	#ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
 	#endif
-
-	DBUserModel* userModel;
-	DBMesocyclesModel* mesocyclesModel;
-	DBExercisesModel* exercisesModel;
 
 	struct workerLocks {
 		inline TPDatabaseTable* nextObj() const { return dbObjs.at(++currentIndex); }

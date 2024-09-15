@@ -116,7 +116,7 @@ Drawer {
 				}
 
 				onClicked: {
-					appDB.openSettingsPage(1);
+					rootItemsManager.openSettingsPage(1);
 					close();
 				}
 			}
@@ -167,7 +167,7 @@ Drawer {
 			}
 
 			onClicked: {
-				appDB.openSettingsPage(0);
+				rootItemsManager.openSettingsPage(0);
 				close();
 			}
 		}

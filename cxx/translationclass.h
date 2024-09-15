@@ -19,12 +19,7 @@ public:
 
 private:
 	QTranslator* mTranslator;
-
 	bool mbOK;
-	static TranslationClass* app_tr;
-	friend TranslationClass* appTr();
 };
-
-inline TranslationClass* appTr() { return TranslationClass::app_tr; }
 
 #endif // TRASLATIONCLASS_H

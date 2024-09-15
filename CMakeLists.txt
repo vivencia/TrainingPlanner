@@ -19,6 +19,7 @@ set( RESOURCE_FILES app_resources.qrc )
 set( SOURCES
 	cxx/main.cpp
 
+	cxx/tpappcontrol.h cxx/tpappcontrol.cpp
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h
 	cxx/dbinterface.h cxx/dbinterface.cpp

@@ -41,9 +41,9 @@ DBMesocyclesModel::~DBMesocyclesModel()
 		delete m_calendarModelList[i];
 }
 
-void DBMesocyclesModel::setUserModel(DBUserModel& usermodel)
+void DBMesocyclesModel::setUserModel(DBUserModel* usermodel)
 {
-	m_userModel = &usermodel;
+	m_userModel = usermodel;
 	updateColumnLabels();
 }
 

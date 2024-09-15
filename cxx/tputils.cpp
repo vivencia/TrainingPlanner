@@ -1,37 +1,12 @@
 #include "tputils.h"
 
-#include <QSettings>
 #include <QLocale>
 #include <QClipboard>
 #include <QGuiApplication>
-#include <QQuickStyle>
 
-#ifdef Q_OS_ANDROID
-	#define FONT_POINT_SIZE 15
-	#define FONT_POINT_SIZE_LISTS 11
-	#define FONT_POINT_SIZE_TEXT 13
-	#define FONT_POINT_SIZE_TITLE 20
-#else
-	#define FONT_POINT_SIZE 12
-	#define FONT_POINT_SIZE_LISTS 8
-	#define FONT_POINT_SIZE_TEXT 10
-	#define FONT_POINT_SIZE_TITLE 18
-#endif
-
-TPUtils* TPUtils::app_utils(nullptr);
-QSettings* TPUtils::app_settings(nullptr);
-QQmlApplicationEngine* TPUtils::app_qml_engine(nullptr);
-
-TPUtils::TPUtils(QSettings* settings, QObject* parent)
+TPUtils::TPUtils(QObject* parent)
 	: QObject{parent}, m_appLocale(nullptr), mb_appSuspended(false)
 {
-	app_utils = this;
-	app_settings = settings;
-	QString style(appSettings()->value("themeStyle").toString());
-	if (style.isEmpty())
-		style = u"Material"_qs;
-	QQuickStyle::setStyle(style);
-
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)
 		{
@@ -503,33 +478,4 @@ void TPUtils::setAppLocale(const QString& localeStr)
 
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
-}
-
-void TPUtils::populateSettingsWithDefaultValue()
-{
-	if (appSettings()->value("appVersion").toString().isEmpty())
-	{
-		appSettings()->setValue("appVersion", TP_APP_VERSION);
-		appSettings()->setValue("weightUnit", u"(kg)"_qs);
-		appSettings()->setValue("themeStyle", u"Material"_qs);
-		appSettings()->setValue("colorScheme", u"Blue"_qs);
-		appSettings()->setValue("primaryDarkColor", u"#1976D2"_qs);
-		appSettings()->setValue("primaryColor", u"#25b5f3"_qs);
-		appSettings()->setValue("primaryLightColor", u"#BBDEFB"_qs);
-		appSettings()->setValue("paneBackgroundColor", u"#1976d2"_qs);
-		appSettings()->setValue("entrySelectedColor", u"#6495ed"_qs);
-		appSettings()->setValue("exercisesListVersion", u"0"_qs);
-		appSettings()->setValue("backupFolder", u""_qs);
-		appSettings()->setValue("fontColor", u"white"_qs);
-		appSettings()->setValue("disabledFontColor", u"lightgray"_qs);
-		appSettings()->setValue("iconFolder", u"white/"_qs);
-		appSettings()->setValue("fontSize", FONT_POINT_SIZE);
-		appSettings()->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
-		appSettings()->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
-		appSettings()->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
-		appSettings()->setValue("lastViewedOwnMesoIdx", -1);
-		appSettings()->setValue("lastViewedOtherMesoIdx", -1);
-		appSettings()->setValue("alwaysAskConfirmation", true);
-		appSettings()->sync();
-	}
 }
