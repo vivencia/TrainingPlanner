@@ -1,6 +1,7 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
+#include "tpappcontrol.h"
 #include "tputils.h"
 
 DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const int meso_idx)
@@ -152,7 +153,7 @@ void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bP
 			}
 		}
 	}
-	emit calendarChanged();
+	emit calendarChanged(QDate(old_firsyear, old_firstmonth, old_firstday), QDate(old_lastyear, old_lastmonth, old_lastday));
 }
 
 void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& newSplitLetter)
@@ -220,7 +221,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 			}
 		}
 	}
-	emit calendarChanged();
+	emit calendarChanged(startDate, appMesoModel()->getDateFast(mesoIdx(), MESOCYCLES_COL_ENDDATE));
 }
 
 void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished)
@@ -242,7 +243,7 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 			}
 		}
 	}
-	emit calendarChanged();
+	emit calendarChanged(date, date);
 }
 
 QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month, const uint day) const

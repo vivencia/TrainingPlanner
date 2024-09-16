@@ -116,7 +116,7 @@ Drawer {
 				}
 
 				onClicked: {
-					rootItemsManager.openSettingsPage(1);
+					appControl.openSettingsPage(1);
 					close();
 				}
 			}
@@ -151,7 +151,7 @@ Drawer {
 			}
 
 			onClicked: {
-				appDB.openExercisesListPage(false);
+				appControl.getExercisesPage(false);
 				close();
 			}
 		}
@@ -167,7 +167,7 @@ Drawer {
 			}
 
 			onClicked: {
-				rootItemsManager.openSettingsPage(0);
+				appControl.openSettingsPage(0);
 				close();
 			}
 		}

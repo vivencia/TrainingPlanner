@@ -17,6 +17,7 @@ DBInterface* TPAppControl::app_db_interface(nullptr);
 DBUserModel* TPAppControl::app_user_model(nullptr);
 DBMesocyclesModel* TPAppControl::app_meso_model(nullptr);
 DBExercisesModel* TPAppControl::app_exercises_model(nullptr);
+QmlItemManager* TPAppControl::app_root_items_manager(nullptr);
 QQmlApplicationEngine* TPAppControl::app_qml_engine(nullptr);
 
 #ifdef Q_OS_ANDROID
@@ -49,6 +50,8 @@ TPAppControl::TPAppControl()
 	app_meso_model = &_dbMesocyclesModel;
 	DBExercisesModel _dbExercisesModel;
 	app_exercises_model = &_dbExercisesModel;
+	QmlItemManager _qmlItemManager{0xFFFF};
+	app_root_items_manager = &_qmlItemManager;
 	QQmlApplicationEngine _qmlEngine;
 	app_qml_engine = &_qmlEngine;
 	#ifdef Q_OS_ANDROID
@@ -88,6 +91,87 @@ void TPAppControl::cleanUp()
 	appDBInterface()->cleanUpThreads();
 	for(uint i(0); i < m_itemManager.count(); ++i)
 		delete m_itemManager.at(i);
+}
+
+void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
+{
+	rootItemsManager()->getClientsOrCoachesPage(bManageClients, bManageCoaches);
+}
+
+void TPAppControl::getSettingsPage(const uint startPageIndex)
+{
+	rootItemsManager()->getSettingsPage(startPageIndex);
+}
+
+void TPAppControl::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
+{
+	if (appExercisesModel()->count() == 0)
+		appDBInterface()->getAllExercises();
+	rootItemsManager()->getExercisesPage(bChooseButtonEnabled, connectPage);
+}
+
+void TPAppControl::getMesocyclePage(const uint meso_idx)
+{
+	m_itemManager.at(meso_idx)->getMesocyclePage();
+}
+
+uint TPAppControl::createNewMesocycle(const bool bCreatePage)
+{
+	QDate startDate, endDate, minimumStartDate;
+	if (appMesoModel()->count() == 0)
+	{
+		minimumStartDate.setDate(2023, 0, 2); //first monday of that year
+		startDate = QDate::currentDate();
+		endDate = appUtils()->createFutureDate(startDate, 0, 2, 0);
+	}
+	else
+	{
+		if (appMesoModel()->getInt(appMesoModel()->count() - 1, 8) == 1)
+			minimumStartDate = appUtils()->getMesoStartDate(appMesoModel()->getLastMesoEndDate());
+		else
+			minimumStartDate = QDate::currentDate();
+		startDate = minimumStartDate;
+		endDate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
+	}
+
+	const uint meso_idx = appMesoModel()->newMesocycle(QStringList() << STR_MINUS_ONE << qApp->tr("New Plan") << QString::number(startDate.toJulianDay()) <<
+		QString::number(endDate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startDate, endDate)) <<
+		u"ABCDERR"_qs << QString() << appUserModel()->userName(0) << QString() << QString() << STR_ONE);
+
+	if (bCreatePage)
+	{
+		QmlItemManager* itemMngr{new QmlItemManager{meso_idx}};
+		m_itemManager.append(itemMngr);
+		itemMngr->createMesocyclePage(minimumStartDate, appUtils()->createFutureDate(startDate,0,6,0));
+	}
+	return meso_idx;
+}
+
+void TPAppControl::removeMesocycle(const uint meso_idx)
+{
+	appDBInterface()->removeMesocycle(meso_idx);
+	appMesoModel()->delMesocycle(meso_idx);
+	QmlItemManager* itemMngr{m_itemManager.at(meso_idx)};
+	QmlItemManager* tpObject(itemMngr);
+	m_itemManager.remove(meso_idx);
+	tpObject->disconnect();
+	delete tpObject;
+}
+
+void TPAppControl::getExercisesPlannerPage(const uint meso_idx)
+{
+	appDBInterface()->loadCompleteMesoSplits(meso_idx);
+	m_itemManager.at(meso_idx)->getExercisesPlannerPage();
+}
+
+void TPAppControl::getMesoCalendarPage(const uint meso_idx)
+{
+	m_itemManager.at(meso_idx)->getMesoCalendarPage();
+}
+
+void TPAppControl::getTrainingDayPage(const uint meso_idx, const QDate& date)
+{
+	m_itemManager.at(meso_idx)->getTrainingDayPage(date);
 }
 
 void TPAppControl::populateSettingsWithDefaultValue()

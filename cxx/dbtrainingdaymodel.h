@@ -50,7 +50,7 @@ public:
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	const QStringList getSaveInfo() const;
-	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel);
+	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
 	virtual bool updateFromModel(const TPListModel* model) override;
 
 	const QString& formatSetTypeToExport(const QString& fieldValue) const;
@@ -61,6 +61,7 @@ public:
 	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
+	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;
 
 	inline bool dayIsEditable() const { return mb_DayIsEditable; }
 	inline void setDayIsEditable(const bool editable) { mb_DayIsEditable = editable; emit dayIsEditableChanged(); }

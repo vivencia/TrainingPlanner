@@ -9,8 +9,10 @@ import "../User"
 import com.vivenciasoftware.qmlcomponents
 
 TPPage {
-	id: coachesOrClientsPage
-	objectName: "coachesOrClientsPage"
+	id: clientsOrCoachesPage
+	objectName: "clientsOrCoachesPage"
+
+	required property QmlItemManager itemManager
 
 	property int curUserRow
 	property int firstUserRow
@@ -191,7 +193,7 @@ TPPage {
 			UserPersonalData {
 				id: usrData
 				userRow: curUserRow
-				parentPage: coachesOrClientsPage
+				parentPage: clientsOrCoachesPage
 				enabled: curUserRow > 0
 				width: windowWidth - 20
 				height: moduleHeight
@@ -208,7 +210,7 @@ TPPage {
 			UserProfile {
 				id: usrProfile
 				userRow: curUserRow
-				parentPage: coachesOrClientsPage
+				parentPage: clientsOrCoachesPage
 				enabled: curUserRow > 0
 				height: moduleHeight
 				width: windowWidth - 20
@@ -256,9 +258,9 @@ TPPage {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(coachesOrClientsPage, { parentPage: coachesOrClientsPage, imageSource: "remove.png",
+					msgRemoveUser = component.createObject(clientsOrCoachesPage, { parentPage: clientsOrCoachesPage, imageSource: "remove.png",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveUser.button1Clicked.connect(function () { appDB.removeUser(curUserRow, showCoaches); } );
+					msgRemoveUser.button1Clicked.connect(function () { itemManager.removeUser(curUserRow, showCoaches); } );
 				}
 
 				if (component.status === Component.Ready)

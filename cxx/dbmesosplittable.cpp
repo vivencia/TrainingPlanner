@@ -336,7 +336,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
-			m_model->setModified(false);
+			model->setModified(false);
 			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete SUCCESS")
 			MSG_OUT(strQuery)
 		}

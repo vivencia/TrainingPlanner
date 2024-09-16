@@ -11,7 +11,10 @@ class QmlItemManager;
 
 class QQmlApplicationEngine;
 class QSettings;
+class QQuickItem;
+class QFile;
 
+#include <QDate>
 #include <QList>
 
 class TPAppControl
@@ -21,7 +24,21 @@ public:
 	TPAppControl();
 	void cleanUp();
 
+	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
+	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+
+	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
+	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
+	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
+
+	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
+	Q_INVOKABLE void exportMesoSplit(const QString& splitLetter, const bool bShare, QFile* outFileInUse = nullptr);
+
+	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
+
+	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
 
 private:
 	void populateSettingsWithDefaultValue();
@@ -51,6 +68,9 @@ private:
 	static DBExercisesModel* app_exercises_model;
 	friend DBExercisesModel* appExercisesModel();
 
+	static QmlItemManager* app_root_items_manager;
+	friend QmlItemManager* rootItemsManager();
+
 	static QQmlApplicationEngine* app_qml_engine;
 	friend QQmlApplicationEngine* appQmlEngine();
 
@@ -66,5 +86,5 @@ inline DBUserModel* appUserModel() { return TPAppControl::app_user_model; }
 inline DBMesocyclesModel* appMesoModel() { return TPAppControl::app_meso_model; }
 inline DBExercisesModel* appExercisesModel() { return TPAppControl::app_exercises_model; }
 inline QQmlApplicationEngine* appQmlEngine() { return TPAppControl::app_qml_engine; }
-
+inline QmlItemManager* rootItemsManager() { return TPAppControl::app_root_items_manager; }
 #endif // TPAPPCONTROL_H

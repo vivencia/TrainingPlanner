@@ -109,7 +109,7 @@ Frame {
 			splitModel.setMuscularGroup(text);
 			mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, splitModel.splitLetter(), text);
 			exercisesModel.makeFilterString(text);
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
+			swappableLetter = splitModel.findSwappableModel();
 			bCanSwapPlan = swappableLetter !== "";
 		}
 
@@ -121,7 +121,7 @@ Frame {
 				splitModel.setMuscularGroup(musculargroup);
 				text = musculargroup;
 				exercisesModel.makeFilterString(musculargroup);
-				swappableLetter = appDB.checkIfSplitSwappable(splitModel);
+				swappableLetter = splitModel.findSwappableModel();
 				bCanSwapPlan = swappableLetter !== "";
 			}
 		}
@@ -678,7 +678,7 @@ Frame {
 			splitModel.currentRow = 0;
 			exercisesModel.makeFilterString(txtGroups.text);
 			bAlreadyLoaded = true;
-			swappableLetter = appDB.checkIfSplitSwappable(splitModel);
+			swappableLetter = splitModel.findSwappableModel();
 			bCanSwapPlan = swappableLetter !== "";
 		}
 	}

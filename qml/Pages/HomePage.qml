@@ -82,7 +82,7 @@ TPPage {
 			width: ListView.view.width
 			height: mesoContent.childrenRect.height + 20
 
-			onClicked: appDB.getMesocyclePage(index);
+			onClicked: appControl.getMesocyclePage(index);
 
 			Rectangle {
 				id: optionsRec
@@ -143,7 +143,7 @@ TPPage {
 						top: optCurrentMeso.bottom
 					}
 
-					onClicked: appDB.getMesocyclePage(index);
+					onClicked: appControl.getMesocyclePage(index);
 				}
 
 				TPButton {
@@ -164,7 +164,7 @@ TPPage {
 						left: optCurrentMeso.right
 					}
 
-					onClicked: appDB.getMesoCalendar(index, true);
+					onClicked: appControl.getMesoCalendarPage(index);
 
 					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx)
 						{ if (mesoidx === index)
@@ -188,7 +188,7 @@ TPPage {
 						left: btnMesoInfo.right
 					}
 
-					onClicked: appDB.getExercisesPlannerPage(appDB.itemManager(index));
+					onClicked: appControl.getExercisesPlannerPage(index);
 				}
 
 				TPButton {
@@ -392,7 +392,7 @@ TPPage {
 
 			onClicked: {
 				if (mesocyclesModel.count > 0)
-					appDB.createNewMesocycle(true);
+					appControl.createNewMesocycle(true);
 				else
 					showEmptyDatabaseMenu();
 			}
@@ -412,7 +412,7 @@ TPPage {
 				rightMargin: 5
 			}
 
-			onClicked: appDB.getTrainingDay(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
+			onClicked: appControl.getTrainingDayPage(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
 		}
 	} // footer
 
@@ -433,7 +433,7 @@ TPPage {
 
 	function selectedNewMesoMenuOption(menuid) {
 		switch (menuid) {
-			case 0: appDB.createNewMesocycle(true); break;
+			case 0: appControl.createNewMesocycle(true); break;
 			case 1: mainwindow.chooseFileToImport(); break;
 		}
 	}

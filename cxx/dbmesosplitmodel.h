@@ -16,6 +16,7 @@
 
 class DBTrainingDayModel;
 class DBExercisesModel;
+class DBMesocyclesModel;
 
 class DBMesoSplitModel : public TPListModel
 {
@@ -82,7 +83,9 @@ public:
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
-	Q_INVOKABLE void changeExercise(DBExercisesModel* model);
+	Q_INVOKABLE void changeExercise(const DBExercisesModel* const model);
+
+	Q_INVOKABLE QString findSwappableModel() const;
 
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{

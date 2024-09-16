@@ -148,7 +148,7 @@ Pane {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		onClicked: appDB.getExercisesPlannerPage(itemManager);
+		onClicked: itemManager.getExercisesPlannerPage();
 	}
 
 	function forcusOnFirstItem() {

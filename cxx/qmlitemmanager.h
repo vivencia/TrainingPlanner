@@ -45,17 +45,28 @@ public:
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+	void getSettingsPage(const uint startPageIndex);
+	void createSettingsPage();
+	void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
+	void createClientsOrCoachesPage();
+	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
+	void removeUser(const uint user_row, const bool bCoach);
+	//-----------------------------------------------------------USER-----------------------------------------------------------
+
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	void createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	void createExercisesPage_part2(QQuickItem* connectPage);
 	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	Q_INVOKABLE const uint removeExercise(const uint row);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
 								const QDate& calendarStartDate = QDate());
 	void createMesocyclePage_part2();
-	void getMesoPage();
+	void getMesocyclePage();
+	Q_INVOKABLE void scheduleMesocycleRemoval();
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
@@ -77,27 +88,30 @@ public:
 		return m_splitModels.value(splitLetter);
 	}
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
-	void swapPlans(const QString& splitLetter1, const QString& splitLetter2);
+	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	void updateMuscularGroup(DBMesoSplitModel* splitModel);
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 	uint createMesoCalendarPage();
 	void createMesoCalendarPage_part2();
-	void getCalendarPage();
+	void getMesoCalendarPage();
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 	uint createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
 	void getTrainingDayPage(const QDate& date);
+	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
+	Q_INVOKABLE void loadExercisesFromMesoPlan();
+	Q_INVOKABLE void convertTDayToPlan();
 
 	DBTrainingDayModel* gettDayModel(const QDate& date);
 	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
 	Q_INVOKABLE void resetWorkout();
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
-	void updateOpenTDayPagesWithNewCalendarInfo(const uint meso_idx, const QDate& startDate, const QDate& endDate);
+	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject();
@@ -106,7 +120,7 @@ public:
 
 	Q_INVOKABLE inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_currentExercises->exerciseEntry(exercise_idx); }
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
-	void clearExercises();
+	Q_INVOKABLE void clearExercises();
 	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
 	Q_INVOKABLE void rollUpExercises() const;
 	Q_INVOKABLE void manageRestTime(const uint exercise_idx, const bool bTrackRestTime, bool bAutoRestTime, const uint new_set_type);
@@ -137,15 +151,6 @@ public:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-
-	//-----------------------------------------------------------USER-----------------------------------------------------------
-	Q_INVOKABLE void openSettingsPage(const uint startPageIndex);
-	void createSettingsPage();
-	Q_INVOKABLE void openClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
-	void createClientsOrCoachesPage();
-	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
-	void removeUser(const uint user_row, const bool bCoach);
-	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
@@ -286,18 +291,8 @@ private:
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-
-	static QmlItemManager* app_rootItemsManager;
-	friend QmlItemManager* rootItemsManager();
 };
 
 inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
 inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
-
-inline QmlItemManager* rootItemsManager()
-{
-	if (!QmlItemManager::app_rootItemsManager)
-		QmlItemManager::app_rootItemsManager = new QmlItemManager(0xFFFF);
-	return QmlItemManager::app_rootItemsManager;
-}
 #endif // QMLITEMMANAGER_H

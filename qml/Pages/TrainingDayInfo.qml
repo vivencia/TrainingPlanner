@@ -236,7 +236,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { appDB.clearExercises(itemManager); } );
+					msgClearExercises.button1Clicked.connect(function () { itemManager.clearExercises(itemManager); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -640,7 +640,7 @@ TPPage {
 				Layout.topMargin: -10
 
 				onClicked: {
-					appDB.convertTDayToPlan(tDayModel);
+					itemManager.convertTDayToPlan();
 					enabled = editMode;
 				}
 			}
@@ -972,12 +972,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			property bool bFirstClick: true
-
-			onClicked: {
-				appDB.openExercisesListPage(true, bFirstClick ? trainingDayPage : null);
-				bFirstClick = false;
-			}
+			onClicked: appControl.getExercisesPage(true, trainingDayPage);
 		} // bntAddExercise
 	} //footer: ToolBar
 
@@ -1009,7 +1004,7 @@ TPPage {
 			var bDayIsFinished;
 			if (newSplitLetter !== "R") {
 				if (splitLetter == "R")
-					tDay = appDB.getWorkoutNumberForTrainingDay(tDayModel);
+					tDay = tDayModel.getWorkoutNumberForTrainingDay();
 				bDayIsFinished = tDayModel.dayIsFinished;
 			}
 			else {
@@ -1062,10 +1057,10 @@ TPPage {
 	function intentChosen() {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				appDB.loadExercisesFromMesoPlan(itemManager, splitLetter);
+				itemManager.loadExercisesFromMesoPlan();
 			break;
 			case 2: //use previous day
-				appDB.loadExercisesFromDate(itemManager, intentDlg.customStringProperty1);
+				itemManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
 				mainwindow.chooseFileToImport();

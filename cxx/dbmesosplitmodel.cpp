@@ -1,8 +1,9 @@
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
+#include "dbmesocyclesmodel.h"
+#include "tpappcontrol.h"
 #include "tputils.h"
-#include "dbinterface.h"
 
 static const QLatin1Char fancy_record_separator2(';');
 
@@ -251,7 +252,7 @@ void DBMesoSplitModel::setWorkingSet(const uint row, const uint new_workingset, 
 		emit workingSetChanged();
 }
 
-void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
+void DBMesoSplitModel::changeExercise(const DBExercisesModel* const model)
 {
 	QString name, reps, weight;
 	const uint nSel(model->selectedEntriesCount());
@@ -281,6 +282,62 @@ void DBMesoSplitModel::changeExercise(DBExercisesModel *model)
 	setSetsReps(currentRow(), reps);
 	setSetsWeight(currentRow(), weight);
 	setSetsNumber(currentRow(), model->selectedEntriesValue(0, EXERCISES_COL_SETSNUMBER).toUInt());
+}
+
+static void muscularGroupSimplified(QString& muscularGroup)
+{
+	muscularGroup = muscularGroup.replace(',', ' ').simplified();
+	const QStringList words(muscularGroup.split(' '));
+
+	if ( words.count() > 0)
+	{
+		QStringList::const_iterator itr(words.begin());
+		const QStringList::const_iterator itr_end(words.end());
+		muscularGroup.clear();
+
+		do
+		{
+			if(static_cast<QString>(*itr).length() < 3)
+				continue;
+			if (!muscularGroup.isEmpty())
+				muscularGroup.append(' ');
+			muscularGroup.append(static_cast<QString>(*itr).toLower());
+			if (muscularGroup.endsWith('s', Qt::CaseInsensitive) )
+				muscularGroup.chop(1);
+			muscularGroup.remove('.');
+			muscularGroup.remove('(');
+			muscularGroup.remove(')');
+		} while (++itr != itr_end);
+	}
+}
+
+QString DBMesoSplitModel::findSwappableModel() const
+{
+	QString muscularGroup1(appMesoModel()->getMuscularGroup(mesoIdx(), splitLetter()));
+	if (!muscularGroup1.isEmpty())
+	{
+		muscularGroupSimplified(muscularGroup1);
+		QString muscularGroup2;
+		const QString mesoSplit(appMesoModel()->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
+		QString::const_iterator itr(mesoSplit.constBegin());
+		const QString::const_iterator itr_end(mesoSplit.constEnd());
+
+		do {
+			if (static_cast<QChar>(*itr) == QChar('R'))
+				continue;
+			else if (static_cast<QChar>(*itr) == splitLetter().at(0))
+				continue;
+
+			muscularGroup2 = appMesoModel()->getMuscularGroup(mesoIdx(), *itr);
+			if (!muscularGroup2.isEmpty())
+			{
+				muscularGroupSimplified(muscularGroup2);
+				if (appUtils()->stringsAreSimiliar(muscularGroup1, muscularGroup2))
+					return QString(*itr);
+			}
+		} while (++itr != itr_end);
+	}
+	return QString();
 }
 
 QString DBMesoSplitModel::formatFieldToExport(const uint field, const QString& fieldValue) const

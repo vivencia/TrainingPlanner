@@ -42,9 +42,18 @@ void TPListModel::removeFromList(const int row)
 	{
 		beginRemoveRows(QModelIndex(), row, row);
 		m_modeldata.remove(row);
-		m_indexProxy.remove(row);
-		for(uint i(row); i < m_modeldata.count(); ++i)
-			m_indexProxy[i] = i-1;
+		if (!m_bFilterApplied)
+			m_indexProxy.remove(row);
+		else
+		{
+			const int proxy_index(m_indexProxy.indexOf(row));
+			if (proxy_index >= 0)
+			{
+				m_indexProxy.remove(proxy_index);
+				for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
+					m_indexProxy[i] = i-1;
+			}
+		}
 		if (m_currentRow >= row)
 			setCurrentRow(m_currentRow - 1);
 		emit countChanged();

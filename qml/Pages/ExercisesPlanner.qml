@@ -167,7 +167,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.swapMesoPlans(itemManager, currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
+			onClicked: itemManager.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
 		}
 
 		TPButton {

@@ -33,7 +33,8 @@ Column {
 		onTriggered: {
 			if ( seconds === 0 ) {
 				undoTimer.stop();
-				removeExercise(idxToRemove);
+				const newrow = itemManager.removeExercise(idxToRemove)
+				simulateMouseClick(newrow, true);
 			}
 			else {
 				seconds = seconds - 1000;
@@ -111,13 +112,13 @@ Column {
 
 	ListView {
 		id: lstExercises
+		model: exercisesModel
+		boundsBehavior: Flickable.StopAtBounds
+		clip: true
 		width: parent.width
 		height: parent.height * 0.75
-		clip: true
 		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
 		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-		boundsBehavior: Flickable.StopAtBounds
-		focus: true
 
 		property int totalHeight
 		property int totalWidth
@@ -222,32 +223,6 @@ Column {
 			}
 		} // SwipeDelegate
 	} // ListView
-
-	Component.onCompleted: {
-		function setModel(unique_id) {
-			if (unique_id === 2222) {
-				appDB.databaseReady.disconnect(setModel);
-				lstExercises.model = exercisesModel;
-			}
-		}
-
-		appDB.databaseReady.connect(setModel);
-		appDB.getAllExercises();
-	}
-
-	function removeExercise(removeIdx) {
-		const actualIndex = exercisesModel.getInt(removeIdx, 9); //position of item in the main model
-		var i;
-
-		function readyToContinue() {
-			appDB.databaseReady.disconnect(readyToContinue);
-			if (exercisesModel.currentRow >= removeIdx)
-				simulateMouseClick(exercisesModel.currentRow);
-		}
-		exercisesModel.setCurrentRow(actualIndex);
-		appDB.removeExercise(exercisesModel.getInt(actualIndex, 0));
-		appDB.databaseReady.connect(readyToContinue);
-	}
 
 	function itemClicked(idx: int, emit_signal: bool) {
 		if (!bMultipleSelection) {

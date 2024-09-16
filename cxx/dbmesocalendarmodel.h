@@ -60,10 +60,10 @@ public:
 	Q_INVOKABLE bool isPartOfMeso(const uint month, const uint day) const;
 	Q_INVOKABLE bool isDayFinished(const uint month, const uint day) const;
 	void setDayIsFinished(const QDate& date, const bool bFinished);
-	Q_INVOKABLE uint getLastTrainingDayBeforeDate(const QDate& date) const;
+	uint getLastTrainingDayBeforeDate(const QDate& date) const;
 
 signals:
-	void calendarChanged();
+	void calendarChanged(const QDate& startDate, const QDate& endDate);
 
 private:
 	DBMesocyclesModel* m_parentModel;

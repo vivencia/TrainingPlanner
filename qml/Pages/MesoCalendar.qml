@@ -10,6 +10,7 @@ TPPage {
 	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
+	required property QmlItemManager itemManager
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	readonly property string mesoName: mesocyclesModel.get(mesoCalendarModel.mesoIdx, 1)
@@ -268,7 +269,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: appDB.getTrainingDay(mesoCalendarModel.mesoIdx, calendar.dayInfoDate);
+			onClicked: itemManager.getTrainingDayPage(calendar.dayInfoDate);
 		}
 	} // footer: ToolBar
 

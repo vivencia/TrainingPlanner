@@ -100,7 +100,7 @@ TPPage {
 				top: parent.top
 			}
 
-			onClicked: appDB.openClientsOrCoachesPage(false, true);
+			onClicked: appControl.getClientsOrCoachesPage(false, true);
 		}
 
 		TPButton {
@@ -114,7 +114,7 @@ TPPage {
 				top: btnManageCoach.bottom
 			}
 
-			onClicked: appDB.openClientsOrCoachesPage(true, false);
+			onClicked: appControl.getClientsOrCoachesPage(true, false);
 		}
 	}
 

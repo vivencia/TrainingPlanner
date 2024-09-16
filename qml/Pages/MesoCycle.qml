@@ -42,7 +42,7 @@ TPPage {
 				if (mesocyclesModel.get(itemManager.mesoIdx, 0) >= 0)
 					bNewMeso = false;
 				else
-					appDB.scheduleMesocycleRemoval(itemManager.mesoIdx);
+					itemManager.scheduleMesocycleRemoval();
 			}
 		}
 	}
@@ -76,7 +76,7 @@ TPPage {
 
 			onClicked: {
 				bDoNotRemoveMeso = true;
-				appDB.getMesoCalendar(itemManager.mesoIdx, true);
+				itemManager.getMesoCalendarPage();
 			}
 		}
 	}
@@ -182,7 +182,7 @@ TPPage {
 
 					onClicked: {
 						bDoNotRemoveMeso = true;
-						rootItemsManager.openClientsOrCoachesPage(false, true);
+						appControl.openClientsOrCoachesPage(false, true);
 					}
 				}
 			}
@@ -254,7 +254,7 @@ TPPage {
 
 					onClicked: {
 						bDoNotRemoveMeso = true;
-						appDB.openClientsOrCoachesPage(true, false);
+						appControl.openClientsOrCoachesPage(true, false);
 					}
 				}
 			}

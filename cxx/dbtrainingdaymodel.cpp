@@ -1,6 +1,9 @@
 #include "dbtrainingdaymodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbexercisesmodel.h"
+#include "dbmesocyclesmodel.h"
+#include "dbmesocalendarmodel.h"
+#include "tpappcontrol.h"
 #include "tputils.h"
 
 #include <QtMath>
@@ -81,7 +84,7 @@ const QStringList DBTrainingDayModel::getSaveInfo() const
 	return data;
 }
 
-void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* splitModel)
+void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel)
 {
 	uint nsets(0);
 	uint orig_workingset(0); //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
@@ -351,6 +354,11 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 		m_ExerciseData[to] = tempExerciseData;
 		setModified(true);
 	}
+}
+
+uint DBTrainingDayModel::getWorkoutNumberForTrainingDay() const
+{
+	return appMesoModel()->mesoCalendarModel(mesoIdx())->getLastTrainingDayBeforeDate(getDateFast(0, TDAY_COL_DATE)) + 1;
 }
 
 QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const

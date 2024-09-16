@@ -9,22 +9,21 @@ void TPDatabaseTable::removeEntry()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare(QStringLiteral("DELETE FROM ") + m_tableName + QStringLiteral(" WHERE id=") + m_execArgs.at(0).toString());
-		m_result = query.exec();
+		const QString strQuery(u"DELETE FROM "_qs + m_tableName + u" WHERE id="_qs + m_execArgs.at(0).toString());
+		m_result = query.exec(strQuery);
+		if (m_result)
+		{
+			m_opcode = OP_DEL;
+			MSG_OUT(m_tableName << " removeEntry SUCCESS")
+			MSG_OUT(strQuery)
+		}
+		else
+		{
+			MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery)
+		}
 		mSqlLiteDB.close();
-	}
-
-	if (m_result)
-	{
-		m_opcode = OP_DEL;
-		if (m_model)
-			m_model->removeFromList(m_model->currentRow());
-		MSG_OUT(m_tableName << " removeEntry SUCCESS")
-	}
-	else
-	{
-		MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -36,18 +35,20 @@ void TPDatabaseTable::clearTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.prepare(QStringLiteral(" DROP TABLE ") + m_tableName);
-		m_result = query.exec();
+		const QString strQuery(u" DROP TABLE "_qs + m_tableName);
+		m_result = query.exec(strQuery);
+		if (m_result)
+		{
+			MSG_OUT(m_tableName << " clearTable SUCCESS")
+			MSG_OUT(strQuery)
+		}
+		else
+		{
+			MSG_OUT(m_tableName << " clearTable Database error:  " << mSqlLiteDB.lastError().databaseText())
+			MSG_OUT(m_tableName << " clearTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery)
+		}
 		mSqlLiteDB.close();
-	}
-	if (m_result)
-	{
-		MSG_OUT(m_tableName << " clearTable SUCCESS")
-	}
-	else
-	{
-		MSG_OUT(m_tableName << " clearTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT(m_tableName << " clearTable Driver error:  " << mSqlLiteDB.lastError().driverText())
 	}
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -61,7 +62,7 @@ void TPDatabaseTable::removeDBFile()
 	{
 		if (m_model)
 			m_model->clear();
-		m_opcode = OP_DELETE_TABLE;
+		createTable();
 		MSG_OUT(m_tableName << " removeDBFile SUCCESS")
 	}
 	else
