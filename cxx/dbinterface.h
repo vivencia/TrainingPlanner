@@ -57,7 +57,6 @@ public:
 	void deleteExercisesTable(const bool bRemoveFile);
 	void updateExercisesList();
 	void getExercisesListVersion();
-	void exportExercisesList(const bool bShare);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -72,7 +71,7 @@ public:
 	void saveMesoSplit(const uint meso_idx);
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
-	void loadCompleteMesoSplits(const uint meso_idx, const bool bThreaded = true);
+	void loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded = true);
 	Q_INVOKABLE void saveMesoSplitComplete(DBMesoSplitModel* model);
 	Q_INVOKABLE bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	Q_INVOKABLE void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
@@ -93,8 +92,8 @@ public:
 	void getTrainingDayExercises(DBTrainingDayModel* tDayModel);
 	void verifyTDayOptions(DBTrainingDayModel* tDayModel);
 	void loadExercisesFromDate(const QString& strDate, DBTrainingDayModel* tDayModel);
-	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMesoSplitModel* const splitModel);
-	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* splitModel);
+	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, QMap<QChar, DBMesoSplitModel *>& splitModels);
+	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, QMap<QChar, DBMesoSplitModel *>& splitModels);
 	Q_INVOKABLE void saveTrainingDay(DBTrainingDayModel* const tDayModel);
 	void removeTrainingDay(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);

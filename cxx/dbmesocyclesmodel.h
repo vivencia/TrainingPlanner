@@ -98,7 +98,6 @@ public:
 
 	void getTotalSplits(const uint meso_idx);
 	int getMesoIdx(const int mesoId) const;
-	Q_INVOKABLE QString getMesoInfo(const int mesoid, const uint field) const;
 	int getPreviousMesoId(const int current_mesoid) const;
 	QDate getPreviousMesoEndDate(const int current_mesoid) const;
 	QDate getNextMesoStartDate(const int mesoid) const;
@@ -120,7 +119,7 @@ signals:
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void realMesoChanged(const uint meso_idx);
 	void isOwnMesoChanged(const uint meso_idx);
-	void muscularGroupChanged(const int splitIndex, const QString& splitLetter);
+	void muscularGroupChanged(const uint splitIndex, const QChar& splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 

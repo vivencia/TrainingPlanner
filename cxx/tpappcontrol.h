@@ -8,11 +8,12 @@ class DBUserModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
 class QmlItemManager;
+class TPListModel;
+class OSInterface;
 
 class QQmlApplicationEngine;
 class QSettings;
 class QQuickItem;
-class QFile;
 
 #include <QDate>
 #include <QList>
@@ -34,7 +35,6 @@ public:
 	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
 
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
-	Q_INVOKABLE void exportMesoSplit(const QString& splitLetter, const bool bShare, QFile* outFileInUse = nullptr);
 
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 
@@ -74,6 +74,9 @@ private:
 	static QQmlApplicationEngine* app_qml_engine;
 	friend QQmlApplicationEngine* appQmlEngine();
 
+	static OSInterface* app_os_interface;
+	friend OSInterface* appOsInterface();
+
 	QList<QmlItemManager*> m_itemManager;
 };
 
@@ -87,4 +90,6 @@ inline DBMesocyclesModel* appMesoModel() { return TPAppControl::app_meso_model; 
 inline DBExercisesModel* appExercisesModel() { return TPAppControl::app_exercises_model; }
 inline QQmlApplicationEngine* appQmlEngine() { return TPAppControl::app_qml_engine; }
 inline QmlItemManager* rootItemsManager() { return TPAppControl::app_root_items_manager; }
+extern OSInterface* appOsInterface();
+
 #endif // TPAPPCONTROL_H

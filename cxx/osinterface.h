@@ -2,10 +2,9 @@
 #define OSINTERFACE_H
 
 #include <QObject>
+#include <QFile>
 
 #ifdef Q_OS_ANDROID
-
-#include "DBInterface.h"
 #include "tpandroidnotification.h"
 
 #include <jni.h>
@@ -15,8 +14,6 @@ class TPAndroidNotification;
 
 class TPListModel;
 
-class QFile;
-
 class OSInterface : public QObject
 {
 public:
@@ -24,6 +21,7 @@ public:
 	~OSInterface();
 	Q_INVOKABLE void exitApp();
 
+	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
 #ifndef Q_OS_ANDROID
 	Q_INVOKABLE void processArguments();
 	Q_INVOKABLE void restartApp();
@@ -45,7 +43,7 @@ public:
 	void setExportFileName(const QString& filename) { m_exportFileName = m_appDataFilesPath + filename;}
 	inline const QString& exportFileName() const { return m_exportFileName; }
 	void openRequestedFile(const QString& filename);
-	bool exportToFile(const TPListModel* const model, const QString& filename, QFile* &outFile) const;
+	bool exportToFile(const TPListModel* model, const QString& filename, const bool bShare, QFile* outFile = nullptr) const;
 	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
 	bool importFromModel(TPListModel* model);
 

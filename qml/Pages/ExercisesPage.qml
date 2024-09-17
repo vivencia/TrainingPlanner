@@ -9,10 +9,13 @@ import "../inexportMethods.js" as INEX
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
+import com.vivenciasoftware.qmlcomponents
+
 TPPage {
 	id: exercisesPage
 	objectName: "exercisesPage"
 
+	required property QmlItemManager itemManager
 	property string strMediaPath
 	property bool bCanEdit: false
 	property bool bNew: false
@@ -430,7 +433,7 @@ TPPage {
 		button2Text: qsTr("No")
 		parentPage: exercisesPage
 
-		onButton1Clicked: appDB.exportExercisesList(bShare);
+		onButton1Clicked: itemManager.exportExercises(bShare);
 
 		property bool bShare: false
 

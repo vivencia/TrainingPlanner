@@ -41,6 +41,7 @@ public:
 			m_setComponents{nullptr} {}
 	~QmlItemManager();
 	static void configureQmlEngine();
+	void initQML();
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
@@ -59,6 +60,7 @@ public:
 	void createExercisesPage_part2(QQuickItem* connectPage);
 	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	Q_INVOKABLE const uint removeExercise(const uint row);
+	Q_INVOKABLE void exportExercises(const bool bShare, const QString& filePath = QString());
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -74,22 +76,17 @@ public:
 	void createPlannerPage_part2();
 	void getExercisesPlannerPage();
 
-	void createMesoSplitPage();
-	void createMesoSplitPage_part2();
+	Q_INVOKABLE void getMesoSplitPage(const uint page_index);
+	void createMesoSplitPage(const uint page_index);
+	void setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel);
 
-	inline DBMesoSplitModel* getSplitModel(const QChar& splitLetter)
-	{
-		if (!m_splitModels.contains(splitLetter))
-		{
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, m_mesoIdx)};
-			connect(this, &QmlItemManager::mesoIdxChanged, splitModel, [&,splitModel] { splitModel->setMesoIdx(m_mesoIdx); });
-			m_splitModels.insert(splitLetter, splitModel);
-		}
-		return m_splitModels.value(splitLetter);
-	}
+	DBMesoSplitModel* getSplitModel(const QChar& splitLetter);
+	void initializeSplitModels();
+	inline QMap<QChar,DBMesoSplitModel*>& allSplitModels() { initializeSplitModels(); return m_splitModels; }
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	void updateMuscularGroup(DBMesoSplitModel* splitModel);
+	void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -167,6 +164,8 @@ public slots:
 	void exerciseCompleted(int exercise_idx);
 	void openMainMenuShortCut(const int button_id);
 
+	void exportExercises_slot(const QString& filePath = QString());
+
 signals:
 	void itemReady(QQuickItem* item, const uint id);
 	void mesoIdxChanged();
@@ -199,7 +198,6 @@ private:
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
-	QString m_createdSplits;
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -290,6 +288,7 @@ private:
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
+	QString m_exportFilename;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 

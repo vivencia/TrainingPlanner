@@ -178,7 +178,7 @@ void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& spl
 	{
 		m_splitModel->setFast(meso_idx, splitField, newSplitValue);
 		emit modifiedChanged();
-		emit muscularGroupChanged(splitField, splitLetter);
+		emit muscularGroupChanged(splitField, splitLetter.at(0));
 	}
 }
 
@@ -260,16 +260,6 @@ int DBMesocyclesModel::getMesoIdx(const int mesoId) const
 			return x;
 	}
 	return -1;
-}
-
-QString DBMesocyclesModel::getMesoInfo(const int mesoid, const uint field) const
-{
-	for(uint x(0); x < count(); ++x)
-	{
-		if (static_cast<QString>(m_modeldata.at(x).at(MESOCYCLES_COL_ID)).toInt() == mesoid)
-			return m_modeldata.at(x).at(field);
-	}
-	return QString();
 }
 
 int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const

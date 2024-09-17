@@ -7,6 +7,7 @@
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tputils.h"
+#include "osinterface.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
@@ -30,52 +31,7 @@ QQuickItem* QmlItemManager::clientsOrCoachesPage(nullptr);
 QVariantMap QmlItemManager::clientsOrCoachesProperties;
 QQuickItem* QmlItemManager::userPage(nullptr);
 
-QmlItemManager* QmlItemManager::app_rootItemsManager(nullptr);
-
-void QmlItemManager::configureQmlEngine()
-{
-	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
-	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
-	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
-	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
-	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
-	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
-	qmlRegisterType<QmlItemManager>("com.vivenciasoftware.qmlcomponents", 1, 0, "QmlItemManager");
-	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
-	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
-
-	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider());
-
-	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	app_StackView = QmlItemManager::app_MainWindow->findChild<QQuickItem*>(u"appStackView"_qs);
-	QQuickItem* contentItem(app_StackView->parentItem());
-
-	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties;
-	properties.append(QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) });
-	properties.append(QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) });
-	properties.append(QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) });
-	properties.append(QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) });
-	properties.append(QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs });
-	properties.append(QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs });
-	properties.append(QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) });
-	properties.append(QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) });
-	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(app_MainWindow) });
-	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
-	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
-	appQmlEngine()->rootContext()->setContextProperties(properties);
-
-	QString style(appSettings()->value("themeStyle").toString());
-	if (style.isEmpty())
-		style = u"Material"_qs;
-	QQuickStyle::setStyle(style);
-	//QMetaObject::invokeMethod(app_MainWindow, "init", Qt::AutoConnection);
-}
-
-const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
+static const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
 
 QmlItemManager::~QmlItemManager()
@@ -167,6 +123,53 @@ QmlItemManager::~QmlItemManager()
 	}
 }
 
+void QmlItemManager::configureQmlEngine()
+{
+	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
+	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
+	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
+	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
+	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
+	qmlRegisterType<QmlItemManager>("com.vivenciasoftware.qmlcomponents", 1, 0, "QmlItemManager");
+	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
+	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
+
+	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider());
+
+	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
+	app_StackView = QmlItemManager::app_MainWindow->findChild<QQuickItem*>(u"appStackView"_qs);
+	QQuickItem* contentItem(app_StackView->parentItem());
+
+	//Root context properties. MainWindow app properties
+	QList<QQmlContext::PropertyPair> properties;
+	properties.append(QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) });
+	properties.append(QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) });
+	properties.append(QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) });
+	properties.append(QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) });
+	properties.append(QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) });
+	properties.append(QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) });
+	properties.append(QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) });
+	properties.append(QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs });
+	properties.append(QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs });
+	properties.append(QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) });
+	properties.append(QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) });
+	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(app_MainWindow) });
+	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
+	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
+	appQmlEngine()->rootContext()->setContextProperties(properties);
+
+	QString style(appSettings()->value("themeStyle").toString());
+	if (style.isEmpty())
+		style = u"Material"_qs;
+	QQuickStyle::setStyle(style);
+}
+
+void QmlItemManager::initQML()
+{
+	QMetaObject::invokeMethod(appMainWindow(), "init", Qt::AutoConnection);
+}
+
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
 {
 	const QVariantList strargs(args.toList());
@@ -214,6 +217,8 @@ void QmlItemManager::createExercisesPage(const bool bChooseButtonEnabled, QQuick
 {
 	exercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesPage.qml"_qs), QQmlComponent::Asynchronous);
 	exercisesProperties.insert(u"bChooseButtonEnabled"_qs, bChooseButtonEnabled);
+	exercisesProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
+
 	if (exercisesComponent->status() != QQmlComponent::Ready)
 	{
 		connect(exercisesComponent, &QQmlComponent::statusChanged, this, [&,connectPage] (QQmlComponent::Status) {
@@ -271,6 +276,48 @@ const uint QmlItemManager::removeExercise(const uint row)
 	appExercisesModel()->removeFromList(actualIndex);
 	return row > 0 ? row - 1 : 0;
 }
+
+void QmlItemManager::exportExercises(const bool bShare, const QString& filePath)
+{
+	m_exportFilename = tr("TrainingPlanner Exercises List.txt");
+
+	if(filePath.isEmpty())
+	{
+		if (!appExercisesModel()->collectExportData())
+		{
+			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -6));
+			return;
+		}
+
+		if (!bShare)
+		{
+			connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportExercises_slot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportExercises_slot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, m_exportFilename));
+		}
+	}
+	else
+	{
+		if (appOsInterface()->exportToFile(appExercisesModel(), m_exportFilename, bShare))
+			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, 2));
+		else
+		{
+			QFile::remove(appOsInterface()->appDataFilesPath() + m_exportFilename);
+			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
+		}
+	}
+}
+
+void QmlItemManager::exportExercises_slot(const QString& filePath)
+{
+	if (!filePath.isEmpty())
+		exportExercises(false, filePath);
+	else
+	{
+		QFile::remove(appOsInterface()->appDataFilesPath() + m_exportFilename);
+		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -12));
+	}
+}
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -311,6 +358,11 @@ void QmlItemManager::createMesocyclePage_part2()
 	connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
 		if (user_row == 0)
 				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
+	});
+
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const int splitIndex, const QChar& splitLetter) {
+			if (splitIndex < m_splitModels.count())
+				updateMuscularGroup(m_splitModels.value(splitLetter));
 	});
 	addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
 }
@@ -357,30 +409,39 @@ void QmlItemManager::createPlannerPage_part2()
 	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
 	m_plannerPage->setParentItem(app_StackView);
+	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
 	addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_plannerPage);
 }
 
 void QmlItemManager::getExercisesPlannerPage()
 {
 	if (!m_plannerComponent)
-		createPlannerPage();
+	{
+		connect(appDBInterface(), &DBInterface::databaseReady, this, [&] (const uint) {
+			createPlannerPage();
+		});
+		appDBInterface()->loadCompleteMesoSplits(m_mesoIdx, allSplitModels());
+	}
 	else
 		addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_plannerPage);
 }
 
-void QmlItemManager::createMesoSplitPage()
+void QmlItemManager::getMesoSplitPage(const uint page_index)
 {
 	if (m_splitComponent == nullptr)
 		m_splitComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/MesoSplitPlanner.qml"_qs), QQmlComponent::Asynchronous);
 
-	if (m_splitComponent->status() != QQmlComponent::Ready)
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
-			{ return createMesoSplitPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	if (m_splitComponent->status() == QQmlComponent::Ready)
+		createMesoSplitPage(page_index);
 	else
-		createMesoSplitPage_part2();
+	{
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [&,page_index] (QQmlComponent::Status) {
+			return createMesoSplitPage(page_index);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
 }
 
-void QmlItemManager::createMesoSplitPage_part2()
+void QmlItemManager::createMesoSplitPage(const uint page_index)
 {
 	#ifdef DEBUG
 	if (m_splitComponent->status() == QQmlComponent::Error)
@@ -392,35 +453,85 @@ void QmlItemManager::createMesoSplitPage_part2()
 	}
 	#endif
 
-	int prevMesoId(-2);
 	DBMesoSplitModel* splitModel(nullptr);
-
-	QMapIterator<QChar,DBMesoSplitModel*> i(m_splitModels);
-	i.toFront();
-	while (i.hasNext()) {
-		i.next();
-		if (m_createdSplits.indexOf(i.key()) == -1)
+	int i(-1);
+	QMap<QChar,DBMesoSplitModel*>::const_iterator itr(m_splitModels.constBegin());
+	const QMap<QChar,DBMesoSplitModel*>::const_iterator itr_end(m_splitModels.constEnd());
+	while (++itr != itr_end)
+	{
+		++i;
+		if (i == page_index)
 		{
-			splitModel = m_splitModels.value(i.key());
-			m_createdSplits.append(i.key());
-			m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
-			m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
-			m_splitProperties[u"itemManager"_qs] = QVariant::fromValue(this);
-			QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));
-			appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
-			item->setParentItem(m_plannerPage);
-			if (splitModel->count() == 0)
-			{
-				prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->getIntFast(m_mesoIdx, MESOCYCLES_COL_ID));
-				item->setProperty("prevMesoId", prevMesoId);
-			}
-			connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
+			if (m_splitPages.contains((*itr)->splitLetter().at(0)))
+				return;
+			splitModel = *itr;
+			break;
+		}
+		++itr;
+	}
+	if (!splitModel)
+		return;
+
+	m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
+	m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
+	m_splitProperties[u"itemManager"_qs] = QVariant::fromValue(this);
+	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));
+	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	item->setParentItem(m_plannerPage);
+
+	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*, const QVariant&,const QVariant&,int)), this,
 						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)));
-			m_splitPages.insert(i.key(), item);
-			QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
-										Q_ARG(int, static_cast<int>(i.key().cell()) - static_cast<int>('A')));
+	splitModel->setCurrentRow(0);
+
+	if (splitModel->count() == 0)
+		splitModel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, u"4"_qs, u"12"_qs, u"20"_qs);
+	setSplitPageProperties(item, splitModel);
+
+	m_splitPages.insert(splitModel->splitLetter().at(0), item);
+	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
+								Q_ARG(int, static_cast<int>(splitModel->splitLetter().at(0).cell()) - static_cast<int>('A')));
+}
+
+void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)
+{
+	int prevMesoId(-1);
+	prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->getIntFast(m_mesoIdx, MESOCYCLES_COL_ID));
+	if (prevMesoId >= 0)
+	{
+		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
+		{
+			splitPage->setProperty("prevMesoName", appMesoModel()->getFast(prevMesoId, MESOCYCLES_COL_NAME));
+			prevMesoId = -1; //Nothing from previous meso to import
 		}
 	}
+	const QString swappableLetter(splitModel->findSwappableModel());
+	splitPage->setProperty("prevMesoId", prevMesoId);
+	splitPage->setProperty("swappableLetter", swappableLetter);
+	splitPage->setProperty("bCanSwapPlan", !swappableLetter.isEmpty());
+}
+
+DBMesoSplitModel* QmlItemManager::getSplitModel(const QChar& splitLetter)
+{
+	if (!m_splitModels.contains(splitLetter))
+	{
+		DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, m_mesoIdx)};
+		connect(this, &QmlItemManager::mesoIdxChanged, splitModel, [&,splitModel] { splitModel->setMesoIdx(m_mesoIdx); });
+		m_splitModels.insert(splitLetter, splitModel);
+	}
+	return m_splitModels.value(splitLetter);
+}
+
+void QmlItemManager::initializeSplitModels()
+{
+	const QString mesoSplit(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT));
+	QString::const_iterator itr(mesoSplit.constBegin());
+	const QString::const_iterator itr_end(mesoSplit.constEnd());
+
+	do {
+		if (static_cast<QChar>(*itr) == QChar('R'))
+			continue;
+		static_cast<void>(getSplitModel(*itr));
+	} while (++itr != itr_end);
 }
 
 void QmlItemManager::swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2)
@@ -437,11 +548,21 @@ void QmlItemManager::swapMesoPlans(const QString& splitLetter1, const QString& s
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void QmlItemManager::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
-	for(uint i(0); i < 6; ++i)
+	const QString musculargroup{appMesoModel()->getMuscularGroup(m_mesoIdx, splitModel->splitLetter())};
+	splitModel->setMuscularGroup(musculargroup);
+	QQuickItem* splitPage(getSplitPage(splitModel->splitLetter().at(0)));
+	if (splitPage)
 	{
-		if (m_splitModels.value(QChar('A'+i)) != nullptr)
-			m_splitModels[QChar('A'+i)]->setMuscularGroup(splitModel->getFast(splitModel->currentRow(), i+2));
+		setSplitPageProperties(splitPage, splitModel);
+		QMetaObject::invokeMethod(splitPage, "updateTxtGroups", Q_ARG(QString, musculargroup));
 	}
+}
+
+void QmlItemManager::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel)
+{
+	splitModel->setMuscularGroup(new_musculargroup);
+	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->splitLetter(), new_musculargroup);
+	setSplitPageProperties(m_splitPages.value(splitModel->splitLetter().at(0)), splitModel);
 }
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
@@ -624,12 +745,12 @@ void QmlItemManager::loadExercisesFromMesoPlan()
 		m_CurrenttDayModel->setDayIsFinished(!btoday);
 		createExercisesObjects();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appDBInterface()->loadExercisesFromMesoPlan(m_CurrenttDayModel, getSplitModel(m_CurrenttDayModel->splitLetter().at(0)));
+	appDBInterface()->loadExercisesFromMesoPlan(m_CurrenttDayModel, allSplitModels());
 }
 
 void QmlItemManager::convertTDayToPlan()
 {
-	appDBInterface()->convertTDayToPlan(m_CurrenttDayModel, getSplitModel(m_CurrenttDayModel->splitLetter().at(0)));
+	appDBInterface()->convertTDayToPlan(m_CurrenttDayModel, allSplitModels());
 }
 
 DBTrainingDayModel* QmlItemManager::gettDayModel(const QDate& date)

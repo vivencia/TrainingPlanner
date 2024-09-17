@@ -352,7 +352,7 @@ void OSInterface::openRequestedFile(const QString &filename)
 	QMetaObject::invokeMethod(appMainWindow(), "tryToOpenFile", Q_ARG(QString, filename), Q_ARG(QString, nameOnly));
 }
 
-bool OSInterface::exportToFile(const TPListModel* const model, const QString& filename, QFile* &outFile) const
+bool OSInterface::exportToFile(const TPListModel* model, const QString& filename, const bool bShare, QFile* outFile) const
 {
 	QString fname(filename);
 	if (filename.startsWith(u"file:"_qs))
@@ -360,13 +360,22 @@ bool OSInterface::exportToFile(const TPListModel* const model, const QString& fi
 
 	if (!outFile)
 	{
-		outFile = new QFile(fname);
+		outFile = new QFile(m_appDataFilesPath + fname);
 		outFile->deleteLater();
 	}
 	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
 		model->exportToText(outFile);
 		outFile->close();
+		#ifdef Q_OS_ANDROID
+		if (bShare)
+			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
+		else
+		#else
+		if (!bShare)
+		#endif
+
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
 		return true;
 	}
 	return false;

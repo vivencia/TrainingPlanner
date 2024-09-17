@@ -362,9 +362,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		query.prepare( QStringLiteral("SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2")
-									.arg(splitLetter, mesoId) );
-		m_result = query.exec();
+		m_result = query.exec(u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter, mesoId));
 		if (m_result)
 		{
 			m_result = query.first();

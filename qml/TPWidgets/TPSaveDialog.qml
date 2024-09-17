@@ -8,8 +8,8 @@ FileDialog {
 	currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 	fileMode: FileDialog.SaveFile
 
-	onAccepted: appDB.saveFileDialogClosed(currentFile, true);
-	onRejected: appDB.saveFileDialogClosed(currentFile, false);
+	onAccepted: mainwindow.saveFileChosen(currentFile);
+	onRejected: mainwindow.saveFileRejected("");
 
 	function init(suggestedName: string) {
 		currentFile = suggestedName;

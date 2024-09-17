@@ -16,14 +16,13 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property QmlItemManager itemManager
 
-	property bool bAlreadyLoaded: false
-	property int removalSecs: 0
-	property string prevMesoName: ""
-	property int prevMesoId: -2
+	property bool bCanSwapPlan
+	property string swappableLetter
+	property string prevMesoName
+	property int prevMesoId
+
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
-	property bool bCanSwapPlan: false
-	property string swappableLetter: ""
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
@@ -37,20 +36,6 @@ Frame {
 		border.color: "transparent"
 		radius: 5
 	}
-
-	TPBalloonTip {
-		id: msgDlgImport
-		title: qsTr("Import Exercises Plan?")
-		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter() +
-						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "remove"
-		parentPage: parentItem
-
-		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
-	} //TPBalloonTip
-
 
 	TPBalloonTip {
 		id: msgDlgRemove
@@ -106,25 +91,11 @@ Frame {
 		}
 
 		onEditingFinished: {
-			splitModel.setMuscularGroup(text);
-			mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, splitModel.splitLetter(), text);
+			itemManager.changeMuscularGroup(text, splitModel);
 			exercisesModel.makeFilterString(text);
-			swappableLetter = splitModel.findSwappableModel();
-			bCanSwapPlan = swappableLetter !== "";
 		}
 
 		Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
-
-		function updateMuscularGroup(splitindex: int, splitletter: string) {
-			if (splitModel.splitLetter() === splitletter) {
-				const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
-				splitModel.setMuscularGroup(musculargroup);
-				text = musculargroup;
-				exercisesModel.makeFilterString(musculargroup);
-				swappableLetter = splitModel.findSwappableModel();
-				bCanSwapPlan = swappableLetter !== "";
-			}
-		}
 	}
 
 		ListView {
@@ -663,24 +634,10 @@ Frame {
 			} //delegate: SwipeDelegate
 		} //ListView
 
-	function init() {
-		if (!bAlreadyLoaded) {
-			if (prevMesoId == -1) //splitModel is empty and there is no previous mesocycle
-				appendNewExerciseToDivision();
-			else if (prevMesoId >= 0) { //splitModel is empty and there is a previous mesocycle. Check if it has a plan for the letter
-				if (appDB.mesoHasPlan(prevMesoId, splitModel.splitLetter())) {
-					prevMesoName = mesocyclesModel.getMesoInfo(prevMesoId, 1);
-					msgDlgImport.show((mainwindow.height - msgDlgImport.height) / 2)
-				}
-				else
-					appendNewExerciseToDivision();
-			}
-			splitModel.currentRow = 0;
-			exercisesModel.makeFilterString(txtGroups.text);
-			bAlreadyLoaded = true;
-			swappableLetter = splitModel.findSwappableModel();
-			bCanSwapPlan = swappableLetter !== "";
-		}
+	Component.onCompleted: {
+		exercisesModel.makeFilterString(txtGroups.text);
+		lstSplitExercises.currentIndex = splitModel.currentRow;
+		lstSplitExercises.positionViewAtIndex(0, ListView.Center);
 	}
 
 	function setScrollBarPosition(pos) {
@@ -735,9 +692,33 @@ Frame {
 			splitModel.changeExercise(exercisesModel);
 	}
 
+	function updateTxtGroups(musculargroup: string)
+	{
+		txtGroups.text = musculargroup;
+		exercisesModel.makeFilterString(musculargroup);
+	}
+
 	function appendNewExerciseToDivision() {
 		splitModel.addExercise(qsTr("Choose exercise..."), 0, "4", "12", "20");
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
+	}
+
+	TPBalloonTip {
+		id: msgDlgImport
+		title: qsTr("Import Exercises Plan?")
+		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter() +
+						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "remove"
+		parentPage: parentItem
+
+		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
+	} //TPBalloonTip
+
+	function showImportFromPreviousMesoMessage()
+	{
+		msgDlgImport.show(-1);
 	}
 } //Page

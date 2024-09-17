@@ -5,7 +5,6 @@ import QtQuick.Dialogs
 import QtCore
 
 import "../"
-import "../inexportMethods.js" as INEX
 import "../TPWidgets"
 import "../ExercisesAndSets"
 
@@ -18,7 +17,7 @@ TPPage {
 	required property QmlItemManager itemManager
 	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
-	property TPFloatingMenuBar imexportMenu: null
+	property TPFloatingMenuBar imExportMenu: null
 	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	Keys.onPressed: (event) => {
@@ -34,7 +33,7 @@ TPPage {
 	SwipeView {
 		id: splitView
 		objectName: "splitSwipeView"
-		currentIndex: -1
+		currentIndex: 0
 		interactive: !exercisesPane.visible
 		height: parent.height
 		anchors {
@@ -42,10 +41,7 @@ TPPage {
 			left: parent.left
 			right: parent.right
 		}
-		onCurrentIndexChanged: {
-			createNavButtons();
-			currentItem.init();
-		}
+		onCurrentIndexChanged: itemManager.getMesoSplitPage(index);
 	} //SwipeView
 
 	PageIndicator {
@@ -186,7 +182,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: INEX.showInExMenu(pagePlanner, true);
+			onClicked: showInExMenu();
 		}
 
 		TPButton {
@@ -205,10 +201,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				createNavButtons();
-				currentPage.appendNewExerciseToDivision();
-			}
+			onClicked: currentPage.appendNewExerciseToDivision();
 		} //btnAddExercise
 	}
 
@@ -248,6 +241,33 @@ TPPage {
 		splitView.insertItem(idx, page);
 	}
 
+	function showInExMenu() {
+		if (imExportMenu === null) {
+			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			imExportMenu = imExportMenuComponent.createObject(page, { parentPage: pagePlanner });
+			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
+			imExportMenu.addEntry(qsTr("Import from ") + currentPage.prevMesoName, "import.png", 0, currentPage.prevMesoId >= 0);
+			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
+			if (Qt.platform.os === "android")
+				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
+			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
+		}
+		imExportMenu.enableMenuEntry(1, bExportEnabled);
+		imExportMenu.setMenuText(1)
+		if (Qt.platform.os === "android")
+			imExportMenu.enableMenuEntry(2, bExportEnabled);
+		imExportMenu.show(btnImExport, 0);
+	}
+
+	function selectedMenuOption(menuid) {
+		switch (menuid) {
+			case 0: appControl.importFromFile(); break;
+			case 1: currentPage.showImportFromPreviousMesoMessage(); break;
+			case 2: exportTypeTip.init(false); break;
+			case 3: exportTypeTip.init(true); break;
+		}
+	}
+
 	TPBalloonTip {
 		id: exportTypeTip
 		title: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
@@ -256,8 +276,8 @@ TPPage {
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner
 
-		onButton1Clicked: appDB.exportMesoSplit(itemManager, "X", bShare);
-		onButton2Clicked: appDB.exportMesoSplit(itemManager, currentPage.splitModel.splitLetter(), bShare);
+		onButton1Clicked: appControl.exportMesoSplit(itemManager, "X", bShare);
+		onButton2Clicked: appControl.exportMesoSplit(itemManager, currentPage.splitModel.splitLetter(), bShare);
 
 		property bool bShare: false
 

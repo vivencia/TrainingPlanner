@@ -386,35 +386,6 @@ void DBInterface::getExercisesListVersion()
 		exercisesListFile.close();
 	}
 }
-
-void DBInterface::exportExercisesList(const bool bShare)
-{
-	const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
-	setExportFileName(suggestedName);
-	if (!appExercisesModel()->collectExportData())
-	{
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -6));
-		return;
-	}
-	QFile* outFile(nullptr);
-	if (exportToFile(appExercisesModel(), exportFileName(), outFile))
-	{
-		#ifdef Q_OS_ANDROID
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		appMainWindow()->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-	}
-}
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -475,11 +446,9 @@ void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 void DBInterface::saveMesoSplit(const uint meso_idx)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, appMesoModel()->mesoSplitModel()));
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, appMesoModel()->mesoSplitModel())};
 	worker->addExecArg(meso_idx);
-	createThread(worker, [worker] () { worker->saveMesoSplit(); } );
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
-	itemMngr->updateMuscularGroup(appMesoModel()->mesoSplitModel());
+	createThread(worker, [worker] () { worker->saveMesoSplit(); });
 }
 
 void DBInterface::removeMesoSplit(const uint meso_idx)
@@ -495,9 +464,8 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
-void DBInterface::loadCompleteMesoSplits(const uint meso_idx, const bool bThreaded)
+void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded)
 {
-	QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
 	const QString mesoSplit(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT));
 	QString mesoLetters;
 	DBMesoSplitModel* splitModel(nullptr);
@@ -515,7 +483,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, const bool bThread
 			continue;
 
 		mesoLetters.append(static_cast<QChar>(*itr));
-		splitModel = itemMngr->getSplitModel(static_cast<QChar>(*itr));
+		splitModel = splitModels.value(static_cast<QChar>(*itr));
 
 		if (bThreaded)
 		{
@@ -584,78 +552,6 @@ void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplit
 	worker->addExecArg(QString::number(prev_meso_id));
 	worker->addExecArg(model->splitLetter().at(0));
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); });
-}
-
-void DBInterface::exportMesoSplit(const QmlItemManager* const itemMngr, const QString& splitLetter, const bool bShare, QFile* outFileInUse)
-{
-	QString mesoSplit;
-	QString suggestedName;
-	QFile* outFile(nullptr);
-	const uint meso_idx(itemMngr->mesoIdx());
-
-	if (!outFileInUse)
-	{
-		if (splitLetter == u"X"_qs)
-		{
-			mesoSplit = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT);
-			suggestedName = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan.txt");
-		}
-		else
-		{
-			mesoSplit = splitLetter;
-			suggestedName = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_NAME) +
-								tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
-		}
-		//setExportFileName(suggestedName);
-	}
-	else
-	{
-		outFile = outFileInUse;
-		mesoSplit = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT);
-	}
-
-	QString mesoLetters;
-	bool bExportToFileOk(true);
-
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
-	do {
-		if (static_cast<QChar>(*itr) == QChar('R'))
-			continue;
-		if (mesoLetters.contains(static_cast<QChar>(*itr)))
-			continue;
-		mesoLetters.append(static_cast<QChar>(*itr));
-		//bExportToFileOk &= exportToFile(const_cast<QmlItemManager*>(itemMngr)->getSplitModel(static_cast<QChar>(*itr)),
-		//									exportFileName(), outFile);
-	} while (++itr != itr_end);
-
-	if (outFileInUse)
-		return;
-
-	if (bExportToFileOk)
-	{
-		#ifdef Q_OS_ANDROID
-		/*setExportFileName("app_logo.png");
-		if (!QFile::exists(exportFileName()))
-		{
-			QFile::copy(":/images/app_logo.png", exportFileName());
-			QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
-		}
-		sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);*/
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		appMainWindow()->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-	}
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
@@ -814,33 +710,33 @@ void DBInterface::loadExercisesFromDate(const QString& strDate, DBTrainingDayMod
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(true); });
 }
 
-void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMesoSplitModel* const splitModel)
+void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, QMap<QChar, DBMesoSplitModel *>& splitModels)
 {
 	if (!mb_splitsLoaded)
 	{
-		connect( this, &DBInterface::internalSignal, this, [&,tDayModel,splitModel] (const uint id) {
+		connect( this, &DBInterface::internalSignal, this, [&,tDayModel,splitModels] (const uint id) mutable {
 			if (id == SPLITS_LOADED_ID)
-				loadExercisesFromMesoPlan(tDayModel, splitModel);
+				loadExercisesFromMesoPlan(tDayModel, splitModels);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		loadCompleteMesoSplits(tDayModel->mesoIdx());
+		loadCompleteMesoSplits(tDayModel->mesoIdx(), splitModels);
 	}
 	else
-		tDayModel->convertMesoSplitModelToTDayModel(splitModel);
+		tDayModel->convertMesoSplitModelToTDayModel(splitModels.value(tDayModel->splitLetter().at(0)));
 }
 
-void DBInterface::convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* splitModel)
+void DBInterface::convertTDayToPlan(const DBTrainingDayModel* const tDayModel, QMap<QChar, DBMesoSplitModel *> &splitModels)
 {
 	if (!mb_splitsLoaded)
 	{
-		connect( this, &DBInterface::internalSignal, this, [&,tDayModel,splitModel] (const uint id) {
+		connect( this, &DBInterface::internalSignal, this, [&,tDayModel,splitModels] (const uint id) mutable {
 			if (id == SPLITS_LOADED_ID)
-				return convertTDayToPlan(tDayModel, splitModel);
+				return convertTDayToPlan(tDayModel, splitModels);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		loadCompleteMesoSplits(tDayModel->mesoIdx());
+		loadCompleteMesoSplits(tDayModel->mesoIdx(), splitModels);
 	}
 	else
 	{
-		DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
+		DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModels.value(tDayModel->splitLetter().at(0)))};
 		worker->addExecArg(appMesoModel()->getFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ID));
 		worker->addExecArg(tDayModel->splitLetter());
 		createThread(worker, [worker,tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); });
@@ -866,29 +762,5 @@ void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
 {
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath)};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
-}
-
-void DBInterface::exportTrainingDay(const DBTrainingDayModel* tDayModel, const bool bShare)
-{
-	const QString suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
-	setExportFileName(suggestedName);
-	QFile* outFile(nullptr);
-	if (exportToFile(tDayModel, exportFileName(), outFile))
-	{
-		#ifdef Q_OS_ANDROID
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		appMainWindow()->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-	}
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

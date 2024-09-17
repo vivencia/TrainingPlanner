@@ -26,6 +26,9 @@ ApplicationWindow {
 
 	property int backKey
 
+	signal saveFileChosen(filepath: string);
+	signal saveFileRejected(filepath: string);
+
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")
 			backKey = Qt.Key_Back;

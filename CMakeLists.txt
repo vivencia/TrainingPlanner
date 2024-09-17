@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 project(trainingplanner LANGUAGES CXX)
 
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-DDEBUG -g")
-set(CMAKE_CXX_FLAGS_RELEASE_INIT "QT_NO_DEBUG -O3 -march=native -fomit-frame-pointer -funroll-loops -Ofast")
-set(CMAKE_CXX_FLAGS_INIT "-DQT_USE_QSTRINGBUILDER -DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS -Werror -Wall -Wextra -pedantic -std=c++14 -finput-charset=UTF-8 -fexec-charset=UTF-8")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-DQT_NO_DEBUG -O3 -march=native -fomit-frame-pointer -funroll-loops -Ofast")
+set(CMAKE_CXX_FLAGS_INIT "-DQT_USE_QSTRINGBUILDER -DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS -DNDEBUG -Werror -Wall -Wextra -pedantic -std=c++14 -finput-charset=UTF-8 -fexec-charset=UTF-8")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_VERBOSE_MAKEFILE on)
