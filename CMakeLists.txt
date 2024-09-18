@@ -26,7 +26,7 @@ set( SOURCES
 	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
 	cxx/osinterface.h cxx/osinterface.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
-	cxx/urihandler.h cxx/urihandler.cpp
+
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
 	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp
@@ -78,6 +78,7 @@ set( QML_FILES
     "qml/Dialogs/CalendarDialog.qml"
     "qml/Dialogs/DatePicker.qml"
     "qml/Dialogs/FirstTimeDialog.qml"
+    "qml/Dialogs/ImportDialog.qml"
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/NavBar.qml"
     "qml/Dialogs/TimePicker.qml"

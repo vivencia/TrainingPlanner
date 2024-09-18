@@ -227,35 +227,20 @@ void TPAppControl::openRequestedFile(const QString& filename)
 	}
 	if (fileContents != 0)
 	{
-		QStringList importOptions(5);
+		QmlItemManager* itemMngr(nullptr);
 		if (fileContents & IFC_MESO)
 		{
-			importOptions[0] = qApp->tr("Complete Training Plan");
-			if (fileContents & IFC_USER)
-				importOptions[1] = qApp->tr("Coach information");
-			if (fileContents & IFC_MESO)
-				importOptions[2] = qApp->tr("Exercises Program");
 			m_tempMesoIdx = createNewMesocycle(false);
-			m_itemManager.at(m_tempMesoIdx)->displayImportDialogMessage(importOptions, filename);
+			itemMngr = m_itemManager.at(m_tempMesoIdx);
 		}
 		else
 		{
-			if (fileContents & IFC_MESO)
-			{
-				importOptions[2] = qApp->tr("Exercises Program");
-				m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->displayImportDialogMessage(importOptions, filename);
-			}
-			else if (fileContents & IFC_TDAY)
-			{
-				importOptions[3] = qApp->tr("Exercises database update");
-				m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->displayImportDialogMessage(importOptions, filename);
-			}
+			if (fileContents & IFC_MESO || fileContents & IFC_TDAY)
+				itemMngr = m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx());
 			else if (fileContents & IFC_EXERCISES)
-			{
-				importOptions[4] = qApp->tr("Exercises database update");
-				rootItemsManager()->displayImportDialogMessage(importOptions, filename);
-			}
+				itemMngr = rootItemsManager();
 		}
+		itemMngr->displayImportDialogMessage(fileContents, filename);
 	}
 }
 

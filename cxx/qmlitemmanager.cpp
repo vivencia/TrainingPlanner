@@ -238,8 +238,27 @@ void QmlItemManager::displayMessageOnAppWindow(const QString& title, const QStri
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 
-void QmlItemManager::displayImportDialogMessage(const QStringList& importOptions, const QString& filename)
+void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString& filename)
 {
+	QStringList importOptions(5);
+	if (fileContents & IFC_MESO)
+		{
+	importOptions[0] = qApp->tr("Complete Training Plan");
+			if (fileContents & IFC_USER)
+				importOptions[1] = qApp->tr("Coach information");
+			if (fileContents & IFC_MESO)
+				importOptions[2] = qApp->tr("Exercises Program");
+	}
+	else
+		{
+			if (fileContents & IFC_MESO)
+				importOptions[2] = qApp->tr("Exercises Program");
+				else if (fileContents & IFC_TDAY)
+				importOptions[3] = qApp->tr("Exercises database update");
+			else if (fileContents & IFC_EXERCISES)
+
+				importOptions[4] = qApp->tr("Exercises database update");
+		}
 	//QMetaObject::invokeMethod(appMainWindow(), "tryToOpenFile", Q_ARG(QString, filename), Q_ARG(QString, nameOnly));
 }
 

@@ -65,7 +65,7 @@ public:
 
 	void displayMessageOnAppWindow(const appWindowMessageID message_id) const;
 	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
-	void displayImportDialogMessage(const QStringList& importOptions, const QString& filename);
+	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	void getSettingsPage(const uint startPageIndex);
