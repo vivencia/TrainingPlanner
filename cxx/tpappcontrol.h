@@ -18,12 +18,22 @@ class QQuickItem;
 #include <QDate>
 #include <QList>
 
+enum {
+	IFC_USER = 0x02,
+	IFC_MESO = 0x04,
+	IFC_MESOSPLIT = 0x08,
+	IFC_EXERCISES = 0x10,
+	IFC_TDAY = 0x10
+} importFileContents;
+
 class TPAppControl
 {
 
 public:
 	TPAppControl();
 	void cleanUp();
+
+	//inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
 
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
@@ -32,13 +42,17 @@ public:
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
-	Q_INVOKABLE inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
+	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 
 	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
+
+	void openRequestedFile(const QString& filename);
+	int importFromFile(const QString& filename);
+	bool importFromModel(TPListModel* model);
 
 private:
 	void populateSettingsWithDefaultValue();
@@ -78,6 +92,7 @@ private:
 	friend OSInterface* appOsInterface();
 
 	QList<QmlItemManager*> m_itemManager;
+	uint m_tempMesoIdx;
 };
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }

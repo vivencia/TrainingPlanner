@@ -276,8 +276,8 @@ TPPage {
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner
 
-		onButton1Clicked: appControl.exportMesoSplit(itemManager, "X", bShare);
-		onButton2Clicked: appControl.exportMesoSplit(itemManager, currentPage.splitModel.splitLetter(), bShare);
+		onButton1Clicked: itemManager.exportMesoSplit(bShare, "X");
+		onButton2Clicked: itemManager.exportMesoSplit(bShare, currentPage.splitModel.splitLetter());
 
 		property bool bShare: false
 

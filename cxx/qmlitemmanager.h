@@ -27,6 +27,23 @@ static const uint tDaySetCreateId(140);
 static const uint menuShortCutCreatedId(200);
 static const uint exercisesPlannerCreateId(235);
 
+enum
+{
+	APPWINDOW_MSG_EXPORT_OK = 2,
+	APPWINDOW_MSG_SHARE_OK = 1,
+	APPWINDOW_MSG_IMPORT_OK = 0,
+	APPWINDOW_MSG_OPEN_FAILED = -1,
+	APPWINDOW_MSG_UNKNOWN_FILE_FORMAT = -2,
+	APPWINDOW_MSG_CORRUPT_FILE = -3,
+	APPWINDOW_MSG_NOTHING_TODO = -4,
+	APPWINDOW_MSG_NO_MESO = -5,
+	APPWINDOW_MSG_NOTHING_TO_EXPORT = -6,
+	APPWINDOW_MSG_SHARE_FAILED = -7,
+	APPWINDOW_MSG_EXPORT_FAILED = -8,
+	APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED = -9,
+	APPWINDOW_MSG_UNKNOWN_ERROR = -100
+} typedef appWindowMessageID;
+
 class QmlItemManager : public QObject
 {
 
@@ -46,6 +63,10 @@ public:
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
+	void displayMessageOnAppWindow(const appWindowMessageID message_id) const;
+	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
+	void displayImportDialogMessage(const QStringList& importOptions, const QString& filename);
+
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	void getSettingsPage(const uint startPageIndex);
 	void createSettingsPage();
@@ -60,7 +81,7 @@ public:
 	void createExercisesPage_part2(QQuickItem* connectPage);
 	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	Q_INVOKABLE const uint removeExercise(const uint row);
-	Q_INVOKABLE void exportExercises(const bool bShare, const QString& filePath = QString());
+	Q_INVOKABLE void exportExercises(const bool bShare);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -69,6 +90,7 @@ public:
 	void createMesocyclePage_part2();
 	void getMesocyclePage();
 	Q_INVOKABLE void scheduleMesocycleRemoval();
+	void exportMeso(const bool bShare, const bool bCoachInfo);
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
@@ -87,6 +109,7 @@ public:
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	void updateMuscularGroup(DBMesoSplitModel* splitModel);
 	void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);
+	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath = QString(), const bool bJustExport = false);
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
@@ -110,6 +133,7 @@ public:
 	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
 	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
+	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel *const tDayModel);
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject();
 	void createExerciseObject_part2(const int object_idx = -1);
@@ -163,8 +187,7 @@ public slots:
 	void showRemoveSetMessage(int set_number, int exercise_idx);
 	void exerciseCompleted(int exercise_idx);
 	void openMainMenuShortCut(const int button_id);
-
-	void exportExercises_slot(const QString& filePath = QString());
+	void exportSlot(const QString& filePath = QString());
 
 signals:
 	void itemReady(QQuickItem* item, const uint id);

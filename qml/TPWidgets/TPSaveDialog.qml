@@ -11,7 +11,7 @@ FileDialog {
 	onAccepted: mainwindow.saveFileChosen(currentFile);
 	onRejected: mainwindow.saveFileRejected("");
 
-	function init(suggestedName: string) {
+	function init(suggestedName: string, bShare: bool, extraArg: string) {
 		currentFile = suggestedName;
 		open();
 	}

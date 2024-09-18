@@ -459,7 +459,7 @@ TPPage {
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 		parentPage: homePage
 
-		onButton1Clicked: appDB.exportMeso(mesoIdx, bShare, customBoolProperty1);
+		onButton1Clicked: appControl.exportMeso(mesoIdx, bShare, customBoolProperty1);
 
 		property int mesoIdx
 		property bool bShare

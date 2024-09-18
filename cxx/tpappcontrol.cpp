@@ -25,7 +25,7 @@ OSInterface* TPAppControl::app_os_interface(nullptr);
 OSInterface* appOsInterface()
 {
 	if (!TPAppControl::app_os_interface)
-		TPAppControl::app_os_interface = new OsInterface{};
+		TPAppControl::app_os_interface = new OSInterface{};
 	return TPAppControl::app_os_interface;
 }
 
@@ -148,12 +148,12 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startDate, endDate)) <<
 		u"ABCDERR"_qs << QString() << appUserModel()->userName(0) << QString() << QString() << STR_ONE);
 
+	QmlItemManager* itemMngr{new QmlItemManager{meso_idx}};
+	m_itemManager.append(itemMngr);
+
 	if (bCreatePage)
-	{
-		QmlItemManager* itemMngr{new QmlItemManager{meso_idx}};
-		m_itemManager.append(itemMngr);
 		itemMngr->createMesocyclePage(minimumStartDate, appUtils()->createFutureDate(startDate,0,6,0));
-	}
+
 	return meso_idx;
 }
 
@@ -166,6 +166,11 @@ void TPAppControl::removeMesocycle(const uint meso_idx)
 	m_itemManager.remove(meso_idx);
 	tpObject->disconnect();
 	delete tpObject;
+}
+
+void TPAppControl::exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo)
+{
+	m_itemManager.at(meso_idx)->exportMeso(bShare, bCoachInfo);
 }
 
 void TPAppControl::getExercisesPlannerPage(const uint meso_idx)
@@ -183,22 +188,94 @@ void TPAppControl::getTrainingDayPage(const uint meso_idx, const QDate& date)
 	m_itemManager.at(meso_idx)->getTrainingDayPage(date);
 }
 
+void TPAppControl::openRequestedFile(const QString& filename)
+{
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return;
+	}
+
+	uint fileContents(0);
+	qint64 lineLength(0);
+	char buf[128];
+	QString inData;
+
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (lineLength > 10)
+		{
+			if (strstr(buf, "##") != NULL)
+			{
+				inData = buf;
+				if (!inData.startsWith(u"##0x"_qs))
+				{
+					if (inData.indexOf(DBUserObjectName) != -1)
+						fileContents |= IFC_USER;
+					if (inData.indexOf(DBMesoSplitObjectName) != -1)
+						fileContents |= IFC_MESOSPLIT;
+					else if (inData.indexOf(DBMesocyclesObjectName) != -1)
+						fileContents |= IFC_MESO;
+					else if (inData.indexOf(DBTrainingDayObjectName) != -1)
+						fileContents |= IFC_TDAY;
+					else if (inData.indexOf(DBExercisesObjectName) != -1)
+						fileContents |= IFC_EXERCISES;
+				}
+			}
+		}
+	}
+	if (fileContents != 0)
+	{
+		QStringList importOptions(5);
+		if (fileContents & IFC_MESO)
+		{
+			importOptions[0] = qApp->tr("Complete Training Plan");
+			if (fileContents & IFC_USER)
+				importOptions[1] = qApp->tr("Coach information");
+			if (fileContents & IFC_MESO)
+				importOptions[2] = qApp->tr("Exercises Program");
+			m_tempMesoIdx = createNewMesocycle(false);
+			m_itemManager.at(m_tempMesoIdx)->displayImportDialogMessage(importOptions, filename);
+		}
+		else
+		{
+			if (fileContents & IFC_MESO)
+			{
+				importOptions[2] = qApp->tr("Exercises Program");
+				m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->displayImportDialogMessage(importOptions, filename);
+			}
+			else if (fileContents & IFC_TDAY)
+			{
+				importOptions[3] = qApp->tr("Exercises database update");
+				m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->displayImportDialogMessage(importOptions, filename);
+			}
+			else if (fileContents & IFC_EXERCISES)
+			{
+				importOptions[4] = qApp->tr("Exercises database update");
+				rootItemsManager()->displayImportDialogMessage(importOptions, filename);
+			}
+		}
+	}
+}
+
 /*Return values
  *	 0: success
  *	-1: Failed to open file
  *	-2: File format was not recognized
  *	-3: Nothing was imported, either because file was missing info or error in formatting
+ *	-4: File has been previously imported
  */
-int DbManager::importFromFile(QString filename, QFile* inFile)
+int TPAppControl::importFromFile(const QString& filename)
 {
-	if (!inFile)
+	//if (filename.startsWith(u"file:"_qs))
+	//	filename.remove(0, 7); //remove file://
+	QFile* inFile{new QFile(filename)};
+	inFile->deleteLater();
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
-		if (filename.startsWith(u"file:"_qs))
-			filename.remove(0, 7); //remove file://
-		inFile = new QFile(filename, this);
-		inFile->deleteLater();
-		if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
-			return -1;
+		delete inFile;
+		return -1;
 	}
 
 	TPListModel* model(nullptr);
@@ -224,8 +301,8 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 			model = new DBMesoSplitModel(this);
 		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
 			model = new DBMesocyclesModel(this);
-		else if (inData.indexOf(DBTrainingDayObjectName) != -1)
-			model = new DBTrainingDayModel(this);
+		//else if (inData.indexOf(DBTrainingDayObjectName) != -1)
+			//model = new DBTrainingDayModel(this);
 		else if (inData.indexOf(DBExercisesObjectName) != -1)
 			model = new DBExercisesModel(this);
 		else
@@ -246,10 +323,10 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 		inData.chop(1);
 		switch (inData.toUInt())
 		{
-			case EXERCISES_TABLE_ID: model = new DBExercisesModel; break;
-			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel; break;
-			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel; break;
-			case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel; break;
+			case EXERCISES_TABLE_ID: model = new DBExercisesModel(this); break;
+			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel(this); break;
+			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel(this); break;
+			//case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel(this); break;
 			default:
 				return -2;
 		}
@@ -259,328 +336,80 @@ int DbManager::importFromFile(QString filename, QFile* inFile)
 	if (!model->importExtraInfo(inData))
 		return -4;
 
-	bool bDataImportSuccessfull(false);
-	if (bFancy)
-		bDataImportSuccessfull = model->importFromFancyText(inFile, inData);
-	else
+	if (model->importFromText(inFile, inData))
 	{
-		const QString data(inFile->readAll());
-		if (!data.isEmpty())
-		{
-			sep_idx = data.indexOf(u"##0x"_qs);
-			if (sep_idx == -1)
-				bDataImportSuccessfull = model->importFromText(data);
-			else
-			{
-				inFile->seek(sep_idx);
-				bDataImportSuccessfull = model->importFromText(data.left(sep_idx));
-			}
-		}
+		if (!importFromModel(model))
+			return -4;
 	}
 
-	if (bDataImportSuccessfull)
-		importFromModel(model);
-
 	if (!inFile->atEnd())
-		return importFromFile(filename, inFile);
+		return importFromFile(filename);
 	else
 		return 0;
 }
 
-void DbManager::importFromModel(TPListModel* model)
+bool TPAppControl::importFromModel(TPListModel* model)
 {
 	mb_importMode = true;
+	bool bOK(true);
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
 			updateExercisesList(static_cast<DBExercisesModel*>(model));
 		break;
 		case MESOCYCLES_TABLE_ID:
-			createNewMesocycle(model->getFast(0, MESOCYCLES_COL_REALMESO) == u"1"_qs, model->getFast(0, 1), false);
-			saveMesocycle(true, model->getFast(0, MESOCYCLES_COL_NAME), model->getDate(0, MESOCYCLES_COL_STARTDATE),
-								model->getDate(0, MESOCYCLES_COL_ENDDATE), model->getFast(0, MESOCYCLES_COL_NOTE),
-								model->getFast(0, MESOCYCLES_COL_WEEKS), model->getFast(0, MESOCYCLES_COL_SPLIT),
-								model->getFast(0, MESOCYCLES_COL_DRUGS), QString(), QString(), QString(),
-							QString(), QString(), QString(), false, false, false);
+			if (appMesoModel()->isDifferent(static_cast<DBMesocyclesModel*>(model)))
+			{
+				const uint meso_idx = createNewMesocycle(false);
+				for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
+					appMesoModel()->setFast(meso_idx, i, model->getFast(0, i));
+				saveMesocycle(meso_idx);
+				emit appMesoModel()->currentRowChanged(); //notify main.qml::btnWorkout to evaluate its enabled state
+			}
+			else
+				bOK = false;
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			if (static_cast<DBMesoSplitModel*>(model)->completeSplit())
+			DBMesoSplitModel* splitModel = static_cast<DBMesoSplitModel*>(model);
+			const uint meso_idx = splitModel->mesoIdx();
+			QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
+			if (splitModel->completeSplit())
 			{
-				DBMesoSplitModel* splitModel(m_currentMesoManager->getSplitModel(static_cast<DBMesoSplitModel*>(model)->splitLetter().at(0)));
-				splitModel->updateFromModel(model);
-				updateMesoSplitComplete(splitModel);
-				// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
-				// by the time mb_splitsLoaded is ever checked upon
-				mb_splitsLoaded = true;
+				DBMesoSplitModel* mesoSplitModel(itemMngr->getSplitModel(splitModel->splitLetter().at(0)));
+				if (mesoSplitModel->updateFromModel(splitModel))
+				{
+					saveMesoSplitComplete(mesoSplitModel);
+					// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
+					// by the time mb_splitsLoaded is ever checked upon
+					mb_splitsLoaded = true;
+				}
+				else
+					bOK = false;
 			}
 			else
 			{
-				updateMesoSplit(model->getFast(0, 0), model->getFast(0, 1), model->getFast(0, 2), model->getFast(0, 3),
-								model->getFast(0, 4), model->getFast(0, 5));
+				for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+					appMesoModel()->mesoSplitModel()->setFast(meso_idx, i, splitModel->getFast(0, i));
+				appMesoModel()->mesoSplitModel()->setFast(meso_idx, 1, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
+				saveMesoSplit(meso_idx);
 			}
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
 			const QDate dayDate(model->getDate(0, 3));
-			DBTrainingDayModel* tDayModel(m_currentMesoManager->gettDayModel(dayDate));
-			tDayModel->updateFromModel(model);
-			if (mesoCalendarModel->count() == 0)
-			{
-				connect( this, &DbManager::databaseReady, this, [&,dayDate] {
-					connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
-						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
-							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					return getTrainingDay(dayDate); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				getMesoCalendar(false);
-			}
+			const uint meso_idx = static_cast<DBTrainingDayModel*>(model)->mesoIdx();
+			DBTrainingDayModel* tDayModel(m_itemManager.at(meso_idx)->gettDayModel(dayDate));
+			if (tDayModel->updateFromModel(model))
+				getTrainingDay(meso_idx, dayDate);
 			else
-			{
-				connect( this, &DbManager::getPage, this, [&] (QQuickItem* item, const uint) {
-						return addMainMenuShortCut(tr("Workout: ") + m_runCommands->formatDate(dayDate), item);
-							}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				getTrainingDay(dayDate);
-			}
+				bOK = false;
 		}
 		break;
 	}
 	mb_importMode = false;
-}
-
-void DbManager::saveFileDialogClosed(QString finalFileName, bool bResultOK)
-{
-	int resultCode(-5);
-	if (finalFileName.startsWith(u"file:"_qs))
-		finalFileName.remove(0, 7); //remove file://
-	if (bResultOK)
-	{
-		bResultOK = QFile::copy(exportFileName(), finalFileName);
-		resultCode = bResultOK ? 3 : -10;
-	}
-	QFile::remove(exportFileName());
-	m_mainWindow->setProperty("importExportFilename", finalFileName);
-	QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, resultCode));
-}
-
-int DbManager::parseFile(QString filename)
-{
-	if (filename.startsWith(u"file:"_qs))
-		filename.remove(0, 7); //remove file://
-	QFile* inFile(new QFile(filename, this));
-	inFile->deleteLater();
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
-		return -1;
-
-	qint64 lineLength(0);
-	char buf[128];
-	QString inData;
-	QString tableMessage;
-	bool createMessage[4] = { false };
-
-	while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
-	{
-		if (lineLength > 10)
-		{
-			if (strstr(buf, "##") != NULL)
-			{
-				inData = buf;
-				if (!inData.startsWith(u"##0x"_qs)) //Fancy
-				{
-					if (inData.indexOf(DBMesoSplitObjectName) != -1)
-					{
-						if (createMessage[1] && createMessage[0])
-							continue;
-						createMessage[0] = true;
-					}
-					else if (inData.indexOf(DBMesocyclesObjectName) != -1)
-						createMessage[1] = true;
-					else if (inData.indexOf(DBTrainingDayObjectName) != -1)
-						createMessage[2] = true;
-					else if (inData.indexOf(DBExercisesObjectName) != -1)
-						createMessage[3] = true;
-					else
-						return -2;
-				}
-				else
-				{
-					inData = inData.left(2);
-					inData.chop(1);
-					switch (inData.toUInt())
-					{
-						case EXERCISES_TABLE_ID: createMessage[3] = true; break;
-						case MESOCYCLES_TABLE_ID: createMessage[1] = true; break;
-						case MESOSPLIT_TABLE_ID:
-							if (createMessage[1] && createMessage[0])
-								continue;
-							createMessage[0] = true;
-						break;
-						case TRAININGDAY_TABLE_ID: createMessage[3] = true; break;
-						default: return -2;
-					}
-				}
-				if (createMessage[0])
-				{
-					if (tableMessage.isEmpty())
-						tableMessage = tr("a new Training Split Exercise Plan");
-					else
-					{
-						if (createMessage[1])
-							tableMessage += tr("new Training Split Exercise Plans");
-						else
-							tableMessage = tr("new Training Split Exercise Plans");
-					}
-				}
-				else if (createMessage[1])
-					tableMessage = tr("an entire Mesocycle Plan, including ");
-				else if (createMessage[2])
-					tableMessage = tr("One Training Day");
-				else if (createMessage[3])
-				{
-					if (!createMessage[1])
-						tableMessage = tr("An updated exercises database list");
-					else
-						tableMessage.append(tr("and an updated exercises database list"));
-				}
-			}
-		}
-	}
-
-	if (createMessage[0] || createMessage[1] || createMessage[2] || createMessage[3])
-	{
-		const QString message(tr("This will import data to create: %1"));
-		QMetaObject::invokeMethod(m_mainWindow, "confirmImport", Q_ARG(QString, message.arg(tableMessage)));
-		return 1;
-	}
-	else
-		return -3;
-}
-
-void TPAppControl::exportMeso(const bool bShare, const bool bFancy)
-{
-	if (!mb_splitsLoaded)
-		loadCompleteMesoSplits(false);
-	const QString suggestedName(mesocyclesModel->getFast(m_MesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
-	setExportFileName(suggestedName);
-	QFile* outFile(nullptr);
-	mesocyclesModel->setExportRow(m_MesoIdx);
-
-	if (exportToFile(mesocyclesModel, exportFileName(), bFancy, outFile))
-	{
-		mesoSplitModel->setExportRow(m_MesoIdx);
-		exportToFile(mesoSplitModel, QString(), bFancy, outFile);
-		exportMesoSplit(u"X"_qs, bShare, bFancy, outFile);
-
-		#ifdef Q_OS_ANDROID
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		m_mainWindow->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(m_mainWindow, "displayResultMessage", Q_ARG(int, -10));
-	}
-}
-void TPAppControl::exportMesoSplit(const QString& splitLetter, const bool bShare, QFile* outFileInUse)
-{
-	QString mesoSplit;
-	QString suggestedName;
-	QFile* outFile(nullptr);
-	const uint meso_idx(itemMngr->mesoIdx());
-
-	if (!outFileInUse)
-	{
-		if (splitLetter == u"X"_qs)
-		{
-			mesoSplit = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT);
-			suggestedName = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan.txt");
-		}
-		else
-		{
-			mesoSplit = splitLetter;
-			suggestedName = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_NAME) +
-								tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
-		}
-		//setExportFileName(suggestedName);
-	}
-	else
-	{
-		outFile = outFileInUse;
-		mesoSplit = appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT);
-	}
-
-	QString mesoLetters;
-	bool bExportToFileOk(true);
-
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
-	do {
-		if (static_cast<QChar>(*itr) == QChar('R'))
-			continue;
-		if (mesoLetters.contains(static_cast<QChar>(*itr)))
-			continue;
-		mesoLetters.append(static_cast<QChar>(*itr));
-		//bExportToFileOk &= exportToFile(const_cast<QmlItemManager*>(itemMngr)->getSplitModel(static_cast<QChar>(*itr)),
-		//									exportFileName(), outFile);
-	} while (++itr != itr_end);
-
-	if (outFileInUse)
-		return;
-
-	if (bExportToFileOk)
-	{
-		#ifdef Q_OS_ANDROID
-		/*setExportFileName("app_logo.png");
-		if (!QFile::exists(exportFileName()))
-		{
-			QFile::copy(":/images/app_logo.png", exportFileName());
-			QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
-		}
-		sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);*/
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		appMainWindow()->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-	}
-}
-
-void TPAppControl::exportTrainingDay(const DBTrainingDayModel* tDayModel, const bool bShare)
-{
-	const QString suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
-	setExportFileName(suggestedName);
-	QFile* outFile(nullptr);
-	if (exportToFile(tDayModel, exportFileName(), outFile))
-	{
-		#ifdef Q_OS_ANDROID
-		if (bShare)
-			sendFile(exportFileName(), tr("Send file"), u"text/plain"_qs, 10);
-		else
-		#else
-		if (!bShare)
-		#endif
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-	}
-	else
-	{
-		QFile::remove(exportFileName());
-		appMainWindow()->setProperty("importExportFilename", exportFileName());
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-	}
+	return bOK;
 }
 
 void TPAppControl::populateSettingsWithDefaultValue()

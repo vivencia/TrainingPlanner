@@ -311,7 +311,7 @@ TPPage {
 				function finishCreation() {
 					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, message: lblHeader.text,
 						imageSource: "export", button1Text: qsTr("Yes"), button2Text: qsTr("No") });
-					exportMessage.button1Clicked.connect(function () { appDB.exportTrainingDay(tDayModel, bShare); } );
+					exportMessage.button1Clicked.connect(function () { itemManager.exportTrainingDay(tDayModel, bShare); } );
 				}
 
 				if (component.status === Component.Ready)

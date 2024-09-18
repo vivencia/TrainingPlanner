@@ -103,7 +103,7 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
-	inline void setExportRow(const int row) { if (row >= 0) { m_exportRows.clear(); m_exportRows.append(row); } }
+	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
 	virtual void exportToText(QFile* outFile) const;
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }

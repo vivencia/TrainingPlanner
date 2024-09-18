@@ -42,14 +42,10 @@ public:
 
 	void setExportFileName(const QString& filename) { m_exportFileName = m_appDataFilesPath + filename;}
 	inline const QString& exportFileName() const { return m_exportFileName; }
-	void openRequestedFile(const QString& filename);
-	bool exportToFile(const TPListModel* model, const QString& filename, const bool bShare, QFile* outFile = nullptr) const;
 	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
 	bool importFromModel(TPListModel* model);
 
-	Q_INVOKABLE void saveFileDialogClosed(QString finalFileName, bool bResultOK);
-	Q_INVOKABLE int parseFile(QString filename);
-	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
+	void shareFile(const QString& fileName) const;
 	Q_INVOKABLE void openURL(const QString& address) const;
 	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
 	Q_INVOKABLE void sendMail(const QString& address, const QString& subject, const QString& attachment_file) const;

@@ -37,6 +37,7 @@ public:
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
 
+	inline bool splitsLoaded() const { return mb_splitsLoaded; }
 	//Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
 	//Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
 	//Q_INVOKABLE void copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const;

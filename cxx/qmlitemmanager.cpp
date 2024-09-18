@@ -15,6 +15,7 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 #include <QSettings>
+#include <QFile>
 
 QQuickWindow* QmlItemManager::app_MainWindow(nullptr);
 QQuickItem* QmlItemManager::app_StackView(nullptr);
@@ -170,6 +171,78 @@ void QmlItemManager::initQML()
 	QMetaObject::invokeMethod(appMainWindow(), "init", Qt::AutoConnection);
 }
 
+void QmlItemManager::displayMessageOnAppWindow(const appWindowMessageID message_id) const
+{
+	QString title, message;
+	const QString fileName(appUtils()->getFileName(appOsInterface()->exportFileName()));
+	switch (message_id)
+	{
+		case APPWINDOW_MSG_EXPORT_OK:
+			title = tr("Succesfully exported");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_SHARE_OK:
+			title = tr("Succesfully shared");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_IMPORT_OK:
+			title = tr("Successfully imported");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_OPEN_FAILED:
+			title = tr("Failed to open file");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_UNKNOWN_FILE_FORMAT:
+			title = tr("Error");
+			message = tr("File type not recognized");
+		break;
+		case APPWINDOW_MSG_CORRUPT_FILE:
+			title = tr("Error");
+			message = tr("File is formatted wrongly or is corrupted");
+		break;
+		case APPWINDOW_MSG_NOTHING_TODO:
+			title = tr("Nothing to be done");
+			message = tr("File had already been imported");
+		break;
+		case APPWINDOW_MSG_NO_MESO:
+			title = tr("No program to import into");
+			message = tr("Either create a new training plan or import from a complete program file");
+		break;
+		case APPWINDOW_MSG_NOTHING_TO_EXPORT:
+			title = tr("Nothing to export");
+			message = tr("Only exercises that do not come by default with the app can be exported");
+		break;
+		case APPWINDOW_MSG_SHARE_FAILED:
+			title = tr("Sharing failed");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_EXPORT_FAILED:
+			title = tr("Export failed");
+			message = tr("Operation canceled");
+		break;
+		case APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED:
+			title = tr("Could not open file for exporting");
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_UNKNOWN_ERROR:
+			title = tr("Error");
+			message = tr("Something went wrong");
+		break;
+	}
+	displayMessageOnAppWindow(title, message);
+}
+
+void QmlItemManager::displayMessageOnAppWindow(const QString& title, const QString& message) const
+{
+	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
+}
+
+void QmlItemManager::displayImportDialogMessage(const QStringList& importOptions, const QString& filename)
+{
+	//QMetaObject::invokeMethod(appMainWindow(), "tryToOpenFile", Q_ARG(QString, filename), Q_ARG(QString, nameOnly));
+}
+
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
 {
 	const QVariantList strargs(args.toList());
@@ -277,46 +350,37 @@ const uint QmlItemManager::removeExercise(const uint row)
 	return row > 0 ? row - 1 : 0;
 }
 
-void QmlItemManager::exportExercises(const bool bShare, const QString& filePath)
+void QmlItemManager::exportExercises(const bool bShare)
 {
-	m_exportFilename = tr("TrainingPlanner Exercises List.txt");
-
-	if(filePath.isEmpty())
+	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	if (appExercisesModel()->collectExportData())
 	{
-		if (!appExercisesModel()->collectExportData())
+		const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
+		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
+		QFile* outFile{new QFile(m_exportFilename)};
+		if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 		{
-			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -6));
-			return;
+			appExercisesModel()->exportToText(outFile);
+			outFile->close();
+			if (bShare)
+			{
+				appOsInterface()->shareFile(m_exportFilename);
+				exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+			}
+			else
+			{
+				connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
+			}
 		}
-
-		if (!bShare)
-		{
-			connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportExercises_slot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportExercises_slot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, m_exportFilename));
-		}
-	}
-	else
-	{
-		if (appOsInterface()->exportToFile(appExercisesModel(), m_exportFilename, bShare))
-			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, 2));
 		else
-		{
-			QFile::remove(appOsInterface()->appDataFilesPath() + m_exportFilename);
-			QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -10));
-		}
+			exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+		delete outFile;
 	}
-}
-
-void QmlItemManager::exportExercises_slot(const QString& filePath)
-{
-	if (!filePath.isEmpty())
-		exportExercises(false, filePath);
 	else
-	{
-		QFile::remove(appOsInterface()->appDataFilesPath() + m_exportFilename);
-		QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(int, -12));
-	}
+		exportFileMessageId = APPWINDOW_MSG_NOTHING_TO_EXPORT;
+	displayMessageOnAppWindow(exportFileMessageId);
 }
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
 
@@ -334,10 +398,16 @@ void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, cons
 
 	m_mesoComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs), QQmlComponent::Asynchronous);
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
-		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
-			{ return QmlItemManager::createMesocyclePage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+	{
+		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status) {
+					createMesocyclePage_part2();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
 	else
 		createMesocyclePage_part2();
+
+	connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+	connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
 }
 
 void QmlItemManager::createMesocyclePage_part2()
@@ -380,6 +450,42 @@ void QmlItemManager::getMesocyclePage()
 void QmlItemManager::scheduleMesocycleRemoval()
 {
 	QTimer::singleShot(200, this, [&] () { appControl()->removeMesocycle(m_mesoIdx); });
+}
+
+void QmlItemManager::exportMeso(const bool bShare, const bool bCoachInfo)
+{
+	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	QFile* outFile{new QFile(m_exportFilename)};
+	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+	{
+		// Might have been called from HomePage.qml->appControl()->exportMeso(). So no connections yet in place
+		connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+		connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+
+		const QString suggestedName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
+		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
+		if (bCoachInfo)
+		{
+			appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_COACH)));
+			appUserModel()->exportToText(outFile);
+		}
+		appMesoModel()->setExportRow(m_mesoIdx);
+		appMesoModel()->exportToText(outFile);
+		if (!appDBInterface()->splitsLoaded())
+			appDBInterface()->loadCompleteMesoSplits(m_mesoIdx, m_splitModels, false);
+		exportMesoSplit(bShare, u"X"_qs, m_exportFilename, true);
+		outFile->close();
+		if (bShare)
+		{
+			appOsInterface()->shareFile(m_exportFilename);
+			exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+		}
+		else
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
+	else
+		exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	delete outFile;
 }
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
@@ -563,6 +669,64 @@ void QmlItemManager::changeMuscularGroup(const QString& new_musculargroup, DBMes
 	splitModel->setMuscularGroup(new_musculargroup);
 	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->splitLetter(), new_musculargroup);
 	setSplitPageProperties(m_splitPages.value(splitModel->splitLetter().at(0)), splitModel);
+}
+
+void QmlItemManager::exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath, const bool bJustExport)
+{
+	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	QString mesoSplit, suggestedName;
+	if (filePath.isEmpty())
+	{
+		if (splitLetter == u"X"_qs)
+		{
+			mesoSplit = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT);
+			suggestedName = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan.txt");
+		}
+		else
+		{
+			mesoSplit = splitLetter;
+			suggestedName = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
+		}
+		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
+	}
+	else
+	{
+		m_exportFilename = filePath;
+		mesoSplit = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT);
+	}
+
+	QFile* outFile{new QFile(m_exportFilename)};
+	bool ok(bJustExport);
+	if (!bJustExport)
+		ok = outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text);
+	if (ok)
+	{
+		QString mesoLetters;
+		QString::const_iterator itr(mesoSplit.constBegin());
+		const QString::const_iterator itr_end(mesoSplit.constEnd());
+		do {
+			if (static_cast<QChar>(*itr) == QChar('R'))
+				continue;
+			if (mesoLetters.contains(static_cast<QChar>(*itr)))
+				continue;
+			mesoLetters.append(static_cast<QChar>(*itr));
+			m_splitModels.value(*itr)->exportToText(outFile);
+		} while (++itr != itr_end);
+		if (bJustExport)
+			return;
+		outFile->close();
+		if (bShare)
+		{
+			appOsInterface()->shareFile(m_exportFilename);
+			exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+		}
+		else
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
+	else
+		exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	delete outFile;
+	displayMessageOnAppWindow(exportFileMessageId);
 }
 //-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 
@@ -853,6 +1017,30 @@ void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel*
 		m_currenttDayPage->setProperty("pageOptionsLoaded", true);
 	else
 		m_tDayProperties.insert(u"pageOptionsLoaded"_qs, true);
+}
+
+void QmlItemManager::exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel)
+{
+	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	const QString suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
+	m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
+	QFile* outFile{new QFile(m_exportFilename)};
+	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+	{
+		tDayModel->exportToText(outFile);
+		outFile->close();
+		if (bShare)
+		{
+			appOsInterface()->shareFile(m_exportFilename);
+			exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+		}
+		else
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
+	}
+	else
+		exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
+	delete outFile;
+	displayMessageOnAppWindow(exportFileMessageId);
 }
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
@@ -1772,6 +1960,14 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 void QmlItemManager::openMainMenuShortCut(const int button_id)
 {
 	QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
+}
+
+void QmlItemManager::exportSlot(const QString& filePath)
+{
+	if (!filePath.isEmpty())
+		QFile::copy(m_exportFilename, filePath);
+	displayMessageOnAppWindow(filePath.isEmpty() ? APPWINDOW_MSG_EXPORT_FAILED : APPWINDOW_MSG_EXPORT_OK);
+	QFile::remove(m_exportFilename);
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 

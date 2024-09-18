@@ -21,9 +21,7 @@ ApplicationWindow {
 	readonly property int windowWidth: width
 	readonly property int windowHeight: contentItem.height
 
-	property string importExportFilename
 	property bool bBackButtonEnabled: true
-
 	property int backKey
 
 	signal saveFileChosen(filepath: string);
@@ -258,32 +256,9 @@ ApplicationWindow {
 		parentPage: homePage
 	}
 
-	function displayResultMessage(result: int) {
-		var message;
-		switch (result)
-		{
-			case  3: message = qsTr("Saved successfully to"); break;
-			case  2: message = qsTr("Export successfully"); break;
-			case  1: return; //Wait for user to confirm whether they will really import from the file
-			case  0: message = qsTr("Import was successfull"); break;
-			case -1: message = qsTr("Failed to open file"); break;
-			case -2: message = qsTr("Error"); importExportFilename = qsTr("File type not recognized"); break;
-			case -3: message = qsTr("Error"); importExportFilename = qsTr("File is formatted wrongly or is corrupted"); break;
-			case -4: message = qsTr("Nothing to be done"); importExportFilename = qsTr("File had already been imported"); break;
-			case -5:
-				message = qsTr("No mesocycle to import into");
-				importExportFilename = qsTr("Either create a new training plan or import from a complete program file");
-			break;
-			case -11: message = qsTr("Export failed"); break;
-			case -12: importExportFilename = qsTr("Saving canceled");  break;
-			case -6:
-				message = qsTr("Nothing to save.");
-				importExportFilename = qsTr("Only exercises that do not come by default with the app can be exported");
-			break;
-			case -10: message = qsTr("Something went wrong"); break;
-		}
-		activityFinishedTip.title = message;
-		activityFinishedTip.message = importExportFilename;
+	function displayResultMessage(title: string, message: string) {
+		activityFinishedTip.title = title;
+		activityFinishedTip.message = message;
 		activityFinishedTip.showTimed(5000, 0);
 	}
 
