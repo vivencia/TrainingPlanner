@@ -85,7 +85,7 @@ public:
 	Q_INVOKABLE inline bool isEmpty() const { return mb_empty; }
 	void setIsEmpty(const bool empty) { mb_empty = empty; }
 
-	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual bool importFromFile(const QString& filename) override;
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		switch (field)

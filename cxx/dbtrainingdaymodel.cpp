@@ -3,7 +3,6 @@
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 
 #include <QtMath>
@@ -14,8 +13,9 @@ static const QLatin1Char fancy_record_separator2(';');
 DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const int meso_idx)
 	: TPListModel(parent, meso_idx), mb_DayIsFinished(false), mb_DayIsEditable(false)
 {
-	m_tableId = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
+	m_tableId = TRAININGDAY_TABLE_ID;
+	m_exportName = tr("Single workout");
 }
 
 void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse)

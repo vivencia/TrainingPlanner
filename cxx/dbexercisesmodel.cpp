@@ -3,8 +3,9 @@
 DBExercisesModel::DBExercisesModel(QObject* parent)
 	: TPListModel{parent}, m_selectedEntryToReplace(0)
 {
-	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
+	m_tableId = EXERCISES_TABLE_ID;
+	m_exportName = tr("Exercises List");
 
 	// Set names to the role name hash container (QHash<int, QByteArray>)
 	m_roleNames[exerciseIdRole] = "exerciseId";
@@ -68,7 +69,7 @@ bool DBExercisesModel::updateFromModel(const TPListModel* model)
 	return false;
 }
 
-bool DBExercisesModel::importFromText(QFile* inFile, QString& inData)
+bool DBExercisesModel::importFromFile(const QString& filename)
 {
 	char buf[256];
 	QStringList modeldata;

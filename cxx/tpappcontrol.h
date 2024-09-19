@@ -51,11 +51,7 @@ public:
 	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
 
 	void openRequestedFile(const QString& filename);
-	int importFromFile(const QString& filename);
-	bool importFromModel(TPListModel* model);
-
-private:
-	void populateSettingsWithDefaultValue();
+	int importFromFile(const QString& filename, const bool bImportOptions[5]);
 	void createItemManager();
 
 	static TPAppControl* app_control;
@@ -66,9 +62,6 @@ private:
 
 	static TranslationClass* app_tr;
 	friend TranslationClass* appTr();
-
-	static TPUtils* app_utils;
-	friend TPUtils* appUtils();
 
 	static DBInterface* app_db_interface;
 	friend DBInterface* appDBInterface();
@@ -98,7 +91,6 @@ private:
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
 inline QSettings* appSettings() { return TPAppControl::app_settings; }
 inline TranslationClass* appTr() { return TPAppControl::app_tr; }
-inline TPUtils* appUtils() { return TPAppControl::app_utils; }
 inline DBInterface* appDBInterface() { return TPAppControl::app_db_interface; }
 inline DBUserModel* appUserModel() { return TPAppControl::app_user_model; }
 inline DBMesocyclesModel* appMesoModel() { return TPAppControl::app_meso_model; }

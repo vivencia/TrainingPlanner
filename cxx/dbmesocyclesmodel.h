@@ -106,14 +106,23 @@ public:
 	bool isDifferent(const DBMesocyclesModel* model);
 	void updateColumnLabels();
 
-	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual bool importFromFile(const QString& filename) override;
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
-		return field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE;
+		switch (field)
+		{
+			case MESOCYCLES_COL_STARTDATE:
+			case MESOCYCLES_COL_ENDDATE:
+			case MESOCYCLES_COL_COACH:
+			case MESOCYCLES_COL_CLIENT:
+			case MESOCYCLES_COL_REALMESO:
+				return true;
+			default: return false;
+		}
 	}
 
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
-	QString formatFieldToImport(const QString& fieldValue) const;
+	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
 
 signals:
 	void mesoCalendarFieldsChanged(const uint meso_idx);

@@ -55,6 +55,11 @@ QmlItemManager::~QmlItemManager()
 		delete clientsOrCoachesComponent;
 	}
 
+	if (m_importDlgComponent)
+	{
+		delete m_importDlg;
+		delete m_importDlgComponent;
+	}
 	if (m_mesoComponent)
 	{
 		removeMainMenuShortCut(m_mesoPage);
@@ -139,7 +144,7 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider());
 
 	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	app_StackView = QmlItemManager::app_MainWindow->findChild<QQuickItem*>(u"appStackView"_qs);
+	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
 	QQuickItem* contentItem(app_StackView->parentItem());
 
 	//Root context properties. MainWindow app properties
@@ -155,7 +160,7 @@ void QmlItemManager::configureQmlEngine()
 	properties.append(QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs });
 	properties.append(QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) });
 	properties.append(QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) });
-	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(app_MainWindow) });
+	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) });
 	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
 	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
@@ -240,26 +245,80 @@ void QmlItemManager::displayMessageOnAppWindow(const QString& title, const QStri
 
 void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString& filename)
 {
-	QStringList importOptions(5);
-	if (fileContents & IFC_MESO)
-		{
-	importOptions[0] = qApp->tr("Complete Training Plan");
-			if (fileContents & IFC_USER)
-				importOptions[1] = qApp->tr("Coach information");
-			if (fileContents & IFC_MESO)
-				importOptions[2] = qApp->tr("Exercises Program");
+	if (!m_importDlgComponent)
+	{
+		m_importDlg = nullptr;
+		m_importDlgComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Dialogs/ImportDialog.qml"_qs), QQmlComponent::Asynchronous);
+		m_importDlgProperties[u"title"_qs] = tr("Import?");
+	}
+
+	m_fileContents = fileContents;
+	m_importFilename = filename;
+
+	QStringList importOptions;
+	if (m_fileContents & IFC_MESO)
+	{
+		importOptions.append(tr("Complete Training Plan"));
+		if (m_fileContents & IFC_USER)
+			importOptions.append(tr("Coach information"));
+		if (m_fileContents & IFC_MESOSPLIT)
+			importOptions.append(tr("Exercises Program"));
 	}
 	else
-		{
-			if (fileContents & IFC_MESO)
-				importOptions[2] = qApp->tr("Exercises Program");
-				else if (fileContents & IFC_TDAY)
-				importOptions[3] = qApp->tr("Exercises database update");
-			else if (fileContents & IFC_EXERCISES)
+	{
+		if (m_fileContents & IFC_MESOSPLIT)
+			importOptions.append(tr("Exercises Program"));
+		else if (m_fileContents & IFC_TDAY)
+			importOptions.append(tr("Exercises database update"));
+		else if (m_fileContents & IFC_EXERCISES)
+			importOptions.append(tr("Exercises database update"));
+	}
 
-				importOptions[4] = qApp->tr("Exercises database update");
-		}
-	//QMetaObject::invokeMethod(appMainWindow(), "tryToOpenFile", Q_ARG(QString, filename), Q_ARG(QString, nameOnly));
+	const QList<bool> selectedFields(importOptions.count(), true);
+	if (!m_importDlg)
+	{
+		m_importDlgProperties[u"importOptions"_qs] = importOptions;
+		m_importDlgProperties[u"selectedFields"_qs] = QVariant::fromValue(selectedFields);
+		createImportDialog();
+	}
+	else
+	{
+		m_importDlg->setProperty("importOptions", importOptions);
+		m_importDlg->setProperty("selectedFields", QVariant::fromValue(selectedFields));
+	}
+	QMetaObject::invokeMethod(m_importDlg, "show", Q_ARG(int, -1));
+}
+
+void QmlItemManager::createImportDialog()
+{
+	#ifdef DEBUG
+	if (m_importDlgComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_importDlgComponent->errorString();
+		for (uint i(0); i < m_importDlgComponent->errors().count(); ++i)
+			qDebug() << m_importDlgComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	if (m_importDlgComponent->status() == QQmlComponent::Ready)
+	{
+		m_importDlg = static_cast<QQuickItem*>(m_importDlgComponent->createWithInitialProperties(m_importDlgProperties, appQmlEngine()->rootContext()));
+		appQmlEngine()->setObjectOwnership(m_importDlg, QQmlEngine::CppOwnership);
+		m_importDlg->setParentItem(appMainWindow()->contentItem());
+		connect(m_importDlg, SIGNAL(importButtonClicked()), this, SLOT(importSlot()));
+	}
+}
+
+void QmlItemManager::importSlot()
+{
+	const QList<bool> selectedFields = m_importDlg->property("selectedFields").value<QList<bool>>();
+	const bool bImportMeso((m_fileContents & IFC_MESO) && selectedFields.at(0));
+	const bool bImportUser((m_fileContents & IFC_MESO) && selectedFields.at(1));
+	const bool bImportMesoSplit((m_fileContents & IFC_MESOSPLIT) && (m_fileContents & IFC_MESO ? selectedFields.at(2) : selectedFields.at(0)));
+	const bool bImportTDay((m_fileContents & IFC_TDAY) && selectedFields.at(0));
+	const bool bImportExercises((m_fileContents & IFC_EXERCISES) && selectedFields.at(0));
+	const bool bImportOptions[5] {bImportMeso, bImportUser, bImportMesoSplit, bImportTDay, bImportExercises};
+	appControl()->importFromFile(m_importFilename, bImportOptions);
 }
 
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
@@ -336,11 +395,11 @@ void QmlItemManager::createExercisesPage_part2(QQuickItem* connectPage)
 	{
 		exercisesPage = static_cast<QQuickItem*>(exercisesComponent->createWithInitialProperties(exercisesProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(exercisesPage, QQmlEngine::CppOwnership);
-		exercisesPage->setParentItem(app_MainWindow->contentItem());
+		exercisesPage->setParentItem(appMainWindow()->contentItem());
 		appExercisesModel()->clearSelectedEntries();
 		if (connectPage)
 			connect(exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
 	}
 }
 
@@ -357,7 +416,7 @@ void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled, QQuickIte
 			disconnect(exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
 			connect(exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
 		}
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
 	}
 }
 
@@ -1780,7 +1839,7 @@ void QmlItemManager::getSettingsPage(const uint startPageIndex)
 	if (settingsComponent)
 	{
 		settingsPage->setProperty("startPageIndex", startPageIndex);
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, settingsPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, settingsPage));
 	}
 	else
 	{
@@ -1812,8 +1871,8 @@ void QmlItemManager::createSettingsPage()
 	{
 		settingsPage = static_cast<QQuickItem*>(settingsComponent->createWithInitialProperties(settingsProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(settingsPage, QQmlEngine::CppOwnership);
-		settingsPage->setParentItem(app_MainWindow->contentItem());
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, settingsPage));
+		settingsPage->setParentItem(appMainWindow()->contentItem());
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, settingsPage));
 		userPage = settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
 		userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
@@ -1831,7 +1890,7 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 	setClientsOrCoachesPagesProperties(bManageClients, bManageCoaches);
 
 	if (clientsOrCoachesComponent)
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, clientsOrCoachesPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, clientsOrCoachesPage));
 	else
 	{
 		clientsOrCoachesProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
@@ -1863,8 +1922,8 @@ void QmlItemManager::createClientsOrCoachesPage()
 		clientsOrCoachesPage = static_cast<QQuickItem*>(clientsOrCoachesComponent->createWithInitialProperties(
 				clientsOrCoachesProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(clientsOrCoachesPage, QQmlEngine::CppOwnership);
-		clientsOrCoachesPage->setParentItem(app_MainWindow->contentItem());
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, clientsOrCoachesPage));
+		clientsOrCoachesPage->setParentItem(appMainWindow()->contentItem());
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, clientsOrCoachesPage));
 	}
 }
 
@@ -1938,19 +1997,19 @@ void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
 	if (m_mainMenuShortcutPages.contains(page))
-		QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 	else
 	{
 		if (m_mainMenuShortcutEntries.count() < 5)
 		{
-			QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
-			QMetaObject::invokeMethod(app_MainWindow, "createShortCut", Q_ARG(QString, label),
+			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
+			QMetaObject::invokeMethod(appMainWindow(), "createShortCut", Q_ARG(QString, label),
 													Q_ARG(QQuickItem*, page), Q_ARG(int, m_mainMenuShortcutPages.count()));
 			m_mainMenuShortcutPages.append(page);
 		}
 		else
 		{
-			QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, page));
+			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 			for (uint i(0); i < m_mainMenuShortcutPages.count()-1; ++i)
 			{
 				m_mainMenuShortcutPages.move(i+1, i);
@@ -1967,7 +2026,7 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 	const int idx(m_mainMenuShortcutPages.indexOf(page));
 	if (idx != -1)
 	{
-		QMetaObject::invokeMethod(app_MainWindow, "popFromStack", Q_ARG(QQuickItem*, page));
+		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, page));
 		m_mainMenuShortcutPages.remove(idx);
 		delete m_mainMenuShortcutEntries.at(idx);
 		m_mainMenuShortcutEntries.remove(idx);
@@ -1978,7 +2037,7 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 
 void QmlItemManager::openMainMenuShortCut(const int button_id)
 {
-	QMetaObject::invokeMethod(app_MainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 
 void QmlItemManager::exportSlot(const QString& filePath)

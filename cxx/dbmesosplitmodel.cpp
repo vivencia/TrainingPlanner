@@ -10,12 +10,13 @@ static const QLatin1Char fancy_record_separator2(';');
 DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
 	: TPListModel(parent, meso_idx), m_nextAddedExercisePos(2), mb_Complete(bComplete)
 {
-	m_tableId = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
+	m_tableId = MESOSPLIT_TABLE_ID;
+	m_exportName = tr("Exercises Program");
 
 	if (mb_Complete)
 	{
-		mColumnNames.reserve(MESOSPLIT_COL_WORKINGSET);
+		mColumnNames.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(tr("Exercise name: "));
 		mColumnNames.append(tr("Number of sets: "));
 		mColumnNames.append(tr("Set instructions: "));
@@ -23,10 +24,11 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 		mColumnNames.append(tr("Number of subsets: "));
 		mColumnNames.append(tr("Reps: "));
 		mColumnNames.append(tr("Weight: "));
+		mColumnNames.append(QString()); //MESOSPLIT_COL_WORKINGSET
 	}
 	else
 	{
-		mColumnNames.reserve(8);
+		mColumnNames.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(QString()); //id
 		mColumnNames.append(QString()); //meso id
 		mColumnNames.append(tr("Split A: "));
@@ -397,48 +399,54 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 	return retStr;
 }
 
-void DBMesoSplitModel::exportToText(QFile* outFile) const
+bool DBMesoSplitModel::exportToFile(const QString& filename) const
 {
-	const QString strHeader(u"##"_qs + objectName() + u"\n\n"_qs);
-	outFile->write(strHeader.toUtf8().constData());
-	outFile->write(exportExtraInfo().toUtf8().constData());
-	outFile->write("\n\n", 2);
-
-	QString value;
-	uint nsets(0);
-	QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
-
-	while (itr != itr_end)
+	QFile* outFile{new QFile(filename)};
+	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	if (bOK)
 	{
-		for (uint i(0); i < (*itr).count(); ++i)
+		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+		outFile->write(strHeader.toUtf8().constData());
+
+		QString value;
+		uint nsets(0);
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+		while (itr != itr_end)
 		{
-			if (i < mColumnNames.count())
+			for (uint i(0); i < (*itr).count(); ++i)
 			{
-				if (!mColumnNames.at(i).isEmpty())
+				if (i < mColumnNames.count())
 				{
-					outFile->write(mColumnNames.at(i).toUtf8().constData());
-					value.clear();
-					nsets = (*itr).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
-					for (uint x(0); x < nsets; ++x)
+					if (!mColumnNames.at(i).isEmpty())
 					{
-						if (!isFieldFormatSpecial(i))
+						outFile->write(mColumnNames.at(i).toUtf8().constData());
+						value.clear();
+						nsets = (*itr).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
+						for (uint x(0); x < nsets; ++x)
 						{
-							value.append(appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1()) + fancy_record_separator2);
-							value.replace(subrecord_separator, '|');
+							if (!isFieldFormatSpecial(i))
+							{
+								value.append(appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1()) + fancy_record_separator2);
+								value.replace(subrecord_separator, '|');
+							}
+							else
+								value.append(formatFieldToExport(i, appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1())) + fancy_record_separator2);
 						}
-						else
-							value.append(formatFieldToExport(i, appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1())) + fancy_record_separator2);
+						outFile->write(value.replace(record_separator2, fancy_record_separator2).toUtf8().constData());
+						outFile->write("\n", 1);
 					}
-					outFile->write(value.replace(record_separator2, fancy_record_separator2).toUtf8().constData());
-					outFile->write("\n", 1);
 				}
 			}
+			outFile->write("\n", 1);
+			++itr;
 		}
-		outFile->write("\n", 1);
-		++itr;
+		outFile->write(STR_END_EXPORT.toUtf8().constData());
+		outFile->close();
 	}
-	outFile->write(tr("##End##\n").toUtf8().constData());
+	delete outFile;
+	return bOK;
 }
 
 const QString DBMesoSplitModel::exportExtraInfo() const
@@ -446,8 +454,49 @@ const QString DBMesoSplitModel::exportExtraInfo() const
 	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup : QString();
 }
 
-bool DBMesoSplitModel::importFromText(QFile* inFile, QString& inData)
+bool DBMesoSplitModel::importFromFile(const QString& filename)
 {
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
+
+	char buf[128];
+	qint64 lineLength(0);
+	uint col(1);
+	QString value;
+
+	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
+
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (lineLength > 10)
+		{
+			if (strstr(buf, "##") != NULL)
+			{
+				if (col != MESOCYCLES_COL_FILE)
+				{
+					value = buf;
+					value.remove(0, value.indexOf(':') + 1);
+					if (isFieldFormatSpecial(col))
+						modeldata[col] = formatFieldToImport(col, value, buf);
+					else
+						modeldata[col] = value;
+				}
+				++col;
+			}
+			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
+				break;
+		}
+	}
+	m_modeldata.append(modeldata);
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
+
+
 	char buf[256];
 	QStringList modeldata;
 	int sep_idx(-1);

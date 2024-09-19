@@ -2,14 +2,16 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesosplitmodel.h"
 #include "tputils.h"
+#include "tpappcontrol.h"
 
 #include <QSettings>
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	: TPListModel{parent}, m_userModel(nullptr), m_mostRecentOwnMesoIdx(-1)
 {
-	m_tableId = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
+	m_tableId = MESOCYCLES_TABLE_ID;
+	m_exportName = tr("Plano de treinamento");
 
 	m_roleNames[mesoNameRole] = "mesoName";
 	m_roleNames[mesoStartDateRole] = "mesoStartDate";
@@ -19,17 +21,18 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	m_roleNames[mesoClientRole] = "mesoClient";
 
 	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
-	mColumnNames.append(QString());
+	mColumnNames.append(QString()); //MESOCYCLES_COL_ID
 	mColumnNames.append(tr("Plan's name: "));
 	mColumnNames.append(tr("Start date: "));
 	mColumnNames.append(tr("End date: "));
 	mColumnNames.append(tr("Plan's considerations: "));
 	mColumnNames.append(tr("Number of weeks: "));
 	mColumnNames.append(tr("Weekly Training Division: "));
-	mColumnNames.append(QString()); //Coach
-	mColumnNames.append(QString()); //Client
-	mColumnNames.append(QString());
+	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
+	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
+	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
 	mColumnNames.append(tr("Type: "));
+	mColumnNames.append(tr("Mesocycle-style plan: "));
 
 	m_splitModel = new DBMesoSplitModel(this, false, -1);
 }
@@ -364,71 +367,77 @@ void DBMesocyclesModel::updateColumnLabels()
 	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
 }
 
-bool DBMesocyclesModel::importFromText(QFile* inFile, QString& inData)
+bool DBMesocyclesModel::importFromFile(const QString& filename)
 {
-	char buf[256];
-	QStringList modeldata;
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
+
+	char buf[128];
+	qint64 lineLength(0);
 	uint col(1);
 	QString value;
 
-	//Because a DBMesocyclesModel does not have an extra info to export nor import, inFile is already at the
-	//first relevant information of the meso, its name
-	inData.chop(1);
-	int sep_idx(inData.indexOf(':'));
-	if (sep_idx != -1)
+	QStringList modeldata(MESOCYCLES_TOTAL_COLS);
+	modeldata[0] = STR_MINUS_ONE;
+
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
-		value = inData.right(inData.length() - sep_idx - 2);
-		modeldata.append(STR_MINUS_ONE); //id
-		modeldata.append(value); //meso name
-		col++;
-	}
-	else
-		return false;
-
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
+		if (lineLength > 10)
 		{
-			if (!modeldata.isEmpty())
+			if (strstr(buf, "##") != NULL)
 			{
-				modeldata.append(modeldata.at(MESOCYCLES_COL_ENDDATE).toInt() != 0 ? STR_ONE : STR_ZERO); //MESOCYCLES_COL_REALMESO
-				appendList(modeldata);
-				modeldata.clear();
-				col = 1;
+				if (col != MESOCYCLES_COL_FILE)
+				{
+					value = buf;
+					value.remove(0, value.indexOf(':') + 1);
+					if (isFieldFormatSpecial(col))
+						modeldata[col] = formatFieldToImport(col, value, buf);
+					else
+						modeldata[col] = value;
+				}
+				++col;
 			}
-		}
-		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-			{
-				value = inData.right(inData.length() - sep_idx - 2);
-				if (isFieldFormatSpecial(col))
-					modeldata.append(formatFieldToImport(value));
-				else
-					modeldata.append(value);
-				col++;
-			}
-			else
-			{
-				if (inData.contains(u"##"_qs))
-					break;
-			}
+			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
+				break;
 		}
 	}
-	return count() > 0;
+	m_modeldata.append(modeldata);
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
 }
 
-QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString &fieldValue) const
+QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString& fieldValue) const
 {
-	if (field == MESOCYCLES_COL_STARTDATE || field == MESOCYCLES_COL_ENDDATE)
-		return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-	else
-		return QString();
+	switch (field)
+	{
+		case MESOCYCLES_COL_STARTDATE:
+		case MESOCYCLES_COL_ENDDATE:
+			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+		case MESOCYCLES_COL_COACH:
+		case MESOCYCLES_COL_CLIENT:
+			return fieldValue;
+		case MESOCYCLES_COL_REALMESO:
+			return fieldValue == STR_ONE ? tr("Yes") : tr("No");
+	}
 }
 
-QString DBMesocyclesModel::formatFieldToImport(const QString &fieldValue) const
+QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const
 {
-	return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
+	switch (field)
+	{
+		case MESOCYCLES_COL_STARTDATE:
+		case MESOCYCLES_COL_ENDDATE:
+			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
+		case MESOCYCLES_COL_COACH:
+			return fieldName.contains(tr("Coach")) ? fieldValue : QString();
+		case MESOCYCLES_COL_CLIENT:
+			return fieldName.contains(tr("Client")) ? fieldValue : QString();
+		case MESOCYCLES_COL_REALMESO:
+			return fieldValue == tr("Yes") ? STR_ONE : STR_ZERO;
+	}
 }

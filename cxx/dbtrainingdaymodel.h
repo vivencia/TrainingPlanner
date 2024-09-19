@@ -56,7 +56,7 @@ public:
 	const QString& formatSetTypeToExport(const QString& fieldValue) const;
 	virtual void exportToText(QFile* outFile) const override;
 	const QString& formatSetTypeToImport(const QString& fieldValue) const;
-	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual bool importFromFile(const QString& filename) override;
 
 	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);

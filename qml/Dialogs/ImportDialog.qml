@@ -7,14 +7,14 @@ import "../TPWidgets"
 import com.vivenciasoftware.qmlcomponents
 
 TPPopup {
-	id: dialog
+	id: importDlg
 	bKeepAbove: true
 	width: windowWidth * 0.9
 	height: totalHeight + 20
 
 	property string title
-	property var importFields: []
-	property bool selectedFields: []
+	property var importOptions: []
+	property var selectedFields: []
 
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
@@ -87,14 +87,25 @@ TPPopup {
 
 		Repeater {
 			id: repeater
-			model: importFields.length
+			model: importOptions.length
 
 			TPCheckBox {
 				id: chkImportField
-				text: importFields[index]
+				text: importOptions[index]
 				checked: true
 
-				onClicked: selectedFields[index] = checked;
+				onClicked: {
+					selectedFields[index] = checked;
+					if (index === 0) {
+						if (importOptions.length > 1) {
+							for (var i = 1; i < importOptions.length; ++i)
+							{
+								repeater.itemAt(i).chkImportField.enabled = checked;
+								selectedFields[i] = checked;
+							}
+						}
+					}
+				}
 			}
 		} //Repeater
 
@@ -118,7 +129,7 @@ TPPopup {
 
 			onClicked: {
 				importButtonClicked();
-				dialog.close();
+				importDlg.close();
 			}
 		}
 
@@ -128,9 +139,24 @@ TPPopup {
 			flat: false
 			Layout.alignment: Qt.AlignCenter
 
-			onClicked: dialog.close();
+			onClicked: importDlg.close();
 		}
 
 		Component.onCompleted: totalHeight += 30;
+	}
+
+	function show(ypos) {
+		importDlg.x = (windowWidth - importDlg.width)/2;
+
+		if (ypos < 0)
+			ypos = (windowHeight-importDlg.height)/2;
+
+		finalYPos = ypos;
+		if (ypos <= windowHeight/2)
+			startYPos = -300;
+		else
+			startYPos = windowHeight + 300;
+
+		importDlg.open();
 	}
 }

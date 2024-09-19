@@ -13,7 +13,7 @@
 TPAppControl* TPAppControl::app_control(nullptr);
 QSettings* TPAppControl::app_settings(nullptr);
 TranslationClass* TPAppControl::app_tr(nullptr);
-TPUtils* TPAppControl::app_utils(nullptr);
+TPUtils* TPUtils::app_utils(nullptr);
 DBInterface* TPAppControl::app_db_interface(nullptr);
 DBUserModel* TPAppControl::app_user_model(nullptr);
 DBMesocyclesModel* TPAppControl::app_meso_model(nullptr);
@@ -50,7 +50,7 @@ TPAppControl::TPAppControl()
 	app_tr = &_trClass;
 	_trClass.selectLanguage();
 	TPUtils _tPUtils;
-	app_utils = &_tPUtils;
+	TPUtils::app_utils = &_tPUtils;
 	DBInterface _dbInterface;
 	app_db_interface = &_dbInterface;
 	DBUserModel _dbUserModel;
@@ -209,7 +209,7 @@ void TPAppControl::openRequestedFile(const QString& filename)
 			if (strstr(buf, "##") != NULL)
 			{
 				inData = buf;
-				if (!inData.startsWith(u"##0x"_qs))
+				if (inData.startsWith(u"##"_qs))
 				{
 					if (inData.indexOf(DBUserObjectName) != -1)
 						fileContents |= IFC_USER;
@@ -251,16 +251,17 @@ void TPAppControl::openRequestedFile(const QString& filename)
  *	-3: Nothing was imported, either because file was missing info or error in formatting
  *	-4: File has been previously imported
  */
-int TPAppControl::importFromFile(const QString& filename)
+int TPAppControl::importFromFile(const QString& filename, const bool bImportOptions[5])
 {
 	//if (filename.startsWith(u"file:"_qs))
 	//	filename.remove(0, 7); //remove file://
-	QFile* inFile{new QFile(filename)};
-	inFile->deleteLater();
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	if (bImportOptions[0])
 	{
-		delete inFile;
-		return -1;
+		if (bImportOptions[1])
+		{
+			DBUserModel* modelUser{new DBUserModel};
+			modelUser->importFromText()
+		}
 	}
 
 	TPListModel* model(nullptr);
@@ -302,20 +303,7 @@ int TPAppControl::importFromFile(const QString& filename)
 			}
 		}
 	}
-	else
-	{
-		inData = inData.left(2);
-		inData.chop(1);
-		switch (inData.toUInt())
-		{
-			case EXERCISES_TABLE_ID: model = new DBExercisesModel(this); break;
-			case MESOCYCLES_TABLE_ID: model = new DBMesocyclesModel(this); break;
-			case MESOSPLIT_TABLE_ID: model = new DBMesoSplitModel(this); break;
-			//case TRAININGDAY_TABLE_ID: model = new DBTrainingDayModel(this); break;
-			default:
-				return -2;
-		}
-	}
+
 
 	model->deleteLater();
 	if (!model->importExtraInfo(inData))
@@ -326,11 +314,6 @@ int TPAppControl::importFromFile(const QString& filename)
 		if (!importFromModel(model))
 			return -4;
 	}
-
-	if (!inFile->atEnd())
-		return importFromFile(filename);
-	else
-		return 0;
 }
 
 bool TPAppControl::importFromModel(TPListModel* model)

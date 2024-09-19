@@ -34,6 +34,7 @@ static const QString DBUserObjectName(u"UserProfile"_qs);
 static const QString STR_MINUS_ONE(u"-1"_qs);
 static const QString STR_ZERO(u"0"_qs);
 static const QString STR_ONE(u"1"_qs);
+static const QString STR_END_EXPORT(u"####"_qs);
 
 class TPListModel : public QAbstractListModel
 {
@@ -103,12 +104,13 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
+	const QString& exportName() const { return m_exportName; }
 	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
-	virtual void exportToText(QFile* outFile) const;
+	virtual bool exportToFile(const QString& filename) const;
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
 	virtual inline QString formatFieldToExport(const uint, const QString&) const { return QString(); }
-	virtual bool importFromText(QFile* inFile, QString& inData) { Q_UNUSED(inFile); Q_UNUSED(inData); return false; }
+	virtual bool importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
@@ -239,7 +241,7 @@ protected:
 	bool m_bFilterApplied, m_bReady, m_bModified;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
-	QString m_filterString;
+	QString m_filterString, m_exportName;
 
 	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
 	void copy ( const TPListModel& src_item );

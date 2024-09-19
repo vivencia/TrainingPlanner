@@ -217,63 +217,69 @@ void TPListModel::setExportFiter(const QString& filter, const uint field)
 	}
 }
 
-void TPListModel::exportToText(QFile* outFile) const
+bool TPListModel::exportToFile(const QString& filename) const
 {
-	const QString strHeader(u"##"_qs + objectName() + u"\n\n"_qs);
-	outFile->write(strHeader.toUtf8().constData());
-	outFile->write(exportExtraInfo().toUtf8().constData());
-	outFile->write("\n\n", 2);
-
-	QString value;
-	if (m_exportRows.isEmpty())
+	QFile* outFile{new QFile(filename)};
+	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	if (bOK)
 	{
-		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+		outFile->write(strHeader.toUtf8().constData());
 
-		while (itr != itr_end)
+		QString value;
+		if (m_exportRows.isEmpty())
 		{
-			for (uint i(0); i < (*itr).count(); ++i)
+			QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+			const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+			while (itr != itr_end)
 			{
-				if (i < mColumnNames.count())
+				for (uint i(0); i < (*itr).count(); ++i)
 				{
-					if (!mColumnNames.at(i).isEmpty())
+					if (i < mColumnNames.count())
 					{
-						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						if (!isFieldFormatSpecial(i))
-							value = (*itr).at(i);
-						else
-							value = formatFieldToExport(i, (*itr).at(i));
-						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
-						outFile->write("\n", 1);
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							if (!isFieldFormatSpecial(i))
+								value = (*itr).at(i);
+							else
+								value = formatFieldToExport(i, (*itr).at(i));
+							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write("\n", 1);
+						}
 					}
 				}
+				outFile->write("\n", 1);
+				++itr;
 			}
-			outFile->write("\n", 1);
-			++itr;
 		}
-	}
-	else
-	{
-		for (uint x(0); x < m_exportRows.count(); ++x)
+		else
 		{
-			for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+			for (uint x(0); x < m_exportRows.count(); ++x)
 			{
-				if (i < mColumnNames.count())
+				for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
 				{
-					if (!mColumnNames.at(i).isEmpty())
+					if (i < mColumnNames.count())
 					{
-						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						if (!isFieldFormatSpecial(i))
-							value = m_modeldata.at(m_exportRows.at(x)).at(i);
-						else
-							value = formatFieldToExport(i, m_modeldata.at(m_exportRows.at(x)).at(i));
-						outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
-						outFile->write("\n", 1);
+						if (!mColumnNames.at(i).isEmpty())
+						{
+							outFile->write(mColumnNames.at(i).toUtf8().constData());
+							if (!isFieldFormatSpecial(i))
+								value = m_modeldata.at(m_exportRows.at(x)).at(i);
+							else
+								value = formatFieldToExport(i, m_modeldata.at(m_exportRows.at(x)).at(i));
+							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write("\n", 1);
+						}
 					}
 				}
+				outFile->write("\n", 1);
 			}
-			outFile->write("\n", 1);
 		}
+		outFile->write(STR_END_EXPORT.toUtf8().constData());
+		outFile->close();
 	}
-	outFile->write(tr("##End##\n").toUtf8().constData());
+	delete outFile;
+	return bOK;
 }

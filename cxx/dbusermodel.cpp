@@ -4,8 +4,9 @@
 DBUserModel::DBUserModel(QObject *parent)
 	: TPListModel(parent), mb_empty(false), m_searchRow(-1)
 {
-	m_tableId = EXERCISES_TABLE_ID;
 	setObjectName(DBUserObjectName);
+	m_tableId = EXERCISES_TABLE_ID;
+	m_exportName = tr("Coach information");
 
 	mColumnNames.reserve(USER_TOTAL_COLS);
 	mColumnNames.append(QString());
@@ -367,54 +368,47 @@ bool DBUserModel::updateFromModel(const TPListModel* model)
 	return false;
 }
 
-bool DBUserModel::importFromText(QFile* inFile, QString& inData)
+bool DBUserModel::importFromFile(const QString& filename)
 {
-	char buf[256];
-	QStringList modeldata;
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
+
+	char buf[128];
+	qint64 lineLength(0);
 	uint col(1);
 	QString value;
 
-	//Because a DBUserModel does not have an extra info to export nor import, inFile is already at the
-	//first relevant information of the meso, its name
-	inData.chop(1);
-	int sep_idx(inData.indexOf(':'));
-	if (sep_idx != -1)
-	{
-		value = inData.right(inData.length() - sep_idx - 2);
-		modeldata.append(u"-1"_qs); //id
-		modeldata.append(value); //name
-		col++;
-	}
-	else
-		return false;
+	QStringList modeldata(USER_TOTAL_COLS);
+	modeldata[0] = STR_MINUS_ONE;
 
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (lineLength > 10)
 		{
-			if (!modeldata.isEmpty())
+			if (strstr(buf, "##") != NULL)
 			{
-				appendList(modeldata);
-				modeldata.clear();
-				col = 1;
-			}
-		}
-		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-			{
-				value = inData.right(inData.length() - sep_idx - 2);
-				modeldata.append(value);
-				col++;
-			}
-			else
-			{
-				if (inData.contains(u"##"_qs))
+				if (col < USER_COL_APP_USE_MODE)
+				{
+					if (col != USER_COL_USERROLE)
+					{
+						value = buf;
+						modeldata[col] = value.remove(0, value.indexOf(':') + 1);
+					}
+					++col;
+				}
+				else
 					break;
 			}
+			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
+				break;
 		}
 	}
-	return count() > 0;
+	m_modeldata.append(modeldata);
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
 }

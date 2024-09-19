@@ -88,6 +88,11 @@ private:
 		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
+
+	static TPUtils* app_utils;
+	friend TPUtils* appUtils();
+	friend class TPAppControl;
 };
 
+inline TPUtils* appUtils() { return TPUtils::app_utils; }
 #endif // TPUTILS_H

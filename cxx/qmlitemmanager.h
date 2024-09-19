@@ -51,11 +51,11 @@ Q_OBJECT
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 
 public:
-	QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
+	inline QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
 		: QObject{parent}, m_mesoIdx(meso_idx),
 			m_mesoComponent(nullptr), m_plannerComponent(nullptr),
 			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
-			m_setComponents{nullptr} {}
+			m_setComponents{nullptr}, m_importDlgComponent(nullptr) {}
 	~QmlItemManager();
 	static void configureQmlEngine();
 	void initQML();
@@ -66,6 +66,7 @@ public:
 	void displayMessageOnAppWindow(const appWindowMessageID message_id) const;
 	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
+	void createImportDialog();
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	void getSettingsPage(const uint startPageIndex);
@@ -188,6 +189,7 @@ public slots:
 	void exerciseCompleted(int exercise_idx);
 	void openMainMenuShortCut(const int button_id);
 	void exportSlot(const QString& filePath = QString());
+	void importSlot();
 
 signals:
 	void itemReady(QQuickItem* item, const uint id);
@@ -312,6 +314,12 @@ private:
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	QString m_exportFilename;
+
+	QQmlComponent* m_importDlgComponent;
+	QQuickItem* m_importDlg;
+	QVariantMap m_importDlgProperties;
+	uint m_fileContents;
+	QString m_importFilename;
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 };
 

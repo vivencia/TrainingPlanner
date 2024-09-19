@@ -13,6 +13,7 @@
 #define MESOSPLIT_COL_WORKINGSET 7
 
 #define SIMPLE_MESOSPLIT_TOTAL_COLS 8
+#define COMPLETE_MESOSPLIT_TOTAL_COLS 8
 
 class DBTrainingDayModel;
 class DBExercisesModel;
@@ -96,9 +97,9 @@ public:
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 
-	virtual void exportToText(QFile* outFile) const override;
+	virtual bool exportToFile(const QString& filename) const override;
 	virtual const QString exportExtraInfo() const override;
-	virtual bool importFromText(QFile* inFile, QString& inData) override;
+	virtual bool importFromFile(const QString& filename) override;
 	virtual bool importExtraInfo(const QString& extrainfo) override;
 	virtual bool updateFromModel(const TPListModel* model) override;
 
