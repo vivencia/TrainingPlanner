@@ -317,7 +317,7 @@ bool DBMesocyclesModel::isDateWithinMeso(const uint meso_idx, const QDate& date)
 	return false;
 }
 //Called when importing from a text file
-bool DBMesocyclesModel::isDifferent(const DBMesocyclesModel* model)
+bool DBMesocyclesModel::isDifferent(const TPListModel* const model)
 {
 	if (model->count() > 0)
 	{
@@ -367,6 +367,16 @@ void DBMesocyclesModel::updateColumnLabels()
 	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
 }
 
+bool DBMesocyclesModel::exportToFile(const QString& filename, const bool, const bool) const
+{
+	if (this->TPListModel::exportToFile(filename, true, false))
+	{
+		m_splitModel->setExportRow(m_mesoIdx);
+		return m_splitModel->TPListModel::exportToFile(filename, false, true);
+	}
+	return false;
+}
+
 bool DBMesocyclesModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
@@ -376,39 +386,68 @@ bool DBMesocyclesModel::importFromFile(const QString& filename)
 		return false;
 	}
 
-	char buf[128];
-	qint64 lineLength(0);
-	uint col(1);
-	QString value;
-
 	QStringList modeldata(MESOCYCLES_TOTAL_COLS);
 	modeldata[0] = STR_MINUS_ONE;
+	QStringList splitmodeldata(SIMPLE_MESOSPLIT_TOTAL_COLS);
+	splitmodeldata[MESOSPLIT_COL_ID] = STR_MINUS_ONE;
+	splitmodeldata[MESOSPLIT_COL_MESOID] = STR_MINUS_ONE;
 
+	uint col(1);
+	QString value;
+	char buf[512];
+	qint64 lineLength(0);
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
-		if (lineLength > 10)
+		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
 		{
-			if (strstr(buf, "##") != NULL)
+			if (lineLength > 10)
 			{
-				if (col != MESOCYCLES_COL_FILE)
+				if (strstr(buf, "##") != NULL)
 				{
-					value = buf;
-					value.remove(0, value.indexOf(':') + 1);
-					if (isFieldFormatSpecial(col))
-						modeldata[col] = formatFieldToImport(col, value, buf);
+					if (col < MESOCYCLES_TOTAL_COLS)
+					{
+						if (col != MESOCYCLES_COL_FILE)
+						{
+							value = buf;
+							value.remove(0, value.indexOf(':') + 2);
+							if (isFieldFormatSpecial(col))
+								modeldata[col] = formatFieldToImport(col, value, buf);
+							else
+								modeldata[col] = value;
+						}
+					}
 					else
-						modeldata[col] = value;
+					{
+						if (col == SIMPLE_MESOSPLIT_TOTAL_COLS)
+							break;
+						value = buf;
+						const int splitidx(static_cast<int>(value.at(value.indexOf(':')-1).cell()) - static_cast<int>('A') + 2);
+						if (splitidx >= 2 && splitidx <= 7)
+							splitmodeldata[splitidx] = value.remove(0, value.indexOf(':') + 2);
+					}
+					++col;
 				}
-				++col;
 			}
-			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
-				break;
 		}
+		else
+			break;
 	}
 	m_modeldata.append(modeldata);
+	m_splitModel->m_modeldata.append(splitmodeldata);
 	inFile->close();
 	delete inFile;
 	return modeldata.count() > 1;
+}
+
+bool DBMesocyclesModel::updateFromModel(const uint meso_idx, const TPListModel* const model)
+{
+	setImportMode(true);
+	for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
+		setFast(meso_idx, i, model->getFast(0, i));
+	const DBMesoSplitModel* const splitModel(static_cast<const DBMesoSplitModel* const>(const_cast<TPListModel*>(model)));
+	for (uint i(MESOSPLIT_COL_ID); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+		m_splitModel->setFast(meso_idx, i, splitModel->getFast(0, i));
+	return true;
 }
 
 QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString& fieldValue) const

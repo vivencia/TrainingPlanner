@@ -15,6 +15,7 @@
 #define EXERCISES_COL_FROMAPPLIST 9
 #define EXERCISES_COL_ACTUALINDEX 10
 #define EXERCISES_COL_SELECTED 11
+#define EXERCISES_TOTAL_COLS EXERCISES_COL_SELECTED+1
 
 class DBExercisesModel : public TPListModel
 {
@@ -52,7 +53,6 @@ public:
 
 	Q_INVOKABLE virtual void clear() override;
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
-	virtual bool updateFromModel(const TPListModel* model) override;
 	virtual bool importFromFile(const QString& filename) override;
 
 	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }

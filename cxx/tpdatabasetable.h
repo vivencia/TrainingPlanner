@@ -10,23 +10,18 @@
 
 #include <functional>
 
-typedef enum {
-	OP_NULL = 0, OP_ADD = 1, OP_EDIT = 2, OP_DEL = 3, OP_READ = 4, OP_UPDATE_LIST = 5, OP_DELETE_TABLE = 6
-} OP_CODES;
-
 class TPDatabaseTable : public QObject
 {
 
 public:
-	explicit TPDatabaseTable(TPListModel* model)
+	explicit inline TPDatabaseTable(TPListModel* model)
 		: QObject{nullptr}, m_model(model), mb_resolved(false), m_result(false),
-			mb_waitForFinished(false), m_opcode(OP_NULL), doneFunc(nullptr) {}
+			mb_waitForFinished(false), doneFunc(nullptr) {}
 
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;
 
 	inline const QStringList& data () const { return m_data; }
-	inline OP_CODES opCode() const { return m_opcode; }
 	inline bool result() const { return m_result; }
 
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
@@ -59,7 +54,6 @@ protected:
 	bool mb_resolved;
 	bool m_result;
 	bool mb_waitForFinished;
-	OP_CODES m_opcode;
 
 	std::function<void (TPDatabaseTable*)> doneFunc;
 };

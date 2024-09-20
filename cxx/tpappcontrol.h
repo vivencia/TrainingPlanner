@@ -51,7 +51,7 @@ public:
 	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
 
 	void openRequestedFile(const QString& filename);
-	int importFromFile(const QString& filename, const bool bImportOptions[5]);
+	void incorporateImportedData(const TPListModel* const model);
 	void createItemManager();
 
 	static TPAppControl* app_control;

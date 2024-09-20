@@ -21,6 +21,7 @@
 #define TDAY_EXERCISES_COL_WEIGHTS 5
 #define TDAY_EXERCISES_COL_NOTES 6
 #define TDAY_EXERCISES_COL_COMPLETED 7
+#define TDAY_EXERCISES_TOTALCOLS TDAY_EXERCISES_COL_COMPLETED+1
 
 #define SET_TYPE_REGULAR 0
 #define SET_TYPE_PYRAMID 1
@@ -51,12 +52,14 @@ public:
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
-	virtual bool updateFromModel(const TPListModel* model) override;
 
-	const QString& formatSetTypeToExport(const QString& fieldValue) const;
-	virtual void exportToText(QFile* outFile) const override;
-	const QString& formatSetTypeToImport(const QString& fieldValue) const;
+	virtual bool exportToFile(const QString& filename, const bool, const bool) const override;
 	virtual bool importFromFile(const QString& filename) override;
+	virtual bool updateFromModel(const TPListModel* const model) override;
+
+	const QString exportExtraInfo() const;
+	const QString& formatSetTypeToExport(const QString& fieldValue) const;
+	const QString& formatSetTypeToImport(const QString& fieldValue) const;
 
 	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);

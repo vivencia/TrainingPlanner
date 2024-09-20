@@ -34,7 +34,7 @@ static const QString DBUserObjectName(u"UserProfile"_qs);
 static const QString STR_MINUS_ONE(u"-1"_qs);
 static const QString STR_ZERO(u"0"_qs);
 static const QString STR_ONE(u"1"_qs);
-static const QString STR_END_EXPORT(u"####"_qs);
+static const QString STR_END_EXPORT(u"####\n\n"_qs);
 
 class TPListModel : public QAbstractListModel
 {
@@ -48,17 +48,12 @@ Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
+	explicit inline TPListModel(QObject* parent = nullptr, int meso_idx = -1)
+		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
+		m_bReady(false), m_bModified(false), m_bImportMode(false) {}
 
-	explicit TPListModel(QObject* parent = nullptr, int meso_idx = -1);
-	inline TPListModel(const TPListModel& db_model) : TPListModel ()
-	{
-		copy (db_model);
-	}
-
-	inline TPListModel(TPListModel&& other) : TPListModel ()
-	{
-		tp_listmodel_swap (*this, other);
-	}
+	inline TPListModel(const TPListModel& db_model) : TPListModel () { copy (db_model); }
+	inline TPListModel(TPListModel&& other) : TPListModel () { tp_listmodel_swap (*this, other); }
 
 	inline const TPListModel& operator=(TPListModel t_item)
 	{
@@ -69,8 +64,8 @@ public:
 	virtual ~TPListModel() override;
 
 	inline int tableID() const { return m_tableId; }
-	bool modified() const { return m_bModified; }
-	void setModified(const bool bModified)
+	inline bool modified() const { return m_bModified; }
+	inline void setModified(const bool bModified)
 	{
 		if (m_bModified != bModified)
 		{
@@ -104,13 +99,16 @@ public:
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
-	const QString& exportName() const { return m_exportName; }
+
+	virtual bool exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true) const;
+	virtual bool importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
+	virtual bool updateFromModel(const TPListModel* const model);
+
+	inline const QString& exportName() const { return m_exportName; }
 	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFiter(const QString& filter, const uint field);
-	virtual bool exportToFile(const QString& filename) const;
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
 	virtual inline QString formatFieldToExport(const uint, const QString&) const { return QString(); }
-	virtual bool importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
@@ -118,10 +116,10 @@ public:
 
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{
-		if (row >= 0 && row < m_indexProxy.count())
-			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
-		else
-			return QString();
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::get", "out of range row");
+		return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
+		//else
+		//	return QString();
 	}
 
 	inline const QString& getFast(const uint row, const uint field) const
@@ -131,8 +129,9 @@ public:
 
 	Q_INVOKABLE bool set(const uint row, const uint field, const QString& value)
 	{
-		if (row >= 0 && row < m_indexProxy.count())
-		{
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::set", "out of range row");
+		//if (row >= 0 && row < m_indexProxy.count())
+		//{
 			if (getFast(m_indexProxy.at(row), field) != value)
 			{
 				m_modeldata[m_indexProxy.at(row)][field] = value;
@@ -141,7 +140,7 @@ public:
 				setModified(true);
 				return true;
 			}
-		}
+		//}
 		return false;
 	}
 
@@ -152,10 +151,11 @@ public:
 
 	Q_INVOKABLE int getInt(const uint row, const uint field) const
 	{
-		if (row >= 0 && row < m_indexProxy.count())
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getInt", "out of range row");
+		//if (row >= 0 && row < m_indexProxy.count())
 			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toInt();
-		else
-			return -1;
+		//else
+		//	return -1;
 	}
 
 	inline int getIntFast(const uint row, const uint field) const
@@ -165,18 +165,20 @@ public:
 
 	Q_INVOKABLE float getFloat(const uint row, const uint field) const
 	{
-		if (row >= 0 && row < m_indexProxy.count())
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getFloat", "out of range row");
+		//if (row >= 0 && row < m_indexProxy.count())
 			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toFloat();
-		else
-			return -1.0;
+		//else
+		//	return -1.0;
 	}
 
 	Q_INVOKABLE QDate getDate(const uint row, const uint field) const
 	{
-		if (row >= 0 && row < m_indexProxy.count())
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
+		//if (row >= 0 && row < m_indexProxy.count())
 			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
-		else
-			return QDate::currentDate();
+		//else
+			//return QDate::currentDate();
 	}
 
 	inline const QDate getDateFast(const uint row, const uint field) const
@@ -186,15 +188,16 @@ public:
 
 	Q_INVOKABLE bool setDate(const uint row, const uint field, const QDate& date)
 	{
-		if (row >= 0 && row < m_indexProxy.count())
-		{
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::setDate", "out of range row");
+		//if (row >= 0 && row < m_indexProxy.count())
+		//{
 			if (getDateFast(m_indexProxy.at(row), field) != date)
 			{
 				m_modeldata[m_indexProxy.at(row)][field] = QString::number(date.toJulianDay());
 				setModified(true);
 				return true;
 			}
-		}
+		//}
 		return false;
 	}
 
@@ -205,11 +208,10 @@ public:
 
 	inline const bool isReady() const { return m_bReady; }
 	inline void setReady(const bool bready) { m_bReady = bready; }
+	inline bool importMode() const { return m_bImportMode; }
+	inline void setImportMode(const bool bimportmode) { m_bImportMode = bimportmode; }
 
 	inline virtual void resetPrivateData() {}
-	inline virtual const QString exportExtraInfo() const { return QString(); }
-	inline virtual bool importExtraInfo(const QString& ) { return true; }
-	inline virtual bool updateFromModel(const TPListModel*) { return false; }
 
 	// QAbstractItemModel interface
 	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
@@ -238,7 +240,7 @@ protected:
 	int m_mesoIdx;
 	int m_currentRow;
 	uint m_tableId;
-	bool m_bFilterApplied, m_bReady, m_bModified;
+	bool m_bFilterApplied, m_bReady, m_bModified, m_bImportMode;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;
 	QString m_filterString, m_exportName;

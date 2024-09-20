@@ -2,11 +2,6 @@
 
 #include <QRegularExpression>
 
-TPListModel::TPListModel(QObject* parent, int meso_idx)
-	: QAbstractListModel(parent), m_mesoIdx(meso_idx), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
-		m_bReady(false), m_bModified(false), filterSearch_Field1(0), filterSearch_Field2(0)
-{}
-
 void tp_listmodel_swap(TPListModel& model1, TPListModel& model2)
 {
 	using std::swap;
@@ -202,29 +197,17 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-void TPListModel::setExportFiter(const QString& filter, const uint field)
-{
-	const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
-	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
-	uint row(0);
-	m_exportRows.clear();
-
-	for ( ; lst_itr != lst_itrend; ++lst_itr, ++row )
-	{
-		if (regex.match(static_cast<QStringList>(*lst_itr).at(field)).hasMatch())
-			m_exportRows.append(row);
-	}
-}
-
-bool TPListModel::exportToFile(const QString& filename) const
+bool TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
 {
 	QFile* outFile{new QFile(filename)};
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
-		outFile->write(strHeader.toUtf8().constData());
+		if (writeHeader)
+		{
+			const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+			outFile->write(strHeader.toUtf8().constData());
+		}
 
 		QString value;
 		if (m_exportRows.isEmpty())
@@ -277,9 +260,37 @@ bool TPListModel::exportToFile(const QString& filename) const
 				outFile->write("\n", 1);
 			}
 		}
-		outFile->write(STR_END_EXPORT.toUtf8().constData());
+		if (writeEnd)
+			outFile->write(STR_END_EXPORT.toUtf8().constData());
 		outFile->close();
 	}
 	delete outFile;
 	return bOK;
+}
+
+bool TPListModel::updateFromModel(const TPListModel* const model)
+{
+	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
+	uint lastIndex(m_modeldata.count());
+	do {
+		m_modifiedIndices.append(lastIndex++);
+		appendList((*lst_itr));
+	} while (++lst_itr != lst_itrend);
+	return true;
+}
+
+void TPListModel::setExportFiter(const QString& filter, const uint field)
+{
+	const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
+	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
+	uint row(0);
+	m_exportRows.clear();
+
+	for ( ; lst_itr != lst_itrend; ++lst_itr, ++row )
+	{
+		if (regex.match(static_cast<QStringList>(*lst_itr).at(field)).hasMatch())
+			m_exportRows.append(row);
+	}
 }

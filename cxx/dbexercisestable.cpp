@@ -166,7 +166,6 @@ void DBExercisesTable::updateExercisesList()
 		}
 		mSqlLiteDB.commit();
 		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
-		m_opcode = OP_UPDATE_LIST;
 		if (!m_result)
 		{
 			MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())

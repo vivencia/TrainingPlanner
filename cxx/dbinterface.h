@@ -32,7 +32,7 @@ Q_OBJECT
 
 public:
 	explicit inline DBInterface()
-		: QObject (nullptr), mb_splitsLoaded(false), mb_importMode(false) {}
+		: QObject (nullptr), mb_splitsLoaded(false) {}
 
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);

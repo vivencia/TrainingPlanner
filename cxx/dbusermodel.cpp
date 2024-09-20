@@ -316,6 +316,52 @@ void DBUserModel::setCurrentUser(const int row, const int new_current_user)
 	}
 }
 
+bool DBUserModel::importFromFile(const QString& filename)
+{
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
+
+	char buf[128];
+	qint64 lineLength(0);
+	uint col(1);
+	QString value;
+
+	QStringList modeldata(USER_TOTAL_COLS);
+	modeldata[0] = STR_MINUS_ONE;
+
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
+		{
+			if (lineLength > 10)
+			{
+				if (strstr(buf, "##") != NULL)
+				{
+					if (col < USER_COL_APP_USE_MODE)
+					{
+						if (col != USER_COL_USERROLE)
+						{
+							value = buf;
+							modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+						}
+						++col;
+					}
+				}
+			}
+		}
+		else
+			break;
+	}
+	m_modeldata.append(modeldata);
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
+}
+
 QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const
 {
 	switch (field)
@@ -350,65 +396,4 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 			return u"image://tpimageprovider/" + fieldValue.right(fieldValue.length()-7);
 		default: return QString();
 	}
-}
-
-bool DBUserModel::updateFromModel(const TPListModel* model)
-{
-	if (model->count() > 0)
-	{
-		QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
-		uint lastIndex(m_modeldata.count());
-		do {
-			m_modifiedIndices.append(lastIndex++);
-			appendList((*lst_itr));
-		} while (++lst_itr != lst_itrend);
-		return true;
-	}
-	return false;
-}
-
-bool DBUserModel::importFromFile(const QString& filename)
-{
-	QFile* inFile{new QFile(filename)};
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
-	{
-		delete inFile;
-		return false;
-	}
-
-	char buf[128];
-	qint64 lineLength(0);
-	uint col(1);
-	QString value;
-
-	QStringList modeldata(USER_TOTAL_COLS);
-	modeldata[0] = STR_MINUS_ONE;
-
-	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
-	{
-		if (lineLength > 10)
-		{
-			if (strstr(buf, "##") != NULL)
-			{
-				if (col < USER_COL_APP_USE_MODE)
-				{
-					if (col != USER_COL_USERROLE)
-					{
-						value = buf;
-						modeldata[col] = value.remove(0, value.indexOf(':') + 1);
-					}
-					++col;
-				}
-				else
-					break;
-			}
-			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
-				break;
-		}
-	}
-	m_modeldata.append(modeldata);
-	inFile->close();
-	delete inFile;
-	return modeldata.count() > 1;
 }

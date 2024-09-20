@@ -244,95 +244,20 @@ void TPAppControl::openRequestedFile(const QString& filename)
 	}
 }
 
-/*Return values
- *	 0: success
- *	-1: Failed to open file
- *	-2: File format was not recognized
- *	-3: Nothing was imported, either because file was missing info or error in formatting
- *	-4: File has been previously imported
- */
-int TPAppControl::importFromFile(const QString& filename, const bool bImportOptions[5])
+void TPAppControl::incorporateImportedData(const TPListModel* const model)
 {
-	//if (filename.startsWith(u"file:"_qs))
-	//	filename.remove(0, 7); //remove file://
-	if (bImportOptions[0])
-	{
-		if (bImportOptions[1])
-		{
-			DBUserModel* modelUser{new DBUserModel};
-			modelUser->importFromText()
-		}
-	}
-
-	TPListModel* model(nullptr);
-	qint64 lineLength(0);
-	char buf[128];
-	QString inData;
-
-	while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
-	{
-		if (lineLength > 2)
-		{
-			inData = buf;
-			break;
-		}
-	}
-
-	const bool bFancy(!inData.startsWith(u"##0x"_qs));
-	int sep_idx(0);
-
-	if (bFancy)
-	{
-		if (inData.indexOf(DBMesoSplitObjectName) != -1)
-			model = new DBMesoSplitModel(this);
-		else if (inData.indexOf(DBMesocyclesObjectName) != -1)
-			model = new DBMesocyclesModel(this);
-		//else if (inData.indexOf(DBTrainingDayObjectName) != -1)
-			//model = new DBTrainingDayModel(this);
-		else if (inData.indexOf(DBExercisesObjectName) != -1)
-			model = new DBExercisesModel(this);
-		else
-			return -2;
-
-		while ( (lineLength = inFile->readLine(buf, sizeof(buf))) != -1 )
-		{
-			if (lineLength > 2)
-			{
-				inData = buf;
-				break;
-			}
-		}
-	}
-
-
-	model->deleteLater();
-	if (!model->importExtraInfo(inData))
-		return -4;
-
-	if (model->importFromText(inFile, inData))
-	{
-		if (!importFromModel(model))
-			return -4;
-	}
-}
-
-bool TPAppControl::importFromModel(TPListModel* model)
-{
-	mb_importMode = true;
 	bool bOK(true);
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
-			updateExercisesList(static_cast<DBExercisesModel*>(model));
+			appExercisesModel()->updateFromModel(model);
 		break;
 		case MESOCYCLES_TABLE_ID:
-			if (appMesoModel()->isDifferent(static_cast<DBMesocyclesModel*>(model)))
+			if (appMesoModel()->isDifferent(model))
 			{
 				const uint meso_idx = createNewMesocycle(false);
-				for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
-					appMesoModel()->setFast(meso_idx, i, model->getFast(0, i));
-				saveMesocycle(meso_idx);
-				emit appMesoModel()->currentRowChanged(); //notify main.qml::btnWorkout to evaluate its enabled state
+				appMesoModel()->updateFromModel(meso_idx, model);
+				appDBInterface()->saveMesocycle(meso_idx);
 			}
 			else
 				bOK = false;

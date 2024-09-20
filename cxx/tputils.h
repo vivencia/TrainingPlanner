@@ -72,6 +72,11 @@ public:
 	void setAppLocale(const QString& localeStr);
 	void populateSettingsWithDefaultValue();
 
+	inline int splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
+	inline int splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
+	inline int splitLetterToMesoSplitIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)) + 2; }
+	inline int splitLetterToMesoSplitIndex(const QChar& letter) const { return splitLetterToIndex(letter) + 2; }
+
 signals:
 	void appSuspended();
 	void appResumed();

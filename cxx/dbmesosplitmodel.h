@@ -11,9 +11,17 @@
 #define MESOSPLIT_COL_REPSNUMBER 5
 #define MESOSPLIT_COL_WEIGHT 6
 #define MESOSPLIT_COL_WORKINGSET 7
-
-#define SIMPLE_MESOSPLIT_TOTAL_COLS 8
 #define COMPLETE_MESOSPLIT_TOTAL_COLS 8
+
+#define MESOSPLIT_COL_ID 0
+#define MESOSPLIT_COL_MESOID 1
+#define MESOSPLIT_A 2
+#define MESOSPLIT_B 3
+#define MESOSPLIT_C 4
+#define MESOSPLIT_D 5
+#define MESOSPLIT_E 6
+#define MESOSPLIT_F 7
+#define SIMPLE_MESOSPLIT_TOTAL_COLS 8
 
 class DBTrainingDayModel;
 class DBExercisesModel;
@@ -85,8 +93,11 @@ public:
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
 	Q_INVOKABLE void changeExercise(const DBExercisesModel* const model);
-
 	Q_INVOKABLE QString findSwappableModel() const;
+
+	virtual bool exportToFile(const QString& filename, const bool, const bool) const override;
+	virtual bool importFromFile(const QString& filename) override;
+	virtual bool updateFromModel(const TPListModel* model) override;
 
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
@@ -96,12 +107,8 @@ public:
 	}
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
-
-	virtual bool exportToFile(const QString& filename) const override;
-	virtual const QString exportExtraInfo() const override;
-	virtual bool importFromFile(const QString& filename) override;
-	virtual bool importExtraInfo(const QString& extrainfo) override;
-	virtual bool updateFromModel(const TPListModel* model) override;
+	const QString exportExtraInfo() const;
+	bool importExtraInfo(const QString& extrainfo);
 
 signals:
 	void exerciseNameChanged();

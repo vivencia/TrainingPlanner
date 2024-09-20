@@ -13,7 +13,6 @@ void TPDatabaseTable::removeEntry()
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
-			m_opcode = OP_DEL;
 			MSG_OUT(m_tableName << " removeEntry SUCCESS")
 			MSG_OUT(strQuery)
 		}

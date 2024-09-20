@@ -16,6 +16,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 
 	if (mb_Complete)
 	{
+		m_modeldata.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(tr("Exercise name: "));
 		mColumnNames.append(tr("Number of sets: "));
@@ -28,9 +29,10 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 	}
 	else
 	{
+		m_modeldata.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.append(QString()); //id
-		mColumnNames.append(QString()); //meso id
+		mColumnNames.append(QString()); //MESOSPLIT_COL_ID
+		mColumnNames.append(QString()); //MESOSPLIT_COL_MESOID
 		mColumnNames.append(tr("Split A: "));
 		mColumnNames.append(tr("Split B: "));
 		mColumnNames.append(tr("Split C: "));
@@ -342,6 +344,146 @@ QString DBMesoSplitModel::findSwappableModel() const
 	return QString();
 }
 
+bool DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
+{
+	QFile* outFile{new QFile(filename)};
+	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	if (bOK)
+	{
+		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+		outFile->write(strHeader.toUtf8().constData());
+
+		QString value;
+		uint nsets(0);
+		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+
+		while (itr != itr_end)
+		{
+			for (uint i(0); i < (*itr).count(); ++i)
+			{
+				if (i < mColumnNames.count())
+				{
+					if (!mColumnNames.at(i).isEmpty())
+					{
+						outFile->write(mColumnNames.at(i).toUtf8().constData());
+						value.clear();
+						nsets = (*itr).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
+						for (uint x(0); x < nsets; ++x)
+						{
+							if (!isFieldFormatSpecial(i))
+							{
+								value.append(appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1()) + fancy_record_separator2);
+								value.replace(subrecord_separator, '|');
+							}
+							else
+								value.append(formatFieldToExport(i, appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1())) + fancy_record_separator2);
+						}
+						outFile->write(value.replace(record_separator2, fancy_record_separator2).toUtf8().constData());
+						outFile->write("\n", 1);
+					}
+				}
+			}
+			outFile->write("\n", 1);
+			++itr;
+		}
+		outFile->write(STR_END_EXPORT.toUtf8().constData());
+		outFile->close();
+	}
+	delete outFile;
+	return bOK;
+}
+
+//Only for a complete meso split
+bool DBMesoSplitModel::importFromFile(const QString& filename)
+{
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
+
+	char buf[512];
+	qint64 lineLength(0);
+	uint col(1);
+	QString value;
+	bool bexpect_extrainfo(false);
+
+	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
+	modeldata[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
+
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
+		{
+			if (lineLength > 10)
+			{
+				if (strstr(buf, "##") != NULL)
+				{
+					if (bexpect_extrainfo)
+					{
+						bexpect_extrainfo = !importExtraInfo(buf);
+						continue;
+					}
+					value = buf;
+					value.remove(0, value.indexOf(':') + 2);
+					if (!isFieldFormatSpecial(col))
+					{
+						switch(col)
+						{
+							case MESOSPLIT_COL_EXERCISENAME:
+								modeldata[col] = value.replace('|', subrecord_separator);
+							break;
+							case MESOSPLIT_COL_SETSNUMBER:
+							case MESOSPLIT_COL_NOTES:
+								modeldata[col] = value;
+							break;
+							default:
+								modeldata[col] = value.replace('|', subrecord_separator).replace(fancy_record_separator2, record_separator2) + record_separator2;
+						}
+					}
+					else
+						modeldata[col] = formatFieldToImport(col, value);
+					col++;
+					if (col == MESOSPLIT_COL_WORKINGSET)
+					{
+						m_modeldata.append(modeldata);
+						col = 0;
+					}
+				}
+				else
+					bexpect_extrainfo = true;
+			}
+		}
+		else
+			break;
+	}
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
+}
+
+bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
+{
+	clear();
+	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
+	do {
+		appendList((*lst_itr));
+	} while (++lst_itr != lst_itrend);
+	setSplitLetter(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->splitLetter());
+	setMuscularGroup(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->muscularGroup());
+	setMesoIdx(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->mesoIdx());
+	setImportMode(true);
+	return true;
+}
+
+const QString DBMesoSplitModel::exportExtraInfo() const
+{
+	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup : QString();
+}
+
 QString DBMesoSplitModel::formatFieldToExport(const uint field, const QString& fieldValue) const
 {
 	if (field == MESOSPLIT_COL_SETTYPE)
@@ -399,178 +541,6 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 	return retStr;
 }
 
-bool DBMesoSplitModel::exportToFile(const QString& filename) const
-{
-	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
-	if (bOK)
-	{
-		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
-		outFile->write(strHeader.toUtf8().constData());
-
-		QString value;
-		uint nsets(0);
-		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
-
-		while (itr != itr_end)
-		{
-			for (uint i(0); i < (*itr).count(); ++i)
-			{
-				if (i < mColumnNames.count())
-				{
-					if (!mColumnNames.at(i).isEmpty())
-					{
-						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						value.clear();
-						nsets = (*itr).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
-						for (uint x(0); x < nsets; ++x)
-						{
-							if (!isFieldFormatSpecial(i))
-							{
-								value.append(appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1()) + fancy_record_separator2);
-								value.replace(subrecord_separator, '|');
-							}
-							else
-								value.append(formatFieldToExport(i, appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1())) + fancy_record_separator2);
-						}
-						outFile->write(value.replace(record_separator2, fancy_record_separator2).toUtf8().constData());
-						outFile->write("\n", 1);
-					}
-				}
-			}
-			outFile->write("\n", 1);
-			++itr;
-		}
-		outFile->write(STR_END_EXPORT.toUtf8().constData());
-		outFile->close();
-	}
-	delete outFile;
-	return bOK;
-}
-
-const QString DBMesoSplitModel::exportExtraInfo() const
-{
-	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_qs + m_muscularGroup : QString();
-}
-
-bool DBMesoSplitModel::importFromFile(const QString& filename)
-{
-	QFile* inFile{new QFile(filename)};
-	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
-	{
-		delete inFile;
-		return false;
-	}
-
-	char buf[128];
-	qint64 lineLength(0);
-	uint col(1);
-	QString value;
-
-	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
-
-	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
-	{
-		if (lineLength > 10)
-		{
-			if (strstr(buf, "##") != NULL)
-			{
-				if (col != MESOCYCLES_COL_FILE)
-				{
-					value = buf;
-					value.remove(0, value.indexOf(':') + 1);
-					if (isFieldFormatSpecial(col))
-						modeldata[col] = formatFieldToImport(col, value, buf);
-					else
-						modeldata[col] = value;
-				}
-				++col;
-			}
-			else if (strstr(buf, STR_END_EXPORT.toLatin1().constData()))
-				break;
-		}
-	}
-	m_modeldata.append(modeldata);
-	inFile->close();
-	delete inFile;
-	return modeldata.count() > 1;
-
-
-	char buf[256];
-	QStringList modeldata;
-	int sep_idx(-1);
-	uint col(0);
-	int valueLen(0);
-
-	if (m_extraInfo.isEmpty())
-	{
-		inData.chop(1);
-		int sep_idx(inData.indexOf(':'));
-		if (sep_idx != -1)
-		{
-			modeldata.append(u"-1"_qs); //id
-			modeldata.append(u"-1"_qs); //meso id
-			modeldata.append(inData.right(inData.length() - sep_idx - 2).replace('|', subrecord_separator));
-		}
-		else
-			return false;
-	}
-
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
-		{
-			if (!modeldata.isEmpty())
-			{
-				modeldata.append(u"0"_qs); //MESOSPLIT_COL_WORKINGSET
-				appendList(modeldata);
-				modeldata.clear();
-				col = 0;
-			}
-		}
-		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-			{
-				valueLen = inData.length() - sep_idx - 2;
-				if (valueLen <= 0)
-					modeldata.append(u" "_qs); //QString::split(Qt::SkipEmptyParts) will yield an empty QStringList if we don't provide at least one character
-				else
-				{
-					if (!isFieldFormatSpecial(col))
-					{
-						switch(col)
-						{
-							case MESOSPLIT_COL_EXERCISENAME:
-								modeldata.append(inData.right(valueLen).replace('|', subrecord_separator));
-							break;
-							case MESOSPLIT_COL_SETSNUMBER:
-							case MESOSPLIT_COL_NOTES:
-								modeldata.append(inData.right(valueLen));
-							break;
-							default:
-								modeldata.append(inData.right(valueLen).replace('|', subrecord_separator).replace(fancy_record_separator2, record_separator2) + record_separator2);
-						}
-					}
-					else
-						modeldata.append(formatFieldToImport(col, inData.right(valueLen)));
-				}
-				//qDebug() << mColumnNames.at(col) << ":  " << modeldata.at(modeldata.count()-1); //When enabled, import worked on Android. Before, it was not working
-				col++;
-			}
-			else
-			{
-				if (inData.contains(u"##"_qs))
-					break;
-			}
-		}
-	}
-	return count() > 0;
-}
-
 bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 {
 	int idx(extrainfo.indexOf(':'));
@@ -585,25 +555,6 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 			m_extraInfo.append(u"1"_qs); //Just any value, so that TPList::importFromFancyText knows we have extra info
 			return true;
 		}
-	}
-	mb_Complete = false;
-	return true;
-}
-
-bool DBMesoSplitModel::updateFromModel(const TPListModel* model)
-{
-	if (model->count() > 0)
-	{
-		clear();
-		QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
-		do {
-			appendList((*lst_itr));
-		} while (++lst_itr != lst_itrend);
-		setSplitLetter(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->splitLetter());
-		setMuscularGroup(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->muscularGroup());
-		m_mesoIdx = static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))->mesoIdx();
-		return true;
 	}
 	return false;
 }

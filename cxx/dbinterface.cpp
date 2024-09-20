@@ -403,15 +403,16 @@ void DBInterface::getAllMesocycles()
 
 void DBInterface::saveMesocycle(const uint meso_idx)
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, appMesoModel()));
+	DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath, appMesoModel())};
 
 	if (appMesoModel()->getIntFast(meso_idx, MESOCYCLES_COL_ID) == -1)
 	{
-		if (mb_importMode)
+		if (appMesoModel()->importMode())
 			worker->setWaitForThreadToFinish(true);
 
 		connect( this, &DBInterface::databaseReady, this, [&,meso_idx,worker] (const uint db_id) {
-			if (db_id == worker->uniqueID()) {
+			if (db_id == worker->uniqueID())
+			{
 				appMesoModel()->mesoSplitModel()->setFast(meso_idx, 1, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 				saveMesoSplit(meso_idx);
 			}
@@ -430,7 +431,7 @@ void DBInterface::removeMesocycle(const uint meso_idx)
 	{
 		removeMesoCalendar(meso_idx);
 		removeMesoSplit(meso_idx);
-		DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath));
+		DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath)};
 		worker->addExecArg(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 		createThread(worker, [worker] () { return worker->removeEntry(); });
 	}
@@ -438,7 +439,7 @@ void DBInterface::removeMesocycle(const uint meso_idx)
 
 void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
 {
-	DBMesocyclesTable* worker(new DBMesocyclesTable(m_DBFilePath, appMesoModel()));
+	DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath, appMesoModel())};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 //-----------------------------------------------------------MESOCYCLES TABLE-----------------------------------------------------------
@@ -453,14 +454,14 @@ void DBInterface::saveMesoSplit(const uint meso_idx)
 
 void DBInterface::removeMesoSplit(const uint meso_idx)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath));
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath)};
 	worker->addExecArg(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, appMesoModel()->mesoSplitModel()));
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, appMesoModel()->mesoSplitModel())};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
@@ -487,7 +488,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 
 		if (bThreaded)
 		{
-			DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, splitModel));
+			DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
 			worker->addExecArg(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 			worker->addExecArg(static_cast<QChar>(*itr));
 			if (!connected)
@@ -529,7 +530,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 
 void DBInterface::saveMesoSplitComplete(DBMesoSplitModel* model)
 {
-	DBMesoSplitTable* worker(new DBMesoSplitTable(m_DBFilePath, model));
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, model)};
 	worker->addExecArg(model->mesoIdx());
 	createThread(worker, [worker] () { worker->saveMesoSplitComplete(); });
 }

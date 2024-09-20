@@ -265,7 +265,6 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 					m_model->appendList(dates);
 			}
 			query.finish();
-			m_opcode = OP_READ;
 			m_result = true;
 		}
 		else
@@ -292,7 +291,6 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 			{
 				m_model->appendList(QStringList(9));
 				m_model->setFast(m_model->count()-1, TDAY_COL_LOCATION, lastLocation);
-				m_opcode = OP_READ;
 				m_result = true;
 			}
 		}

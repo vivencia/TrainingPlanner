@@ -99,8 +99,6 @@ public:
 	}
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
-	virtual bool updateFromModel(const TPListModel* model) override;
-
 
 signals:
 	void appUseModeChanged(const int row);

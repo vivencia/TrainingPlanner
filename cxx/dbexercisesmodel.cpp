@@ -1,4 +1,5 @@
 #include "dbexercisesmodel.h"
+#include "tpappcontrol.h"
 
 DBExercisesModel::DBExercisesModel(QObject* parent)
 	: TPListModel{parent}, m_selectedEntryToReplace(0)
@@ -25,14 +26,14 @@ DBExercisesModel::DBExercisesModel(QObject* parent)
 	filterSearch_Field2 = 1; //Then look for mainName
 
 	mColumnNames.reserve(EXERCISES_COL_MEDIAPATH+1);
-	mColumnNames.append(QString());
+	mColumnNames.append(QString()); //EXERCISES_COL_ID
 	mColumnNames.append(tr("Exercise: "));
 	mColumnNames.append(tr("Specifics: "));
 	mColumnNames.append(tr("Muscular Group: "));
 	mColumnNames.append(tr("Sets: "));
 	mColumnNames.append(tr("Reps: "));
 	mColumnNames.append(tr("Weight: "));
-	mColumnNames.append(QString());
+	mColumnNames.append(QString()); //EXERCISES_COL_WEIGHTUNIT
 	mColumnNames.append(tr("Descriptive media: "));
 }
 
@@ -53,75 +54,66 @@ void DBExercisesModel::clear()
 	TPListModel::clear();
 }
 
-bool DBExercisesModel::updateFromModel(const TPListModel* model)
-{
-	if (model->count() > 0)
-	{
-		QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
-		uint lastIndex(m_modeldata.count());
-		do {
-			m_modifiedIndices.append(lastIndex++);
-			appendList((*lst_itr));
-		} while (++lst_itr != lst_itrend);
-		return true;
-	}
-	return false;
-}
-
 bool DBExercisesModel::importFromFile(const QString& filename)
 {
-	char buf[256];
-	QStringList modeldata;
-	int sep_idx(-1);
-	uint col(0);
-	uint n_items(1);
+	QFile* inFile{new QFile(filename)};
+	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
+	{
+		delete inFile;
+		return false;
+	}
 
-	while (inFile->readLine(buf, sizeof(buf)) != -1) {
-		inData = buf;
-		inData.chop(1);
-		if (inData.isEmpty())
+	QStringList modeldata(EXERCISES_TOTAL_COLS);
+	uint col(1);
+	QString value;
+	uint n_items(0);
+	const uint databaseLastIndex(appExercisesModel()->m_modeldata.count());
+
+	char buf[256];
+	qint64 lineLength(0);
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
 		{
-			if (!modeldata.isEmpty())
+			if (lineLength > 10)
 			{
-				appendList(modeldata);
-				modeldata.clear();
-				n_items++;
-				col = 0;
+				if (strstr(buf, "##") != NULL)
+				{
+					if (col <= EXERCISES_COL_MEDIAPATH)
+					{
+						if (col != EXERCISES_COL_WEIGHTUNIT)
+						{
+							value = buf;
+							modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+						}
+						++col;
+					}
+					else
+					{
+						++n_items;
+						modeldata[EXERCISES_COL_ID] = QString::number(m_exercisesTableLastId + n_items);
+						modeldata[EXERCISES_COL_WEIGHTUNIT] = u"(kg)"_qs;
+						modeldata[EXERCISES_COL_FROMAPPLIST] = STR_ZERO;
+						modeldata[EXERCISES_COL_ACTUALINDEX] = QString::number(databaseLastIndex + n_items);
+						modeldata[EXERCISES_COL_SELECTED] = STR_ZERO;
+						m_modeldata.append(modeldata);
+						col = 0;
+					}
+				}
 			}
 		}
 		else
-		{
-			sep_idx = inData.indexOf(':');
-			if (sep_idx != -1)
-			{
-				if (col == 0)
-				{
-					col++;
-					modeldata.append(QString::number(m_exercisesTableLastId + n_items));
-				}
-				else if (col == 7)
-				{
-					modeldata.append(u" "_qs);
-					col++;
-				}
-				modeldata.append(inData.right(inData.length() - sep_idx - 2));
-				col++;
-			}
-			else
-			{
-				if (inData.contains(u"##"_qs))
-					break;
-			}
-		}
+			break;
 	}
-	return count() > 0;
+	inFile->close();
+	delete inFile;
+	return modeldata.count() > 1;
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
+	if(row >= 0 && row < m_modeldata.count())
 	{
 		switch(role) {
 			case exerciseIdRole:

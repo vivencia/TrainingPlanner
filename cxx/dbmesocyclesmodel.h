@@ -103,10 +103,13 @@ public:
 	QDate getNextMesoStartDate(const int mesoid) const;
 	QDate getLastMesoEndDate() const;
 	Q_INVOKABLE bool isDateWithinMeso(const uint meso_idx, const QDate& date) const;
-	bool isDifferent(const DBMesocyclesModel* model);
+	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();
 
+	virtual bool exportToFile(const QString& filename, const bool, const bool) const override;
 	virtual bool importFromFile(const QString& filename) override;
+	bool updateFromModel(const uint meso_idx, const TPListModel* const model);
+
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		switch (field)

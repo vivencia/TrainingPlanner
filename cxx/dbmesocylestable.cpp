@@ -1,10 +1,10 @@
 #include "dbmesocylestable.h"
 #include "dbmesocyclesmodel.h"
 
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QTime>
 #include <QFile>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QTime>
 
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
 	: TPDatabaseTable(static_cast<TPListModel*>(model))
@@ -214,7 +214,7 @@ void DBMesocyclesTable::saveMesocycle()
 			if (!bUpdate)
 			{
 				m_model->setFast(row, MESOCYCLES_COL_ID, query.lastInsertId().toString());
-				m_opcode = OP_ADD;
+				m_model->setImportMode(false);
 			}
 			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
 			MSG_OUT(strQuery);
