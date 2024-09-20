@@ -246,7 +246,6 @@ void TPAppControl::openRequestedFile(const QString& filename)
 
 void TPAppControl::incorporateImportedData(const TPListModel* const model)
 {
-	bool bOK(true);
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
@@ -259,50 +258,36 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 				appMesoModel()->updateFromModel(meso_idx, model);
 				appDBInterface()->saveMesocycle(meso_idx);
 			}
-			else
-				bOK = false;
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			DBMesoSplitModel* splitModel = static_cast<DBMesoSplitModel*>(model);
-			const uint meso_idx = splitModel->mesoIdx();
-			QmlItemManager* itemMngr = m_itemManager.at(meso_idx);
-			if (splitModel->completeSplit())
+			DBMesoSplitModel* newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
+			if (appDBInterface()->splitsLoaded())
 			{
-				DBMesoSplitModel* mesoSplitModel(itemMngr->getSplitModel(splitModel->splitLetter().at(0)));
-				if (mesoSplitModel->updateFromModel(splitModel))
-				{
-					saveMesoSplitComplete(mesoSplitModel);
-					// I don't need to track when all the splits from the import file have been loaded. They will all have been loaded
-					// by the time mb_splitsLoaded is ever checked upon
-					mb_splitsLoaded = true;
-				}
-				else
-					bOK = false;
+				DBMesoSplitModel* splitModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->getSplitModel(newSplitModel->splitLetter().at(0))};
+				splitModel->updateFromModel(model);
+				appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
 			else
-			{
-				for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
-					appMesoModel()->mesoSplitModel()->setFast(meso_idx, i, splitModel->getFast(0, i));
-				appMesoModel()->mesoSplitModel()->setFast(meso_idx, 1, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
-				saveMesoSplit(meso_idx);
-			}
+				appDBInterface()->saveMesoSplitComplete(newSplitModel);
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
-			const QDate dayDate(model->getDate(0, 3));
-			const uint meso_idx = static_cast<DBTrainingDayModel*>(model)->mesoIdx();
-			DBTrainingDayModel* tDayModel(m_itemManager.at(meso_idx)->gettDayModel(dayDate));
-			if (tDayModel->updateFromModel(model))
-				getTrainingDay(meso_idx, dayDate);
+			DBTrainingDayModel* newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
+			if (appDBInterface()->splitsLoaded())
+			{
+				DBTrainingDayModel* tDayModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->gettDayModel(QDate::currentDate())};
+
+				splitModel->updateFromModel(model);
+				appDBInterface()->saveMesoSplitComplete(splitModel);
+			}
 			else
-				bOK = false;
+				appDBInterface()->saveMesoSplitComplete(newSplitModel);
 		}
 		break;
+		break;
 	}
-	mb_importMode = false;
-	return bOK;
 }
 
 void TPAppControl::populateSettingsWithDefaultValue()
