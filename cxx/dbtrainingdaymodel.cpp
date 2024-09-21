@@ -1,15 +1,12 @@
 #include "dbtrainingdaymodel.h"
+#include "tpglobals.h"
 #include "dbmesosplitmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
-#include "dbmesocalendarmodel.h"
 #include "tpappcontrol.h"
 #include "tputils.h"
 
 #include <QtMath>
-
-static QString multiUseString;
-static const QLatin1Char fancy_record_separator2(';');
 
 DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const int meso_idx)
 	: TPListModel(parent, meso_idx), mb_DayIsFinished(false), mb_DayIsEditable(false)
@@ -111,34 +108,10 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 	emit exerciseCountChanged();
 }
 
-bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
-{
-	const DBTrainingDayModel* const tDayModel(static_cast<const DBTrainingDayModel* const>(const_cast<TPListModel*>(model)));
-	for (uint i(0); i < tDayModel->exerciseCount(); ++i)
-	{
-		newExercise(tDayModel->exerciseName(i) , i);
-		newFirstSet(i, tDayModel->setType(0, i), tDayModel->setReps(0, i), tDayModel->setWeight(0, i), tDayModel->setRestTime(0, i),
-					tDayModel->setSubSets(0, 1), tDayModel->setNotes(0, i));
-		for (uint x(1); x < tDayModel->setsNumber(i); ++x)
-		{
-			newSet(x, i, tDayModel->setType(x, i), tDayModel->setReps(x, i), tDayModel->setWeight(x, i), tDayModel->setRestTime(x, i),
-					tDayModel->setSubSets(x, 1));
-		}
-	}
-	if (exerciseCount() > 0)
-	{
-		setImportMode(true);
-		setModified(true);
-		emit exerciseCountChanged();
-		return true;
-	}
-	return false;
-}
-
-bool DBTrainingDayModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const bool) const
 {
 	if (exerciseCount() == 0)
-		return false;
+		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
 
 	QFile* outFile{new QFile(filename)};
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
@@ -197,16 +170,16 @@ bool DBTrainingDayModel::exportToFile(const QString& filename, const bool, const
 		outFile->close();
 	}
 	delete outFile;
-	return bOK;
+	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
-bool DBTrainingDayModel::importFromFile(const QString& filename)
+int DBTrainingDayModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
-		return false;
+		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
 	uint col(1);
@@ -286,7 +259,31 @@ bool DBTrainingDayModel::importFromFile(const QString& filename)
 	}
 	inFile->close();
 	delete inFile;
-	return exerciseCount() > 0;
+	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+}
+
+bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
+{
+	const DBTrainingDayModel* const tDayModel(static_cast<const DBTrainingDayModel* const>(const_cast<TPListModel*>(model)));
+	for (uint i(0); i < tDayModel->exerciseCount(); ++i)
+	{
+		newExercise(tDayModel->exerciseName(i) , i);
+		newFirstSet(i, tDayModel->setType(0, i), tDayModel->setReps(0, i), tDayModel->setWeight(0, i), tDayModel->setRestTime(0, i),
+					tDayModel->setSubSets(0, 1), tDayModel->setNotes(0, i));
+		for (uint x(1); x < tDayModel->setsNumber(i); ++x)
+		{
+			newSet(x, i, tDayModel->setType(x, i), tDayModel->setReps(x, i), tDayModel->setWeight(x, i), tDayModel->setRestTime(x, i),
+					tDayModel->setSubSets(x, 1));
+		}
+	}
+	if (exerciseCount() > 0)
+	{
+		setImportMode(true);
+		setModified(true);
+		emit exerciseCountChanged();
+		return true;
+	}
+	return false;
 }
 
 //Don't put any colon ':' in here. Import will fail
@@ -297,25 +294,27 @@ const QString DBTrainingDayModel::exportExtraInfo() const
 		tr(") at ") + appUtils()->formatDate(getDateFast(0, TDAY_COL_DATE));
 }
 
-const QString& DBTrainingDayModel::formatSetTypeToExport(const QString& fieldValue) const
+const QString DBTrainingDayModel::formatSetTypeToExport(const QString& fieldValue) const
 {
+	QString retStr;
 	if (fieldValue.isEmpty())
-		multiUseString = tr("Regular");
+		retStr = tr("Regular");
 	switch (fieldValue.at(0).toLatin1())
 	{
-		default: multiUseString = tr("Regular"); break;
-		case '1': multiUseString = tr("Pyramid"); break;
-		case '2': multiUseString = tr("Drop Set"); break;
-		case '3': multiUseString = tr("Cluster Set"); break;
-		case '4': multiUseString = tr("Giant Set"); break;
-		case '5': multiUseString = tr("Myo Reps"); break;
-		case '6': multiUseString = tr("Inverted Pyramid"); break;
+		default: retStr = tr("Regular"); break;
+		case '1': retStr = tr("Pyramid"); break;
+		case '2': retStr = tr("Drop Set"); break;
+		case '3': retStr = tr("Cluster Set"); break;
+		case '4': retStr = tr("Giant Set"); break;
+		case '5': retStr = tr("Myo Reps"); break;
+		case '6': retStr = tr("Inverted Pyramid"); break;
 	}
-	return multiUseString;
+	return retStr;
 }
 
-const QString& DBTrainingDayModel::formatSetTypeToImport(const QString& fieldValue) const
+const QString DBTrainingDayModel::formatSetTypeToImport(const QString& fieldValue) const
 {
+	QString retStr;
 	if (!fieldValue.isEmpty())
 	{
 		QString setTypeStr;
@@ -324,26 +323,26 @@ const QString& DBTrainingDayModel::formatSetTypeToImport(const QString& fieldVal
 		{
 			setTypeStr = appUtils()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
 			if (setTypeStr == tr("Regular"))
-				multiUseString.append(u"0"_qs + record_separator2);
+				retStr.append(u"0"_qs + record_separator2);
 			else if (setTypeStr == tr("Pyramid"))
-				multiUseString.append(u"1"_qs + record_separator2);
+				retStr.append(u"1"_qs + record_separator2);
 			else if (setTypeStr == tr("Drop Set"))
-				multiUseString.append(u"2"_qs + record_separator2);
+				retStr.append(u"2"_qs + record_separator2);
 			else if (setTypeStr == tr("Cluster Set"))
-				multiUseString.append(u"3"_qs + record_separator2);
+				retStr.append(u"3"_qs + record_separator2);
 			else if (setTypeStr == tr("Giant Set"))
-				multiUseString.append(u"4"_qs + record_separator2);
+				retStr.append(u"4"_qs + record_separator2);
 			else if (setTypeStr == tr("Myo Reps"))
-				multiUseString.append(u"5"_qs + record_separator2);
+				retStr.append(u"5"_qs + record_separator2);
 			else if (setTypeStr == tr("Inverted Pyramid"))
-				multiUseString.append(u"6"_qs + record_separator2);
+				retStr.append(u"6"_qs + record_separator2);
 			else
-				multiUseString.append(u"0"_qs + record_separator2);
+				retStr.append(u"0"_qs + record_separator2);
 		}
 	}
 	else
-		multiUseString = u"0"_qs + record_separator2;
-	return multiUseString;
+		retStr = u"0"_qs + record_separator2;
+	return retStr;
 }
 
 void DBTrainingDayModel::setDayIsFinished(const bool finished)
@@ -624,6 +623,7 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 
 QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number) const
 {
+	QString strSetTime;
 	if (set_number == 0)
 		return type != SET_TYPE_MYOREPS ?  u"01:30"_qs : u"02:30"_qs;
 	else
@@ -632,7 +632,7 @@ QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const 
 			return m_ExerciseData.at(exercise_idx)->resttime.at(0);
 		if (m_ExerciseData.at(exercise_idx)->mb_AutoRestTime)
 			return u"00:00"_qs;
-		multiUseString = set_number == 100 ?
+		strSetTime = set_number == 100 ?
 			m_ExerciseData.at(exercise_idx)->resttime.constLast() :
 			m_ExerciseData.at(exercise_idx)->resttime.at(set_number);
 	}
@@ -644,84 +644,86 @@ QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const 
 		case SET_TYPE_DROP:
 		case SET_TYPE_GIANT:
 		case SET_TYPE_REVERSE_PYRAMID:
-			multiUseString = increaseStringTimeBy(multiUseString, 0, 30);
+			strSetTime = increaseStringTimeBy(strSetTime, 0, 30);
 		break;
 		case SET_TYPE_CLUSTER:
-			multiUseString = increaseStringTimeBy(multiUseString , 1, 0);
+			strSetTime = increaseStringTimeBy(strSetTime , 1, 0);
 		break;
 		case SET_TYPE_MYOREPS:
-			multiUseString = increaseStringTimeBy(multiUseString, 1, 30);
+			strSetTime = increaseStringTimeBy(strSetTime, 1, 30);
 		break;
 	}
-	return multiUseString;
+	return strSetTime;
 }
 
-const QString& DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number, const uint sub_set) const
+const QString DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number, const uint sub_set) const
 {
+	QString strSetReps;
 	if (set_number == 100)
 	{
-		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->reps.constLast() :
+		strSetReps = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->reps.constLast() :
 							m_ExerciseData.at(exercise_idx)->reps.constLast().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
 	}
 	else
 	{
 		const QString reps(m_ExerciseData.at(exercise_idx)->reps.at(set_number));
-		multiUseString = sub_set == 100 ? reps : reps.contains(subrecord_separator) ?
+		strSetReps = sub_set == 100 ? reps : reps.contains(subrecord_separator) ?
 													reps.split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set) :
 													reps;
 	}
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appUtils()->appLocale()->toFloat(multiUseString));
+		float lastSetValue(appUtils()->appLocale()->toFloat(strSetReps));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue = qCeil(lastSetValue * 0.8);
 		else
 			lastSetValue = qCeil(lastSetValue * 1.25);
-		multiUseString = appUtils()->appLocale()->toString(static_cast<int>(lastSetValue));
-		if (multiUseString.contains('.') || multiUseString.contains(','))
+		strSetReps = appUtils()->appLocale()->toString(static_cast<int>(lastSetValue));
+		if (strSetReps.contains('.') || strSetReps.contains(','))
 		{
-			if (multiUseString.right(2) != u"50"_qs)
-				multiUseString.chop(3); //nn
+			if (strSetReps.right(2) != u"50"_qs)
+				strSetReps.chop(3); //nn
 			else
-				multiUseString.chop(1); // nn,5 or nn.5
+				strSetReps.chop(1); // nn,5 or nn.5
 		}
 	}
-	return multiUseString;
+	return strSetReps;
 }
 
-const QString& DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number, const uint sub_set) const
+const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number, const uint sub_set) const
 {
+	QString strStrWeight;
 	if (set_number == 100)
 	{
-		multiUseString = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.constLast() :
+		strStrWeight = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.constLast() :
 							m_ExerciseData.at(exercise_idx)->weight.constLast().split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set);
 	}
 	else
 	{
 		const QString weight(m_ExerciseData.at(exercise_idx)->weight.at(set_number));
-		multiUseString = sub_set == 100 ? weight : weight.contains(subrecord_separator) ?
+		strStrWeight = sub_set == 100 ? weight : weight.contains(subrecord_separator) ?
 													weight.split(subrecord_separator, Qt::SkipEmptyParts).at(sub_set) :
 													weight;
 	}
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appUtils()->appLocale()->toFloat(multiUseString));
+		float lastSetValue(appUtils()->appLocale()->toFloat(strStrWeight));
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue *= 1.2;
 		else
 			lastSetValue *= 0.8;
-		multiUseString = appUtils()->appLocale()->toString(lastSetValue, 'f', 2);
-		if (multiUseString.contains('.') || multiUseString.contains(','))
+		strStrWeight = appUtils()->appLocale()->toString(lastSetValue, 'f', 2);
+		if (strStrWeight.contains('.') || strStrWeight.contains(','))
 		{
-			if (multiUseString.right(2) != u"50"_qs)
-				multiUseString.chop(3);
+			if (strStrWeight.right(2) != u"50"_qs)
+				strStrWeight.chop(3);
 			else
-				multiUseString.chop(1);
+				strStrWeight.chop(1);
 		}
 	}
-	return multiUseString;
+	return strStrWeight;
 }
 
 void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, const uint type,

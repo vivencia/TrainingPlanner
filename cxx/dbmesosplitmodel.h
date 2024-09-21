@@ -95,8 +95,8 @@ public:
 	Q_INVOKABLE void changeExercise(const DBExercisesModel* const model);
 	Q_INVOKABLE QString findSwappableModel() const;
 
-	virtual bool exportToFile(const QString& filename, const bool, const bool) const override;
-	virtual bool importFromFile(const QString& filename) override;
+	virtual int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	virtual int importFromFile(const QString& filename) override;
 	virtual bool updateFromModel(const TPListModel* model) override;
 
 	virtual inline bool isFieldFormatSpecial (const uint field) const override
@@ -126,6 +126,6 @@ private:
 	void replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value);
 };
 
-Q_DECLARE_METATYPE(DBMesoSplitModel*)
+//Q_DECLARE_METATYPE(DBMesoSplitModel*)
 
 #endif // DBMESOSPLITMODEL_H

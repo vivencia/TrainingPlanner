@@ -1,4 +1,5 @@
 #include "tpappcontrol.h"
+#include "tpglobals.h"
 #include "translationclass.h"
 #include "tputils.h"
 #include "dbinterface.h"
@@ -9,6 +10,7 @@
 #include "osinterface.h"
 
 #include <QQmlApplicationEngine>
+#include <QSettings>
 
 TPAppControl* TPAppControl::app_control(nullptr);
 QSettings* TPAppControl::app_settings(nullptr);
@@ -188,7 +190,7 @@ void TPAppControl::getTrainingDayPage(const uint meso_idx, const QDate& date)
 	m_itemManager.at(meso_idx)->getTrainingDayPage(date);
 }
 
-void TPAppControl::openRequestedFile(const QString& filename)
+void TPAppControl::openRequestedFile(const QString& filename, const int wanted_content)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
@@ -228,19 +230,22 @@ void TPAppControl::openRequestedFile(const QString& filename)
 	if (fileContents != 0)
 	{
 		QmlItemManager* itemMngr(nullptr);
-		if (fileContents & IFC_MESO)
+		if (fileContents & IFC_MESO & wanted_content)
 		{
 			m_tempMesoIdx = createNewMesocycle(false);
 			itemMngr = m_itemManager.at(m_tempMesoIdx);
 		}
 		else
 		{
-			if (fileContents & IFC_MESO || fileContents & IFC_TDAY)
+			if (fileContents & IFC_MESO & wanted_content || fileContents & IFC_TDAY & wanted_content)
 				itemMngr = m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx());
-			else if (fileContents & IFC_EXERCISES)
+			else if (fileContents & IFC_EXERCISES & wanted_content)
 				itemMngr = rootItemsManager();
 		}
-		itemMngr->displayImportDialogMessage(fileContents, filename);
+		if (itemMngr)
+			itemMngr->displayImportDialogMessage(fileContents, filename);
+		else
+			rootItemsManager()->displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 	}
 }
 
@@ -275,17 +280,15 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 		case TRAININGDAY_TABLE_ID:
 		{
 			DBTrainingDayModel* newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
-			if (appDBInterface()->splitsLoaded())
+			DBTrainingDayModel* tDayModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->gettDayModel(QDate::currentDate())};
+			if (tDayModel->exerciseCount() == 0)
 			{
-				DBTrainingDayModel* tDayModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->gettDayModel(QDate::currentDate())};
-
-				splitModel->updateFromModel(model);
-				appDBInterface()->saveMesoSplitComplete(splitModel);
+				tDayModel->updateFromModel(model);
+				appDBInterface()->saveTrainingDay(tDayModel);
 			}
 			else
-				appDBInterface()->saveMesoSplitComplete(newSplitModel);
+				; //Offer option to import into another day
 		}
-		break;
 		break;
 	}
 }

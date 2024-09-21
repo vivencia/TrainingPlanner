@@ -1,5 +1,6 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
+#include "tpglobals.h"
 #include "dbmesosplitmodel.h"
 #include "tputils.h"
 #include "tpappcontrol.h"
@@ -367,23 +368,24 @@ void DBMesocyclesModel::updateColumnLabels()
 	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
 }
 
-bool DBMesocyclesModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBMesocyclesModel::exportToFile(const QString& filename, const bool, const bool) const
 {
-	if (this->TPListModel::exportToFile(filename, true, false))
+	int res(this->TPListModel::exportToFile(filename, true, false));
+	if (res >= 0)
 	{
 		m_splitModel->setExportRow(m_mesoIdx);
-		return m_splitModel->TPListModel::exportToFile(filename, false, true);
+		res = m_splitModel->TPListModel::exportToFile(filename, false, true);
 	}
-	return false;
+	return res;
 }
 
-bool DBMesocyclesModel::importFromFile(const QString& filename)
+int DBMesocyclesModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
-		return false;
+		return  APPWINDOW_MSG_OPEN_FAILED;
 	}
 
 	QStringList modeldata(MESOCYCLES_TOTAL_COLS);
@@ -436,7 +438,7 @@ bool DBMesocyclesModel::importFromFile(const QString& filename)
 	m_splitModel->m_modeldata.append(splitmodeldata);
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1;
+	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBMesocyclesModel::updateFromModel(const uint meso_idx, const TPListModel* const model)

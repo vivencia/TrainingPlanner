@@ -439,4 +439,5 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	openURL(filename);
 	#endif
 }
+
 #endif //Q_OS_ANDROID

@@ -2,8 +2,8 @@
 #define TRASLATIONCLASS_H
 
 #include <QObject>
-#include <QtGui>
-#include <QSettings>
+
+class QTranslator;
 
 class TranslationClass : public QObject
 {
@@ -14,8 +14,8 @@ public:
 	virtual ~TranslationClass() override;
 
 	Q_INVOKABLE inline bool translatorOK() const { return mbOK; }
-	void selectLanguage();
 	Q_INVOKABLE void switchToLanguage(const QString& language);
+	void selectLanguage();
 
 private:
 	QTranslator* mTranslator;

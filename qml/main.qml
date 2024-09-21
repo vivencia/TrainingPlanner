@@ -26,6 +26,8 @@ ApplicationWindow {
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
+	signal openFileChosen(filepath: string);
+	signal openFileRejected(filepath: string);
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")

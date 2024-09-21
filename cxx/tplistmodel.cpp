@@ -1,5 +1,7 @@
 #include "tplistmodel.h"
+#include "tpglobals.h"
 
+#include <QFile>
 #include <QRegularExpression>
 
 void tp_listmodel_swap(TPListModel& model1, TPListModel& model2)
@@ -123,9 +125,9 @@ void TPListModel::setFilter(const QString &filter, const bool resetSelection)
 		const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
 		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
 		{
-			bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field1)).hasMatch();
+			bFound = regex.match((*lst_itr).at(filterSearch_Field1)).hasMatch();
 			if (!bFound)
-				bFound = regex.match(static_cast<QStringList>(*lst_itr).at(filterSearch_Field2)).hasMatch();
+				bFound = regex.match((*lst_itr).at(filterSearch_Field2)).hasMatch();
 
 			if (bFound)
 			{
@@ -183,11 +185,11 @@ void TPListModel::makeFilterString(const QString& text)
 
 		do
 		{
-			if(static_cast<QString>(*itr).length() < 3)
+			if((*itr).length() < 3)
 				continue;
 			if (!m_filterString.isEmpty())
 				m_filterString.append('|');
-			m_filterString.append(static_cast<QString>(*itr).toLower());
+			m_filterString.append((*itr).toLower());
 			if (m_filterString.endsWith('s', Qt::CaseInsensitive) )
 				m_filterString.chop(1);
 			m_filterString.remove('.');
@@ -197,7 +199,7 @@ void TPListModel::makeFilterString(const QString& text)
 	}
 }
 
-bool TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
+int TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
 {
 	QFile* outFile{new QFile(filename)};
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
@@ -265,7 +267,7 @@ bool TPListModel::exportToFile(const QString& filename, const bool writeHeader, 
 		outFile->close();
 	}
 	delete outFile;
-	return bOK;
+	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
 bool TPListModel::updateFromModel(const TPListModel* const model)
@@ -290,7 +292,7 @@ void TPListModel::setExportFiter(const QString& filter, const uint field)
 
 	for ( ; lst_itr != lst_itrend; ++lst_itr, ++row )
 	{
-		if (regex.match(static_cast<QStringList>(*lst_itr).at(field)).hasMatch())
+		if (regex.match((*lst_itr).at(field)).hasMatch())
 			m_exportRows.append(row);
 	}
 }

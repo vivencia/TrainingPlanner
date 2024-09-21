@@ -8,6 +8,8 @@
 #include <QMap>
 #include <QList>
 
+namespace org_vivenciasoftware_TrainingPlanner {
+
 #define GENERAL_TP_NOTIFICATION 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
 #define SPLIT_NOTIFICATION 0x1E
@@ -29,6 +31,7 @@ private:
 	QMap<uint, QList<uint>> m_Ids;
 };
 
+}//namespace
 #endif
 
 #endif // TPANDROIDNOTIFICATION_H

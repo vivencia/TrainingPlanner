@@ -1063,7 +1063,7 @@ TPPage {
 				itemManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
-				mainwindow.chooseFileToImport();
+				itemManager.importTrainingDay();
 			break;
 			case 4: //empty session
 				bHasPreviousTDays = false;

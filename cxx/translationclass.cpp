@@ -1,14 +1,17 @@
 #include "translationclass.h"
+#include "tpappcontrol.h"
 #include "tputils.h"
 #include "qmlitemmanager.h"
 
-#include <QSettings>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QSettings>
+#include <QTranslator>
 
 TranslationClass::TranslationClass ()
 {
 	mbOK = true;
-	mTranslator = new QTranslator (this);
+	mTranslator = new QTranslator(this);
 }
 
 TranslationClass::~TranslationClass()

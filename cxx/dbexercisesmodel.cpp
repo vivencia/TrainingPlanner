@@ -1,5 +1,8 @@
 #include "dbexercisesmodel.h"
+#include "tpglobals.h"
 #include "tpappcontrol.h"
+
+#include <QFile>
 
 DBExercisesModel::DBExercisesModel(QObject* parent)
 	: TPListModel{parent}, m_selectedEntryToReplace(0)
@@ -54,13 +57,13 @@ void DBExercisesModel::clear()
 	TPListModel::clear();
 }
 
-bool DBExercisesModel::importFromFile(const QString& filename)
+int DBExercisesModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
-		return false;
+		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
 	QStringList modeldata(EXERCISES_TOTAL_COLS);
@@ -107,7 +110,7 @@ bool DBExercisesModel::importFromFile(const QString& filename)
 	}
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1;
+	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const

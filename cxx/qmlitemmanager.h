@@ -1,6 +1,7 @@
 #ifndef QMLITEMMANAGER_H
 #define QMLITEMMANAGER_H
 
+#include "tpglobals.h"
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "tptimer.h"
@@ -18,31 +19,6 @@ class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
 class QQuickWindow;
-
-static const uint mesoPageCreateId(175);
-static const uint calPageCreateId(35);
-static const uint tDayPageCreateId(70);
-static const uint tDayExerciseCreateId(105);
-static const uint tDaySetCreateId(140);
-static const uint menuShortCutCreatedId(200);
-static const uint exercisesPlannerCreateId(235);
-
-enum
-{
-	APPWINDOW_MSG_EXPORT_OK = 2,
-	APPWINDOW_MSG_SHARE_OK = 1,
-	APPWINDOW_MSG_IMPORT_OK = 0,
-	APPWINDOW_MSG_OPEN_FAILED = -1,
-	APPWINDOW_MSG_UNKNOWN_FILE_FORMAT = -2,
-	APPWINDOW_MSG_CORRUPT_FILE = -3,
-	APPWINDOW_MSG_NOTHING_TODO = -4,
-	APPWINDOW_MSG_NO_MESO = -5,
-	APPWINDOW_MSG_NOTHING_TO_EXPORT = -6,
-	APPWINDOW_MSG_SHARE_FAILED = -7,
-	APPWINDOW_MSG_EXPORT_FAILED = -8,
-	APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED = -9,
-	APPWINDOW_MSG_UNKNOWN_ERROR = -100
-} typedef appWindowMessageID;
 
 class QmlItemManager : public QObject
 {
@@ -63,7 +39,7 @@ public:
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
-	void displayMessageOnAppWindow(const appWindowMessageID message_id) const;
+	void displayMessageOnAppWindow(const int message_id) const;
 	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 	void createImportDialog();
@@ -120,21 +96,20 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-	uint createTrainingDayPage(const QDate& date);
-	void createTrainingDayPage_part2();
-	void getTrainingDayPage(const QDate& date);
+	Q_INVOKABLE void getTrainingDayPage(const QDate& date);
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan();
 	Q_INVOKABLE void convertTDayToPlan();
-
-	DBTrainingDayModel* gettDayModel(const QDate& date);
-	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
 	Q_INVOKABLE void resetWorkout();
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
-	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
-	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
-	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
+	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
 	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel *const tDayModel);
+
+	DBTrainingDayModel* gettDayModel(const QDate& date);
+	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }	
+	inline bool setsLoaded(const uint exercise_idx) const { return m_currentExercises->setCount(exercise_idx) > 0; }
+	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+
 	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 	Q_INVOKABLE uint createExerciseObject();
 	void createExerciseObject_part2(const int object_idx = -1);
@@ -172,8 +147,6 @@ public:
 	void stopRestTimer(const uint exercise_idx, const uint set_number);
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
-	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
@@ -189,7 +162,8 @@ public slots:
 	void exerciseCompleted(int exercise_idx);
 	void openMainMenuShortCut(const int button_id);
 	void exportSlot(const QString& filePath = QString());
-	void importSlot();
+	void importSlot_FileChosen(const QString& filePath = QString());
+	void importSlot_TryToImport();
 
 signals:
 	void itemReady(QQuickItem* item, const uint id);
@@ -202,19 +176,19 @@ private:
 	friend QQuickWindow* appMainWindow();
 	friend QQuickItem* appStackView();
 
-	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	//-----------------------------------------------------------EXERCISES TABLE PRIVATE-----------------------------------------------------------
 	static QQmlComponent* exercisesComponent;
 	static QQuickItem* exercisesPage;
 	static QVariantMap exercisesProperties;
-	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	//-----------------------------------------------------------EXERCISES TABLE PRIVATE-----------------------------------------------------------
 
-	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
+	//-----------------------------------------------------------MESOCYCLES PRIVATE-----------------------------------------------------------
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
-	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
+	//-----------------------------------------------------------MESOCYCLES PRIVATE-----------------------------------------------------------
 
-	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
+	//-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
 	QQmlComponent* m_plannerComponent;
 	QQuickItem* m_plannerPage;
 	QVariantMap m_plannerProperties;
@@ -223,16 +197,21 @@ private:
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
-	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
+	//-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
 
-	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
+	//-----------------------------------------------------------MESOCALENDAR PRIVATE-----------------------------------------------------------
 	QQmlComponent* m_calComponent;
 	QQuickItem* m_calPage;
 	QVariantMap m_calProperties;
 	uint m_lastUsedCalMesoID;
-	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
+	//-----------------------------------------------------------MESOCALENDAR PRIVATE-----------------------------------------------------------
 
-	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+	//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
+	uint createTrainingDayPage(const QDate& date);
+	void createTrainingDayPage_part2();
+	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
+	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
+
 	struct tDayExercises {
 		struct exerciseObject {
 			QQuickItem* m_exerciseEntry;
@@ -290,19 +269,18 @@ private:
 	QQmlComponent* m_tDayComponent;
 	DBTrainingDayModel* m_CurrenttDayModel;
 	QQuickItem* m_currenttDayPage;
+	//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
 
-	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
+	//-----------------------------------------------------------EXERCISE OBJECTS PRIVATE-----------------------------------------------------------
 	QVariantMap m_tDayExerciseEntryProperties;
 	QQmlComponent* m_tDayExercisesComponent;
-	//-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
+	//-----------------------------------------------------------EXERCISE OBJECTS PRIVATE-----------------------------------------------------------
 
-	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
+	//-------------------------------------------------------------SET OBJECTS PRIVATE-------------------------------------------------------------
 	QVariantMap m_setObjectProperties;
 	QQmlComponent* m_setComponents[3];
 	uint m_expectedSetNumber;
-	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-
-	//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+	//-------------------------------------------------------------SET OBJECTS PRIVATE-------------------------------------------------------------
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	static QQuickItem* settingsPage, *clientsOrCoachesPage, *userPage;
@@ -325,4 +303,5 @@ private:
 
 inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
 inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
+
 #endif // QMLITEMMANAGER_H

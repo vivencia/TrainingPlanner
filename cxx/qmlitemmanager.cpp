@@ -176,10 +176,10 @@ void QmlItemManager::initQML()
 	QMetaObject::invokeMethod(appMainWindow(), "init", Qt::AutoConnection);
 }
 
-void QmlItemManager::displayMessageOnAppWindow(const appWindowMessageID message_id) const
+void QmlItemManager::displayMessageOnAppWindow(const int message_id) const
 {
 	QString title, message;
-	const QString fileName(appUtils()->getFileName(appOsInterface()->exportFileName()));
+	const QString fileName(appUtils()->getFileName(m_exportFilename));
 	switch (message_id)
 	{
 		case APPWINDOW_MSG_EXPORT_OK:
@@ -226,9 +226,17 @@ void QmlItemManager::displayMessageOnAppWindow(const appWindowMessageID message_
 			title = tr("Export failed");
 			message = tr("Operation canceled");
 		break;
+		case APPWINDOW_MSG_IMPORT_FAILED:
+			title = tr("Import failed");
+			message = tr("Operation canceled");
+		break;
 		case APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED:
 			title = tr("Could not open file for exporting");
 			message = fileName;
+		break;
+		case APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE:
+			title = tr("Cannot import");
+			message = tr("Contents of the file are incompatible with the requested operation");
 		break;
 		case APPWINDOW_MSG_UNKNOWN_ERROR:
 			title = tr("Error");
@@ -305,11 +313,11 @@ void QmlItemManager::createImportDialog()
 		m_importDlg = static_cast<QQuickItem*>(m_importDlgComponent->createWithInitialProperties(m_importDlgProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(m_importDlg, QQmlEngine::CppOwnership);
 		m_importDlg->setParentItem(appMainWindow()->contentItem());
-		connect(m_importDlg, SIGNAL(importButtonClicked()), this, SLOT(importSlot()));
+		connect(m_importDlg, SIGNAL(importButtonClicked()), this, SLOT(importSlot_TryToImport()));
 	}
 }
 
-void QmlItemManager::importSlot()
+void QmlItemManager::importSlot_TryToImport()
 {
 	const QList<bool> selectedFields = m_importDlg->property("selectedFields").value<QList<bool>>();
 	const bool bImportMeso((m_fileContents & IFC_MESO) && selectedFields.at(0));
@@ -430,31 +438,22 @@ const uint QmlItemManager::removeExercise(const uint row)
 
 void QmlItemManager::exportExercises(const bool bShare)
 {
-	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	int exportFileMessageId(0);
 	if (appExercisesModel()->collectExportData())
 	{
 		const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
 		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
-		QFile* outFile{new QFile(m_exportFilename)};
-		if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+		exportFileMessageId = appExercisesModel()->exportToFile(m_exportFilename);
+		if (exportFileMessageId >= 0)
 		{
-			appExercisesModel()->exportToText(outFile);
-			outFile->close();
 			if (bShare)
 			{
 				appOsInterface()->shareFile(m_exportFilename);
 				exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
 			}
 			else
-			{
-				connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
-			}
 		}
-		else
-			exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
-		delete outFile;
 	}
 	else
 		exportFileMessageId = APPWINDOW_MSG_NOTHING_TO_EXPORT;
@@ -484,8 +483,10 @@ void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, cons
 	else
 		createMesocyclePage_part2();
 
-	connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
-	connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+	connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()));
+	connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()));
+	connect(appMainWindow(), SIGNAL(openFileChosen()), this, SLOT(importSlot_FileChosen()));
+	connect(appMainWindow(), SIGNAL(openFileRejected()), this, SLOT(importSlot_FileChosen()));
 }
 
 void QmlItemManager::createMesocyclePage_part2()
@@ -536,10 +537,6 @@ void QmlItemManager::exportMeso(const bool bShare, const bool bCoachInfo)
 	QFile* outFile{new QFile(m_exportFilename)};
 	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
 	{
-		// Might have been called from HomePage.qml->appControl()->exportMeso(). So no connections yet in place
-		connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
-		connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
-
 		const QString suggestedName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
 		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 		if (bCoachInfo)
@@ -856,63 +853,6 @@ void QmlItemManager::getMesoCalendarPage()
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
-uint QmlItemManager::createTrainingDayPage(const QDate& date)
-{
-	if (!m_tDayPages.contains(date))
-	{
-		if (m_tDayComponent == nullptr)
-			m_tDayComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
-
-		if (!m_tDayExercisesList.contains(date))
-		{
-			m_currentExercises = new tDayExercises;
-			m_tDayExercisesList.insert(date, m_currentExercises);
-		}
-
-		if (m_tDayComponent->status() != QQmlComponent::Ready)
-			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
-				{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
-		else
-			createTrainingDayPage_part2();
-	}
-	return tDayPageCreateId;
-}
-
-void QmlItemManager::createTrainingDayPage_part2()
-{
-	#ifdef DEBUG
-	if (m_tDayComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_tDayComponent->errorString();
-		for (uint i(0); i < m_tDayComponent->errors().count(); ++i)
-			qDebug() << m_tDayComponent->errors().at(i).description();
-		return;
-	}
-	#endif
-	QQuickItem* page{static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, appQmlEngine()->rootContext()))};
-	appQmlEngine()->setObjectOwnership(page, QQmlEngine::CppOwnership);
-	page->setParentItem(app_StackView);
-	m_currenttDayPage = page;
-	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
-
-	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [&] (const QDate& startDate, const QDate& endDate) {
-							updateOpenTDayPagesWithNewCalendarInfo(startDate, endDate);
-	});
-	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
-							enableDisableExerciseCompletedButton(exercise_idx, completed);
-	});
-
-	const QDate date(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE));
-	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
-	if (m_CurrenttDayModel->dayIsFinished())
-	{
-		const QTime workoutLenght(appUtils()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
-		QMetaObject::invokeMethod(m_currenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
-				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
-	}
-	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
-}
-
 void QmlItemManager::getTrainingDayPage(const QDate& date)
 {
 	const QQuickItem* const tDayPage{m_tDayPages.value(date)};
@@ -995,19 +935,6 @@ void QmlItemManager::convertTDayToPlan()
 	appDBInterface()->convertTDayToPlan(m_CurrenttDayModel, allSplitModels());
 }
 
-DBTrainingDayModel* QmlItemManager::gettDayModel(const QDate& date)
-{
-	if (!m_tDayModels.contains(date))
-	{
-		m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx);
-		connect(this, &QmlItemManager::mesoIdxChanged, m_CurrenttDayModel, [&] { m_CurrenttDayModel->setMesoIdx(m_mesoIdx); });
-		m_tDayModels.insert(date, m_CurrenttDayModel);
-	}
-	else
-		m_CurrenttDayModel = m_tDayModels.value(date);
-	return m_CurrenttDayModel;
-}
-
 void QmlItemManager::resetWorkout()
 {
 	m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
@@ -1026,87 +953,22 @@ void QmlItemManager::setCurrenttDay(const QDate& date)
 	m_currentExercises = m_tDayExercisesList.value(date);
 }
 
-void QmlItemManager::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
+void QmlItemManager::importTrainingDay(const QString& filename)
 {
-	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
-	i.toFront();
-	const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-	while (i.hasNext())
-	{
-		i.next();
-		if (i.key() > startDate) //the startDate page is the page that initiated the update. No need to alter it
-		{
-			if (i.key() <= endDate)
-			{
-				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
-					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
-					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
-					Q_ARG(QString, appMesoModel()->getMuscularGroup(m_mesoIdx, mesoCal->getSplitLetter(startDate.month(), startDate.day()))));
-			}
-		}
-	}
-}
-
-void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model)
-{
-	if (model->count() > 0)
-	{
-		if (m_currenttDayPage)
-		{
-			m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(model->getRow_const(0)));
-			m_currenttDayPage->setProperty("bHasPreviousTDays", true);
-			if (model->count() == 2)
-			{
-				if (m_currenttDayPage)
-				{
-					m_currenttDayPage->setProperty("lastWorkOutLocation", model->getRow_const(1).at(TDAY_COL_LOCATION));
-					//TDAY_COL_TRAININGDAYNUMBER is just a placeholder for the value we need
-					m_currenttDayPage->setProperty("bHasMesoPlan", model->getRow_const(1).at(TDAY_COL_TRAININGDAYNUMBER) == STR_ONE);
-				}
-				else
-				{
-					m_tDayProperties.insert(u"lastWorkOutLocation"_qs, QVariant::fromValue(model->getRow_const(1).at(TDAY_COL_LOCATION)));
-					m_tDayProperties.insert(u"bHasMesoPlan"_qs, model->getRow_const(1).at(TDAY_COL_TRAININGDAYNUMBER) == STR_ONE);
-				}
-			}
-		}
-		else
-		{
-			m_tDayProperties.insert(u"previousTDays"_qs, QVariant::fromValue(model->getRow_const(0)));
-			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, true);
-		}
-	}
+	if (filename.isEmpty())
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	else
-	{
-		if (m_currenttDayPage)
-		{
-			m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(QStringList()));
-			m_currenttDayPage->setProperty("bHasMesoPlan", false);
-			m_currenttDayPage->setProperty("bHasPreviousTDays", false);
-		}
-		else
-		{
-			m_tDayProperties.insert(u"previousTDays"_qs, QVariant::fromValue(QStringList()));
-			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, false);
-			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, false);
-		}
-	}
-	if (m_currenttDayPage)
-		m_currenttDayPage->setProperty("pageOptionsLoaded", true);
-	else
-		m_tDayProperties.insert(u"pageOptionsLoaded"_qs, true);
+		appControl()->openRequestedFile(filename, IFC_TDAY);
 }
 
 void QmlItemManager::exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel)
 {
-	appWindowMessageID exportFileMessageId(APPWINDOW_MSG_SHARE_OK);
+	int exportFileMessageId(0);
 	const QString suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
 	m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
-	QFile* outFile{new QFile(m_exportFilename)};
-	if (outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text))
+	exportFileMessageId = tDayModel->exportToFile(m_exportFilename);
+	if (exportFileMessageId >= 0)
 	{
-		tDayModel->exportToText(outFile);
-		outFile->close();
 		if (bShare)
 		{
 			appOsInterface()->shareFile(m_exportFilename);
@@ -1115,11 +977,22 @@ void QmlItemManager::exportTrainingDay(const bool bShare, const DBTrainingDayMod
 		else
 			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, suggestedName));
 	}
-	else
-		exportFileMessageId = APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
-	delete outFile;
 	displayMessageOnAppWindow(exportFileMessageId);
 }
+
+DBTrainingDayModel* QmlItemManager::gettDayModel(const QDate& date)
+{
+	if (!m_tDayModels.contains(date))
+	{
+		m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx);
+		connect(this, &QmlItemManager::mesoIdxChanged, m_CurrenttDayModel, [&] { m_CurrenttDayModel->setMesoIdx(m_mesoIdx); });
+		m_tDayModels.insert(date, m_CurrenttDayModel);
+	}
+	else
+		m_CurrenttDayModel = m_tDayModels.value(date);
+	return m_CurrenttDayModel;
+}
+//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
 
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 uint QmlItemManager::createExerciseObject()
@@ -1806,6 +1679,135 @@ void QmlItemManager::stopRestTimer(const uint exercise_idx, const uint set_numbe
 }
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
+//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
+uint QmlItemManager::createTrainingDayPage(const QDate& date)
+{
+	if (!m_tDayPages.contains(date))
+	{
+		if (m_tDayComponent == nullptr)
+			m_tDayComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+
+		if (!m_tDayExercisesList.contains(date))
+		{
+			m_currentExercises = new tDayExercises;
+			m_tDayExercisesList.insert(date, m_currentExercises);
+		}
+
+		if (m_tDayComponent->status() != QQmlComponent::Ready)
+			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
+				{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
+		else
+			createTrainingDayPage_part2();
+	}
+	return tDayPageCreateId;
+}
+
+void QmlItemManager::createTrainingDayPage_part2()
+{
+	#ifdef DEBUG
+	if (m_tDayComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_tDayComponent->errorString();
+		for (uint i(0); i < m_tDayComponent->errors().count(); ++i)
+			qDebug() << m_tDayComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	QQuickItem* page{static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, appQmlEngine()->rootContext()))};
+	appQmlEngine()->setObjectOwnership(page, QQmlEngine::CppOwnership);
+	page->setParentItem(app_StackView);
+	m_currenttDayPage = page;
+	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
+
+	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [&] (const QDate& startDate, const QDate& endDate) {
+							updateOpenTDayPagesWithNewCalendarInfo(startDate, endDate);
+	});
+	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
+							enableDisableExerciseCompletedButton(exercise_idx, completed);
+	});
+
+	const QDate date(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE));
+	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
+	if (m_CurrenttDayModel->dayIsFinished())
+	{
+		const QTime workoutLenght(appUtils()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
+		QMetaObject::invokeMethod(m_currenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
+				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
+	}
+	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
+}
+
+void QmlItemManager::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
+{
+	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
+	i.toFront();
+	const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+	while (i.hasNext())
+	{
+		i.next();
+		if (i.key() > startDate) //the startDate page is the page that initiated the update. No need to alter it
+		{
+			if (i.key() <= endDate)
+			{
+				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
+					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
+					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
+					Q_ARG(QString, appMesoModel()->getMuscularGroup(m_mesoIdx, mesoCal->getSplitLetter(startDate.month(), startDate.day()))));
+			}
+		}
+	}
+}
+
+void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model)
+{
+	if (model->count() > 0)
+	{
+		if (m_currenttDayPage)
+		{
+			m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(model->getRow_const(0)));
+			m_currenttDayPage->setProperty("bHasPreviousTDays", true);
+			if (model->count() == 2)
+			{
+				if (m_currenttDayPage)
+				{
+					m_currenttDayPage->setProperty("lastWorkOutLocation", model->getRow_const(1).at(TDAY_COL_LOCATION));
+					//TDAY_COL_TRAININGDAYNUMBER is just a placeholder for the value we need
+					m_currenttDayPage->setProperty("bHasMesoPlan", model->getRow_const(1).at(TDAY_COL_TRAININGDAYNUMBER) == STR_ONE);
+				}
+				else
+				{
+					m_tDayProperties.insert(u"lastWorkOutLocation"_qs, QVariant::fromValue(model->getRow_const(1).at(TDAY_COL_LOCATION)));
+					m_tDayProperties.insert(u"bHasMesoPlan"_qs, model->getRow_const(1).at(TDAY_COL_TRAININGDAYNUMBER) == STR_ONE);
+				}
+			}
+		}
+		else
+		{
+			m_tDayProperties.insert(u"previousTDays"_qs, QVariant::fromValue(model->getRow_const(0)));
+			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, true);
+		}
+	}
+	else
+	{
+		if (m_currenttDayPage)
+		{
+			m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(QStringList()));
+			m_currenttDayPage->setProperty("bHasMesoPlan", false);
+			m_currenttDayPage->setProperty("bHasPreviousTDays", false);
+		}
+		else
+		{
+			m_tDayProperties.insert(u"previousTDays"_qs, QVariant::fromValue(QStringList()));
+			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, false);
+			m_tDayProperties.insert(u"bHasPreviousTDays"_qs, false);
+		}
+	}
+	if (m_currenttDayPage)
+		m_currenttDayPage->setProperty("pageOptionsLoaded", true);
+	else
+		m_tDayProperties.insert(u"pageOptionsLoaded"_qs, true);
+}
+
 void QmlItemManager::tDayExercises::appendExerciseEntry(QQuickItem* new_exerciseItem)
 {
 	exerciseObject* exerciseObj(new exerciseObject);
@@ -1831,7 +1833,7 @@ void QmlItemManager::tDayExercises::removeSet(const uint exercise_idx, const uin
 	setObject(exercise_idx, set_number)->deleteLater();
 	exerciseObjects.at(exercise_idx)->m_setObjects.remove(set_number);
 }
-//-----------------------------------------------------------TRAININGDAY-----------------------------------------------------------
+//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
 
 //-----------------------------------------------------------USER-----------------------------------------------------------
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
@@ -2046,6 +2048,14 @@ void QmlItemManager::exportSlot(const QString& filePath)
 		QFile::copy(m_exportFilename, filePath);
 	displayMessageOnAppWindow(filePath.isEmpty() ? APPWINDOW_MSG_EXPORT_FAILED : APPWINDOW_MSG_EXPORT_OK);
 	QFile::remove(m_exportFilename);
+}
+
+void QmlItemManager::importSlot_FileChosen(const QString& filePath)
+{
+	if (!filePath.isEmpty())
+		appControl()->openRequestedFile(filePath);
+	else
+		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED);
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 

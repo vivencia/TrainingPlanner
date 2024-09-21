@@ -1,15 +1,11 @@
 #ifndef TPUTILS_H
 #define TPUTILS_H
 
-#include "tptimer.h"
-
 #include <QObject>
 #include <QQmlEngine>
 #include <QUrl>
 #include <QDateTime>
 #include <QFileInfo>
-
-static const QString TP_APP_VERSION(QStringLiteral("v20240818-B"));
 
 class QFileDialog;
 
@@ -70,7 +66,6 @@ public:
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
 	void setAppLocale(const QString& localeStr);
-	void populateSettingsWithDefaultValue();
 
 	inline int splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
 	inline int splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
@@ -100,4 +95,5 @@ private:
 };
 
 inline TPUtils* appUtils() { return TPUtils::app_utils; }
+
 #endif // TPUTILS_H

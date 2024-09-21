@@ -1,4 +1,5 @@
 #include "dbmesocalendarmodel.h"
+#include "tpglobals.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "tpappcontrol.h"

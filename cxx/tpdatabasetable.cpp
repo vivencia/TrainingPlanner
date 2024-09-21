@@ -1,7 +1,10 @@
 #include "tpdatabasetable.h"
+#include "tpglobals.h"
+#include "tplistmodel.h"
 
-#include <QSqlQuery>
+#include <QFile>
 #include <QSqlError>
+#include <QSqlQuery>
 
 void TPDatabaseTable::removeEntry()
 {
@@ -55,8 +58,7 @@ void TPDatabaseTable::clearTable()
 
 void TPDatabaseTable::removeDBFile()
 {
-	QFile mDBFile(mSqlLiteDB.databaseName());
-	m_result = mDBFile.remove();
+	m_result = QFile::remove(mSqlLiteDB.databaseName());
 	if (m_result)
 	{
 		if (m_model)
@@ -65,7 +67,7 @@ void TPDatabaseTable::removeDBFile()
 		MSG_OUT(m_tableName << " removeDBFile SUCCESS")
 	}
 	else
-		MSG_OUT(m_tableName << " removeDBFile error: Could not remove file " << mDBFile.fileName())
+		MSG_OUT(m_tableName << " removeDBFile error: Could not remove file " << mSqlLiteDB.databaseName())
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }

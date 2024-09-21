@@ -1,6 +1,9 @@
 #ifndef TPAPPCONTROL_H
 #define TPAPPCONTROL_H
 
+#include <QDate>
+#include <QList>
+
 class TranslationClass;
 class TPUtils;
 class DBInterface;
@@ -14,17 +17,6 @@ class OSInterface;
 class QQmlApplicationEngine;
 class QSettings;
 class QQuickItem;
-
-#include <QDate>
-#include <QList>
-
-enum {
-	IFC_USER = 0x02,
-	IFC_MESO = 0x04,
-	IFC_MESOSPLIT = 0x08,
-	IFC_EXERCISES = 0x10,
-	IFC_TDAY = 0x10
-} importFileContents;
 
 class TPAppControl
 {
@@ -50,8 +42,9 @@ public:
 
 	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
 
-	void openRequestedFile(const QString& filename);
+	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);
 	void incorporateImportedData(const TPListModel* const model);
+	void populateSettingsWithDefaultValue();
 	void createItemManager();
 
 	static TPAppControl* app_control;

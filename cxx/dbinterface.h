@@ -2,6 +2,7 @@
 #define DBINTERFACE_H
 
 #include "tplistmodel.h"
+#include "tpglobals.h"
 #include "tpdatabasetable.h"
 
 #include <QObject>
@@ -146,4 +147,5 @@ private:
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
 };
+
 #endif // DBINTERFACE_H

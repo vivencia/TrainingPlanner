@@ -2,10 +2,9 @@
 #define TPTIMER_H
 
 #include <QObject>
-#include <QTimer>
 #include <QQmlEngine>
+#include <QTimer>
 
-class RunCommands;
 class QSoundEffect;
 
 class TPTimer : public QTimer
@@ -108,4 +107,5 @@ private:
 	void calcTime();
 	void correctTimer();
 };
+
 #endif // TPTIMER_H

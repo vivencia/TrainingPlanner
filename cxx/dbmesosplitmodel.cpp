@@ -1,11 +1,10 @@
 #include "dbmesosplitmodel.h"
+#include "tpglobals.h"
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "tpappcontrol.h"
 #include "tputils.h"
-
-static const QLatin1Char fancy_record_separator2(';');
 
 DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
 	: TPListModel(parent, meso_idx), m_nextAddedExercisePos(2), mb_Complete(bComplete)
@@ -344,7 +343,7 @@ QString DBMesoSplitModel::findSwappableModel() const
 	return QString();
 }
 
-bool DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
 {
 	QFile* outFile{new QFile(filename)};
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
@@ -391,17 +390,17 @@ bool DBMesoSplitModel::exportToFile(const QString& filename, const bool, const b
 		outFile->close();
 	}
 	delete outFile;
-	return bOK;
+	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
 //Only for a complete meso split
-bool DBMesoSplitModel::importFromFile(const QString& filename)
+int DBMesoSplitModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
-		return false;
+		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
 	char buf[512];
@@ -461,7 +460,7 @@ bool DBMesoSplitModel::importFromFile(const QString& filename)
 	}
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1;
+	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)

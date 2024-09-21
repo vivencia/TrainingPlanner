@@ -4,37 +4,6 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 #include <QDate>
-#include <QFile>
-
-#ifdef DEBUG
-#define MSG_OUT(message) qDebug() << message;
-#else
-#define MSG_OUT(message)
-#endif
-
-static const QLatin1Char record_separator(29);
-static const QLatin1Char record_separator2(30);
-static const QLatin1Char subrecord_separator(31);
-
-static const uint APP_TABLES_NUMBER(6);
-static const uint EXERCISES_TABLE_ID(0x0001);
-static const uint MESOCYCLES_TABLE_ID(0x0002);
-static const uint MESOSPLIT_TABLE_ID(0x0003);
-static const uint MESOCALENDAR_TABLE_ID(0x0004);
-static const uint TRAININGDAY_TABLE_ID(0x0005);
-static const uint USER_TABLE_ID(0x0006);
-
-static const QString DBExercisesObjectName(u"Exercises"_qs);
-static const QString DBMesocyclesObjectName(u"Mesocycles"_qs);
-static const QString DBMesoSplitObjectName(u"MesocyclesSplits"_qs);
-static const QString DBMesoCalendarObjectName(u"MesoCalendar"_qs);
-static const QString DBTrainingDayObjectName(u"TrainingDay"_qs);
-static const QString DBUserObjectName(u"UserProfile"_qs);
-
-static const QString STR_MINUS_ONE(u"-1"_qs);
-static const QString STR_ZERO(u"0"_qs);
-static const QString STR_ONE(u"1"_qs);
-static const QString STR_END_EXPORT(u"####\n\n"_qs);
 
 class TPListModel : public QAbstractListModel
 {
@@ -100,8 +69,8 @@ public:
 
 	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
 
-	virtual bool exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true) const;
-	virtual bool importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
+	virtual int exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true) const;
+	virtual int importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
 	virtual bool updateFromModel(const TPListModel* const model);
 
 	inline const QString& exportName() const { return m_exportName; }

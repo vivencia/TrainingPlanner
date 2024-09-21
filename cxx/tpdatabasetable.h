@@ -1,14 +1,14 @@
 #ifndef TPDATABASETABLE_H
 #define TPDATABASETABLE_H
 
-#include "tplistmodel.h"
-
 #include <QObject>
+#include <QVariant>
 #include <QStringList>
 #include <QSqlDatabase>
-#include <QSettings>
 
 #include <functional>
+
+class TPListModel;
 
 class TPDatabaseTable : public QObject
 {
@@ -35,9 +35,14 @@ public:
 	inline bool waitForThreadToFinish() const { return mb_waitForFinished; }
 	inline void addExecArg(const QVariant& arg) { m_execArgs.append(arg); }
 	inline void clearExecArgs() { m_execArgs.clear(); }
-	inline void changeExecArg(const QVariant& arg, const uint pos) { if (pos < m_execArgs.count()) m_execArgs[pos] = arg; }
+	inline void changeExecArg(const QVariant& arg, const uint pos)
+	{
+		if (pos < m_execArgs.count())
+			m_execArgs[pos] = arg;
+	}
+
 	inline TPListModel* model() const { return m_model; }
-	void setModel(TPListModel* model) { m_model = model; }
+	inline void setModel(TPListModel* model) { m_model = model; }
 
 	void removeEntry();
 	void clearTable();

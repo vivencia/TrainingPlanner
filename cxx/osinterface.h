@@ -6,7 +6,6 @@
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
-
 #include <jni.h>
 
 class TPAndroidNotification;
@@ -16,6 +15,7 @@ class TPListModel;
 
 class OSInterface : public QObject
 {
+
 public:
 	OSInterface();
 	~OSInterface();
@@ -40,11 +40,6 @@ public:
 	void appStartUpNotifications();
 #endif
 
-	void setExportFileName(const QString& filename) { m_exportFileName = m_appDataFilesPath + filename;}
-	inline const QString& exportFileName() const { return m_exportFileName; }
-	Q_INVOKABLE int importFromFile(QString filename, QFile* inFile = nullptr);
-	bool importFromModel(TPListModel* model);
-
 	void shareFile(const QString& fileName) const;
 	Q_INVOKABLE void openURL(const QString& address) const;
 	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;
@@ -60,7 +55,7 @@ public slots:
 	void aboutToExit();
 
 private:
-	QString m_exportFileName, m_appDataFilesPath;
+	QString m_appDataFilesPath;
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;

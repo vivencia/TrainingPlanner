@@ -1,6 +1,6 @@
 #include "tpimageprovider.h"
 
-#include <math.h>
+#include <QtMath>
 
 static const uint avatarWidth(140);
 static const uint avatarHeight(140);
@@ -38,19 +38,18 @@ QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)
 	if (strSex == u"m"_qs)
 	{
 		if (id >= 5)
-			y = ::floor((id+10) / 5) * avatarHeight;
+			y = qFloor((id+10) / 5) * avatarHeight;
 		else
-			y = ::floor((id+5) / 5) * avatarHeight;
+			y = qFloor((id+5) / 5) * avatarHeight;
 	}
 	else
 	{
 		if (id >= 10)
-			y = ::floor((id+10) / 5) * avatarHeight;
+			y = qFloor((id+10) / 5) * avatarHeight;
 		else if (id >= 5)
-			y = ::floor((id+5) / 5) * avatarHeight;
+			y = qFloor((id+5) / 5) * avatarHeight;
 		else
 			y = 0;
 	}
 	return mAllAvatars.copy(QRect(x, y, avatarWidth, avatarHeight));
 }
-

@@ -1,7 +1,7 @@
-#include <QSoundEffect>
-
 #include "tptimer.h"
 #include "tputils.h"
+
+#include <QSoundEffect>
 
 TPTimer::TPTimer(QObject* parent)
 	: QTimer{parent}, m_hours(0), m_minutes(0), m_seconds(0), m_totalSeconds(0), mb_stopWatch(true),

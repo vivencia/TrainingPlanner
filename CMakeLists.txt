@@ -18,6 +18,7 @@ set( RESOURCE_FILES app_resources.qrc )
 
 set( SOURCES
 	cxx/main.cpp
+	cxx/tpglobals.h
 
 	cxx/tpappcontrol.h cxx/tpappcontrol.cpp
 	cxx/translationclass.cpp cxx/translationclass.h

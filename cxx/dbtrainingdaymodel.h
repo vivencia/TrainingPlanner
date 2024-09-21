@@ -33,6 +33,7 @@
 
 class DBExercisesModel;
 class DBMesoSplitModel;
+class appWindowMessageID;
 
 class DBTrainingDayModel : public TPListModel
 {
@@ -53,13 +54,13 @@ public:
 	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
 
-	virtual bool exportToFile(const QString& filename, const bool, const bool) const override;
-	virtual bool importFromFile(const QString& filename) override;
+	virtual int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	virtual int importFromFile(const QString& filename) override;
 	virtual bool updateFromModel(const TPListModel* const model) override;
 
 	const QString exportExtraInfo() const;
-	const QString& formatSetTypeToExport(const QString& fieldValue) const;
-	const QString& formatSetTypeToImport(const QString& fieldValue) const;
+	const QString formatSetTypeToExport(const QString& fieldValue) const;
+	const QString formatSetTypeToImport(const QString& fieldValue) const;
 
 	inline void appendRow() { appendList(QStringList(9)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
@@ -132,8 +133,8 @@ public:
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
 					 const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);
 	Q_INVOKABLE QString nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
-	const QString& nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
-	const QString& nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
+	const QString nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
+	const QString nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	void newSet(const uint set_number, const uint exercise_idx, const uint type, const QString& nReps = QString(),
 					const QString& nWeight = QString(), const QString& nRestTime = QString(), const QString& nSubSets = QString());
 	bool removeSet(const uint set_number, const uint exercise_idx);
@@ -201,6 +202,6 @@ private:
 	friend class DBMesoSplitModel;
 };
 
-Q_DECLARE_METATYPE(DBTrainingDayModel*)
+//Q_DECLARE_METATYPE(DBTrainingDayModel*)
 
 #endif // DBTRAININGDAYMODEL_H

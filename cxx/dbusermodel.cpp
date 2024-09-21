@@ -1,4 +1,5 @@
 #include "dbusermodel.h"
+#include "tpglobals.h"
 #include "tputils.h"
 
 DBUserModel::DBUserModel(QObject *parent)
@@ -316,13 +317,13 @@ void DBUserModel::setCurrentUser(const int row, const int new_current_user)
 	}
 }
 
-bool DBUserModel::importFromFile(const QString& filename)
+int DBUserModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
-		return false;
+		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
 	char buf[128];
@@ -359,7 +360,7 @@ bool DBUserModel::importFromFile(const QString& filename)
 	m_modeldata.append(modeldata);
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1;
+	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const

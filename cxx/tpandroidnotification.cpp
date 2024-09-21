@@ -7,7 +7,7 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/private/qandroidextras_p.h>
 
-using namespace Qt::StringLiterals;
+namespace org_vivenciasoftware_TrainingPlanner {
 
 TPAndroidNotification::TPAndroidNotification(QObject* parent)
 	: QObject{parent}
@@ -61,4 +61,6 @@ void TPAndroidNotification::cancelNotification(const uint id)
 					"(I)V",
 					id);
 }
+
+} //namespace
 #endif

@@ -25,7 +25,6 @@
 
 #define SPLITS_LOADED_ID 4321
 
-
 void DBInterface::init()
 {
 	m_DBFilePath = appSettings()->value("dbFilePath").toString();

@@ -18,8 +18,8 @@ public:
 
 private:
 	QImage mAllAvatars;
-	static TPImageProvider* mtpImageProvider;
 
+	static TPImageProvider* mtpImageProvider;
 	friend TPImageProvider* tpImageProvider();
 };
 
