@@ -9,6 +9,7 @@
 #include "qmlitemmanager.h"
 #include "osinterface.h"
 
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QSettings>
 
@@ -249,12 +250,76 @@ void TPAppControl::openRequestedFile(const QString& filename, const int wanted_c
 	}
 }
 
+void TPAppControl::importFromFile(const QString& filename, const int wanted_content)
+{
+	int importFileMessageId(0);
+	if (wanted_content & IFC_MESO)
+	{
+		if (wanted_content & IFC_USER)
+		{
+			DBUserModel* usermodel{new DBUserModel};
+			usermodel->deleteLater();
+			importFileMessageId = usermodel->importFromFile(filename);
+			if (importFileMessageId >= 0)
+				incorporateImportedData(usermodel);
+		}
+
+		DBMesocyclesModel* mesomodel{new DBMesocyclesModel};
+		mesomodel->deleteLater();
+		importFileMessageId = mesomodel->importFromFile(filename);
+		if (importFileMessageId >= 0)
+			incorporateImportedData(mesomodel);
+
+		if (wanted_content & IFC_MESOSPLIT)
+		{
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel};
+			splitModel->deleteLater();
+			importFileMessageId = splitModel->importFromFile(filename);
+			if (importFileMessageId >= 0)
+				incorporateImportedData(splitModel);
+		}
+	}
+	else
+	{
+		if (wanted_content & IFC_MESOSPLIT)
+		{
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel};
+			splitModel->deleteLater();
+			importFileMessageId = splitModel->importFromFile(filename);
+			if (importFileMessageId >= 0)
+				incorporateImportedData(splitModel);
+		}
+		else if (wanted_content & IFC_TDAY)
+		{
+			DBTrainingDayModel* tDayModel{new DBTrainingDayModel};
+			tDayModel->deleteLater();
+			importFileMessageId = tDayModel->importFromFile(filename);
+			if (importFileMessageId >= 0)
+				incorporateImportedData(tDayModel);
+		}
+		else if (wanted_content & IFC_EXERCISES)
+		{
+			DBExercisesModel* exercisesModel{new DBExercisesModel};
+			exercisesModel->deleteLater();
+			importFileMessageId = exercisesModel->importFromFile(filename);
+			if (importFileMessageId >= 0)
+				incorporateImportedData(exercisesModel);
+		}
+	}
+	rootItemsManager()->displayMessageOnAppWindow(importFileMessageId);
+}
+
 void TPAppControl::incorporateImportedData(const TPListModel* const model)
 {
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
 			appExercisesModel()->updateFromModel(model);
+			//appDBInterface()->saveExercise();
+		break;
+		case USER_TABLE_ID:
+			static_cast<void>(appUserModel()->updateFromModel(model));
+			appDBInterface()->saveUser(appUserModel()->count()-1);
 		break;
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
@@ -270,7 +335,7 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 			if (appDBInterface()->splitsLoaded())
 			{
 				DBMesoSplitModel* splitModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->getSplitModel(newSplitModel->splitLetter().at(0))};
-				splitModel->updateFromModel(model);
+				splitModel->updateFromModel(newSplitModel);
 				appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
 			else
@@ -283,7 +348,7 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 			DBTrainingDayModel* tDayModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->gettDayModel(QDate::currentDate())};
 			if (tDayModel->exerciseCount() == 0)
 			{
-				tDayModel->updateFromModel(model);
+				tDayModel->updateFromModel(newTDayModel);
 				appDBInterface()->saveTrainingDay(tDayModel);
 			}
 			else

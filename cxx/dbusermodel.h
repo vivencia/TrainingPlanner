@@ -33,7 +33,7 @@ Q_OBJECT
 QML_ELEMENT
 
 public:
-	explicit DBUserModel(QObject *parent = nullptr);
+	explicit DBUserModel(QObject* parent = nullptr);
 
 	Q_INVOKABLE int addUser(const bool bCoach);
 	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);

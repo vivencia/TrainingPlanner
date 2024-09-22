@@ -3,7 +3,7 @@
 #include "tputils.h"
 
 DBUserModel::DBUserModel(QObject *parent)
-	: TPListModel(parent), mb_empty(false), m_searchRow(-1)
+	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
 {
 	setObjectName(DBUserObjectName);
 	m_tableId = EXERCISES_TABLE_ID;

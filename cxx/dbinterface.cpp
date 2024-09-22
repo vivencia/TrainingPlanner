@@ -305,21 +305,21 @@ void DBInterface::getAllUsers()
 
 void DBInterface::saveUser(const uint row)
 {
-	DBUserTable* worker(new DBUserTable(m_DBFilePath, appUserModel()));
+	DBUserTable* worker{new DBUserTable(m_DBFilePath, appUserModel())};
 	worker->addExecArg(row);
-	createThread(worker, [worker] () { worker->saveUser(); } );
+	createThread(worker, [worker] () { worker->saveUser(); });
 }
 
 void DBInterface::removeUser(const uint row, const bool bCoach)
 {
-	DBUserTable* worker(new DBUserTable(m_DBFilePath));
+	DBUserTable* worker{new DBUserTable(m_DBFilePath)};
 	worker->addExecArg(appUserModel()->userId(row));
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteUserTable(const bool bRemoveFile)
 {
-	DBUserTable* worker(new DBUserTable(m_DBFilePath, appUserModel()));
+	DBUserTable* worker{new DBUserTable(m_DBFilePath, appUserModel())};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------

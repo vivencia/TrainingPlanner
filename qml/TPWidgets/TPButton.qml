@@ -6,6 +6,12 @@ import "../"
 
 Rectangle {
 	id: button
+	focus: true
+	border.color: flat ? "transparent" : AppSettings.fontColor
+	radius: rounded ? height : 6
+	opacity: bFollowParentsOpacity ? parent.opacity : 1
+	color: backgroundColor
+
 	property color textColor: AppSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
@@ -18,6 +24,7 @@ Rectangle {
 	property bool rounded: true
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
+	property Item associatedItem: null
 	property int imageSize: hasDropShadow ? 30 : 20
 	property string imageSource
 	property bool hasDropShadow: true
@@ -27,12 +34,6 @@ Rectangle {
 	property TPButtonImage buttonImage: null;
 
 	signal clicked(int clickid);
-
-	focus: true
-	border.color: flat ? "transparent" : AppSettings.fontColor
-	radius: rounded ? height : 6
-	opacity: bFollowParentsOpacity ? parent.opacity : 1
-	color: backgroundColor
 
 	onImageSourceChanged: {
 		if (buttonImage)

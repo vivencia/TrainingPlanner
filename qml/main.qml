@@ -152,8 +152,8 @@ ApplicationWindow {
 		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 	}
 
-	function createShortCut(label: string, object: Item, clickid: int) {
-		mainMenu.createShortCut(label, object, clickid);
+	function createShortCut(label: string, page: Item, clickid: int) {
+		mainMenu.createShortCut(label, page, clickid);
 	}
 
 	TPBalloonTip {

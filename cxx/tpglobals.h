@@ -40,12 +40,12 @@ static const QString& STR_ONE(u"1"_qs);
 static const QString& STR_END_EXPORT(u"####\n\n"_qs);
 
 enum {
-	IFC_USER = 0x02,
-	IFC_MESO = 0x04,
-	IFC_MESOSPLIT = 0x08,
-	IFC_EXERCISES = 0x10,
+	IFC_USER = 0x01,
+	IFC_MESO = 0x02,
+	IFC_MESOSPLIT = 0x04,
+	IFC_EXERCISES = 0x08,
 	IFC_TDAY = 0x10,
-	IFC_ANY= 0xFF
+	IFC_ANY= 0x1F
 } typedef importFileContents;
 
 #define APPWINDOW_MSG_IMPORT_OK 3

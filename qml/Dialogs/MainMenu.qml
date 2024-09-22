@@ -202,12 +202,12 @@ Drawer {
 		}
 	} //ColumnLayout
 
-	function createShortCut(label: string, object: Item, clickid: int) {
+	function createShortCut(label: string, page: Item, clickid: int) {
 		if (!buttonComponent)
 			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, "Layout.fillWidth": true });
+			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page, "Layout.fillWidth": true });
 			button.clicked.connect(openMainMenuShortCut);
 			appDB.addMainMenuShortCutEntry(button);
 		}

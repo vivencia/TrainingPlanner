@@ -115,7 +115,7 @@ TPPage {
 			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
 			appDB.setDayIsFinished(tDayModel, true);
-			itemManager(tDayModel.mesoIdx).rollUpExercises();
+			itemManager.rollUpExercises();
 		}
 		else {
 			if (appUtils.areDatesTheSame(mainDate, new Date())) {
@@ -174,7 +174,7 @@ TPPage {
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx);
+			itemManager.removeExerciseObject(exerciseidx);
 			return;
 		}
 
@@ -185,7 +185,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).removeExerciseObject(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -202,7 +202,7 @@ TPPage {
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!AppSettings.alwaysAskConfirmation) {
-			itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx);
+			itemManager.removeSetObject(setnumber, exerciseidx);
 			return;
 		}
 
@@ -213,7 +213,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveSet.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).removeSetObject(setnumber, exerciseidx); } );
+					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -334,7 +334,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
-					tipTimeWarn.button1Clicked.connect(function () { itemManager(tDayModel.mesoIdx).resetWorkout(); } );
+					tipTimeWarn.button1Clicked.connect(function () { itemManager.resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -902,7 +902,7 @@ TPPage {
 					timeOut = appUtils.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsEditable = false;
-					itemManager(tDayModel.mesoIdx).rollUpExercises();
+					itemManager.rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 				}
 			}
@@ -1082,7 +1082,7 @@ TPPage {
 		}
 
 		appDB.getItem.connect(readyToProceed);
-		itemManager(tDayModel.mesoIdx).createExerciseObject(exercisesModel);
+		itemManager.createExerciseObject(exercisesModel);
 	}
 
 	function placeSetIntoView(ypos: int) {
@@ -1116,7 +1116,7 @@ TPPage {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager(tDayModel.mesoIdx).createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
+		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
 		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
@@ -1211,7 +1211,7 @@ TPPage {
 				if (!editMode)
 					btnFinishedDayOptions.visible = true;
 				else {
-					itemManager(tDayModel.mesoIdx).rollUpExercises();
+					itemManager.rollUpExercises();
 					appDB.setDayIsFinished(mainDate, true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
