@@ -18,8 +18,8 @@ Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 	explicit inline TPListModel(QObject* parent = nullptr, int meso_idx = -1)
-		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_tableId(0), m_bFilterApplied(false),
-		m_bReady(false), m_bModified(false), m_bImportMode(false) {}
+		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1),
+			m_bFilterApplied(false), m_bReady(false), m_bModified(false), m_bImportMode(false) {}
 
 	inline TPListModel(const TPListModel& db_model) : TPListModel () { copy (db_model); }
 	inline TPListModel(TPListModel&& other) : TPListModel () { tp_listmodel_swap (*this, other); }
@@ -33,6 +33,7 @@ public:
 	virtual ~TPListModel() override;
 
 	inline int tableID() const { return m_tableId; }
+	inline uint numberOfFields() const { return m_fieldCount; }
 	inline bool modified() const { return m_bModified; }
 	inline void setModified(const bool bModified)
 	{
@@ -53,11 +54,12 @@ public:
 		}
 	}
 
-	Q_INVOKABLE void updateList (const QStringList& list, const int row);
-	Q_INVOKABLE void removeFromList (const int row);
-	Q_INVOKABLE void appendList(const QStringList& list);
-	Q_INVOKABLE virtual void clear();
+	void updateList (const QStringList& list, const int row);
+	void appendList(const QStringList& list);
+	virtual void clear();
 
+	Q_INVOKABLE inline void appendRow() { appendList(QStringList(numberOfFields())); setCurrentRow(count() - 1); }
+	Q_INVOKABLE void removeRow (const uint row);
 	Q_INVOKABLE inline uint count() const { return m_indexProxy.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
 	Q_INVOKABLE void setCurrentRow(const int row);
@@ -79,9 +81,10 @@ public:
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
 	virtual inline QString formatFieldToExport(const uint, const QString&) const { return QString(); }
 
+	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
+	inline void addModifiedIndex(const uint index) { m_modifiedIndices.append(index); }
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
-	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
 
 	Q_INVOKABLE const QString get(const uint row, const uint field) const
 	{
@@ -130,15 +133,6 @@ public:
 	inline int getIntFast(const uint row, const uint field) const
 	{
 		return row < m_modeldata.count() ? m_modeldata.at(row).at(field).toInt() : -1;
-	}
-
-	Q_INVOKABLE float getFloat(const uint row, const uint field) const
-	{
-		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getFloat", "out of range row");
-		//if (row >= 0 && row < m_indexProxy.count())
-			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toFloat();
-		//else
-		//	return -1.0;
 	}
 
 	Q_INVOKABLE QDate getDate(const uint row, const uint field) const
@@ -208,7 +202,7 @@ protected:
 
 	int m_mesoIdx;
 	int m_currentRow;
-	uint m_tableId;
+	uint m_tableId, m_fieldCount;
 	bool m_bFilterApplied, m_bReady, m_bModified, m_bImportMode;
 	uint filterSearch_Field1;
 	uint filterSearch_Field2;

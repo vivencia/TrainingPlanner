@@ -1,10 +1,10 @@
 #include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
-#include "tputils.h"
+#include "tpglobals.h"
 
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QFile>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QTime>
 
 uint DBExercisesTable::m_exercisesTableLastId(1000);
@@ -20,9 +20,6 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, DBExercisesModel* 
 	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
 	const QString dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
-	m_data.reserve(EXERCISES_COL_SELECTED+1);
-	for(uint i(EXERCISES_COL_ID); i <= EXERCISES_COL_SELECTED; i++)
-		m_data.append(QString());
 }
 
 void DBExercisesTable::createTable()
@@ -30,12 +27,12 @@ void DBExercisesTable::createTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"_qs);
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"_qs);
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"_qs);
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"_qs);
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"_qs);
 		const QString strQuery(u"CREATE TABLE IF NOT EXISTS exercises_table ("
 										"id INTEGER PRIMARY KEY,"
 										"primary_name TEXT,"
@@ -131,14 +128,13 @@ void DBExercisesTable::updateExercisesList()
 
 		QStringList fields;
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"_qs);
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"_qs);
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"_qs);
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"_qs);
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"_qs);
 
-		const QString strWeightUnit(appSettings()->value("weightUnit").toString());
 		const QString query_cmd(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)"_qs);
@@ -187,17 +183,16 @@ void DBExercisesTable::updateFromModel()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(QStringLiteral("PRAGMA page_size = 4096"_qs);
+		query.exec(QStringLiteral("PRAGMA cache_size = 16384"_qs);
+		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"_qs);
+		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"_qs);
+		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(QStringLiteral("PRAGMA synchronous = 0"_qs);
 
 		TPListModel* model(m_execArgs.at(1).value<TPListModel*>());
 		static_cast<DBExercisesModel*>(m_model)->updateFromModel(model);
 
-		const QString strWeightUnit(appSettings()->value("weightUnit").toString());
 		const QString query_cmd( QStringLiteral(
 								"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
@@ -231,26 +226,33 @@ void DBExercisesTable::updateFromModel()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBExercisesTable::saveExercise()
+void DBExercisesTable::saveExercises()
 {
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		DBExercisesModel* model(static_cast<DBExercisesModel*>(m_model));
 
-		bool bUpdate(false);
-		QString strQuery;
-		if (query.exec(QStringLiteral("SELECT id FROM exercises_table WHERE primary_name=%1").arg(m_data.at(EXERCISES_COL_MAINNAME))))
+		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
+		if (mSqlLiteDB.transaction())
 		{
-			if (query.first())
-				bUpdate = query.value(0).toUInt() >= 0;
-			query.finish();
+			bool bUpdate(false);
+			QString strQuery;
+			for (uint i(0); i < model->modifiedIndicesCount(); ++i)
+			{
+				const QString& exerciseId = model->getFast(model->modifiedIndex(i), EXERCISES_COL_ID);
+				bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
+				const QString queryStart(u"INSERT INTO mesocycles_calendar_table "
+									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES ("_qs);
+			}
+
 		}
 
 		if (bUpdate)
@@ -302,21 +304,6 @@ void DBExercisesTable::saveExercise()
 	else
 		MSG_OUT("DBExercisesTable saveExercise Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBExercisesTable::setData(const QString& id, const QString& mainName, const QString& subName,
-						const QString& muscularGroup, const QString& nSets, const QString& nReps,
-						const QString& nWeight, const QString& uWeight, const QString& mediaPath)
-{
-	m_data[EXERCISES_COL_ID] = id;
-	m_data[EXERCISES_COL_MAINNAME] = mainName;
-	m_data[EXERCISES_COL_SUBNAME] = subName;
-	m_data[EXERCISES_COL_MUSCULARGROUP] = muscularGroup;
-	m_data[EXERCISES_COL_SETSNUMBER] = nSets; //QString::number(nSets,'g', 1)
-	m_data[EXERCISES_COL_REPSNUMBER] = nReps;
-	m_data[EXERCISES_COL_WEIGHT] = nWeight;
-	m_data[EXERCISES_COL_WEIGHTUNIT] = uWeight;
-	m_data[EXERCISES_COL_MEDIAPATH] = mediaPath;
 }
 
 void DBExercisesTable::removePreviousListEntriesFromDB()

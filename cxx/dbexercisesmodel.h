@@ -42,6 +42,13 @@ public:
 
 	explicit DBExercisesModel(QObject* parent = nullptr);
 
+	Q_INVOKABLE inline void setMainName(const QString& new_name) { set(currentRow(), EXERCISES_COL_MAINNAME, new_name); addModifiedIndex(currentRow()); }
+	Q_INVOKABLE inline void setSubNameName(const QString& new_name) { set(currentRow(), EXERCISES_COL_SUBNAME, new_name); addModifiedIndex(currentRow()); }
+	Q_INVOKABLE inline void setMuscularGroup(const QString& new_group) { set(currentRow(), EXERCISES_COL_MUSCULARGROUP, new_group); addModifiedIndex(currentRow()); }
+	Q_INVOKABLE inline void setSetsNumber(const QString& new_nsets) { set(currentRow(), EXERCISES_COL_SETSNUMBER, new_nsets); addModifiedIndex(currentRow()); }
+	Q_INVOKABLE inline void setRepsNumber(const QString& new_nreps) { set(currentRow(), EXERCISES_COL_REPSNUMBER, new_nreps); addModifiedIndex(currentRow()); }
+	Q_INVOKABLE inline void setWeight(const QString& new_weight) { set(currentRow(), EXERCISES_COL_WEIGHT, new_weight); addModifiedIndex(currentRow()); }
+
 	Q_INVOKABLE void clearSelectedEntries();
 	Q_INVOKABLE bool manageSelectedEntries(uint index, const uint max_selected = 1);
 	Q_INVOKABLE QString selectedEntriesValue(const uint index, const uint field) const { return m_modeldata.at(m_selectedEntries.at(index).real_index).at(field); }

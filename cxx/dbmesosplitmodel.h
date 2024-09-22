@@ -56,7 +56,7 @@ public:
 	Q_INVOKABLE void setExerciseName2(const uint row, const QString& new_name);
 
 	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
-	Q_INVOKABLE void removeExercise(const uint row) { removeFromList(row); }
+	Q_INVOKABLE void removeExercise(const uint row) { removeRow(row); }
 
 	Q_INVOKABLE uint setsNumber(const uint row) const;
 	void setSetsNumber(const uint row, const uint new_setsnumber);

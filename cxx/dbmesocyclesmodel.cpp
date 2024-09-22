@@ -12,7 +12,8 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 {
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
-	m_exportName = tr("Plano de treinamento");
+	m_fieldCount = MESOCYCLES_TOTAL_COLS;
+	m_exportName = tr("Training Plan");
 
 	m_roleNames[mesoNameRole] = "mesoName";
 	m_roleNames[mesoStartDateRole] = "mesoStartDate";
@@ -77,8 +78,8 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 	m_calendarModelList.remove(meso_idx);
 	m_totalSplits.remove(meso_idx);
 
-	m_splitModel->removeFromList(meso_idx);
-	removeFromList(meso_idx);
+	m_splitModel->removeRow(meso_idx);
+	removeRow(meso_idx);
 
 	for (uint i(meso_idx); i < count(); ++i)
 	{

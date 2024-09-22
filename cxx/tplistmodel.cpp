@@ -33,29 +33,27 @@ void TPListModel::updateList(const QStringList& list, const int row)
 	emit dataChanged(index(row, 0), index(row, list.count()-1));
 }
 
-void TPListModel::removeFromList(const int row)
+void TPListModel::removeRow(const uint row)
 {
-	if (row < count())
+	Q_ASSERT_X(row < m_indexProxy.count(), "TPListModel::removeRow", "out of range row");
+	beginRemoveRows(QModelIndex(), row, row);
+	m_modeldata.remove(row);
+	if (!m_bFilterApplied)
+		m_indexProxy.remove(row);
+	else
 	{
-		beginRemoveRows(QModelIndex(), row, row);
-		m_modeldata.remove(row);
-		if (!m_bFilterApplied)
-			m_indexProxy.remove(row);
-		else
+		const int proxy_index(m_indexProxy.indexOf(row));
+		if (proxy_index >= 0)
 		{
-			const int proxy_index(m_indexProxy.indexOf(row));
-			if (proxy_index >= 0)
-			{
-				m_indexProxy.remove(proxy_index);
-				for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
-					m_indexProxy[i] = i-1;
-			}
+			m_indexProxy.remove(proxy_index);
+			for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
+				m_indexProxy[i] = i-1;
 		}
-		if (m_currentRow >= row)
-			setCurrentRow(m_currentRow - 1);
-		emit countChanged();
-		endRemoveRows();
 	}
+	if (m_currentRow >= row)
+		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
+	emit countChanged();
+	endRemoveRows();
 }
 
 void TPListModel::appendList(const QStringList& list)
@@ -80,20 +78,18 @@ void TPListModel::clear()
 
 void TPListModel::setCurrentRow(const int row)
 {
-	if (row >= -1 && row < m_indexProxy.count())
-	{
-		m_currentRow = row;
-		emit currentRowChanged();
-	}
+	Q_ASSERT_X(row >= -1 && row < m_indexProxy.count(), "TPListModel::setCurrentRow", "out of range row");
+	m_currentRow = row;
+	emit currentRowChanged();
 }
 
 void TPListModel::moveRow(const uint from, const uint to)
 {
 	if (from < count() && to < count())
 	{
-		const QModelIndex sourceParent(index(from < to ? from : to, 0));
-		const QModelIndex destinationParent(index(to > from ? to : from, 0));
-		const QStringList tempList(m_modeldata.at(from));
+		const QModelIndex& sourceParent(index(from < to ? from : to, 0));
+		const QModelIndex& destinationParent(index(to > from ? to : from, 0));
+		const QStringList& tempList(m_modeldata.at(from));
 		if (to > from)
 		{
 			for(uint i(from); i < to; ++i)
@@ -175,7 +171,7 @@ void TPListModel::makeFilterString(const QString& text)
 {
 	m_filterString = text;
 	m_filterString = m_filterString.replace(',', ' ').simplified();
-	const QStringList words(m_filterString.split(' '));
+	const QStringList& words(m_filterString.split(' '));
 
 	if ( words.count() > 0)
 	{
@@ -284,13 +280,13 @@ bool TPListModel::updateFromModel(const TPListModel* const model)
 
 void TPListModel::setExportFiter(const QString& filter, const uint field)
 {
-	const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
+	const QRegularExpression regex{filter, QRegularExpression::CaseInsensitiveOption};
 	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
 	const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
 	uint row(0);
 	m_exportRows.clear();
 
-	for ( ; lst_itr != lst_itrend; ++lst_itr, ++row )
+	for (; lst_itr != lst_itrend; ++lst_itr, ++row)
 	{
 		if (regex.match((*lst_itr).at(field)).hasMatch())
 			m_exportRows.append(row);

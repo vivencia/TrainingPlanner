@@ -15,6 +15,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 
 	if (mb_Complete)
 	{
+		m_fieldCount = COMPLETE_MESOSPLIT_TOTAL_COLS;
 		m_modeldata.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(tr("Exercise name: "));
@@ -28,6 +29,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 	}
 	else
 	{
+		m_fieldCount = SIMPLE_MESOSPLIT_TOTAL_COLS;
 		m_modeldata.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(QString()); //MESOSPLIT_COL_ID
@@ -290,7 +292,7 @@ void DBMesoSplitModel::changeExercise(const DBExercisesModel* const model)
 static void muscularGroupSimplified(QString& muscularGroup)
 {
 	muscularGroup = muscularGroup.replace(',', ' ').simplified();
-	const QStringList words(muscularGroup.split(' '));
+	const QStringList& words(muscularGroup.split(' '));
 
 	if ( words.count() > 0)
 	{
@@ -300,11 +302,11 @@ static void muscularGroupSimplified(QString& muscularGroup)
 
 		do
 		{
-			if(static_cast<QString>(*itr).length() < 3)
+			if((*itr).length() < 3)
 				continue;
 			if (!muscularGroup.isEmpty())
 				muscularGroup.append(' ');
-			muscularGroup.append(static_cast<QString>(*itr).toLower());
+			muscularGroup.append((*itr).toLower());
 			if (muscularGroup.endsWith('s', Qt::CaseInsensitive) )
 				muscularGroup.chop(1);
 			muscularGroup.remove('.');
@@ -321,7 +323,7 @@ QString DBMesoSplitModel::findSwappableModel() const
 	{
 		muscularGroupSimplified(muscularGroup1);
 		QString muscularGroup2;
-		const QString mesoSplit(appMesoModel()->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
+		const QString& mesoSplit(appMesoModel()->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
 		QString::const_iterator itr(mesoSplit.constBegin());
 		const QString::const_iterator itr_end(mesoSplit.constEnd());
 

@@ -21,7 +21,6 @@ TPPage {
 	property bool bNew: false
 	property bool bEdit: false
 	property bool bChooseButtonEnabled: true
-	property bool bJustSaved: false
 	property var imageViewer: null
 	property var videoViewer: null
 
@@ -124,8 +123,10 @@ TPPage {
 							strMediaPath = "qrc:/images/no_image.jpg";
 							exercisesList.enabled = false;
 							text = qsTr("Cancel");
+							exercisesModel.appendRow();
 						}
 						else {
+							exercisesModel.removeRow(exercisesModel.currentRow);
 							bNew = false;
 							bCanEdit = false;
 							exercisesList.enabled = true;
@@ -135,7 +136,7 @@ TPPage {
 				} //btnNewExercise
 
 				TPButton {
-					id:btnEditExercise
+					id: btnEditExercise
 					text: qsTr("Edit")
 					enabled: !bNew && exercisesModel.currentRow >= 0
 					fixedSize: true
@@ -158,8 +159,8 @@ TPPage {
 							bEdit = false;
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
-							if (!bJustSaved)
-								exercisesList.itemClicked(exercisesModel.currentRow, true);
+							//if (!bJustSaved)
+							//	exercisesList.itemClicked(exercisesModel.currentRow, true);
 						}
 					}
 				} //btnEditExercise
@@ -175,17 +176,13 @@ TPPage {
 					flat: false
 
 					onClicked: {
-						bJustSaved = true; //Do not issue displaySelectedExercise()
-						appDB.saveExercise(exercisesModel.get(exercisesModel.currentRow, 0), txtExerciseName.text,
-													txtExerciseSubName.text, txtMuscularGroup.text, txtNSets.text,
-													txtNReps.text, txtNWeight.text, AppSettings.weightUnit, strMediaPath);
+						appDB.saveExercises();
 						if (bNew) {
 							btnNewExercise.clicked();
-							exercisesList.simulateMouseClick(exercisesModel.count - 1);
+							//exercisesList.simulateMouseClick(exercisesModel.count - 1);
 						}
 						else if (bEdit)
 							btnEditExercise.clicked();
-						bJustSaved = false;
 					}
 				} //btnSaveExercise
 
@@ -250,12 +247,8 @@ TPPage {
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
-					txtExerciseSubName.forceActiveFocus();
-				}
-				Keys.onEnterPressed: { //Numeric keyboard
-					txtExerciseSubName.forceActiveFocus();
-				}
+				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
+				onEditingFinished: exercisesModel.setMainName(text);
 			}
 
 			Label {
@@ -274,12 +267,8 @@ TPPage {
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
-					txtMuscularGroup.forceActiveFocus();
-				}
-				Keys.onEnterPressed: { //Numeric keyboard
-					txtMuscularGroup.forceActiveFocus();
-				}
+				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
+				onEditingFinished: exercisesModel.setSubName(text);
 			}
 
 			Label {
@@ -298,12 +287,8 @@ TPPage {
 				Layout.rightMargin: 20
 				Layout.leftMargin: 10
 
-				Keys.onReturnPressed: { //Alphanumeric keyboard
-					btnSaveExercise.clicked();
-				}
-				Keys.onEnterPressed: { //Numeric keyboard
-					btnSaveExercise.clicked();
-				}
+				onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
+				onEditingFinished: exercisesModel.setMuscularGroup(text);
 			}
 
 			Label {
@@ -375,6 +360,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+						onValueChanged: (str) => exercisesModel.setSetsNumber(str);
 					}
 
 					SetInputField {
@@ -388,6 +374,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+						onValueChanged: (str) => exercisesModel.setRepsNumber(str);
 					}
 
 					SetInputField {
@@ -401,6 +388,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: btnChooseMediaFromDevice.forceActiveFocus();
+						onValueChanged: (str) => exercisesModel.setWeight(str);
 					}
 				} // ColumnLayout
 			} //Pane

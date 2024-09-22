@@ -52,9 +52,7 @@ public:
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	void getAllExercises();
-	Q_INVOKABLE void saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-									const QString& nSets, const QString& nReps, const QString& nWeight,
-									const QString& uWeight, const QString& mediaPath);
+	Q_INVOKABLE void saveExercises();
 	void removeExercise(const uint row);
 	void deleteExercisesTable(const bool bRemoveFile);
 	void updateExercisesList();

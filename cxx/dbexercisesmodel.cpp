@@ -9,6 +9,7 @@ DBExercisesModel::DBExercisesModel(QObject* parent)
 {
 	setObjectName(DBExercisesObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
+	m_fieldCount = EXERCISES_TOTAL_COLS;
 	m_exportName = tr("Exercises List");
 
 	// Set names to the role name hash container (QHash<int, QByteArray>)

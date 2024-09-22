@@ -21,9 +21,7 @@ public:
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;
 
-	inline const QStringList& data () const { return m_data; }
 	inline bool result() const { return m_result; }
-
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
 
 	inline uint tableID() const { return m_tableID; }
@@ -50,7 +48,6 @@ public:
 
 protected:
 	QSqlDatabase mSqlLiteDB;
-	QStringList m_data;
 	TPListModel* m_model;
 	QVariantList m_execArgs;
 	QString m_tableName;

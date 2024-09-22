@@ -20,13 +20,7 @@ public:
 	void getAllExercises();
 	void updateExercisesList();
 	void updateFromModel();
-	void saveExercise();
-
-	//Call before starting a thread
-	void setData(const QString& id, const QString& mainName = QString(), const QString& subName = QString(),
-						const QString& muscularGroup = QString(), const QString& nSets = QString(),
-						const QString& nReps = QString(), const QString& nWeight = QString(),
-						const QString& uWeight = QString(), const QString& mediaPath = QString());
+	void saveExercises();
 
 private:
 	static uint m_exercisesTableLastId;

@@ -327,23 +327,17 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DBInterface::getAllExercises()
 {
-	if (appExercisesModel()->count() == 0)
-	{
-		DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, appExercisesModel()));
-		worker->setUniqueID(2222);
-		createThread(worker, [worker] () { worker->getAllExercises(); } );
-	}
-	else
-		emit databaseReady(2222);
+	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	createThread(worker, [worker] () { worker->getAllExercises(); });
 }
 
-void DBInterface::saveExercise(const QString& id, const QString& mainName, const QString& subName, const QString& muscularGroup,
-					 const QString& nSets, const QString& nReps, const QString& nWeight,
-					 const QString& uWeight, const QString& mediaPath)
+void DBInterface::saveExercises()
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, appExercisesModel()));
-	worker->setData(id, mainName, subName, muscularGroup, nSets, nReps, nWeight, uWeight, mediaPath);
-	createThread(worker, [worker] () { return worker->saveExercise(); } );
+	if (appExercisesModel()->modifiedIndicesCount() > 0)
+	{
+		DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+		createThread(worker, [worker] () { return worker->saveExercises(); });
+	}
 }
 
 void DBInterface::removeExercise(const uint row)
@@ -356,7 +350,7 @@ void DBInterface::removeExercise(const uint row)
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesTable* worker(new DBExercisesTable(m_DBFilePath, appExercisesModel()));
+	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 

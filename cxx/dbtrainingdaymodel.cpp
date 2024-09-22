@@ -13,18 +13,19 @@ DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const int meso_idx)
 {
 	setObjectName(DBTrainingDayObjectName);
 	m_tableId = TRAININGDAY_TABLE_ID;
+	m_fieldCount = TDAY_TOTAL_COLS;
 	m_exportName = tr("Single workout");
 }
 
 void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse)
 {
-	const QStringList exercises_names(list.at(TDAY_EXERCISES_COL_NAMES).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList setstypes(list.at(TDAY_EXERCISES_COL_TYPES).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList resttimes(list.at(TDAY_EXERCISES_COL_RESTTIMES).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList subsets(list.at(TDAY_EXERCISES_COL_SUBSETS).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList reps(list.at(TDAY_EXERCISES_COL_REPS).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList weights(list.at(TDAY_EXERCISES_COL_WEIGHTS).split(record_separator2, Qt::SkipEmptyParts));
-	const QStringList notes(list.at(TDAY_EXERCISES_COL_NOTES).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& exercises_names(list.at(TDAY_EXERCISES_COL_NAMES).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& setstypes(list.at(TDAY_EXERCISES_COL_TYPES).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& resttimes(list.at(TDAY_EXERCISES_COL_RESTTIMES).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& subsets(list.at(TDAY_EXERCISES_COL_SUBSETS).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& reps(list.at(TDAY_EXERCISES_COL_REPS).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& weights(list.at(TDAY_EXERCISES_COL_WEIGHTS).split(record_separator2, Qt::SkipEmptyParts));
+	const QStringList& notes(list.at(TDAY_EXERCISES_COL_NOTES).split(record_separator2, Qt::SkipEmptyParts));
 
 	QStringList completed;
 	if (!bClearSomeFieldsForReUse)
@@ -54,10 +55,7 @@ void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClear
 
 const QStringList DBTrainingDayModel::getSaveInfo() const
 {
-	QStringList data;
-	for(uint i(TDAY_EXERCISES_COL_NAMES); i <= TDAY_EXERCISES_COL_COMPLETED; i++)
-		data.append(QString());
-
+	QStringList data(TDAY_EXERCISES_TOTALCOLS);
 	for(uint i(0); i < m_ExerciseData.count(); ++i)
 	{
 		data[TDAY_EXERCISES_COL_NAMES].append(m_ExerciseData.at(i)->name + record_separator2);

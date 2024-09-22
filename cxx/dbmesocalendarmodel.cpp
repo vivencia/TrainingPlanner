@@ -9,6 +9,7 @@ DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const i
 	: TPListModel(parentModel, meso_idx), m_parentModel(parentModel)
 {
 	m_tableId = MESOCALENDAR_TABLE_ID;
+	m_fieldCount = MESOCALENDAR_TOTAL_COLS;
 	setObjectName(DBMesoCalendarObjectName);
 }
 

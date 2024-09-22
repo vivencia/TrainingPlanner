@@ -291,7 +291,7 @@ const uint QmlItemManager::removeExercise(const uint row)
 {
 	const int actualIndex (appExercisesModel()->getIntFast(row, EXERCISES_COL_ACTUALINDEX));
 	appDBInterface()->removeExercise(actualIndex);
-	appExercisesModel()->removeFromList(actualIndex);
+	appExercisesModel()->removeRow(actualIndex);
 	return row > 0 ? row - 1 : 0;
 }
 
