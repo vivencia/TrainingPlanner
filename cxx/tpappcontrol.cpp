@@ -10,19 +10,17 @@
 #include "osinterface.h"
 
 #include <QGuiApplication>
-#include <QQmlApplicationEngine>
 #include <QSettings>
 
 TPAppControl* TPAppControl::app_control(nullptr);
 QSettings* TPAppControl::app_settings(nullptr);
-TranslationClass* TPAppControl::app_tr(nullptr);
 TPUtils* TPUtils::app_utils(nullptr);
+TranslationClass* TranslationClass::app_tr(nullptr);
 DBInterface* TPAppControl::app_db_interface(nullptr);
 DBUserModel* TPAppControl::app_user_model(nullptr);
 DBMesocyclesModel* TPAppControl::app_meso_model(nullptr);
 DBExercisesModel* TPAppControl::app_exercises_model(nullptr);
 QmlItemManager* TPAppControl::app_root_items_manager(nullptr);
-QQmlApplicationEngine* TPAppControl::app_qml_engine(nullptr);
 OSInterface* TPAppControl::app_os_interface(nullptr);
 
 OSInterface* appOsInterface()
@@ -49,11 +47,11 @@ TPAppControl::TPAppControl()
 	app_control = this;
 	QSettings _appSettings{};
 	app_settings = &_appSettings;
-	TranslationClass _trClass{};
-	app_tr = &_trClass;
-	_trClass.selectLanguage();
 	TPUtils _tPUtils;
 	TPUtils::app_utils = &_tPUtils;
+	TranslationClass _trClass{};
+	TranslationClass::app_tr = &_trClass;
+	_trClass.selectLanguage();
 	DBInterface _dbInterface;
 	app_db_interface = &_dbInterface;
 	DBUserModel _dbUserModel;
@@ -64,8 +62,6 @@ TPAppControl::TPAppControl()
 	app_exercises_model = &_dbExercisesModel;
 	QmlItemManager _qmlItemManager{0xFFFF};
 	app_root_items_manager = &_qmlItemManager;
-	QQmlApplicationEngine _qmlEngine;
-	app_qml_engine = &_qmlEngine;
 	#ifdef Q_OS_ANDROID
 	new URIHandler(&db, &db);
 	#endif
@@ -73,8 +69,8 @@ TPAppControl::TPAppControl()
 	populateSettingsWithDefaultValue();
 	appDBInterface()->init();
 
-	QmlItemManager::configureQmlEngine();
 	createItemManager();
+	QmlItemManager::configureQmlEngine();
 
 #ifdef Q_OS_ANDROID
 	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
@@ -86,17 +82,6 @@ TPAppControl::TPAppControl()
 	});
 	appStartUpNotifications();
 #endif
-
-	const QUrl url(u"qrc:/qml/main.qml"_qs);
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (QObject *obj, const QUrl &objUrl) {
-		if (!obj && url == objUrl)
-			QCoreApplication::exit(-1);
-	});
-	appQmlEngine()->addImportPath(u":/"_qs);
-	appQmlEngine()->load(url);
-	if (appQmlEngine()->rootObjects().isEmpty())
-		QCoreApplication::exit(-1);
-	rootItemsManager()->initQML();
 }
 
 void TPAppControl::cleanUp()

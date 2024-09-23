@@ -22,7 +22,9 @@ class TPAppControl
 {
 
 public:
-	TPAppControl();
+	explicit TPAppControl();
+	inline TPAppControl(const TPAppControl& other) : m_itemManager(other.m_itemManager) {}
+	inline ~TPAppControl() { cleanUp(); }
 	void cleanUp();
 
 	//inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
@@ -54,9 +56,6 @@ public:
 	static QSettings* app_settings;
 	friend QSettings* appSettings();
 
-	static TranslationClass* app_tr;
-	friend TranslationClass* appTr();
-
 	static DBInterface* app_db_interface;
 	friend DBInterface* appDBInterface();
 
@@ -72,24 +71,21 @@ public:
 	static QmlItemManager* app_root_items_manager;
 	friend QmlItemManager* rootItemsManager();
 
-	static QQmlApplicationEngine* app_qml_engine;
-	friend QQmlApplicationEngine* appQmlEngine();
-
 	static OSInterface* app_os_interface;
 	friend OSInterface* appOsInterface();
 
+private:
 	QList<QmlItemManager*> m_itemManager;
 	uint m_tempMesoIdx;
 };
+Q_DECLARE_METATYPE(TPAppControl*)
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
 inline QSettings* appSettings() { return TPAppControl::app_settings; }
-inline TranslationClass* appTr() { return TPAppControl::app_tr; }
 inline DBInterface* appDBInterface() { return TPAppControl::app_db_interface; }
 inline DBUserModel* appUserModel() { return TPAppControl::app_user_model; }
 inline DBMesocyclesModel* appMesoModel() { return TPAppControl::app_meso_model; }
 inline DBExercisesModel* appExercisesModel() { return TPAppControl::app_exercises_model; }
-inline QQmlApplicationEngine* appQmlEngine() { return TPAppControl::app_qml_engine; }
 inline QmlItemManager* rootItemsManager() { return TPAppControl::app_root_items_manager; }
 extern OSInterface* appOsInterface();
 

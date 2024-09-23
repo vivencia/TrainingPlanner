@@ -78,12 +78,12 @@ public:
 	Q_INVOKABLE inline bool isRealMeso(const int meso_idx) const
 	{
 		if (meso_idx >= 0 && meso_idx < m_modeldata.count())
-			return getFast(meso_idx, MESOCYCLES_COL_REALMESO) == STR_ONE;
+			return getFast(meso_idx, MESOCYCLES_COL_REALMESO) == u"1"_qs;
 		return false;
 	}
 	Q_INVOKABLE inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
-		if (set(meso_idx, MESOCYCLES_COL_REALMESO, bRealMeso ? STR_ONE : STR_ZERO))
+		if (set(meso_idx, MESOCYCLES_COL_REALMESO, bRealMeso ? u"1"_qs : u"0"_qs))
 			emit realMesoChanged(meso_idx);
 	}
 

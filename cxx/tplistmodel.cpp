@@ -4,19 +4,23 @@
 #include <QFile>
 #include <QRegularExpression>
 
-void tp_listmodel_swap(TPListModel& model1, TPListModel& model2)
-{
-	using std::swap;
-	swap (model1.m_modeldata, model2.m_modeldata);
-	swap (model1.m_roleNames, model2.m_roleNames);
-	swap (model1.m_indexProxy, model2.m_indexProxy);
-}
-
 void TPListModel::copy(const TPListModel& src_item)
 {
 	m_modeldata = src_item.m_modeldata;
 	m_roleNames = src_item.m_roleNames;
 	m_indexProxy = src_item.m_indexProxy;
+	m_mesoIdx = src_item.m_mesoIdx;
+	m_currentRow = src_item.m_mesoIdx;
+	m_tableId = src_item.m_tableId;
+	m_fieldCount = src_item.m_fieldCount;
+	m_bFilterApplied = src_item.m_bFilterApplied;
+	m_bReady = src_item.m_bReady;
+	m_bModified = src_item.m_bModified;
+	m_bImportMode = src_item.m_bImportMode;
+	filterSearch_Field1 = src_item.filterSearch_Field1;
+	filterSearch_Field2 = src_item.filterSearch_Field2;
+	m_filterString = src_item.m_filterString;
+	m_exportName = src_item.m_exportName;
 }
 
 TPListModel::~TPListModel()

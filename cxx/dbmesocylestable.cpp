@@ -1,5 +1,6 @@
 #include "dbmesocylestable.h"
 #include "dbmesocyclesmodel.h"
+#include "tpglobals.h"
 
 #include <QFile>
 #include <QSqlError>
@@ -7,15 +8,15 @@
 #include <QTime>
 
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
-	: TPDatabaseTable(static_cast<TPListModel*>(model))
+	: TPDatabaseTable{model}
 {
 	m_tableName = u"mesocycles_table"_qs;
 	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString cnx_name(u"db_meso_connection"_qs + QString::number(m_UniqueID));
+	const QString& cnx_name(u"db_meso_connection"_qs + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
-	const QString dbname(dbFilePath + DBMesocyclesFileName);
+	const QString& dbname(dbFilePath + DBMesocyclesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
@@ -24,7 +25,14 @@ void DBMesocyclesTable::createTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		const QString strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_table ("
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
+		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
 										"meso_start_date INTEGER,"
@@ -58,8 +66,15 @@ void DBMesocyclesTable::updateDatabase()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		QStringList oldTableInfo;
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 		query.setForwardOnly(true);
+
+		QStringList oldTableInfo;
 		if (query.exec(u"SELECT * FROM mesocycles_table"_qs))
 		{
 			if (query.first ())
@@ -83,12 +98,13 @@ void DBMesocyclesTable::updateDatabase()
 			{
 				if (mSqlLiteDB.open())
 				{
-					query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-					query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-					query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-					query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-					query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-					query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+					query.exec(u"PRAGMA page_size = 4096"_qs);
+					query.exec(u"PRAGMA cache_size = 16384"_qs);
+					query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+					query.exec(u"PRAGMA journal_mode = OFF"_qs);
+					query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+					query.exec(u"PRAGMA synchronous = 0"_qs);
+
 					QString strQuery;
 					for (uint i(0); i <= oldTableInfo.count() - MESOCYCLES_TOTAL_COLS; i += MESOCYCLES_TOTAL_COLS)
 					{
@@ -125,22 +141,27 @@ void DBMesocyclesTable::getAllMesocycles()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 		query.setForwardOnly(true);
-		const QString strQuery(u"SELECT * FROM mesocycles_table"_qs);
+
+		const QString& strQuery(u"SELECT * FROM mesocycles_table"_qs);
 
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
-				QStringList meso_info;
-				uint i(0);
+				QStringList meso_info(MESOCYCLES_TOTAL_COLS);
 				DBMesocyclesModel* model(static_cast<DBMesocyclesModel*>(m_model));
 				do
 				{
-					for (i = MESOCYCLES_COL_ID; i < MESOCYCLES_TOTAL_COLS; ++i)
-						meso_info.append(query.value(i).toString());
+					for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
+						meso_info[i] = query.value(i).toString();
 					static_cast<void>(model->newMesocycle(meso_info));
-					meso_info.clear();
 				} while (query.next ());
 				model->finishedLoadingFromDatabase();
 				m_result = true;
@@ -152,8 +173,10 @@ void DBMesocyclesTable::getAllMesocycles()
 			MSG_OUT("DBMesocyclesTable getAllMesocycles Driver error:  " << mSqlLiteDB.lastError().driverText())
 		}
 		else
+		{
 			MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
-		MSG_OUT(strQuery);
+			MSG_OUT(strQuery);
+		}
 		mSqlLiteDB.close();	
 	}
 	else
@@ -166,12 +189,12 @@ void DBMesocyclesTable::saveMesocycle()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
@@ -217,13 +240,11 @@ void DBMesocyclesTable::saveMesocycle()
 				m_model->setImportMode(false);
 			}
 			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
-			MSG_OUT(strQuery);
 		}
 		else
 		{
 			MSG_OUT("DBMesocyclesTable saveMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBMesocyclesTable saveMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT("--ERROR--");
 			MSG_OUT(strQuery);
 		}
 		mSqlLiteDB.close();

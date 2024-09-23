@@ -1,13 +1,10 @@
 #ifndef TPUTILS_H
 #define TPUTILS_H
 
-#include <QObject>
-#include <QQmlEngine>
-#include <QUrl>
 #include <QDateTime>
 #include <QFileInfo>
-
-class QFileDialog;
+#include <QObject>
+#include <QUrl>
 
 class TPUtils : public QObject
 {
@@ -16,7 +13,11 @@ Q_OBJECT
 
 public:
 	explicit TPUtils(QObject* parent = nullptr);
-	~TPUtils() { delete m_appLocale; }
+	inline TPUtils(const TPUtils& other)
+		: QObject{other.parent()}, m_dbFileName(other.m_dbFileName), m_appPrivateDir(other.m_appPrivateDir),
+		m_appLocale(other.m_appLocale), mb_appSuspended(other.mb_appSuspended) {}
+	inline ~TPUtils() { delete m_appLocale; }
+
 	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString& filename) const;
 	Q_INVOKABLE inline QString getFileName(const QString& filepath) const { return QFileInfo(filepath).fileName(); };
@@ -25,8 +26,8 @@ public:
 	Q_INVOKABLE bool canReadFile(const QString& filename) const;
 
 	inline QLocale* appLocale() const { return m_appLocale; }
-	inline QString getDBFileName() const { return m_dbFileName; }
-	inline QString getAppPrivateDir() const { return m_appPrivateDir; }
+	inline const QString& getDBFileName() const { return m_dbFileName; }
+	inline const QString& getAppPrivateDir() const { return m_appPrivateDir; }
 
 	Q_INVOKABLE QString formatDate(const QDate& date) const;
 	Q_INVOKABLE QString formatTodayDate() const;
@@ -85,7 +86,7 @@ private:
 
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
 	{
-		const QTime newTime(origTime.addSecs(mins*60 + hours*3600));
+		const QTime& newTime(origTime.addSecs(mins*60 + hours*3600));
 		return newTime.toString(u"hh:mm"_qs);
 	}
 
@@ -93,6 +94,7 @@ private:
 	friend TPUtils* appUtils();
 	friend class TPAppControl;
 };
+Q_DECLARE_METATYPE(TPUtils*)
 
 inline TPUtils* appUtils() { return TPUtils::app_utils; }
 

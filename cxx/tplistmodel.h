@@ -21,8 +21,7 @@ public:
 		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1),
 			m_bFilterApplied(false), m_bReady(false), m_bModified(false), m_bImportMode(false) {}
 
-	inline TPListModel(const TPListModel& db_model) : TPListModel () { copy (db_model); }
-	inline TPListModel(TPListModel&& other) : TPListModel () { tp_listmodel_swap (*this, other); }
+	inline TPListModel(const TPListModel& other) : TPListModel {other.parent()} { copy(other); }
 
 	inline const TPListModel& operator=(TPListModel t_item)
 	{
@@ -208,8 +207,7 @@ protected:
 	uint filterSearch_Field2;
 	QString m_filterString, m_exportName;
 
-	friend void tp_listmodel_swap ( TPListModel& model1, TPListModel& model2 );
-	void copy ( const TPListModel& src_item );
+	void copy(const TPListModel& src_item);
 
 	friend class DBExercisesModel;
 	friend class DBMesocyclesModel;

@@ -75,12 +75,9 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDay
 
 const QString DBMesoSplitModel::exerciseName(const int row)
 {
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
-		return name.replace(subrecord_separator, u" + "_qs);
-	}
-	return QString();
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::exerciseName", "out of range row");
+	QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
+	return name.replace(subrecord_separator, u" + "_qs);
 }
 
 void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
@@ -94,7 +91,7 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 QString DBMesoSplitModel::exerciseName1(const uint row) const
 {
 	const int idx(static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).indexOf(subrecord_separator));
-	return idx != -1 ? QStringLiteral("2: ") + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
+	return idx != -1 ? u"2: "_qs + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
 			m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
 }
 
@@ -107,7 +104,7 @@ void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
 QString DBMesoSplitModel::exerciseName2(const uint row) const
 {
 	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(subrecord_separator));
-	return idx != -1 ? QStringLiteral("2: ") + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) : tr("2: Add exercise ...");
+	return idx != -1 ? u"2: "_qs + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) : tr("2: Add exercise ...");
 }
 
 void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
@@ -118,7 +115,7 @@ void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
 
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList() << exercise_name << sets << u" "_qs << QString::number(settype) << u"0"_qs << reps << weight << u"0"_qs);
+	appendList(QStringList() << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
 	setCurrentRow(count() - 1);
 }
 
@@ -553,7 +550,6 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 		{
 			setMuscularGroup(extrainfo.mid(idx+2, extrainfo.length() - idx - 3));
 			mb_Complete = true;
-			m_extraInfo.append(u"1"_qs); //Just any value, so that TPList::importFromFancyText knows we have extra info
 			return true;
 		}
 	}
@@ -562,7 +558,7 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 
 QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint column, const uint pos) const
 {
-	const QString value(appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(column), record_separator2.toLatin1()));
+	const QString& value(appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(column), record_separator2.toLatin1()));
 	const int idx(value.indexOf(subrecord_separator));
 	return idx != -1 ? pos == 1 ? value.left(idx) : value.sliced(idx+1) : value;
 }

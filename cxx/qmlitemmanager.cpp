@@ -8,6 +8,7 @@
 #include "tpimageprovider.h"
 #include "tputils.h"
 #include "osinterface.h"
+#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
@@ -17,6 +18,7 @@
 #include <QSettings>
 #include <QFile>
 
+QQmlApplicationEngine* QmlItemManager::app_qml_engine(nullptr);
 QQuickWindow* QmlItemManager::app_MainWindow(nullptr);
 QQuickItem* QmlItemManager::app_StackView(nullptr);
 
@@ -131,6 +133,9 @@ QmlItemManager::~QmlItemManager()
 
 void QmlItemManager::configureQmlEngine()
 {
+	QQmlApplicationEngine _qmlEngine;
+	app_qml_engine = &_qmlEngine;
+
 	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
 	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
@@ -141,39 +146,45 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
 
+	QString style(appSettings()->value("themeStyle").toString());
+	if (style.isEmpty())
+		style = u"Material"_qs;
+	QQuickStyle::setStyle(style);
+
+	const QUrl& url(u"qrc:/qml/main.qml"_qs);
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (QObject *obj, const QUrl &objUrl) {
+		if (!obj && url == objUrl)
+			QCoreApplication::exit(-1);
+	});
+	appQmlEngine()->addImportPath(u":/"_qs);
 	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider());
+	appQmlEngine()->load(url);
+	if (appQmlEngine()->rootObjects().isEmpty())
+		QCoreApplication::exit(-1);
 
 	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
 	QQuickItem* contentItem(app_StackView->parentItem());
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties;
-	properties.append(QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) });
-	properties.append(QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) });
-	properties.append(QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) });
-	properties.append(QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) });
-	properties.append(QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) });
-	properties.append(QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs });
-	properties.append(QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs });
-	properties.append(QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) });
-	properties.append(QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) });
-	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) });
-	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
-	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
+	QList<QQmlContext::PropertyPair> properties(14);
+	properties[0] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
+	properties[1] = QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) };
+	properties[2] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
+	properties[3] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
+	properties[4] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
+	properties[5] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
+	properties[6] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
+	properties[7] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
+	properties[8] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
+	properties[9] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
+	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
+	properties[11] = QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) };
+	properties[12] = QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }; //mainwindow.height - header.height
+	properties[13] = QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
-	QString style(appSettings()->value("themeStyle").toString());
-	if (style.isEmpty())
-		style = u"Material"_qs;
-	QQuickStyle::setStyle(style);
-}
-
-void QmlItemManager::initQML()
-{
-	QMetaObject::invokeMethod(appMainWindow(), "init", Qt::AutoConnection);
+	QMetaObject::invokeMethod(appMainWindow(), "init");
 }
 
 //-----------------------------------------------------------USER-----------------------------------------------------------
@@ -300,7 +311,7 @@ void QmlItemManager::exportExercises(const bool bShare)
 	int exportFileMessageId(0);
 	if (appExercisesModel()->collectExportData())
 	{
-		const QString suggestedName(tr("TrainingPlanner Exercises List.txt"));
+		const QString& suggestedName(tr("TrainingPlanner Exercises List.txt"));
 		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 		exportFileMessageId = appExercisesModel()->exportToFile(m_exportFilename);
 		if (exportFileMessageId >= 0)
@@ -364,7 +375,7 @@ void QmlItemManager::getMesocyclePage()
 void QmlItemManager::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	int exportFileMessageId(0);
-	const QString suggestedName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
+	const QString& suggestedName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
 	m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 	if (bCoachInfo)
 	{
@@ -531,9 +542,9 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 			return;
 		}
-		const DBMesoCalendarModel* mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-		const QString tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
-		const QString splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
+		const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+		const QString& tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
+		const QString& splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
 
 		m_currenttDayPage = nullptr;
 		m_CurrenttDayModel->appendRow();
@@ -621,7 +632,7 @@ void QmlItemManager::setCurrenttDay(const QDate& date)
 void QmlItemManager::exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel)
 {
 	int exportFileMessageId(0);
-	const QString suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
+	const QString& suggestedName(tr(" - Workout ") + tDayModel->splitLetter() + u".txt"_qs);
 	m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 	exportFileMessageId = tDayModel->exportToFile(m_exportFilename);
 	if (exportFileMessageId >= 0)
@@ -928,8 +939,8 @@ void QmlItemManager::changeSetType(const uint set_number, const uint exercise_id
 	}
 
 	tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
-	QList<QQuickItem*> set_objs(exercise_obj->m_setObjects);
-	QQuickItem* parentLayout(exercise_obj->m_exerciseEntry->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
+	QList<QQuickItem*>& set_objs(exercise_obj->m_setObjects);
+	QQuickItem* parentLayout(exercise_obj->m_exerciseEntry->findChild<QQuickItem*>(u"exerciseSetsLayout"_qs));
 
 	for(uint x(0); x < set_objs.count(); ++x)
 		set_objs[x]->setParentItem(nullptr);
@@ -1074,7 +1085,7 @@ QQuickItem* QmlItemManager::nextSetObject(const uint exercise_idx, const uint se
 void QmlItemManager::displayMessageOnAppWindow(const int message_id) const
 {
 	QString title, message;
-	const QString fileName(appUtils()->getFileName(m_exportFilename));
+	const QString& fileName(appUtils()->getFileName(m_exportFilename));
 	switch (message_id)
 	{
 		case APPWINDOW_MSG_EXPORT_OK:
@@ -1151,7 +1162,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	if (!m_importDlgComponent)
 	{
 		m_importDlg = nullptr;
-		m_importDlgComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Dialogs/ImportDialog.qml"_qs), QQmlComponent::Asynchronous);
+		m_importDlgComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/Dialogs/ImportDialog.qml"_qs), QQmlComponent::Asynchronous};
 		m_importDlgProperties[u"title"_qs] = tr("Import?");
 	}
 
@@ -1196,7 +1207,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
 {
-	const QVariantList strargs(args.toList());
+	const QVariantList& strargs(args.toList());
 	QMetaObject::invokeMethod(m_currenttDayPage, "requestTimerDialog", Q_ARG(QVariant, QVariant::fromValue(requester)),
 		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
 }
@@ -1260,7 +1271,7 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath)
 void QmlItemManager::importSlot_TryToImport()
 {
 	uint wanted_content(0);
-	const QList<bool> selectedFields = m_importDlg->property("selectedFields").value<QList<bool>>();
+	const QList<bool>& selectedFields(m_importDlg->property("selectedFields").value<QList<bool>>());
 	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(0) ? IFC_MESO : 0;
 	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(1) ? IFC_USER : 0;
 	wanted_content |= (m_fileContents & IFC_MESOSPLIT) && (m_fileContents & IFC_MESO ? selectedFields.at(2) : selectedFields.at(0)) ? IFC_MESOSPLIT : 0;
@@ -1457,7 +1468,7 @@ void QmlItemManager::createMesoCalendarPage_part2()
 //-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
 void QmlItemManager::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous);
+	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/Pages/ExercisesPlanner.qml"_qs), QQmlComponent::Asynchronous};
 	m_plannerProperties[u"itemManager"_qs] = QVariant::fromValue(this);
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
@@ -1537,7 +1548,7 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 
 void QmlItemManager::initializeSplitModels()
 {
-	const QString mesoSplit(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT));
+	const QString& mesoSplit(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT));
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator itr_end(mesoSplit.constEnd());
 
@@ -1560,7 +1571,7 @@ void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoS
 			prevMesoId = -1; //Nothing from previous meso to import
 		}
 	}
-	const QString swappableLetter(splitModel->findSwappableModel());
+	const QString& swappableLetter(splitModel->findSwappableModel());
 	splitPage->setProperty("prevMesoId", prevMesoId);
 	splitPage->setProperty("swappableLetter", swappableLetter);
 	splitPage->setProperty("bCanSwapPlan", !swappableLetter.isEmpty());
@@ -1569,7 +1580,7 @@ void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoS
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void QmlItemManager::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
-	const QString musculargroup{appMesoModel()->getMuscularGroup(m_mesoIdx, splitModel->splitLetter())};
+	const QString& musculargroup{appMesoModel()->getMuscularGroup(m_mesoIdx, splitModel->splitLetter())};
 	splitModel->setMuscularGroup(musculargroup);
 	QQuickItem* splitPage(getSplitPage(splitModel->splitLetter().at(0)));
 	if (splitPage)
@@ -1593,7 +1604,7 @@ void QmlItemManager::createTrainingDayPage(const QDate& date)
 	if (!m_tDayPages.contains(date))
 	{
 		if (m_tDayComponent == nullptr)
-			m_tDayComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous);
+			m_tDayComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs), QQmlComponent::Asynchronous};
 
 		if (!m_tDayExercisesList.contains(date))
 		{
@@ -1633,11 +1644,11 @@ void QmlItemManager::createTrainingDayPage_part2()
 							enableDisableExerciseCompletedButton(exercise_idx, completed);
 	});
 
-	const QDate date(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE));
+	const QDate& date(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE));
 	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
-		const QTime workoutLenght(appUtils()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
+		const QTime& workoutLenght(appUtils()->calculateTimeDifference(m_CurrenttDayModel->timeIn(), m_CurrenttDayModel->timeOut()));
 		QMetaObject::invokeMethod(m_currenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
@@ -1717,7 +1728,7 @@ void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel*
 
 void QmlItemManager::tDayExercises::appendExerciseEntry(QQuickItem* new_exerciseItem)
 {
-	exerciseObject* exerciseObj(new exerciseObject);
+	exerciseObject* exerciseObj{new exerciseObject};
 	exerciseObj->m_exerciseEntry = new_exerciseItem;
 	exerciseObjects.append(exerciseObj);
 }
@@ -1747,7 +1758,7 @@ void QmlItemManager::createExercisesObjects()
 {
 	if (m_tDayExercisesComponent == nullptr)
 	{
-		m_tDayExercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
+		m_tDayExercisesComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous};
 		if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 			connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 					{ return createExercisesObjects(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -1919,12 +1930,13 @@ void QmlItemManager::enableDisableExerciseCompletedButton(const uint exercise_id
 	bool noSetsCompleted(true);
 	for (uint i(0); i < nsets; ++i)
 	{
-		if (exercise_obj->m_setObjects.at(i)->property("finishButtonVisible").toBool())
+		QQuickItem* setObject{exercise_obj->m_setObjects.at(i)};
+		if (setObject->property("finishButtonVisible").toBool())
 		{
-			exercise_obj->m_setObjects.at(i)->setProperty("finishButtonEnabled", completed);
+			setObject->setProperty("finishButtonEnabled", completed);
 			break;
 		}
-		if (exercise_obj->m_setObjects.at(i)->property("setCompleted").toBool())
+		if (setObject->property("setCompleted").toBool())
 			noSetsCompleted = false;
 	}
 	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
@@ -1971,7 +1983,7 @@ void QmlItemManager::findSetMode(const uint exercise_idx, const uint set_number)
 
 void QmlItemManager::findCurrentSet(const uint exercise_idx, const uint set_number)
 {
-	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	QQuickItem* set_object{m_currentExercises->setObject(exercise_idx, set_number)};
 	if (set_object)
 	{
 		if (!currenttDayModel()->setCompleted(set_number, exercise_idx))
@@ -1986,12 +1998,12 @@ void QmlItemManager::findCurrentSet(const uint exercise_idx, const uint set_numb
 
 void QmlItemManager::startRestTimer(const uint exercise_idx, const uint set_number)
 {
-	TPTimer* set_timer(m_currentExercises->setTimer(exercise_idx));
+	TPTimer* set_timer{m_currentExercises->setTimer(exercise_idx)};
 	set_timer->setInterval(1000);
 	set_timer->setStopWatch(true);
 	set_timer->prepareTimer(u"-"_qs);
 	enableDisableSetsRestTime(exercise_idx, false, false, set_number); //Prevent the user from starting the timer for another set before finishing this one
-	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	QQuickItem* set_object{m_currentExercises->setObject(exercise_idx, set_number)};
 	connect(set_timer, &TPTimer::secondsChanged, this, [&,set_timer] () {
 		QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
 	});
@@ -2003,7 +2015,7 @@ void QmlItemManager::startRestTimer(const uint exercise_idx, const uint set_numb
 
 void QmlItemManager::stopRestTimer(const uint exercise_idx, const uint set_number)
 {
-	TPTimer* set_timer(m_currentExercises->setTimer(exercise_idx));
+	TPTimer* set_timer{m_currentExercises->setTimer(exercise_idx)};
 	if (set_timer->isActive())
 	{
 		set_timer->stopTimer();

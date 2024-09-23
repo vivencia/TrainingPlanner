@@ -33,8 +33,10 @@ Q_OBJECT
 
 public:
 	explicit inline DBInterface()
-		: QObject (nullptr), mb_splitsLoaded(false) {}
-
+		: QObject{nullptr}, mb_splitsLoaded(false), mb_importMode(false) {}
+	inline DBInterface(const DBInterface* other)
+		: QObject{other->parent()}, mb_splitsLoaded(other->mb_splitsLoaded), mb_importMode(other->mb_splitsLoaded), m_DBFilePath(other->m_DBFilePath) {}
+	inline ~DBInterface() {}
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
 
@@ -97,7 +99,6 @@ public:
 	Q_INVOKABLE void saveTrainingDay(DBTrainingDayModel* const tDayModel);
 	void removeTrainingDay(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);
-	Q_INVOKABLE void exportTrainingDay(const DBTrainingDayModel* tDayModel, const bool bShare);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 signals:
@@ -145,5 +146,6 @@ private:
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
 };
+Q_DECLARE_METATYPE(DBInterface*)
 
 #endif // DBINTERFACE_H

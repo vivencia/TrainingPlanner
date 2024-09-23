@@ -27,17 +27,11 @@ extern "C"
 #include <QFileInfo>
 #include <QStandardPaths>
 
-OSInterface::OSInterface()
+OSInterface::OSInterface(QObject* parent)
+	: QObject{parent}
 {
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_qs;
-}
-
-OSInterface::~OSInterface()
-{
-#ifdef Q_OS_ANDROID
-	delete m_AndroidNotification;
-#endif
 }
 
 void OSInterface::exitApp()

@@ -3,6 +3,8 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import com.vivenciasoftware.qmlcomponents
+
 import "Dialogs"
 import "Pages"
 import "TPWidgets"
@@ -102,6 +104,9 @@ ApplicationWindow {
 	}
 
 	/*FirstTimeDialog {
+		DBUserModel {
+			id: userModel
+		}
 		id: firstTimeDlgg
 		parentPage: homePage
 	}*/

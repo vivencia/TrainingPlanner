@@ -1,21 +1,22 @@
 #include "dbusertable.h"
 #include "dbusermodel.h"
+#include "tpglobals.h"
 
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QFile>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QTime>
 
 DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
-	: TPDatabaseTable(static_cast<TPListModel*>(model))
+	: TPDatabaseTable{model}
 {
 	m_tableName = u"user_table"_qs;
 	m_tableID = USER_TABLE_ID;
 	setObjectName(DBUserObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));
+	const QString& cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
-	const QString dbname(dbFilePath + DBUserFileName);
+	const QString& dbname(dbFilePath + DBUserFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
@@ -24,14 +25,13 @@ void DBUserTable::createTable()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
-		query.prepare( QStringLiteral(
-									"CREATE TABLE IF NOT EXISTS user_table ("
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS user_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
 										"birthday INTEGER,"
@@ -46,14 +46,13 @@ void DBUserTable::createTable()
 										"use_mode INTEGER DEFAULT 1,"
 										"current_coach INTEGER, "
 										"current_user INTEGER"
-									")"
-								)
-		);
-		m_result = query.exec();
+									")"_qs);
+		m_result = query.exec(strQuery);
 		if (!m_result)
 		{
 			MSG_OUT("DBUserTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBUserTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery);
 		}
 		else
 			MSG_OUT("DBUserTable createTable SUCCESS")
@@ -68,22 +67,25 @@ void DBUserTable::getAllUsers()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 		query.setForwardOnly(true);
 
 		if (query.exec(u"SELECT * FROM user_table"_qs))
 		{
 			if (query.first ())
 			{
-				QStringList user_info;
-				uint i(0);
-
+				QStringList user_info(USER_TOTAL_COLS);
 				do
 				{
-					for (i = USER_COL_ID; i < USER_TOTAL_COLS; ++i)
-						user_info.append(query.value(static_cast<int>(i)).toString());
+					for (uint i(USER_COL_ID); i < USER_TOTAL_COLS; ++i)
+						user_info[i] = query.value(static_cast<int>(i)).toString();
 					m_model->appendList(user_info);
-					user_info.clear();
-				} while ( query.next () );
+				} while (query.next ());
 				m_result = m_model->count() > 0;
 			}
 		}
@@ -105,12 +107,12 @@ void DBUserTable::saveUser()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
@@ -151,13 +153,11 @@ void DBUserTable::saveUser()
 			if (!bUpdate)
 				m_model->setFast(row, USER_COL_ID, query.lastInsertId().toString());
 			MSG_OUT("DBUserTable saveUser SUCCESS");
-			MSG_OUT(strQuery);
 		}
 		else
 		{
 			MSG_OUT("DBUserTable saveUser Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBUserTable saveUser Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT("--ERROR--");
 			MSG_OUT(strQuery);
 		}
 		mSqlLiteDB.close();

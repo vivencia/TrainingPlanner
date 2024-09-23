@@ -19,7 +19,6 @@ public:
 	virtual void updateDatabase() {}
 	void getAllExercises();
 	void updateExercisesList();
-	void updateFromModel();
 	void saveExercises();
 
 private:

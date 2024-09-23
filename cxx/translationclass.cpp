@@ -8,7 +8,8 @@
 #include <QSettings>
 #include <QTranslator>
 
-TranslationClass::TranslationClass ()
+TranslationClass::TranslationClass(QObject* parent)
+	: QObject{parent}
 {
 	mbOK = true;
 	mTranslator = new QTranslator(this);
@@ -24,7 +25,14 @@ void TranslationClass::selectLanguage()
 	QString strLocale(appSettings()->value("appLocale").toString());
 	const bool bConfigEmpty(strLocale.isEmpty());
 	if (bConfigEmpty)
+	{
+		#ifndef Q_OS_ANDROID
+		const QString& sysLocale(std::setlocale(LC_NAME, ""));
+		strLocale = sysLocale.left(sysLocale.indexOf('.'));
+		#else
 		strLocale = QLocale::system().name();
+		#endif
+	}
 	if (strLocale != u"en_US"_qs)
 	{
 		mbOK = mTranslator->load(QStringLiteral("tplanner.%1.qm").arg(strLocale), QStringLiteral(":/translations/"), QStringLiteral("qm"));

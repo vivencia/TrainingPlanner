@@ -34,7 +34,6 @@ public:
 			m_setComponents{nullptr}, m_importDlgComponent(nullptr) {}
 	~QmlItemManager();
 	static void configureQmlEngine();
-	void initQML();
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
@@ -149,10 +148,6 @@ signals:
 
 private:
 	uint m_mesoIdx;
-	static QQuickWindow* app_MainWindow;
-	static QQuickItem* app_StackView;
-	friend QQuickWindow* appMainWindow();
-	friend QQuickItem* appStackView();
 
 	//-----------------------------------------------------------USER PRIVATE-----------------------------------------------------------
 	static QQuickItem* settingsPage, *clientsOrCoachesPage, *userPage;
@@ -315,9 +310,17 @@ private:
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 	void createImportDialog();
+
+	static QQmlApplicationEngine* app_qml_engine;
+	friend QQmlApplicationEngine* appQmlEngine();
+	static QQuickWindow* app_MainWindow;
+	friend QQuickWindow* appMainWindow();
+	static QQuickItem* app_StackView;
+	friend QQuickItem* appStackView();
 	//-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------
 };
 
+inline QQmlApplicationEngine* appQmlEngine() { return QmlItemManager::app_qml_engine; }
 inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
 inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
 

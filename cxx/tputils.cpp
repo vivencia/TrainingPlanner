@@ -1,7 +1,8 @@
 #include "tputils.h"
+#include "tpglobals.h"
 
-#include <QLocale>
 #include <QClipboard>
+#include <QLocale>
 #include <QGuiApplication>
 
 TPUtils::TPUtils(QObject* parent)
@@ -76,7 +77,7 @@ void TPUtils::copyToClipBoard(const QString& text) const
 
 bool TPUtils::canReadFile(const QString& filename) const
 {
-	QFileInfo file(filename);
+	const QFileInfo file(filename);
 	if (file.isFile())
 		return file.isReadable();
 	return false;
@@ -89,13 +90,13 @@ QString TPUtils::formatDate(const QDate& date) const
 
 QString TPUtils::formatTodayDate() const
 {
-	const QDate today(QDate::currentDate());
+	const QDate& today(QDate::currentDate());
 	return m_appLocale->toString(today, u"ddd d/M/yyyy"_qs);
 }
 
 QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 {
-	const QStringView strdate(strDate);
+	const QStringView& strdate(strDate);
 	//if (appLocale->name() == u"pt_BR"_qs)
 	//{
 		const int spaceIdx(strdate.indexOf(' '));
@@ -146,7 +147,7 @@ uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) con
 QDate TPUtils::getMesoStartDate(const QDate& lastMesoEndDate) const
 {
 	const uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
-	const QDate date (lastMesoEndDate);
+	const QDate& date(lastMesoEndDate);
 	return date.addDays(daysToNextMonday[date.dayOfWeek()-1]);
 }
 
@@ -185,14 +186,14 @@ QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, con
 		mins = 0;
 		secs = 0;
 	}
-	QString ret(mins <=9 ? QChar('0') + QString::number(mins) : QString::number(mins));
-	ret += QChar(':') + (secs <=9 ? QChar('0') + QString::number(secs) : QString::number(secs));
+	const QString& ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
+		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs)));
 	return ret;
 }
 
 QString TPUtils::formatFutureTime(const QDateTime& addTime) const
 {
-	const QTime time(addTime.time());
+	const QTime& time(addTime.time());
 	return addToTime(QTime::currentTime(), time.hour(), time.minute());
 }
 
@@ -216,7 +217,7 @@ QString TPUtils::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 
 QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
 {
-	const QTime time(calculateTimeDifference(strTimeInit, strTimeFinal));
+	const QTime& time(calculateTimeDifference(strTimeInit, strTimeFinal));
 	return time.toString(u"hh:mm:ss");
 }
 
@@ -294,7 +295,7 @@ void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString
 
 bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2) const
 {
-	const QStringList words2(string2.split(' '));
+	const QStringList& words2(string2.split(' '));
 	QStringList::const_iterator itr(words2.begin());
 	const QStringList::const_iterator itr_end(words2.end());
 	uint matches(0);
@@ -457,8 +458,8 @@ void TPUtils::setAppLocale(const QString& localeStr)
 	if (m_appLocale)
 		delete m_appLocale;
 
-	const QString strLanguage(localeStr.left(2));
-	const QString strTerritory(localeStr.right(2));
+	const QString& strLanguage(localeStr.left(2));
+	const QString& strTerritory(localeStr.right(2));
 	QLocale::Language language;
 	QLocale::Territory territory;
 

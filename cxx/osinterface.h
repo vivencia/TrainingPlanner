@@ -17,8 +17,16 @@ class OSInterface : public QObject
 {
 
 public:
-	OSInterface();
-	~OSInterface();
+	explicit OSInterface(QObject* parent = nullptr);
+	inline OSInterface(const OSInterface& other)
+		: QObject{other.parent()}, m_appDataFilesPath(other.m_appDataFilesPath) {}
+	inline ~OSInterface()
+	{
+	#ifdef Q_OS_ANDROID
+		delete m_AndroidNotification;
+	#endif
+	}
+
 	Q_INVOKABLE void exitApp();
 
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
@@ -61,5 +69,6 @@ private:
 	TPAndroidNotification* m_AndroidNotification;
 #endif
 };
+Q_DECLARE_METATYPE(OSInterface*)
 
 #endif // OSINTERFACE_H
