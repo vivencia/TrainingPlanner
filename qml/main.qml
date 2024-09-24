@@ -26,6 +26,7 @@ ApplicationWindow {
 	property bool bBackButtonEnabled: true
 	property int backKey
 
+	signal mainWindowStarted();
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
 	signal openFileChosen(filepath: string);
@@ -59,6 +60,7 @@ ApplicationWindow {
 
 	MainMenu {
 		id: mainMenu
+		objectName: "mainMenu"
 	}
 
 	Flickable {
@@ -90,13 +92,14 @@ ApplicationWindow {
 		if (userOK)
 			userOK = userModel.goal(0).length > 0;
 
-		if (userOK)
-			checkInitialArguments();
-		else {
+		if (!userOK)
+		{
 			bBackButtonEnabled = false;
 			showFirstUseTimeDialog();
 			//firstTimeDlgg.open();
-		}	
+		}
+		else
+			mainWindowStarted();
 	}
 
 	function workoutButtonEnabled(ownmesoidx: int) {
@@ -129,13 +132,6 @@ ApplicationWindow {
 		createFirstTimeDialog();
 	}
 
-	function checkInitialArguments() {
-		if (Qt.platform.os === "android")
-			appDB.checkPendingIntents();
-		else
-			appDB.processArguments();
-	}
-
 	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item) {
 		pageDeActivated_main(stackView.currentItem);
@@ -155,23 +151,6 @@ ApplicationWindow {
 		stackView.push(page);
 		pageActivated_main(page);
 		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
-	}
-
-	function createShortCut(label: string, page: Item, clickid: int) {
-		mainMenu.createShortCut(label, page, clickid);
-	}
-
-	TPBalloonTip {
-		id: importConfirmDialog
-		imageSource: "import.png"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		parentPage: homePage
-
-		onButton1Clicked: {
-			const result = appDB.importFromFile(importExportFilename);
-			displayResultMessage(result);
-		}
 	}
 
 	function confirmImport(message: string) {
@@ -267,16 +246,5 @@ ApplicationWindow {
 		activityFinishedTip.title = title;
 		activityFinishedTip.message = message;
 		activityFinishedTip.showTimed(5000, 0);
-	}
-
-	function activityResultMessage(requestCode: int, resultCode: int) {
-		console.log("****** requestCode: ", requestCode, "    resultCode: ", resultCode);
-		var result;
-		switch (resultCode) {
-			case -1: result = 2; break;
-			case 0: result = -11; break;
-			default: result = -10; break;
-		}
-		displayResultMessage(result);
 	}
 } //ApplicationWindow

@@ -115,8 +115,8 @@ TPPopup {
 
 			onClicked: {
 				if (stackLayout.currentIndex === stackLayout.count - 1) {
-					mainwindow.checkInitialArguments();
 					mainwindow.bBackButtonEnabled = true;
+					mainwindow.mainWindowStarted();
 					close();
 				}
 				else {

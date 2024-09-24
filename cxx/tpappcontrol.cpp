@@ -1,6 +1,5 @@
 #include "tpappcontrol.h"
 #include "tpglobals.h"
-#include "translationclass.h"
 #include "tputils.h"
 #include "dbinterface.h"
 #include "dbusermodel.h"
@@ -11,24 +10,6 @@
 
 #include <QGuiApplication>
 #include <QSettings>
-
-TPAppControl* TPAppControl::app_control(nullptr);
-QSettings* TPAppControl::app_settings(nullptr);
-TPUtils* TPUtils::app_utils(nullptr);
-TranslationClass* TranslationClass::app_tr(nullptr);
-DBInterface* TPAppControl::app_db_interface(nullptr);
-DBUserModel* TPAppControl::app_user_model(nullptr);
-DBMesocyclesModel* TPAppControl::app_meso_model(nullptr);
-DBExercisesModel* TPAppControl::app_exercises_model(nullptr);
-QmlItemManager* TPAppControl::app_root_items_manager(nullptr);
-OSInterface* TPAppControl::app_os_interface(nullptr);
-
-OSInterface* appOsInterface()
-{
-	if (!TPAppControl::app_os_interface)
-		TPAppControl::app_os_interface = new OSInterface{};
-	return TPAppControl::app_os_interface;
-}
 
 #ifdef Q_OS_ANDROID
 	#define FONT_POINT_SIZE 15
@@ -42,45 +23,18 @@ OSInterface* appOsInterface()
 	#define FONT_POINT_SIZE_TITLE 18
 #endif
 
-TPAppControl::TPAppControl()
-{
-	app_control = this;
-	QSettings _appSettings{};
-	app_settings = &_appSettings;
-	TPUtils _tPUtils;
-	TPUtils::app_utils = &_tPUtils;
-	TranslationClass _trClass{};
-	TranslationClass::app_tr = &_trClass;
-	_trClass.selectLanguage();
-	DBInterface _dbInterface;
-	app_db_interface = &_dbInterface;
-	DBUserModel _dbUserModel;
-	app_user_model = &_dbUserModel;
-	DBMesocyclesModel _dbMesocyclesModel;
-	app_meso_model = &_dbMesocyclesModel;
-	DBExercisesModel _dbExercisesModel;
-	app_exercises_model = &_dbExercisesModel;
-	QmlItemManager _qmlItemManager{0xFFFF};
-	app_root_items_manager = &_qmlItemManager;
-	#ifdef Q_OS_ANDROID
-	new URIHandler(&db, &db);
-	#endif
+TPAppControl* TPAppControl::app_control(nullptr);
+QSettings* TPAppControl::app_settings(nullptr);
 
+void TPAppControl::init()
+{
 	populateSettingsWithDefaultValue();
 	appDBInterface()->init();
-
 	createItemManager();
-	QmlItemManager::configureQmlEngine();
+	rootItemsManager()->configureQmlEngine();
 
 #ifdef Q_OS_ANDROID
-	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
-	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
-	connect(appUtils(), &TPUtils::appResumed, this, &DBInterface::checkPendingIntents);
-	connect(handlerInstance(), &URIHandler::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
-		QMetaObject::invokeMethod(appMainWindow(), "activityResultMessage", Q_ARG(int, requestCode), Q_ARG(int, resultCode));
-		QFile::remove(exportFileName());
-	});
-	appStartUpNotifications();
+	appOsInterface()->appStartUpNotifications();
 #endif
 }
 
@@ -150,10 +104,9 @@ void TPAppControl::removeMesocycle(const uint meso_idx)
 	appDBInterface()->removeMesocycle(meso_idx);
 	appMesoModel()->delMesocycle(meso_idx);
 	QmlItemManager* itemMngr{m_itemManager.at(meso_idx)};
-	QmlItemManager* tpObject(itemMngr);
+	itemMngr->disconnect();
+	delete itemMngr;
 	m_itemManager.remove(meso_idx);
-	tpObject->disconnect();
-	delete tpObject;
 }
 
 void TPAppControl::exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo)
@@ -365,8 +318,7 @@ void TPAppControl::populateSettingsWithDefaultValue()
 		appSettings()->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
 		appSettings()->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
 		appSettings()->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
-		appSettings()->setValue("lastViewedOwnMesoIdx", -1);
-		appSettings()->setValue("lastViewedOtherMesoIdx", -1);
+		appSettings()->setValue("lastViewedMesoIdx", -1);
 		appSettings()->setValue("alwaysAskConfirmation", true);
 		appSettings()->sync();
 	}

@@ -8,11 +8,15 @@
 #include <QSettings>
 #include <QTranslator>
 
+TranslationClass* TranslationClass::app_tr(nullptr);
+
 TranslationClass::TranslationClass(QObject* parent)
 	: QObject{parent}
 {
+	app_tr = this;
 	mbOK = true;
 	mTranslator = new QTranslator(this);
+	selectLanguage();
 }
 
 TranslationClass::~TranslationClass()
@@ -35,7 +39,7 @@ void TranslationClass::selectLanguage()
 	}
 	if (strLocale != u"en_US"_qs)
 	{
-		mbOK = mTranslator->load(QStringLiteral("tplanner.%1.qm").arg(strLocale), QStringLiteral(":/translations/"), QStringLiteral("qm"));
+		mbOK = mTranslator->load(u"tplanner.%1.qm"_qs.arg(strLocale), u":/translations/"_qs, u"qm"_qs);
 		if (mbOK)
 			qApp->installTranslator(mTranslator);
 	}
@@ -55,7 +59,7 @@ void TranslationClass::switchToLanguage(const QString& language)
 	const bool bEnglish(language == u"en_US"_qs);
 	mbOK = bEnglish;
 	if (!bEnglish)
-		mbOK = mTranslator->load(QStringLiteral("tplanner.%1.qm").arg(language), QStringLiteral(":/translations/"), QStringLiteral("qm"));
+		mbOK = mTranslator->load(u"tplanner.%1.qm"_qs.arg(language), u":/translations/"_qs, u"qm"_qs);
 	if (mbOK)
 	{
 		appUtils()->setAppLocale(language);

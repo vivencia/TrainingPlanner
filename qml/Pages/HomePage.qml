@@ -287,7 +287,7 @@ TPPage {
 					parentPage: homePage
 
 					property int mesoidx
-					onButton1Clicked: appDB.removeMesocycle(mesoidx);
+					onButton1Clicked: appControl.removeMesocycle(mesoidx);
 
 					function init(meso_idx: int) {
 						mesoidx = meso_idx;

@@ -4,15 +4,8 @@
 #include <QDate>
 #include <QList>
 
-class TranslationClass;
-class TPUtils;
-class DBInterface;
-class DBUserModel;
-class DBMesocyclesModel;
-class DBExercisesModel;
 class QmlItemManager;
 class TPListModel;
-class OSInterface;
 
 class QQmlApplicationEngine;
 class QSettings;
@@ -22,9 +15,10 @@ class TPAppControl
 {
 
 public:
-	explicit TPAppControl();
+	explicit inline TPAppControl(QSettings* settings) { app_control = this; app_settings = settings; }
 	inline TPAppControl(const TPAppControl& other) : m_itemManager(other.m_itemManager) {}
 	inline ~TPAppControl() { cleanUp(); }
+	void init();
 	void cleanUp();
 
 	//inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
@@ -56,25 +50,8 @@ public:
 	static QSettings* app_settings;
 	friend QSettings* appSettings();
 
-	static DBInterface* app_db_interface;
-	friend DBInterface* appDBInterface();
-
-	static DBUserModel* app_user_model;
-	friend DBUserModel* appUserModel();
-
-	static DBMesocyclesModel* app_meso_model;
-	friend DBMesocyclesModel* appMesoModel();
-
-	static DBExercisesModel* app_exercises_model;
-	friend DBExercisesModel* appExercisesModel();
-
-	static QmlItemManager* app_root_items_manager;
-	friend QmlItemManager* rootItemsManager();
-
-	static OSInterface* app_os_interface;
-	friend OSInterface* appOsInterface();
-
 private:
+	QSettings* m_appSettings;
 	QList<QmlItemManager*> m_itemManager;
 	uint m_tempMesoIdx;
 };
@@ -82,11 +59,5 @@ Q_DECLARE_METATYPE(TPAppControl*)
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
 inline QSettings* appSettings() { return TPAppControl::app_settings; }
-inline DBInterface* appDBInterface() { return TPAppControl::app_db_interface; }
-inline DBUserModel* appUserModel() { return TPAppControl::app_user_model; }
-inline DBMesocyclesModel* appMesoModel() { return TPAppControl::app_meso_model; }
-inline DBExercisesModel* appExercisesModel() { return TPAppControl::app_exercises_model; }
-inline QmlItemManager* rootItemsManager() { return TPAppControl::app_root_items_manager; }
-extern OSInterface* appOsInterface();
 
 #endif // TPAPPCONTROL_H

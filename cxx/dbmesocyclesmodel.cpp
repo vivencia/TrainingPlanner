@@ -7,9 +7,14 @@
 
 #include <QSettings>
 
+DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
+
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	: TPListModel{parent}, m_userModel(nullptr), m_mostRecentOwnMesoIdx(-1)
 {
+	if (!app_meso_model)
+		app_meso_model = this;
+
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
@@ -466,6 +471,7 @@ QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString& 
 		case MESOCYCLES_COL_REALMESO:
 			return fieldValue == STR_ONE ? tr("Yes") : tr("No");
 	}
+	return QString(); //never reached
 }
 
 QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const
@@ -482,4 +488,5 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& 
 		case MESOCYCLES_COL_REALMESO:
 			return fieldValue == tr("Yes") ? STR_ONE : STR_ZERO;
 	}
+	return QString(); //never reached
 }

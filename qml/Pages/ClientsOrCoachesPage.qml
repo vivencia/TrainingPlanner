@@ -249,7 +249,7 @@ TPPage {
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage() {
 		if (!AppSettings.alwaysAskConfirmation) {
-			appDB.removeUser(curUserRow, showCoaches);
+			itemManager.removeUser(curUserRow, showCoaches);
 			return;
 		}
 

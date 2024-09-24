@@ -1,14 +1,16 @@
 #include "osinterface.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
-#include "dbinterface.h"
 #include "dbusermodel.h"
+#include "tpappcontrol.h"
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
+#include "qmlitemmanager.h"
+#include "dbmesocyclesmodel.h"
+#include "dbinterface.h"
+#include "dbmesocalendartable.h"
 
 #include <QJniObject>
-#include <QtGlobal>
 #include <qnativeinterface.h>
 	#if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
 		#include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
@@ -23,13 +25,16 @@ extern "C"
 }
 #endif
 
-#include <QGuiApplication>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QStandardPaths>
+
+OSInterface* OSInterface::app_os_interface(nullptr);
 
 OSInterface::OSInterface(QObject* parent)
 	: QObject{parent}
 {
+	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_qs;
 }
@@ -49,7 +54,7 @@ void OSInterface::aboutToExit()
 #ifdef Q_OS_ANDROID
 void OSInterface::checkPendingIntents() const
 {
-	QJniObject activity = QNativeInterface::QAndroidApplication::context();
+	const QJniObject activity = QNativeInterface::QAndroidApplication::context();
 	if(activity.isValid())
 	{
 		activity.callMethod<void>("checkPendingIntents","()V");
@@ -68,10 +73,10 @@ void OSInterface::checkPendingIntents() const
 */
 bool OSInterface::sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const
 {
-	QJniObject jsPath = QJniObject::fromString(filePath);
-	QJniObject jsTitle = QJniObject::fromString(title);
-	QJniObject jsMimeType = QJniObject::fromString(mimeType);
-	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QJniObject& jsPath = QJniObject::fromString(filePath);
+	const QJniObject& jsTitle = QJniObject::fromString(title);
+	const QJniObject& jsMimeType = QJniObject::fromString(mimeType);
+	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"sendFile",
 													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
 													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId);
@@ -91,8 +96,8 @@ void OSInterface::androidOpenURL(const QString& address) const
 	else
 		url = address;
 
-	QJniObject jsPath = QJniObject::fromString(url);
-	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QJniObject& jsPath = QJniObject::fromString(url);
+	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"openURL",
 													"(Ljava/lang/String;)Z",
 													jsPath.object<jstring>());
@@ -102,11 +107,11 @@ void OSInterface::androidOpenURL(const QString& address) const
 
 bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
 {
-	const QString attachment_file(attachment.isEmpty() ? QString() : u"file://" + attachment);
-	QJniObject jsAddress = QJniObject::fromString(address);
-	QJniObject jsSubject = QJniObject::fromString(subject);
-	QJniObject jsAttach = QJniObject::fromString(attachment_file);
-	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QString& attachment_file(attachment.isEmpty() ? QString() : u"file://" + attachment);
+	const QJniObject& jsAddress = QJniObject::fromString(address);
+	const QJniObject& jsSubject = QJniObject::fromString(subject);
+	const QJniObject& jsAttach = QJniObject::fromString(attachment_file);
+	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"sendEmail",
 													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
 													jsAddress.object<jstring>(), jsSubject.object<jstring>(), jsAttach.object<jstring>());
@@ -115,9 +120,9 @@ bool OSInterface::androidSendMail(const QString& address, const QString& subject
 
 bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 {
-	QJniObject jsPath = QJniObject::fromString(filePath);
-	QJniObject jsTitle = QJniObject::fromString(title);
-	jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
+	const QJniObject& jsPath = QJniObject::fromString(filePath);
+	const QJniObject& jsTitle = QJniObject::fromString(title);
+	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"viewFile",
 													"(Ljava/lang/String;Ljava/lang/String;)Z",
 													jsPath.object<jstring>(), jsTitle.object<jstring>());
@@ -131,29 +136,33 @@ bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 
 void OSInterface::appStartUpNotifications()
 {
+	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
+	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
+	connect(appUtils(), &TPUtils::appResumed, this, &OSInterface::checkPendingIntents);
+	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
+		rootItemsManager()->displayActivityResultMessage(requestCode, resultCode);
+	});
+
 	m_AndroidNotification = new TPAndroidNotification(this);
 	if (appMesoModel()->count() > 0)
 	{
-		DBMesoCalendarTable* calTable(new DBMesoCalendarTable(m_DBFilePath));
+		DBMesoCalendarTable* calTable(new DBMesoCalendarTable(appDBInterface()->dbFilesPath()));
 		QStringList dayInfoList;
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())
 		{
-			if (dayInfoList.at(0).toUInt() == m_currentMesoManager->mesoId())
+			QString message;
+			const QString& splitLetter(dayInfoList.at(2));
+			if (splitLetter != u"R"_qs) //day is training day
 			{
-				QString message;
-				const QString splitLetter(dayInfoList.at(2));
-				if (splitLetter != u"R"_qs) //day is training day
-				{
-					if (dayInfoList.at(3) == u"1"_qs) //day is completed
-						message = tr("Your training routine seems to go well. Workout for the day is concluded");
-					else
-						message = tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter;
-				}
+				if (dayInfoList.at(3) == STR_ONE) //day is completed
+					message = tr("Your training routine seems to go well. Workout for the day is concluded");
 				else
-					message = tr("Enjoy your day of rest from workouts!");
-				m_AndroidNotification->sendNotification(u"Training Planner"_qs, message, WORKOUT_NOTIFICATION);
+					message = tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter;
 			}
+			else
+				message = tr("Enjoy your day of rest from workouts!");
+			m_AndroidNotification->sendNotification(u"Training Planner"_qs, message, WORKOUT_NOTIFICATION);
 		}
 		delete calTable;
 	}
@@ -175,9 +184,7 @@ void OSInterface::setFileUrlReceived(const QString &url) const
 	else
 		androidUrl = url;
 
-	// check if File exists
-	QFileInfo fileInfo(androidUrl);
-	if (fileInfo.exists())
+	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
 		MSG_OUT("setFileUrlReceived: FILE does NOT exist ")
@@ -200,8 +207,7 @@ void OSInterface::setFileReceivedAndSaved(const QString& url) const
 		androidUrl = url;
 
 	// check if File exists
-	QFileInfo fileInfo(androidUrl);
-	if (fileInfo.exists())
+	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
 		MSG_OUT("setFileReceivedAndSaved: FILE does NOT exist ")
@@ -224,8 +230,7 @@ bool OSInterface::checkFileExists(const QString& url) const
 		androidUrl = url;
 
 	// check if File exists
-	QFileInfo fileInfo(androidUrl);
-	if (fileInfo.exists())
+	if (QFileInfo::exists(androidUrl))
 	{
 		MSG_OUT("Yep: the File exists for Qt");
 		return true;
@@ -252,7 +257,7 @@ void OSInterface::onActivityResult(int requestCode, int resultCode)
 void OSInterface::startNotificationAction(const QString& action)
 {
 	if (action.toUInt() == WORKOUT_NOTIFICATION)
-		m_appDB->getTrainingDay(QDate::currentDate());
+		appControl()->getTrainingDayPage(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate());
 }
 
 #ifdef __cplusplus
@@ -263,9 +268,9 @@ extern "C"
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileUrlReceived(
 						JNIEnv *env, jobject obj, jstring url)
 {
-	const char *urlStr = env->GetStringUTFChars(url, NULL);
+	const char* urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
-	handlerInstance()->setFileUrlReceived(urlStr);
+	appOsInterface()->setFileUrlReceived(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
 	return;
 }
@@ -273,9 +278,9 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileReceivedAndSaved(
 						JNIEnv *env, jobject obj, jstring url)
 {
-	const char *urlStr = env->GetStringUTFChars(url, NULL);
+	const char* urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
-	handlerInstance()->setFileReceivedAndSaved(urlStr);
+	appOsInterface()->setFileReceivedAndSaved(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
 	return;
 }
@@ -283,9 +288,9 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 JNIEXPORT bool JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_checkFileExists(
 						JNIEnv *env, jobject obj, jstring url)
 {
-	const char *urlStr = env->GetStringUTFChars(url, NULL);
+	const char* urlStr = env->GetStringUTFChars(url, NULL);
 	Q_UNUSED (obj)
-	bool exists = handlerInstance()->checkFileExists(urlStr);
+	bool exists = appOsInterface()->checkFileExists(urlStr);
 	env->ReleaseStringUTFChars(url, urlStr);
 	return exists;
 }
@@ -295,7 +300,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 {
 	Q_UNUSED (obj)
 	Q_UNUSED (env)
-	handlerInstance()->onActivityResult(requestCode, resultCode);
+	appOsInterface()->onActivityResult(requestCode, resultCode);
 	return;
 }
 
@@ -304,7 +309,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 {
 	Q_UNUSED (obj)
 	const char *actionStr = env->GetStringUTFChars(action, NULL);
-	handlerInstance()->startNotificationAction(actionStr);
+	appOsInterface()->startNotificationAction(actionStr);
 	env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }
@@ -314,9 +319,9 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 #endif
 
 #else
-void OSInterface::processArguments()
+void OSInterface::processArguments() const
 {
-	const QStringList args(qApp->arguments());
+	const QStringList& args(qApp->arguments());
 	if (args.count() > 1)
 	{
 		QString filename;
@@ -332,17 +337,18 @@ void OSInterface::processArguments()
 void OSInterface::restartApp()
 {
 	char* args[2] = { nullptr, nullptr };
-	const QString argv0(qApp->arguments().at(0));
+	const QString& argv0(qApp->arguments().at(0));
 	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
 	::free(args[0]);
 	exitApp();
 }
+#endif //Q_OS_ANDROID
 
 void OSInterface::shareFile(const QString& fileName) const
 {
-#ifdef Q_OS_ANDROID
+	#ifdef Q_OS_ANDROID
 	/*setExportFileName("app_logo.png");
 	if (!QFile::exists(exportFileName()))
 	{
@@ -351,9 +357,8 @@ void OSInterface::shareFile(const QString& fileName) const
 	}
 	sendFile(exportFileName(), tr("Send file"), u"image/png"_qs, 10);*/
 	sendFile(fileName, tr("Send file"), u"text/plain"_qs, 10);
-#endif
+	#endif
 }
-
 void OSInterface::openURL(const QString& address) const
 {
 	#ifdef Q_OS_ANDROID
@@ -423,7 +428,7 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString localFile(mAppDataFilesPath + u"tempfile"_qs + filename.right(4));
+	const QString& localFile(m_appDataFilesPath + u"tempfile"_qs + filename.right(4));
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));
@@ -433,5 +438,3 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	openURL(filename);
 	#endif
 }
-
-#endif //Q_OS_ANDROID

@@ -5,9 +5,12 @@
 #include <QLocale>
 #include <QGuiApplication>
 
+TPUtils* TPUtils::app_utils(nullptr);
+
 TPUtils::TPUtils(QObject* parent)
 	: QObject{parent}, m_appLocale(nullptr), mb_appSuspended(false)
 {
+	app_utils = this;
 	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
 		if (state == Qt::ApplicationSuspended)
 		{

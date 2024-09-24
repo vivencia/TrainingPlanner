@@ -140,6 +140,10 @@ private:
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<uint> m_totalSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
+
+	static DBMesocyclesModel* app_meso_model;
+	friend DBMesocyclesModel* appMesoModel();
 };
 
+inline DBMesocyclesModel* appMesoModel() { return DBMesocyclesModel::app_meso_model; }
 #endif // DBMESOCYCLESMODEL_H

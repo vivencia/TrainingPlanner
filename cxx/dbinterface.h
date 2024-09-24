@@ -33,13 +33,14 @@ Q_OBJECT
 
 public:
 	explicit inline DBInterface()
-		: QObject{nullptr}, mb_splitsLoaded(false), mb_importMode(false) {}
+		: QObject{nullptr}, mb_splitsLoaded(false), mb_importMode(false) { app_db_interface = this; }
 	inline DBInterface(const DBInterface* other)
 		: QObject{other->parent()}, mb_splitsLoaded(other->mb_splitsLoaded), mb_importMode(other->mb_splitsLoaded), m_DBFilePath(other->m_DBFilePath) {}
 	inline ~DBInterface() {}
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
 
+	inline const QString& dbFilesPath() const { return m_DBFilePath; }
 	inline bool splitsLoaded() const { return mb_splitsLoaded; }
 	//Q_INVOKABLE void verifyBackupPageProperties(QQuickItem* page) const;
 	//Q_INVOKABLE void copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const;
@@ -145,7 +146,11 @@ private:
 
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
+
+	static DBInterface* app_db_interface;
+	friend DBInterface* appDBInterface();
 };
 Q_DECLARE_METATYPE(DBInterface*)
 
+inline DBInterface* appDBInterface() { return DBInterface::app_db_interface; }
 #endif // DBINTERFACE_H

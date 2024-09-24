@@ -1,14 +1,12 @@
 #ifndef TPANDROIDNOTIFICATION_H
 #define TPANDROIDNOTIFICATION_H
 
-#include <qglobal.h>
+#include <QtGlobal>
 
 #ifdef Q_OS_ANDROID
-#include <QObject>
-#include <QMap>
 #include <QList>
-
-namespace org_vivenciasoftware_TrainingPlanner {
+#include <QMap>
+#include <QObject>
 
 #define GENERAL_TP_NOTIFICATION 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
@@ -31,7 +29,6 @@ private:
 	QMap<uint, QList<uint>> m_Ids;
 };
 
-}//namespace
 #endif
 
 #endif // TPANDROIDNOTIFICATION_H

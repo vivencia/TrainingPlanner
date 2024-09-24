@@ -18,6 +18,8 @@
 #include <QSettings>
 #include <QFile>
 
+QmlItemManager* QmlItemManager::app_root_items_manager(nullptr);
+
 QQmlApplicationEngine* QmlItemManager::app_qml_engine(nullptr);
 QQuickWindow* QmlItemManager::app_MainWindow(nullptr);
 QQuickItem* QmlItemManager::app_StackView(nullptr);
@@ -34,27 +36,33 @@ QQuickItem* QmlItemManager::clientsOrCoachesPage(nullptr);
 QVariantMap QmlItemManager::clientsOrCoachesProperties;
 QQuickItem* QmlItemManager::userPage(nullptr);
 
+inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
+
 static const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
 
 QmlItemManager::~QmlItemManager()
 {
-	if (exercisesComponent)
+	if (this == app_root_items_manager)
 	{
-		delete exercisesPage;
-		delete exercisesComponent;
-		exercisesComponent = nullptr;
-	}
-	if (settingsComponent)
-	{
-		delete settingsPage;
-		delete settingsComponent;
-		settingsComponent = nullptr;
-	}
-	if (clientsOrCoachesComponent)
-	{
-		delete clientsOrCoachesPage;
-		delete clientsOrCoachesComponent;
+		if (exercisesComponent)
+		{
+			delete exercisesPage;
+			delete exercisesComponent;
+			exercisesComponent = nullptr;
+		}
+		if (settingsComponent)
+		{
+			delete settingsPage;
+			delete settingsComponent;
+			settingsComponent = nullptr;
+		}
+		if (clientsOrCoachesComponent)
+		{
+			delete clientsOrCoachesPage;
+			delete clientsOrCoachesComponent;
+			clientsOrCoachesComponent = nullptr;
+		}
 	}
 
 	if (m_importDlgComponent)
@@ -133,8 +141,13 @@ QmlItemManager::~QmlItemManager()
 
 void QmlItemManager::configureQmlEngine()
 {
-	QQmlApplicationEngine _qmlEngine;
-	app_qml_engine = &_qmlEngine;
+	if (appQmlEngine())
+		return;
+
+	QString style(appSettings()->value("themeStyle").toString());
+	if (style.isEmpty())
+		style = u"Material"_qs;
+	QQuickStyle::setStyle(style);
 
 	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
@@ -146,29 +159,13 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
 
-	QString style(appSettings()->value("themeStyle").toString());
-	if (style.isEmpty())
-		style = u"Material"_qs;
-	QQuickStyle::setStyle(style);
-
-	const QUrl& url(u"qrc:/qml/main.qml"_qs);
-	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (QObject *obj, const QUrl &objUrl) {
-		if (!obj && url == objUrl)
-			QCoreApplication::exit(-1);
-	});
-	appQmlEngine()->addImportPath(u":/"_qs);
-	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider());
-	appQmlEngine()->load(url);
-	if (appQmlEngine()->rootObjects().isEmpty())
-		QCoreApplication::exit(-1);
-
-	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
-	QQuickItem* contentItem(app_StackView->parentItem());
+	QQmlApplicationEngine _qmlEngine;
+	app_qml_engine = &_qmlEngine;
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(14);
+	QList<QQmlContext::PropertyPair> properties(11);
 	properties[0] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
+	properties[0] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
 	properties[1] = QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) };
 	properties[2] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
 	properties[3] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
@@ -179,15 +176,50 @@ void QmlItemManager::configureQmlEngine()
 	properties[8] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
 	properties[9] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
 	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
-	properties[11] = QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) };
-	properties[12] = QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }; //mainwindow.height - header.height
-	properties[13] = QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() };
+	appQmlEngine()->rootContext()->setContextProperties(properties);
+
+	const QUrl& url(u"qrc:/qml/main.qml"_qs);
+	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (QObject* obj, const QUrl& objUrl) {
+		if (!obj && url == objUrl)
+		{
+			MSG_OUT("*******************Mainwindow not loaded*******************")
+			QCoreApplication::exit(-1);
+		}
+	});
+	appQmlEngine()->addImportPath(u":/"_qs);
+	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider{});
+	appQmlEngine()->load(url);
+
+	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
+	connect(appMainWindow(), SIGNAL(mainWindowStarted()), rootItemsManager(), SLOT(mainWindowStarted()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+
+	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
+	const QQuickItem* const contentItem(app_StackView->parentItem());
+	properties.clear();
+	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) });
+	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
+	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(appMainWindow(), "init");
 }
 
 //-----------------------------------------------------------USER-----------------------------------------------------------
+void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
+{
+	appDBInterface()->removeUser(user_row, bCoach);
+	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
+	int firstUserRow(-1), lastUserRow(-1);
+	if (curUserRow > 0)
+	{
+		firstUserRow = appUserModel()->findFirstUser(bCoach);
+		lastUserRow = appUserModel()->findLastUser(bCoach);
+	}
+	clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+	clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+	clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
+}
+
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
 {
 	if (settingsComponent)
@@ -277,23 +309,6 @@ void QmlItemManager::setClientsOrCoachesPagesProperties(const bool bManageClient
 		clientsOrCoachesProperties.insert(u"showUsers"_qs, bManageClients);
 		clientsOrCoachesProperties.insert(u"showCoaches"_qs, bManageCoaches);
 	}
-}
-
-void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
-{
-	assert(user_row >0);
-
-	appDBInterface()->removeUser(user_row, bCoach);
-	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
-	int firstUserRow(-1), lastUserRow(-1);
-	if (curUserRow > 0)
-	{
-		firstUserRow = appUserModel()->findFirstUser(bCoach);
-		lastUserRow = appUserModel()->findLastUser(bCoach);
-	}
-	clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-	clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-	clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
 }
 //-----------------------------------------------------------USER-----------------------------------------------------------
 
@@ -1082,6 +1097,19 @@ QQuickItem* QmlItemManager::nextSetObject(const uint exercise_idx, const uint se
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
+{
+	int message_id(0);
+	switch (resultCode)
+	{
+		case -1: message_id = APPWINDOW_MSG_SHARE_OK; break;
+		case 0: message_id = APPWINDOW_MSG_SHARE_FAILED; break;
+		default: message_id = APPWINDOW_MSG_UNKNOWN_ERROR; break;
+	}
+	displayMessageOnAppWindow(message_id);
+	QFile::remove(m_exportFilename);
+}
+
 void QmlItemManager::displayMessageOnAppWindow(const int message_id) const
 {
 	QString title, message;
@@ -1205,6 +1233,11 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
+void QmlItemManager::mainWindowStarted() const
+{
+	appOsInterface()->initialCheck();
+}
+
 void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& args)
 {
 	const QVariantList& strargs(args.toList());
@@ -2035,10 +2068,33 @@ void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 	{
 		if (m_mainMenuShortcutEntries.count() < 5)
 		{
+			if (!m_tpButtonComponent)
+			{
+				m_tpButtonComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/TPWidgets/TPButton.qml"_qs), QQmlComponent::Asynchronous};
+				m_menuTPButtonProperties[u"Layout.fillWidth"_qs] = true;
+				const QQuickItem* mainMenu{appMainWindow()->findChild<QQuickItem*>(u"mainMenu"_qs)};
+				m_drawerLayout = mainMenu->findChild<QQuickItem*>(u"drawerLayout"_qs);
+				if (m_tpButtonComponent->status() != QQmlComponent::Ready)
+				{
+					connect(m_tpButtonComponent, &QQmlComponent::statusChanged, this, [&,label,page] (QQmlComponent::Status) {
+						addMainMenuShortCut(label, page);
+					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					return;
+				}
+			}
+
 			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
-			QMetaObject::invokeMethod(appMainWindow(), "createShortCut", Q_ARG(QString, label),
-													Q_ARG(QQuickItem*, page), Q_ARG(int, m_mainMenuShortcutPages.count()));
 			m_mainMenuShortcutPages.append(page);
+
+			m_menuTPButtonProperties[u"text"_qs] = label;
+			m_menuTPButtonProperties[u"clickId"_qs] = m_mainMenuShortcutPages.count() - 1;
+			m_menuTPButtonProperties[u"associatedItem"_qs] = QVariant::fromValue(page);
+			QQuickItem* button = static_cast<QQuickItem*>(m_tpButtonComponent->createWithInitialProperties(
+									m_menuTPButtonProperties, appQmlEngine()->rootContext()));
+			appQmlEngine()->setObjectOwnership(button, QQmlEngine::CppOwnership);
+			button->setParentItem(m_drawerLayout);
+			m_mainMenuShortcutEntries.append(button);
+			connect(button, SIGNAL(clicked()), this, SLOT(openMainMenuShortCut()));
 		}
 		else
 		{

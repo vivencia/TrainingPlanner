@@ -103,7 +103,7 @@ Frame {
 			verticalCenter: txtPhone.verticalCenter
 		}
 
-		onClicked: appDB.startChatApp(userModel.phone(userRow), "WhatsApp");
+		onClicked: osInterface.startChatApp(userModel.phone(userRow), "WhatsApp");
 	}
 
 	TPButton {
@@ -119,7 +119,7 @@ Frame {
 			verticalCenter: txtPhone.verticalCenter
 		}
 
-		onClicked: appDB.startChatApp(userModel.phone(userRow), "Telegram");
+		onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
 	}
 
 	Label {
@@ -194,7 +194,7 @@ Frame {
 			verticalCenter: txtEmail.verticalCenter
 		}
 
-		onClicked: appDB.sendMail(txtEmail.text, "", "");
+		onClicked: osInterface.sendMail(txtEmail.text, "", "");
 	}
 
 	Label {
@@ -299,7 +299,7 @@ Frame {
 			verticalCenter: txtSocial.verticalCenter
 		}
 
-		onClicked: appDB.openURL(txtSocial.text);
+		onClicked: osInterface.openURL(txtSocial.text);
 	}
 
 	function focusOnFirstField() {

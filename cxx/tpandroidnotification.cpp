@@ -1,21 +1,16 @@
 #include "tpandroidnotification.h"
 
 #ifdef Q_OS_ANDROID
-#include "tplistmodel.h"
-
-#include <QtCore/qjniobject.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qjniobject.h>
 #include <QtCore/private/qandroidextras_p.h>
-
-namespace org_vivenciasoftware_TrainingPlanner {
 
 TPAndroidNotification::TPAndroidNotification(QObject* parent)
 	: QObject{parent}
 {
 	if (QNativeInterface::QAndroidApplication::sdkVersion() >= __ANDROID_API_T__)
 	{
-		const auto notificationPermission = "android.permission.POST_NOTIFICATIONS"_L1;
-		auto requestResult = QtAndroidPrivate::requestPermission(notificationPermission);
+		auto requestResult = QtAndroidPrivate::requestPermission(u"android.permission.POST_NOTIFICATIONS"_qs);
 		if (requestResult.result() != QtAndroidPrivate::Authorized)
 		{
 			qWarning() << "Failed to acquire permission to post notifications "
@@ -41,9 +36,9 @@ uint TPAndroidNotification::sendNotification(const QString& title, const QString
 {
 	const uint id(m_Ids.value(table_id).isEmpty() ? 0 : m_Ids.value(table_id).constLast() + 1);
 
-	QJniObject jtitle = QJniObject::fromString(title);
-	QJniObject jmessage = QJniObject::fromString(message);
-	QJniObject jaction = QJniObject::fromString(QString::number(table_id));
+	const QJniObject& jtitle = QJniObject::fromString(title);
+	const QJniObject& jmessage = QJniObject::fromString(message);
+	const QJniObject& jaction = QJniObject::fromString(QString::number(table_id));
 	QJniObject::callStaticMethod<void>(
 					"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 					"notify",
@@ -61,6 +56,4 @@ void TPAndroidNotification::cancelNotification(const uint id)
 					"(I)V",
 					id);
 }
-
-} //namespace
 #endif

@@ -16,6 +16,8 @@ class TPListModel;
 class OSInterface : public QObject
 {
 
+Q_OBJECT
+
 public:
 	explicit OSInterface(QObject* parent = nullptr);
 	inline OSInterface(const OSInterface& other)
@@ -30,22 +32,31 @@ public:
 	Q_INVOKABLE void exitApp();
 
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
-#ifndef Q_OS_ANDROID
-	Q_INVOKABLE void processArguments();
-	Q_INVOKABLE void restartApp();
-#else
+	inline void initialCheck() const
+	{
+		#ifdef Q_OS_ANDROID
+			checkPendingIntents();
+		#else
+			processArguments();
+		#endif
+	}
+
+#ifdef Q_OS_ANDROID
 	void setFileUrlReceived(const QString& url) const;
 	void setFileReceivedAndSaved(const QString& url) const;
 	bool checkFileExists(const QString& url) const;
 	void onActivityResult(int requestCode, int resultCode);
 	void startNotificationAction(const QString& action);
 
-	Q_INVOKABLE void checkPendingIntents() const;
+	void checkPendingIntents() const;
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
 	void androidOpenURL(const QString& address) const;
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
 	bool viewFile(const QString& filePath, const QString& title) const;
 	void appStartUpNotifications();
+#else
+	void processArguments() const;
+	Q_INVOKABLE void restartApp();
 #endif
 
 	void shareFile(const QString& fileName) const;
@@ -68,7 +79,11 @@ private:
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
 #endif
+
+	static OSInterface* app_os_interface;
+	friend OSInterface* appOsInterface();
 };
 Q_DECLARE_METATYPE(OSInterface*)
 
+inline OSInterface* appOsInterface() { return OSInterface::app_os_interface; }
 #endif // OSINTERFACE_H

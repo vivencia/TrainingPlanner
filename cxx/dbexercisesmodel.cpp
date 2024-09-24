@@ -4,9 +4,14 @@
 
 #include <QFile>
 
+DBExercisesModel* DBExercisesModel::app_exercises_model(nullptr);
+
 DBExercisesModel::DBExercisesModel(QObject* parent)
 	: TPListModel{parent}, m_selectedEntryToReplace(0)
 {
+	if (!app_exercises_model)
+		app_exercises_model = this;
+
 	setObjectName(DBExercisesObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
 	m_fieldCount = EXERCISES_TOTAL_COLS;

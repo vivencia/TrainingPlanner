@@ -374,7 +374,7 @@ TPPage {
 					visible: appUtils.canReadFile(mesocyclesModel.get(itemManager.mesoIdx, 9))
 					Layout.leftMargin: -10
 
-					onClicked: appDB.viewExternalFile(mesocyclesModel.get(itemManager.mesoIdx, 9));
+					onClicked: osInterface.viewExternalFile(mesocyclesModel.get(itemManager.mesoIdx, 9));
 				}
 			}
 

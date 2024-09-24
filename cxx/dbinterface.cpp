@@ -15,24 +15,25 @@
 #include "dbusertable.h"
 #include "dbusermodel.h"
 
-#include <QSettings>
-#include <QQmlApplicationEngine>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QThread>
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
+#include <QQmlApplicationEngine>
+#include <QSettings>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QStandardPaths>
+#include <QThread>
 
 #define SPLITS_LOADED_ID 4321
 
+DBInterface* DBInterface::app_db_interface(nullptr);
+
 void DBInterface::init()
 {
-	m_DBFilePath = appSettings()->value("dbFilePath").toString();
-	if (m_DBFilePath.isEmpty())
-	{
-		m_DBFilePath = appUtils()->getAppDir(appQmlEngine()->offlineStoragePath());
-		appSettings()->setValue("dbFilePath", m_DBFilePath);
-	}
+	m_DBFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_qs;
+	QDir appDir(m_DBFilePath);
+	if (!appDir.mkpath(m_DBFilePath))
+		MSG_OUT("TP directory creation failed: " << m_DBFilePath);
 
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
 
@@ -41,7 +42,7 @@ void DBInterface::init()
 		DBExercisesTable* db_exercises(new DBExercisesTable(m_DBFilePath));
 		db_exercises->createTable();
 		delete db_exercises;
-		appSettings()->setValue("exercisesListVersion", "0");
+		appSettings()->setValue("exercisesListVersion", STR_ZERO);
 	}
 	f_info.setFile(m_DBFilePath + DBMesocyclesFileName);
 	if (!f_info.isReadable())
@@ -103,7 +104,7 @@ void DBInterface::init()
 
 void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 {
-	const QString dbObjName(dbObj->objectName());
+	const QString& dbObjName(dbObj->objectName());
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
@@ -111,7 +112,7 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	emit databaseReady(dbObj->uniqueID());
 	if (m_WorkerLock[dbObj->tableID()].hasNext())
 	{
-		TPDatabaseTable* nextDbObj(m_WorkerLock[dbObj->tableID()].nextObj());
+		const TPDatabaseTable* const nextDbObj(m_WorkerLock[dbObj->tableID()].nextObj());
 		MSG_OUT("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())

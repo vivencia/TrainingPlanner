@@ -112,7 +112,7 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		MSG_OUT("DBExercisesTable updateExercisesList m_ExercisesList is empty")
+		MSG_OUT("DBExercisesTable::updateExercisesList -> m_ExercisesList is empty")
 		m_result = false;
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;

@@ -60,11 +60,12 @@ Drawer {
 			bottom: parent.bottom
 		}
 
-		onClicked: appDB.exitApp();
+		onClicked: osInterface.exitApp();
 	}
 
 	ColumnLayout {
 		id: drawerLayout
+		objectName: "drawerLayout"
 		spacing: 5
 		opacity: parent.opacity
 
@@ -201,20 +202,4 @@ Drawer {
 			Layout.fillHeight: true
 		}
 	} //ColumnLayout
-
-	function createShortCut(label: string, page: Item, clickid: int) {
-		if (!buttonComponent)
-			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
-
-		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page, "Layout.fillWidth": true });
-			button.clicked.connect(openMainMenuShortCut);
-			appDB.addMainMenuShortCutEntry(button);
-		}
-
-		if (buttonComponent.status === Component.Ready)
-			finishCreation();
-		else
-			buttonComponent.statusChanged.connect(finishCreation);
-	}
 } //Drawer

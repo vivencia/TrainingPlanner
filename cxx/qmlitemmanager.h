@@ -27,22 +27,23 @@ Q_OBJECT
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 
 public:
-	inline QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
+	inline explicit QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
 		: QObject{parent}, m_mesoIdx(meso_idx),
 			m_mesoComponent(nullptr), m_plannerComponent(nullptr),
 			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
-			m_setComponents{nullptr}, m_importDlgComponent(nullptr) {}
+			m_setComponents{nullptr}, m_importDlgComponent(nullptr), m_tpButtonComponent(nullptr) { if (!app_root_items_manager) app_root_items_manager = this; }
 	~QmlItemManager();
-	static void configureQmlEngine();
+	void configureQmlEngine();
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
+	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
+
 	void getSettingsPage(const uint startPageIndex);
 	void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
-	void removeUser(const uint user_row, const bool bCoach);
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -121,8 +122,7 @@ public:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
-	Q_INVOKABLE void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
-
+	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void displayMessageOnAppWindow(const int message_id) const;
 	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
@@ -130,6 +130,7 @@ public:
 
 public slots:
 	//-----------------------------------------------------------SLOTS-----------------------------------------------------------
+	void mainWindowStarted() const;
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
 	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
 	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
@@ -300,9 +301,9 @@ private:
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 
-	QQmlComponent* m_importDlgComponent;
-	QQuickItem* m_importDlg;
-	QVariantMap m_importDlgProperties;
+	QQmlComponent* m_importDlgComponent, *m_tpButtonComponent;
+	QQuickItem* m_importDlg, *m_drawerLayout;
+	QVariantMap m_importDlgProperties, m_menuTPButtonProperties;
 	uint m_fileContents;
 
 	QString m_exportFilename, m_importFilename;
@@ -311,6 +312,8 @@ private:
 	void removeMainMenuShortCut(QQuickItem* page);
 	void createImportDialog();
 
+	static QmlItemManager* app_root_items_manager;
+	friend QmlItemManager* rootItemsManager();
 	static QQmlApplicationEngine* app_qml_engine;
 	friend QQmlApplicationEngine* appQmlEngine();
 	static QQuickWindow* app_MainWindow;
@@ -320,8 +323,8 @@ private:
 	//-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------
 };
 
+inline QmlItemManager* rootItemsManager() { return QmlItemManager::app_root_items_manager; }
 inline QQmlApplicationEngine* appQmlEngine() { return QmlItemManager::app_qml_engine; }
 inline QQuickWindow* appMainWindow() { return QmlItemManager::app_MainWindow; }
-inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
 
 #endif // QMLITEMMANAGER_H

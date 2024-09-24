@@ -75,6 +75,10 @@ private:
 	QList<selectedEntry> m_selectedEntries;
 	uint m_selectedEntryToReplace;
 	uint m_exercisesTableLastId;
+
+	static DBExercisesModel* app_exercises_model;
+	friend DBExercisesModel* appExercisesModel();
 };
 
+inline DBExercisesModel* appExercisesModel() { return DBExercisesModel::app_exercises_model; }
 #endif // DBEXERCISESMODEL_H

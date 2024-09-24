@@ -2,9 +2,14 @@
 #include "tpglobals.h"
 #include "tputils.h"
 
+DBUserModel* DBUserModel::app_user_model(nullptr);
+
 DBUserModel::DBUserModel(QObject *parent)
 	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
 {
+	if (!app_user_model)
+		app_user_model = this;
+
 	setObjectName(DBUserObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
 	m_exportName = tr("Coach information");

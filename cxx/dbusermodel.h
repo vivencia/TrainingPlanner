@@ -111,7 +111,12 @@ signals:
 private:
 	bool mb_empty;
 	int m_searchRow;
+
+	static DBUserModel* app_user_model;
+	friend DBUserModel* appUserModel();
 };
 Q_DECLARE_METATYPE(DBUserModel*)
+
+inline DBUserModel* appUserModel() { return DBUserModel::app_user_model; }
 
 #endif // DBUSERMODEL_H
