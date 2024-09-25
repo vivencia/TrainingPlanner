@@ -20,8 +20,6 @@ TPPage {
 	header: ToolBar {
 		topPadding: 5
 		bottomPadding: 20
-		leftPadding: 10
-		rightPadding: 10
 		height: headerHeight
 
 		background: Rectangle {
@@ -35,25 +33,36 @@ TPPage {
 			opacity: 0.8
 		}
 
+		TPImage {
+			id: imgAppIcon
+			source: "app_icon"
+			dropShadow: false
+			width: 50
+			height: 50
 
-		RowLayout {
-			anchors.fill: parent
-
-			TPImage {
-				source: "app_icon"
-				dropShadow: false
-				width: 50
-				height: 50
-				Layout.alignment: Qt.AlignCenter
+			anchors {
+				top: parent.top
+				topMargin: -10
+				left: parent.left
+				leftMargin: 5
 			}
+		}
 
-			Label {
-				text: qsTr("Training Organizer")
-				color: AppSettings.fontColor
-				font.weight: Font.ExtraBold
-				font.pointSize: AppSettings.fontSizeTitle
-				wrapMode: Text.WordWrap
-				Layout.alignment: Qt.AlignCenter
+		Label {
+			text: qsTr("Training Organizer")
+			color: AppSettings.fontColor
+			font.weight: Font.ExtraBold
+			fontSizeMode: Text.Fit
+			font.pointSize: AppSettings.fontSizeTitle
+			padding: 0
+
+			anchors {
+				top: parent.top
+				topMargin: 5
+				left: imgAppIcon.right
+				leftMargin: 5
+				right: parent.right
+				rightMargin: 10
 			}
 		}
 	}
@@ -433,7 +442,8 @@ TPPage {
 
 	function selectedNewMesoMenuOption(menuid) {
 		switch (menuid) {
-			case 0: appControl.createNewMesocycle(true); break;
+			case 0: appControl.createNewMesocycle(true);
+			break;
 			case 1: mainwindow.chooseFileToImport(); break;
 		}
 	}

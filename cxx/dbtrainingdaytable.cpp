@@ -1,6 +1,5 @@
 #include "dbtrainingdaytable.h"
 #include "dbtrainingdaymodel.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 #include "tpglobals.h"
 
@@ -123,11 +122,11 @@ void DBTrainingDayTable::updateDatabase()
 				{
 					if (mSqlLiteDB.transaction())
 					{
-						const QString queryStart( QStringLiteral("INSERT INTO training_day_table "
+						const QString& queryStart( QStringLiteral("INSERT INTO training_day_table "
 									"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
 									"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 									" VALUES ") );
-						const QString queryValuesTemplate("(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\'),");
+						const QString& queryValuesTemplate("(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\'),");
 						QString queryValues;
 
 						for (uint i(0), n(0); i < oldTableInfo.count(); ++i, ++n)
@@ -183,7 +182,7 @@ void DBTrainingDayTable::getTrainingDay()
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
 		query.setForwardOnly(true);
-		const QString strQuery(u"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
+		const QString& strQuery(u"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
 										"FROM training_day_table WHERE date="_qs + m_execArgs.at(0).toString());
 		if (query.exec(strQuery))
 		{
@@ -217,7 +216,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 	{
 		QSqlQuery query(mSqlLiteDB);
 		query.setForwardOnly(true);
-		const QString queryCmd(u"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
+		const QString& queryCmd(u"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
 						"FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
 
 		if (query.exec(queryCmd))
@@ -327,7 +326,7 @@ void DBTrainingDayTable::saveTrainingDay()
 	if (mSqlLiteDB.open())
 	{
 		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
-		const QStringList tDayInfoList(model->getSaveInfo());
+		const QStringList& tDayInfoList(model->getSaveInfo());
 
 		QSqlQuery query(mSqlLiteDB);
 		query.exec(u"PRAGMA page_size = 4096"_qs);

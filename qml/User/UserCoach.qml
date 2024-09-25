@@ -35,7 +35,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: controlsSpacing
+			topMargin: 2*controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

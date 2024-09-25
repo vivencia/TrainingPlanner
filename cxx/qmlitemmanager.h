@@ -2,8 +2,6 @@
 #define QMLITEMMANAGER_H
 
 #include "tpglobals.h"
-#include "dbmesosplitmodel.h"
-#include "dbtrainingdaymodel.h"
 #include "tptimer.h"
 
 #include <QObject>
@@ -14,6 +12,8 @@ class DBInterface;
 class DBUserModel;
 class DBMesocyclesModel;
 class DBExercisesModel;
+class DBTrainingDayModel;
+class DBMesoSplitModel;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -33,7 +33,7 @@ public:
 			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
 			m_setComponents{nullptr}, m_importDlgComponent(nullptr), m_tpButtonComponent(nullptr) { if (!app_root_items_manager) app_root_items_manager = this; }
 	~QmlItemManager();
-	void configureQmlEngine();
+	void configureQmlEngine(QQmlApplicationEngine *qml_engine);
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }

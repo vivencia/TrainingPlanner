@@ -73,7 +73,6 @@ set( QML_FILES
     "qml/AppSettings.qml"
     "qml/ImageViewer.qml"
     "qml/inexportMethods.js"
-
     "qml/main.qml"
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
@@ -95,7 +94,6 @@ set( QML_FILES
     "qml/ExercisesAndSets/SetTypeRegular.qml"
     "qml/ExercisesAndSets/SetTypeGiant.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
-    "qml/Pages/BackupPage.qml"
     "qml/Pages/ClientsOrCoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
 	"qml/Pages/ExercisesPage.qml"

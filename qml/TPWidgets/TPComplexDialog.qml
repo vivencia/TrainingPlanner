@@ -34,7 +34,7 @@ TPPopup {
 	signal dialogOpened();
 
 	id: dialog
-	bKeepAbove: true
+	modal: true
 	width: windowWidth * 0.9
 	height: totalHeight + 20
 

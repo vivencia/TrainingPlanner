@@ -4,7 +4,6 @@
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 
 #include <QtMath>
@@ -116,7 +115,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+		const QString& strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
 		outFile->write(strHeader.toUtf8().constData());
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);

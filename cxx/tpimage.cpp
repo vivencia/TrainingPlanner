@@ -10,7 +10,7 @@
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem* parent)
-	: QQuickPaintedItem(parent), mDropShadow(true), mbCanUpdate(true)
+	: QQuickPaintedItem{parent}, m_imageToPaint(nullptr), mDropShadow(true), mbCanUpdate(true)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
@@ -68,7 +68,7 @@ void TPImage::paint(QPainter* painter)
 {
 	if (!mbCanUpdate)
 		return;
-	if (mSource.isEmpty())
+	if (!m_imageToPaint)
 		return;
 
 	QPointF center(boundingRect().center() - m_imageToPaint->rect().center());
@@ -150,7 +150,7 @@ void TPImage::createDropShadowImage()
 {
 	if (!mImage.isNull())
 	{
-		QGraphicsDropShadowEffect* shadowEffect = new QGraphicsDropShadowEffect();
+		QGraphicsDropShadowEffect* shadowEffect{new QGraphicsDropShadowEffect()};
 		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
 		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
 		applyEffectToImage(mImageShadow, mImage, shadowEffect, DROP_SHADOW_EXTENT);

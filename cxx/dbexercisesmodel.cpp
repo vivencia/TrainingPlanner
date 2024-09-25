@@ -1,6 +1,5 @@
 #include "dbexercisesmodel.h"
 #include "tpglobals.h"
-#include "tpappcontrol.h"
 
 #include <QFile>
 

@@ -3,7 +3,6 @@
 #include "dbtrainingdaymodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 
 DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
@@ -90,7 +89,7 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 
 QString DBMesoSplitModel::exerciseName1(const uint row) const
 {
-	const int idx(static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).indexOf(subrecord_separator));
+	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(subrecord_separator));
 	return idx != -1 ? u"2: "_qs + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
 			m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
 }
@@ -348,7 +347,7 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+		const QString& strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
 		outFile->write(strHeader.toUtf8().constData());
 
 		QString value;

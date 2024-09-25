@@ -25,7 +25,7 @@ Frame {
 	property bool bSocialOK: true
 	readonly property int controlsSpacing: 5
 	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: 7*controlsHeight + 10
+	readonly property int moduleHeight: 8*controlsHeight + 10
 
 	Label {
 		id: lblPhone

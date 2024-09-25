@@ -53,7 +53,7 @@ public:
 		}
 	}
 
-	void updateList (const QStringList& list, const int row);
+	void updateList(const QStringList& list, const int row);
 	void appendList(const QStringList& list);
 	virtual void clear();
 
@@ -89,77 +89,67 @@ public:
 	{
 		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::get", "out of range row");
 		return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
-		//else
-		//	return QString();
 	}
 
 	inline const QString& getFast(const uint row, const uint field) const
 	{
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
 		return m_modeldata.at(row).at(field);
 	}
 
 	Q_INVOKABLE bool set(const uint row, const uint field, const QString& value)
 	{
 		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::set", "out of range row");
-		//if (row >= 0 && row < m_indexProxy.count())
-		//{
-			if (getFast(m_indexProxy.at(row), field) != value)
-			{
-				m_modeldata[m_indexProxy.at(row)][field] = value;
-				if (m_roleNames.contains(Qt::UserRole+field))
-					emit dataChanged(index(row, 0), index(row, 0), QList<int>() << Qt::UserRole+field);
-				setModified(true);
-				return true;
-			}
-		//}
+		if (getFast(m_indexProxy.at(row), field) != value)
+		{
+			m_modeldata[m_indexProxy.at(row)][field] = value;
+			if (m_roleNames.contains(Qt::UserRole+field))
+				emit dataChanged(index(row, 0), index(row, 0), QList<int>() << Qt::UserRole+field);
+			setModified(true);
+			return true;
+		}
 		return false;
 	}
 
 	inline void setFast(const uint row, const uint field, const QString& value)
 	{
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
 		m_modeldata[row][field] = value;
 	}
 
 	Q_INVOKABLE int getInt(const uint row, const uint field) const
 	{
 		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getInt", "out of range row");
-		//if (row >= 0 && row < m_indexProxy.count())
-			return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toInt();
-		//else
-		//	return -1;
+		return m_modeldata.at(m_indexProxy.at(row)).at(field).toInt();
 	}
 
 	inline int getIntFast(const uint row, const uint field) const
 	{
-		return row < m_modeldata.count() ? m_modeldata.at(row).at(field).toInt() : -1;
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
+		return m_modeldata.at(row).at(field).toInt();
 	}
 
 	Q_INVOKABLE QDate getDate(const uint row, const uint field) const
 	{
 		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
-		//if (row >= 0 && row < m_indexProxy.count())
-			return QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field)).toLongLong());
-		//else
-			//return QDate::currentDate();
+		return QDate::fromJulianDay(m_modeldata.at(m_indexProxy.at(row)).at(field).toLongLong());
 	}
 
 	inline const QDate getDateFast(const uint row, const uint field) const
 	{
+		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDateFast", "out of range row");
 		return QDate::fromJulianDay(m_modeldata.at(row).at(field).toLongLong());
 	}
 
 	Q_INVOKABLE bool setDate(const uint row, const uint field, const QDate& date)
 	{
 		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::setDate", "out of range row");
-		//if (row >= 0 && row < m_indexProxy.count())
-		//{
-			if (getDateFast(m_indexProxy.at(row), field) != date)
-			{
-				m_modeldata[m_indexProxy.at(row)][field] = QString::number(date.toJulianDay());
-				setModified(true);
-				return true;
-			}
-		//}
+		if (getDateFast(m_indexProxy.at(row), field) != date)
+		{
+			m_modeldata[m_indexProxy.at(row)][field] = QString::number(date.toJulianDay());
+			setModified(true);
+			return true;
+		}
 		return false;
 	}
 

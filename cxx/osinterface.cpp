@@ -2,6 +2,7 @@
 #include "tputils.h"
 #include "dbusermodel.h"
 #include "tpappcontrol.h"
+#include "dbinterface.h"
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
@@ -48,7 +49,7 @@ void OSInterface::exitApp()
 
 void OSInterface::aboutToExit()
 {
-	appControl()->cleanUp();
+	appDBInterface()->cleanUpThreads();
 }
 
 #ifdef Q_OS_ANDROID
@@ -107,7 +108,7 @@ void OSInterface::androidOpenURL(const QString& address) const
 
 bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
 {
-	const QString& attachment_file(attachment.isEmpty() ? QString() : u"file://" + attachment);
+	const QString& attachment_file(attachment.isEmpty() ? QString() : u"file://"_qs + attachment);
 	const QJniObject& jsAddress = QJniObject::fromString(address);
 	const QJniObject& jsSubject = QJniObject::fromString(subject);
 	const QJniObject& jsAttach = QJniObject::fromString(attachment_file);

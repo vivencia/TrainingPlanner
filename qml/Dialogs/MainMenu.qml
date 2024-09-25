@@ -117,7 +117,7 @@ Drawer {
 				}
 
 				onClicked: {
-					appControl.openSettingsPage(1);
+					appControl.getSettingsPage(1);
 					close();
 				}
 			}
@@ -168,7 +168,7 @@ Drawer {
 			}
 
 			onClicked: {
-				appControl.openSettingsPage(0);
+				appControl.getSettingsPage(0);
 				close();
 			}
 		}

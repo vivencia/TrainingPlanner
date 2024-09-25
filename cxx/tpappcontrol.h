@@ -2,6 +2,7 @@
 #define TPAPPCONTROL_H
 
 #include <QDate>
+#include <QObject>
 #include <QList>
 
 class QmlItemManager;
@@ -11,17 +12,14 @@ class QQmlApplicationEngine;
 class QSettings;
 class QQuickItem;
 
-class TPAppControl
+class TPAppControl : public QObject
 {
 
-public:
-	explicit inline TPAppControl(QSettings* settings) { app_control = this; app_settings = settings; }
-	inline TPAppControl(const TPAppControl& other) : m_itemManager(other.m_itemManager) {}
-	inline ~TPAppControl() { cleanUp(); }
-	void init();
-	void cleanUp();
+Q_OBJECT
 
-	//inline QmlItemManager* itemManager(const uint meso_idx) const { return m_itemManager.at(meso_idx); }
+public:
+	explicit inline TPAppControl(QSettings* settings) : QObject{} { app_control = this; app_settings = settings; }
+	void init(QQmlApplicationEngine* qml_engine);
 
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
@@ -53,9 +51,7 @@ public:
 private:
 	QSettings* m_appSettings;
 	QList<QmlItemManager*> m_itemManager;
-	uint m_tempMesoIdx;
 };
-Q_DECLARE_METATYPE(TPAppControl*)
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
 inline QSettings* appSettings() { return TPAppControl::app_settings; }

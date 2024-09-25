@@ -20,7 +20,7 @@ Popup {
 	property int startYPos: 0
 
 	Component.onCompleted: {
-		if (bKeepAbove) {
+		if (!modal && bKeepAbove) {
 			parentPage.pageDeActivated.connect(function() { bVisible = tppopup.visible; tppopup.visible = false; });
 			parentPage.pageActivated.connect(function() { if (bVisible) tppopup.visible = true; });
 		}

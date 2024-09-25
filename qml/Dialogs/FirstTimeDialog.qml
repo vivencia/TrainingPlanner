@@ -8,7 +8,6 @@ import "../User"
 TPPopup {
 	id: firstTimeDlg
 	objectName: "firstTimerDlg"
-	bKeepAbove: true
 	modal: true
 	width: windowWidth - 50
 	height: moduleHeight + frmFooter.height

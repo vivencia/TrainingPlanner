@@ -17,10 +17,7 @@
 
 #include <QDir>
 #include <QFileInfo>
-#include <QQmlApplicationEngine>
 #include <QSettings>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QStandardPaths>
 #include <QThread>
 
@@ -120,121 +117,16 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	}
 }
 
-/*void DBInterface::verifyBackupPageProperties(QQuickItem* page) const
-{
-	QFileInfo backupDirInfo(appSettings()->value("backupFolder").toString());
-	const bool bCanWriteToBackupFolder(backupDirInfo.isDir() && backupDirInfo.isWritable());
-	uint restoreCount(0);
-
-	if (bCanWriteToBackupFolder)
-	{
-		const QString appDir(appSettings()->value("backupFolder").toString() + u"/tp/"_qs);
-		bool bCanReadFile(false);
-
-		QFileInfo f_info(appDir + DBExercisesFileName);
-		if ((bCanReadFile = f_info.isReadable()))
-			restoreCount++;
-		page->setProperty("bCanRestoreExercises", bCanReadFile);
-
-		f_info.setFile(appDir + DBMesocyclesFileName);
-		if ((bCanReadFile = f_info.isReadable()))
-			restoreCount++;
-		page->setProperty("bCanRestoreMeso", bCanReadFile);
-
-		f_info.setFile(appDir + DBMesoSplitFileName);
-		if ((bCanReadFile = f_info.isReadable()))
-			restoreCount++;
-		page->setProperty("bCanRestoreMesoSplit", bCanReadFile);
-
-		f_info.setFile(appDir + DBMesoCalendarFileName);
-		if ((bCanReadFile = f_info.isReadable()))
-			restoreCount++;
-		page->setProperty("bCanRestoreMesoCal", bCanReadFile);
-
-		f_info.setFile(appDir + DBTrainingDayFileName);
-		if ((bCanReadFile = f_info.isReadable()))
-			restoreCount++;
-		page->setProperty("bCanRestoreTraining", bCanReadFile);
-	}
-	page->setProperty("bCanWriteToBackupFolder", bCanWriteToBackupFolder);
-	page->setProperty("restoreCount", restoreCount);
-}
-
-static bool copyDBFiles(const QString& sourcePath, const QString& targetPath, const QVariantList& selectedFiles)
-{
-	bool bOK(true);
-	QFileInfo f_info(targetPath);
-	if (!f_info.exists())
-	{
-		QDir dir;
-		bOK = dir.mkdir(targetPath, QFileDevice::ReadOwner|QFileDevice::WriteOwner|QFileDevice::ExeOwner
-					|QFileDevice::ReadGroup|QFileDevice::ExeGroup|QFileDevice::ReadOther|QFileDevice::ExeOwner);
-	}
-	if (bOK)
-	{
-		QFile inFile, outFile;
-		QString dbFile;
-		for (uint i(0); i < 5; ++i)
-		{
-			if (selectedFiles.at(i).toInt() == 1)
-			{
-				switch (i)
-				{
-					case 0: dbFile = DBMesocyclesFileName; break;
-					case 1: dbFile = DBMesoSplitFileName; break;
-					case 2: dbFile = DBMesoCalendarFileName; break;
-					case 3: dbFile = DBTrainingDayFileName; break;
-					case 4: dbFile = DBExercisesFileName; break;
-				}
-				inFile.setFileName(sourcePath + dbFile);
-				outFile.setFileName(targetPath + dbFile);
-				if (outFile.exists())
-					outFile.remove();
-				if ((bOK = inFile.copy(outFile.fileName())))
-					QFile::setPermissions(targetPath + dbFile, QFileDevice::ReadUser | QFileDevice::WriteUser);
-			}
-		}
-	}
-	return bOK;
-}
-
-static void fixPath(QString& path)
-{
-	if (path.endsWith('/')) path.chop(1);
-	if (!path.endsWith(u"/tp"_qs)) path.append(u"/tp"_qs);
-	path.append('/');
-}
-
-void DBInterface::copyDBFilesToUserDir(QQuickItem* page, const QString& targetPath, QVariantList backupFiles) const
-{
-	QString finalPath(targetPath);
-	fixPath(finalPath);
-	const bool bOK(copyDBFiles(appSettings()->value("dbFilePath").toString(), finalPath, backupFiles));
-	page->setProperty("opResult", bOK ? 1 : 2);
-	if (bOK)
-		page->setProperty("backupCount", 0);
-}
-
-void DBInterface::copyFileToAppDataDir(QQuickItem* page, const QString& sourcePath, QVariantList restoreFiles) const
-{
-	QString origPath(sourcePath);
-	fixPath(origPath);
-	const bool bOK(copyDBFiles(origPath, appSettings()->value("dbFilePath").toString(), restoreFiles));
-	page->setProperty("opResult", bOK ? 3 : 4);
-	if (bOK)
-		page->setProperty("restoreCount", 0);
-}*/
-
 void DBInterface::updateDB(TPDatabaseTable* worker)
 {
-	createThread(worker, [worker] () { worker->updateDatabase(); } );
+	createThread(worker, [worker] () { worker->updateDatabase(); });
 }
 
 void DBInterface::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
 {
 	worker->setCallbackForDoneFunc([&] (TPDatabaseTable* obj) { return threadFinished(obj); });
 
-	QThread* thread(new QThread());
+	QThread* thread{new QThread()};
 	connect(thread, &QThread::started, worker, execFunc);
 	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 	worker->moveToThread(thread);

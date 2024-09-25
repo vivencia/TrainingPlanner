@@ -5,6 +5,8 @@
 #include "dbusermodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
+#include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
 #include "qmlitemmanager.h"
 #include "osinterface.h"
 
@@ -26,26 +28,19 @@
 TPAppControl* TPAppControl::app_control(nullptr);
 QSettings* TPAppControl::app_settings(nullptr);
 
-void TPAppControl::init()
+void TPAppControl::init(QQmlApplicationEngine* qml_engine)
 {
 	populateSettingsWithDefaultValue();
 	appDBInterface()->init();
 	createItemManager();
-	rootItemsManager()->configureQmlEngine();
+	rootItemsManager()->configureQmlEngine(qml_engine);
 
 #ifdef Q_OS_ANDROID
 	appOsInterface()->appStartUpNotifications();
 #endif
 }
 
-void TPAppControl::cleanUp()
-{
-	appDBInterface()->cleanUpThreads();
-	for(uint i(0); i < m_itemManager.count(); ++i)
-		delete m_itemManager.at(i);
-}
-
-void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
+void TPAppControl::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
 {
 	rootItemsManager()->getClientsOrCoachesPage(bManageClients, bManageCoaches);
 }
@@ -131,7 +126,10 @@ void TPAppControl::getTrainingDayPage(const uint meso_idx, const QDate& date)
 
 void TPAppControl::openRequestedFile(const QString& filename, const int wanted_content)
 {
-	QFile* inFile{new QFile(filename)};
+	QString file{filename};
+	if (filename.startsWith(u"file://"_qs))
+		file.remove(0, 7);
+	QFile* inFile{new QFile(file)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -171,8 +169,8 @@ void TPAppControl::openRequestedFile(const QString& filename, const int wanted_c
 		QmlItemManager* itemMngr(nullptr);
 		if (fileContents & IFC_MESO & wanted_content)
 		{
-			m_tempMesoIdx = createNewMesocycle(false);
-			itemMngr = m_itemManager.at(m_tempMesoIdx);
+			const uint tempmeso_idx{createNewMesocycle(false)};
+			itemMngr = m_itemManager.at(tempmeso_idx);
 		}
 		else
 		{
@@ -182,7 +180,7 @@ void TPAppControl::openRequestedFile(const QString& filename, const int wanted_c
 				itemMngr = rootItemsManager();
 		}
 		if (itemMngr)
-			itemMngr->displayImportDialogMessage(fileContents, filename);
+			itemMngr->displayImportDialogMessage(fileContents, file);
 		else
 			rootItemsManager()->displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 	}

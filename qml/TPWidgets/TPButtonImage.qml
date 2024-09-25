@@ -13,8 +13,9 @@ TPImage {
 
 	Component.onCompleted: {
 		if (!bIconOnly) {
+			anchors.top = parent.top;
+			anchors.topMargin = 5;
 			if (!textUnderIcon) {
-				anchors.verticalCenter = parent.verticalCenter;
 				if (leftAlign) {
 					anchors.right = parent.right
 					anchors.rightMargin = 5;
@@ -25,8 +26,6 @@ TPImage {
 				}
 			}
 			else {
-				anchors.top = parent.top;
-				anchors.topMargin = 0;
 				anchors.horizontalCenter = parent.horizontalCenter;
 				anchors.bottomMargin = 10;
 			}

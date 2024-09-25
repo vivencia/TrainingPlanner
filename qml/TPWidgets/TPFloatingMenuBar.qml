@@ -40,7 +40,7 @@ TPPopup {
 			if (bvisible) {
 				entriesTotalHeight += button.buttonHeight;
 				if (button.implicitWidth > largestEntryWidth)
-					largestEntryWidth = button.implicitWidth;
+					largestEntryWidth = button.implicitWidth + 10;
 				button.clicked.connect(menuEntryClicked);
 			}
 			else

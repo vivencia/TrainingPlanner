@@ -8,7 +8,7 @@ import com.vivenciasoftware.qmlcomponents
 
 TPPopup {
 	id: importDlg
-	bKeepAbove: true
+	modal: true
 	width: windowWidth * 0.9
 	height: totalHeight + 20
 
@@ -60,7 +60,7 @@ TPPopup {
 
 	TPImage {
 		id: importImg
-		source: "import.png"
+		source: AppSettings.iconFolder+"import.png"
 		width: 50
 		height: 50
 
@@ -70,8 +70,6 @@ TPPopup {
 			left: parent.left
 			leftMargin: 5
 		}
-
-		Component.onCompleted: totalHeight += height;
 	}
 
 	ColumnLayout
@@ -98,7 +96,7 @@ TPPopup {
 					selectedFields[index] = checked;
 					if (index === 0) {
 						if (importOptions.length > 1) {
-							for (var i = 1; i < importOptions.length; ++i)
+							for (var i = 1; i < importOptions.length; i++)
 							{
 								repeater.itemAt(i).chkImportField.enabled = checked;
 								selectedFields[i] = checked;
@@ -115,10 +113,10 @@ TPPopup {
 	RowLayout
 	{
 		anchors {
-			top: fieldsLayout.bottom
 			left: parent.left
 			right: parent.right
 			bottom: parent.bottom
+			bottomMargin: 10
 		}
 
 		TPButton {

@@ -9,6 +9,7 @@
 #include "qmlitemmanager.h"
 
 #include <QApplication>
+#include <QQmlApplicationEngine>
 #include <QSettings>
 
 int main(int argc, char *argv[])
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
 	DBMesocyclesModel mesocyclesModel{};
 	DBExercisesModel exercisesModel{};
 	QmlItemManager rootQmlManager{0xFFFF};
-	tpApp.init();
+	QQmlApplicationEngine qmlEngine;
+	tpApp.init(&qmlEngine);
 	return app.exec();
 }

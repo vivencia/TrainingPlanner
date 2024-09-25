@@ -4,6 +4,8 @@
 #include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendarmodel.h"
+#include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tputils.h"
@@ -139,15 +141,16 @@ QmlItemManager::~QmlItemManager()
 	}
 }
 
-void QmlItemManager::configureQmlEngine()
+void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 {
 	if (appQmlEngine())
 		return;
+	app_qml_engine = qml_engine;
 
-	QString style(appSettings()->value("themeStyle").toString());
+	/*QString style(appSettings()->value("themeStyle").toString());
 	if (style.isEmpty())
 		style = u"Material"_qs;
-	QQuickStyle::setStyle(style);
+	QQuickStyle::setStyle(style);*/
 
 	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
 	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
@@ -159,23 +162,20 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
 	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
 
-	QQmlApplicationEngine _qmlEngine;
-	app_qml_engine = &_qmlEngine;
-
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(11);
+	QList<QQmlContext::PropertyPair> properties(12);
 	properties[0] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
-	properties[0] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
-	properties[1] = QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) };
-	properties[2] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
-	properties[3] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
-	properties[4] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
-	properties[5] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
-	properties[6] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
-	properties[7] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
-	properties[8] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
-	properties[9] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
-	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
+	properties[1] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
+	properties[2] = QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) };
+	properties[3] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
+	properties[4] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
+	properties[5] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
+	properties[6] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
+	properties[7] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
+	properties[8] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
+	properties[9] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
+	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
+	properties[11] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl& url(u"qrc:/qml/main.qml"_qs);
@@ -190,8 +190,10 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider{});
 	appQmlEngine()->load(url);
 
-	app_MainWindow = static_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
+	app_MainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 	connect(appMainWindow(), SIGNAL(mainWindowStarted()), rootItemsManager(), SLOT(mainWindowStarted()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	connect(appMainWindow(), SIGNAL(openFileChosen(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+	connect(appMainWindow(), SIGNAL(openFileRejected(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
 
 	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
 	const QQuickItem* const contentItem(app_StackView->parentItem());
@@ -1191,7 +1193,13 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	{
 		m_importDlg = nullptr;
 		m_importDlgComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/Dialogs/ImportDialog.qml"_qs), QQmlComponent::Asynchronous};
-		m_importDlgProperties[u"title"_qs] = tr("Import?");
+		if (m_importDlgComponent->status() != QQmlComponent::Ready)
+		{
+			connect(m_importDlgComponent, &QQmlComponent::statusChanged, this, [&,fileContents,filename](QQmlComponent::Status status) {
+				if (status == QQmlComponent::Ready)
+					displayImportDialogMessage(fileContents, filename);
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
 	}
 
 	m_fileContents = fileContents;
@@ -1219,6 +1227,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	const QList<bool> selectedFields(importOptions.count(), true);
 	if (!m_importDlg)
 	{
+		m_importDlgProperties[u"title"_qs] = tr("Import?");
 		m_importDlgProperties[u"importOptions"_qs] = importOptions;
 		m_importDlgProperties[u"selectedFields"_qs] = QVariant::fromValue(selectedFields);
 		createImportDialog();
@@ -1417,7 +1426,7 @@ void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, cons
 	m_mesoProperties.insert(u"maximumMesoEndDate"_qs, !maximumMesoEndDate.isNull() ?
 								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id));
 	m_mesoProperties.insert(u"calendarStartDate"_qs, !calendarStartDate.isNull() ?
-								calendarStartDate: appMesoModel()->getDate(meso_id, MESOCYCLES_COL_STARTDATE));
+								calendarStartDate: appMesoModel()->getDateFast(m_mesoIdx, MESOCYCLES_COL_STARTDATE));
 
 	m_mesoComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs), QQmlComponent::Asynchronous);
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
@@ -1429,10 +1438,8 @@ void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, cons
 	else
 		createMesocyclePage_part2();
 
-	connect(appMainWindow(), SIGNAL(saveFileChosen()), this, SLOT(exportSlot()));
-	connect(appMainWindow(), SIGNAL(saveFileRejected()), this, SLOT(exportSlot()));
-	connect(appMainWindow(), SIGNAL(openFileChosen()), this, SLOT(importSlot_FileChosen()));
-	connect(appMainWindow(), SIGNAL(openFileRejected()), this, SLOT(importSlot_FileChosen()));
+	connect(appMainWindow(), SIGNAL(saveFileChosen(const QString&)), this, SLOT(exportSlot(const QString&)));
+	connect(appMainWindow(), SIGNAL(saveFileRejected(const QString&)), this, SLOT(exportSlot(const QString&)));
 }
 
 void QmlItemManager::createMesocyclePage_part2()
@@ -2072,7 +2079,7 @@ void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 			{
 				m_tpButtonComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/TPWidgets/TPButton.qml"_qs), QQmlComponent::Asynchronous};
 				m_menuTPButtonProperties[u"Layout.fillWidth"_qs] = true;
-				const QQuickItem* mainMenu{appMainWindow()->findChild<QQuickItem*>(u"mainMenu"_qs)};
+				QQuickItem* mainMenu = qobject_cast<QQuickItem*>(appMainWindow()->findChild<QObject*>(u"mainMenu"_qs));
 				m_drawerLayout = mainMenu->findChild<QQuickItem*>(u"drawerLayout"_qs);
 				if (m_tpButtonComponent->status() != QQmlComponent::Ready)
 				{
@@ -2139,7 +2146,7 @@ void QmlItemManager::createImportDialog()
 	{
 		m_importDlg = static_cast<QQuickItem*>(m_importDlgComponent->createWithInitialProperties(m_importDlgProperties, appQmlEngine()->rootContext()));
 		appQmlEngine()->setObjectOwnership(m_importDlg, QQmlEngine::CppOwnership);
-		m_importDlg->setParentItem(appMainWindow()->contentItem());
+		m_importDlg->setParentItem(appStackView()->parentItem());
 		connect(m_importDlg, SIGNAL(importButtonClicked()), this, SLOT(importSlot_TryToImport()));
 	}
 }

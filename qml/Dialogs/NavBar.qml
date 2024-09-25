@@ -55,9 +55,13 @@ ToolBar {
 
 	RoundButton {
 		id: btnMainMenu
-		padding: 0
-		anchors.right: parent.right
-		anchors.rightMargin: 0
+		padding: 5
+		anchors {
+			top: parent.top
+			topMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 
 		TPImage {
 			source: "mainmenu"
@@ -73,9 +77,13 @@ ToolBar {
 
 	RoundButton {
 		id: btnCalendar
-		padding: 0
-		anchors.right: btnMainMenu.left
-		anchors.rightMargin: -5
+		padding: 5
+		anchors {
+			top: parent.top
+			topMargin: 5
+			right: btnMainMenu.left
+			rightMargin: 10
+		}
 
 		TPImage {
 			source: "calendar"
@@ -106,9 +114,13 @@ ToolBar {
 
 	RoundButton {
 		id: btnTimer
-		padding: 0
-		anchors.right: btnCalendar.left
-		anchors.rightMargin: -5
+		padding: 5
+		anchors {
+			top: parent.top
+			topMargin: 5
+			right: btnCalendar.left
+			rightMargin: 10
+		}
 
 		TPImage {
 			source: "timer"

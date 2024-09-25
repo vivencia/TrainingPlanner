@@ -32,7 +32,7 @@ CheckBox {
 		fontSizeMode: Text.Fit
 		font.pointSize: AppSettings.fontSizeText
 		minimumPointSize: 8
-		maximumLineCount: 2
+		maximumLineCount: Math.ceil(fontMetrics.boundingRect(text).width / control.width)
 		leftPadding: control.indicator.width + control.spacing
 		topPadding: fontMetrics.boundingRect(text).width > control.width ? -4 : 2
 	}
