@@ -138,10 +138,10 @@ void DBMesoSplitTable::getAllMesoSplits()
 		{
 			MSG_OUT("DBMesoSplitTable getAllMesoSplits Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBMesoSplitTable getAllMesoSplits Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(strQuery);
 		}
 		else
 			MSG_OUT("DBMesoSplitTable getAllMesoSplits SUCCESS")
-		MSG_OUT(strQuery);
 		mSqlLiteDB.close();
 	}
 	else

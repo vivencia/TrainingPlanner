@@ -63,7 +63,7 @@ public:
 	//mesoSplitModel is not accessed directly, only through here
 	Q_INVOKABLE QString getSplitLetter(const uint meso_idx, const uint day_of_week) const;
 	Q_INVOKABLE QString getMuscularGroup(const uint meso_idx, const QString& splitLetter) const;
-	Q_INVOKABLE void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue);
+	Q_INVOKABLE void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue, const uint initiator_id);
 
 	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.value(meso_idx); }
 
@@ -130,7 +130,7 @@ signals:
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void realMesoChanged(const uint meso_idx);
 	void isOwnMesoChanged(const uint meso_idx);
-	void muscularGroupChanged(const uint splitIndex, const QChar& splitLetter);
+	void muscularGroupChanged(const uint meso_idx, const uint initiator_id, const uint splitIndex, const QChar& splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 

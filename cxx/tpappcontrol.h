@@ -21,19 +21,12 @@ public:
 	explicit inline TPAppControl(QSettings* settings) : QObject{} { app_control = this; app_settings = settings; }
 	void init(QQmlApplicationEngine* qml_engine);
 
-	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
-	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
-	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
-
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
-
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
-
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
-
 	Q_INVOKABLE void getTrainingDayPage(const uint meso_idx, const QDate& date);
 
 	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);

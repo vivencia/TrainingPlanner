@@ -25,6 +25,9 @@ Pane {
 		text: mesocyclesModel.columnLabel(6)
 		font.bold: true
 		color: AppSettings.fontColor
+		fontSizeMode: Text.Fit
+		font.pointSize: AppSettings.fontSizeText
+		minimumPointSize: 8
 		width: parent.width*0.6
 
 		anchors {
@@ -38,11 +41,11 @@ Pane {
 		text: mesocyclesModel.get(itemManager.mesoIdx, 6)
 		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		readOnly: true
-		width: parent.width*0.3
+		width: parent.width*0.4
 
 		anchors {
 			top: parent.top
-			left: lblMesoSplit.right
+			right: parent.right
 			rightMargin: 5
 		}
 	}
@@ -95,25 +98,14 @@ Pane {
 					id: txtSplit
 					implicitWidth: col3Width
 
-					onEditingFinished: mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, cboSplit.currentText, text);
+					onEditingFinished: mesocyclesModel.setMuscularGroup(itemManager.mesoIdx, cboSplit.currentText, text, muscularGroupId);
 
 					onEnterOrReturnKeyPressed: {
 						if (index < 6)
-							splitRepeater.itemAt(index+1).cboSplit.forceActiveFocus();
+							splitRepeater.itemAt(index+1).children[1].forceActiveFocus();
 					}
 				}
 			} //RowLayout
-
-			Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
-
-			function updateMuscularGroup(splitindex: int, splitletter: string) {
-				const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
-				for (var i = 0; i < 7; ++i) {
-					if (itemAt(i).cboSplit.currentIndex === splitindex)
-						itemAt(splitindex).txtSplit.text = musculargroup;
-				}
-			}
-
 		} //Repeater
 	} //GridLayout
 
@@ -152,6 +144,15 @@ Pane {
 	}
 
 	function forcusOnFirstItem() {
-		splitRepeater.itemAt(0).cboSplit.forceActiveFocus();
+		splitRepeater.itemAt(0).children[1].forceActiveFocus();
+	}
+
+	function updateMuscularGroup(splitindex: int, splitletter: string) {
+		const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
+		for (var i = 0; i < 7; ++i) {
+			if (splitRepeater.itemAt(i).children[1].currentIndex === splitindex)
+				itemAt(splitindex).children[2].text = musculargroup;
+		}
+
 	}
 } //Pane

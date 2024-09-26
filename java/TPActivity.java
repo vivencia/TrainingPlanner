@@ -31,8 +31,6 @@ public class TPActivity extends QtActivity
 	//
 	public static native void fireActivityResult(int requestCode, int resultCode);
 	//
-	public static native boolean checkFileExists(String url);
-	//
 	public static native void notificationActionReceived(String action);
 
 	public static boolean isIntentPending;

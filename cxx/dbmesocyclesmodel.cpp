@@ -136,7 +136,7 @@ bool DBMesocyclesModel::setMesoStartDate(const uint meso_idx, const QDate& new_d
 	const QString strJulianDate(QString::number(new_date.toJulianDay()));
 	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_STARTDATE))
 	{
-		setFast(meso_idx, MESOCYCLES_COL_STARTDATE, strJulianDate);
+		set(meso_idx, MESOCYCLES_COL_STARTDATE, strJulianDate);
 		emit mesoCalendarFieldsChanged(meso_idx);
 		return true;
 	}
@@ -148,7 +148,7 @@ bool DBMesocyclesModel::setMesoEndDate(const uint meso_idx, const QDate& new_dat
 	const QString strJulianDate(QString::number(new_date.toJulianDay()));
 	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_ENDDATE))
 	{
-		setFast(meso_idx, MESOCYCLES_COL_ENDDATE, strJulianDate);
+		set(meso_idx, MESOCYCLES_COL_ENDDATE, strJulianDate);
 		emit mesoCalendarFieldsChanged(meso_idx);
 		return true;
 	}
@@ -159,7 +159,7 @@ bool DBMesocyclesModel::setMesoSplit(const uint meso_idx, const QString& new_spl
 {
 	if (new_split != getFast(meso_idx, MESOCYCLES_COL_SPLIT))
 	{
-		setFast(meso_idx, MESOCYCLES_COL_SPLIT, new_split);
+		set(meso_idx, MESOCYCLES_COL_SPLIT, new_split);
 		emit mesoCalendarFieldsChanged(meso_idx);
 		getTotalSplits(meso_idx);
 		return true;
@@ -177,18 +177,18 @@ QString DBMesocyclesModel::getSplitLetter(const uint meso_idx, const uint day_of
 QString DBMesocyclesModel::getMuscularGroup(const uint meso_idx, const QString& splitLetter) const
 {
 	return splitLetter != u"R"_qs ?
-		m_splitModel->getFast(meso_idx, static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A') + 2) :
+		m_splitModel->getFast(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) :
 		tr("Rest day");
 }
 
-void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue)
+void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue, const uint initiator_id)
 {
-	const uint splitField(static_cast<int>(splitLetter.at(0).cell()) - static_cast<int>('A') + 2);
-	if (splitField < 6)
+	const uint splitField(appUtils()->splitLetterToMesoSplitIndex(splitLetter));
+	if (splitField < SIMPLE_MESOSPLIT_TOTAL_COLS)
 	{
 		m_splitModel->setFast(meso_idx, splitField, newSplitValue);
 		emit modifiedChanged();
-		emit muscularGroupChanged(splitField, splitLetter.at(0));
+		emit muscularGroupChanged(meso_idx, initiator_id, splitField, splitLetter.at(0));
 	}
 }
 

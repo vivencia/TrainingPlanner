@@ -11,6 +11,7 @@ import com.vivenciasoftware.qmlcomponents
 TPPage {
 	id: homePage
 	objectName: "homePage"
+
 	property date minimumStartDate;
 	property TPFloatingMenuBar newMesoMenu: null
 	property TPFloatingMenuBar imexportMenu: null
@@ -85,11 +86,9 @@ TPPage {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
+			width: ListView.view.width
 
 			property bool realMeso: mesocyclesModel.isRealMeso(index)
-
-			width: ListView.view.width
-			height: mesoContent.childrenRect.height + 20
 
 			onClicked: appControl.getMesocyclePage(index);
 
@@ -329,22 +328,40 @@ TPPage {
 				opacity: index === mesocyclesModel.currentRow ? 0.8 : 0.6
 			}
 
-			contentItem: Column {
+			contentItem: ColumnLayout {
 				id: mesoContent
-				padding: 0
 				spacing: 2
 
 				Label {
 					text: mesoName
+					horizontalAlignment: Text.AlignHCenter
+					fontSizeMode: Text.Fit
+					font.pointSize: AppSettings.fontSize
+					minimumPointSize: AppSettings.fontSizeText
 					color: AppSettings.fontColor
+					width: availableWidth
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
 				}
 				Label {
 					text: mesoCoach
+					fontSizeMode: Text.Fit
+					font.pointSize: AppSettings.fontSize
+					minimumPointSize: AppSettings.fontSizeText
 					color: AppSettings.fontColor
+					width: availableWidth
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
 				}
 				Label {
 					text: mesoClient
+					fontSizeMode: Text.Fit
+					font.pointSize: AppSettings.fontSize
+					minimumPointSize: AppSettings.fontSizeText
 					color: AppSettings.fontColor
+					width: availableWidth
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
 				}
 				Label {
 					text: mesoStartDate
@@ -356,7 +373,13 @@ TPPage {
 				}
 				Label {
 					text: mesoSplit
+					fontSizeMode: Text.Fit
+					font.pointSize: AppSettings.fontSize
+					minimumPointSize: AppSettings.fontSizeText
 					color: AppSettings.fontColor
+					width: availableWidth
+					Layout.maximumWidth: width
+					Layout.minimumWidth: width
 				}
 			}
 

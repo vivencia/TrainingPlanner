@@ -972,7 +972,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: appControl.getExercisesPage(true, trainingDayPage);
+			onClicked: itemManager.getExercisesPage(true, trainingDayPage);
 		} // bntAddExercise
 	} //footer: ToolBar
 

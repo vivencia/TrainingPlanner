@@ -14,6 +14,7 @@ TPPage {
 	width: windowWidth
 	height: windowHeight
 
+	property QmlItemManager itemManager
 	property int useMode
 	property bool bModified: userModel.modified
 	readonly property int moduleHeight: usrContact.moduleHeight
@@ -100,7 +101,7 @@ TPPage {
 				top: parent.top
 			}
 
-			onClicked: appControl.getClientsOrCoachesPage(false, true);
+			onClicked: itemManager.getClientsOrCoachesPage(false, true);
 		}
 
 		TPButton {
@@ -114,7 +115,7 @@ TPPage {
 				top: btnManageCoach.bottom
 			}
 
-			onClicked: appControl.getClientsOrCoachesPage(true, false);
+			onClicked: itemManager.getClientsOrCoachesPage(true, false);
 		}
 	}
 

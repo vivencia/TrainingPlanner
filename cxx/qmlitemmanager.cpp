@@ -67,11 +67,6 @@ QmlItemManager::~QmlItemManager()
 		}
 	}
 
-	if (m_importDlgComponent)
-	{
-		delete m_importDlg;
-		delete m_importDlgComponent;
-	}
 	if (m_mesoComponent)
 	{
 		removeMainMenuShortCut(m_mesoPage);
@@ -204,8 +199,18 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	QMetaObject::invokeMethod(appMainWindow(), "init");
-}
 
+	const QList<QObject*>& mainWindowChildren{appMainWindow()->findChildren<QObject*>()};
+	for (uint i(0); i < mainWindowChildren.count(); ++i)
+	{
+		if (mainWindowChildren.at(i)->objectName() == u"mainMenu"_qs)
+		{
+			QObject* mainMenu = mainWindowChildren.at(i);
+			mainMenu->setProperty("itemManager", QVariant::fromValue(rootItemsManager()));
+			break;
+		}
+	}
+}
 //-----------------------------------------------------------USER-----------------------------------------------------------
 void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
 {
@@ -264,54 +269,6 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 			createClientsOrCoachesPage();
 	}
 }
-
-void QmlItemManager::setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches)
-{
-	int curUserRow(0), firstUserRow(-1), lastUserRow(-1);
-
-	if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER)
-		return;
-
-	if (bManageClients)
-	{
-		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
-		{
-			firstUserRow = appUserModel()->findFirstUser(false);
-			lastUserRow = appUserModel()->findLastUser(false);
-			curUserRow = appUserModel()->currentUser(0);
-		}
-	}
-
-	if (bManageCoaches)
-	{
-		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER_WITH_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
-		{
-			firstUserRow = appUserModel()->findFirstUser(true);
-			lastUserRow = appUserModel()->findLastUser(true);
-			curUserRow = appUserModel()->currentCoach(0);
-		}
-	}
-
-	if (curUserRow == 0)
-		curUserRow = lastUserRow;
-	if (clientsOrCoachesPage)
-	{
-		clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-		clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-		clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
-		clientsOrCoachesPage->setProperty("showUsers", bManageClients);
-		clientsOrCoachesPage->setProperty("showCoaches", bManageCoaches);
-
-	}
-	else
-	{
-		clientsOrCoachesProperties.insert(u"curUserRow"_qs, curUserRow);
-		clientsOrCoachesProperties.insert(u"firstUserRow"_qs, firstUserRow);
-		clientsOrCoachesProperties.insert(u"lastUserRow"_qs, lastUserRow);
-		clientsOrCoachesProperties.insert(u"showUsers"_qs, bManageClients);
-		clientsOrCoachesProperties.insert(u"showCoaches"_qs, bManageCoaches);
-	}
-}
 //-----------------------------------------------------------USER-----------------------------------------------------------
 
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
@@ -358,7 +315,11 @@ void QmlItemManager::importExercises(const QString& filename)
 void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
 {
 	if (!exercisesComponent)
+	{
+		if (appExercisesModel()->count() == 0)
+			appDBInterface()->getAllExercises();
 		createExercisesPage(bChooseButtonEnabled, connectPage);
+	}
 	else
 	{
 		exercisesPage->setProperty("bChooseButtonEnabled", bChooseButtonEnabled);
@@ -1099,6 +1060,22 @@ QQuickItem* QmlItemManager::nextSetObject(const uint exercise_idx, const uint se
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+void QmlItemManager::openMainMenuShortCut(const int button_id)
+{
+	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
+}
+
+void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
+{
+	uint wanted_content(0);
+	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(0) ? IFC_MESO : 0;
+	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(1) ? IFC_USER : 0;
+	wanted_content |= (m_fileContents & IFC_MESOSPLIT) && (m_fileContents & IFC_MESO ? selectedFields.at(2) : selectedFields.at(0)) ? IFC_MESOSPLIT : 0;
+	wanted_content |= (m_fileContents & IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0;
+	wanted_content |= (m_fileContents & IFC_EXERCISES) && selectedFields.at(0) ? IFC_EXERCISES : 0;
+	appControl()->importFromFile(m_importFilename, wanted_content);
+}
+
 void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
 {
 	int message_id(0);
@@ -1189,19 +1166,6 @@ void QmlItemManager::displayMessageOnAppWindow(const QString& title, const QStri
 
 void QmlItemManager::displayImportDialogMessage(const uint fileContents, const QString& filename)
 {
-	if (!m_importDlgComponent)
-	{
-		m_importDlg = nullptr;
-		m_importDlgComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/Dialogs/ImportDialog.qml"_qs), QQmlComponent::Asynchronous};
-		if (m_importDlgComponent->status() != QQmlComponent::Ready)
-		{
-			connect(m_importDlgComponent, &QQmlComponent::statusChanged, this, [&,fileContents,filename](QQmlComponent::Status status) {
-				if (status == QQmlComponent::Ready)
-					displayImportDialogMessage(fileContents, filename);
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		}
-	}
-
 	m_fileContents = fileContents;
 	m_importFilename = filename;
 
@@ -1225,19 +1189,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	}
 
 	const QList<bool> selectedFields(importOptions.count(), true);
-	if (!m_importDlg)
-	{
-		m_importDlgProperties[u"title"_qs] = tr("Import?");
-		m_importDlgProperties[u"importOptions"_qs] = importOptions;
-		m_importDlgProperties[u"selectedFields"_qs] = QVariant::fromValue(selectedFields);
-		createImportDialog();
-	}
-	else
-	{
-		m_importDlg->setProperty("importOptions", importOptions);
-		m_importDlg->setProperty("selectedFields", QVariant::fromValue(selectedFields));
-	}
-	QMetaObject::invokeMethod(m_importDlg, "show", Q_ARG(int, -1));
+	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QmlItemManager*, this),
+				Q_ARG(QVariant, importOptions), Q_ARG(QVariant, QVariant::fromValue(selectedFields)));
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
@@ -1289,11 +1242,6 @@ void QmlItemManager::exerciseCompleted(int exercise_idx)
 	}
 }
 
-void QmlItemManager::openMainMenuShortCut(const int button_id)
-{
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
-}
-
 void QmlItemManager::exportSlot(const QString& filePath)
 {
 	if (!filePath.isEmpty())
@@ -1308,18 +1256,6 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath)
 		appControl()->openRequestedFile(filePath);
 	else
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED);
-}
-
-void QmlItemManager::importSlot_TryToImport()
-{
-	uint wanted_content(0);
-	const QList<bool>& selectedFields(m_importDlg->property("selectedFields").value<QList<bool>>());
-	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(0) ? IFC_MESO : 0;
-	wanted_content |= (m_fileContents & IFC_MESO) && selectedFields.at(1) ? IFC_USER : 0;
-	wanted_content |= (m_fileContents & IFC_MESOSPLIT) && (m_fileContents & IFC_MESO ? selectedFields.at(2) : selectedFields.at(0)) ? IFC_MESOSPLIT : 0;
-	wanted_content |= (m_fileContents & IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0;
-	wanted_content |= (m_fileContents & IFC_EXERCISES) && selectedFields.at(0) ? IFC_EXERCISES : 0;
-	appControl()->importFromFile(m_importFilename, wanted_content);
 }
 //-----------------------------------------------------------SLOTS-----------------------------------------------------------
 
@@ -1343,6 +1279,7 @@ void QmlItemManager::createSettingsPage()
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, settingsPage));
 		userPage = settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
 		userPage->setProperty("useMode", appUserModel()->appUseMode(0));
+		userPage->setProperty("itemManager", QVariant::fromValue(rootItemsManager()));
 		connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
 			if (user_row == 0) {
 				appMesoModel()->updateColumnLabels();
@@ -1427,6 +1364,8 @@ void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, cons
 								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id));
 	m_mesoProperties.insert(u"calendarStartDate"_qs, !calendarStartDate.isNull() ?
 								calendarStartDate: appMesoModel()->getDateFast(m_mesoIdx, MESOCYCLES_COL_STARTDATE));
+	m_mesoMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
+	m_mesoProperties.insert(u"muscularGroupId"_qs, m_mesoMuscularGroupId);
 
 	m_mesoComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/Pages/MesoCycle.qml"_qs), QQmlComponent::Asynchronous);
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
@@ -1462,9 +1401,9 @@ void QmlItemManager::createMesocyclePage_part2()
 				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
 	});
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const int splitIndex, const QChar& splitLetter) {
-			if (splitIndex < m_splitModels.count())
-				updateMuscularGroup(m_splitModels.value(splitLetter));
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
+			if (meso_idx == m_mesoIdx && initiator_id == m_mesoMuscularGroupId )
+				QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
 	});
 	addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
 }
@@ -1569,6 +1508,9 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 	m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
 	m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
 	m_splitProperties[u"itemManager"_qs] = QVariant::fromValue(this);
+	m_splitMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
+	m_mesoProperties[u"muscularGroupId"_qs] = m_splitMuscularGroupId;
+
 	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_plannerPage);
@@ -1583,7 +1525,16 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 
 	m_splitPages.insert(splitModel->splitLetter().at(0), item);
 	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
-								Q_ARG(int, static_cast<int>(splitModel->splitLetter().at(0).cell()) - static_cast<int>('A')));
+								Q_ARG(int, appUtils()->splitLetterToIndex(splitModel->splitLetter())));
+
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
+			if (meso_idx == m_mesoIdx && initiator_id == m_splitMuscularGroupId )
+			{
+				if (splitIndex < m_splitModels.count())
+					updateMuscularGroup(m_splitModels.value(splitLetter));
+			}
+	});
+	addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
 }
 
 void QmlItemManager::initializeSplitModels()
@@ -1630,10 +1581,10 @@ void QmlItemManager::updateMuscularGroup(DBMesoSplitModel* splitModel)
 	}
 }
 
-void QmlItemManager::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel)
+void QmlItemManager::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id)
 {
 	splitModel->setMuscularGroup(new_musculargroup);
-	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->splitLetter(), new_musculargroup);
+	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->splitLetter(), new_musculargroup, initiator_id);
 	setSplitPageProperties(m_splitPages.value(splitModel->splitLetter().at(0)), splitModel);
 }
 //-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
@@ -2067,41 +2018,66 @@ void QmlItemManager::stopRestTimer(const uint exercise_idx, const uint set_numbe
 //-------------------------------------------------------------SET OBJECTS PRIVATE-------------------------------------------------------------
 
 //-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------
+void QmlItemManager::setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches)
+{
+	int curUserRow(0), firstUserRow(-1), lastUserRow(-1);
+
+	if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER)
+		return;
+
+	if (bManageClients)
+	{
+		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
+		{
+			firstUserRow = appUserModel()->findFirstUser(false);
+			lastUserRow = appUserModel()->findLastUser(false);
+			curUserRow = appUserModel()->currentUser(0);
+		}
+	}
+
+	if (bManageCoaches)
+	{
+		if (appUserModel()->appUseMode(0) == APP_USE_MODE_SINGLE_USER_WITH_COACH || APP_USE_MODE_COACH_USER_WITH_COACH)
+		{
+			firstUserRow = appUserModel()->findFirstUser(true);
+			lastUserRow = appUserModel()->findLastUser(true);
+			curUserRow = appUserModel()->currentCoach(0);
+		}
+	}
+
+	if (curUserRow == 0)
+		curUserRow = lastUserRow;
+	if (clientsOrCoachesPage)
+	{
+		clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+		clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+		clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
+		clientsOrCoachesPage->setProperty("showUsers", bManageClients);
+		clientsOrCoachesPage->setProperty("showCoaches", bManageCoaches);
+
+	}
+	else
+	{
+		clientsOrCoachesProperties.insert(u"curUserRow"_qs, curUserRow);
+		clientsOrCoachesProperties.insert(u"firstUserRow"_qs, firstUserRow);
+		clientsOrCoachesProperties.insert(u"lastUserRow"_qs, lastUserRow);
+		clientsOrCoachesProperties.insert(u"showUsers"_qs, bManageClients);
+		clientsOrCoachesProperties.insert(u"showCoaches"_qs, bManageCoaches);
+	}
+}
+
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
 	if (m_mainMenuShortcutPages.contains(page))
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 	else
 	{
-		if (m_mainMenuShortcutEntries.count() < 5)
+		if (m_mainMenuShortcutPages.count() < 5)
 		{
-			if (!m_tpButtonComponent)
-			{
-				m_tpButtonComponent = new QQmlComponent{appQmlEngine(), QUrl(u"qrc:/qml/TPWidgets/TPButton.qml"_qs), QQmlComponent::Asynchronous};
-				m_menuTPButtonProperties[u"Layout.fillWidth"_qs] = true;
-				QQuickItem* mainMenu = qobject_cast<QQuickItem*>(appMainWindow()->findChild<QObject*>(u"mainMenu"_qs));
-				m_drawerLayout = mainMenu->findChild<QQuickItem*>(u"drawerLayout"_qs);
-				if (m_tpButtonComponent->status() != QQmlComponent::Ready)
-				{
-					connect(m_tpButtonComponent, &QQmlComponent::statusChanged, this, [&,label,page] (QQmlComponent::Status) {
-						addMainMenuShortCut(label, page);
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					return;
-				}
-			}
-
 			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
+			QMetaObject::invokeMethod(appMainWindow(), "createShortCut", Q_ARG(QString, label),
+													Q_ARG(QQuickItem*, page), Q_ARG(int, m_mainMenuShortcutPages.count()));
 			m_mainMenuShortcutPages.append(page);
-
-			m_menuTPButtonProperties[u"text"_qs] = label;
-			m_menuTPButtonProperties[u"clickId"_qs] = m_mainMenuShortcutPages.count() - 1;
-			m_menuTPButtonProperties[u"associatedItem"_qs] = QVariant::fromValue(page);
-			QQuickItem* button = static_cast<QQuickItem*>(m_tpButtonComponent->createWithInitialProperties(
-									m_menuTPButtonProperties, appQmlEngine()->rootContext()));
-			appQmlEngine()->setObjectOwnership(button, QQmlEngine::CppOwnership);
-			button->setParentItem(m_drawerLayout);
-			m_mainMenuShortcutEntries.append(button);
-			connect(button, SIGNAL(clicked()), this, SLOT(openMainMenuShortCut()));
 		}
 		else
 		{
@@ -2128,26 +2104,6 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 		m_mainMenuShortcutEntries.remove(idx);
 		for (uint i(idx); i < m_mainMenuShortcutEntries.count(); ++i)
 			m_mainMenuShortcutEntries.at(i)->setProperty("clickid", i);
-	}
-}
-
-void QmlItemManager::createImportDialog()
-{
-	#ifdef DEBUG
-	if (m_importDlgComponent->status() == QQmlComponent::Error)
-	{
-		qDebug() << m_importDlgComponent->errorString();
-		for (uint i(0); i < m_importDlgComponent->errors().count(); ++i)
-			qDebug() << m_importDlgComponent->errors().at(i).description();
-		return;
-	}
-	#endif
-	if (m_importDlgComponent->status() == QQmlComponent::Ready)
-	{
-		m_importDlg = static_cast<QQuickItem*>(m_importDlgComponent->createWithInitialProperties(m_importDlgProperties, appQmlEngine()->rootContext()));
-		appQmlEngine()->setObjectOwnership(m_importDlg, QQmlEngine::CppOwnership);
-		m_importDlg->setParentItem(appStackView()->parentItem());
-		connect(m_importDlg, SIGNAL(importButtonClicked()), this, SLOT(importSlot_TryToImport()));
 	}
 }
 //-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------

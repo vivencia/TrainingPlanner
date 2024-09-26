@@ -169,22 +169,9 @@ void OSInterface::appStartUpNotifications()
 	}
 }
 
-void OSInterface::setFileUrlReceived(const QString &url) const
+void OSInterface::setFileUrlReceived(const QString& url) const
 {
-	QString androidUrl;
-	if(url.isEmpty())
-	{
-		MSG_OUT("setFileUrlReceived: we got an empty URL");
-		return;
-	}
-	else if(url.startsWith(u"file://"_qs))
-	{
-		androidUrl = url.right(url.length()-7);
-		MSG_OUT("QFile needs this URL: " << androidUrl)
-	}
-	else
-		androidUrl = url;
-
+	const QString& androidUrl(appUtils()->getCorrectPath(url);
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
@@ -193,54 +180,11 @@ void OSInterface::setFileUrlReceived(const QString &url) const
 
 void OSInterface::setFileReceivedAndSaved(const QString& url) const
 {
-	QString androidUrl;
-	if(url.isEmpty())
-	{
-		MSG_OUT("setFileReceivedAndSaved: we got an empty URL");
-		return;
-	}
-	else if(url.startsWith(u"file://"_qs))
-	{
-		androidUrl = url.right(url.length()-7);
-		MSG_OUT("QFile needs this URL: " << androidUrl)
-	}
-	else
-		androidUrl = url;
-
-	// check if File exists
+	const QString& androidUrl(appUtils()->getCorrectPath(url);
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
 		MSG_OUT("setFileReceivedAndSaved: FILE does NOT exist ")
-}
-
-bool OSInterface::checkFileExists(const QString& url) const
-{
-	QString androidUrl;
-	if(url.isEmpty())
-	{
-		MSG_OUT("checkFileExists: we got an empty URL");
-		return false;
-	}
-	else if(url.startsWith(u"file://"_qs))
-	{
-		androidUrl = url.right(url.length()-7);
-		MSG_OUT("QFile needs this URL: " << androidUrl)
-	}
-	else
-		androidUrl = url;
-
-	// check if File exists
-	if (QFileInfo::exists(androidUrl))
-	{
-		MSG_OUT("Yep: the File exists for Qt");
-		return true;
-	}
-	else
-	{
-		MSG_OUT("Uuups: FILE does NOT exist ");
-		return false;
-	}
 }
 
 void OSInterface::onActivityResult(int requestCode, int resultCode)
@@ -286,16 +230,6 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setF
 	return;
 }
 
-JNIEXPORT bool JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_checkFileExists(
-						JNIEnv *env, jobject obj, jstring url)
-{
-	const char* urlStr = env->GetStringUTFChars(url, NULL);
-	Q_UNUSED (obj)
-	bool exists = appOsInterface()->checkFileExists(urlStr);
-	env->ReleaseStringUTFChars(url, urlStr);
-	return exists;
-}
-
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fireActivityResult(
 						JNIEnv *env, jobject obj, jint requestCode, jint resultCode)
 {
@@ -331,7 +265,7 @@ void OSInterface::processArguments() const
 		filename.chop(1);
 		const QFileInfo file(filename);
 		if (file.isFile())
-			appControl()->openRequestedFile(filename);
+			appControl()->openRequestedFile(appUtils()->getCorrectPath(filename));
 	}
 }
 

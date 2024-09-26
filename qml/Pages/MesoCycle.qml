@@ -21,6 +21,7 @@ TPPage {
 	property date maximumMesoEndDate
 	property date calendarStartDate //Also used on newMeso to revert data to the original value gathered from HomePage
 
+	property int muscularGroupId
 	property bool bDoNotRemoveMeso: false
 	property bool bMesoNameOK: false
 	property bool bNewMeso: mesocyclesModel.getInt(itemManager.mesoIdx, 0) === -1
@@ -86,7 +87,7 @@ TPPage {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth //stops bouncing to the sides
-		contentHeight: colMain.implicitHeight
+		contentHeight: colMain.implicitHeight + 20
 
 		ColumnLayout {
 			id: colMain
@@ -106,7 +107,7 @@ TPPage {
 				wrapMode: Text.WordWrap
 				ToolTip.text: qsTr("Name too short")
 				width: parent.width - 20
-				Layout.alignment: Qt.AlignHCenter
+				Layout.leftMargin: 10
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
@@ -196,7 +197,7 @@ TPPage {
 
 				onClicked: {
 					bOwnMeso = checked;
-					mesocyclesModel.setOwnMeso(bOwnMeso);
+					mesocyclesModel.setOwnMeso(itemManager.mesoIdx, bOwnMeso);
 				}
 			}
 
@@ -362,8 +363,10 @@ TPPage {
 						fileMode: FileDialog.OpenFile
 
 						onAccepted: {
-							txtMesoFile.text = appUtils.getFileName(selectedFile);
-							mesocyclesModel.set(itemManager.mesoIdx, 9, selectedFile);
+							const chosenFile = appUtils.getCorrectPath(currentFile);
+							txtMesoFile.text = appUtils.getFileName(chosenFile);
+							mesocyclesModel.set(itemManager.mesoIdx, 9, chosenFile);
+							btnOpenMesoFile.visible = appUtils.canReadFile(chosenFile);
 						}
 					}
 				}
@@ -508,7 +511,7 @@ TPPage {
 			MesoSplitSetup {
 				id: mesoSplitSetup
 				Layout.fillWidth: true
-				Layout.leftMargin: -10
+				Layout.leftMargin: -5
 			}
 
 			Label {
@@ -530,6 +533,13 @@ TPPage {
 					id: txtMesoNotes
 					text: mesocyclesModel.get(itemManager.mesoIdx, 4)
 					color: AppSettings.fontColor
+
+					background: Rectangle {
+						color: AppSettings.primaryColor
+						opacity: 0.8
+						radius: 6
+						border.color: AppSettings.fontColor
+					}
 
 					onEditingFinished: mesocyclesModel.set(itemManager.mesoIdx, 4, text);
 				}

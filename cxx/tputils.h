@@ -13,21 +13,15 @@ Q_OBJECT
 
 public:
 	explicit TPUtils(QObject* parent = nullptr);
-	inline TPUtils(const TPUtils& other)
-		: QObject{other.parent()}, m_dbFileName(other.m_dbFileName), m_appPrivateDir(other.m_appPrivateDir),
-		m_appLocale(other.m_appLocale), mb_appSuspended(other.mb_appSuspended) {}
 	inline ~TPUtils() { delete m_appLocale; }
 
 	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
 	Q_INVOKABLE int getFileType(const QString& filename) const;
 	Q_INVOKABLE inline QString getFileName(const QString& filepath) const { return QFileInfo(filepath).fileName(); };
-	QString getAppDir(const QString& dbFile);
 	Q_INVOKABLE void copyToClipBoard(const QString& text) const;
 	Q_INVOKABLE bool canReadFile(const QString& filename) const;
 
 	inline QLocale* appLocale() const { return m_appLocale; }
-	inline const QString& getDBFileName() const { return m_dbFileName; }
-	inline const QString& getAppPrivateDir() const { return m_appPrivateDir; }
 
 	Q_INVOKABLE QString formatDate(const QDate& date) const;
 	Q_INVOKABLE QString formatTodayDate() const;
@@ -78,8 +72,6 @@ signals:
 	void appResumed();
 
 private:
-	QString m_dbFileName;
-	QString m_appPrivateDir;
 	QLocale* m_appLocale;
 
 	bool mb_appSuspended;
@@ -94,7 +86,6 @@ private:
 	friend TPUtils* appUtils();
 	friend class TPAppControl;
 };
-Q_DECLARE_METATYPE(TPUtils*)
 
 inline TPUtils* appUtils() { return TPUtils::app_utils; }
 

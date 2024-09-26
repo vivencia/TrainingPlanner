@@ -181,6 +181,32 @@ ApplicationWindow {
 			importOpenDialog.open();
 	}
 
+	property ImportDialog importConfirmDialog: null
+	function createImportConfirmDialog(itemManager: QmlItemManager, importOptions: var, selectedFields: var) {
+		if (importConfirmDialog === null) {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem,
+							itemManager: itemManager, importOptions: importOptions, selectedFields: selectedFields});
+				importConfirmDialog.show(-1);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		else
+		{
+			importConfirmDialog.itemManager = itemManager;
+			importConfirmDialog.parentPage = stackView.currentItem;
+			importConfirmDialog.importOptions = importOptions;
+			importConfirmDialog.selectedFields = selectedFields;
+			importConfirmDialog.show(-1);
+		}
+	}
+
 	property TPSaveDialog saveDialog: null
 	function chooseFolderToSave(filename: string) {
 		if (saveDialog === null) {
@@ -240,6 +266,10 @@ ApplicationWindow {
 		imageSource: "import.png"
 		button1Text: "OK"
 		parentPage: homePage
+	}
+
+	function createShortCut(label: string, page: Item, clickid: int) {
+		mainMenu.createShortCut(label, page, clickid);
 	}
 
 	function displayResultMessage(title: string, message: string) {

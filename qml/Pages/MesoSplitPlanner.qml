@@ -16,6 +16,7 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property QmlItemManager itemManager
 
+	property int muscularGroupId
 	property bool bCanSwapPlan
 	property string swappableLetter
 	property string prevMesoName
@@ -91,11 +92,9 @@ Frame {
 		}
 
 		onEditingFinished: {
-			itemManager.changeMuscularGroup(text, splitModel);
+			itemManager.changeMuscularGroup(text, splitModel, muscularGroupId);
 			exercisesModel.makeFilterString(text);
 		}
-
-		Component.onCompleted: mesocyclesModel.muscularGroupChanged.connect(updateMuscularGroup);
 	}
 
 		ListView {

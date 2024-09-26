@@ -8,7 +8,7 @@ FileDialog {
 	currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 	fileMode: FileDialog.SaveFile
 
-	onAccepted: mainwindow.saveFileChosen(currentFile);
+	onAccepted: mainwindow.saveFileChosen(appUtils.getCorrectPath(currentFile));
 	onRejected: mainwindow.saveFileRejected("");
 
 	function init(suggestedName: string, bShare: bool, extraArg: string) {

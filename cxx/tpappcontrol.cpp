@@ -13,18 +13,6 @@
 #include <QGuiApplication>
 #include <QSettings>
 
-#ifdef Q_OS_ANDROID
-	#define FONT_POINT_SIZE 15
-	#define FONT_POINT_SIZE_LISTS 11
-	#define FONT_POINT_SIZE_TEXT 13
-	#define FONT_POINT_SIZE_TITLE 20
-#else
-	#define FONT_POINT_SIZE 12
-	#define FONT_POINT_SIZE_LISTS 8
-	#define FONT_POINT_SIZE_TEXT 10
-	#define FONT_POINT_SIZE_TITLE 18
-#endif
-
 TPAppControl* TPAppControl::app_control(nullptr);
 QSettings* TPAppControl::app_settings(nullptr);
 
@@ -38,23 +26,6 @@ void TPAppControl::init(QQmlApplicationEngine* qml_engine)
 #ifdef Q_OS_ANDROID
 	appOsInterface()->appStartUpNotifications();
 #endif
-}
-
-void TPAppControl::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
-{
-	rootItemsManager()->getClientsOrCoachesPage(bManageClients, bManageCoaches);
-}
-
-void TPAppControl::getSettingsPage(const uint startPageIndex)
-{
-	rootItemsManager()->getSettingsPage(startPageIndex);
-}
-
-void TPAppControl::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
-{
-	if (appExercisesModel()->count() == 0)
-		appDBInterface()->getAllExercises();
-	rootItemsManager()->getExercisesPage(bChooseButtonEnabled, connectPage);
 }
 
 void TPAppControl::getMesocyclePage(const uint meso_idx)
@@ -126,10 +97,7 @@ void TPAppControl::getTrainingDayPage(const uint meso_idx, const QDate& date)
 
 void TPAppControl::openRequestedFile(const QString& filename, const int wanted_content)
 {
-	QString file{filename};
-	if (filename.startsWith(u"file://"_qs))
-		file.remove(0, 7);
-	QFile* inFile{new QFile(file)};
+	QFile* inFile{new QFile(filename)};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -180,7 +148,7 @@ void TPAppControl::openRequestedFile(const QString& filename, const int wanted_c
 				itemMngr = rootItemsManager();
 		}
 		if (itemMngr)
-			itemMngr->displayImportDialogMessage(fileContents, file);
+			itemMngr->displayImportDialogMessage(fileContents, filename);
 		else
 			rootItemsManager()->displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 	}

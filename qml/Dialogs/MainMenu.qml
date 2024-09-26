@@ -16,6 +16,7 @@ Drawer {
 	opacity: 0.8
 
 	property var buttonComponent: null
+	property QmlItemManager itemManager
 
 	onOpened: {
 		if (userModel.avatar(0) !== imgAvatar.source) {
@@ -117,7 +118,7 @@ Drawer {
 				}
 
 				onClicked: {
-					appControl.getSettingsPage(1);
+					itemManager.getSettingsPage(1);
 					close();
 				}
 			}
@@ -152,7 +153,7 @@ Drawer {
 			}
 
 			onClicked: {
-				appControl.getExercisesPage(false);
+				itemManager.getExercisesPage(false);
 				close();
 			}
 		}
@@ -168,7 +169,7 @@ Drawer {
 			}
 
 			onClicked: {
-				appControl.getSettingsPage(0);
+				itemManager.getSettingsPage(0);
 				close();
 			}
 		}
@@ -202,4 +203,20 @@ Drawer {
 			Layout.fillHeight: true
 		}
 	} //ColumnLayout
+
+	function createShortCut(label: string, page: Item, clickid: int) {
+		if (!buttonComponent)
+			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
+
+		function finishCreation() {
+			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page, "Layout.fillWidth": true });
+			button.clicked.connect(function () { itemManager.openMainMenuShortCut();} );
+			itemManager.addMainMenuShortCutEntry(button);
+		}
+
+		if (buttonComponent.status === Component.Ready)
+			finishCreation();
+		else
+			buttonComponent.statusChanged.connect(finishCreation);
+	}
 } //Drawer

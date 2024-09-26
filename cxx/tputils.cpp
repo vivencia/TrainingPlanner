@@ -30,15 +30,10 @@ TPUtils::TPUtils(QObject* parent)
 
 const QString TPUtils::getCorrectPath(const QUrl& url) const
 {
-	#ifdef DEBUG
-	qDebug() << "input url:  " << url;
-	qDebug() << "output string:  " << url.toString(QUrl::PreferLocalFile);
-	#endif
-	//#ifdef Q_OS_ANDROID
-	return url.toString(QUrl::PreferLocalFile);
-	//#else
-	//return url.toString();
-	//#endif
+	QString path(url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme));
+	if (path.startsWith(u"file://"_qs))
+		path.remove(0, 7);
+	return path;
 }
 
 int TPUtils::getFileType( const QString& filename ) const
@@ -60,17 +55,6 @@ int TPUtils::getFileType( const QString& filename ) const
 		else
 			return -1;
 	#endif
-}
-
-QString TPUtils::getAppDir(const QString& dbFile)
-{
-	if (!dbFile.isEmpty())
-	{
-		const int idx (dbFile.indexOf(QStringLiteral("Planner")));
-		if (idx > 1)
-			m_appPrivateDir = dbFile.left(dbFile.indexOf('/', idx + 1) + 1);
-	}
-	return m_appPrivateDir;
 }
 
 void TPUtils::copyToClipBoard(const QString& text) const

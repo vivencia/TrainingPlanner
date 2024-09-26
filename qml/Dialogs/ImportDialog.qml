@@ -12,15 +12,13 @@ TPPopup {
 	width: windowWidth * 0.9
 	height: totalHeight + 20
 
-	property string title
+	property QmlItemManager itemManager
 	property var importOptions: []
 	property var selectedFields: []
 
 	property string backColor: AppSettings.primaryColor
 	property string textColor: AppSettings.fontColor
 	property int totalHeight: 0
-
-	signal importButtonClicked();
 
 	TPButton {
 		imageSource: "close.png"
@@ -40,7 +38,7 @@ TPPopup {
 
 	Label {
 		id: lblTitle
-		text: title
+		text: qsTr("Try to import?")
 		color: textColor
 		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignHCenter
@@ -91,14 +89,14 @@ TPPopup {
 				id: chkImportField
 				text: importOptions[index]
 				checked: true
+				width: parent.width
 
 				onClicked: {
 					selectedFields[index] = checked;
 					if (index === 0) {
 						if (importOptions.length > 1) {
-							for (var i = 1; i < importOptions.length; i++)
-							{
-								repeater.itemAt(i).chkImportField.enabled = checked;
+							for (var i = 1; i < importOptions.length; i++) {
+								repeater.itemAt(i).children[0].enabled = checked;
 								selectedFields[i] = checked;
 							}
 						}
@@ -126,7 +124,7 @@ TPPopup {
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				importButtonClicked();
+				itemManager.tryToImport(selectedFields);
 				importDlg.close();
 			}
 		}

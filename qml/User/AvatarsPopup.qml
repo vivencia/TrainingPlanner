@@ -110,7 +110,7 @@ TPPopup {
 		fileMode: FileDialog.OpenFile
 
 		onAccepted: {
-			callerWidget.selectExternalAvatar(selectedFile);
+			callerWidget.selectExternalAvatar(appUtils.getCorrectPath(currentFile));
 			avatarsDlg.close();
 		}
 	}

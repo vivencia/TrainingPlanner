@@ -18,7 +18,7 @@ TPImage {
 			if (!textUnderIcon) {
 				if (leftAlign) {
 					anchors.right = parent.right
-					anchors.rightMargin = 5;
+					anchors.rightMargin = 0;
 				}
 				else {
 					anchors.left = parent.left

@@ -31,7 +31,7 @@ public:
 		: QObject{parent}, m_mesoIdx(meso_idx),
 			m_mesoComponent(nullptr), m_plannerComponent(nullptr),
 			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
-			m_setComponents{nullptr}, m_importDlgComponent(nullptr), m_tpButtonComponent(nullptr) { if (!app_root_items_manager) app_root_items_manager = this; }
+			m_setComponents{nullptr} { if (!app_root_items_manager) app_root_items_manager = this; }
 	~QmlItemManager();
 	void configureQmlEngine(QQmlApplicationEngine *qml_engine);
 
@@ -41,9 +41,8 @@ public:
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
 
-	void getSettingsPage(const uint startPageIndex);
-	void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
-	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
+	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -51,7 +50,7 @@ public:
 	Q_INVOKABLE void exportExercises(const bool bShare);
 	Q_INVOKABLE void importExercises(const QString& filename = QString());
 
-	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
@@ -63,7 +62,7 @@ public:
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
-	void getMesoCalendarPage();
+	Q_INVOKABLE void getMesoCalendarPage();
 	//-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
@@ -122,6 +121,9 @@ public:
 	//-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
 
 	//-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
+	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
+	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
+	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void displayMessageOnAppWindow(const int message_id) const;
 	void displayMessageOnAppWindow(const QString& title, const QString& message) const;
@@ -137,10 +139,8 @@ public slots:
 	void showRemoveExerciseMessage(int exercise_idx);
 	void showRemoveSetMessage(int set_number, int exercise_idx);
 	void exerciseCompleted(int exercise_idx);
-	void openMainMenuShortCut(const int button_id);
 	void exportSlot(const QString& filePath = QString());
 	void importSlot_FileChosen(const QString& filePath = QString());
-	void importSlot_TryToImport();
 	//-----------------------------------------------------------SLOTS-----------------------------------------------------------
 
 signals:
@@ -172,6 +172,7 @@ private:
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
+	uint m_mesoMuscularGroupId;
 
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
 								const QDate& calendarStartDate = QDate());
@@ -199,6 +200,7 @@ private:
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
+	uint m_splitMuscularGroupId;
 
 	void createPlannerPage();
 	void createPlannerPage_part2();
@@ -206,7 +208,7 @@ private:
 	void initializeSplitModels();
 	void setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel);
 	void updateMuscularGroup(DBMesoSplitModel* splitModel);
-	void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);
+	void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id);
 	//-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
@@ -300,17 +302,12 @@ private:
 	//-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
-
-	QQmlComponent* m_importDlgComponent, *m_tpButtonComponent;
-	QQuickItem* m_importDlg, *m_drawerLayout;
-	QVariantMap m_importDlgProperties, m_menuTPButtonProperties;
 	uint m_fileContents;
-
 	QString m_exportFilename, m_importFilename;
 
+	void setClientsOrCoachesPagesProperties(const bool bManageClients, const bool bManageCoaches);
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
-	void createImportDialog();
 
 	static QmlItemManager* app_root_items_manager;
 	friend QmlItemManager* rootItemsManager();

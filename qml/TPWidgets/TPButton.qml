@@ -102,6 +102,7 @@ Rectangle {
 		minimumPointSize: 8
 		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
 		font.pointSize: AppSettings.fontSizeText*0.9
+		maximumLineCount: 1
 		leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
