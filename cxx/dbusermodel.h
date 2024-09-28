@@ -2,6 +2,8 @@
 #define DBUSERMODEL_H
 
 #include "tplistmodel.h"
+#include "tpglobals.h"
+#include "tputils.h"
 
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
@@ -55,14 +57,29 @@ public:
 
 	Q_INVOKABLE inline int userId(const int row) const { return row < m_modeldata.count() ? m_modeldata.at(row).at(USER_COL_ID).toInt() : -1; }
 	Q_INVOKABLE inline QString userName(const int row) const { return row < m_modeldata.count() ? m_modeldata.at(row).at(USER_COL_NAME) : QString(); }
-	Q_INVOKABLE void setUserName(const int row, const QString& new_name);
+	Q_INVOKABLE inline void setUserName(const int row, const QString& new_name)
+	{
+		m_modeldata[row][USER_COL_NAME] = new_name;
+		emit userModified(row);
+		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+			emit userAdded(row);
+	}
+
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
 		return row < m_modeldata.count() ?
 			QDate::fromJulianDay(static_cast<QString>(m_modeldata.at(row).at(USER_COL_BIRTHDAY)).toLongLong()) :
 			QDate::currentDate();
 	}
-	Q_INVOKABLE void setBirthDate(const int row, const QDate& new_date);
+	Q_INVOKABLE inline QString birthDateFancy(const int row) const
+	{
+		return appUtils()->formatDate(birthDate(row));
+	}
+	Q_INVOKABLE inline void setBirthDate(const uint row, const QDate& new_date)
+	{
+		m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
+		emit userModified(row);
+	}
 	Q_INVOKABLE inline uint sex(const int row) const { return row < m_modeldata.count() ? m_modeldata.at(row).at(USER_COL_SEX).toUInt() : 2; }
 	Q_INVOKABLE void setSex(const int row, const uint new_sex);
 	Q_INVOKABLE inline QString phone(const int row) const { return row < m_modeldata.count() ? m_modeldata.at(row).at(USER_COL_PHONE) : QString(); }
@@ -105,6 +122,7 @@ public:
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 
 signals:
+	void userModified(const uint row);
 	void appUseModeChanged(const int row);
 	void userAdded(const uint row);
 

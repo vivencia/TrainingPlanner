@@ -88,8 +88,6 @@ TPPage {
 			id: mesoDelegate
 			width: ListView.view.width
 
-			property bool realMeso: mesocyclesModel.isRealMeso(index)
-
 			onClicked: appControl.getMesocyclePage(index);
 
 			Rectangle {
@@ -381,13 +379,6 @@ TPPage {
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
-			}
-
-			Component.onCompleted: {
-				mesocyclesModel.realMesoChanged.connect(function (mesoidx) {
-					if (mesoidx === index)
-						realMeso = mesocyclesModel.isRealMeso(index);
-				});
 			}
 		} //delegate
 	} //ListView

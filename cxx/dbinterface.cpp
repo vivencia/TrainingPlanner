@@ -299,7 +299,7 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 		connect( this, &DBInterface::databaseReady, this, [&,meso_idx,worker] (const uint db_id) {
 			if (db_id == worker->uniqueID())
 			{
-				appMesoModel()->mesoSplitModel()->setFast(meso_idx, 1, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
+				appMesoModel()->mesoSplitModel()->setFast(meso_idx, MESOSPLIT_COL_MESOID, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 				saveMesoSplit(meso_idx);
 			}
 		});

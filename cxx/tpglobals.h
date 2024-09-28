@@ -77,4 +77,21 @@ enum {
 	#define FONT_POINT_SIZE_TITLE 18
 #endif
 
+template <typename T>
+inline void setBit (T& __restrict var, const unsigned char bit)
+{
+	if ((bit - 1) >= 0)
+		var |= (2 << (bit - 1));
+	else
+		var |= 1;
+}
+
+template <typename T>
+inline void unSetBit (T& __restrict var, const unsigned char bit)
+{
+	if ((bit - 1) >= 0)
+		var &= ~(2 << (bit - 1));
+	else
+		var &= ~1;
+}
 #endif // TPGLOBALS_H

@@ -118,8 +118,4 @@ TPPage {
 			onClicked: itemManager.getClientsOrCoachesPage(true, false);
 		}
 	}
-
-	function apply() {
-		appDB.saveUser(0);
-	}
 }

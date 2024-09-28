@@ -211,22 +211,8 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 		}
 	}
 }
-//-----------------------------------------------------------USER-----------------------------------------------------------
-void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
-{
-	appDBInterface()->removeUser(user_row, bCoach);
-	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
-	int firstUserRow(-1), lastUserRow(-1);
-	if (curUserRow > 0)
-	{
-		firstUserRow = appUserModel()->findFirstUser(bCoach);
-		lastUserRow = appUserModel()->findLastUser(bCoach);
-	}
-	clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-	clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-	clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
-}
 
+//-----------------------------------------------------------USER-----------------------------------------------------------
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
 {
 	if (settingsComponent)
@@ -268,6 +254,21 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 		else
 			createClientsOrCoachesPage();
 	}
+}
+
+void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
+{
+	appDBInterface()->removeUser(user_row, bCoach);
+	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
+	int firstUserRow(-1), lastUserRow(-1);
+	if (curUserRow > 0)
+	{
+		firstUserRow = appUserModel()->findFirstUser(bCoach);
+		lastUserRow = appUserModel()->findLastUser(bCoach);
+	}
+	clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+	clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+	clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
 }
 //-----------------------------------------------------------USER-----------------------------------------------------------
 
@@ -335,15 +336,14 @@ void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled, QQuickIte
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
 
 //-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
-//Cannot order a page deletion from within the same page that will be deleted. Defer the removal to a little time after,
-//just enough to have StackView remove the page
-void QmlItemManager::scheduleMesocycleRemoval()
+void QmlItemManager::changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday)
 {
-	QTimer::singleShot(200, this, [&] () { appControl()->removeMesocycle(m_mesoIdx); });
+	appDBInterface()->changeMesoCalendar(m_mesoIdx, preserve_old_cal, preserve_untilyesterday);
 }
 
 void QmlItemManager::getMesocyclePage()
 {
+	appMesoModel()->setCurrentMesoIdx(m_mesoIdx);
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
@@ -1287,6 +1287,9 @@ void QmlItemManager::createSettingsPage()
 				userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 			}
 		});
+		connect(appUserModel(), &DBUserModel::userModified, this, [&] (const uint user_row) {
+			appDBInterface()->saveUser(user_row);
+		});
 	}
 }
 
@@ -1396,16 +1399,32 @@ void QmlItemManager::createMesocyclePage_part2()
 	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(app_StackView);
 	m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
+	m_mesoPage->setProperty("bOwnMeso", appMesoModel()->isOwnMeso(m_mesoIdx));
+	m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(m_mesoIdx));
+
 	connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
 		if (user_row == 0)
 				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
 	});
-
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-			if (meso_idx == m_mesoIdx && initiator_id == m_mesoMuscularGroupId )
-				QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
+	connect(appUserModel(), &DBUserModel::userAdded, this, [&] (const uint user_row) {
+		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesModel", Q_ARG(int, static_cast<int>(user_row)));
 	});
-	addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
+	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [&] (const uint meso_idx) {
+		if (meso_idx == m_mesoIdx)
+			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
+	});
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
+		if (meso_idx == m_mesoIdx && initiator_id == m_mesoMuscularGroupId )
+			QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
+	});
+	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [&] (const uint meso_idx, const uint meso_field) {
+		if (meso_idx == m_mesoIdx)
+		{
+			appDBInterface()->saveMesocycle(meso_idx);
+			QMetaObject::invokeMethod(m_mesoPage, "updateFieldValues", Q_ARG(int, static_cast<int>(meso_field)), Q_ARG(int, static_cast<int>(meso_idx)));
+			m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(meso_idx));
+		}
+	});
 }
 //-----------------------------------------------------------MESOCYCLES PRIVATE-----------------------------------------------------------
 

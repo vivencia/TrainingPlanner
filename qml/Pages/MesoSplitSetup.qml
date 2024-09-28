@@ -10,6 +10,8 @@ Pane {
 	implicitWidth: windowWidth
 	implicitHeight: mainLayout.implicitHeight + 100
 
+	property alias mesoSplitText: txtMesoSplit.text
+
 	readonly property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
 							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
 	readonly property int col1Width: width*0.15
@@ -38,7 +40,7 @@ Pane {
 
 	TPTextInput {
 		id: txtMesoSplit
-		text: mesocyclesModel.get(itemManager.mesoIdx, 6)
+		text: mesocyclesModel.split(itemManager.mesoIdx)
 		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		readOnly: true
 		width: parent.width*0.4
@@ -82,15 +84,15 @@ Pane {
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {
-						txtSplit.text = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, currentValue);
+						txtSplit.text = mesocyclesModel.muscularGroup(itemManager.mesoIdx, currentValue);
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						txtSplit.forceActiveFocus();
 					}
 
 					Component.onCompleted: {
-						currentIndex = indexOfValue(mesocyclesModel.getSplitLetter(itemManager.mesoIdx, index));
-						txtSplit.text = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, valueAt(index));
+						currentIndex = indexOfValue(mesocyclesModel.splitLetter(itemManager.mesoIdx, index));
+						txtSplit.text = mesocyclesModel.muscularGroup(itemManager.mesoIdx, valueAt(index));
 					}
 				}
 
@@ -121,11 +123,9 @@ Pane {
 		}
 
 		onClicked: {
-			const ok = txtMesoSplit.text.indexOf("R") !== -1;
+			const ok = mesocyclesModel.setSplit(itemManager.mesoIdx, txtMesoSplit.text);
 			btnCreateExercisePlan.enabled = ok;
 			txtMesoSplit.ToolTip.visible = !ok;
-			if (ok)
-				mesocyclesModel.setMesoSplit(itemManager.mesoIdx, txtMesoSplit.text);
 		}
 	}
 
@@ -148,7 +148,7 @@ Pane {
 	}
 
 	function updateMuscularGroup(splitindex: int, splitletter: string) {
-		const musculargroup = mesocyclesModel.getMuscularGroup(itemManager.mesoIdx, splitletter);
+		const musculargroup = mesocyclesModel.muscularGroup(itemManager.mesoIdx, splitletter);
 		for (var i = 0; i < 7; ++i) {
 			if (splitRepeater.itemAt(i).children[1].currentIndex === splitindex)
 				itemAt(splitindex).children[2].text = musculargroup;

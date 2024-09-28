@@ -450,6 +450,35 @@ TPPage {
 		} //ColumnLayout
 	} //ScrollView
 
+	footer: ToolBar {
+		id: splitToolBar
+		width: parent.width
+		height: footerHeight
+
+		background: Rectangle {
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
+				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
+		}
+
+		TPButton {
+			id: btnApplyChanges
+			text: qsTr("Apply")
+			enabled: bModified
+			width: 80
+			flat: false
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: apply();
+		}
+	}
+
 	function apply() {
 		bModified = false;
 		if (bNeedRestart) {
@@ -458,7 +487,6 @@ TPPage {
 		}
 
 		appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
-		//AppSettings.appLocale = appLocales[cboAppLanguage.currentIndex];
 		AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 		if (bFontSizeChanged) {

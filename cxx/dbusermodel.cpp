@@ -202,25 +202,6 @@ QStringList DBUserModel::getClients() const
 	return clients;
 }
 
-void DBUserModel::setUserName(const int row, const QString& new_name)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_NAME] = new_name;
-		setModified(true);
-		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == u"-1"_qs)
-			emit userAdded(row);
-	}
-}
-
-void DBUserModel::setBirthDate(const int row, const QDate& new_date)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
-		setModified(true);
-	}
-}
 
 void DBUserModel::setSex(const int row, const uint new_sex)
 {

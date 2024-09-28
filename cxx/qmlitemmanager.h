@@ -39,10 +39,9 @@ public:
 	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
-	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
-
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
+	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
@@ -54,7 +53,7 @@ public:
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------
-	Q_INVOKABLE void scheduleMesocycleRemoval();
+	Q_INVOKABLE void changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday);
 
 	void getMesocyclePage();
 	void exportMeso(const bool bShare, const bool bCoachInfo);

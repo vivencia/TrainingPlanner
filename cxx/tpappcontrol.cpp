@@ -60,7 +60,7 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 	m_itemManager.append(itemMngr);
 
 	if (bCreatePage)
-		itemMngr->createMesocyclePage(minimumStartDate, appUtils()->createFutureDate(startDate,0,6,0));
+		itemMngr->createMesocyclePage(minimumStartDate, appUtils()->createFutureDate(startDate,0,6,0), startDate);
 
 	return meso_idx;
 }
