@@ -1,12 +1,14 @@
 #include "dbexercisesmodel.h"
-#include "tpglobals.h"
 
 #include <QFile>
+#include <QRegularExpression>
 
 DBExercisesModel* DBExercisesModel::app_exercises_model(nullptr);
 
 DBExercisesModel::DBExercisesModel(QObject* parent)
-	: TPListModel{parent}, m_selectedEntryToReplace(0)
+	: TPListModel{parent},
+		m_selectedEntryToReplace(0), filterSearch_Field1(EXERCISES_COL_MUSCULARGROUP), filterSearch_Field2(EXERCISES_COL_MAINNAME),
+		m_bFilterApplied(false)
 {
 	if (!app_exercises_model)
 		app_exercises_model = this;
@@ -30,9 +32,6 @@ DBExercisesModel::DBExercisesModel(QObject* parent)
 	m_roleNames[actualIndexRole] = "actualIndex";
 	m_roleNames[selectedRole] = "selected";
 
-	filterSearch_Field1 = 3; //First look for muscularGroup
-	filterSearch_Field2 = 1; //Then look for mainName
-
 	mColumnNames.reserve(EXERCISES_COL_MEDIAPATH+1);
 	mColumnNames.append(QString()); //EXERCISES_COL_ID
 	mColumnNames.append(tr("Exercise: "));
@@ -50,7 +49,7 @@ bool DBExercisesModel::collectExportData()
 	m_exportRows.clear();
 	for (uint i(count() - 1); i > 0; --i)
 	{
-		if (getFast(i, 0).toUInt() >= 1000)
+		if (_id(i) >= 1000)
 			m_exportRows.append(i);
 	}
 	return m_exportRows.count() > 0;
@@ -118,6 +117,18 @@ int DBExercisesModel::importFromFile(const QString& filename)
 	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
+bool DBExercisesModel::updateFromModel(const TPListModel* const model)
+{
+	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+	const QList<QStringList>::const_iterator& lst_itrend(model->m_modeldata.constEnd());
+	uint lastIndex(m_modeldata.count());
+	do {
+		appendList((*lst_itr));
+		m_modifiedIndices[lastIndex]++;
+	} while (++lst_itr != lst_itrend);
+	return true;
+}
+
 QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 {
 	const int row(index.row());
@@ -146,8 +157,8 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 				}
 			case fromListRole:
 			case selectedRole:
-				return !m_bFilterApplied ? bool(m_modeldata.at(row).at(role-Qt::UserRole) == u"1"_qs) :
-					bool(m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == u"1"_qs);
+				return !m_bFilterApplied ? bool(m_modeldata.at(row).at(role-Qt::UserRole) == STR_ONE) :
+					bool(m_modeldata.at(m_indexProxy.at(row)).at(role-Qt::UserRole) == STR_ONE);
 		}
 	}
 	return QVariant();
@@ -179,9 +190,9 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case fromListRole:
 			case selectedRole:
 				if (!m_bFilterApplied)
-					m_modeldata[row][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
+					m_modeldata[row][role-Qt::UserRole] = value.toBool() ? STR_ONE : STR_ZERO;
 				else
-					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toBool() ? u"1"_qs : u"0"_qs;
+					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toBool() ? STR_ONE : STR_ZERO;
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 		}
@@ -189,11 +200,127 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }
 
+void DBExercisesModel::newExercise(const uint index)
+{
+	const QStringList& exerciseInfo(QStringList(EXERCISES_TOTAL_COLS) << QString() << QString() << QString() << u"3"_qs << u"12"_qs <<
+					u"20"_qs << u"(kg)"_qs << u"qrc:/images/no_image.jpg"_qs << STR_ZERO << QString::number(m_modeldata.count()) << STR_ZERO);
+	appendList(exerciseInfo);
+}
+
+void DBExercisesModel::removeExercise(const uint index)
+{
+	beginRemoveRows(QModelIndex(), index, index);
+	m_modeldata.remove(index);
+	if (!m_bFilterApplied)
+		m_indexProxy.remove(index);
+	else
+	{
+		const int proxy_index(m_indexProxy.indexOf(index));
+		if (proxy_index >= 0)
+		{
+			m_indexProxy.remove(proxy_index);
+			for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
+				m_indexProxy[i] = i-1;
+		}
+	}
+	if (m_currentRow >= index)
+		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
+	emit countChanged();
+	endRemoveRows();
+}
+
+void DBExercisesModel::setFilter(const QString &filter, const bool resetSelection)
+{
+	if (filter.length() >=3)
+	{
+		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
+		const QList<QStringList>::const_iterator& lst_itrend(m_modeldata.constEnd());
+		uint idx(0);
+		bool bFound(false), bFirst(true);
+
+		const QRegularExpression regex{filter, QRegularExpression::CaseInsensitiveOption};
+		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
+		{
+			bFound = regex.match((*lst_itr).at(filterSearch_Field1)).hasMatch();
+			if (!bFound)
+				bFound = regex.match((*lst_itr).at(filterSearch_Field2)).hasMatch();
+
+			if (bFound)
+			{
+				if (bFirst)
+				{
+					bFirst = false;
+					beginRemoveRows(QModelIndex(), 0, count()-1);
+					m_indexProxy.clear();
+					if (resetSelection)
+					{
+						resetPrivateData();
+						setCurrentRow(-1);
+					}
+					endRemoveRows();
+				}
+				beginInsertRows(QModelIndex(), count(), count());
+				m_indexProxy.append(idx);
+				endInsertRows();
+			}
+		}
+		m_bFilterApplied = m_indexProxy.count() != m_modeldata.count();
+	}
+	else
+	{
+		if (m_bFilterApplied)
+		{
+			m_bFilterApplied = false;
+			beginRemoveRows(QModelIndex(), 0, count()-1);
+			m_indexProxy.clear();
+			if (resetSelection)
+			{
+				resetPrivateData();
+				setCurrentRow(-1);
+			}
+			endRemoveRows();
+			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
+			for( uint i (0); i < m_modeldata.count(); ++i )
+				m_indexProxy.append(i);
+			endInsertRows();
+		}
+	}
+}
+
+void DBExercisesModel::makeFilterString(const QString& text)
+{
+	m_filterString = text;
+	m_filterString = m_filterString.replace(',', ' ').simplified();
+	const QStringList& words(m_filterString.split(' '));
+
+	if ( words.count() > 0)
+	{
+		QStringList::const_iterator itr(words.begin());
+		const QStringList::const_iterator& itr_end(words.end());
+		m_filterString.clear();
+
+		do
+		{
+			if((*itr).length() < 3)
+				continue;
+			if (!m_filterString.isEmpty())
+				m_filterString.append('|');
+			m_filterString.append((*itr).toLower());
+			if (m_filterString.endsWith('s', Qt::CaseInsensitive) )
+				m_filterString.chop(1);
+			m_filterString.remove('.');
+			m_filterString.remove('(');
+			m_filterString.remove(')');
+		} while (++itr != itr_end);
+	}
+}
+
+
 void DBExercisesModel::clearSelectedEntries()
 {
 	for (uint i(0); i < m_selectedEntries.count(); ++i)
 	{
-		m_modeldata[m_selectedEntries.at(i).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+		m_modeldata[m_selectedEntries.at(i).real_index][EXERCISES_COL_SELECTED] = STR_ZERO;
 		emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
 				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
 	}
@@ -232,7 +359,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 		{
 			if (m_selectedEntryToReplace > max_selected - 1)
 				m_selectedEntryToReplace = 0;
-			m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+			m_modeldata[m_selectedEntries.at(m_selectedEntryToReplace).real_index][EXERCISES_COL_SELECTED] = STR_ZERO;
 			emit dataChanged(index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0),
 					index(m_selectedEntries.at(m_selectedEntryToReplace).view_index, 0), QList<int>() << selectedRole);
 			m_selectedEntries[m_selectedEntryToReplace].real_index = real_item_pos;
@@ -243,7 +370,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 		{
 			for (uint i(0); i <= max_selected; ++i)
 			{
-				m_modeldata[m_selectedEntries.at(0).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+				m_modeldata[m_selectedEntries.at(0).real_index][EXERCISES_COL_SELECTED] = STR_ZERO;
 				emit dataChanged(index(m_selectedEntries.at(0).view_index, 0),
 					index(m_selectedEntries.at(0).view_index, 0), QList<int>() << selectedRole);
 				if (m_selectedEntries.count() > 1)
@@ -261,13 +388,13 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 			if (m_selectedEntryToReplace > max_selected - 1)
 				m_selectedEntryToReplace = 0;
 		}
-		m_modeldata[m_selectedEntries.at(idx).real_index][EXERCISES_COL_SELECTED] = u"0"_qs;
+		m_modeldata[m_selectedEntries.at(idx).real_index][EXERCISES_COL_SELECTED] = STR_ZERO;
 			emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
 					index(m_selectedEntries.at(idx).view_index, 0), QList<int>() << selectedRole);
 		m_selectedEntries.remove(idx, 1);
 		return false;
 	}
-	m_modeldata[real_item_pos][EXERCISES_COL_SELECTED] = u"1"_qs;
+	m_modeldata[real_item_pos][EXERCISES_COL_SELECTED] = STR_ONE;
 	emit dataChanged(index(item_pos, 0), index(item_pos, 0), QList<int>() << selectedRole);
 	return true;
 }

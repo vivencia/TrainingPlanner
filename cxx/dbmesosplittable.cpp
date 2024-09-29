@@ -103,7 +103,7 @@ void DBMesoSplitTable::createTable()
 
 void DBMesoSplitTable::getAllMesoSplits()
 {
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
@@ -114,6 +114,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 		query.exec(u"PRAGMA journal_mode = OFF"_qs);
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
+
 		query.setForwardOnly(true);
 		const QString& strQuery(u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_qs);
 
@@ -121,14 +122,12 @@ void DBMesoSplitTable::getAllMesoSplits()
 		{
 			if (query.first ())
 			{
+				DBMesoSplitModel* model{static_cast<DBMesoSplitModel*>(m_model)};
 				uint meso_idx(0);
 				do
 				{
-					if (meso_idx < m_model->count())
-					{
-						for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
-							m_model->setFast(meso_idx, i, query.value(i).toString());
-					}
+					for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+						model->setFast(meso_idx, i, query.value(i).toString());
 					++meso_idx;
 				} while (query.next ());
 				m_result = true;
@@ -155,17 +154,18 @@ void DBMesoSplitTable::saveMesoSplit()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
 
+		DBMesoSplitModel* model{static_cast<DBMesoSplitModel*>(m_model)};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 
-		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_qs.arg(m_model->getFast(row, MESOSPLIT_COL_MESOID))))
+		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_qs.arg(model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -177,24 +177,21 @@ void DBMesoSplitTable::saveMesoSplit()
 		{
 			strQuery = u"INSERT INTO mesocycles_splits meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
 						" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_qs
-							.arg(m_model->getFast(row, MESOSPLIT_COL_MESOID), m_model->getFast(row, MESOSPLIT_A), m_model->getFast(row, MESOSPLIT_B),
-								m_model->getFast(row, MESOSPLIT_C), m_model->getFast(row, MESOSPLIT_D), m_model->getFast(row, MESOSPLIT_E),
-								m_model->getFast(row, MESOSPLIT_F));
+							.arg(model->mesoId(row), model->splitA(row), model->splitB(row), model->splitC(row), model->splitD(row),
+							model->splitE(row), model->splitF(row));
 		}
 		else
 		{
 			strQuery = u"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', "
 					   "splitF=\'%6\' WHERE meso_id=%7"_qs
-						.arg(m_model->getFast(row, MESOSPLIT_A), m_model->getFast(row, MESOSPLIT_B), m_model->getFast(row, MESOSPLIT_C),
-						m_model->getFast(row, MESOSPLIT_D), m_model->getFast(row, MESOSPLIT_E), m_model->getFast(row, MESOSPLIT_F),
-						m_model->getFast(row, MESOSPLIT_COL_MESOID));
+						.arg(model->splitA(row), model->splitB(row), model->splitC(row), model->splitD(row),
+							model->splitE(row), model->splitF(row), model->mesoId(row));
 		}
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
 			MSG_OUT("DBMesoSplitTable saveMesoSplit SUCCESS")
-			m_model->setFast(row, MESOSPLIT_COL_ID, query.lastInsertId().toString());
-			m_model->setModified(false);
+			model->setId(row, query.lastInsertId().toString());
 		}
 		else
 		{

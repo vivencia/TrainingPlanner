@@ -138,9 +138,16 @@ void DBMesoCalendarTable::getMesoCalendar()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QString mesoId(m_execArgs.at(0).toString());
+		const QString& mesoId(m_execArgs.at(0).toString());
 
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
 		query.setForwardOnly(true);
 		if (query.exec(u"SELECT * FROM mesocycles_calendar_table WHERE meso_id="_qs + mesoId))
 		{
@@ -172,7 +179,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 							{
 								//Fill the model with info that reflects that these month days are not part of the meso
 								for( ; day < firstDayOfMeso; ++day)
-									mesocal_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
+									mesocal_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
 							}
 						}
 					}
@@ -187,7 +194,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 					const uint lastDayOfMonth( QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth() );
 					//Fill the model with info that reflects that these month days are not part of the meso
 					for( ; day <= lastDayOfMonth; ++day)
-						mesocal_info.append(QStringLiteral("-1,-1,-1,N,-1,") + strYear + ',' + strMonth);
+						mesocal_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
 					m_model->appendList(mesocal_info);
 				}
 			}
@@ -221,15 +228,16 @@ void DBMesoCalendarTable::saveMesoCalendar()
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-		query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-		query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-		query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-		query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-		query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
 		if (mSqlLiteDB.transaction())
 		{
-			const QString queryStart(u"INSERT INTO mesocycles_calendar_table "
+			const QString& queryStart(u"INSERT INTO mesocycles_calendar_table "
 									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_qs);
 			QString queryValues;
 			QStringList day_info;
@@ -240,12 +248,12 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
 				{
 					day_info = m_model->get(i, x).split(',');
-					if (day_info.at(MESOCALENDAR_COL_MESOID) != QStringLiteral("-1"))
+					if (day_info.at(MESOCALENDAR_COL_MESOID) != STR_MINUS_ONE)
 					{
 						queryValues += '(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
-							QStringLiteral(",\'") + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + QStringLiteral("\',") +
+							u",\'"_qs + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + u"\',"_qs +
 									day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
-									day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + QStringLiteral("),");
+									day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + u"),"_qs;
 					}
 				}
 				if (n >= 50)
@@ -280,19 +288,27 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QDate date(m_execArgs.at(0).toDate());
+		const QDate& date(m_execArgs.at(0).toDate());
 
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
 		QString strQuery(u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
 		if (query.exec(strQuery))
 		{
 			query.first();
-			const QString strId(query.value(0).toString());
+			const QString& strId(query.value(0).toString());
 			query.finish();
-			const QString strTrainingDay(m_execArgs.at(1).toString());
-			const QString strSplit(m_execArgs.at(2).toString());
-			const QString strDayCompleted(m_execArgs.at(3).toString());
+			const QString& strTrainingDay(m_execArgs.at(1).toString());
+			const QString& strSplit(m_execArgs.at(2).toString());
+			const QString& strDayCompleted(m_execArgs.at(3).toString());
+
 			strQuery = u"UPDATE mesocycles_calendar_table SET training_day=%1, "
 										"training_split=\'%2\', training_complete=%3 WHERE id=%4"_qs
 											.arg(strTrainingDay, strSplit, strDayCompleted, strId);
@@ -318,8 +334,15 @@ void DBMesoCalendarTable::updateDayIsFinished()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		const QDate date(m_execArgs.at(0).toDate());
+		const QDate& date(m_execArgs.at(0).toDate());
 		QSqlQuery query(mSqlLiteDB);
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
 		QString strQuery;
 		strQuery = u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 				QString::number(date.year()),QString::number(date.month()), QString::number(date.day()));
@@ -353,7 +376,14 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
-		const QString strQuery(u"SELECT meso_id,training_day,training_split,training_complete "
+		query.exec(u"PRAGMA page_size = 4096"_qs);
+		query.exec(u"PRAGMA cache_size = 16384"_qs);
+		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+		query.exec(u"PRAGMA journal_mode = OFF"_qs);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+		query.exec(u"PRAGMA synchronous = 0"_qs);
+
+		const QString& strQuery(u"SELECT meso_id,training_day,training_split,training_complete "
 								"FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 								QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
 		if (query.exec(strQuery))

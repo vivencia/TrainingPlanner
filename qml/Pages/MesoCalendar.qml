@@ -48,8 +48,8 @@ TPPage {
 				id: lbl2
 				color: AppSettings.fontColor
 				wrapMode: Text.WordWrap
-				text: qsTr("from  <b>") + appUtils.formatDate(mesocyclesModel.getDate(mesoCalendarModel.mesoIdx, 2)) +
-						qsTr("</b>  through  <b>") + appUtils.formatDate(mesocyclesModel.getDate(mesoCalendarModel.mesoIdx, 3)) + "</b>"
+				text: qsTr("from  <b>") + mesocyclesModel.startDateFancy(mesoCalendarModel.mesoIdx) +
+						qsTr("</b>  through  <b>") + mesocyclesModel.endDateFancy(mesoCalendarModel.mesoIdx) + "</b>"
 				font.pointSize: AppSettings.fontSize
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10

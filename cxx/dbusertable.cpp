@@ -114,6 +114,7 @@ void DBUserTable::saveUser()
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
 
+		DBUserModel* model{static_cast<DBUserModel*>(m_model)};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
@@ -129,29 +130,24 @@ void DBUserTable::saveUser()
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
 			strQuery = u"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
 						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14"_qs
-				.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY), m_model->getFast(row, USER_COL_SEX),
-					m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL), m_model->getFast(row, USER_COL_SOCIALMEDIA),
-					m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE), m_model->getFast(row, USER_COL_GOAL),
-					m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_APP_USE_MODE), m_model->getFast(row, USER_COL_CURRENT_COACH),
-					m_model->getFast(row, USER_COL_CURRENT_USER), m_model->getFast(row, USER_COL_ID));
+				.arg(model->_userName(row), model->_birthDate(row), model->_sex(row), model->_phone(row), model->_email(row),
+					model->_socialMedia(row), model->_userRole(row), model->_coachRole(row), model->_goal(row), model->_avatar(row),
+					model->_appUseMode(row), model->_currentCoach(row), model->_currentUser(row), model->_userId(row));
 		}
 		else
 		{
 			strQuery = u"INSERT INTO user_table "
 				"(name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
 				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)"_qs
-					.arg(m_model->getFast(row, USER_COL_NAME), m_model->getFast(row, USER_COL_BIRTHDAY),
-					m_model->getFast(row, USER_COL_SEX), m_model->getFast(row, USER_COL_PHONE), m_model->getFast(row, USER_COL_EMAIL),
-					m_model->getFast(row, USER_COL_SOCIALMEDIA), m_model->getFast(row, USER_COL_USERROLE), m_model->getFast(row, USER_COL_COACHROLE),
-					m_model->getFast(row, USER_COL_GOAL), m_model->getFast(row, USER_COL_AVATAR), m_model->getFast(row, USER_COL_APP_USE_MODE),
-					m_model->getFast(row, USER_COL_CURRENT_COACH), m_model->getFast(row, USER_COL_CURRENT_USER));
+					.arg(model->_userName(row), model->_birthDate(row), model->_sex(row), model->_phone(row), model->_email(row),
+					model->_socialMedia(row), model->_userRole(row), model->_coachRole(row), model->_goal(row), model->_avatar(row),
+					model->_appUseMode(row), model->_currentCoach(row), model->_currentUser(row));
 		}
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
-			m_model->setModified(false);
 			if (!bUpdate)
-				m_model->setFast(row, USER_COL_ID, query.lastInsertId().toString());
+				model->setUserId(row, query.lastInsertId().toString());
 			MSG_OUT("DBUserTable saveUser SUCCESS");
 		}
 		else

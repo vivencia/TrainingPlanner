@@ -97,16 +97,17 @@ Rectangle {
 		id: buttonText
 		opacity: button.opacity
 		color: button.enabled ? textColor : AppSettings.disabledFontColor
-		font.weight: Font.ExtraBold
-		font.bold: true
 		minimumPointSize: 8
 		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
-		font.pointSize: AppSettings.fontSizeText*0.9
 		maximumLineCount: 1
 		leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
 		rightPadding: 5
+		font {
+			weight: Font.ExtraBold
+			pointSize: AppSettings.fontSizeText*0.9
+		}
 
 		onTextChanged: resizeButton();
 

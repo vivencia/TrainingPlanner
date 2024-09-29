@@ -59,7 +59,7 @@ void DBMesocyclesModel::setUserModel(DBUserModel* usermodel)
 const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 {
 	appendList(infolist);
-	m_splitModel->appendList(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
+	m_splitModel->appendList(QStringList(SIMPLE_MESOSPLIT_TOTAL_COLS) << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
 		QString() << QString() << QString() << QString());
 
 	const uint meso_idx(count()-1);
@@ -131,6 +131,8 @@ QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_we
 void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_ID] = new_id;
+	m_splitModel->m_modeldata[meso_idx][MESOSPLIT_COL_ID] = new_id;
+	m_calendarModelList[meso_idx]->m_modeldata[0][MESOCALENDAR_COL_MESOID] = new_id;
 	unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_ID);
 }
 
@@ -295,24 +297,24 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 		switch(role)
 		{
 			case mesoNameRole:
-				if (m_userModel->userName(0) == m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT))
-					return QVariant(u"<b>**  "_qs + m_modeldata.at(row).at(MESOCYCLES_COL_NAME) + u"  **</b>"_qs);
+				if (m_userModel->userName(0) == client(row))
+					return QVariant(u"<b>**  "_qs + name(row) + u"  **</b>"_qs);
 				else
-					return QVariant(u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_NAME) + u"</b>"_qs);
+					return QVariant(u"<b>"_qs + name(row) + u"</b>"_qs);
 			case mesoStartDateRole:
 				return QVariant(mColumnNames[MESOCYCLES_COL_STARTDATE] + u"<b>"_qs +
-					appUtils()->formatDate(getDateFast(row, MESOCYCLES_COL_STARTDATE)) + u"</b>"_qs);
+					appUtils()->formatDate(startDate(row)) + u"</b>"_qs);
 			case mesoEndDateRole:
 				return QVariant(mColumnNames[MESOCYCLES_COL_ENDDATE] + u"<b>"_qs +
-					appUtils()->formatDate(getDateFast(row, MESOCYCLES_COL_ENDDATE)) + u"</b>"_qs);
+					appUtils()->formatDate(endDate(row)) + u"</b>"_qs);
 			case mesoSplitRole:
-				return QVariant(mColumnNames[MESOCYCLES_COL_SPLIT] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_SPLIT) + u"</b>"_qs);
+				return QVariant(mColumnNames[MESOCYCLES_COL_SPLIT] + u"<b>"_qs + split(row) + u"</b>"_qs);
 			case mesoCoachRole:
-				if (!m_modeldata.at(row).at(MESOCYCLES_COL_COACH).isEmpty())
-					return QVariant(mColumnNames[MESOCYCLES_COL_COACH] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_COACH) + u"</b>"_qs);
+				if (!coach(row).isEmpty())
+					return QVariant(mColumnNames[MESOCYCLES_COL_COACH] + u"<b>"_qs + coach(row) + u"</b>"_qs);
 			case mesoClientRole:
-				if (!m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT).isEmpty())
-					return QVariant(mColumnNames[MESOCYCLES_COL_CLIENT] + u"<b>"_qs + m_modeldata.at(row).at(MESOCYCLES_COL_CLIENT) + u"</b>"_qs);
+				if (!client(row).isEmpty())
+					return QVariant(mColumnNames[MESOCYCLES_COL_CLIENT] + u"<b>"_qs + client(row) + u"</b>"_qs);
 
 		}
 	}
@@ -326,9 +328,9 @@ void DBMesocyclesModel::findTotalSplits(const uint meso_idx)
 	{
 		if (!m_modeldata.isEmpty())
 		{
-			const QString mesoSplit(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_SPLIT));
+			const QString& mesoSplit(split(meso_idx));
 			QString::const_iterator itr(mesoSplit.constBegin());
-			const QString::const_iterator itr_end(mesoSplit.constEnd());
+			const QString::const_iterator& itr_end(mesoSplit.constEnd());
 			QString mesoLetters;
 
 			do {
@@ -348,8 +350,8 @@ int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 {
 	for(uint x(1); x < count(); ++x)
 	{
-		if (m_modeldata.at(x).at(MESOCYCLES_COL_ID).toInt() == current_mesoid)
-			return m_modeldata.at(x-1).at(MESOCYCLES_COL_ID).toInt();
+		if (_id(x) == current_mesoid)
+			return _id(x-1);
 	}
 	return -1;
 }
@@ -358,8 +360,8 @@ QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
 {
 	for(uint x(1); x < count(); ++x)
 	{
-		if (m_modeldata.at(x).at(MESOCYCLES_COL_ID).toInt() == current_mesoid)
-			return QDate::fromJulianDay(m_modeldata.at(x-1).at(MESOCYCLES_COL_ENDDATE).toLongLong());
+		if (_id(x) == current_mesoid)
+			return endDate(x-1);
 	}
 	// 1 or 0 meso records = no previous meso. The first meso can start anywhere in 2024
 	return QDate(2024, 1, 1);
@@ -369,8 +371,8 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 {
 	for(uint x(0); x < count() - 1; ++x)
 	{
-		if (m_modeldata.at(x).at(MESOCYCLES_COL_ID).toInt() == mesoid)
-			return QDate::fromJulianDay(m_modeldata.at(x+1).at(MESOCYCLES_COL_STARTDATE).toLongLong());
+		if (_id(x) == mesoid)
+			return startDate(x+1);
 	}
 	 //This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
 	return QDate::currentDate().addMonths(6);
@@ -379,7 +381,7 @@ QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
 	if (count() > 0)
-		return QDate::fromJulianDay(m_modeldata.constLast().at(MESOCYCLES_COL_ENDDATE).toLongLong());
+		return endDate(count()-1);
 	return QDate::currentDate();
 }
 
@@ -387,9 +389,9 @@ bool DBMesocyclesModel::isDateWithinMeso(const uint meso_idx, const QDate& date)
 {
 	if (count() > 0)
 	{
-		if (date >= getDateFast(meso_idx, MESOCYCLES_COL_STARTDATE))
+		if (date >= startDate(meso_idx))
 		{
-			if (date <= getDateFast(meso_idx, MESOCYCLES_COL_ENDDATE))
+			if (date <= endDate(meso_idx))
 				return true;
 		}
 	}
@@ -523,10 +525,10 @@ bool DBMesocyclesModel::updateFromModel(const uint meso_idx, const TPListModel* 
 {
 	setImportMode(true);
 	for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
-		setFast(meso_idx, i, model->getFast(0, i));
+		m_modeldata[meso_idx][i] = model->m_modeldata.at(0).at(i);
 	const DBMesoSplitModel* const splitModel(static_cast<const DBMesoSplitModel* const>(const_cast<TPListModel*>(model)));
 	for (uint i(MESOSPLIT_COL_ID); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
-		m_splitModel->setFast(meso_idx, i, splitModel->getFast(0, i));
+		m_splitModel->m_modeldata[meso_idx][i] = splitModel->m_modeldata.at(0).at(i);
 	return true;
 }
 

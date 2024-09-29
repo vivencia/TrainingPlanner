@@ -14,20 +14,20 @@ DBMesoCalendarModel::DBMesoCalendarModel(DBMesocyclesModel* parentModel, const i
 
 void DBMesoCalendarModel::createModel()
 {
-	const QString& strMesoId(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_ID));
-	const QDate& startDate(m_parentModel->getDateFast(mesoIdx(), MESOCYCLES_COL_STARTDATE));
-	const QDate& endDate(m_parentModel->getDateFast(mesoIdx(), MESOCYCLES_COL_ENDDATE));
-	const QString& strSplit(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
+	const QString& strMesoId(m_parentModel->id(mesoIdx()));
+	const QDate& startDate(m_parentModel->startDate(mesoIdx()));
+	const QDate& endDate(m_parentModel->endDate(mesoIdx()));
+	const QString& strSplit(m_parentModel->split(mesoIdx()));
 	const uint startmonth(startDate.month());
 	const uint endmonth(endDate.month());
 	int splitIdx(startDate.dayOfWeek() - 1);
 
-	uint nMonths( endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1 );
+	uint nMonths(endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1);
 	uint trainingDayNumber(0), trainingDayNumberTotal(0);
 	uint i(0);
-	uint month( startmonth );
-	uint year( startDate.year() );
-	uint firstDay( startDate.day() );
+	uint month(startmonth);
+	uint year(startDate.year());
+	uint firstDay(startDate.day());
 	uint lastDay(0);
 	uint day(1);
 
@@ -36,7 +36,8 @@ void DBMesoCalendarModel::createModel()
 
 	for (; i < nMonths; i++, month++)
 	{
-		if ( month > 12 ) {
+		if (month > 12)
+		{
 			year++;
 			month = 1;
 		}
@@ -51,7 +52,8 @@ void DBMesoCalendarModel::createModel()
 				month_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
 			firstDay = 0;
 		}
-		for( ; day <= lastDay; day++ ) {
+		for( ; day <= lastDay; day++ )
+		{
 			if (strSplit.at(splitIdx) != QLatin1Char('R'))
 			{
 				++trainingDayNumberTotal;
@@ -179,7 +181,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 					dayInfo = monthInfo.at(day).split(',');
 					if (tday == 0)
 					{
-						if (dayInfo[MESOCALENDAR_COL_TRAINING_DAY] != u"0"_qs)
+						if (dayInfo[MESOCALENDAR_COL_TRAINING_DAY] != STR_ZERO)
 							tday = dayInfo[MESOCALENDAR_COL_TRAINING_DAY].toUInt();
 						else
 						{
@@ -204,7 +206,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 					}
 
 					if (mesoSplit.at(idx) == u"R"_qs)
-						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = u"0"_qs;
+						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = STR_ZERO;
 					else
 						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = QString::number(tday++);
 					dayInfo[MESOCALENDAR_COL_SPLITLETTER] = mesoSplit.at(idx);
@@ -222,7 +224,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 			}
 		}
 	}
-	emit calendarChanged(startDate, appMesoModel()->getDateFast(mesoIdx(), MESOCYCLES_COL_ENDDATE));
+	emit calendarChanged(startDate, appMesoModel()->endDate(mesoIdx()));
 }
 
 void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished)

@@ -2,6 +2,7 @@
 #define DBTRAININGDAYMODEL_H
 
 #include "tplistmodel.h"
+#include "tpglobals.h"
 
 #define TDAY_COL_ID 0
 #define TDAY_COL_MESOID 1
@@ -84,9 +85,9 @@ public:
 	inline const QString& mesoIdStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_MESOID); }
 	Q_INVOKABLE inline void setMesoId(const QString& mesoid) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_MESOID] = mesoid; }
 
-	/*Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
+	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
 	inline const QString& dateStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE); }
-	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }*/
+	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }
 
 	Q_INVOKABLE inline QString trainingDay() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
@@ -114,6 +115,7 @@ public:
 
 	const uint inline exerciseCount() const { return m_ExerciseData.count(); }
 	Q_INVOKABLE inline const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
+	inline const QString _setsNumber(const uint exercise_idx) const { return QString::number(m_ExerciseData.at(exercise_idx)->nsets); }
 
 	Q_INVOKABLE inline bool trackRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_TrackRestTime; }
 	Q_INVOKABLE inline void setTrackRestTime(const bool track_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
@@ -122,6 +124,8 @@ public:
 	Q_INVOKABLE inline void setAutoRestTime(const bool auto_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_AutoRestTime = auto_resttime; }
 
 	Q_INVOKABLE QString exerciseName(const uint exercise_idx) const;
+	inline const QString& _exerciseName(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->name; }
+
 	Q_INVOKABLE void setExerciseName(const QString& new_name, const uint exercise_idx);
 	void newExercise(const QString& new_exercise, const uint idx);
 	void removeExercise(const uint exercise_idx);
@@ -143,6 +147,8 @@ public:
 	void removeSet(const uint set_number, const uint exercise_idx);
 
 	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
+	inline const QString setsTypes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->type.join(record_separator); }
+
 	Q_INVOKABLE void setSetType(const uint set_number, const uint exercise_idx, const uint new_type);
 	void changeSetType(const uint set_number, const uint exercise_idx, const uint old_type, const uint new_type);
 
@@ -150,18 +156,22 @@ public:
 	Q_INVOKABLE void setSetRestTime(const uint set_number, const uint exercise_idx, const QString& new_time);
 
 	Q_INVOKABLE QString setSubSets(const uint set_number, const uint exercise_idx) const;
+	inline const QString setsSubSets(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->subsets.join(record_separator); }
 	Q_INVOKABLE void newSetSubSet(const uint set_number, const uint exercise_idx);
 	Q_INVOKABLE uint setSubSets_int(const uint set_number, const uint exercise_idx) const { return setSubSets(set_number, exercise_idx).toUInt(); }
 	Q_INVOKABLE void setSetSubSets(const uint set_number, const uint exercise_idx, const QString& new_subsets);
 
 	Q_INVOKABLE QString setReps(const uint set_number, const uint exercise_idx) const;
+	inline const QString setsReps(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->reps.join(record_separator); }
 	Q_INVOKABLE uint setReps_int(const uint set_number, const uint exercise_idx) const { return setReps(set_number, exercise_idx).toUInt(); }
 	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const QString& new_reps);
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint exercise_idx) const;
+	inline const QString setsWeight(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->weight.join(record_separator); }
 	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const QString& new_weight);
 
 	Q_INVOKABLE QString setNotes(const uint set_number, const uint exercise_idx) const;
+	inline const QString setsNotes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->notes.join(record_separator); }
 	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx);
 
 	Q_INVOKABLE bool setCompleted(const uint set_number, const uint exercise_idx) const;

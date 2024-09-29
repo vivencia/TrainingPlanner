@@ -304,8 +304,9 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 			}
 			if (!lastLocation.isEmpty())
 			{
-				m_model->appendList(QStringList(9));
-				m_model->setFast(m_model->count()-1, TDAY_COL_LOCATION, lastLocation);
+				DBTrainingDayModel* model{static_cast<DBTrainingDayModel*>(m_model)};
+				model->appendList(QStringList(TDAY_TOTAL_COLS));
+				model->setLocation(lastLocation);
 				m_result = true;
 			}
 		}

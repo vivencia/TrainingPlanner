@@ -196,10 +196,11 @@ void DBMesocyclesTable::saveMesocycle()
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
 
+		DBMesocyclesModel* model{static_cast<DBMesocyclesModel*>(m_model)};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(m_model->getFast(row, MESOCYCLES_COL_ID))))
+		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -211,11 +212,9 @@ void DBMesocyclesTable::saveMesocycle()
 			strQuery = u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
 							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
 							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12"_qs
-								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE), m_model->getFast(row, MESOCYCLES_COL_ENDDATE),
-									m_model->getFast(row, MESOCYCLES_COL_NOTE), m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
-									m_model->getFast(row, MESOCYCLES_COL_COACH), m_model->getFast(row, MESOCYCLES_COL_CLIENT),
-									m_model->getFast(row, MESOCYCLES_COL_FILE), m_model->getFast(row, MESOCYCLES_COL_TYPE),
-									m_model->getFast(row, MESOCYCLES_COL_REALMESO), m_model->getFast(row, MESOCYCLES_COL_ID));
+								.arg(model->name(row), model->strStartDate(row), model->strEndDate(row), model->notes(row),
+									model->nWeeks(row), model->split(row), model->coach(row), model->client(row),
+									model->file(row), model->type(row), model->realMeso(row), model->id(row));
 		}
 		else
 		{
@@ -223,21 +222,17 @@ void DBMesocyclesTable::saveMesocycle()
 							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
 							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)"_qs
-								.arg(m_model->getFast(row, MESOCYCLES_COL_NAME), m_model->getFast(row, MESOCYCLES_COL_STARTDATE),
-									m_model->getFast(row, MESOCYCLES_COL_ENDDATE), m_model->getFast(row, MESOCYCLES_COL_NOTE),
-									m_model->getFast(row, MESOCYCLES_COL_WEEKS), m_model->getFast(row, MESOCYCLES_COL_SPLIT),
-									m_model->getFast(row, MESOCYCLES_COL_COACH), m_model->getFast(row, MESOCYCLES_COL_CLIENT),
-									m_model->getFast(row, MESOCYCLES_COL_FILE), m_model->getFast(row, MESOCYCLES_COL_TYPE),
-									m_model->getFast(row, MESOCYCLES_COL_REALMESO));
+								.arg(model->name(row), model->strStartDate(row), model->strEndDate(row), model->notes(row),
+									model->nWeeks(row), model->split(row), model->coach(row), model->client(row),
+									model->file(row), model->type(row), model->realMeso(row));
 		}
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
-			m_model->setModified(false);
 			if (!bUpdate)
 			{
-				m_model->setFast(row, MESOCYCLES_COL_ID, query.lastInsertId().toString());
-				m_model->setImportMode(false);
+				model->setId(row, query.lastInsertId().toString());
+				model->setImportMode(false);
 			}
 			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
 		}

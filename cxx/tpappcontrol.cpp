@@ -44,7 +44,7 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 	}
 	else
 	{
-		if (appMesoModel()->getInt(appMesoModel()->count() - 1, 8) == 1)
+		if (appMesoModel()->isRealMeso(appMesoModel()->count() - 1))
 			minimumStartDate = appUtils()->getMesoStartDate(appMesoModel()->getLastMesoEndDate());
 		else
 			minimumStartDate = QDate::currentDate();

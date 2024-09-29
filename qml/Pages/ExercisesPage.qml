@@ -16,7 +16,6 @@ TPPage {
 	objectName: "exercisesPage"
 
 	required property QmlItemManager itemManager
-	property string strMediaPath
 	property bool bCanEdit: false
 	property bool bNew: false
 	property bool bEdit: false
@@ -75,13 +74,13 @@ TPPage {
 
 				onExerciseEntrySelected: (index, multipleSelection) => {
 					if (multipleSelection === 2) return;
-					txtExerciseName.text = exercisesModel.get(index, 1);
-					txtExerciseSubName.text = exercisesModel.get(index, 2);
-					txtMuscularGroup.text = exercisesModel.get(index, 3);
-					txtNSets.text = exercisesModel.get(index, 4);
-					txtNReps.text = exercisesModel.get(index, 5);
-					txtNWeight.text = exercisesModel.get(index, 6);
-					strMediaPath = exercisesModel.get(index, 8);
+
+					txtExerciseName.text = exercisesModel.mainName(index);
+					txtExerciseSubName.text = exercisesModel.subName(index);
+					txtMuscularGroup.text = exercisesModel.muscularGroup(index);
+					txtNSets.text = exercisesModel.setsNumber(index);
+					txtNReps.text = exercisesModel.repsNumber(index);
+					txtNWeight.text = exercisesModel.weight(index);
 					displaySelectedMedia();
 				}
 
@@ -102,7 +101,7 @@ TPPage {
 				readonly property int buttonWidth: Math.ceil(exercisesPage.width/5.5)
 
 				TPButton {
-					id:btnNewExercise
+					id: btnNewExercise
 					text: qsTr("New")
 					enabled: !bEdit
 					fixedSize: true
@@ -120,10 +119,9 @@ TPPage {
 							txtExerciseName.clear();
 							txtExerciseSubName.clear();
 							txtMuscularGroup.clear();
-							strMediaPath = "qrc:/images/no_image.jpg";
 							exercisesList.enabled = false;
 							text = qsTr("Cancel");
-							exercisesModel.appendRow();
+							exercisesModel.newExercise();
 						}
 						else {
 							exercisesModel.removeRow(exercisesModel.currentRow);
@@ -164,27 +162,6 @@ TPPage {
 						}
 					}
 				} //btnEditExercise
-
-				TPButton {
-					id: btnSaveExercise
-					text: qsTr("Save")
-					enabled: (bNew && txtExerciseName.length > 5) || (bEdit && txtExerciseName.length > 5)
-					fixedSize: true
-					width: toolbarExercises.buttonWidth
-					height: 25
-					rounded: false
-					flat: false
-
-					onClicked: {
-						appDB.saveExercises();
-						if (bNew) {
-							btnNewExercise.clicked();
-							//exercisesList.simulateMouseClick(exercisesModel.count - 1);
-						}
-						else if (bEdit)
-							btnEditExercise.clicked();
-					}
-				} //btnSaveExercise
 
 				TPButton {
 					id: btnAddExercise
@@ -248,7 +225,7 @@ TPPage {
 				Layout.rightMargin: 20
 
 				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
-				onEditingFinished: exercisesModel.setMainName(text);
+				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
 			}
 
 			Label {
@@ -268,7 +245,7 @@ TPPage {
 				Layout.rightMargin: 20
 
 				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
-				onEditingFinished: exercisesModel.setSubName(text);
+				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
 			}
 
 			Label {
@@ -288,7 +265,7 @@ TPPage {
 				Layout.leftMargin: 10
 
 				onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
-				onEditingFinished: exercisesModel.setMuscularGroup(text);
+				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
 			}
 
 			Label {
@@ -360,7 +337,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
-						onValueChanged: (str) => exercisesModel.setSetsNumber(str);
+						onValueChanged: (str) => exercisesModel.setSetsNumber(exercisesModel.currentRow, str);
 					}
 
 					SetInputField {
@@ -374,7 +351,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-						onValueChanged: (str) => exercisesModel.setRepsNumber(str);
+						onValueChanged: (str) => exercisesModel.setRepsNumber(exercisesModel.currentRow, str);
 					}
 
 					SetInputField {
@@ -388,7 +365,7 @@ TPPage {
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: btnChooseMediaFromDevice.forceActiveFocus();
-						onValueChanged: (str) => exercisesModel.setWeight(str);
+						onValueChanged: (str) => exercisesModel.setWeight(exercisesModel.currentRow, str);
 					}
 				} // ColumnLayout
 			} //Pane
@@ -434,11 +411,15 @@ TPPage {
 	FileDialog {
 		id: fileDialog
 		title: qsTr("Please choose a media file");
+		nameFilters: [qsTr("PDF Files") + " (*.pdf)", qsTr("Documents") + " (*.doc *.docx *.odt)"]
+		options: FileDialog.ReadOnly
+		currentFolder: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
+		fileMode: FileDialog.OpenFile
 
 		onAccepted: {
-			strMediaPath = appUtils.getCorrectPath(currentFile);
-			close();
-			displaySelectedMedia();
+			const mediapath = appUtils.getCorrectPath(currentFile);
+			exercisesModel.setMediaPath(exercisesModel.currentRow, mediapath);
+			displaySelectedMedia(mediapath);
 		}
 	}
 
@@ -447,17 +428,15 @@ TPPage {
 		mainwindow.popFromStack();
 	}
 
-	function displaySelectedMedia() {
-		if (strMediaPath.length < 5)
-			return;
+	function displaySelectedMedia(strMediaPath: string) {
 		var mediaType = appUtils.getFileType(strMediaPath);
-		if ( mediaType === 1) { //video
+		if (mediaType === 1) { //video
 			if (imageViewer !== null) {
 				imageViewer.destroy();
 				imageViewer = null;
 			}
 			if (videoViewer === null)
-				generateObject(1);
+				generateObject(1, strMediaPath);
 			else
 				videoViewer.mediaSource = strMediaPath;
 		}
@@ -469,13 +448,13 @@ TPPage {
 				videoViewer = null;
 			}
 			if (imageViewer === null)
-				generateObject(0);
+				generateObject(0, strMediaPath);
 			else
 				imageViewer.mediaSource = strMediaPath;
 		}
 	}
 
-	function generateObject(obj) {
+	function generateObject(obj: int, strMediaPath: string) {
 		var component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
 		function finishCreation(Obj) {
 			if (Obj === 0)

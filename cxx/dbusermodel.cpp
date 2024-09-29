@@ -202,107 +202,6 @@ QStringList DBUserModel::getClients() const
 	return clients;
 }
 
-
-void DBUserModel::setSex(const int row, const uint new_sex)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_SEX] = QString::number(new_sex);
-		setModified(true);
-	}
-}
-
-void DBUserModel::setPhone(const int row, const QString& new_phone)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_PHONE] = new_phone;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setEmail(const int row, const QString& new_email)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_EMAIL] = new_email;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setSocialMedia(const int row, const QString& new_social)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_SOCIALMEDIA] = new_social;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setUserRole(const int row, const QString& new_role)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_USERROLE] = new_role;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setCoachRole(const int row, const QString& new_role)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_COACHROLE] = new_role;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setGoal(const int row, const QString& new_goal)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_GOAL] = new_goal;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setAvatar(const int row, const QString& new_avatar)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_AVATAR] = new_avatar;
-		setModified(true);
-	}
-}
-
-void DBUserModel::setAppUseMode(const int row, const int new_use_opt)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-		emit appUseModeChanged(row);
-		setModified(true);
-	}
-}
-
-void DBUserModel::setCurrentCoach(const int row, const int new_current_coach)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_CURRENT_COACH] = QString::number(new_current_coach);
-		setModified(true);
-	}
-}
-
-void DBUserModel::setCurrentUser(const int row, const int new_current_user)
-{
-	if (row >= 0 && row < m_modeldata.count())
-	{
-		m_modeldata[row][USER_COL_CURRENT_USER] = QString::number(new_current_user);
-		setModified(true);
-	}
-}
-
 int DBUserModel::importFromFile(const QString& filename)
 {
 	QFile* inFile{new QFile(filename)};
@@ -349,6 +248,12 @@ int DBUserModel::importFromFile(const QString& filename)
 	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
+bool DBUserModel::updateFromModel(const TPListModel* const model)
+{
+	appendList(model->m_modeldata.at(0));
+	return true;
+}
+
 QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const
 {
 	switch (field)
@@ -356,17 +261,12 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 		case USER_COL_BIRTHDAY:
 			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 		case USER_COL_SEX:
-			return fieldValue == u"0"_qs ? tr("Male") : tr("Female");
+			return fieldValue == STR_ZERO ? tr("Male") : tr("Female");
 		case USER_COL_AVATAR:
 			if (fieldValue.contains(u"tpimageprovider"_qs))
 				return fieldValue.right(fieldValue.length()-24);
 			else
-			{
-				if (m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == u"0"_qs)
-					return u"Avatar-m5"_qs;
-				else
-					return u"Avatar-f0"_qs;
-			}
+				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? u"Avatar-m5"_qs : u"Avatar-f0"_qs;
 		default: return QString();
 	}
 }
@@ -378,9 +278,9 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 		case USER_COL_BIRTHDAY:
 			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
 		case USER_COL_SEX:
-			return fieldValue == tr("Male") ? u"0"_qs : u"1"_qs;
+			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
 		case USER_COL_AVATAR:
-			return u"image://tpimageprovider/" + fieldValue.right(fieldValue.length()-7);
+			return u"image://tpimageprovider/"_qs + fieldValue.right(fieldValue.length()-7);
 		default: return QString();
 	}
 }

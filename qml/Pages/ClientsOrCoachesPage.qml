@@ -168,7 +168,6 @@ TPPage {
 				userModel.setCurrentCoach(0, checked ? curUserRow : -1);
 			else
 				userModel.setCurrentUser(0, checked ? curUserRow : -1);
-			appDB.saveUser(0);
 		}
 	}
 
@@ -216,33 +215,6 @@ TPPage {
 				width: windowWidth - 20
 				Layout.topMargin: 20
 			}
-		}
-	}
-
-	footer: ToolBar {
-		width: parent.width
-		height: footerHeight
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
-
-		TPButton {
-			text: qsTr("Save")
-			enabled: userModel.modified
-			width: 80
-			flat: false
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
-
-			onClicked: appDB.saveUser(curUserRow);
 		}
 	}
 

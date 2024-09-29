@@ -275,9 +275,8 @@ void QmlItemManager::removeUser(const uint user_row, const bool bCoach)
 //-----------------------------------------------------------EXERCISES-----------------------------------------------------------
 const uint QmlItemManager::removeExercise(const uint row)
 {
-	const int actualIndex (appExercisesModel()->getIntFast(row, EXERCISES_COL_ACTUALINDEX));
-	appDBInterface()->removeExercise(actualIndex);
-	appExercisesModel()->removeRow(actualIndex);
+	appDBInterface()->removeExercise(appExercisesModel()->actualIndex(row));
+	appExercisesModel()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
 }
 
@@ -464,7 +463,7 @@ void QmlItemManager::exportMesoSplit(const bool bShare, const QString& splitLett
 
 	QString mesoLetters;
 	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	const QString::const_iterator& itr_end(mesoSplit.constEnd());
 	do {
 		if (static_cast<QChar>(*itr) == QChar('R'))
 			continue;
@@ -527,7 +526,7 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 		m_currenttDayPage = nullptr;
 		m_CurrenttDayModel->appendRow();
 		m_CurrenttDayModel->setMesoId(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_ID));
-		m_CurrenttDayModel->setDate(0, TDAY_COL_DATE, date);
+		m_CurrenttDayModel->setDate(date);
 		m_CurrenttDayModel->setSplitLetter(splitLetter);
 		m_CurrenttDayModel->setTrainingDay(tday);
 		m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
@@ -565,7 +564,7 @@ void QmlItemManager::loadExercisesFromDate(const QString& strDate)
 {
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [&] (const uint) {
-		const bool btoday(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE) == QDate::currentDate());
+		const bool btoday(m_CurrenttDayModel->date() == QDate::currentDate());
 		m_CurrenttDayModel->setModified(btoday);
 		m_CurrenttDayModel->setDayIsFinished(!btoday);
 		createExercisesObjects();
@@ -576,7 +575,7 @@ void QmlItemManager::loadExercisesFromDate(const QString& strDate)
 void QmlItemManager::loadExercisesFromMesoPlan()
 {
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [&] (const uint) {
-		const bool btoday(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE) == QDate::currentDate());
+		const bool btoday(m_CurrenttDayModel->date() == QDate::currentDate());
 		m_CurrenttDayModel->setModified(btoday);
 		m_CurrenttDayModel->setDayIsFinished(!btoday);
 		createExercisesObjects();
@@ -1349,9 +1348,12 @@ void QmlItemManager::createExercisesPage_part2(QQuickItem* connectPage)
 		appQmlEngine()->setObjectOwnership(exercisesPage, QQmlEngine::CppOwnership);
 		exercisesPage->setParentItem(appMainWindow()->contentItem());
 		appExercisesModel()->clearSelectedEntries();
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
 		if (connectPage)
 			connect(exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, exercisesPage));
+		connect(appExercisesModel(), &DBExercisesModel::exerciseChanged, this, [&] (const uint index) {
+			appDBInterface()->saveExercises();
+		});
 	}
 }
 //-----------------------------------------------------------EXERCISES TABLE PRIVATE-----------------------------------------------------------
@@ -1359,14 +1361,14 @@ void QmlItemManager::createExercisesPage_part2(QQuickItem* connectPage)
 //-----------------------------------------------------------MESOCYCLES PRIVATE-----------------------------------------------------------
 void QmlItemManager::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
-	const int meso_id(appMesoModel()->getIntFast(m_mesoIdx, MESOCYCLES_COL_ID));
+	const int meso_id(appMesoModel()->_id(m_mesoIdx));
 	m_mesoProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
 	m_mesoProperties.insert(u"minimumMesoStartDate"_qs, !minimumMesoStartDate.isNull() ?
 								minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id));
 	m_mesoProperties.insert(u"maximumMesoEndDate"_qs, !maximumMesoEndDate.isNull() ?
 								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id));
 	m_mesoProperties.insert(u"calendarStartDate"_qs, !calendarStartDate.isNull() ?
-								calendarStartDate: appMesoModel()->getDateFast(m_mesoIdx, MESOCYCLES_COL_STARTDATE));
+								calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
 	m_mesoMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
 	m_mesoProperties.insert(u"muscularGroupId"_qs, m_mesoMuscularGroupId);
 
@@ -1508,7 +1510,7 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 	DBMesoSplitModel* splitModel(nullptr);
 	int i(-1);
 	QMap<QChar,DBMesoSplitModel*>::const_iterator itr(m_splitModels.constBegin());
-	const QMap<QChar,DBMesoSplitModel*>::const_iterator itr_end(m_splitModels.constEnd());
+	const QMap<QChar,DBMesoSplitModel*>::const_iterator& itr_end(m_splitModels.constEnd());
 	while (++itr != itr_end)
 	{
 		++i;
@@ -1560,7 +1562,7 @@ void QmlItemManager::initializeSplitModels()
 {
 	const QString& mesoSplit(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT));
 	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	const QString::const_iterator& itr_end(mesoSplit.constEnd());
 
 	do {
 		if (static_cast<QChar>(*itr) == QChar('R'))
@@ -1572,7 +1574,7 @@ void QmlItemManager::initializeSplitModels()
 void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)
 {
 	int prevMesoId(-1);
-	prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->getIntFast(m_mesoIdx, MESOCYCLES_COL_ID));
+	prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->_id(m_mesoIdx));
 	if (prevMesoId >= 0)
 	{
 		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
@@ -1590,7 +1592,7 @@ void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoS
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void QmlItemManager::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
-	const QString& musculargroup{appMesoModel()->getMuscularGroup(m_mesoIdx, splitModel->splitLetter())};
+	const QString& musculargroup{appMesoModel()->muscularGroup(m_mesoIdx, splitModel->splitLetter())};
 	splitModel->setMuscularGroup(musculargroup);
 	QQuickItem* splitPage(getSplitPage(splitModel->splitLetter().at(0)));
 	if (splitPage)
@@ -1654,7 +1656,7 @@ void QmlItemManager::createTrainingDayPage_part2()
 							enableDisableExerciseCompletedButton(exercise_idx, completed);
 	});
 
-	const QDate& date(m_CurrenttDayModel->getDateFast(0, TDAY_COL_DATE));
+	const QDate& date(m_CurrenttDayModel->date());
 	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
@@ -1680,7 +1682,7 @@ void QmlItemManager::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDa
 				QMetaObject::invokeMethod(i.value(), "warnCalendarChanged",
 					Q_ARG(QString, mesoCal->getSplitLetter(i.key().month(), i.key().day())),
 					Q_ARG(QString, QString::number(mesoCal->getTrainingDay(i.key().month(), i.key().day()))),
-					Q_ARG(QString, appMesoModel()->getMuscularGroup(m_mesoIdx, mesoCal->getSplitLetter(startDate.month(), startDate.day()))));
+					Q_ARG(QString, appMesoModel()->muscularGroup(m_mesoIdx, mesoCal->getSplitLetter(startDate.month(), startDate.day()))));
 			}
 		}
 	}

@@ -45,29 +45,19 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDayModel)
 {
 	m_modeldata.clear();
-	m_indexProxy.clear();
-	QStringList exerciseInfo;
-	QString repsOrweight;
+	QStringList exerciseInfo(COMPLETE_MESOSPLIT_TOTAL_COLS);
+	exerciseInfo[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
+
 	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
 	{
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->name); //MESOSPLIT_COL_EXERCISENAME
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->type.join(subrecord_separator)); //MESOSPLIT_COL_SETTYPE
-		exerciseInfo.append(QString::number(tDayModel->m_ExerciseData.at(i)->nsets)); //MESOSPLIT_COL_SETSNUMBER
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->subsets.join(subrecord_separator)); //MESOSPLIT_COL_SUBSETSNUMBER
-
-		//DBTrainingDayModel can handle composite sets that end with subrecord_separator. DBMesoSplitModel cannot
-		repsOrweight = tDayModel->m_ExerciseData.at(i)->reps.join(subrecord_separator);
-		if (repsOrweight.endsWith(subrecord_separator))
-			repsOrweight.chop(1);
-		exerciseInfo.append(repsOrweight); //MESOSPLIT_COL_REPSNUMBER
-		repsOrweight = tDayModel->m_ExerciseData.at(i)->weight.join(subrecord_separator);
-		if (repsOrweight.endsWith(subrecord_separator))
-			repsOrweight.chop(1);
-		exerciseInfo.append(repsOrweight); //MESOSPLIT_COL_WEIGHT
-		exerciseInfo.append(tDayModel->m_ExerciseData.at(i)->notes.join(subrecord_separator)); //MESOSPLIT_COL_NOTES
+		exerciseInfo[MESOSPLIT_COL_EXERCISENAME] = tDayModel->_exerciseName(i);
+		exerciseInfo[MESOSPLIT_COL_SETSNUMBER] = tDayModel->_setsNumber(i);
+		exerciseInfo[MESOSPLIT_COL_NOTES] = tDayModel->setsNotes(i);
+		exerciseInfo[MESOSPLIT_COL_SETTYPE] = tDayModel->setsTypes(i);
+		exerciseInfo[MESOSPLIT_COL_SUBSETSNUMBER] = tDayModel->setsSubSets(i);
+		exerciseInfo[MESOSPLIT_COL_REPSNUMBER] = tDayModel->setsReps(i);
+		exerciseInfo[MESOSPLIT_COL_WEIGHT] = tDayModel->setsWeight(i);
 		m_modeldata.append(exerciseInfo);
-		m_indexProxy.append(i);
-		exerciseInfo.clear();
 	}
 	setReady(true);
 }

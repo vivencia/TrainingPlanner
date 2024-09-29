@@ -41,6 +41,35 @@ public:
 	void convertFromTDayModel(const DBTrainingDayModel* const tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 
+	inline const QString& id(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_ID); }
+	inline void setId(const uint row, const QString& new_id) { m_modeldata[row][MESOSPLIT_COL_ID] = new_id; }
+
+	inline const QString& mesoId(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_MESOID); }
+	inline void setMesoId(const uint row, const QString& new_id) { m_modeldata[row][MESOSPLIT_COL_MESOID] = new_id; }
+
+	inline const QString& splitA(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_A); }
+	inline void setSplitA(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_A] = new_split; }
+
+	inline const QString& splitB(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_B); }
+	inline void setSplitB(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_B] = new_split; }
+
+	inline const QString& splitC(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_C); }
+	inline void setSplitC(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_C] = new_split; }
+
+	inline const QString& splitD(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_D); }
+	inline void setSplitD(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_D] = new_split; }
+
+	inline const QString& splitE(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_E); }
+	inline void setSplitE(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_E] = new_split; }
+
+	inline const QString& splitF(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_F); }
+	inline void setSplitF(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_F] = new_split; }
+
+	inline void setFast(const uint row, const uint field, const QString& value)
+	{
+		m_modeldata[row][field] = value;
+	}
+
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
 	Q_INVOKABLE inline void setMuscularGroup(const QString& muscularGroup) { m_muscularGroup = muscularGroup; }
 
@@ -48,7 +77,7 @@ public:
 	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
-	Q_INVOKABLE const QString exerciseName(const int row);
+	Q_INVOKABLE const QString exerciseName(const uint row);
 	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName1(const uint row) const;
 	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);
@@ -88,7 +117,7 @@ public:
 	Q_INVOKABLE void setSetsWeight2(const uint row, const QString& new_setsweight);
 
 	uint workingSet() const { return workingSet(currentRow()); }
-	inline uint workingSet(const int row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
+	inline uint workingSet(const uint row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 

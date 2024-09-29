@@ -226,11 +226,8 @@ void DBInterface::getAllExercises()
 
 void DBInterface::saveExercises()
 {
-	if (appExercisesModel()->modifiedIndicesCount() > 0)
-	{
-		DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
-		createThread(worker, [worker] () { return worker->saveExercises(); });
-	}
+	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
@@ -291,17 +288,14 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 {
 	DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath, appMesoModel())};
 
-	if (appMesoModel()->getIntFast(meso_idx, MESOCYCLES_COL_ID) == -1)
+	if (appMesoModel()->_id(meso_idx) == -1)
 	{
 		if (appMesoModel()->importMode())
 			worker->setWaitForThreadToFinish(true);
 
 		connect( this, &DBInterface::databaseReady, this, [&,meso_idx,worker] (const uint db_id) {
 			if (db_id == worker->uniqueID())
-			{
-				appMesoModel()->mesoSplitModel()->setFast(meso_idx, MESOSPLIT_COL_MESOID, appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
 				saveMesoSplit(meso_idx);
-			}
 		});
 	}
 	else
@@ -313,12 +307,12 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 
 void DBInterface::removeMesocycle(const uint meso_idx)
 {
-	if (appMesoModel()->getIntFast(meso_idx, MESOCYCLES_COL_ID))
+	if (appMesoModel()->_id(meso_idx))
 	{
 		removeMesoCalendar(meso_idx);
 		removeMesoSplit(meso_idx);
 		DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath)};
-		worker->addExecArg(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID));
+		worker->addExecArg(appMesoModel()->id(meso_idx));
 		createThread(worker, [worker] () { return worker->removeEntry(); });
 	}
 }
@@ -353,7 +347,7 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 
 void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded)
 {
-	const QString mesoSplit(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_SPLIT));
+	const QString& mesoSplit(appMesoModel()->split(meso_idx));
 	QString mesoLetters;
 	DBMesoSplitModel* splitModel(nullptr);
 	uint nSplits(appMesoModel()->totalSplits(meso_idx));
@@ -361,7 +355,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 	bool connected(false);
 
 	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator itr_end(mesoSplit.constEnd());
+	const QString::const_iterator& itr_end(mesoSplit.constEnd());
 
 	do {
 		if (static_cast<QChar>(*itr) == QChar('R'))
@@ -379,7 +373,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 			worker->addExecArg(static_cast<QChar>(*itr));
 			if (!connected)
 			{
-				connect( this, &DBInterface::databaseReady, this, [&,nSplits] (const uint db_id) mutable {
+				connect(this, &DBInterface::databaseReady, this, [&,nSplits] (const uint db_id) mutable {
 					MSG_OUT("loadCompleteMesoSplits received databaseReady() " << db_id)
 					if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 					{
@@ -462,9 +456,9 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 		return;
 	}
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
-	const QDate endDate(bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
+	const QDate& endDate(bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
 					QDate::currentDate() :
-					appMesoModel()->getDate(meso_idx, MESOCYCLES_COL_ENDDATE));
+					appMesoModel()->endDate(meso_idx));
 	worker->addExecArg(bPreserveOldInfo);
 	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
 	worker->addExecArg(endDate);
@@ -484,7 +478,7 @@ void DBInterface::updateMesoCalendarModel(const DBTrainingDayModel* const tDayMo
 	}
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
 	worker->addExecArg(appMesoModel()->getFast(meso_idx, MESOCYCLES_COL_ID)); //needed for DBMesoCalendarTable::removeMesoCalendar()
-	worker->addExecArg(tDayModel->getDateFast(0, TDAY_COL_DATE));
+	worker->addExecArg(tDayModel->date());
 	worker->addExecArg(tDayModel->splitLetter());
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); });
 }
@@ -492,7 +486,7 @@ void DBInterface::updateMesoCalendarModel(const DBTrainingDayModel* const tDayMo
 void DBInterface::updateMesoCalendarEntry(const DBTrainingDayModel* const tDayModel)
 {
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(tDayModel->mesoIdx()))};
-	worker->addExecArg(tDayModel->getDateFast(0, TDAY_COL_DATE));
+	worker->addExecArg(tDayModel->date());
 	worker->addExecArg(tDayModel->trainingDay());
 	worker->addExecArg(tDayModel->splitLetter());
 	worker->addExecArg(tDayModel->dayIsFinished() ? STR_ONE : STR_ZERO);
@@ -511,7 +505,7 @@ void DBInterface::setDayIsFinished(DBTrainingDayModel* const tDayModel, const bo
 		return;
 	}
 	tDayModel->setDayIsFinished(bFinished);
-	const QDate date(tDayModel->getDateFast(0, TDAY_COL_DATE));
+	const QDate& date(tDayModel->date());
 	appMesoModel()->mesoCalendarModel(meso_idx)->setDayIsFinished(date, bFinished);
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
 	worker->addExecArg(date);
@@ -537,7 +531,7 @@ void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemov
 void DBInterface::getTrainingDay(DBTrainingDayModel* tDayModel)
 {
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
-	worker->addExecArg(QString::number(tDayModel->getDateFast(0, TDAY_COL_DATE).toJulianDay()));
+	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->getFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ID));
 	connect(this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
 				if (db_id == worker->uniqueID())
@@ -552,7 +546,7 @@ void DBInterface::getTrainingDay(DBTrainingDayModel* tDayModel)
 void DBInterface::getTrainingDayExercises(DBTrainingDayModel* tDayModel)
 {
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, const_cast<DBTrainingDayModel*>(tDayModel))};
-	worker->addExecArg(QString::number(tDayModel->getDateFast(0, TDAY_COL_DATE).toJulianDay()));
+	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->getFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ID));
 	connect( this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
 				if (db_id == worker->uniqueID())
@@ -577,8 +571,8 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 				if (db_id == worker->uniqueID())
 				{
 					DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(worker->model()));
-					tempModel->setFast(tempModel->count()-1, TDAY_COL_TRAININGDAYNUMBER,
-						mesoHasPlan(appMesoModel()->getIntFast(tempModel->mesoIdx(), MESOCYCLES_COL_ID), tempModel->splitLetter()) ?
+					//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
+					tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
 							STR_ONE : STR_ZERO);
 					emit databaseReadyWithData(QVariant::fromValue(tempModel));
 					delete tempModel;
@@ -590,7 +584,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 
 void DBInterface::loadExercisesFromDate(const QString& strDate, DBTrainingDayModel* tDayModel)
 {
-	const QDate date(appUtils()->getDateFromStrDate(strDate));
+	const QDate& date(appUtils()->getDateFromStrDate(strDate));
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 	worker->addExecArg(appMesoModel()->getFast(tDayModel->mesoIdx(), MESOCYCLES_COL_ID));
 	worker->addExecArg(QString::number(date.toJulianDay()));

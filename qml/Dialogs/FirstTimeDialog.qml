@@ -119,8 +119,6 @@ TPPopup {
 					close();
 				}
 				else {
-					if (stackLayout.currentIndex >= 2)
-						appDB.saveUser(0);
 					if (stackLayout.currentIndex >= 1)
 						stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
 				}

@@ -289,7 +289,7 @@ const QString DBTrainingDayModel::exportExtraInfo() const
 {
 	return tr("Workout #") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER) + tr(", split ") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER) +
 		u" ("_qs + appMesoModel()->mesoSplitModel()->getFast(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))) +
-		tr(") at ") + appUtils()->formatDate(getDateFast(0, TDAY_COL_DATE));
+		tr(") at ") + appUtils()->formatDate(date());
 }
 
 const QString DBTrainingDayModel::formatSetTypeToExport(const QString& fieldValue) const
@@ -374,7 +374,7 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 
 uint DBTrainingDayModel::getWorkoutNumberForTrainingDay() const
 {
-	return appMesoModel()->mesoCalendarModel(mesoIdx())->getLastTrainingDayBeforeDate(getDateFast(0, TDAY_COL_DATE)) + 1;
+	return appMesoModel()->mesoCalendarModel(mesoIdx())->getLastTrainingDayBeforeDate(date()) + 1;
 }
 
 QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const

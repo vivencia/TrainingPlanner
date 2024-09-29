@@ -13,12 +13,9 @@ void TPListModel::copy(const TPListModel& src_item)
 	m_currentRow = src_item.m_mesoIdx;
 	m_tableId = src_item.m_tableId;
 	m_fieldCount = src_item.m_fieldCount;
-	m_bFilterApplied = src_item.m_bFilterApplied;
 	m_bReady = src_item.m_bReady;
 	m_bModified = src_item.m_bModified;
 	m_bImportMode = src_item.m_bImportMode;
-	filterSearch_Field1 = src_item.filterSearch_Field1;
-	filterSearch_Field2 = src_item.filterSearch_Field2;
 	m_filterString = src_item.m_filterString;
 	m_exportName = src_item.m_exportName;
 }
@@ -42,18 +39,7 @@ void TPListModel::removeRow(const uint row)
 	Q_ASSERT_X(row < m_indexProxy.count(), "TPListModel::removeRow", "out of range row");
 	beginRemoveRows(QModelIndex(), row, row);
 	m_modeldata.remove(row);
-	if (!m_bFilterApplied)
-		m_indexProxy.remove(row);
-	else
-	{
-		const int proxy_index(m_indexProxy.indexOf(row));
-		if (proxy_index >= 0)
-		{
-			m_indexProxy.remove(proxy_index);
-			for(uint i(proxy_index); i < m_indexProxy.count(); ++i)
-				m_indexProxy[i] = i-1;
-		}
-	}
+	m_indexProxy.remove(row);
 	if (m_currentRow >= row)
 		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
 	emit countChanged();
@@ -113,92 +99,6 @@ void TPListModel::moveRow(const uint from, const uint to)
 	}
 }
 
-void TPListModel::setFilter(const QString &filter, const bool resetSelection)
-{
-	if (filter.length() >=3)
-	{
-		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
-		uint idx(0);
-		bool bFound(false), bFirst(true);
-
-		const QRegularExpression regex(filter, QRegularExpression::CaseInsensitiveOption);
-		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
-		{
-			bFound = regex.match((*lst_itr).at(filterSearch_Field1)).hasMatch();
-			if (!bFound)
-				bFound = regex.match((*lst_itr).at(filterSearch_Field2)).hasMatch();
-
-			if (bFound)
-			{
-				if (bFirst)
-				{
-					bFirst = false;
-					beginRemoveRows(QModelIndex(), 0, count()-1);
-					m_indexProxy.clear();
-					if (resetSelection)
-					{
-						resetPrivateData();
-						setCurrentRow(-1);
-					}
-					endRemoveRows();
-				}
-				beginInsertRows(QModelIndex(), count(), count());
-				m_indexProxy.append(idx);
-				endInsertRows();
-			}
-		}
-		m_bFilterApplied = m_indexProxy.count() != m_modeldata.count();
-	}
-	else
-	{
-		if (m_bFilterApplied)
-		{
-			m_bFilterApplied = false;
-			beginRemoveRows(QModelIndex(), 0, count()-1);
-			m_indexProxy.clear();
-			if (resetSelection)
-			{
-				resetPrivateData();
-				setCurrentRow(-1);
-			}
-			endRemoveRows();
-			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
-			for( uint i (0); i < m_modeldata.count(); ++i )
-				m_indexProxy.append(i);
-			endInsertRows();
-		}
-	}
-}
-
-void TPListModel::makeFilterString(const QString& text)
-{
-	m_filterString = text;
-	m_filterString = m_filterString.replace(',', ' ').simplified();
-	const QStringList& words(m_filterString.split(' '));
-
-	if ( words.count() > 0)
-	{
-		QStringList::const_iterator itr(words.begin());
-		const QStringList::const_iterator itr_end(words.end());
-		m_filterString.clear();
-
-		do
-		{
-			if((*itr).length() < 3)
-				continue;
-			if (!m_filterString.isEmpty())
-				m_filterString.append('|');
-			m_filterString.append((*itr).toLower());
-			if (m_filterString.endsWith('s', Qt::CaseInsensitive) )
-				m_filterString.chop(1);
-			m_filterString.remove('.');
-			m_filterString.remove('(');
-			m_filterString.remove(')');
-		} while (++itr != itr_end);
-	}
-}
-
 int TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
 {
 	QFile* outFile{new QFile(filename)};
@@ -215,7 +115,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 		if (m_exportRows.isEmpty())
 		{
 			QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-			const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+			const QList<QStringList>::const_iterator& itr_end(m_modeldata.constEnd());
 
 			while (itr != itr_end)
 			{
@@ -270,23 +170,11 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
-bool TPListModel::updateFromModel(const TPListModel* const model)
-{
-	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
-	uint lastIndex(m_modeldata.count());
-	do {
-		m_modifiedIndices.append(lastIndex++);
-		appendList((*lst_itr));
-	} while (++lst_itr != lst_itrend);
-	return true;
-}
-
-void TPListModel::setExportFiter(const QString& filter, const uint field)
+void TPListModel::setExportFilter(const QString& filter, const uint field)
 {
 	const QRegularExpression regex{filter, QRegularExpression::CaseInsensitiveOption};
 	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator lst_itrend(m_modeldata.constEnd());
+	const QList<QStringList>::const_iterator& lst_itrend(m_modeldata.constEnd());
 	uint row(0);
 	m_exportRows.clear();
 
