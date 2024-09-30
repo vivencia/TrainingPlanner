@@ -33,7 +33,6 @@ class DBMesoSplitModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
-Q_PROPERTY(int nbrSets READ nbrSets NOTIFY nbrSetsChanged)
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
 public:
@@ -65,6 +64,8 @@ public:
 	inline const QString& splitF(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_F); }
 	inline void setSplitF(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_F] = new_split; }
 
+	inline const QString& splitX(const uint row, const uint split_idx) const { return m_modeldata.at(row).at(split_idx); }
+
 	inline void setFast(const uint row, const uint field, const QString& value)
 	{
 		m_modeldata[row][field] = value;
@@ -77,47 +78,53 @@ public:
 	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
-	Q_INVOKABLE const QString exerciseName(const uint row);
+	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
+	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); }
+	Q_INVOKABLE void addSet(const uint row);
+	Q_INVOKABLE void delSet(const uint row);
+
+	inline const QString& _exerciseName(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME); }
+	Q_INVOKABLE const QString exerciseName(const int row);
 	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName1(const uint row) const;
 	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName2(const uint row) const;
 	Q_INVOKABLE void setExerciseName2(const uint row, const QString& new_name);
 
-	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
-	Q_INVOKABLE void removeExercise(const uint row) { removeRow(row); }
-
-	Q_INVOKABLE uint setsNumber(const uint row) const;
+	inline const QString& _setsNumber(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SETSNUMBER); }
+	Q_INVOKABLE uint setsNumber(const int row) const;
 	void setSetsNumber(const uint row, const uint new_setsnumber);
-	Q_INVOKABLE void addSet(const uint row);
-	Q_INVOKABLE void delSet(const uint row);
-	int nbrSets() const { return 1; }
 
-	Q_INVOKABLE QString setsNotes(const uint row) const;
+	inline const QString& _setsNotes(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_NOTES); }
+	Q_INVOKABLE QString setsNotes(const int row) const;
 	Q_INVOKABLE void setSetsNotes(const uint row, const QString& new_setsnotes);
 
-	Q_INVOKABLE uint setType(const uint row) const;
-	Q_INVOKABLE void setSetType(const uint row, const uint new_type);
+	inline const QString& _setsTypes(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE); }
+	Q_INVOKABLE uint setType(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetType(const uint row, const uint set_number, const uint new_type);
 
-	Q_INVOKABLE QString setsSubsets(const uint row) const;
-	Q_INVOKABLE void setSetsSubsets(const uint row, const QString& new_setssubsets);
+	inline const QString& _setsSubSets(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SUBSETSNUMBER); }
+	Q_INVOKABLE QString setSubsets(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetsSubsets(const uint row, const uint set_number, const QString& new_setssubsets);
 
-	Q_INVOKABLE QString setsReps(const uint row) const;
-	Q_INVOKABLE void setSetsReps(const uint row, const QString& new_setsreps);
-	Q_INVOKABLE QString setsReps1(const uint row) const;
-	Q_INVOKABLE void setSetsReps1(const uint row, const QString& new_setsreps);
-	Q_INVOKABLE QString setsReps2(const uint row) const;
-	Q_INVOKABLE void setSetsReps2(const uint row, const QString& new_setsreps);
+	inline const QString& _setsReps(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_REPSNUMBER); }
+	Q_INVOKABLE QString setReps(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetReps(const uint row, const uint set_number, const QString& new_setsreps);
+	Q_INVOKABLE QString setReps1(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetReps1(const uint row, const uint set_number, const QString& new_setsreps);
+	Q_INVOKABLE QString setReps2(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetReps2(const uint row, const uint set_number, const QString& new_setsreps);
 
-	Q_INVOKABLE QString setsWeight(const uint row) const;
-	Q_INVOKABLE void setSetsWeight(const uint row, const QString& new_setsweight);
-	Q_INVOKABLE QString setsWeight1(const uint row) const;
-	Q_INVOKABLE void setSetsWeight1(const uint row, const QString& new_setsweight);
-	Q_INVOKABLE QString setsWeight2(const uint row) const;
-	Q_INVOKABLE void setSetsWeight2(const uint row, const QString& new_setsweight);
+	inline const QString& _setsWeights(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WEIGHT); }
+	Q_INVOKABLE QString setWeight(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetWeight(const uint row, const uint set_number, const QString& new_setsweight);
+	Q_INVOKABLE QString setWeight1(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetWeight1(const uint row, const uint set_number, const QString& new_setsweight);
+	Q_INVOKABLE QString setWeight2(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetWeight2(const uint row, const uint set_number, const QString& new_setsweight);
 
-	uint workingSet() const { return workingSet(currentRow()); }
-	inline uint workingSet(const uint row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
+	inline uint workingSet() const { return workingSet(currentRow()); }
+	inline uint workingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
@@ -134,7 +141,7 @@ public:
 			return field == MESOSPLIT_COL_SETTYPE;
 		return false;
 	}
-	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
+	QString formatFieldToExport(const uint field, const QString& value) const;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 	const QString exportExtraInfo() const;
 	bool importExtraInfo(const QString& extrainfo);
@@ -143,7 +150,7 @@ signals:
 	void exerciseNameChanged();
 	void setTypeChanged();
 	void workingSetChanged();
-	void nbrSetsChanged();
+	void splitChanged(const uint meso_idx);
 
 private:
 	uint m_nextAddedExercisePos;
@@ -151,8 +158,8 @@ private:
 	QChar m_splitLetter;
 	bool mb_Complete;
 
-	QString getFromCompositeValue(const uint row, const uint column, const uint pos) const;
-	void replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value);
+	QString getFromCompositeValue(const uint row, const uint set_number, const uint column, const uint pos) const;
+	void replaceCompositeValue(const uint row, const uint set_number, const uint column, const uint pos, const QString& value);
 };
 
 //Q_DECLARE_METATYPE(DBMesoSplitModel*)

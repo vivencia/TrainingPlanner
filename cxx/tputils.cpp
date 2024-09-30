@@ -222,10 +222,10 @@ QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString
 	return QTime(hour, min, 0);
 }
 
-QString TPUtils::getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep) const
+QString TPUtils::getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const
 {
 	QString::const_iterator itr(compositeString.constBegin());
-	const QString::const_iterator itr_end(compositeString.constEnd());
+	const QString::const_iterator& itr_end(compositeString.constEnd());
 	uint n_seps(0);
 	int chr_pos(0);
 	uint last_sep_pos(0);
@@ -246,7 +246,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 	return compositeString.mid(last_sep_pos, chr_pos);
 }
 
-void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep) const
+void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const
 {
 	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1);
@@ -258,8 +258,8 @@ void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString
 		else
 		{
 			while (++n_seps < idx)
-				compositeString += QLatin1Char(chr_sep);
-			compositeString += newValue + QLatin1Char(chr_sep);
+				compositeString += chr_sep;
+			compositeString += newValue + chr_sep;
 		}
 		return;
 	}
@@ -285,7 +285,7 @@ bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2)
 {
 	const QStringList& words2(string2.split(' '));
 	QStringList::const_iterator itr(words2.begin());
-	const QStringList::const_iterator itr_end(words2.end());
+	const QStringList::const_iterator& itr_end(words2.end());
 	uint matches(0);
 	uint nwords(0);
 	do

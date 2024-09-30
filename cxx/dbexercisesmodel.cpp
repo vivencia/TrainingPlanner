@@ -200,10 +200,11 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 	return false;
 }
 
-void DBExercisesModel::newExercise(const uint index)
+void DBExercisesModel::newExercise(const QString& name, const QString& subname, const QString& muscular_group)
 {
-	const QStringList& exerciseInfo(QStringList(EXERCISES_TOTAL_COLS) << QString() << QString() << QString() << u"3"_qs << u"12"_qs <<
-					u"20"_qs << u"(kg)"_qs << u"qrc:/images/no_image.jpg"_qs << STR_ZERO << QString::number(m_modeldata.count()) << STR_ZERO);
+	setLastID(lastID() + 1);
+	const QStringList& exerciseInfo(QStringList(EXERCISES_TOTAL_COLS) << QString::number(lastID()) << name << subname << muscular_group <<
+		u"3"_qs << u"12"_qs << u"20"_qs << u"(kg)"_qs << u"qrc:/images/no_image.jpg"_qs << STR_ZERO << QString::number(m_modeldata.count()) << STR_ZERO);
 	appendList(exerciseInfo);
 }
 

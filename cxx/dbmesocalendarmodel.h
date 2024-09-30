@@ -29,9 +29,11 @@ public:
 	void updateModel(const QDate& startDate, const QString& newSplitLetter);
 	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished);
 
+	inline const QString& getDayInfo(const uint row, const uint day) const { return m_modeldata.at(row).at(day); }
+
 	inline QString getMesoId() const
 	{
-		return count() > 0 ? m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID) : "-1";
+		return count() > 0 ? m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID) : u"-1"_qs;
 	}
 
 	Q_INVOKABLE uint getMonth(const uint index) const

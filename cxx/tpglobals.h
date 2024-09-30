@@ -14,10 +14,13 @@ static const QString& TP_APP_VERSION(u"v20240818-B"_qs);
 #define MSG_OUT(message)
 #endif
 
-static const QLatin1Char record_separator(29);
-static const QLatin1Char record_separator2(30);
-static const QLatin1Char subrecord_separator(31);
+static const QLatin1Char record_separator(28);
+static const QLatin1Char record_separator_table(29);
+static const QLatin1Char comp_exercise_separator(30);
+static const QLatin1Char set_separator(31);
+static const QLatin1Char fancy_record_separator1('|');
 static const QLatin1Char fancy_record_separator2(';');
+static const QString& comp_exercise_fancy_separator(u" + "_qs);
 
 static const uint APP_TABLES_NUMBER(6);
 static const uint EXERCISES_TABLE_ID(0x0001);

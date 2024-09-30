@@ -288,59 +288,40 @@ bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
 const QString DBTrainingDayModel::exportExtraInfo() const
 {
 	return tr("Workout #") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER) + tr(", split ") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER) +
-		u" ("_qs + appMesoModel()->mesoSplitModel()->getFast(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))) +
+		u" ("_qs + appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))) +
 		tr(") at ") + appUtils()->formatDate(date());
 }
 
 const QString DBTrainingDayModel::formatSetTypeToExport(const QString& fieldValue) const
 {
-	QString retStr;
-	if (fieldValue.isEmpty())
-		retStr = tr("Regular");
-	switch (fieldValue.at(0).toLatin1())
-	{
-		default: retStr = tr("Regular"); break;
-		case '1': retStr = tr("Pyramid"); break;
-		case '2': retStr = tr("Drop Set"); break;
-		case '3': retStr = tr("Cluster Set"); break;
-		case '4': retStr = tr("Giant Set"); break;
-		case '5': retStr = tr("Myo Reps"); break;
-		case '6': retStr = tr("Inverted Pyramid"); break;
-	}
-	return retStr;
+	QString ret{fieldValue};
+	ret.replace(u"0"_qs, tr("Regular"));
+	ret.replace(u"1"_qs, tr("Pyramid"));
+	ret.replace(u"2"_qs, tr("Drop Set"));
+	ret.replace(u"3"_qs, tr("Cluster Set"));
+	ret.replace(u"4"_qs, tr("Giant Set"));
+	ret.replace(u"5"_qs, tr("Myo Reps"));
+	ret.replace(u"6"_qs, tr("Inverted Pyramid"));
+	return ret;
 }
 
 const QString DBTrainingDayModel::formatSetTypeToImport(const QString& fieldValue) const
 {
-	QString retStr;
+	QString ret;
 	if (!fieldValue.isEmpty())
 	{
-		QString setTypeStr;
-		const uint n(fieldValue.count(fancy_record_separator2));
-		for (uint i(0); i <= n; ++i)
-		{
-			setTypeStr = appUtils()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
-			if (setTypeStr == tr("Regular"))
-				retStr.append(u"0"_qs + record_separator2);
-			else if (setTypeStr == tr("Pyramid"))
-				retStr.append(u"1"_qs + record_separator2);
-			else if (setTypeStr == tr("Drop Set"))
-				retStr.append(u"2"_qs + record_separator2);
-			else if (setTypeStr == tr("Cluster Set"))
-				retStr.append(u"3"_qs + record_separator2);
-			else if (setTypeStr == tr("Giant Set"))
-				retStr.append(u"4"_qs + record_separator2);
-			else if (setTypeStr == tr("Myo Reps"))
-				retStr.append(u"5"_qs + record_separator2);
-			else if (setTypeStr == tr("Inverted Pyramid"))
-				retStr.append(u"6"_qs + record_separator2);
-			else
-				retStr.append(u"0"_qs + record_separator2);
-		}
+		ret = fieldValue;
+		ret.replace(tr("Regular"), u"0"_qs);
+		ret.replace(tr("Pyramid"), u"1"_qs);
+		ret.replace(tr("Drop Set"), u"2"_qs);
+		ret.replace(tr("Cluster Set"), u"3"_qs);
+		ret.replace(tr("Giant Set"), u"4"_qs);
+		ret.replace(tr("Myo Reps"), u"5"_qs);
+		ret.replace(tr("Inverted Pyramid"), u"6"_qs);
 	}
 	else
-		retStr = u"0"_qs + record_separator2;
-	return retStr;
+		ret = u"0"_qs;
+	return ret;
 }
 
 void DBTrainingDayModel::setDayIsFinished(const bool finished)

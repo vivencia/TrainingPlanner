@@ -25,7 +25,7 @@ TPPage {
 
 	header: ToolBar {
 		height: headerHeight
-		enabled: mesocyclesModel.get(itemManager.mesoIdx, 0) !== -1
+		enabled: !mesocyclesModel.isNewMeso
 
 		background: Rectangle {
 			gradient: Gradient {

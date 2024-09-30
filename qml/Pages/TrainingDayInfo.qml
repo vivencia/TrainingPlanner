@@ -27,7 +27,6 @@ TPPage {
 	property string mesoSplit
 	property string splitText
 	property string lastWorkOutLocation
-	property bool bRealMeso: true
 	property bool bHasPreviousTDays
 	property bool bHasMesoPlan
 	property bool pageOptionsLoaded: false
@@ -409,7 +408,7 @@ TPPage {
 				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + appUtils.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.get(tDayModel.mesoIdx, 1) + "</b><br>" +
+				text: "<b>" + appUtils.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.startDateFancy(tDayModel.mesoIdx) + "</b><br>" +
 					(splitLetter !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
 										qsTr("Rest day"))
 				font.pointSize: AppSettings.fontSizeTitle
@@ -752,8 +751,7 @@ TPPage {
 	}
 
 	Component.onCompleted: {
-		mesoSplit = mesocyclesModel.get(tDayModel.mesoIdx, 6);
-		bRealMeso = mesocyclesModel.get(tDayModel.mesoIdx, 11) !== "0";
+		mesoSplit = mesocyclesModel.split(tDayModel.mesoIdx);
 		trainingDayPage.StackView.activating.connect(pageActivation);
 		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
 		tDayModel.saveWorkout.connect(saveWorkout);
@@ -1029,7 +1027,7 @@ TPPage {
 	}
 
 	function changeSplitLetter() {
-		if (bRealMeso && cboSplitLetter.currentValue !== splitLetter) {
+		if (cboSplitLetter.currentValue !== splitLetter) {
 			adjustCalendarBox.newSplitLetter = cboSplitLetter.currentValue;
 			adjustCalendarBox.show(-1);
 		}

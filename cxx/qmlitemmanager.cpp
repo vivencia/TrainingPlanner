@@ -346,17 +346,17 @@ void QmlItemManager::getMesocyclePage()
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
-		addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
+		addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 }
 
 void QmlItemManager::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	int exportFileMessageId(0);
-	const QString& suggestedName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - TP Complete Meso.txt"));
+	const QString& suggestedName(appMesoModel()->name(m_mesoIdx) + tr(" - TP Complete Meso.txt"));
 	m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 	if (bCoachInfo)
 	{
-		appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_COACH)));
+		appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->coach(m_mesoIdx)));
 		appUserModel()->exportToFile(m_exportFilename);
 	}
 	appMesoModel()->setExportRow(m_mesoIdx);
@@ -393,7 +393,7 @@ void QmlItemManager::getMesoCalendarPage()
 		createMesoCalendarPage();
 	}
 	else
-		addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_calPage);
+		addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 //-----------------------------------------------------------MESOCALENDAR-----------------------------------------------------------
 
@@ -408,7 +408,7 @@ void QmlItemManager::getExercisesPlannerPage()
 		appDBInterface()->loadCompleteMesoSplits(m_mesoIdx, allSplitModels());
 	}
 	else
-		addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_plannerPage);
+		addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
 void QmlItemManager::getMesoSplitPage(const uint page_index)
@@ -445,20 +445,20 @@ void QmlItemManager::exportMesoSplit(const bool bShare, const QString& splitLett
 	{
 		if (splitLetter == u"X"_qs)
 		{
-			mesoSplit = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT);
-			suggestedName = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan.txt");
+			mesoSplit = appMesoModel()->split(m_mesoIdx);
+			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan.txt");
 		}
 		else
 		{
 			mesoSplit = splitLetter;
-			suggestedName = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
+			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_qs;
 		}
 		m_exportFilename = appOsInterface()->appDataFilesPath() + suggestedName;
 	}
 	else
 	{
 		m_exportFilename = filePath;
-		mesoSplit = appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT);
+		mesoSplit = appMesoModel()->split(m_mesoIdx);
 	}
 
 	QString mesoLetters;
@@ -525,7 +525,7 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 
 		m_currenttDayPage = nullptr;
 		m_CurrenttDayModel->appendRow();
-		m_CurrenttDayModel->setMesoId(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_ID));
+		m_CurrenttDayModel->setMesoId(appMesoModel()->id(m_mesoIdx));
 		m_CurrenttDayModel->setDate(date);
 		m_CurrenttDayModel->setSplitLetter(splitLetter);
 		m_CurrenttDayModel->setTrainingDay(tday);
@@ -1416,7 +1416,7 @@ void QmlItemManager::createMesocyclePage_part2()
 			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-		if (meso_idx == m_mesoIdx && initiator_id == m_mesoMuscularGroupId )
+		if (meso_idx == m_mesoIdx && initiator_id != m_mesoMuscularGroupId )
 			QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [&] (const uint meso_idx, const uint meso_field) {
@@ -1461,7 +1461,7 @@ void QmlItemManager::createMesoCalendarPage_part2()
 	#endif
 	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(app_StackView);
-	addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_calPage);
+	addMainMenuShortCut(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 //-----------------------------------------------------------MESOCALENDAR PRIVATE-----------------------------------------------------------
 
@@ -1492,7 +1492,7 @@ void QmlItemManager::createPlannerPage_part2()
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
 	m_plannerPage->setParentItem(app_StackView);
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
-	addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_plannerPage);
+	addMainMenuShortCut(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
 void QmlItemManager::createMesoSplitPage(const uint page_index)
@@ -1548,19 +1548,23 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
 								Q_ARG(int, appUtils()->splitLetterToIndex(splitModel->splitLetter())));
 
+	addMainMenuShortCut(appMesoModel()->name(m_mesoIdx), m_mesoPage);
+
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [&] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-			if (meso_idx == m_mesoIdx && initiator_id == m_splitMuscularGroupId )
-			{
-				if (splitIndex < m_splitModels.count())
-					updateMuscularGroup(m_splitModels.value(splitLetter));
-			}
+		if (meso_idx == m_mesoIdx && initiator_id != m_splitMuscularGroupId )
+		{
+			if (splitIndex < m_splitModels.count())
+				updateMuscularGroup(m_splitModels.value(splitLetter));
+		}
 	});
-	addMainMenuShortCut(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_NAME), m_mesoPage);
+	connect(splitModel, &DBMesoSplitModel::splitChanged, this, [&,splitModel] () {
+		appDBInterface()->saveMesoSplitComplete(splitModel);
+	});
 }
 
 void QmlItemManager::initializeSplitModels()
 {
-	const QString& mesoSplit(appMesoModel()->getFast(m_mesoIdx, MESOCYCLES_COL_SPLIT));
+	const QString& mesoSplit(appMesoModel()->split(m_mesoIdx));
 	QString::const_iterator itr(mesoSplit.constBegin());
 	const QString::const_iterator& itr_end(mesoSplit.constEnd());
 
@@ -1579,7 +1583,7 @@ void QmlItemManager::setSplitPageProperties(QQuickItem* splitPage, const DBMesoS
 	{
 		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
 		{
-			splitPage->setProperty("prevMesoName", appMesoModel()->getFast(prevMesoId, MESOCYCLES_COL_NAME));
+			splitPage->setProperty("prevMesoName", appMesoModel()->name(prevMesoId));
 			prevMesoId = -1; //Nothing from previous meso to import
 		}
 	}
@@ -1649,14 +1653,19 @@ void QmlItemManager::createTrainingDayPage_part2()
 	m_currenttDayPage = page;
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), page);
 
+	const QDate& date(m_CurrenttDayModel->date());
+	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
+
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [&] (const QDate& startDate, const QDate& endDate) {
 							updateOpenTDayPagesWithNewCalendarInfo(startDate, endDate);
 	});
 	connect(m_CurrenttDayModel, &DBTrainingDayModel::exerciseCompleted, this, [&] (const uint exercise_idx, const bool completed) {
 							enableDisableExerciseCompletedButton(exercise_idx, completed);
 	});
+	connect(m_CurrenttDayModel, &DBTrainingDayModel::tDayChanged, this, [&] () {
+		appDBInterface()->saveTrainingDay(m_CurrenttDayModel);
+	});
 
-	const QDate& date(m_CurrenttDayModel->date());
 	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
 	if (m_CurrenttDayModel->dayIsFinished())
 	{
@@ -1664,7 +1673,6 @@ void QmlItemManager::createTrainingDayPage_part2()
 		QMetaObject::invokeMethod(m_currenttDayPage, "updateTimer", Q_ARG(int, workoutLenght.hour()),
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
-	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
 }
 
 void QmlItemManager::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)

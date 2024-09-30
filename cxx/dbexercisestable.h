@@ -22,7 +22,8 @@ public:
 	void saveExercises();
 
 private:
-	static uint m_exercisesTableLastId;
+	DBExercisesModel* m_model;
+	uint m_exercisesTableLastId;
 	QStringList m_ExercisesList;
 
 	void removePreviousListEntriesFromDB();

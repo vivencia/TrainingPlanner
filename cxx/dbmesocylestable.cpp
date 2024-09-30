@@ -8,7 +8,7 @@
 #include <QTime>
 
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
-	: TPDatabaseTable{model}
+	: TPDatabaseTable{}, m_model(model)
 {
 	m_tableName = u"mesocycles_table"_qs;
 	m_tableID = MESOCYCLES_TABLE_ID;
@@ -156,14 +156,13 @@ void DBMesocyclesTable::getAllMesocycles()
 			if (query.first ())
 			{
 				QStringList meso_info(MESOCYCLES_TOTAL_COLS);
-				DBMesocyclesModel* model(static_cast<DBMesocyclesModel*>(m_model));
 				do
 				{
 					for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
 						meso_info[i] = query.value(i).toString();
-					static_cast<void>(model->newMesocycle(meso_info));
+					static_cast<void>(m_model->newMesocycle(meso_info));
 				} while (query.next ());
-				model->finishedLoadingFromDatabase();
+				m_model->finishedLoadingFromDatabase();
 				m_result = true;
 			}
 		}
@@ -196,11 +195,10 @@ void DBMesocyclesTable::saveMesocycle()
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
 
-		DBMesocyclesModel* model{static_cast<DBMesocyclesModel*>(m_model)};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(model->id(row))))
+		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(m_model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -212,9 +210,9 @@ void DBMesocyclesTable::saveMesocycle()
 			strQuery = u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
 							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
 							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12"_qs
-								.arg(model->name(row), model->strStartDate(row), model->strEndDate(row), model->notes(row),
-									model->nWeeks(row), model->split(row), model->coach(row), model->client(row),
-									model->file(row), model->type(row), model->realMeso(row), model->id(row));
+								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
+									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
+									m_model->file(row), m_model->type(row), m_model->realMeso(row), m_model->id(row));
 		}
 		else
 		{
@@ -222,17 +220,17 @@ void DBMesocyclesTable::saveMesocycle()
 							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
 							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)"_qs
-								.arg(model->name(row), model->strStartDate(row), model->strEndDate(row), model->notes(row),
-									model->nWeeks(row), model->split(row), model->coach(row), model->client(row),
-									model->file(row), model->type(row), model->realMeso(row));
+								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
+									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
+									m_model->file(row), m_model->type(row), m_model->realMeso(row));
 		}
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{
 			if (!bUpdate)
 			{
-				model->setId(row, query.lastInsertId().toString());
-				model->setImportMode(false);
+				m_model->setId(row, query.lastInsertId().toString());
+				m_model->setImportMode(false);
 			}
 			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
 		}

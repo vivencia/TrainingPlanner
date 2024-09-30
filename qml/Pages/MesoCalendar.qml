@@ -13,7 +13,6 @@ TPPage {
 	required property QmlItemManager itemManager
 	required property DBMesoCalendarModel mesoCalendarModel
 
-	readonly property string mesoName: mesocyclesModel.get(mesoCalendarModel.mesoIdx, 1)
 	property date _today
 	property bool bAlreadyLoaded: false
 
@@ -37,7 +36,7 @@ TPPage {
 
 			Label {
 				id: lbl1
-				text: mesoName
+				text: mesocyclesModel.name(itemManager.mesoIdx)
 				font.bold: true
 				color: AppSettings.fontColor
 				font.pointSize: AppSettings.fontSize

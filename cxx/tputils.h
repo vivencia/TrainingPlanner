@@ -1,6 +1,8 @@
 #ifndef TPUTILS_H
 #define TPUTILS_H
 
+#include "tpglobals.h"
+
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>
@@ -49,12 +51,12 @@ public:
 	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
 	Q_INVOKABLE QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
-	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString, const char chr_sep = 31) const;
-	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const char chr_sep = 31) const;
+	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
+	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const;
 	Q_INVOKABLE QString setCompositeValue_QML(const uint idx, const QString& newValue, const QString& compositeString) const
 	{
 		QString cpString(compositeString);
-		setCompositeValue(idx, newValue, cpString);
+		//setCompositeValue(idx, newValue, cpString);
 		return cpString;
 	}
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;

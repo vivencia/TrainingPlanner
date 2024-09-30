@@ -73,19 +73,6 @@ public:
 	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
 	void setExportFilter(const QString& filter, const uint field);
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
-	virtual inline QString formatFieldToExport(const uint, const QString&) const { return QString(); }
-
-	Q_INVOKABLE const QString get(const uint row, const uint field) const
-	{
-		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::get", "out of range row");
-		return static_cast<QString>(m_modeldata.at(m_indexProxy.at(row)).at(field));
-	}
-
-	inline const QString& getFast(const uint row, const uint field) const
-	{
-		Q_ASSERT_X(row >= 0 && row < m_indexProxy.count(), "TPListModel::getDate", "out of range row");
-		return m_modeldata.at(row).at(field);
-	}
 
 	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(row); }

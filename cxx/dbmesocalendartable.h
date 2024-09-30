@@ -25,6 +25,9 @@ public:
 	void changeMesoCalendar();
 	void updateMesoCalendar();
 	void removeMesoCalendar();
+
+private:
+	DBMesoCalendarModel* m_model;
 };
 
 #endif // DBMESOCALENDARTABLE_H

@@ -62,78 +62,15 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDay
 	setReady(true);
 }
 
-const QString DBMesoSplitModel::exerciseName(const int row)
-{
-	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::exerciseName", "out of range row");
-	QString name(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME));
-	return name.replace(subrecord_separator, u" + "_qs);
-}
-
-void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
-{
-	QString name(new_name);
-	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = name.replace(u" + "_qs, QString(subrecord_separator));
-	setModified(true);
-	emit exerciseNameChanged();
-}
-
-QString DBMesoSplitModel::exerciseName1(const uint row) const
-{
-	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(subrecord_separator));
-	return idx != -1 ? u"2: "_qs + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
-			m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
-}
-
-void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
-{
-	replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 1, new_name);
-	emit exerciseNameChanged();
-}
-
-QString DBMesoSplitModel::exerciseName2(const uint row) const
-{
-	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(subrecord_separator));
-	return idx != -1 ? u"2: "_qs + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) : tr("2: Add exercise ...");
-}
-
-void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
-{
-	replaceCompositeValue(row, MESOSPLIT_COL_EXERCISENAME, 2, new_name);
-	emit exerciseNameChanged();
-}
-
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList() << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
+	appendList(QStringList(COMPLETE_MESOSPLIT_TOTAL_COLS) << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
 	setCurrentRow(count() - 1);
-}
-
-QString DBMesoSplitModel::setsNotes(const uint row) const
-{
-	return m_modeldata.at(row).at(MESOSPLIT_COL_NOTES);
-}
-
-void DBMesoSplitModel::setSetsNotes(const uint row, const QString& new_setsnotes)
-{
-	appUtils()->setCompositeValue(workingSet(row), new_setsnotes, m_modeldata[row][MESOSPLIT_COL_NOTES], record_separator2.toLatin1());
-	setModified(true);
-}
-
-uint DBMesoSplitModel::setsNumber(const uint row) const
-{
-	return m_modeldata.at(row).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
-}
-
-void DBMesoSplitModel::setSetsNumber(const uint row, const uint new_setsnumber)
-{
-	m_modeldata[row][MESOSPLIT_COL_SETSNUMBER] = QString::number(new_setsnumber);
-	setModified(true);
-	emit nbrSetsChanged();
 }
 
 void DBMesoSplitModel::addSet(const uint row)
 {
-	uint nsets(m_modeldata.at(row).at(MESOSPLIT_COL_SETSNUMBER).toUInt());
+	uint nsets(setsNumber(row));
 	if (nsets < 10)
 	{
 		++nsets;
@@ -143,7 +80,7 @@ void DBMesoSplitModel::addSet(const uint row)
 
 void DBMesoSplitModel::delSet(const uint row)
 {
-	uint nsets(m_modeldata.at(row).at(MESOSPLIT_COL_SETSNUMBER).toUInt());
+	uint nsets(setsNumber(row));
 	if (nsets > 1)
 	{
 		--nsets;
@@ -151,89 +88,156 @@ void DBMesoSplitModel::delSet(const uint row)
 	}
 }
 
-uint DBMesoSplitModel::setType(const uint row) const
+const QString DBMesoSplitModel::exerciseName(const int row)
 {
-	return appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE), record_separator2.toLatin1()).toUInt();
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::exerciseName", "out of range row");
+	QString name(_exerciseName(static_cast<uint>(row)));
+	return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 }
 
-void DBMesoSplitModel::setSetType(const uint row, const uint new_type)
+void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 {
-	appUtils()->setCompositeValue(workingSet(row), QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], record_separator2.toLatin1());
+	QString name(new_name);
+	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = name.replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
+	setModified(true);
+	emit exerciseNameChanged();
+}
+
+QString DBMesoSplitModel::exerciseName1(const uint row) const
+{
+	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
+	return idx != -1 ? u"2: "_qs + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).left(idx) :
+			m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
+}
+
+void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
+{
+	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 1, new_name);
+	emit exerciseNameChanged();
+}
+
+QString DBMesoSplitModel::exerciseName2(const uint row) const
+{
+	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
+	return idx != -1 ? u"2: "_qs + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) : tr("2: Add exercise ...");
+}
+
+void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
+{
+	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 2, new_name);
+	emit exerciseNameChanged();
+}
+
+inline uint DBMesoSplitModel::setsNumber(const int row) const
+{
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::setsNumber", "out of range row");
+	return _setsNumber(static_cast<uint>(row)).toUInt();
+}
+
+void DBMesoSplitModel::setSetsNumber(const uint row, const uint new_setsnumber)
+{
+	m_modeldata[row][MESOSPLIT_COL_SETSNUMBER] = QString::number(new_setsnumber);
+	setModified(true);
+}
+
+QString DBMesoSplitModel::setsNotes(const int row) const
+{
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::setsNotes", "out of range row");
+	return _setsNotes(static_cast<uint>(row));
+}
+
+void DBMesoSplitModel::setSetsNotes(const uint row, const QString& new_setsnotes)
+{
+	m_modeldata[row][MESOSPLIT_COL_NOTES] = new_setsnotes;
+	setModified(true);
+}
+
+uint DBMesoSplitModel::setType(const int row, const uint set_number) const
+{
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::setsType", "out of range row");
+	return appUtils()->getCompositeValue(set_number, _setsTypes(static_cast<uint>(row)), set_separator).toUInt();
+}
+
+void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const uint new_type)
+{
+	appUtils()->setCompositeValue(set_number, QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], set_separator);
 	setModified(true);
 	emit setTypeChanged();
 }
 
-QString DBMesoSplitModel::setsSubsets(const uint row) const
+QString DBMesoSplitModel::setSubsets(const int row, const uint set_number) const
 {
-	return appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(MESOSPLIT_COL_SUBSETSNUMBER), record_separator2.toLatin1());
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::setSubsets", "out of range row");
+	return appUtils()->getCompositeValue(set_number, _setsSubSets(row), set_separator);
 }
 
-void DBMesoSplitModel::setSetsSubsets(const uint row, const QString& new_setssubsets)
+void DBMesoSplitModel::setSetsSubsets(const uint row, const uint set_number, const QString& new_setssubsets)
 {
-	appUtils()->setCompositeValue(workingSet(row), new_setssubsets, m_modeldata[row][MESOSPLIT_COL_SUBSETSNUMBER], record_separator2.toLatin1());
+	appUtils()->setCompositeValue(set_number, new_setssubsets, m_modeldata[row][MESOSPLIT_COL_SUBSETSNUMBER], set_separator);
 	setModified(true);
 }
 
-QString DBMesoSplitModel::setsReps(const uint row) const
+QString DBMesoSplitModel::setReps(const int row, const uint set_number) const
 {
-	return appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(MESOSPLIT_COL_REPSNUMBER), record_separator2.toLatin1());
+	Q_ASSERT_X(row >= 0 && row < m_modeldata.count(), "DBMesoSplitModel::setReps", "out of range row");
+	return appUtils()->getCompositeValue(set_number, _setsReps(row), set_separator);
 }
 
-void DBMesoSplitModel::setSetsReps(const uint row, const QString& new_setsreps)
+void DBMesoSplitModel::setSetReps(const uint row, const uint set_number, const QString& new_setsreps)
 {
-	appUtils()->setCompositeValue(workingSet(row), new_setsreps, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], record_separator2.toLatin1());
+	appUtils()->setCompositeValue(set_number, new_setsreps, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], set_separator);
 	setModified(true);
 }
 
-QString DBMesoSplitModel::setsReps1(const uint row) const
+QString DBMesoSplitModel::setReps1(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 1);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1);
 }
 
-void DBMesoSplitModel::setSetsReps1(const uint row, const QString& new_setsreps)
+void DBMesoSplitModel::setSetReps1(const uint row, const uint set_number, const QString& new_setsreps)
 {
-	replaceCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 1, new_setsreps);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1, new_setsreps);
 }
 
-QString DBMesoSplitModel::setsReps2(const uint row) const
+QString DBMesoSplitModel::setReps2(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 2);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 2);
 }
 
-void DBMesoSplitModel::setSetsReps2(const uint row, const QString& new_setsreps)
+void DBMesoSplitModel::setSetReps2(const uint row, const uint set_number, const QString& new_setsreps)
 {
-	replaceCompositeValue(row, MESOSPLIT_COL_REPSNUMBER, 2, new_setsreps);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 2, new_setsreps);
 }
 
-QString DBMesoSplitModel::setsWeight(const uint row) const
+QString DBMesoSplitModel::setWeight(const int row, const uint set_number) const
 {
-	return appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(MESOSPLIT_COL_WEIGHT), record_separator2.toLatin1());
+	return appUtils()->getCompositeValue(set_number, _setsWeights(row), set_separator);
 }
 
-void DBMesoSplitModel::setSetsWeight(const uint row, const QString& new_setsweight)
+void DBMesoSplitModel::setSetWeight(const uint row, const uint set_number, const QString& new_setsweight)
 {
-	appUtils()->setCompositeValue(workingSet(row), new_setsweight, m_modeldata[row][MESOSPLIT_COL_WEIGHT], record_separator2.toLatin1());
+	appUtils()->setCompositeValue(set_number, new_setsweight, m_modeldata[row][MESOSPLIT_COL_WEIGHT], set_separator);
 	setModified(true);
 }
 
-QString DBMesoSplitModel::setsWeight1(const uint row) const
+QString DBMesoSplitModel::setWeight1(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, MESOSPLIT_COL_WEIGHT, 1);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1);
 }
 
-void DBMesoSplitModel::setSetsWeight1(const uint row, const QString& new_setsweight)
+void DBMesoSplitModel::setSetWeight1(const uint row, const uint set_number, const QString& new_setsweight)
 {
-	replaceCompositeValue(row, MESOSPLIT_COL_WEIGHT, 1, new_setsweight);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1, new_setsweight);
 }
 
-QString DBMesoSplitModel::setsWeight2(const uint row) const
+QString DBMesoSplitModel::setWeight2(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, MESOSPLIT_COL_WEIGHT, 2);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 2);
 }
 
-void DBMesoSplitModel::setSetsWeight2(const uint row, const QString& new_setsweight)
+void DBMesoSplitModel::setSetWeight2(const uint row, const uint set_number, const QString& new_setsweight)
 {
-	replaceCompositeValue(row, MESOSPLIT_COL_WEIGHT, 2, new_setsweight);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 2, new_setsweight);
 }
 
 void DBMesoSplitModel::setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal)
@@ -260,9 +264,9 @@ void DBMesoSplitModel::changeExercise(const DBExercisesModel* const model)
 		for (uint i(0); i < nSel; ++i)
 		{
 			name += model->selectedEntriesValue_fast(i, EXERCISES_COL_MAINNAME) + u" - "_qs +
-					model->selectedEntriesValue_fast(i, EXERCISES_COL_SUBNAME) + subrecord_separator;
-			reps += model->selectedEntriesValue(i, EXERCISES_COL_REPSNUMBER) + subrecord_separator;
-			weight += model->selectedEntriesValue(i, EXERCISES_COL_WEIGHT) + subrecord_separator;
+					model->selectedEntriesValue_fast(i, EXERCISES_COL_SUBNAME) + comp_exercise_separator;
+			reps += model->selectedEntriesValue(i, EXERCISES_COL_REPSNUMBER) + comp_exercise_separator;
+			weight += model->selectedEntriesValue(i, EXERCISES_COL_WEIGHT) + comp_exercise_separator;
 		}
 		name.chop(1);
 		reps.chop(1);
@@ -270,8 +274,8 @@ void DBMesoSplitModel::changeExercise(const DBExercisesModel* const model)
 	}
 
 	setExerciseName(currentRow(), name);
-	setSetsReps(currentRow(), reps);
-	setSetsWeight(currentRow(), weight);
+	setSetReps(currentRow(), workingSet(), reps);
+	setSetWeight(currentRow(), workingSet(), weight);
 	setSetsNumber(currentRow(), model->selectedEntriesValue(0, EXERCISES_COL_SETSNUMBER).toUInt());
 }
 
@@ -283,7 +287,7 @@ static void muscularGroupSimplified(QString& muscularGroup)
 	if ( words.count() > 0)
 	{
 		QStringList::const_iterator itr(words.begin());
-		const QStringList::const_iterator itr_end(words.end());
+		const QStringList::const_iterator& itr_end(words.end());
 		muscularGroup.clear();
 
 		do
@@ -304,27 +308,27 @@ static void muscularGroupSimplified(QString& muscularGroup)
 
 QString DBMesoSplitModel::findSwappableModel() const
 {
-	QString muscularGroup1(appMesoModel()->getMuscularGroup(mesoIdx(), splitLetter()));
+	QString muscularGroup1(appMesoModel()->muscularGroup(mesoIdx(), splitLetter()));
 	if (!muscularGroup1.isEmpty())
 	{
 		muscularGroupSimplified(muscularGroup1);
 		QString muscularGroup2;
-		const QString& mesoSplit(appMesoModel()->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
+		const QString& mesoSplit(appMesoModel()->split(mesoIdx()));
 		QString::const_iterator itr(mesoSplit.constBegin());
-		const QString::const_iterator itr_end(mesoSplit.constEnd());
+		const QString::const_iterator& itr_end(mesoSplit.constEnd());
 
 		do {
-			if (static_cast<QChar>(*itr) == QChar('R'))
+			if ((*itr) == QChar('R'))
 				continue;
-			else if (static_cast<QChar>(*itr) == splitLetter().at(0))
+			else if ((*itr) == splitLetter().at(0))
 				continue;
 
-			muscularGroup2 = appMesoModel()->getMuscularGroup(mesoIdx(), *itr);
+			muscularGroup2 = appMesoModel()->muscularGroup(mesoIdx(), *itr);
 			if (!muscularGroup2.isEmpty())
 			{
 				muscularGroupSimplified(muscularGroup2);
 				if (appUtils()->stringsAreSimiliar(muscularGroup1, muscularGroup2))
-					return QString(*itr);
+					return static_cast<QString>(*itr);
 			}
 		} while (++itr != itr_end);
 	}
@@ -341,9 +345,8 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 		outFile->write(strHeader.toUtf8().constData());
 
 		QString value;
-		uint nsets(0);
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator itr_end(m_modeldata.constEnd());
+		const QList<QStringList>::const_iterator& itr_end(m_modeldata.constEnd());
 
 		while (itr != itr_end)
 		{
@@ -354,19 +357,13 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 					if (!mColumnNames.at(i).isEmpty())
 					{
 						outFile->write(mColumnNames.at(i).toUtf8().constData());
-						value.clear();
-						nsets = (*itr).at(MESOSPLIT_COL_SETSNUMBER).toUInt();
-						for (uint x(0); x < nsets; ++x)
-						{
-							if (!isFieldFormatSpecial(i))
-							{
-								value.append(appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1()) + fancy_record_separator2);
-								value.replace(subrecord_separator, '|');
-							}
-							else
-								value.append(formatFieldToExport(i, appUtils()->getCompositeValue(x, (*itr).at(i), record_separator2.toLatin1())) + fancy_record_separator2);
-						}
-						outFile->write(value.replace(record_separator2, fancy_record_separator2).toUtf8().constData());
+						if (!isFieldFormatSpecial(i))
+							value = (*itr).at(i);
+						else
+							value = formatFieldToExport(i, (*itr).at(i));
+						value.replace(set_separator, fancy_record_separator2);
+						value.replace(comp_exercise_separator, comp_exercise_fancy_separator);
+						outFile->write(value.toUtf8().constData());
 						outFile->write("\n", 1);
 					}
 				}
@@ -416,22 +413,11 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 					value = buf;
 					value.remove(0, value.indexOf(':') + 2);
 					if (!isFieldFormatSpecial(col))
-					{
-						switch(col)
-						{
-							case MESOSPLIT_COL_EXERCISENAME:
-								modeldata[col] = value.replace('|', subrecord_separator);
-							break;
-							case MESOSPLIT_COL_SETSNUMBER:
-							case MESOSPLIT_COL_NOTES:
-								modeldata[col] = value;
-							break;
-							default:
-								modeldata[col] = value.replace('|', subrecord_separator).replace(fancy_record_separator2, record_separator2) + record_separator2;
-						}
-					}
+						modeldata[col] = value;
 					else
 						modeldata[col] = formatFieldToImport(col, value);
+					modeldata[col].replace(fancy_record_separator2, set_separator);
+					modeldata[col].replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
 					col++;
 					if (col == MESOSPLIT_COL_WORKINGSET)
 					{
@@ -455,7 +441,7 @@ bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
 {
 	clear();
 	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator lst_itrend(model->m_modeldata.constEnd());
+	const QList<QStringList>::const_iterator& lst_itrend(model->m_modeldata.constEnd());
 	do {
 		appendList((*lst_itr));
 	} while (++lst_itr != lst_itrend);
@@ -475,57 +461,40 @@ QString DBMesoSplitModel::formatFieldToExport(const uint field, const QString& f
 {
 	if (field == MESOSPLIT_COL_SETTYPE)
 	{
-		if (fieldValue.isEmpty())
-			return tr("Regular");
-		switch (fieldValue.at(0).toLatin1())
-		{
-			default: return tr("Regular"); break;
-			case '1': return tr("Pyramid"); break;
-			case '2': return tr("Drop Set"); break;
-			case '3': return tr("Cluster Set"); break;
-			case '4': return tr("Giant Set"); break;
-			case '5': return tr("Myo Reps"); break;
-			case '6': return tr("Inverted Pyramid"); break;
-		}
+		QString ret{fieldValue};
+		ret.replace(u"0"_qs, tr("Regular"));
+		ret.replace(u"1"_qs, tr("Pyramid"));
+		ret.replace(u"2"_qs, tr("Drop Set"));
+		ret.replace(u"3"_qs, tr("Cluster Set"));
+		ret.replace(u"4"_qs, tr("Giant Set"));
+		ret.replace(u"5"_qs, tr("Myo Reps"));
+		ret.replace(u"6"_qs, tr("Inverted Pyramid"));
+		return ret;
 	}
-	else
-		return QString();
+	return QString();
 }
 
 QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& fieldValue) const
 {
-	QString retStr;
+	QString ret;
 	if (field == MESOSPLIT_COL_SETTYPE)
 	{
 		if (!fieldValue.isEmpty())
 		{
-			QString setTypeStr;
-			const uint n(fieldValue.count(fancy_record_separator2));
-			for (uint i(0); i <= n; ++i)
-			{
-				setTypeStr = appUtils()->getCompositeValue(i, fieldValue, fancy_record_separator2.toLatin1());
-				if (setTypeStr == tr("Regular"))
-					retStr.append(u"0"_qs + record_separator2);
-				else if (setTypeStr == tr("Pyramid"))
-					retStr.append(u"1"_qs + record_separator2);
-				else if (setTypeStr == tr("Drop Set"))
-					retStr.append(u"2"_qs + record_separator2);
-				else if (setTypeStr == tr("Cluster Set"))
-					retStr.append(u"3"_qs + record_separator2);
-				else if (setTypeStr == tr("Giant Set"))
-					retStr.append(u"4"_qs + record_separator2);
-				else if (setTypeStr == tr("Myo Reps"))
-					retStr.append(u"5"_qs + record_separator2);
-				else if (setTypeStr == tr("Inverted Pyramid"))
-					retStr.append(u"6"_qs + record_separator2);
-				else
-					retStr.append(u"0"_qs + record_separator2);
-			}
+			ret = fieldValue;
+			ret.replace(tr("Regular"), u"0"_qs);
+			ret.replace(tr("Pyramid"), u"1"_qs);
+			ret.replace(tr("Drop Set"), u"2"_qs);
+			ret.replace(tr("Cluster Set"), u"3"_qs);
+			ret.replace(tr("Giant Set"), u"4"_qs);
+			ret.replace(tr("Myo Reps"), u"5"_qs);
+			ret.replace(tr("Inverted Pyramid"), u"6"_qs);
+
 		}
 		else
-			retStr = u"0"_qs + record_separator2;
+			ret = u"0"_qs;
 	}
-	return retStr;
+	return ret;
 }
 
 bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
@@ -545,20 +514,20 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 	return false;
 }
 
-QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint column, const uint pos) const
+QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_number, const uint column, const uint pos) const
 {
-	const QString& value(appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(column), record_separator2.toLatin1()));
-	const int idx(value.indexOf(subrecord_separator));
+	const QString& value(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(column), comp_exercise_separator));
+	const int idx(value.indexOf(comp_exercise_separator));
 	return idx != -1 ? pos == 1 ? value.left(idx) : value.sliced(idx+1) : value;
 }
 
-void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint column, const uint pos, const QString& value)
+void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_number, const uint column, const uint pos, const QString& value)
 {
-	QString fieldValue(appUtils()->getCompositeValue(workingSet(row), m_modeldata.at(row).at(column), record_separator2.toLatin1()));
+	QString fieldValue(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(column), comp_exercise_separator));
 
-	const int idx(fieldValue.indexOf(subrecord_separator));
+	const int idx(fieldValue.indexOf(comp_exercise_separator));
 	if (idx == -1)
-		fieldValue = pos == 1 ? value : fieldValue += subrecord_separator + value;
+		fieldValue = pos == 1 ? value : fieldValue += comp_exercise_separator + value;
 	else
 	{
 		if (pos == 1)
@@ -569,6 +538,6 @@ void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint column, 
 			fieldValue.append(value);
 		}
 	}
-	appUtils()->setCompositeValue(workingSet(row), fieldValue, m_modeldata[row][column], record_separator2.toLatin1());
+	appUtils()->setCompositeValue(set_number, fieldValue, m_modeldata[row][column], comp_exercise_separator);
 	setModified(true);
 }

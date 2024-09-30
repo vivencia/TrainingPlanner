@@ -8,7 +8,7 @@
 #include <QSqlQuery>
 
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model)
-	: TPDatabaseTable{model}
+	: TPDatabaseTable{nullptr}, m_model(model)
 {
 	m_tableName = u"training_day_table"_qs;
 	m_tableID = TRAININGDAY_TABLE_ID;
@@ -226,7 +226,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 				QStringList workout_info(TDAY_EXERCISES_TOTALCOLS);
 				for (uint i(TDAY_EXERCISES_COL_NAMES); i < TDAY_EXERCISES_TOTALCOLS; ++i)
 					workout_info[i] = query.value(static_cast<int>(i)).toString();
-				static_cast<DBTrainingDayModel*>(m_model)->fromDataBase(workout_info, bClearSomeFieldsForReUse);
+				m_model->fromDataBase(workout_info, bClearSomeFieldsForReUse);
 				m_result = true;
 			}
 		}
@@ -304,9 +304,8 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 			}
 			if (!lastLocation.isEmpty())
 			{
-				DBTrainingDayModel* model{static_cast<DBTrainingDayModel*>(m_model)};
-				model->appendList(QStringList(TDAY_TOTAL_COLS));
-				model->setLocation(lastLocation);
+				m_model->appendList(QStringList(TDAY_TOTAL_COLS));
+				m_model->setLocation(lastLocation);
 				m_result = true;
 			}
 		}
@@ -326,8 +325,7 @@ void DBTrainingDayTable::saveTrainingDay()
 	m_result = false;
 	if (mSqlLiteDB.open())
 	{
-		DBTrainingDayModel* model(static_cast<DBTrainingDayModel*>(m_model));
-		const QStringList& tDayInfoList(model->getSaveInfo());
+		const QStringList& tDayInfoList(m_model->getSaveInfo());
 
 		QSqlQuery query(mSqlLiteDB);
 		query.exec(u"PRAGMA page_size = 4096"_qs);
@@ -340,7 +338,7 @@ void DBTrainingDayTable::saveTrainingDay()
 		bool bUpdate(false);
 		QString strQuery;
 
-		if (query.exec(u"SELECT id FROM training_day_table WHERE date=%1"_qs.arg(m_model->getFast(TDDAY_MODEL_ROW, TDAY_COL_DATE))))
+		if (query.exec(u"SELECT id FROM training_day_table WHERE date=%1"_qs.arg(m_model->dateStr())))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -351,14 +349,14 @@ void DBTrainingDayTable::saveTrainingDay()
 		{
 			strQuery = u"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
 							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', "_qs
-								.arg(model->getFast(TDDAY_MODEL_ROW, TDAY_COL_DATE), model->trainingDay(), model->splitLetter(),
-									model->timeIn(), model->timeOut(), model->location(), model->dayNotes()) +
+								.arg(m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
+									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes()) +
 						u"exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
 							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9"_qs
 								.arg(tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),
 									tDayInfoList.at(TDAY_EXERCISES_COL_RESTTIMES), tDayInfoList.at(TDAY_EXERCISES_COL_SUBSETS),
 									tDayInfoList.at(TDAY_EXERCISES_COL_REPS), tDayInfoList.at(TDAY_EXERCISES_COL_WEIGHTS),
-									tDayInfoList.at(TDAY_EXERCISES_COL_NOTES), tDayInfoList.at(TDAY_EXERCISES_COL_COMPLETED), model->idStr());
+									tDayInfoList.at(TDAY_EXERCISES_COL_NOTES), tDayInfoList.at(TDAY_EXERCISES_COL_COMPLETED), m_model->idStr());
 		}
 		else
 		{
@@ -367,8 +365,8 @@ void DBTrainingDayTable::saveTrainingDay()
 							"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 							" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
 							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')"_qs
-								.arg(model->mesoIdStr(), model->getFast(TDDAY_MODEL_ROW, TDAY_COL_DATE), model->trainingDay(), model->splitLetter(),
-									model->timeIn(), model->timeOut(), model->location(), model->dayNotes(),
+								.arg(m_model->mesoIdStr(), m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
+									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes(),
 									tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),
 									tDayInfoList.at(TDAY_EXERCISES_COL_RESTTIMES), tDayInfoList.at(TDAY_EXERCISES_COL_SUBSETS),
 									tDayInfoList.at(TDAY_EXERCISES_COL_REPS), tDayInfoList.at(TDAY_EXERCISES_COL_WEIGHTS),
@@ -379,8 +377,8 @@ void DBTrainingDayTable::saveTrainingDay()
 		{
 			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
 			if (!bUpdate)
-				model->setId(query.lastInsertId().toString());
-			model->setModified(false);
+				m_model->setId(query.lastInsertId().toString());
+			m_model->setModified(false);
 		}
 		else
 		{
@@ -402,7 +400,7 @@ void DBTrainingDayTable::removeTrainingDay()
 	{
 		QSqlQuery query(mSqlLiteDB);
 		const QString& strQuery(u"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(
-							m_model->getFast(TDDAY_MODEL_ROW, TDAY_COL_DATE), m_model->getFast(TDDAY_MODEL_ROW, TDAY_COL_MESOID)));
+							m_model->dateStr(), m_model->mesoIdStr()));
 		m_result = query.exec(strQuery);
 		if (m_result)
 		{

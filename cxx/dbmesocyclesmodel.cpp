@@ -117,14 +117,14 @@ void DBMesocyclesModel::finishedLoadingFromDatabase()
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QString& splitLetter) const
 {
 	return splitLetter != u"R"_qs ?
-		m_splitModel->getFast(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) :
+		m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) :
 		tr("Rest day");
 }
 
 QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_week) const
 {
 	if (day_of_week >= 0 && day_of_week <= 6)
-		return getFast(meso_idx, MESOCYCLES_COL_SPLIT).at(day_of_week);
+		return split(meso_idx).at(day_of_week);
 	return QString();
 }
 
@@ -145,10 +145,9 @@ void DBMesocyclesModel::setName(const uint meso_idx, const QString& new_name)
 
 bool DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 {
-	const QString& strJulianDate(QString::number(new_date.toJulianDay()));
-	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_STARTDATE))
+	if (new_date != startDate(meso_idx))
 	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = strJulianDate;
+		m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = QString::number(new_date.toJulianDay());
 		emit mesoChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(new_date, endDate(meso_idx))));
 		emit mesoChanged(meso_idx, MESOCYCLES_COL_WEEKS);
@@ -161,10 +160,10 @@ bool DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 
 bool DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 {
-	const QString& strJulianDate(QString::number(new_date.toJulianDay()));
-	if (strJulianDate != getFast(meso_idx, MESOCYCLES_COL_ENDDATE))
+	if (new_date != endDate(meso_idx))
 	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = strJulianDate;
+		setEndDate(meso_idx, new_date);
+		m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = QString::number(new_date.toJulianDay());
 		emit mesoChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(startDate(meso_idx), new_date)));
 		emit mesoCalendarFieldsChanged(meso_idx);
@@ -188,9 +187,9 @@ void DBMesocyclesModel::setWeeks(const uint meso_idx, const QString& new_weeks)
 
 bool DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 {
-	if (new_split != getFast(meso_idx, MESOCYCLES_COL_SPLIT))
+	if (new_split.contains(u"R"_qs))
 	{
-		if (new_split.contains(u"R"_qs))
+		if (new_split != split(meso_idx))
 		{
 			m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
 			emit mesoChanged(meso_idx, MESOCYCLES_COL_SPLIT);

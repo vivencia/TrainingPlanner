@@ -19,6 +19,9 @@ public:
 	virtual void updateDatabase();
 	void getAllMesocycles();
 	void saveMesocycle();
+
+private:
+	DBMesocyclesModel* m_model;
 };
 
 #endif // DBMESOCYLESTABLE_H

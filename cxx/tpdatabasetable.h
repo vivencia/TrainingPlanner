@@ -8,15 +8,12 @@
 
 #include <functional>
 
-class TPListModel;
-
 class TPDatabaseTable : public QObject
 {
 
 public:
-	explicit inline TPDatabaseTable(TPListModel* model)
-		: QObject{nullptr}, m_model(model), mb_resolved(false), m_result(false),
-			mb_waitForFinished(false), doneFunc(nullptr) {}
+	explicit inline TPDatabaseTable(QObject* parent = nullptr)
+		: QObject{parent}, mb_resolved(false), m_result(false), mb_waitForFinished(false), doneFunc(nullptr) {}
 
 	virtual void createTable() = 0;
 	virtual void updateDatabase() = 0;
@@ -39,16 +36,12 @@ public:
 			m_execArgs[pos] = arg;
 	}
 
-	inline TPListModel* model() const { return m_model; }
-	inline void setModel(TPListModel* model) { m_model = model; }
-
 	void removeEntry();
 	void clearTable();
 	void removeDBFile();
 
 protected:
 	QSqlDatabase mSqlLiteDB;
-	TPListModel* m_model;
 	QVariantList m_execArgs;
 	QString m_tableName;
 	uint m_tableID;

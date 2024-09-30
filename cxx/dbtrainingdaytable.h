@@ -24,6 +24,7 @@ public:
 	void removeTrainingDay();
 
 private:
+	DBTrainingDayModel* m_model;
 	QString formatDate(const uint julianDay) const;
 };
 

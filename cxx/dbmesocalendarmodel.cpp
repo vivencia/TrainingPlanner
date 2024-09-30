@@ -161,7 +161,7 @@ void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bP
 
 void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& newSplitLetter)
 {
-	const QString& mesoSplit(m_parentModel->getFast(mesoIdx(), MESOCYCLES_COL_SPLIT));
+	const QString& mesoSplit(m_parentModel->split(mesoIdx()));
 	uint year(startDate.year());
 	uint month(startDate.month());
 	uint day(startDate.day()-1);
@@ -258,7 +258,7 @@ QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month,
 		const QDate date{static_cast<int>(year), static_cast<int>(month), static_cast<int>(day)};
 		if (splitLetter != u"R")
 			return appUtils()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
-					splitLetter + u" - "_qs + m_parentModel->mesoSplitModel()->get(mesoIdx(), appUtils()->splitLetterToMesoSplitIndex(splitLetter));
+					splitLetter + u" - "_qs + m_parentModel->mesoSplitModel()->splitX(mesoIdx(), appUtils()->splitLetterToMesoSplitIndex(splitLetter));
 		else
 			return appUtils()->formatDate(date) + tr(": Rest day");
 	}

@@ -209,7 +209,7 @@ public:
 		}
 	}
 
-	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
+	QString formatFieldToExport(const uint field, const QString& fieldValue) const;
 	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
 
 signals:

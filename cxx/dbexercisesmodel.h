@@ -117,7 +117,7 @@ public:
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE void newExercise(const uint index);
+	Q_INVOKABLE void newExercise(const QString& name = QString(), const QString& subname = QString(), const QString& muscular_group = QString());
 	Q_INVOKABLE void removeExercise(const uint index);
 	Q_INVOKABLE void setFilter(const QString& filter, const bool resetSelection);
 	Q_INVOKABLE void makeFilterString(const QString& text);
@@ -143,7 +143,7 @@ public:
 	{
 		uint ret_pos(0);
 		QMap<uint,uint>::const_iterator itr(m_modifiedIndices.constBegin());
-		const QMap<uint,uint>::const_iterator itr_end(m_modifiedIndices.constEnd());
+		const QMap<uint,uint>::const_iterator& itr_end(m_modifiedIndices.constEnd());
 		while (itr != itr_end)
 		{
 			if (pos == ret_pos)

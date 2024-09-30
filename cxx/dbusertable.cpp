@@ -118,7 +118,7 @@ void DBUserTable::saveUser()
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(u"SELECT id FROM user_table WHERE id=%1"_qs.arg(m_model->getFast(row, USER_COL_ID))))
+		if (query.exec(u"SELECT id FROM user_table WHERE id=%1"_qs.arg(model->_userId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;

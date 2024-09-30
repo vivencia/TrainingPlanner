@@ -311,7 +311,7 @@ void OSInterface::startChatApp(const QString& phone, const QString& appname) con
 		return;
 	QString phoneNumbers;
 	QString::const_iterator itr(phone.constBegin());
-	const QString::const_iterator itr_end(phone.constEnd());
+	const QString::const_iterator& itr_end(phone.constEnd());
 	do {
 		if ((*itr).isDigit())
 			phoneNumbers += *itr;

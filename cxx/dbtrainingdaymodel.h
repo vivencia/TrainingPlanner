@@ -77,15 +77,15 @@ public:
 	inline bool dayIsFinished() const { return mb_DayIsFinished; }
 	void setDayIsFinished(const bool finished);
 
-	Q_INVOKABLE inline const int id() const { return count() == 1 ? m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_ID).toInt() : -1; }
+	Q_INVOKABLE inline const int id() const { return count() == 1 ? idStr().toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_ID); }
 	inline void setId(const QString& new_id) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_ID] = new_id; }
 
-	Q_INVOKABLE inline const int mesoId() const { return count() == 1 ? m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_MESOID).toInt(): -1; }
+	Q_INVOKABLE inline const int mesoId() const { return count() == 1 ? mesoIdStr().toInt(): -1; }
 	inline const QString& mesoIdStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_MESOID); }
 	Q_INVOKABLE inline void setMesoId(const QString& mesoid) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_MESOID] = mesoid; }
 
-	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE).toLongLong()) : QDate::currentDate(); }
+	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(dateStr().toLongLong()) : QDate::currentDate(); }
 	inline const QString& dateStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE); }
 	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }
 

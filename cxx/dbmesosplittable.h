@@ -24,6 +24,10 @@ public:
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
 	void convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel);
+	inline void setAnotherModel(DBMesoSplitModel* new_model) { m_model = new_model; }
+
+private:
+	DBMesoSplitModel* m_model;
 };
 
 #endif // DBMESOSPLITTABLE_H
