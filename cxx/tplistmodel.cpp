@@ -8,7 +8,6 @@ void TPListModel::copy(const TPListModel& src_item)
 {
 	m_modeldata = src_item.m_modeldata;
 	m_roleNames = src_item.m_roleNames;
-	m_indexProxy = src_item.m_indexProxy;
 	m_mesoIdx = src_item.m_mesoIdx;
 	m_currentRow = src_item.m_mesoIdx;
 	m_tableId = src_item.m_tableId;
@@ -24,22 +23,13 @@ TPListModel::~TPListModel()
 {
 	m_modeldata.clear();
 	m_roleNames.clear();
-	m_indexProxy.clear();
-}
-
-void TPListModel::updateList(const QStringList& list, const int row)
-{
-	const uint actual_row(m_indexProxy.at(row));
-	m_modeldata.replace(actual_row, list);
-	emit dataChanged(index(row, 0), index(row, list.count()-1));
 }
 
 void TPListModel::removeRow(const uint row)
 {
-	Q_ASSERT_X(row < m_indexProxy.count(), "TPListModel::removeRow", "out of range row");
+	Q_ASSERT_X(row < m_modeldata.count(), "TPListModel::removeRow", "out of range row");
 	beginRemoveRows(QModelIndex(), row, row);
 	m_modeldata.remove(row);
-	m_indexProxy.remove(row);
 	if (m_currentRow >= row)
 		setCurrentRow(m_currentRow > 0 ? m_currentRow - 1 : 0);
 	emit countChanged();
@@ -50,7 +40,6 @@ void TPListModel::appendList(const QStringList& list)
 {
 	beginInsertRows(QModelIndex(), count(), count());
 	m_modeldata.append(list);
-	m_indexProxy.append(m_modeldata.count() - 1);
 	emit countChanged();
 	endInsertRows();
 }
@@ -59,16 +48,14 @@ void TPListModel::clear()
 {
 	beginRemoveRows(QModelIndex(), 0, count()-1);
 	m_modeldata.clear();
-	m_indexProxy.clear();
 	setReady(false);
-	setModified(true);
 	emit countChanged();
 	endRemoveRows();
 }
 
 void TPListModel::setCurrentRow(const int row)
 {
-	Q_ASSERT_X(row >= -1 && row < m_indexProxy.count(), "TPListModel::setCurrentRow", "out of range row");
+	Q_ASSERT_X(row >= -1 && row < m_modeldata.count(), "TPListModel::setCurrentRow", "out of range row");
 	m_currentRow = row;
 	emit currentRowChanged();
 }
@@ -95,7 +82,6 @@ void TPListModel::moveRow(const uint from, const uint to)
 		for (uint role(0); role < m_roleNames.count(); ++role)
 			roles.append(Qt::UserRole+role);
 		emit dataChanged(sourceParent, destinationParent, roles);
-		setModified(true);
 	}
 }
 
@@ -130,7 +116,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 								value = (*itr).at(i);
 							else
 								value = formatFieldToExport(i, (*itr).at(i));
-							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write(value.replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
 							outFile->write("\n", 1);
 						}
 					}
@@ -154,7 +140,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 								value = m_modeldata.at(m_exportRows.at(x)).at(i);
 							else
 								value = formatFieldToExport(i, m_modeldata.at(m_exportRows.at(x)).at(i));
-							outFile->write(value.replace(subrecord_separator, '|').toUtf8().constData());
+							outFile->write(value.replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
 							outFile->write("\n", 1);
 						}
 					}

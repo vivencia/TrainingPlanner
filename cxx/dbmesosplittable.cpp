@@ -11,7 +11,7 @@
 DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* model)
 	: TPDatabaseTable{}, m_model(model)
 {
-	const std::minstd_rand gen(std::random_device{}());
+	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
 
 	m_tableName = u"mesocycles_splits"_qs;
@@ -254,7 +254,6 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 				}
 				m_result = true;
 				m_model->setReady(true);
-				m_model->setModified(false);
 			}
 		}
 

@@ -53,7 +53,7 @@ public:
 	explicit DBTrainingDayModel(QObject* parent = nullptr, const int meso_idx = -1);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
-	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); setModified(true); }
+	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
@@ -66,7 +66,7 @@ public:
 	const QString formatSetTypeToExport(const QString& fieldValue) const;
 	const QString formatSetTypeToImport(const QString& fieldValue) const;
 
-	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_qs); }
+	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(STR_MINUS_ONE); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;
@@ -87,31 +87,77 @@ public:
 
 	Q_INVOKABLE QDate date() const { return count() == 1 ? QDate::fromJulianDay(dateStr().toLongLong()) : QDate::currentDate(); }
 	inline const QString& dateStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_DATE); }
-	Q_INVOKABLE void setDate(const QDate& date) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = QString::number(date.toJulianDay()); setModified(true); }
+	Q_INVOKABLE void setDate(const QDate& date, const bool bEmitSave = true)
+	{
+		m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = QString::number(date.toJulianDay());
+		if (bEmitSave)
+			emit tDayChanged();
+	}
 
 	Q_INVOKABLE inline QString trainingDay() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
 	//is changed even for the first time, i.e., when the page is receiving default values
-	Q_INVOKABLE inline void setTrainingDay(const QString& trainingday )
-	{ if (trainingday != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER)) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TRAININGDAYNUMBER] = trainingday; setModified(true); } }
+	Q_INVOKABLE inline void setTrainingDay(const QString& trainingday, const bool bEmitSave = true)
+	{
+		if (trainingday != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER))
+		{
+			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TRAININGDAYNUMBER] = trainingday;
+			if (bEmitSave)
+				emit tDayChanged();
+		}
+	}
 
 	Q_INVOKABLE inline QString splitLetter() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER); }
-	Q_INVOKABLE inline void setSplitLetter(const QString& splitletter )
-	{ if (splitletter != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER)) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_SPLITLETTER] = splitletter; setModified(true); } }
+	Q_INVOKABLE inline void setSplitLetter(const QString& splitletter, const bool bEmitSave = true)
+	{
+		if (splitletter != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))
+		{
+			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_SPLITLETTER] = splitletter;
+			if (bEmitSave)
+				emit tDayChanged();
+		}
+	}
 
 	Q_INVOKABLE inline QString timeIn() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEIN); }
-	Q_INVOKABLE inline void setTimeIn(const QString& timein)
-	{ if (timein != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEIN)) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEIN] = timein; setModified(true); } }
+	Q_INVOKABLE inline void setTimeIn(const QString& timein, const bool bEmitSave = true)
+	{
+		if (timein != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEIN))
+		{
+			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEIN] = timein;
+			if (bEmitSave)
+				emit tDayChanged();
+		}
+	}
 
 	Q_INVOKABLE inline QString timeOut() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEOUT); }
-	Q_INVOKABLE inline void setTimeOut(const QString& timeout)
-	{ if (timeout != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEOUT)) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEOUT] = timeout; setModified(true); } }
+	Q_INVOKABLE inline void setTimeOut(const QString& timeout, const bool bEmitSave = true)
+	{
+		if (timeout != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TIMEOUT))
+		{
+			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_TIMEOUT] = timeout;
+			if (bEmitSave)
+				emit tDayChanged();
+		}
+	}
 
 	Q_INVOKABLE inline QString location() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_LOCATION); }
-	Q_INVOKABLE inline void setLocation(const QString& location) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_LOCATION] = location; setModified(true); }
+	Q_INVOKABLE inline void setLocation(const QString& location, const bool bEmitSave = true)
+	{
+		if (location != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_LOCATION))
+		{
+			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_LOCATION] = location;
+			if (bEmitSave)
+				emit tDayChanged();
+		}
+	}
 
 	Q_INVOKABLE inline QString dayNotes() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_NOTES); }
-	Q_INVOKABLE inline void setDayNotes(const QString& day_notes) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_NOTES] = day_notes; setModified(true); }
+	Q_INVOKABLE inline void setDayNotes(const QString& day_notes, const bool bEmitSave = true)
+	{
+		m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_NOTES] = day_notes;
+		if (bEmitSave)
+			emit tDayChanged();
+	}
 
 	const uint inline exerciseCount() const { return m_ExerciseData.count(); }
 	Q_INVOKABLE inline const uint setsNumber(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->nsets; }
@@ -185,7 +231,7 @@ public:
 	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_weight);
 
 signals:
-	void saveWorkout();
+	void tDayChanged();
 	void exerciseCountChanged();
 	void compositeExerciseChanged(const uint exercise_idx);
 	void dayIsFinishedChanged();

@@ -51,14 +51,9 @@ public:
 	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
 	Q_INVOKABLE QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
-	Q_INVOKABLE QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
+	QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
 	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const;
-	Q_INVOKABLE QString setCompositeValue_QML(const uint idx, const QString& newValue, const QString& compositeString) const
-	{
-		QString cpString(compositeString);
-		//setCompositeValue(idx, newValue, cpString);
-		return cpString;
-	}
+
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 

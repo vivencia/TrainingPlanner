@@ -120,7 +120,6 @@ set( QML_FILES
     "qml/TPWidgets/TPFloatingMenuBar.qml"
     "qml/TPWidgets/TPGroupBox.qml"
     "qml/TPWidgets/TPImportDialog.qml"
-    "qml/TPWidgets/TPImportMessageBox.qml"
     "qml/TPWidgets/TPMouseArea.qml"
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPRadioButton.qml"

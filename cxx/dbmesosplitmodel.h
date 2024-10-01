@@ -74,12 +74,16 @@ public:
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
 	Q_INVOKABLE inline void setMuscularGroup(const QString& muscularGroup) { m_muscularGroup = muscularGroup; }
 
+	inline bool isExerciseNew(const uint row) const { return m_exerciseIsNew.at(row) != 0; }
+	void setModified(const uint row, const uint field);
+
+	inline const QChar& _splitLetter() const { return m_splitLetter; }
 	Q_INVOKABLE inline QString splitLetter() const { return QString(m_splitLetter); }
 	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
 	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
-	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); }
+	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); m_exerciseIsNew.remove(row); }
 	Q_INVOKABLE void addSet(const uint row);
 	Q_INVOKABLE void delSet(const uint row);
 
@@ -141,7 +145,7 @@ public:
 			return field == MESOSPLIT_COL_SETTYPE;
 		return false;
 	}
-	QString formatFieldToExport(const uint field, const QString& value) const;
+	QString formatFieldToExport(const uint field, const QString& value) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 	const QString exportExtraInfo() const;
 	bool importExtraInfo(const QString& extrainfo);
@@ -150,16 +154,17 @@ signals:
 	void exerciseNameChanged();
 	void setTypeChanged();
 	void workingSetChanged();
-	void splitChanged(const uint meso_idx);
+	void splitChanged(const uint meso_idx, const uint field);
 
 private:
 	uint m_nextAddedExercisePos;
 	QString m_muscularGroup;
 	QChar m_splitLetter;
+	QList<uchar> m_exerciseIsNew;
 	bool mb_Complete;
 
-	QString getFromCompositeValue(const uint row, const uint set_number, const uint column, const uint pos) const;
-	void replaceCompositeValue(const uint row, const uint set_number, const uint column, const uint pos, const QString& value);
+	QString getFromCompositeValue(const uint row, const uint set_number, const uint field, const uint pos) const;
+	void replaceCompositeValue(const uint row, const uint set_number, const uint field, const uint pos, const QString& value);
 };
 
 //Q_DECLARE_METATYPE(DBMesoSplitModel*)

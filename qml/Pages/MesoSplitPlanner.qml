@@ -713,7 +713,7 @@ Frame {
 		imageSource: "remove"
 		parentPage: parentItem
 
-		onButton1Clicked: appDB.loadSplitFromPreviousMeso(prevMesoId, splitModel);
+		onButton1Clicked: itemManager.loadSplitFromPreviousMeso(splitModel);
 	} //TPBalloonTip
 
 	function showImportFromPreviousMesoMessage()

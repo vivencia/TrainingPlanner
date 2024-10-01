@@ -62,10 +62,28 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDay
 	setReady(true);
 }
 
+void DBMesoSplitModel::setModified(const uint row, const uint field)
+{
+	if (isExerciseNew(row))
+	{
+		unSetBit(m_exerciseIsNew[row], field);
+		if (isExerciseNew(row))
+			return;
+	}
+	emit splitChanged(row, field);
+}
+
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
 	appendList(QStringList(COMPLETE_MESOSPLIT_TOTAL_COLS) << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
 	setCurrentRow(count() - 1);
+	uchar newExerciseRequiredFields(0);
+	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
+	setBit(newExerciseRequiredFields, MESOSPLIT_COL_SETSNUMBER);
+	setBit(newExerciseRequiredFields, MESOSPLIT_COL_SETTYPE);
+	setBit(newExerciseRequiredFields, MESOSPLIT_COL_REPSNUMBER);
+	setBit(newExerciseRequiredFields, MESOSPLIT_COL_WEIGHT);
+	m_exerciseIsNew.append(newExerciseRequiredFields);
 }
 
 void DBMesoSplitModel::addSet(const uint row)
@@ -99,8 +117,8 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 {
 	QString name(new_name);
 	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = name.replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
-	setModified(true);
 	emit exerciseNameChanged();
+	setModified(row, MESOSPLIT_COL_EXERCISENAME);
 }
 
 QString DBMesoSplitModel::exerciseName1(const uint row) const
@@ -137,7 +155,7 @@ inline uint DBMesoSplitModel::setsNumber(const int row) const
 void DBMesoSplitModel::setSetsNumber(const uint row, const uint new_setsnumber)
 {
 	m_modeldata[row][MESOSPLIT_COL_SETSNUMBER] = QString::number(new_setsnumber);
-	setModified(true);
+	setModified(row, MESOSPLIT_COL_SETSNUMBER);
 }
 
 QString DBMesoSplitModel::setsNotes(const int row) const
@@ -149,7 +167,7 @@ QString DBMesoSplitModel::setsNotes(const int row) const
 void DBMesoSplitModel::setSetsNotes(const uint row, const QString& new_setsnotes)
 {
 	m_modeldata[row][MESOSPLIT_COL_NOTES] = new_setsnotes;
-	setModified(true);
+	setModified(row, MESOSPLIT_COL_NOTES);
 }
 
 uint DBMesoSplitModel::setType(const int row, const uint set_number) const
@@ -161,7 +179,7 @@ uint DBMesoSplitModel::setType(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const uint new_type)
 {
 	appUtils()->setCompositeValue(set_number, QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], set_separator);
-	setModified(true);
+	setModified(row, MESOSPLIT_COL_SETTYPE);
 	emit setTypeChanged();
 }
 
@@ -174,7 +192,6 @@ QString DBMesoSplitModel::setSubsets(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetsSubsets(const uint row, const uint set_number, const QString& new_setssubsets)
 {
 	appUtils()->setCompositeValue(set_number, new_setssubsets, m_modeldata[row][MESOSPLIT_COL_SUBSETSNUMBER], set_separator);
-	setModified(true);
 }
 
 QString DBMesoSplitModel::setReps(const int row, const uint set_number) const
@@ -186,7 +203,7 @@ QString DBMesoSplitModel::setReps(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetReps(const uint row, const uint set_number, const QString& new_setsreps)
 {
 	appUtils()->setCompositeValue(set_number, new_setsreps, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], set_separator);
-	setModified(true);
+	setModified(row, MESOSPLIT_COL_REPSNUMBER);
 }
 
 QString DBMesoSplitModel::setReps1(const int row, const uint set_number) const
@@ -217,7 +234,7 @@ QString DBMesoSplitModel::setWeight(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetWeight(const uint row, const uint set_number, const QString& new_setsweight)
 {
 	appUtils()->setCompositeValue(set_number, new_setsweight, m_modeldata[row][MESOSPLIT_COL_WEIGHT], set_separator);
-	setModified(true);
+	setModified(row, MESOSPLIT_COL_WEIGHT);
 }
 
 QString DBMesoSplitModel::setWeight1(const int row, const uint set_number) const
@@ -417,7 +434,7 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 					else
 						modeldata[col] = formatFieldToImport(col, value);
 					modeldata[col].replace(fancy_record_separator2, set_separator);
-					modeldata[col].replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
+					modeldata[col].replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
 					col++;
 					if (col == MESOSPLIT_COL_WORKINGSET)
 					{
@@ -514,16 +531,16 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 	return false;
 }
 
-QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_number, const uint column, const uint pos) const
+QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_number, const uint field, const uint pos) const
 {
-	const QString& value(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(column), comp_exercise_separator));
+	const QString& value(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator));
 	const int idx(value.indexOf(comp_exercise_separator));
 	return idx != -1 ? pos == 1 ? value.left(idx) : value.sliced(idx+1) : value;
 }
 
-void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_number, const uint column, const uint pos, const QString& value)
+void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_number, const uint field, const uint pos, const QString& value)
 {
-	QString fieldValue(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(column), comp_exercise_separator));
+	QString fieldValue(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator));
 
 	const int idx(fieldValue.indexOf(comp_exercise_separator));
 	if (idx == -1)
@@ -538,6 +555,6 @@ void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_numb
 			fieldValue.append(value);
 		}
 	}
-	appUtils()->setCompositeValue(set_number, fieldValue, m_modeldata[row][column], comp_exercise_separator);
-	setModified(true);
+	appUtils()->setCompositeValue(set_number, fieldValue, m_modeldata[row][field], comp_exercise_separator);
+	setModified(row, field);
 }

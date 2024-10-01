@@ -79,7 +79,7 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
-	m_isNewMeso.append(0xFF);
+	m_isNewMeso.append(newMesoRequiredFields);
 	return meso_idx;
 }
 
@@ -87,6 +87,7 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 {
 	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
+	m_isNewMeso.remove(meso_idx);
 	m_totalSplits.remove(meso_idx);
 
 	m_splitModel->removeRow(meso_idx);
@@ -114,6 +115,19 @@ void DBMesocyclesModel::finishedLoadingFromDatabase()
 	m_currentMesoIdx = appSettings()->value("lastViewedMesoIdx").toInt();
 }
 
+void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
+{
+	if (isNewMeso(meso_idx))
+	{
+		unSetBit(m_isNewMeso[meso_idx], field);
+		if (!isNewMeso(meso_idx))
+			emit isNewMesoChanged();
+		else
+			return;
+	}
+	emit mesoChanged(meso_idx, field);
+}
+
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QString& splitLetter) const
 {
 	return splitLetter != u"R"_qs ?
@@ -133,14 +147,13 @@ void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
 	m_modeldata[meso_idx][MESOCYCLES_COL_ID] = new_id;
 	m_splitModel->m_modeldata[meso_idx][MESOSPLIT_COL_ID] = new_id;
 	m_calendarModelList[meso_idx]->m_modeldata[0][MESOCALENDAR_COL_MESOID] = new_id;
-	unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_ID);
+	setModified(meso_idx, MESOCYCLES_COL_ID);
 }
 
 void DBMesocyclesModel::setName(const uint meso_idx, const QString& new_name)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_NAME] = new_name;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_NAME);
-	unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_NAME);
+	setModified(meso_idx, MESOCYCLES_COL_NAME);
 }
 
 bool DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
@@ -148,11 +161,9 @@ bool DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 	if (new_date != startDate(meso_idx))
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = QString::number(new_date.toJulianDay());
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
+		setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(new_date, endDate(meso_idx))));
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_WEEKS);
 		emit mesoCalendarFieldsChanged(meso_idx);
-		unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_STARTDATE);
 		return true;
 	}
 	return false;
@@ -162,12 +173,10 @@ bool DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 {
 	if (new_date != endDate(meso_idx))
 	{
-		setEndDate(meso_idx, new_date);
 		m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = QString::number(new_date.toJulianDay());
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
+		setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(startDate(meso_idx), new_date)));
 		emit mesoCalendarFieldsChanged(meso_idx);
-		unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_ENDDATE);
 		return true;
 	}
 	return false;
@@ -176,13 +185,13 @@ bool DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 void DBMesocyclesModel::setNotes(const uint meso_idx, const QString& new_notes)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_NOTE] = new_notes;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_NOTE);
+	setModified(meso_idx, MESOCYCLES_COL_NOTE);
 }
 
 void DBMesocyclesModel::setWeeks(const uint meso_idx, const QString& new_weeks)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_WEEKS] = new_weeks;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_WEEKS);
+	setModified(meso_idx, MESOCYCLES_COL_WEEKS);
 }
 
 bool DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
@@ -192,10 +201,9 @@ bool DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 		if (new_split != split(meso_idx))
 		{
 			m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
-			emit mesoChanged(meso_idx, MESOCYCLES_COL_SPLIT);
+			setModified(meso_idx, MESOCYCLES_COL_SPLIT);
 			emit mesoCalendarFieldsChanged(meso_idx);
 			findTotalSplits(meso_idx);
-			unSetBit(m_isNewMeso[meso_idx], MESOCYCLES_COL_SPLIT);
 			return true;
 		}
 	}
@@ -204,15 +212,14 @@ bool DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 
 void DBMesocyclesModel::setCoach(const uint meso_idx, const QString& new_coach)
 {
-	m_isNewMeso[meso_idx] &= 0xF;
 	m_modeldata[meso_idx][MESOCYCLES_COL_COACH] = new_coach;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_COACH);
+	setModified(meso_idx, MESOCYCLES_COL_COACH);
 }
 
 void DBMesocyclesModel::setClient(const uint meso_idx, const QString& new_client)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_CLIENT);
+	setModified(meso_idx, MESOCYCLES_COL_CLIENT);
 }
 
 void DBMesocyclesModel::setOwnMeso(const int meso_idx, const bool bOwnMeso)
@@ -233,7 +240,7 @@ bool DBMesocyclesModel::setFile(const uint meso_idx, const QString& new_file)
 	if (appUtils()->canReadFile(good_filepath))
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_FILE] = good_filepath;
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_FILE);
+		setModified(meso_idx, MESOCYCLES_COL_FILE);
 		return true;
 	}
 	return false;
@@ -242,7 +249,7 @@ bool DBMesocyclesModel::setFile(const uint meso_idx, const QString& new_file)
 void DBMesocyclesModel::setType(const uint meso_idx, const QString& new_type)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_TYPE] = new_type;
-	emit mesoChanged(meso_idx, MESOCYCLES_COL_TYPE);
+	setModified(meso_idx, MESOCYCLES_COL_TYPE);
 }
 
 void DBMesocyclesModel::setIsRealMeso(const uint meso_idx, const bool bRealMeso)
@@ -250,7 +257,7 @@ void DBMesocyclesModel::setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	if (isRealMeso(meso_idx) != bRealMeso)
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? STR_ONE : STR_ZERO;
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_REALMESO);
+		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 }
 
@@ -260,7 +267,7 @@ void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& spl
 	if (splitField < SIMPLE_MESOSPLIT_TOTAL_COLS)
 	{
 		m_splitModel->m_modeldata[meso_idx][splitField] = newSplitValue;
-		emit mesoChanged(meso_idx, MESOCYCLES_COL_MUSCULARGROUP);
+		setModified(meso_idx, MESOCYCLES_COL_MUSCULARGROUP);
 		emit muscularGroupChanged(meso_idx, initiator_id, splitField, splitLetter.at(0));
 	}
 }

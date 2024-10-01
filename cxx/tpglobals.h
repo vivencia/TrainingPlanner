@@ -15,7 +15,7 @@ static const QString& TP_APP_VERSION(u"v20240818-B"_qs);
 #endif
 
 static const QLatin1Char record_separator(28);
-static const QLatin1Char record_separator_table(29);
+static const QLatin1Char exercises_separator(29);
 static const QLatin1Char comp_exercise_separator(30);
 static const QLatin1Char set_separator(31);
 static const QLatin1Char fancy_record_separator1('|');

@@ -455,9 +455,9 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 		return;
 	}
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
-	const QDate& endDate(bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
+	const QDate& endDate{bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
 					QDate::currentDate() :
-					appMesoModel()->endDate(meso_idx));
+					appMesoModel()->endDate(meso_idx)};
 	worker->addExecArg(bPreserveOldInfo);
 	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
 	worker->addExecArg(endDate);
@@ -466,7 +466,7 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 
 void DBInterface::updateMesoCalendarModel(const DBTrainingDayModel* const tDayModel)
 {
-	const uint meso_idx(tDayModel->mesoIdx());
+	const uint meso_idx{static_cast<uint>(tDayModel->mesoIdx())};
 	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
 		connect(this, &DBInterface::databaseReady, this, [&,tDayModel] () {
@@ -492,20 +492,16 @@ void DBInterface::updateMesoCalendarEntry(const DBTrainingDayModel* const tDayMo
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
-void DBInterface::setDayIsFinished(DBTrainingDayModel* const tDayModel, const bool bFinished)
+void DBInterface::setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished)
 {
-	const uint meso_idx(tDayModel->mesoIdx());
 	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
-		connect(this, &DBInterface::databaseReady, this, [&,tDayModel,bFinished] () {
-			return setDayIsFinished(tDayModel, bFinished);
+		connect(this, &DBInterface::databaseReady, this, [&,meso_idx,date,bFinished] () {
+			return setDayIsFinished(meso_idx, date, bFinished);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(meso_idx);
 		return;
 	}
-	tDayModel->setDayIsFinished(bFinished);
-	const QDate& date(tDayModel->date());
-	appMesoModel()->mesoCalendarModel(meso_idx)->setDayIsFinished(date, bFinished);
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
 	worker->addExecArg(date);
 	worker->addExecArg(bFinished);
@@ -569,7 +565,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 		connect(this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
 				if (db_id == worker->uniqueID())
 				{
-					DBTrainingDayModel* tempModel(static_cast<DBTrainingDayModel*>(worker->model()));
+					DBTrainingDayModel* tempModel{worker->model()};
 					//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
 					tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
 							STR_ONE : STR_ZERO);
@@ -583,7 +579,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 
 void DBInterface::loadExercisesFromDate(const QString& strDate, DBTrainingDayModel* tDayModel)
 {
-	const QDate& date(appUtils()->getDateFromStrDate(strDate));
+	const QDate& date{appUtils()->getDateFromStrDate(strDate)};
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	worker->addExecArg(QString::number(date.toJulianDay()));
@@ -625,11 +621,8 @@ void DBInterface::convertTDayToPlan(const DBTrainingDayModel* const tDayModel, Q
 
 void DBInterface::saveTrainingDay(DBTrainingDayModel* const tDayModel)
 {
-	if (tDayModel->modified())
-	{
-		DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
-		createThread(worker, [worker] () { return worker->saveTrainingDay(); });
-	}
+	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
+	createThread(worker, [worker] () { return worker->saveTrainingDay(); });
 }
 
 void DBInterface::removeTrainingDay(const uint meso_idx)

@@ -298,7 +298,7 @@ Item {
 		}
 	} // setLayout
 
-	Component.onCompleted: tDayModel.saveWorkout.connect(function() { copyTypeButtonValue = false; });
+	Component.onCompleted: tDayModel.tDayChanged.connect(function() { copyTypeButtonValue = false; });
 
 	function init() {
 		const nsubsets = tDayModel.setSubSets_int(setNumber, exerciseIdx);

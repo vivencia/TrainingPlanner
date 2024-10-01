@@ -378,7 +378,6 @@ void DBTrainingDayTable::saveTrainingDay()
 			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
 			if (!bUpdate)
 				m_model->setId(query.lastInsertId().toString());
-			m_model->setModified(false);
 		}
 		else
 		{

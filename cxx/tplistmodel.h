@@ -14,11 +14,10 @@ QML_ELEMENT
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
-Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
 
 public:
 	explicit inline TPListModel(QObject* parent = nullptr, int meso_idx = -1)
-		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_bReady(false), m_bModified(false), m_bImportMode(false) {}
+		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_bReady(false), m_bImportMode(false) {}
 
 	inline TPListModel(const TPListModel& other) : TPListModel {other.parent()} { copy(other); }
 
@@ -32,16 +31,6 @@ public:
 
 	inline int tableID() const { return m_tableId; }
 	inline uint numberOfFields() const { return m_fieldCount; }
-	inline bool modified() const { return m_bModified; }
-	inline void setModified(const bool bModified)
-	{
-		if (m_bModified != bModified)
-		{
-			m_bModified = bModified;
-			emit modifiedChanged();
-		}
-	}
-
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int new_mesoidx)
 	{
@@ -52,7 +41,6 @@ public:
 		}
 	}
 
-	void updateList(const QStringList& list, const int row);
 	void appendList(const QStringList& list);
 	virtual void clear();
 
@@ -68,6 +56,7 @@ public:
 	virtual int exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true) const;
 	virtual int importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
 	virtual bool updateFromModel(const TPListModel* const) { return false; }
+	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const { Q_UNUSED(field); return fieldValue; }
 
 	inline const QString& exportName() const { return m_exportName; }
 	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
@@ -94,7 +83,6 @@ signals:
 	void countChanged();
 	void mesoIdxChanged();
 	void currentRowChanged();
-	void modifiedChanged();
 
 protected:
 	// return the roles mapping to be used by QML

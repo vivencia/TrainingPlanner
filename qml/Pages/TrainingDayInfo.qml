@@ -24,7 +24,6 @@ TPPage {
 	property string splitLetter
 	property string timeIn
 	property string timeOut
-	property string mesoSplit
 	property string splitText
 	property string lastWorkOutLocation
 	property bool bHasPreviousTDays
@@ -113,8 +112,7 @@ TPPage {
 		if (editMode) {
 			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			appDB.setDayIsFinished(tDayModel, true);
-			itemManager.rollUpExercises();
+			itemManager.setDayIsFinished(true);
 		}
 		else {
 			if (appUtils.areDatesTheSame(mainDate, new Date())) {
@@ -354,10 +352,9 @@ TPPage {
 			splitLetter = newsplitletter;
 			tDay = newtday;
 			splitText = newsplittext;
-			tDayModel.setTrainingDay(tDay);
+			tDayModel.setTrainingDay(tDay, false);
 			tDayModel.setSplitLetter(splitLetter);
 			showClearExercisesMessage();
-			saveWorkout();
 		}
 
 		if (calChangedWarningMessage === null) {
@@ -750,13 +747,6 @@ TPPage {
 			calChangedWarningMessage.acceptChanges();
 	}
 
-	Component.onCompleted: {
-		mesoSplit = mesocyclesModel.split(tDayModel.mesoIdx);
-		trainingDayPage.StackView.activating.connect(pageActivation);
-		trainingDayPage.StackView.onDeactivating.connect(pageDeActivation);
-		tDayModel.saveWorkout.connect(saveWorkout);
-	}
-
 	Timer {
 		id: scrollTimer
 		interval: 200
@@ -779,6 +769,7 @@ TPPage {
 	function changeComboModel() {
 		if (cboModel.count > 0)
 			cboModel.clear();
+		const mesoSplit = mesocyclesModel.split(tDayModel.mesoIdx);
 		if (mesoSplit.indexOf('A') !== -1)
 			cboModel.append(splitModel[0]);
 		if (mesoSplit.indexOf('B') !== -1)
@@ -900,8 +891,7 @@ TPPage {
 					timeOut = appUtils.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsEditable = false;
-					itemManager.rollUpExercises();
-					appDB.setDayIsFinished(mainDate, true);
+					itemManager.setDayIsFinished(true);
 				}
 			}
 		}
@@ -981,10 +971,6 @@ TPPage {
 
 	onSplitLetterChanged: exercisesModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
 
-	function saveWorkout() {
-		appDB.saveTrainingDay(tDayModel);
-	}
-
 	TPComplexDialog {
 		id: adjustCalendarBox
 		title: qsTr("Re-adjust meso calendar?")
@@ -998,32 +984,8 @@ TPPage {
 
 		property string newSplitLetter
 
-		onButton1Clicked: {
-			var bDayIsFinished;
-			if (newSplitLetter !== "R") {
-				if (splitLetter == "R")
-					tDay = tDayModel.getWorkoutNumberForTrainingDay();
-				bDayIsFinished = tDayModel.dayIsFinished;
-			}
-			else {
-				tDay = 0;
-				bDayIsFinished = false;
-				tDayModel.dayIsFinished(false);
-			}
-			splitLetter = newSplitLetter;
-			tDayModel.setTrainingDay(tDay);
-			tDayModel.setSplitLetter(splitLetter);
-			if (customBoolProperty1)
-				appDB.updateMesoCalendarEntry(tDayModel);
-			else
-				appDB.updateMesoCalendarModel(tDayModel);
-			saveWorkout();
-			if (splitLetter !== "R")
-				appDB.verifyTDayOptions(itemManager);
-		}
-
-		onButton2Clicked:
-			cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
+		onButton1Clicked: itemManager.adjustCalendar(newSplitLetter, adjustCalendarBox.customBoolProperty1);
+		onButton2Clicked: cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
 	}
 
 	function changeSplitLetter() {
@@ -1073,13 +1035,10 @@ TPPage {
 
 	function gotExercise() {
 		function readyToProceed(object, id) {
-			appDB.getItem.disconnect(readyToProceed);
 			createNavButtons();
 			scrollTimer.init(phantomItem.y);
 			return;
 		}
-
-		appDB.getItem.connect(readyToProceed);
 		itemManager.createExerciseObject(exercisesModel);
 	}
 
@@ -1209,8 +1168,7 @@ TPPage {
 				if (!editMode)
 					btnFinishedDayOptions.visible = true;
 				else {
-					itemManager.rollUpExercises();
-					appDB.setDayIsFinished(mainDate, true);
+					itemManager.setDayIsFinished(true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
 				editMode = !editMode;
@@ -1233,7 +1191,7 @@ TPPage {
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					if (changeSplitLetterDialog.customBoolProperty1)
-						appDB.clearExercises();
+						itemManager.clearExercises();
 					changeSplitLetter();
 				} );
 				changeSplitLetterDialog.button2Clicked.connect( function() {

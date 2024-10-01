@@ -55,7 +55,8 @@ public:
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
-	inline bool isNewMeso() const { return m_isNewMeso.at(currentMesoIdx() != 0); }
+	inline bool isNewMeso(const int meso_idx = -1) const { return m_isNewMeso.at(meso_idx >= 0 ? meso_idx : currentMesoIdx()) != 0; }
+	void setModified(const uint meso_idx, const uint field);
 
 	inline const QString& id(const uint meso_idx) const { return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID); }
 	inline const int _id(const uint meso_idx) const { return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID).toUInt(); }
@@ -209,7 +210,7 @@ public:
 		}
 	}
 
-	QString formatFieldToExport(const uint field, const QString& fieldValue) const;
+	QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
 
 signals:

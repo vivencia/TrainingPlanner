@@ -9,6 +9,7 @@ TPPopup {
 	id: firstTimeDlg
 	objectName: "firstTimerDlg"
 	modal: true
+	bKeepAbove: true;
 	width: windowWidth - 50
 	height: moduleHeight + frmFooter.height
 	x: (windowWidth - width)/2 // horizontally centered

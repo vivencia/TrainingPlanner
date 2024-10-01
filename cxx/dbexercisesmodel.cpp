@@ -55,8 +55,15 @@ bool DBExercisesModel::collectExportData()
 	return m_exportRows.count() > 0;
 }
 
+void DBExercisesModel::appendList(const QStringList& list)
+{
+	TPListModel::appendList(list);
+	m_indexProxy.append(m_modeldata.count() - 1);
+}
+
 void DBExercisesModel::clear()
 {
+	m_indexProxy.clear();
 	clearSelectedEntries();
 	TPListModel::clear();
 }
@@ -212,6 +219,7 @@ void DBExercisesModel::removeExercise(const uint index)
 {
 	beginRemoveRows(QModelIndex(), index, index);
 	m_modeldata.remove(index);
+	m_indexProxy.remove(index);
 	if (!m_bFilterApplied)
 		m_indexProxy.remove(index);
 	else

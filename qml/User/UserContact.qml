@@ -233,7 +233,7 @@ Frame {
 		}
 
 		onActivated: (index) => {
-			txtSocial.text = appUtils.getCompositeValue(index, userModel.socialMedia(userRow));
+			txtSocial.text = userModel.socialMedia(userRow, index);
 			txtSocial.forceActiveFocus();
 		}
 
@@ -247,13 +247,13 @@ Frame {
 
 	TPTextInput {
 		id: txtSocial
-		text: appUtils.getCompositeValue(cboSocial.currentIndex, userModel.socialMedia(userRow));
+		text: userModel.socialMedia(userRow, cboSocial.currentIndex);
 		height: controlsHeight
 		enabled: bEmailOK
 		width: parent.width*0.90
 		ToolTip.text: qsTr("Social media address is invalid")
 
-		onEditingFinished: userModel.setSocialMedia(userRow, appUtils.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
+		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
 
 		onTextEdited: {
 			if (text.length > 10)
@@ -269,7 +269,7 @@ Frame {
 			if (activeFocus) {
 				if (text.length > 10) {
 					bSocialOK = true;
-					userModel.setSocialMedia(userRow, appUtils.setCompositeValue_QML(cboSocial.currentIndex, text, userModel.socialMedia(userRow)));
+					userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
 				}
 				else if (text.length === 0)
 					bSocialOK === userModel.isEmpty();

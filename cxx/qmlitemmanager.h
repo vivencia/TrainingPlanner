@@ -68,6 +68,7 @@ public:
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getMesoSplitPage(const uint page_index);
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
+	Q_INVOKABLE void loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath = QString(), const bool bJustExport = false);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
 
@@ -82,6 +83,8 @@ public:
 	Q_INVOKABLE void loadExercisesFromMesoPlan();
 	Q_INVOKABLE void convertTDayToPlan();
 	Q_INVOKABLE void resetWorkout();
+	Q_INVOKABLE void setDayIsFinished(const bool bFinished);
+	Q_INVOKABLE void adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay);
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
@@ -96,7 +99,6 @@ public:
 	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
 	Q_INVOKABLE void clearExercises();
 	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
-	Q_INVOKABLE void rollUpExercises() const;
 	Q_INVOKABLE void manageRestTime(const uint exercise_idx, const bool bTrackRestTime, bool bAutoRestTime, const uint new_set_type);
 
 	inline QQuickItem* getExerciseObject(const uint exercise_idx) const { return m_currentExercises->exerciseEntry(exercise_idx); }
@@ -215,6 +217,7 @@ private:
 	void createTrainingDayPage_part2();
 	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
+	void rollUpExercises() const;
 
 	struct tDayExercises {
 		struct exerciseObject {

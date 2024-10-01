@@ -217,7 +217,6 @@ void DBExercisesTable::saveExercises()
 			if (m_result)
 			{
 				m_exercisesTableLastId = highest_id;
-				m_model->setModified(false);
 				m_model->clearModifiedIndices();
 				MSG_OUT("DBExercisesTable saveExercise SUCCESS");
 				MSG_OUT(strQuery);

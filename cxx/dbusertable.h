@@ -19,6 +19,9 @@ public:
 	virtual void updateDatabase() {}
 	void getAllUsers();
 	void saveUser();
+
+private:
+	DBUserModel* m_model;
 };
 
 #endif // DBUSERTABLE_H

@@ -23,6 +23,8 @@ public:
 	void saveTrainingDay();
 	void removeTrainingDay();
 
+	inline DBTrainingDayModel* model() const { return m_model; }
+
 private:
 	DBTrainingDayModel* m_model;
 	QString formatDate(const uint julianDay) const;

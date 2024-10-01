@@ -366,7 +366,7 @@ Item {
 	} // setLayout
 
 	Component.onCompleted: {
-		tDayModel.saveWorkout.connect(hideCopyButtons);
+		tDayModel.tDayChanged.connect(hideCopyButtons);
 		if (setType === 3)
 			changeTotalRepsLabel();
 	}

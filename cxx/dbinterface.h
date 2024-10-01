@@ -82,7 +82,7 @@ public:
 	void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
 	void updateMesoCalendarModel(const DBTrainingDayModel* const tDayModel);
 	void updateMesoCalendarEntry(const DBTrainingDayModel* const tDayModel);
-	void setDayIsFinished(DBTrainingDayModel* const tDayModel, const bool bFinished);
+	void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 	void removeMesoCalendar(const uint meso_id);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

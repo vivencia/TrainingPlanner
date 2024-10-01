@@ -232,10 +232,15 @@ int DBUserModel::importFromFile(const QString& filename)
 						if (col != USER_COL_USERROLE)
 						{
 							value = buf;
-							modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+							if (!isFieldFormatSpecial(col))
+								modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+							else
+								modeldata[col] = formatFieldToImport(col, value.remove(0, value.indexOf(':') + 2));
 						}
 						++col;
 					}
+					else if (col == USER_COL_APP_USE_MODE)
+						modeldata[USER_COL_APP_USE_MODE] = QString::number(APP_USE_MODE_SINGLE_COACH);
 				}
 			}
 		}
@@ -262,6 +267,11 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 		case USER_COL_SEX:
 			return fieldValue == STR_ZERO ? tr("Male") : tr("Female");
+		case USER_COL_SOCIALMEDIA:
+		{
+			QString strSocial{fieldValue};
+			return strSocial.replace(record_separator, fancy_record_separator1);
+		}
 		case USER_COL_AVATAR:
 			if (fieldValue.contains(u"tpimageprovider"_qs))
 				return fieldValue.right(fieldValue.length()-24);
@@ -279,6 +289,11 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
 		case USER_COL_SEX:
 			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
+		case USER_COL_SOCIALMEDIA:
+		{
+			QString strSocial{fieldValue};
+			return strSocial.replace(fancy_record_separator1, record_separator);
+		}
 		case USER_COL_AVATAR:
 			return u"image://tpimageprovider/"_qs + fieldValue.right(fieldValue.length()-7);
 		default: return QString();

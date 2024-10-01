@@ -108,11 +108,16 @@ public:
 		emit userModified(row);
 	}
 
-	Q_INVOKABLE inline QString socialMedia(const int row) const { return row < m_modeldata.count() ? _socialMedia(row) : QString(); }
-	inline const QString& _socialMedia(const uint row) const { return m_modeldata.at(row).at(USER_COL_SOCIALMEDIA); }
-	Q_INVOKABLE void setSocialMedia(const int row, const QString& new_social)
+	Q_INVOKABLE inline QString socialMedia(const int row, const int index) const
 	{
-		m_modeldata[row][USER_COL_SOCIALMEDIA] = new_social;
+		return row < m_modeldata.count() ?
+		appUtils()->getCompositeValue(index, _socialMedia(row), record_separator) :
+		QString();
+	}
+	inline const QString& _socialMedia(const uint row) const { return m_modeldata.at(row).at(USER_COL_SOCIALMEDIA); }
+	Q_INVOKABLE void setSocialMedia(const int row, const uint index, const QString& new_social)
+	{
+		appUtils()->setCompositeValue(index, new_social, m_modeldata[row][USER_COL_SOCIALMEDIA], record_separator);
 		emit userModified(row);
 	}
 
@@ -179,18 +184,19 @@ public:
 	virtual int importFromFile(const QString& filename) override;
 	virtual bool updateFromModel(const TPListModel* const) override;
 
-	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		switch (field)
 		{
 			default: return false;
 			case USER_COL_BIRTHDAY:
-			case USER_COL_AVATAR:
 			case USER_COL_SEX:
+			case USER_COL_SOCIALMEDIA:
+			case USER_COL_AVATAR:
 				return true;
 		}
 	}
-	QString formatFieldToExport(const uint field, const QString& fieldValue) const;
+	QString formatFieldToExport(const uint field, const QString& fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 
 signals:

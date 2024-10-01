@@ -158,7 +158,9 @@ public:
 	inline uint lastID() const { return m_exercisesTableLastId; }
 	bool collectExportData();
 
-	Q_INVOKABLE virtual void clear() override;
+	void appendList(const QStringList& list);
+	Q_INVOKABLE void clear() override;
+
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
 	virtual int importFromFile(const QString& filename) override;
 	virtual bool updateFromModel(const TPListModel* const model) override;

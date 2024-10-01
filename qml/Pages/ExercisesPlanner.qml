@@ -99,30 +99,6 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnSave
-			text: qsTr("Save")
-			imageSource: "save-day.png"
-			textUnderIcon: true
-			rounded: false
-			flat: false
-			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.modified : false
-			fixedSize: true
-			width: footerHeight
-			height: footerHeight
-
-			anchors {
-				left: parent.left
-				leftMargin: 5
-				verticalCenter: parent.verticalCenter
-			}
-
-			onClicked: {
-				appDB.saveMesoSplitComplete(currentPage.splitModel);
-				requestSimpleExercisesList(null, false, false);
-			}
-		}
-
-		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
 			imageSource: "clear.png"
@@ -134,8 +110,8 @@ TPPage {
 			width: footerHeight
 			height: footerHeight
 			anchors {
-				left: btnSave.right
-				leftMargin: 3
+				left: parent.left
+				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 

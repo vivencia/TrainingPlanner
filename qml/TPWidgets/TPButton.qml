@@ -121,7 +121,7 @@ Rectangle {
 					}
 					else {
 						anchors.right = parent.right;
-						anchors.rightMargin = 2;
+						anchors.rightMargin = 5;
 					}
 				}
 				else {

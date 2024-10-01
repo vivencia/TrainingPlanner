@@ -170,7 +170,7 @@ Item {
 		}
 	}
 
-	Component.onCompleted: tDayModel.saveWorkout.connect(hideCopyButtons);
+	Component.onCompleted: tDayModel.tDayChanged.connect(hideCopyButtons);
 
 	function hideCopyButtons() {
 		stack1.currentIndex = 0;

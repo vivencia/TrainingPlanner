@@ -158,19 +158,18 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(12);
+	QList<QQmlContext::PropertyPair> properties(11);
 	properties[0] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
 	properties[1] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
-	properties[2] = QQmlContext::PropertyPair{ u"appDB"_qs, QVariant::fromValue(appDBInterface()) };
-	properties[3] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
-	properties[4] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
-	properties[5] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
-	properties[6] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
-	properties[7] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
-	properties[8] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
-	properties[9] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
-	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
-	properties[11] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
+	properties[2] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
+	properties[3] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
+	properties[4] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
+	properties[5] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
+	properties[6] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
+	properties[7] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
+	properties[8] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
+	properties[9] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
+	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl& url(u"qrc:/qml/main.qml"_qs);
@@ -437,6 +436,13 @@ void QmlItemManager::swapMesoPlans(const QString& splitLetter1, const QString& s
 	appDBInterface()->saveMesoSplitComplete(m_splitModels.value(splitLetter1.at(0)));
 }
 
+void QmlItemManager::loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel)
+{
+	const int prevMesoId(getSplitPage(splitModel->_splitLetter())->property("prevMesoId").toInt());
+	if (prevMesoId >= 0)
+		appDBInterface()->loadSplitFromPreviousMeso(prevMesoId, splitModel);
+}
+
 void QmlItemManager::exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath, const bool bJustExport)
 {
 	int exportFileMessageId(0);
@@ -531,7 +537,6 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 		m_CurrenttDayModel->setTrainingDay(tday);
 		m_CurrenttDayModel->setTimeIn(u"--:--"_qs);
 		m_CurrenttDayModel->setTimeOut(u"--:--"_qs);
-		m_CurrenttDayModel->setModified(false);
 		m_tDayProperties.insert(u"mainDate"_qs, date);
 		m_tDayProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
 		m_tDayProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));
@@ -565,7 +570,6 @@ void QmlItemManager::loadExercisesFromDate(const QString& strDate)
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [&] (const uint) {
 		const bool btoday(m_CurrenttDayModel->date() == QDate::currentDate());
-		m_CurrenttDayModel->setModified(btoday);
 		m_CurrenttDayModel->setDayIsFinished(!btoday);
 		createExercisesObjects();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -576,7 +580,6 @@ void QmlItemManager::loadExercisesFromMesoPlan()
 {
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [&] (const uint) {
 		const bool btoday(m_CurrenttDayModel->date() == QDate::currentDate());
-		m_CurrenttDayModel->setModified(btoday);
 		m_CurrenttDayModel->setDayIsFinished(!btoday);
 		createExercisesObjects();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -597,6 +600,44 @@ void QmlItemManager::resetWorkout()
 	m_currenttDayPage->setProperty("timeOut", m_CurrenttDayModel->timeOut());
 	m_currenttDayPage->setProperty("editMode", false);
 	QMetaObject::invokeMethod(m_currenttDayPage, "resetTimer", Qt::AutoConnection);
+}
+
+void QmlItemManager::setDayIsFinished(const bool bFinished)
+{
+	m_CurrenttDayModel->setDayIsFinished(bFinished);
+	const QDate& date(m_CurrenttDayModel->date());
+	appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, bFinished);
+	appDBInterface()->setDayIsFinished(m_mesoIdx, date, bFinished);
+	if (bFinished)
+		rollUpExercises();
+}
+
+void QmlItemManager::adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay)
+{
+	bool bDayIsFinished;
+	uint tDay{m_currenttDayPage->property("tDay").toUInt()};
+	if (newSplitLetter != u"R"_qs)
+	{
+		const QString& splitLetter{m_currenttDayPage->property("splitLetter").toString()};
+		if (splitLetter == u"R"_qs)
+			tDay = m_CurrenttDayModel->getWorkoutNumberForTrainingDay();
+		bDayIsFinished = m_CurrenttDayModel->dayIsFinished();
+	}
+	else
+	{
+		tDay = 0;
+		bDayIsFinished = false;
+		m_CurrenttDayModel->setDayIsFinished(false);
+	}
+	m_currenttDayPage->setProperty("splitLetter", newSplitLetter);
+	m_CurrenttDayModel->setTrainingDay(QString::number(tDay), false);
+	m_CurrenttDayModel->setSplitLetter(newSplitLetter, true);
+	if (bOnlyThisDay)
+		appDBInterface()->updateMesoCalendarEntry(m_CurrenttDayModel);
+	else
+		appDBInterface()->updateMesoCalendarModel(m_CurrenttDayModel);
+	if (newSplitLetter != u"R"_qs)
+		appDBInterface()->verifyTDayOptions(m_CurrenttDayModel);
 }
 
 void QmlItemManager::setCurrenttDay(const QDate& date)
@@ -663,14 +704,16 @@ void QmlItemManager::createExerciseObject()
 	}
 	else
 	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 1) + u" - "_qs + appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 1) + u" - "_qs + appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 4), nSets);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 4), nSets);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 5), nReps);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 5), nReps);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 6), nWeight);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 6), nWeight);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 1) + u" - "_qs +
+						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 1) + u" - "_qs +
+						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 4), nSets, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 4), nSets, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 5), nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 5), nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 6), nWeight, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 6), nWeight, comp_exercise_separator);
 	}
 	m_tDayExerciseEntryProperties.insert(u"nSets"_qs, nSets);
 	m_tDayExerciseEntryProperties.insert(u"nReps"_qs, nReps);
@@ -734,13 +777,6 @@ void QmlItemManager::moveExercise(const uint exercise_idx, const uint new_idx)
 		m_currentExercises->exerciseEntry(x)->setParentItem(parentLayout);
 	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
 	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
-}
-
-void QmlItemManager::rollUpExercises() const
-{
-	for (uint i(0); i < m_currentExercises->exercisesCount(); ++i)
-		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
-	QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }
 
 void QmlItemManager::manageRestTime(const uint exercise_idx, const bool bTrackRestTime, bool bAutoRestTime, const uint new_set_type)
@@ -1557,7 +1593,7 @@ void QmlItemManager::createMesoSplitPage(const uint page_index)
 				updateMuscularGroup(m_splitModels.value(splitLetter));
 		}
 	});
-	connect(splitModel, &DBMesoSplitModel::splitChanged, this, [&,splitModel] () {
+	connect(splitModel, &DBMesoSplitModel::splitChanged, this, [&,splitModel] (const uint, const uint) {
 		appDBInterface()->saveMesoSplitComplete(splitModel);
 	});
 }
@@ -1744,6 +1780,13 @@ void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel*
 		m_currenttDayPage->setProperty("pageOptionsLoaded", true);
 	else
 		m_tDayProperties.insert(u"pageOptionsLoaded"_qs, true);
+}
+
+void QmlItemManager::rollUpExercises() const
+{
+	for (uint i(0); i < m_currentExercises->exercisesCount(); ++i)
+		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
+	QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }
 
 void QmlItemManager::tDayExercises::appendExerciseEntry(QQuickItem* new_exerciseItem)
