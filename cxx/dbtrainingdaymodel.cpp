@@ -433,12 +433,11 @@ void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exerc
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName1", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
 	QString new_name1;
+	new_name1 = name1 + comp_exercise_separator;
 	if (idx != -1)
 		new_name1 = name1 + comp_exercise_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
-	else
-		new_name1 = name1;
 	m_ExerciseData.at(exercise_idx)->name = new_name1.replace(u"1: "_qs, "");
-	m_CompositeExerciseList[exercise_idx] = idx != -1;
+	m_CompositeExerciseList[exercise_idx] = true;
 	emit compositeExerciseChanged(exercise_idx);
 }
 
@@ -446,7 +445,7 @@ QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName2", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	return idx != -1 ? QStringLiteral("2: ") + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1) : tr("2: Add exercise ...");
+	return idx != -1 ? u"2: "_qs + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1) : tr("2: Add exercise ...");
 }
 
 void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exercise_idx)
@@ -458,7 +457,7 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 		new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + comp_exercise_separator + name2;
 	else
 		new_name2 = comp_exercise_separator + name2;
-	m_CompositeExerciseList[exercise_idx] = idx != -1;
+	m_CompositeExerciseList[exercise_idx] = true;
 	emit compositeExerciseChanged(exercise_idx);
 	m_ExerciseData.at(exercise_idx)->name = new_name2.replace(u"2: "_qs, "");
 }

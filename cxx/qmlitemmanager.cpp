@@ -8,7 +8,6 @@
 #include "dbtrainingdaymodel.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
-#include "tputils.h"
 #include "osinterface.h"
 #include "translationclass.h"
 
@@ -133,6 +132,8 @@ QmlItemManager::~QmlItemManager()
 			x.next();
 			delete x.value();
 		}
+
+		clearExerciseEntries(true);
 	}
 }
 
@@ -694,33 +695,6 @@ void QmlItemManager::createExerciseObject()
 	if (m_tDayExercisesComponent == nullptr)
 		m_tDayExercisesComponent = new QQmlComponent(appQmlEngine(), QUrl(u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs), QQmlComponent::Asynchronous);
 
-	QString exerciseName, nSets, nReps, nWeight;
-	if (appExercisesModel()->selectedEntriesCount() == 1)
-	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, 1) + u" - "_qs + appExercisesModel()->selectedEntriesValue_fast(0, 2);
-		nSets = appExercisesModel()->selectedEntriesValue_fast(0, 4);
-		nReps = appExercisesModel()->selectedEntriesValue_fast(0, 5);
-		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, 6);
-	}
-	else
-	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 1) + u" - "_qs +
-						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 1) + u" - "_qs +
-						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 4), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 4), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 5), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 5), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, 6), nWeight, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, 6), nWeight, comp_exercise_separator);
-	}
-	m_tDayExerciseEntryProperties.insert(u"nSets"_qs, nSets);
-	m_tDayExerciseEntryProperties.insert(u"nReps"_qs, nReps);
-	m_tDayExerciseEntryProperties.insert(u"nWeight"_qs, nWeight);
-
-	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
-
 	if (m_tDayExercisesComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayExercisesComponent, &QQmlComponent::statusChanged, this, [&](QQmlComponent::Status)
 			{ return createExerciseObject_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection) );
@@ -733,13 +707,13 @@ void QmlItemManager::removeExerciseObject(const uint exercise_idx)
 	if (exercise_idx < m_currentExercises->exerciseObjects.count())
 	{
 		m_CurrenttDayModel->removeExercise(exercise_idx);
-		m_currentExercises->removeExerciseEntry(exercise_idx);
+		removeExerciseEntry(exercise_idx);
 		for(uint i(exercise_idx); i < m_currentExercises->exerciseObjects.count(); ++i)
 		{
 			//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-			QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(i), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
-			for(uint x(0); x < m_currentExercises->setCount(i); ++x)
-				m_currentExercises->setObject(i, x)->setProperty("exerciseIdx", i);
+			QMetaObject::invokeMethod(exerciseEntryItem(i), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
+			for(uint x(0); x < exerciseSetsCount(i); ++x)
+				exerciseSetItem(i, x)->setProperty("exerciseIdx", i);
 		}
 	}
 }
@@ -747,36 +721,36 @@ void QmlItemManager::removeExerciseObject(const uint exercise_idx)
 void QmlItemManager::clearExercises()
 {
 	appDBInterface()->verifyTDayOptions(currenttDayModel());
-	m_currentExercises->clear();
+	clearExerciseEntries();
 	m_CurrenttDayModel->clearExercises();
 	m_CurrenttDayModel->setDayIsFinished(false);
 }
 
 void QmlItemManager::moveExercise(const uint exercise_idx, const uint new_idx)
 {
-	uint nsets(m_currentExercises->setCount(exercise_idx));
+	uint nsets(exerciseSetsCount(exercise_idx));
 	for(uint i(0); i < nsets; ++i)
 	{
-		m_currentExercises->setObject(exercise_idx, i)->setProperty("exerciseIdx", new_idx);
-		m_currentExercises->setObject(exercise_idx, i)->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(new_idx)));
+		exerciseSetItem(exercise_idx, i)->setProperty("exerciseIdx", new_idx);
+		exerciseSetItem(exercise_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(new_idx)));
 	}
-	nsets = m_currentExercises->setCount(new_idx);
+	nsets = exerciseSetsCount(new_idx);
 	for(uint i(0); i < nsets; ++i)
 	{
-		m_currentExercises->setObject(new_idx, i)->setProperty("exerciseIdx", exercise_idx);
-		m_currentExercises->setObject(new_idx, i)->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
+		exerciseSetItem(new_idx, i)->setProperty("exerciseIdx", exercise_idx);
+		exerciseSetItem(new_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(exercise_idx)));
 	}
 	m_CurrenttDayModel->moveExercise(exercise_idx, new_idx);
 
 	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
-		m_currentExercises->exerciseEntry(x)->setParentItem(nullptr);
+		exerciseEntryItem(x)->setParentItem(nullptr);
 
 	QQuickItem* parentLayout(m_currenttDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
 	m_currentExercises->exerciseObjects.swapItemsAt(exercise_idx, new_idx);
 	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
-		m_currentExercises->exerciseEntry(x)->setParentItem(parentLayout);
+		exerciseEntryItem(x)->setParentItem(parentLayout);
 	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
+	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
 }
 
 void QmlItemManager::manageRestTime(const uint exercise_idx, const bool bTrackRestTime, bool bAutoRestTime, const uint new_set_type)
@@ -785,110 +759,148 @@ void QmlItemManager::manageRestTime(const uint exercise_idx, const bool bTrackRe
 		bAutoRestTime = false;
 	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
 	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nRestTime", bAutoRestTime ?
+	exerciseEntryItem(exercise_idx)->setProperty("nRestTime", bAutoRestTime ?
 											u"00:00"_qs :
 											m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, new_set_type, 0));
 
 	enableDisableSetsRestTime(exercise_idx, bTrackRestTime, bAutoRestTime);
 }
+
+uint QmlItemManager::exerciseSetsCount(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.count();
+}
+
+uint QmlItemManager::exerciseDefaultSetType(const uint exercise_idx)
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->newSetType;
+}
+
+inline void QmlItemManager::setExerciseDefaultSetType(const uint exercise_idx, const uint set_type)
+{
+	tDayExercises::exerciseObject* exerciseObj{m_currentExercises->exerciseObjects.at(exercise_idx)};
+	exerciseObj->newSetType = set_type;
+	const uint nSets(exerciseSetsCount(exercise_idx));
+
+	if (nSets == 0)
+	{
+		switch(set_type)
+		{
+			case SET_TYPE_DROP: setExerciseSets(exercise_idx, u"1"_qs); break;
+			case SET_TYPE_CLUSTER: setExerciseSets(exercise_idx, u"2"_qs); break;
+			case SET_TYPE_MYOREPS: setExerciseSets(exercise_idx, u"3"_qs); break;
+			default: break;
+		}
+	}
+	else
+	{
+		setExerciseSets(exercise_idx, u"1"_qs);
+		setExerciseRestTime(exercise_idx, m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type, nSets));
+		setExerciseReps(exercise_idx, m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type, nSets));
+		setExerciseWeight(exercise_idx, m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type, nSets));
+	}
+
+	if (m_CurrenttDayModel->trackRestTime(exercise_idx) && !m_CurrenttDayModel->autoRestTime(exercise_idx))
+		setExerciseRestTime(exercise_idx, m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type, nSets));
+
+	if (nSets == 0)
+	{
+		const bool bCompositeExercise{set_type == SET_TYPE_GIANT};
+		if (bCompositeExercise) //trigger DBTrainingDayModel::compositeExerciseChanged. This will update the screen controls
+			m_CurrenttDayModel->setExerciseName(m_CurrenttDayModel->exerciseName1(exercise_idx), exercise_idx);
+		else
+			m_CurrenttDayModel->setExerciseName1(m_CurrenttDayModel->exerciseName(exercise_idx), exercise_idx);
+	}
+}
+
+const QString QmlItemManager::exerciseSets(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->nSets;
+}
+
+void QmlItemManager::setExerciseSets(const uint exercise_idx, const QString& new_nsets)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->nSets = new_nsets;
+}
+
+const QString QmlItemManager::exerciseRestTime(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->restTime;
+}
+
+inline void QmlItemManager::setExerciseRestTime(const uint exercise_idx, const QString& new_resttime)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->restTime = new_resttime;
+}
+
+const QString QmlItemManager::exerciseReps(const uint exercise_idx, const uint composite_idx) const
+{
+	return appUtils()->getCompositeValue(composite_idx, m_currentExercises->exerciseObjects.at(exercise_idx)->nReps, comp_exercise_separator);
+}
+
+void QmlItemManager::setExerciseReps(const uint exercise_idx, const uint composite_idx, const QString& new_nreps)
+{
+	appUtils()->setCompositeValue(composite_idx, new_nreps, m_currentExercises->exerciseObjects.at(exercise_idx)->nReps, comp_exercise_separator);
+}
+
+const QString QmlItemManager::exerciseWeight(const uint exercise_idx, const uint composite_idx) const
+{
+	return appUtils()->getCompositeValue(composite_idx, m_currentExercises->exerciseObjects.at(exercise_idx)->nWeight, comp_exercise_separator);
+}
+
+void QmlItemManager::setExerciseWeight(const uint exercise_idx, const uint composite_idx, const QString& new_nweight)
+{
+	appUtils()->setCompositeValue(composite_idx, new_nweight, m_currentExercises->exerciseObjects.at(exercise_idx)->nWeight, comp_exercise_separator);
+}
 //-----------------------------------------------------------EXERCISE OBJECTS-----------------------------------------------------------
 
 //-------------------------------------------------------------SET OBJECTS-------------------------------------------------------------
-void QmlItemManager::createSetObject(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet,
-										const QString& nReps, const QString& nWeight, const QString& nRestTime)
+void QmlItemManager::getSetObjects(const uint exercise_idx)
 {
-	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
-	if (m_setComponents[set_type_cpp] == nullptr)
-		m_setComponents[set_type_cpp] = new QQmlComponent(appQmlEngine(), QUrl(setTypePages[set_type_cpp]), QQmlComponent::Asynchronous);
-
-	if (bNewSet)
-	{
-		if (set_number == 0)
-			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight, nRestTime);
-		else
-			currenttDayModel()->newSet(set_number, exercise_idx, set_type, nReps, nWeight, nRestTime);
-		m_expectedSetNumber = set_number;
-	}
-
-	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
-		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx,bNewSet](QQmlComponent::Status status)
-			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx, bNewSet); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	else
-		createSetObject_part2(set_type, set_number, exercise_idx, bNewSet);
-}
-
-void QmlItemManager::createSetObjects(const uint exercise_idx)
-{
-	if (!setsLoaded(exercise_idx))
+	if (exerciseSetsCount(exercise_idx) == 0)
 	{
 		m_expectedSetNumber = 0;
 		const uint nsets(currenttDayModel()->setsNumber(exercise_idx));
 		for (uint i(0); i < nsets; ++i)
-			createSetObject(currenttDayModel()->setType(i, exercise_idx), i, exercise_idx, false);
+			createSetObject(exercise_idx, i, false, currenttDayModel()->setType(i, exercise_idx));
+		setExerciseDefaultSetType(exercise_idx, m_CurrenttDayModel->setType(m_CurrenttDayModel->setsNumber(exercise_idx), exercise_idx));
 	}
 	else
-	{
 		//Place into view: exercise entry + first set
-		QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView",
-			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 50));
-	}
+		QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, exerciseEntryItem(exercise_idx)->property("y").toInt() + 50));
 }
 
-//Convenience function for ExerciseEntry::createSetObject. Create last_set - first_set sets on the fly as per user command
-void QmlItemManager::createSetObjects(const uint exercise_idx, const uint first_set, const uint last_set, const uint set_type,
-							const QString& nReps, const QString& nWeight, const QString& nRestTime)
+void QmlItemManager::addNewSet(const uint exercise_idx)
 {
-	if (!nReps.isEmpty())
-	{
-		connect(this, &QmlItemManager::setObjectReady, this, [&,set_type,first_set, last_set,exercise_idx] {
-			createSetObjects(exercise_idx, first_set, last_set, set_type);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		createSetObject(set_type, first_set, exercise_idx, true, nReps, nWeight, nRestTime);
-		m_expectedSetNumber = first_set;
-		return;
-	}
-	if ((last_set - first_set) > 1)
-	{
-		for (uint i(first_set+1); i < last_set; ++i)
-		{
-			currenttDayModel()->newSet(i, exercise_idx, set_type);
-			createSetObject_part2(set_type, i, exercise_idx, true);
-		}
-		//Place into view: exercise entry + first set
-		QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView",
-			Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("y").toInt() + 50));
-	}
-	else
-	{
-		//Place into view: most recent set added
-		QMetaObject::invokeMethod( m_currenttDayPage, "placeSetIntoView",
-			Q_ARG( int, first_set > 0 ? (m_currentExercises->setObject(exercise_idx, first_set-1)->property("y").toInt() + 50) :
-										(m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()) ) );
-	}
+	createSetObject(exercise_idx, exerciseSetsCount(exercise_idx), true, exerciseDefaultSetType(exercise_idx), exerciseReps(exercise_idx),
+				exerciseWeights(exercise_idx), exerciseRestTime(exercise_idx));
+	//Place into view: most recent set added
+	QMetaObject::invokeMethod( m_currenttDayPage, "placeSetIntoView", Q_ARG(int, exerciseEntryItem(exercise_idx)->property("height").toInt()));
+	setExerciseDefaultSetType(exercise_idx, m_CurrenttDayModel->setType(m_CurrenttDayModel->setsNumber(exercise_idx), exercise_idx));
 }
 
 void QmlItemManager::removeSetObject(const uint set_number, const uint exercise_idx)
 {
-	if (exercise_idx < m_currentExercises->exercisesCount())
+	if (exercise_idx < exercisesCount())
 	{
-		for(uint x(set_number+1); x < m_currentExercises->setCount(exercise_idx); ++x)
-			m_currentExercises->setObject(exercise_idx, x)->setProperty("setNumber", x-1);
+		for(uint x(set_number+1); x < exerciseSetsCount(exercise_idx); ++x)
+			exerciseSetItem(exercise_idx, x)->setProperty("setNumber", x-1);
 		m_CurrenttDayModel->removeSet(set_number, exercise_idx);
-		m_currentExercises->removeSet(exercise_idx, set_number);
-		const uint nsets(m_currentExercises->setCount(exercise_idx));
-		m_currentExercises->exerciseEntry(exercise_idx)->setProperty("setNbr", nsets);
+		removeExerciseSet(exercise_idx, set_number);
+		const uint nsets(exerciseSetsCount(exercise_idx));
+		exerciseEntryItem(exercise_idx)->setProperty("setNbr", nsets);
 		if (nsets == 0)
 		{
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", true);
+			exerciseEntryItem(exercise_idx)->setProperty("bCanEditRestTimeTracking", true);
 			return;
 		}
 		else if (set_number == nsets) //last set was removed, update suggested values for a possible set addition
 		{
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
-			m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			exerciseEntryItem(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
+			exerciseEntryItem(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, m_CurrenttDayModel->setType(set_number-1, exercise_idx)));
 			if (set_number > 1)
 			{
-				m_currentExercises->setObject(exercise_idx, set_number-1)->setProperty("finishButtonVisible", true);
+				exerciseSetItem(exercise_idx, set_number-1)->setProperty("finishButtonVisible", true);
 				enableDisableExerciseCompletedButton(exercise_idx, currenttDayModel()->setCompleted(set_number-1, exercise_idx));
 			}
 		}
@@ -908,11 +920,11 @@ void QmlItemManager::changeSetsExerciseLabels(const uint exercise_idx, const uin
 
 	QQuickItem* setObj(nullptr);
 	QQuickItem* txtExercise(nullptr);
-	for (uint i(0); i < m_currentExercises->setCount(exercise_idx); ++i)
+	for (uint i(0); i < exerciseSetsCount(exercise_idx); ++i)
 	{
 		if (m_CurrenttDayModel->setType(i, exercise_idx) == SET_TYPE_GIANT)
 		{
-			setObj = m_currentExercises->setObject_const(exercise_idx, i);
+			setObj = exerciseSetItem(exercise_idx, i);
 			QMetaObject::invokeMethod(setObj, "liberateSignals", Q_ARG(bool, false));
 			txtExercise = setObj->findChild<QQuickItem*>(label_idx == 1 ? u"txtExercise1"_qs : u"txtExercise2"_qs);
 			QMetaObject::invokeMethod(setObj, "changeExerciseText", Q_ARG(QVariant, QVariant::fromValue(txtExercise)),
@@ -932,20 +944,20 @@ void QmlItemManager::changeSetType(const uint set_number, const uint exercise_id
 		{
 			if (new_type != SET_TYPE_DROP && new_type != SET_TYPE_GIANT)
 			{
-				m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setType", new_type);
+				exerciseSetItem(exercise_idx, set_number)->setProperty("setType", new_type);
 				return;
 			}
 		}
 
-		m_setObjectProperties.insert(u"copyTypeButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTypeButtonValue").toString());
-		m_setObjectProperties.insert(u"copyTimeButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyTimeButtonValue").toString());
-		m_setObjectProperties.insert(u"copyRepsButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyRepsButtonValue").toString());
-		m_setObjectProperties.insert(u"copyWeightButtonValue"_qs, m_currentExercises->setObject(exercise_idx, set_number)->property("copyWeightButtonValue").toString());
-		m_currentExercises->removeSet(exercise_idx, set_number);
+		m_setObjectProperties.insert(u"copyTypeButtonValue"_qs, exerciseSetItem(exercise_idx, set_number)->property("copyTypeButtonValue").toString());
+		m_setObjectProperties.insert(u"copyTimeButtonValue"_qs, exerciseSetItem(exercise_idx, set_number)->property("copyTimeButtonValue").toString());
+		m_setObjectProperties.insert(u"copyRepsButtonValue"_qs, exerciseSetItem(exercise_idx, set_number)->property("copyRepsButtonValue").toString());
+		m_setObjectProperties.insert(u"copyWeightButtonValue"_qs, exerciseSetItem(exercise_idx, set_number)->property("copyWeightButtonValue").toString());
+		removeExerciseSet(exercise_idx, set_number);
 
 		m_expectedSetNumber = 100; //do not trigger the itemReady signal nor add the object to the parent layout
 		connect(this, &QmlItemManager::setObjectReady, this, [&,set_number,exercise_idx] {
-			return changeSetType(set_number, exercise_idx, 100);
+			changeSetType(set_number, exercise_idx, 100);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		createSetObject(new_type, set_number, exercise_idx, false);
 		return;
@@ -963,7 +975,7 @@ void QmlItemManager::changeSetType(const uint set_number, const uint exercise_id
 
 void QmlItemManager::changeSetMode(const uint exercise_idx, const uint set_number)
 {
-	QQuickItem* set_object(m_currentExercises->setObject(exercise_idx, set_number));
+	QQuickItem* set_object(exerciseSetItem(exercise_idx, set_number));
 	uint set_mode(set_object->property("setMode").toUInt());
 	switch(set_mode)
 	{
@@ -1266,13 +1278,13 @@ void QmlItemManager::showRemoveSetMessage(int set_number, int exercise_idx)
 
 void QmlItemManager::exerciseCompleted(int exercise_idx)
 {
-	QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
-	if (exercise_idx < m_currentExercises->exercisesCount()-1)
+	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
+	if (exercise_idx < exercisesCount()-1)
 	{
-		if (!m_currentExercises->exerciseEntry_const(exercise_idx+1)->property("finishButtonEnabled").toBool())
+		if (!exerciseEntryItem(exercise_idx+1)->property("finishButtonEnabled").toBool())
 		{
-			QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
-			QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx+1)->property("y").toInt() + 50));
+			QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx+1), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
+			QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, exerciseEntryItem(exercise_idx+1)->property("y").toInt() + 50));
 		}
 	}
 }
@@ -1784,35 +1796,9 @@ void QmlItemManager::setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel*
 
 void QmlItemManager::rollUpExercises() const
 {
-	for (uint i(0); i < m_currentExercises->exercisesCount(); ++i)
-		QMetaObject::invokeMethod(m_currentExercises->exerciseEntry_const(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
+	for (uint i(0); i < exercisesCount(); ++i)
+		QMetaObject::invokeMethod(exerciseEntryItem(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView", Q_ARG(int, -100));
-}
-
-void QmlItemManager::tDayExercises::appendExerciseEntry(QQuickItem* new_exerciseItem)
-{
-	exerciseObject* exerciseObj{new exerciseObject};
-	exerciseObj->m_exerciseEntry = new_exerciseItem;
-	exerciseObjects.append(exerciseObj);
-}
-
-void QmlItemManager::tDayExercises::removeExerciseEntry(const uint exercise_idx, const bool bDeleteNow)
-{
-	exerciseObject* exerciseObj(exerciseObjects.at(exercise_idx));
-	for (uint x(0); x < exerciseObj->m_setObjects.count(); ++x)
-		bDeleteNow ? delete exerciseObj->m_setObjects.at(x) : exerciseObj->m_setObjects.at(x)->deleteLater();
-	exerciseObj->m_setObjects.clear();
-	if (exerciseObj->m_setTimer)
-		bDeleteNow ? delete exerciseObj->m_setTimer : exerciseObj->m_setTimer->deleteLater();
-	bDeleteNow ? delete exerciseObj->m_exerciseEntry : exerciseObj->m_exerciseEntry->deleteLater();
-	exerciseObjects.removeAt(exercise_idx);
-	delete exerciseObj;
-}
-
-void QmlItemManager::tDayExercises::removeSet(const uint exercise_idx, const uint set_number)
-{
-	setObject(exercise_idx, set_number)->deleteLater();
-	exerciseObjects.at(exercise_idx)->m_setObjects.remove(set_number);
 }
 //-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------
 
@@ -1836,7 +1822,7 @@ void QmlItemManager::createExercisesObjects()
 		for(uint i(0); i < m_CurrenttDayModel->exerciseCount(); ++i)
 		{
 			createExerciseObject_part2(i);
-			m_currentExercises->exerciseEntry(i)->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
+			exerciseEntryItem(i)->setProperty("setNbr", m_CurrenttDayModel->setsNumber(i));
 		}
 	}
 }
@@ -1853,10 +1839,32 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 	}
 	#endif
 
-	QString nRestTime;
-	bool bTrackRestTime(false), bAutoRestTime(false);
 	const int exercise_idx(object_idx >= 0 ? object_idx : m_currentExercises->exerciseObjects.count());
+	appendExerciseEntry();
 
+	QString exerciseName, nSets, nReps, nWeight, nRestTime;
+	if (appExercisesModel()->selectedEntriesCount() == 1)
+	{
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_qs + appExercisesModel()->selectedEntriesValue_fast(0, 2);
+		nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
+		nReps = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER);
+		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT);
+	}
+	else
+	{
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_qs +
+						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + u" - "_qs +
+						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
+	}
+
+	bool bTrackRestTime(false), bAutoRestTime(false);
 	if (exercise_idx > 1)
 	{
 		bTrackRestTime = m_CurrenttDayModel->trackRestTime(exercise_idx-1);
@@ -1865,6 +1873,12 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 	}
 	else
 		nRestTime = m_CurrenttDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
+
+	setExerciseSets(exercise_idx, nSets);
+	setExerciseReps(exercise_idx, nReps);
+	setExerciseWeight(exercise_idx, nWeight);
+	setExerciseRestTime(exercise_idx, nRestTime);
+	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
 	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
 
@@ -1880,6 +1894,7 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 	QQuickItem* item (static_cast<QQuickItem*>(m_tDayExercisesComponent->createWithInitialProperties(
 													m_tDayExerciseEntryProperties, appQmlEngine()->rootContext())));
 	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	setExerciseItem(exercise_idx, item);
 	QQuickItem* parentLayout(m_currenttDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_qs));
 	item->setParentItem(parentLayout);
 	item->setProperty("Layout.row", exercise_idx);
@@ -1890,12 +1905,126 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)) );
 	connect( item, SIGNAL(showRemoveExerciseMessage(int)), this, SLOT(showRemoveExerciseMessage(int)) );
 
-	m_currentExercises->appendExerciseEntry(item);
 	QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 }
+
+inline uint QmlItemManager::exercisesCount() const
+{
+	return m_currentExercises->exerciseObjects.count();
+}
+
+inline QQuickItem* QmlItemManager::exerciseEntryItem(const uint exercise_idx)
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->m_exerciseEntry;
+}
+
+inline QQuickItem* QmlItemManager::exerciseEntryItem(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->m_exerciseEntry;
+}
+
+inline QQuickItem* QmlItemManager::exerciseSetItem(const uint exercise_idx, const uint set_number)
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.at(set_number);
+}
+
+inline QQuickItem* QmlItemManager::exerciseSetItem(const uint exercise_idx, const uint set_number) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.at(set_number);
+}
+
+inline void QmlItemManager::appendExerciseEntry()
+{
+	tDayExercises::exerciseObject* exerciseObj{new tDayExercises::exerciseObject};
+	m_currentExercises->exerciseObjects.append(exerciseObj);
+}
+
+void QmlItemManager::removeExerciseEntry(const uint exercise_idx, const bool bDeleteNow)
+{
+	tDayExercises::exerciseObject* exerciseObj(m_currentExercises->exerciseObjects.at(exercise_idx));
+	for (uint x(0); x < exerciseObj->m_setObjects.count(); ++x)
+		bDeleteNow ? delete exerciseObj->m_setObjects.at(x) : exerciseObj->m_setObjects.at(x)->deleteLater();
+	exerciseObj->m_setObjects.clear();
+	if (exerciseObj->m_setTimer)
+		bDeleteNow ? delete exerciseObj->m_setTimer : exerciseObj->m_setTimer->deleteLater();
+	bDeleteNow ? delete exerciseObj->m_exerciseEntry : exerciseObj->m_exerciseEntry->deleteLater();
+	m_currentExercises->exerciseObjects.removeAt(exercise_idx);
+	delete exerciseObj;
+}
+
+inline void QmlItemManager::setExerciseItem(const uint exercise_idx, QQuickItem* new_exerciseItem)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->m_exerciseEntry = new_exerciseItem;
+}
+
+inline const QString& QmlItemManager::exerciseReps(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->nReps;
+}
+
+inline void QmlItemManager::setExerciseReps(const uint exercise_idx, const QString& nreps)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->nReps = nreps;
+}
+
+inline const QString& QmlItemManager::exerciseWeights(const uint exercise_idx) const
+{
+	return m_currentExercises->exerciseObjects.at(exercise_idx)->nWeight;
+}
+
+inline void QmlItemManager::setExerciseWeight(const uint exercise_idx, const QString& nweight)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->nWeight = nweight;
+}
+
+inline void QmlItemManager::insertExerciseSet(const uint set_number, const uint exercise_idx, QQuickItem* new_setObject)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.insert(set_number, new_setObject);
+}
+
+inline void QmlItemManager::appendExerciseSet(const uint exercise_idx, QQuickItem* new_setObject)
+{
+	m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.append(new_setObject);
+}
+
+inline void QmlItemManager::removeExerciseSet(const uint exercise_idx, const uint set_number)
+{
+	exerciseSetItem(exercise_idx, set_number)->deleteLater();
+	m_currentExercises->exerciseObjects.at(exercise_idx)->m_setObjects.remove(set_number);
+}
+
+inline void QmlItemManager::clearExerciseEntries(const bool bDeleteNow)
+{
+	for (int i(m_currentExercises->exerciseObjects.count() - 1); i >= 0 ; --i)
+		removeExerciseEntry(i, bDeleteNow);
+}
+
 //-----------------------------------------------------------EXERCISE OBJECTS PRIVATE-----------------------------------------------------------
 
 //-------------------------------------------------------------SET OBJECTS PRIVATE-------------------------------------------------------------
+void QmlItemManager::createSetObject(const uint exercise_idx, const uint set_number, const bool bNewSet, const uint set_type,
+										const QString& nReps, const QString& nWeight, const QString& nRestTime)
+{
+	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
+	if (m_setComponents[set_type_cpp] == nullptr)
+		m_setComponents[set_type_cpp] = new QQmlComponent(appQmlEngine(), QUrl(setTypePages[set_type_cpp]), QQmlComponent::Asynchronous);
+
+	if (bNewSet)
+	{
+		if (set_number == 0)
+			currenttDayModel()->newFirstSet(exercise_idx, set_type, nReps, nWeight, nRestTime);
+		else
+			currenttDayModel()->newSet(set_number, exercise_idx, set_type, nReps, nWeight, nRestTime);
+		m_expectedSetNumber = set_number;
+	}
+
+	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
+		connect(m_setComponents[set_type_cpp], &QQmlComponent::statusChanged, this, [&,set_type,set_number,exercise_idx,bNewSet](QQmlComponent::Status status)
+			{ if (status == QQmlComponent::Ready) return createSetObject_part2(set_type, set_number, exercise_idx, bNewSet); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	else
+		createSetObject_part2(set_type, set_number, exercise_idx, bNewSet);
+}
+
 void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_number, const uint exercise_idx, const bool bNewSet)
 {
 	const uint set_type_cpp(set_type == SET_TYPE_DROP ? 1 : set_type == SET_TYPE_GIANT ? 2 : 0);
@@ -1926,10 +2055,10 @@ void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_n
 	m_setObjectProperties.insert(u"copyRepsButtonValue"_qs, QString());
 	m_setObjectProperties.insert(u"copyWeightButtonValue"_qs, QString());
 
-	if (set_number >= m_currentExercises->setCount(exercise_idx))
-		m_currentExercises->appendSet(exercise_idx, item);
+	if (set_number >= exerciseSetsCount(exercise_idx))
+		appendExerciseSet(exercise_idx, item);
 	else
-		m_currentExercises->insertSet(set_number, exercise_idx, item);
+		insertExerciseSet(set_number, exercise_idx, item);
 
 	findSetMode(exercise_idx, set_number);
 	findCurrentSet(exercise_idx, set_number);
@@ -1942,14 +2071,11 @@ void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_n
 		{
 			item->setProperty("finishButtonVisible", true);
 			enableDisableExerciseCompletedButton(exercise_idx, currenttDayModel()->setCompleted(set_number, exercise_idx));
-			//Place into view: exercise entry + first set
-			QMetaObject::invokeMethod(m_currenttDayPage, "placeSetIntoView",
-						Q_ARG(int, m_currentExercises->exerciseEntry(exercise_idx)->property("height").toInt()));
 		}
 		else
 		{
-			for (uint i(0); i < m_currentExercises->setCount(exercise_idx)-1; ++i)
-				m_currentExercises->setObject(exercise_idx, i)->setProperty("finishButtonVisible", false);
+			for (uint i(0); i < exerciseSetsCount(exercise_idx)-1; ++i)
+				exerciseSetItem(exercise_idx, i)->setProperty("finishButtonVisible", false);
 			item->setProperty("finishButtonVisible", true);
 		}
 	}
@@ -1960,12 +2086,12 @@ void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_n
 	//orderly into the layout
 	if (set_number <= m_expectedSetNumber)
 	{
-		QQuickItem* parent(m_currentExercises->exerciseEntry(exercise_idx)->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
-		for (uint i(set_number); i < m_currentExercises->setCount(exercise_idx); ++i, ++m_expectedSetNumber)
+		QQuickItem* parent(exerciseEntryItem(exercise_idx)->findChild<QQuickItem*>(QStringLiteral("exerciseSetsLayout")));
+		for (uint i(set_number); i < exerciseSetsCount(exercise_idx); ++i, ++m_expectedSetNumber)
 		{
-			if (m_currentExercises->setObject(exercise_idx, i)->property("setNumber").toUInt() <= i)
+			if (exerciseSetItem(exercise_idx, i)->property("setNumber").toUInt() <= i)
 			{
-				m_currentExercises->setObject(exercise_idx, i)->setParentItem(parent);
+				exerciseSetItem(exercise_idx, i)->setParentItem(parent);
 				emit setObjectReady();
 			}
 		}
@@ -1973,17 +2099,11 @@ void QmlItemManager::createSetObject_part2(const uint set_type, const uint set_n
 
 	if (set_type == SET_TYPE_GIANT)
 	{
-		item->setProperty("ownerExercise", QVariant::fromValue(m_currentExercises->exerciseEntry(exercise_idx)));
+		item->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(exercise_idx)));
 		QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 	}
 	else if (set_type == SET_TYPE_DROP)
 		QMetaObject::invokeMethod(item, "init");
-
-	//After any set added, by default, set the number of sets to be added afterwards to 1, and set the suggested rest time, reps and weight for the next set based on this last one
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nSets", "1");
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nRestTime", m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, set_type));
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nReps", m_CurrenttDayModel->nextSetSuggestedReps(exercise_idx, set_type));
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("nWeight", m_CurrenttDayModel->nextSetSuggestedWeight(exercise_idx, set_type));
 }
 
 void QmlItemManager::enableDisableExerciseCompletedButton(const uint exercise_idx, const bool completed)
@@ -2002,13 +2122,13 @@ void QmlItemManager::enableDisableExerciseCompletedButton(const uint exercise_id
 		if (setObject->property("setCompleted").toBool())
 			noSetsCompleted = false;
 	}
-	m_currentExercises->exerciseEntry(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
+	exerciseEntryItem(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
 }
 
 void QmlItemManager::enableDisableSetsRestTime(const uint exercise_idx, const uint bTrackRestTime,
 								const uint bAutoRestTime, const uint except_set_number)
 {
-	const uint nsets(m_currentExercises->setCount(exercise_idx));
+	const uint nsets(exerciseSetsCount(exercise_idx));
 	QString strRestTime;
 	for(uint i(1); i < nsets; ++i)
 	{
@@ -2017,14 +2137,14 @@ void QmlItemManager::enableDisableSetsRestTime(const uint exercise_idx, const ui
 			if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
 			{
 				findSetMode(exercise_idx, i);
-				m_currentExercises->setObject(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
-				m_currentExercises->setObject(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
+				exerciseSetItem(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
+				exerciseSetItem(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
 				if (bAutoRestTime)
 					strRestTime = u"00:00"_qs;
 				else if (bTrackRestTime)
 					strRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, m_CurrenttDayModel->setType(i, exercise_idx), i);
 				m_CurrenttDayModel->setSetRestTime(i, exercise_idx, strRestTime);
-				QMetaObject::invokeMethod(m_currentExercises->setObject(exercise_idx, i), "updateRestTime", Q_ARG(QString, strRestTime));
+				QMetaObject::invokeMethod(exerciseSetItem(exercise_idx, i), "updateRestTime", Q_ARG(QString, strRestTime));
 			}
 		}
 	}
@@ -2041,12 +2161,12 @@ void QmlItemManager::findSetMode(const uint exercise_idx, const uint set_number)
 				set_mode = 1;
 		}
 	}
-	m_currentExercises->setObject(exercise_idx, set_number)->setProperty("setMode", set_mode);
+	exerciseSetItem(exercise_idx, set_number)->setProperty("setMode", set_mode);
 }
 
 void QmlItemManager::findCurrentSet(const uint exercise_idx, const uint set_number)
 {
-	QQuickItem* set_object{m_currentExercises->setObject(exercise_idx, set_number)};
+	QQuickItem* set_object{exerciseSetItem(exercise_idx, set_number)};
 	if (set_object)
 	{
 		if (!currenttDayModel()->setCompleted(set_number, exercise_idx))
@@ -2066,11 +2186,11 @@ void QmlItemManager::startRestTimer(const uint exercise_idx, const uint set_numb
 	set_timer->setStopWatch(true);
 	set_timer->prepareTimer(u"-"_qs);
 	enableDisableSetsRestTime(exercise_idx, false, false, set_number); //Prevent the user from starting the timer for another set before finishing this one
-	QQuickItem* set_object{m_currentExercises->setObject(exercise_idx, set_number)};
-	connect(set_timer, &TPTimer::secondsChanged, this, [&,set_timer] () {
+	QQuickItem* set_object{exerciseSetItem(exercise_idx, set_number)};
+	connect(set_timer, &TPTimer::secondsChanged, this, [&,set_timer,set_object] () {
 		QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
 	});
-	connect(set_timer, &TPTimer::minutesChanged, this, [&,set_timer] () {
+	connect(set_timer, &TPTimer::minutesChanged, this, [&,set_timer,set_object] () {
 		QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
 	});
 	set_timer->startTimer(u"-"_qs);

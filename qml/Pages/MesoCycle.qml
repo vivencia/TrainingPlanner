@@ -135,7 +135,7 @@ TPPage {
 					Component.onCompleted: {
 						const coaches = userModel.getCoaches();
 						for(var i = 0; i < coaches.length; ++i)
-							coachesModel.append({ "text": coaches[i], "value": i});
+							coachesModel.append({ "text": coaches[i], "value": i, "enabled": true });
 						if (!mesocyclesModel.ismesocyclesModel.isNewMeso)
 							currentIndex = find(mesocyclesModel.coach(itemManager.mesoIdx));
 						else
@@ -203,7 +203,7 @@ TPPage {
 					Component.onCompleted: {
 						const clients = userModel.getClients();
 						for(var x = 0; x < clients.length; ++x)
-							clientsModel.append({ "text": clients[x], "value": x});
+							clientsModel.append({ "text": clients[x], "value": x, "enabled":true });
 						if (!mesocyclesModel.isNewMeso)
 							currentIndex = find(mesocyclesModel.client(itemManager.mesoIdx));
 						else
@@ -260,13 +260,13 @@ TPPage {
 
 					ListModel {
 						id: mesoTypeModel
-						ListElement { text: qsTr("Weigth Loss"); value: 0; }
-						ListElement { text: qsTr("Muscle Gain"); value: 1; }
-						ListElement { text: qsTr("Bulking"); value: 2; }
-						ListElement { text: qsTr("Pre-contest"); value: 3; }
-						ListElement { text: qsTr("Strength Build-up"); value: 4; }
-						ListElement { text: qsTr("Recovery"); value: 5; }
-						ListElement { text: qsTr("Other"); value: 6; }
+						ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
+						ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
+						ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
+						ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
+						ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
+						ListElement { text: qsTr("Recovery"); value: 5; enabled: true; }
+						ListElement { text: qsTr("Other"); value: 6; enabled: true; }
 					}
 				}
 			}

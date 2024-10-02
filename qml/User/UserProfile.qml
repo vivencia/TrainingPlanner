@@ -25,20 +25,20 @@ Frame {
 
 	ListModel {
 		id: roleModelUser
-		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; }
-		ListElement { text: qsTr("Serious Gym Goer"); value: 1; }
-		ListElement { text: qsTr("Aspiring Athlete"); value: 2; }
-		ListElement { text: qsTr("Amateur Athlete"); value: 3; }
-		ListElement { text: qsTr("Professional Athlete"); value: 4; }
-		ListElement { text: qsTr("Other"); value: 5; }
+		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; enabled: true; }
+		ListElement { text: qsTr("Serious Gym Goer"); value: 1; enabled: true; }
+		ListElement { text: qsTr("Aspiring Athlete"); value: 2; enabled: true; }
+		ListElement { text: qsTr("Amateur Athlete"); value: 3; enabled: true; }
+		ListElement { text: qsTr("Professional Athlete"); value: 4; enabled: true; }
+		ListElement { text: qsTr("Other"); value: 5; enabled: true; }
 	}
 
 	ListModel {
 		id: roleModelCoach
-		ListElement { text: qsTr("Personal Trainer"); value: 0; }
-		ListElement { text: qsTr("Athletes coach"); value: 1; }
-		ListElement { text: qsTr("Physical Therapist"); value: 2; }
-		ListElement { text: qsTr("Other"); value: 5; }
+		ListElement { text: qsTr("Personal Trainer"); value: 0; enabled: true; }
+		ListElement { text: qsTr("Athletes coach"); value: 1; enabled: true; }
+		ListElement { text: qsTr("Physical Therapist"); value: 2; enabled: true; }
+		ListElement { text: qsTr("Other"); value: 5; enabled: true; }
 	}
 
 	background: Rectangle {

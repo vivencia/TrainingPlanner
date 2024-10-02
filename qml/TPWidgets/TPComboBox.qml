@@ -24,6 +24,7 @@ ComboBox {
 	delegate: ItemDelegate {
 		id: delegate
 		width: control.width
+		enabled: modelData.enabled
 		required property var model
 		required property int index
 
@@ -145,5 +146,9 @@ ComboBox {
 			opacity: 0.9
 			radius: 6
 		}
+	}
+
+	function enableIndex(index: int, enabled: bool) {
+		control.model.setProperty(index, "enabled", enabled);
 	}
 }

@@ -398,7 +398,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 				m_selectedEntryToReplace = 0;
 		}
 		m_modeldata[m_selectedEntries.at(idx).real_index][EXERCISES_COL_SELECTED] = STR_ZERO;
-			emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
+		emit dataChanged(index(m_selectedEntries.at(idx).view_index, 0),
 					index(m_selectedEntries.at(idx).view_index, 0), QList<int>() << selectedRole);
 		m_selectedEntries.remove(idx, 1);
 		return false;

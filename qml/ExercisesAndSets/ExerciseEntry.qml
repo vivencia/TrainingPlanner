@@ -15,13 +15,8 @@ FocusScope {
 
 	required property QmlItemManager itemManager
 	required property DBTrainingDayModel tDayModel
-	property int exerciseIdx
+	required property int exerciseIdx
 
-	property int setNbr: 0
-	property string nSets
-	property string nReps
-	property string nWeight
-	property string nRestTime
 	property bool bCanEditRestTimeTracking
 	property bool bTrackRestTime
 	property bool bAutoRestTime
@@ -193,25 +188,25 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps
-					text: appUtils.getCompositeValue(0, nReps)
+					text: itemManager.exerciseReps(exerciseIdx, 0)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nReps = appUtils.setCompositeValue_QML(0, str, nReps);
+					onValueChanged: (str) => itemManager.setExerciseReps(exerciseIdx, 0, str);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight
-					text: appUtils.getCompositeValue(0, nWeight)
+					text: itemManager.exerciseWeight(exerciseIdx, 0)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nWeight = appUtils.setCompositeValue_QML(0, str, nWeight);
+					onValueChanged: (str) => itemManager.setExerciseWeight(exerciseIdx, 0, str);
 				}
 			}
 
@@ -222,26 +217,26 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps2
-					text: appUtils.getCompositeValue(1, nReps)
+					text: itemManager.exerciseReps(exerciseIdx, 1)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => nReps = appUtils.setCompositeValue_QML(1, str, nReps);
+					onValueChanged: (str) => itemManager.setExerciseReps(exerciseIdx, 1, str)
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight2
-					text: appUtils.getCompositeValue(1, nWeight)
+					text: itemManager.exerciseWeight(exerciseIdx, 1)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged: (str) => nWeight = appUtils.setCompositeValue_QML(1, str, nWeight);
+					onValueChanged: (str) => itemManager.setExerciseWeight(exerciseIdx, 1, str);
 				}
 			}
 
@@ -274,32 +269,11 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					currentIndex: tDayModel.setType(0, exerciseIdx)
+					currentIndex: itemManager.exerciseDefaultSetType(exerciseIdx);
 					model: AppSettings.setTypesModel
 					implicitWidth: 160
 
-					onActivated: (index) => {
-						switch(index) {
-							case 2: nSets = "1"; break; //DropSet
-							case 3: nSets = "2"; break; //ClusterSet
-							case 5: nSets = "3"; break; //MyoReps
-							default: break;
-						}
-						if (bCompositeExercise) {
-							if (index !== 4) {
-								var exercisename = tDayModel.exerciseName1(exerciseIdx);
-								exercisename = exercisename.replace("1: ", "");
-								txtExerciseName.text = exercisename;
-								bCompositeExercise = false;
-							}
-						}
-						else {
-							if (index === 4)
-								bCompositeExercise = true;
-						}
-						if (bTrackRestTime && !bAutoRestTime)
-							nRestTime = tDayModel.nextSetSuggestedTime(exerciseIdx, index, 0);
-					}
+					onActivated: (index) => itemManager.setExerciseDefaultSetType(exerciseIdx, index);
 				}
 
 				SetInputField {
@@ -321,9 +295,12 @@ FocusScope {
 					Layout.leftMargin: 15
 
 					onClicked: {
-						itemManager.createSetObjects(exerciseIdx, setNbr, setNbr + parseInt(nSets), cboSetType.currentIndex, nReps, nWeight, nRestTime);
-						setNbr += parseInt(nSets);
-						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (setNbr + 1).toString());
+						itemManager.addNewSet(exercise_idx);
+						if (cboSetType.currentIndex == 4)
+							cboSetType.enabled = false;
+						else
+							cboSetType.enableIndex(4, false);
+						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (itemManager.exerciseSetsCount(exercise_idx) + 1).toString());
 					}
 				}
 			} // RowLayout
@@ -342,14 +319,15 @@ FocusScope {
 	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(compositeExerciseActions);
 
 	function compositeExerciseActions() {
-		const bCompositeExercise2 = bCompositeExercise;
 		bCompositeExercise = tDayModel.compositeExercise(exerciseIdx);
-		//When a composite exercise is formed, nWeight and nReps get a second value. If the user decides to revert back to
-		//a simple exercise, those variables will be cluttered with useless info that will stream down to the sets being created
-		//We catch that condition now and clear the variables;
-		if (bCompositeExercise2 && !bCompositeExercise) {
-			nWeight = appUtils.getCompositeValue(0, nWeight);
-			nReps = appUtils.getCompositeValue(0, nReps);
+		txtExerciseName = tDayModel.exerciseName(exercise_idx);
+		txtNSets.text = itemManager.exerciseReps(exerciseIdx, 0);
+		txtNReps.text = itemManager.exerciseReps(exerciseIdx, 0);
+		txtNWeight.text = itemManager.exerciseWeight(exerciseIdx, 0);
+		txtRestTime.text = itemManager.exerciseRestTime(exerciseIdx, 0);
+		if (bCompositeExercise) {
+			txtNReps2.text = itemManager.exerciseReps(exerciseIdx, 1);
+			txtNWeight2.text = itemManager.exerciseWeight(exerciseIdx, 1);
 		}
 	}
 
@@ -419,7 +397,7 @@ FocusScope {
 	function paneExerciseShowHide(show: bool, force: bool) {
 		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
-			itemManager.createSetObjects(exerciseIdx);
+			itemManager.getSetObjects(exerciseIdx);
 	}
 
 	function liberateSignals(liberate: bool) {
