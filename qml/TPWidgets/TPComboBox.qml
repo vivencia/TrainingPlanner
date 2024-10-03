@@ -24,7 +24,7 @@ ComboBox {
 	delegate: ItemDelegate {
 		id: delegate
 		width: control.width
-		enabled: modelData.enabled
+		enabled: model.enabled
 		required property var model
 		required property int index
 

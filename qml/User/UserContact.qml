@@ -8,10 +8,11 @@ import "../TPWidgets"
 
 Frame {
 	id: frmContact
-	implicitHeight: moduleHeight;
-	implicitWidth: width
 	padding: 0
 	spacing: 0
+	height: minimumHeight
+	implicitHeight: height;
+	implicitWidth: width
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -23,9 +24,10 @@ Frame {
 	property bool bPhoneOK: false
 	property bool bEmailOK: true
 	property bool bSocialOK: true
-	readonly property int controlsSpacing: 5
-	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: 8*controlsHeight + 10
+	readonly property int nControls: 7
+	readonly property int controlsSpacing: 10
+	readonly property int controlsHeight: 30
+	readonly property int minimumHeight: nControls*controlsHeight
 
 	Label {
 		id: lblPhone
@@ -37,6 +39,7 @@ Frame {
 
 		anchors {
 			top: parent.top
+			topMargin: (frmContact.availableHeight - minimumHeight)/2
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

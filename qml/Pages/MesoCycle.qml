@@ -16,6 +16,7 @@ TPPage {
 	required property QmlItemManager itemManager
 
 	property int useMode
+	property int muscularGroupId;
 	property bool bRealMeso
 	property bool bOwnMeso
 	property date minimumMesoStartDate
@@ -91,7 +92,7 @@ TPPage {
 
 				onEditingFinished: {
 					if (bMesoNameOK)
-						bMesoNameOK = mesocyclesModel.setName(itemManager.mesoIdx, text);
+						mesocyclesModel.setName(itemManager.mesoIdx, text);
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -136,7 +137,7 @@ TPPage {
 						const coaches = userModel.getCoaches();
 						for(var i = 0; i < coaches.length; ++i)
 							coachesModel.append({ "text": coaches[i], "value": i, "enabled": true });
-						if (!mesocyclesModel.ismesocyclesModel.isNewMeso)
+						if (!mesocyclesModel.isNewMeso)
 							currentIndex = find(mesocyclesModel.coach(itemManager.mesoIdx));
 						else
 							currentIndex = find(userModel.getCurrentUserName(true));
@@ -315,7 +316,7 @@ TPPage {
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					Layout.leftMargin: -5
+					Layout.leftMargin: 5
 
 					onClicked: fileDialog.open();
 
@@ -364,12 +365,7 @@ TPPage {
 					finalDate: maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
-					onDateSelected: function() {
-						if (mesocyclesModel.setStartDate(itemManager.mesoIdx, caldlg.selectedDate)) {
-							if (mesocyclesModel.isNewMeso)
-								caldlg2.open();
-						}
-					}
+					onDateSelected: (date) => mesocyclesModel.setStartDate(itemManager.mesoIdx, date);
 				}
 
 				TPButton {
@@ -422,8 +418,8 @@ TPPage {
 					finalDate: maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
-					onDateSelected: function(date) {
-						mesocyclesModel.setEndDate(itemManager.mesoIdx, caldlg2.selectedDate);
+					onDateSelected: (date) => {
+						mesocyclesModel.setEndDate(itemManager.mesoIdx, date);
 						mesoSplitSetup.forcusOnFirstItem();
 					}
 				}
@@ -463,7 +459,7 @@ TPPage {
 			MesoSplitSetup {
 				id: mesoSplitSetup
 				Layout.fillWidth: true
-				Layout.leftMargin: -5
+				Layout.leftMargin: 0
 			}
 
 			Label {

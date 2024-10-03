@@ -174,23 +174,6 @@ Drawer {
 			}
 		}
 
-		TPButton {
-			id: btnBackup
-			text: qsTr("Backup/Restore")
-			Layout.fillWidth: true
-
-			enabled: { // Force the binding to re-evaluate so that the title check is run each time the page changes.
-				stackView.currentItem
-				!stackView.find((item, index) => { return item.objectName === "backupPage"; })
-			}
-			onClicked: {
-				pageDeActivated_main(stackView.currentItem);
-				stackView.push("../Pages/BackupPage.qml");
-				pageDeActivated_main(stackView.currentItem);
-				close();
-			}
-		}
-
 		Rectangle {
 			height: 3
 			color: AppSettings.fontColor

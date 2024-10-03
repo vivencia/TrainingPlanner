@@ -286,6 +286,7 @@ void TPAppControl::populateSettingsWithDefaultValue()
 		appSettings()->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
 		appSettings()->setValue("lastViewedMesoIdx", -1);
 		appSettings()->setValue("alwaysAskConfirmation", true);
+		appSettings()->setValue("mainUserConfigured", false);
 		appSettings()->sync();
 	}
 }

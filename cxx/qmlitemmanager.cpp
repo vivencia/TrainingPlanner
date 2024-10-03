@@ -39,7 +39,7 @@ QQuickItem* QmlItemManager::userPage(nullptr);
 
 inline QQuickItem* appStackView() { return QmlItemManager::app_StackView; }
 
-static const QStringList setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
+static const QStringList& setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
 
 QmlItemManager::~QmlItemManager()
@@ -186,7 +186,6 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	appQmlEngine()->load(url);
 
 	app_MainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	connect(appMainWindow(), SIGNAL(mainWindowStarted()), rootItemsManager(), SLOT(mainWindowStarted()), static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	connect(appMainWindow(), SIGNAL(openFileChosen(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
 	connect(appMainWindow(), SIGNAL(openFileRejected(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
 
@@ -196,9 +195,32 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) });
 	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
 	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
+	properties.append(QQmlContext::PropertyPair{ u"bCanHaveTodaysWorkout"_qs, appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
-	QMetaObject::invokeMethod(appMainWindow(), "init");
+	if (!appSettings()->value("mainUserConfigured").toBool())
+		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
+	else
+		appOsInterface()->initialCheck();
+
+	connect(appMesoModel(), &DBMesocyclesModel::mostRecentOwnMesoChanged, this, [&] (const int meso_idx) {
+		appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
+	});
+	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [&] () {
+		appSettings()->setValue("mainUserConfigured", true);
+		appOsInterface()->initialCheck();
+	});
+	connect(appUserModel(), &DBUserModel::userModified, this, [&] (const uint user_row, const uint field) {
+		if (user_row == 0 && field == USER_COL_APP_USE_MODE) {
+			appMesoModel()->updateColumnLabels();
+			appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
+			if (userPage)
+				userPage->setProperty("useMode", appUserModel()->appUseMode(0));
+			if (m_mesoComponent)
+				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
+		}
+		appDBInterface()->saveUser(user_row);
+	});
 
 	const QList<QObject*>& mainWindowChildren{appMainWindow()->findChildren<QObject*>()};
 	for (uint i(0); i < mainWindowChildren.count(); ++i)
@@ -1327,16 +1349,6 @@ void QmlItemManager::createSettingsPage()
 		userPage = settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
 		userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		userPage->setProperty("itemManager", QVariant::fromValue(rootItemsManager()));
-		connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
-			if (user_row == 0) {
-				appMesoModel()->updateColumnLabels();
-				QMetaObject::invokeMethod(appMainWindow(), "workoutButtonEnabled", Qt::AutoConnection);
-				userPage->setProperty("useMode", appUserModel()->appUseMode(0));
-			}
-		});
-		connect(appUserModel(), &DBUserModel::userModified, this, [&] (const uint user_row) {
-			appDBInterface()->saveUser(user_row);
-		});
 	}
 }
 
@@ -1452,10 +1464,6 @@ void QmlItemManager::createMesocyclePage_part2()
 	m_mesoPage->setProperty("bOwnMeso", appMesoModel()->isOwnMeso(m_mesoIdx));
 	m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(m_mesoIdx));
 
-	connect(appUserModel(), &DBUserModel::appUseModeChanged, this, [&] (const uint user_row) {
-		if (user_row == 0)
-				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
-	});
 	connect(appUserModel(), &DBUserModel::userAdded, this, [&] (const uint user_row) {
 		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesModel", Q_ARG(int, static_cast<int>(user_row)));
 	});
@@ -1470,7 +1478,8 @@ void QmlItemManager::createMesocyclePage_part2()
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [&] (const uint meso_idx, const uint meso_field) {
 		if (meso_idx == m_mesoIdx)
 		{
-			appDBInterface()->saveMesocycle(meso_idx);
+			if (!appMesoModel()->isNewMeso(meso_idx))
+				appDBInterface()->saveMesocycle(meso_idx);
 			QMetaObject::invokeMethod(m_mesoPage, "updateFieldValues", Q_ARG(int, static_cast<int>(meso_field)), Q_ARG(int, static_cast<int>(meso_idx)));
 			m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(meso_idx));
 		}

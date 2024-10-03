@@ -59,7 +59,7 @@ void DBMesocyclesModel::setUserModel(DBUserModel* usermodel)
 const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 {
 	appendList(infolist);
-	m_splitModel->appendList(QStringList(SIMPLE_MESOSPLIT_TOTAL_COLS) << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
+	m_splitModel->appendList(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
 		QString() << QString() << QString() << QString());
 
 	const uint meso_idx(count()-1);
@@ -74,7 +74,6 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 	}
 	setCurrentMesoIdx(meso_idx);
 	uchar newMesoRequiredFields(0);
-	setBit(newMesoRequiredFields, MESOCYCLES_COL_ID);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
@@ -122,8 +121,6 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 		unSetBit(m_isNewMeso[meso_idx], field);
 		if (!isNewMeso(meso_idx))
 			emit isNewMesoChanged();
-		else
-			return;
 	}
 	emit mesoChanged(meso_idx, field);
 }
@@ -327,6 +324,19 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 	return QString();
 }
 
+bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate& date) const
+{
+	if (meso_idx >= 0 && count() > 0)
+	{
+		if (date >= startDate(meso_idx))
+		{
+			if (date <= endDate(meso_idx))
+				return true;
+		}
+	}
+	return false;
+}
+
 void DBMesocyclesModel::findTotalSplits(const uint meso_idx)
 {
 	uint nSplits(0);
@@ -391,18 +401,6 @@ QDate DBMesocyclesModel::getLastMesoEndDate() const
 	return QDate::currentDate();
 }
 
-bool DBMesocyclesModel::isDateWithinMeso(const uint meso_idx, const QDate& date) const
-{
-	if (count() > 0)
-	{
-		if (date >= startDate(meso_idx))
-		{
-			if (date <= endDate(meso_idx))
-				return true;
-		}
-	}
-	return false;
-}
 //Called when importing from a text file
 bool DBMesocyclesModel::isDifferent(const TPListModel* const model)
 {

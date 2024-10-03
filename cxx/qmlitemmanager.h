@@ -50,7 +50,7 @@ public:
 	Q_INVOKABLE void exportExercises(const bool bShare);
 	Q_INVOKABLE void importExercises(const QString& filename = QString());
 
-	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
 	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCYCLES-----------------------------------------------------------

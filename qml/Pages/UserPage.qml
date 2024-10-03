@@ -16,8 +16,6 @@ TPPage {
 
 	property QmlItemManager itemManager
 	property int useMode
-	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrContact.moduleHeight
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -46,7 +44,6 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				width: windowWidth - 20
-				height: moduleHeight
 			}
 
 			UserContact {
@@ -60,7 +57,6 @@ TPPage {
 				id: usrCoach
 				userRow: 0
 				width: windowWidth - 20
-				height: moduleHeight
 				Layout.topMargin: 20
 			}
 
@@ -69,7 +65,6 @@ TPPage {
 				userRow: 0
 				parentPage: userPage
 				width: windowWidth - 20
-				height: moduleHeight
 			}
 		}
 	}

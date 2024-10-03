@@ -75,7 +75,7 @@ void DBMesoSplitModel::setModified(const uint row, const uint field)
 
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList(COMPLETE_MESOSPLIT_TOTAL_COLS) << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
+	appendList(QStringList() << exercise_name << sets << u" "_qs << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
@@ -301,7 +301,7 @@ static void muscularGroupSimplified(QString& muscularGroup)
 	muscularGroup = muscularGroup.replace(',', ' ').simplified();
 	const QStringList& words(muscularGroup.split(' '));
 
-	if ( words.count() > 0)
+	if (words.count() > 0)
 	{
 		QStringList::const_iterator itr(words.begin());
 		const QStringList::const_iterator& itr_end(words.end());

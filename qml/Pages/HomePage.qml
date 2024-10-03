@@ -71,6 +71,7 @@ TPPage {
 	ListView {
 		id: mesosListView
 		spacing: 10
+		model: mesocyclesModel
 
 		anchors {
 			fill: parent
@@ -428,6 +429,7 @@ TPPage {
 			textUnderIcon: true
 			rounded: false
 			flat: false
+			visible: stackView.depth === 1 && mainwindow.bCanHaveTodaysWorkout
 
 			anchors {
 				right: parent.right
@@ -438,10 +440,6 @@ TPPage {
 			onClicked: appControl.getTrainingDayPage(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
 		}
 	} // footer
-
-	function setViewModel() {
-		mesosListView.model = mesocyclesModel;
-	}
 
 	function showEmptyDatabaseMenu() {
 		if (newMesoMenu === null) {
@@ -460,17 +458,6 @@ TPPage {
 			break;
 			case 1: mainwindow.chooseFileToImport(); break;
 		}
-	}
-
-	function btnWorkoutEnabled(own_mesoidx) {
-		if (own_mesoidx >= 0) {
-			if (stackView.depth === 1)
-				btnWorkout.enabled = mesocyclesModel.isDateWithinMeso(own_mesoidx, new Date());
-			else
-				btnWorkout.enabled = false;
-		}
-		else
-			btnWorkout.visible = false;
 	}
 
 	TPComplexDialog {

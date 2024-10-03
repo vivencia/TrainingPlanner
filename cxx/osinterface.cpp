@@ -263,7 +263,7 @@ void OSInterface::processArguments() const
 		for (uint i(1); i < args.count(); ++i)
 			filename += args.at(i) + ' ';
 		filename.chop(1);
-		const QFileInfo file(filename);
+		const QFileInfo file{filename};
 		if (file.isFile())
 			appControl()->openRequestedFile(appUtils()->getCorrectPath(filename));
 	}
@@ -272,7 +272,7 @@ void OSInterface::processArguments() const
 void OSInterface::restartApp()
 {
 	char* args[2] = { nullptr, nullptr };
-	const QString& argv0(qApp->arguments().at(0));
+	const QString& argv0{qApp->arguments().at(0)};
 	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
@@ -338,7 +338,7 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 		}
 	}
 	#else
-	const QStringList args (QStringList() <<
+	const QStringList& args (QStringList() <<
 		u"--utf8"_qs << u"--subject"_qs << QChar('\'') + subject + QChar('\'') << u"--attach"_qs << attachment_file <<
 			QChar('\'') + address + QChar('\''));
 	auto* __restrict proc(new QProcess ());
@@ -349,7 +349,7 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 		{
 			if (appUserModel()->email(0).contains(u"gmail.com"_qs))
 			{
-				const QString gmailURL(QStringLiteral("https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3").arg(appUserModel()->email(0), address, subject));
+				const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_qs.arg(appUserModel()->email(0), address, subject));
 				openURL(gmailURL);
 			}
 		}

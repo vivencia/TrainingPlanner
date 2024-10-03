@@ -49,7 +49,6 @@ ToolBar {
 			pageDeActivated_main(stackView.currentItem);
 			stackView.pop(stackView.get(0));
 			pageActivated_main(stackView.currentItem);
-			workoutButtonEnabled();
 		}
 	}
 

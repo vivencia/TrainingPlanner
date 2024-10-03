@@ -28,7 +28,7 @@ TPPage {
 	property TPFloatingMenuBar imexportMenu: null
 	readonly property bool bExportEnabled: !bChooseButtonEnabled
 
-	onPageActivated: exercisesList.simulateMouseClick(0, true);
+	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
 
 	onBExportEnabledChanged: {
 		if (imexportMenu) {
@@ -57,8 +57,7 @@ TPPage {
 		}
 
 		ColumnLayout {
-			width: parent.width
-			height: parent.height
+			anchors.fill: parent
 			spacing: 0
 
 			ExercisesListView {
@@ -69,7 +68,7 @@ TPPage {
 				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
 				Layout.fillHeight: true
-				Layout.leftMargin: 5
+				Layout.leftMargin: -5
 				Layout.bottomMargin: 5
 
 				onExerciseEntrySelected: (index, multipleSelection) => {
@@ -94,11 +93,11 @@ TPPage {
 				id: toolbarExercises
 				Layout.fillWidth: true
 				Layout.maximumHeight: 30
-				Layout.leftMargin: 5
+				Layout.leftMargin: -5
 				Layout.bottomMargin: 5
-				spacing: 5
+				spacing: 0
 
-				readonly property int buttonWidth: Math.ceil(exercisesPage.width/5.5)
+				readonly property int buttonWidth: Math.ceil(exercisesPage.width/4)
 
 				TPButton {
 					id: btnNewExercise
@@ -179,7 +178,6 @@ TPPage {
 				TPButton {
 					id: btnImExport
 					text: qsTr("In/Export")
-					enabled: !btnSaveExercise.enabled
 					visible: !bChooseButtonEnabled
 					fixedSize: true
 					width: toolbarExercises.buttonWidth

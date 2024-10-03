@@ -155,11 +155,12 @@ public:
 	}
 
 	void setLastID(uint exercisesTableLastId) { m_exercisesTableLastId = exercisesTableLastId; }
-	inline uint lastID() const { return m_exercisesTableLastId; }
+	inline int lastID() const { return m_exercisesTableLastId; }
 	bool collectExportData();
 
 	void appendList(const QStringList& list);
-	Q_INVOKABLE void clear() override;
+	void clear() override;
+	QString makeTransactionStatementForDataBase(const uint index) const;
 
 	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
 	virtual int importFromFile(const QString& filename) override;
@@ -182,8 +183,7 @@ private:
 	QMap<uint,uint> m_modifiedIndices;
 	QList<selectedEntry> m_selectedEntries;
 	uint m_selectedEntryToReplace;
-	uint m_exercisesTableLastId;
-	uint filterSearch_Field1, filterSearch_Field2;
+	int m_exercisesTableLastId;
 	bool m_bFilterApplied;
 
 	static DBExercisesModel* app_exercises_model;

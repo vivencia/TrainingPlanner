@@ -89,15 +89,15 @@ void DBMesoCalendarTable::updateDatabase()
 			{
 				if (mSqlLiteDB.open())
 				{
-					query.exec(QStringLiteral("PRAGMA page_size = 4096"));
-					query.exec(QStringLiteral("PRAGMA cache_size = 16384"));
-					query.exec(QStringLiteral("PRAGMA temp_store = MEMORY"));
-					query.exec(QStringLiteral("PRAGMA journal_mode = OFF"));
-					query.exec(QStringLiteral("PRAGMA locking_mode = EXCLUSIVE"));
-					query.exec(QStringLiteral("PRAGMA synchronous = 0"));
+					query.exec(u"PRAGMA page_size = 4096"_qs);
+					query.exec(u"PRAGMA cache_size = 16384"_qs);
+					query.exec(u"PRAGMA temp_store = MEMORY"_qs);
+					query.exec(u"PRAGMA journal_mode = OFF"_qs);
+					query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
+					query.exec(u"PRAGMA synchronous = 0"_qs);
 					if (mSqlLiteDB.transaction())
 					{
-						const QString queryStart(u"INSERT INTO mesocycles_calendar_table "
+						const QString& queryStart(u"INSERT INTO mesocycles_calendar_table "
 									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_qs);
 						QString queryValues;
 

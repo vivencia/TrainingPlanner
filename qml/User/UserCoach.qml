@@ -7,10 +7,12 @@ import ".."
 import "../TPWidgets"
 
 Frame {
-	implicitHeight: height
-	implicitWidth: width
+	id: topFrame
 	padding: 0
 	spacing: controlsSpacing
+	height: minimumHeight
+	implicitHeight: height
+	implicitWidth: width
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -21,6 +23,7 @@ Frame {
 	property bool bReady: true
 	property bool bCoachOK: false
 	readonly property int controlsSpacing: 10
+	readonly property int minimumHeight: optPersonalUse.implicitHeight + optCoachUse.implicitHeight + chkHaveCoach.implicitHeight
 
 	TPRadioButton {
 		id: optPersonalUse
@@ -35,7 +38,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: 2*controlsSpacing
+			topMargin: (topFrame.availableHeight - minimumHeight)/2
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -78,21 +81,6 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: controlsSpacing
-			left: parent.left
-			leftMargin: 10
-			right: parent.right
-			rightMargin: 10
-		}
-	}
-
-	Label {
-		text: qsTr("Data about them can be configured at a later point")
-		visible: parent.objectName === "firstTimerDlg"
-		enabled: chkHaveCoach.checked
-
-		anchors {
-			top: chkHaveCoach.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 10

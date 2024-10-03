@@ -44,7 +44,6 @@ public:
 	void appendList(const QStringList& list);
 	virtual void clear();
 
-	Q_INVOKABLE inline void appendRow() { appendList(QStringList(numberOfFields())); setCurrentRow(count() - 1); }
 	Q_INVOKABLE void removeRow (const uint row);
 	Q_INVOKABLE inline uint count() const { return m_modeldata.count(); }
 	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }

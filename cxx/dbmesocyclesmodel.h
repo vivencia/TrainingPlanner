@@ -176,11 +176,11 @@ public:
 
 	Q_INVOKABLE QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
-	Q_INVOKABLE bool isDateWithinMeso(const uint meso_idx, const QDate& date) const;
 	Q_INVOKABLE inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	Q_INVOKABLE void setCurrentMesoIdx(const uint meso_idx);
 	Q_INVOKABLE inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 
+	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
 	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.value(meso_idx); }
 	void findTotalSplits(const uint meso_idx);
 	void findNextOwnMeso();

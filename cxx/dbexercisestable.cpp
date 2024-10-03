@@ -76,19 +76,17 @@ void DBExercisesTable::getAllExercises()
 		{
 			if (query.first())
 			{
-				QStringList exercise_info;
-				uint i(0);
-				uint nExercises(0);
+				QStringList exercise_info(EXERCISES_TOTAL_COLS);
+				exercise_info[EXERCISES_COL_SELECTED] = STR_ZERO;
 
+				uint i(0);
 				do
 				{
 					for (i = EXERCISES_COL_ID; i < EXERCISES_COL_ACTUALINDEX; ++i)
-						exercise_info.append(query.value(static_cast<int>(i)).toString());
-					exercise_info.append(QString::number(nExercises++)); //EXERCISES_COL_ACTUALINDEX
-					exercise_info.append(STR_ZERO); //EXERCISES_COL_SELECTED
+						exercise_info[i] = query.value(static_cast<int>(i)).toString();
+					exercise_info[EXERCISES_COL_ACTUALINDEX] = QString::number(i);
 					m_model->appendList(exercise_info);
-					exercise_info.clear();
-				} while ( query.next () );
+				} while (query.next ());
 				//const QModelIndex index(m_model->index(m_model->count() - 1, 0));
 				const uint highest_id (m_model->_id(m_model->count() - 1));
 				if (highest_id >= m_exercisesTableLastId)
@@ -96,9 +94,9 @@ void DBExercisesTable::getAllExercises()
 				m_model->setLastID(m_exercisesTableLastId);
 				m_result = true;
 			}
+			else //for some reason the database table is empty. Populate it with the app provided exercises list
+				updateExercisesList();
 		}
-		else //for some reason the database table is empty. Populate it with the app provided exercises list
-			updateExercisesList();
 		m_model->setReady(m_model->count() > 0);
 		if (!m_result)
 		{
@@ -140,27 +138,31 @@ void DBExercisesTable::updateExercisesList()
 		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
 		query.exec(u"PRAGMA synchronous = 0"_qs);
 
-		const QString& query_cmd(u"INSERT INTO exercises_table "
+		const QString& queryStart(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES(%1, \'%2\', \'%3\', \'%4\', 4, 12, 20, \'%5\', \'qrc:/images/no_image.jpg\', 1)"_qs);
+								" VALUES "_qs);
+		QString queryValues;
 
-		uint idx ( 0 );
+		uint idx(0);
 		mSqlLiteDB.transaction();
-		for ( ++itr; itr != itr_end; ++itr, ++idx ) //++itr: Jump over version number
+		for (++itr; itr != itr_end; ++itr, ++idx) //++itr: Jump over version number
 		{
 			fields = (*itr).split(';');
-			query.exec(query_cmd.arg(idx).arg(fields.at(0), fields.at(1), fields.at(2).trimmed(), u"(kg)"_qs));
 			m_model->newExercise(fields.at(0), fields.at(1), fields.at(2).trimmed());
+			queryValues += m_model->makeTransactionStatementForDataBase(idx);
 		}
-		mSqlLiteDB.commit();
-		m_result = mSqlLiteDB.lastError().databaseText().isEmpty();
+		queryValues.chop(1);
+		query.exec(queryStart + queryValues);
+		m_result = mSqlLiteDB.commit();
 		if (!m_result)
 		{
 			MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
 			MSG_OUT("DBExercisesTable updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
+			MSG_OUT(queryStart + queryValues);
 		}
 		else
 		{
+			emit updatedFromExercisesList();
 			MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
 		}
 		mSqlLiteDB.close();

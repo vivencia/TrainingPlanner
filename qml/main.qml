@@ -23,10 +23,10 @@ ApplicationWindow {
 	readonly property int windowWidth: width
 	readonly property int windowHeight: contentItem.height
 
-	property bool bBackButtonEnabled: true
+	property bool bBackButtonEnabled: AppSettings.mainUserConfigured
+	property bool bCanHaveTodaysWorkout
 	property int backKey
 
-	signal mainWindowStarted();
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
 	signal openFileChosen(filepath: string);
@@ -83,29 +83,6 @@ ApplicationWindow {
 		}
 	}
 
-	function init() {
-		homePage.setViewModel();
-		mesocyclesModel.mostRecentOwnMesoChanged.connect(workoutButtonEnabled);
-		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
-
-		var userOK = !userModel.isEmpty();
-		if (userOK)
-			userOK = userModel.goal(0).length > 0;
-
-		if (!userOK)
-		{
-			bBackButtonEnabled = false;
-			showFirstUseTimeDialog();
-			//firstTimeDlgg.open();
-		}
-		else
-			mainWindowStarted();
-	}
-
-	function workoutButtonEnabled(ownmesoidx: int) {
-		homePage.btnWorkoutEnabled(ownmesoidx);
-	}
-
 	/*FirstTimeDialog {
 		DBUserModel {
 			id: userModel
@@ -140,7 +117,6 @@ ApplicationWindow {
 		else
 			stackView.pop();
 		pageActivated_main(stackView.currentItem);
-		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 	}
 
 	signal pageActivated_main(Item page);
@@ -150,7 +126,6 @@ ApplicationWindow {
 		pageDeActivated_main(stackView.currentItem);
 		stackView.push(page);
 		pageActivated_main(page);
-		workoutButtonEnabled(mesocyclesModel.mostRecentOwnMesoIdx());
 	}
 
 	function confirmImport(message: string) {

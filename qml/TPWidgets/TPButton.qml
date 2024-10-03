@@ -100,10 +100,10 @@ Rectangle {
 		minimumPointSize: 8
 		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
 		maximumLineCount: 1
-		leftPadding: 5
+		//leftPadding: 5
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
-		rightPadding: 5
+		//rightPadding: 5
 		font {
 			weight: Font.ExtraBold
 			pointSize: AppSettings.fontSizeText*0.9
@@ -117,7 +117,7 @@ Rectangle {
 					anchors.verticalCenter = button.verticalCenter;
 					if (leftAlign) {
 						anchors.left = button.left;
-						anchors.leftMargin = 2;
+						anchors.leftMargin = 5;
 					}
 					else {
 						anchors.right = parent.right;

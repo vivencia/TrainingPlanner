@@ -7,13 +7,14 @@ import ".."
 
 Pane {
 	id: trainingSplitPane
-	implicitWidth: windowWidth
+	implicitWidth: windowWidth - 20
 	implicitHeight: mainLayout.implicitHeight + 100
 
 	property alias mesoSplitText: txtMesoSplit.text
 
-	readonly property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
-							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
+	readonly property var splitModel: [ { value:'A', text:'A', enabled: true }, { value:'B', text:'B', enabled: true }, { value:'C', text:'C', enabled: true },
+							{ value:'D', text:'D', enabled: true }, { value:'E', text:'E', enabled: true },
+							{ value:'F', text:'F', enabled: true }, { value:'R', text:'R', enabled: true } ]
 	readonly property int col1Width: width*0.15
 	readonly property int col2Width: width*0.15
 	readonly property int col3Width: width*0.6

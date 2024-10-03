@@ -70,7 +70,7 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList(QStringList() << u"-1"_qs << QString() << u"2451545"_qs << u"0"_qs << QString() <<
+	appendList(QStringList() << STR_MINUS_ONE << QString() << u"2451545"_qs << STR_ZERO << QString() <<
 		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/m5"_qs <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
 	return m_modeldata.count() - 1;

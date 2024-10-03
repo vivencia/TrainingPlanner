@@ -78,12 +78,6 @@ void DBInterface::init()
 	}
 
 	getExercisesListVersion();
-	if (m_exercisesListVersion != appSettings()->value("exercisesListVersion").toString())
-	{
-		updateExercisesList();
-		appSettings()->setValue("exercisesListVersion", m_exercisesListVersion);
-	}
-
 	getAllUsers();
 	appMesoModel()->setUserModel(appUserModel());
 	getAllMesocycles();
@@ -190,10 +184,7 @@ void DBInterface::getAllUsers()
 	if (!noUsers)
 		noUsers = appUserModel()->userName(0).isEmpty();
 	if (noUsers)
-	{
-		appUserModel()->setIsEmpty(true);
 		appUserModel()->addUser(false);
-	}
 }
 
 void DBInterface::saveUser(const uint row)
@@ -247,6 +238,9 @@ void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 void DBInterface::updateExercisesList()
 {
 	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [&] () {
+		appSettings()->setValue("exercisesListVersion", m_exercisesListVersion);
+	});
 	createThread(worker, [worker] () { return worker->updateExercisesList(); });
 }
 
@@ -267,6 +261,8 @@ void DBInterface::getExercisesListVersion()
 				m_exercisesListVersion = line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
+		if (m_exercisesListVersion != appSettings()->value("exercisesListVersion").toString())
+			updateExercisesList();
 	}
 }
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------

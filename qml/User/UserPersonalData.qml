@@ -12,6 +12,7 @@ Frame {
 	id: frmUserData
 	spacing: controlsSpacing
 	padding: 0
+	height: minimumHeight
 	implicitHeight: height
 	implicitWidth: width
 
@@ -26,9 +27,10 @@ Frame {
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
 	property bool bSexOK: false
-	readonly property int nControls: 5
+	readonly property int nControls: 6
 	readonly property int controlsHeight: 30
-	readonly property int controlsSpacing: 10
+	readonly property int controlsSpacing: 15
+	readonly property int minimumHeight: nControls*controlsHeight
 
 	Label {
 		id: lblName
@@ -44,7 +46,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: 10
+			topMargin: (availableHeight - minimumHeight)/2
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

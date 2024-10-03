@@ -9,10 +9,11 @@ import "../Pages"
 
 Frame {
 	id: frmUserProfile
-	implicitWidth: width
-	implicitHeight: height
 	spacing: 5
 	padding: 0
+	height: minimumHeight
+	implicitWidth: width
+	implicitHeight: height
 
 	required property int userRow
 	property bool bReady: (bClientRoleOK || bCoachRoleOK) & bGoalOK
@@ -21,6 +22,8 @@ Frame {
 	property bool bGoalOK: false
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
+	readonly property int minimumHeight: 7*controlsHeight + imgAvatar.height
+
 	required property TPPage parentPage
 
 	ListModel {
@@ -71,7 +74,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: 10
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -121,7 +124,7 @@ Frame {
 		width: parent.width*0.20
 
 		anchors {
-			top: lblUserRole.bottom
+			top: cboUserRole.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
@@ -140,14 +143,14 @@ Frame {
 
 		ListModel {
 			id: goalModel
-			ListElement { text: qsTr("General Fitness"); value: 0; }
-			ListElement { text: qsTr("Loose Weight"); value: 1; }
-			ListElement { text: qsTr("Improve Health"); value: 2; }
-			ListElement { text: qsTr("Support for Other Sport"); value: 3; }
-			ListElement { text: qsTr("Muscle Gain"); value: 4; }
-			ListElement { text: qsTr("Strength"); value: 5; }
-			ListElement { text: qsTr("Bodybuilding"); value: 6; }
-			ListElement { text: qsTr("Other"); value: 7; }
+			ListElement { text: qsTr("General Fitness"); value: 0; enabled: true; }
+			ListElement { text: qsTr("Loose Weight"); value: 1; enabled: true; }
+			ListElement { text: qsTr("Improve Health"); value: 2; enabled: true; }
+			ListElement { text: qsTr("Support for Other Sport"); value: 3; enabled: true; }
+			ListElement { text: qsTr("Muscle Gain"); value: 4; enabled: true; }
+			ListElement { text: qsTr("Strength"); value: 5; enabled: true; }
+			ListElement { text: qsTr("Bodybuilding"); value: 6; enabled: true; }
+			ListElement { text: qsTr("Other"); value: 7; enabled: true; }
 		}
 
 		anchors {
@@ -185,7 +188,7 @@ Frame {
 		width: parent.width*0.15
 
 		anchors {
-			top: lblGoal.visible ? lblGoal.bottom : parent.top
+			top: cboGoal.visible ? cboGoal.bottom : cboUserRole.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
@@ -232,7 +235,7 @@ Frame {
 		width: parent.width*0.2
 
 		anchors {
-			top: lblCoachRole.visible ? lblCoachRole.bottom : lblGoal.bottom
+			top: cboCoachRole.visible ? cboCoachRole.bottom : cboGoal.bottom
 			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5

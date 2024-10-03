@@ -12,6 +12,8 @@ class DBExercisesModel;
 class DBExercisesTable : public TPDatabaseTable
 {
 
+Q_OBJECT
+
 public:
 	explicit DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model = nullptr);
 
@@ -20,6 +22,9 @@ public:
 	void getAllExercises();
 	void updateExercisesList();
 	void saveExercises();
+
+signals:
+	void updatedFromExercisesList();
 
 private:
 	DBExercisesModel* m_model;

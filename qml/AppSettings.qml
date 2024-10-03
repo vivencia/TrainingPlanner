@@ -30,6 +30,7 @@ Settings {
 	property int fontSizeTitle
 	property int lastViewedMesoIdx
 	property bool alwaysAskConfirmation
+	property bool mainUserConfigured
 
 	onFontSizeChanged: appFontSizeChanged();
 

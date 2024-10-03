@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 import "../TPWidgets"
 import "../User"
+import ".."
 
 TPPopup {
 	id: firstTimeDlg
@@ -15,7 +16,7 @@ TPPopup {
 	x: (windowWidth - width)/2 // horizontally centered
 	finalYPos: (windowHeight - height)/2 // vertically centered
 
-	readonly property int moduleHeight: usrContact.moduleHeight
+	readonly property int moduleHeight: usrProfile.minimumHeight
 
 	StackLayout {
 		id: stackLayout
@@ -46,9 +47,9 @@ TPPopup {
 		}
 
 		UserContact {
-			id: usrContact
 			userRow: 0
 			width: firstTimeDlg.width - 20
+			height: moduleHeight
 		}
 
 		UserCoach {
@@ -58,10 +59,10 @@ TPPopup {
 		}
 
 		UserProfile {
+			id: usrProfile
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
 			width: firstTimeDlg.width - 20
-			height: moduleHeight
 		}
 
 		UserReady {
@@ -115,8 +116,7 @@ TPPopup {
 
 			onClicked: {
 				if (stackLayout.currentIndex === stackLayout.count - 1) {
-					mainwindow.bBackButtonEnabled = true;
-					mainwindow.mainWindowStarted();
+					userModel.mainUserConfigurationFinished();
 					close();
 				}
 				else {
