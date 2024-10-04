@@ -180,6 +180,7 @@ private:
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
 	uint m_mesoMuscularGroupId;
+	bool m_mesoCalendarChanged;
 
 	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
 								const QDate& calendarStartDate = QDate());

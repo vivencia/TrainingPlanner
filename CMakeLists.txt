@@ -72,7 +72,6 @@ set( QM_FILES
 set( QML_FILES
     "qml/AppSettings.qml"
     "qml/ImageViewer.qml"
-    "qml/inexportMethods.js"
     "qml/main.qml"
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"

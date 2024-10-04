@@ -5,7 +5,6 @@ import QtQuick.Dialogs
 import QtCore
 
 import "../"
-import "../inexportMethods.js" as INEX
 import "../Dialogs"
 import "../ExercisesAndSets"
 import "../TPWidgets"
@@ -39,6 +38,11 @@ TPPage {
 	property TPFloatingButton btnFloat: null
 	property PageScrollButtons navButtons: null
 	property TimerDialog timerDialog: null
+	property var splitModel: [ { value:'A', text:'A', enabled: true }, { value:'B', text:'B', enabled: true }, { value:'C', text:'C', enabled: true },
+							{ value:'D', text:'D', enabled: true }, { value:'E', text:'E', enabled: true }, { value:'F', text:'F', enabled: true },
+							{ value:'R', text:'R', enabled: true } ]
+
+	signal mesoCalendarChanged()
 
 	onPageActivated: {
 		itemManager.setCurrenttDay(mainDate)
@@ -52,25 +56,9 @@ TPPage {
 		}
 	}
 
-	signal mesoCalendarChanged()
-
-	property var splitModel: [ { value:'A', text:'A' }, { value:'B', text:'B' }, { value:'C', text:'C' },
-							{ value:'D', text:'D' }, { value:'E', text:'E' }, { value:'F', text:'F' }, { value:'R', text:'R' } ]
-
-	property TPFloatingMenuBar imexportMenu: null
-	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
-
 	onEditModeChanged: {
 		if (optionsMenu !== null)
 			optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
-	}
-
-	onBExportEnabledChanged: {
-		if (imexportMenu) {
-			imexportMenu.enableMenuEntry(1, bExportEnabled);
-			if (Qt.platform.os === "android")
-				imexportMenu.enableMenuEntry(2, bExportEnabled);
-		}
 	}
 
 	ListModel {
@@ -297,29 +285,6 @@ TPPage {
 			createMessageBox();
 		}
 		timerDlgMessage.showTimed(3000, 0);
-	}
-
-	property TPBalloonTip exportMessage: null
-	function showExportMessage(share: bool) {
-		if (exportMessage === null) {
-			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					exportMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, message: lblHeader.text,
-						imageSource: "export", button1Text: qsTr("Yes"), button2Text: qsTr("No") });
-					exportMessage.button1Clicked.connect(function () { itemManager.exportTrainingDay(tDayModel, bShare); } );
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		exportMessage.title = share ? qsTr("Share workout?") : qsTr("Export workout to file?");
-		exportMessage.show(-1);
 	}
 
 	property TPBalloonTip resetWorkoutMsg: null
@@ -919,7 +884,7 @@ TPPage {
 		}
 
 		TPButton {
-			id: btnImExport
+			id: btnExport
 			text: qsTr("Export")
 			imageSource: "import-export.png"
 			textUnderIcon: true
@@ -938,7 +903,12 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: INEX.showInExMenu(trainingDayPage, false);
+			onClicked: {
+				if (Qt.platform.os === "android")
+					showExportMenu();
+				else
+					exportTypeTip.init(false);
+			}
 		}
 
 		TPButton {
@@ -1206,5 +1176,46 @@ TPPage {
 				component.statusChanged.connect(finishCreation);
 		}
 		changeSplitLetterDialog.show(-1);
+	}
+
+	property TPFloatingMenuBar exportMenu: null
+	readonly property bool bExportEnabled: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
+
+	onBExportEnabledChanged: {
+		if (Qt.platform.os === "android") {
+			if (exportMenu) {
+				exportMenu.enableMenuEntry(0, bExportEnabled);
+				exportMenu.enableMenuEntry(1, bExportEnabled);
+			}
+		}
+	}
+
+	function showExportMenu() {
+		if (exportMenu === null) {
+			var exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			exportMenu = exportMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
+			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
+			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
+			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(id === 1); });
+		}
+		exportMenu.show(btnImExport, 0);
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
+		imageSource: "export.png"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		parentPage: trainingDayPage
+
+		onButton1Clicked: itemManager.exportTrainingDay(bShare, tDayModel);
+
+		property bool bShare
+
+		function init(share: bool) {
+			bShare = share;
+			show(-1);
+		}
 	}
 } // Page

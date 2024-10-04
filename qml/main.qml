@@ -24,8 +24,10 @@ ApplicationWindow {
 	readonly property int windowHeight: contentItem.height
 
 	property bool bBackButtonEnabled: AppSettings.mainUserConfigured
-	property bool bCanHaveTodaysWorkout
+	property bool bCanHaveTodaysWorkout: false
 	property int backKey
+
+	onBCanHaveTodaysWorkoutChanged: console.log("bCanHaveTodaysWorkout = ", bCanHaveTodaysWorkout);
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);

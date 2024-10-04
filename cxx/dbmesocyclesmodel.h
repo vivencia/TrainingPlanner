@@ -59,7 +59,7 @@ public:
 	void setModified(const uint meso_idx, const uint field);
 
 	inline const QString& id(const uint meso_idx) const { return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID); }
-	inline const int _id(const uint meso_idx) const { return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID).toUInt(); }
+	inline const int _id(const uint meso_idx) const { return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID).toInt(); }
 	void setId(const uint meso_idx, const QString& new_id);
 
 	Q_INVOKABLE inline QString name(const uint meso_idx) const
@@ -141,7 +141,7 @@ public:
 		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
 	}
-	Q_INVOKABLE void setOwnMeso(const int meso_idx, const bool bOwnMeso);
+	Q_INVOKABLE void setOwnMeso(const uint meso_idx, const bool bOwnMeso);
 
 	Q_INVOKABLE inline QString file(const uint meso_idx) const
 	{
@@ -180,6 +180,8 @@ public:
 	Q_INVOKABLE void setCurrentMesoIdx(const uint meso_idx);
 	Q_INVOKABLE inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 
+	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
+	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
 	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
 	inline uint totalSplits(const uint meso_idx) const { return m_totalSplits.value(meso_idx); }
 	void findTotalSplits(const uint meso_idx);
@@ -214,7 +216,8 @@ public:
 	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
 
 signals:
-	void isNewMesoChanged();
+	void isNewMesoChanged(const uint meso_idx);
+	void isOwnMesoChanged(const uint meso_idx);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void muscularGroupChanged(const uint meso_idx, const uint initiator_id, const uint splitIndex, const QChar& splitLetter);
@@ -227,6 +230,7 @@ private:
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<uint> m_totalSplits;
 	QList<uchar> m_isNewMeso;
+	QList<bool> m_newMesoCalendarChanged;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
 
 	static DBMesocyclesModel* app_meso_model;

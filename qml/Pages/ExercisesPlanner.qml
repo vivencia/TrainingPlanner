@@ -17,8 +17,6 @@ TPPage {
 	required property QmlItemManager itemManager
 	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
-	property TPFloatingMenuBar imExportMenu: null
-	readonly property bool bExportEnabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
 
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
@@ -36,11 +34,13 @@ TPPage {
 		currentIndex: 0
 		interactive: !exercisesPane.visible
 		height: parent.height
+
 		anchors {
 			top: parent.top
 			left: parent.left
 			right: parent.right
 		}
+
 		onCurrentIndexChanged: itemManager.getMesoSplitPage(index);
 	} //SwipeView
 
@@ -103,7 +103,7 @@ TPPage {
 			text: qsTr("Clear")
 			imageSource: "clear.png"
 			textUnderIcon: true
-			enabled: splitView.currentIndex >= 0 ? currentPage.splitModel.count > 1 : false
+			enabled: currentPage ? currentPage.splitModel.count > 1 : false
 			fixedSize: true
 			rounded: false
 			flat: false
@@ -152,6 +152,7 @@ TPPage {
 			flat: false
 			width: footerHeight
 			height: footerHeight
+
 			anchors {
 				left: btnSwapPlan.right
 				leftMargin: 3
@@ -217,6 +218,17 @@ TPPage {
 		splitView.insertItem(idx, page);
 	}
 
+	property TPFloatingMenuBar imExportMenu: null
+	readonly property bool bExportEnabled: currentPage ? currentPage.splitModel.count > 1 : false
+
+	onBExportEnabledChanged: {
+		if (imExportMenu) {
+			imExportMenu.enableMenuEntry(1, bExportEnabled);
+			if (Qt.platform.os === "android")
+				imExportMenu.enableMenuEntry(2, bExportEnabled);
+		}
+	}
+
 	function showInExMenu() {
 		if (imExportMenu === null) {
 			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
@@ -228,16 +240,13 @@ TPPage {
 				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
 			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
-		imExportMenu.enableMenuEntry(1, bExportEnabled);
 		imExportMenu.setMenuText(1)
-		if (Qt.platform.os === "android")
-			imExportMenu.enableMenuEntry(2, bExportEnabled);
 		imExportMenu.show(btnImExport, 0);
 	}
 
 	function selectedMenuOption(menuid) {
 		switch (menuid) {
-			case 0: appControl.importFromFile(); break;
+			case 0: mainwindow.chooseFileToImport(); break;
 			case 1: currentPage.showImportFromPreviousMesoMessage(); break;
 			case 2: exportTypeTip.init(false); break;
 			case 3: exportTypeTip.init(true); break;

@@ -173,8 +173,8 @@ void DBMesoSplitTable::saveMesoSplit()
 		QString strQuery;
 		if (!bUpdate)
 		{
-			strQuery = u"INSERT INTO mesocycles_splits meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
-						" VALUES(\'%1\', \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_qs
+			strQuery = u"INSERT INTO mesocycles_splits (meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
+						" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_qs
 							.arg(m_model->mesoId(row), m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
 							m_model->splitE(row), m_model->splitF(row));
 		}

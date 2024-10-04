@@ -5,7 +5,6 @@ import QtQuick.Dialogs
 import QtCore
 
 import "../"
-import "../inexportMethods.js" as INEX
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
@@ -25,18 +24,7 @@ TPPage {
 
 	signal exerciseChosen()
 
-	property TPFloatingMenuBar imexportMenu: null
-	readonly property bool bExportEnabled: !bChooseButtonEnabled
-
 	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
-
-	onBExportEnabledChanged: {
-		if (imexportMenu) {
-			imexportMenu.enableMenuEntry(1, bExportEnabled);
-			if (Qt.platform.os === "android")
-				imexportMenu.enableMenuEntry(2, bExportEnabled);
-		}
-	}
 
 	header: ToolBar {
 		id: bottomPane
@@ -185,7 +173,7 @@ TPPage {
 					rounded: false
 					flat: false
 
-					onClicked: INEX.showInExMenu(exercisesPage, true);
+					onClicked: showInExMenu();
 				} // btnImExport
 
 			} // Row
@@ -388,24 +376,6 @@ TPPage {
 		} // ColumnLayout
 	} // ScrollView
 
-	TPBalloonTip {
-		id: exportTypeTip
-		title: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
-		imageSource:  "export"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		parentPage: exercisesPage
-
-		onButton1Clicked: itemManager.exportExercises(bShare);
-
-		property bool bShare: false
-
-		function init(share: bool) {
-			bShare = share;
-			show(-1);
-		}
-	}
-
 	FileDialog {
 		id: fileDialog
 		title: qsTr("Please choose a media file");
@@ -469,5 +439,54 @@ TPPage {
 			finishCreation(obj);
 		else
 			component.statusChanged.connect(checkStatus);
+	}
+
+	property TPFloatingMenuBar imExportMenu: null
+	readonly property bool bExportEnabled: !bChooseButtonEnabled
+	onBExportEnabledChanged: {
+		if (imExportMenu) {
+			imExportMenu.enableMenuEntry(1, bExportEnabled);
+			if (Qt.platform.os === "android")
+				imExportMenu.enableMenuEntry(2, bExportEnabled);
+		}
+	}
+
+	function showInExMenu() {
+		if (imExportMenu === null) {
+			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			imExportMenu = imExportMenuComponent.createObject(exercisesPage, { parentPage: exercisesPage });
+			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
+			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
+			if (Qt.platform.os === "android")
+				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
+			imExportMenu.menuEntrySelected.connect(functionselectedMenuOption);
+		}
+		imExportMenu.show(btnImExport, 0);
+	}
+
+	function selectedMenuOption(menuid: int) {
+		switch (menuid) {
+			case 0: mainwindow.chooseFileToImport(); break;
+			case 1: exportTypeTip.init(false); break;
+			case 2: exportTypeTip.init(true); break;
+		}
+	}
+
+	TPBalloonTip {
+		id: exportTypeTip
+		title: bShare ? qsTr("Share custom exercises?") : qsTr("Export custom exercises to file?")
+		imageSource:  "export"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		parentPage: exercisesPage
+
+		onButton1Clicked: itemManager.exportExercises(bShare);
+
+		property bool bShare: false
+
+		function init(share: bool) {
+			bShare = share;
+			show(-1);
+		}
 	}
 } // Page

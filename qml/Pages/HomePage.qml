@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import "../"
-import "../inexportMethods.js" as INEX
 import "../TPWidgets"
 import com.vivenciasoftware.qmlcomponents
 
@@ -13,10 +12,6 @@ TPPage {
 	objectName: "homePage"
 
 	property date minimumStartDate;
-	property TPFloatingMenuBar newMesoMenu: null
-	property TPFloatingMenuBar imexportMenu: null
-	property TPButton btnImExport: null //INEX cannot see inside the nested tree of mesosListView objects. Make btnImExport a global symbol
-	property bool bExportEnabled: true
 
 	header: ToolBar {
 		topPadding: 5
@@ -93,7 +88,7 @@ TPPage {
 
 			Rectangle {
 				id: optionsRec
-				color: "lightgray"
+				color: AppSettings.primaryDarkColor
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -112,42 +107,27 @@ TPPage {
 				shadowVerticalOffset: 5
 				shadowColor: "black"
 				shadowScale: 1
-				opacity: mesoDelegate.swipe.complete ? 1.0 : mesoDelegate.swipe.position
+				opacity: mesoDelegate.swipe.complete ? 0.8 : mesoDelegate.swipe.position
 				Behavior on opacity { NumberAnimation { } }
-
-				TPRadioButton {
-					id: optCurrentMeso
-					text: qsTr("Current plan")
-					checked: mesocyclesModel.currentRow === index;
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
-					z:1
-
-					anchors {
-						top: parent.top
-						topMargin: 3
-						left: parent.left
-						leftMargin: 5
-					}
-
-					onClicked: mesocyclesModel.setCurrentMesoIdx(index);
-				}
 
 				TPButton {
 					id: btnMesoInfo
 					text: qsTr("View Plan")
+					imageSource: "mesocycle.png"
+					backgroundColor: "transparent"
 					textUnderIcon: true
 					rounded: false
-					imageSource: "mesocycle.png"
+					flat: false
 					fixedSize: true
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
+					width: parent.width/2 - 10
+					height: parent.height/2 - 10
 					z:1
 
 					anchors {
+						top: parent.top
+						topMargin: 5
 						left: parent.left
 						leftMargin: 5
-						top: optCurrentMeso.bottom
 					}
 
 					onClicked: appControl.getMesocyclePage(index);
@@ -156,89 +136,80 @@ TPPage {
 				TPButton {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
-					rounded: false
-					textUnderIcon: true
 					imageSource: "meso-calendar.png"
+					backgroundColor: "transparent"
+					rounded: false
+					flat: false
+					textUnderIcon: true
 					fixedSize: true
 					enabled: mesocyclesModel.isOwnMeso(index)
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
+					width: parent.width/2 - 10
+					height: parent.height/2 - 10
 					z:1
 
 					anchors {
 						top: parent.top
-						topMargin: 3
-						left: optCurrentMeso.right
+						topMargin: 5
+						left: btnMesoInfo.right
+						leftMargin: 5
 					}
 
 					onClicked: appControl.getMesoCalendarPage(index);
 
-					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx)
-						{ if (mesoidx === index)
+					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx) {
+						if (mesoidx === index)
 							enabled = mesocyclesModel.isOwnMeso(mesoidx);
 						});
 				}
 
 				TPButton {
 					id: btnMesoPlan
-					text: qsTr("Exercises Plan")
-					rounded: false
-					textUnderIcon: true
+					text: qsTr("Exercises Table")
 					imageSource: "meso-splitplanner.png"
+					backgroundColor: "transparent"
+					rounded: false
+					flat: false
+					textUnderIcon: true
 					fixedSize: true
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
+					width: parent.width/2 - 10
+					height: parent.height/2 - 10
 					z:1
 
 					anchors {
-						top: btnMesoCalendar.bottom
-						left: btnMesoInfo.right
+						top: btnMesoInfo.bottom
+						topMargin: 5
+						left: parent.left
+						leftMargin: 5
 					}
 
 					onClicked: appControl.getExercisesPlannerPage(index);
 				}
 
 				TPButton {
-					id: btnImport
-					text: qsTr("Import")
-					rounded: false
-					textUnderIcon: true
-					imageSource: "import.png"
-					fixedSize: true
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
-					z:1
-
-					anchors {
-						top: parent.top
-						topMargin: 3
-						left: btnMesoPlan.right
-					}
-
-					onClicked: mainwindow.chooseFileToImport();
-				}
-
-				TPButton {
 					id: btnExport
 					text: qsTr("Export")
-					rounded: false
-					textUnderIcon: true
 					imageSource: "export.png"
+					backgroundColor: "transparent"
+					rounded: false
+					flat: false
+					textUnderIcon: true
 					fixedSize: true
-					width: parent.width/3 - 3
-					height: parent.height/2 - 3
+					width: parent.width/2 - 10
+					height: parent.height/2 - 10
 					z:1
 
 					anchors {
-						top: btnImport.bottom
-						left: btnMesoCalendar.right
+						top: btnMesoCalendar.bottom
+						topMargin: 5
+						left: btnMesoPlan.right
+						leftMargin: 5
 					}
 
 					onClicked: {
 						if (Qt.platform.os === "android")
 						{
 							btnImExport = this;
-							INEX.showInExMenu(index, homePage, false);
+							showExportMenu(index);
 						}
 						else
 							exportTypeTip.init(index, false);
@@ -387,77 +358,76 @@ TPPage {
 	footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
-		height: 55
+		height: 80
 
 		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
+			color: AppSettings.primaryDarkColor
+			opacity: 0.3
 		}
 
 		TPButton {
 			id: btnAddMeso
 			text: qsTr("New Training Plan")
 			imageSource: "mesocycle-add.png"
-			textUnderIcon: true
+			backgroundColor: "transparent"
 			rounded: false
-			flat: false
+			flat: true
+			height: 25
 
 			anchors {
-				left: parent.left
-				verticalCenter: parent.verticalCenter
-				leftMargin: 5
+				top: parent.top
+				horizontalCenter: parent.horizontalCenter
 			}
 
-			onClicked: {
-				if (mesocyclesModel.count > 0)
-					appControl.createNewMesocycle(true);
-				else
-					showEmptyDatabaseMenu();
+			onClicked: appControl.createNewMesocycle(true);
+		}
+
+		TPButton {
+			id: btnImportMeso
+			text: qsTr("Import plan from file")
+			imageSource: "import.png"
+			backgroundColor: "transparent"
+			rounded: false
+			flat: true
+			height: 25
+
+			anchors {
+				top: btnAddMeso.bottom
+				horizontalCenter: parent.horizontalCenter
 			}
+
+			onClicked: mainwindow.chooseFileToImport();
 		}
 
 		TPButton {
 			id: btnWorkout
 			text: qsTr("Today's workout")
 			imageSource: "workout.png"
-			textUnderIcon: true
+			backgroundColor: "transparent"
 			rounded: false
-			flat: false
+			flat: true
 			visible: stackView.depth === 1 && mainwindow.bCanHaveTodaysWorkout
+			height: 25
 
 			anchors {
-				right: parent.right
-				verticalCenter: parent.verticalCenter
-				rightMargin: 5
+				top: btnImportMeso.bottom
+				horizontalCenter: parent.horizontalCenter
 			}
 
 			onClicked: appControl.getTrainingDayPage(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
 		}
 	} // footer
 
-	function showEmptyDatabaseMenu() {
-		if (newMesoMenu === null) {
-			var newMesoMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			newMesoMenu = newMesoMenuMenuComponent.createObject(homePage, { parentPage: homePage });
-			newMesoMenu.addEntry(qsTr("Create new plan"), "mesocycle-add.png", 0, true);
-			newMesoMenu.addEntry(qsTr("Import plan from file"), "import.png", 1, true);
-			newMesoMenu.menuEntrySelected.connect(selectedNewMesoMenuOption);
+	property TPFloatingMenuBar exportMenu: null
+	function showExportMenu(meso_idx) {
+		if (exportMenu === null) {
+			var exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
+			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
+			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
+			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(meso_idx, id === 1); });
 		}
-		newMesoMenu.show(btnAddMeso, 0);
-	}
-
-	function selectedNewMesoMenuOption(menuid) {
-		switch (menuid) {
-			case 0: appControl.createNewMesocycle(true);
-			break;
-			case 1: mainwindow.chooseFileToImport(); break;
-		}
+		exportMenu.show(btnImExport, 0);
 	}
 
 	TPComplexDialog {

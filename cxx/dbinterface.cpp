@@ -289,9 +289,18 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 		if (appMesoModel()->importMode())
 			worker->setWaitForThreadToFinish(true);
 
-		connect( this, &DBInterface::databaseReady, this, [&,meso_idx,worker] (const uint db_id) {
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,meso_idx,worker] (const uint db_id) {
 			if (db_id == worker->uniqueID())
+			{
+				disconnect(*conn);
+				if (appMesoModel()->newMesoCalendarChanged(meso_idx))
+				{
+					appMesoModel()->setNewMesoCalendarChanged(meso_idx, false);
+					changeMesoCalendar(meso_idx, false, false);
+				}
 				saveMesoSplit(meso_idx);
+			}
 		});
 	}
 	else
@@ -354,29 +363,32 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 	const QString::const_iterator& itr_end(mesoSplit.constEnd());
 
 	do {
-		if (static_cast<QChar>(*itr) == QChar('R'))
+		if (*itr == QChar('R'))
 			continue;
-		if (mesoLetters.contains(static_cast<QChar>(*itr)))
+		if (mesoLetters.contains(*itr))
 			continue;
 
-		mesoLetters.append(static_cast<QChar>(*itr));
-		splitModel = splitModels.value(static_cast<QChar>(*itr));
+		mesoLetters.append(*itr);
+		splitModel = splitModels.value(*itr);
 
 		if (bThreaded)
 		{
 			DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
 			worker->addExecArg(appMesoModel()->id(meso_idx));
-			worker->addExecArg(static_cast<QChar>(*itr));
+			worker->addExecArg(*itr);
 			if (!connected)
 			{
-				connect(this, &DBInterface::databaseReady, this, [&,nSplits] (const uint db_id) mutable {
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,nSplits] (const uint db_id) mutable {
 					MSG_OUT("loadCompleteMesoSplits received databaseReady() " << db_id)
 					if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 					{
 						if (--nSplits == 0)
 						{
+							disconnect(*conn);
 							mb_splitsLoaded = true;
 							emit internalSignal(SPLITS_LOADED_ID);
+							emit databaseReadyWithData(QVariant());
 						}
 					}
 				});
@@ -443,7 +455,7 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 {
 	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
-		connect(this, &DBInterface::databaseReady, this, [&,meso_idx,bPreserveOldInfo,bPreserveOldInfoUntilDayBefore] ()
+		connect(this, &DBInterface::databaseReady, this, [this,meso_idx,bPreserveOldInfo,bPreserveOldInfoUntilDayBefore] ()
 		{
 			return changeMesoCalendar(meso_idx, bPreserveOldInfo, bPreserveOldInfoUntilDayBefore);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -465,7 +477,7 @@ void DBInterface::updateMesoCalendarModel(const DBTrainingDayModel* const tDayMo
 	const uint meso_idx{static_cast<uint>(tDayModel->mesoIdx())};
 	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
-		connect(this, &DBInterface::databaseReady, this, [&,tDayModel] () {
+		connect(this, &DBInterface::databaseReady, this, [this,tDayModel] () {
 				return updateMesoCalendarModel(tDayModel);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(meso_idx);
@@ -492,7 +504,7 @@ void DBInterface::setDayIsFinished(const uint meso_idx, const QDate& date, const
 {
 	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
-		connect(this, &DBInterface::databaseReady, this, [&,meso_idx,date,bFinished] () {
+		connect(this, &DBInterface::databaseReady, this, [this,meso_idx,date,bFinished] () {
 			return setDayIsFinished(meso_idx, date, bFinished);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		getMesoCalendar(meso_idx);
@@ -524,12 +536,14 @@ void DBInterface::getTrainingDay(DBTrainingDayModel* tDayModel)
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tDayModel)};
 	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	connect(this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
-				if (db_id == worker->uniqueID())
-				{
-					if (tDayModel->exerciseCount() == 0)
-						verifyTDayOptions(tDayModel);
-				}
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			if (tDayModel->exerciseCount() == 0)
+				verifyTDayOptions(tDayModel);
+		}
 	});
 	createThread(worker, [worker] () { return worker->getTrainingDay(); });
 }
@@ -539,12 +553,14 @@ void DBInterface::getTrainingDayExercises(DBTrainingDayModel* tDayModel)
 	DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, const_cast<DBTrainingDayModel*>(tDayModel))};
 	worker->addExecArg(tDayModel->dateStr());
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-	connect( this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
-				if (db_id == worker->uniqueID())
-				{
-					if (tDayModel->exerciseCount() == 0)
-						verifyTDayOptions(tDayModel);
-				}
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			if (tDayModel->exerciseCount() == 0)
+				verifyTDayOptions(tDayModel);
+		}
 	});
 	createThread(worker, [worker] () { return worker->getTrainingDayExercises(); } );
 }
@@ -558,16 +574,18 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 		worker->addExecArg(tDayModel->splitLetter());
 		worker->addExecArg(tDayModel->date());
-		connect(this, &DBInterface::databaseReady, this, [&,worker,tDayModel] (const uint db_id) {
-				if (db_id == worker->uniqueID())
-				{
-					DBTrainingDayModel* tempModel{worker->model()};
-					//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
-					tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
-							STR_ONE : STR_ZERO);
-					emit databaseReadyWithData(QVariant::fromValue(tempModel));
-					delete tempModel;
-				}
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
+			if (db_id == worker->uniqueID())
+			{
+				disconnect(*conn);
+				DBTrainingDayModel* tempModel{worker->model()};
+				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
+				tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
+						STR_ONE : STR_ZERO);
+				emit databaseReadyWithData(QVariant::fromValue(tempModel));
+				delete tempModel;
+			}
 		});
 		createThread(worker, [worker] () { return worker->getPreviousTrainingDaysInfo(); });
 	}
