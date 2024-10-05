@@ -545,7 +545,7 @@ DBMesoSplitModel* QmlItemManager::getSplitModel(const QChar& splitLetter)
 	if (!m_splitModels.contains(splitLetter))
 	{
 		DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, m_mesoIdx)};
-		connect(this, &QmlItemManager::mesoIdxChanged, splitModel, [this,splitModel] { splitModel->setMesoIdx(m_mesoIdx); });
+		connect(this, &QmlItemManager::mesoIdxChanged, splitModel, &DBMesoSplitModel::setMesoIdx);
 		m_splitModels.insert(splitLetter, splitModel);
 	}
 	return m_splitModels.value(splitLetter);
@@ -726,9 +726,10 @@ DBTrainingDayModel* QmlItemManager::gettDayModel(const QDate& date)
 {
 	if (!m_tDayModels.contains(date))
 	{
-		m_CurrenttDayModel = new DBTrainingDayModel(this, m_mesoIdx);
-		connect(this, &QmlItemManager::mesoIdxChanged, m_CurrenttDayModel, [this] { m_CurrenttDayModel->setMesoIdx(m_mesoIdx); });
+		DBTrainingDayModel* tDayModel{new DBTrainingDayModel(this, m_mesoIdx)};
+		connect(this, &QmlItemManager::mesoIdxChanged, tDayModel, &DBTrainingDayModel::setMesoIdx);
 		m_tDayModels.insert(date, m_CurrenttDayModel);
+		m_CurrenttDayModel = tDayModel;
 	}
 	else
 		m_CurrenttDayModel = m_tDayModels.value(date);

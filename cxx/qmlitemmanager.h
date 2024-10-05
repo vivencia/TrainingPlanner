@@ -37,7 +37,7 @@ public:
 	void configureQmlEngine(QQmlApplicationEngine *qml_engine);
 
 	inline uint mesoIdx() const { return m_mesoIdx; }
-	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(); }
+	inline void setMesoIdx(const uint new_mesoidx) { m_mesoIdx = new_mesoidx; emit mesoIdxChanged(static_cast<int>(new_mesoidx)); }
 
 	//-----------------------------------------------------------USER-----------------------------------------------------------
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
@@ -152,7 +152,7 @@ public slots:
 	//-----------------------------------------------------------SLOTS-----------------------------------------------------------
 
 signals:
-	void mesoIdxChanged();
+	void mesoIdxChanged(const int new_mesoidx);
 	void setObjectReady();
 	void plannerPageCreated();
 
