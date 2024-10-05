@@ -12,11 +12,12 @@ class TPDatabaseTable : public QObject
 {
 
 public:
-	explicit inline TPDatabaseTable(QObject* parent = nullptr)
-		: QObject{parent}, mb_resolved(false), m_result(false), mb_waitForFinished(false), doneFunc(nullptr) {}
+	TPDatabaseTable(const TPDatabaseTable& other) = delete;
+	TPDatabaseTable& operator() (const TPDatabaseTable& other) = delete;
+	TPDatabaseTable& operator() (const TPDatabaseTable other) = delete;
 
 	virtual void createTable() = 0;
-	virtual void updateDatabase() = 0;
+	virtual void updateTable() = 0;
 
 	inline bool result() const { return m_result; }
 	inline void setCallbackForDoneFunc( const std::function<void (TPDatabaseTable*)>& func ) { doneFunc = func; }
@@ -41,16 +42,21 @@ public:
 	void removeDBFile();
 
 protected:
+	explicit inline TPDatabaseTable(QObject* parent = nullptr)
+		: QObject{parent}, m_result(false), doneFunc(nullptr), mb_resolved(false), mb_waitForFinished(false) {}
+
 	QSqlDatabase mSqlLiteDB;
 	QVariantList m_execArgs;
 	QString m_tableName;
 	uint m_tableID;
 	uint m_UniqueID;
-	bool mb_resolved;
 	bool m_result;
-	bool mb_waitForFinished;
 
 	std::function<void (TPDatabaseTable*)> doneFunc;
+
+private:
+	bool mb_resolved;
+	bool mb_waitForFinished;
 };
 
 #endif // TPDATABASETABLE_H

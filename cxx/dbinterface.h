@@ -33,15 +33,14 @@ Q_OBJECT
 
 public:
 	explicit inline DBInterface()
-		: QObject{nullptr}, mb_splitsLoaded(false), mb_importMode(false) { app_db_interface = this; }
-	inline DBInterface(const DBInterface* other)
-		: QObject{other->parent()}, mb_splitsLoaded(other->mb_splitsLoaded), mb_importMode(other->mb_splitsLoaded), m_DBFilePath(other->m_DBFilePath) {}
+		: QObject{nullptr}, mb_importMode(false) { app_db_interface = this; }
+	inline DBInterface(const DBInterface& other) = delete;
+	inline DBInterface& operator()(const DBInterface& other) = delete;
 	inline ~DBInterface() {}
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
 
 	inline const QString& dbFilesPath() const { return m_DBFilePath; }
-	inline bool splitsLoaded() const { return mb_splitsLoaded; }
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();
@@ -92,8 +91,8 @@ public:
 	void getTrainingDayExercises(DBTrainingDayModel* tDayModel);
 	void verifyTDayOptions(DBTrainingDayModel* tDayModel);
 	void loadExercisesFromDate(const QString& strDate, DBTrainingDayModel* tDayModel);
-	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, QMap<QChar, DBMesoSplitModel *>& splitModels);
-	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, QMap<QChar, DBMesoSplitModel *>& splitModels);
+	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMesoSplitModel* const splitModel);
+	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* const splitModel);
 	void saveTrainingDay(DBTrainingDayModel* const tDayModel);
 	void removeTrainingDay(const uint meso_idx);
 	void deleteTrainingDayTable(const bool bRemoveFile);
@@ -102,13 +101,11 @@ public:
 signals:
 	void databaseReady(const uint db_id);
 	void databaseReadyWithData(const QVariant data);
-	void internalSignal(const uint id);
 
 public slots:
 	void cleanUpThreads();
 
 private:
-	bool mb_splitsLoaded;
 	bool mb_importMode;
 	QString m_DBFilePath;
 
@@ -147,7 +144,6 @@ private:
 	static DBInterface* app_db_interface;
 	friend DBInterface* appDBInterface();
 };
-Q_DECLARE_METATYPE(DBInterface*)
 
 inline DBInterface* appDBInterface() { return DBInterface::app_db_interface; }
 #endif // DBINTERFACE_H

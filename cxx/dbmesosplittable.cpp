@@ -100,6 +100,10 @@ void DBMesoSplitTable::createTable()
 	}
 }
 
+void DBMesoSplitTable::updateTable()
+{
+
+}
 
 void DBMesoSplitTable::getAllMesoSplits()
 {

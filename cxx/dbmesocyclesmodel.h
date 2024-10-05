@@ -194,11 +194,11 @@ public:
 	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();
 
-	virtual int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
-	virtual int importFromFile(const QString& filename) override;
+	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	int importFromFile(const QString& filename) override;
 	bool updateFromModel(const uint meso_idx, const TPListModel* const model);
 
-	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		switch (field)
 		{

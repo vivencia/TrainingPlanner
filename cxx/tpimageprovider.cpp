@@ -19,16 +19,16 @@ QImage TPImageProvider::requestImage(const QString& strid, QSize* size, const QS
 	if (size)
 		*size = QSize(avatarWidth, avatarHeight);
 
-	const uint id(strid.right(strid.length() - 1).toUInt());
-	return getAvatar(static_cast<uint>(id), strid.left(1));
+	const uint id(strid.last(strid.length() - 1).toUInt());
+	return getAvatar(static_cast<uint>(id), strid.first(1));
 }
 
 QImage TPImageProvider::getAvatar(const QString& imagePath)
 {
-	const QString avatarId(imagePath.right(imagePath.length() - imagePath.lastIndexOf('/') - 1));
+	const QString avatarId(imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1));
 	bool bOK(false);
-	const int id(avatarId.right(avatarId.length() - 1).toUInt(&bOK));
-	return bOK ? getAvatar(id, avatarId.left(1)) : QImage();
+	const int id(avatarId.last(avatarId.length() - 1).toUInt(&bOK));
+	return bOK ? getAvatar(id, avatarId.first(1)) : QImage();
 }
 
 QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)

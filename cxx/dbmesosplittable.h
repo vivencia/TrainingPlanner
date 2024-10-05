@@ -10,20 +10,21 @@ class DBTrainingDayModel;
 
 static const QString DBMesoSplitFileName(u"MesocyclesSplits.db.sqlite"_qs);
 
-class DBMesoSplitTable : public TPDatabaseTable
+class DBMesoSplitTable final : public TPDatabaseTable
 {
 
 public:
 	explicit DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* model = nullptr);
 
-	virtual void createTable();
-	virtual void updateDatabase() {}
+	void createTable() override;
+	void updateTable() override;
 	void getAllMesoSplits();
 	void saveMesoSplit();
 	void getCompleteMesoSplit(const bool bEmitSignal = true);
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
 	void convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel);
+	inline DBMesoSplitModel* model() const { return m_model; }
 	inline void setAnotherModel(DBMesoSplitModel* new_model) { m_model = new_model; }
 
 private:

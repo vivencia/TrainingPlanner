@@ -9,7 +9,7 @@ static const QString DBExercisesFileName(u"ExercisesList.db.sqlite"_qs);
 
 class DBExercisesModel;
 
-class DBExercisesTable : public TPDatabaseTable
+class DBExercisesTable final : public TPDatabaseTable
 {
 
 Q_OBJECT
@@ -17,8 +17,8 @@ Q_OBJECT
 public:
 	explicit DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model = nullptr);
 
-	virtual void createTable();
-	virtual void updateDatabase() {}
+	void createTable() override;
+	void updateTable() override;
 	void getAllExercises();
 	void updateExercisesList();
 	void saveExercises();

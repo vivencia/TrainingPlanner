@@ -127,19 +127,19 @@ public:
 	Q_INVOKABLE QString setWeight2(const int row, const uint set_number) const;
 	Q_INVOKABLE void setSetWeight2(const uint row, const uint set_number, const QString& new_setsweight);
 
-	inline uint workingSet() const { return workingSet(currentRow()); }
-	inline uint workingSet(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt(); }
+	inline int workingSet() const { return workingSet(currentRow()); }
+	inline int workingSet(const int row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
 	Q_INVOKABLE void changeExercise(const DBExercisesModel* const model);
 	Q_INVOKABLE QString findSwappableModel() const;
 
-	virtual int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
-	virtual int importFromFile(const QString& filename) override;
-	virtual bool updateFromModel(const TPListModel* model) override;
+	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	int importFromFile(const QString& filename) override;
+	bool updateFromModel(const TPListModel* model) override;
 
-	virtual inline bool isFieldFormatSpecial (const uint field) const override
+	inline bool isFieldFormatSpecial (const uint field) const override
 	{
 		if (mb_Complete)
 			return field == MESOSPLIT_COL_SETTYPE;

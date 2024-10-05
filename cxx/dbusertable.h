@@ -16,7 +16,7 @@ public:
 	explicit DBUserTable(const QString& dbFilePath, DBUserModel* model = nullptr);
 
 	virtual void createTable();
-	virtual void updateDatabase() {}
+	virtual void updateTable() {}
 	void getAllUsers();
 	void saveUser();
 

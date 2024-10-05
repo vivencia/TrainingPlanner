@@ -60,9 +60,9 @@ void DBMesocyclesTable::createTable()
 	}
 }
 
-void DBMesocyclesTable::updateDatabase()
+void DBMesocyclesTable::updateTable()
 {
-	m_result = false;
+	/*m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
@@ -131,7 +131,7 @@ void DBMesocyclesTable::updateDatabase()
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));*/
 }
 
 void DBMesocyclesTable::getAllMesocycles()

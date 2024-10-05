@@ -68,6 +68,7 @@ public:
 	//-----------------------------------------------------------MESOSPLIT-----------------------------------------------------------
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getMesoSplitPage(const uint page_index);
+	Q_INVOKABLE void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id);
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath = QString(), const bool bJustExport = false);
@@ -153,6 +154,7 @@ public slots:
 signals:
 	void mesoIdxChanged();
 	void setObjectReady();
+	void plannerPageCreated();
 
 private:
 	uint m_mesoIdx;
@@ -209,14 +211,15 @@ private:
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
 	uint m_splitMuscularGroupId;
+	QString m_splitLetters;
 
+	int splitLetterToPageIndex(const DBMesoSplitModel* const splitModel);
 	void createPlannerPage();
 	void createPlannerPage_part2();
 	void createMesoSplitPage(const uint page_index);
 	void initializeSplitModels();
 	void setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel);
 	void updateMuscularGroup(DBMesoSplitModel* splitModel);
-	void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id);
 	//-----------------------------------------------------------MESOSPLIT PRIVATE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY PRIVATE-----------------------------------------------------------

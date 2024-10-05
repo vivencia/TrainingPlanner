@@ -260,7 +260,7 @@ TPPage {
 			width: 60
 			height: 55
 			fixedSize: true
-			enabled: false
+			//enabled: TODO own meso
 
 			anchors {
 				right: parent.right

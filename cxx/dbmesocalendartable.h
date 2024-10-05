@@ -9,14 +9,14 @@ class DBMesoCalendarModel;
 
 static const QString DBMesoCalendarFileName(u"MesoCalendar.db.sqlite"_qs);
 
-class DBMesoCalendarTable : public TPDatabaseTable
+class DBMesoCalendarTable final : public TPDatabaseTable
 {
 
 public:
 	explicit DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model = nullptr);
 
-	virtual void createTable();
-	virtual void updateDatabase();
+	void createTable() override;
+	void updateTable() override;
 	void getMesoCalendar();
 	void saveMesoCalendar();
 	void updateMesoCalendarEntry();

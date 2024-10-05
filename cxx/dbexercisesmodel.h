@@ -162,13 +162,13 @@ public:
 	void clear() override;
 	QString makeTransactionStatementForDataBase(const uint index) const;
 
-	inline virtual void resetPrivateData() override { clearSelectedEntries(); }
-	virtual int importFromFile(const QString& filename) override;
-	virtual bool updateFromModel(const TPListModel* const model) override;
+	inline void resetPrivateData() override { clearSelectedEntries(); }
+	int importFromFile(const QString& filename) override;
+	bool updateFromModel(const TPListModel* const model) override;
 
-	Q_INVOKABLE int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 10; }
-	Q_INVOKABLE QVariant data(const QModelIndex &index, int role) const override;
-	Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+	Q_INVOKABLE int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return numberOfFields(); }
+	Q_INVOKABLE QVariant data(const QModelIndex& index, int role) const override;
+	Q_INVOKABLE bool setData(const QModelIndex& index, const QVariant &value, int role) override;
 
 signals:
 	void exerciseChanged(const uint index);

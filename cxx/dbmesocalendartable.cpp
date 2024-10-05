@@ -54,9 +54,9 @@ void DBMesoCalendarTable::createTable()
 	}
 }
 
-void DBMesoCalendarTable::updateDatabase()
+void DBMesoCalendarTable::updateTable()
 {
-	m_result = false;
+	/*m_result = false;
 	QStringList oldTableInfo;
 	if (mSqlLiteDB.open())
 	{
@@ -131,7 +131,7 @@ void DBMesoCalendarTable::updateDatabase()
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));*/
 }
 
 void DBMesoCalendarTable::getMesoCalendar()

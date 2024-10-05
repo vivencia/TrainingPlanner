@@ -4,27 +4,6 @@
 #include <QFile>
 #include <QRegularExpression>
 
-void TPListModel::copy(const TPListModel& src_item)
-{
-	m_modeldata = src_item.m_modeldata;
-	m_roleNames = src_item.m_roleNames;
-	m_mesoIdx = src_item.m_mesoIdx;
-	m_currentRow = src_item.m_mesoIdx;
-	m_tableId = src_item.m_tableId;
-	m_fieldCount = src_item.m_fieldCount;
-	m_bReady = src_item.m_bReady;
-	m_bModified = src_item.m_bModified;
-	m_bImportMode = src_item.m_bImportMode;
-	m_filterString = src_item.m_filterString;
-	m_exportName = src_item.m_exportName;
-}
-
-TPListModel::~TPListModel()
-{
-	m_modeldata.clear();
-	m_roleNames.clear();
-}
-
 void TPListModel::removeRow(const uint row)
 {
 	Q_ASSERT_X(row < m_modeldata.count(), "TPListModel::removeRow", "out of range row");
@@ -55,7 +34,7 @@ void TPListModel::clear()
 
 void TPListModel::setCurrentRow(const int row)
 {
-	Q_ASSERT_X(row >= -1 && row < m_modeldata.count(), "TPListModel::setCurrentRow", "out of range row");
+	Q_ASSERT_X(row < m_modeldata.count(), "TPListModel::setCurrentRow", "out of range row");
 	m_currentRow = row;
 	emit currentRowChanged();
 }

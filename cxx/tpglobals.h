@@ -6,7 +6,7 @@
 #include <QDebug>
 #endif
 
-static const QString& TP_APP_VERSION(u"v20240818-B"_qs);
+static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
 
 #ifdef DEBUG
 #define MSG_OUT(message) qDebug() << message;

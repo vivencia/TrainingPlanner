@@ -16,18 +16,9 @@ Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowC
 Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 
 public:
-	explicit inline TPListModel(QObject* parent = nullptr, int meso_idx = -1)
-		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_bReady(false), m_bImportMode(false) {}
-
-	inline TPListModel(const TPListModel& other) : TPListModel {other.parent()} { copy(other); }
-
-	inline const TPListModel& operator=(TPListModel t_item)
-	{
-		copy (t_item);
-		return *this;
-	}
-
-	virtual ~TPListModel() override;
+	inline TPListModel(const TPListModel& other)  = delete;
+	inline const TPListModel& operator=(TPListModel t_item) = delete;
+	inline TPListModel& operator=(const TPListModel& t_item) = delete;
 
 	inline int tableID() const { return m_tableId; }
 	inline uint numberOfFields() const { return m_fieldCount; }
@@ -84,8 +75,8 @@ signals:
 	void currentRowChanged();
 
 protected:
-	// return the roles mapping to be used by QML
-	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
+	explicit inline TPListModel(QObject* parent = nullptr, int meso_idx = -1)
+		: QAbstractListModel{parent}, m_mesoIdx(meso_idx), m_currentRow(-1), m_bReady(false), m_bImportMode(false) {}
 
 	QList<QStringList> m_modeldata;
 	QList<uint> m_exportRows;
@@ -99,7 +90,8 @@ protected:
 	bool m_bReady, m_bModified, m_bImportMode;
 	QString m_filterString, m_exportName;
 
-	void copy(const TPListModel& src_item);
+	// return the roles mapping to be used by QML
+	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
 
 	friend class DBExercisesModel;
 	friend class DBMesocyclesModel;

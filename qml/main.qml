@@ -27,8 +27,6 @@ ApplicationWindow {
 	property bool bCanHaveTodaysWorkout: false
 	property int backKey
 
-	onBCanHaveTodaysWorkoutChanged: console.log("bCanHaveTodaysWorkout = ", bCanHaveTodaysWorkout);
-
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
 	signal openFileChosen(filepath: string);

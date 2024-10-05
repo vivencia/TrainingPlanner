@@ -62,9 +62,9 @@ public:
 	Q_INVOKABLE inline void addWarningAtMinute(const uint minute) { mMinutesWarnings.append(minute); }
 	Q_INVOKABLE inline void addWarningAtSecond(const uint second) { mSecondsWarnings.append(second); }
 
-	Q_INVOKABLE inline uint orignalHours() const { return m_originalStartTime.left(2).toUInt(); }
-	Q_INVOKABLE inline uint orignalMinutes() const { return m_originalStartTime.mid(3, 2).toUInt(); }
-	Q_INVOKABLE inline uint orignalSeconds() const { return m_originalStartTime.right(2).toUInt(); }
+	Q_INVOKABLE inline uint orignalHours() const { return m_originalStartTime.first(2).toUInt(); }
+	Q_INVOKABLE inline uint orignalMinutes() const { return m_originalStartTime.sliced(3, 2).toUInt(); }
+	Q_INVOKABLE inline uint orignalSeconds() const { return m_originalStartTime.last(2).toUInt(); }
 
 	inline uint totalSeconds() const { return m_totalSeconds; }
 	inline bool paused() const { return mb_paused; }

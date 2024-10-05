@@ -9,14 +9,14 @@ class DBMesocyclesModel;
 
 static const QString DBMesocyclesFileName(u"Mesocycles.db.sqlite"_qs);
 
-class DBMesocyclesTable : public TPDatabaseTable
+class DBMesocyclesTable final : public TPDatabaseTable
 {
 
 public:
 	explicit DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model = nullptr);
 
-	virtual void createTable();
-	virtual void updateDatabase();
+	void createTable() override;
+	void updateTable() override;
 	void getAllMesocycles();
 	void saveMesocycle();
 

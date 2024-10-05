@@ -425,7 +425,7 @@ QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName1", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	return idx != -1 ? u"1: "_qs + m_ExerciseData.at(exercise_idx)->name.left(idx) : m_ExerciseData.at(exercise_idx)->name;
+	return idx != -1 ? u"1: "_qs + m_ExerciseData.at(exercise_idx)->name.first(idx) : m_ExerciseData.at(exercise_idx)->name;
 }
 
 void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exercise_idx)
@@ -454,7 +454,7 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
 	QString new_name2;
 	if (idx != -1)
-		new_name2 = m_ExerciseData.at(exercise_idx)->name.left(idx) + comp_exercise_separator + name2;
+		new_name2 = m_ExerciseData.at(exercise_idx)->name.first(idx) + comp_exercise_separator + name2;
 	else
 		new_name2 = comp_exercise_separator + name2;
 	m_CompositeExerciseList[exercise_idx] = true;
@@ -464,8 +464,8 @@ void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exerc
 
 static QString increaseStringTimeBy(const QString& strtime, const uint add_mins, const uint add_secs)
 {
-	uint secs(QStringView{strtime}.mid(3, 2).toUInt());
-	uint mins(QStringView{strtime}.left(2).toUInt());
+	uint secs(QStringView{strtime}.sliced(3, 2).toUInt());
+	uint mins(QStringView{strtime}.first(2).toUInt());
 
 	secs += add_secs;
 	if (secs > 59)
@@ -485,7 +485,7 @@ static inline QString dropSetReps(const QString& reps)
 	QString value1(appUtils()->appLocale()->toString(qCeil(value * 0.8)));
 	if (value1.contains('.') || value1.contains(','))
 	{
-		if (value1.right(2) != u"50"_qs)
+		if (value1.last(2) != u"50"_qs)
 			value1.chop(3); //nn
 		else
 			value1.chop(1); // nn,5 or nn.5
@@ -493,7 +493,7 @@ static inline QString dropSetReps(const QString& reps)
 	QString value2(appUtils()->appLocale()->toString(qCeil(value * 0.8 * 0.8)));
 	if (value2.contains('.') || value2.contains(','))
 	{
-		if (value2.right(2) != u"50"_qs)
+		if (value2.last(2) != u"50"_qs)
 			value2.chop(3); //nn
 		else
 			value2.chop(1); // nn,5 or nn.5
@@ -507,7 +507,7 @@ static inline QString dropSetWeight(const QString& weight)
 	QString value1(appUtils()->appLocale()->toString(value * 0.5, 'f', 2));
 	if (value1.contains('.') || value1.contains(','))
 	{
-		if (value1.right(2) != u"50"_qs)
+		if (value1.last(2) != u"50"_qs)
 			value1.chop(3); //nn
 		else
 			value1.chop(1); // nn,5 or nn.5
@@ -515,7 +515,7 @@ static inline QString dropSetWeight(const QString& weight)
 	QString value2(appUtils()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2));
 	if (value2.contains('.') || value2.contains(','))
 	{
-		if (value2.right(2) != u"50"_qs)
+		if (value2.last(2) != u"50"_qs)
 			value2.chop(3); //nn
 		else
 			value2.chop(1); // nn,5 or nn.5
@@ -635,7 +635,7 @@ const QString DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, 
 		strSetReps = appUtils()->appLocale()->toString(static_cast<int>(lastSetValue));
 		if (strSetReps.contains('.') || strSetReps.contains(','))
 		{
-			if (strSetReps.right(2) != u"50"_qs)
+			if (strSetReps.last(2) != u"50"_qs)
 				strSetReps.chop(3); //nn
 			else
 				strSetReps.chop(1); // nn,5 or nn.5
@@ -670,7 +670,7 @@ const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx
 		strStrWeight = appUtils()->appLocale()->toString(lastSetValue, 'f', 2);
 		if (strStrWeight.contains('.') || strStrWeight.contains(','))
 		{
-			if (strStrWeight.right(2) != u"50"_qs)
+			if (strStrWeight.last(2) != u"50"_qs)
 				strStrWeight.chop(3);
 			else
 				strStrWeight.chop(1);

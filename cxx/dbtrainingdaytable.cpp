@@ -63,9 +63,9 @@ void DBTrainingDayTable::createTable()
 	}
 }
 
-void DBTrainingDayTable::updateDatabase()
+void DBTrainingDayTable::updateTable()
 {
-	m_result = false;
+	/*m_result = false;
 	QList<QStringList> oldTableInfo;
 	if (mSqlLiteDB.open())
 	{
@@ -165,13 +165,12 @@ void DBTrainingDayTable::updateDatabase()
 			}
 		}
 	}
-	doneFunc(static_cast<TPDatabaseTable*>(this));
+	doneFunc(static_cast<TPDatabaseTable*>(this));*/
 }
 
 void DBTrainingDayTable::getTrainingDay()
 {
 	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
 	if (mSqlLiteDB.open())
 	{
 		QSqlQuery query(mSqlLiteDB);
@@ -195,16 +194,15 @@ void DBTrainingDayTable::getTrainingDay()
 				m_model->appendList(split_info);
 				m_model->setReady(true);
 				MSG_OUT("DBTrainingDayTable getTrainingDay SUCCESS")
+				mSqlLiteDB.close();
 				getTrainingDayExercises();
+				return;
 			}
 		}
-		else
-		{
-			MSG_OUT("DBTrainingDayTable getTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable getTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-			mSqlLiteDB.close();
-		}
+		MSG_OUT("DBTrainingDayTable getTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
+		MSG_OUT("DBTrainingDayTable getTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
+		MSG_OUT(strQuery)
+		mSqlLiteDB.close();
 	}
 }
 

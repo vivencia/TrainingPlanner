@@ -172,9 +172,9 @@ void TPTimer::prepareFromString()
 {
 	if (!m_originalStartTime.isEmpty())
 	{
-		m_hours = m_originalStartTime.left(2).toUInt();
-		m_minutes = m_originalStartTime.mid(3, 2).toUInt();
-		m_seconds = m_originalStartTime.right(2).toUInt();
+		m_hours = m_originalStartTime.first(2).toUInt();
+		m_minutes = m_originalStartTime.sliced(3, 2).toUInt();
+		m_seconds = m_originalStartTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}
 	else

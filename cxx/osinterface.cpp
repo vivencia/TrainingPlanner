@@ -363,7 +363,7 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString& localFile(m_appDataFilesPath + u"tempfile"_qs + filename.right(4));
+	const QString& localFile(m_appDataFilesPath + u"tempfile"_qs + filename.last(4));
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));

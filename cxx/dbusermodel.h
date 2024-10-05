@@ -36,10 +36,6 @@ QML_ELEMENT
 
 public:
 	explicit DBUserModel(QObject* parent = nullptr);
-	inline DBUserModel(const DBUserModel& other)
-		: TPListModel{other.parent()}, mb_empty(other.mb_empty), m_searchRow(other.m_searchRow)
-		{ copy(other); }
-	inline ~DBUserModel() {}
 
 	Q_INVOKABLE int addUser(const bool bCoach);
 	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);
@@ -179,8 +175,8 @@ public:
 
 	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }
 
-	virtual int importFromFile(const QString& filename) override;
-	virtual bool updateFromModel(const TPListModel* const) override;
+	int importFromFile(const QString& filename) override;
+	bool updateFromModel(const TPListModel* const) override;
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{
@@ -209,7 +205,6 @@ private:
 	static DBUserModel* app_user_model;
 	friend DBUserModel* appUserModel();
 };
-Q_DECLARE_METATYPE(DBUserModel*)
 
 inline DBUserModel* appUserModel() { return DBUserModel::app_user_model; }
 

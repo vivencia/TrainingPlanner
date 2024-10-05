@@ -89,9 +89,9 @@ QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 		const int spaceIdx(strdate.indexOf(' '));
 		const int fSlashIdx(strdate.indexOf('/'));
 		const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
-		const uint day(strdate.mid(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
-		const uint month(strdate.mid(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());
-		const uint year(strdate.right(4).toUInt());
+		const uint day(strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
+		const uint month(strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());
+		const uint year(strdate.last(4).toUInt());
 		const QDate date(year, month, day);
 		return date;
 	/*}
@@ -99,18 +99,18 @@ QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 	{
 		static const QString months[12] = {u"Jan"_qs,u"Feb"_qs,u"Mar"_qs,u"Apr"_qs,u"May"_qs,
 		u"Jun"_qs,u"Jul"_qs,u"Aug"_qs,u"Sep"_qs,u"Oct"_qs,u"Nov"_qs,u"Dez"_qs };
-		const QStringView strMonth(strdate.mid(4, 3));
+		const QStringView strMonth(strdate.sliced(4, 3));
 		uint i(0);
 		for(; i < 12; ++ i)
 		{
 			if (months[i] == strMonth) break;
 		}
 		const uint month(i);
-		const uint year(strdate.right(4).toUInt());
+		const uint year(strdate.last(4).toUInt());
 
 		const int spaceIdx(strdate.indexOf(' '));
 		const int spaceIdx2(strdate.indexOf(' ', spaceIdx+1));
-		const uint day(strdate.mid(spaceIdx+1, spaceIdx2-spaceIdx-1).toUInt());
+		const uint day(strdate.sliced(spaceIdx+1, spaceIdx2-spaceIdx-1).toUInt());
 		const QDate date(year, month, day);
 		return date;
 	}*/
@@ -154,8 +154,8 @@ QDate TPUtils::createFutureDate(const QDate& date, const uint years, const uint 
 
 QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
 {
-	int secs(QStringView{strTime}.mid(3, 2).toUInt());
-	int mins(QStringView{strTime}.left(2).toUInt());
+	int secs(QStringView{strTime}.sliced(3, 2).toUInt());
+	int mins(QStringView{strTime}.first(2).toUInt());
 
 	secs += addsecs;
 	if (secs > 59)
@@ -187,20 +187,20 @@ QString TPUtils::formatFutureTime(const QDateTime& addTime) const
 
 QString TPUtils::addToTime(const QString& origTime, const uint hours, const uint mins) const
 {
-	const QTime time(origTime.left(2).toUInt(), origTime.right(2).toUInt());
+	const QTime time(origTime.first(2).toUInt(), origTime.last(2).toUInt());
 	return addToTime(time, hours, mins);
 }
 
 QString TPUtils::getHourOrMinutesFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
-	return idx > 1 ? strTime.left(idx) : QString();
+	return idx > 1 ? strTime.first(idx) : QString();
 }
 
 QString TPUtils::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 {
 	const int idx(strTime.indexOf(':'));
-	return idx > 1 ? strTime.mid(idx+1) : QString();
+	return idx > 1 ? strTime.sliced(idx+1) : QString();
 }
 
 QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
@@ -211,8 +211,8 @@ QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const Q
 
 QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
 {
-	int hour(strTimeFinal.left(2).toInt() - strTimeInit.left(2).toInt());
-	int min (strTimeFinal.right(2).toInt() - strTimeInit.right(2).toInt());
+	int hour(strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt());
+	int min (strTimeFinal.last(2).toInt() - strTimeInit.last(2).toInt());
 
 	if (min < 0)
 	{
@@ -235,7 +235,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 		if ((*itr).toLatin1() == chr_sep)
 		{
 			if (n_seps == idx)
-				return compositeString.mid(last_sep_pos, chr_pos);
+				return compositeString.sliced(last_sep_pos, chr_pos);
 			++n_seps;
 			last_sep_pos += chr_pos + 1;
 			chr_pos = -1;
@@ -243,7 +243,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 		++chr_pos;
 		++itr;
 	}
-	return compositeString.mid(last_sep_pos, chr_pos);
+	return compositeString.sliced(last_sep_pos, chr_pos);
 }
 
 void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const
@@ -371,7 +371,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				result = 0;
 
 			strValue = QString::number(result, 'f', 2);
-			if (strValue.right(2) != u"50"_qs)
+			if (strValue.last(2) != u"50"_qs)
 				strValue.chop(3);
 			return strValue;
 		break;
@@ -393,7 +393,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 		{
 			if (bIncrease)
 			{
-				result = strValue.right(2).toUInt();
+				result = strValue.last(2).toUInt();
 				if (result >= 55)
 				{
 					++result;
@@ -402,11 +402,11 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				}
 				else
 					result += 5;
-				strValue = strValue.left(3) + (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result));
+				strValue = strValue.first(3) + (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result));
 			}
 			else
 			{
-				result = strValue.left(2).toUInt();
+				result = strValue.first(2).toUInt();
 				if (result > 55)
 					--result;
 				else if (result <= 5)
@@ -415,7 +415,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 					result -= 5;
 				if (result < 0)
 					result = 0;
-				strValue = (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result)) + strValue.right(3);
+				strValue = (result < 10 ? u"0"_qs : u""_qs) + QString::number(static_cast<uint>(result)) + strValue.last(3);
 			}
 			return strValue;
 		}
@@ -446,8 +446,8 @@ void TPUtils::setAppLocale(const QString& localeStr)
 	if (m_appLocale)
 		delete m_appLocale;
 
-	const QString& strLanguage(localeStr.left(2));
-	const QString& strTerritory(localeStr.right(2));
+	const QString& strLanguage(localeStr.first(2));
+	const QString& strTerritory(localeStr.last(2));
 	QLocale::Language language;
 	QLocale::Territory territory;
 

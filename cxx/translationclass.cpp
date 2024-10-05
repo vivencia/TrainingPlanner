@@ -32,7 +32,7 @@ void TranslationClass::selectLanguage()
 	{
 		#ifndef Q_OS_ANDROID
 		const QString& sysLocale(std::setlocale(LC_NAME, ""));
-		strLocale = sysLocale.left(sysLocale.indexOf('.'));
+		strLocale = sysLocale.first(sysLocale.indexOf('.'));
 		#else
 		strLocale = QLocale::system().name();
 		#endif

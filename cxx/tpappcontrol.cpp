@@ -236,14 +236,9 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 		case MESOSPLIT_TABLE_ID:
 		{
 			DBMesoSplitModel* newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
-			if (appDBInterface()->splitsLoaded())
-			{
-				DBMesoSplitModel* splitModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->getSplitModel(newSplitModel->splitLetter().at(0))};
-				splitModel->updateFromModel(newSplitModel);
-				appDBInterface()->saveMesoSplitComplete(splitModel);
-			}
-			else
-				appDBInterface()->saveMesoSplitComplete(newSplitModel);
+			DBMesoSplitModel* splitModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->getSplitModel(newSplitModel->splitLetter().at(0))};
+			splitModel->updateFromModel(newSplitModel);
+			appDBInterface()->saveMesoSplitComplete(splitModel);
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:

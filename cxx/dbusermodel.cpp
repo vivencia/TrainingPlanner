@@ -274,7 +274,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 		}
 		case USER_COL_AVATAR:
 			if (fieldValue.contains(u"tpimageprovider"_qs))
-				return fieldValue.right(fieldValue.length()-24);
+				return fieldValue.last(fieldValue.length()-24);
 			else
 				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? u"Avatar-m5"_qs : u"Avatar-f0"_qs;
 		default: return QString();
@@ -295,7 +295,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 			return strSocial.replace(fancy_record_separator1, record_separator);
 		}
 		case USER_COL_AVATAR:
-			return u"image://tpimageprovider/"_qs + fieldValue.right(fieldValue.length()-7);
+			return u"image://tpimageprovider/"_qs + fieldValue.last(fieldValue.length()-7);
 		default: return QString();
 	}
 }

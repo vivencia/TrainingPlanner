@@ -30,8 +30,6 @@ TPPage {
 
 	SwipeView {
 		id: splitView
-		objectName: "splitSwipeView"
-		currentIndex: 0
 		interactive: !exercisesPane.visible
 		height: parent.height
 
@@ -40,8 +38,6 @@ TPPage {
 			left: parent.left
 			right: parent.right
 		}
-
-		onCurrentIndexChanged: itemManager.getMesoSplitPage(index);
 	} //SwipeView
 
 	PageIndicator {
@@ -172,6 +168,7 @@ TPPage {
 			flat: false
 			width: 70
 			height: footerHeight
+
 			anchors {
 				right: parent.right
 				rightMargin: 5

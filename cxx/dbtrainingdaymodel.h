@@ -50,9 +50,9 @@ public:
 	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
 
-	virtual int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
-	virtual int importFromFile(const QString& filename) override;
-	virtual bool updateFromModel(const TPListModel* const model) override;
+	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	int importFromFile(const QString& filename) override;
+	bool updateFromModel(const TPListModel* const model) override;
 
 	const QString exportExtraInfo() const;
 	const QString formatSetTypeToExport(const QString& fieldValue) const;

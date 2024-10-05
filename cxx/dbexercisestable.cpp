@@ -57,6 +57,11 @@ void DBExercisesTable::createTable()
 	}
 }
 
+void DBExercisesTable::updateTable()
+{
+
+}
+
 void DBExercisesTable::getAllExercises()
 {
 	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
