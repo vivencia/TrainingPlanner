@@ -40,7 +40,7 @@ QML_ELEMENT
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
-Q_PROPERTY(QString, splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
+Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 
 public:
 	explicit DBTrainingDayModel(QObject* parent = nullptr, const int meso_idx = -1);
