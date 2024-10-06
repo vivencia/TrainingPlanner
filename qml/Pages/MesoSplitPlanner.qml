@@ -485,7 +485,7 @@ Frame {
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
 
-								onValueChanged: (str) => splitModel.setsetReps1(index, splitModel.workingSet, str);
+								onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 								Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function() {
@@ -508,7 +508,7 @@ Frame {
 									Layout.alignment: Qt.AlignLeft
 									Layout.leftMargin: 20
 
-									onValueChanged: (str) => splitModel.setsetReps1(index, splitModel.workingSet, str);
+									onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 
 									Component.onCompleted: {
@@ -528,7 +528,7 @@ Frame {
 									availableWidth: listItem.width/3
 									showLabel: false
 
-									onValueChanged: (str) => splitModel.setsetReps2(index, splitModel.workingSet, str);
+									onValueChanged: (str) => splitModel.setSetReps2(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 
 									Component.onCompleted: {
@@ -551,7 +551,7 @@ Frame {
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
 
-								onValueChanged: (str) => splitModel.setsetWeight1(index, splitModel.workingSet, str);
+								onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 
 								Component.onCompleted: {
 									splitModel.workingSetChanged.connect(function() {
@@ -575,7 +575,7 @@ Frame {
 									Layout.alignment: Qt.AlignCenter
 									Layout.leftMargin: 20
 
-									onValueChanged: (str) => splitModel.setsetWeight1(index, splitModel.workingSet, str);
+									onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 
 									Component.onCompleted: {
@@ -597,7 +597,7 @@ Frame {
 									Layout.alignment: Qt.AlignRight
 									Layout.rightMargin: listItem.width/6
 
-									onValueChanged: (str) => splitModel.setsetWeight2(index, splitModel.workingSet, str);
+									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function() {

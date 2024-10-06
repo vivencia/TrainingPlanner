@@ -19,20 +19,19 @@ TPPage {
 	required property QmlItemManager itemManager
 	required property DBTrainingDayModel tDayModel
 
-	property string tDay
-	property string splitLetter
+	//C++ controlled properties
 	property string timeIn
 	property string timeOut
-	property string splitText
+	property string headerText
 	property string lastWorkOutLocation
 	property bool bHasPreviousTDays
 	property bool bHasMesoPlan
-	property bool pageOptionsLoaded: false
-	property bool editMode: false
-	property bool dayIsNotCurrent: false
-	property bool bCalendarChangedPending: false
-	property bool intentDialogShown: splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays || tDayModel.exerciseCount === 0)
+	property bool dayIsNotCurrent
+	property bool bNeedActivation //only set to true when, in the same app session, a second or more training days are created
 	property var previousTDays: []
+
+	//Private QML properties
+	property bool editMode: false
 	property var timerDialogRequester: null
 	property TPComplexDialog intentDlg: null
 	property TPFloatingButton btnFloat: null
@@ -40,29 +39,18 @@ TPPage {
 	property TimerDialog timerDialog: null
 	property var splitModel: [ { value:'A', text:'A', enabled: true }, { value:'B', text:'B', enabled: true }, { value:'C', text:'C', enabled: true },
 							{ value:'D', text:'D', enabled: true }, { value:'E', text:'E', enabled: true }, { value:'F', text:'F', enabled: true },
-							{ value:'R', text:'R', enabled: true } ]
+							{ value:"R", text:"R", enabled: true } ]
 
 	signal mesoCalendarChanged()
 
 	onPageActivated: {
-		itemManager.setCurrenttDay(mainDate)
-		changeComboModel();
-	}
-
-	onPageOptionsLoadedChanged: {
-		if (pageOptionsLoaded && intentDialogShown) {
-			showIntentionDialog();
-			pageOptionsLoaded = false;
-		}
+		if (bNeedActivation)
+			itemManager.setCurrenttDay(mainDate)
 	}
 
 	onEditModeChanged: {
 		if (optionsMenu !== null)
 			optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
-	}
-
-	ListModel {
-		id: cboModel
 	}
 
 	TimePicker {
@@ -309,41 +297,6 @@ TPPage {
 		resetWorkoutMsg.show(-1);
 	}
 
-	property TPBalloonTip calChangedWarningMessage: null
-	function warnCalendarChanged(newsplitletter: string, newtday: string, newsplittext: string) {
-
-		function acceptChanges() {
-			bCalendarChangedPending = false;
-			splitLetter = newsplitletter;
-			tDay = newtday;
-			splitText = newsplittext;
-			tDayModel.setTrainingDay(tDay, false);
-			tDayModel.setSplitLetter(splitLetter);
-			showClearExercisesMessage();
-		}
-
-		if (calChangedWarningMessage === null) {
-			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					calChangedWarningMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Calendar changed! Update?"),
-						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "warning" } );
-					tipTimeWarn.button1Clicked.connect(acceptChanges);
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		calChangedWarningMessage.message = qsTr("Training division: ") + splitLetter + " -> " + newsplitletter + qsTr("\nWorkout number: ") + tDay + " -> " + newtday
-		bCalendarChangedPending = true;
-		calChangedWarningMessage.show(-1);
-	}
-
 	ScrollView {
 		id: scrollTraining
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -370,9 +323,7 @@ TPPage {
 				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
 				wrapMode: Text.WordWrap
-				text: "<b>" + appUtils.formatDate(mainDate) + "</b> : <b>" + mesocyclesModel.startDateFancy(tDayModel.mesoIdx) + "</b><br>" +
-					(splitLetter !== "R" ? (qsTr("Workout number: <b>") + tDay + "</b><br>" + "<b>" + splitText + "</b>") :
-										qsTr("Rest day"))
+				text: headerText
 				font.pointSize: AppSettings.fontSizeTitle
 				color: AppSettings.fontColor
 				Layout.fillWidth: true
@@ -394,13 +345,13 @@ TPPage {
 
 				TPComboBox {
 					id: cboSplitLetter
-					model: cboModel
+					model: splitModel
 					enabled: workoutTimer.active ? false : !tDayModel.dayIsFinished
 					Layout.maximumWidth: 100
 
 					onActivated: (index) => {
-						if (cboModel.get(index).value !== splitLetter) {
-							if (exercisesLayout.children.length > 0)
+						if (cboModel.get(index).value !== tDayModel.splitLetter) {
+							if (tDayModel.exerciseCount > 0)
 								showSplitLetterChangedDialog();
 							else
 								changeSplitLetter();
@@ -427,7 +378,7 @@ TPPage {
 					id: txtLocation
 					placeholderText: lastWorkOutLocation
 					text: tDayModel.location()
-					visible: splitLetter != "R"
+					visible: tDayModel.splitLetter !== "R"
 					enabled: tDayModel.dayIsEditable
 					Layout.row: 1
 					Layout.column: 1
@@ -439,7 +390,7 @@ TPPage {
 
 			Frame {
 				id: frmTrainingTime
-				visible: splitLetter !== 'R' && !intentDialogShown
+				visible: tDayModel.splitLetter !== "R"
 				enabled: workoutTimer.active ? false : editMode
 				height: 330
 				Layout.fillWidth: true
@@ -580,7 +531,7 @@ TPPage {
 				info: qsTr("This training session considerations:")
 				text: tDayModel.dayNotes()
 				readOnly: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
-				visible: splitLetter != "R"
+				visible: tDayModel.splitLetter !== "R"
 				foreColor: AppSettings.fontColor
 				Layout.leftMargin: 5
 
@@ -588,7 +539,7 @@ TPPage {
 			}
 
 			TPButton {
-				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + splitLetter + qsTr( " of this mesocycle")
+				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + tDayModel.splitLetter + qsTr( " of this mesocycle")
 				flat: false
 				rounded: false
 				visible: tDayModel.dayIsFinished && tDayModel.exerciseCount > 0
@@ -614,7 +565,7 @@ TPPage {
 				color: AppSettings.fontColor
 				font.weight: Font.Black
 				font.pointSize: AppSettings.fontSizeTitle
-				visible: splitLetter !== 'R'
+				visible: splitLetter !== "R"
 				height: 40
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
@@ -732,32 +683,21 @@ TPPage {
 	}
 
 	function changeComboModel() {
-		if (cboModel.count > 0)
-			cboModel.clear();
 		const mesoSplit = mesocyclesModel.split(tDayModel.mesoIdx);
-		if (mesoSplit.indexOf('A') !== -1)
-			cboModel.append(splitModel[0]);
-		if (mesoSplit.indexOf('B') !== -1)
-			cboModel.append(splitModel[1]);
-		if (mesoSplit.indexOf('C') !== -1)
-			cboModel.append(splitModel[2]);
-		if (mesoSplit.indexOf('D') !== -1)
-			cboModel.append(splitModel[3]);
-		if (mesoSplit.indexOf('E') !== -1)
-			cboModel.append(splitModel[4]);
-		if (mesoSplit.indexOf('F') !== -1)
-			cboModel.append(splitModel[5]);
-		if (mesoSplit.indexOf('R') !== -1)
-			cboModel.append(splitModel[6]);
-
-		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ? splitLetter : tDayModel.splitLetter());
+		cboModel.get(0).enabled = mesoSplit.indexOf('A') !== -1;
+		cboModel.get(1).enabled = mesoSplit.indexOf('B') !== -1;
+		cboModel.get(2).enabled = mesoSplit.indexOf('C') !== -1;
+		cboModel.get(3).enabled = mesoSplit.indexOf('D') !== -1;
+		cboModel.get(4).enabled = mesoSplit.indexOf('E') !== -1;
+		cboModel.get(5).enabled = mesoSplit.indexOf('F') !== -1;
+		cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter);
 	}
 
 	footer: ToolBar {
 		id: dayInfoToolBar
 		width: parent.width
 		height: 100
-		visible: splitLetter !== 'R'
+		visible: tDayModel.splitLetter !== "R"
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -793,7 +733,7 @@ TPPage {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
-				visible: dayIsNotCurrent ? false : !tDayModel.dayIsFinished && !editMode && !intentDialogShown
+				visible: dayIsNotCurrent ? false : !tDayModel.dayIsFinished && !editMode
 				enabled: !workoutTimer.active
 
 				onClicked: {
@@ -919,7 +859,7 @@ TPPage {
 			textUnderIcon: true
 			flat: false
 			height: 55
-			visible: splitLetter !== 'R'
+			visible: tDayModel.splitLetter !== "R"
 			enabled: tDayModel.dayIsEditable
 
 			anchors {
@@ -939,8 +879,6 @@ TPPage {
 		parentPage: trainingDayPage
 	}
 
-	onSplitLetterChanged: exercisesModel.makeFilterString(mesocyclesModel.getMuscularGroup(tDayModel.mesoIdx, splitLetter));
-
 	TPComplexDialog {
 		id: adjustCalendarBox
 		title: qsTr("Re-adjust meso calendar?")
@@ -955,11 +893,11 @@ TPPage {
 		property string newSplitLetter
 
 		onButton1Clicked: itemManager.adjustCalendar(newSplitLetter, adjustCalendarBox.customBoolProperty1);
-		onButton2Clicked: cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(splitLetter);
+		onButton2Clicked: cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter);
 	}
 
 	function changeSplitLetter() {
-		if (cboSplitLetter.currentValue !== splitLetter) {
+		if (cboSplitLetter.currentValue !== tDayModel.splitLetter) {
 			adjustCalendarBox.newSplitLetter = cboSplitLetter.currentValue;
 			adjustCalendarBox.show(-1);
 		}
@@ -1000,7 +938,6 @@ TPPage {
 				bHasMesoPlan = false;
 			break;
 		}
-		intentDialogShown = Qt.binding(function() { return splitLetter !== "R" && (bHasMesoPlan || bHasPreviousTDays); });
 	}
 
 	function gotExercise() {
@@ -1165,8 +1102,8 @@ TPPage {
 					changeSplitLetter();
 				} );
 				changeSplitLetterDialog.button2Clicked.connect( function() {
-					cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter() === "" ?
-													splitLetter : tDayModel.splitLetter())
+					cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter === "" ?
+													splitLetter : tDayModel.splitLetter)
 				} );
 			}
 

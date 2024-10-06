@@ -147,13 +147,13 @@ void OSInterface::appStartUpNotifications()
 	m_AndroidNotification = new TPAndroidNotification(this);
 	if (appMesoModel()->count() > 0)
 	{
-		DBMesoCalendarTable* calTable(new DBMesoCalendarTable(appDBInterface()->dbFilesPath()));
+		DBMesoCalendarTable* calTable{new DBMesoCalendarTable(appDBInterface()->dbFilesPath())};
 		QStringList dayInfoList;
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())
 		{
 			QString message;
-			const QString& splitLetter(dayInfoList.at(2));
+			const QString& splitLetter{dayInfoList.at(2)};
 			if (splitLetter != u"R"_qs) //day is training day
 			{
 				if (dayInfoList.at(3) == STR_ONE) //day is completed
@@ -171,7 +171,7 @@ void OSInterface::appStartUpNotifications()
 
 void OSInterface::setFileUrlReceived(const QString& url) const
 {
-	const QString& androidUrl(appUtils()->getCorrectPath(url);
+	const QString& androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
@@ -180,7 +180,7 @@ void OSInterface::setFileUrlReceived(const QString& url) const
 
 void OSInterface::setFileReceivedAndSaved(const QString& url) const
 {
-	const QString& androidUrl(appUtils()->getCorrectPath(url);
+	const QString& androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
@@ -205,10 +205,8 @@ void OSInterface::startNotificationAction(const QString& action)
 		appControl()->getTrainingDayPage(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate());
 }
 
-#ifdef __cplusplus
 extern "C"
 {
-#endif
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_setFileUrlReceived(
 						JNIEnv *env, jobject obj, jstring url)
@@ -248,10 +246,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 	env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }
-
-#ifdef __cplusplus
-}
-#endif
+} //extern "C"
 
 #else
 void OSInterface::processArguments() const
@@ -333,7 +328,7 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 	{
 		if (appUserModel()->email(0).contains(u"gmail.com"_qs))
 		{
-			const QString gmailURL(QStringLiteral("https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3").arg(appUserModel()->email(0), address, subject));
+			const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_qs.arg(appUserModel()->email(0), address, subject));
 			openURL(gmailURL);
 		}
 	}
@@ -363,7 +358,7 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString& localFile(m_appDataFilesPath + u"tempfile"_qs + filename.last(4));
+	const QString& localFile{m_appDataFilesPath + u"tempfile"_qs + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));

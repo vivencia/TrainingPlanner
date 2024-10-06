@@ -31,8 +31,8 @@ public:
 	inline explicit QmlItemManager(const uint meso_idx, QObject* parent = nullptr)
 		: QObject{parent}, m_mesoIdx(meso_idx),
 			m_mesoComponent(nullptr), m_plannerComponent(nullptr),
-			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_tDayExercisesComponent(nullptr),
-			m_setComponents{nullptr} { if (!app_root_items_manager) app_root_items_manager = this; }
+			m_splitComponent(nullptr), m_calComponent(nullptr), m_tDayComponent(nullptr), m_currenttDayPage(nullptr),
+			m_tDayExercisesComponent(nullptr), m_setComponents{nullptr} { if (!app_root_items_manager) app_root_items_manager = this; }
 	~QmlItemManager();
 	void configureQmlEngine(QQmlApplicationEngine *qml_engine);
 
@@ -226,7 +226,8 @@ private:
 	void createTrainingDayPage(const QDate& date);
 	void createTrainingDayPage_part2();
 	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
-	void setTrainingDayPageEmptyDayOptions(const DBTrainingDayModel* const model);
+	void makeTDayPageHeaderLabel(QQuickItem* tDayPage, const DBTrainingDayModel* const tDayModel);
+	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const model);
 	void rollUpExercises() const;
 
 	struct tDayExercises {

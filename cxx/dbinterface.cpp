@@ -381,7 +381,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 				if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 				{
 					disconnect(*conn);
-					emit databaseReadyWithData(QVariant::fromValue(worker->model()));
+					emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->model()));
 				}
 			});
 			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
@@ -573,7 +573,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
 				tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
 						STR_ONE : STR_ZERO);
-				emit databaseReadyWithData(QVariant::fromValue(tempModel));
+				emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(tempModel));
 				delete tempModel;
 			}
 		});
@@ -594,10 +594,9 @@ void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMes
 {
 	if (splitModel->count() == 0)
 	{
-		connect(this, &DBInterface::databaseReadyWithData, this, [this,tDayModel] (const QVariant var) {
-			if (tDayModel->splitLetter().at(0) == var.value<DBMesoSplitModel*>()->_splitLetter())
-				tDayModel->convertMesoSplitModelToTDayModel(var.value<DBMesoSplitModel*>());
-		});
+		connect(this, &DBInterface::databaseReady, this, [this,tDayModel,splitModel] () {
+			loadExercisesFromMesoPlan(tDayModel, splitModel);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
 		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 		worker->addExecArg(tDayModel->splitLetter().at(0));
@@ -609,20 +608,10 @@ void DBInterface::loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMes
 
 void DBInterface::convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* const splitModel)
 {
-	if (splitModel->count() == 0)
-	{
-		connect(this, &DBInterface::databaseReadyWithData, this, [this,tDayModel] (const QVariant var) {
-			if (tDayModel->splitLetter().at(0) == var.value<DBMesoSplitModel*>()->_splitLetter())
-				convertTDayToPlan(tDayModel, var.value<DBMesoSplitModel*>());
-		});
-	}
-	else
-	{
-		DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
-		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
-		worker->addExecArg(tDayModel->splitLetter());
-		createThread(worker, [worker,tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); });
-	}
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
+	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
+	worker->addExecArg(tDayModel->splitLetter());
+	createThread(worker, [worker,tDayModel] () { return worker->convertTDayExercisesToMesoPlan(tDayModel); });
 }
 
 void DBInterface::saveTrainingDay(DBTrainingDayModel* const tDayModel)

@@ -47,23 +47,11 @@ public:
 	inline void setMesoId(const uint row, const QString& new_id) { m_modeldata[row][MESOSPLIT_COL_MESOID] = new_id; }
 
 	inline const QString& splitA(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_A); }
-	inline void setSplitA(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_A] = new_split; }
-
 	inline const QString& splitB(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_B); }
-	inline void setSplitB(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_B] = new_split; }
-
 	inline const QString& splitC(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_C); }
-	inline void setSplitC(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_C] = new_split; }
-
 	inline const QString& splitD(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_D); }
-	inline void setSplitD(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_D] = new_split; }
-
 	inline const QString& splitE(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_E); }
-	inline void setSplitE(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_E] = new_split; }
-
 	inline const QString& splitF(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_F); }
-	inline void setSplitF(const uint row, const QString& new_split) { m_modeldata[row][MESOSPLIT_F] = new_split; }
-
 	inline const QString& splitX(const uint row, const uint split_idx) const { return m_modeldata.at(row).at(split_idx); }
 
 	inline void setFast(const uint row, const uint field, const QString& value)

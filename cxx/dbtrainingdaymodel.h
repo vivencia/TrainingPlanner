@@ -40,6 +40,7 @@ QML_ELEMENT
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
 Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
+Q_PROPERTY(QString, splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 
 public:
 	explicit DBTrainingDayModel(QObject* parent = nullptr, const int meso_idx = -1);
@@ -105,6 +106,7 @@ public:
 		if (splitletter != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))
 		{
 			m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_SPLITLETTER] = splitletter;
+			emit splitLetterChanged();
 			if (bEmitSave)
 				emit tDayChanged();
 		}
@@ -225,6 +227,7 @@ public:
 signals:
 	void tDayChanged();
 	void exerciseCountChanged();
+	void splitLetterChanged();
 	void compositeExerciseChanged(const uint exercise_idx);
 	void dayIsFinishedChanged();
 	void dayIsEditableChanged();

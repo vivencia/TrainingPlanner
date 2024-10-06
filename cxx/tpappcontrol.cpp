@@ -52,7 +52,7 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 		endDate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 
-	const uint meso_idx = appMesoModel()->newMesocycle(QStringList() << STR_MINUS_ONE << qApp->tr("New Plan") << QString::number(startDate.toJulianDay()) <<
+	const uint meso_idx = appMesoModel()->newMesocycle(QStringList() << STR_MINUS_ONE << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startDate, endDate)) <<
 		u"ABCDERR"_qs << QString() << appUserModel()->userName(0) << QString() << QString() << STR_ONE);
 
