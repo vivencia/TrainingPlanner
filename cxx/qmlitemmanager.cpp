@@ -561,7 +561,7 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 	const QQuickItem* const tDayPage{m_tDayPages.value(date)};
 	if (!tDayPage)
 	{
-		if (!appMesoModel()->mesoCalendarModel(m_mesoIdx)->isReady())
+		if (appMesoModel()->mesoCalendarModel(m_mesoIdx)->count() == 0)
 		{
 			connect(appDBInterface(), &DBInterface::databaseReady, this, [this,date] (const uint db_id) {
 				getTrainingDayPage(date);
@@ -588,6 +588,7 @@ void QmlItemManager::getTrainingDayPage(const QDate& date)
 		m_tDayProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
 		m_tDayProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));
 		m_tDayProperties.insert(u"bNeedActivation"_qs, false);
+		m_tDayProperties.insert(u"mainDateIsToday"_qs, date == QDate::currentDate());
 		createTrainingDayPage(date);
 	}
 	else
@@ -792,10 +793,10 @@ void QmlItemManager::manageRestTime(const uint exercise_idx, const bool bTrackRe
 		bAutoRestTime = false;
 	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
 	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
-	exerciseEntryItem(exercise_idx)->setProperty("nRestTime", bAutoRestTime ?
+	setExerciseRestTime(exercise_idx, bAutoRestTime ?
 											u"00:00"_qs :
 											m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, new_set_type, 0));
-
+	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "updateScreenControls");
 	enableDisableSetsRestTime(exercise_idx, bTrackRestTime, bAutoRestTime);
 }
 
@@ -1728,12 +1729,7 @@ void QmlItemManager::createTrainingDayPage_part2()
 	m_currenttDayPage->setParentItem(app_StackView);
 	m_tDayPages.insert(m_tDayModels.key(m_CurrenttDayModel), m_currenttDayPage);
 
-	const QDate& date(m_CurrenttDayModel->date());
-	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(date), m_currenttDayPage);
-
-	if (m_CurrenttDayModel->trainingDay() != u"R"_qs)
-		appDBInterface()->getTrainingDay(m_CurrenttDayModel);
-	m_currenttDayPage->setProperty("dayIsNotCurrent", date != QDate::currentDate());
+	addMainMenuShortCut(tr("Workout: ") + appUtils()->formatDate(m_CurrenttDayModel->date()), m_currenttDayPage);
 
 	makeTDayPageHeaderLabel(m_currenttDayPage, m_CurrenttDayModel);
 
@@ -1749,6 +1745,9 @@ void QmlItemManager::createTrainingDayPage_part2()
 			}
 		}
 	});
+
+	if (m_CurrenttDayModel->splitLetter() != u"R"_qs)
+		appDBInterface()->getTrainingDay(m_CurrenttDayModel);
 
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
@@ -1833,7 +1832,7 @@ void QmlItemManager::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDa
 
 void QmlItemManager::makeTDayPageHeaderLabel(QQuickItem* tDayPage, const DBTrainingDayModel* const tDayModel)
 {
-	const bool bRestDay(tDayModel->splitLetter() != u"R"_qs);
+	const bool bRestDay(tDayModel->splitLetter() == u"R"_qs);
 	QString strWhatToTrain;
 	if (!bRestDay)
 	{
@@ -1843,8 +1842,7 @@ void QmlItemManager::makeTDayPageHeaderLabel(QQuickItem* tDayPage, const DBTrain
 	}
 	else
 		strWhatToTrain = tr("Rest day");
-	const QString& headerText(u"<b>"_qs + appUtils()->formatDate(tDayModel->date()) + u"</b> : <b>"_qs +
-		appMesoModel()->startDateFancy(m_mesoIdx) + u"</b><br>"_qs + strWhatToTrain);
+	const QString& headerText(u"<b>"_qs + appUtils()->formatDate(tDayModel->date()) + u"</b><br>"_qs + strWhatToTrain);
 	tDayPage->setProperty("headerText", headerText);
 
 }
@@ -1862,15 +1860,15 @@ void QmlItemManager::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrain
 				Q_ARG(int, workoutLenght.minute()), Q_ARG(int, workoutLenght.second()));
 	}
 
-	if (tDayModel->count() > 0)
+	if (tDayModel->isReady())
 	{
-		m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(tDayModel->getRow_const(0)));
-		m_currenttDayPage->setProperty("bHasPreviousTDays", true);
+		m_currenttDayPage->setProperty("lastWorkOutLocation", tDayModel->location());
+		//TDAY_COL_TRAININGDAYNUMBER is just a placeholder for the value we need
+		m_currenttDayPage->setProperty("bHasMesoPlan", tDayModel->trainingDay() == STR_ONE);
 		if (tDayModel->count() == 2)
 		{
-			m_currenttDayPage->setProperty("lastWorkOutLocation", tDayModel->getRow_const(1).at(TDAY_COL_LOCATION));
-			//TDAY_COL_TRAININGDAYNUMBER is just a placeholder for the value we need
-			m_currenttDayPage->setProperty("bHasMesoPlan", tDayModel->getRow_const(1).at(TDAY_COL_TRAININGDAYNUMBER) == STR_ONE);
+			m_currenttDayPage->setProperty("previousTDays", QVariant::fromValue(tDayModel->getRow_const(1)));
+			m_currenttDayPage->setProperty("bHasPreviousTDays", true);
 		}
 	}
 	else
@@ -1969,6 +1967,7 @@ void QmlItemManager::createExerciseObject_part2(const int object_idx)
 	m_CurrenttDayModel->newExercise(exerciseName, m_CurrenttDayModel->exerciseCount());
 	m_CurrenttDayModel->setTrackRestTime(bTrackRestTime, exercise_idx);
 	m_CurrenttDayModel->setAutoRestTime(bAutoRestTime, exercise_idx);
+	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "updateScreenControls");
 
 	m_tDayExerciseEntryProperties.insert(u"itemManager"_qs, QVariant::fromValue(this));
 	m_tDayExerciseEntryProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_CurrenttDayModel));

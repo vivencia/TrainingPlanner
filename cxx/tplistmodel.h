@@ -56,10 +56,10 @@ public:
 	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(row); }
 
-	inline const bool isReady() const { return m_bReady; }
-	inline void setReady(const bool bready) { m_bReady = bready; }
 	inline bool importMode() const { return m_bImportMode; }
 	inline void setImportMode(const bool bimportmode) { m_bImportMode = bimportmode; }
+	inline const bool isReady() const { return m_bReady; }
+	inline void setReady(const bool bready) { m_bReady = bready; }
 
 	inline virtual void resetPrivateData() {}
 

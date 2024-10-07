@@ -3,7 +3,6 @@
 #include "tpglobals.h"
 
 #include <QFile>
-#include <QSqlError>
 #include <QSqlQuery>
 #include <QTime>
 
@@ -22,15 +21,9 @@ DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
 
 void DBUserTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS user_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
@@ -47,35 +40,19 @@ void DBUserTable::createTable()
 										"current_coach INTEGER, "
 										"current_user INTEGER"
 									")"_qs);
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBUserTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBUserTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		else
-			MSG_OUT("DBUserTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
 void DBUserTable::getAllUsers()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
-
-		if (query.exec(u"SELECT * FROM user_table"_qs))
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"SELECT * FROM user_table"_qs);
+		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
@@ -86,34 +63,19 @@ void DBUserTable::getAllUsers()
 						user_info[i] = query.value(static_cast<int>(i)).toString();
 					m_model->appendList(user_info);
 				} while (query.next ());
-				m_result = m_model->count() > 0;
+				ok = true;
 			}
 		}
-		m_model->setReady(m_result);
-		if (!m_result)
-		{
-			MSG_OUT("DBUserTable getAllUsers Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBUserTable getAllUsers Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		else
-			MSG_OUT("DBUserTable getAllUsers SUCCESS")
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 }
 
 void DBUserTable::saveUser()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
@@ -142,22 +104,10 @@ void DBUserTable::saveUser()
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
 					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentUser(row));
 		}
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
-			if (!bUpdate)
-				m_model->setUserId(row, query.lastInsertId().toString());
-			MSG_OUT("DBUserTable saveUser SUCCESS");
-		}
-		else
-		{
-			MSG_OUT("DBUserTable saveUser Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBUserTable saveUser Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		ok = query.exec(strQuery);
+		if (ok && !bUpdate)
+			m_model->setUserId(row, query.lastInsertId().toString());
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBUserTable saveUser Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

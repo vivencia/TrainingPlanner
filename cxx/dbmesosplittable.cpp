@@ -3,7 +3,6 @@
 #include "tpglobals.h"
 
 #include <QSqlQuery>
-#include <QSqlError>
 #include <QFile>
 
 #include <random>
@@ -26,15 +25,9 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* 
 
 void DBMesoSplitTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_splits ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
@@ -87,16 +80,8 @@ void DBMesoSplitTable::createTable()
 										"splitF_exercisesset_reps TEXT DEFAULT \"\", "
 										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_qs);
 
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBMesoSplitTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoSplitTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		else
-			MSG_OUT("DBMesoSplitTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
@@ -107,19 +92,10 @@ void DBMesoSplitTable::updateTable()
 
 void DBMesoSplitTable::getAllMesoSplits()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
-		query.setForwardOnly(true);
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_qs);
 
 		if (query.exec(strQuery))
@@ -133,37 +109,20 @@ void DBMesoSplitTable::getAllMesoSplits()
 						m_model->setFast(meso_idx, i, query.value(i).toString());
 					++meso_idx;
 				} while (query.next ());
-				m_result = true;
+				ok = true;
 			}
 		}
-		if (!m_result)
-		{
-			MSG_OUT("DBMesoSplitTable getAllMesoSplits Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoSplitTable getAllMesoSplits Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		else
-			MSG_OUT("DBMesoSplitTable getAllMesoSplits SUCCESS")
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesoSplitTable getAllMesoSplits ERROR: Could not open database")
 }
 
 
 void DBMesoSplitTable::saveMesoSplit()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 
@@ -189,41 +148,26 @@ void DBMesoSplitTable::saveMesoSplit()
 						.arg(m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
 							m_model->splitE(row), m_model->splitF(row), m_model->mesoId(row));
 		}
-		m_result = query.exec(strQuery);
-		if (m_result)
+		ok = query.exec(strQuery);
+		if (ok)
 		{
-			MSG_OUT("DBMesoSplitTable saveMesoSplit SUCCESS")
-			m_model->setId(row, query.lastInsertId().toString());
+			if (!bUpdate)
+				m_model->setId(row, query.lastInsertId().toString());
 		}
-		else
-		{
-			MSG_OUT("DBMesoSplitTable saveMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoSplitTable saveMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 {
-	mSqlLiteDB.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
+		bool ok(false);
 		const QString& mesoId(m_execArgs.at(0).toString());
 		const QChar& splitLetter(m_execArgs.at(1).toChar());
-		m_model->setSplitLetter(splitLetter); //set the main property right away
 
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter).arg(mesoId));
@@ -256,23 +200,11 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info[MESOSPLIT_COL_WEIGHT] = setsweight.at(i);
 					m_model->appendList(split_info);
 				}
-				m_result = true;
-				m_model->setReady(true);
+				ok = true;
 			}
 		}
-
-		if (m_result)
-		{
-			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit SUCCESS")
-			MSG_OUT(strQuery)
-		}
-		else
-		{
-			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoSplitTable getCompleteMesoSplit Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		m_model->setSplitLetter(splitLetter); //set the main property right away
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	if (bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -280,9 +212,9 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 
 void DBMesoSplitTable::saveMesoSplitComplete()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
+		bool ok(false);
 		QString exercises;
 		QString setsnumber;
 		QString setsnotes;
@@ -302,14 +234,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		}
 
 		const QString& mesoId(m_execArgs.at(0).toString());
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		QSqlQuery query{getQuery()};
 		bool bUpdate(false);
 		QString strQuery;
 
@@ -339,49 +264,31 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 								.arg(m_model->splitLetter(), mesoId, exercises, setsnumber, setsnotes, setstypes, setssubsets,
 										setsreps, setsweight, m_model->muscularGroup());
 		}
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
-			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete SUCCESS")
-			MSG_OUT(strQuery)
-		}
-		else
-		{
-			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		ok = query.exec(strQuery);
+		if (ok && !bUpdate)
+			m_model->setId(0, query.lastInsertId().toString()); //Not used -yet-. But might be, someday. Anyway, it costs nothings
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesoSplitTable saveMesoSplitComplete Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLetter)
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	bool ok(false);
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
-		m_result = query.exec(u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter, mesoId));
-		if (m_result)
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter, mesoId));
+		ok = query.exec(strQuery);
+		if (ok)
 		{
-			m_result = query.first();
-			if (m_result)
-				m_result = query.value(0).toString().length() > 0;
+			ok = query.first();
+			if (ok)
+				ok = query.value(0).toString().length() > 0;
 		}
-		mSqlLiteDB.close();
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
-	return m_result;
+	return ok;
 }
 
 void DBMesoSplitTable::convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel)

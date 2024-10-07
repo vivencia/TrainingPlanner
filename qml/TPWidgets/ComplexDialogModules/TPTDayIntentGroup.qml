@@ -19,7 +19,7 @@ Column {
 
 	TPRadioButton {
 		id: optMesoPlan
-		text: qsTr("Use the standard exercises plan for the division ") + splitLetter + qsTr(" of the Mesocycle")
+		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")
 		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
 		width: parent.width
 

@@ -8,7 +8,7 @@
 
 static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
 
-#ifdef DEBUG
+#ifndef QT_NO_DEBUG
 #define MSG_OUT(message) qDebug() << message;
 #else
 #define MSG_OUT(message)

@@ -4,7 +4,6 @@
 #include "tpglobals.h"
 
 #include <QFile>
-#include <QSqlError>
 #include <QSqlQuery>
 
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model)
@@ -22,16 +21,9 @@ DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayM
 
 void DBTrainingDayTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS training_day_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
@@ -50,16 +42,8 @@ void DBTrainingDayTable::createTable()
 										"setsweights TEXT DEFAULT \"\","
 										"setsnotes TEXT DEFAULT \"\","
 										"setscompleted TEXT DEFAULT \"\")"_qs);
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBTrainingDayTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		else
-			MSG_OUT("DBTrainingDayTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
@@ -67,9 +51,9 @@ void DBTrainingDayTable::updateTable()
 {
 	/*m_result = false;
 	QList<QStringList> oldTableInfo;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		QSqlQuery query{getQuery()};
 		query.exec(u"PRAGMA page_size = 4096"_qs);
 		query.exec(u"PRAGMA cache_size = 16384"_qs);
 		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
@@ -118,7 +102,7 @@ void DBTrainingDayTable::updateTable()
 			createTable();
 			if (m_result)
 			{
-				if (mSqlLiteDB.open())
+				if (openDatabase())
 				{
 					if (mSqlLiteDB.transaction())
 					{
@@ -170,17 +154,9 @@ void DBTrainingDayTable::updateTable()
 
 void DBTrainingDayTable::getTrainingDay()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
 										"FROM training_day_table WHERE date="_qs + m_execArgs.at(0).toString());
 		if (query.exec(strQuery))
@@ -197,27 +173,23 @@ void DBTrainingDayTable::getTrainingDay()
 				mSqlLiteDB.close();
 				getTrainingDayExercises();
 				return;
-			}
+			}	
 		}
-		MSG_OUT("DBTrainingDayTable getTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBTrainingDayTable getTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-		MSG_OUT(strQuery)
-		mSqlLiteDB.close();
+		setResult(false, m_model, strQuery, {std::source_location::current()})
 	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForReUse)
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.setForwardOnly(true);
-		const QString& queryCmd(u"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
 						"FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
 
-		if (query.exec(queryCmd))
+		if (query.exec(strQuery))
 		{
 			if (query.first())
 			{
@@ -225,23 +197,15 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 				for (uint i(TDAY_EXERCISES_COL_NAMES); i < TDAY_EXERCISES_TOTALCOLS; ++i)
 					workout_info[i] = query.value(static_cast<int>(i)).toString();
 				m_model->fromDataBase(workout_info, bClearSomeFieldsForReUse);
-				m_result = true;
+				ok = true;
 			}
 		}
-		if (!m_result)
-		{
-			MSG_OUT("DBTrainingDayTable getTrainingDayExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable getTrainingDayExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(queryCmd);
-		}
-		else
-			MSG_OUT("DBTrainingDayTable getTrainingDayExercises SUCCESS")
-		mSqlLiteDB.close();		
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-QString DBTrainingDayTable::formatDate(const uint julianDay) const
+inline QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
 	const QDate& date(QDate::fromJulianDay(julianDay));
 	return appUtils()->appLocale()->toString(date, u"ddd d/M/yyyy"_qs);
@@ -249,22 +213,17 @@ QString DBTrainingDayTable::formatDate(const uint julianDay) const
 
 void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		const QString& mainDate(m_execArgs.at(2).toString());
+		m_model->appendRow();
+		m_model->setDateStr(mainDate); //QmlItemManager needs this to know if the received model is the one it's looking for
 
 		QString strQuery(u"SELECT exercises,date FROM training_day_table "
 							"WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 ORDER BY date DESC LIMIT 10"_qs
-								.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString(), m_execArgs.at(2).toString()));
+								.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString(), mainDate));
 		if (query.exec(strQuery))
 		{
 			if (query.first())
@@ -276,63 +235,43 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 				} while (query.next());
 				if (!dates.isEmpty())
 					m_model->appendList(dates);
+				ok = true;
 			}
 			query.finish();
-			m_result = true;
-		}
-		else
-		{
-			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
 		}
 
-		strQuery = u"SELECT location FROM training_day_table WHERE meso_id=%1 AND date<%3 ORDER BY date DESC LIMIT 5"_qs
-				.arg(m_execArgs.at(0).toString(), m_execArgs.at(2).toString());
-		if (query.exec(strQuery))
+		if (ok)
 		{
-			QString lastLocation;
-			if (query.first())
+			strQuery = u"SELECT location FROM training_day_table WHERE meso_id=%1 AND date<%3 ORDER BY date DESC LIMIT 5"_qs
+				.arg(m_execArgs.at(0).toString(), mainDate);
+			if (query.exec(strQuery))
 			{
-				do {
-					lastLocation = query.value(0).toString();
-					if (!lastLocation.isEmpty())
-						break;
-				} while (query.next());
-			}
-			if (!lastLocation.isEmpty())
-			{
-				m_model->appendList(QStringList(TDAY_TOTAL_COLS));
-				m_model->setLocation(lastLocation);
-				m_result = true;
+				if (query.first())
+				{
+					QString lastLocation;
+					do {
+						lastLocation = query.value(0).toString();
+						if (!lastLocation.isEmpty())
+						{
+							m_model->setLocation(lastLocation, false);
+							break;
+						}
+					} while (query.next());
+				}
 			}
 		}
-		else
-		{
-			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable getPreviousTrainingDays Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBTrainingDayTable::saveTrainingDay()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
+		bool ok(false);
 		const QStringList& tDayInfoList(m_model->getSaveInfo());
-
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		QSqlQuery query{getQuery()};
 		bool bUpdate(false);
 		QString strQuery;
 
@@ -370,47 +309,25 @@ void DBTrainingDayTable::saveTrainingDay()
 									tDayInfoList.at(TDAY_EXERCISES_COL_REPS), tDayInfoList.at(TDAY_EXERCISES_COL_WEIGHTS),
 									tDayInfoList.at(TDAY_EXERCISES_COL_NOTES), tDayInfoList.at(TDAY_EXERCISES_COL_COMPLETED));
 		}
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
-			MSG_OUT("DBTrainingDayTable saveTrainingDay SUCCESS")
-			if (!bUpdate)
-				m_model->setId(query.lastInsertId().toString());
-		}
-		else
-		{
-			MSG_OUT("DBTrainingDayTable saveTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable saveTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		ok = query.exec(strQuery);
+		if (ok && !bUpdate)
+			m_model->setId(query.lastInsertId().toString());
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBTrainingDayTable saveTrainingDay Could not open Database")
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBTrainingDayTable::removeTrainingDay()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(
 							m_model->dateStr(), m_model->mesoIdStr()));
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
+		const bool ok = query.exec(strQuery);
+		if (ok)
 			m_model->clear();
-			MSG_OUT("DBTrainingDayTable removeTrainingDay SUCCESS")
-		}
-		else
-		{
-			MSG_OUT("DBTrainingDayTable removeTrainingDay Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBTrainingDayTable removeTrainingDay Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

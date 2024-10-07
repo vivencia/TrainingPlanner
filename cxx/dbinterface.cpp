@@ -95,7 +95,7 @@ void DBInterface::init()
 
 void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 {
-	const QString& dbObjName(dbObj->objectName());
+	const QString& dbObjName{dbObj->objectName()};
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
@@ -103,7 +103,7 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	emit databaseReady(dbObj->uniqueID());
 	if (m_WorkerLock[dbObj->tableID()].hasNext())
 	{
-		const TPDatabaseTable* const nextDbObj(m_WorkerLock[dbObj->tableID()].nextObj());
+		const TPDatabaseTable* const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
 		MSG_OUT("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
@@ -563,7 +563,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 		DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tempModel)};
 		worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 		worker->addExecArg(tDayModel->splitLetter());
-		worker->addExecArg(tDayModel->date());
+		worker->addExecArg(tDayModel->dateStr());
 		auto conn = std::make_shared<QMetaObject::Connection>();
 		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker,tDayModel] (const uint db_id) {
 			if (db_id == worker->uniqueID())
@@ -571,8 +571,8 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 				disconnect(*conn);
 				DBTrainingDayModel* tempModel{worker->model()};
 				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
-				tempModel->setTrainingDay(mesoHasPlan(appMesoModel()->_id(tempModel->mesoIdx()), tempModel->splitLetter()) ?
-						STR_ONE : STR_ZERO);
+				const bool bHasMesoPlan(mesoHasPlan(appMesoModel()->_id(tDayModel->mesoIdx()), tDayModel->splitLetter()));
+				tempModel->setTrainingDay( bHasMesoPlan ? STR_ONE : STR_ZERO);
 				emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(tempModel));
 				delete tempModel;
 			}

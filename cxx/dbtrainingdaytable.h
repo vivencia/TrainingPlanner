@@ -27,7 +27,7 @@ public:
 
 private:
 	DBTrainingDayModel* m_model;
-	QString formatDate(const uint julianDay) const;
+	inline QString formatDate(const uint julianDay) const;
 };
 
 #endif // DBTRAININGDAYTABLE_H

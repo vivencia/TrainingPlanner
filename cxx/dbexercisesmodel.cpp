@@ -271,8 +271,8 @@ QString DBExercisesModel::makeTransactionStatementForDataBase(const uint index) 
 {
 	QString statement{'(' + id(index)};
 	for (uint i(1); i <= EXERCISES_COL_MEDIAPATH; ++i)
-		statement += '\'' + m_modeldata.at(index).at(i) + '\'';
-	statement += STR_ZERO + u"),"_qs; //EXERCISES_COL_FROMAPPLIST
+		statement += u",\'"_qs + m_modeldata.at(index).at(i) + '\'';
+	statement += ',' + STR_ONE + u"),"_qs; //EXERCISES_COL_FROMAPPLIST
 	return statement;
 }
 

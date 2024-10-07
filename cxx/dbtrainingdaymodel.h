@@ -86,6 +86,7 @@ public:
 		if (bEmitSave)
 			emit tDayChanged();
 	}
+	inline void setDateStr(const QString& date_str) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = date_str; }
 
 	Q_INVOKABLE inline QString trainingDay() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER); }
 	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property

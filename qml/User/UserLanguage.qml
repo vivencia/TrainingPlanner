@@ -16,6 +16,7 @@ GridLayout {
 	property bool bReady: false
 	readonly property int controlsSpacing: 10
 	readonly property int minimumHeight: optEn.height + optBr.height + optDe.height + 2*controlsSpacing
+	readonly property int topMargin: (availableHeight - minimumHeight)/2
 
 	TPRadioButton {
 		id: optEn
@@ -24,7 +25,7 @@ GridLayout {
 		Layout.column: 0
 		Layout.row: 0
 		Layout.fillWidth: true
-		Layout.topMargin: (availableHeight - minimumHeight)/2
+		Layout.topMargin: topMargin
 
 		onClicked: {
 			appTr.switchToLanguage("en_US");
@@ -40,7 +41,7 @@ GridLayout {
 		Layout.row: 0
 		Layout.minimumWidth: width
 		Layout.maximumWidth: width
-		Layout.topMargin: (availableHeight - minimumHeight)/2
+		Layout.topMargin: topMargin
 	}
 
 	TPRadioButton {

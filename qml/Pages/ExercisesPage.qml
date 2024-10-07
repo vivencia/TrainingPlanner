@@ -56,7 +56,7 @@ TPPage {
 				Layout.alignment: Qt.AlignTop
 				Layout.rightMargin: 5
 				Layout.fillHeight: true
-				Layout.leftMargin: -5
+				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
 				onExerciseEntrySelected: (index, multipleSelection) => {

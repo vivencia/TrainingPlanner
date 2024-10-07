@@ -1,30 +1,16 @@
 #include "tpdatabasetable.h"
-#include "tpglobals.h"
 
 #include <QFile>
-#include <QSqlError>
-#include <QSqlQuery>
 
 void TPDatabaseTable::removeEntry()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"DELETE FROM "_qs + m_tableName + u" WHERE id="_qs + m_execArgs.at(0).toString());
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
-			MSG_OUT(m_tableName << " removeEntry SUCCESS")
-			MSG_OUT(strQuery)
-		}
-		else
-		{
-			MSG_OUT(m_tableName << " removeEntry Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT(m_tableName << " removeEntry Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -32,24 +18,13 @@ void TPDatabaseTable::removeEntry()
 
 void TPDatabaseTable::clearTable()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u" DROP TABLE "_qs + m_tableName);
-		m_result = query.exec(strQuery);
-		if (m_result)
-		{
-			MSG_OUT(m_tableName << " clearTable SUCCESS")
-			MSG_OUT(strQuery)
-		}
-		else
-		{
-			MSG_OUT(m_tableName << " clearTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT(m_tableName << " clearTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -57,14 +32,10 @@ void TPDatabaseTable::clearTable()
 
 void TPDatabaseTable::removeDBFile()
 {
-	m_result = QFile::remove(mSqlLiteDB.databaseName());
-	if (m_result)
-	{
+	const bool ok = QFile::remove(mSqlLiteDB.databaseName());
+	if (ok)
 		createTable();
-		MSG_OUT(m_tableName << " removeDBFile SUCCESS")
-	}
-	else
-		MSG_OUT(m_tableName << " removeDBFile error: Could not remove file " << mSqlLiteDB.databaseName())
+	setResult(ok, nullptr, "", {std::source_location::current()});
 	if (doneFunc)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 }

@@ -26,7 +26,7 @@ TPPage {
 	property string lastWorkOutLocation
 	property bool bHasPreviousTDays
 	property bool bHasMesoPlan
-	property bool dayIsNotCurrent
+	property bool mainDateIsToday
 	property bool bNeedActivation //only set to true when, in the same app session, a second or more training days are created
 	property var previousTDays: []
 
@@ -565,7 +565,7 @@ TPPage {
 				color: AppSettings.fontColor
 				font.weight: Font.Black
 				font.pointSize: AppSettings.fontSizeTitle
-				visible: splitLetter !== "R"
+				visible: tDayModel.splitLetter !== "R"
 				height: 40
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
@@ -658,11 +658,6 @@ TPPage {
 		}
 	} // ScrollView scrollTraining
 
-	Component.onDestruction: {
-		if (bCalendarChangedPending)
-			calChangedWarningMessage.acceptChanges();
-	}
-
 	Timer {
 		id: scrollTimer
 		interval: 200
@@ -733,7 +728,7 @@ TPPage {
 				id: btnStartWorkout
 				text: qsTr("Begin")
 				flat: false
-				visible: dayIsNotCurrent ? false : !tDayModel.dayIsFinished && !editMode
+				visible: mainDateIsToday ? !tDayModel.dayIsFinished && !editMode : false
 				enabled: !workoutTimer.active
 
 				onClicked: {
@@ -810,7 +805,7 @@ TPPage {
 			fixedSize: true
 			width: 55
 			height: 55
-			visible: tDayModel.dayIsFinished || dayIsNotCurrent
+			visible: tDayModel.dayIsFinished || !mainDateIsToday
 
 			anchors {
 				left: parent.left
@@ -910,7 +905,8 @@ TPPage {
 			function finishCreation() {
 				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title:qsTr("What do you want to do today?"),
 					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: bHasMesoPlan,
-					customModel: previousTDays,	customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
+					customStringProperty2: tDayModel.splitLetter, customModel: previousTDays,
+					customBoolProperty2: bHasPreviousTDays, customBoolProperty3: tDayModel.exerciseCount === 0 });
 				intentDlg.button1Clicked.connect(intentChosen);
 			}
 
@@ -946,7 +942,7 @@ TPPage {
 			scrollTimer.init(phantomItem.y);
 			return;
 		}
-		itemManager.createExerciseObject(exercisesModel);
+		itemManager.createExerciseObject();
 	}
 
 	function placeSetIntoView(ypos: int) {

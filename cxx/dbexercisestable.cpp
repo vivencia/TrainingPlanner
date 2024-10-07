@@ -22,15 +22,9 @@ DBExercisesTable::DBExercisesTable(const QString& dbFilePath, DBExercisesModel* 
 
 void DBExercisesTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS exercises_table ("
 										"id INTEGER PRIMARY KEY,"
 										"primary_name TEXT,"
@@ -44,16 +38,8 @@ void DBExercisesTable::createTable()
 										"from_list INTEGER"
 									")"_qs
 		);
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBExercisesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBExercisesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		else
-			MSG_OUT("DBExercisesTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
@@ -64,20 +50,12 @@ void DBExercisesTable::updateTable()
 
 void DBExercisesTable::getAllExercises()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
-		query.setForwardOnly(true);
-		if (query.exec(u"SELECT * FROM exercises_table"_qs))
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"SELECT * FROM exercises_table"_qs);
+		if (query.exec(strQuery))
 		{
 			if (query.first())
 			{
@@ -92,25 +70,19 @@ void DBExercisesTable::getAllExercises()
 					exercise_info[EXERCISES_COL_ACTUALINDEX] = QString::number(i);
 					m_model->appendList(exercise_info);
 				} while (query.next ());
-				//const QModelIndex index(m_model->index(m_model->count() - 1, 0));
 				const uint highest_id (m_model->_id(m_model->count() - 1));
 				if (highest_id >= m_exercisesTableLastId)
 					m_exercisesTableLastId = highest_id + 1;
 				m_model->setLastID(m_exercisesTableLastId);
-				m_result = true;
+				ok = true;
 			}
 			else //for some reason the database table is empty. Populate it with the app provided exercises list
+			{
+				mSqlLiteDB.close();
 				updateExercisesList();
+			}
 		}
-		m_model->setReady(m_model->count() > 0);
-		if (!m_result)
-		{
-			MSG_OUT("DBExercisesTable getAllExercises Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBExercisesTable getAllExercises Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		else
-			MSG_OUT("DBExercisesTable getAllExercises SUCCESS")
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -120,36 +92,28 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		MSG_OUT("DBExercisesTable::updateExercisesList -> m_ExercisesList is empty")
-		m_result = false;
+		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_qs, {std::source_location::current()})
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
 
 	removePreviousListEntriesFromDB();
-	m_result = false;
 
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QStringList::const_iterator itr(m_ExercisesList.constBegin());
-		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		QString queryValues;
 		QStringList fields(3);
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		uint idx(0);
 		const QString& queryStart(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 								" VALUES "_qs);
-		QString queryValues;
 
-		uint idx(0);
 		mSqlLiteDB.transaction();
+
+		QStringList::const_iterator itr(m_ExercisesList.constBegin());
+		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
 		for (++itr; itr != itr_end; ++itr, ++idx) //++itr: Jump over version number
 		{
 			fields = (*itr).split(';');
@@ -157,20 +121,14 @@ void DBExercisesTable::updateExercisesList()
 			queryValues += m_model->makeTransactionStatementForDataBase(idx);
 		}
 		queryValues.chop(1);
-		query.exec(queryStart + queryValues);
-		m_result = mSqlLiteDB.commit();
-		if (!m_result)
-		{
-			MSG_OUT("DBExercisesTable updateExercisesList Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBExercisesTable updateExercisesList Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(queryStart + queryValues);
-		}
+		ok = query.exec(queryStart + queryValues);
+		if (!ok)
+			MSG_OUT(query.lastError().text())
 		else
-		{
+			mSqlLiteDB.commit();
+		setResult(ok, m_model, queryStart + queryValues, {std::source_location::current()})
+		if (ok)
 			emit updatedFromExercisesList();
-			MSG_OUT("DBExercisesTable updateExercisesList SUCCESS")
-		}
-		mSqlLiteDB.close();
 	}
 	m_ExercisesList.clear();
 	doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -178,85 +136,60 @@ void DBExercisesTable::updateExercisesList()
 
 void DBExercisesTable::saveExercises()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	bool ok(false);
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
+		bool bUpdate(false);
+		uint highest_id(0);
+		QString strQuery;
 
-		if (mSqlLiteDB.transaction())
-		{
-			bool bUpdate(false);
-			uint highest_id(0);
-			QString strQuery;
-			const QString& queryInsert(u"INSERT INTO exercises_table"
+		const QString& queryInsert(u"INSERT INTO exercises_table"
 							"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_qs);
-			const QString& queryUpdate(u"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
+		const QString& queryUpdate(u"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
 							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_qs);
-			for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
+		for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
+		{
+			const uint& idx(m_model->modifiedIndex(i));
+			const QString& exerciseId = m_model->id(idx);
+			if (m_model->_id(idx) > highest_id)
+				highest_id = m_model->_id(idx);
+			bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
+			if (bUpdate)
 			{
-				const uint& idx(m_model->modifiedIndex(i));
-				const QString& exerciseId = m_model->id(idx);
-				if (m_model->_id(idx) > highest_id)
-					highest_id = m_model->_id(idx);
-				bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
-				if (bUpdate)
-				{
-					strQuery += queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
+				strQuery += queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
 							m_model->setsNumber(idx), m_model->repsNumber(idx), m_model->weight(idx), m_model->weightUnit(idx),
 							m_model->mediaPath(idx), exerciseId);
-				}
-				else
-				{
-					strQuery += queryInsert.arg(exerciseId, m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
-							m_model->setsNumber(idx), m_model->repsNumber(idx), m_model->weight(idx), m_model->weightUnit(idx),
-							m_model->mediaPath(idx));
-				}
-			}
-			query.exec(strQuery);
-			m_result = mSqlLiteDB.commit();
-			if (m_result)
-			{
-				m_exercisesTableLastId = highest_id;
-				m_model->clearModifiedIndices();
-				MSG_OUT("DBExercisesTable saveExercise SUCCESS");
-				MSG_OUT(strQuery);
 			}
 			else
 			{
-				MSG_OUT("DBExercisesTable saveExercise Database error:  " << mSqlLiteDB.lastError().databaseText())
-				MSG_OUT("DBExercisesTable saveExercise Driver error:  " << mSqlLiteDB.lastError().driverText())
-				MSG_OUT(strQuery);
+				strQuery += queryInsert.arg(exerciseId, m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
+							m_model->setsNumber(idx), m_model->repsNumber(idx), m_model->weight(idx), m_model->weightUnit(idx),
+							m_model->mediaPath(idx));
 			}
-			mSqlLiteDB.close();
 		}
-		else
-			MSG_OUT("DBExercisesTable saveExercise Transaction not supported")
-	}
-	else
-		MSG_OUT("DBExercisesTable saveExercise Could not open Database")
+		query.exec(strQuery);
+		ok = mSqlLiteDB.commit();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		if (ok)
+		{
+			m_exercisesTableLastId = highest_id;
+			m_model->clearModifiedIndices();
+		}
+	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBExercisesTable::removePreviousListEntriesFromDB()
 {
-	int ret(0);
-	if (mSqlLiteDB.open())
+	bool ok(false);
+	if (openDatabase())
 	{
-		QSqlQuery query{u"DELETE FROM exercises_table WHERE from_list=1"_qs, mSqlLiteDB};
-		ret = query.exec();
-		mSqlLiteDB.close();
-	}
-	if (!ret)
-	{
-		MSG_OUT("DBExercisesTable removePreviousListEntriesFromDB Database error:  " << mSqlLiteDB.lastError().databaseText())
-		MSG_OUT("DBExercisesTable removePreviousListEntriesFromDB Driver error:  " << mSqlLiteDB.lastError().driverText())
+		QSqlQuery query{mSqlLiteDB};
+		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_qs);
+		ok = query.exec();
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 

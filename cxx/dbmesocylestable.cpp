@@ -3,7 +3,6 @@
 #include "tpglobals.h"
 
 #include <QFile>
-#include <QSqlError>
 #include <QSqlQuery>
 #include <QTime>
 
@@ -22,16 +21,9 @@ DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesMode
 
 void DBMesocyclesTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
@@ -47,25 +39,17 @@ void DBMesocyclesTable::createTable()
 										"real_meso INTEGER"
 									")"_qs
 		);
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBMesocyclesTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesocyclesTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		else
-			MSG_OUT("DBMesocyclesTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
 void DBMesocyclesTable::updateTable()
 {
 	/*m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		QSqlQuery query{getQuery()};
 		query.exec(u"PRAGMA page_size = 4096"_qs);
 		query.exec(u"PRAGMA cache_size = 16384"_qs);
 		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
@@ -96,7 +80,7 @@ void DBMesocyclesTable::updateTable()
 			createTable();
 			if (m_result)
 			{
-				if (mSqlLiteDB.open())
+				if (openDatabase())
 				{
 					query.exec(u"PRAGMA page_size = 4096"_qs);
 					query.exec(u"PRAGMA cache_size = 16384"_qs);
@@ -136,19 +120,10 @@ void DBMesocyclesTable::updateTable()
 
 void DBMesocyclesTable::getAllMesocycles()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-		query.setForwardOnly(true);
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT * FROM mesocycles_table"_qs);
 
 		if (query.exec(strQuery))
@@ -163,41 +138,23 @@ void DBMesocyclesTable::getAllMesocycles()
 					static_cast<void>(m_model->newMesocycle(meso_info));
 				} while (query.next ());
 				m_model->finishedLoadingFromDatabase();
-				m_result = true;
+				ok = true;
 			}
 		}
-		if (!m_result)
-		{
-			MSG_OUT("DBMesocyclesTable getAllMesocycles Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesocyclesTable getAllMesocycles Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		else
-		{
-			MSG_OUT("DBMesocyclesTable getAllMesocycles SUCCESS")
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();	
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesocyclesTable getAllMesocycles ERROR: Could not open database")
 }
 
 void DBMesocyclesTable::saveMesocycle()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
+
 		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_qs.arg(m_model->id(row))))
 		{
 			if (query.first())
@@ -224,26 +181,16 @@ void DBMesocyclesTable::saveMesocycle()
 									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
 									m_model->file(row), m_model->type(row), m_model->realMeso(row));
 		}
-		m_result = query.exec(strQuery);
-		if (m_result)
+		ok = query.exec(strQuery);
+		if (ok)
 		{
 			if (!bUpdate)
 			{
 				m_model->setId(row, query.lastInsertId().toString());
 				m_model->setImportMode(false);
 			}
-			MSG_OUT("DBMesocyclesTable saveMesocycle SUCCESS")
 		}
-		else
-		{
-			MSG_OUT("DBMesocyclesTable saveMesocycle Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesocyclesTable saveMesocycle Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesocyclesTable saveMesocycle Could not open Database")
-
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

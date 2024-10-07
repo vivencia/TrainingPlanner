@@ -22,15 +22,9 @@ DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalend
 
 void DBMesoCalendarTable::createTable()
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_calendar_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_id INTEGER,"
@@ -41,16 +35,8 @@ void DBMesoCalendarTable::createTable()
 										"month INTEGER,"
 										"day INTEGER"
 									")"_qs);
-		m_result = query.exec(strQuery);
-		if (!m_result)
-		{
-			MSG_OUT("DBMesoCalendarTable createTable Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable createTable Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		else
-			MSG_OUT("DBMesoCalendarTable createTable SUCCESS")
-		mSqlLiteDB.close();
+		const bool ok = query.exec(strQuery);
+		setResult(ok, nullptr, strQuery, {std::source_location::current()})
 	}
 }
 
@@ -58,9 +44,9 @@ void DBMesoCalendarTable::updateTable()
 {
 	/*m_result = false;
 	QStringList oldTableInfo;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
+		QSqlQuery query{getQuery()};
 		QString dayInfo;
 		query.setForwardOnly(true);
 		if (query.exec(u"SELECT * FROM mesocycles_calendar_table"_qs))
@@ -87,7 +73,7 @@ void DBMesoCalendarTable::updateTable()
 			createTable();
 			if (m_result)
 			{
-				if (mSqlLiteDB.open())
+				if (openDatabase())
 				{
 					query.exec(u"PRAGMA page_size = 4096"_qs);
 					query.exec(u"PRAGMA cache_size = 16384"_qs);
@@ -136,22 +122,14 @@ void DBMesoCalendarTable::updateTable()
 
 void DBMesoCalendarTable::getMesoCalendar()
 {
-	mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
+		bool ok(false);
 		const QString& mesoId(m_model->getMesoId());
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"SELECT * FROM mesocycles_calendar_table WHERE meso_id="_qs + mesoId);
 
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
-		query.setForwardOnly(true);
-		if (query.exec(u"SELECT * FROM mesocycles_calendar_table WHERE meso_id="_qs + mesoId))
+		if (query.exec(strQuery))
 		{
 			if (query.first())
 			{
@@ -193,7 +171,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 				} while (query.next ());
 				if (!mesocal_info.isEmpty()) //The days of the last month
 				{
-					const uint lastDayOfMonth( QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth() );
+					const uint lastDayOfMonth(QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth());
 					//Fill the model with info that reflects that these month days are not part of the meso
 					for( ; day <= lastDayOfMonth; ++day)
 						mesocal_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
@@ -205,99 +183,66 @@ void DBMesoCalendarTable::getMesoCalendar()
 				m_model->createModel();
 				saveMesoCalendar();
 			}
-			m_model->setReady(true);
-			m_result = true;
+			ok = true;
 		}
-		if (!m_result)
-		{
-			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		else
-			MSG_OUT("DBMesoCalendarTable getAllMesoCalendars SUCCESS")
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesoCalendarTable getAllMesoCalendars Database error:  Could not open Database")
-
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::saveMesoCalendar()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 
-		if (mSqlLiteDB.transaction())
-		{
-			const QString& queryStart(u"INSERT INTO mesocycles_calendar_table "
+		const QString& queryStart(u"INSERT INTO mesocycles_calendar_table "
 									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_qs);
-			QString queryValues;
-			QStringList day_info;
-			uint n(0);
+		QString queryValues;
+		QStringList day_info;
+		uint n(0);
 
-			for (uint i(0), x(0); i < m_model->count(); ++i)
+		mSqlLiteDB.transaction();
+		for (uint i(0), x(0); i < m_model->count(); ++i)
+		{
+			for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
 			{
-				for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
+				day_info = m_model->getDayInfo(i, x).split(',');
+				if (day_info.at(MESOCALENDAR_COL_MESOID) != STR_MINUS_ONE)
 				{
-					day_info = m_model->getDayInfo(i, x).split(',');
-					if (day_info.at(MESOCALENDAR_COL_MESOID) != STR_MINUS_ONE)
-					{
-						queryValues += '(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
-							u",\'"_qs + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + u"\',"_qs +
-									day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
-									day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + u"),"_qs;
-					}
-				}
-				if (n >= 50)
-				{
-					queryValues.chop(1);
-					query.exec(queryStart + queryValues);
-					queryValues.clear();
-					n = 0;
+					queryValues += '(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
+						u",\'"_qs + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + u"\',"_qs +
+								day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
+								day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + u"),"_qs;
 				}
 			}
-			if (!queryValues.isEmpty())
+			if (n >= 150)
 			{
 				queryValues.chop(1);
 				query.exec(queryStart + queryValues);
+				queryValues.clear();
+				n = 0;
 			}
-			m_result = mSqlLiteDB.commit();
 		}
-		if (!m_result)
+		if (!queryValues.isEmpty())
 		{
-			MSG_OUT("DBMesoCalendarTable saveMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable saveMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
+			queryValues.chop(1);
+			query.exec(queryStart + queryValues);
 		}
-		else
-			MSG_OUT("DBMesoCalendarTable saveMesoCalendar SUCCESS")
-		mSqlLiteDB.close();
+		ok = mSqlLiteDB.commit();
+		setResult(ok, m_model, queryStart + queryValues, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::updateMesoCalendarEntry()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
+		bool ok(false);
 		const QDate& date(m_execArgs.at(0).toDate());
-
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		QSqlQuery query{getQuery()};
 
 		QString strQuery(u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
@@ -313,38 +258,24 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			strQuery = u"UPDATE mesocycles_calendar_table SET training_day=%1, "
 										"training_split=\'%2\', training_complete=%3 WHERE id=%4"_qs
 											.arg(strTrainingDay, strSplit, strDayCompleted, strId);
-			m_result = query.exec(strQuery);
-			if (m_result)
+			ok = query.exec(strQuery);
+			if (ok)
 				m_model->updateDay(date, strTrainingDay, strSplit, strDayCompleted);
 		}
-		if (m_result)
-			MSG_OUT("DBMesoCalendarTable updateMesoCalendarEntry SUCCESS")
-		else
-		{
-			MSG_OUT("DBMesoCalendarTable saveMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable saveMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery);
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::updateDayIsFinished()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
+		bool ok(false);
 		const QDate& date(m_execArgs.at(0).toDate());
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		QSqlQuery query{getQuery()};
 		QString strQuery;
+
 		strQuery = u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 				QString::number(date.year()),QString::number(date.month()), QString::number(date.day()));
 		if (query.exec(strQuery))
@@ -354,36 +285,19 @@ void DBMesoCalendarTable::updateDayIsFinished()
 			query.finish();
 			strQuery = u"UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2"_qs
 									.arg(m_execArgs.at(1).toBool() ? u"1"_qs : u"0"_qs, strId);
-			m_result = query.exec(strQuery);
+			ok = query.exec(strQuery);
 		}
-		if (m_result)
-			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished SUCCESS")
-		else
-		{
-			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable::updateDayIsFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
-			MSG_OUT(strQuery)
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
-	else
-		MSG_OUT("DBMesoCalendarTable::updateDayIsFinished(): could not open database");
-
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 {
-	if (mSqlLiteDB.open())
+	if (openDatabase(true))
 	{
-		QSqlQuery query(mSqlLiteDB);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
-
+		bool ok(false);
+		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT meso_id,training_day,training_split,training_complete "
 								"FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_qs.arg(
 								QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
@@ -395,16 +309,10 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 				dayInfoList.append(query.value(1).toString());
 				dayInfoList.append(query.value(2).toString());
 				dayInfoList.append(query.value(3).toString());
+				ok = true;
 			}
-			MSG_OUT("DBMesoCalendarTable::isDayFinished SUCCESS")
 		}
-		else
-		{
-			MSG_OUT(strQuery)
-			MSG_OUT("DBMesoCalendarTable::isDayFinished Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable::isDayFinished Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		mSqlLiteDB.close();
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}
 }
 
@@ -424,19 +332,13 @@ void DBMesoCalendarTable::updateMesoCalendar()
 
 void DBMesoCalendarTable::removeMesoCalendar()
 {
-	m_result = false;
-	if (mSqlLiteDB.open())
+	if (openDatabase())
 	{
-		QSqlQuery query(mSqlLiteDB);
-		m_result = query.exec(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_qs + m_model->getMesoId());
-		if (m_result)
-			MSG_OUT("DBExercisesTable removeMesoCalendar SUCCESS")
-		else
-		{
-			MSG_OUT("DBMesoCalendarTable removeMesoCalendar Database error:  " << mSqlLiteDB.lastError().databaseText())
-			MSG_OUT("DBMesoCalendarTable removeMesoCalendar Driver error:  " << mSqlLiteDB.lastError().driverText())
-		}
-		mSqlLiteDB.close();
+		bool ok(false);
+		QSqlQuery query{getQuery()};
+		const QString& strQuery(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_qs + m_model->getMesoId());
+		ok = query.exec(strQuery);
+		setResult(ok, m_model, strQuery, {std::source_location::current()})
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

@@ -278,7 +278,7 @@ FocusScope {
 
 				SetInputField {
 					id: txtNSets
-					text: nSets
+					text: itemManager.exerciseSets(exerciseIdx)
 					type: SetInputField.Type.SetType
 					availableWidth: layoutMain.width / 3
 					alternativeLabels: ["","","",qsTr("sets #:")]
@@ -316,12 +316,12 @@ FocusScope {
 		} // ColumnLayout layoutMain
 	} //paneExercise
 
-	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(compositeExerciseActions);
+	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(updateScreenControls);
 
-	function compositeExerciseActions() {
+	function updateScreenControls() {
 		bCompositeExercise = tDayModel.compositeExercise(exerciseIdx);
 		txtExerciseName = tDayModel.exerciseName(exercise_idx);
-		txtNSets.text = itemManager.exerciseReps(exerciseIdx, 0);
+		txtNSets.text = itemManager.exerciseSets(exerciseIdx, 0);
 		txtNReps.text = itemManager.exerciseReps(exerciseIdx, 0);
 		txtNWeight.text = itemManager.exerciseWeight(exerciseIdx, 0);
 		txtRestTime.text = itemManager.exerciseRestTime(exerciseIdx, 0);
