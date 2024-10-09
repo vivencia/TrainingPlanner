@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../"
 import "../TPWidgets"
@@ -22,10 +22,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -34,22 +34,18 @@ TPPage {
 			anchors.fill: parent
 			spacing: 0
 
-			Label {
+			TPLabel {
 				id: lbl1
 				text: mesocyclesModel.name(itemManager.mesoIdx)
-				font.bold: true
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSize
+				font: AppGlobals.titleFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
-			Label {
+			TPLabel {
 				id: lbl2
-				color: AppSettings.fontColor
-				wrapMode: Text.WordWrap
 				text: qsTr("from  <b>") + mesocyclesModel.startDateFancy(mesoCalendarModel.mesoIdx) +
 						qsTr("</b>  through  <b>") + mesocyclesModel.endDateFancy(mesoCalendarModel.mesoIdx) + "</b>"
-				font.pointSize: AppSettings.fontSize
+				font: AppGlobals.titleFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
 				Layout.leftMargin: 5
@@ -62,9 +58,9 @@ TPPage {
 		id: calendar
 
 		//property date startDate
-		property double mm: Screen.pixelDensity
-		property double cellSize: mm * 7
-		property int fontSizePx: calendar.cellSize * 0.32
+		readonly property double mm: Screen.pixelDensity
+		readonly property double cellSize: mm * 7
+		readonly property int fontSizePx: calendar.cellSize * 0.32
 
 		anchors.fill: parent
 		snapMode: ListView.SnapToItem
@@ -85,7 +81,7 @@ TPPage {
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
 			width: calendar.width - 10
-			color: AppSettings.primaryDarkColor
+			color: appSettings.primaryDarkColor
 			opacity: 0.7
 
 			Rectangle {
@@ -99,7 +95,7 @@ TPPage {
 				Text {
 					anchors.centerIn: parent
 					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
-					font.pointSize: AppSettings.fontSizeTitle
+					font.pointSize: appSettings.fontSizeTitle
 					font.bold: true
 				}
 			}
@@ -115,15 +111,15 @@ TPPage {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 					font.bold: true
-					font.pointSize: AppSettings.fontSize
+					font.pointSize: appSettings.fontSize
 				}
 			}
 
 			MonthGrid {
 				id: monthGrid
-				locale: Qt.locale(AppSettings.appLocale)
+				locale: Qt.locale(appSettings.appLocale)
 				month: mesoCalendarModel.getMonth(index)
 				year: mesoCalendarModel.getYear(index)
 				spacing: 0
@@ -163,9 +159,9 @@ TPPage {
 					Text {
 						anchors.centerIn: parent
 						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
-						color: todayDate ? "red" : AppSettings.fontColor
+						color: todayDate ? "red" : appSettings.fontColor
 						font.bold: true
-						font.pointSize: AppSettings.fontSize
+						font.pointSize: appSettings.fontSize
 					}
 
 					SequentialAnimation {
@@ -228,20 +224,20 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
 
 		Label {
 			id: lblInfo
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			width: parent.width - btnViewWorkout.width - 10
 			wrapMode: Text.WordWrap
-			font.pointSize: AppSettings.fontSizeText
+			font.pointSize: appSettings.fontSizeText
 			font.bold: true
 			anchors {
 				left: parent.left

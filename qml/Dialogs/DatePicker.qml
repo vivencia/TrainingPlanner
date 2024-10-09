@@ -31,13 +31,13 @@ Rectangle {
 		id: titleOfDate
 		height: 2.5 * cellSize
 		width: parent.width
-		color: AppSettings.paneBackgroundColor
+		color: appSettings.paneBackgroundColor
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 		}
 		opacity: 0.8
 		z: 1
@@ -59,7 +59,7 @@ Rectangle {
 			inputMethodHints: Qt.ImhDigitsOnly
 			validator: IntValidator { id: val; bottom: startDate.getFullYear(); top: endDate.getFullYear(); }
 			opacity: yearsList.visible ? 1 : 0.7
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			z: 1
 
 			property bool yearOK
@@ -133,7 +133,7 @@ Rectangle {
 			font.pointSize: height * 0.5
 			font.bold: true
 			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			opacity: yearsList.visible ? 0.7 : 1
 
 			anchors {
@@ -224,7 +224,7 @@ Rectangle {
 				width: cellSize * 7
 				height: cellSize * 6
 
-				locale: Qt.locale(AppSettings.appLocale)
+				locale: Qt.locale(appSettings.appLocale)
 				delegate: Rectangle {
 					height: cellSize
 					width: cellSize
@@ -233,10 +233,10 @@ Rectangle {
 
 					gradient: Gradient {
 						orientation: Gradient.Vertical
-						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-						GradientStop { position: 0.25; color: AppSettings.primaryColor; }
-						GradientStop { position: 0.50; color: AppSettings.primaryDarkColor; }
-						GradientStop { position: 0.75; color: AppSettings.primaryLightColor; }
+						GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+						GradientStop { position: 0.25; color: appSettings.primaryColor; }
+						GradientStop { position: 0.50; color: appSettings.primaryDarkColor; }
+						GradientStop { position: 0.75; color: appSettings.primaryLightColor; }
 					}
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
@@ -285,10 +285,10 @@ Rectangle {
 			height: cellSize * 1.5
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 
@@ -297,7 +297,7 @@ Rectangle {
 				font.pointSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 			}
 			MouseArea {
 				anchors.fill: parent

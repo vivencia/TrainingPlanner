@@ -7,7 +7,7 @@ import ".."
 
 Pane {
 	id: trainingSplitPane
-	implicitWidth: windowWidth - 20
+	implicitWidth: appSettings.pageWidth - 20
 	implicitHeight: mainLayout.implicitHeight + 100
 
 	property alias mesoSplitText: txtMesoSplit.text
@@ -23,14 +23,8 @@ Pane {
 		color: "transparent"
 	}
 
-	Label {
+	TPLabel {
 		id: lblMesoSplit
-		text: mesocyclesModel.columnLabel(6)
-		font.bold: true
-		color: AppSettings.fontColor
-		fontSizeMode: Text.Fit
-		font.pointSize: AppSettings.fontSizeText
-		minimumPointSize: 8
 		width: parent.width*0.6
 
 		anchors {
@@ -70,10 +64,8 @@ Pane {
 			RowLayout {
 				Layout.fillWidth: true
 
-				Label {
+				TPLabel {
 					text: qsTr("Day ") + parseInt(index) + ":"
-					font.bold: true
-					color: AppSettings.fontColor
 					width: col1Width
 					Layout.minimumWidth: col1Width
 					Layout.maximumWidth: col1Width

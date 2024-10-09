@@ -6,7 +6,7 @@ Rectangle {
 	property string lightColor
 
 	id: darkRec
-	width: windowWidth/3
+	width: appSettings.pageWidth/3
 	height: width
 	border.color: "transparent"
 	color: darkColor

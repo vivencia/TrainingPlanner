@@ -43,7 +43,7 @@ void DBTrainingDayTable::createTable()
 										"setsnotes TEXT DEFAULT \"\","
 										"setscompleted TEXT DEFAULT \"\")"_qs);
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -169,13 +169,13 @@ void DBTrainingDayTable::getTrainingDay()
 				mSqlLiteDB.close();
 				m_model->appendList(split_info);
 				m_model->setReady(true);
-				MSG_OUT("DBTrainingDayTable getTrainingDay SUCCESS")
+				SUCCESS_MESSAGE_WITH_STATEMENT(DECLARE_SOURCE_LOCATION PRINT_SOURCE_LOCATION)
 				mSqlLiteDB.close();
 				getTrainingDayExercises();
 				return;
 			}	
 		}
-		setResult(false, m_model, strQuery, {std::source_location::current()})
+		setResult(false, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -200,7 +200,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -260,7 +260,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 				}
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -312,7 +312,7 @@ void DBTrainingDayTable::saveTrainingDay()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setId(query.lastInsertId().toString());
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -327,7 +327,7 @@ void DBTrainingDayTable::removeTrainingDay()
 		const bool ok = query.exec(strQuery);
 		if (ok)
 			m_model->clear();
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

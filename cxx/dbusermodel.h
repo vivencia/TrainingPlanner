@@ -55,7 +55,7 @@ public:
 	inline const QString& _userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
 	inline void setUserId(const uint row, const QString& new_id) { m_modeldata[row][USER_COL_ID] = new_id; }
 
-	Q_INVOKABLE inline QString userName(const int row) const { return row < m_modeldata.count() ? _userName(row) : QString(); }
+	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString& _userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
 	Q_INVOKABLE inline void setUserName(const int row, const QString& new_name)
 	{
@@ -67,7 +67,7 @@ public:
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
-		return row < m_modeldata.count() ? QDate::fromJulianDay(_birthDate(row).toLongLong()) : QDate::currentDate();
+		return row >= 0 && row < m_modeldata.count() ? QDate::fromJulianDay(_birthDate(row).toLongLong()) : QDate::currentDate();
 	}
 	Q_INVOKABLE inline QString birthDateFancy(const int row) const
 	{
@@ -80,7 +80,7 @@ public:
 		emit userModified(row, USER_COL_BIRTHDAY);
 	}
 
-	Q_INVOKABLE inline uint sex(const int row) const { return row < m_modeldata.count() ? _sex(row).toUInt() : 2; }
+	Q_INVOKABLE inline uint sex(const int row) const { return row >= 0 && row < m_modeldata.count() ? _sex(row).toUInt() : 2; }
 	inline const QString& _sex(const uint row) const { return m_modeldata.at(row).at(USER_COL_SEX); }
 	Q_INVOKABLE void setSex(const int row, const uint new_sex)
 	{
@@ -88,7 +88,7 @@ public:
 		emit userModified(row, USER_COL_SEX);
 	}
 
-	Q_INVOKABLE inline QString phone(const int row) const { return row < m_modeldata.count() ? _phone(row) : QString(); }
+	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 && row < m_modeldata.count() ? _phone(row) : QString(); }
 	inline const QString& _phone(const uint row) const { return m_modeldata.at(row).at(USER_COL_PHONE); }
 	Q_INVOKABLE void setPhone(const int row, const QString& new_phone)
 	{
@@ -96,7 +96,7 @@ public:
 		emit userModified(row, USER_COL_PHONE);
 	}
 
-	Q_INVOKABLE inline QString email(const int row) const { return row < m_modeldata.count() ? _email(row) : QString(); }
+	Q_INVOKABLE inline QString email(const int row) const { return row >= 0 && row < m_modeldata.count() ? _email(row) : QString(); }
 	inline const QString& _email(const uint row) const { return m_modeldata.at(row).at(USER_COL_EMAIL); }
 	Q_INVOKABLE void setEmail(const int row, const QString& new_email)
 	{
@@ -106,7 +106,7 @@ public:
 
 	Q_INVOKABLE inline QString socialMedia(const int row, const int index) const
 	{
-		return row < m_modeldata.count() ?
+		return row >= 0 && row < m_modeldata.count() ?
 		appUtils()->getCompositeValue(index, _socialMedia(row), record_separator) :
 		QString();
 	}
@@ -117,7 +117,7 @@ public:
 		emit userModified(row, USER_COL_SOCIALMEDIA);
 	}
 
-	Q_INVOKABLE inline QString userRole(const int row) const { return row < m_modeldata.count() ? _userRole(row) : QString(); }
+	Q_INVOKABLE inline QString userRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userRole(row) : QString(); }
 	inline const QString& _userRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_USERROLE); }
 	Q_INVOKABLE void setUserRole(const int row, const QString& new_role)
 	{
@@ -125,7 +125,7 @@ public:
 		emit userModified(row, USER_COL_USERROLE);
 	}
 
-	Q_INVOKABLE inline QString coachRole(const int row) const { return row < m_modeldata.count() ? _coachRole(row) : QString(); }
+	Q_INVOKABLE inline QString coachRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _coachRole(row) : QString(); }
 	inline const QString& _coachRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHROLE); }
 	Q_INVOKABLE void setCoachRole(const int row, const QString& new_role)
 	{
@@ -133,7 +133,7 @@ public:
 		emit userModified(row, USER_COL_COACHROLE);
 	}
 
-	Q_INVOKABLE inline QString goal(const int row) const { return row < m_modeldata.count() ? _goal(row) : QString(); }
+	Q_INVOKABLE inline QString goal(const int row) const { return row >= 0 && row < m_modeldata.count() ? _goal(row) : QString(); }
 	inline const QString& _goal(const uint row) const { return m_modeldata.at(row).at(USER_COL_GOAL); }
 	Q_INVOKABLE void setGoal(const int row, const QString& new_goal)
 	{
@@ -141,7 +141,7 @@ public:
 		emit userModified(row, USER_COL_GOAL);
 	}
 
-	Q_INVOKABLE inline QString avatar(const int row) const { return row < m_modeldata.count() ? _avatar(row) : QString(); }
+	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 && row < m_modeldata.count() ? _avatar(row) : QString(); }
 	inline const QString& _avatar(const uint row) const { return m_modeldata.at(row).at(USER_COL_AVATAR); }
 	Q_INVOKABLE void setAvatar(const int row, const QString& new_avatar)
 	{
@@ -149,7 +149,7 @@ public:
 		emit userModified(row, USER_COL_AVATAR);
 	}
 
-	Q_INVOKABLE inline int appUseMode(const int row) const { return row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
+	Q_INVOKABLE inline int appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString& _appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
 	Q_INVOKABLE void setAppUseMode(const int row, const int new_use_opt)
 	{
@@ -157,7 +157,7 @@ public:
 		emit userModified(row, USER_COL_APP_USE_MODE);
 	}
 
-	Q_INVOKABLE inline int currentCoach(const int row) const { return row < m_modeldata.count() ? _currentCoach(row).toUInt() : -1; }
+	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentCoach(row).toUInt() : -1; }
 	inline const QString& _currentCoach(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_COACH); }
 	Q_INVOKABLE void setCurrentCoach(const int row, const int new_current_coach)
 	{
@@ -165,7 +165,7 @@ public:
 		emit userModified(row, USER_COL_CURRENT_COACH);
 	}
 
-	Q_INVOKABLE inline int currentUser(const int row) const { return row < m_modeldata.count() ? _currentUser(row).toUInt() : -1; }
+	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentUser(row).toUInt() : -1; }
 	inline const QString& _currentUser(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_USER); }
 	Q_INVOKABLE void setCurrentUser(const int row, const int new_current_user)
 	{

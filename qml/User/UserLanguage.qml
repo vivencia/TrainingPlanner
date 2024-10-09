@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import ".."
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 GridLayout {
 	columns: 2

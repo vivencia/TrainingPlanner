@@ -2,11 +2,11 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ComboBox {
-	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
 	property bool completeModel: false
 
 	id: control
@@ -15,12 +15,6 @@ ComboBox {
 	textRole: "text"
 	valueRole: "value"
 
-	FontMetrics {
-		id: fontMetrics
-		font.family: control.font.family
-		font.pointSize: AppSettings.fontSizeText
-	}
-
 	delegate: ItemDelegate {
 		id: delegate
 		width: control.width
@@ -28,14 +22,11 @@ ComboBox {
 		required property var model
 		required property int index
 
-		contentItem: Label {
+		contentItem: TPLabel {
 			//text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
 			text: delegate.model[control.textRole]
 			color: textColor
-			elide: Text.ElideRight
-			minimumPointSize: 8
-			fontSizeMode: Text.Fit
-			font.weight: Font.ExtraBold
+			singleLine: true
 			verticalAlignment: Text.AlignVCenter
 			leftPadding: completeModel ? 10 : 0
 
@@ -83,14 +74,11 @@ ComboBox {
 		}
 	}
 
-	contentItem: Label {
+	contentItem: TPLabel {
 		text: control.displayText
+		singleLine: true
 		rightPadding: control.indicator.width + control.spacing
-		color: control.enabled ? textColor : "gray"
-		font.pointSize: AppSettings.fontSizeText
-		font.weight: Font.ExtraBold
 		verticalAlignment: Text.AlignVCenter
-		elide: Text.ElideRight
 		leftPadding: completeModel ? 30 : 5
 	}
 
@@ -131,7 +119,7 @@ ComboBox {
 
 			delegate: Text {
 				text: model.key
-				color: control.highlighted ? AppSettings.primaryLightColor : textColor
+				color: control.highlighted ? appSettings.primaryLightColor : textColor
 				minimumPointSize: 8
 				fontSizeMode: Text.Fit
 				font.weight: Font.ExtraBold

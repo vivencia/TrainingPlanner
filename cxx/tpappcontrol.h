@@ -9,7 +9,6 @@ class QmlItemManager;
 class TPListModel;
 
 class QQmlApplicationEngine;
-class QSettings;
 class QQuickItem;
 
 class TPAppControl : public QObject
@@ -18,7 +17,7 @@ class TPAppControl : public QObject
 Q_OBJECT
 
 public:
-	explicit inline TPAppControl(QSettings* settings) : QObject{} { app_control = this; app_settings = settings; }
+	explicit inline TPAppControl(QObject* parent = nullptr) : QObject{nullptr} { app_control = this; }
 	void init(QQmlApplicationEngine* qml_engine);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
@@ -32,21 +31,15 @@ public:
 	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);
 	void importFromFile(const QString& filename, const int wanted_content = 0xFF);
 	void incorporateImportedData(const TPListModel* const model);
-	void populateSettingsWithDefaultValue();
 	void createItemManager();
 
 	static TPAppControl* app_control;
 	friend TPAppControl* appControl();
 
-	static QSettings* app_settings;
-	friend QSettings* appSettings();
-
 private:
-	QSettings* m_appSettings;
 	QList<QmlItemManager*> m_itemManager;
 };
 
 inline TPAppControl* appControl() { return TPAppControl::app_control; }
-inline QSettings* appSettings() { return TPAppControl::app_settings; }
 
 #endif // TPAPPCONTROL_H

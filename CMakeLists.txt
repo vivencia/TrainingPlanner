@@ -16,7 +16,7 @@ add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
 set( RESOURCE_FILES app_resources.qrc )
 
-set( SOURCES
+set( CXX_SOURCES
 	cxx/main.cpp
 	cxx/tpglobals.h
 
@@ -27,6 +27,7 @@ set( SOURCES
 	cxx/qmlitemmanager.h cxx/qmlitemmanager.cpp
 	cxx/osinterface.h cxx/osinterface.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
+	cxx/tpsettings.h cxx/tpsettings.cpp
 
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
@@ -49,7 +50,7 @@ set( SOURCES
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 )
 
-set( JAVASOURCES
+set( JAVA_SOURCES
     java/TPActivity.java
     java/QShareUtils.java
     java/QSharePathResolver.java
@@ -69,8 +70,8 @@ set( QM_FILES
     ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
 )
 
-set( QML_FILES
-    "qml/AppSettings.qml"
+set( QML_SOURCES
+    "qml/AppGlobals.qml"
     "qml/ImageViewer.qml"
     "qml/main.qml"
     "qml/VideoPlayer.qml"
@@ -119,6 +120,7 @@ set( QML_FILES
     "qml/TPWidgets/TPFloatingMenuBar.qml"
     "qml/TPWidgets/TPGroupBox.qml"
     "qml/TPWidgets/TPImportDialog.qml"
+    "qml/TPWidgets/TPLabel.qml"
     "qml/TPWidgets/TPMouseArea.qml"
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPRadioButton.qml"
@@ -138,15 +140,15 @@ set( QML_FILES
 )
 
 qt_add_resources(${RESOURCE_FILES})
-qt_add_executable(trainingplanner
-	${SOURCES}
-	${JAVASOURCES}
-	${QML_FILES}
+qt_add_executable(TrainingPlanner
+	${CXX_SOURCES}
+	${JAVA_SOURCES}
+	${QML_SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
 )
 
-target_link_libraries(trainingplanner PUBLIC
+target_link_libraries(TrainingPlanner PUBLIC
 	Qt::Core
 	Qt::Gui
 	Qt::Multimedia
@@ -164,10 +166,10 @@ set(trainingplanner_resource_files
 	"images/no_image.jpg"
 	"app_resources.qrc"
 	"qml/qmldir"
-	${QML_FILES}
+	${QML_SOURCES}
 )
 
-qt_add_resources(trainingplanner "trainingplanner" images.qrc sounds.qrc
+qt_add_resources(TrainingPlanner "TrainingPlanner"
 	PREFIX
 	    "/"
 	FILES
@@ -189,7 +191,7 @@ set(QML_IMPORT_PATH
     ${QML_DIRS}
 )
 
-#qt_add_qml_module(trainingplanner
+#qt_add_qml_module(TrainingPlanner
 #    URI "Graph"
 #    VERSION 1.0
 #    QML_FILES
@@ -204,7 +206,7 @@ set(QML_IMPORT_PATH
 #    qml/qmldir
 #)
 
-install(TARGETS trainingplanner
+install(TARGETS TrainingPlanner
 	RUNTIME DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
 	BUNDLE DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
 	LIBRARY DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -212,6 +214,6 @@ install(TARGETS trainingplanner
 
 set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
-set_property(TARGET trainingplanner APPEND PROPERTY
+set_property(TARGET TrainingPlanner APPEND PROPERTY
     QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
 )

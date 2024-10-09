@@ -4,11 +4,11 @@
 
 static const uint avatarWidth(140);
 static const uint avatarHeight(140);
-static const QString avatarsFile(u":/images/avatars.png"_qs);
+static const QString& avatarsFile(u":/images/avatars.png"_qs);
 TPImageProvider* TPImageProvider::mtpImageProvider(nullptr);
 
 TPImageProvider::TPImageProvider()
-	: QQuickImageProvider(QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading)
+	: QQuickImageProvider{QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading}
 {
 	mAllAvatars.load(avatarsFile);
 	mtpImageProvider = this;
@@ -25,7 +25,7 @@ QImage TPImageProvider::requestImage(const QString& strid, QSize* size, const QS
 
 QImage TPImageProvider::getAvatar(const QString& imagePath)
 {
-	const QString avatarId(imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1));
+	const QString& avatarId(imagePath.last(imagePath.length() - imagePath.lastIndexOf('/') - 1));
 	bool bOK(false);
 	const int id(avatarId.last(avatarId.length() - 1).toUInt(&bOK));
 	return bOK ? getAvatar(id, avatarId.first(1)) : QImage();

@@ -81,7 +81,7 @@ void DBMesoSplitTable::createTable()
 										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_qs);
 
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -112,7 +112,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -154,7 +154,7 @@ void DBMesoSplitTable::saveMesoSplit()
 			if (!bUpdate)
 				m_model->setId(row, query.lastInsertId().toString());
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -204,7 +204,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 			}
 		}
 		m_model->setSplitLetter(splitLetter); //set the main property right away
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	if (bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -267,7 +267,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setId(0, query.lastInsertId().toString()); //Not used -yet-. But might be, someday. Anyway, it costs nothings
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -286,7 +286,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 			if (ok)
 				ok = query.value(0).toString().length() > 0;
 		}
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 	return ok;
 }

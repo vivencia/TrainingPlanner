@@ -1,5 +1,5 @@
 #include "dbinterface.h"
-#include "tpappcontrol.h"
+#include "tpsettings.h"
 #include "tputils.h"
 
 #include "dbexercisestable.h"
@@ -30,7 +30,10 @@ void DBInterface::init()
 	m_DBFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_qs;
 	QDir appDir(m_DBFilePath);
 	if (!appDir.mkpath(m_DBFilePath))
-		MSG_OUT("TP directory creation failed: " << m_DBFilePath);
+	{
+		DECLARE_SOURCE_LOCATION
+		ERROR_MESSAGE("TP directory creation failed: ", m_DBFilePath);
+	}
 
 	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
 
@@ -39,7 +42,7 @@ void DBInterface::init()
 		DBExercisesTable* db_exercises(new DBExercisesTable(m_DBFilePath));
 		db_exercises->createTable();
 		delete db_exercises;
-		appSettings()->setValue("exercisesListVersion", STR_ZERO);
+		appSettings()->setExercisesListVersion(STR_ZERO);
 	}
 	f_info.setFile(m_DBFilePath + DBMesocyclesFileName);
 	if (!f_info.isReadable())
@@ -82,14 +85,14 @@ void DBInterface::init()
 	appMesoModel()->setUserModel(appUserModel());
 	getAllMesocycles();
 
-	if (appSettings()->value("appVersion") != TP_APP_VERSION)
+	if (appSettings()->appVersion() != TP_APP_VERSION)
 	{
 		//All update code goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath));
 		//updateDB(new DBMesocyclesTable(m_DBFilePath));
 		//DBUserTable user(m_DBFilePath);
 		//user.removeDBFile();
-		appSettings()->setValue("appVersion", TP_APP_VERSION);
+		appSettings()->setAppVersion(TP_APP_VERSION);
 	}
 }
 
@@ -99,12 +102,12 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	dbObj->setResolved(true);
 	if (dbObj->waitForThreadToFinish())
 		dbObj->thread()->quit();
-	MSG_OUT("Database  " << dbObjName << " - " << dbObj->uniqueID() << " calling databaseReady()")
+	LOG_MESSAGE("Database  " << dbObjName << " - " << dbObj->uniqueID() << " calling databaseReady()")
 	emit databaseReady(dbObj->uniqueID());
 	if (m_WorkerLock[dbObj->tableID()].hasNext())
 	{
 		const TPDatabaseTable* const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
-		MSG_OUT("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
+		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
 			nextDbObj->thread()->wait();
@@ -127,7 +130,7 @@ void DBInterface::createThread(TPDatabaseTable* worker, const std::function<void
 
 	if (!m_threadCleaner.isActive())
 	{
-		MSG_OUT("Connecting timer")
+		LOG_MESSAGE("Connecting timer")
 		m_threadCleaner.setInterval(60000);
 		connect(&m_threadCleaner, &QTimer::timeout, this, [this] { cleanUpThreads(); });
 		m_threadCleaner.start();
@@ -136,13 +139,13 @@ void DBInterface::createThread(TPDatabaseTable* worker, const std::function<void
 	m_WorkerLock[worker->tableID()].appendObj(worker);
 	if (m_WorkerLock[worker->tableID()].canStartThread())
 	{
-		MSG_OUT("Database  " << worker->objectName() << " -  " << worker->uniqueID() << " starting immediatelly")
+		LOG_MESSAGE("Database  " << worker->objectName() << " -  " << worker->uniqueID() << " starting immediatelly")
 		thread->start();
 		if (worker->waitForThreadToFinish())
 			thread->wait();
 	}
 	else
-		MSG_OUT("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
+		LOG_MESSAGE("Database  " << worker->objectName() << "  Waiting for it to be free: " << worker->uniqueID())
 }
 
 void DBInterface::cleanUpThreads()
@@ -157,7 +160,7 @@ void DBInterface::cleanUpThreads()
 			dbObj = m_WorkerLock[x].at(i);
 			if (dbObj->resolved())
 			{
-				MSG_OUT("cleanUpThreads: " << dbObj->objectName() << "uniqueID: " << dbObj->uniqueID());
+				LOG_MESSAGE("cleanUpThreads: " << dbObj->objectName() << "uniqueID: " << dbObj->uniqueID());
 				dbObj->disconnect();
 				dbObj->deleteLater();
 				m_WorkerLock[x].removeAt(i);
@@ -167,7 +170,7 @@ void DBInterface::cleanUpThreads()
 	}
 	if (locks_empty)
 	{
-		MSG_OUT("Disconnecting timer")
+		LOG_MESSAGE("Disconnecting timer")
 		m_threadCleaner.stop();
 		m_threadCleaner.disconnect();
 		disconnect(this, &DBInterface::databaseReady, this, nullptr);
@@ -239,7 +242,7 @@ void DBInterface::updateExercisesList()
 {
 	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
 	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [this] () {
-		appSettings()->setValue("exercisesListVersion", m_exercisesListVersion);
+		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});
 	createThread(worker, [worker] () { return worker->updateExercisesList(); });
 }
@@ -261,7 +264,7 @@ void DBInterface::getExercisesListVersion()
 				m_exercisesListVersion = line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
-		if (m_exercisesListVersion != appSettings()->value("exercisesListVersion").toString())
+		if (m_exercisesListVersion != appSettings()->exercisesListVersion())
 			updateExercisesList();
 	}
 }
@@ -377,7 +380,7 @@ void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoS
 			worker->addExecArg(*itr);
 			auto conn = std::make_shared<QMetaObject::Connection>();
 			*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
-				MSG_OUT("loadCompleteMesoSplits received databaseReady() " << db_id)
+				LOG_MESSAGE("loadCompleteMesoSplits received databaseReady() " << db_id)
 				if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 				{
 					disconnect(*conn);

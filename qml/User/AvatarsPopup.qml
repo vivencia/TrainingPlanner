@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtCore
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../TPWidgets"
 import ".."
@@ -11,26 +11,23 @@ import ".."
 TPPopup {
 	id: avatarsDlg
 	bKeepAbove: false
-	width: windowWidth
-	height: (repeater.bMale ? 2*windowWidth/5 : 3*windowWidth/5) + 30
+	width: appSettings.pageWidth
+	height: (repeater.bMale ? 2*appSettings.pageWidth/5 : 3*appSettings.pageWidth/5) + 30
 	x: 0
-	finalYPos: (windowHeight-height)/2;
+	finalYPos: (appSettings.pageHeight-height)/2;
 
 	required property int userRow
 	required property Item callerWidget
 
 	Rectangle {
 		id: footerBar
-		width: windowWidth
+		width: appSettings.pageWidth
 		height: 30
 		color: "transparent"
 
-		Label {
+		TPLabel {
 			id: lblChooseImage
 			text: qsTr("Choose another image...")
-			color: AppSettings.fontColor
-			font.pointSize: AppSettings.fontSizeText
-			font.bold: true
 			height: 25
 			topPadding: 5
 			leftPadding: 10
@@ -72,7 +69,7 @@ TPPopup {
 		readonly property string strSex: bMale ? "m" : "f"
 
 		delegate: Rectangle {
-			width: windowWidth/5
+			width: appSettings.pageWidth/5
 			height: width
 			border.color: "black"
 			border.width: 2

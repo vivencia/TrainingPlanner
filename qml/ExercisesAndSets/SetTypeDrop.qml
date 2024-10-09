@@ -6,7 +6,7 @@ import QtQuick.Effects
 import "../"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	id: setItem
@@ -53,7 +53,7 @@ Item {
 	Rectangle {
 		id: indicatorRec
 		visible: false
-		color: AppSettings.entrySelectedColor
+		color: appSettings.entrySelectedColor
 		layer.enabled: true
 		radius: 5
 		border.color: "#707d8d"
@@ -122,7 +122,7 @@ Item {
 				id: cboSetType
 				currentIndex: setType
 				enabled: !setCompleted
-				model: AppSettings.setTypesModel
+				model: AppGlobals.setTypesModel
 				implicitWidth: 160
 
 				anchors {

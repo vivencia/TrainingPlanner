@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../"
 import "../Dialogs"
@@ -31,10 +31,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -67,12 +67,10 @@ TPPage {
 			anchors.fill: parent
 			spacing: 5
 
-			Label {
+			TPLabel {
 				text: mesocyclesModel.columnLabel(1)
-				font.bold: true
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
-				color: AppSettings.fontColor
 			}
 			TPTextInput {
 				id: txtMesoName
@@ -110,23 +108,15 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
-				Label {
+				TPLabel {
 					id: lblCoaches
 					text: mesocyclesModel.columnLabel(7)
-					font.bold: true
-					color: AppSettings.fontColor
-					width: windowWidth/2 - 10
-
-					FontMetrics {
-						id: fontMetrics
-						font.family: lblCoaches.font.family
-						font.pointSize: AppSettings.fontSizeText
-					}
+					width: appSettings.pageWidth/2 - 10
 				}
 
 				TPComboBox {
 					id: cboCoaches
-					implicitWidth: windowWidth/2
+					implicitWidth: appSettings.pageWidth/2
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -178,23 +168,14 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
-				Label {
+				TPLabel {
 					id: lblClients
 					text: mesocyclesModel.columnLabel(8)
-					font.bold: true
-					color: AppSettings.fontColor
-					width: fontMetrics2.boundingRect(text).width
-
-					FontMetrics {
-						id: fontMetrics2
-						font.family: lblClients.font.family
-						font.pointSize: AppSettings.fontSizeText
-					}
 				}
 
 				TPComboBox {
 					id: cboClients
-					implicitWidth: windowWidth*0.6
+					implicitWidth: appSettings.pageWidth*0.6
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -233,10 +214,8 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
-				Label {
+				TPLabel {
 					text: mesocyclesModel.columnLabel(10)
-					font.bold: true
-					color: AppSettings.fontColor
 					width: (parent.width - 20)*0.2
 				}
 
@@ -286,12 +265,10 @@ TPPage {
 			}
 
 
-			Label {
+			TPLabel {
 				text: qsTr("Instructions file")
-				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				color: AppSettings.fontColor
 			}
 
 			RowLayout {
@@ -342,12 +319,10 @@ TPPage {
 				}
 			}
 
-			Label {
+			TPLabel {
 				text: mesocyclesModel.columnLabel(2)
-				font.bold: true
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				color: AppSettings.fontColor
 			}
 
 			TPTextInput {
@@ -395,10 +370,8 @@ TPPage {
 				}
 			}
 
-			Label {
+			TPLabel {
 				text: mesocyclesModel.columnLabel(3)
-				font.bold: true
-				color: AppSettings.fontColor
 				visible: bRealMeso
 				Layout.leftMargin: 5
 			}
@@ -434,11 +407,9 @@ TPPage {
 				}
 			}
 
-			Label {
+			TPLabel {
 				id: lblnWeeks
 				text: mesocyclesModel.columnLabel(5)
-				font.bold: true
-				color: AppSettings.fontColor
 				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -462,10 +433,8 @@ TPPage {
 				Layout.leftMargin: 0
 			}
 
-			Label {
+			TPLabel {
 				text: mesocyclesModel.columnLabel(4)
-				font.bold: true
-				color: AppSettings.fontColor
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -480,13 +449,13 @@ TPPage {
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
 					text: mesocyclesModel.notes(itemManager.mesoIdx)
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 
 					background: Rectangle {
-						color: AppSettings.primaryColor
+						color: appSettings.primaryColor
 						opacity: 0.8
 						radius: 6
-						border.color: AppSettings.fontColor
+						border.color: appSettings.fontColor
 					}
 
 					onEditingFinished: mesocyclesModel.setNotes(itemManager.mesoIdx, text);

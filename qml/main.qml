@@ -3,7 +3,7 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "Dialogs"
 import "Pages"
@@ -18,12 +18,7 @@ ApplicationWindow {
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
-	readonly property string lightIconFolder: "white/"
-	readonly property string darkIconFolder: "black/"
-	readonly property int windowWidth: width
-	readonly property int windowHeight: contentItem.height
-
-	property bool bBackButtonEnabled: AppSettings.mainUserConfigured
+	property bool bBackButtonEnabled: appSettings.mainUserConfigured
 	property bool bCanHaveTodaysWorkout: false
 	property int backKey
 
@@ -53,7 +48,7 @@ ApplicationWindow {
 		id: navBar
 
 		background: Rectangle {
-			color: AppSettings.primaryDarkColor
+			color: appSettings.primaryDarkColor
 			opacity: 0.7
 		}
 	}
@@ -73,6 +68,7 @@ ApplicationWindow {
 
 		HomePage {
 			id: homePage
+			objectName: "homePage"
 		}
 
 		StackView {

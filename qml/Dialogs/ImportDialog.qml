@@ -4,20 +4,20 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: importDlg
 	modal: true
-	width: windowWidth * 0.9
+	width: appSettings.pageWidth * 0.9
 	height: totalHeight + 20
 
 	property QmlItemManager itemManager
 	property var importOptions: []
 	property var selectedFields: []
 
-	property string backColor: AppSettings.primaryColor
-	property string textColor: AppSettings.fontColor
+	property string backColor: appSettings.primaryColor
+	property string textColor: appSettings.fontColor
 	property int totalHeight: 0
 
 	TPButton {
@@ -36,16 +36,12 @@ TPPopup {
 		onClicked: close();
 	}
 
-	Label {
+	TPLabel {
 		id: lblTitle
 		text: qsTr("Try to import?")
 		color: textColor
 		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignHCenter
-		font.pointSize: AppSettings.fontSize
-		font.weight: Font.Black
-		height: 30
-		padding: 0
 
 		anchors {
 			top: parent.top
@@ -58,7 +54,7 @@ TPPopup {
 
 	TPImage {
 		id: importImg
-		source: AppSettings.iconFolder+"import.png"
+		source: appSettings.iconFolder+"import.png"
 		width: 50
 		height: 50
 
@@ -142,16 +138,16 @@ TPPopup {
 	}
 
 	function show(ypos) {
-		importDlg.x = (windowWidth - importDlg.width)/2;
+		importDlg.x = (appSettings.pageWidth - importDlg.width)/2;
 
 		if (ypos < 0)
-			ypos = (windowHeight-importDlg.height)/2;
+			ypos = (appSettings.pageHeight-importDlg.height)/2;
 
 		finalYPos = ypos;
-		if (ypos <= windowHeight/2)
+		if (ypos <= appSettings.pageHeight/2)
 			startYPos = -300;
 		else
-			startYPos = windowHeight + 300;
+			startYPos = appSettings.pageHeight + 300;
 
 		importDlg.open();
 	}

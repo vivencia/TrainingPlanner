@@ -2,16 +2,30 @@
 #define TPGLOBALS_H
 
 #include <QString>
-#ifdef DEBUG
-#include <QDebug>
-#endif
 
 static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
 
 #ifndef QT_NO_DEBUG
-#define MSG_OUT(message) qDebug() << message;
+#include <QDebug>
+#include <source_location>
+#define SOURCE_LOCATION {std::source_location::current()}
+#define DECLARE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
+#define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << u"::"_qs << location.function_name() << u"::"_qs << location.line();
+#define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_qs; qDebug() << message << message2; \
+			qDebug() << u"******SUCCESS******"_qs; qDebug() << ' '; }
+#define SUCCESS_MESSAGE_WITH_STATEMENT(statement) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_qs; \
+			statement; qDebug() << u"******SUCCESS******"_qs; qDebug() << ' '; }
+#define ERROR_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******ERROR******"_qs; \
+			PRINT_SOURCE_LOCATION; qDebug() << message1 << message2; qDebug() << u"******ERROR******"_qs; qDebug() << ' '; }
+#define LOG_MESSAGE(message) qDebug() << message;
 #else
-#define MSG_OUT(message)
+#define SOURCE_LOCATION
+#define DECLARE_SOURCE_LOCATION
+#define PRINT_SOURCE_LOCATION
+#define SUCCESS_MESSAGE(message1, message2)
+#define SUCCESS_MESSAGE_WITH_STATEMENT(statement)
+#define ERROR_MESSAGE(message1, message2)
+#define LOG_MESSAGE(message)
 #endif
 
 static const QLatin1Char record_separator(28);
@@ -42,6 +56,18 @@ static const QString& STR_ZERO(u"0"_qs);
 static const QString& STR_ONE(u"1"_qs);
 static const QString& STR_END_EXPORT(u"####\n\n"_qs);
 
+#ifdef Q_OS_ANDROID
+static const QString& FONT_POINT_SIZE(u"18"_qs);
+static const QString& FONT_POINT_SIZE_LISTS(u"14"_qs);
+static const QString& FONT_POINT_SIZE_TEXT(u"16"_qs);
+static const QString& FONT_POINT_SIZE_TITLE(u"23"_qs);
+#else
+static const QString& FONT_POINT_SIZE(u"12"_qs);
+static const QString& FONT_POINT_SIZE_LISTS(u"8"_qs);
+static const QString& FONT_POINT_SIZE_TEXT(u"10"_qs);
+static const QString& FONT_POINT_SIZE_TITLE(u"18"_qs);
+#endif
+
 enum {
 	IFC_USER = 0x01,
 	IFC_MESO = 0x02,
@@ -67,19 +93,6 @@ enum {
 #define APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED -10
 #define APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE -11
 #define APPWINDOW_MSG_UNKNOWN_ERROR -100
-
-#ifdef Q_OS_ANDROID
-	#define FONT_POINT_SIZE 15
-	#define FONT_POINT_SIZE_LISTS 11
-	#define FONT_POINT_SIZE_TEXT 13
-	#define FONT_POINT_SIZE_TITLE 20
-#else
-	#define FONT_POINT_SIZE 12
-	#define FONT_POINT_SIZE_LISTS 8
-	#define FONT_POINT_SIZE_TEXT 10
-	#define FONT_POINT_SIZE_TITLE 18
-#endif
-
 
 #define SET_TYPE_REGULAR 0
 #define SET_TYPE_PYRAMID 1

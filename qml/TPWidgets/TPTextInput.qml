@@ -4,13 +4,13 @@ import QtQuick.Controls
 import "../"
 
 TextField {
-	property string textColor: AppSettings.fontColor
-	property string backgroundColor: AppSettings.primaryDarkColor
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
 
 	id: control
-	font.pointSize: AppSettings.fontSizeText
+	font.pointSize: appSettings.fontSizeText
 	font.weight: Font.Bold //Font.ExtraBold
-	color: enabled ? textColor : AppSettings.disabledFontColor
+	color: enabled ? textColor : appSettings.disabledFontColor
 	leftInset: 0
 	rightInset: 0
 	topInset: 0
@@ -20,16 +20,10 @@ TextField {
 	bottomPadding: 0
 	rightPadding: 5
 	placeholderTextColor: "gray"
-	implicitWidth: fontMetrics.boundingRect("LorenIpsuM").width + 15
-	implicitHeight: fontMetrics.boundingRect("LorenIpsuM").height + 10
+	implicitWidth: AppGlobals.fontMetricsText.boundingRect(text).width + 5
+	implicitHeight: AppGlobals.fontMetricsText.boundingRect("TM").height + 5
 
 	signal enterOrReturnKeyPressed()
-
-	FontMetrics {
-		id: fontMetrics
-		font.family: control.font.family
-		font.pointSize: AppSettings.fontSizeText
-	}
 
 	MouseArea {
 		anchors.fill: parent

@@ -9,7 +9,7 @@ import "../Dialogs"
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: trainingDayPage
@@ -146,7 +146,7 @@ TPPage {
 
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
-		if (!AppSettings.alwaysAskConfirmation) {
+		if (!appSettings.alwaysAskConfirmation) {
 			itemManager.removeExerciseObject(exerciseidx);
 			return;
 		}
@@ -174,7 +174,7 @@ TPPage {
 
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
-		if (!AppSettings.alwaysAskConfirmation) {
+		if (!appSettings.alwaysAskConfirmation) {
 			itemManager.removeSetObject(setnumber, exerciseidx);
 			return;
 		}
@@ -317,15 +317,13 @@ TPPage {
 				right: parent.right
 			}
 
-			Label {
+			TPLabel {
 				id: lblHeader
+				text: headerText
+				font: AppGlobals.titleFont
 				topPadding: 15
 				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
-				wrapMode: Text.WordWrap
-				text: headerText
-				font.pointSize: AppSettings.fontSizeTitle
-				color: AppSettings.fontColor
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 10
@@ -336,11 +334,8 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
 
-				Label {
+				TPLabel {
 					text: qsTr("Training Division:")
-					color: AppSettings.fontColor
-					font.pointSize: AppSettings.fontSizeText
-					font.bold: true
 				}
 
 				TPComboBox {
@@ -365,11 +360,8 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
 
-				Label {
+				TPLabel {
 					text: qsTr("Location:")
-					color: AppSettings.fontColor
-					font.pointSize: AppSettings.fontSizeText
-					font.bold: true
 					visible: txtLocation.visible
 					Layout.row: 1
 					Layout.column: 0
@@ -398,7 +390,7 @@ TPPage {
 				Layout.rightMargin: 5
 
 				background: Rectangle {
-					border.color: AppSettings.fontColor
+					border.color: appSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -448,11 +440,8 @@ TPPage {
 						}
 					} //RowLayout
 
-					Label {
+					TPLabel {
 						id: lblInTime
-						color: AppSettings.fontColor
-						font.pointSize: AppSettings.fontSizeText
-						font.bold: true
 						text: qsTr("In time:")
 						bottomPadding: 15
 						Layout.fillWidth: true
@@ -486,11 +475,8 @@ TPPage {
 						}
 					} //Label
 
-					Label {
+					TPLabel {
 						id: lblOutTime
-						color: AppSettings.fontColor
-						font.pointSize: AppSettings.fontSizeText
-						font.bold: true
 						text: qsTr("Out time:")
 						bottomPadding: 10
 						Layout.fillWidth: true
@@ -532,7 +518,7 @@ TPPage {
 				text: tDayModel.dayNotes()
 				readOnly: tDayModel.dayIsEditable//!tDayModel.dayIsFinished
 				visible: tDayModel.splitLetter !== "R"
-				foreColor: AppSettings.fontColor
+				foreColor: appSettings.fontColor
 				Layout.leftMargin: 5
 
 				onEditFinished: (new_text) => tDayModel.setDayNotes(new_text);
@@ -557,14 +543,12 @@ TPPage {
 				}
 			}
 
-			Label {
+			TPLabel {
 				id: lblExercisesStart
 				text: qsTr("--- EXERCISES ---")
+				font: AppGlobals.titleFont
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
-				color: AppSettings.fontColor
-				font.weight: Font.Black
-				font.pointSize: AppSettings.fontSizeTitle
 				visible: tDayModel.splitLetter !== "R"
 				height: 40
 				Layout.bottomMargin: 10
@@ -575,10 +559,10 @@ TPPage {
 				background: Rectangle {
 					gradient: Gradient {
 						orientation: Gradient.Horizontal
-						GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-						GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-						GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-						GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+						GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+						GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+						GradientStop { position: 0.50; color: appSettings.primaryColor; }
+						GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 					}
 					opacity: 0.8
 				}
@@ -697,10 +681,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -717,11 +701,8 @@ TPPage {
 				rightMargin: 5
 			}
 
-			Label {
+			TPLabel {
 				text: !tDayModel.dayIsFinished ? qsTr("Workout:") : qsTr("Workout session length: ")
-				color: AppSettings.fontColor
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeText
 			}
 
 			TPButton {
@@ -749,7 +730,7 @@ TPPage {
 				antialiasing: true
 				width: spinnerLayout.width
 				height: 35
-				color: AppSettings.primaryColor
+				color: appSettings.primaryColor
 
 				RowLayout {
 					id: spinnerLayout
@@ -760,14 +741,14 @@ TPPage {
 						max: 24
 						value: workoutTimer.hours
 					}
-					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
+					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 					TPDigitalClock {
 						id: minsClock
 						max: 60
 						value: workoutTimer.minutes
 					}
-					Rectangle { color : AppSettings.fontColor; width: 2; height: 35 }
+					Rectangle { color : appSettings.fontColor; width: 2; height: 35 }
 
 					TPDigitalClock {
 						id: secsClock
@@ -799,7 +780,7 @@ TPPage {
 		TPButton {
 			id: btnFinishedDayOptions
 			imageSource: "menu.png"
-			backgroundColor: AppSettings.primaryDarkColor
+			backgroundColor: appSettings.primaryDarkColor
 			rounded: false
 			flat: false
 			fixedSize: true

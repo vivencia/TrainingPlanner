@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -29,12 +29,9 @@ Frame {
 	readonly property int controlsHeight: 30
 	readonly property int minimumHeight: nControls*controlsHeight
 
-	Label {
+	TPLabel {
 		id: lblPhone
 		text: userModel.columnLabel(4)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
 
 		anchors {
@@ -125,12 +122,9 @@ Frame {
 		onClicked: osInterface.startChatApp(userModel.phone(userRow), "Telegram");
 	}
 
-	Label {
+	TPLabel {
 		id: lblEmail
 		text: userModel.columnLabel(5)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
 
 		anchors {
@@ -200,14 +194,10 @@ Frame {
 		onClicked: osInterface.sendMail(txtEmail.text, "", "");
 	}
 
-	Label {
+	TPLabel {
 		id: lblSocial
 		text: userModel.columnLabel(6)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
 
 		anchors {
 			top: txtEmail.bottom

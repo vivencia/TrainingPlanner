@@ -55,13 +55,13 @@ void OSInterface::aboutToExit()
 #ifdef Q_OS_ANDROID
 void OSInterface::checkPendingIntents() const
 {
-	const QJniObject activity = QNativeInterface::QAndroidApplication::context();
+	const QJniObject& activity = QNativeInterface::QAndroidApplication::context();
 	if(activity.isValid())
 	{
 		activity.callMethod<void>("checkPendingIntents","()V");
 		return;
 	}
-	MSG_OUT("checkPendingIntents: Activity not valid")
+	ERROR_MESSAGE("Activity not valid", QString())
 }
 
 /*
@@ -83,7 +83,7 @@ bool OSInterface::sendFile(const QString& filePath, const QString& title, const 
 													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId);
 	if(!ok)
 	{
-		MSG_OUT("Unable to resolve activity from Java")
+		ERROR_MESSAGE("Unable to resolve activity from Java", QString())
 		return false;
 	}
 	return true;
@@ -103,7 +103,7 @@ void OSInterface::androidOpenURL(const QString& address) const
 													"(Ljava/lang/String;)Z",
 													jsPath.object<jstring>());
 	if(!ok)
-		MSG_OUT("Unable to open the address: " << address)
+		ERROR_MESSAGE("Unable to open the address: ", address)
 }
 
 bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
@@ -128,11 +128,8 @@ bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 													"(Ljava/lang/String;Ljava/lang/String;)Z",
 													jsPath.object<jstring>(), jsTitle.object<jstring>());
 	if(!ok)
-	{
-		MSG_OUT("Unable to resolve view activity from Java")
-		return false;
-	}
-	return true;
+		ERROR_MESSAGE("Unable to resolve view activity from Java", QString())
+	return ok;
 }
 
 void OSInterface::appStartUpNotifications()
@@ -175,7 +172,7 @@ void OSInterface::setFileUrlReceived(const QString& url) const
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
-		MSG_OUT("setFileUrlReceived: FILE does NOT exist ")
+		ERROR_MESSAGE("FILE does NOT exist ", url)
 }
 
 void OSInterface::setFileReceivedAndSaved(const QString& url) const
@@ -184,18 +181,18 @@ void OSInterface::setFileReceivedAndSaved(const QString& url) const
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
-		MSG_OUT("setFileReceivedAndSaved: FILE does NOT exist ")
+		ERROR_MESSAGE("FILE does NOT exist ", url)
 }
 
 void OSInterface::onActivityResult(int requestCode, int resultCode)
 {
 	// we're getting RESULT_OK only if edit is done
 	if (resultCode == -1)
-		MSG_OUT("Send Activity Result OK")
+		LOG_MESSAGE("Send Activity Result OK")
 	else if (resultCode == 0)
-		MSG_OUT("Send Activity Result Canceled")
+		LOG_MESSAGE("Send Activity Result Canceled")
 	else
-		MSG_OUT("Send Activity wrong result code: " << resultCode << " from request: " << requestCode)
+		LOG_MESSAGE("Send Activity wrong result code: " << resultCode << " from request: " << requestCode)
 	emit activityFinishedResult(requestCode, resultCode);
 }
 

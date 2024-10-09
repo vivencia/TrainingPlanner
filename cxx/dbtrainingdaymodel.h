@@ -59,7 +59,7 @@ public:
 	const QString formatSetTypeToExport(const QString& fieldValue) const;
 	const QString formatSetTypeToImport(const QString& fieldValue) const;
 
-	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(STR_MINUS_ONE); }
+	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;

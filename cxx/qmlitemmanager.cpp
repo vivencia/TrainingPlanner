@@ -1,5 +1,6 @@
 #include "qmlitemmanager.h"
 #include "tpappcontrol.h"
+#include "tpsettings.h"
 #include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
@@ -143,38 +144,35 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 		return;
 	app_qml_engine = qml_engine;
 
-	QQuickStyle::setStyle(appSettings()->value("themeStyle").toString());
+	QQuickStyle::setStyle(appSettings()->themeStyle());
 
-	qmlRegisterType<DBUserModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBUserModel");
-	qmlRegisterType<DBExercisesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBExercisesModel");
-	qmlRegisterType<DBMesocyclesModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesocyclesModel");
-	qmlRegisterType<DBMesoSplitModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoSplitModel");
-	qmlRegisterType<DBMesoCalendarModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBMesoCalendarModel");
-	qmlRegisterType<DBTrainingDayModel>("com.vivenciasoftware.qmlcomponents", 1, 0, "DBTrainingDayModel");
-	qmlRegisterType<QmlItemManager>("com.vivenciasoftware.qmlcomponents", 1, 0, "QmlItemManager");
-	qmlRegisterType<TPTimer>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPTimer");
-	qmlRegisterType<TPImage>("com.vivenciasoftware.qmlcomponents", 1, 0, "TPImage");
+	qmlRegisterType<DBUserModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBUserModel");
+	qmlRegisterType<DBExercisesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBExercisesModel");
+	qmlRegisterType<DBMesocyclesModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesocyclesModel");
+	qmlRegisterType<DBMesoSplitModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoSplitModel");
+	qmlRegisterType<DBMesoCalendarModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBMesoCalendarModel");
+	qmlRegisterType<DBTrainingDayModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "DBTrainingDayModel");
+	qmlRegisterType<QmlItemManager>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "QmlItemManager");
+	qmlRegisterType<TPTimer>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPTimer");
+	qmlRegisterType<TPImage>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TPImage");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(11);
-	properties[0] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
-	properties[1] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
-	properties[2] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
-	properties[3] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
-	properties[4] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
-	properties[5] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
-	properties[6] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
-	properties[7] = QQmlContext::PropertyPair{ u"lightIconFolder"_qs, u"white/"_qs };
-	properties[8] = QQmlContext::PropertyPair{ u"darkIconFolder"_qs, u"black/"_qs };
-	properties[9] = QQmlContext::PropertyPair{ u"listEntryColor1"_qs, QVariant(QColor(220, 227, 240)) };
-	properties[10] = QQmlContext::PropertyPair{ u"listEntryColor2"_qs, QVariant(QColor(195, 202, 213)) };
+	QList<QQmlContext::PropertyPair> properties(8);
+	properties[0] = QQmlContext::PropertyPair{ u"appSettings"_qs, QVariant::fromValue(appSettings()) };
+	properties[1] = QQmlContext::PropertyPair{ u"appControl"_qs, QVariant::fromValue(appControl()) };
+	properties[2] = QQmlContext::PropertyPair{ u"osInterface"_qs, QVariant::fromValue(appOsInterface()) };
+	properties[3] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
+	properties[4] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
+	properties[5] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
+	properties[6] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
+	properties[7] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl& url(u"qrc:/qml/main.qml"_qs);
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (QObject* obj, const QUrl& objUrl) {
 		if (!obj && url == objUrl)
 		{
-			MSG_OUT("*******************Mainwindow not loaded*******************")
+			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
 			QCoreApplication::exit(-1);
 		}
 	});
@@ -185,16 +183,9 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	app_MainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 	connect(appMainWindow(), SIGNAL(openFileChosen(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
 	connect(appMainWindow(), SIGNAL(openFileRejected(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_qs, QVariant::fromValue(appMainWindow()));
 
-	app_StackView = appMainWindow()->findChild<QQuickItem*>(u"appStackView"_qs);
-	const QQuickItem* const contentItem(app_StackView->parentItem());
-	properties.clear();
-	properties.append(QQmlContext::PropertyPair{ u"mainwindow"_qs, QVariant::fromValue(appMainWindow()) });
-	properties.append(QQmlContext::PropertyPair{ u"windowHeight"_qs, contentItem->height() }); //mainwindow.height - header.height
-	properties.append(QQmlContext::PropertyPair{ u"windowWidth"_qs, contentItem->width() });
-	appQmlEngine()->rootContext()->setContextProperties(properties);
-
-	if (!appSettings()->value("mainUserConfigured").toBool())
+	if (!appSettings()->mainUserConfigured())
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
 	else
 	{
@@ -206,7 +197,7 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 		appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
 	});
 	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
-		appSettings()->setValue("mainUserConfigured", true);
+		appSettings()->setMainUserConfigured(true);
 		appOsInterface()->initialCheck();
 	});
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {

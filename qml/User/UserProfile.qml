@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -58,23 +58,16 @@ Frame {
 		bCoachRoleOK = userModel.coachRole(userRow).length > 1;
 	}
 
-	Label {
+	TPLabel {
 		id: lblUserRole
 		text: userModel.columnLabel(7)
-		color: AppSettings.fontColor
 		visible: userModel.appUseMode(userRow) !== 2
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		bottomPadding: 0
 		width: parent.width*0.20
 
 		anchors {
 			top: parent.top
-			topMargin: 5
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -109,18 +102,11 @@ Frame {
 		}
 	}
 
-	Label {
+	TPLabel {
 		id: lblGoal
 		text: userModel.columnLabel(9)
 		visible: userModel.appUseMode(userRow) !== 2
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		bottomPadding: 0
 		width: parent.width*0.20
 
 		anchors {
@@ -173,18 +159,11 @@ Frame {
 		}
 	}
 
-	Label {
+	TPLabel {
 		id: lblCoachRole
 		text: userModel.columnLabel(8)
-		color: AppSettings.fontColor
 		visible: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		bottomPadding: 0
 		width: parent.width*0.15
 
 		anchors {
@@ -224,13 +203,10 @@ Frame {
 		}
 	}
 
-	Label {
+	TPLabel {
 		id: lblAvatar
 		text: userModel.columnLabel(10)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
-		padding: 0
+		color: appSettings.fontColor
 		height: controlsHeight
 		width: parent.width*0.2
 

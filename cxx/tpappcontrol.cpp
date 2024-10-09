@@ -14,11 +14,9 @@
 #include <QSettings>
 
 TPAppControl* TPAppControl::app_control(nullptr);
-QSettings* TPAppControl::app_settings(nullptr);
 
 void TPAppControl::init(QQmlApplicationEngine* qml_engine)
 {
-	populateSettingsWithDefaultValue();
 	appDBInterface()->init();
 	createItemManager();
 	rootItemsManager()->configureQmlEngine(qml_engine);
@@ -254,35 +252,6 @@ void TPAppControl::incorporateImportedData(const TPListModel* const model)
 				; //Offer option to import into another day
 		}
 		break;
-	}
-}
-
-void TPAppControl::populateSettingsWithDefaultValue()
-{
-	if (appSettings()->value("appVersion").toString().isEmpty())
-	{
-		appSettings()->setValue("appVersion", TP_APP_VERSION);
-		appSettings()->setValue("weightUnit", u"(kg)"_qs);
-		appSettings()->setValue("themeStyle", u"Material"_qs);
-		appSettings()->setValue("colorScheme", u"Blue"_qs);
-		appSettings()->setValue("primaryDarkColor", u"#1976D2"_qs);
-		appSettings()->setValue("primaryColor", u"#25b5f3"_qs);
-		appSettings()->setValue("primaryLightColor", u"#BBDEFB"_qs);
-		appSettings()->setValue("paneBackgroundColor", u"#1976d2"_qs);
-		appSettings()->setValue("entrySelectedColor", u"#6495ed"_qs);
-		appSettings()->setValue("exercisesListVersion", u"0"_qs);
-		appSettings()->setValue("backupFolder", u""_qs);
-		appSettings()->setValue("fontColor", u"white"_qs);
-		appSettings()->setValue("disabledFontColor", u"lightgray"_qs);
-		appSettings()->setValue("iconFolder", u"white/"_qs);
-		appSettings()->setValue("fontSize", FONT_POINT_SIZE);
-		appSettings()->setValue("fontSizeLists", FONT_POINT_SIZE_LISTS);
-		appSettings()->setValue("fontSizeText", FONT_POINT_SIZE_TEXT);
-		appSettings()->setValue("fontSizeTitle", FONT_POINT_SIZE_TITLE);
-		appSettings()->setValue("lastViewedMesoIdx", -1);
-		appSettings()->setValue("alwaysAskConfirmation", true);
-		appSettings()->setValue("mainUserConfigured", false);
-		appSettings()->sync();
 	}
 }
 

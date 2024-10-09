@@ -95,8 +95,8 @@ TPPopup {
 			ypos = parent.height - entriesTotalHeight - 10;
 		x = xpos;
 		finalYPos = ypos;
-		if (ypos > windowHeight/2)
-			startYPos = windowHeight;
+		if (ypos > appSettings.pageHeight/2)
+			startYPos = appSettings.pageHeight;
 		open();
 	}
 

@@ -2,12 +2,12 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Page {
 	id: tpPage
-	width: windowWidth
-	height: windowHeight
+	width: appSettings.pageWidth
+	height: appSettings.pageHeight
 
 	readonly property int headerHeight: 45
 	readonly property int footerHeight: 55
@@ -28,7 +28,7 @@ Page {
 	}
 
 	background: Rectangle {
-		color: AppSettings.primaryDarkColor
+		color: appSettings.primaryDarkColor
 		opacity: 0.7
 	}
 

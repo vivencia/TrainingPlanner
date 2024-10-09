@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 import "../User"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: clientsOrCoachesPage
@@ -19,8 +19,6 @@ TPPage {
 	property int lastUserRow
 	property bool showUsers
 	property bool showCoaches
-	property bool bModified: userModel.modified
-	readonly property int moduleHeight: usrContact.moduleHeight
 
 	onCurUserRowChanged: {
 		if (showCoaches)
@@ -32,9 +30,9 @@ TPPage {
 	Label {
 		id: lblMain
 		text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
-		color: AppSettings.fontColor
+		color: appSettings.fontColor
 		font.bold: true
-		font.pointSize: AppSettings.fontSizeTitle
+		font.pointSize: appSettings.fontSizeTitle
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
@@ -55,7 +53,7 @@ TPPage {
 			top: lblMain.bottom
 			topMargin: 20
 			left: parent.left
-			leftMargin: (windowWidth - controlsRow.childrenRect.width)/2
+			leftMargin: (appSettings.pageWidth - controlsRow.childrenRect.width)/2
 			right: parent.right
 		}
 
@@ -179,6 +177,7 @@ TPPage {
 
 		anchors {
 			top: chkCurrent.bottom
+			topMargin: 10
 			left: parent.left
 			right: parent.right
 			bottom: parent.bottom
@@ -194,15 +193,14 @@ TPPage {
 				userRow: curUserRow
 				parentPage: clientsOrCoachesPage
 				enabled: curUserRow > 0
-				width: windowWidth - 20
-				height: moduleHeight
+				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: curUserRow
 				enabled: curUserRow > 0
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
 				Layout.topMargin: -30
 			}
 
@@ -211,8 +209,7 @@ TPPage {
 				userRow: curUserRow
 				parentPage: clientsOrCoachesPage
 				enabled: curUserRow > 0
-				height: moduleHeight
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
 				Layout.topMargin: 20
 			}
 		}
@@ -220,7 +217,7 @@ TPPage {
 
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage() {
-		if (!AppSettings.alwaysAskConfirmation) {
+		if (!appSettings.alwaysAskConfirmation) {
 			itemManager.removeUser(curUserRow, showCoaches);
 			return;
 		}

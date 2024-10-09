@@ -8,7 +8,7 @@ import "../"
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: exercisesPage
@@ -36,10 +36,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -194,11 +194,8 @@ TPPage {
 			id: layoutMain
 			width: exercisesPage.width
 
-			Label {
+			TPLabel {
 				text: exercisesModel.columnLabel(1)
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -214,11 +211,8 @@ TPPage {
 				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
 			}
 
-			Label {
+			TPLabel {
 				text: exercisesModel.columnLabel(2)
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
 				Layout.leftMargin: 5
 			}
 
@@ -234,11 +228,8 @@ TPPage {
 				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
 			}
 
-			Label {
+			TPLabel {
 				text: exercisesModel.columnLabel(3)
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -254,12 +245,9 @@ TPPage {
 				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
 			}
 
-			Label {
+			TPLabel {
 				id: lblDefaults
 				text: qsTr("Exercise details:")
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
 				Layout.minimumWidth: parent.width - 20
 				Layout.maximumWidth: parent.width - 20
 				Layout.leftMargin: 5
@@ -296,7 +284,7 @@ TPPage {
 				z: 0
 
 				background: Rectangle {
-					border.color: AppSettings.fontColor
+					border.color: appSettings.fontColor
 					color: "transparent"
 					radius: 6
 				}
@@ -319,7 +307,7 @@ TPPage {
 						alternativeLabels: ["", "", "", exercisesModel.columnLabel(4)]
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: AppSettings.fontColor
+						labelColor: appSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
@@ -333,7 +321,7 @@ TPPage {
 						alternativeLabels: ["", exercisesModel.columnLabel(5)]
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: AppSettings.fontColor
+						labelColor: appSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -347,7 +335,7 @@ TPPage {
 						alternativeLabels: [exercisesModel.columnLabel(6), ""]
 						backColor: "transparent"
 						borderColor: "transparent"
-						labelColor: AppSettings.fontColor
+						labelColor: appSettings.fontColor
 						Layout.alignment: Qt.AlignCenter
 
 						onEnterOrReturnKeyPressed: btnChooseMediaFromDevice.forceActiveFocus();
@@ -356,11 +344,8 @@ TPPage {
 				} // ColumnLayout
 			} //Pane
 
-			Label {
+			TPLabel {
 				text: exercisesModel.columnLabel(8)
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeText
-				font.bold: true
 				Layout.bottomMargin: 10
 				Layout.topMargin: 10
 				Layout.leftMargin: 5

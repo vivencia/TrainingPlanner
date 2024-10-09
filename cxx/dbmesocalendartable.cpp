@@ -36,7 +36,7 @@ void DBMesoCalendarTable::createTable()
 										"day INTEGER"
 									")"_qs);
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -185,7 +185,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 			}
 			ok = true;
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -231,7 +231,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			query.exec(queryStart + queryValues);
 		}
 		ok = mSqlLiteDB.commit();
-		setResult(ok, m_model, queryStart + queryValues, {std::source_location::current()})
+		setResult(ok, m_model, queryStart + queryValues, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -262,7 +262,7 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			if (ok)
 				m_model->updateDay(date, strTrainingDay, strSplit, strDayCompleted);
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -287,7 +287,7 @@ void DBMesoCalendarTable::updateDayIsFinished()
 									.arg(m_execArgs.at(1).toBool() ? u"1"_qs : u"0"_qs, strId);
 			ok = query.exec(strQuery);
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -312,7 +312,7 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -338,7 +338,7 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_qs + m_model->getMesoId());
 		ok = query.exec(strQuery);
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

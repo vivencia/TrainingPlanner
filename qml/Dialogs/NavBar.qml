@@ -5,7 +5,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ToolBar {
 	id: root

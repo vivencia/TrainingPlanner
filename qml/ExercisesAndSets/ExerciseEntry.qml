@@ -6,7 +6,7 @@ import QtQuick.Dialogs
 import "../"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: exerciseItem
@@ -35,7 +35,7 @@ FocusScope {
 		height: shown ? implicitHeight : txtExerciseName.height + 20
 		implicitHeight: layoutMain.implicitHeight + 10
 		implicitWidth: width
-		width: windowWidth - 10
+		width: appSettings.pageWidth - 10
 		clip: true
 		padding: 0
 		spacing: 0
@@ -118,7 +118,7 @@ FocusScope {
 					id: lblExerciseNumber
 					text: parseInt(exerciseIdx + 1) + ":"
 					font.bold: true
-					font.pointSize: AppSettings.fontSizeText
+					font.pointSize: appSettings.fontSizeText
 					width: 15
 					Layout.leftMargin: 0
 				}
@@ -127,7 +127,7 @@ FocusScope {
 					id: txtExerciseName
 					text: tDayModel.exerciseName(exerciseIdx)
 					bEditable: tDayModel.dayIsEditable
-					width: windowWidth - 55
+					width: appSettings.pageWidth - 55
 					height: 70
 					Layout.minimumWidth: width
 					Layout.maximumWidth: width
@@ -270,7 +270,7 @@ FocusScope {
 				TPComboBox {
 					id: cboSetType
 					currentIndex: itemManager.exerciseDefaultSetType(exerciseIdx);
-					model: AppSettings.setTypesModel
+					model: AppGlobals.setTypesModel
 					implicitWidth: 160
 
 					onActivated: (index) => itemManager.setExerciseDefaultSetType(exerciseIdx, index);
@@ -309,7 +309,7 @@ FocusScope {
 				id: exerciseSetsLayout
 				objectName: "exerciseSetsLayout"
 				spacing: 0
-				width: windowWidth - 10
+				width: appSettings.pageWidth - 10
 				Layout.fillWidth: true
 				Layout.fillHeight: true
 			}

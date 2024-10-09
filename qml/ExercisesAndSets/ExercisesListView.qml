@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Column {
 	id: mainItem
@@ -52,9 +52,9 @@ Column {
 		Layout.leftMargin: 5
 		text: qsTr("Search: ")
 		verticalAlignment: Text.AlignVCenter
-		font.pointSize: AppSettings.fontSizeText
+		font.pointSize: appSettings.fontSizeText
 		font.weight: Font.ExtraBold
-		color: AppSettings.fontColor
+		color: appSettings.fontColor
 		width: parent.width/3
 		height: 25
 
@@ -151,8 +151,8 @@ Column {
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: exercisesModel.currentRow === index ? AppSettings.fontColor : "black"
-				font.pointSize: AppSettings.fontSizeLists
+				color: exercisesModel.currentRow === index ? appSettings.fontColor : "black"
+				font.pointSize: appSettings.fontSizeLists
 				padding: 0
 			}
 			spacing: 0
@@ -164,12 +164,12 @@ Column {
 			FontMetrics {
 				id: fontMetrics
 				font.family: listItem.font.family
-				font.pointSize: AppSettings.fontSizeLists
+				font.pointSize: appSettings.fontSizeLists
 			}
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: selected ? AppSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 			}
 
 			onClicked: itemClicked(index, true);
@@ -203,7 +203,7 @@ Column {
 
 				Label {
 					text: qsTr("Removing in " + seconds/1000 + "s")
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 					padding: 5
 					anchors.fill: parent
 					horizontalAlignment: Qt.AlignLeft

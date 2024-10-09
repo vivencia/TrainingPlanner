@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	property string message: ""
@@ -12,8 +12,8 @@ TPPopup {
 	property string button2Text: ""
 	property string checkBoxText: ""
 	property string imageSource: ""
-	property string backColor: AppSettings.primaryColor
-	property string textColor: AppSettings.fontColor
+	property string backColor: appSettings.primaryColor
+	property string textColor: appSettings.fontColor
 	property bool highlightMessage: false
 
 	property int startYPosition: 0
@@ -24,7 +24,7 @@ TPPopup {
 
 	id: balloon
 	bKeepAbove: true
-	width: windowWidth * 0.8
+	width: appSettings.pageWidth * 0.8
 
 	NumberAnimation {
 		id: alternateCloseTransition
@@ -38,31 +38,19 @@ TPPopup {
 		easing.type: Easing.InOutCubic
 	}
 
-	FontMetrics {
-		id: fontMetrics
-		font.family: lblMessage.font.family
-		font.pointSize: AppSettings.fontSizeText
-	}
-
-	Label {
+	TPLabel {
 		id: lblTitle
 		text: title
-		color: textColor
-		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignHCenter
-		font.pointSize: AppSettings.fontSize
-		font.weight: Font.Black
 		visible: title.length > 0
 		width: parent.width - 20
-		height: 30
-		padding: 0
 		x: 10
 		y: 5
 	}
 
 	TPImage {
 		id: imgElement
-		source: imageSource.indexOf("png") !== -1 ? AppSettings.iconFolder+imageSource : imageSource
+		source: imageSource.indexOf("png") !== -1 ? appSettings.iconFolder+imageSource : imageSource
 		visible: imageSource.length > 0
 		width: 50
 		height: 50
@@ -71,18 +59,12 @@ TPPopup {
 		y: lblTitle.visible ? (balloon.height-height)/2 : (balloon.height-height)/3
 	}
 
-	Label {
+	TPLabel {
 		id: lblMessage
 		text: message
-		color: textColor
-		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignJustify
-		font.pointSize: AppSettings.fontSizeText
-		font.weight: Font.Black
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
-		height: Math.ceil(fontMetrics.boundingRect(message).width / balloon.width) * 30
 		visible: message.length > 0
-		padding: 0
 		x: imgElement.visible ? imgElement.width + 10 : 10
 		y: lblTitle.visible ? lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
 	}
@@ -124,7 +106,7 @@ TPPopup {
 		ColorAnimation {
 			target: lblMessage
 			property: "color"
-			from: AppSettings.fontColor
+			from: appSettings.fontColor
 			to: "darkred"
 			duration: 700
 			easing.type: Easing.InOutCubic
@@ -133,7 +115,7 @@ TPPopup {
 			target: lblMessage
 			property: "color"
 			from: "darkred"
-			to: AppSettings.fontColor
+			to: appSettings.fontColor
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
@@ -154,7 +136,7 @@ TPPopup {
 			if ( Math.abs(deltaX) >= 10) {
 				x += deltaX;
 				if (deltaX > 0)
-					finalXPos = windowWidth + 300;
+					finalXPos = appSettings.pageWidth + 300;
 				else
 					finalXPos = -300;
 				alternateCloseTransition.start();
@@ -195,16 +177,16 @@ TPPopup {
 	function show(ypos) {
 		balloon.height = lblTitle.height + lblMessage.height +
 						(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
-		balloon.x = (windowWidth - width)/2;
+		balloon.x = (appSettings.pageWidth - width)/2;
 
 		if (ypos < 0)
-			ypos = (windowHeight-balloon.height)/2;
+			ypos = (appSettings.pageHeight-balloon.height)/2;
 
 		finalYPos = ypos;
-		if (ypos <= windowHeight/2)
+		if (ypos <= appSettings.pageHeight/2)
 			startYPos = -300;
 		else
-			startYPos = windowHeight + 300;
+			startYPos = appSettings.pageHeight + 300;
 		balloon.open();
 	}
 

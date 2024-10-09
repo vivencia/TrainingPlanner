@@ -2,6 +2,7 @@
 #define TPDATABASETABLE_H
 
 #include "tplistmodel.h"
+#include "tpglobals.h"
 
 #include <QObject>
 #include <QVariant>
@@ -10,9 +11,6 @@
 #include <QSqlQuery>
 
 #include <functional>
-#ifndef QT_NO_DEBUG
-#include <source_location>
-#endif
 
 class TPDatabaseTable : public QObject
 {
@@ -55,10 +53,8 @@ public:
 		#ifndef QT_NO_DEBUG
 		if (!ok)
 		{
-			qDebug() << u"******FAILURE******"_qs;
-			const std::source_location& location{std::source_location::current()};
-			qDebug() << location.file_name() << u"::" << location.function_name() << u"::"_qs << location.line() << ' ';
-			qDebug() << u"Could not open Database file: "_qs << mSqlLiteDB.databaseName();
+			DECLARE_SOURCE_LOCATION
+			ERROR_MESSAGE(u"Could not open Database file: "_qs, mSqlLiteDB.databaseName())
 		}
 		#endif
 		return ok;
@@ -80,7 +76,7 @@ public:
 
 	#ifndef QT_NO_DEBUG
 	#define setResult(result, model, message, location) \
-		_setResult(result, location, model, message);
+		_setResult(result, location, model, message)
 
 	inline void _setResult(const bool bResultOK, const std::source_location& location, TPListModel* model = nullptr, const QString& message = QString())
 	{
@@ -89,16 +85,16 @@ public:
 			model->setReady(bResultOK);
 		if (!message.isEmpty())
 		{
-			qDebug() << (bResultOK ? u"******SUCCESS!******"_qs : u"******FAILURE******"_qs);
-			qDebug() << location.file_name() << u"::"_qs << location.function_name() << u"::"_qs << location.line();
-			if (!bResultOK && !message.isEmpty())
-				qDebug() << message;
+			if (bResultOK)
+				SUCCESS_MESSAGE_WITH_STATEMENT(PRINT_SOURCE_LOCATION)
+			else
+				ERROR_MESSAGE(message, "")
 		}
 		mSqlLiteDB.close();
 	}
 	#else
 	#define setResult(result, model, message, location) \
-		_setResult(result, model);
+		_setResult(result, model)
 	inline void _setResult(const bool bResultOK, TPListModel* model = nullptr)
 	{
 		mb_result = bResultOK;

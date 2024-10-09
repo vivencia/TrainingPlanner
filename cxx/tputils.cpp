@@ -1,9 +1,10 @@
 #include "tputils.h"
 #include "tpglobals.h"
+#include "tpsettings.h"
 
 #include <QClipboard>
-#include <QLocale>
 #include <QGuiApplication>
+#include <QLocale>
 
 TPUtils* TPUtils::app_utils(nullptr);
 
@@ -36,24 +37,14 @@ const QString TPUtils::getCorrectPath(const QUrl& url) const
 	return path;
 }
 
-int TPUtils::getFileType( const QString& filename ) const
+int TPUtils::getFileType(const QString& filename) const
 {
 	#ifdef Q_OS_ANDROID
-		if ( filename.contains(QStringLiteral("video%"), Qt::CaseInsensitive))
-			return 1;
-		else if ( filename.contains(QStringLiteral("image%"), Qt::CaseInsensitive))
-			return 0;
-		else return -1;
+		return filename.contains(u"video%"_qs) ? 1 : (filename.contains(u"image%"_qs) ? 0 : -1);
 	#else
-		if ( filename.endsWith(QStringLiteral(".mp4"), Qt::CaseInsensitive) ||
-			 filename.endsWith(QStringLiteral(".mkv"), Qt::CaseInsensitive) ||
-			 filename.endsWith(QStringLiteral(".mov"), Qt::CaseInsensitive) )
+		if (filename.endsWith(u".mp4"_qs) || filename.endsWith(u".mkv"_qs) || filename.endsWith(u".mov"_qs))
 			return 1;
-		else if ( filename.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive) ||
-				 filename.endsWith(QStringLiteral(".jpg"), Qt::CaseInsensitive) )
-			return 0;
-		else
-			return -1;
+		else return (filename.endsWith(u".png"_qs) || filename.endsWith(u".jpg"_qs)) ? 0 : -1;
 	#endif
 }
 
@@ -467,4 +458,5 @@ void TPUtils::setAppLocale(const QString& localeStr)
 
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
+	appSettings()->setAppLocale(localeStr);
 }

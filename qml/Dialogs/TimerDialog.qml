@@ -5,15 +5,15 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: dlgTimer
 	bKeepAbove: !simpleTimer
-	width: timePickerOnly ? 150 : windowWidth * 0.75
-	height: timePickerOnly ? 100 : windowHeight * 0.30
-	x: (windowWidth - width) / 2
-	finalYPos: simpleTimer ? (windowHeight - height) / 2 : 0 // align vertically centered
+	width: timePickerOnly ? 150 : appSettings.pageWidth * 0.75
+	height: timePickerOnly ? 100 : appSettings.pageHeight * 0.30
+	x: (appSettings.pageWidth - width) / 2
+	finalYPos: simpleTimer ? (appSettings.pageHeight - height) / 2 : 0 // align vertically centered
 
 	property bool bJustMinsAndSecs: false
 	property bool simpleTimer: false
@@ -50,21 +50,21 @@ TPPopup {
 			id: recTitleBar
 			height: 20
 			width: dlgTimer.width
-			color: AppSettings.paneBackgroundColor
+			color: appSettings.paneBackgroundColor
 			z: 0
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 
 			Label {
 				id: lblTitle
 				text: windowTitle
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				height: parent.height
 				anchors {
 					left: parent.left
@@ -119,8 +119,8 @@ TPPopup {
 			Layout.leftMargin: !timePickerOnly ? (bJustMinsAndSecs ? txtWidth + leftMarginValue : leftMarginValue) : 25
 
 			Label {
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeLists
+				color: appSettings.fontColor
+				font.pointSize: appSettings.fontSizeLists
 				text: qsTr("Hours")
 				visible: !bJustMinsAndSecs
 				Layout.maximumWidth: txtWidth
@@ -130,8 +130,8 @@ TPPopup {
 				Layout.leftMargin: 5
 			}
 			Label {
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeLists
+				color: appSettings.fontColor
+				font.pointSize: appSettings.fontSizeLists
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
@@ -140,8 +140,8 @@ TPPopup {
 				Layout.leftMargin: -5
 			}
 			Label {
-				color: AppSettings.fontColor
-				font.pointSize: AppSettings.fontSizeLists
+				color: appSettings.fontColor
+				font.pointSize: appSettings.fontSizeLists
 				text: qsTr("Seconds")
 				visible: !timePickerOnly
 				Layout.maximumWidth: txtWidth
@@ -206,7 +206,7 @@ TPPopup {
 
 				Label {
 					text: ":"
-					font.pointSize: AppSettings.fontSizeText
+					font.pointSize: appSettings.fontSizeText
 					font.bold: true
 					horizontalAlignment: Text.AlignHCenter
 					color: "black"
@@ -264,7 +264,7 @@ TPPopup {
 
 				Label {
 					text: ":"
-					font.pointSize: AppSettings.fontSizeText
+					font.pointSize: appSettings.fontSizeText
 					font.bold: true
 					horizontalAlignment: Text.AlignHCenter
 					color: "black"
@@ -335,7 +335,7 @@ TPPopup {
 			background: Rectangle {
 				implicitWidth: parent.width
 				implicitHeight: 6
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				opacity: 0.5
 				radius: 3
 			}

@@ -37,7 +37,7 @@ TPPage {
 			implicitWidth: 12
 			implicitHeight: 12
 			radius: width/2
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 
 			opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
 

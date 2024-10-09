@@ -3,14 +3,14 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	property string title: ""
 	property string button1Text: ""
 	property string button2Text: ""
-	property string backColor: AppSettings.primaryColor
-	property string textColor: AppSettings.fontColor
+	property string backColor: appSettings.primaryColor
+	property string textColor: appSettings.fontColor
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -35,7 +35,7 @@ TPPopup {
 
 	id: dialog
 	modal: true
-	width: windowWidth * 0.9
+	width: appSettings.pageWidth * 0.9
 	height: totalHeight + 20
 
 	NumberAnimation {
@@ -92,17 +92,12 @@ TPPopup {
 		rowSpacing: 5
 		anchors.fill: parent
 
-		Label {
+		TPLabel {
 			id: lblTitle
 			text: title
-			color: textColor
-			elide: Text.ElideRight
 			horizontalAlignment: Text.AlignHCenter
-			font.pointSize: AppSettings.fontSize
-			font.weight: Font.Black
 			visible: title.length > 0
 			height: visible ? 30 : 0
-			padding: 0
 			Layout.row: 0
 			Layout.column: 0
 			Layout.columnSpan: 2
@@ -158,16 +153,16 @@ TPPopup {
 	} //GridLayout
 
 	function show(ypos) {
-		dialog.x = (windowWidth - dialog.width)/2;
+		dialog.x = (appSettings.pageWidth - dialog.width)/2;
 
 		if (ypos < 0)
-			ypos = (windowHeight-dialog.height)/2;
+			ypos = (appSettings.pageHeight-dialog.height)/2;
 
 		finalYPos = ypos;
-		if (ypos <= windowHeight/2)
+		if (ypos <= appSettings.pageHeight/2)
 			startYPos = -300;
 		else
-			startYPos = windowHeight + 300;
+			startYPos = appSettings.pageHeight + 300;
 		if (bAdjustHeightEveryOpen) {
 			dialogOpened();
 			totalHeight = lblTitle.height + 2*btn1.height + customItem.height + 20;

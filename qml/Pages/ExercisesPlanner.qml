@@ -8,7 +8,7 @@ import "../"
 import "../TPWidgets"
 import "../ExercisesAndSets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: pagePlanner
@@ -51,7 +51,7 @@ TPPage {
 			width: 20
 			height: 20
 			text: splitView.itemAt(index).splitModel.splitLetter()
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			font.bold: true
 			fontSizeMode: Text.Fit
 			horizontalAlignment: Text.AlignHCenter
@@ -86,10 +86,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}

@@ -1,5 +1,5 @@
 #include "translationclass.h"
-#include "tpappcontrol.h"
+#include "tpsettings.h"
 #include "tputils.h"
 #include "qmlitemmanager.h"
 
@@ -26,7 +26,7 @@ TranslationClass::~TranslationClass()
 
 void TranslationClass::selectLanguage()
 {
-	QString strLocale(appSettings()->value("appLocale").toString());
+	QString strLocale(appSettings()->appLocale());
 	const bool bConfigEmpty(strLocale.isEmpty());
 	if (bConfigEmpty)
 	{
@@ -43,14 +43,7 @@ void TranslationClass::selectLanguage()
 		if (mbOK)
 			qApp->installTranslator(mTranslator);
 	}
-	if (mbOK)
-	{
-		appUtils()->setAppLocale(strLocale);
-		if (bConfigEmpty)
-			appSettings()->setValue("appLocale", strLocale);
-	}
-	else
-		appUtils()->setAppLocale(u"en_US"_qs); //If any part of the program calls RunCommands::appLocale() we will hava an error
+	appUtils()->setAppLocale(mbOK ? strLocale : u"en_US"_qs);
 }
 
 void TranslationClass::switchToLanguage(const QString& language)
@@ -63,7 +56,6 @@ void TranslationClass::switchToLanguage(const QString& language)
 	if (mbOK)
 	{
 		appUtils()->setAppLocale(language);
-		appSettings()->setValue("appLocale", language);
 		if (!bEnglish)
 			qApp->installTranslator(mTranslator);
 		appQmlEngine()->retranslate();

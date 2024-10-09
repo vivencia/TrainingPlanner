@@ -39,7 +39,7 @@ void DBExercisesTable::createTable()
 									")"_qs
 		);
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -82,7 +82,7 @@ void DBExercisesTable::getAllExercises()
 				updateExercisesList();
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -92,7 +92,7 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_qs, {std::source_location::current()})
+		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_qs, SOURCE_LOCATION);
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
@@ -123,10 +123,13 @@ void DBExercisesTable::updateExercisesList()
 		queryValues.chop(1);
 		ok = query.exec(queryStart + queryValues);
 		if (!ok)
-			MSG_OUT(query.lastError().text())
+		{
+			DECLARE_SOURCE_LOCATION
+			ERROR_MESSAGE(query.lastError().text(), QString())
+		}
 		else
 			mSqlLiteDB.commit();
-		setResult(ok, m_model, queryStart + queryValues, {std::source_location::current()})
+		setResult(ok, m_model, queryStart + queryValues, SOURCE_LOCATION);
 		if (ok)
 			emit updatedFromExercisesList();
 	}
@@ -171,7 +174,7 @@ void DBExercisesTable::saveExercises()
 		}
 		query.exec(strQuery);
 		ok = mSqlLiteDB.commit();
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 		if (ok)
 		{
 			m_exercisesTableLastId = highest_id;
@@ -189,7 +192,7 @@ void DBExercisesTable::removePreviousListEntriesFromDB()
 		QSqlQuery query{mSqlLiteDB};
 		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_qs);
 		ok = query.exec();
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 

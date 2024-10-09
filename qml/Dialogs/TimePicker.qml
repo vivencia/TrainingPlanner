@@ -9,10 +9,10 @@ import "../TPWidgets"
 TPPopup {
 	id: timePicker
 	bKeepAbove: true
-	width: windowWidth * 0.78
-	height: windowHeight * 0.60
-	x: (windowWidth - width) / 2
-	finalYPos: (windowHeight - height) / 2
+	width: appSettings.pageWidth * 0.78
+	height: appSettings.pageHeight * 0.60
+	x: (appSettings.pageWidth - width) / 2
+	finalYPos: (appSettings.pageHeight - height) / 2
 
 	property bool isOK: false
 	property int timeButtonsPaneSize: timePicker.width
@@ -225,7 +225,7 @@ TPPopup {
 		width: parent.width
 		height: parent.height * 0.20
 		background: Rectangle {
-			color: AppSettings.primaryColor
+			color: appSettings.primaryColor
 		}
 
 		GridLayout {
@@ -249,7 +249,7 @@ TPPopup {
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: hrsButton.checked ? 1.0 : 0.6
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 					elide: Text.ElideRight
 				}
 				background: Rectangle {
@@ -267,7 +267,7 @@ TPPopup {
 				font.bold: true
 				fontSizeMode: Text.Fit
 				opacity: 0.6
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 			}
 
 			Button {
@@ -282,7 +282,7 @@ TPPopup {
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: minutesButton.checked ? 1.0 : 0.6
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 					elide: Text.ElideRight
 				}
 				background: Rectangle {
@@ -422,14 +422,14 @@ TPPopup {
 						minimumPointSize: 8
 						fontSizeMode: Text.Fit
 						opacity: innerButton.checked ? 1.0 : enabled || innerButton.highlighted ? 1.0 : 0.6
-						color: AppSettings.fontColor
+						color: appSettings.fontColor
 						horizontalAlignment: Text.AlignHCenter
 						verticalAlignment: Text.AlignVCenter
 						rotation: -innerButton.angle
 					} // content Label
 
 					background: Rectangle {
-						color: innerButton.checked ? AppSettings.primaryColor : "transparent"
+						color: innerButton.checked ? appSettings.primaryColor : "transparent"
 						radius: width / 2
 					}
 				} // inner button
@@ -490,14 +490,14 @@ TPPopup {
 					minimumPointSize: 10
 					fontSizeMode: Text.Fit
 					opacity: enabled || outerButton.highlighted || outerButton.checked ? 1 : 0.3
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
 					rotation: -outerButton.angle
 				} // outer content label
 
 				background: Rectangle {
-					color: outerButton.checked ? AppSettings.primaryColor : "transparent"
+					color: outerButton.checked ? appSettings.primaryColor : "transparent"
 					radius: width / 2
 				}
 			} // outer button
@@ -512,7 +512,7 @@ TPPopup {
 			height: timePicker.timeButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: outerButtonGroup.checkedButton ? outerButtonGroup.checkedButton.angle : 0
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 		}
 
 		Rectangle { // line to inner buttons
@@ -523,7 +523,7 @@ TPPopup {
 			height: timePicker.innerButtonsPaneSize / 2 - 40
 			transformOrigin: Item.Bottom
 			rotation: innerButtonGroup.checkedButton ? innerButtonGroup.checkedButton.angle : 0
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 		}
 
 		Rectangle {
@@ -531,7 +531,7 @@ TPPopup {
 			anchors.centerIn: parent
 			width: 10
 			height: 10
-			color: AppSettings.primaryColor
+			color: appSettings.primaryColor
 			radius: width / 2
 		}
 	} // timeButtonsPane

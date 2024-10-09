@@ -6,7 +6,7 @@ import "../"
 import "../ExercisesAndSets"
 import "../TPWidgets"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Frame {
 	id: paneSplit
@@ -27,8 +27,8 @@ Frame {
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
-	width: windowWidth
-	height: windowHeight - 55
+	width: appSettings.pageWidth
+	height: appSettings.pageHeight - 55
 	padding: 0
 	spacing: 0
 	Layout.leftMargin: 5
@@ -49,13 +49,12 @@ Frame {
 		parentPage: parentItem
 	} //TPBalloonTip
 
-	Label {
+	TPLabel {
 		id: lblMain
 		text: qsTr("Training Division ") + splitModel.splitLetter()
+		font: AppGlobals.titleFont
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
-		font.bold: true
-		font.pointSize: AppSettings.fontSizeTitle
 
 		anchors {
 			top: parent.top
@@ -65,7 +64,7 @@ Frame {
 		}
 	}// Label lblMain
 
-	Label {
+	TPLabel {
 		id: lblGroups
 		text: qsTr("Muscle groups trained in this division:")
 		width: parent.width - 20
@@ -327,15 +326,15 @@ Frame {
 												spacing: tabbutton.spacing
 												display: AbstractButton.TextOnly
 												text: tabbutton.text
-												font.pointSize: AppSettings.fontSizeLists
-												color: AppSettings.fontColor
+												font.pointSize: appSettings.fontSizeLists
+												color: appSettings.fontColor
 											}
 
 											background: Rectangle {
-												border.color: AppSettings.fontColor
+												border.color: appSettings.fontColor
 												radius: 6
 												opacity: 0.8
-												color: enabled ? checked ? AppSettings.primaryDarkColor : AppSettings.primaryColor : "gray"
+												color: enabled ? checked ? appSettings.primaryDarkColor : appSettings.primaryColor : "gray"
 											}
 
 											onClicked: splitModel.workingSet = index;
@@ -365,16 +364,15 @@ Frame {
 								Layout.leftMargin: 20
 								Layout.rightMargin: 20
 
-								Label {
+								TPLabel {
 									text: splitModel.columnLabel(3)
-									wrapMode: Text.WordWrap
 									Layout.minimumWidth: listItem.width/2 - 40
 									Layout.maximumWidth: listItem.width/2 - 40
 								}
 								TPComboBox {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
-									model: AppSettings.setTypesModel
+									model: AppGlobals.setTypesModel
 									implicitWidth: 160
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
 									Layout.rightMargin: 5
@@ -396,9 +394,8 @@ Frame {
 								Layout.rightMargin: 20
 								Layout.fillWidth: true
 
-								Label {
+								TPLabel {
 									text: splitModel.columnLabel(4)
-									wrapMode: Text.WordWrap
 									Layout.minimumWidth: listItem.width/2
 								}
 								SetInputField {
@@ -435,11 +432,9 @@ Frame {
 								Layout.topMargin: 5
 								Layout.bottomMargin: 5
 
-								Label {
+								TPLabel {
 									id: lblExercise1
 									text: splitModel.exerciseName1(index)
-									font.bold: true
-									wrapMode: Text.WordWrap
 									width: listItem.width*0.5-10
 									Layout.alignment: Qt.AlignCenter
 									Layout.maximumWidth: width
@@ -455,11 +450,9 @@ Frame {
 									}
 								}
 
-								Label {
+								TPLabel {
 									id: lblExercise2
 									text: splitModel.exerciseName2(index)
-									font.bold: true
-									wrapMode: Text.WordWrap
 									width: listItem.width*0.5-10
 									Layout.alignment: Qt.AlignCenter
 									Layout.maximumWidth: width
@@ -625,7 +618,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 6
-					color: splitModel.currentRow === index ? AppSettings.primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+					color: splitModel.currentRow === index ? appSettings.primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;

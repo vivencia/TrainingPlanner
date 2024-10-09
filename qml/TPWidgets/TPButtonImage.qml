@@ -1,10 +1,10 @@
 import QtQuick
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPImage {
-	source: imageSource.indexOf("png") !== -1 ? AppSettings.iconFolder+imageSource : imageSource
+	source: imageSource.indexOf("png") !== -1 ? appSettings.iconFolder+imageSource : imageSource
 	opacity: parent.opacity
 
 	property string imageSource

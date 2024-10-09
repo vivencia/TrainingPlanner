@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import ".."
 import "../TPWidgets"
@@ -32,17 +32,10 @@ Frame {
 	readonly property int controlsSpacing: 15
 	readonly property int minimumHeight: nControls*controlsHeight
 
-	Label {
+	TPLabel {
 		id: lblName
 		text: userModel.columnLabel(1)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
-		bottomInset: 0
-		topInset: 0
-		bottomPadding: 0
 
 		anchors {
 			top: parent.top
@@ -93,14 +86,10 @@ Frame {
 		}
 	}
 
-	Label {
+	TPLabel {
 		id: lblBirthdate
 		text: userModel.columnLabel(2)
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		height: controlsHeight
-		padding: 0
 
 		anchors {
 			top: txtName.bottom

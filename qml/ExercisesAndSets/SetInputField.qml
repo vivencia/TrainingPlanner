@@ -17,14 +17,14 @@ FocusScope {
 	property var alternativeLabels: []
 
 	property bool bClearInput: true
-	property color borderColor: AppSettings.fontColor
+	property color borderColor: appSettings.fontColor
 	property color labelColor: "black"
-	property color inputColor: AppSettings.fontColor
+	property color inputColor: appSettings.fontColor
 	property color backColor: "white"
 
 	readonly property var validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property var maxLen: [5,4,5,1]
-	readonly property var labelText: [ qsTr("Weight") + AppSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
+	readonly property var labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property string origText
 
 	signal valueChanged(string str)
@@ -47,7 +47,7 @@ FocusScope {
 		top: 999.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: AppSettings.appLocale
+		locale: appSettings.appLocale
 	}
 
 	DoubleValidator {
@@ -56,7 +56,7 @@ FocusScope {
 		top: 99.99;
 		decimals: 2
 		notation: DoubleValidator.StandardNotation
-		locale: AppSettings.appLocale
+		locale: appSettings.appLocale
 	}
 
 	IntValidator {
@@ -77,14 +77,11 @@ FocusScope {
 		radius: 6
 		color: backColor
 
-		Label {
+		TPLabel {
 			id: lblMain
 			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
-			padding: 0
 			visible: showLabel
-			font.bold: true
-			font.pointSize: AppSettings.fontSizeText
-			color: enabled ? labelColor : "gray"
+
 			anchors {
 				left: parent.left
 				leftMargin: 2

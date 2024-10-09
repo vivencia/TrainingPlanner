@@ -6,13 +6,13 @@ import "../"
 import "../TPWidgets"
 import "../User"
 
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: userPage
 	objectName: "userPage"
-	width: windowWidth
-	height: windowHeight
+	width: appSettings.pageWidth
+	height: appSettings.pageHeight
 
 	property QmlItemManager itemManager
 	property int useMode
@@ -29,11 +29,8 @@ TPPage {
 			anchors.fill: parent
 			spacing: 10
 
-			Label {
+			TPLabel {
 				text: qsTr("User Settings")
-				color: AppSettings.fontColor
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeTitle
 				horizontalAlignment: Text.AlignHCenter
 				Layout.fillWidth: true
 				Layout.topMargin: 20
@@ -43,20 +40,20 @@ TPPage {
 				id: usrData
 				userRow: 0
 				parentPage: userPage
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: 0
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
 				Layout.topMargin: -30
 			}
 
 			UserCoach {
 				id: usrCoach
 				userRow: 0
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
 				Layout.topMargin: 20
 			}
 
@@ -64,7 +61,8 @@ TPPage {
 				id: usrProfile
 				userRow: 0
 				parentPage: userPage
-				width: windowWidth - 20
+				width: appSettings.pageWidth - 20
+				Layout.topMargin: 20
 			}
 		}
 	}
@@ -72,15 +70,15 @@ TPPage {
 	footer: ToolBar {
 		id: coachsClientsToolBar
 		width: parent.width
-		height: footerHeight
+		height: 70
 
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}

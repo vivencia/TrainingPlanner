@@ -13,7 +13,7 @@ TPPage {
 	property bool bNeedRestart: false
 	property bool bFontSizeChanged: false
 	property var appLocales: ["en_US", "pt_BR", "de_DE"]
-	property int fontPSize : AppSettings.fontSize
+	property int fontPSize : appSettings.fontSize
 	property int optStyleChosen: 0
 	property int colorSchemeChosen: 0
 	property var colorScheme: []
@@ -52,11 +52,9 @@ TPPage {
 			anchors.fill: parent
 			spacing: 5
 
-			Label {
+			TPLabel {
 				text: qsTr("Application Settings")
-				color: AppSettings.fontColor
-				font.bold: true
-				font.pointSize: AppSettings.fontSizeTitle
+				font: AppGlobals.titleFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.fillWidth: true
 				Layout.topMargin: 20
@@ -71,11 +69,8 @@ TPPage {
 				Layout.rightMargin: 20
 				Layout.topMargin: 20
 
-				Label {
+				TPLabel {
 					text: qsTr("Application Language")
-					color: AppSettings.fontColor
-					font.bold: true
-					font.pointSize: AppSettings.fontSize
 				}
 
 				TPComboBox {
@@ -86,7 +81,7 @@ TPPage {
 
 					Component.onCompleted: {
 						var opt = 0;
-						switch (AppSettings.appLocale) {
+						switch (appSettings.appLocale) {
 							case appLocales[0]: opt = 0; break;
 							case appLocales[1]: opt = 1; break;
 							case appLocales[2]: opt = 2; break;
@@ -99,7 +94,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -108,7 +103,7 @@ TPPage {
 			TPCheckBox {
 				id: chkAskConfirmation
 				text: qsTr("Always ask the user confirmation before starting any - potencially destructive - action")
-				checked: AppSettings.alwaysAskConfirmation
+				checked: appSettings.alwaysAskConfirmation
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
@@ -118,16 +113,14 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				Layout.fillWidth: true
 			}
 
 //------------------------------------------------------FONTS------------------------------------------------------
-			Label {
+			TPLabel {
 				text: qsTr("Fonts Sizes")
-				color: AppSettings.fontColor
-				font.bold: true
-				font.pointSize: AppSettings.fontSize
+				font: AppGlobals.regularFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.bottomMargin: 10
 			}
@@ -144,7 +137,7 @@ TPPage {
 					text: "A"
 					font.pointSize: 10
 					font.weight: 400
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 				}
 
 				Slider {
@@ -167,24 +160,15 @@ TPPage {
 					text: "A"
 					font.pointSize: 30
 					font.weight: 400
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 				}
 			} //RowLayout
-
-			Label {
-				id: lblExample
-				text: qsTr("Example text")
-				font.pointSize: fontPSize
-				color: AppSettings.fontColor
-				Layout.leftMargin: 10
-				Layout.maximumWidth: settingsPage.width - 20
-			}
 
 			Label {
 				id: lblTitleFont
 				text: qsTr("Font used in titles")
 				font.pointSize: fontPSize * 1.2
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
@@ -193,7 +177,7 @@ TPPage {
 				id: lblListsFont
 				text: qsTr("Font used in lists")
 				font.pointSize: fontPSize * 0.8
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
 			}
@@ -201,7 +185,7 @@ TPPage {
 				id: lblTextFont
 				text: qsTr("Font used on text input fields")
 				font.pointSize: fontPSize * 0.9
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				elide: Text.ElideRight
 				Layout.leftMargin: 10
 				Layout.maximumWidth: settingsPage.width - 20
@@ -210,7 +194,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -228,7 +212,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optBasic
-						checked: AppSettings.themeStyle === "Basic";
+						checked: appSettings.themeStyle === "Basic";
 						text: "Basic"
 						Layout.leftMargin: 10
 
@@ -240,7 +224,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optFusion
-						checked: AppSettings.themeStyle === "Fusion";
+						checked: appSettings.themeStyle === "Fusion";
 						text: "Fusion"
 						Layout.leftMargin: 10
 
@@ -252,7 +236,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optImagine
-						checked: AppSettings.themeStyle === "Imagine";
+						checked: appSettings.themeStyle === "Imagine";
 						text: "Imagine"
 						Layout.leftMargin: 10
 
@@ -264,7 +248,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optMaterial
-						checked: AppSettings.themeStyle === "Material";
+						checked: appSettings.themeStyle === "Material";
 						text: "Material"
 						Layout.leftMargin: 10
 
@@ -276,7 +260,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optUniversal
-						checked: AppSettings.themeStyle === "Universal";
+						checked: appSettings.themeStyle === "Universal";
 						text: "Universal"
 						Layout.leftMargin: 10
 
@@ -291,7 +275,7 @@ TPPage {
 
 			Rectangle {
 				height: 3
-				color: AppSettings.fontColor
+				color: appSettings.fontColor
 				Layout.fillWidth: true
 			}
 
@@ -304,18 +288,15 @@ TPPage {
 				spacing: 0
 				padding: 0
 
-				label: Label {
+				label: TPLabel {
 					text: qsTr("Color Scheme")
-					color: AppSettings.fontColor
 					anchors.horizontalCenter: parent.horizontalCenter
 					anchors.bottomMargin: 10
-					font.bold: true
-					font.pointSize: AppSettings.fontSize
 				}
 
 				background: Rectangle {
 					color: "transparent"
-					border.color: AppSettings.fontColor
+					border.color: appSettings.fontColor
 					radius: 6
 				}
 
@@ -326,7 +307,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optBlue
-						checked: AppSettings.colorScheme === "Blue";
+						checked: appSettings.colorScheme === "Blue";
 						text: qsTr("Blue")
 						Layout.leftMargin: 10
 						Layout.column: 0
@@ -350,7 +331,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optGreen
-						checked: AppSettings.colorScheme === "Green";
+						checked: appSettings.colorScheme === "Green";
 						text: qsTr("Green")
 						Layout.leftMargin: 10
 						Layout.column: 0
@@ -374,7 +355,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optRed
-						checked: AppSettings.colorScheme === "Red";
+						checked: appSettings.colorScheme === "Red";
 						text: qsTr("Red")
 						Layout.leftMargin: 10
 						Layout.column: 0
@@ -398,7 +379,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optDark
-						checked: AppSettings.colorScheme === "Dark";
+						checked: appSettings.colorScheme === "Dark";
 						text: qsTr("Dark")
 						Layout.leftMargin: 10
 						Layout.column: 0
@@ -422,7 +403,7 @@ TPPage {
 
 					TPRadioButton {
 						id: optLight
-						checked: AppSettings.colorScheme === "Light";
+						checked: appSettings.colorScheme === "Light";
 						text: qsTr("Light")
 						Layout.leftMargin: 10
 						Layout.column: 0
@@ -458,10 +439,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -487,32 +468,32 @@ TPPage {
 		}
 
 		appTr.switchToLanguage(appLocales[cboAppLanguage.currentIndex]);
-		AppSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
+		appSettings.alwaysAskConfirmation = chkAskConfirmation.checked;
 
 		if (bFontSizeChanged) {
-			AppSettings.fontSize = fontPSize;
-			AppSettings.fontSizeTitle = fontPSize * 1.5
-			AppSettings.fontSizeLists = fontPSize * 0.7
-			AppSettings.fontSizeText = fontPSize * 0.9
+			appSettings.fontSize = fontPSize;
+			appSettings.fontSizeTitle = fontPSize * 1.5
+			appSettings.fontSizeLists = fontPSize * 0.7
+			appSettings.fontSizeText = fontPSize * 0.9
 			bFontSizeChanged = false;
 		}
 
 		if (optStyleChosen !== 0) {
 			switch (optStyleChosen) {
 				case 1:
-					AppSettings.themeStyle = "Basic";
+					appSettings.themeStyle = "Basic";
 				break;
 				case 2:
-					AppSettings.themeStyle = "Fusion";
+					appSettings.themeStyle = "Fusion";
 				break;
 				case 3:
-					AppSettings.themeStyle = "Imagine";
+					appSettings.themeStyle = "Imagine";
 				break;
 				case 4:
-					AppSettings.themeStyle = "Material";
+					appSettings.themeStyle = "Material";
 				break;
 				case 5:
-					AppSettings.themeStyle = "Universal";
+					appSettings.themeStyle = "Universal";
 				break;
 			}
 			optStyleChosen = 0;
@@ -521,44 +502,44 @@ TPPage {
 		if (colorSchemeChosen !== 0) {
 			switch (colorSchemeChosen) {
 				case 1:
-					AppSettings.colorScheme = "Blue";
-					AppSettings.fontColor = "white";
-					AppSettings.iconFolder = "white/"
+					appSettings.colorScheme = "Blue";
+					appSettings.fontColor = "white";
+					appSettings.iconFolder = "white/"
 					colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "lightgray"];
 				break;
 				case 2:
-					AppSettings.colorScheme = "Green";
-					AppSettings.fontColor = "white";
-					AppSettings.iconFolder = "white/"
+					appSettings.colorScheme = "Green";
+					appSettings.fontColor = "white";
+					appSettings.iconFolder = "white/"
 					colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "lightgray"];
 				break;
 				case 3:
-					AppSettings.colorScheme = "Red";
-					AppSettings.fontColor = "white";
-					AppSettings.iconFolder = "white/"
+					appSettings.colorScheme = "Red";
+					appSettings.fontColor = "white";
+					appSettings.iconFolder = "white/"
 					colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "lightgray"];
 				break;
 				case 4:
-					AppSettings.colorScheme = "Dark";
-					AppSettings.fontColor = "white";
-					AppSettings.iconFolder = "white/"
+					appSettings.colorScheme = "Dark";
+					appSettings.fontColor = "white";
+					appSettings.iconFolder = "white/"
 					colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "lightgray"];
 				break;
 				case 5:
-					AppSettings.colorScheme = "Light";
-					AppSettings.fontColor = "black";
-					AppSettings.iconFolder = "black/"
+					appSettings.colorScheme = "Light";
+					appSettings.fontColor = "black";
+					appSettings.iconFolder = "black/"
 					colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "white"];
 				break;
 			}
 			colorSchemeChosen = 0;
-			AppSettings.primaryDarkColor = colorScheme[0];
-			AppSettings.primaryColor = colorScheme[1];
-			AppSettings.primaryLightColor = colorScheme[2];
-			AppSettings.paneBackgroundColor = colorScheme[3];
-			AppSettings.entrySelectedColor = colorScheme[4];
-			AppSettings.disabledFontColor = colorScheme[5];
-			AppSettings.sync();
+			appSettings.primaryDarkColor = colorScheme[0];
+			appSettings.primaryColor = colorScheme[1];
+			appSettings.primaryLightColor = colorScheme[2];
+			appSettings.paneBackgroundColor = colorScheme[3];
+			appSettings.entrySelectedColor = colorScheme[4];
+			appSettings.disabledFontColor = colorScheme[5];
+			appSettings.sync();
 		}
 	}
 }

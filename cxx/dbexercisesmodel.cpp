@@ -1,4 +1,5 @@
 #include "dbexercisesmodel.h"
+#include "tpglobals.h"
 
 #include <QFile>
 #include <QRegularExpression>

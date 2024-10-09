@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Drawer {
 	id: drawer
@@ -31,10 +31,10 @@ Drawer {
 		id: backgrundRec
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-			GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 		}
 		opacity: 0.8
 	}
@@ -91,13 +91,9 @@ Drawer {
 			Layout.topMargin: 0
 		}
 
-		Label {
-			text: "TrainingPlanner by VivenciaSoftware - " + AppSettings.appVersion
-			wrapMode: Text.WordWrap
-			font.bold: true
-			font.pointSize: AppSettings.fontSizeText
+		TPLabel {
+			text: "TrainingPlanner by VivenciaSoftware - " + appSettings.appVersion
 			horizontalAlignment: Text.AlignHCenter
-			color: AppSettings.fontColor
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 		}
@@ -124,20 +120,16 @@ Drawer {
 			}
 		}
 
-		Label {
+		TPLabel {
 			id: lblAvatar
-			wrapMode: Text.WordWrap
-			font.bold: true
-			font.pointSize: AppSettings.fontSizeText
 			horizontalAlignment: Text.AlignHCenter
-			color: AppSettings.fontColor
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 		}
 
 		Rectangle {
 			height: 3
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			Layout.topMargin: 10
 			Layout.fillWidth: true
 		}
@@ -176,7 +168,7 @@ Drawer {
 
 		Rectangle {
 			height: 3
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			Layout.fillWidth: true
 			Layout.bottomMargin: 10
 		}

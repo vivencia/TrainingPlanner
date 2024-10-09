@@ -37,10 +37,9 @@ public:
 	inline DBInterface(const DBInterface& other) = delete;
 	inline DBInterface& operator()(const DBInterface& other) = delete;
 	inline ~DBInterface() {}
+
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
-
-	inline const QString& dbFilesPath() const { return m_DBFilePath; }
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();

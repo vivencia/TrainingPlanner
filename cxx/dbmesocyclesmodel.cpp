@@ -2,7 +2,7 @@
 #include "dbmesocalendarmodel.h"
 #include "tpglobals.h"
 #include "dbmesosplitmodel.h"
-#include "tpappcontrol.h"
+#include "tpsettings.h"
 
 #include <QSettings>
 
@@ -112,7 +112,7 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 void DBMesocyclesModel::finishedLoadingFromDatabase()
 {
 	setReady(true);
-	m_currentMesoIdx = appSettings()->value("lastViewedMesoIdx").toInt();
+	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
 }
 
 void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
@@ -283,8 +283,7 @@ void DBMesocyclesModel::setCurrentMesoIdx(const uint meso_idx)
 	if (meso_idx != m_currentMesoIdx)
 	{
 		m_currentMesoIdx = meso_idx;
-		appSettings()->setValue("lastViewedMesoIdx", meso_idx);
-		appSettings()->sync();
+		appSettings()->setLastViewedMesoIdx(meso_idx);
 		emit currentMesoIdxChanged();
 	}
 }

@@ -9,11 +9,8 @@ GroupBox {
 	spacing: 0
 	property alias text: lblText.text
 
-	label: Label {
+	label: TPLabel {
 		id: lblText
-		color: AppSettings.fontColor
-		font.pointSize: AppSettings.fontSizeText
-		font.bold: true
 		anchors.horizontalCenter: parent.horizontalCenter
 		anchors.bottomMargin: 10
 	}
@@ -21,7 +18,7 @@ GroupBox {
 	background: Rectangle {
 		id: recBack
 		color: "transparent"
-		border.color: AppSettings.fontColor
+		border.color: appSettings.fontColor
 		radius: 6
 	}
 }

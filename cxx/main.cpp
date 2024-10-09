@@ -1,3 +1,4 @@
+#include "tpsettings.h"
 #include "tpappcontrol.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -10,7 +11,6 @@
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
-#include <QSettings>
 
 int main(int argc, char *argv[])
 {
@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
 
 	app.setOrganizationName(u"Vivencia Software"_qs);
 	app.setOrganizationDomain(u"org.vivenciasoftware"_qs);
-	app.setApplicationName(u"Training Planner"_qs);
+	app.setApplicationName(u"TrainingPlanner"_qs);
 
-	QSettings settings;
-	TPAppControl tpApp{&settings};
+	TPSettings tpSettings{};
+	TPAppControl tpApp{};
 	TPUtils appUtils{};
 	TranslationClass appTr{};
 	OSInterface appOsInterface{};

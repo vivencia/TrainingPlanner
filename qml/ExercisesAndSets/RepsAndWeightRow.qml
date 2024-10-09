@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	id: mainRow
@@ -12,7 +12,7 @@ Item {
 
 	required property DBTrainingDayModel tDayModel
 	required property int rowIdx
-	readonly property int controlWidth: windowWidth
+	readonly property int controlWidth: appSettings.pageWidth
 	property var nextRowObj: null
 	property bool bBtnAddEnabled: true
 

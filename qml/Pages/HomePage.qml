@@ -5,11 +5,10 @@ import QtQuick.Effects
 
 import "../"
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPage {
 	id: homePage
-	objectName: "homePage"
 
 	property date minimumStartDate;
 
@@ -21,10 +20,10 @@ TPPage {
 		background: Rectangle {
 			gradient: Gradient {
 				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: AppSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: AppSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: AppSettings.primaryColor; }
-				GradientStop { position: 0.75; color: AppSettings.primaryDarkColor; }
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 			}
 			opacity: 0.8
 		}
@@ -44,13 +43,9 @@ TPPage {
 			}
 		}
 
-		Label {
+		TPLabel {
 			text: qsTr("Training Organizer")
-			color: AppSettings.fontColor
-			font.weight: Font.ExtraBold
-			fontSizeMode: Text.Fit
-			font.pointSize: AppSettings.fontSizeTitle
-			padding: 0
+			font: AppGlobals.titleFont
 
 			anchors {
 				top: parent.top
@@ -88,7 +83,7 @@ TPPage {
 
 			Rectangle {
 				id: optionsRec
-				color: AppSettings.primaryDarkColor
+				color: appSettings.primaryDarkColor
 				radius: 6
 				layer.enabled: true
 				visible: false
@@ -279,7 +274,7 @@ TPPage {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentRow ? AppSettings.entrySelectedColor : listEntryColor2
+				color: index === mesocyclesModel.currentRow ? appSettings.entrySelectedColor : listEntryColor2
 				visible: false
 			}
 
@@ -302,51 +297,35 @@ TPPage {
 				id: mesoContent
 				spacing: 2
 
-				Label {
+				TPLabel {
 					text: mesoName
 					horizontalAlignment: Text.AlignHCenter
-					fontSizeMode: Text.Fit
-					font.pointSize: AppSettings.fontSize
-					minimumPointSize: AppSettings.fontSizeText
-					color: AppSettings.fontColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
-				Label {
+				TPLabel {
 					text: mesoCoach
-					fontSizeMode: Text.Fit
-					font.pointSize: AppSettings.fontSize
-					minimumPointSize: AppSettings.fontSizeText
-					color: AppSettings.fontColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
-				Label {
+				TPLabel {
 					text: mesoClient
-					fontSizeMode: Text.Fit
-					font.pointSize: AppSettings.fontSize
-					minimumPointSize: AppSettings.fontSizeText
-					color: AppSettings.fontColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
-				Label {
+				TPLabel {
 					text: mesoStartDate
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 				}
-				Label {
+				TPLabel {
 					text: mesoEndDate
-					color: AppSettings.fontColor
+					color: appSettings.fontColor
 				}
-				Label {
+				TPLabel {
 					text: mesoSplit
-					fontSizeMode: Text.Fit
-					font.pointSize: AppSettings.fontSize
-					minimumPointSize: AppSettings.fontSizeText
-					color: AppSettings.fontColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
@@ -361,7 +340,7 @@ TPPage {
 		height: 80
 
 		background: Rectangle {
-			color: AppSettings.primaryDarkColor
+			color: appSettings.primaryDarkColor
 			opacity: 0.3
 		}
 

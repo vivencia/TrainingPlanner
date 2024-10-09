@@ -40,7 +40,7 @@ void DBMesocyclesTable::createTable()
 									")"_qs
 		);
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, {std::source_location::current()})
+		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -141,7 +141,7 @@ void DBMesocyclesTable::getAllMesocycles()
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -190,7 +190,7 @@ void DBMesocyclesTable::saveMesocycle()
 				m_model->setImportMode(false);
 			}
 		}
-		setResult(ok, m_model, strQuery, {std::source_location::current()})
+		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

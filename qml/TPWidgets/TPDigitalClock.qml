@@ -6,7 +6,7 @@ import "../"
 Rectangle {
 	width: 25
 	height: 35
-	color: AppSettings.primaryColor
+	color: appSettings.primaryColor
 	enabled: false
 
 	property alias value: list.currentIndex
@@ -16,10 +16,10 @@ Rectangle {
 		anchors.fill: parent
 		gradient: Gradient {
 			orientation: Gradient.Vertical
-			GradientStop { position: 0.0; color: AppSettings.primaryLightColor }
-			GradientStop { position: 0.2; color: AppSettings.primaryDarkColor }
-			GradientStop { position: 0.8; color: AppSettings.primaryDarkColor }
-			GradientStop { position: 1.0; color: AppSettings.primaryLightColor }
+			GradientStop { position: 0.0; color: appSettings.primaryLightColor }
+			GradientStop { position: 0.2; color: appSettings.primaryDarkColor }
+			GradientStop { position: 0.8; color: appSettings.primaryDarkColor }
+			GradientStop { position: 1.0; color: appSettings.primaryLightColor }
 		}
 	}
 
@@ -37,7 +37,7 @@ Rectangle {
 			horizontalAlignment: Text.AlignHCenter
 			leftPadding: 5
 			font.bold: true
-			color: AppSettings.fontColor
+			color: appSettings.fontColor
 			text: String(index).length == 1 ? "0" + index : index
 			//anchors.horizontalCenter: parent.horizontalCenter
 		}

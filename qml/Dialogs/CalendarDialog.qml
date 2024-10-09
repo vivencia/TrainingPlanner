@@ -9,8 +9,8 @@ TPPopup {
 	bKeepAbove: !simpleCalendar
 	width: datePickerControl.width
 	height: datePickerControl.height + 30
-	x: (windowWidth - width) / 2 // horizontally centered
-	finalYPos: (windowHeight - height) / 2 // vertically centered
+	x: (appSettings.pageWidth - width) / 2 // horizontally centered
+	finalYPos: (appSettings.pageHeight - height) / 2 // vertically centered
 
 	required property date showDate
 	required property date initDate

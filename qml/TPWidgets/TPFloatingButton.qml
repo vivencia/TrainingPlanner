@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPFloatingControl {
 	id: button
@@ -10,9 +10,9 @@ TPFloatingControl {
 	radius: width / 2
 	height: cboSetType.height + 10;
 	width: cboSetType.width + textAndImageSize + 50
-	x: (windowWidth-width)/2;
-	y: windowHeight * 0.5 - height;
-	color: AppSettings.primaryDarkColor
+	x: (appSettings.pageWidth-width)/2;
+	y: appSettings.pageHeight * 0.5 - height;
+	color: appSettings.primaryDarkColor
 	dragWidget: buttonText
 
 	property int exerciseIdx
@@ -39,14 +39,14 @@ TPFloatingControl {
 
 		TPImage {
 			anchors.fill: parent
-			source: AppSettings.iconFolder+"close.png";
+			source: appSettings.iconFolder+"close.png";
 		}
 	}
 
 	TPComboBox {
 		id: cboSetType
 		currentIndex: comboIndex
-		model: AppSettings.setTypesModel
+		model: AppGlobals.setTypesModel
 		z: 0
 
 		anchors {
@@ -58,14 +58,9 @@ TPFloatingControl {
 		onActivated: { comboIndex = cboSetType.currentValue; }
 	}
 
-	Label {
+	TPLabel {
 		id: buttonText
-		color: AppSettings.fontColor
-		font.bold: true
-		padding: 0
 		width: 100
-		minimumPointSize: 8
-		fontSizeMode: Text.Fit
 		z: 0
 
 		anchors {

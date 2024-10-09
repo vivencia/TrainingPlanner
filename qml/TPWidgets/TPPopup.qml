@@ -33,7 +33,7 @@ Popup {
 		radius: 8
 		layer.enabled: true
 		visible: false
-		color: AppSettings.primaryDarkColor
+		color: appSettings.primaryDarkColor
 	}
 
 	background: backRec

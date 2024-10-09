@@ -7,15 +7,15 @@ import "../"
 Rectangle {
 	id: button
 	focus: true
-	border.color: flat ? "transparent" : AppSettings.fontColor
+	border.color: flat ? "transparent" : appSettings.fontColor
 	radius: rounded ? height : 6
 	opacity: bFollowParentsOpacity ? parent.opacity : 1
 	color: backgroundColor
 
-	property color textColor: AppSettings.fontColor
+	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
-	property string backgroundColor: text.length > 0 ? AppSettings.primaryDarkColor : "transparent"
+	property string backgroundColor: text.length > 0 ? appSettings.primaryDarkColor : "transparent"
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false
@@ -57,14 +57,8 @@ Rectangle {
 		onTriggered: fillPosition = 1;
 	}
 
-	FontMetrics {
-		id: fontMetrics
-		font.family: buttonText.font.family
-		font.pointSize: AppSettings.fontSizeText
-	}
-
 	Component.onCompleted: {
-		AppSettings.appFontSizeChanged.connect(resizeButton);
+		appSettings.fontSizeTextChanged.connect(resizeButton);
 		if (imageSource.length > 0)
 		{
 			var component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
@@ -93,21 +87,12 @@ Rectangle {
 		}
 	}
 
-	Label {
+	TPLabel {
 		id: buttonText
 		opacity: button.opacity
-		color: button.enabled ? textColor : AppSettings.disabledFontColor
-		minimumPointSize: 8
-		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
-		maximumLineCount: 1
-		//leftPadding: 5
+		color: button.enabled ? textColor : appSettings.disabledFontColor
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
-		//rightPadding: 5
-		font {
-			weight: Font.ExtraBold
-			pointSize: AppSettings.fontSizeText*0.9
-		}
 
 		onTextChanged: resizeButton();
 
@@ -120,7 +105,7 @@ Rectangle {
 						anchors.leftMargin = 5;
 					}
 					else {
-						anchors.right = parent.right;
+						anchors.right = button.right;
 						anchors.rightMargin = 5;
 					}
 				}
@@ -195,8 +180,8 @@ Rectangle {
 	}
 
 	function resizeButton() {
-		const fwidth = fontMetrics.boundingRect(text).width;
-		const fheight = fontMetrics.boundingRect("TM").height;
+		const fwidth = buttonText.textWidth;
+		const fheight = buttonText.textHeight;
 		if (!fixedSize) {
 			buttonText.width = fwidth + 5
 			implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);

@@ -1,8 +1,6 @@
 #ifndef TPUTILS_H
 #define TPUTILS_H
 
-#include "tpglobals.h"
-
 #include <QDateTime>
 #include <QFileInfo>
 #include <QObject>

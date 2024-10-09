@@ -1,1 +1,0 @@
-/home/guilherme/software/trainingplanner/cxx/tplistmodel.h

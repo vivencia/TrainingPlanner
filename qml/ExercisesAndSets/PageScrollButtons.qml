@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 import "../TPWidgets"
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Rectangle {
 	id: button
@@ -27,7 +27,7 @@ Rectangle {
 		color: "transparent"
 		visible: showUpButton
 		dragWidget: img1
-		x: windowWidth - width;
+		x: appSettings.pageWidth - width;
 		y: 640 - 2*height - 10
 		emitMoveSignal: true
 
@@ -60,7 +60,7 @@ Rectangle {
 		visible: showDownButton
 		color: "transparent"
 		dragWidget: img2
-		x: windowWidth - width;
+		x: appSettings.pageWidth - width;
 		y: 640 - height - 10
 		emitMoveSignal: true
 

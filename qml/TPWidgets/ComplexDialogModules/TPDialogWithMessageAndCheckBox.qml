@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 import "../"
 import "../.."
-import com.vivenciasoftware.qmlcomponents
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Column {
 	id: mainLayout
@@ -18,12 +18,6 @@ Column {
 		parentDlg.dialogOpened.connect(resize);
 	}
 
-	FontMetrics {
-		id: fontMetrics
-		font.family: lblMessage.font.family
-		font.pointSize: lblMessage.font.pointSize
-	}
-
 	RowLayout {
 		Layout.leftMargin: 5
 		Layout.rightMargin: 5
@@ -33,25 +27,20 @@ Column {
 
 		TPImage {
 			id: imgElement
-			source: parentDlg.customStringProperty3.indexOf("png") !== -1 ? AppSettings.iconFolder+parentDlg.customStringProperty3 : parentDlg.customStringProperty3
+			source: parentDlg.customStringProperty3.indexOf("png") !== -1 ? appSettings.iconFolder+parentDlg.customStringProperty3 : parentDlg.customStringProperty3
 			visible: parentDlg.customStringProperty3 !== ""
 			width: parentDlg.customStringProperty3 !== "" ? 50 : 0
 			height: width
 		}
 
-		Label {
+		TPLabel {
 			id: lblMessage
 			text: parentDlg.customStringProperty1
 			color: textColor
-			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignJustify
-			font.pointSize: AppSettings.fontSizeText
-			font.weight: Font.Black
 			width: mainLayout.width - imgElement.width - 10
-			height: Math.ceil(fontMetrics.boundingRect(text).width / width) * 30
 			Layout.maximumWidth: width
 			Layout.minimumWidth: width
-			padding: 0
 		}
 	}
 

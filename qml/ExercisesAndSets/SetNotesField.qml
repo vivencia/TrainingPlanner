@@ -25,13 +25,10 @@ Frame {
 		anchors.fill: parent
 		spacing: 0
 
-		Label {
+		TPLabel {
 			id: label
 			text: qsTr("Notes:")
-			font.bold: true
 			height: 20
-			padding: 0
-			color: enabled ? foreColor : "gray"
 			Layout.alignment: Qt.AlignLeft
 			Layout.fillWidth: false
 
@@ -61,7 +58,7 @@ Frame {
 
 			TextArea.flickable: TextArea {
 				id: txtNotes
-				font.pointSize: AppSettings.fontSizeText
+				font.pointSize: appSettings.fontSizeText
 				font.bold: true
 				padding: 0
 				topPadding: 5
