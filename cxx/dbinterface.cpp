@@ -31,7 +31,7 @@ void DBInterface::init()
 	QDir appDir(m_DBFilePath);
 	if (!appDir.mkpath(m_DBFilePath))
 	{
-		DECLARE_SOURCE_LOCATION
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("TP directory creation failed: ", m_DBFilePath);
 	}
 

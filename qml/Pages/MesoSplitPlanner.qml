@@ -53,8 +53,9 @@ Frame {
 		id: lblMain
 		text: qsTr("Training Division ") + splitModel.splitLetter()
 		font: AppGlobals.titleFont
-		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
+		fontColor: "black"
+		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
 			top: parent.top
@@ -62,17 +63,21 @@ Frame {
 			left: parent.left
 			bottomMargin: 10
 		}
-	}// Label lblMain
+	}
 
 	TPLabel {
 		id: lblGroups
 		text: qsTr("Muscle groups trained in this division:")
-		width: parent.width - 20
+		singleLine: true
+		color: "black"
+
 		anchors {
 			top: lblMain.bottom
 			topMargin: 5
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 			bottomMargin: 5
 		}
 	}
@@ -156,7 +161,8 @@ Frame {
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
 						textColor: "black"
 						checked: index === splitModel.currentRow
-						width: parent.width
+						Layout.minimumWidth: parent.width
+						Layout.maximumWidth: parent.width
 
 						onClicked: splitModel.currentRow = index;
 
@@ -618,7 +624,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 6
-					color: splitModel.currentRow === index ? appSettings.primaryLightColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+					color: splitModel.currentRow === index ? appSettings.primaryLightColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
 
 				Component.onCompleted: lstSplitExercises.totalHeight += height;

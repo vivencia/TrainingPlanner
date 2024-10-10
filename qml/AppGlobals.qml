@@ -70,4 +70,14 @@ QtObject {
 		ListElement { text: qsTr("Myo Reps"); value: 5; enabled: true; }
 		ListElement { text: qsTr("Inverted Pyramid"); value: 6; enabled: true; }
 	}
+
+	property ListModel splitModel: ListModel {
+		ListElement { text: "A"; value: "A"; enabled: true; }
+		ListElement { text: "B"; value: "B"; enabled: true; }
+		ListElement { text: "C"; value: "C"; enabled: true; }
+		ListElement { text: "D"; value: "D"; enabled: true; }
+		ListElement { text: "E"; value: "E"; enabled: true; }
+		ListElement { text: "F"; value: "F"; enabled: true; }
+		ListElement { text: "R"; value: "R"; enabled: true; }
+	}
 }

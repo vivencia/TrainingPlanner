@@ -169,7 +169,7 @@ Column {
 
 			background: Rectangle {
 				id:	backgroundColor
-				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ? listEntryColor1 : listEntryColor2
+				color: selected ? appSettings.entrySelectedColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 			}
 
 			onClicked: itemClicked(index, true);

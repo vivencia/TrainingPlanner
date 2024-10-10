@@ -37,9 +37,6 @@ TPPage {
 	property TPFloatingButton btnFloat: null
 	property PageScrollButtons navButtons: null
 	property TimerDialog timerDialog: null
-	property var splitModel: [ { value:'A', text:'A', enabled: true }, { value:'B', text:'B', enabled: true }, { value:'C', text:'C', enabled: true },
-							{ value:'D', text:'D', enabled: true }, { value:'E', text:'E', enabled: true }, { value:'F', text:'F', enabled: true },
-							{ value:"R", text:"R", enabled: true } ]
 
 	signal mesoCalendarChanged()
 
@@ -340,7 +337,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboSplitLetter
-					model: splitModel
+					model: AppGlobals.splitModel
 					enabled: workoutTimer.active ? false : !tDayModel.dayIsFinished
 					Layout.maximumWidth: 100
 

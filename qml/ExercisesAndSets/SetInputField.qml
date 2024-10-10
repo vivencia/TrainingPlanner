@@ -80,6 +80,7 @@ FocusScope {
 		TPLabel {
 			id: lblMain
 			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
+			fontColor: labelColor
 			visible: showLabel
 
 			anchors {

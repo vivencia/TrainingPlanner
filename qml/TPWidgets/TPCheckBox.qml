@@ -6,14 +6,9 @@ import "../"
 CheckBox {
 	id: control
 	spacing: 5
-	topPadding: 5
-	leftPadding: 5
-	bottomPadding: 0
-	rightPadding: 0
-	implicitHeight: lblText.preferredHeight + 5
-	implicitWidth: lblText.implicitWidth + indicator.width + spacing
+	padding: 0
 
-	property string textColor: appSettings.fontColor
+	property alias textColor: lblText.color
 
 	contentItem: TPLabel {
 		id: lblText
@@ -28,7 +23,7 @@ CheckBox {
 		y: lblText.y
 		radius: 4
 		color: "transparent"
-		border.color: control.enabled ? textColor : "gray"
+		border.color: control.enabled ? textColor : "darkgray"
 
 		Rectangle {
 			width: 10
@@ -36,7 +31,7 @@ CheckBox {
 			x: 5
 			y: 5
 			radius: 2
-			color: control.checked ? control.enabled ? textColor : "gray" : "transparent"
+			color: control.checked ? control.enabled ? textColor : "darkgray" : "transparent"
 		}
 	}
 }

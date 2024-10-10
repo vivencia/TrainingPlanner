@@ -90,6 +90,7 @@ Rectangle {
 	TPLabel {
 		id: buttonText
 		opacity: button.opacity
+		singleLine: true
 		color: button.enabled ? textColor : appSettings.disabledFontColor
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
@@ -180,29 +181,13 @@ Rectangle {
 	}
 
 	function resizeButton() {
-		const fwidth = buttonText.textWidth;
-		const fheight = buttonText.textHeight;
 		if (!fixedSize) {
-			buttonText.width = fwidth + 5
+			const fwidth = buttonText.width;
+			const fheight = buttonText.height;
 			implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
-			buttonText.height = fheight + 10
-			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 10) : 10);
+			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
 		}
-		else {
-			if (button.width > 0) {
-				if (fwidth >= button.width)
-				{
-					if (button.height === 0) {
-						buttonText.width = button.width - 10;
-						buttonText.height = fheight * 2;
-						buttonText.wrapMode = Text.WordWrap;
-						button.height = buttonText.height + (imageSource.length > 1 ? textUnderIcon ? imageSize + 10 : 10 : 10);
-
-					}
-					else
-						buttonText.elide = Text.ElideMiddle;
-				}
-			}
-		}
+		else
+			buttonText.widthAvailable = button.width - 5;
 	}
 } //Rectangle

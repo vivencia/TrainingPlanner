@@ -136,8 +136,12 @@ Drawer {
 
 		TPButton {
 			id: btnExercises
-			Layout.fillWidth: true
 			text: qsTr("Exercises Database")
+			fixedSize: true
+			Layout.minimumWidth: drawer.width - 10
+			Layout.maximumWidth: drawer.width - 10
+			Layout.minimumHeight: 25
+			Layout.maximumHeight: 25
 
 			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
 				stackView.currentItem
@@ -153,7 +157,11 @@ Drawer {
 		TPButton {
 			id: btnSettings
 			text: qsTr("Settings")
-			Layout.fillWidth: true
+			fixedSize: true
+			Layout.minimumWidth: drawer.width - 10
+			Layout.maximumWidth: drawer.width - 10
+			Layout.minimumHeight: 25
+			Layout.maximumHeight: 25
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
@@ -184,7 +192,9 @@ Drawer {
 			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page, "Layout.fillWidth": true });
+			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page,
+				"Layout.minimumWidth": drawer.width - 10, "Layout.maximumWidth": drawer.width - 10, "Layout.minimumHeight": 25,
+				"Layout.maximumHeight": 25 });
 			button.clicked.connect(function () { itemManager.openMainMenuShortCut();} );
 			itemManager.addMainMenuShortCutEntry(button);
 		}

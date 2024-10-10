@@ -7,10 +7,8 @@ RadioButton {
 	id: control
 	spacing: 5
 	padding: 0
-	implicitHeight: lblText.preferredHeight + 5
-	implicitWidth: lblText.preferredWidth + indicator.width + spacing
 
-	property alias textColor: lblText.enabledFontColor
+	property alias textColor: lblText.color
 
 	contentItem: TPLabel {
 		id: lblText
@@ -25,7 +23,7 @@ RadioButton {
 		y: lblText.y
 		radius: 10
 		color: "transparent"
-		border.color: control.enabled ? textColor : "gray"
+		border.color: control.enabled ? textColor : "darkgray"
 
 		Rectangle {
 			width: 14
@@ -33,7 +31,7 @@ RadioButton {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.checked ? control.enabled ? textColor : "gray" : "transparent"
+			color: control.checked ? control.enabled ? textColor : "darkgray" : "transparent"
 		}
 	}
 }

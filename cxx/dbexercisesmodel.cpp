@@ -74,7 +74,7 @@ void DBExercisesModel::removeExercise(const uint index)
 	endRemoveRows();
 }
 
-void DBExercisesModel::setFilter(const QString &filter, const bool resetSelection)
+void DBExercisesModel::setFilter(const QString& filter, const bool resetSelection)
 {
 	if (filter.length() >=3)
 	{

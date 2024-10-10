@@ -132,6 +132,7 @@ public:
 	inline uint pageWidth() const { return value(m_propertyNames.at(PAGE_WIDTH_INDEX), m_defaultValues.at(PAGE_WIDTH_INDEX).toUInt()).toUInt(); }
 	inline void setPageWidth(const uint new_value) { changeValue(PAGE_WIDTH_INDEX, QString::number(new_value)); emit pageWidthChanged(); }
 
+	//mainWindow.height(640) - NavBar.height(40)
 	inline uint pageHeight() const { return value(m_propertyNames.at(PAGE_HEIGHT_INDEX), m_defaultValues.at(PAGE_HEIGHT_INDEX).toUInt()).toUInt(); }
 	inline void setPageHeight(const uint new_value) { changeValue(PAGE_HEIGHT_INDEX, QString::number(new_value)); emit pageHeightChanged(); }
 

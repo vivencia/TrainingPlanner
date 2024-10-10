@@ -12,9 +12,6 @@ Pane {
 
 	property alias mesoSplitText: txtMesoSplit.text
 
-	readonly property var splitModel: [ { value:'A', text:'A', enabled: true }, { value:'B', text:'B', enabled: true }, { value:'C', text:'C', enabled: true },
-							{ value:'D', text:'D', enabled: true }, { value:'E', text:'E', enabled: true },
-							{ value:'F', text:'F', enabled: true }, { value:'R', text:'R', enabled: true } ]
 	readonly property int col1Width: width*0.15
 	readonly property int col2Width: width*0.15
 	readonly property int col3Width: width*0.6
@@ -25,7 +22,8 @@ Pane {
 
 	TPLabel {
 		id: lblMesoSplit
-		width: parent.width*0.6
+		text: mesocyclesModel.columnLabel(6)
+		widthAvailable: parent.width*0.6
 
 		anchors {
 			top: parent.top
@@ -51,7 +49,7 @@ Pane {
 		id: mainLayout
 
 		anchors {
-			top: lblMesoSplit.bottom
+			top: txtMesoSplit.bottom
 			topMargin: 15
 			left: parent.left
 			right: parent.right
@@ -73,7 +71,7 @@ Pane {
 
 				TPComboBox {
 					id: cboSplit
-					model: splitModel
+					model: AppGlobals.splitModel
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {

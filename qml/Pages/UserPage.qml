@@ -70,7 +70,7 @@ TPPage {
 	footer: ToolBar {
 		id: coachsClientsToolBar
 		width: parent.width
-		height: 70
+		height: 75
 
 		background: Rectangle {
 			gradient: Gradient {

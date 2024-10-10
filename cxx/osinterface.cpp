@@ -61,6 +61,7 @@ void OSInterface::checkPendingIntents() const
 		activity.callMethod<void>("checkPendingIntents","()V");
 		return;
 	}
+	DEFINE_SOURCE_LOCATION
 	ERROR_MESSAGE("Activity not valid", QString())
 }
 
@@ -83,6 +84,7 @@ bool OSInterface::sendFile(const QString& filePath, const QString& title, const 
 													jsPath.object<jstring>(), jsTitle.object<jstring>(), jsMimeType.object<jstring>(), requestId);
 	if(!ok)
 	{
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("Unable to resolve activity from Java", QString())
 		return false;
 	}
@@ -103,7 +105,10 @@ void OSInterface::androidOpenURL(const QString& address) const
 													"(Ljava/lang/String;)Z",
 													jsPath.object<jstring>());
 	if(!ok)
+	{
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("Unable to open the address: ", address)
+	}
 }
 
 bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
@@ -128,7 +133,10 @@ bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 													"(Ljava/lang/String;Ljava/lang/String;)Z",
 													jsPath.object<jstring>(), jsTitle.object<jstring>());
 	if(!ok)
+	{
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("Unable to resolve view activity from Java", QString())
+	}
 	return ok;
 }
 
@@ -172,7 +180,10 @@ void OSInterface::setFileUrlReceived(const QString& url) const
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
+	{
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("FILE does NOT exist ", url)
+	}
 }
 
 void OSInterface::setFileReceivedAndSaved(const QString& url) const
@@ -181,7 +192,10 @@ void OSInterface::setFileReceivedAndSaved(const QString& url) const
 	if (QFileInfo::exists(androidUrl))
 		appControl()->openRequestedFile(androidUrl);
 	else
+	{
+		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("FILE does NOT exist ", url)
+	}
 }
 
 void OSInterface::onActivityResult(int requestCode, int resultCode)

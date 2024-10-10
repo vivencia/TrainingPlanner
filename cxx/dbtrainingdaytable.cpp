@@ -169,7 +169,7 @@ void DBTrainingDayTable::getTrainingDay()
 				mSqlLiteDB.close();
 				m_model->appendList(split_info);
 				m_model->setReady(true);
-				SUCCESS_MESSAGE_WITH_STATEMENT(DECLARE_SOURCE_LOCATION PRINT_SOURCE_LOCATION)
+				SUCCESS_MESSAGE_WITH_STATEMENT(DEFINE_SOURCE_LOCATION PRINT_SOURCE_LOCATION)
 				mSqlLiteDB.close();
 				getTrainingDayExercises();
 				return;

@@ -103,6 +103,7 @@ ApplicationWindow {
 				component.statusChanged.connect(finishCreation);
 		}
 		createFirstTimeDialog();
+		//firstTimeDlgg.open();
 	}
 
 	signal pageDeActivated_main(Item page);

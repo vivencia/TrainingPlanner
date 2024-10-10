@@ -74,6 +74,7 @@ TPPage {
 
 		anchors {
 			bottom: parent.bottom
+			bottomMargin: 10
 			horizontalCenter: parent.horizontalCenter
 		}
 	}

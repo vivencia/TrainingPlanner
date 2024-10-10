@@ -305,7 +305,7 @@ TPPage {
 						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 						fileMode: FileDialog.OpenFile
 
-						onAccepted: btnOpenMesoFile.visible = mesocyclesModel.setFile(itemManager.mesoIdx, chosenFile);
+						onAccepted: btnOpenMesoFile.visible = mesocyclesModel.setFile(itemManager.mesoIdx, selectedFile);
 					}
 				}
 
@@ -413,18 +413,16 @@ TPPage {
 				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
-				Layout.minimumWidth: 50
-				Layout.maximumWidth: 50
 			}
 
 			TPTextInput {
 				id: txtMesoNWeeks
 				text: mesocyclesModel.nWeeks(itemManager.mesoIdx)
 				readOnly: true
-				width: txtMesoEndDate.width
 				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
+				Layout.minimumWidth: parent.width / 2
 			}
 
 			MesoSplitSetup {
@@ -445,6 +443,7 @@ TPPage {
 				Layout.leftMargin: 5
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
+				Layout.minimumHeight: 60
 
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes

@@ -274,7 +274,7 @@ TPPage {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentRow ? appSettings.entrySelectedColor : listEntryColor2
+				color: index === mesocyclesModel.currentRow ? appSettings.entrySelectedColor : appSettings.listEntryColor2
 				visible: false
 			}
 
@@ -327,6 +327,7 @@ TPPage {
 				TPLabel {
 					text: mesoSplit
 					width: availableWidth
+					singleLine: true
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
@@ -337,7 +338,7 @@ TPPage {
 	footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
-		height: 80
+		height: 85
 
 		background: Rectangle {
 			color: appSettings.primaryDarkColor
@@ -351,7 +352,6 @@ TPPage {
 			backgroundColor: "transparent"
 			rounded: false
 			flat: true
-			height: 25
 
 			anchors {
 				top: parent.top
@@ -368,10 +368,10 @@ TPPage {
 			backgroundColor: "transparent"
 			rounded: false
 			flat: true
-			height: 25
 
 			anchors {
 				top: btnAddMeso.bottom
+				topMargin: -5
 				horizontalCenter: parent.horizontalCenter
 			}
 
@@ -386,10 +386,10 @@ TPPage {
 			rounded: false
 			flat: true
 			visible: stackView.depth === 1 && mainwindow.bCanHaveTodaysWorkout
-			height: 25
 
 			anchors {
 				top: btnImportMeso.bottom
+				topMargin: -5
 				horizontalCenter: parent.horizontalCenter
 			}
 

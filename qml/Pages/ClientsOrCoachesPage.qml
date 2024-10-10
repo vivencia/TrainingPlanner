@@ -27,12 +27,11 @@ TPPage {
 			chkCurrent.checked = userModel.currentUser(0) === curUserRow;
 	}
 
-	Label {
+	TPLabel {
 		id: lblMain
 		text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
-		color: appSettings.fontColor
-		font.bold: true
-		font.pointSize: appSettings.fontSizeTitle
+		font: AppGlobals.titleFont
+		width: parent.width
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {

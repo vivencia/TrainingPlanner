@@ -38,6 +38,7 @@ public:
 	inline DBInterface& operator()(const DBInterface& other) = delete;
 	inline ~DBInterface() {}
 
+	inline const QString& dbFilesPath() const { return m_DBFilePath; }
 	void init();
 	void threadFinished(TPDatabaseTable* dbObj);
 

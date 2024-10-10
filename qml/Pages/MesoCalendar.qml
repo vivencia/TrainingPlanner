@@ -17,7 +17,7 @@ TPPage {
 	property bool bAlreadyLoaded: false
 
 	header: ToolBar {
-		height: headerHeight
+		height: 60
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -38,6 +38,9 @@ TPPage {
 				id: lbl1
 				text: mesocyclesModel.name(itemManager.mesoIdx)
 				font: AppGlobals.titleFont
+				Layout.maximumWidth: parent.width - 10
+				Layout.minimumHeight: heightAvailable
+				Layout.maximumHeight: heightAvailable
 				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
@@ -48,7 +51,10 @@ TPPage {
 				font: AppGlobals.titleFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
+				Layout.minimumHeight: heightAvailable
+				Layout.maximumHeight: heightAvailable
 				Layout.leftMargin: 5
+				Layout.topMargin: 5
 				Layout.bottomMargin: 5
 			}
 		}
@@ -148,7 +154,7 @@ TPPage {
 						var colorValue = "transparent";
 						if ( monthGrid.month === model.month ) {
 							if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
-								colorValue =  listEntryColor2;
+								colorValue =  appSettings.listEntryColor2;
 								bIsTrainingDay = true;
 								bDayIsFinished = mesoCalendarModel.isDayFinished(model.month+1, model.day-1);
 							}

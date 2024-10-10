@@ -11,7 +11,9 @@ TPLabel {
 
 	readonly property bool bReady: true
 
-	topPadding: (height - width)/2
+	heightAvailable: height
+	widthAvailable: width
+	topPadding: 30
 	leftPadding: 30
 	rightPadding: 30
 }

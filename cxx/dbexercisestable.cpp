@@ -97,8 +97,6 @@ void DBExercisesTable::updateExercisesList()
 		return;
 	}
 
-	removePreviousListEntriesFromDB();
-
 	if (openDatabase())
 	{
 		bool ok(false);
@@ -106,11 +104,20 @@ void DBExercisesTable::updateExercisesList()
 		QString queryValues;
 		QStringList fields(3);
 		uint idx(0);
+
+		//remove previous list entries from DB
+		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_qs);
+		ok = query.exec(strQuery);
+		if (!ok)
+		{
+			DEFINE_SOURCE_LOCATION
+			ERROR_MESSAGE(query.lastError().text(), strQuery);
+		}
+		query.finish();
+
 		const QString& queryStart(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
 								" VALUES "_qs);
-
-		mSqlLiteDB.transaction();
 
 		QStringList::const_iterator itr(m_ExercisesList.constBegin());
 		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
@@ -121,10 +128,12 @@ void DBExercisesTable::updateExercisesList()
 			queryValues += m_model->makeTransactionStatementForDataBase(idx);
 		}
 		queryValues.chop(1);
+		mSqlLiteDB.transaction();
 		ok = query.exec(queryStart + queryValues);
 		if (!ok)
 		{
-			DECLARE_SOURCE_LOCATION
+			mSqlLiteDB.rollback();
+			DEFINE_SOURCE_LOCATION
 			ERROR_MESSAGE(query.lastError().text(), QString())
 		}
 		else
@@ -182,18 +191,6 @@ void DBExercisesTable::saveExercises()
 		}
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
-}
-
-void DBExercisesTable::removePreviousListEntriesFromDB()
-{
-	bool ok(false);
-	if (openDatabase())
-	{
-		QSqlQuery query{mSqlLiteDB};
-		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_qs);
-		ok = query.exec();
-		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
-	}
 }
 
 void DBExercisesTable::getExercisesList()

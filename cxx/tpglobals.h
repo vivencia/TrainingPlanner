@@ -9,7 +9,7 @@ static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
 #include <QDebug>
 #include <source_location>
 #define SOURCE_LOCATION {std::source_location::current()}
-#define DECLARE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
+#define DEFINE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
 #define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << u"::"_qs << location.function_name() << u"::"_qs << location.line();
 #define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_qs; qDebug() << message << message2; \
 			qDebug() << u"******SUCCESS******"_qs; qDebug() << ' '; }
@@ -20,7 +20,7 @@ static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
 #define LOG_MESSAGE(message) qDebug() << message;
 #else
 #define SOURCE_LOCATION
-#define DECLARE_SOURCE_LOCATION
+#define DEFINE_SOURCE_LOCATION
 #define PRINT_SOURCE_LOCATION
 #define SUCCESS_MESSAGE(message1, message2)
 #define SUCCESS_MESSAGE_WITH_STATEMENT(statement)

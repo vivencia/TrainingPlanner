@@ -77,6 +77,7 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		singleLine: true
+		width: control.width
 		rightPadding: control.indicator.width + control.spacing
 		verticalAlignment: Text.AlignVCenter
 		leftPadding: completeModel ? 30 : 5

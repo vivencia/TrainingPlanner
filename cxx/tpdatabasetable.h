@@ -53,7 +53,7 @@ public:
 		#ifndef QT_NO_DEBUG
 		if (!ok)
 		{
-			DECLARE_SOURCE_LOCATION
+			DEFINE_SOURCE_LOCATION
 			ERROR_MESSAGE(u"Could not open Database file: "_qs, mSqlLiteDB.databaseName())
 		}
 		#endif
@@ -89,6 +89,11 @@ public:
 				SUCCESS_MESSAGE_WITH_STATEMENT(PRINT_SOURCE_LOCATION)
 			else
 				ERROR_MESSAGE(message, "")
+		}
+		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
+		{
+			QSqlQuery query{mSqlLiteDB};
+			query.exec(u"PRAGMA optimize"_qs);
 		}
 		mSqlLiteDB.close();
 	}

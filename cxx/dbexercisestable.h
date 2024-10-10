@@ -31,7 +31,6 @@ private:
 	uint m_exercisesTableLastId;
 	QStringList m_ExercisesList;
 
-	void removePreviousListEntriesFromDB();
 	void getExercisesList();
 };
 

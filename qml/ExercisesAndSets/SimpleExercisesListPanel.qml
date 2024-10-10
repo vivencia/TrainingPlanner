@@ -23,7 +23,7 @@ TPPopup {
 		if (shown) {
 			focus = true;
 			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
-				exercisesList.setFilter();
+				//exercisesList.setFilter();
 				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
 			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
