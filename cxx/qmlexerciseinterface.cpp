@@ -19,7 +19,12 @@ QmlExerciseInterface::QmlExerciseInterface(QObject* parent, QQmlApplicationEngin
 
 QmlExerciseInterface::~QmlExerciseInterface()
 {
-
+/*if (m_setComponents[0])
+		delete m_setComponents[0];
+	if (m_setComponents[1])
+		delete m_setComponents[1];
+	if (m_setComponents[2])
+		delete m_setComponents[2];*/
 }
 
 void QmlExerciseInterface::createExerciseObject()

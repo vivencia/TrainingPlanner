@@ -1,6 +1,7 @@
 #ifndef QMLTDAYINTERFACE_H
 #define QMLTDAYINTERFACE_H
 
+#include <QDate>
 #include <QObject>
 #include <QVariantMap>
 
@@ -18,10 +19,10 @@ class QmlTDayInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx);
+	explicit QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date);
 	~QmlTDayInterface();
 
-	Q_INVOKABLE void getTrainingDayPage(const QDate& date);
+	Q_INVOKABLE void getTrainingDayPage();
 	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
 	Q_INVOKABLE void loadExercisesFromMesoPlan();
 	Q_INVOKABLE void convertTDayToPlan();
@@ -52,6 +53,7 @@ private:
 	QVariantMap m_tDayProperties;
 	QList<QmlExerciseInterface*> m_exerciseObjects;
 	uint m_mesoIdx;
+	QDate m_Date;
 
 	/*struct tDayExercises {
 		struct exerciseObject {
@@ -75,10 +77,10 @@ private:
 		friend class QmlItemManager;
 	};*/
 
-	void createTrainingDayPage(const QDate& date);
+	void createTrainingDayPage();
 	void createTrainingDayPage_part2();
-	void updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
-	void makeTDayPageHeaderLabel(QQuickItem* tDayPage, const DBTrainingDayModel* const tDayModel);
+	void updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
+	void makeTDayPageHeaderLabel();
 	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const model);
 	void rollUpExercises() const;
 };

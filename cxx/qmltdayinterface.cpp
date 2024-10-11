@@ -1,4 +1,5 @@
 #include "qmltdayinterface.h"
+#include "qmlexerciseinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
 #include "dbtrainingdaymodel.h"
@@ -13,8 +14,8 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayComponent(nullptr), m_mesoIdx(meso_idx)
+QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
+	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date)
 {
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -27,75 +28,49 @@ QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEn
 
 QmlTDayInterface::~QmlTDayInterface()
 {
-	/*QMapIterator<QDate,tDayExercises*> y(m_tDayExercisesList);
-	y.toFront();
-	while (y.hasNext()) {
-		y.next();
-		delete y.value();
-	}
-	if (m_setComponents[0])
-		delete m_setComponents[0];
-	if (m_setComponents[1])
-		delete m_setComponents[1];
-	if (m_setComponents[2])
-		delete m_setComponents[2];
-	delete m_tDayExercisesComponent;*/
+	for(uint i(0); i < m_exerciseObjects.count(); ++i)
+		delete m_exerciseObjects.at(i);
 
-	QMapIterator<QDate,DBTrainingDayModel*> x(m_tDayModels);
-	x.toFront();
-	while (x.hasNext()) {
-		x.next();
-		delete x.value();
-	}
-	//clearExerciseEntries(true);
-
-	QMapIterator<QDate,QQuickItem*> i(m_tDayPages);
-	i.toFront();
-	while (i.hasNext()) {
-		i.next();
-		emit removePageFromMainMenu(i.value());
-		delete i.value();
-	}
+	emit removePageFromMainMenu(m_tDayPage);
+	delete m_tDayPage;
 	delete m_tDayComponent;
 }
 
-void QmlTDayInterface::getTrainingDayPage(const QDate& date)
+void QmlTDayInterface::getTrainingDayPage()
 {
-	const QQuickItem* const tDayPage{m_tDayPages.value(date)};
-	if (!tDayPage)
+	if (!m_tDayPage)
 	{
 		if (appMesoModel()->mesoCalendarModel(m_mesoIdx)->count() == 0)
 		{
-			connect(appDBInterface(), &DBInterface::databaseReady, this, [this,date] (const uint db_id) {
-				getTrainingDayPage(date);
+			connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
+				getTrainingDayPage();
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 			return;
 		}
-		static_cast<void>(gettDayModel(date));
 		const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-		const QString& tday(QString::number(mesoCal->getTrainingDay(date.month(), date.day()-1)));
-		const QString& splitLetter(mesoCal->getSplitLetter(date.month(), date.day()-1));
+		const QString& tday(QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1)));
+		const QString& splitLetter(mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1));
 
-		if (m_tDayPage)
-			m_tDayPage->setProperty("bNeedActivation", true);
-		m_tDayPage = nullptr;
 		m_tDayModel->appendRow();
 		m_tDayModel->setMesoId(appMesoModel()->id(m_mesoIdx));
-		m_tDayModel->setDate(date);
+		m_tDayModel->setDate(m_Date);
 		m_tDayModel->setSplitLetter(splitLetter);
 		m_tDayModel->setTrainingDay(tday);
 		m_tDayModel->setTimeIn(u"--:--"_qs);
 		m_tDayModel->setTimeOut(u"--:--"_qs);
-		m_tDayProperties.insert(u"mainDate"_qs, date);
+		m_tDayProperties.insert(u"mainDate"_qs, m_Date);
 		m_tDayProperties.insert(u"tDayManager"_qs, QVariant::fromValue(this));
 		m_tDayProperties.insert(u"tDayModel"_qs, QVariant::fromValue(m_tDayModel));
 		m_tDayProperties.insert(u"bNeedActivation"_qs, false);
-		m_tDayProperties.insert(u"mainDateIsToday"_qs, date == QDate::currentDate());
-		createTrainingDayPage(date);
+		m_tDayProperties.insert(u"mainDateIsToday"_qs, m_Date == QDate::currentDate());
+		createTrainingDayPage();
 	}
 	else
-		emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(date), m_tDayPage);
+	{
+		m_tDayPage->setProperty("bNeedActivation", true);
+		emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_Date), m_tDayPage);
+	}
 }
 
 void QmlTDayInterface::loadExercisesFromDate(const QString& strDate)
@@ -174,7 +149,7 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 		appDBInterface()->updateMesoCalendarModel(m_tDayModel);
 	if (newSplitLetter != u"R"_qs)
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
-	makeTDayPageHeaderLabel(m_tDayPage, m_tDayModel);
+	makeTDayPageHeaderLabel();
 }
 
 void QmlTDayInterface::setCurrenttDay(const QDate& date)
@@ -218,14 +193,11 @@ void QmlTDayInterface::removeExerciseObject(const uint exercise_idx)
 	if (exercise_idx < m_exerciseObjects.count())
 	{
 		m_tDayModel->removeExercise(exercise_idx);
-		removeExerciseEntry(exercise_idx);
-		for(uint i(exercise_idx); i < m_currentExercises->exerciseObjects.count(); ++i)
-		{
-			//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-			QMetaObject::invokeMethod(exerciseEntryItem(i), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
-			for(uint x(0); x < exerciseSetsCount(i); ++x)
-				exerciseSetItem(i, x)->setProperty("exerciseIdx", i);
-		}
+		delete m_exerciseObjects.at(exercise_idx);
+		m_exerciseObjects.removeAt(exercise_idx);
+
+		for(uint i(exercise_idx); i < m_exerciseObjects.count(); ++i)
+			moveExercise(i-1, i);
 	}
 }
 
@@ -238,6 +210,9 @@ void QmlTDayInterface::clearExercises()
 
 void QmlTDayInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 {
+	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
+	QMetaObject::invokeMethod(m_exerciseObjects.at(i)->exerciseEntry(), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
+
 	uint nsets(exerciseSetsCount(exercise_idx));
 	for(uint i(0); i < nsets; ++i)
 	{
@@ -252,7 +227,7 @@ void QmlTDayInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 	}
 	m_tDayModel->moveExercise(exercise_idx, new_idx);
 
-	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
+	for(uint x(0); x <m_exerciseObjects.count(); ++x)
 		exerciseEntryItem(x)->setParentItem(nullptr);
 
 	QQuickItem* parentLayout(m_tDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
@@ -263,25 +238,14 @@ void QmlTDayInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
 }
 
-void QmlTDayInterface::createTrainingDayPage(const QDate& date)
+void QmlTDayInterface::createTrainingDayPage()
 {
-	if (!m_tDayPages.contains(date))
-	{
-		if (m_tDayComponent == nullptr)
-			m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs}, QQmlComponent::Asynchronous};
-
-		/*if (!m_tDayExercisesList.contains(date))
-		{
-			m_currentExercises = new tDayExercises;
-			m_tDayExercisesList.insert(date, m_currentExercises);
-		}*/
-
-		if (m_tDayComponent->status() != QQmlComponent::Ready)
-			connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
-				{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		else
-			createTrainingDayPage_part2();
-	}
+	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs}, QQmlComponent::Asynchronous};
+	if (m_tDayComponent->status() != QQmlComponent::Ready)
+		connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
+			{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	else
+		createTrainingDayPage_part2();
 }
 
 void QmlTDayInterface::createTrainingDayPage_part2()
@@ -298,11 +262,9 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	m_tDayPage = static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_qmlEngine->rootContext()));
 	m_qmlEngine->setObjectOwnership(m_tDayPage, QQmlEngine::CppOwnership);
 	m_tDayPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
-	m_tDayPages.insert(m_tDayModels.key(m_tDayModel), m_tDayPage);
 
 	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_tDayModel->date()), m_tDayPage);
-
-	makeTDayPageHeaderLabel(m_tDayPage, m_tDayModel);
+	makeTDayPageHeaderLabel();
 
 	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
 		if (table_id == TRAININGDAY_TABLE_ID)
@@ -322,99 +284,79 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
-		updateOpenTDayPagesWithNewCalendarInfo(startDate, endDate);
+		if (m_tDayPage)
+			updateTDayPageWithNewCalendarInfo(startDate, endDate);
 	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
 		if (meso_idx == m_mesoIdx)
 		{
-			QMap<QDate,QQuickItem*>::const_iterator itr{m_tDayPages.constBegin()};
-			const QMap<QDate,QQuickItem*>::const_iterator& itr_end{m_tDayPages.constEnd()};
-			while (itr != itr_end)
-			{
-				const DBTrainingDayModel* const tDayModel{m_tDayModels.value(itr.key())};
-				if (tDayModel->splitLetter() == splitLetter)
-					makeTDayPageHeaderLabel((*itr), tDayModel);
-				++itr;
-			}
+			if (m_tDayModel->splitLetter() == splitLetter)
+				makeTDayPageHeaderLabel();
 		}
 	});
 
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (meso_idx == m_mesoIdx && field == MESOCYCLES_COL_SPLIT)
-		{
-			QMap<QDate,QQuickItem*>::const_iterator itr{m_tDayPages.constBegin()};
-			const QMap<QDate,QQuickItem*>::const_iterator& itr_end{m_tDayPages.constEnd()};
-			while (itr != itr_end)
-			{
-				QMetaObject::invokeMethod(*itr, "changeComboModel", Qt::AutoConnection);
-				++itr;
-			}
-		}
+			QMetaObject::invokeMethod(m_tDayPage, "changeComboModel", Qt::AutoConnection);
 	});
 
-	connect(m_tDayModel, &DBTrainingDayModel::exerciseCompleted, this, [this] (const uint exercise_idx, const bool completed) {
-		enableDisableExerciseCompletedButton(exercise_idx, completed);
-	});
+	//connect(m_tDayModel, &DBTrainingDayModel::exerciseCompleted, this, [this] (const uint exercise_idx, const bool completed) {
+	//	enableDisableExerciseCompletedButton(exercise_idx, completed);
+	//});
 
 	connect(m_tDayModel, &DBTrainingDayModel::tDayChanged, this, [this] () {
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
 }
 
-void QmlTDayInterface::updateOpenTDayPagesWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
+void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
 {
-	QMap<QDate,QQuickItem*>::const_iterator itr{m_tDayPages.constBegin()};
-	const QMap<QDate,QQuickItem*>::const_iterator& itr_end{m_tDayPages.constEnd()};
-	const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-	bool tDayChanged(false);
-	while (itr != itr_end)
+	//QMap<QDate,QQuickItem*>::const_iterator itr{m_tDayPages.constBegin()};
+	//const QMap<QDate,QQuickItem*>::const_iterator& itr_end{m_tDayPages.constEnd()};
+	if (m_Date > startDate) //the startDate page is the page that initiated the update. No need to alter it
 	{
-		const QDate& date(itr.key());
-		if (date > startDate) //the startDate page is the page that initiated the update. No need to alter it
+		if (m_Date <= endDate)
 		{
-			if (date <= endDate)
+			bool tDayChanged(false);
+			const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+			const QString& tDay{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()))};
+			if (tDay != m_tDayModel->trainingDay())
 			{
-				DBTrainingDayModel* tDayModel{m_tDayModels.value(itr.key())};
-				const QString& tDay{QString::number(mesoCal->getTrainingDay(date.month(), date.day()))};
-				if (tDay != tDayModel->trainingDay())
-				{
-					tDayModel->setTrainingDay(tDay);
-					tDayChanged = true;
-				}
-				const QString& splitLetter{mesoCal->getSplitLetter(date.month(), date.day())};
-				if (splitLetter != tDayModel->splitLetter())
-				{
-					tDayModel->setSplitLetter(splitLetter);
-					tDayChanged = true;
-					if (splitLetter == u"R"_qs)
-						clearExercises();
-					else
-						appDBInterface()->verifyTDayOptions(tDayModel);
-				}
-				if (tDayChanged)
-					makeTDayPageHeaderLabel((*itr), tDayModel);
-				tDayChanged = false;
+				m_tDayModel->setTrainingDay(tDay);
+				tDayChanged = true;
 			}
+			const QString& splitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day())};
+			if (splitLetter != m_tDayModel->splitLetter())
+			{
+				m_tDayModel->setSplitLetter(splitLetter);
+				tDayChanged = true;
+				if (splitLetter == u"R"_qs)
+					clearExercises();
+				else
+					appDBInterface()->verifyTDayOptions(m_tDayModel);
+			}
+			if (tDayChanged)
+				makeTDayPageHeaderLabel();
+			tDayChanged = false;
 		}
-		++itr;
 	}
 }
 
-void QmlTDayInterface::makeTDayPageHeaderLabel(QQuickItem* tDayPage, const DBTrainingDayModel* const tDayModel)
+void QmlTDayInterface::makeTDayPageHeaderLabel()
 {
-	const bool bRestDay(tDayModel->splitLetter() == u"R"_qs);
+	const bool bRestDay(m_tDayModel->splitLetter() == u"R"_qs);
 	QString strWhatToTrain;
 	if (!bRestDay)
 	{
-		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, tDayModel->splitLetter()));
-		strWhatToTrain = tr("Workout number: <b>") + tDayModel->trainingDay() + u"</b><br><b>"_qs +
-			appMesoModel()->muscularGroup(m_mesoIdx, tDayModel->splitLetter() + u"</b>"_qs);
+		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, m_tDayModel->splitLetter()));
+		strWhatToTrain = tr("Workout number: <b>") + m_tDayModel->trainingDay() + u"</b><br><b>"_qs +
+			appMesoModel()->muscularGroup(m_mesoIdx, m_tDayModel->splitLetter() + u"</b>"_qs);
 	}
 	else
 		strWhatToTrain = tr("Rest day");
-	const QString& headerText(u"<b>"_qs + appUtils()->formatDate(tDayModel->date()) + u"</b><br>"_qs + strWhatToTrain);
-	tDayPage->setProperty("headerText", headerText);
+	const QString& headerText(u"<b>"_qs + appUtils()->formatDate(m_tDayModel->date()) + u"</b><br>"_qs + strWhatToTrain);
+	m_tDayPage->setProperty("headerText", headerText);
 
 }
 
@@ -453,7 +395,7 @@ void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTra
 
 void QmlTDayInterface::rollUpExercises() const
 {
-	for (uint i(0); i < exercisesCount(); ++i)
-		QMetaObject::invokeMethod(exerciseEntryItem(i), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
+	for (uint i(0); i < m_exerciseObjects.count(); ++i)
+		QMetaObject::invokeMethod(m_exerciseObjects.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
 	QMetaObject::invokeMethod(m_tDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }
