@@ -5,6 +5,7 @@
 #include <QVariantMap>
 
 class DBTrainingDayModel;
+class QmlExerciseInterface;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -30,9 +31,12 @@ public:
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
+	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
+	Q_INVOKABLE void clearExercises();
+	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
 
 	DBTrainingDayModel* gettDayModel(const QDate& date);
-	inline DBTrainingDayModel* currenttDayModel() { return m_CurrenttDayModel; }
+	inline DBTrainingDayModel* tDayModel() { return m_tDayModel; }
 
 signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
@@ -42,14 +46,11 @@ signals:
 private:
 	QQmlApplicationEngine* m_qmlEngine;
 	QQuickWindow* m_mainWindow;
-	QMap<QDate,DBTrainingDayModel*> m_tDayModels;
-	QMap<QDate,QQuickItem*> m_tDayPages;
-	//QMap<QDate,tDayExercises*> m_tDayExercisesList;
-	//tDayExercises* m_currentExercises;
-	QVariantMap m_tDayProperties;
 	QQmlComponent* m_tDayComponent;
-	DBTrainingDayModel* m_CurrenttDayModel;
-	QQuickItem* m_currenttDayPage;
+	DBTrainingDayModel* m_tDayModel;
+	QQuickItem* m_tDayPage;
+	QVariantMap m_tDayProperties;
+	QList<QmlExerciseInterface*> m_exerciseObjects;
 	uint m_mesoIdx;
 
 	/*struct tDayExercises {

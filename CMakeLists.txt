@@ -55,6 +55,8 @@ set( CXX_SOURCES
 	cxx/qmlmesocalendarinterface.h cxx/qmlmesocalendarinterface.cpp
 	cxx/qmlmesosplitinterface.h cxx/qmlmesosplitinterface.cpp
 	cxx/qmltdayinterface.h cxx/qmltdayinterface.cpp
+	cxx/qmlsetsinterface.h cxx/qmlsetsinterface.cpp
+	cxx/qmlexerciseinterface.h cxx/qmlexerciseinterface.cpp
 )
 
 set( JAVA_SOURCES

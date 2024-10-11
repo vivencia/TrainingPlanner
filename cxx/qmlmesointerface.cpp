@@ -145,3 +145,17 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	});
 }
 
+/*
+DBTrainingDayModel* QmlTDayInterface::gettDayModel(const QDate& date)
+{
+	if (!m_tDayModels.contains(date))
+	{
+		DBTrainingDayModel* tDayModel{new DBTrainingDayModel(this, m_mesoIdx)};
+		m_tDayModels.insert(date, tDayModel);
+		m_CurrenttDayModel = tDayModel;
+	}
+	else
+		m_CurrenttDayModel = m_tDayModels.value(date);
+	return m_CurrenttDayModel;
+}
+*/
