@@ -14,7 +14,7 @@ TPPage {
 	id: pagePlanner
 	objectName: "exercisesPlanner"
 
-	required property QmlItemManager itemManager
+	required property SplitManager splitManager
 	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
 
@@ -136,7 +136,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: itemManager.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
+			onClicked: splitManager.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
 		}
 
 		TPButton {
@@ -259,8 +259,8 @@ TPPage {
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner
 
-		onButton1Clicked: itemManager.exportMesoSplit(bShare, "X");
-		onButton2Clicked: itemManager.exportMesoSplit(bShare, currentPage.splitModel.splitLetter());
+		onButton1Clicked: splitManager.exportMesoSplit(bShare, "X");
+		onButton2Clicked: splitManager.exportMesoSplit(bShare, currentPage.splitModel.splitLetter());
 
 		property bool bShare: false
 

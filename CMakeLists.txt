@@ -48,6 +48,13 @@ set( CXX_SOURCES
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
 	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
+
+	cxx/qmluserinterface.h cxx/qmluserinterface.cpp
+	cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp
+	cxx/qmlmesointerface.h cxx/qmlmesointerface.cpp
+	cxx/qmlmesocalendarinterface.h cxx/qmlmesocalendarinterface.cpp
+	cxx/qmlmesosplitinterface.h cxx/qmlmesosplitinterface.cpp
+	cxx/qmltdayinterface.h cxx/qmltdayinterface.cpp
 )
 
 set( JAVA_SOURCES

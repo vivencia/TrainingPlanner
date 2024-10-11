@@ -216,6 +216,7 @@ public:
 	QString formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const;
 
 signals:
+	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void isNewMesoChanged(const uint meso_idx);
 	void isOwnMesoChanged(const uint meso_idx);
 	void mesoChanged(const uint meso_idx, const uint field);

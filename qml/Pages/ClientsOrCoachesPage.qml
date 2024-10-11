@@ -12,7 +12,7 @@ TPPage {
 	id: clientsOrCoachesPage
 	objectName: "clientsOrCoachesPage"
 
-	required property QmlItemManager itemManager
+	required property UserManager userManager
 
 	property int curUserRow
 	property int firstUserRow
@@ -217,7 +217,7 @@ TPPage {
 	property TPBalloonTip msgRemoveUser: null
 	function showRemoveMessage() {
 		if (!appSettings.alwaysAskConfirmation) {
-			itemManager.removeUser(curUserRow, showCoaches);
+			userManager.removeUser(curUserRow, showCoaches);
 			return;
 		}
 
@@ -228,7 +228,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveUser = component.createObject(clientsOrCoachesPage, { parentPage: clientsOrCoachesPage, imageSource: "remove.png",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveUser.button1Clicked.connect(function () { itemManager.removeUser(curUserRow, showCoaches); } );
+					msgRemoveUser.button1Clicked.connect(function () { userManager.removeUser(curUserRow, showCoaches); } );
 				}
 
 				if (component.status === Component.Ready)

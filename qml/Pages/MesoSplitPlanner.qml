@@ -14,7 +14,7 @@ Frame {
 
 	required property TPPage parentItem
 	required property DBMesoSplitModel splitModel
-	required property QmlItemManager itemManager
+	required property SplitManager splitManager
 
 	property int muscularGroupId
 	property bool bCanSwapPlan
@@ -96,7 +96,7 @@ Frame {
 		}
 
 		onEditingFinished: {
-			itemManager.changeMuscularGroup(text, splitModel, muscularGroupId);
+			splitManager.changeMuscularGroup(text, splitModel, muscularGroupId);
 			exercisesModel.makeFilterString(text);
 		}
 	}
@@ -712,7 +712,7 @@ Frame {
 		imageSource: "remove"
 		parentPage: parentItem
 
-		onButton1Clicked: itemManager.loadSplitFromPreviousMeso(splitModel);
+		onButton1Clicked: splitManager.loadSplitFromPreviousMeso(splitModel);
 	} //TPBalloonTip
 
 	function showImportFromPreviousMesoMessage()

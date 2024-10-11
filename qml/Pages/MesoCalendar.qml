@@ -10,7 +10,7 @@ TPPage {
 	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
-	required property QmlItemManager itemManager
+	required property CalendarManager calendarManager
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	property date _today
@@ -36,7 +36,7 @@ TPPage {
 
 			TPLabel {
 				id: lbl1
-				text: mesocyclesModel.name(itemManager.mesoIdx)
+				text: mesocyclesModel.name(mesoCalendarModel.mesoIdx)
 				font: AppGlobals.titleFont
 				Layout.maximumWidth: parent.width - 10
 				Layout.minimumHeight: heightAvailable

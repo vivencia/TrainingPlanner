@@ -19,7 +19,7 @@ void TPAppControl::init(QQmlApplicationEngine* qml_engine)
 {
 	appDBInterface()->init();
 	createItemManager();
-	rootItemsManager()->configureQmlEngine(qml_engine);
+	QmlManager()->configureQmlEngine(qml_engine);
 
 #ifdef Q_OS_ANDROID
 	appOsInterface()->appStartUpNotifications();
@@ -143,12 +143,12 @@ void TPAppControl::openRequestedFile(const QString& filename, const int wanted_c
 			if (fileContents & IFC_MESO & wanted_content || fileContents & IFC_TDAY & wanted_content)
 				itemMngr = m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx());
 			else if (fileContents & IFC_EXERCISES & wanted_content)
-				itemMngr = rootItemsManager();
+				itemMngr = QmlManager();
 		}
 		if (itemMngr)
 			itemMngr->displayImportDialogMessage(fileContents, filename);
 		else
-			rootItemsManager()->displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
+			QmlManager()->displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 	}
 }
 
@@ -208,7 +208,7 @@ void TPAppControl::importFromFile(const QString& filename, const int wanted_cont
 				incorporateImportedData(exercisesModel);
 		}
 	}
-	rootItemsManager()->displayMessageOnAppWindow(importFileMessageId);
+	QmlManager()->displayMessageOnAppWindow(importFileMessageId);
 }
 
 void TPAppControl::incorporateImportedData(const TPListModel* const model)

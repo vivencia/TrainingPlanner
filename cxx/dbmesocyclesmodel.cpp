@@ -97,6 +97,7 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 	{
 		m_splitModel->setMesoIdx(i);
 		m_calendarModelList[i]->setMesoIdx(i);
+		emit mesoIdxChanged(i-1, i);
 	}
 
 	if (m_mostRecentOwnMesoIdx > meso_idx)

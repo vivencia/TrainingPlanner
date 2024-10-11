@@ -14,7 +14,7 @@ TPPage {
 	width: appSettings.pageWidth
 	height: appSettings.pageHeight
 
-	property QmlItemManager itemManager
+	property UserManager userManager
 	property int useMode
 
 	ScrollView {
@@ -94,7 +94,7 @@ TPPage {
 				top: parent.top
 			}
 
-			onClicked: itemManager.getClientsOrCoachesPage(false, true);
+			onClicked: userManager.getClientsOrCoachesPage(false, true);
 		}
 
 		TPButton {
@@ -108,7 +108,7 @@ TPPage {
 				top: btnManageCoach.bottom
 			}
 
-			onClicked: itemManager.getClientsOrCoachesPage(true, false);
+			onClicked: userManager.getClientsOrCoachesPage(true, false);
 		}
 	}
 }

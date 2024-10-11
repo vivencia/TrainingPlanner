@@ -13,7 +13,8 @@ TPPage {
 	id: mesoPropertiesPage
 	objectName: "mesoPage"
 
-	required property QmlItemManager itemManager
+	required property MesoManager mesoManager
+	required property int mesoIdx
 
 	property int useMode
 	property int muscularGroupId;
@@ -74,7 +75,7 @@ TPPage {
 			}
 			TPTextInput {
 				id: txtMesoName
-				text: mesocyclesModel.name(itemManager.mesoIdx);
+				text: mesocyclesModel.name(mesoIdx);
 				wrapMode: Text.WordWrap
 				ToolTip.text: qsTr("Name too short")
 				width: parent.width - 20
@@ -90,7 +91,7 @@ TPPage {
 
 				onEditingFinished: {
 					if (bMesoNameOK)
-						mesocyclesModel.setName(itemManager.mesoIdx, text);
+						mesocyclesModel.setName(mesoIdx, text);
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -128,7 +129,7 @@ TPPage {
 						for(var i = 0; i < coaches.length; ++i)
 							coachesModel.append({ "text": coaches[i], "value": i, "enabled": true });
 						if (!mesocyclesModel.isNewMeso)
-							currentIndex = find(mesocyclesModel.coach(itemManager.mesoIdx));
+							currentIndex = find(mesocyclesModel.coach(mesoIdx));
 						else
 							currentIndex = find(userModel.getCurrentUserName(true));
 						if (currentIndex === -1)
@@ -136,7 +137,7 @@ TPPage {
 					}
 
 					onActivated: (index) => {
-						mesocyclesModel.setCoach(itemManager.mesoIdx, textAt(index));
+						mesocyclesModel.setCoach(mesoIdx, textAt(index));
 						displayText = currentText;
 					}
 				}
@@ -157,7 +158,7 @@ TPPage {
 
 				onClicked: {
 					bOwnMeso = checked;
-					mesocyclesModel.setOwnMeso(itemManager.mesoIdx, bOwnMeso);
+					mesocyclesModel.setOwnMeso(mesoIdx, bOwnMeso);
 				}
 			}
 
@@ -187,7 +188,7 @@ TPPage {
 						for(var x = 0; x < clients.length; ++x)
 							clientsModel.append({ "text": clients[x], "value": x, "enabled":true });
 						if (!mesocyclesModel.isNewMeso)
-							currentIndex = find(mesocyclesModel.client(itemManager.mesoIdx));
+							currentIndex = find(mesocyclesModel.client(mesoIdx));
 						else
 							currentIndex = find(userModel.getCurrentUserName(false));
 						if (currentIndex === -1)
@@ -195,7 +196,7 @@ TPPage {
 					}
 
 					onActivated: (index) => {
-						mesocyclesModel.setClient(itemManager.mesoIdx, textAt(index));
+						mesocyclesModel.setClient(mesoIdx, textAt(index));
 						displayText = currentText;
 					}
 				}
@@ -226,14 +227,14 @@ TPPage {
 					Layout.minimumWidth: width
 
 					Component.onCompleted: {
-						currentIndex = find(mesocyclesModel.type(itemManager.mesoIdx));
+						currentIndex = find(mesocyclesModel.type(mesoIdx));
 						if (currentIndex === -1)
 							currentIndex = 6;
 					}
 
 					onActivated: (index) => {
 						if (index < 6)
-							mesocyclesModel.setType(itemManager.mesoIdx, textAt(index));
+							mesocyclesModel.setType(mesoIdx, textAt(index));
 						else
 							txtMesoTypeOther.forceActiveFocus();
 					}
@@ -253,14 +254,14 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoTypeOther
-				text: mesocyclesModel.type(itemManager.mesoIdx)
+				text: mesocyclesModel.type(mesoIdx)
 				width: parent.width - 20
 				visible: cboMesoType.currentIndex === 6
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 				Layout.leftMargin: 5
 
-				onEditingFinished: mesocyclesModel.setType(itemManager.mesoIdx, text);
+				onEditingFinished: mesocyclesModel.setType(mesoIdx, text);
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
@@ -279,7 +280,7 @@ TPPage {
 
 				TPTextInput {
 					id: txtMesoFile
-					text: mesocyclesModel.fileFancy(itemManager.mesoIdx)
+					text: mesocyclesModel.fileFancy(mesoIdx)
 					readOnly: true
 					width: (mesoPropertiesPage.width - 20)*0.8
 					Layout.minimumWidth: width
@@ -305,17 +306,17 @@ TPPage {
 						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 						fileMode: FileDialog.OpenFile
 
-						onAccepted: btnOpenMesoFile.visible = mesocyclesModel.setFile(itemManager.mesoIdx, selectedFile);
+						onAccepted: btnOpenMesoFile.visible = mesocyclesModel.setFile(mesoIdx, selectedFile);
 					}
 				}
 
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: appUtils.canReadFile(mesocyclesModel.file(itemManager.mesoIdx))
+					visible: appUtils.canReadFile(mesocyclesModel.file(mesoIdx))
 					Layout.leftMargin: -10
 
-					onClicked: osInterface.viewExternalFile(mesocyclesModel.file(itemManager.mesoIdx));
+					onClicked: osInterface.viewExternalFile(mesocyclesModel.file(mesoIdx));
 				}
 			}
 
@@ -327,7 +328,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: mesocyclesModel.startDateFancy(itemManager.mesoIdx)
+				text: mesocyclesModel.startDateFancy(mesoIdx)
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
@@ -340,7 +341,7 @@ TPPage {
 					finalDate: maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
-					onDateSelected: (date) => mesocyclesModel.setStartDate(itemManager.mesoIdx, date);
+					onDateSelected: (date) => mesocyclesModel.setStartDate(mesoIdx, date);
 				}
 
 				TPButton {
@@ -363,8 +364,8 @@ TPPage {
 
 				onClicked: {
 					bRealMeso = checked;
-					mesocyclesModel.setIsRealMeso(itemManager.mesoIdx, bRealMeso);
-					mesocyclesModel.setEndDate(itemManager.mesoIdx, bRealMeso ? maximumMesoEndDate : mesocyclesModel.endDate(itemManager.mesoIdx));
+					mesocyclesModel.setIsRealMeso(mesoIdx, bRealMeso);
+					mesocyclesModel.setEndDate(mesoIdx, bRealMeso ? maximumMesoEndDate : mesocyclesModel.endDate(mesoIdx));
 					if (!mesocyclesModel.isNewMeso)
 						showCalendarChangedDialog();
 				}
@@ -377,7 +378,7 @@ TPPage {
 			}
 			TPTextInput {
 				id: txtMesoEndDate
-				text: mesocyclesModel.endDateFancy(itemManager.mesoIdx)
+				text: mesocyclesModel.endDateFancy(mesoIdx)
 				readOnly: true
 				visible: bRealMeso
 				Layout.fillWidth: false
@@ -386,13 +387,13 @@ TPPage {
 
 				CalendarDialog {
 					id: caldlg2
-					showDate: mesocyclesModel.endDate(itemManager.mesoIdx)
+					showDate: mesocyclesModel.endDate(mesoIdx)
 					initDate: minimumMesoStartDate
 					finalDate: maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
 					onDateSelected: (date) => {
-						mesocyclesModel.setEndDate(itemManager.mesoIdx, date);
+						mesocyclesModel.setEndDate(mesoIdx, date);
 						mesoSplitSetup.forcusOnFirstItem();
 					}
 				}
@@ -417,7 +418,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoNWeeks
-				text: mesocyclesModel.nWeeks(itemManager.mesoIdx)
+				text: mesocyclesModel.nWeeks(mesoIdx)
 				readOnly: true
 				visible: bRealMeso
 				Layout.alignment: Qt.AlignLeft
@@ -447,7 +448,7 @@ TPPage {
 
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
-					text: mesocyclesModel.notes(itemManager.mesoIdx)
+					text: mesocyclesModel.notes(mesoIdx)
 					color: appSettings.fontColor
 
 					background: Rectangle {
@@ -457,7 +458,7 @@ TPPage {
 						border.color: appSettings.fontColor
 					}
 
-					onEditingFinished: mesocyclesModel.setNotes(itemManager.mesoIdx, text);
+					onEditingFinished: mesocyclesModel.setNotes(mesoIdx, text);
 				}
 
 				Component.onCompleted: vBar2.position = 0

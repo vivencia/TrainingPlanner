@@ -146,7 +146,7 @@ void OSInterface::appStartUpNotifications()
 	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
 	connect(appUtils(), &TPUtils::appResumed, this, &OSInterface::checkPendingIntents);
 	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
-		rootItemsManager()->displayActivityResultMessage(requestCode, resultCode);
+		QmlManager()->displayActivityResultMessage(requestCode, resultCode);
 	});
 
 	m_AndroidNotification = new TPAndroidNotification(this);

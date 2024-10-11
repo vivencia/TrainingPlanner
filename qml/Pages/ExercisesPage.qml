@@ -14,7 +14,7 @@ TPPage {
 	id: exercisesPage
 	objectName: "exercisesPage"
 
-	required property QmlItemManager itemManager
+	required property ExercisesListManager exercisesManager
 	property bool bCanEdit: false
 	property bool bNew: false
 	property bool bEdit: false
@@ -465,7 +465,7 @@ TPPage {
 		button2Text: qsTr("No")
 		parentPage: exercisesPage
 
-		onButton1Clicked: itemManager.exportExercises(bShare);
+		onButton1Clicked: exercisesManager.exportExercises(bShare);
 
 		property bool bShare: false
 

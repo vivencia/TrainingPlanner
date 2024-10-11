@@ -16,7 +16,7 @@ TPPage {
 	objectName: "trainingDayPage"
 
 	required property date mainDate
-	required property QmlItemManager itemManager
+	required property TDayManager tDayManager
 	required property DBTrainingDayModel tDayModel
 
 	//C++ controlled properties
@@ -42,7 +42,7 @@ TPPage {
 
 	onPageActivated: {
 		if (bNeedActivation)
-			itemManager.setCurrenttDay(mainDate)
+			tDayManager.setCurrenttDay(mainDate)
 	}
 
 	onEditModeChanged: {
@@ -85,7 +85,7 @@ TPPage {
 		if (editMode) {
 			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
 			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			itemManager.setDayIsFinished(true);
+			tDayManager.setDayIsFinished(true);
 		}
 		else {
 			if (appUtils.areDatesTheSame(mainDate, new Date())) {
@@ -144,7 +144,7 @@ TPPage {
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!appSettings.alwaysAskConfirmation) {
-			itemManager.removeExerciseObject(exerciseidx);
+			tDayManager.removeExerciseObject(exerciseidx);
 			return;
 		}
 
@@ -155,7 +155,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { itemManager.removeExerciseObject(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { tDayManager.removeExerciseObject(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -172,7 +172,7 @@ TPPage {
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!appSettings.alwaysAskConfirmation) {
-			itemManager.removeSetObject(setnumber, exerciseidx);
+			tDayManager.removeSetObject(setnumber, exerciseidx);
 			return;
 		}
 
@@ -183,7 +183,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveSet.button1Clicked.connect(function () { itemManager.removeSetObject(setnumber, exerciseidx); } );
+					msgRemoveSet.button1Clicked.connect(function () { tDayManager.removeSetObject(setnumber, exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -206,7 +206,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { itemManager.clearExercises(itemManager); } );
+					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(tDayManager); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -281,7 +281,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
-					tipTimeWarn.button1Clicked.connect(function () { itemManager.resetWorkout(); } );
+					tipTimeWarn.button1Clicked.connect(function () { tDayManager.resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -535,7 +535,7 @@ TPPage {
 				Layout.topMargin: -10
 
 				onClicked: {
-					itemManager.convertTDayToPlan();
+					tDayManager.convertTDayToPlan();
 					enabled = editMode;
 				}
 			}
@@ -769,7 +769,7 @@ TPPage {
 					timeOut = appUtils.getCurrentTimeString();
 					tDayModel.setTimeOut(timeOut);
 					tDayModel.dayIsEditable = false;
-					itemManager.setDayIsFinished(true);
+					tDayManager.setDayIsFinished(true);
 				}
 			}
 		}
@@ -843,7 +843,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: itemManager.getExercisesPage(true, trainingDayPage);
+			onClicked: tDayManager.getExercisesPage(true, trainingDayPage);
 		} // bntAddExercise
 	} //footer: ToolBar
 
@@ -865,7 +865,7 @@ TPPage {
 
 		property string newSplitLetter
 
-		onButton1Clicked: itemManager.adjustCalendar(newSplitLetter, adjustCalendarBox.customBoolProperty1);
+		onButton1Clicked: tDayManager.adjustCalendar(newSplitLetter, adjustCalendarBox.customBoolProperty1);
 		onButton2Clicked: cboSplitLetter.currentIndex = cboSplitLetter.indexOfValue(tDayModel.splitLetter);
 	}
 
@@ -899,13 +899,13 @@ TPPage {
 	function intentChosen() {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
-				itemManager.loadExercisesFromMesoPlan();
+				tDayManager.loadExercisesFromMesoPlan();
 			break;
 			case 2: //use previous day
-				itemManager.loadExercisesFromDate(intentDlg.customStringProperty1);
+				tDayManager.loadExercisesFromDate(intentDlg.customStringProperty1);
 			break;
 			case 3: //import from file
-				itemManager.importTrainingDay();
+				tDayManager.importTrainingDay();
 			break;
 			case 4: //empty session
 				bHasPreviousTDays = false;
@@ -920,7 +920,7 @@ TPPage {
 			scrollTimer.init(phantomItem.y);
 			return;
 		}
-		itemManager.createExerciseObject();
+		tDayManager.createExerciseObject();
 	}
 
 	function placeSetIntoView(ypos: int) {
@@ -954,7 +954,7 @@ TPPage {
 	}
 
 	function createNewSet(settype, exerciseidx) {
-		itemManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
+		tDayManager.createSetObject(settype, tDayModel.setsNumber(exerciseidx), exerciseidx, true, "", "");
 		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
@@ -1049,7 +1049,7 @@ TPPage {
 				if (!editMode)
 					btnFinishedDayOptions.visible = true;
 				else {
-					itemManager.setDayIsFinished(true);
+					tDayManager.setDayIsFinished(true);
 					btnFinishedDayOptions.visible = Qt.binding(function() { return tDayModel.dayIsFinished; });
 				}
 				editMode = !editMode;
@@ -1072,7 +1072,7 @@ TPPage {
 					customStringProperty3: "remove", customItemSource:"TPDialogWithMessageAndCheckBox.qml" });
 				changeSplitLetterDialog.button1Clicked.connect( function() {
 					if (changeSplitLetterDialog.customBoolProperty1)
-						itemManager.clearExercises();
+						tDayManager.clearExercises();
 					changeSplitLetter();
 				} );
 				changeSplitLetterDialog.button2Clicked.connect( function() {
@@ -1120,7 +1120,7 @@ TPPage {
 		button2Text: qsTr("No")
 		parentPage: trainingDayPage
 
-		onButton1Clicked: itemManager.exportTrainingDay(bShare, tDayModel);
+		onButton1Clicked: tDayManager.exportTrainingDay(bShare, tDayModel);
 
 		property bool bShare
 
