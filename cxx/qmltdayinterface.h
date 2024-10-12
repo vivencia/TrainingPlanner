@@ -51,31 +51,9 @@ private:
 	DBTrainingDayModel* m_tDayModel;
 	QQuickItem* m_tDayPage;
 	QVariantMap m_tDayProperties;
-	QList<QmlExerciseInterface*> m_exerciseObjects;
+	QmlExerciseInterface* m_exerciseManager;
 	uint m_mesoIdx;
 	QDate m_Date;
-
-	/*struct tDayExercises {
-		struct exerciseObject {
-			QQuickItem* m_exerciseEntry;
-			QList<QQuickItem*> m_setObjects;
-			QString nSets, nReps, nWeight, restTime;
-			uint newSetType;
-			TPTimer* m_setTimer;
-
-			exerciseObject() : m_setTimer(nullptr), newSetType(SET_TYPE_REGULAR) {}
-		};
-		QList<exerciseObject*> exerciseObjects;
-
-		inline TPTimer* setTimer(const uint exercise_idx)
-		{
-			if (!exerciseObjects.at(exercise_idx)->m_setTimer)
-				exerciseObjects[exercise_idx]->m_setTimer = new TPTimer();
-			return exerciseObjects.at(exercise_idx)->m_setTimer;
-		}
-
-		friend class QmlItemManager;
-	};*/
 
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();

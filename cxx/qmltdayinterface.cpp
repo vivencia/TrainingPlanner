@@ -48,9 +48,10 @@ void QmlTDayInterface::getTrainingDayPage()
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 			return;
 		}
+		m_exerciseManager = new QmlExerciseInterface{this, m_qmlEngine, m_tDayModel, m_tDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_qs)};
 		const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
-		const QString& tday(QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1)));
-		const QString& splitLetter(mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1));
+		const QString& tday{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1))};
+		const QString& splitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1)};
 
 		m_tDayModel->appendRow();
 		m_tDayModel->setMesoId(appMesoModel()->id(m_mesoIdx));
@@ -79,7 +80,7 @@ void QmlTDayInterface::loadExercisesFromDate(const QString& strDate)
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint) {
 		const bool btoday(m_tDayModel->date() == QDate::currentDate());
 		m_tDayModel->setDayIsFinished(!btoday);
-		createExercisesObjects();
+		m_exerciseManager->createExercisesObjects();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appDBInterface()->loadExercisesFromDate(strDate, m_tDayModel);
 }
@@ -98,7 +99,7 @@ void QmlTDayInterface::loadExercisesFromMesoPlan()
 	{
 		const bool btoday(m_tDayModel->date() == QDate::currentDate());
 		m_tDayModel->setDayIsFinished(!btoday);
-		createExercisesObjects();
+		m_exerciseManager->createExercisesObjects();
 	}
 }
 
@@ -186,58 +187,6 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 		appControl()->openRequestedFile(filename, IFC_TDAY);
 }
 
-
-
-void QmlTDayInterface::removeExerciseObject(const uint exercise_idx)
-{
-	if (exercise_idx < m_exerciseObjects.count())
-	{
-		m_tDayModel->removeExercise(exercise_idx);
-		delete m_exerciseObjects.at(exercise_idx);
-		m_exerciseObjects.removeAt(exercise_idx);
-
-		for(uint i(exercise_idx); i < m_exerciseObjects.count(); ++i)
-			moveExercise(i-1, i);
-	}
-}
-
-void QmlTDayInterface::clearExercises()
-{
-	clearExerciseEntries();
-	m_tDayModel->clearExercises();
-	m_tDayModel->setDayIsFinished(false);
-}
-
-void QmlTDayInterface::moveExercise(const uint exercise_idx, const uint new_idx)
-{
-	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-	QMetaObject::invokeMethod(m_exerciseObjects.at(i)->exerciseEntry(), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
-
-	uint nsets(exerciseSetsCount(exercise_idx));
-	for(uint i(0); i < nsets; ++i)
-	{
-		exerciseSetItem(exercise_idx, i)->setProperty("exerciseIdx", new_idx);
-		exerciseSetItem(exercise_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(new_idx)));
-	}
-	nsets = exerciseSetsCount(new_idx);
-	for(uint i(0); i < nsets; ++i)
-	{
-		exerciseSetItem(new_idx, i)->setProperty("exerciseIdx", exercise_idx);
-		exerciseSetItem(new_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(exercise_idx)));
-	}
-	m_tDayModel->moveExercise(exercise_idx, new_idx);
-
-	for(uint x(0); x <m_exerciseObjects.count(); ++x)
-		exerciseEntryItem(x)->setParentItem(nullptr);
-
-	QQuickItem* parentLayout(m_tDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
-	m_currentExercises->exerciseObjects.swapItemsAt(exercise_idx, new_idx);
-	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
-		exerciseEntryItem(x)->setParentItem(parentLayout);
-	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
-}
-
 void QmlTDayInterface::createTrainingDayPage()
 {
 	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayInfo.qml"_qs}, QQmlComponent::Asynchronous};
@@ -308,6 +257,8 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	connect(m_tDayModel, &DBTrainingDayModel::tDayChanged, this, [this] () {
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
+
+	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons", Qt::AutoConnection);
 }
 
 void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)

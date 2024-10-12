@@ -159,24 +159,24 @@ public:
 	inline const QString _setsNumber(const uint exercise_idx) const { return QString::number(m_ExerciseData.at(exercise_idx)->nsets); }
 
 	Q_INVOKABLE inline bool trackRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_TrackRestTime; }
-	Q_INVOKABLE inline void setTrackRestTime(const bool track_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
+	Q_INVOKABLE inline void setTrackRestTime(const uint exercise_idx, const bool track_resttime) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
 
 	Q_INVOKABLE inline bool autoRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_AutoRestTime; }
-	Q_INVOKABLE inline void setAutoRestTime(const bool auto_resttime, const uint exercise_idx) { m_ExerciseData[exercise_idx]->mb_AutoRestTime = auto_resttime; }
+	Q_INVOKABLE inline void setAutoRestTime(const uint exercise_idx, const bool auto_resttime) { m_ExerciseData[exercise_idx]->mb_AutoRestTime = auto_resttime; }
 
 	Q_INVOKABLE QString exerciseName(const uint exercise_idx) const;
 	inline const QString& _exerciseName(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->name; }
 
-	Q_INVOKABLE void setExerciseName(const QString& new_name, const uint exercise_idx);
-	void newExercise(const QString& new_exercise, const uint idx);
+	Q_INVOKABLE void setExerciseName(const uint exercise_idx, const QString& new_name);
+	void newExercise(const uint exercise_idx, const QString& new_exercise);
 	void removeExercise(const uint exercise_idx);
 	Q_INVOKABLE void changeExerciseName(const uint exercise_idx, DBExercisesModel* model);
 
 	Q_INVOKABLE QString exerciseName1(const uint exercise_idx) const;
-	Q_INVOKABLE void setExerciseName1(const QString& name1, const uint exercise_idx);
+	Q_INVOKABLE void setExerciseName1(const uint exercise_idx, const QString& name1);
 
 	Q_INVOKABLE QString exerciseName2(const uint exercise_idx) const;
-	Q_INVOKABLE void setExerciseName2(const QString& name2, const uint exercise_idx);
+	Q_INVOKABLE void setExerciseName2(const uint exercise_idx, const QString& name2);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
 					 const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);

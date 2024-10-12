@@ -18,6 +18,8 @@
 #include "qmlmesocalendarinterface.h"
 #include "qmlmesosplitinterface.h"
 #include "qmltdayinterface.h"
+#include "qmlexerciseinterface.h"
+#include "qmlexerciseentry.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
@@ -26,8 +28,6 @@
 #include <QQmlContext>
 #include <QSettings>
 #include <QFile>
-
-QmlItemManager* QmlItemManager::app_qml_manager(nullptr);
 
 static const QStringList& setTypePages(QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
 					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs);
@@ -52,6 +52,8 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
 	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
 	qmlRegisterType<QmlTDayInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TDayManager");
+	qmlRegisterType<QmlExerciseInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseManager");
+	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties(8);

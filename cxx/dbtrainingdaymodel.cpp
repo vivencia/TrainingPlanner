@@ -367,7 +367,7 @@ QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 	return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 }
 
-void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exercise_idx)
+void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString& new_name)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName", "out of range exercise_idx");
 	const int idx(new_name.indexOf(comp_exercise_fancy_separator));
@@ -382,18 +382,18 @@ void DBTrainingDayModel::setExerciseName(const QString& new_name, const uint exe
 	emit compositeExerciseChanged(exercise_idx);
 }
 
-void DBTrainingDayModel::newExercise(const QString& new_exercise, const uint idx)
+void DBTrainingDayModel::newExercise(const uint exercise_idx, const QString& new_exercise)
 {
 	const uint total(m_ExerciseData.count());
-	const int n(idx - total);
+	const int n(exercise_idx - total);
 	if (n >= 0)
 	{
 		for(uint i(0); i <= n; ++i)
 			m_ExerciseData.append(new exerciseEntry);
 	}
-	m_ExerciseData[idx]->name = new_exercise;
-	m_CompositeExerciseList[idx] = new_exercise.contains(comp_exercise_separator);
-	emit compositeExerciseChanged(idx);
+	m_ExerciseData[exercise_idx]->name = new_exercise;
+	m_CompositeExerciseList[exercise_idx] = new_exercise.contains(comp_exercise_separator);
+	emit compositeExerciseChanged(exercise_idx);
 	emit exerciseCountChanged();
 }
 
@@ -418,7 +418,7 @@ void DBTrainingDayModel::changeExerciseName(const uint exercise_idx, DBExercises
 			name += model->selectedEntriesValue_fast(i, 1) + u" - "_qs + model->selectedEntriesValue_fast(i, 2) + comp_exercise_separator;
 		name.chop(1);
 	}
-	setExerciseName(name, exercise_idx);
+	setExerciseName(exercise_idx, name);
 }
 
 QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
@@ -428,7 +428,7 @@ QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
 	return idx != -1 ? u"1: "_qs + m_ExerciseData.at(exercise_idx)->name.first(idx) : m_ExerciseData.at(exercise_idx)->name;
 }
 
-void DBTrainingDayModel::setExerciseName1(const QString& name1, const uint exercise_idx)
+void DBTrainingDayModel::setExerciseName1(const uint exercise_idx, const QString& name1)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName1", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
@@ -448,7 +448,7 @@ QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
 	return idx != -1 ? u"2: "_qs + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1) : tr("2: Add exercise ...");
 }
 
-void DBTrainingDayModel::setExerciseName2(const QString& name2, const uint exercise_idx)
+void DBTrainingDayModel::setExerciseName2(const uint exercise_idx, const QString& name2)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName2", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));

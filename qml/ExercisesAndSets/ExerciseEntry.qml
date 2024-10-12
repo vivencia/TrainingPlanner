@@ -13,9 +13,8 @@ FocusScope {
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
 
-	required property QmlItemManager itemManager
+	required property ExerciseManager exerciseManager
 	required property DBTrainingDayModel tDayModel
-	required property int exerciseIdx
 
 	property bool bCanEditRestTimeTracking
 	property bool bTrackRestTime
@@ -30,7 +29,7 @@ FocusScope {
 
 	Frame {
 		id: paneExercise
-		property bool shown: tDayModel.setsNumber(exerciseIdx) === 0
+		property bool shown: entryManager.nSets === 0
 		visible: height > 0
 		height: shown ? implicitHeight : txtExerciseName.height + 20
 		implicitHeight: layoutMain.implicitHeight + 10
@@ -49,7 +48,7 @@ FocusScope {
 		}
 
 		background: Rectangle {
-			color: exerciseIdx % 2 === 0 ? listEntryColor1 : listEntryColor2
+			color: entryManager.exerciseIdx % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 			border.color: "transparent"
 			opacity: 0.8
 			radius: 10
@@ -59,7 +58,7 @@ FocusScope {
 			id: btnMoveExerciseUp
 			imageSource: "up"
 			hasDropShadow: false
-			enabled: exerciseIdx > 0
+			enabled: entryManager.exerciseIdx > 0
 			visible: tDayModel.dayIsEditable
 			height: 30
 			width: 30
@@ -78,7 +77,7 @@ FocusScope {
 			id: btnMoveExerciseDown
 			imageSource: "down"
 			hasDropShadow: false
-			enabled: exerciseIdx < tDayModel.exerciseCount-1
+			enabled: entryManager.exerciseIdx < tDayModel.exerciseCount-1
 			visible: tDayModel.dayIsEditable
 			height: 30
 			width: 30
@@ -116,7 +115,7 @@ FocusScope {
 
 				Label {
 					id: lblExerciseNumber
-					text: parseInt(exerciseIdx + 1) + ":"
+					text: entryManager.exerciseNumber() + ":"
 					font.bold: true
 					font.pointSize: appSettings.fontSizeText
 					width: 15
@@ -125,7 +124,7 @@ FocusScope {
 
 				ExerciseNameField {
 					id: txtExerciseName
-					text: tDayModel.exerciseName(exerciseIdx)
+					text: tDayModel.exerciseName(entryManager.exerciseIdx)
 					bEditable: tDayModel.dayIsEditable
 					width: appSettings.pageWidth - 55
 					height: 70
@@ -135,11 +134,11 @@ FocusScope {
 
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => {
-						tDayModel.setExerciseName(new_text, exerciseIdx);
-						itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-						itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+						tDayModel.setExerciseName(new_text, entryManager.exerciseIdx);
+						exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+						exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 					}
-					onRemoveButtonClicked: showRemoveExerciseMessage(exerciseIdx);
+					onRemoveButtonClicked: showRemoveExerciseMessage(entryManager.exerciseIdx);
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
 					onItemClicked: paneExerciseShowHide(false, false);
 				}
@@ -159,10 +158,7 @@ FocusScope {
 
 					Component.onCompleted: checked = bTrackRestTime;
 
-					onClicked: {
-						bTrackRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
-					}
+					onClicked: exerciseManager.manageRestTime(entryManager.exerciseIdx, checked, bAutoRestTime, cboSetType.currentIndex);
 				}
 
 				TPCheckBox {
@@ -176,7 +172,7 @@ FocusScope {
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
 					onClicked: {
 						bAutoRestTime = checked;
-						itemManager.manageRestTime(exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
+						exerciseManager.manageRestTime(entryManager.exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
 					}
 				}
 			}
@@ -188,25 +184,25 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps
-					text: itemManager.exerciseReps(exerciseIdx, 0)
+					text: exerciseManager.exerciseReps(exerciseIdx, 0)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => itemManager.setExerciseReps(exerciseIdx, 0, str);
+					onValueChanged: (str) => exerciseManager.setExerciseReps(exerciseIdx, 0, str);
 					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight
-					text: itemManager.exerciseWeight(exerciseIdx, 0)
+					text: exerciseManager.exerciseWeight(exerciseIdx, 0)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => itemManager.setExerciseWeight(exerciseIdx, 0, str);
+					onValueChanged: (str) => exerciseManager.setExerciseWeight(exerciseIdx, 0, str);
 				}
 			}
 
@@ -217,26 +213,26 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps2
-					text: itemManager.exerciseReps(exerciseIdx, 1)
+					text: exerciseManager.exerciseReps(exerciseIdx, 1)
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => itemManager.setExerciseReps(exerciseIdx, 1, str)
+					onValueChanged: (str) => exerciseManager.setExerciseReps(exerciseIdx, 1, str)
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight2
-					text: itemManager.exerciseWeight(exerciseIdx, 1)
+					text: exerciseManager.exerciseWeight(exerciseIdx, 1)
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
 					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged: (str) => itemManager.setExerciseWeight(exerciseIdx, 1, str);
+					onValueChanged: (str) => exerciseManager.setExerciseWeight(exerciseIdx, 1, str);
 				}
 			}
 
@@ -269,16 +265,16 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					currentIndex: itemManager.exerciseDefaultSetType(exerciseIdx);
+					currentIndex: exerciseManager.exerciseDefaultSetType(exerciseIdx);
 					model: AppGlobals.setTypesModel
 					implicitWidth: 160
 
-					onActivated: (index) => itemManager.setExerciseDefaultSetType(exerciseIdx, index);
+					onActivated: (index) => exerciseManager.setExerciseDefaultSetType(exerciseIdx, index);
 				}
 
 				SetInputField {
 					id: txtNSets
-					text: itemManager.exerciseSets(exerciseIdx)
+					text: exerciseManager.exerciseSets(exerciseIdx)
 					type: SetInputField.Type.SetType
 					availableWidth: layoutMain.width / 3
 					alternativeLabels: ["","","",qsTr("sets #:")]
@@ -295,12 +291,12 @@ FocusScope {
 					Layout.leftMargin: 15
 
 					onClicked: {
-						itemManager.addNewSet(exercise_idx);
+						exerciseManager.addNewSet(exercise_idx);
 						if (cboSetType.currentIndex == 4)
 							cboSetType.enabled = false;
 						else
 							cboSetType.enableIndex(4, false);
-						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (itemManager.exerciseSetsCount(exercise_idx) + 1).toString());
+						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (exerciseManager.exerciseSetsCount(exercise_idx) + 1).toString());
 					}
 				}
 			} // RowLayout
@@ -316,35 +312,20 @@ FocusScope {
 		} // ColumnLayout layoutMain
 	} //paneExercise
 
-	Component.onCompleted: tDayModel.compositeExerciseChanged.connect(updateScreenControls);
-
-	function updateScreenControls() {
-		bCompositeExercise = tDayModel.compositeExercise(exerciseIdx);
-		txtExerciseName = tDayModel.exerciseName(exercise_idx);
-		txtNSets.text = itemManager.exerciseSets(exerciseIdx, 0);
-		txtNReps.text = itemManager.exerciseReps(exerciseIdx, 0);
-		txtNWeight.text = itemManager.exerciseWeight(exerciseIdx, 0);
-		txtRestTime.text = itemManager.exerciseRestTime(exerciseIdx, 0);
-		if (bCompositeExercise) {
-			txtNReps2.text = itemManager.exerciseReps(exerciseIdx, 1);
-			txtNWeight2.text = itemManager.exerciseWeight(exerciseIdx, 1);
-		}
-	}
-
 	function changeExercise(fromList: bool) {
 		var interruptSignals = true;
 		if (bListRequestForExercise1) {
 			if (fromList)
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
+				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 			bListRequestForExercise1 = false;
 		}
 		else if (bListRequestForExercise2) {
 			if (fromList)
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
+				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
 			else
-				itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			bListRequestForExercise2 = false;
 		}
 		else
@@ -355,9 +336,9 @@ FocusScope {
 			else
 			{
 				if (bListRequestForExercise1)
-					itemManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
+					exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
 				else if (bListRequestForExercise2)
-					itemManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
+					exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
 			}
 		}
 
@@ -383,7 +364,7 @@ FocusScope {
 
 	function moveExercise(up: bool, cxx_cal: bool) {
 		if (cxx_cal)
-			itemManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
+			exerciseManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
 		else {
 			if (up) --exerciseIdx;
 			else ++exerciseIdx;
@@ -397,7 +378,7 @@ FocusScope {
 	function paneExerciseShowHide(show: bool, force: bool) {
 		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
-			itemManager.getSetObjects(exerciseIdx);
+			exerciseManager.getSetObjects(exerciseIdx);
 	}
 
 	function liberateSignals(liberate: bool) {
