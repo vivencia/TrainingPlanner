@@ -13,15 +13,11 @@ FocusScope {
 	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
 
-	required property ExerciseManager exerciseManager
+	required property ExerciseEntryManager exerciseManager
 	required property DBTrainingDayModel tDayModel
 
-	property bool bCanEditRestTimeTracking
-	property bool bTrackRestTime
-	property bool bAutoRestTime
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
-	property bool bCompositeExercise
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
@@ -77,7 +73,7 @@ FocusScope {
 			id: btnMoveExerciseDown
 			imageSource: "down"
 			hasDropShadow: false
-			enabled: entryManager.exerciseIdx < tDayModel.exerciseCount-1
+			enabled: exerciseManager.exerciseIdx < tDayModel.exerciseCount-1
 			visible: tDayModel.dayIsEditable
 			height: 30
 			width: 30
@@ -124,7 +120,7 @@ FocusScope {
 
 				ExerciseNameField {
 					id: txtExerciseName
-					text: tDayModel.exerciseName(entryManager.exerciseIdx)
+					text: exerciseManager.exerciseName
 					bEditable: tDayModel.dayIsEditable
 					width: appSettings.pageWidth - 55
 					height: 70
@@ -146,7 +142,7 @@ FocusScope {
 
 			RowLayout {
 				id: trackRestTimeRow
-				enabled: tDayModel.dayIsEditable && bCanEditRestTimeTracking
+				enabled: tDayModel.dayIsEditable && exerciseManager.canEditRestTimeTracking
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 
@@ -154,11 +150,10 @@ FocusScope {
 					id: chkTrackRestTime
 					text: qsTr("Track rest times?")
 					textColor: "black"
+					checked: exerciseManager.trackRestTime
 					width: paneExercise.width/2 - 10
 
-					Component.onCompleted: checked = bTrackRestTime;
-
-					onClicked: exerciseManager.manageRestTime(entryManager.exerciseIdx, checked, bAutoRestTime, cboSetType.currentIndex);
+					onClicked: exerciseManager.trackRestTime = checked;
 				}
 
 				TPCheckBox {
@@ -166,14 +161,11 @@ FocusScope {
 					text: qsTr("Auto tracking")
 					textColor: "black"
 					width: paneExercise.width/2 - 10
-					enabled: bTrackRestTime
-					checked: bAutoRestTime
+					enabled: exerciseManager.trackRestTime
+					checked: exerciseManager.autoRestTime
 
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
-					onClicked: {
-						bAutoRestTime = checked;
-						exerciseManager.manageRestTime(entryManager.exerciseIdx, bTrackRestTime, bAutoRestTime, cboSetType.currentIndex);
-					}
+					onClicked: exerciseManager.autoRestTime = checked;
 				}
 			}
 
@@ -184,69 +176,70 @@ FocusScope {
 
 				SetInputField {
 					id: txtNReps
-					text: exerciseManager.exerciseReps(exerciseIdx, 0)
+					text: exerciseManager.repsForExercise1
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => exerciseManager.setExerciseReps(exerciseIdx, 0, str);
-					onEnterOrReturnKeyPressed: !txtNReps2.visible ? txtNWeight.forceActiveFocus() : txtNReps2.forceActiveFocus();
+					onValueChanged: (str) => exerciseManager.repsForExercise1 = str;
+					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight
-					text: exerciseManager.exerciseWeight(exerciseIdx, 0)
+					text: exerciseManager.weightForExercise1
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => exerciseManager.setExerciseWeight(exerciseIdx, 0, str);
+					onValueChanged: (str) => exerciseManager.weightForExercise1 = str;
+					onEnterOrReturnKeyPressed: !exerciseManager.compositeExercise ? txtNSets.forceActiveFocus() : txtNReps2.forceActiveFocus();
 				}
 			}
 
 			RowLayout {
 				enabled: tDayModel.dayIsEditable
-				visible: bCompositeExercise
+				visible: exerciseManager.compositeExercise
 				Layout.leftMargin: 5
 
 				SetInputField {
 					id: txtNReps2
-					text: exerciseManager.exerciseReps(exerciseIdx, 1)
+					text: exerciseManager.repsForExercise2
 					type: SetInputField.Type.RepType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str) => exerciseManager.setExerciseReps(exerciseIdx, 1, str)
-					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
+					onValueChanged: (str) => exerciseManager.repsForExercise2 = str;
+					onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 				}
 
 				SetInputField {
 					id: txtNWeight2
-					text: exerciseManager.exerciseWeight(exerciseIdx, 1)
+					text: exerciseManager.weightForExercise2
 					type: SetInputField.Type.WeightType
 					availableWidth: layoutMain.width / 2
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onVisibleChanged: cboSetType.currentIndex = visible ? 4 : 0
-					onValueChanged: (str) => exerciseManager.setExerciseWeight(exerciseIdx, 1, str);
+					onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
+					onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
 				}
 			}
 
 			SetInputField {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
-				text: tDayModel.nextSetSuggestedTime(exerciseIdx, cboSetType.currentIndex, 0);
+				text: exerciseManager.restTime
 				availableWidth: paneExercise.width/2
 				backColor: "transparent"
 				borderColor: "transparent"
-				enabled: bTrackRestTime && !bAutoRestTime
+				enabled: exerciseManager.trackRestTime && !exerciseManager.autoRestTime
 				Layout.leftMargin: 5
 
-				onValueChanged: (str) => nRestTime = str;
+				onValueChanged: (str) => exerciseManager.restTime = str;
 			}
 
 			Label {
@@ -265,23 +258,23 @@ FocusScope {
 
 				TPComboBox {
 					id: cboSetType
-					currentIndex: exerciseManager.exerciseDefaultSetType(exerciseIdx);
+					currentIndex: exerciseManager.newSetType
 					model: AppGlobals.setTypesModel
 					implicitWidth: 160
 
-					onActivated: (index) => exerciseManager.setExerciseDefaultSetType(exerciseIdx, index);
+					onActivated: (index) => exerciseManager.newSetType = index;
 				}
 
 				SetInputField {
 					id: txtNSets
-					text: exerciseManager.exerciseSets(exerciseIdx)
+					text: exerciseManager.setsNumber
 					type: SetInputField.Type.SetType
 					availableWidth: layoutMain.width / 3
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
 
-					onValueChanged: (str)=> nSets = str;
+					onValueChanged: (str)=> exerciseManager.setsNumber = str;
 				}
 
 				TPButton {
@@ -291,8 +284,8 @@ FocusScope {
 					Layout.leftMargin: 15
 
 					onClicked: {
-						exerciseManager.addNewSet(exercise_idx);
-						if (cboSetType.currentIndex == 4)
+						exerciseManager.addNewSet();
+						if (cboSetType.currentIndex === 4)
 							cboSetType.enabled = false;
 						else
 							cboSetType.enableIndex(4, false);
@@ -300,16 +293,22 @@ FocusScope {
 					}
 				}
 			} // RowLayout
-
-			ColumnLayout {
-				id: exerciseSetsLayout
-				objectName: "exerciseSetsLayout"
-				spacing: 0
-				width: appSettings.pageWidth - 10
-				Layout.fillWidth: true
-				Layout.fillHeight: true
-			}
 		} // ColumnLayout layoutMain
+
+		GridLayout {
+			id: exerciseSetsLayout
+			objectName: "exerciseSetsLayout"
+			width: appSettings.pageWidth - 10
+			columns: 1
+
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				rightMargin: 5
+				right:parent.right
+				top: layoutMain.bottom
+			}
+		}
 	} //paneExercise
 
 	function changeExercise(fromList: bool) {
@@ -360,19 +359,6 @@ FocusScope {
 	function changeExercise2(showList: bool) {
 		bListRequestForExercise2 = true;
 		requestSimpleExercisesList(exerciseItem, showList, false, 1);
-	}
-
-	function moveExercise(up: bool, cxx_cal: bool) {
-		if (cxx_cal)
-			exerciseManager.moveExercise(exerciseIdx, up ? --exerciseIdx : ++exerciseIdx);
-		else {
-			if (up) --exerciseIdx;
-			else ++exerciseIdx;
-		}
-
-		lblExerciseNumber.text = parseInt(exerciseIdx + 1) + ":";
-		txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
-		exerciseItem.Layout.row = exerciseIdx;
 	}
 
 	function paneExerciseShowHide(show: bool, force: bool) {

@@ -359,78 +359,7 @@ void QmlSetsInterface::createSetObject_part2(const uint set_type, const uint set
 		QMetaObject::invokeMethod(item, "init");
 }
 
-void QmlSetsInterface::enableDisableExerciseCompletedButton(const uint exercise_idx, const bool completed)
-{
-	const tDayExercises::exerciseObject* exercise_obj(m_currentExercises->exerciseObjects.at(exercise_idx));
-	const uint nsets(exercise_obj->m_setObjects.count());
-	bool noSetsCompleted(true);
-	for (uint i(0); i < nsets; ++i)
-	{
-		QQuickItem* setObject{exercise_obj->m_setObjects.at(i)};
-		if (setObject->property("finishButtonVisible").toBool())
-		{
-			setObject->setProperty("finishButtonEnabled", completed);
-			break;
-		}
-		if (setObject->property("setCompleted").toBool())
-			noSetsCompleted = false;
-	}
-	exerciseEntryItem(exercise_idx)->setProperty("bCanEditRestTimeTracking", noSetsCompleted);
-}
 
-void QmlSetsInterface::enableDisableSetsRestTime(const uint exercise_idx, const uint bTrackRestTime,
-								const uint bAutoRestTime, const uint except_set_number)
-{
-	const uint nsets(exerciseSetsCount(exercise_idx));
-	QString strRestTime;
-	for(uint i(1); i < nsets; ++i)
-	{
-		if (i != except_set_number)
-		{
-			if (!m_CurrenttDayModel->setCompleted(i, exercise_idx))
-			{
-				findSetMode(exercise_idx, i);
-				exerciseSetItem(exercise_idx, i)->setProperty("bTrackRestTime", bTrackRestTime);
-				exerciseSetItem(exercise_idx, i)->setProperty("bAutoRestTime", bAutoRestTime);
-				if (bAutoRestTime)
-					strRestTime = u"00:00"_qs;
-				else if (bTrackRestTime)
-					strRestTime = m_CurrenttDayModel->nextSetSuggestedTime(exercise_idx, m_CurrenttDayModel->setType(i, exercise_idx), i);
-				m_CurrenttDayModel->setSetRestTime(i, exercise_idx, strRestTime);
-				QMetaObject::invokeMethod(exerciseSetItem(exercise_idx, i), "updateRestTime", Q_ARG(QString, strRestTime));
-			}
-		}
-	}
-}
-
-void QmlSetsInterface::findSetMode(const uint exercise_idx, const uint set_number)
-{
-	int set_mode(0);
-	if (set_number > 0)
-	{
-		if (m_CurrenttDayModel->trackRestTime(exercise_idx))
-		{
-			if (m_CurrenttDayModel->autoRestTime(exercise_idx))
-				set_mode = 1;
-		}
-	}
-	exerciseSetItem(exercise_idx, set_number)->setProperty("setMode", set_mode);
-}
-
-void QmlSetsInterface::findCurrentSet(const uint exercise_idx, const uint set_number)
-{
-	QQuickItem* set_object{exerciseSetItem(exercise_idx, set_number)};
-	if (set_object)
-	{
-		if (!currenttDayModel()->setCompleted(set_number, exercise_idx))
-		{
-			if (set_number > 0)
-				set_object->setProperty("bCurrentSet", currenttDayModel()->setCompleted(set_number-1, exercise_idx));
-			else
-				set_object->setProperty("bCurrentSet", true);
-		}
-	}
-}
 
 void QmlSetsInterface::startRestTimer(const uint exercise_idx, const uint set_number)
 {

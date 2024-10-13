@@ -378,8 +378,6 @@ void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString&
 		QString new_name_copy(new_name);
 		m_ExerciseData.at(exercise_idx)->name = new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
 	}
-	m_CompositeExerciseList[exercise_idx] = idx != -1;
-	emit compositeExerciseChanged(exercise_idx);
 }
 
 void DBTrainingDayModel::newExercise(const uint exercise_idx, const QString& new_exercise)
@@ -391,9 +389,7 @@ void DBTrainingDayModel::newExercise(const uint exercise_idx, const QString& new
 		for(uint i(0); i <= n; ++i)
 			m_ExerciseData.append(new exerciseEntry);
 	}
-	m_ExerciseData[exercise_idx]->name = new_exercise;
-	m_CompositeExerciseList[exercise_idx] = new_exercise.contains(comp_exercise_separator);
-	emit compositeExerciseChanged(exercise_idx);
+	m_ExerciseData.at(exercise_idx)->name = new_exercise;
 	emit exerciseCountChanged();
 }
 
@@ -437,8 +433,6 @@ void DBTrainingDayModel::setExerciseName1(const uint exercise_idx, const QString
 	if (idx != -1)
 		new_name1 = name1 + comp_exercise_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
 	m_ExerciseData.at(exercise_idx)->name = new_name1.replace(u"1: "_qs, "");
-	m_CompositeExerciseList[exercise_idx] = true;
-	emit compositeExerciseChanged(exercise_idx);
 }
 
 QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
@@ -457,8 +451,6 @@ void DBTrainingDayModel::setExerciseName2(const uint exercise_idx, const QString
 		new_name2 = m_ExerciseData.at(exercise_idx)->name.first(idx) + comp_exercise_separator + name2;
 	else
 		new_name2 = comp_exercise_separator + name2;
-	m_CompositeExerciseList[exercise_idx] = true;
-	emit compositeExerciseChanged(exercise_idx);
 	m_ExerciseData.at(exercise_idx)->name = new_name2.replace(u"2: "_qs, "");
 }
 
@@ -531,47 +523,11 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 	m_ExerciseData.at(exercise_idx)->nsets = 1;
 	m_ExerciseData.at(exercise_idx)->type.append(strType);
 	m_ExerciseData.at(exercise_idx)->notes.append(notes);
-	m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
+	m_ExerciseData.at(exercise_idx)->completed.append(STR_ZERO);
 	m_ExerciseData.at(exercise_idx)->resttime.append(nRestTime);
-
-	switch (type)
-	{
-		case SET_TYPE_REGULAR:
-		case SET_TYPE_PYRAMID:
-		case SET_TYPE_REVERSE_PYRAMID:
-			m_ExerciseData.at(exercise_idx)->reps.append(nReps);
-			m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
-			m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
-		break;
-		case SET_TYPE_DROP:
-		{
-			m_ExerciseData.at(exercise_idx)->reps.append(nReps + dropSetReps(nReps));
-			m_ExerciseData.at(exercise_idx)->weight.append(nWeight + dropSetWeight(nWeight));
-			m_ExerciseData.at(exercise_idx)->subsets.append(u"3"_qs);
-		}
-		break;
-		case SET_TYPE_CLUSTER:
-			m_ExerciseData.at(exercise_idx)->reps.append(nReps);
-			m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
-			m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
-		break;
-		case SET_TYPE_GIANT:
-			if (nReps.indexOf(comp_exercise_separator) == -1)
-				m_ExerciseData.at(exercise_idx)->reps.append(nReps + comp_exercise_separator + nReps + comp_exercise_separator);
-			else
-				m_ExerciseData.at(exercise_idx)->reps.append(nReps + comp_exercise_separator);
-			if (nWeight.indexOf(comp_exercise_separator) == -1)
-				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + comp_exercise_separator + nWeight + comp_exercise_separator);
-			else
-				m_ExerciseData.at(exercise_idx)->weight.append(nWeight + comp_exercise_separator);
-			m_ExerciseData.at(exercise_idx)->subsets.append(u"0"_qs);
-		break;
-		case SET_TYPE_MYOREPS:
-			m_ExerciseData.at(exercise_idx)->reps.append(nReps);
-			m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
-			m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
-		break;
-	}
+	m_ExerciseData.at(exercise_idx)->reps.append(nReps);
+	m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
+	m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
 }
 
 QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number) const
@@ -679,7 +635,7 @@ const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx
 	return strStrWeight;
 }
 
-void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, const uint type,
+void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, const uint type,
 							const QString& nReps, const QString& nWeight, const QString& nRestTime, const QString& nSubSets)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::newSet()", "out of range exercise_idx");
@@ -698,7 +654,7 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 			m_ExerciseData.at(exercise_idx)->reps.append(nReps.isEmpty() ? nextSetSuggestedReps(exercise_idx, type) : nReps);
 			m_ExerciseData.at(exercise_idx)->weight.append(nWeight.isEmpty() ? nextSetSuggestedWeight(exercise_idx, type) : nWeight);
 			m_ExerciseData.at(exercise_idx)->notes.append(m_ExerciseData.at(exercise_idx)->notes.constLast());
-			m_ExerciseData.at(exercise_idx)->completed.append(u"0"_qs);
+			m_ExerciseData.at(exercise_idx)->completed.append(STR_ZERO);
 			m_ExerciseData.at(exercise_idx)->subsets.append(nSubSets.isEmpty() ?
 					(type != SET_TYPE_MYOREPS ?
 						m_ExerciseData.at(exercise_idx)->subsets.constLast() :
@@ -715,7 +671,7 @@ void DBTrainingDayModel::newSet(const uint set_number, const uint exercise_idx, 
 	}
 }
 
-void DBTrainingDayModel::removeSet(const uint set_number, const uint exercise_idx)
+void DBTrainingDayModel::removeSet(const uint exercise_idx, const uint set_number)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::removeSet()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->type.remove(set_number);
@@ -729,7 +685,7 @@ void DBTrainingDayModel::removeSet(const uint set_number, const uint exercise_id
 	emit tDayChanged();
 }
 
-uint DBTrainingDayModel::setType(const uint set_number, const uint exercise_idx) const
+uint DBTrainingDayModel::setType(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setType()", "out of range set_number");
 	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
@@ -737,13 +693,13 @@ uint DBTrainingDayModel::setType(const uint set_number, const uint exercise_idx)
 	return SET_TYPE_REGULAR;
 }
 
-void DBTrainingDayModel::setSetType(const uint set_number, const uint exercise_idx, const uint new_type)
+void DBTrainingDayModel::setSetType(const uint exercise_idx, const uint set_number, const uint new_type)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setType()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->type[set_number] = QString::number(new_type);
 }
 
-void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercise_idx, const uint old_type, const uint new_type)
+void DBTrainingDayModel::changeSetType(const uint exercise_idx, const uint set_number, const uint old_type, const uint new_type)
 {
 	const QString& reps(m_ExerciseData.at(exercise_idx)->reps.at(set_number));
 	const QString& weight(m_ExerciseData.at(exercise_idx)->weight.at(set_number));
@@ -798,25 +754,25 @@ void DBTrainingDayModel::changeSetType(const uint set_number, const uint exercis
 	setSetType(set_number, exercise_idx, new_type);
 }
 
-QString DBTrainingDayModel::setRestTime(const uint set_number, const uint exercise_idx) const
+QString DBTrainingDayModel::setRestTime(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setRestTime()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->resttime.at(set_number);
 }
 
-void DBTrainingDayModel::setSetRestTime(const uint set_number, const uint exercise_idx, const QString& new_time)
+void DBTrainingDayModel::setSetRestTime(const uint exercise_idx, const uint set_number, const QString& new_time)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSetRestTime()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->resttime[set_number] = new_time;
 }
 
-QString DBTrainingDayModel::setSubSets(const uint set_number, const uint exercise_idx) const
+QString DBTrainingDayModel::setSubSets(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSubSets()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->subsets.at(set_number);
 }
 
-void DBTrainingDayModel::newSetSubSet(const uint set_number, const uint exercise_idx)
+void DBTrainingDayModel::newSetSubSet(const uint exercise_idx, const uint set_number)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::newSetSubSet()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->subsets[set_number] = QString::number(m_ExerciseData.at(exercise_idx)->subsets.at(set_number).toUInt() + 1);
@@ -826,37 +782,37 @@ void DBTrainingDayModel::newSetSubSet(const uint set_number, const uint exercise
 		m_ExerciseData.at(exercise_idx)->weight.constLast().split(comp_exercise_separator, Qt::SkipEmptyParts).constLast().toUInt() - 10) + comp_exercise_separator);
 }
 
-void DBTrainingDayModel::setSetSubSets(const uint set_number, const uint exercise_idx, const QString& new_subsets)
+void DBTrainingDayModel::setSetSubSets(const uint exercise_idx, const uint set_number, const QString& new_subsets)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->subsets.count(), "DBTrainingDayModel::setType()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->subsets[set_number] = new_subsets;
 }
 
-QString DBTrainingDayModel::setReps(const uint set_number, const uint exercise_idx) const
+QString DBTrainingDayModel::setReps(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setReps()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->reps.at(set_number);
 }
 
-void DBTrainingDayModel::setSetReps(const uint set_number, const uint exercise_idx, const QString& new_reps)
+void DBTrainingDayModel::setSetReps(const uint exercise_idx, const uint set_number, const QString& new_reps)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSetReps()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->reps[set_number] = new_reps;
 }
 
-QString DBTrainingDayModel::setWeight(const uint set_number, const uint exercise_idx) const
+QString DBTrainingDayModel::setWeight(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setWeight()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->weight.at(set_number);
 }
 
-void DBTrainingDayModel::setSetWeight(const uint set_number, const uint exercise_idx, const QString& new_weight)
+void DBTrainingDayModel::setSetWeight(const uint exercise_idx, const uint set_number, const QString& new_weight)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSetWeight()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->weight[set_number] = new_weight;
 }
 
-QString DBTrainingDayModel::setNotes(const uint set_number, const uint exercise_idx) const
+QString DBTrainingDayModel::setNotes(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->notes.count(), "DBTrainingDayModel::setNotes()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->notes.at(set_number);
@@ -868,13 +824,13 @@ void DBTrainingDayModel::setSetNotes(const uint set_number, const QString& new_n
 	m_ExerciseData.at(exercise_idx)->notes[set_number] = new_notes;
 }
 
-bool DBTrainingDayModel::setCompleted(const uint set_number, const uint exercise_idx) const
+bool DBTrainingDayModel::setCompleted(const uint exercise_idx, const uint set_number) const
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->completed.count(), "DBTrainingDayModel::setCompleted()", "out of range set_number");
 	return m_ExerciseData.at(exercise_idx)->completed.at(set_number) == u"1"_qs;
 }
 
-void DBTrainingDayModel::setSetCompleted(const uint set_number, const uint exercise_idx, const bool completed)
+void DBTrainingDayModel::setSetCompleted(const uint exercise_idx, const uint set_number, const bool completed)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->completed.count(), "DBTrainingDayModel::setSetCompleted()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->completed[set_number] = completed ? STR_ONE : STR_ZERO;
@@ -905,7 +861,7 @@ QString DBTrainingDayModel::setReps(const uint set_number, const uint subset, co
 	return subset < subSetReps.count() ? subSetReps.at(subset) : QString();
 }
 
-void DBTrainingDayModel::setSetReps(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_reps)
+void DBTrainingDayModel::setSetReps(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_reps)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSetReps()", "out of range set_number");
 	QStringList subSetReps(m_ExerciseData.at(exercise_idx)->reps.at(set_number).split(comp_exercise_separator, Qt::SkipEmptyParts));
@@ -928,7 +884,7 @@ QString DBTrainingDayModel::setWeight(const uint set_number, const uint subset, 
 	return subset < subSetWeight.count() ? subSetWeight.at(subset) : QString();
 }
 
-void DBTrainingDayModel::setSetWeight(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_weight)
+void DBTrainingDayModel::setSetWeight(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_weight)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setSetWeight()", "out of range set_number");
 	QStringList subSetWeight(m_ExerciseData.at(exercise_idx)->weight.at(set_number).split(comp_exercise_separator, Qt::SkipEmptyParts));

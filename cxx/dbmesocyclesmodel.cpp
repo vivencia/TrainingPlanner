@@ -19,6 +19,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
 	m_exportName = tr("Training Plan");
 
+	//m_roleNames[mesoNameRole] = std::move("mesoName"); //TODO TODO
 	m_roleNames[mesoNameRole] = "mesoName";
 	m_roleNames[mesoStartDateRole] = "mesoStartDate";
 	m_roleNames[mesoEndDateRole] = "mesoEndDate";

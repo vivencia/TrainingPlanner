@@ -61,7 +61,6 @@ public:
 
 	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
-	Q_INVOKABLE inline bool compositeExercise(const uint exercise_idx) const { return static_cast<bool>(m_CompositeExerciseList.value(exercise_idx)); }
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;
 
 	inline bool dayIsEditable() const { return mb_DayIsEditable; }
@@ -183,53 +182,52 @@ public:
 	Q_INVOKABLE QString nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
 	const QString nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	const QString nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
-	void newSet(const uint set_number, const uint exercise_idx, const uint type, const QString& nReps = QString(),
+	void newSet(const uint exercise_idx, const uint set_number, const uint type, const QString& nReps = QString(),
 					const QString& nWeight = QString(), const QString& nRestTime = QString(), const QString& nSubSets = QString());
-	void removeSet(const uint set_number, const uint exercise_idx);
+	void removeSet(const uint exercise_idx, const uint set_number);
 
-	Q_INVOKABLE uint setType(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE uint setType(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsTypes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->type.join(record_separator); }
 
-	Q_INVOKABLE void setSetType(const uint set_number, const uint exercise_idx, const uint new_type);
-	void changeSetType(const uint set_number, const uint exercise_idx, const uint old_type, const uint new_type);
+	Q_INVOKABLE void setSetType(const uint exercise_idx, const uint set_number, const uint new_type);
+	void changeSetType(const uint exercise_idx, const uint set_number, const uint old_type, const uint new_type);
 
-	Q_INVOKABLE QString setRestTime(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetRestTime(const uint set_number, const uint exercise_idx, const QString& new_time);
+	Q_INVOKABLE QString setRestTime(const uint exercise_idx, const uint set_number) const;
+	Q_INVOKABLE void setSetRestTime(const uint exercise_idx, const uint set_number, const QString& new_time);
 
-	Q_INVOKABLE QString setSubSets(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE QString setSubSets(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsSubSets(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->subsets.join(record_separator); }
-	Q_INVOKABLE void newSetSubSet(const uint set_number, const uint exercise_idx);
-	Q_INVOKABLE uint setSubSets_int(const uint set_number, const uint exercise_idx) const { return setSubSets(set_number, exercise_idx).toUInt(); }
-	Q_INVOKABLE void setSetSubSets(const uint set_number, const uint exercise_idx, const QString& new_subsets);
+	Q_INVOKABLE void newSetSubSet(const uint exercise_idx, const uint set_number);
+	Q_INVOKABLE uint setSubSets_int(const uint exercise_idx, const uint set_number) const { return setSubSets(set_number, exercise_idx).toUInt(); }
+	Q_INVOKABLE void setSetSubSets(const uint exercise_idx, const uint set_number, const QString& new_subsets);
 
-	Q_INVOKABLE QString setReps(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE QString setReps(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsReps(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->reps.join(record_separator); }
-	Q_INVOKABLE uint setReps_int(const uint set_number, const uint exercise_idx) const { return setReps(set_number, exercise_idx).toUInt(); }
-	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const QString& new_reps);
+	Q_INVOKABLE uint setReps_int(const uint exercise_idx, const uint set_number) const { return setReps(set_number, exercise_idx).toUInt(); }
+	Q_INVOKABLE void setSetReps(const uint exercise_idx, const uint set_number, const QString& new_reps);
 
-	Q_INVOKABLE QString setWeight(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE QString setWeight(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsWeight(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->weight.join(record_separator); }
-	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const QString& new_weight);
+	Q_INVOKABLE void setSetWeight(const uint exercise_idx, const uint set_number, const QString& new_weight);
 
-	Q_INVOKABLE QString setNotes(const uint set_number, const uint exercise_idx) const;
+	Q_INVOKABLE QString setNotes(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsNotes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->notes.join(record_separator); }
 	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx);
 
-	Q_INVOKABLE bool setCompleted(const uint set_number, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetCompleted(const uint set_number, const uint exercise_idx, const bool completed);
+	Q_INVOKABLE bool setCompleted(const uint exercise_idx, const uint set_number) const;
+	Q_INVOKABLE void setSetCompleted(const uint exercise_idx, const uint set_number, const bool completed);
 	Q_INVOKABLE bool allSetsCompleted(const uint exercise_idx) const;
 
 	Q_INVOKABLE QString setReps(const uint set_number, const uint subset, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetReps(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_reps);
+	Q_INVOKABLE void setSetReps(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_reps);
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint subset, const uint exercise_idx) const;
-	Q_INVOKABLE void setSetWeight(const uint set_number, const uint exercise_idx, const uint subset, const QString& new_weight);
+	Q_INVOKABLE void setSetWeight(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_weight);
 
 signals:
 	void tDayChanged();
 	void exerciseCountChanged();
 	void splitLetterChanged();
-	void compositeExerciseChanged(const uint exercise_idx);
 	void dayIsFinishedChanged();
 	void dayIsEditableChanged();
 	void exerciseCompleted(const uint exercise_idx, const bool completed);
@@ -252,7 +250,6 @@ private:
 
 	QList<exerciseEntry*> m_ExerciseData;
 	bool mb_DayIsFinished, mb_DayIsEditable;
-	QMap<uint, bool> m_CompositeExerciseList;
 
 	friend class DBMesoSplitModel;
 };

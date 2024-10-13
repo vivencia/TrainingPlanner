@@ -17,12 +17,6 @@ QmlExerciseInterface::~QmlExerciseInterface()
 	for(uint i(0); i < m_exercisesList.count(); ++i)
 		delete m_exercisesList.at(i);
 	delete m_exercisesComponent;
-/*if (m_setComponents[0])
-		delete m_setComponents[0];
-	if (m_setComponents[1])
-		delete m_setComponents[1];
-	if (m_setComponents[2])
-		delete m_setComponents[2];*/
 }
 
 void QmlExerciseInterface::createExerciseObject()
@@ -72,12 +66,15 @@ void QmlExerciseInterface::createExerciseObject()
 	m_tDayModel->setTrackRestTime(exercise_idx, bTrackRestTime);
 	m_tDayModel->setAutoRestTime(exercise_idx, bAutoRestTime);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, exercise_idx, m_tDayModel)};
-	newExercise->setCompositeExercise(m_tDayModel->compositeExercise(exercise_idx));
+	QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_qmlEngine, exercise_idx, m_tDayModel)};
+	newExercise->setExerciseName(exerciseName);
+	newExercise->setNewSetType(!newExercise->compositeExercise() ? SET_TYPE_REGULAR : SET_TYPE_GIANT);
 	newExercise->setSetsNumber(nSets);
 	newExercise->setRestTime(nRestTime);
-	newExercise->setRepsNumber(nReps);
+	newExercise->setReps(nReps);
 	newExercise->setWeight(nWeight);
+	newExercise->setTrackRestTime(bTrackRestTime);
+	newExercise->setAutoRestTime(bAutoRestTime);
 	m_exercisesList.append(newExercise);
 	createExerciseObject_part2(exercise_idx);
 }
@@ -97,16 +94,18 @@ void QmlExerciseInterface::createExercisesObjects()
 	}
 
 	bool bTrackRestTime(false), bAutoRestTime(false);
-	for(uint i(0); i < m_tDayModel->exerciseCount(); ++i)
+	for(uint i(0), set_type(0), last_set(0); i < m_tDayModel->exerciseCount(); ++i)
 	{
+		QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_qmlEngine, i, m_tDayModel)};
+		last_set = m_tDayModel->setsNumber(i);
+		if (last_set > 10) last_set = 0; //setsNumber was 0
+		set_type = m_tDayModel->setType(last_set, i);
+		newExercise->setExerciseName(m_tDayModel->exerciseName(i));
+		newExercise->setNewSetType(set_type);
 		bTrackRestTime = m_tDayModel->trackRestTime(i-(i >= 1 ? 1 : 0));
+		newExercise->setTrackRestTime(bTrackRestTime);
 		bAutoRestTime = m_tDayModel->autoRestTime(i-(i >= 1 ? 1 : 0));
-		QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, i, m_tDayModel)};
-		newExercise->setCompositeExercise(m_tDayModel->compositeExercise(i));
-		newExercise->setSetsNumber(STR_ONE);
-		newExercise->setRestTime(m_tDayModel->nextSetSuggestedTime(i, m_tDayModel->setType(0, i), 0));
-		newExercise->setRepsNumber(m_tDayModel->nextSetSuggestedReps(i, m_tDayModel->setType(0, i), 0));
-		newExercise->setWeight(m_tDayModel->nextSetSuggestedWeight(i, m_tDayModel->setType(0, i), 0));
+		newExercise->setAutoRestTime(bAutoRestTime);
 		m_exercisesList.append(newExercise);
 		createExerciseObject_part2(i);
 	}
@@ -133,32 +132,13 @@ void QmlExerciseInterface::clearExercises()
 
 void QmlExerciseInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 {
-	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-	QMetaObject::invokeMethod(m_exerciseObjects.at(i)->exerciseEntry(), "moveExercise", Q_ARG(bool, true), Q_ARG(bool, false));
-
-	uint nsets(exerciseSetsCount(exercise_idx));
-	for(uint i(0); i < nsets; ++i)
-	{
-		exerciseSetItem(exercise_idx, i)->setProperty("exerciseIdx", new_idx);
-		exerciseSetItem(exercise_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(new_idx)));
-	}
-	nsets = exerciseSetsCount(new_idx);
-	for(uint i(0); i < nsets; ++i)
-	{
-		exerciseSetItem(new_idx, i)->setProperty("exerciseIdx", exercise_idx);
-		exerciseSetItem(new_idx, i)->setProperty("ownerExercise", QVariant::fromValue(exerciseEntryItem(exercise_idx)));
-	}
-	m_tDayModel->moveExercise(exercise_idx, new_idx);
-
-	for(uint x(0); x <m_exerciseObjects.count(); ++x)
-		exerciseEntryItem(x)->setParentItem(nullptr);
-
-	QQuickItem* parentLayout(m_tDayPage->findChild<QQuickItem*>(QStringLiteral("tDayExercisesLayout")));
-	m_currentExercises->exerciseObjects.swapItemsAt(exercise_idx, new_idx);
-	for(uint x(0); x < m_currentExercises->exerciseObjects.count(); ++x)
-		exerciseEntryItem(x)->setParentItem(parentLayout);
-	//Changing the properties via c++ is not working for some unknown reason. Let QML update its properties then
-	QMetaObject::invokeMethod(exerciseEntryItem(exercise_idx), "moveExercise", Q_ARG(bool, new_idx > exercise_idx), Q_ARG(bool, false));
+	for(uint i(0); i < m_exercisesList.count(); ++i)
+		m_exercisesList.at(i)->exerciseEntry()->setParentItem(nullptr);
+	m_exercisesList.swapItemsAt(exercise_idx, new_idx);
+	for(uint i(0); i < m_exercisesList.count(); ++i)
+		m_exercisesList.at(i)->exerciseEntry()->setParentItem(m_parentLayout);
+	m_exercisesList.at(exercise_idx)->setExerciseIdx(exercise_idx);
+	m_exercisesList.at(new_idx)->setExerciseIdx(new_idx);
 }
 
 void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
@@ -182,10 +162,10 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	item->setParentItem(m_parentLayout);
 	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
-	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)));
-	connect(item, SIGNAL(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)), this,
-						SLOT(requestFloatingButton(const QVariant&,const QVariant&,const QVariant&)));
+	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*,QVariant,QVariant,int)), this,
+						SLOT(requestExercisesList(QQuickItem*,QVariant,QVariant,int)));
+	connect(item, SIGNAL(requestFloatingButton(QVariant,QVariant,QVariant)), this,
+						SLOT(requestFloatingButton(QVariant,QVariant,QVariant)));
 	connect(item, SIGNAL(showRemoveExerciseMessage(int)), this, SLOT(showRemoveExerciseMessage(int)));
 
 	QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));

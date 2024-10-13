@@ -58,6 +58,7 @@ set( CXX_SOURCES
 	cxx/qmlsetsinterface.h cxx/qmlsetsinterface.cpp
 	cxx/qmlexerciseinterface.h cxx/qmlexerciseinterface.cpp
 	cxx/qmlexerciseentry.h cxx/qmlexerciseentry.cpp
+	cxx/qmlsetentry.h cxx/qmlsetentry.cpp
 )
 
 set( JAVA_SOURCES
