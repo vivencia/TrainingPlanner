@@ -66,7 +66,7 @@ void QmlExerciseInterface::createExerciseObject()
 	m_tDayModel->setTrackRestTime(exercise_idx, bTrackRestTime);
 	m_tDayModel->setAutoRestTime(exercise_idx, bAutoRestTime);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_qmlEngine, exercise_idx, m_tDayModel)};
+	QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_tDayPage, m_qmlEngine, m_tDayModel, exercise_idx)};
 	newExercise->setExerciseName(exerciseName);
 	newExercise->setNewSetType(!newExercise->compositeExercise() ? SET_TYPE_REGULAR : SET_TYPE_GIANT);
 	newExercise->setSetsNumber(nSets);
@@ -96,7 +96,7 @@ void QmlExerciseInterface::createExercisesObjects()
 	bool bTrackRestTime(false), bAutoRestTime(false);
 	for(uint i(0), set_type(0), last_set(0); i < m_tDayModel->exerciseCount(); ++i)
 	{
-		QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_qmlEngine, i, m_tDayModel)};
+		QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_tDayPage, m_qmlEngine, m_tDayModel, i)};
 		last_set = m_tDayModel->setsNumber(i);
 		if (last_set > 10) last_set = 0; //setsNumber was 0
 		set_type = m_tDayModel->setType(last_set, i);

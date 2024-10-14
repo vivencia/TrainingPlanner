@@ -17,8 +17,10 @@ Item {
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
 
-	required property QmlItemManager itemManager
+	required property SetEntryManager setManager
+	required property ExerciseEntryManager exerciseManager
 	required property DBTrainingDayModel tDayModel
+
 	required property int exerciseIdx
 	required property int setNumber
 	required property int setType

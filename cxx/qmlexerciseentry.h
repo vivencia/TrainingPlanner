@@ -6,8 +6,8 @@
 #include "qmlexerciseinterface.h"
 
 class QQuickItem;
-class TPTimer;
 class DBTrainingDayModel;
+class QmlTDayInterface;
 class QmlSetEntry;
 
 class QQmlApplicationEngine;
@@ -34,8 +34,10 @@ Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY auto
 Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCanEditRestTimeTracking NOTIFY canEditRestTimeTrackingChanged FINAL)
 
 public:
-	inline explicit QmlExerciseEntry(QObject* parent, QQmlApplicationEngine* qmlEngine, const uint exercise_idx, DBTrainingDayModel* tDayModel)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_exercise_idx(exercise_idx), m_tDayModel(tDayModel), m_type(0), m_setTimer(nullptr), m_setComponents{nullptr} {}
+	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, QQmlApplicationEngine* qmlEngine,
+										DBTrainingDayModel* tDayModel, const uint exercise_idx)
+		: QObject{parent}, m_tDayPage(tDayPage), m_qmlEngine(qmlEngine), m_tDayModel(tDayModel),
+			m_exercise_idx(exercise_idx), m_type(0), m_setTimer(nullptr), m_setComponents{nullptr} {}
 	~QmlExerciseEntry();
 
 	inline const QQuickItem* exerciseEntry() const { return m_exerciseEntry; }
@@ -93,8 +95,16 @@ public:
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
 
-	Q_INVOKABLE void appendNewSet();
 	void createAvailableSets();
+	Q_INVOKABLE void appendNewSet();
+	Q_INVOKABLE void removeSetObject(const uint set_number);
+	Q_INVOKABLE void changeSetType(const uint set_number, const uint new_type);
+	Q_INVOKABLE void changeSetMode(const uint set_number);
+	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint set_number);
+	Q_INVOKABLE void copyTimeValueIntoOtherSets(const uint set_number);
+	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
+	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
+	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
 
 signals:
 	void exerciseIdxChanged();
@@ -112,12 +122,14 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void canEditRestTimeTrackingChanged();
+	void setObjectCreated(const uint set_number);
 
 private:
+	QmlTDayInterface* m_tDayPage;
 	QQmlApplicationEngine* m_qmlEngine;
-	uint m_exercise_idx;
 	DBTrainingDayModel* m_tDayModel;
-	QQuickItem* m_exerciseEntry, *m_setsLayout;
+	uint m_exercise_idx;
+	QQuickItem* m_exerciseEntry;
 	QString m_sets, m_reps, m_weight, m_restTime;
 	bool m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking;
 	uint m_type;
@@ -126,14 +138,17 @@ private:
 	QList<QmlSetEntry*> m_setObjects;
 	QVariantMap m_setObjectProperties;
 	QQmlComponent* m_setComponents[3];
+	QQuickItem* m_setsLayout;
 	uint m_expectedSetNumber;
 
 	inline uint findSetMode(const uint set_number) const;
 	inline void findCurrentSet();
 	void insertSetEntry(const uint set_number, QmlSetEntry* new_setobject);
-	void createSetObject(const uint type, const QString& resttime, const QString& nreps, const QString& weight);
+	void createSetObject(const uint set_number, const uint type, const QString& resttime, const QString& nreps, const QString& weight);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
-	void enableDisableSetsRestTime(const uint except_set_number = 0);
+	void enableDisableExerciseCompletedButton();
+	void startRestTimer(const uint set_number);
+	void stopRestTimer(const uint set_number);
 };
 
 #endif // QMLEXERCISEENTRY_H

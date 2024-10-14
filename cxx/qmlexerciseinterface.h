@@ -7,7 +7,7 @@
 class QmlExerciseEntry;
 class DBTrainingDayModel;
 class TPTimer;
-class QmlSetsInterface;
+class QmlTDayInterface;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -19,8 +19,9 @@ class QmlExerciseInterface : public QObject
 Q_OBJECT
 
 public:
-	inline explicit QmlExerciseInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, DBTrainingDayModel *tDayModel, QQuickItem* parentLayout)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_exercisesComponent(nullptr), m_tDayModel(tDayModel), m_parentLayout(parentLayout) {}
+	inline explicit QmlExerciseInterface(QObject* parent, QmlTDayInterface* tDayPage, QQmlApplicationEngine* qmlEngine,
+										DBTrainingDayModel *tDayModel, QQuickItem* parentLayout)
+		: QObject{parent}, m_tDayPage(tDayPage), m_qmlEngine(qmlEngine), m_tDayModel(tDayModel), m_parentLayout(parentLayout), m_exercisesComponent(nullptr) {}
 	~QmlExerciseInterface();
 
 	Q_INVOKABLE void createExerciseObject();
@@ -31,12 +32,13 @@ public:
 	inline uint exercisesCount() const { return m_exercisesList.count(); }
 
 private:
+	QmlTDayInterface* m_tDayPage;
 	QQmlApplicationEngine* m_qmlEngine;
+	DBTrainingDayModel* m_tDayModel;
+	QQuickItem* m_parentLayout;
 	QVariantMap m_exercisesProperties;
 	QQmlComponent* m_exercisesComponent;
-	DBTrainingDayModel* m_tDayModel;
 	QList<QmlExerciseEntry*> m_exercisesList;
-	QQuickItem* m_parentLayout;
 
 	void createExerciseObject_part2(const uint exercise_idx);
 };

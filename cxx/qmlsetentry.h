@@ -3,6 +3,11 @@
 
 #include <QObject>
 
+#define SET_MODE_UNDEFINED 0
+#define SET_MODE_START_REST 1
+#define SET_MODE_START_EXERCISE 2
+#define SET_MODE_SET_COMPLETED 3
+
 class QQuickItem;
 class DBTrainingDayModel;
 
@@ -15,6 +20,7 @@ Q_PROPERTY(uint type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(uint number READ number WRITE setMode NOTIFY numberChanged FINAL)
 Q_PROPERTY(uint mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
 Q_PROPERTY(QString strNumber READ strNumber NOTIFY strNumberChanged FINAL)
+Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY modeLabelChanged FINAL)
 Q_PROPERTY(bool completed READ completed WRITE setCompleted NOTIFY completedChanged FINAL)
 Q_PROPERTY(bool lastSet READ lastSet WRITE setLastSet NOTIFY lastSetChanged FINAL)
 Q_PROPERTY(bool finishButtonEnabled READ finishButtonEnabled WRITE setFinishButtonEnabled NOTIFY finishButtonEnabledChanged FINAL)
@@ -37,8 +43,21 @@ public:
 	inline void setNumber(const uint new_value) { m_number = new_value; emit numberChanged(); }
 	inline const QString strNumber() const { return QString::number(m_number + 1); }
 
+	inline QString modeLabel() const
+	{
+		QString ret;
+		switch (mode())
+		{
+			case SET_MODE_UNDEFINED: ret = tr("Set completed?"); break;
+			case SET_MODE_START_REST: ret = tr("Start rest"); break;
+			case SET_MODE_START_EXERCISE: ret = tr("Begin exercise"); break;
+			case SET_MODE_SET_COMPLETED: break;
+		}
+		return ret;
+	}
+
 	inline const uint mode() const { return m_mode; }
-	inline void setMode(const uint new_value) { m_mode = new_value; emit modeChanged(); }
+	inline void setMode(const uint new_value) { m_mode = new_value; emit modeChanged(); emit modeLabelChanged(); }
 
 	inline const bool completed() const { return m_bCompleted; }
 	void setCompleted(const bool new_value);
@@ -63,6 +82,7 @@ signals:
 	void numberChanged();
 	void modeChanged();
 	void strNumberChanged();
+	void modeLabelChanged();
 	void completedChanged();
 	void lastSetChanged();
 	void finishButtonEnabledChanged();

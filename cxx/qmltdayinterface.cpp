@@ -8,6 +8,7 @@
 #include "dbinterface.h"
 #include "osinterface.h"
 #include "tpappcontrol.h"
+#include "tptimer.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -15,7 +16,7 @@
 #include <QQuickWindow>
 
 QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date)
+	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_timer(nullptr)
 {
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -28,12 +29,11 @@ QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEn
 
 QmlTDayInterface::~QmlTDayInterface()
 {
-	for(uint i(0); i < m_exerciseObjects.count(); ++i)
-		delete m_exerciseObjects.at(i);
-
 	emit removePageFromMainMenu(m_tDayPage);
 	delete m_tDayPage;
 	delete m_tDayComponent;
+	m_exerciseManager->deleteLater();
+	m_tDayModel->deleteLater();
 }
 
 void QmlTDayInterface::getTrainingDayPage()
@@ -48,7 +48,7 @@ void QmlTDayInterface::getTrainingDayPage()
 			appDBInterface()->getMesoCalendar(m_mesoIdx);
 			return;
 		}
-		m_exerciseManager = new QmlExerciseInterface{this, m_qmlEngine, m_tDayModel, m_tDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_qs)};
+		m_exerciseManager = new QmlExerciseInterface{this, this, m_qmlEngine, m_tDayModel, m_tDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_qs)};
 		const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
 		const QString& tday{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()-1))};
 		const QString& splitLetter{mesoCal->getSplitLetter(m_Date.month(), m_Date.day()-1)};
@@ -185,6 +185,18 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
 	else
 		appControl()->openRequestedFile(filename, IFC_TDAY);
+}
+
+void QmlTDayInterface::displayMessage(const QString& title, const QString& message, const bool error, const uint msecs)
+{
+	QMetaObject::invokeMethod(m_tDayPage, "showTimerDialogMessage", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, msecs));
+}
+
+TPTimer* QmlTDayInterface::getTimer()
+{
+	if (!m_timer)
+		m_timer = new TPTimer(this);
+	return m_timer->isActive() ? nullptr : m_timer;
 }
 
 void QmlTDayInterface::createTrainingDayPage()

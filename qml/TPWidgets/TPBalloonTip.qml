@@ -159,14 +159,14 @@ TPPopup {
 				balloon.show(startYPosition);
 		}
 
-		function delayedOpen(timeout) {
+		function delayedOpen(timeout: int) {
 			bCloseOnFinished = false;
 			interval = timeout;
 			start();
 			balloon.show(startYPos);
 		}
 
-		function openTimed(timeout) {
+		function openTimed(timeout: int) {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
@@ -174,7 +174,7 @@ TPPopup {
 		}
 	}
 
-	function show(ypos) {
+	function show(ypos: int) {
 		balloon.height = lblTitle.height + lblMessage.height +
 						(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
 		balloon.x = (appSettings.pageWidth - width)/2;
@@ -190,12 +190,12 @@ TPPopup {
 		balloon.open();
 	}
 
-	function showTimed(timeout, ypos) {
+	function showTimed(timeout: int, ypos: int) {
 		startYPos = ypos;
 		hideTimer.openTimed(timeout);
 	}
 
-	function showLate(timeout, ypos) {
+	function showLate(timeout: int, ypos: int) {
 		startYPos = ypos;
 		hideTimer.delayedOpen(timeout);
 	}

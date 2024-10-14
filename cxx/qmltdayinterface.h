@@ -7,6 +7,7 @@
 
 class DBTrainingDayModel;
 class QmlExerciseInterface;
+class TPTimer;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -32,12 +33,10 @@ public:
 	Q_INVOKABLE void setCurrenttDay(const QDate& date);
 	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
-	Q_INVOKABLE void removeExerciseObject(const uint exercise_idx);
-	Q_INVOKABLE void clearExercises();
-	Q_INVOKABLE void moveExercise(const uint exercise_idx, const uint new_idx);
 
-	DBTrainingDayModel* gettDayModel(const QDate& date);
 	inline DBTrainingDayModel* tDayModel() { return m_tDayModel; }
+	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0);
+	TPTimer* getTimer();
 
 signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
@@ -54,6 +53,7 @@ private:
 	QmlExerciseInterface* m_exerciseManager;
 	uint m_mesoIdx;
 	QDate m_Date;
+	TPTimer* m_timer;
 
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();

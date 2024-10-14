@@ -250,16 +250,14 @@ TPPage {
 		tipTimeWarn.showTimed(timeout, 0);
 	}
 
-	property TPBalloonTip timerDlgMessage: null
-	function showTimerDialogMessage() {
+	property TPBalloonTip generalMessage: null
+	function showTimerDialogMessage(title: string, message: string, error: bool, msecs: int) {
 		if (timerDlgMessage === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					timerDlgMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Attention!"),
-						message: qsTr("Only one timer window can be opened at a time!"), highlightMessage: true,
-						button1Text: "OK", imageSource: "time.png" } );
+					timerDlgMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, highlightMessage: true, button1Text: "OK"});
 				}
 
 				if (component.status === Component.Ready)
@@ -269,7 +267,14 @@ TPPage {
 			}
 			createMessageBox();
 		}
-		timerDlgMessage.showTimed(3000, 0);
+		timerDlgMessage.title = title;
+		timerDlgMessage.message = message;
+		timerDlgMessage.imageSource = error ? "error" : "warning";
+		if (msecs > 0)
+			timerDlgMessage.showTimed(msecs, 0);
+		else
+			timerDlgMessage.show(0);
+
 	}
 
 	property TPBalloonTip resetWorkoutMsg: null

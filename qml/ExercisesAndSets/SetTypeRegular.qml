@@ -18,6 +18,7 @@ Item {
 	Layout.rightMargin: 5
 
 	required property SetEntryManager setManager
+	required property ExerciseEntryManager exerciseManager
 	required property DBTrainingDayModel tDayModel
 	required property int exerciseIdx
 	required property int setNumber
@@ -87,7 +88,7 @@ Item {
 
 			TPButton {
 				id: btnManageSet
-				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
+				text: setManager.modeLabel
 				flat: false
 				visible: !setCompleted
 				anchors.verticalCenter: parent.verticalCenter
