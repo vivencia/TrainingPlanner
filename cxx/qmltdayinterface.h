@@ -34,6 +34,9 @@ public:
 	Q_INVOKABLE void exportTrainingDay(const bool bShare, const DBTrainingDayModel* const tDayModel);
 	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
 
+	void createExerciseObject();
+	void removeExerciseObject(const uint exercise_idx);
+
 	inline DBTrainingDayModel* tDayModel() { return m_tDayModel; }
 	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0);
 	TPTimer* getTimer();

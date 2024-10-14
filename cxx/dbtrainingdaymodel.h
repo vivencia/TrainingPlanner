@@ -212,7 +212,7 @@ public:
 
 	Q_INVOKABLE QString setNotes(const uint exercise_idx, const uint set_number) const;
 	inline const QString setsNotes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->notes.join(record_separator); }
-	Q_INVOKABLE void setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx);
+	Q_INVOKABLE void setSetNotes(const uint exercise_idx, const uint set_number, const QString& new_notes);
 
 	Q_INVOKABLE bool setCompleted(const uint exercise_idx, const uint set_number) const;
 	Q_INVOKABLE void setSetCompleted(const uint exercise_idx, const uint set_number, const bool completed);

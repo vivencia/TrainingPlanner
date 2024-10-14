@@ -24,7 +24,7 @@ public:
 		: QObject{parent}, m_tDayPage(tDayPage), m_qmlEngine(qmlEngine), m_tDayModel(tDayModel), m_parentLayout(parentLayout), m_exercisesComponent(nullptr) {}
 	~QmlExerciseInterface();
 
-	Q_INVOKABLE void createExerciseObject();
+	void createExerciseObject();
 	void createExercisesObjects();
 	void removeExerciseObject(const uint exercise_idx);
 	void clearExercises();

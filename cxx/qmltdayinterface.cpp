@@ -187,6 +187,16 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 		appControl()->openRequestedFile(filename, IFC_TDAY);
 }
 
+void QmlTDayInterface::createExerciseObject()
+{
+	m_exerciseManager->createExerciseObject();
+}
+
+void QmlTDayInterface::removeExerciseObject(const uint exercise_idx)
+{
+	m_exerciseManager->removeExerciseObject(exercise_idx);
+}
+
 void QmlTDayInterface::displayMessage(const QString& title, const QString& message, const bool error, const uint msecs)
 {
 	QMetaObject::invokeMethod(m_tDayPage, "showTimerDialogMessage", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, msecs));
@@ -295,7 +305,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 				m_tDayModel->setSplitLetter(splitLetter);
 				tDayChanged = true;
 				if (splitLetter == u"R"_qs)
-					clearExercises();
+					m_exerciseManager->clearExercises();
 				else
 					appDBInterface()->verifyTDayOptions(m_tDayModel);
 			}

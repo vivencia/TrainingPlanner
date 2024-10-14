@@ -818,7 +818,7 @@ QString DBTrainingDayModel::setNotes(const uint exercise_idx, const uint set_num
 	return m_ExerciseData.at(exercise_idx)->notes.at(set_number);
 }
 
-void DBTrainingDayModel::setSetNotes(const uint set_number, const QString& new_notes, const uint exercise_idx)
+void DBTrainingDayModel::setSetNotes(const uint exercise_idx, const uint set_number, const QString& new_notes)
 {
 	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->notes.count(), "DBTrainingDayModel::setSetNotes()", "out of range set_number");
 	m_ExerciseData.at(exercise_idx)->notes[set_number] = new_notes;

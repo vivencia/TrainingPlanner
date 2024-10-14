@@ -28,6 +28,7 @@ Q_PROPERTY(QString repsForExercise1 READ repsForExercise1 WRITE setRepsForExerci
 Q_PROPERTY(QString weightForExercise1 READ weightForExercise1 WRITE setWeightForExercise1 NOTIFY weightForExercise1Changed FINAL)
 Q_PROPERTY(QString repsForExercise2 READ repsForExercise2 WRITE setRepsForExercise2 NOTIFY repsForExercise2Changed FINAL)
 Q_PROPERTY(QString weightForExercise2 READ weightForExercise2 WRITE setWeightForExercise2 NOTIFY weightForExercise2Changed FINAL)
+Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
 Q_PROPERTY(bool compositeExercise READ compositeExercise WRITE setCompositeExercise NOTIFY compositeExerciseChanged FINAL)
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
@@ -83,6 +84,9 @@ public:
 	inline QString& weight() { return m_weight; }
 	inline void setWeight(const QString& new_value) { m_weight = new_value; emit weightForExercise1Changed(); if (m_bCompositeExercise) emit weightForExercise2Changed(); }
 
+	inline const bool isEditable() const { return m_bEditable; }
+	void setIsEditable(const bool new_value);
+
 	inline const bool compositeExercise() const { return m_bCompositeExercise; }
 	inline void setCompositeExercise(const bool new_value) { m_bCompositeExercise = new_value; emit compositeExerciseChanged(); }
 
@@ -118,6 +122,7 @@ signals:
 	void weightForExercise1Changed();
 	void repsForExercise2Changed();
 	void weightForExercise2Changed();
+	void isEditableChanged();
 	void compositeExerciseChanged();
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
@@ -131,7 +136,7 @@ private:
 	uint m_exercise_idx;
 	QQuickItem* m_exerciseEntry;
 	QString m_sets, m_reps, m_weight, m_restTime;
-	bool m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking;
+	bool m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking;
 	uint m_type;
 	TPTimer* m_setTimer;
 
