@@ -4,6 +4,7 @@
 #include "dbtrainingdaymodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
+#include "tpappcontrol.h"
 #include "tptimer.h"
 
 #include <QQmlApplicationEngine>
@@ -341,13 +342,13 @@ void QmlExerciseEntry::copyTimeValueIntoOtherSets(const uint set_number)
 	const uint set_type(m_setObjects.at(set_number)->type());
 	const uint nsets(m_setObjects.count());
 
-	QString restTime;
+	QString strRestTime;
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
 		if (!m_setObjects.at(i)->completed())
 		{
-			restTime = m_tDayModel->nextSetSuggestedTime(m_exercise_idx, set_type, i-1);
-			m_setObjects.at(i)->setRestTime(restTime);
+			strRestTime = m_tDayModel->nextSetSuggestedTime(m_exercise_idx, set_type, i-1);
+			m_setObjects.at(i)->setRestTime(strRestTime);
 		}
 	}
 }
@@ -357,13 +358,13 @@ void QmlExerciseEntry::copyRepsValueIntoOtherSets(const uint set_number, const u
 	const uint set_type(m_setObjects.at(set_number)->type());
 	const uint nsets(m_setObjects.count());
 
-	QString reps;
+	QString strReps;
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
 		if (!m_setObjects.at(i)->completed())
 		{
-			reps = m_tDayModel->nextSetSuggestedReps(m_exercise_idx, set_type, i-1, sub_set);
-			m_tDayModel->setSetReps(m_exercise_idx, i, sub_set, reps);
+			strReps = m_tDayModel->nextSetSuggestedReps(m_exercise_idx, set_type, i-1, sub_set);
+			m_tDayModel->setSetReps(m_exercise_idx, i, sub_set, strReps);
 		}
 	}
 }
@@ -373,15 +374,23 @@ void QmlExerciseEntry::copyWeightValueIntoOtherSets(const uint set_number, const
 	const uint set_type(m_setObjects.at(set_number)->type());
 	const uint nsets(m_setObjects.count());
 
-	QString weight;
+	QString strWeight;
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
 		if (!m_setObjects.at(i)->completed())
 		{
-			weight = m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, set_type, i-1, sub_set);
-			m_tDayModel->setSetWeight(m_exercise_idx, i, sub_set, weight);
+			strWeight = m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, set_type, i-1, sub_set);
+			m_tDayModel->setSetWeight(m_exercise_idx, i, sub_set, strWeight);
 		}
 	}
+}
+
+void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel)
+{
+	if (show)
+		m_tDayPage->showSimpleExercisesList(m_exercise_idx, multi_sel);
+	else
+		m_tDayPage->hideSimpleExercisesList();
 }
 
 void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry* new_setobject)
@@ -482,6 +491,21 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	emit setObjectCreated(set_number);
 }
 
+void QmlExerciseEntry::enableDisableExerciseCompletedButton()
+{
+	bool bNoSetsCompleted(false);
+	bool bAllSetsCompleted(true);
+	for (uint i(0); i < m_setObjects.count() - 1; ++i)
+	{
+		m_setObjects.at(i)->setFinishButtonEnabled(false);
+		bNoSetsCompleted |= m_setObjects.at(i)->completed();
+		bAllSetsCompleted &= m_setObjects.at(i)->completed();
+	}
+	m_setObjects.last()->setFinishButtonEnabled(bAllSetsCompleted);
+	setCanEditRestTimeTracking(!bNoSetsCompleted);
+	m_bIsCompleted = bAllSetsCompleted;
+}
+
 inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 {
 	return set_number > 0 ? (m_tDayModel->autoRestTime(m_exercise_idx) ? 1 : 0) : 0;
@@ -498,21 +522,6 @@ inline void QmlExerciseEntry::findCurrentSet()
 		if (current)
 			break;
 	}
-}
-
-void QmlExerciseEntry::enableDisableExerciseCompletedButton()
-{
-	bool bNoSetsCompleted(false);
-	bool bAllSetsCompleted(true);
-	for (uint i(0); i < m_setObjects.count() - 1; ++i)
-	{
-		m_setObjects.at(i)->setFinishButtonEnabled(false);
-		bNoSetsCompleted |= m_setObjects.at(i)->completed();
-		bAllSetsCompleted &= m_setObjects.at(i)->completed();
-	}
-	m_setObjects.last()->setFinishButtonEnabled(bAllSetsCompleted);
-	setCanEditRestTimeTracking(!bNoSetsCompleted);
-	m_bIsCompleted = bAllSetsCompleted;
 }
 
 void QmlExerciseEntry::startRestTimer(const uint set_number)

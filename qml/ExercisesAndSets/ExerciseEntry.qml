@@ -279,10 +279,6 @@ FocusScope {
 
 					onClicked: {
 						exerciseManager.addNewSet();
-						if (cboSetType.currentIndex === 4)
-							cboSetType.enabled = false;
-						else
-							cboSetType.enableIndex(4, false);
 						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (exerciseManager.exerciseSetsCount(exercise_idx) + 1).toString());
 					}
 				}

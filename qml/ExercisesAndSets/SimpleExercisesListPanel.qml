@@ -15,17 +15,13 @@ TPPopup {
 
 	property bool shown: false
 	property bool bEnableMultipleSelection: false
-	property Item currentItemThatRequestedSimpleList: null
-	property Item itemThatRequestedSimpleList: null
+	signal exerciseSelected();
+	signal listClosed();
 
 	onVisibleChanged: {
 		shown = visible;
 		if (shown) {
 			focus = true;
-			if (currentItemThatRequestedSimpleList !== itemThatRequestedSimpleList) {
-				//exercisesList.setFilter();
-				currentItemThatRequestedSimpleList = itemThatRequestedSimpleList;
-			}
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
 	}
@@ -105,12 +101,8 @@ TPPopup {
 			Layout.fillHeight: true
 			canDoMultipleSelection: bEnableMultipleSelection
 
-			onExerciseEntrySelected: {
-				if (itemThatRequestedSimpleList)
-					itemThatRequestedSimpleList.changeExercise(true);
-			}
-
-			onItemDoubleClicked: dlgExercisesList.visible = false;
+			onExerciseEntrySelected: exerciseSelected();
+			onItemDoubleClicked: listClosed();
 		}
 	}
 }

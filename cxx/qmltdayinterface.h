@@ -43,13 +43,15 @@ public:
 	inline bool dayIsFinished() const { return m_bDayIsFinished; }
 	void setDayIsFinished(const bool bFinished);
 
-	inline DBTrainingDayModel* tDayModel() { return m_tDayModel; }
+	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
 	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx) const;
 	void askRemoveSet(const uint exercise_idx, const uint set_number) const;
 	TPTimer* getTimer();
 	void gotoNextExercise(const uint exercise_idx);
 	void rollUpExercises() const;
+	void showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel);
+	void hideSimpleExercisesList();
 
 signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());

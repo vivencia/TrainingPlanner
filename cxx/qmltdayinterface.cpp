@@ -236,6 +236,16 @@ void QmlTDayInterface::rollUpExercises() const
 	m_exerciseManager->hideSets();
 }
 
+void QmlTDayInterface::showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel)
+{
+	m_exerciseManager->showSimpleExercisesList(exercise_idx, bMultiSel);
+}
+
+void QmlTDayInterface::hideSimpleExercisesList()
+{
+	m_exerciseManager->hideSimpleExercisesList();
+}
+
 void QmlTDayInterface::removeExercise(const uint exercise_idx)
 {
 	m_exerciseManager->removeExerciseObject(exercise_idx);

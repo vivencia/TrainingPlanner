@@ -117,7 +117,7 @@ public:
 	Q_INVOKABLE void copyTimeValueIntoOtherSets(const uint set_number);
 	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
 	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
-	Q_INVOKABLE QQuickItem* nextSetObject(const uint exercise_idx, const uint set_number) const;
+	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel);
 
 signals:
 	void exerciseIdxChanged();
@@ -156,12 +156,12 @@ private:
 	QQuickItem* m_setsLayout;
 	uint m_expectedSetNumber;
 
-	inline uint findSetMode(const uint set_number) const;
-	inline void findCurrentSet();
 	void insertSetEntry(const uint set_number, QmlSetEntry* new_setobject);
 	void createSetObject(const uint set_number, const uint type, const QString& resttime, const QString& nreps, const QString& weight);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void enableDisableExerciseCompletedButton();
+	inline uint findSetMode(const uint set_number) const;
+	inline void findCurrentSet();
 	void startRestTimer(const uint set_number);
 	void stopRestTimer(const uint set_number);
 };

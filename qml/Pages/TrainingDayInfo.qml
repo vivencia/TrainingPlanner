@@ -39,6 +39,8 @@ TPPage {
 	property TimerDialog timerDialog: null
 
 	signal mesoCalendarChanged();
+	signal exerciseSelectedFromSimpleExercisesList();
+	signal simpleExercisesListClosed();
 	signal removeExercise(exercise_idx: int);
 	signal removeSet(exercise_idx: int, set_number: int);
 
@@ -857,6 +859,8 @@ TPPage {
 	SimpleExercisesListPanel {
 		id: exercisesPane
 		parentPage: trainingDayPage
+		onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
+		onListClosed: simpleExercisesListClosed();
 	}
 
 	TPComplexDialog {
@@ -965,10 +969,13 @@ TPPage {
 		btnFloat.updateDisplayText(parseInt(tDayModel.setsNumber(exerciseidx)) + 1);
 	}
 
-	function requestSimpleExercisesList(object, visible, multipleSel) {
-		exercisesPane.itemThatRequestedSimpleList = visible ? object : null;
+	function hideSimpleExercisesList() {
+		exercisesPane.visible = false;
+	}
+
+	function showSimpleExercisesList(multipleSel) {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
-		exercisesPane.visible = visible;
+		exercisesPane.open();
 	}
 
 	function requestTimerDialog(requester, message, mins, secs) {
