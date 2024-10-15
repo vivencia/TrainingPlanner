@@ -1,6 +1,42 @@
 cmake_minimum_required(VERSION 3.16)
 project(trainingplanner LANGUAGES CXX)
 
+#set(QT_COMPILER_FLAGS "-I${TARGET_SYSROOT}/usr/include -pipe -mcpu=cortex-a72 -fno-asynchronous-unwind-tables -fno-unwind-tables -fomit-frame-pointer -fno-exceptions -no-pie")
+#set(QT_COMPILER_FLAGS_RELEASE "-O2")
+#set(QT_COMPILER_FLAGS_MINSIZEREL "-Os")
+#set(QT_LINKER_FLAGS "-Wl,-Os -Wl,--hash-style=gnu -Wl,--as-needed -no-pie")
+#set(QT_FORCE_BUILD_TOOLS OFF)
+
+#set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+#set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+#set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+#set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+#set(CMAKE_BUILD_RPATH ${TARGET_SYSROOT})
+
+#include(CMakeInitializeConfigs)
+
+#function(cmake_initialize_per_config_variable _PREFIX _DOCSTRING)
+#  if (_PREFIX MATCHES "CMAKE_(C|CXX|ASM)_FLAGS")
+#    set(CMAKE_${CMAKE_MATCH_1}_FLAGS_INIT "${QT_COMPILER_FLAGS}")
+
+#    foreach (config DEBUG RELEASE MINSIZEREL RELWITHDEBINFO)
+#      if (DEFINED QT_COMPILER_FLAGS_${config})
+#        set(CMAKE_${CMAKE_MATCH_1}_FLAGS_${config}_INIT "${QT_COMPILER_FLAGS_${config}}")
+#      endif()
+#    endforeach()
+#  endif()
+
+
+#  if (_PREFIX MATCHES "CMAKE_(SHARED|MODULE|EXE)_LINKER_FLAGS")
+#    foreach (config SHARED MODULE EXE)
+#      set(CMAKE_${config}_LINKER_FLAGS_INIT "${QT_LINKER_FLAGS}")
+#    endforeach()
+#  endif()
+
+#  _cmake_initialize_per_config_variable(${ARGV})
+#endfunction()
+
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-DDEBUG -g")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "-DQT_NO_DEBUG -DNDEBUG -O3 -march=native -fomit-frame-pointer -funroll-loops -Ofast")
 set(CMAKE_CXX_FLAGS_INIT "-DQT_USE_QSTRINGBUILDER -DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS -Werror -Wall -Wextra -pedantic finput-charset=UTF-8 -fexec-charset=UTF-8")
@@ -227,3 +263,9 @@ set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 set_property(TARGET TrainingPlanner APPEND PROPERTY
     QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
 )
+
+#set_target_properties(
+#        TrainingPlanner
+#    PROPERTIES
+#        QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
+#)

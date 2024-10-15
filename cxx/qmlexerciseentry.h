@@ -28,6 +28,7 @@ Q_PROPERTY(QString repsForExercise1 READ repsForExercise1 WRITE setRepsForExerci
 Q_PROPERTY(QString weightForExercise1 READ weightForExercise1 WRITE setWeightForExercise1 NOTIFY weightForExercise1Changed FINAL)
 Q_PROPERTY(QString repsForExercise2 READ repsForExercise2 WRITE setRepsForExercise2 NOTIFY repsForExercise2Changed FINAL)
 Q_PROPERTY(QString weightForExercise2 READ weightForExercise2 WRITE setWeightForExercise2 NOTIFY weightForExercise2Changed FINAL)
+Q_PROPERTY(bool lastExercise READ lastExercise WRITE setLastExercise NOTIFY lastExerciseChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
 Q_PROPERTY(bool compositeExercise READ compositeExercise WRITE setCompositeExercise NOTIFY compositeExerciseChanged FINAL)
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
@@ -53,7 +54,7 @@ public:
 	void setNewSetType(const uint new_value);
 
 	const QString exerciseName() const;
-	void setExerciseName(const QString& new_value);
+	void setExerciseName(const QString& new_value, const bool bFromQML = true);
 
 	inline const uint nSets() const { return m_sets.toUInt(); }
 	inline void setNSets(const uint new_value) { m_sets = QString::number(new_value); emit setsNumberChanged(); emit nSetsChanged(); }
@@ -84,6 +85,9 @@ public:
 	inline QString& weight() { return m_weight; }
 	inline void setWeight(const QString& new_value) { m_weight = new_value; emit weightForExercise1Changed(); if (m_bCompositeExercise) emit weightForExercise2Changed(); }
 
+	inline const bool lastExercise() const { return m_bLast; }
+	inline void setLastExercise(const bool new_value) { m_bLast = new_value; emit lastExerciseChanged(); }
+
 	inline const bool isEditable() const { return m_bEditable; }
 	void setIsEditable(const bool new_value);
 
@@ -99,9 +103,14 @@ public:
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
 
-	void createAvailableSets();
+	inline const bool isCompleted() const { return m_bIsCompleted; }
+	inline void setIsCompleted(const bool new_value) { m_bIsCompleted = new_value; }
+
+	Q_INVOKABLE void createAvailableSets();
+	Q_INVOKABLE void removeExercise();
+	Q_INVOKABLE void exerciseCompleted();
 	Q_INVOKABLE void appendNewSet();
-	Q_INVOKABLE void removeSetObject(const uint set_number);
+	Q_INVOKABLE void removeSetObject(const uint set_number, const bool bAsk = true);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint new_type);
 	Q_INVOKABLE void changeSetMode(const uint set_number);
 	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint set_number);
@@ -122,6 +131,7 @@ signals:
 	void weightForExercise1Changed();
 	void repsForExercise2Changed();
 	void weightForExercise2Changed();
+	void lastExerciseChanged();
 	void isEditableChanged();
 	void compositeExerciseChanged();
 	void trackRestTimeChanged();
@@ -136,7 +146,7 @@ private:
 	uint m_exercise_idx;
 	QQuickItem* m_exerciseEntry;
 	QString m_sets, m_reps, m_weight, m_restTime;
-	bool m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking;
+	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking, m_bIsCompleted;
 	uint m_type;
 	TPTimer* m_setTimer;
 

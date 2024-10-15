@@ -16,7 +16,8 @@
 #include <QQuickWindow>
 
 QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_timer(nullptr)
+	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_timer(nullptr),
+		m_bDayIsFinished(false), m_mDayIsEditable(false)
 {
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -119,16 +120,6 @@ void QmlTDayInterface::resetWorkout()
 	QMetaObject::invokeMethod(m_tDayPage, "resetTimer", Qt::AutoConnection);
 }
 
-void QmlTDayInterface::setDayIsFinished(const bool bFinished)
-{
-	m_tDayModel->setDayIsFinished(bFinished);
-	const QDate& date(m_tDayModel->date());
-	appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, bFinished);
-	appDBInterface()->setDayIsFinished(m_mesoIdx, date, bFinished);
-	if (bFinished)
-		rollUpExercises();
-}
-
 void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay)
 {
 	uint tDay{m_tDayPage->property("tDay").toUInt()};
@@ -197,9 +188,35 @@ void QmlTDayInterface::removeExerciseObject(const uint exercise_idx)
 	m_exerciseManager->removeExerciseObject(exercise_idx);
 }
 
-void QmlTDayInterface::displayMessage(const QString& title, const QString& message, const bool error, const uint msecs)
+void QmlTDayInterface::setDayIsEditable(const bool editable)
 {
-	QMetaObject::invokeMethod(m_tDayPage, "showTimerDialogMessage", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, msecs));
+	m_bDayIsEditable = editable;
+	emit dayIsEditableChanged();
+	m_exerciseManager->setExercisesEditable(m_bDayIsEditable);
+}
+
+void QmlTDayInterface::setDayIsFinished(const bool bFinished)
+{
+	const QDate& date(m_tDayModel->date());
+	appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, bFinished);
+	appDBInterface()->setDayIsFinished(m_mesoIdx, date, bFinished);
+	if (bFinished)
+		rollUpExercises();
+}
+
+void QmlTDayInterface::displayMessage(const QString& title, const QString& message, const bool error, const uint msecs) const
+{
+	QMetaObject::invokeMethod(m_tDayPage, "showMessageDialog", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, static_cast<int>(msecs)));
+}
+
+void QmlTDayInterface::askRemoveExercise(const uint exercise_idx) const
+{
+	QMetaObject::invokeMethod(m_tDayPage, "showRemoveExerciseMessage", Q_ARG(int, static_cast<int>(exercise_idx)));
+}
+
+void QmlTDayInterface::askRemoveSet(const uint exercise_idx, const uint set_number) const
+{
+	QMetaObject::invokeMethod(m_tDayPage, "showRemoveSetMessage", Q_ARG(int, static_cast<int>(exercise_idx)), Q_ARG(int, static_cast<int>(exercise_idx)));
 }
 
 TPTimer* QmlTDayInterface::getTimer()
@@ -207,6 +224,26 @@ TPTimer* QmlTDayInterface::getTimer()
 	if (!m_timer)
 		m_timer = new TPTimer(this);
 	return m_timer->isActive() ? nullptr : m_timer;
+}
+
+void QmlTDayInterface::gotoNextExercise(const uint exercise_idx)
+{
+	m_exerciseManager->gotoNextExercise(exercise_idx);
+}
+
+void QmlTDayInterface::rollUpExercises() const
+{
+	m_exerciseManager->hideSets();
+}
+
+void QmlTDayInterface::removeExercise(const uint exercise_idx)
+{
+	m_exerciseManager->removeExerciseObject(exercise_idx);
+}
+
+void QmlTDayInterface::removeSetFromExercise(const uint exercise_idx, const uint set_number)
+{
+	m_exerciseManager->removeExerciseSet(exercise_idx, set_number);
 }
 
 void QmlTDayInterface::createTrainingDayPage()
@@ -221,7 +258,7 @@ void QmlTDayInterface::createTrainingDayPage()
 
 void QmlTDayInterface::createTrainingDayPage_part2()
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_tDayComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_tDayComponent->errorString();
@@ -272,14 +309,12 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			QMetaObject::invokeMethod(m_tDayPage, "changeComboModel", Qt::AutoConnection);
 	});
 
-	//connect(m_tDayModel, &DBTrainingDayModel::exerciseCompleted, this, [this] (const uint exercise_idx, const bool completed) {
-	//	enableDisableExerciseCompletedButton(exercise_idx, completed);
-	//});
-
 	connect(m_tDayModel, &DBTrainingDayModel::tDayChanged, this, [this] () {
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
 
+	connect(m_tDayPage, SIGNAL(removeExercise(int)), this, SLOT(removeExercise(int)));
+	connect(m_tDayPage, SIGNAL(removeSet(int,int)), this, SLOT(removeSetFromExercise(int,int)));
 	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons", Qt::AutoConnection);
 }
 
@@ -364,11 +399,4 @@ void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTra
 		m_tDayPage->setProperty("bHasPreviousTDays", false);
 	}
 	QMetaObject::invokeMethod(m_tDayPage, "showIntentionDialog");
-}
-
-void QmlTDayInterface::rollUpExercises() const
-{
-	for (uint i(0); i < m_exerciseObjects.count(); ++i)
-		QMetaObject::invokeMethod(m_exerciseObjects.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
-	QMetaObject::invokeMethod(m_tDayPage, "placeSetIntoView", Q_ARG(int, -100));
 }

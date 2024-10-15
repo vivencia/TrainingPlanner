@@ -14,14 +14,12 @@ FocusScope {
 	implicitHeight: paneExercise.height
 
 	required property ExerciseEntryManager exerciseManager
-	required property DBTrainingDayModel tDayModel
 
 	property bool bListRequestForExercise1: false
 	property bool bListRequestForExercise2: false
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 	signal requestFloatingButton(var exerciseidx, var settype, var nset)
-	signal showRemoveExerciseMessage(int exerciseidx)
 
 	Frame {
 		id: paneExercise
@@ -55,7 +53,7 @@ FocusScope {
 			imageSource: "up"
 			hasDropShadow: false
 			enabled: entryManager.exerciseIdx > 0
-			visible: tDayModel.dayIsEditable
+			visible: exerciseManager.isEditable
 			height: 30
 			width: 30
 
@@ -73,8 +71,8 @@ FocusScope {
 			id: btnMoveExerciseDown
 			imageSource: "down"
 			hasDropShadow: false
-			enabled: exerciseManager.exerciseIdx < tDayModel.exerciseCount-1
-			visible: tDayModel.dayIsEditable
+			enabled: !exerciseManager.lastExercise
+			visible: exerciseManager.isEditable
 			height: 30
 			width: 30
 
@@ -121,7 +119,7 @@ FocusScope {
 				ExerciseNameField {
 					id: txtExerciseName
 					text: exerciseManager.exerciseName
-					bEditable: tDayModel.dayIsEditable
+					bEditable: exerciseManager.isEditable
 					width: appSettings.pageWidth - 55
 					height: 70
 					Layout.minimumWidth: width
@@ -129,12 +127,8 @@ FocusScope {
 					Layout.leftMargin: 0
 
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
-					onExerciseChanged: (new_text) => {
-						tDayModel.setExerciseName(new_text, entryManager.exerciseIdx);
-						exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-						exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
-					}
-					onRemoveButtonClicked: showRemoveExerciseMessage(entryManager.exerciseIdx);
+					onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
+					onRemoveButtonClicked: exerciseManager.removeExercise();
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
 					onItemClicked: paneExerciseShowHide(false, false);
 				}
@@ -142,7 +136,7 @@ FocusScope {
 
 			RowLayout {
 				id: trackRestTimeRow
-				enabled: tDayModel.dayIsEditable && exerciseManager.canEditRestTimeTracking
+				enabled: exerciseManager.isEditable && exerciseManager.canEditRestTimeTracking
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 
@@ -170,7 +164,7 @@ FocusScope {
 			}
 
 			RowLayout {
-				enabled: tDayModel.dayIsEditable
+				enabled: exerciseManager.isEditable
 				Layout.topMargin: 10
 				Layout.leftMargin: 5
 
@@ -200,7 +194,7 @@ FocusScope {
 			}
 
 			RowLayout {
-				enabled: tDayModel.dayIsEditable
+				enabled: exerciseManager.isEditable
 				visible: exerciseManager.compositeExercise
 				Layout.leftMargin: 5
 
@@ -249,7 +243,7 @@ FocusScope {
 			}
 
 			RowLayout {
-				enabled: tDayModel.dayIsEditable
+				enabled: exerciseManager.isEditable
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
@@ -311,63 +305,9 @@ FocusScope {
 		}
 	} //paneExercise
 
-	function changeExercise(fromList: bool) {
-		var interruptSignals = true;
-		if (bListRequestForExercise1) {
-			if (fromList)
-				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
-			else
-				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-			bListRequestForExercise1 = false;
-		}
-		else if (bListRequestForExercise2) {
-			if (fromList)
-				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2));
-			else
-				exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
-			bListRequestForExercise2 = false;
-		}
-		else
-		{
-			interruptSignals = false;
-			if (fromList)
-				tDayModel.changeExerciseName(exerciseIdx, exercisesModel);
-			else
-			{
-				if (bListRequestForExercise1)
-					exerciseManager.changeSetsExerciseLabels(exerciseIdx, 1, tDayModel.exerciseName1(exerciseIdx), false);
-				else if (bListRequestForExercise2)
-					exerciseManager.changeSetsExerciseLabels(exerciseIdx, 2, tDayModel.exerciseName2(exerciseIdx), false);
-			}
-		}
-
-		if (interruptSignals)
-		{
-			txtExerciseName.bCanEmitTextChanged = false;
-			txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
-			txtExerciseName.bCanEmitTextChanged = true;
-		}
-		else
-			txtExerciseName.text = tDayModel.exerciseName(exerciseIdx);
-	}
-
-	function changeExercise1(showList: bool) {
-		bListRequestForExercise1 = true;
-		requestSimpleExercisesList(exerciseItem, showList, false, 1);
-	}
-
-	function changeExercise2(showList: bool) {
-		bListRequestForExercise2 = true;
-		requestSimpleExercisesList(exerciseItem, showList, false, 1);
-	}
-
 	function paneExerciseShowHide(show: bool, force: bool) {
 		paneExercise.shown = force ? show : !paneExercise.shown
 		if (paneExercise.shown)
-			exerciseManager.getSetObjects(exerciseIdx);
-	}
-
-	function liberateSignals(liberate: bool) {
-		txtExerciseName.bCanEmitTextChanged = liberate;
+			exerciseManager.createAvailableSets();
 	}
 } //Item

@@ -38,8 +38,6 @@ Q_OBJECT
 QML_ELEMENT
 
 Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
-Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY dayIsFinishedChanged FINAL)
-Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 
 public:
@@ -62,12 +60,6 @@ public:
 	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_qs); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;
-
-	inline bool dayIsEditable() const { return mb_DayIsEditable; }
-	inline void setDayIsEditable(const bool editable) { mb_DayIsEditable = editable; emit dayIsEditableChanged(); }
-
-	inline bool dayIsFinished() const { return mb_DayIsFinished; }
-	void setDayIsFinished(const bool finished);
 
 	Q_INVOKABLE inline const int id() const { return count() == 1 ? idStr().toInt() : -1; }
 	inline const QString& idStr() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_ID); }
@@ -214,22 +206,21 @@ public:
 	inline const QString setsNotes(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->notes.join(record_separator); }
 	Q_INVOKABLE void setSetNotes(const uint exercise_idx, const uint set_number, const QString& new_notes);
 
-	Q_INVOKABLE bool setCompleted(const uint exercise_idx, const uint set_number) const;
-	Q_INVOKABLE void setSetCompleted(const uint exercise_idx, const uint set_number, const bool completed);
-	Q_INVOKABLE bool allSetsCompleted(const uint exercise_idx) const;
-
 	Q_INVOKABLE QString setReps(const uint set_number, const uint subset, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetReps(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_reps);
 
 	Q_INVOKABLE QString setWeight(const uint set_number, const uint subset, const uint exercise_idx) const;
 	Q_INVOKABLE void setSetWeight(const uint exercise_idx, const uint set_number, const uint subset, const QString& new_weight);
 
+	bool setCompleted(const uint exercise_idx, const uint set_number) const;
+	void setSetCompleted(const uint exercise_idx, const uint set_number, const bool completed);
+	bool allSetsCompleted(const uint exercise_idx) const;
+	bool anySetCompleted(const uint exercise_idx) const;
+
 signals:
 	void tDayChanged();
 	void exerciseCountChanged();
 	void splitLetterChanged();
-	void dayIsFinishedChanged();
-	void dayIsEditableChanged();
 	void exerciseCompleted(const uint exercise_idx, const bool completed);
 
 private:
@@ -249,7 +240,6 @@ private:
 	};
 
 	QList<exerciseEntry*> m_ExerciseData;
-	bool mb_DayIsFinished, mb_DayIsEditable;
 
 	friend class DBMesoSplitModel;
 };

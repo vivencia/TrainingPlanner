@@ -27,8 +27,12 @@ public:
 	void createExerciseObject();
 	void createExercisesObjects();
 	void removeExerciseObject(const uint exercise_idx);
+	void removeExerciseSet(const uint exercise_idx, const uint set_number);
 	void clearExercises();
+	void setExercisesEditable(const bool editable);
 	void moveExercise(const uint exercise_idx, const uint new_idx);
+	void gotoNextExercise(const uint exercise_idx) const;
+	void hideSets() const;
 	inline uint exercisesCount() const { return m_exercisesList.count(); }
 
 private:

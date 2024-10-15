@@ -8,8 +8,10 @@
 #define SET_MODE_START_EXERCISE 2
 #define SET_MODE_SET_COMPLETED 3
 
-class QQuickItem;
+class QmlExerciseEntry;
 class DBTrainingDayModel;
+
+class QQuickItem;
 
 class QmlSetEntry : public QObject
 {
@@ -19,6 +21,8 @@ Q_OBJECT
 Q_PROPERTY(uint type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(uint number READ number WRITE setMode NOTIFY numberChanged FINAL)
 Q_PROPERTY(uint mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
+Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
+Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 NOTIFY exerciseName2Changed FINAL)
 Q_PROPERTY(QString strNumber READ strNumber NOTIFY strNumberChanged FINAL)
 Q_PROPERTY(QString strTotalReps READ strTotalReps NOTIFY strTotalRepsChanged FINAL)
 Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY modeLabelChanged FINAL)
@@ -40,23 +44,30 @@ Q_PROPERTY(bool finishButtonEnabled READ finishButtonEnabled WRITE setFinishButt
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
+Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
 
 public:
-	inline explicit QmlSetEntry(QObject* parent, DBTrainingDayModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_tDayModel(tDayModel), m_exercise_idx(exercise_idx) {}
+	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
+		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr) {}
 
 	inline const QQuickItem* setEntry() const { return m_setEntry; }
 	inline QQuickItem* setEntry() { return m_setEntry; }
 	inline void setSetEntry(QQuickItem* item) { m_setEntry = item; }
 
+	QString exerciseName1() const;
+	void setExerciseName1(const QString& new_value, const bool bFromQML = true);
+
+	QString exerciseName2() const;
+	void setExerciseName2(const QString& new_value, const bool bFromQML = true);
+
 	inline const uint type() const { return m_type; }
 	void setType(const uint new_value);
 
 	inline const uint number() const { return m_number; }
-	inline void setNumber(const uint new_value) { m_number = new_value; emit numberChanged(); }
+	inline void setNumber(const uint new_value) { if (m_number != new_value) { m_number = new_value; emit numberChanged(); } }
 
 	inline const QString strNumber() const { return QString::number(m_number + 1); }
-	inline const QString strTotalReps() const { return QString::number(m_number + 1); }
+	inline const QString strTotalReps() const { return tr("Total # of reps: ") + QString::number(m_number + 1); }
 
 	inline QString modeLabel() const
 	{
@@ -105,30 +116,53 @@ public:
 	void setNotes(const QString& new_value);
 
 	inline const uint mode() const { return m_mode; }
-	inline void setMode(const uint new_value) { m_mode = new_value; emit modeChanged(); emit modeLabelChanged(); }
+	inline void setMode(const uint new_value) { if (m_mode != new_value) { m_mode = new_value; emit modeChanged(); emit modeLabelChanged(); }}
 
 	inline const bool isEditable() const { return m_bEditable; }
-	inline void setIsEditable(const bool new_value) { m_bEditable = new_value; emit isEditableChanged(); }
+	inline void setIsEditable(const bool new_value) { if (m_bEditable != new_value) { m_bEditable = new_value; emit isEditableChanged(); } }
 
 	inline const bool completed() const { return m_bCompleted; }
-	inline void setCompleted(const bool new_value) { m_bCompleted = new_value; emit completedChanged(); }
+	inline void setCompleted(const bool new_value) { if (m_bCompleted != new_value) { m_bCompleted = new_value; emit completedChanged(); } }
 
 	inline const bool lastSet() const { return m_bLastSet; }
-	inline void setLastSet(const bool new_value) { m_bLastSet = new_value; emit lastSetChanged(); }
+	inline void setLastSet(const bool new_value) { if (m_bLastSet != new_value) { m_bLastSet = new_value; emit lastSetChanged(); } }
 
 	inline const bool finishButtonEnabled () const { return m_bFinishButtonEnabled; }
-	inline void setFinishButtonEnabled(const bool new_value) { m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); }
+	inline void setFinishButtonEnabled(const bool new_value) { if (m_bFinishButtonEnabled != new_value) {m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); } }
 
 	inline const bool trackRestTime() const { return m_bTrackRestTime; }
-	inline void setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); }
+	inline void setTrackRestTime(const bool new_value) { if (m_bTrackRestTime != new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); } }
 
 	inline const bool autoRestTime() const { return m_bAutoRestTime; }
-	inline void setAutoRestTime(const bool new_value) { m_bAutoRestTime = new_value; emit autoRestTimeChanged(); }
+	inline void setAutoRestTime(const bool new_value) { if (m_bAutoRestTime != new_value) { m_bAutoRestTime = new_value; emit autoRestTimeChanged(); } }
 
 	inline const bool current() const { return m_bCurrent; }
-	inline void setCurrent(const bool new_value) { m_bCurrent = new_value; emit currentChanged(); }
+	inline void setCurrent(const bool new_value) { if (m_bCurrent != new_value) { m_bCurrent = new_value; emit currentChanged(); } }
+
+	inline const bool hasSubSets() const { return m_bHasSubSets; }
+
+	//Called by QmlExerciseEntry upon new set creation
+	inline void _setExerciseName(const QString& new_value) { m_exerciseName = new_value; }
+	inline void _setType(const uint new_value) { m_type = new_value; }
+	inline void _setNumber(const uint new_value) { m_number = new_value; }
+	inline void _setRestTime(const QString& new_value) { m_restTime = new_value; }
+	inline void _setReps(const QString& new_value) { m_reps = new_value; }
+	inline void _setWeight(const QString& new_value) { m_weight = new_value; }
+	inline void _setSubSets(const QString& new_value) { m_subsets = new_value; }
+	inline void _setNotes(const QString& new_value) { m_notes = new_value; }
+	inline void _setMode(const uint new_value) { m_mode = new_value; }
+	inline void _setEditable(const bool new_value) { m_bEditable = new_value; }
+	inline void _setCompleted(const bool new_value) { m_bCompleted = new_value; }
+	inline void _setLastSet(const bool new_value) { m_bLastSet = new_value; }
+	inline void _setFinishButtonEnabled(const bool new_value) { m_bFinishButtonEnabled = new_value; }
+	inline void _setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; }
+	inline void _setAutoRestTime(const bool new_value) { m_bAutoRestTime = new_value; }
+	inline void _setCurrent(const bool new_value) { m_bCurrent = new_value; }
+	inline void _setHasSubSets(const bool new_value) { m_bHasSubSets = new_value; }
 
 signals:
+	void exerciseName1Changed();
+	void exerciseName2Changed();
 	void typeChanged();
 	void numberChanged();
 	void modeChanged();
@@ -153,15 +187,17 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void currentChanged();
+	void hasSubSetsChanged();
 
 private:
+	QmlExerciseEntry* m_parentExercise;
 	DBTrainingDayModel* m_tDayModel;
 	uint m_exercise_idx;
 
 	QQuickItem* m_setEntry;
-	QString m_restTime, m_reps, m_weight, m_subsets, m_notes;
+	QString m_exerciseName, m_restTime, m_reps, m_weight, m_subsets, m_notes;
 	uint m_type, m_number, m_mode;
-	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent;
+	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets;
 };
 
 #endif // QMLSETENTRY_H

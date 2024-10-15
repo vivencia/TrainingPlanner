@@ -38,7 +38,9 @@ TPPage {
 	property PageScrollButtons navButtons: null
 	property TimerDialog timerDialog: null
 
-	signal mesoCalendarChanged()
+	signal mesoCalendarChanged();
+	signal removeExercise(exercise_idx: int);
+	signal removeSet(exercise_idx: int, set_number: int);
 
 	onPageActivated: {
 		if (bNeedActivation)
@@ -141,10 +143,37 @@ TPPage {
 		}
 	}
 
+	property TPBalloonTip generalMessage: null
+	function showMessageDialog(title: string, message: string, error: bool, msecs: int) {
+		if (generalMessage === null) {
+			function createMessageBox() {
+				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					generalMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, highlightMessage: true, button1Text: "OK"});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createMessageBox();
+		}
+		generalMessage.title = title;
+		generalMessage.message = message;
+		generalMessage.imageSource = error ? "error" : "warning";
+		if (msecs > 0)
+			generalMessage.showTimed(msecs, 0);
+		else
+			generalMessage.show(0);
+
+	}
+
 	property TPBalloonTip msgRemoveExercise: null
 	function showRemoveExerciseMessage(exerciseidx: int) {
 		if (!appSettings.alwaysAskConfirmation) {
-			tDayManager.removeExerciseObject(exerciseidx);
+			removeExercise(exerciseidx);
 			return;
 		}
 
@@ -155,7 +184,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
 						button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "remove" } );
-					msgRemoveExercise.button1Clicked.connect(function () { tDayManager.removeExerciseObject(exerciseidx); } );
+					msgRemoveExercise.button1Clicked.connect(function () { removeExercise(exerciseidx); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -172,7 +201,7 @@ TPPage {
 	property TPBalloonTip msgRemoveSet: null
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
 		if (!appSettings.alwaysAskConfirmation) {
-			tDayManager.removeSetObject(setnumber, exerciseidx);
+			removeSet(exerciseidx, setnumber);
 			return;
 		}
 
@@ -183,7 +212,7 @@ TPPage {
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
 						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveSet.button1Clicked.connect(function () { tDayManager.removeSetObject(setnumber, exerciseidx); } );
+					msgRemoveSet.button1Clicked.connect(function () { removeSet(exerciseidx, setnumber); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -248,33 +277,6 @@ TPPage {
 			timeout = 18000;
 		tipTimeWarn.message = "<b>" + timeleft + (bmin ? qsTr(" minutes") : qsTr(" seconds")) + qsTr("</b> until end of training session!");
 		tipTimeWarn.showTimed(timeout, 0);
-	}
-
-	property TPBalloonTip generalMessage: null
-	function showTimerDialogMessage(title: string, message: string, error: bool, msecs: int) {
-		if (timerDlgMessage === null) {
-			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					timerDlgMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, highlightMessage: true, button1Text: "OK"});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			createMessageBox();
-		}
-		timerDlgMessage.title = title;
-		timerDlgMessage.message = message;
-		timerDlgMessage.imageSource = error ? "error" : "warning";
-		if (msecs > 0)
-			timerDlgMessage.showTimed(msecs, 0);
-		else
-			timerDlgMessage.show(0);
-
 	}
 
 	property TPBalloonTip resetWorkoutMsg: null
@@ -988,8 +990,8 @@ TPPage {
 			timerDialogRequester = requester;
 			timerDialog.windowTitle = message;
 			timerDialog.initialTime = "00:" + mins + ":" + secs;
-			if (timerDlgMessage)
-				timerDlgMessage.close();
+			if (generalMessage)
+				generalMessage.close();
 			timerDialog.open();
 		}
 		else
@@ -1002,8 +1004,8 @@ TPPage {
 
 	function timerDialogClosed() {
 		timerDialogRequester = null;
-		if (timerDlgMessage)
-			timerDlgMessage.close();
+		if (generalMessage)
+			generalMessage.close();
 	}
 
 	function createNavButtons() {
