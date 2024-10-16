@@ -21,6 +21,7 @@ Q_OBJECT
 Q_PROPERTY(uint type READ type WRITE setType NOTIFY typeChanged FINAL)
 Q_PROPERTY(uint number READ number WRITE setMode NOTIFY numberChanged FINAL)
 Q_PROPERTY(uint mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
+Q_PROPERTY(uint nSubSets READ nSubSets WRITE setNSubSets NOTIFY nSubSetsChanged FINAL)
 Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
 Q_PROPERTY(QString exerciseName2 READ exerciseName2 WRITE setExerciseName2 NOTIFY exerciseName2Changed FINAL)
 Q_PROPERTY(QString strNumber READ strNumber NOTIFY strNumberChanged FINAL)
@@ -50,6 +51,9 @@ public:
 	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
 		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr) {}
 
+	inline const uint exerciseIdx() const { return m_exercise_idx; }
+	inline void setExerciseIdx(const uint new_value) { m_exercise_idx = new_value; }
+
 	inline const QQuickItem* setEntry() const { return m_setEntry; }
 	inline QQuickItem* setEntry() { return m_setEntry; }
 	inline void setSetEntry(QQuickItem* item) { m_setEntry = item; }
@@ -64,7 +68,10 @@ public:
 	void setType(const uint new_value);
 
 	inline const uint number() const { return m_number; }
-	inline void setNumber(const uint new_value) { if (m_number != new_value) { m_number = new_value; emit numberChanged(); } }
+	void setNumber(const uint new_value);
+
+	inline const uint nSubSets() const { return m_nsubsets; }
+	void setNSubSets(const int new_value) { if (new_value >= 0 && new_value < 4) setSubSets(QString::number(new_value)); }
 
 	inline const QString strNumber() const { return QString::number(m_number + 1); }
 	inline const QString strTotalReps() const { return tr("Total # of reps: ") + QString::number(m_number + 1); }
@@ -166,6 +173,7 @@ signals:
 	void typeChanged();
 	void numberChanged();
 	void modeChanged();
+	void nSubSetsChanged();
 	void strNumberChanged();
 	void strTotalRepsChanged();
 	void modeLabelChanged();
@@ -196,7 +204,7 @@ private:
 
 	QQuickItem* m_setEntry;
 	QString m_exerciseName, m_restTime, m_reps, m_weight, m_subsets, m_notes;
-	uint m_type, m_number, m_mode;
+	uint m_type, m_number, m_mode, m_nsubsets;
 	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets;
 };
 

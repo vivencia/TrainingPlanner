@@ -20,8 +20,6 @@ TPPage {
 	required property DBTrainingDayModel tDayModel
 
 	//C++ controlled properties
-	property string timeIn
-	property string timeOut
 	property string headerText
 	property string lastWorkOutLocation
 	property bool bHasPreviousTDays
@@ -32,7 +30,6 @@ TPPage {
 
 	//Private QML properties
 	property bool editMode: false
-	property var timerDialogRequester: null
 	property TPComplexDialog intentDlg: null
 	property TPFloatingButton btnFloat: null
 	property PageScrollButtons navButtons: null
@@ -44,14 +41,14 @@ TPPage {
 	signal removeExercise(exercise_idx: int);
 	signal removeSet(exercise_idx: int, set_number: int);
 
-	onPageActivated: {
+	onPageActivated: {//TODO
 		if (bNeedActivation)
 			tDayManager.setCurrenttDay(mainDate)
 	}
 
 	onEditModeChanged: {
 		if (optionsMenu !== null)
-			optionsMenu.setMenuText(0, editMode ? qsTr("Done") : qsTr("Edit workout"));
+			optionsMenu.setMenuText(0, tDayManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
 	}
 
 	TimePicker {
@@ -60,12 +57,7 @@ TPPage {
 		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtInTime.text)
 		parentPage: trainingDayPage
 
-		onTimeSet: (hour, minutes) => {
-			timeIn = hour + ":" + minutes;
-			tDayModel.setTimeIn(timeIn);
-			if (timeOut != "--:--")
-				timeManuallyEdited();
-		}
+		onTimeSet: (hour, minutes) => tDayManager.timeIn = hour + ":" + minutes;
 	}
 
 	TimePicker {
@@ -73,31 +65,9 @@ TPPage {
 		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
 		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
 		parentPage: trainingDayPage
+		bOnlyFutureTime: tDayManager.mainDateIsToday
 
-		Component.onCompleted: {
-			if (appUtils.areDatesTheSame(mainDate, new Date()))
-				bOnlyFutureTime = true;
-		}
-
-		onTimeSet: (hour, minutes) => {
-			timeOut = hour + ":" + minutes;
-			tDayModel.setTimeOut(timeOut);
-			timeManuallyEdited();
-		}
-	}
-	function timeManuallyEdited() {
-		if (editMode) {
-			const workoutLenght = appUtils.calculateTimeDifference(timeIn, timeOut);
-			updateTimer(workoutLenght.getHours(), workoutLenght.getMinutes(), workoutLenght.getSeconds());
-			tDayManager.setDayIsFinished(true);
-		}
-		else {
-			if (appUtils.areDatesTheSame(mainDate, new Date())) {
-				optTimeConstrainedSession.checked = true;
-				workoutTimer.stopWatch = false;
-				workoutTimer.prepareTimer(appUtils.calculateTimeDifference_str(appUtils.getCurrentTimeString(), timeOut));
-			}
-		}
+		onTimeSet: (hour, minutes) => tDayManager.timeOut = hour + ":" + minutes;
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -108,7 +78,7 @@ TPPage {
 			function finishCreation() {
 				dlgSessionLength = component.createObject(trainingDayPage, { parentPage: trainingDayPage, timePickerOnly: true,
 					windowTitle: qsTr("Length of this training session") });
-				dlgSessionLength.onUseTime.connect(function(strtime) { workoutTimer.stopWatch = false; workoutTimer.prepareTimer(strtime + ":00"); } );
+				dlgSessionLength.onUseTime.connect(function(strtime) { tDayManager.prepareWorkOutTimer(strtime); } );
 			}
 
 			if (component.status === Component.Ready)
@@ -123,26 +93,10 @@ TPPage {
 		id: dlgTimeEndSession
 		hrsDisplay: appUtils.getHourFromCurrentTime()
 		minutesDisplay: appUtils.getMinutesFromCurrentTime()
-		bOnlyFutureTime: true
+		bOnlyFutureTime: tDayManager.mainDateIsToday
 		parentPage: trainingDayPage
 
-		onTimeSet: (hour, minutes) => {
-			workoutTimer.stopWatch = false;
-			workoutTimer.prepareTimer(appUtils.calculateTimeDifference_str(
-					appUtils.getCurrentTimeString(), hour + ":" + minutes));
-		}
-	}
-
-	TPTimer {
-		id: workoutTimer
-		stopWatch: true
-		interval: 1000
-
-		Component.onCompleted: {
-			addWarningAtMinute(15);
-			addWarningAtMinute(5);
-			addWarningAtMinute(1);
-		}
+		onTimeSet: (hour, minutes) => tDayManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
 	}
 
 	property TPBalloonTip generalMessage: null
@@ -414,7 +368,7 @@ TPPage {
 						onClicked: {
 							if (checked) {
 								workoutTimer.stopWatch = true;
-								workoutTimer.prepareTimer(timeIn);
+								workoutTimer.prepareTimer(tDayManager.timeIn);
 							}
 						}
 					}
@@ -455,7 +409,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtInTime
-							text: timeIn
+							text: tDayManager.timeIn
 							readOnly: true
 							anchors {
 								top: parent.top
@@ -490,7 +444,7 @@ TPPage {
 
 						TPTextInput {
 							id: txtOutTime
-							text: timeOut
+							text: tDayManager.timeOut
 							readOnly: true
 							Layout.leftMargin: 5
 
@@ -719,11 +673,11 @@ TPPage {
 				enabled: !workoutTimer.active
 
 				onClicked: {
-					if (timeIn.indexOf("-") === -1)
+					if (tDayManager.timeIn.indexOf("-") === -1)
 						workoutTimer.prepareTimer(appUtils.getCurrentTimeString());
-					timeIn = appUtils.getCurrentTimeString();
-					workoutTimer.startTimer(timeIn);
-					tDayModel.setTimeIn(timeIn);
+					tDayManager.timeIn = appUtils.getCurrentTimeString();
+					workoutTimer.startTimer(tDayManager.timeIn);
+					tDayModel.setTimeIn(tDayManager.timeIn);
 					tDayModel.dayIsEditable = true;
 					workoutTimer.timeWarning.connect(displayTimeWarning);
 					if (tDayModel.location().length === 0)
@@ -775,8 +729,8 @@ TPPage {
 					workoutTimer.stopTimer();
 					const sessionLength = workoutTimer.elapsedTime();
 					updateTimer(sessionLength.getHours(), sessionLength.getMinutes(), sessionLength.getSeconds());
-					timeOut = appUtils.getCurrentTimeString();
-					tDayModel.setTimeOut(timeOut);
+					tDayManager.timeOut = appUtils.getCurrentTimeString();
+					tDayModel.setTimeOut(tDayManager.timeOut);
 					tDayModel.dayIsEditable = false;
 					tDayManager.setDayIsFinished(true);
 				}
@@ -1031,7 +985,7 @@ TPPage {
 		}
 	}
 
-	function updateTimer(hour: int, min: int, sec: int)
+	function setTimerValue(hour: int, min: int, sec: int)
 	{
 		hoursClock.value = hour;
 		minsClock.value = min;

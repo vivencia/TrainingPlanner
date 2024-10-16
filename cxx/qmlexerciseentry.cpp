@@ -66,6 +66,8 @@ void QmlExerciseEntry::setExerciseIdx(const uint new_value)
 	m_exerciseEntry->setProperty("Layout.row", new_value);
 	emit exerciseIdxChanged();
 	emit exerciseNumberChanged();
+	for(uint i(0); i < m_setObjects.count(); ++i)
+		m_setObjects.at(i)->setExerciseIdx(m_exercise_idx);
 }
 
 const QString QmlExerciseEntry::exerciseName() const
@@ -188,9 +190,9 @@ void QmlExerciseEntry::createAvailableSets()
 	m_tDayPage->gotoNextExercise(0);
 }
 
-void QmlExerciseEntry::removeExercise()
+void QmlExerciseEntry::removeExercise(const bool bAsk)
 {
-	m_tDayPage->askRemoveExercise(m_exercise_idx);
+	m_tDayPage->removeExerciseObject(m_exercise_idx, bAsk);
 }
 
 void QmlExerciseEntry::exerciseCompleted()
@@ -203,6 +205,7 @@ void QmlExerciseEntry::exerciseCompleted()
 void QmlExerciseEntry::appendNewSet()
 {
 	m_expectedSetNumber = m_setObjects.count();
+	m_setObjects.last()->setLastSet(false);
 	createSetObject(m_expectedSetNumber, m_type, m_reps, m_weight, m_restTime);
 	connect(this, &QmlExerciseEntry::setObjectCreated, this, [this] {
 			setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
@@ -220,10 +223,7 @@ void QmlExerciseEntry::removeSetObject(const uint set_number, const bool bAsk)
 		m_setObjects.at(set_number)->deleteLater();
 		m_setObjects.removeAt(set_number);
 		for(uint i(set_number); i < m_setObjects.count(); ++i)
-		{
-			m_setObjects.at(i)->setNumber(i);
-			m_setObjects.at(i)->setEntry()->setProperty("Layout.row", i);
-		}
+			moveSet(i-1, i);
 
 		if (m_setObjects.count() == 0)
 			setCanEditRestTimeTracking(true);
@@ -237,6 +237,27 @@ void QmlExerciseEntry::removeSetObject(const uint set_number, const bool bAsk)
 			exerciseCompleted();
 		}
 		findCurrentSet();
+	}
+}
+
+void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
+{
+	for(uint i(0); i < m_setObjects.count(); ++i)
+		m_setObjects.at(i)->setEntry()->setParentItem(nullptr);
+	m_setObjects.swapItemsAt(set_number, new_set_number);
+	for(uint i(0); i < m_setObjects.count(); ++i)
+		m_setObjects.at(i)->setEntry()->setParentItem(m_setsLayout);
+	m_setObjects.at(set_number)->setNumber(set_number);
+	m_setObjects.at(new_set_number)->setNumber(new_set_number);
+	if (set_number == m_setObjects.count() - 1)
+	{
+		m_setObjects.at(set_number)->setLastSet(true);
+		m_setObjects.at(new_set_number)->setLastSet(false);
+	}
+	else if (new_set_number == m_setObjects.count() - 1)
+	{
+		m_setObjects.at(set_number)->setLastSet(false);
+		m_setObjects.at(new_set_number)->setLastSet(true);
 	}
 }
 

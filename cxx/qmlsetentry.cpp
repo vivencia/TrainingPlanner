@@ -3,6 +3,8 @@
 #include "dbtrainingdaymodel.h"
 #include "tputils.h"
 
+#include <QQuickItem>
+
 QString QmlSetEntry::exerciseName1() const
 {
 	return appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator);
@@ -46,7 +48,17 @@ void QmlSetEntry::setType(const uint new_value)
 		m_bHasSubSets = bHasSubSets;
 		emit hasSubSetsChanged();
 	}
-};
+}
+
+void QmlSetEntry::setNumber(const uint new_value)
+{
+	if (m_number != new_value)
+	{
+		m_number = new_value;
+		emit numberChanged();
+		setEntry()->setProperty("Layout.row", m_number);
+	}
+}
 
 void QmlSetEntry::setRestTime(const QString& new_value)
 {
@@ -182,12 +194,15 @@ void QmlSetEntry::setWeight4(const QString& new_value)
 
 void QmlSetEntry::setSubSets(const QString& new_value)
 {
-	if (new_value.toUInt() <= 4)
+	const uint new_value_int(new_value.toUInt());
+	if (new_value_int < 4)
 	{
 		if (m_subsets != new_value)
 		{
 			m_subsets = new_value;
+			m_nsubsets = new_value_int;
 			emit subSetsChanged();
+			emit nSubSetsChanged();
 			emit strTotalRepsChanged();
 			m_tDayModel->setSetSubSets(m_exercise_idx, number(), new_value);
 		}

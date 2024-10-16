@@ -211,6 +211,7 @@ Item {
 		}
 
 		RowLayout {
+			Layout.fillWidth: true
 			enabled: !setManager.completed
 
 			SetInputField {
@@ -238,8 +239,9 @@ Item {
 		} //RowLayout
 
 		RowLayout {
-			Layout.leftMargin: 5
 			enabled: !setManager.completed
+			Layout.fillWidth: true
+			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtNWeight
@@ -287,9 +289,4 @@ Item {
 			}
 		}
 	} // setLayout
-
-	function requestTimer(requester, message, mins, secs) {
-		var args = [message, mins, secs];
-		requestTimerDialogSignal(requester, args);
-	}
 } // Item

@@ -43,7 +43,7 @@ public:
 	QMLMesoInterface* mesocyclesManager(const uint meso_idx);
 	QmlMesoCalendarInterface* calendarManager(const uint meso_idx);
 	QmlMesoSplitInterface* splitManager(const uint meso_idx);
-	QmlTDayInterface* tDayManager(const uint meso_idx);
+	QmlTDayInterface* tDayManager(const uint meso_idx, const QDate& date);
 
 	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }

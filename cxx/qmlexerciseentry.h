@@ -107,10 +107,11 @@ public:
 	inline void setIsCompleted(const bool new_value) { m_bIsCompleted = new_value; }
 
 	Q_INVOKABLE void createAvailableSets();
-	Q_INVOKABLE void removeExercise();
+	Q_INVOKABLE void removeExercise(const bool bAsk = true);
 	Q_INVOKABLE void exerciseCompleted();
 	Q_INVOKABLE void appendNewSet();
 	Q_INVOKABLE void removeSetObject(const uint set_number, const bool bAsk = true);
+	Q_INVOKABLE void moveSet(const uint set_number, const uint new_set_number);
 	Q_INVOKABLE void changeSetType(const uint set_number, const uint new_type);
 	Q_INVOKABLE void changeSetMode(const uint set_number);
 	Q_INVOKABLE void copyTypeValueIntoOtherSets(const uint set_number);

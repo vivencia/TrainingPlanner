@@ -133,7 +133,6 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/ExerciseNameField.qml"
     "qml/ExercisesAndSets/ExercisesListView.qml"
     "qml/ExercisesAndSets/PageScrollButtons.qml"
-    "qml/ExercisesAndSets/RepsAndWeightRow.qml"
     "qml/ExercisesAndSets/SetInputField.qml"
     "qml/ExercisesAndSets/SetNotesField.qml"
     "qml/ExercisesAndSets/SetTypeDrop.qml"

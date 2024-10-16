@@ -12,41 +12,23 @@ Item {
 	id: setItem
 	height: setLayout.height + 15
 	implicitHeight: setLayout.implicitHeight + 15
-	enabled: tDayModel.dayIsEditable
+	enabled: setManager.isEditable
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
 	Layout.rightMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
-	required property DBTrainingDayModel tDayModel
-
-	required property int exerciseIdx
-	required property int setNumber
-	required property int setType
-
-	property var ownerExercise
-	property string copyTypeButtonValue: ""
-	property string copyTimeButtonValue: ""
-	property string copyRepsButtonValue: ""
-	property string copyWeightButtonValue: ""
-	property bool finishButtonVisible: false
-	property bool finishButtonEnabled: false
-	property bool setCompleted
-	property bool bTrackRestTime
-	property bool bAutoRestTime
-	property bool bCurrentSet
-	property int setMode
 
 	readonly property int controlWidth: setItem.width - 20
 
-	signal requestTimerDialogSignal(Item requester, var args)
-	signal exerciseCompleted(int exercise_idx)
-	signal showRemoveSetMessage(int set_number, int exercise_idx)
-
-	onFocusChanged: {
-		if (focus)
-			txtNReps1.forceActiveFocus();
+	Connections {
+		setManager.onTypeChanged: btnCopySetType.visible = !btnCopySetType.visible;
+		setManager.onRestTimeChanged: btnCopyTimeValue.visible = !btnCopyTimeValue.visible;
+		setManager.onReps1Changed: btnCopySetReps1.visible = !btnCopySetReps1.visible
+		setManager.onWeight1Changed: btnCopySetWeight1.visible = !btnCopySetWeight1.visible
+		setManager.onReps2Changed: btnCopySetReps2.visible = !btnCopySetReps2.visible
+		setManager.onWeight2Changed: btnCopySetWeight2.visible = !btnCopySetWeight2.visible
 	}
 
 	Rectangle {
@@ -88,39 +70,39 @@ Item {
 
 			TPButton {
 				id: btnManageSet
-				text: setMode === 0 ? qsTr("Set Completed") : (setMode === 1 ? qsTr("Start Rest") : qsTr("Start Exercise"))
+				text: setManager.modeLabel
 				flat: false
-				visible: !setCompleted
+				visible: !setManager.completed
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: exerciseManager.changeSetMode(setManager.number);
 			}
 
 			TPButton {
 				id: imgCompleted
 				imageSource: "set-completed"
-				visible: setCompleted
+				visible: setManager.completed
 				height: 30
 				width: 30
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.horizontalCenter: parent.horizontalCenter
 
-				onClicked: itemManager.changeSetMode(exerciseIdx, setNumber);
+				onClicked: exerciseManager.changeSetMode(setManager.number);
 			}
 		}
 
 		Label {
 			id: lblSetNumber
-			text: qsTr("Set #") + (setNumber + 1).toString()
+			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
 			Layout.topMargin: 10
 			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
-				currentIndex: setType
-				enabled: !setCompleted
+				currentIndex: setManager.type
+				enabled: !setManager.completed
 				model: AppGlobals.setTypesModel
 				implicitWidth: 160
 
@@ -130,92 +112,67 @@ Item {
 					verticalCenter: parent.verticalCenter
 				}
 
-				onActivated: (index)=> {
-					if (index !== setType) {
-						if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-							if (copyTypeButtonValue === cboSetType.textAt(index))
-								copyTypeButtonValue = "";
-							else if (copyTypeButtonValue === "")
-								copyTypeButtonValue = tDayModel.setType(setNumber, exerciseIdx).toString();
-						}
-						itemManager.changeSetType(setNumber, exerciseIdx, index);
-					}
-				}
+				onActivated: (index)=> exerciseManager.changeSetType(setManager.number, index);
 			}
 
 			TPButton {
-				id: btnCopyValue5
-				visible: copyTypeButtonValue !== ""
+				id: btnCopySetType
+				visible: false
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: cboSetType.right
+					left: cbosetManager.type.right
 					leftMargin: 10
 				}
 
-				onClicked: {
-					itemManager.copyTypeValueIntoOtherSets(exerciseIdx, setNumber);
-					copyTypeButtonValue = "";
-				}
+				onClicked: exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
 			}
 
 			TPButton {
 				id: btnRemoveSet
 				imageSource: "remove"
-				height: 25
-				width: 25
+				height: 20
+				width: 20
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: btnCopyValue5.visible ? btnCopyValue5.right : cboSetType.right
+					left: btnCopySetType.visible ? btnCopySetType.right : cbosetManager.type.right
 					leftMargin: 10
 				}
 
-				onClicked: showRemoveSetMessage(setNumber, exerciseIdx);
+				onClicked: exerciseManager.removeSetObject(setManager.number);
 			}
 		}
 
 		RowLayout {
-			visible: setNumber > 0 && bTrackRestTime
-			enabled: !setCompleted
+			visible: setManager.number > 0 && setManager.trackRestTime
+			enabled: !setManager.completed && !setManager.autoRestTime
 			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
-				text: tDayModel.setRestTime(setNumber, exerciseIdx);
-				availableWidth: copyTimeButtonValue === "" ? controlWidth : controlWidth - 40
+				text: setManager.restTime
+				availableWidth: btnCopyTimeValue.visible ? controlWidth - 40 : controlWidth
 				windowTitle: lblSetNumber.text
-				showButtons: !bAutoRestTime
+				showButtons: !setManager.autoRestTime
 
-				onValueChanged: (str) => {
-					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-						if (copyTimeButtonValue === str)
-							copyTimeButtonValue = "";
-						else if (copyTimeButtonValue === "")
-							copyTimeButtonValue = tDayModel.setRestTime(setNumber, exerciseIdx);
-					}
-					tDayModel.setSetRestTime(setNumber, exerciseIdx, str);
-				}
-
+				onValueChanged: (str) => setManager.restTime = str;
 				onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
 			}
 
 			TPButton {
 				id: btnCopyTimeValue
-				visible: copyTimeButtonValue !== ""
+				visible: false
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: {
-					itemManager.copyTimeValueIntoOtherSets(exerciseIdx, setNumber);
-					copyTimeButtonValue = "";
-				}
+				onClicked: exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
 			}
 		}
 
@@ -225,25 +182,20 @@ Item {
 
 			ExerciseNameField {
 				id: txtExercise1
-				objectName: "txtExercise1"
-				text: tDayModel.exerciseName1(exerciseIdx)
+				text: setManager.exerciseName1
 				showRemoveButton: false
 				width: controlWidth/2 + 10
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 				Layout.leftMargin: -10
 
-				onExerciseChanged: (new_text) => {
-					tDayModel.setExerciseName1(new_text, exerciseIdx);
-					ownerExercise.changeExercise(false);
-				}
-				onEditButtonClicked: ownerExercise.changeExercise1(!readOnly);
+				onExerciseChanged: (new_text) => setManager.exerciseName1 = new_text;
+				onEditButtonClicked: exerciseManager.simpleExercisesList(true, false);
 			}
 
 			ExerciseNameField {
 				id: txtExercise2
-				objectName: "txtExercise2"
-				text: tDayModel.exerciseName2(exerciseIdx)
+				text: setManager.exerciseName2
 				showRemoveButton: false
 				width: controlWidth/2 + 10
 				Layout.alignment: Qt.AlignCenter
@@ -251,174 +203,113 @@ Item {
 				Layout.minimumWidth: width
 				Layout.leftMargin: -10
 
-				onExerciseChanged: (new_text) => {
-					tDayModel.setExerciseName2(new_text, exerciseIdx);
-					ownerExercise.changeExercise(false);
-				}
-				onEditButtonClicked: ownerExercise.changeExercise2(!readOnly);
+				onExerciseChanged: (new_text) => setManager.exerciseName2 = new_text;
+				onEditButtonClicked: exerciseManager.simpleExercisesList(true, false);
 			}
 		}
 
 		RowLayout {
+			enabled: !setManager.completed
 			Layout.fillWidth: true
 			spacing: 5
-			enabled: !setCompleted
 
 			SetInputField {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
-				text: tDayModel.setReps(setNumber, 0, exerciseIdx);
-				availableWidth: copyRepsButtonValue === "" ? controlWidth/2 + 10 : controlWidth/3
+				text: setManager.reps1
+				availableWidth: btnCopySetReps1.visible ? controlWidth - 40 : controlWidth
 				Layout.alignment: Qt.AlignLeft
-				showLabel: !copyRepsButtonValue
+				showLabel: !btnCopySetReps1.visible
 
-				onValueChanged: (str) => {
-					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-						if (copyRepsButtonValue === str)
-							copyRepsButtonValue = "";
-						else if (copyRepsButtonValue === "")
-							copyRepsButtonValue = tDayModel.setReps(setNumber, 0, exerciseIdx);
-					}
-					tDayModel.setSetReps(setNumber, exerciseIdx, 0, str);
-				}
-
+				onValueChanged: (str) => setManager.reps1 = str;
 				onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 			}
 
 			TPButton {
-				id: btnCopyValue
-				visible: copyRepsButtonValue !== ""
+				id: btnCopySetReps1
+				visible: false
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: {
-					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 0);
-					copyRepsButtonValue = "";
-				}
+				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
 			}
 
 			SetInputField {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
-				text: tDayModel.setReps(setNumber, 1, exerciseIdx);
+				text: setManager.reps2
 				availableWidth: controlWidth/3
 				showLabel: false
-				//Layout.alignment: copyRepsButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
-				onValueChanged: (str) => {
-					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-						if (copyRepsButtonValue === str)
-							copyRepsButtonValue = "";
-						else if (copyRepsButtonValue === "")
-							copyRepsButtonValue = tDayModel.setReps(setNumber, 1, exerciseIdx);
-					}
-					tDayModel.setSetReps(setNumber, exerciseIdx, 1, str);
-				}
-
+				onValueChanged: (str) => setManager.reps2 = str;
 				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 			}
 
 			TPButton {
-				id: btnCopyValue2
-				visible: copyRepsButtonValue !== ""
+				id: btnCopySetReps2
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: {
-					itemManager.copyRepsValueIntoOtherSets(exerciseIdx, setNumber, 1);
-					copyRepsButtonValue = "";
-				}
+				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number, 1);
 			}
 		}
 
 		RowLayout {
+			enabled: !setManager.completed
 			Layout.fillWidth: true
 			spacing: 5
-			enabled: !setCompleted
 
 			SetInputField {
 				id: txtNWeight1
-				text: tDayModel.setWeight(setNumber, 0, exerciseIdx);
+				text: setManager.weight1
 				type: SetInputField.Type.WeightType
-				availableWidth: copyWeightButtonValue === "" ? controlWidth/2 + 10 : controlWidth/3
+				availableWidth: btnCopySetWeight1.visible ? controlWidth - 40 : controlWidth
 				Layout.alignment: Qt.AlignLeft
-				showLabel: !copyWeightButtonValue
+				showLabel: !btnCopySetWeight1.visible
 
-				onValueChanged: (str) => {
-					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-						if (copyWeightButtonValue === str)
-							copyWeightButtonValue = "";
-						else if (copyWeightButtonValue === "")
-							copyWeightButtonValue = tDayModel.setWeight(setNumber, 0, exerciseIdx);
-					}
-					tDayModel.setSetWeight(setNumber, exerciseIdx, 0, str);
-				}
-
+				onValueChanged: (str) => setManager.weight1 = str;
 				onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 			}
 
 			TPButton {
-				id: btnCopyValue3
-				visible: copyWeightButtonValue !== ""
+				id: btnCopySetWeight1
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: {
-					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 0);
-					copyWeightButtonValue = "";
-				}
+				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
 			}
 
 			SetInputField {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
-				text: tDayModel.setWeight(setNumber, 1, exerciseIdx);
+				text: setManager.weight2
 				availableWidth: controlWidth/3 + 10
 				showLabel: false
-				//Layout.alignment: copyWeightButtonValue === "" ? Qt.AlignRight : Qt.AlignLeft
 
-				onValueChanged: (str) => {
-					if (setNumber < tDayModel.setsNumber(exerciseIdx) - 1) {
-						if (copyWeightButtonValue === str)
-							copyWeightButtonValue = "";
-						else if (copyWeightButtonValue === "")
-							copyWeightButtonValue = tDayModel.setWeight(setNumber, 1, exerciseIdx);
-					}
-					tDayModel.setSetWeight(setNumber, exerciseIdx, 1, str);
-				}
-
-				onEnterOrReturnKeyPressed: {
-					const nextSet = itemManager.nextSetObject(exerciseIdx, setNumber);
-					if (nextSet)
-						nextSet.forceActiveFocus();
-				}
+				onValueChanged: (str) => setManager.weight2 = str;
 			}
 
 			TPButton {
-				id: btnCopyValue4
-				visible: copyWeightButtonValue !== ""
+				id: btnCopySetWeight2
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: {
-					itemManager.copyWeightValueIntoOtherSets(exerciseIdx, setNumber, 1);
-					copyWeightButtonValue = "";
-				}
+				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number, 1);
 			}
 		}
 
 		SetNotesField {
 			id: btnShowHideNotes
-			text: tDayModel.setNotes(setNumber, exerciseIdx)
-			enabled: !setCompleted
+			text: setManager.notes
+			enabled: !setManager.completed
 			Layout.leftMargin: 5
 			Layout.rightMargin: 5
 			Layout.fillWidth: true
@@ -429,63 +320,14 @@ Item {
 		TPButton {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
-			visible: finishButtonVisible
-			enabled: finishButtonEnabled
+			visible: setManager.lastSet
+			enabled: setManager.finishButtonEnabled
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				setLayout.enabled = false;
-				exerciseCompleted(exerciseIdx);
+				exerciseManager.exerciseCompleted();
 			}
 		}
 	} //ColumnLayout setLayout
-
-	Component.onCompleted: tDayModel.tDayChanged.connect(hideCopyButtons);
-
-	function changeExerciseText(textObj: var, newtext: string)
-	{
-		textObj.text = newtext;
-	}
-
-	function requestTimer(requester, message, mins, secs) {
-		var args = [message, mins, secs];
-		requestTimerDialogSignal(requester, args);
-	}
-
-	function hideCopyButtons() {
-		copyTypeButtonValue = "";
-		copyRepsButtonValue = "";
-		copyWeightButtonValue = "";
-	}
-
-	function changeSetType(new_type: int) {
-		cboSetType.currentIndex = new_type;
-	}
-
-	function changeTime(new_time: string) {
-		txtRestTime.text = new_time;
-	}
-
-	function changeReps(new_value: string, idx: int) {
-		if (idx === 0)
-			txtNReps1.text = new_value;
-		else
-			txtNReps2.text = new_value;
-	}
-
-	function changeWeight(new_value: string, idx: int) {
-		if (idx === 0)
-			txtNWeight1.text = new_value;
-		else
-			txtNWeight2.text = new_value;
-	}
-
-	function liberateSignals(liberate: bool) {
-		txtExercise1.bCanEmitTextChanged = liberate;
-		txtExercise2.bCanEmitTextChanged = liberate;
-	}
-
-	function updateRestTime(str_time: string) {
-		txtRestTime.text = str_time;
-	}
 } // Item

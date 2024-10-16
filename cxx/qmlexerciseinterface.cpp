@@ -5,7 +5,6 @@
 #include "dbmesosplitmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 
 #include <QQmlApplicationEngine>
@@ -56,6 +55,8 @@ void QmlExerciseInterface::createExerciseObject()
 	newExercise->setAutoRestTime(bAutoRestTime);
 	newExercise->setCanEditRestTimeTracking(true);
 	newExercise->setIsCompleted(false);
+	newExercise->setLastExercise(true);
+	m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
 	createExerciseObject_part2(exercise_idx);
 }
@@ -132,6 +133,16 @@ void QmlExerciseInterface::moveExercise(const uint exercise_idx, const uint new_
 		m_exercisesList.at(i)->exerciseEntry()->setParentItem(m_parentLayout);
 	m_exercisesList.at(exercise_idx)->setExerciseIdx(exercise_idx);
 	m_exercisesList.at(new_idx)->setExerciseIdx(new_idx);
+	if (exercise_idx == m_exercisesList.count() - 1)
+	{
+		m_exercisesList.at(exercise_idx)->setLastExercise(true);
+		m_exercisesList.at(new_idx)->setLastExercise(false);
+	}
+	else if (new_idx == m_exercisesList.count() - 1)
+	{
+		m_exercisesList.at(exercise_idx)->setLastExercise(false);
+		m_exercisesList.at(new_idx)->setLastExercise(true);
+	}
 }
 
 void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const

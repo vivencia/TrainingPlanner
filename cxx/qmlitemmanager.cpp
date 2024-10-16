@@ -195,7 +195,7 @@ QmlMesoSplitInterface* QmlItemManager::splitManager(const uint meso_idx)
 	return m_appSplitManager.at(meso_idx);
 }
 
-QmlTDayInterface* QmlItemManager::tDayManager(const uint meso_idx)
+QmlTDayInterface* QmlItemManager::tDayManager(const uint meso_idx, const QDate& date)
 {
 	if (meso_idx >= m_appTDayManager.count())
 	{
@@ -204,7 +204,7 @@ QmlTDayInterface* QmlItemManager::tDayManager(const uint meso_idx)
 		{
 			if (i == meso_idx)
 			{
-				tDayInterface = new QmlTDayInterface{this, m_appQmlEngine, m_appMainWindow, meso_idx};
+				tDayInterface = new QmlTDayInterface{this, m_appQmlEngine, m_appMainWindow, meso_idx, date};
 				connect(tDayInterface, &QmlTDayInterface::displayMessageOnAppWindow, this, &QmlItemManager::displayMessageOnAppWindow);
 				connect(tDayInterface, &QmlTDayInterface::addPageToMainMenu, this, &QmlItemManager::addMainMenuShortCut);
 				connect(tDayInterface, &QmlTDayInterface::removePageFromMainMenu, this, &QmlItemManager::removeMainMenuShortCut);

@@ -22,9 +22,7 @@ TPTimer::~TPTimer()
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_originalStartTime = strStartTime.contains('-') ?
-				u"00:00:00"_qs :
-				appUtils()->calculateTimeDifference_str(strStartTime, appUtils()->getCurrentTimeString());
+	m_originalStartTime = strStartTime;
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -172,8 +170,14 @@ void TPTimer::prepareFromString()
 {
 	if (!m_originalStartTime.isEmpty())
 	{
+		if (m_originalStartTime.length() < 2)
+			m_originalStartTime.append(u"0:00:00"_qs);
 		m_hours = m_originalStartTime.first(2).toUInt();
+		if (m_originalStartTime.length() < 5)
+			m_originalStartTime.append(u":00:00"_qs);
 		m_minutes = m_originalStartTime.sliced(3, 2).toUInt();
+		if (m_originalStartTime.length() < 8)
+			m_originalStartTime.append(u":00"_qs);
 		m_seconds = m_originalStartTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}
