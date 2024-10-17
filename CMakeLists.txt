@@ -155,7 +155,6 @@ set( QML_SOURCES
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
     "qml/TPWidgets/TPButtonImage.qml"
-    "qml/TPWidgets/TPFloatingButton.qml"
     "qml/TPWidgets/TPFloatingControl.qml"
     "qml/TPWidgets/TPCheckBox.qml"
     "qml/TPWidgets/TPColorRectangle.qml"
