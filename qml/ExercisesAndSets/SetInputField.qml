@@ -158,10 +158,6 @@ FocusScope {
 
 			onActiveFocusChanged: {
 				if (activeFocus) {
-					if (type === SetInputField.Type.TimeType) {
-						openTimerDialog();
-						return;
-					}
 					if (bClearInput) {
 						origText = text;
 						txtMain.clear();
@@ -236,15 +232,5 @@ FocusScope {
 		text = text.replace('-', '');
 		text = text.replace('E', '');
 		return text.trim();
-	}
-
-	function timeChanged(strTime) {
-		txtMain.text = strTime;
-		valueChanged(strTime);
-		enterOrReturnKeyPressed();
-	}
-
-	function openTimerDialog() {
-		requestTimer (this, qsTr("Time of rest until ") + windowTitle, txtMain.text.substring(0, 2), txtMain.text.substring(3, 5));
 	}
 } //FocusScope

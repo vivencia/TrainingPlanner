@@ -318,7 +318,7 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 	switch(setObj->mode())
 	{
 		case SET_MODE_UNDEFINED:
-			if (!setObj->autoRestTime())
+			if (!setObj->trackRestTime())
 			{
 				setObj->setCompleted(true);
 				setObj->setMode(SET_MODE_SET_COMPLETED);
@@ -329,7 +329,10 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 			break;
 		case SET_MODE_START_REST:
 			setObj->setMode(SET_MODE_START_EXERCISE);
-			startRestTimer(set_number);
+			if (setObj->autoRestTime())
+				startRestTimer(set_number, u"00:00"_qs, true);
+			else
+				startRestTimer(set_number, m_tDayModel->setRestTime(m_exercise_idx, set_number), false);
 		break;
 		case SET_MODE_START_EXERCISE:
 			setObj->setMode(SET_MODE_SET_COMPLETED);
@@ -472,7 +475,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setWeight(m_tDayModel->setWeight(m_exercise_idx, set_number));
 	newSetEntry->_setSubSets(m_tDayModel->setSubSets(m_exercise_idx, set_number));
 	newSetEntry->_setNotes(m_tDayModel->setsNotes(m_exercise_idx));
-	newSetEntry->_setMode(m_tDayModel->setCompleted(m_exercise_idx, set_number) ? SET_MODE_SET_COMPLETED : SET_MODE_UNDEFINED);
+	newSetEntry->_setMode(findSetMode(set_number));
 	newSetEntry->_setEditable(isEditable());
 	newSetEntry->_setCompleted(m_tDayModel->setCompleted(m_exercise_idx, set_number));
 	newSetEntry->_setLastSet(m_tDayModel->setsNumber(m_exercise_idx) == set_number + 1);
@@ -529,7 +532,13 @@ void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 
 inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 {
-	return set_number > 0 ? (m_tDayModel->autoRestTime(m_exercise_idx) ? 1 : 0) : 0;
+	int ret(SET_MODE_SET_COMPLETED);
+	if (!m_tDayModel->setCompleted(m_exercise_idx, set_number))
+	{
+		if (m_tDayModel->trackRestTime(m_exercise_idx))
+			ret = m_tDayModel->autoRestTime(m_exercise_idx) ? SET_MODE_UNDEFINED : SET_MODE_START_REST;
+	}
+	return ret;
 }
 
 inline void QmlExerciseEntry::findCurrentSet()
@@ -545,14 +554,13 @@ inline void QmlExerciseEntry::findCurrentSet()
 	}
 }
 
-void QmlExerciseEntry::startRestTimer(const uint set_number)
+void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch)
 {
-	TPTimer* set_timer(m_tDayPage->getTimer());
-	if (set_timer)
+	TPTimer* set_timer(m_tDayPage->restTimer());
+	if (!set_timer->isActive())
 	{
-		set_timer->setInterval(1000);
-		set_timer->setStopWatch(true);
-		set_timer->prepareTimer(u"-"_qs);
+		set_timer->setStopWatch(bStopWatch);
+		set_timer->prepareTimer(startTime);
 		QQuickItem* set_object(m_setObjects.at(set_number)->setEntry());
 		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,set_object] () {
 			QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
@@ -560,7 +568,7 @@ void QmlExerciseEntry::startRestTimer(const uint set_number)
 		connect(set_timer, &TPTimer::minutesChanged, this, [this,set_timer,set_object] () {
 			QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
 		});
-		set_timer->startTimer(u"-"_qs);
+		set_timer->startTimer();
 	}
 	else
 		m_tDayPage->displayMessage(tr("Cannot start timer!"), tr("Another set is using it"), false, 3000);
@@ -568,11 +576,15 @@ void QmlExerciseEntry::startRestTimer(const uint set_number)
 
 void QmlExerciseEntry::stopRestTimer(const uint set_number)
 {
-	TPTimer* set_timer(m_tDayPage->getTimer());
+	TPTimer* set_timer(m_tDayPage->restTimer());
 	if (set_timer->isActive())
 	{
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
-		m_tDayModel->setSetRestTime(m_exercise_idx, set_number, set_timer->strMinutes() + ':' + set_timer->strSeconds());
+		QmlSetEntry* setObj(m_setObjects.at(set_number));
+		if (setObj->autoRestTime())
+			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
+		else
+			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true));
 	}
 }

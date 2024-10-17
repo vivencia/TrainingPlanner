@@ -163,7 +163,7 @@ private:
 	void enableDisableExerciseCompletedButton();
 	inline uint findSetMode(const uint set_number) const;
 	inline void findCurrentSet();
-	void startRestTimer(const uint set_number);
+	void startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch);
 	void stopRestTimer(const uint set_number);
 };
 

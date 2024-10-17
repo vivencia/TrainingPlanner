@@ -12,6 +12,7 @@ TPTimer::TPTimer(QObject* parent)
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
 	m_originalStartTime = u"00:00:00"_qs;
+	setInterval(1000);
 }
 
 TPTimer::~TPTimer()

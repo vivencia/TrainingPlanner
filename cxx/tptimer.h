@@ -30,8 +30,8 @@ public:
 	explicit TPTimer(QObject* parent = nullptr);
 	virtual ~TPTimer();
 
-	Q_INVOKABLE void prepareTimer(const QString& strStartTime);
-	Q_INVOKABLE void startTimer(const QString& initialTimeOfDay);
+	Q_INVOKABLE void prepareTimer(const QString& strStartTime = QString());
+	Q_INVOKABLE void startTimer(const QString& initialTimeOfDay = QString());
 	Q_INVOKABLE void stopTimer();
 	Q_INVOKABLE void pauseTimer();
 	Q_INVOKABLE void resetTimer(const bool start);
@@ -69,8 +69,8 @@ public:
 	inline uint totalSeconds() const { return m_totalSeconds; }
 	inline bool paused() const { return mb_paused; }
 	inline uint progressValue() const { return m_progressValue; }
-	Q_INVOKABLE inline QDateTime elapsedTime() const { return QDateTime(QDate::currentDate(), m_elapsedTime); }
-	Q_INVOKABLE inline QDateTime currentElapsedTime() { calculateElapsedTime(); return QDateTime(QDate::currentDate(), m_elapsedTime); }
+	inline const QTime& elapsedTime() const { return m_elapsedTime; }
+	inline const QTime& currentElapsedTime() { calculateElapsedTime(); return m_elapsedTime; }
 	inline const QTime& initialTime() const { return m_initialTime; }
 
 signals:
@@ -79,7 +79,7 @@ signals:
 	void secondsChanged();
 	void stopWatchChanged();
 	void timerForwardChanged();
-	void timeWarning(QString remaingMinutes, bool bminutes);
+	void timeWarning(QString remaingTime, bool bminutes);
 	void totalSecondsChanged();
 	void pausedChanged();
 	void progressValueChanged();

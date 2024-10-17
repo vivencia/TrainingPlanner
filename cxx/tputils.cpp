@@ -170,12 +170,6 @@ QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, con
 	return ret;
 }
 
-QString TPUtils::formatFutureTime(const QDateTime& addTime) const
-{
-	const QTime& time(addTime.time());
-	return addToTime(QTime::currentTime(), time.hour(), time.minute());
-}
-
 QString TPUtils::addToTime(const QString& origTime, const uint hours, const uint mins) const
 {
 	const QTime time(origTime.first(2).toUInt(), origTime.last(2).toUInt());

@@ -19,7 +19,6 @@ FocusScope {
 	property bool bListRequestForExercise2: false
 
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
-	signal requestFloatingButton(var exerciseidx, var settype, var nset)
 
 	Frame {
 		id: paneExercise
@@ -277,10 +276,7 @@ FocusScope {
 					imageSize: 30
 					Layout.leftMargin: 15
 
-					onClicked: {
-						exerciseManager.addNewSet();
-						requestFloatingButton(exerciseIdx, cboSetType.currentIndex, (exerciseManager.exerciseSetsCount(exercise_idx) + 1).toString());
-					}
+					onClicked: exerciseManager.addNewSet();
 				}
 			} // RowLayout
 		} // ColumnLayout layoutMain
