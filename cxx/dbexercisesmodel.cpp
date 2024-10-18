@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QRegularExpression>
 
+#include <utility>
+
 DBExercisesModel* DBExercisesModel::app_exercises_model(nullptr);
 
 DBExercisesModel::DBExercisesModel(QObject* parent)
@@ -16,39 +18,39 @@ DBExercisesModel::DBExercisesModel(QObject* parent)
 	setObjectName(DBExercisesObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
 	m_fieldCount = EXERCISES_TOTAL_COLS;
-	m_exportName = tr("Exercises List");
+	m_exportName = std::move(tr("Exercises List"));
 
-	// Set names to the role name hash container (QHash<int, QByteArray>)
-	m_roleNames[exerciseIdRole] = "exerciseId";
-	m_roleNames[mainNameRole] = "mainName";
-	m_roleNames[subNameRole] = "subName";
-	m_roleNames[muscularGroupRole] = "muscularGroup";
-	m_roleNames[nSetsRole] = "nSets";
-	m_roleNames[nRepsRole] = "nReps";
-	m_roleNames[nWeightRole] = "nWeight";
-	m_roleNames[uWeightRole] = "uWeight";
-	m_roleNames[mediaPathRole] = "mediaPath";
-	m_roleNames[fromListRole] = "fromList";
-	m_roleNames[actualIndexRole] = "actualIndex";
-	m_roleNames[selectedRole] = "selected";
+	m_roleNames[exerciseIdRole] = std::move("exerciseId");
+	m_roleNames[mainNameRole] = std::move("mainName");
+	m_roleNames[subNameRole] = std::move("subName");
+	m_roleNames[muscularGroupRole] = std::move("muscularGroup");
+	m_roleNames[nSetsRole] = std::move("nSets");
+	m_roleNames[nRepsRole] = std::move("nReps");
+	m_roleNames[nWeightRole] = std::move("nWeight");
+	m_roleNames[uWeightRole] = std::move("uWeight");
+	m_roleNames[mediaPathRole] = std::move("mediaPath");
+	m_roleNames[fromListRole] = std::move("fromList");
+	m_roleNames[actualIndexRole] = std::move("actualIndex");
+	m_roleNames[selectedRole] = std::move("selected");
 
 	mColumnNames.reserve(EXERCISES_COL_MEDIAPATH+1);
 	mColumnNames.append(QString()); //EXERCISES_COL_ID
-	mColumnNames.append(tr("Exercise: "));
-	mColumnNames.append(tr("Specifics: "));
-	mColumnNames.append(tr("Muscular Group: "));
-	mColumnNames.append(tr("Sets: "));
-	mColumnNames.append(tr("Reps: "));
-	mColumnNames.append(tr("Weight: "));
+	mColumnNames.append(std::move(tr("Exercise: ")));
+	mColumnNames.append(std::move(tr("Specifics: ")));
+	mColumnNames.append(std::move(tr("Muscular Group: ")));
+	mColumnNames.append(std::move(tr("Sets: ")));
+	mColumnNames.append(std::move(tr("Reps: ")));
+	mColumnNames.append(std::move(tr("Weight: ")));
 	mColumnNames.append(QString()); //EXERCISES_COL_WEIGHTUNIT
-	mColumnNames.append(tr("Descriptive media: "));
+	mColumnNames.append(std::move(tr("Descriptive media: ")));
 }
 
 void DBExercisesModel::newExercise(const QString& name, const QString& subname, const QString& muscular_group)
 {
 	setLastID(lastID() + 1);
-	appendList(QStringList() << QString::number(lastID()) << name << subname << muscular_group <<
-		u"3"_qs << u"12"_qs << u"20"_qs << u"(kg)"_qs << u"qrc:/images/no_image.jpg"_qs << STR_ZERO << QString::number(m_modeldata.count()) << STR_ZERO);
+	appendList(QStringList() << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
+		std::move(u"3"_qs) << std::move(u"12"_qs) << std::move(u"20"_qs) << std::move(u"(kg)"_qs) << std::move(u"qrc:/images/no_image.jpg"_qs) <<
+			STR_ZERO << std::move(QString::number(m_modeldata.count())) << STR_ZERO);
 }
 
 void DBExercisesModel::removeExercise(const uint index)

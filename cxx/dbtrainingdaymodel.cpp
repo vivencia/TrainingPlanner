@@ -7,6 +7,7 @@
 #include "tputils.h"
 
 #include <QtMath>
+#include <utility>
 
 DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const uint meso_idx)
 	: TPListModel(parent, static_cast<int>(meso_idx))
@@ -14,7 +15,7 @@ DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const uint meso_idx)
 	setObjectName(DBTrainingDayObjectName);
 	m_tableId = TRAININGDAY_TABLE_ID;
 	m_fieldCount = TDAY_TOTAL_COLS;
-	m_exportName = tr("Single workout");
+	m_exportName = std::move(tr("Single workout"));
 }
 
 void DBTrainingDayModel::fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse)
@@ -118,7 +119,6 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);
 
-		uint settype(0);
 		QString setsTypes, subSets;
 		bool bHasSubsSets(false);
 		for (uint i(0); i < m_ExerciseData.count(); ++i)
@@ -135,7 +135,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 
 			for (uint n(0); n < setsNumber(i); ++n)
 			{
-				settype = setType(n, i);
+				const uint settype{setType(n, i)};
 				setsTypes += formatSetTypeToExport(QString::number(settype)) + fancy_record_separator2;
 				subSets += setSubSets(n, i) + fancy_record_separator2;
 				if (settype == 2 || settype == 3 || settype == 5)
@@ -178,7 +178,6 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	uint col(1);
 	QString value;
 	uint exercise_idx(0), nsets(0);
 	QString type, resttime, subsets, reps, weight, notes, strTypes;

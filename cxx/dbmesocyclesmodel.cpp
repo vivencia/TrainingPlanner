@@ -67,9 +67,7 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 	const uint meso_idx(count()-1);
 	m_splitModel->setMesoIdx(meso_idx);
 	m_calendarModelList.append(new DBMesoCalendarModel(this, meso_idx));
-	m_totalSplits.append(0);
 	m_newMesoCalendarChanged.append(false);
-	findTotalSplits(meso_idx);
 	if (isOwnMeso(meso_idx))
 	{
 		m_mostRecentOwnMesoIdx = meso_idx;
@@ -90,7 +88,6 @@ void DBMesocyclesModel::delMesocycle(const uint meso_idx)
 	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
 	m_isNewMeso.remove(meso_idx);
-	m_totalSplits.remove(meso_idx);
 
 	m_splitModel->removeRow(meso_idx);
 	removeRow(meso_idx);
@@ -147,85 +144,34 @@ void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
 	m_splitModel->m_modeldata[meso_idx][MESOSPLIT_COL_MESOID] = new_id;
 }
 
-void DBMesocyclesModel::setName(const uint meso_idx, const QString& new_name)
+void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 {
-	m_modeldata[meso_idx][MESOCYCLES_COL_NAME] = new_name;
-	setModified(meso_idx, MESOCYCLES_COL_NAME);
+	m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = QString::number(new_date.toJulianDay());
+	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
+	if (!isNewMeso(meso_idx))
+		emit mesoCalendarFieldsChanged(meso_idx);
+	else
+		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
-bool DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
+void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 {
-	if (new_date != startDate(meso_idx))
-	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = QString::number(new_date.toJulianDay());
-		setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
-		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(new_date, endDate(meso_idx))));
-		if (!isNewMeso(meso_idx))
-			emit mesoCalendarFieldsChanged(meso_idx);
-		else
-			m_newMesoCalendarChanged[meso_idx] = true;
-		return true;
-	}
-	return false;
+	m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = QString::number(new_date.toJulianDay());
+	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
+	if (!isNewMeso(meso_idx))
+		emit mesoCalendarFieldsChanged(meso_idx);
+	else
+		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
-bool DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
+void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 {
-	if (new_date != endDate(meso_idx))
-	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = QString::number(new_date.toJulianDay());
-		setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
-		setWeeks(meso_idx, QString::number(appUtils()->calculateNumberOfWeeks(startDate(meso_idx), new_date)));
-		if (!isNewMeso(meso_idx))
-			emit mesoCalendarFieldsChanged(meso_idx);
-		else
-			m_newMesoCalendarChanged[meso_idx] = true;
-		return true;
-	}
-	return false;
-}
-
-void DBMesocyclesModel::setNotes(const uint meso_idx, const QString& new_notes)
-{
-	m_modeldata[meso_idx][MESOCYCLES_COL_NOTE] = new_notes;
-	setModified(meso_idx, MESOCYCLES_COL_NOTE);
-}
-
-void DBMesocyclesModel::setWeeks(const uint meso_idx, const QString& new_weeks)
-{
-	m_modeldata[meso_idx][MESOCYCLES_COL_WEEKS] = new_weeks;
-	setModified(meso_idx, MESOCYCLES_COL_WEEKS);
-}
-
-bool DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
-{
-	if (new_split.contains(u"R"_qs))
-	{
-		if (new_split != split(meso_idx))
-		{
-			m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
-			setModified(meso_idx, MESOCYCLES_COL_SPLIT);
-			findTotalSplits(meso_idx);
-			if (isNewMeso(meso_idx))
-				emit mesoCalendarFieldsChanged(meso_idx);
-			else
-				m_newMesoCalendarChanged[meso_idx] = true;
-			return true;
-		}
-	}
-	return false;
-}
-
-void DBMesocyclesModel::setCoach(const uint meso_idx, const QString& new_coach)
-{
-	m_modeldata[meso_idx][MESOCYCLES_COL_COACH] = new_coach;
-	setModified(meso_idx, MESOCYCLES_COL_COACH);
-}
-
-void DBMesocyclesModel::setClient(const uint meso_idx, const QString& new_client)
-{
-	m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
-	setModified(meso_idx, MESOCYCLES_COL_CLIENT);
+	m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
+	setModified(meso_idx, MESOCYCLES_COL_SPLIT);
+	if (isNewMeso(meso_idx))
+		emit mesoCalendarFieldsChanged(meso_idx);
+	else
+		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
 void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
@@ -238,33 +184,6 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 		emit isOwnMesoChanged(meso_idx);
-	}
-}
-
-bool DBMesocyclesModel::setFile(const uint meso_idx, const QString& new_file)
-{
-	const QString& good_filepath(appUtils()->getCorrectPath(new_file));
-	if (appUtils()->canReadFile(good_filepath))
-	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_FILE] = good_filepath;
-		setModified(meso_idx, MESOCYCLES_COL_FILE);
-		return true;
-	}
-	return false;
-}
-
-void DBMesocyclesModel::setType(const uint meso_idx, const QString& new_type)
-{
-	m_modeldata[meso_idx][MESOCYCLES_COL_TYPE] = new_type;
-	setModified(meso_idx, MESOCYCLES_COL_TYPE);
-}
-
-void DBMesocyclesModel::setIsRealMeso(const uint meso_idx, const bool bRealMeso)
-{
-	if (isRealMeso(meso_idx) != bRealMeso)
-	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? STR_ONE : STR_ZERO;
-		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 }
 
@@ -344,31 +263,6 @@ bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate& date) 
 		}
 	}
 	return false;
-}
-
-void DBMesocyclesModel::findTotalSplits(const uint meso_idx)
-{
-	uint nSplits(0);
-	if (meso_idx < m_modeldata.count())
-	{
-		if (!m_modeldata.isEmpty())
-		{
-			const QString& mesoSplit(split(meso_idx));
-			QString::const_iterator itr(mesoSplit.constBegin());
-			const QString::const_iterator& itr_end(mesoSplit.constEnd());
-			QString mesoLetters;
-
-			do {
-				if (*itr == QChar('R'))
-					continue;
-				if (mesoLetters.contains(*itr))
-					continue;
-				mesoLetters.append(*itr);
-				nSplits++;
-			} while (++itr != itr_end);
-		}
-	}
-	m_totalSplits[meso_idx] = nSplits;
 }
 
 int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const

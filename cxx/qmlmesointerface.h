@@ -27,12 +27,22 @@ Q_PROPERTY(QString nameLabel READ nameLabel CONSTANT FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel CONSTANT FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel CONSTANT FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel CONSTANT FINAL)
+Q_PROPERTY(QString startDateLabel READ startDateLabel CONSTANT FINAL)
+Q_PROPERTY(QString endDateLabel READ endDateLabel CONSTANT FINAL)
+Q_PROPERTY(QString weeksLabel READ weeksLabel CONSTANT FINAL)
+Q_PROPERTY(QString splitLabel READ splitLabel CONSTANT FINAL)
+Q_PROPERTY(QString notesLabel READ notesLabel CONSTANT FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
 Q_PROPERTY(QString type READ type WRITE setType NOTIFY typeChanged FINAL)
+Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged FINAL)
+Q_PROPERTY(QString file READ file WRITE setFile NOTIFY fileChanged FINAL)
 Q_PROPERTY(QString startDate READ startDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QString endDate READ endDate NOTIFY endDateChanged FINAL)
+Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
+Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
+Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate WRITE setMinimumMesoStartDate NOTIFY minimumMesoStartDateChanged FINAL)
 Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate WRITE setMaximumMesoEndDate NOTIFY maximumMesoEndDateChanged FINAL)
 Q_PROPERTY(QDate calendarStartDate READ calendarStartDate WRITE setCalendarStartDate NOTIFY calendarStartDateChanged FINAL)
@@ -61,6 +71,11 @@ public:
 	QString coachLabel() const;
 	QString clientLabel() const;
 	QString typeLabel() const;
+	QString startDateLabel() const;
+	QString endDateLabel() const;
+	QString weeksLabel() const;
+	QString splitLabel() const;
+	QString notesLabel() const;
 
 	inline QString name() const { return m_name; }
 	void setName(const QString& new_value, const bool bFromQml = true);
@@ -74,13 +89,26 @@ public:
 	inline QString type() const { return m_type; }
 	void setType(const QString& new_value, const bool bFromQml = true);
 
-	inline QString mesoStartDate() const { return m_startDate; }
+	QString fileName() const;
+	inline QString file() const { return m_file; }
+	void setFile(const QString& new_value, const bool bFromQml = true);
+
+	inline QString startDate() const { return m_startDate; }
 	inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
 	void setMinimumMesoStartDate(const QDate& new_value, const bool bFromQml = true);
 
-	inline QString mesoEndDate() const { return m_endDate; }
+	inline QString endDate() const { return m_endDate; }
 	inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
 	void setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml = true);
+
+	inline QString weeks() const { return m_weeks; }
+	void setWeeks(const QString& new_value, const bool bFromQml = true);
+
+	inline QString split() const { return m_split; }
+	void setSplit(const QString& new_value, const bool bFromQml = true);
+
+	inline QString notes() const { return m_notes; }
+	void setNotes(const QString& new_value, const bool bFromQml = true);
 
 	inline QDate calendarStartDate() const { return m_calendarStartDate; }
 	void setCalendarStartDate(const QDate& new_value);
@@ -104,8 +132,13 @@ signals:
 	void coachChanged();
 	void clientChanged();
 	void typeChanged();
+	void fileNameChanged();
+	void fileChanged();
 	void startDateChanged();
 	void endDateChanged();
+	void weeksChanged();
+	void splitChanged();
+	void notesChanged();
 	void minimumMesoStartDateChanged();
 	void maximumMesoEndDateChanged();
 	void calendarStartDateChanged();
@@ -126,7 +159,7 @@ private:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	int m_mesoIdx;
 	bool m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
-	QString m_name, m_coach, m_client, m_type, m_startDate, m_endDate;
+	QString m_name, m_coach, m_client, m_type, m_file, m_startDate, m_endDate, m_weeks, m_split, m_notes;
 	QDate m_minimumMesoStartDate, m_maximumMesoEndDate, m_calendarStartDate;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 

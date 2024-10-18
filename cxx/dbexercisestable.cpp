@@ -65,7 +65,7 @@ void DBExercisesTable::getAllExercises()
 				uint i(0);
 				do
 				{
-					for (i = EXERCISES_COL_ID; i < EXERCISES_COL_ACTUALINDEX; ++i)
+					for (uint i(EXERCISES_COL_ID); i < EXERCISES_COL_ACTUALINDEX; ++i)
 						exercise_info[i] = query.value(static_cast<int>(i)).toString();
 					exercise_info[EXERCISES_COL_ACTUALINDEX] = QString::number(i);
 					m_model->appendList(exercise_info);
@@ -102,7 +102,6 @@ void DBExercisesTable::updateExercisesList()
 		bool ok(false);
 		QSqlQuery query{getQuery()};
 		QString queryValues;
-		QStringList fields(3);
 		uint idx(0);
 
 		//remove previous list entries from DB
@@ -123,21 +122,21 @@ void DBExercisesTable::updateExercisesList()
 		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
 		for (++itr; itr != itr_end; ++itr, ++idx) //++itr: Jump over version number
 		{
-			fields = (*itr).split(';');
+			const QStringList& fields{(*itr).split(';')};
 			m_model->newExercise(fields.at(0), fields.at(1), fields.at(2).trimmed());
 			queryValues += m_model->makeTransactionStatementForDataBase(idx);
 		}
 		queryValues.chop(1);
-		mSqlLiteDB.transaction();
+		static_cast<void>(mSqlLiteDB.transaction());
 		ok = query.exec(queryStart + queryValues);
 		if (!ok)
 		{
-			mSqlLiteDB.rollback();
+			static_cast<void>(mSqlLiteDB.rollback());
 			DEFINE_SOURCE_LOCATION
 			ERROR_MESSAGE(query.lastError().text(), QString())
 		}
 		else
-			mSqlLiteDB.commit();
+			static_cast<void>(mSqlLiteDB.commit());
 		setResult(ok, m_model, queryStart + queryValues, SOURCE_LOCATION);
 		if (ok)
 			emit updatedFromExercisesList();
@@ -148,11 +147,9 @@ void DBExercisesTable::updateExercisesList()
 
 void DBExercisesTable::saveExercises()
 {
-	bool ok(false);
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		bool bUpdate(false);
 		uint highest_id(0);
 		QString strQuery;
 
@@ -167,7 +164,7 @@ void DBExercisesTable::saveExercises()
 			const QString& exerciseId = m_model->id(idx);
 			if (m_model->_id(idx) > highest_id)
 				highest_id = m_model->_id(idx);
-			bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
+			const bool bUpdate = !(exerciseId.isEmpty() || exerciseId.toUInt() > m_exercisesTableLastId);
 			if (bUpdate)
 			{
 				strQuery += queryUpdate.arg(m_model->mainName(idx), m_model->subName(idx), m_model->muscularGroup(idx),
@@ -181,8 +178,8 @@ void DBExercisesTable::saveExercises()
 							m_model->mediaPath(idx));
 			}
 		}
-		query.exec(strQuery);
-		ok = mSqlLiteDB.commit();
+		static_cast<void>(mSqlLiteDB.commit());
+		const bool ok = query.exec(strQuery);
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 		if (ok)
 		{
@@ -199,11 +196,10 @@ void DBExercisesTable::getExercisesList()
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[512];
-		qint64 lineLength;
 		do
 		{
-			lineLength = exercisesListFile.readLine(buf, sizeof(buf));
-			if (lineLength < 0) continue;
+			if (exercisesListFile.readLine(buf, sizeof(buf)) < 0)
+				continue;
 			m_ExercisesList.append(buf);
 		} while (!exercisesListFile.atEnd());
 		exercisesListFile.close();

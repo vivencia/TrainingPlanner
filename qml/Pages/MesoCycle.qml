@@ -243,15 +243,10 @@ TPPage {
 
 				TPTextInput {
 					id: txtMesoFile
-					text: mesocyclesModel.fileFancy(mesoIdx)
+					text: mesoManager.fileName
 					readOnly: true
 					width: (mesoPropertiesPage.width - 20)*0.8
 					Layout.minimumWidth: width
-
-					onEnterOrReturnKeyPressed: {
-						if (mesocyclesModel.isNewMeso)
-							caldlg.open();
-					}
 				}
 
 				TPButton {
@@ -269,22 +264,22 @@ TPPage {
 						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 						fileMode: FileDialog.OpenFile
 
-						onAccepted: btnOpenMesoFile.visible = mesocyclesModel.setFile(mesoIdx, selectedFile);
+						onAccepted: btnOpenMesoFile.visible = mesoManager.file = selectedFile;
 					}
 				}
 
 				TPButton {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
-					visible: appUtils.canReadFile(mesocyclesModel.file(mesoIdx))
+					visible: appUtils.canReadFile(mesoManager.file)
 					Layout.leftMargin: -10
 
-					onClicked: osInterface.viewExternalFile(mesocyclesModel.file(mesoIdx));
+					onClicked: osInterface.viewExternalFile(mesoManager.file);
 				}
 			}
 
 			TPLabel {
-				text: mesocyclesModel.columnLabel(2)
+				text: mesoManager.startDateLabel
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
 			}
@@ -333,7 +328,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.columnLabel(3)
+				text: mesoManager.endDateLabel
 				visible: mesoManager.realMeso
 				Layout.leftMargin: 5
 			}
@@ -371,7 +366,7 @@ TPPage {
 
 			TPLabel {
 				id: lblnWeeks
-				text: mesocyclesModel.columnLabel(5)
+				text: mesoManager.weeksLabel
 				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
@@ -379,7 +374,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoNWeeks
-				text: mesocyclesModel.nWeeks(mesoIdx)
+				text: mesoManager.weeks
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
@@ -394,7 +389,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: mesocyclesModel.columnLabel(4)
+				text: notesLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -409,7 +404,7 @@ TPPage {
 
 				TextArea.flickable: TextArea {
 					id: txtMesoNotes
-					text: mesocyclesModel.notes(mesoIdx)
+					text: mesoManager.notes
 					color: appSettings.fontColor
 
 					background: Rectangle {
@@ -419,7 +414,7 @@ TPPage {
 						border.color: appSettings.fontColor
 					}
 
-					onEditingFinished: mesocyclesModel.setNotes(mesoIdx, text);
+					onEditingFinished: mesoManager.notes = text;
 				}
 
 				Component.onCompleted: vBar2.position = 0

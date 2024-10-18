@@ -22,7 +22,7 @@ Pane {
 
 	TPLabel {
 		id: lblMesoSplit
-		text: mesocyclesModel.columnLabel(6)
+		text: mesoManager.splitLabel
 		widthAvailable: parent.width*0.6
 
 		anchors {
@@ -33,7 +33,7 @@ Pane {
 
 	TPTextInput {
 		id: txtMesoSplit
-		text: mesocyclesModel.split(itemManager.mesoIdx)
+		text: mesoManager.split
 		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		readOnly: true
 		width: parent.width*0.4

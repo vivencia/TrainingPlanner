@@ -75,6 +75,31 @@ QString QMLMesoInterface::typeLabel() const
 	return appMesoModel()->columnLabel(MESOCYCLES_COL_TYPE);
 }
 
+QString QMLMesoInterface::startDateLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_STARTDATE);
+}
+
+QString QMLMesoInterface::endDateLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_ENDDATE);
+}
+
+QString QMLMesoInterface::weeksLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_WEEKS);
+}
+
+QString QMLMesoInterface::splitLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_SPLIT);
+}
+
+QString QMLMesoInterface::notesLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_NOTE);
+}
+
 void QMLMesoInterface::setName(const QString& new_value, const bool bFromQml)
 {
 	if (m_name != new_value)
@@ -116,14 +141,34 @@ void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 
 void QMLMesoInterface::setType(const QString& new_value, const bool bFromQml)
 {
-	if (m_type != new_value)
+	if (bFromQml)
 	{
-		m_type = new_value;
-		if (bFromQml)
+		const QString& good_filepath(appUtils()->getCorrectPath(new_value));
+		if (!appUtils()->canReadFile(good_filepath))
+			return;
+		if (m_type != new_value)
 		{
+			m_type = new_value;
 			emit typeChanged();
 			appMesoModel()->setType(m_mesoIdx, m_type);
 		}
+	}
+	else
+		m_type = new_value;
+}
+
+QString QMLMesoInterface::fileName() const
+{
+	return appUtils()->getFileName(m_file);
+}
+
+void QMLMesoInterface::setFile(const QString& new_value, const bool bFromQml)
+{
+	if (m_file != new_value)
+	{
+		m_file = new_value;
+		if (bFromQml)
+			appMesoModel()->setFile(m_mesoIdx, m_file);
 	}
 }
 
@@ -152,6 +197,7 @@ void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value, const boo
 			emit minimumMesoStartDateChanged();
 			emit startDateChanged();
 			appMesoModel()->setStartDate(m_mesoIdx, m_minimumMesoStartDate);
+			appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
 		}
 	}
 }
@@ -167,8 +213,44 @@ void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value, const bool 
 			emit maximumMesoEndDateChanged();
 			emit endDateChanged();
 			appMesoModel()->setEndDate(m_mesoIdx, m_maximumMesoEndDate);
+			appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
 		}
 	}
+}
+
+void QMLMesoInterface::setWeeks(const QString& new_value, const bool bFromQml)
+{
+	if (m_weeks != new_value)
+	{
+		m_weeks = new_value;
+		if (bFromQml)
+			emit weeksChanged();
+	}
+}
+
+void QMLMesoInterface::setSplit(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_split != new_value)
+		{
+			if (new_value.contains(u"R"_qs))
+			{
+				m_split = new_value;
+				emit splitChanged();
+				appMesoModel()->setSplit(m_mesoIdx, m_split);
+			}
+		}
+	}
+	else
+		m_split = new_value;
+}
+
+void QMLMesoInterface::setNotes(const QString& new_value, const bool bFromQml)
+{
+	m_notes = new_value;
+	if (bFromQml)
+		emit notesChanged();
 }
 
 void QMLMesoInterface::setCalendarStartDate(const QDate& new_value)
@@ -229,21 +311,23 @@ void QMLMesoInterface::importMeso(const QString& filename)
 void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
 	const int meso_id(appMesoModel()->_id(m_mesoIdx));
-	setMinimumMesoStartDate(!minimumMesoStartDate.isNull() ?
-								minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id), false);
-	setMaximumMesoEndDate(!maximumMesoEndDate.isNull() ?
-								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id), false);
-	setCalendarStartDate(!calendarStartDate.isNull() ?
-								calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
+
 	m_muscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
 
 	setName(appMesoModel()->name(m_mesoIdx), false);
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
 	setClient(appMesoModel()->client(m_mesoIdx), false);
 	setType(appMesoModel()->type(m_mesoIdx), false);
+	setFile(appMesoModel()->file(m_mesoIdx), false);
 	setPropertiesBasedOnUseMode();
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
+	setMinimumMesoStartDate(!minimumMesoStartDate.isNull() ? minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id), false);
+	setMaximumMesoEndDate(!maximumMesoEndDate.isNull() ? maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id), false);
+	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
+	setNotes(appMesoModel()->notes(m_mesoIdx));
+
+	setCalendarStartDate(!calendarStartDate.isNull() ? calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
 
 	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
 

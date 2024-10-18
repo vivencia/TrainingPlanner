@@ -5,25 +5,27 @@
 #include "dbmesocyclesmodel.h"
 #include "tputils.h"
 
+#include <utility>
+
 DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
 	: TPListModel(parent, meso_idx), m_nextAddedExercisePos(2), mb_Complete(bComplete)
 {
 	setObjectName(DBMesoSplitObjectName);
 	m_tableId = MESOSPLIT_TABLE_ID;
-	m_exportName = tr("Exercises Program");
+	m_exportName = std::move(tr("Exercises Program"));
 
 	if (mb_Complete)
 	{
 		m_fieldCount = COMPLETE_MESOSPLIT_TOTAL_COLS;
 		m_modeldata.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.append(tr("Exercise name: "));
-		mColumnNames.append(tr("Number of sets: "));
-		mColumnNames.append(tr("Set instructions: "));
-		mColumnNames.append(tr("Set type: "));
-		mColumnNames.append(tr("Number of subsets: "));
-		mColumnNames.append(tr("Reps: "));
-		mColumnNames.append(tr("Weight: "));
+		mColumnNames.append(std::move(tr("Exercise name: ")));
+		mColumnNames.append(std::move(tr("Number of sets: ")));
+		mColumnNames.append(std::move(tr("Set instructions: ")));
+		mColumnNames.append(std::move(tr("Set type: ")));
+		mColumnNames.append(std::move(tr("Number of subsets: ")));
+		mColumnNames.append(std::move(tr("Reps: ")));
+		mColumnNames.append(std::move(tr("Weight: ")));
 		mColumnNames.append(QString()); //MESOSPLIT_COL_WORKINGSET
 	}
 	else
@@ -33,12 +35,12 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 		mColumnNames.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
 		mColumnNames.append(QString()); //MESOSPLIT_COL_ID
 		mColumnNames.append(QString()); //MESOSPLIT_COL_MESOID
-		mColumnNames.append(tr("Split A: "));
-		mColumnNames.append(tr("Split B: "));
-		mColumnNames.append(tr("Split C: "));
-		mColumnNames.append(tr("Split D: "));
-		mColumnNames.append(tr("Split E: "));
-		mColumnNames.append(tr("Split F: "));
+		mColumnNames.append(std::move(tr("Split A: ")));
+		mColumnNames.append(std::move(tr("Split B: ")));
+		mColumnNames.append(std::move(tr("Split C: ")));
+		mColumnNames.append(std::move(tr("Split D: ")));
+		mColumnNames.append(std::move(tr("Split E: ")));
+		mColumnNames.append(std::move(tr("Split F: ")));
 	}
 }
 

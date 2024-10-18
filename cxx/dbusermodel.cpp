@@ -2,6 +2,8 @@
 #include "tpglobals.h"
 #include "tputils.h"
 
+#include <utility>
+
 DBUserModel* DBUserModel::app_user_model(nullptr);
 
 DBUserModel::DBUserModel(QObject *parent)
@@ -12,20 +14,20 @@ DBUserModel::DBUserModel(QObject *parent)
 
 	setObjectName(DBUserObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
-	m_exportName = tr("Coach information");
+	m_exportName = std::move(tr("Coach information"));
 
 	mColumnNames.reserve(USER_TOTAL_COLS);
 	mColumnNames.append(QString());
-	mColumnNames.append(tr("Name: "));
-	mColumnNames.append(tr("Birthday: "));
-	mColumnNames.append(tr("Sex: "));
-	mColumnNames.append(tr("Phone: "));
-	mColumnNames.append(u"E-mail: "_qs);
-	mColumnNames.append(tr("Social Media: "));
-	mColumnNames.append(tr("Your are: "));
-	mColumnNames.append(tr("Professional job: "));
-	mColumnNames.append(tr("Goal: "));
-	mColumnNames.append(u"Avatar: "_qs);
+	mColumnNames.append(std::move(tr("Name: ")));
+	mColumnNames.append(std::move(tr("Birthday: ")));
+	mColumnNames.append(std::move(tr("Sex: ")));
+	mColumnNames.append(std::move(tr("Phone: ")));
+	mColumnNames.append(std::move(u"E-mail: "_qs));
+	mColumnNames.append(std::move(tr("Social Media: ")));
+	mColumnNames.append(std::move(tr("Your are: ")));
+	mColumnNames.append(std::move(tr("Professional job: ")));
+	mColumnNames.append(std::move(tr("Goal: ")));
+	mColumnNames.append(std::move(u"Avatar: "_qs));
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());
@@ -70,8 +72,8 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList(QStringList() << STR_MINUS_ONE << QString() << u"2451545"_qs << STR_ZERO << QString() <<
-		QString() << QString() << QString() << QString() << QString() << u"image://tpimageprovider/m5"_qs <<
+	appendList(QStringList() << STR_MINUS_ONE << QString() << std::move(u"2451545"_qs) << STR_ZERO << QString() <<
+		QString() << QString() << QString() << QString() << QString() << std::move(u"image://tpimageprovider/m5"_qs) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
 	return m_modeldata.count() - 1;
 }
