@@ -8,8 +8,8 @@
 
 #include <QtMath>
 
-DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const int meso_idx)
-	: TPListModel(parent, meso_idx)
+DBTrainingDayModel::DBTrainingDayModel(QObject* parent, const uint meso_idx)
+	: TPListModel(parent, static_cast<int>(meso_idx))
 {
 	setObjectName(DBTrainingDayObjectName);
 	m_tableId = TRAININGDAY_TABLE_ID;

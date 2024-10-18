@@ -5,9 +5,8 @@
 #include <QObject>
 #include <QVariantMap>
 
-#include <utility>
-
 class DBTrainingDayModel;
+class DBMesoSplitModel;
 class QmlExerciseInterface;
 class TPTimer;
 
@@ -44,24 +43,6 @@ Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays N
 public:
 	explicit QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date);
 	~QmlTDayInterface();
-
-	Q_INVOKABLE void getTrainingDayPage();
-	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
-	Q_INVOKABLE void loadExercisesFromMesoPlan();
-	Q_INVOKABLE void convertTDayToPlan();
-	Q_INVOKABLE void resetWorkout();
-	Q_INVOKABLE void changeSplit(const QString& newSplitLetter, const bool bClearExercises = false);
-	Q_INVOKABLE void adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay);
-	Q_INVOKABLE void exportTrainingDay(const bool bShare);
-	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
-	Q_INVOKABLE void prepareWorkOutTimer(const QString& strStartTime = QString(), const QString& strEndTime = QString());
-	Q_INVOKABLE void startWorkout();
-	Q_INVOKABLE void stopWorkout();
-	Q_INVOKABLE void removeExercise(const uint exercise_idx);
-	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
-
-	void createExerciseObject();
-	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	inline uint timerHour() const { return m_hour; }
@@ -119,8 +100,28 @@ public:
 	inline void setHasExercises(const bool new_value) { if (m_bHasExercises != new_value) { m_bHasExercises = new_value; emit hasExercisesChanged(); } }
 
 	inline QStringList previousTDays() const { return m_previousTDays; }
-	inline void setPreviousTDays(QStringList&& other) { m_previousTDays = std::move(other); emit previousTDaysChanged(); }
+	inline void setPreviousTDays(const QStringList& other) { m_previousTDays = other; emit previousTDaysChanged(); }
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+
+	void setMesoIdx(const uint new_meso_idx);
+
+	Q_INVOKABLE void getTrainingDayPage();
+	Q_INVOKABLE void loadExercisesFromDate(const QString& strDate);
+	Q_INVOKABLE void loadExercisesFromMesoPlan(DBMesoSplitModel* const splitModel = nullptr);
+	Q_INVOKABLE void convertTDayToPlan();
+	Q_INVOKABLE void resetWorkout();
+	Q_INVOKABLE void changeSplit(const QString& newSplitLetter, const bool bClearExercises = false);
+	Q_INVOKABLE void adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay);
+	Q_INVOKABLE void exportTrainingDay(const bool bShare);
+	Q_INVOKABLE void importTrainingDay(const QString& filename = QString());
+	Q_INVOKABLE void prepareWorkOutTimer(const QString& strStartTime = QString(), const QString& strEndTime = QString());
+	Q_INVOKABLE void startWorkout();
+	Q_INVOKABLE void stopWorkout();
+	Q_INVOKABLE void removeExercise(const uint exercise_idx);
+	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
+
+	void createExerciseObject();
+	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
 	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0) const;
@@ -135,10 +136,6 @@ public:
 	TPTimer* restTimer();
 
 signals:
-	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
-	void addPageToMainMenu(const QString& label, QQuickItem* page);
-	void removePageFromMainMenu(QQuickItem* page);
-
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void timerHourChanged();
 	void timerMinuteChanged();
@@ -160,6 +157,12 @@ signals:
 	void hasExercisesChanged();
 	void previousTDaysChanged();
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
+
+	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
+	void addPageToMainMenu(const QString& label, QQuickItem* page);
+	void removePageFromMainMenu(QQuickItem* page);
+	void requestMesoSplitModel(const QChar& splitletter);
+	void convertTDayToSplitPlan(const DBTrainingDayModel* const tDayModel);
 
 public slots:
 	void silenceTimeWarning();

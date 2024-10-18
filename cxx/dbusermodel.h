@@ -159,6 +159,11 @@ public:
 
 	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentCoach(row).toUInt() : -1; }
 	inline const QString& _currentCoach(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_COACH); }
+	inline const QString currentCoachName(const uint row) const
+	{
+		return currentCoach(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select coach ...)");
+	}
+
 	Q_INVOKABLE void setCurrentCoach(const int row, const int new_current_coach)
 	{
 		m_modeldata[row][USER_COL_CURRENT_COACH] = QString::number(new_current_coach);
@@ -167,6 +172,11 @@ public:
 
 	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentUser(row).toUInt() : -1; }
 	inline const QString& _currentUser(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_USER); }
+	inline const QString currentUserName(const uint row) const
+	{
+		return currentUser(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select client ...)");
+	}
+
 	Q_INVOKABLE void setCurrentUser(const int row, const int new_current_user)
 	{
 		m_modeldata[row][USER_COL_CURRENT_USER] = QString::number(new_current_user);

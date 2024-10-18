@@ -41,7 +41,7 @@ Q_PROPERTY(uint exerciseCount READ exerciseCount NOTIFY exerciseCountChanged)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
 
 public:
-	explicit DBTrainingDayModel(QObject* parent = nullptr, const int meso_idx = -1);
+	explicit DBTrainingDayModel(QObject* parent, const uint meso_idx);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
 	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); }

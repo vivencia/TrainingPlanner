@@ -10,21 +10,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlMesoSplitInterface::QmlMesoSplitInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_plannerComponent(nullptr), m_mesoIdx(meso_idx)
-{
-	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
-		if (old_meso_idx == m_mesoIdx)
-		{
-			m_mesoIdx = new_meso_idx;
-			QMap<QChar,DBMesoSplitModel*>::const_iterator itr(m_splitModels.constBegin());
-			const QMap<QChar,DBMesoSplitModel*>::const_iterator& itr_end(m_splitModels.constEnd());
-			while (itr != itr_end)
-				(*itr)->setMesoIdx(new_meso_idx);
-		}
-	});
-}
-
 QmlMesoSplitInterface::~QmlMesoSplitInterface()
 {
 	if (m_plannerComponent)
@@ -47,6 +32,18 @@ QmlMesoSplitInterface::~QmlMesoSplitInterface()
 
 		delete m_plannerPage;
 		delete m_plannerComponent;
+	}
+}
+
+void QmlMesoSplitInterface::setMesoIdx(const uint new_meso_idx)
+{
+	m_mesoIdx = new_meso_idx;
+	QMap<QChar,DBMesoSplitModel*>::const_iterator itr(m_splitModels.constBegin());
+	const QMap<QChar,DBMesoSplitModel*>::const_iterator& itr_end(m_splitModels.constEnd());
+	while (itr != itr_end)
+	{
+		(*itr)->setMesoIdx(new_meso_idx);
+		++itr;
 	}
 }
 

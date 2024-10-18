@@ -17,8 +17,11 @@ class QmlMesoSplitInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit QmlMesoSplitInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx);
+	explicit inline QmlMesoSplitInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
+		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_plannerComponent(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoSplitInterface();
+
+	void setMesoIdx(const uint new_meso_idx);
 
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void getMesoSplitPage(const uint page_index);

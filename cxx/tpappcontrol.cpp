@@ -36,7 +36,7 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 	QDate startDate, endDate, minimumStartDate;
 	if (appMesoModel()->count() == 0)
 	{
-		minimumStartDate.setDate(2023, 0, 2); //first monday of that year
+		minimumStartDate.setDate(2023, 1, 2); //first monday of that year
 		startDate = QDate::currentDate();
 		endDate = appUtils()->createFutureDate(startDate, 0, 2, 0);
 	}
@@ -52,7 +52,7 @@ uint TPAppControl::createNewMesocycle(const bool bCreatePage)
 
 	const uint meso_idx = appMesoModel()->newMesocycle(QStringList() << STR_MINUS_ONE << tr("New Plan") << QString::number(startDate.toJulianDay()) <<
 		QString::number(endDate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startDate, endDate)) <<
-		u"ABCDERR"_qs << QString() << appUserModel()->userName(0) << QString() << QString() << STR_ONE);
+		u"ABCDERR"_qs << appUserModel()->currentCoachName(0) << appUserModel()->currentUserName(0) << QString() << QString() << STR_ONE);
 
 	QmlItemManager* itemMngr{new QmlItemManager{meso_idx}};
 	m_itemManager.append(itemMngr);

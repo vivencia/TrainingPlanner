@@ -11,15 +11,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlMesoCalendarInterface::QmlMesoCalendarInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_calComponent(nullptr), m_mesoIdx(meso_idx)
-{
-	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
-		if (old_meso_idx == m_mesoIdx)
-			m_mesoIdx = new_meso_idx;
-	});
-}
-
 QmlMesoCalendarInterface::~QmlMesoCalendarInterface()
 {
 	emit removePageFromMainMenu(m_calPage);

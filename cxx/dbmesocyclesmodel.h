@@ -64,7 +64,6 @@ public:
 
 	Q_INVOKABLE inline QString name(const uint meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::mesoName", "out of range meso_idx");
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_NAME);
 	}
 	Q_INVOKABLE void setName(const uint meso_idx, const QString& new_name);
@@ -75,13 +74,7 @@ public:
 	}
 	Q_INVOKABLE inline QDate startDate(const uint meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::getStartDate", "out of range meso_idx");
 		return QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE).toLongLong());
-	}
-	Q_INVOKABLE inline QString startDateFancy(const uint meso_idx) const
-	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::startDateFancy", "out of range meso_idx");
-		return appUtils()->formatDate(QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE).toLongLong()));
 	}
 	Q_INVOKABLE bool setStartDate(const uint meso_idx, const QDate& new_date);
 
@@ -94,30 +87,22 @@ public:
 		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
 							QDate::currentDate().addDays(730);
 	}
-	Q_INVOKABLE inline QString endDateFancy(const uint meso_idx) const
-	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::startDateFancy", "out of range meso_idx");
-		return appUtils()->formatDate(QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()));
-	}
 	Q_INVOKABLE bool setEndDate(const uint meso_idx, const QDate& new_date);
 
 	Q_INVOKABLE inline QString notes(const uint meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::mesoNotes", "out of range meso_idx");
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_NOTE);
 	}
 	Q_INVOKABLE void setNotes(const uint meso_idx, const QString& new_notes);
 
 	Q_INVOKABLE inline QString nWeeks(const uint meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::mesoWeeks", "out of range meso_idx");
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_WEEKS);
 	}
 	Q_INVOKABLE void setWeeks(const uint meso_idx, const QString& new_weeks);
 
 	Q_INVOKABLE inline QString split(const uint meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::mesoSplit", "out of range meso_idx");
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_SPLIT);
 	}
 	Q_INVOKABLE bool setSplit(const uint meso_idx, const QString& new_split);
@@ -196,7 +181,7 @@ public:
 
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
 	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const uint meso_idx, const TPListModel* const model);
+	bool updateFromModel(const uint meso_idx, TPListModel* model);
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{

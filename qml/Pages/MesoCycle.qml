@@ -14,16 +14,6 @@ TPPage {
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager
-	required property int mesoIdx
-
-	property int useMode
-	property int muscularGroupId;
-	property bool bRealMeso
-	property bool bOwnMeso
-	property date minimumMesoStartDate
-	property date maximumMesoEndDate
-	property date calendarStartDate
-	property bool bMesoNameOK: false
 
 	header: ToolBar {
 		height: headerHeight
@@ -44,7 +34,7 @@ TPPage {
 			text: qsTr("Calendar")
 			imageSource: "meso-calendar.png"
 			imageSize: 20
-			visible: bOwnMeso
+			visible: mesoManager.ownMeso
 
 			anchors {
 				left: parent.left
@@ -69,29 +59,26 @@ TPPage {
 			spacing: 5
 
 			TPLabel {
-				text: mesocyclesModel.columnLabel(1)
+				text: mesoManager.nameLabel
 				Layout.alignment: Qt.AlignHCenter
 				Layout.topMargin: 10
 			}
 			TPTextInput {
 				id: txtMesoName
-				text: mesocyclesModel.name(mesoIdx);
+				text: mesoManager.name
 				wrapMode: Text.WordWrap
 				ToolTip.text: qsTr("Name too short")
+				ToolTip.visible:!bMesoNameOK;
 				width: parent.width - 20
 				Layout.leftMargin: 10
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-
-				onTextEdited: {
-					bMesoNameOK = text.length >= 5;
-					ToolTip.visible = !bMesoNameOK;
-				}
+				readonly property bool bMesoNameOK: text.length >= 5
 
 				onEditingFinished: {
 					if (bMesoNameOK)
-						mesocyclesModel.setName(mesoIdx, text);
+						mesoManager.name = text;
 				}
 
 				onEnterOrReturnKeyPressed: {
@@ -103,7 +90,7 @@ TPPage {
 			}
 
 			RowLayout {
-				visible: useMode >= 3
+				visible: mesoManager.hasCoach
 				height: 30
 				spacing: 5
 				Layout.leftMargin: 5
@@ -117,29 +104,21 @@ TPPage {
 
 				TPComboBox {
 					id: cboCoaches
+					currentText: mesoManager.coach
 					implicitWidth: appSettings.pageWidth/2
 					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: coachesModel
+
+						Component.onCompleted: {
+							const coaches = userModel.getCoaches();
+							for(var i = 0; i < coaches.length; ++i)
+								append({ "text": coaches[i], "value": i, "enabled": true });
+						}
 					}
 
-					Component.onCompleted: {
-						const coaches = userModel.getCoaches();
-						for(var i = 0; i < coaches.length; ++i)
-							coachesModel.append({ "text": coaches[i], "value": i, "enabled": true });
-						if (!mesocyclesModel.isNewMeso)
-							currentIndex = find(mesocyclesModel.coach(mesoIdx));
-						else
-							currentIndex = find(userModel.getCurrentUserName(true));
-						if (currentIndex === -1)
-							displayText = qsTr("(Select coach ...)");
-					}
-
-					onActivated: (index) => {
-						mesocyclesModel.setCoach(mesoIdx, textAt(index));
-						displayText = currentText;
-					}
+					onActivated: (index) => mesoManager.coach = textAt(index);
 				}
 
 				TPButton {
@@ -151,19 +130,16 @@ TPPage {
 
 			TPCheckBox {
 				text: qsTr("This plan is for myself")
-				checked: bOwnMeso
-				visible: useMode === 2 || useMode === 4
+				checked: mesoManager.ownMeso
+				visible: mesoManager.ownerIsCoach
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
-				onClicked: {
-					bOwnMeso = checked;
-					mesocyclesModel.setOwnMeso(mesoIdx, bOwnMeso);
-				}
+				onClicked: mesoManager.ownMeso = checked;
 			}
 
 			RowLayout {
-				visible: useMode === 2 ? true : !bOwnMeso
+				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
 				height: 30
 				spacing: 5
 				Layout.leftMargin: 5
@@ -171,34 +147,26 @@ TPPage {
 
 				TPLabel {
 					id: lblClients
-					text: mesocyclesModel.columnLabel(8)
+					text: mesoManager.clientLabel
 				}
 
 				TPComboBox {
 					id: cboClients
+					currentText: mesoManager.client
 					implicitWidth: appSettings.pageWidth*0.6
 					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: clientsModel
+
+						Component.onCompleted: {
+							const clients = userModel.getClients();
+							for(var x = 0; x < clients.length; ++x)
+								append({ "text": clients[x], "value": x, "enabled":true });
+						}
 					}
 
-					Component.onCompleted: {
-						const clients = userModel.getClients();
-						for(var x = 0; x < clients.length; ++x)
-							clientsModel.append({ "text": clients[x], "value": x, "enabled":true });
-						if (!mesocyclesModel.isNewMeso)
-							currentIndex = find(mesocyclesModel.client(mesoIdx));
-						else
-							currentIndex = find(userModel.getCurrentUserName(false));
-						if (currentIndex === -1)
-							displayText = qsTr("(Select client ...)");
-					}
-
-					onActivated: (index) => {
-						mesocyclesModel.setClient(mesoIdx, textAt(index));
-						displayText = currentText;
-					}
+					onActivated: (index) => mesoManager.client = textAt(index);
 				}
 
 				TPButton {
@@ -216,25 +184,20 @@ TPPage {
 				Layout.fillWidth: true
 
 				TPLabel {
-					text: mesocyclesModel.columnLabel(10)
+					text: mesoManager.typeLabel
 					width: (parent.width - 20)*0.2
 				}
 
 				TPComboBox {
 					id: cboMesoType
 					model: mesoTypeModel
+					currentText: mesoManager.type
 					width: (mesoPropertiesPage.width - 20)*0.75
 					Layout.minimumWidth: width
 
-					Component.onCompleted: {
-						currentIndex = find(mesocyclesModel.type(mesoIdx));
-						if (currentIndex === -1)
-							currentIndex = 6;
-					}
-
 					onActivated: (index) => {
 						if (index < 6)
-							mesocyclesModel.setType(mesoIdx, textAt(index));
+							mesoManager.type = textAt(index);
 						else
 							txtMesoTypeOther.forceActiveFocus();
 					}
@@ -254,14 +217,14 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoTypeOther
-				text: mesocyclesModel.type(mesoIdx)
+				text: mesoManager.type
 				width: parent.width - 20
 				visible: cboMesoType.currentIndex === 6
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 				Layout.leftMargin: 5
 
-				onEditingFinished: mesocyclesModel.setType(mesoIdx, text);
+				onEditingFinished: mesoManager.type = text;
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
 			}
 
@@ -328,7 +291,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: mesocyclesModel.startDateFancy(mesoIdx)
+				text: mesoManager.startDate
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
@@ -336,12 +299,12 @@ TPPage {
 
 				CalendarDialog {
 					id: caldlg
-					showDate: calendarStartDate
-					initDate: minimumMesoStartDate
-					finalDate: maximumMesoEndDate
+					showDate: mesoManager.calendarStartDate
+					initDate: mesoManager.minimumMesoStartDate
+					finalDate: mesoManager.maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
-					onDateSelected: (date) => mesocyclesModel.setStartDate(mesoIdx, date);
+					onDateSelected: (date) => mesoManager.minimumMesoStartDate = date;
 				}
 
 				TPButton {
@@ -356,16 +319,14 @@ TPPage {
 
 			TPCheckBox {
 				text: qsTr("Mesocycle-style plan")
-				checked: bRealMeso
+				checked: mesoManager.realMeso
 				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
 
 				onClicked: {
-					bRealMeso = checked;
-					mesocyclesModel.setIsRealMeso(mesoIdx, bRealMeso);
-					mesocyclesModel.setEndDate(mesoIdx, bRealMeso ? maximumMesoEndDate : mesocyclesModel.endDate(mesoIdx));
+					mesoManager.realMeso = checked;
 					if (!mesocyclesModel.isNewMeso)
 						showCalendarChangedDialog();
 				}
@@ -373,27 +334,27 @@ TPPage {
 
 			TPLabel {
 				text: mesocyclesModel.columnLabel(3)
-				visible: bRealMeso
+				visible: mesoManager.realMeso
 				Layout.leftMargin: 5
 			}
 			TPTextInput {
 				id: txtMesoEndDate
-				text: mesocyclesModel.endDateFancy(mesoIdx)
+				text: mesoManager.endDate
 				readOnly: true
-				visible: bRealMeso
+				visible: mesoManager.realMeso
 				Layout.fillWidth: false
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 
 				CalendarDialog {
 					id: caldlg2
-					showDate: mesocyclesModel.endDate(mesoIdx)
-					initDate: minimumMesoStartDate
-					finalDate: maximumMesoEndDate
+					showDate: mesoManager.calendarStartDate
+					initDate: mesoManager.minimumMesoStartDate
+					finalDate: mesoManager.maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
 					onDateSelected: (date) => {
-						mesocyclesModel.setEndDate(mesoIdx, date);
+						mesoManager.maximumMesoEndDate = date;
 						mesoSplitSetup.forcusOnFirstItem();
 					}
 				}
@@ -411,7 +372,7 @@ TPPage {
 			TPLabel {
 				id: lblnWeeks
 				text: mesocyclesModel.columnLabel(5)
-				visible: bRealMeso
+				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
 			}
@@ -420,7 +381,7 @@ TPPage {
 				id: txtMesoNWeeks
 				text: mesocyclesModel.nWeeks(mesoIdx)
 				readOnly: true
-				visible: bRealMeso
+				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
 				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2

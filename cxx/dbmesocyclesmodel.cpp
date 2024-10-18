@@ -5,6 +5,7 @@
 #include "tpsettings.h"
 
 #include <QSettings>
+#include <utility>
 
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
@@ -17,29 +18,29 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
-	m_exportName = tr("Training Plan");
+	m_exportName = std::move(tr("Training Plan"));
 
 	//m_roleNames[mesoNameRole] = std::move("mesoName"); //TODO TODO
-	m_roleNames[mesoNameRole] = "mesoName";
-	m_roleNames[mesoStartDateRole] = "mesoStartDate";
-	m_roleNames[mesoEndDateRole] = "mesoEndDate";
-	m_roleNames[mesoSplitRole] = "mesoSplit";
-	m_roleNames[mesoCoachRole] = "mesoCoach";
-	m_roleNames[mesoClientRole] = "mesoClient";
+	m_roleNames[mesoNameRole] = std::move("mesoName");
+	m_roleNames[mesoStartDateRole] = std::move("mesoStartDate");
+	m_roleNames[mesoEndDateRole] = std::move("mesoEndDate");
+	m_roleNames[mesoSplitRole] = std::move("mesoSplit");
+	m_roleNames[mesoCoachRole] = std::move("mesoCoach");
+	m_roleNames[mesoClientRole] = std::move("mesoClient");
 
 	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 	mColumnNames.append(QString()); //MESOCYCLES_COL_ID
-	mColumnNames.append(tr("Plan's name: "));
-	mColumnNames.append(tr("Start date: "));
-	mColumnNames.append(tr("End date: "));
-	mColumnNames.append(tr("Plan's considerations: "));
-	mColumnNames.append(tr("Number of weeks: "));
-	mColumnNames.append(tr("Weekly Training Division: "));
+	mColumnNames.append(std::move(tr("Plan's name: ")));
+	mColumnNames.append(std::move(tr("Start date: ")));
+	mColumnNames.append(std::move(tr("End date: ")));
+	mColumnNames.append(std::move(tr("Plan's considerations: ")));
+	mColumnNames.append(std::move(tr("Number of weeks: ")));
+	mColumnNames.append(std::move(tr("Weekly Training Division: ")));
 	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
 	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
 	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
-	mColumnNames.append(tr("Type: "));
-	mColumnNames.append(tr("Mesocycle-style plan: "));
+	mColumnNames.append(std::move(tr("Type: ")));
+	mColumnNames.append(std::move(tr("Mesocycle-style plan: ")));
 
 	m_splitModel = new DBMesoSplitModel(this, false, -1);
 }
@@ -137,9 +138,7 @@ QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QString& spl
 
 QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_week) const
 {
-	if (day_of_week >= 0 && day_of_week <= 6)
-		return split(meso_idx).at(day_of_week);
-	return QString();
+	return day_of_week <= 6 ? split(meso_idx).at(day_of_week) : QString();
 }
 
 void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
@@ -360,11 +359,11 @@ void DBMesocyclesModel::findTotalSplits(const uint meso_idx)
 			QString mesoLetters;
 
 			do {
-				if (static_cast<QChar>(*itr) == QChar('R'))
+				if (*itr == QChar('R'))
 					continue;
-				if (mesoLetters.contains(static_cast<QChar>(*itr)))
+				if (mesoLetters.contains(*itr))
 					continue;
-				mesoLetters.append(static_cast<QChar>(*itr));
+				mesoLetters.append(*itr);
 				nSplits++;
 			} while (++itr != itr_end);
 		}
@@ -488,7 +487,7 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 	splitmodeldata[MESOSPLIT_COL_ID] = STR_MINUS_ONE;
 	splitmodeldata[MESOSPLIT_COL_MESOID] = STR_MINUS_ONE;
 
-	uint col(1);
+	uint col(2);
 	QString value;
 	char buf[512];
 	qint64 lineLength(0);
@@ -532,14 +531,14 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 	m_splitModel->m_modeldata.append(splitmodeldata);
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return col >= MESOCYCLES_COL_SPLIT ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBMesocyclesModel::updateFromModel(const uint meso_idx, const TPListModel* const model)
+bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
 {
 	setImportMode(true);
 	for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
-		m_modeldata[meso_idx][i] = model->m_modeldata.at(0).at(i);
+		m_modeldata[meso_idx][i] = std::move(model->m_modeldata.at(0).at(i));
 	const DBMesoSplitModel* const splitModel(static_cast<const DBMesoSplitModel* const>(const_cast<TPListModel*>(model)));
 	for (uint i(MESOSPLIT_COL_ID); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
 		m_splitModel->m_modeldata[meso_idx][i] = splitModel->m_modeldata.at(0).at(i);

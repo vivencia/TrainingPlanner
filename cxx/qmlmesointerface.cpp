@@ -1,5 +1,8 @@
 #include "qmlmesointerface.h"
 #include "dbmesocyclesmodel.h"
+#include "qmltdayinterface.h"
+#include "qmlmesosplitinterface.h"
+#include "qmlmesocalendarinterface.h"
 #include "dbinterface.h"
 #include "osinterface.h"
 #include "tpappcontrol.h"
@@ -14,13 +17,24 @@ QMLMesoInterface::QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEn
 {
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
+		{
 			m_mesoIdx = new_meso_idx;
+			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_tDayPages.constEnd());
+			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
+			while (itr != itr_end)
+			{
+				(*itr)->setMesoIdx(new_meso_idx);
+				++itr;
+			}
+			if (m_exercisesPage)
+				m_exercisesPage->setMesoIdx(new_meso_idx);
+			if (m_calendarPage)
+				m_calendarPage->setMesoIdx(new_meso_idx);
+		}
 	});
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE) {
-			if (m_mesoComponent)
-				m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
-		}
+		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+			setPropertiesBasedOnUseMode();
 	});
 }
 
@@ -29,6 +43,141 @@ QMLMesoInterface::~QMLMesoInterface()
 	emit removePageFromMainMenu(m_mesoPage);
 	delete m_mesoPage;
 	delete m_mesoComponent;
+}
+
+void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
+{
+	if (m_bOwnMeso != new_value)
+	{
+		m_bOwnMeso = new_value;
+		if (bFromQml)
+			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
+	}
+}
+
+QString QMLMesoInterface::nameLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_NAME);
+}
+
+QString QMLMesoInterface::coachLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_COACH);
+}
+
+QString QMLMesoInterface::clientLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_CLIENT);
+}
+
+QString QMLMesoInterface::typeLabel() const
+{
+	return appMesoModel()->columnLabel(MESOCYCLES_COL_TYPE);
+}
+
+void QMLMesoInterface::setName(const QString& new_value, const bool bFromQml)
+{
+	if (m_name != new_value)
+	{
+		m_name = new_value;
+		if (bFromQml)
+		{
+			emit nameChanged();
+			appMesoModel()->setName(m_mesoIdx, m_name);
+		}
+	}
+}
+
+void QMLMesoInterface::setCoach(const QString& new_value, const bool bFromQml)
+{
+	if (m_coach != new_value)
+	{
+		m_coach = new_value;
+		if (bFromQml)
+		{
+			emit coachChanged();
+			appMesoModel()->setCoach(m_mesoIdx, m_coach);
+		}
+	}
+}
+
+void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
+{
+	if (m_client != new_value)
+	{
+		m_client = new_value;
+		if (bFromQml)
+		{
+			emit clientChanged();
+			appMesoModel()->setClient(m_mesoIdx, m_client);
+		}
+	}
+}
+
+void QMLMesoInterface::setType(const QString& new_value, const bool bFromQml)
+{
+	if (m_type != new_value)
+	{
+		m_type = new_value;
+		if (bFromQml)
+		{
+			emit typeChanged();
+			appMesoModel()->setType(m_mesoIdx, m_type);
+		}
+	}
+}
+
+void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
+{
+	if (m_bRealMeso != new_value)
+	{
+		m_bRealMeso = new_value;
+		if (bFromQml)
+		{
+			emit realMesoChanged();
+			appMesoModel()->setIsRealMeso(m_mesoIdx, m_bRealMeso);
+			setMaximumMesoEndDate(m_bRealMeso ? maximumMesoEndDate() : appMesoModel()->endDate(m_mesoIdx));
+		}
+	}
+}
+
+void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value, const bool bFromQml)
+{
+	if (m_minimumMesoStartDate != new_value)
+	{
+		m_minimumMesoStartDate = new_value;
+		m_startDate = appUtils()->formatDate(m_minimumMesoStartDate);
+		if (bFromQml)
+		{
+			emit minimumMesoStartDateChanged();
+			emit startDateChanged();
+			appMesoModel()->setStartDate(m_mesoIdx, m_minimumMesoStartDate);
+		}
+	}
+}
+
+void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml)
+{
+	if (m_maximumMesoEndDate != new_value)
+	{
+		m_maximumMesoEndDate = new_value;
+		m_endDate = appUtils()->formatDate(m_maximumMesoEndDate);
+		if (bFromQml)
+		{
+			emit maximumMesoEndDateChanged();
+			emit endDateChanged();
+			appMesoModel()->setEndDate(m_mesoIdx, m_maximumMesoEndDate);
+		}
+	}
+}
+
+void QMLMesoInterface::setCalendarStartDate(const QDate& new_value)
+{
+	if (m_calendarStartDate != new_value)
+	{
+		m_calendarStartDate = new_value;
+		emit calendarStartDateChanged();
+	}
 }
 
 void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday)
@@ -80,17 +229,23 @@ void QMLMesoInterface::importMeso(const QString& filename)
 void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
 {
 	const int meso_id(appMesoModel()->_id(m_mesoIdx));
-	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
-	m_mesoProperties.insert(u"mesoIdx"_qs, m_mesoIdx);
-	m_mesoProperties.insert(u"minimumMesoStartDate"_qs, !minimumMesoStartDate.isNull() ?
-								minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id));
-	m_mesoProperties.insert(u"maximumMesoEndDate"_qs, !maximumMesoEndDate.isNull() ?
-								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id));
-	m_mesoProperties.insert(u"calendarStartDate"_qs, !calendarStartDate.isNull() ?
+	setMinimumMesoStartDate(!minimumMesoStartDate.isNull() ?
+								minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id), false);
+	setMaximumMesoEndDate(!maximumMesoEndDate.isNull() ?
+								maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id), false);
+	setCalendarStartDate(!calendarStartDate.isNull() ?
 								calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
-	m_mesoMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
-	m_mesoProperties.insert(u"muscularGroupId"_qs, m_mesoMuscularGroupId);
-	m_mesoCalendarChanged = false;
+	m_muscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
+
+	setName(appMesoModel()->name(m_mesoIdx), false);
+	setCoach(appMesoModel()->coach(m_mesoIdx), false);
+	setClient(appMesoModel()->client(m_mesoIdx), false);
+	setType(appMesoModel()->type(m_mesoIdx), false);
+	setPropertiesBasedOnUseMode();
+	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
+	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
+
+	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
 
 	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCycle.qml"_qs}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
@@ -117,9 +272,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, m_qmlEngine->rootContext()));
 	m_qmlEngine->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
-	m_mesoPage->setProperty("useMode", appUserModel()->appUseMode(0));
-	m_mesoPage->setProperty("bOwnMeso", appMesoModel()->isOwnMeso(m_mesoIdx));
-	m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(m_mesoIdx));
 
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 
@@ -131,7 +283,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-		if (meso_idx == m_mesoIdx && initiator_id != m_mesoMuscularGroupId )
+		if (meso_idx == m_mesoIdx && initiator_id != m_muscularGroupId )
 			QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
@@ -139,23 +291,13 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		{
 			if (!appMesoModel()->isNewMeso(meso_idx))
 				appDBInterface()->saveMesocycle(meso_idx);
-			QMetaObject::invokeMethod(m_mesoPage, "updateFieldValues", Q_ARG(int, static_cast<int>(meso_field)), Q_ARG(int, static_cast<int>(meso_idx)));
-			m_mesoPage->setProperty("bRealMeso", appMesoModel()->isRealMeso(meso_idx));
 		}
 	});
 }
 
-/*
-DBTrainingDayModel* QmlTDayInterface::gettDayModel(const QDate& date)
+void QMLMesoInterface::setPropertiesBasedOnUseMode()
 {
-	if (!m_tDayModels.contains(date))
-	{
-		DBTrainingDayModel* tDayModel{new DBTrainingDayModel(this, m_mesoIdx)};
-		m_tDayModels.insert(date, tDayModel);
-		m_CurrenttDayModel = tDayModel;
-	}
-	else
-		m_CurrenttDayModel = m_tDayModels.value(date);
-	return m_CurrenttDayModel;
+	const uint useMode(appUserModel()->appUseMode(0));
+	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
+	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 }
-*/

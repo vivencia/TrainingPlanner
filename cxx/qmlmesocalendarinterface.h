@@ -16,9 +16,11 @@ class QmlMesoCalendarInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit QmlMesoCalendarInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx);
+	explicit inline QmlMesoCalendarInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
+		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_calComponent(nullptr), m_calPage(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoCalendarInterface();
 
+	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
 	Q_INVOKABLE void getMesoCalendarPage();
 
 signals:
@@ -31,7 +33,7 @@ private:
 	QQmlComponent* m_calComponent;
 	QQuickItem* m_calPage;
 	QVariantMap m_calProperties;
-	uint m_mesoIdx, m_lastUsedCalMesoID;
+	uint m_mesoIdx;
 
 	void createMesoCalendarPage();
 	void createMesoCalendarPage_part2();

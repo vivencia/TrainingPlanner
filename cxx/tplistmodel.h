@@ -55,7 +55,6 @@ public:
 
 	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
 	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(row); }
-	inline QStringList& getRow(const uint row) && { return m_modeldata[row]; }
 
 	inline bool importMode() const { return m_bImportMode; }
 	inline void setImportMode(const bool bimportmode) { m_bImportMode = bimportmode; }
