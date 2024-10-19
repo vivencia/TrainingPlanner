@@ -7,8 +7,8 @@
 
 #include <utility>
 
-DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const int meso_idx)
-	: TPListModel(parent, meso_idx), m_nextAddedExercisePos(2), mb_Complete(bComplete)
+DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const uint meso_idx)
+	: TPListModel(parent, static_cast<int>(meso_idx)), m_nextAddedExercisePos(2), mb_Complete(bComplete)
 {
 	setObjectName(DBMesoSplitObjectName);
 	m_tableId = MESOSPLIT_TABLE_ID;

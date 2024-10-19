@@ -1,5 +1,7 @@
 #include "qmlmesointerface.h"
 #include "dbmesocyclesmodel.h"
+#include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
 #include "qmltdayinterface.h"
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
@@ -13,7 +15,8 @@
 #include <QQuickWindow>
 
 QMLMesoInterface::QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_mesoComponent(nullptr), m_mesoIdx(meso_idx)
+	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_mesoComponent(nullptr), m_mesoIdx(meso_idx),
+		m_exercisesPage(nullptr), m_calendarPage(nullptr)
 {
 	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
 		if (old_meso_idx == m_mesoIdx)
@@ -43,6 +46,17 @@ QMLMesoInterface::~QMLMesoInterface()
 	emit removePageFromMainMenu(m_mesoPage);
 	delete m_mesoPage;
 	delete m_mesoComponent;
+	if (m_exercisesPage)
+		delete m_exercisesPage;
+	if (m_calendarPage)
+		delete m_calendarPage;
+	const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_tDayPages.constEnd());
+	QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
+	while (itr != itr_end)
+	{
+		delete *itr;
+		++itr;
+	}
 }
 
 void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
@@ -53,6 +67,11 @@ void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 		if (bFromQml)
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
 	}
+}
+
+bool QMLMesoInterface::isNewMeso() const
+{
+	return appMesoModel()->isNewMeso(m_mesoIdx);
 }
 
 QString QMLMesoInterface::nameLabel() const
@@ -253,6 +272,84 @@ void QMLMesoInterface::setNotes(const QString& new_value, const bool bFromQml)
 		emit notesChanged();
 }
 
+void QMLMesoInterface::setMuscularGroupA(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(0) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'A', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[0] = new_value;
+	emit muscularGroupAChanged();
+}
+
+void QMLMesoInterface::setMuscularGroupB(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(1) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'B', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[1] = new_value;
+	emit muscularGroupBChanged();
+}
+
+void QMLMesoInterface::setMuscularGroupC(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(2) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'C', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[2] = new_value;
+	emit muscularGroupCChanged();
+}
+
+void QMLMesoInterface::setMuscularGroupD(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(3) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'D', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[3] = new_value;
+	emit muscularGroupDChanged();
+}
+
+void QMLMesoInterface::setMuscularGroupE(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(4) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'E', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[4] = new_value;
+	emit muscularGroupEChanged();
+}
+
+void QMLMesoInterface::setMuscularGroupF(const QString& new_value, const bool bFromQml)
+{
+	if (bFromQml)
+	{
+		if (m_muscularGroup.at(5) != new_value)
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'F', new_value, m_muscularGroupId);
+		else
+			return;
+	}
+	m_muscularGroup[5] = new_value;
+	emit muscularGroupFChanged();
+}
+
 void QMLMesoInterface::setCalendarStartDate(const QDate& new_value)
 {
 	if (m_calendarStartDate != new_value)
@@ -265,6 +362,68 @@ void QMLMesoInterface::setCalendarStartDate(const QDate& new_value)
 void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday)
 {
 	appDBInterface()->changeMesoCalendar(m_mesoIdx, preserve_old_cal, preserve_untilyesterday);
+}
+
+void QMLMesoInterface::getCalendarPage()
+{
+	if (!m_calendarPage)
+		m_calendarPage = new QmlMesoCalendarInterface(this, this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+	m_calendarPage->getMesoCalendarPage();
+}
+
+void QMLMesoInterface::getExercisesPlannerPage()
+{
+	if (!m_exercisesPage)
+		m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+	m_exercisesPage->getExercisesPlannerPage();
+}
+
+void QMLMesoInterface::getTrainingDayPage(const QDate& date)
+{
+	QmlTDayInterface* tDayPage(m_tDayPages.value(date));
+	if (!tDayPage)
+	{
+		tDayPage = new QmlTDayInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx, date);
+		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
+			if (!m_exercisesPage)
+				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+			DBMesoSplitModel* splitModel(m_exercisesPage->getSplitModel(splitletter));
+			if (!splitModel->isReady())
+			{
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
+					if (table_idx == MESOSPLIT_TABLE_ID)
+					{
+						disconnect(*conn);
+						tDayPage->loadExercisesFromMesoPlan(splitModel);
+					}
+				});
+			}
+			else
+				appDBInterface()->loadCompleteMesoSplit(splitModel);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+
+		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
+			if (!m_exercisesPage)
+				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+			DBMesoSplitModel* splitModel(m_exercisesPage->getSplitModel(tDayModel->_splitLetter()));
+			if (!splitModel->isReady())
+			{
+				auto conn = std::make_shared<QMetaObject::Connection>();
+				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
+					if (table_idx == MESOSPLIT_TABLE_ID)
+					{
+						disconnect(*conn);
+						splitModel->convertFromTDayModel(tDayModel);
+					}
+				});
+			}
+			else
+				splitModel->convertFromTDayModel(tDayModel);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		m_tDayPages.insert(date, tDayPage);
+	}
+	tDayPage->getTrainingDayPage();
 }
 
 void QMLMesoInterface::getMesocyclePage()
@@ -325,8 +484,14 @@ void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	setMinimumMesoStartDate(!minimumMesoStartDate.isNull() ? minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id), false);
 	setMaximumMesoEndDate(!maximumMesoEndDate.isNull() ? maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id), false);
 	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
-	setNotes(appMesoModel()->notes(m_mesoIdx));
-
+	setNotes(appMesoModel()->notes(m_mesoIdx), false);
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'A'));
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'B'));
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'C'));
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'D'));
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'E'));
+	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'F'));
+	m_muscularGroup.append(std::move(tr("Rest day")));
 	setCalendarStartDate(!calendarStartDate.isNull() ? calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
 
 	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
@@ -344,7 +509,7 @@ void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, co
 
 void QMLMesoInterface::createMesocyclePage_part2()
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_mesoComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_mesoComponent->errorString();
@@ -360,7 +525,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 
 	connect(appUserModel(), &DBUserModel::userAdded, this, [this] (const uint user_row) {
-		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesModel", Q_ARG(int, static_cast<int>(user_row)));
+		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, static_cast<int>(user_row)));
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx) {
 		if (meso_idx == m_mesoIdx)
@@ -368,7 +533,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
 		if (meso_idx == m_mesoIdx && initiator_id != m_muscularGroupId )
-			QMetaObject::invokeMethod(m_mesoPage, "updateMuscularGroup", Q_ARG(int, splitIndex), Q_ARG(QString, QString(splitLetter)));
+			updateMuscularGroupFromOutside(splitIndex);
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
 		if (meso_idx == m_mesoIdx)
@@ -377,6 +542,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				appDBInterface()->saveMesocycle(meso_idx);
 		}
 	});
+	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
+		if (meso_idx == m_mesoIdx)
+			emit isNewMesoChanged();
+	});
 }
 
 void QMLMesoInterface::setPropertiesBasedOnUseMode()
@@ -384,4 +553,17 @@ void QMLMesoInterface::setPropertiesBasedOnUseMode()
 	const uint useMode(appUserModel()->appUseMode(0));
 	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
+}
+
+void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
+{
+	switch (splitIndex)
+	{
+		case 0: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'A'), false); break;
+		case 1: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'B'), false); break;
+		case 2: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'C'), false); break;
+		case 3: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'D'), false); break;
+		case 4: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'E'), false); break;
+		case 5: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'F'), false); break;
+	}
 }

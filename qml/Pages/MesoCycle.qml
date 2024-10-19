@@ -17,7 +17,7 @@ TPPage {
 
 	header: ToolBar {
 		height: headerHeight
-		enabled: !mesocyclesModel.isNewMeso
+		enabled: !mesoManager.isNewMeso
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -42,7 +42,7 @@ TPPage {
 				leftMargin: 20
 			}
 
-			onClicked: itemManager.getMesoCalendarPage();
+			onClicked: mesoManager.getCalendarPage();
 		}
 	}
 
@@ -98,7 +98,7 @@ TPPage {
 
 				TPLabel {
 					id: lblCoaches
-					text: mesocyclesModel.columnLabel(7)
+					text: mesoManager.coachLabel
 					width: appSettings.pageWidth/2 - 10
 				}
 
@@ -320,11 +320,7 @@ TPPage {
 
 				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
 
-				onClicked: {
-					mesoManager.realMeso = checked;
-					if (!mesocyclesModel.isNewMeso)
-						showCalendarChangedDialog();
-				}
+				onClicked: mesoManager.realMeso = checked;
 			}
 
 			TPLabel {
@@ -424,27 +420,6 @@ TPPage {
 		} //ColumnLayout
 	} //ScrollView
 
-	Component.onCompleted: {
-		if (mesocyclesModel.isNewMeso)
-			txtMesoName.forceActiveFocus();
-	}
-
-	function updateCoachesModel(userrow: int) {
-		const use_mode = userModel.appUseMode(userrow);
-		if (use_mode === 2 || use_mode === 4) {
-			const coaches = userModel.getCoaches();
-			coachesModel.clear();
-			for(var i = 0; i < coaches.length; ++i)
-				coachesModel.append({ "text": coaches[i], "value": i});
-		}
-		else if (use_mode === 0) {
-			const clients = userModel.getClients();
-			clientsModel.clear();
-			for(var x = 0; x < clients.length; ++x)
-				clientsModel.append({ "text": clients[x], "value": x});
-		}
-	}
-
 	property bool alreadyCalled: false
 	property TPComplexDialog calendarChangeDlg: null
 	function showCalendarChangedDialog() {
@@ -472,23 +447,22 @@ TPPage {
 	}
 
 	function changeCalendar() {
-		itemManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
+		mesoManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
 	}
 
-	function updateFieldValues(field: int, meso_idx: int) {
-		switch (field) {
-			case 2: //MESOCYCLES_COL_STARTDATE
-				txtMesoStartDate.text = mesocyclesModel.startDateFancy(meso_idx); break;
-			case 3: //MESOCYCLES_COL_ENDDATE
-				txtMesoEndDate.text = mesocyclesModel.endDateFancy(meso_idx); break;
-			case 5: //MESOCYCLES_COL_WEEKS
-				txtMesoNWeeks.text = mesocyclesModel.nWeeks(meso_idx); break;
-			case 6: //MESOCYCLES_COL_SPLIT
-				mesoSplitSetup.mesoSplitText = mesocyclesModel.split(meso_idx); break;
-			case 8: //MESOCYCLES_COL_CLIENT
-				cboClients.currentIndex = cboClients.find(mesocyclesModel.client(meso_idx)); break;
-			case 9: //MESOCYCLES_COL_FILE
-				txtMesoFile.text = mesocyclesModel.fileFancy(meso_idx); break;
+	function updateCoachesAndClientsModels(userrow: int) {
+		const use_mode = userModel.appUseMode(userrow);
+		if (use_mode === 2 || use_mode === 4) {
+			const coaches = userModel.getCoaches();
+			coachesModel.clear();
+			for(var i = 0; i < coaches.length; ++i)
+				coachesModel.append({ "text": coaches[i], "value": i});
+		}
+		else if (use_mode === 0) {
+			const clients = userModel.getClients();
+			clientsModel.clear();
+			for(var x = 0; x < clients.length; ++x)
+				clientsModel.append({ "text": clients[x], "value": x});
 		}
 	}
 } //Page

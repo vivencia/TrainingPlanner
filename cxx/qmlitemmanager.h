@@ -55,7 +55,7 @@ public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;
 	void requestTimerDialog(QQuickItem* requester, const QVariant& args);
-	void requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id);
+	void requestExercisesList(QQuickItem* requester, QVariant visible, QVariant multipleSelection, int id);
 	void requestFloatingButton(const QVariant& exercise_idx, const QVariant& set_type, const QVariant& nset);
 	void showRemoveExerciseMessage(int exercise_idx);
 	void showRemoveSetMessage(int set_number, int exercise_idx);

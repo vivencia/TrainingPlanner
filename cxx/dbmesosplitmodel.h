@@ -36,7 +36,7 @@ QML_ELEMENT
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
 
 public:
-	explicit DBMesoSplitModel(QObject* parent = nullptr, const bool bComplete = true, const int meso_idx = -1);
+	explicit DBMesoSplitModel(QObject* parent, const bool bComplete, const uint meso_idx);
 	void convertFromTDayModel(const DBTrainingDayModel* const tDayModel);
 	inline bool completeSplit() const { return mb_Complete; }
 

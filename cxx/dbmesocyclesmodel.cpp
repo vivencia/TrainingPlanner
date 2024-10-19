@@ -126,11 +126,9 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 	emit mesoChanged(meso_idx, field);
 }
 
-QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QString& splitLetter) const
+QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar& splitLetter) const
 {
-	return splitLetter != u"R"_qs ?
-		m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) :
-		tr("Rest day");
+	return m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter));
 }
 
 QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_week) const
@@ -187,14 +185,14 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 	}
 }
 
-void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue, const uint initiator_id)
+void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const uint initiator_id)
 {
 	const uint splitField(appUtils()->splitLetterToMesoSplitIndex(splitLetter));
 	if (splitField < SIMPLE_MESOSPLIT_TOTAL_COLS)
 	{
 		m_splitModel->m_modeldata[meso_idx][splitField] = newSplitValue;
 		setModified(meso_idx, MESOCYCLES_COL_MUSCULARGROUP);
-		emit muscularGroupChanged(meso_idx, initiator_id, splitField, splitLetter.at(0));
+		emit muscularGroupChanged(meso_idx, initiator_id, splitField, splitLetter);
 	}
 }
 

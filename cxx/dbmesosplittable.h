@@ -20,7 +20,7 @@ public:
 	void updateTable() override;
 	void getAllMesoSplits();
 	void saveMesoSplit();
-	void getCompleteMesoSplit(const bool bEmitSignal = true);
+	void getCompleteMesoSplit(const bool bEmitSignal = true); //only for empty models
 	void saveMesoSplitComplete();
 	bool mesoHasPlan(const QString& mesoId, const QString& splitLetter);
 	void convertTDayExercisesToMesoPlan(const DBTrainingDayModel* const tDayModel);

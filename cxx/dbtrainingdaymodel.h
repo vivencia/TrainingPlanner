@@ -92,6 +92,7 @@ public:
 		}
 	}
 
+	inline QChar _splitLetter() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER).at(0); }
 	Q_INVOKABLE inline QString splitLetter() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER); }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitletter, const bool bEmitSave = true)
 	{

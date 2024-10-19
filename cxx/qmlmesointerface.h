@@ -18,11 +18,11 @@ class QMLMesoInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged FINAL)
 Q_PROPERTY(bool ownerIsCoach READ ownerIsCoach WRITE setOwnerIsCoach NOTIFY ownerIsCoachChanged FINAL)
 Q_PROPERTY(bool hasCoach READ hasCoach WRITE setHasCoach NOTIFY hasCoachChanged FINAL)
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
+Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel CONSTANT FINAL)
 Q_PROPERTY(QString coachLabel READ coachLabel CONSTANT FINAL)
 Q_PROPERTY(QString clientLabel READ clientLabel CONSTANT FINAL)
@@ -43,6 +43,13 @@ Q_PROPERTY(QString endDate READ endDate NOTIFY endDateChanged FINAL)
 Q_PROPERTY(QString weeks READ weeks NOTIFY weeksChanged FINAL)
 Q_PROPERTY(QString split READ split WRITE setSplit NOTIFY splitChanged FINAL)
 Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
+Q_PROPERTY(QString muscularGroupA READ muscularGroupA WRITE setMuscularGroupA NOTIFY muscularGroupAChanged FINAL)
+Q_PROPERTY(QString muscularGroupB READ muscularGroupB WRITE setMuscularGroupB NOTIFY muscularGroupBChanged FINAL)
+Q_PROPERTY(QString muscularGroupC READ muscularGroupC WRITE setMuscularGroupC NOTIFY muscularGroupCChanged FINAL)
+Q_PROPERTY(QString muscularGroupD READ muscularGroupD WRITE setMuscularGroupD NOTIFY muscularGroupDChanged FINAL)
+Q_PROPERTY(QString muscularGroupE READ muscularGroupE WRITE setMuscularGroupE NOTIFY muscularGroupEChanged FINAL)
+Q_PROPERTY(QString muscularGroupF READ muscularGroupF WRITE setMuscularGroupF NOTIFY muscularGroupFChanged FINAL)
+Q_PROPERTY(QString muscularGroupR READ muscularGroupR CONSTANT FINAL)
 Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate WRITE setMinimumMesoStartDate NOTIFY minimumMesoStartDateChanged FINAL)
 Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate WRITE setMaximumMesoEndDate NOTIFY maximumMesoEndDateChanged FINAL)
 Q_PROPERTY(QDate calendarStartDate READ calendarStartDate WRITE setCalendarStartDate NOTIFY calendarStartDateChanged FINAL)
@@ -52,8 +59,8 @@ public:
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	inline int mesoIdx() const { return m_mesoIdx; }
-	void setMesoIdx(const int new_value);
+	inline const uint mesoIdx() const { return m_mesoIdx; }
+	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
 
 	inline bool ownerIsCoach() const { return m_bOwnerIsCoach; }
 	inline void setOwnerIsCoach(const bool new_value) { if (m_bOwnerIsCoach != new_value) { m_bOwnerIsCoach = new_value; emit ownerIsCoachChanged(); } };
@@ -66,6 +73,8 @@ public:
 
 	inline bool ownMeso() const { return m_bOwnMeso; }
 	void setOwnMeso(const bool new_value, const bool bFromQml = true);
+
+	bool isNewMeso() const;
 
 	QString nameLabel() const;
 	QString coachLabel() const;
@@ -110,11 +119,28 @@ public:
 	inline QString notes() const { return m_notes; }
 	void setNotes(const QString& new_value, const bool bFromQml = true);
 
+	inline QString muscularGroupA() const { return m_muscularGroup.at(0); }
+	void setMuscularGroupA(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupB() const { return m_muscularGroup.at(1); }
+	void setMuscularGroupB(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupC() const { return m_muscularGroup.at(2); }
+	void setMuscularGroupC(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupD() const { return m_muscularGroup.at(3); }
+	void setMuscularGroupD(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupE() const { return m_muscularGroup.at(4); }
+	void setMuscularGroupE(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupF() const { return m_muscularGroup.at(5); }
+	void setMuscularGroupF(const QString& new_value, const bool bFromQml = true);
+	inline QString muscularGroupR() const { return m_muscularGroup.at(6); }
+
 	inline QDate calendarStartDate() const { return m_calendarStartDate; }
 	void setCalendarStartDate(const QDate& new_value);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	Q_INVOKABLE void changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday);
+	Q_INVOKABLE void getCalendarPage();
+	Q_INVOKABLE void getExercisesPlannerPage();
+	Q_INVOKABLE void getTrainingDayPage(const QDate& date);
 
 	void getMesocyclePage();
 	void exportMeso(const bool bShare, const bool bCoachInfo);
@@ -122,12 +148,11 @@ public:
 
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	void mesoIdxChanged();
-	void muscularGroupIdChanged();
 	void ownerIsCoachChanged();
 	void hasCoachChanged();
 	void realMesoChanged();
 	void ownMesoChanged();
+	void isNewMesoChanged();
 	void nameChanged();
 	void coachChanged();
 	void clientChanged();
@@ -139,6 +164,12 @@ signals:
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();
+	void muscularGroupAChanged();
+	void muscularGroupBChanged();
+	void muscularGroupCChanged();
+	void muscularGroupDChanged();
+	void muscularGroupEChanged();
+	void muscularGroupFChanged();
 	void minimumMesoStartDateChanged();
 	void maximumMesoEndDateChanged();
 	void calendarStartDateChanged();
@@ -161,6 +192,7 @@ private:
 	bool m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
 	QString m_name, m_coach, m_client, m_type, m_file, m_startDate, m_endDate, m_weeks, m_split, m_notes;
 	QDate m_minimumMesoStartDate, m_maximumMesoEndDate, m_calendarStartDate;
+	QStringList m_muscularGroup;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	QMap<QDate,QmlTDayInterface*> m_tDayPages;
@@ -171,6 +203,7 @@ private:
 								const QDate& calendarStartDate = QDate());
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();
+	void updateMuscularGroupFromOutside(const uint splitIndex);
 
 	friend class TPAppControl;
 };

@@ -176,7 +176,6 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 		{
 			if (query.first ())
 			{
-				m_model->clear(); //The model might have been used before, but we want a clean slate now
 				m_model->setMuscularGroup(query.value(7).toString());
 
 				const QStringList& exercises(query.value(MESOSPLIT_COL_EXERCISENAME).toString().split(record_separator, Qt::SkipEmptyParts));
@@ -198,12 +197,11 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info[MESOSPLIT_COL_SUBSETSNUMBER] = setssubsets.at(i);
 					split_info[MESOSPLIT_COL_REPSNUMBER] = setsreps.at(i);
 					split_info[MESOSPLIT_COL_WEIGHT] = setsweight.at(i);
-					m_model->appendList(split_info);
+					m_model->appendListMove(split_info);
 				}
 				ok = true;
 			}
 		}
-		m_model->setSplitLetter(splitLetter); //set the main property right away
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}
 	if (bEmitSignal)

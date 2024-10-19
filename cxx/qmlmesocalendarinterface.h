@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QVariantMap>
 
+class QMLMesoInterface;
 class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
@@ -16,18 +17,21 @@ class QmlMesoCalendarInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit inline QmlMesoCalendarInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_calComponent(nullptr), m_calPage(nullptr), m_mesoIdx(meso_idx) {}
+	explicit inline QmlMesoCalendarInterface(QObject* parent, QMLMesoInterface* mesoManager,
+						QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
+		: QObject{parent}, m_mesoManager(mesoManager), m_qmlEngine(qmlEngine), m_mainWindow(mainWindow),
+			m_calComponent(nullptr), m_calPage(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoCalendarInterface();
 
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
-	Q_INVOKABLE void getMesoCalendarPage();
+	void getMesoCalendarPage();
 
 signals:
 	void addPageToMainMenu(const QString& label, QQuickItem* page);
 	void removePageFromMainMenu(QQuickItem* page);
 
 private:
+	QMLMesoInterface* m_mesoManager;
 	QQmlApplicationEngine* m_qmlEngine;
 	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_calComponent;

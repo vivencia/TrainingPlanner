@@ -353,6 +353,22 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
+void DBInterface::loadCompleteMesoSplit(DBMesoSplitModel* splitModel)
+{
+	DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
+	worker->addExecArg(appMesoModel()->id(splitModel->mesoIdx()));
+	worker->addExecArg(splitModel->_splitLetter());
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
+		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
+		{
+			disconnect(*conn);
+			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->model()));
+		}
+	});
+	createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
+}
+
 void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded)
 {
 	const QString& mesoSplit(appMesoModel()->split(meso_idx));

@@ -94,8 +94,8 @@ void QmlMesoSplitInterface::getMesoSplitPage(const uint page_index)
 void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id)
 {
 	splitModel->setMuscularGroup(new_musculargroup);
-	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->splitLetter(), new_musculargroup, initiator_id);
-	setSplitPageProperties(m_splitPages.value(splitModel->splitLetter().at(0)), splitModel);
+	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->_splitLetter(), new_musculargroup, initiator_id);
+	setSplitPageProperties(m_splitPages.value(splitModel->_splitLetter()), splitModel);
 }
 
 void QmlMesoSplitInterface::swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2)
@@ -174,12 +174,14 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 
 DBMesoSplitModel* QmlMesoSplitInterface::getSplitModel(const QChar& splitLetter)
 {
-	if (!m_splitModels.contains(splitLetter))
+	DBMesoSplitModel* splitModel(m_splitModels.value(splitLetter));
+	if (!splitModel)
 	{
-		DBMesoSplitModel* splitModel{new DBMesoSplitModel(this, true, m_mesoIdx)};
+		splitModel = new DBMesoSplitModel{this, true, m_mesoIdx};
+		splitModel->setSplitLetter(splitLetter);
 		m_splitModels.insert(splitLetter, splitModel);
 	}
-	return m_splitModels.value(splitLetter);
+	return splitModel;
 }
 
 int QmlMesoSplitInterface::splitLetterToPageIndex(const DBMesoSplitModel* const splitModel)
@@ -262,8 +264,8 @@ void QmlMesoSplitInterface::createMesoSplitPage(const uint page_index)
 	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_plannerPage);
 
-	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)), this,
-						SLOT(requestExercisesList(QQuickItem*,const QVariant&,const QVariant&,int)));
+	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*,QVariant,QVariant,int)), this,
+							SLOT(requestExercisesList(QQuickItem*,QVariant,QVariant,int)));
 
 
 	if (splitModel->count() == 0)
@@ -303,8 +305,7 @@ void QmlMesoSplitInterface::initializeSplitModels()
 
 void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)
 {
-	int prevMesoId(-1);
-	prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->_id(m_mesoIdx));
+	int prevMesoId{appMesoModel()->getPreviousMesoId(appMesoModel()->_id(m_mesoIdx))};
 	if (prevMesoId >= 0)
 	{
 		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
@@ -322,9 +323,9 @@ void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const 
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
 void QmlMesoSplitInterface::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
-	const QString& musculargroup{appMesoModel()->muscularGroup(m_mesoIdx, splitModel->splitLetter())};
+	const QString& musculargroup{appMesoModel()->muscularGroup(m_mesoIdx, splitModel->_splitLetter())};
 	splitModel->setMuscularGroup(musculargroup);
-	QQuickItem* splitPage(getSplitPage(splitModel->splitLetter().at(0)));
+	QQuickItem* splitPage(getSplitPage(splitModel->_splitLetter()));
 	if (splitPage)
 	{
 		setSplitPageProperties(splitPage, splitModel);

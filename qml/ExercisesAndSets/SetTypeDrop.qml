@@ -228,7 +228,7 @@ Item {
 								case 3: return setManager.reps4;
 							}
 						});
-						txtNReps.valueChanged.connect(function(str) {
+						valueChanged.connect(function(str) {
 							switch(index) {
 								case 0: setManager.reps1 = str; break;
 								case 1: setManager.reps2 = str; break;

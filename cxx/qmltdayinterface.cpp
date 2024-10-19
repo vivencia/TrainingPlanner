@@ -467,9 +467,11 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_tDayModel->date()), m_tDayPage);
 	setHeaderText();
 
-	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_id, const QVariant data) {
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
+			disconnect(*conn);
 			const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
 			//The connected signal is only meant for the working page. All *possible* other pages are not affected by it, so we must filter them out
 			if (tDayModel->dateStr() == m_tDayModel->dateStr())

@@ -70,6 +70,7 @@ public:
 	void saveMesoSplit(const uint meso_idx);
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
+	void loadCompleteMesoSplit(DBMesoSplitModel* splitModel);
 	void loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded = true);
 	void saveMesoSplitComplete(DBMesoSplitModel* model);
 	bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;

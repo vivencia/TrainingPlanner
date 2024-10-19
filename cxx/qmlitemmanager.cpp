@@ -47,7 +47,6 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	qmlRegisterType<QmlUserInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "UserManager");
 	qmlRegisterType<QmlExercisesDatabaseInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExercisesListManager");
 	qmlRegisterType<QMLMesoInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesoManager");
-	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
 	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
 	qmlRegisterType<QmlTDayInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TDayManager");
 	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
@@ -65,8 +64,8 @@ void QmlItemManager::configureQmlEngine(QQmlApplicationEngine* qml_engine)
 	properties[7] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
 	m_appQmlEngine->rootContext()->setContextProperties(properties);
 
-	const QUrl& url(u"qrc:/qml/main.qml"_qs);
-	QObject::connect(m_appQmlEngine, &QQmlApplicationEngine::objectCreated, m_appQmlEngine, [url] (QObject* obj, const QUrl& objUrl) {
+	const QUrl& url{u"qrc:/qml/main.qml"_qs};
+	QObject::connect(m_appQmlEngine, &QQmlApplicationEngine::objectCreated, m_appQmlEngine, [url] (const QObject* const obj, const QUrl& objUrl) {
 		if (!obj && url == objUrl)
 		{
 			LOG_MESSAGE("*******************Mainwindow not loaded*******************")
@@ -367,7 +366,7 @@ void QmlItemManager::requestTimerDialog(QQuickItem* requester, const QVariant& a
 		Q_ARG(QVariant, strargs.at(0)), Q_ARG(QVariant, strargs.at(1)), Q_ARG(QVariant, strargs.at(2)));
 }
 
-void QmlItemManager::requestExercisesList(QQuickItem* requester, const QVariant& visible, const QVariant& multipleSelection, int id)
+void QmlItemManager::requestExercisesList(QQuickItem* requester, QVariant visible, QVariant multipleSelection, int id)
 {
 	if (appExercisesModel()->count() == 0)
 		appDBInterface()->getAllExercises();

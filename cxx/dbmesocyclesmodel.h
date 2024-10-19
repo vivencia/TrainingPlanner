@@ -187,8 +187,8 @@ public:
 		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 
-	QString muscularGroup(const uint meso_idx, const QString& splitLetter) const;
-	void setMuscularGroup(const uint meso_idx, const QString& splitLetter, const QString& newSplitValue, const uint initiator_id);
+	QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
+	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const uint initiator_id);
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;

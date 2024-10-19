@@ -13,7 +13,6 @@ QML_ELEMENT
 
 Q_PROPERTY(uint count READ count NOTIFY countChanged)
 Q_PROPERTY(int currentRow READ currentRow WRITE setCurrentRow NOTIFY currentRowChanged)
-Q_PROPERTY(int mesoIdx READ mesoIdx WRITE setMesoIdx NOTIFY mesoIdxChanged)
 
 public:
 	inline TPListModel(const TPListModel& other)  = delete;
@@ -23,16 +22,10 @@ public:
 	inline int tableID() const { return m_tableId; }
 	inline uint numberOfFields() const { return m_fieldCount; }
 	inline int mesoIdx() const { return m_mesoIdx; }
-	inline void setMesoIdx(const int new_mesoidx)
-	{
-		if (new_mesoidx != m_mesoIdx)
-		{
-			m_mesoIdx = new_mesoidx;
-			emit mesoIdxChanged();
-		}
-	}
+	inline void setMesoIdx(const int new_mesoidx) { m_mesoIdx = new_mesoidx; }
 
 	void appendList(const QStringList& list);
+	void appendListMove(QStringList& list);
 	virtual void clear();
 
 	Q_INVOKABLE void removeRow (const uint row);
@@ -71,7 +64,6 @@ public:
 
 signals:
 	void countChanged();
-	void mesoIdxChanged();
 	void currentRowChanged();
 
 protected:

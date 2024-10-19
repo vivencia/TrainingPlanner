@@ -10,7 +10,7 @@ TPPage {
 	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
-	required property CalendarManager calendarManager
+	required property MesoManager mesoManager
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	property date _today
@@ -270,7 +270,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: itemManager.getTrainingDayPage(calendar.dayInfoDate);
+			onClicked: mesoManager.getTrainingDayPage(calendar.dayInfoDate);
 		}
 	} // footer: ToolBar
 
