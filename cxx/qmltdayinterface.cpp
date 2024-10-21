@@ -7,7 +7,6 @@
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "osinterface.h"
-#include "tpappcontrol.h"
 #include "tptimer.h"
 #include "tpsettings.h"
 

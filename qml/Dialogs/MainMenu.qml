@@ -16,7 +16,6 @@ Drawer {
 	opacity: 0.8
 
 	property var buttonComponent: null
-	property QmlItemManager itemManager
 
 	onOpened: {
 		if (userModel.avatar(0) !== imgAvatar.source) {

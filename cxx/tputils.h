@@ -79,7 +79,6 @@ private:
 
 	static TPUtils* app_utils;
 	friend TPUtils* appUtils();
-	friend class TPAppControl;
 };
 
 inline TPUtils* appUtils() { return TPUtils::app_utils; }

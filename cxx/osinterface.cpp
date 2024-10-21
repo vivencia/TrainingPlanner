@@ -1,7 +1,6 @@
 #include "osinterface.h"
 #include "tputils.h"
 #include "dbusermodel.h"
-#include "tpappcontrol.h"
 #include "dbinterface.h"
 
 #ifdef Q_OS_ANDROID

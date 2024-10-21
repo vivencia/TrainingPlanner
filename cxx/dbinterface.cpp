@@ -82,7 +82,6 @@ void DBInterface::init()
 
 	getExercisesListVersion();
 	getAllUsers();
-	appMesoModel()->setUserModel(appUserModel());
 	getAllMesocycles();
 
 	if (appSettings()->appVersion() != TP_APP_VERSION)

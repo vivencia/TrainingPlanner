@@ -17,7 +17,6 @@ TPPage {
 
 	header: ToolBar {
 		height: headerHeight
-		enabled: !mesoManager.isNewMeso
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -34,7 +33,7 @@ TPPage {
 			text: qsTr("Calendar")
 			imageSource: "meso-calendar.png"
 			imageSize: 20
-			visible: mesoManager.ownMeso
+			enabled: !mesoManager.isNewMeso
 
 			anchors {
 				left: parent.left

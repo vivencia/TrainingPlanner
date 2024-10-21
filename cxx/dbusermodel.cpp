@@ -4,13 +4,12 @@
 
 #include <utility>
 
-DBUserModel* DBUserModel::app_user_model(nullptr);
+DBUserModel* DBUserModel::_appUserModel(nullptr);
 
 DBUserModel::DBUserModel(QObject *parent)
 	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
 {
-	if (!app_user_model)
-		app_user_model = this;
+	_appUserModel = this;
 
 	setObjectName(DBUserObjectName);
 	m_tableId = EXERCISES_TABLE_ID;

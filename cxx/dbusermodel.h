@@ -212,10 +212,10 @@ private:
 	bool mb_empty;
 	int m_searchRow;
 
-	static DBUserModel* app_user_model;
+	static DBUserModel* _appUserModel;
 	friend DBUserModel* appUserModel();
 };
 
-inline DBUserModel* appUserModel() { return DBUserModel::app_user_model; }
+inline DBUserModel* appUserModel() { return DBUserModel::_appUserModel; }
 
 #endif // DBUSERMODEL_H

@@ -23,13 +23,13 @@
 
 class DBMesoSplitModel;
 class DBMesoCalendarModel;
+class QMLMesoInterface;
 
 //mesoSplitModel is not accessed directly, only through here
 class DBMesocyclesModel : public TPListModel
 {
 
 Q_OBJECT
-QML_ELEMENT
 
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged)
@@ -47,10 +47,18 @@ public:
 
 	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
-	void setUserModel(DBUserModel* usermodel);
+
+	Q_INVOKABLE void createNewMesocycle(const bool bCreatePage);
+	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
+	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
+	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
+	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
+	Q_INVOKABLE void todaysWorkout();
+
+	inline QMLMesoInterface* mesoManager(const uint meso_idx) { return m_mesoManagerList.at(meso_idx); }
+	inline const QMLMesoInterface* mesoManager(const uint meso_idx) const { return m_mesoManagerList.at(meso_idx); }
 
 	const uint newMesocycle(const QStringList& infolist);
-	void delMesocycle(const uint meso_idx);
 	void finishedLoadingFromDatabase();
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
@@ -145,11 +153,7 @@ public:
 		setModified(meso_idx, MESOCYCLES_COL_CLIENT);
 	}
 
-	inline bool isOwnMeso(const int meso_idx) const
-	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
-		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == m_userModel->userName(0);
-	}
+	bool isOwnMeso(const int meso_idx) const;
 	void setOwnMeso(const uint meso_idx, const bool bOwnMeso);
 
 	inline const QString& file(const uint meso_idx) const
@@ -240,7 +244,7 @@ signals:
 	void currentMesoIdxChanged();
 
 private:
-	DBUserModel* m_userModel;
+	QList<QMLMesoInterface*> m_mesoManagerList;
 	DBMesoSplitModel* m_splitModel;
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<uchar> m_isNewMeso;

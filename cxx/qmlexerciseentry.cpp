@@ -4,7 +4,6 @@
 #include "dbtrainingdaymodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
-#include "tpappcontrol.h"
 #include "tptimer.h"
 
 #include <QQmlApplicationEngine>

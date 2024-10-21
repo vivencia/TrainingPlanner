@@ -25,7 +25,6 @@ private:
 
 	static TranslationClass* app_tr;
 	friend TranslationClass* appTr();
-	friend class TPAppControl;
 };
 Q_DECLARE_METATYPE(TranslationClass*)
 

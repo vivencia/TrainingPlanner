@@ -1,5 +1,4 @@
 #include "tpsettings.h"
-#include "tpappcontrol.h"
 #include "tputils.h"
 #include "translationclass.h"
 #include "osinterface.h"
@@ -22,16 +21,14 @@ int main(int argc, char *argv[])
 	app.setApplicationName(u"TrainingPlanner"_qs);
 
 	TPSettings tpSettings{};
-	TPAppControl tpApp{};
-	TPUtils appUtils{};
-	TranslationClass appTr{};
-	OSInterface appOsInterface{};
+	TPUtils tpUtils{};
+	TranslationClass appTranslations{};
+	OSInterface osInterface{};
 	DBInterface appDB{};
 	DBUserModel userModel{};
 	DBMesocyclesModel mesocyclesModel{};
 	DBExercisesModel exercisesModel{};
-	QmlItemManager rootQmlManager{0xFFFF};
 	QQmlApplicationEngine qmlEngine;
-	tpApp.init(&qmlEngine);
+	QmlItemManager rootQmlManager{&qmlEngine};
 	return app.exec();
 }

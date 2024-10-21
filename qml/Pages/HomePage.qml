@@ -149,7 +149,7 @@ TPPage {
 						leftMargin: 5
 					}
 
-					onClicked: appControl.getMesoCalendarPage(index);
+					onClicked: mesocyclesModel.getMesoCalendarPage(index);
 
 					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx) {
 						if (mesoidx === index)
@@ -177,7 +177,7 @@ TPPage {
 						leftMargin: 5
 					}
 
-					onClicked: appControl.getExercisesPlannerPage(index);
+					onClicked: mesocyclesModel.getExercisesPlannerPage(index);
 				}
 
 				TPButton {
@@ -260,7 +260,7 @@ TPPage {
 					parentPage: homePage
 
 					property int mesoidx
-					onButton1Clicked: appControl.removeMesocycle(mesoidx);
+					onButton1Clicked: mesocyclesModel.removeMesocycle(mesoidx);
 
 					function init(meso_idx: int) {
 						mesoidx = meso_idx;
@@ -358,7 +358,7 @@ TPPage {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			onClicked: appControl.createNewMesocycle(true);
+			onClicked: mesocyclesModel.createNewMesocycle(true);
 		}
 
 		TPButton {
@@ -393,7 +393,7 @@ TPPage {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			onClicked: appControl.getTrainingDayPage(mesocyclesModel.mostRecentOwnMesoIdx(), new Date());
+			onClicked: itemManager.todaysWorkout();
 		}
 	} // footer
 
@@ -419,7 +419,7 @@ TPPage {
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
 		parentPage: homePage
 
-		onButton1Clicked: appControl.exportMeso(mesoIdx, bShare, customBoolProperty1);
+		onButton1Clicked: mesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
 
 		property int mesoIdx
 		property bool bShare

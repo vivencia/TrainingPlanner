@@ -55,7 +55,9 @@ Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate WRITE setMaximumMeso
 Q_PROPERTY(QDate calendarStartDate READ calendarStartDate WRITE setCalendarStartDate NOTIFY calendarStartDateChanged FINAL)
 
 public:
-	explicit QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx);
+	explicit inline QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
+	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_mesoComponent(nullptr), m_mesoIdx(meso_idx),
+		m_exercisesPage(nullptr), m_calendarPage(nullptr) {}
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -204,8 +206,6 @@ private:
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();
 	void updateMuscularGroupFromOutside(const uint splitIndex);
-
-	friend class TPAppControl;
 };
 
 #endif // QMLMESOINTERFACE_H

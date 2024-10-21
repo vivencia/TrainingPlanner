@@ -56,7 +56,6 @@ set( CXX_SOURCES
 	cxx/main.cpp
 	cxx/tpglobals.h
 
-	cxx/tpappcontrol.h cxx/tpappcontrol.cpp
 	cxx/translationclass.cpp cxx/translationclass.h
 	cxx/tputils.cpp cxx/tputils.h
 	cxx/dbinterface.h cxx/dbinterface.cpp
@@ -64,7 +63,6 @@ set( CXX_SOURCES
 	cxx/osinterface.h cxx/osinterface.cpp
 	cxx/tptimer.h cxx/tptimer.cpp
 	cxx/tpsettings.h cxx/tpsettings.cpp
-
 	cxx/tpimageprovider.h cxx/tpimageprovider.cpp
 	cxx/tpimage.h cxx/tpimage.cpp
 	cxx/tpandroidnotification.h cxx/tpandroidnotification.cpp

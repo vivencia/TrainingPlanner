@@ -7,39 +7,11 @@
 #include "qmlmesocalendarinterface.h"
 #include "dbinterface.h"
 #include "osinterface.h"
-#include "tpappcontrol.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
-
-QMLMesoInterface::QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_mesoComponent(nullptr), m_mesoIdx(meso_idx),
-		m_exercisesPage(nullptr), m_calendarPage(nullptr)
-{
-	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
-		if (old_meso_idx == m_mesoIdx)
-		{
-			m_mesoIdx = new_meso_idx;
-			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_tDayPages.constEnd());
-			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
-			while (itr != itr_end)
-			{
-				(*itr)->setMesoIdx(new_meso_idx);
-				++itr;
-			}
-			if (m_exercisesPage)
-				m_exercisesPage->setMesoIdx(new_meso_idx);
-			if (m_calendarPage)
-				m_calendarPage->setMesoIdx(new_meso_idx);
-		}
-	});
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-			setPropertiesBasedOnUseMode();
-	});
-}
 
 QMLMesoInterface::~QMLMesoInterface()
 {
@@ -526,6 +498,28 @@ void QMLMesoInterface::createMesocyclePage_part2()
 
 	connect(appUserModel(), &DBUserModel::userAdded, this, [this] (const uint user_row) {
 		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, static_cast<int>(user_row)));
+	});
+	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
+		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+			setPropertiesBasedOnUseMode();
+	});
+
+	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
+		if (old_meso_idx == m_mesoIdx)
+		{
+			m_mesoIdx = new_meso_idx;
+			const QMap<QDate,QmlTDayInterface*>::const_iterator itr_end(m_tDayPages.constEnd());
+			QMap<QDate,QmlTDayInterface*>::const_iterator itr(m_tDayPages.constBegin());
+			while (itr != itr_end)
+			{
+				(*itr)->setMesoIdx(new_meso_idx);
+				++itr;
+			}
+			if (m_exercisesPage)
+				m_exercisesPage->setMesoIdx(new_meso_idx);
+			if (m_calendarPage)
+				m_calendarPage->setMesoIdx(new_meso_idx);
+		}
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx) {
 		if (meso_idx == m_mesoIdx)

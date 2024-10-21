@@ -1,7 +1,9 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
-#include "tpglobals.h"
 #include "dbmesosplitmodel.h"
+#include "qmlmesointerface.h"
+#include "qmlitemmanager.h"
+#include "tpglobals.h"
 #include "tpsettings.h"
 
 #include <QSettings>
@@ -10,10 +12,9 @@
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
-	: TPListModel{parent}, m_userModel(nullptr), m_mostRecentOwnMesoIdx(-1)
+	: TPListModel{parent}, m_mostRecentOwnMesoIdx(-1)
 {
-	if (!app_meso_model)
-		app_meso_model = this;
+	app_meso_model = this;
 
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
@@ -36,8 +37,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	mColumnNames.append(std::move(tr("Plan's considerations: ")));
 	mColumnNames.append(std::move(tr("Number of weeks: ")));
 	mColumnNames.append(std::move(tr("Weekly Training Division: ")));
-	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
-	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
+	updateColumnLabels(); //MESOCYCLES_COL_COACH and MESOCYCLES_COL_CLIENT
 	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
 	mColumnNames.append(std::move(tr("Type: ")));
 	mColumnNames.append(std::move(tr("Mesocycle-style plan: ")));
@@ -52,10 +52,82 @@ DBMesocyclesModel::~DBMesocyclesModel()
 		delete m_calendarModelList[i];
 }
 
-void DBMesocyclesModel::setUserModel(DBUserModel* usermodel)
+void DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
-	m_userModel = usermodel;
-	updateColumnLabels();
+	QDate startdate, enddate, minimumStartDate;
+	if (count() == 0)
+	{
+		minimumStartDate.setDate(2023, 1, 2); //first monday of that year
+		startdate = QDate::currentDate();
+		enddate = appUtils()->createFutureDate(startdate, 0, 2, 0);
+	}
+	else
+	{
+		if (isRealMeso(count() - 1))
+			minimumStartDate = appUtils()->getMesoStartDate(getLastMesoEndDate());
+		else
+			minimumStartDate = QDate::currentDate();
+		startdate = minimumStartDate;
+		enddate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
+	}
+
+	const uint meso_idx = newMesocycle(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString::number(startdate.toJulianDay()) <<
+		QString::number(enddate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startdate, enddate)) <<
+		std::move(u"ABCDERR"_qs) << appUserModel()->currentCoachName(0) << appUserModel()->currentUserName(0) << QString() << QString() << STR_ONE);
+
+	QMLMesoInterface* mesomanager{new QMLMesoInterface{this, appQmlEngine(), appMainWindow(), meso_idx}};
+	m_mesoManagerList.append(mesomanager);
+	if (bCreatePage)
+		mesomanager->getMesocyclePage();
+}
+
+void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
+{
+	delete m_calendarModelList.at(meso_idx);
+	m_calendarModelList.remove(meso_idx);
+	m_isNewMeso.remove(meso_idx);
+
+	m_splitModel->removeRow(meso_idx);
+	removeRow(meso_idx);
+
+	delete m_mesoManagerList.at(meso_idx);
+	m_mesoManagerList.removeAt(meso_idx);
+
+	for (uint i(meso_idx); i < count(); ++i)
+	{
+		m_splitModel->setMesoIdx(i-1);
+		m_calendarModelList.at(i)->setMesoIdx(i-1);
+		emit mesoIdxChanged(i, i-1);
+	}
+
+	if (m_mostRecentOwnMesoIdx > meso_idx)
+		--m_mostRecentOwnMesoIdx;
+	else if (meso_idx == m_mostRecentOwnMesoIdx)
+	{
+		m_mostRecentOwnMesoIdx = -1;
+		findNextOwnMeso();
+	}
+	emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+}
+
+void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
+{
+	m_mesoManagerList.at(meso_idx)->getExercisesPlannerPage();
+}
+
+void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
+{
+	m_mesoManagerList.at(meso_idx)->getCalendarPage();
+}
+
+void DBMesocyclesModel::todaysWorkout()
+{
+	m_mesoManagerList.at(mostRecentOwnMesoIdx())->getTrainingDayPage(QDate::currentDate());
+}
+
+void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo)
+{
+	m_mesoManagerList.at(meso_idx)->exportMeso(bShare, bCoachInfo);
 }
 
 const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
@@ -81,32 +153,6 @@ const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
 	m_isNewMeso.append(newMesoRequiredFields);
 	return meso_idx;
-}
-
-void DBMesocyclesModel::delMesocycle(const uint meso_idx)
-{
-	delete m_calendarModelList.at(meso_idx);
-	m_calendarModelList.remove(meso_idx);
-	m_isNewMeso.remove(meso_idx);
-
-	m_splitModel->removeRow(meso_idx);
-	removeRow(meso_idx);
-
-	for (uint i(meso_idx); i < count(); ++i)
-	{
-		m_splitModel->setMesoIdx(i);
-		m_calendarModelList[i]->setMesoIdx(i);
-		emit mesoIdxChanged(i-1, i);
-	}
-
-	if (m_mostRecentOwnMesoIdx > meso_idx)
-		--m_mostRecentOwnMesoIdx;
-	else if (meso_idx == m_mostRecentOwnMesoIdx)
-	{
-		m_mostRecentOwnMesoIdx = -1;
-		findNextOwnMeso();
-	}
-	emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 }
 
 void DBMesocyclesModel::finishedLoadingFromDatabase()
@@ -172,11 +218,17 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 		m_newMesoCalendarChanged[meso_idx] = true;
 }
 
+bool DBMesocyclesModel::isOwnMeso(const int meso_idx) const
+{
+	Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isOwnMeso", "out of range meso_idx");
+	return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_CLIENT) == appUserModel()->userName(0);
+}
+
 void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 {
 	if (isOwnMeso(meso_idx) != bOwnMeso)
 	{
-		setClient(meso_idx, bOwnMeso ? m_userModel->userName(0) : m_userModel->getCurrentUserName(false));
+		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->getCurrentUserName(false));
 		const int cur_ownmeso(m_mostRecentOwnMesoIdx);
 		findNextOwnMeso();
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
@@ -226,7 +278,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex &index, int role) const
 		switch(role)
 		{
 			case mesoNameRole:
-				if (m_userModel->userName(0) == client(row))
+				if (appUserModel()->userName(0) == client(row))
 					return QVariant(u"<b>**  "_qs + name(row) + u"  **</b>"_qs);
 				else
 					return QVariant(u"<b>"_qs + name(row) + u"</b>"_qs);
@@ -335,22 +387,22 @@ void DBMesocyclesModel::updateColumnLabels()
 {
 	QString strCoach;
 	QString strClient;
-	switch (m_userModel->appUseMode(0))
+	switch (appUserModel()->appUseMode(0))
 	{
 		case APP_USE_MODE_SINGLE_USER: break;
 		case APP_USE_MODE_SINGLE_COACH:
-			strClient = tr("Client: ");
+			strClient = std::move(tr("Client: "));
 		break;
 		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-			strCoach = tr("Coach/Trainer: ");
+			strCoach = std::move(tr("Coach/Trainer: "));
 		break;
 		case APP_USE_MODE_COACH_USER_WITH_COACH:
-			strClient = tr("Client: ");
-			strCoach = tr("Coach/Trainer: ");
+			strClient = std::move(tr("Client: "));
+			strCoach = std::move(tr("Coach/Trainer: "));
 		break;
 	}
-	mColumnNames[MESOCYCLES_COL_COACH] = strCoach;
-	mColumnNames[MESOCYCLES_COL_CLIENT] = strClient;
+	mColumnNames[MESOCYCLES_COL_COACH] = std::move(strCoach);
+	mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(strClient);
 }
 
 int DBMesocyclesModel::exportToFile(const QString& filename, const bool, const bool) const

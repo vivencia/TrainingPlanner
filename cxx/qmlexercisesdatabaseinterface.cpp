@@ -2,7 +2,6 @@
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "osinterface.h"
-#include "tpappcontrol.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>

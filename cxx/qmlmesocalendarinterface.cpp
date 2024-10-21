@@ -4,7 +4,6 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
 #include "dbinterface.h"
-#include "tpappcontrol.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
