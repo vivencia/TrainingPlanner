@@ -368,60 +368,30 @@ void DBInterface::loadCompleteMesoSplit(DBMesoSplitModel* splitModel)
 	createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
 }
 
-void DBInterface::loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded)
+void DBInterface::loadAllSplits(const uint meso_idx)
 {
 	const QString& mesoSplit(appMesoModel()->split(meso_idx));
 	QString mesoLetters;
-	DBMesoSplitModel* splitModel(nullptr);
-	DBMesoSplitTable* worker2(nullptr);
 
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator& itr_end(mesoSplit.constEnd());
+	if (m_allSplits.isEmpty())
+		for(char c('A'); c <= char('F'); ++c)
+			m_allSplits.insert(c, new DBMesoSplitModel{this, true, meso_idx});
+	else
+		for(char c('A'); c <= char('F'); ++c)
+			m_allSplits.value(c)->clearFast();
 
-	do {
-		if (*itr == QChar('R'))
-			continue;
-		if (mesoLetters.contains(*itr))
-			continue;
-
-		mesoLetters.append(*itr);
-		splitModel = splitModels.value(*itr);
-		if (splitModel->count() > 1) continue; //already contains data
-
-		if (bThreaded)
+	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath}};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(QVariant::fromValue(&m_allSplits));
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
+		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 		{
-			DBMesoSplitTable* worker{new DBMesoSplitTable(m_DBFilePath, splitModel)};
-			worker->addExecArg(appMesoModel()->id(meso_idx));
-			worker->addExecArg(*itr);
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
-				LOG_MESSAGE("loadCompleteMesoSplits received databaseReady() " << db_id)
-				if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
-				{
-					disconnect(*conn);
-					emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->model()));
-				}
-			});
-			createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
+			disconnect(*conn);
+			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(m_allSplits));
 		}
-		else
-		{
-			if (!worker2)
-			{
-				worker2 = new DBMesoSplitTable(m_DBFilePath, splitModel);
-				worker2->addExecArg(appMesoModel()->id(meso_idx));
-				worker2->addExecArg(static_cast<QChar>(*itr));
-			}
-			else
-			{
-				worker2->changeExecArg(static_cast<QChar>(*itr), 1);
-				worker2->setAnotherModel(splitModel);
-			}
-			worker2->getCompleteMesoSplit(false);
-		}
-	} while (++itr != itr_end);
-	if (worker2)
-		delete worker2;
+	});
+	createThread(worker, [worker] () { return worker->getAllSplits(); });
 }
 
 void DBInterface::saveMesoSplitComplete(DBMesoSplitModel* model)
@@ -504,7 +474,6 @@ void DBInterface::updateMesoCalendarEntry(const DBTrainingDayModel* const tDayMo
 	worker->addExecArg(tDayModel->date());
 	worker->addExecArg(tDayModel->trainingDay());
 	worker->addExecArg(tDayModel->splitLetter());
-	worker->addExecArg(tDayModel->dayIsFinished() ? STR_ONE : STR_ZERO);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 

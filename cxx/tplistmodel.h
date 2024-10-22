@@ -27,6 +27,7 @@ public:
 	void appendList(const QStringList& list);
 	void appendListMove(QStringList& list);
 	virtual void clear();
+	void clearFast();
 
 	Q_INVOKABLE void removeRow (const uint row);
 	Q_INVOKABLE inline uint count() const { return m_modeldata.count(); }

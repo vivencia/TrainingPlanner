@@ -46,6 +46,7 @@ TPPage {
 		TPLabel {
 			text: qsTr("Training Organizer")
 			font: AppGlobals.titleFont
+			singleLine: true
 
 			anchors {
 				top: parent.top
@@ -79,7 +80,7 @@ TPPage {
 			id: mesoDelegate
 			width: ListView.view.width
 
-			onClicked: appControl.getMesocyclePage(index);
+			onClicked: mesocyclesModel.getMesocyclePage(index);
 
 			Rectangle {
 				id: optionsRec

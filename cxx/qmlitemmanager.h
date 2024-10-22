@@ -21,20 +21,19 @@ Q_OBJECT
 
 public:
 	explicit QmlItemManager(QQmlApplicationEngine* qml_engine);
-	~QmlItemManager();
 	void configureQmlEngine();
-
-	QmlUserInterface* usersManager();
-	QmlExercisesDatabaseInterface* exercisesListManager();
 
 	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
+	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	Q_INVOKABLE void getExercisesPage(const bool bChooseButtonEnabled);
+
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);
 	void importFromFile(const QString& filename, const int wanted_content = 0xFF);
-	void incorporateImportedData(const TPListModel* const model);
+	void incorporateImportedData(TPListModel* model);
 
 public slots:
 	void mainWindowStarted() const;
@@ -51,22 +50,21 @@ private:
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 
+	static QmlItemManager* _appItemManager;
+	friend QmlItemManager* appItemManager();
+
 	static QQmlApplicationEngine* _appQmlEngine;
 	friend QQmlApplicationEngine* appQmlEngine();
 
 	static QQuickWindow* _appMainWindow;
 	friend QQuickWindow* appMainWindow();
 
-	static QmlUserInterface* _appUsersManager;
-	friend QmlUserInterface* appUsersManager();
-
-	static QmlExercisesDatabaseInterface* _appExercisesListManager;
-	friend QmlExercisesDatabaseInterface* appExercisesListManager();
+	QmlUserInterface* m_usersManager;
+	QmlExercisesDatabaseInterface* m_exercisesListManager;
 };
 
+inline QmlItemManager* appItemManager() { return QmlItemManager::_appItemManager; }
 inline QQmlApplicationEngine* appQmlEngine() { return QmlItemManager::_appQmlEngine; }
 inline QQuickWindow* appMainWindow() { return QmlItemManager::_appMainWindow; }
-inline QmlUserInterface* appUsersManager() { return QmlItemManager::_appUsersManager; }
-inline QmlExercisesDatabaseInterface* appExercisesListManager() { return QmlItemManager::_appExercisesListManager; }
 
 #endif // QMLITEMMANAGER_H

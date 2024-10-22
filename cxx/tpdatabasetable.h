@@ -65,12 +65,12 @@ public:
 		QSqlQuery query{mSqlLiteDB};
 		if (!mSqlLiteDB.connectOptions().isEmpty())
 			query.setForwardOnly(true);
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		static_cast<void>(query.exec(u"PRAGMA page_size = 4096"_qs));
+		static_cast<void>(query.exec(u"PRAGMA cache_size = 16384"_qs));
+		static_cast<void>(query.exec(u"PRAGMA temp_store = MEMORY"_qs));
+		static_cast<void>(query.exec(u"PRAGMA journal_mode = OFF"_qs));
+		static_cast<void>(query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs));
+		static_cast<void>(query.exec(u"PRAGMA synchronous = 0"_qs));
 		return query;
 	}
 
@@ -93,7 +93,7 @@ public:
 		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
 		{
 			QSqlQuery query{mSqlLiteDB};
-			query.exec(u"PRAGMA optimize"_qs);
+			static_cast<void>(query.exec(u"PRAGMA optimize"_qs));
 		}
 		mSqlLiteDB.close();
 	}

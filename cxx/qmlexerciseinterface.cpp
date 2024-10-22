@@ -196,7 +196,7 @@ void QmlExerciseInterface::exerciseSelected()
 
 void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_exercisesComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_exercisesComponent->errorString();

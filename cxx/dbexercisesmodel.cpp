@@ -332,7 +332,7 @@ int DBExercisesModel::importFromFile(const QString& filename)
 	}
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return m_modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBExercisesModel::updateFromModel(const TPListModel* const model)

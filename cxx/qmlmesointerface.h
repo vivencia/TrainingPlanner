@@ -8,6 +8,9 @@
 class QmlTDayInterface;
 class QmlMesoSplitInterface;
 class QmlMesoCalendarInterface;
+class DBMesoSplitModel;
+class DBTrainingDayModel;
+
 class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
@@ -148,6 +151,9 @@ public:
 	void exportMeso(const bool bShare, const bool bCoachInfo);
 	void importMeso(const QString& filename = QString());
 
+	DBMesoSplitModel* plannerSplitModel(const QChar& splitLetter);
+	DBTrainingDayModel* tDayModelForToday();
+
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void ownerIsCoachChanged();
@@ -190,7 +196,7 @@ private:
 	uint m_muscularGroupId;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	int m_mesoIdx;
+	uint m_mesoIdx;
 	bool m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
 	QString m_name, m_coach, m_client, m_type, m_file, m_startDate, m_endDate, m_weeks, m_split, m_notes;
 	QDate m_minimumMesoStartDate, m_maximumMesoEndDate, m_calendarStartDate;

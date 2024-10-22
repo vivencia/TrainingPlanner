@@ -24,8 +24,8 @@ Q_PROPERTY(uint timerHour READ timerHour WRITE setTimerHour NOTIFY timerHourChan
 Q_PROPERTY(uint timerMinute READ timerMinute WRITE setTimerMinute NOTIFY timerMinuteChanged FINAL)
 Q_PROPERTY(uint timerSecond READ timerSecond WRITE setTimerSecond NOTIFY timerSecondChanged FINAL)
 Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY splitLetterChanged FINAL)
-Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeInFinished NOTIFY timeInChanged FINAL)
-Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOutFinished NOTIFY timeOutChanged FINAL)
+Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeIn NOTIFY timeInChanged FINAL)
+Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOut NOTIFY timeOutChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText WRITE setHeaderText NOTIFY headerTextChanged FINAL)
 Q_PROPERTY(QString lastWorkOutLocation READ lastWorkOutLocation WRITE setLastWorkOutLocation NOTIFY lastWorkOutLocationChanged FINAL)
 Q_PROPERTY(QString dayNotes READ dayNotes WRITE setDayNotes NOTIFY dayNotesChanged FINAL)
@@ -41,7 +41,9 @@ Q_PROPERTY(bool hasExercises READ hasExercises WRITE setHasExercises NOTIFY hasE
 Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays NOTIFY previousTDaysChanged FINAL)
 
 public:
-	explicit QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date);
+	explicit inline QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
+		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date),
+			m_restTimer(nullptr), m_workoutTimer(nullptr) {}
 	~QmlTDayInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -54,6 +56,7 @@ public:
 	inline uint timerSecond() const { return m_sec; }
 	inline void setTimerSecond(const uint new_value) { m_sec = new_value; emit timerSecondChanged(); }
 
+	inline const QChar _splitLetter() const { return m_splitLetter.at(0); }
 	inline QString splitLetter() const { return m_splitLetter; }
 	void setSplitLetter(const QString& new_value, const bool bFromQml = true, const bool bDontConfirm = false);
 
@@ -66,8 +69,8 @@ public:
 	inline QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString& = QString());
 
-	inline QString lastWorkoutLocation() const { return m_lastWorkOutLocation; }
-	void setLastWorkoutLocation(const QString& new_value);
+	inline QString lastWorkOutLocation() const { return m_lastWorkOutLocation; }
+	void setLastWorkOutLocation(const QString& new_value);
 
 	inline QString dayNotes() const { return m_dayNotes; }
 	void setDayNotes(const QString& new_value);

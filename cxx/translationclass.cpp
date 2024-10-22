@@ -11,11 +11,10 @@
 TranslationClass* TranslationClass::app_tr(nullptr);
 
 TranslationClass::TranslationClass(QObject* parent)
-	: QObject{parent}
+	: QObject{parent}, mbOK(true)
 {
 	app_tr = this;
-	mbOK = true;
-	mTranslator = new QTranslator(this);
+	mTranslator = new QTranslator{this};
 	selectLanguage();
 }
 
@@ -26,12 +25,12 @@ TranslationClass::~TranslationClass()
 
 void TranslationClass::selectLanguage()
 {
-	QString strLocale(appSettings()->appLocale());
+	QString strLocale{appSettings()->appLocale()};
 	const bool bConfigEmpty(strLocale.isEmpty());
 	if (bConfigEmpty)
 	{
 		#ifndef Q_OS_ANDROID
-		const QString& sysLocale(std::setlocale(LC_NAME, ""));
+		const QString& sysLocale{std::setlocale(LC_NAME, "")};
 		strLocale = sysLocale.first(sysLocale.indexOf('.'));
 		#else
 		strLocale = QLocale::system().name();

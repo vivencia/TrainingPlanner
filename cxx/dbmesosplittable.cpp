@@ -159,6 +159,59 @@ void DBMesoSplitTable::saveMesoSplit()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
+void DBMesoSplitTable::getAllSplits()
+{
+	if (openDatabase(true))
+	{
+		const QString& mesoId(m_execArgs.at(0).toString());
+		QMap<QChar,DBMesoSplitModel*>* allSplits(m_execArgs.at(1).value<QMap<QChar,DBMesoSplitModel*>*>());
+		QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits->constBegin());
+		QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
+		split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
+		QSqlQuery query{getQuery()};
+
+		for(char c('A'); c <= char('F'); ++c)
+		{
+			const QString& strQuery(u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
+						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
+						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(c).arg(mesoId));
+			bool ok(false);
+
+			if (query.exec(strQuery))
+			{
+				if (query.first ())
+				{
+
+					(*splitModel)->setMuscularGroup(query.value(7).toString());
+					const QStringList& exercises(query.value(MESOSPLIT_COL_EXERCISENAME).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setsnumber(query.value(MESOSPLIT_COL_SETSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setsnotes(query.value(MESOSPLIT_COL_NOTES).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setstypes(query.value(MESOSPLIT_COL_SETTYPE).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setssubsets(query.value(MESOSPLIT_COL_SUBSETSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setsreps(query.value(MESOSPLIT_COL_REPSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
+					const QStringList& setsweight(query.value(MESOSPLIT_COL_WEIGHT).toString().split(record_separator, Qt::SkipEmptyParts));
+
+					for(uint i(0); i < exercises.count(); ++i)
+					{
+						split_info[MESOSPLIT_COL_EXERCISENAME] = exercises.at(i);
+						split_info[MESOSPLIT_COL_SETSNUMBER] = setsnumber.at(i);
+						split_info[MESOSPLIT_COL_NOTES] = setsnotes.at(i);
+						split_info[MESOSPLIT_COL_SETTYPE] = setstypes.at(i);
+						split_info[MESOSPLIT_COL_SUBSETSNUMBER] = setssubsets.at(i);
+						split_info[MESOSPLIT_COL_REPSNUMBER] = setsreps.at(i);
+						split_info[MESOSPLIT_COL_WEIGHT] = setsweight.at(i);
+						(*splitModel)->appendListMove(split_info);
+					}
+					ok = true;
+				}
+			}
+			setResult(ok, (*splitModel), strQuery, SOURCE_LOCATION);
+			++splitModel;
+		}
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 {
 	if (openDatabase(true))

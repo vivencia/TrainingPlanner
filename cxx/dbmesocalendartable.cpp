@@ -203,7 +203,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 		QStringList day_info;
 		uint n(0);
 
-		mSqlLiteDB.transaction();
+		static_cast<void>(mSqlLiteDB.transaction());
 		for (uint i(0), x(0); i < m_model->count(); ++i)
 		{
 			for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
@@ -220,7 +220,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			if (n >= 150)
 			{
 				queryValues.chop(1);
-				query.exec(queryStart + queryValues);
+				ok = query.exec(queryStart + queryValues);
 				queryValues.clear();
 				n = 0;
 			}
@@ -228,9 +228,9 @@ void DBMesoCalendarTable::saveMesoCalendar()
 		if (!queryValues.isEmpty())
 		{
 			queryValues.chop(1);
-			query.exec(queryStart + queryValues);
+			ok = query.exec(queryStart + queryValues);
 		}
-		ok = mSqlLiteDB.commit();
+		static_cast<void>(mSqlLiteDB.commit());
 		setResult(ok, m_model, queryStart + queryValues, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -253,14 +253,12 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			query.finish();
 			const QString& strTrainingDay(m_execArgs.at(1).toString());
 			const QString& strSplit(m_execArgs.at(2).toString());
-			const QString& strDayCompleted(m_execArgs.at(3).toString());
 
-			strQuery = u"UPDATE mesocycles_calendar_table SET training_day=%1, "
-										"training_split=\'%2\', training_complete=%3 WHERE id=%4"_qs
-											.arg(strTrainingDay, strSplit, strDayCompleted, strId);
+			strQuery = u"UPDATE mesocycles_calendar_table SET training_day=%1, training_split=\'%2\' WHERE id=%3"_qs
+											.arg(strTrainingDay, strSplit, strId);
 			ok = query.exec(strQuery);
 			if (ok)
-				m_model->updateDay(date, strTrainingDay, strSplit, strDayCompleted);
+				m_model->updateDay(date, strTrainingDay, strSplit);
 		}
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}

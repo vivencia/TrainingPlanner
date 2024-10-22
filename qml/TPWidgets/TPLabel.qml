@@ -20,12 +20,30 @@ Label {
 	property int heightAvailable: 25
 	property bool singleLine: elide !== Text.ElideNone ? true : widthAvailable > _textWidth
 
-	readonly property int _textWidth: AppGlobals.fontMetricsText.boundingRect(text).width
-	readonly property int _textHeight: AppGlobals.fontMetricsText.boundingRect("TP").height
+	property int _textWidth
+	property int _textHeight
 	readonly property int _preferredWidth: Math.min(_textWidth, widthAvailable)
 	readonly property int _lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
+	onFontChanged: {
+		if (font == AppGlobals.textFont) {
+			_textWidth = AppGlobals.fontMetricsText.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsText.boundingRect("TP").height
+		}
+		else if (font == AppGlobals.titleFont) {
+			_textWidth = AppGlobals.fontMetricsTitle.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsTitle.boundingRect("TP").height
+		}
+		else if (font == AppGlobals.listFont) {
+			_textWidth = AppGlobals.fontMetricsList.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsList.boundingRect("TP").height
+		}
+		else {
+			_textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height
+		}
+	}
 	/*property FontMetrics _fontMetrics: AppGlobals.fontMetricsText
 
 	onFontChanged: {

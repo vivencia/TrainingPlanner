@@ -5,6 +5,7 @@
 #include "qmltdayinterface.h"
 #include "qmlmesosplitinterface.h"
 #include "qmlmesocalendarinterface.h"
+#include "qmlitemmanager.h"
 #include "dbinterface.h"
 #include "osinterface.h"
 
@@ -356,20 +357,23 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 	if (!tDayPage)
 	{
 		tDayPage = new QmlTDayInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx, date);
+		m_tDayPages.insert(date, tDayPage);
+
 		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
 			if (!m_exercisesPage)
 				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
-			DBMesoSplitModel* splitModel(m_exercisesPage->getSplitModel(splitletter));
-			if (!splitModel->isReady())
+			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(splitletter));
+			if (!splitModel)
 			{
 				auto conn = std::make_shared<QMetaObject::Connection>();
 				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
 					if (table_idx == MESOSPLIT_TABLE_ID)
 					{
 						disconnect(*conn);
-						tDayPage->loadExercisesFromMesoPlan(splitModel);
+						tDayPage->loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
 					}
 				});
+				appDBInterface()->loadCompleteMesoSplit(splitModel);
 			}
 			else
 				appDBInterface()->loadCompleteMesoSplit(splitModel);
@@ -378,29 +382,22 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
 			if (!m_exercisesPage)
 				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
-			DBMesoSplitModel* splitModel(m_exercisesPage->getSplitModel(tDayModel->_splitLetter()));
-			if (!splitModel->isReady())
+			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(tDayModel->_splitLetter()));
+			if (!splitModel)
 			{
-				auto conn = std::make_shared<QMetaObject::Connection>();
-				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
-					if (table_idx == MESOSPLIT_TABLE_ID)
-					{
-						disconnect(*conn);
-						splitModel->convertFromTDayModel(tDayModel);
-					}
-				});
+				splitModel = new DBMesoSplitModel{this, true, m_mesoIdx};
+				splitModel->convertFromTDayModel(tDayModel);
+				appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
 			else
 				splitModel->convertFromTDayModel(tDayModel);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		m_tDayPages.insert(date, tDayPage);
 	}
 	tDayPage->getTrainingDayPage();
 }
 
 void QMLMesoInterface::getMesocyclePage()
 {
-	appMesoModel()->setCurrentMesoIdx(m_mesoIdx);
 	if (!m_mesoComponent)
 		createMesocyclePage();
 	else
@@ -409,25 +406,45 @@ void QMLMesoInterface::getMesocyclePage()
 
 void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 {
-	int exportFileMessageId(0);
+	int exportFileMessageId(APPWINDOW_MSG_EXPORT_OK);
 	const QString& exportFileName{appOsInterface()->appDataFilesPath() + appMesoModel()->name(m_mesoIdx) + tr(" - TP Complete Meso.txt")};
 	if (bCoachInfo)
 	{
 		appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->coach(m_mesoIdx)));
-		appUserModel()->exportToFile(exportFileName);
+		exportFileMessageId = appUserModel()->exportToFile(exportFileName);
 	}
-	appMesoModel()->setExportRow(m_mesoIdx);
-	exportFileMessageId = appMesoModel()->exportToFile(exportFileName);
-	//appDBInterface()->loadCompleteMesoSplits(m_mesoIdx, allSplitModels(), false);
-	//exportMesoSplit(bShare, u"X"_qs, exportFileName, true);
-	if (bShare)
+	if (exportFileMessageId == APPWINDOW_MSG_EXPORT_OK)
 	{
-		appOsInterface()->shareFile(exportFileName);
-		exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
-	}
-	else
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, exportFileName));
+		appMesoModel()->setExportRow(m_mesoIdx);
+		exportFileMessageId = appMesoModel()->exportToFile(exportFileName);
+		if (exportFileMessageId == APPWINDOW_MSG_EXPORT_OK)
+		{
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&exportFileMessageId,&exportFileName] (const uint table_idx, const QVariant data) {
+				if (table_idx == MESOSPLIT_TABLE_ID)
+				{
+					disconnect(*conn);
+					QMap<QChar,DBMesoSplitModel*>* allSplits(data.value<QMap<QChar,DBMesoSplitModel*>*>());
+					QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits->constBegin());
+					const QMap<QChar,DBMesoSplitModel*>::const_iterator mapEnd(allSplits->constEnd());
+					do {
+						(*splitModel)->exportToFile(exportFileName);
+					} while (++splitModel != mapEnd);
+					if (bShare)
+					{
+						appOsInterface()->shareFile(exportFileName);
+						exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
+					}
+					else
+						QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, exportFileName));
 
+					emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+				}
+			});
+			appDBInterface()->loadAllSplits(m_mesoIdx);
+			return;
+		}
+	}
 	emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
 }
 
@@ -436,7 +453,18 @@ void QMLMesoInterface::importMeso(const QString& filename)
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
 	else
-		appControl()->openRequestedFile(filename, IFC_MESO);
+		appItemManager()->openRequestedFile(filename, IFC_MESO);
+}
+
+DBMesoSplitModel* QMLMesoInterface::plannerSplitModel(const QChar& splitLetter)
+{
+	return m_exercisesPage ? m_exercisesPage->splitModel(splitLetter) : nullptr;
+}
+
+DBTrainingDayModel* QMLMesoInterface::tDayModelForToday()
+{
+	QmlTDayInterface* tDayPage(m_tDayPages.value(QDate::currentDate()));
+	return tDayPage ? tDayPage->tDayModel() : nullptr;
 }
 
 void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)

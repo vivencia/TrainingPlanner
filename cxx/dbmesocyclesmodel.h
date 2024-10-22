@@ -48,7 +48,8 @@ public:
 	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
 
-	Q_INVOKABLE void createNewMesocycle(const bool bCreatePage);
+	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
+	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);

@@ -15,10 +15,12 @@ class QmlUserInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit QmlUserInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow);
+	explicit inline QmlUserInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow)
+		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow),
+			m_settingsComponent(nullptr), m_clientsOrCoachesComponent(nullptr), m_userPage(nullptr) {}
 	~QmlUserInterface();
 
-	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
 

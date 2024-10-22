@@ -103,7 +103,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboCoaches
-					currentText: mesoManager.coach
+					editText: mesoManager.coach
 					implicitWidth: appSettings.pageWidth/2
 					Layout.minimumWidth: width
 
@@ -151,7 +151,7 @@ TPPage {
 
 				TPComboBox {
 					id: cboClients
-					currentText: mesoManager.client
+					editText: mesoManager.client
 					implicitWidth: appSettings.pageWidth*0.6
 					Layout.minimumWidth: width
 
@@ -190,7 +190,7 @@ TPPage {
 				TPComboBox {
 					id: cboMesoType
 					model: mesoTypeModel
-					currentText: mesoManager.type
+					editText: mesoManager.type
 					width: (mesoPropertiesPage.width - 20)*0.75
 					Layout.minimumWidth: width
 
@@ -384,7 +384,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: notesLabel
+				text: mesoManager.notesLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}

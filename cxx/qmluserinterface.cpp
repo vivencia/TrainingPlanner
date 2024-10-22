@@ -7,19 +7,6 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
-QmlUserInterface::QmlUserInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow),
-		m_settingsComponent(nullptr), m_clientsOrCoachesComponent(nullptr), m_userPage(nullptr)
-{
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE) {
-			if (m_userPage)
-				m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
-		}
-		appDBInterface()->saveUser(user_row);
-	});
-}
-
 QmlUserInterface::~QmlUserInterface()
 {
 	if (m_settingsComponent)
@@ -65,7 +52,7 @@ void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const 
 	else
 	{
 		m_clientsOrCoachesProperties.insert(u"userManager"_qs, QVariant::fromValue(this));
-		m_clientsOrCoachesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/clientsOrCoachesPage.qml"_qs}, QQmlComponent::Asynchronous};
+		m_clientsOrCoachesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_qs}, QQmlComponent::Asynchronous};
 		if (m_clientsOrCoachesComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_clientsOrCoachesComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
@@ -112,12 +99,18 @@ void QmlUserInterface::createSettingsPage()
 		m_userPage = m_settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
 		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		m_userPage->setProperty("userManager", QVariant::fromValue(this));
+
+		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
+		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+			m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
+		appDBInterface()->saveUser(user_row);
+	});
 	}
 }
 
 void QmlUserInterface::createClientsOrCoachesPage()
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_clientsOrCoachesComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_clientsOrCoachesComponent->errorString();

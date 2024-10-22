@@ -1,4 +1,5 @@
 #include "qmlmesosplitinterface.h"
+#include "qmlitemmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbinterface.h"
@@ -50,44 +51,27 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 {
 	if (!m_plannerComponent)
 	{
-		if (m_splitModels.isEmpty())
-		{
-			connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant var) {
-				if (table_id == MESOSPLIT_TABLE_ID)
-				{
-					connect(this, &QmlMesoSplitInterface::plannerPageCreated, this, [this,var] () {
-						getMesoSplitPage(splitLetterToPageIndex(var.value<DBMesoSplitModel*>()));
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					createPlannerPage();
-				}
-			});
-			appDBInterface()->loadCompleteMesoSplits(m_mesoIdx, allSplitModels());
-		}
-		else
-		{
-			connect(this, &QmlMesoSplitInterface::plannerPageCreated, this, [this] () {
-				getMesoSplitPage(splitLetterToPageIndex(m_splitModels.first()));
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			createPlannerPage();
-		}
+		connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
+			if (table_id == MESOSPLIT_TABLE_ID)
+			{
+				connect(this, &QmlMesoSplitInterface::plannerPageCreated, this, [this,data] () {
+					QMap<QChar,DBMesoSplitModel*>* allSplits(data.value<QMap<QChar,DBMesoSplitModel*>*>());
+					QMap<QChar,DBMesoSplitModel*>::const_iterator mapModel(allSplits->constBegin());
+				const QMap<QChar,DBMesoSplitModel*>::const_iterator mapEnd(allSplits->constEnd());
+				QChar splitletter;
+				do {
+					splitletter = (*mapModel)->_splitLetter();
+					m_splitModels.insert(splitletter, std::move(*mapModel));
+					createMesoSplitPage(splitletter);
+				} while (++mapModel != mapEnd);
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				createPlannerPage();
+			}
+		});
+		appDBInterface()->loadAllSplits(m_mesoIdx);
 	}
 	else
 		emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
-}
-
-void QmlMesoSplitInterface::getMesoSplitPage(const uint page_index)
-{
-	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoSplitPlanner.qml"_qs}, QQmlComponent::Asynchronous};
-
-	if (m_splitComponent->status() == QQmlComponent::Ready)
-		createMesoSplitPage(page_index);
-	else
-	{
-		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this,page_index] (QQmlComponent::Status) {
-			createMesoSplitPage(page_index);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	}
 }
 
 void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id)
@@ -168,34 +152,7 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
 	else
-		appControl()->openRequestedFile(filename, IFC_MESOSPLIT);
-}
-
-DBMesoSplitModel* QmlMesoSplitInterface::getSplitModel(const QChar& splitLetter)
-{
-	DBMesoSplitModel* splitModel(m_splitModels.value(splitLetter));
-	if (!splitModel)
-	{
-		splitModel = new DBMesoSplitModel{this, true, m_mesoIdx};
-		splitModel->setSplitLetter(splitLetter);
-		m_splitModels.insert(splitLetter, splitModel);
-	}
-	return splitModel;
-}
-
-int QmlMesoSplitInterface::splitLetterToPageIndex(const DBMesoSplitModel* const splitModel)
-{
-	const QString& mesoSplit(appMesoModel()->split(splitModel->mesoIdx()));
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator& itr_end(mesoSplit.constEnd());
-	do {
-		if (*itr == QChar('R'))
-			continue;
-		if (m_splitLetters.contains(*itr))
-			continue;
-		m_splitLetters.append(*itr);
-	} while (++itr != itr_end);
-	return m_splitLetters.indexOf(splitModel->_splitLetter());
+		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
 }
 
 void QmlMesoSplitInterface::createPlannerPage()
@@ -239,7 +196,22 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
-void QmlMesoSplitInterface::createMesoSplitPage(const uint page_index)
+void QmlMesoSplitInterface::createMesoSplitPage(const QChar& splitletter)
+{
+	if (m_splitComponent == nullptr)
+		m_splitComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoSplitPlanner.qml"_qs}, QQmlComponent::Asynchronous};
+
+	if (m_splitComponent->status() == QQmlComponent::Ready)
+		createMesoSplitPage_part2(splitletter);
+	else
+	{
+		connect(m_splitComponent, &QQmlComponent::statusChanged, this, [this,splitletter] (QQmlComponent::Status) {
+			createMesoSplitPage_part2(splitletter);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
+}
+
+void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 {
 	#ifdef DEBUG
 	if (m_splitComponent->status() == QQmlComponent::Error)
@@ -251,7 +223,7 @@ void QmlMesoSplitInterface::createMesoSplitPage(const uint page_index)
 	}
 	#endif
 
-	DBMesoSplitModel* splitModel(m_splitModels.value(m_splitLetters.at(page_index)));
+	DBMesoSplitModel* splitModel(m_splitModels.value(splitletter));
 
 	m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
 	m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
@@ -287,19 +259,6 @@ void QmlMesoSplitInterface::createMesoSplitPage(const uint page_index)
 	connect(splitModel, &DBMesoSplitModel::splitChanged, this, [this,splitModel] (const uint, const uint) {
 		appDBInterface()->saveMesoSplitComplete(splitModel);
 	});
-}
-
-void QmlMesoSplitInterface::initializeSplitModels()
-{
-	const QString& mesoSplit(appMesoModel()->split(m_mesoIdx));
-	QString::const_iterator itr(mesoSplit.constBegin());
-	const QString::const_iterator& itr_end(mesoSplit.constEnd());
-
-	do {
-		if (*itr == QChar('R'))
-			continue;
-		static_cast<void>(getSplitModel(*itr));
-	} while (++itr != itr_end);
 }
 
 void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)

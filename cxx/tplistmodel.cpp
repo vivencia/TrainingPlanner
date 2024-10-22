@@ -35,9 +35,16 @@ void TPListModel::clear()
 {
 	beginRemoveRows(QModelIndex(), 0, count()-1);
 	m_modeldata.clear();
+	m_exportRows.clear();
 	setReady(false);
 	emit countChanged();
 	endRemoveRows();
+}
+
+void TPListModel::clearFast()
+{
+	m_modeldata.clear();
+	setReady(false);
 }
 
 void TPListModel::setCurrentRow(const int row)

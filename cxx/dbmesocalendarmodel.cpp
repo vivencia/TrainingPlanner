@@ -227,7 +227,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 	emit calendarChanged(startDate, appMesoModel()->endDate(mesoIdx()));
 }
 
-void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished)
+void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter)
 {
 	const uint year(date.year());
 	const uint month(date.month());
@@ -240,9 +240,9 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 			if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 			{
 				const QStringList& dayInfo(m_modeldata.at(i).at(day).split(','));
-				m_modeldata[i][day] = dayInfo.at(MESOCALENDAR_COL_ID) + ',' + dayInfo.at(MESOCALENDAR_COL_MESOID) + ',' +
-						tDay + ',' + splitLetter + ',' + dayIsFinished + ',' + dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' +
-						dayInfo.at(MESOCALENDAR_COL_MONTH);
+				m_modeldata[i][day] = std::move(dayInfo.at(MESOCALENDAR_COL_ID) + ',' + dayInfo.at(MESOCALENDAR_COL_MESOID) + ',' +
+						tDay + ',' + splitLetter + ',' + m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' +
+						dayInfo.at(MESOCALENDAR_COL_MONTH));
 			}
 		}
 	}

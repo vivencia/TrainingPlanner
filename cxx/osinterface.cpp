@@ -2,6 +2,7 @@
 #include "tputils.h"
 #include "dbusermodel.h"
 #include "dbinterface.h"
+#include "qmlitemmanager.h"
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
@@ -12,10 +13,10 @@
 
 #include <QJniObject>
 #include <qnativeinterface.h>
-	#if QT_VERSION == QT_VERSION_CHECK(6, 7, 2)
-		#include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
+	#if QT_VERSION == QT_VERSION_CHECK(6, 8, 0)
+		#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
 	#else
-		#include <QtCore/6.6.3/QtCore/private/qandroidextras_p.h>
+		#include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
 	#endif
 #else
 #include <QProcess>
@@ -177,7 +178,7 @@ void OSInterface::setFileUrlReceived(const QString& url) const
 {
 	const QString& androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
-		appControl()->openRequestedFile(androidUrl);
+		appItemManager()->openRequestedFile(androidUrl);
 	else
 	{
 		DEFINE_SOURCE_LOCATION
@@ -189,7 +190,7 @@ void OSInterface::setFileReceivedAndSaved(const QString& url) const
 {
 	const QString& androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
-		appControl()->openRequestedFile(androidUrl);
+		appItemManager()->openRequestedFile(androidUrl);
 	else
 	{
 		DEFINE_SOURCE_LOCATION
@@ -212,7 +213,7 @@ void OSInterface::onActivityResult(int requestCode, int resultCode)
 void OSInterface::startNotificationAction(const QString& action)
 {
 	if (action.toUInt() == WORKOUT_NOTIFICATION)
-		appControl()->getTrainingDayPage(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate());
+		appItemManager()->getTrainingDayPage(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate());
 }
 
 extern "C"
@@ -270,7 +271,7 @@ void OSInterface::processArguments() const
 		filename.chop(1);
 		const QFileInfo file{filename};
 		if (file.isFile())
-			appControl()->openRequestedFile(appUtils()->getCorrectPath(filename));
+			appItemManager()->openRequestedFile(appUtils()->getCorrectPath(filename));
 	}
 }
 

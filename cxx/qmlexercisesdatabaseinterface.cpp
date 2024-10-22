@@ -1,4 +1,5 @@
 #include "qmlexercisesdatabaseinterface.h"
+#include "qmlitemmanager.h"
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "osinterface.h"
@@ -50,7 +51,7 @@ void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
 	else
-		appControl()->openRequestedFile(filename, IFC_EXERCISES);
+		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
 
 void QmlExercisesDatabaseInterface::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
@@ -92,12 +93,12 @@ void QmlExercisesDatabaseInterface::createExercisesPage(const bool bChooseButton
 
 void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connectPage)
 {
-	#ifdef DEBUG
-	if (exercisesComponent->status() == QQmlComponent::Error)
+	#ifndef QT_NO_DEBUG
+	if (m_exercisesComponent->status() == QQmlComponent::Error)
 	{
-		qDebug() << exercisesComponent->errorString();
-		for (uint i(0); i < exercisesComponent->errors().count(); ++i)
-			qDebug() << exercisesComponent->errors().at(i).description();
+		qDebug() << m_exercisesComponent->errorString();
+		for (uint i(0); i < m_exercisesComponent->errors().count(); ++i)
+			qDebug() << m_exercisesComponent->errors().at(i).description();
 		return;
 	}
 	#endif

@@ -71,7 +71,7 @@ public:
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
 	void loadCompleteMesoSplit(DBMesoSplitModel* splitModel);
-	void loadCompleteMesoSplits(const uint meso_idx, QMap<QChar,DBMesoSplitModel*>& splitModels, const bool bThreaded = true);
+	void loadAllSplits(const uint meso_idx);
 	void saveMesoSplitComplete(DBMesoSplitModel* model);
 	bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
 	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
@@ -134,10 +134,8 @@ private:
 	};
 	workerLocks m_WorkerLock[APP_TABLES_NUMBER+1];
 	QTimer m_threadCleaner;
-
-	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 	QString m_exercisesListVersion;
-	//-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
+	QMap<QChar,DBMesoSplitModel*> m_allSplits;
 
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);

@@ -12,7 +12,6 @@ TPPopup {
 	width: appSettings.pageWidth * 0.9
 	height: totalHeight + 20
 
-	property QmlItemManager itemManager
 	property var importOptions: []
 	property var selectedFields: []
 

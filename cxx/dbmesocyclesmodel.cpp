@@ -37,7 +37,9 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	mColumnNames.append(std::move(tr("Plan's considerations: ")));
 	mColumnNames.append(std::move(tr("Number of weeks: ")));
 	mColumnNames.append(std::move(tr("Weekly Training Division: ")));
-	updateColumnLabels(); //MESOCYCLES_COL_COACH and MESOCYCLES_COL_CLIENT
+	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
+	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
+	updateColumnLabels();
 	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
 	mColumnNames.append(std::move(tr("Type: ")));
 	mColumnNames.append(std::move(tr("Mesocycle-style plan: ")));
@@ -52,7 +54,21 @@ DBMesocyclesModel::~DBMesocyclesModel()
 		delete m_calendarModelList[i];
 }
 
-void DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
+void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
+{
+	setCurrentMesoIdx(m_mesoIdx);
+	if (meso_idx >= m_mesoManagerList.count())
+	{
+		for (uint i(m_mesoManagerList.count()); i <= meso_idx ; ++i)
+		{
+			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, appQmlEngine(), appMainWindow(), i}};
+			m_mesoManagerList.append(mesomanager);
+		}
+	}
+	m_mesoManagerList.at(meso_idx)->getMesocyclePage();
+}
+
+uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
 	QDate startdate, enddate, minimumStartDate;
 	if (count() == 0)
@@ -79,6 +95,7 @@ void DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 	m_mesoManagerList.append(mesomanager);
 	if (bCreatePage)
 		mesomanager->getMesocyclePage();
+	return meso_idx;
 }
 
 void DBMesocyclesModel::removeMesocycle(const uint meso_idx)

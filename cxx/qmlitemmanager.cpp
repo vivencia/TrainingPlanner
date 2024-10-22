@@ -29,14 +29,14 @@
 #include <QSettings>
 #include <QFile>
 
+QmlItemManager* QmlItemManager::_appItemManager(nullptr);
 QQmlApplicationEngine* QmlItemManager::_appQmlEngine(nullptr);
 QQuickWindow* QmlItemManager::_appMainWindow(nullptr);
-QmlUserInterface* QmlItemManager::_appUsersManager(nullptr);
-QmlExercisesDatabaseInterface* QmlItemManager::_appExercisesListManager(nullptr);
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
-		: QObject{nullptr}
+		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr)
 {
+	_appItemManager = this;
 	appDBInterface()->init();
 	_appQmlEngine = qml_engine;
 	configureQmlEngine();
@@ -136,6 +136,20 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	importFromFile(m_importFilename, wanted_content);
 }
 
+void QmlItemManager::getSettingsPage(const uint startPageIndex)
+{
+	if (!m_usersManager)
+		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+	m_usersManager->getSettingsPage(startPageIndex);
+}
+
+void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled)
+{
+	if (!m_exercisesListManager)
+		m_exercisesListManager = new QmlExercisesDatabaseInterface{this, appQmlEngine(), appMainWindow()};
+	m_exercisesListManager->getExercisesPage(bChooseButtonEnabled);
+}
+
 void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
 {
 	int message_id(0);
@@ -180,7 +194,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 
 void QmlItemManager::openRequestedFile(const QString& filename, const int wanted_content)
 {
-	QFile* inFile{new QFile(filename)};
+	QFile* inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -217,21 +231,9 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 	}
 	if (fileContents != 0)
 	{
-		QmlItemManager* itemMngr(nullptr);
-		if (fileContents & IFC_MESO & wanted_content)
-		{
-			const uint tempmeso_idx{createNewMesocycle(false)};
-			itemMngr = m_itemManager.at(tempmeso_idx);
-		}
-		else
-		{
-			if (fileContents & IFC_MESO & wanted_content || fileContents & IFC_TDAY & wanted_content)
-				itemMngr = m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx());
-			else if (fileContents & IFC_EXERCISES & wanted_content)
-				itemMngr = QmlManager();
-		}
-		if (itemMngr)
-			itemMngr->displayImportDialogMessage(fileContents, filename);
+		if ((fileContents & IFC_MESO & wanted_content) || (fileContents & IFC_MESOSPLIT & wanted_content) ||
+				(fileContents & IFC_TDAY & wanted_content) || (fileContents & IFC_EXERCISES & wanted_content))
+			displayImportDialogMessage(fileContents, filename);
 		else
 			displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
 	}
@@ -244,14 +246,14 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	{
 		if (wanted_content & IFC_USER)
 		{
-			DBUserModel* usermodel{new DBUserModel};
+			DBUserModel* usermodel{new DBUserModel{this}};
 			usermodel->deleteLater();
 			importFileMessageId = usermodel->importFromFile(filename);
 			if (importFileMessageId >= 0)
 				incorporateImportedData(usermodel);
 		}
 
-		DBMesocyclesModel* mesomodel{new DBMesocyclesModel};
+		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this}};
 		mesomodel->deleteLater();
 		importFileMessageId = mesomodel->importFromFile(filename);
 		if (importFileMessageId >= 0)
@@ -259,7 +261,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 
 		if (wanted_content & IFC_MESOSPLIT)
 		{
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel{nullptr}};
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true}};
 			splitModel->deleteLater();
 			importFileMessageId = splitModel->importFromFile(filename);
 			if (importFileMessageId >= 0)
@@ -270,7 +272,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	{
 		if (wanted_content & IFC_MESOSPLIT)
 		{
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel};
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true}};
 			splitModel->deleteLater();
 			importFileMessageId = splitModel->importFromFile(filename);
 			if (importFileMessageId >= 0)
@@ -278,7 +280,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 		}
 		else if (wanted_content & IFC_TDAY)
 		{
-			DBTrainingDayModel* tDayModel{new DBTrainingDayModel};
+			DBTrainingDayModel* tDayModel{new DBTrainingDayModel{this}};
 			tDayModel->deleteLater();
 			importFileMessageId = tDayModel->importFromFile(filename);
 			if (importFileMessageId >= 0)
@@ -296,13 +298,13 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	displayMessageOnAppWindow(importFileMessageId);
 }
 
-void QmlItemManager::incorporateImportedData(const TPListModel* const model)
+void QmlItemManager::incorporateImportedData(TPListModel* model)
 {
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
 			appExercisesModel()->updateFromModel(model);
-			//appDBInterface()->saveExercise();
+			appDBInterface()->saveExercises();
 		break;
 		case USER_TABLE_ID:
 			static_cast<void>(appUserModel()->updateFromModel(model));
@@ -311,30 +313,35 @@ void QmlItemManager::incorporateImportedData(const TPListModel* const model)
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
 			{
-				const uint meso_idx = createNewMesocycle(false);
+				const uint meso_idx = appMesoModel()->createNewMesocycle(false);
 				appMesoModel()->updateFromModel(meso_idx, model);
 				appDBInterface()->saveMesocycle(meso_idx);
 			}
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			DBMesoSplitModel* newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
-			DBMesoSplitModel* splitModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->getSplitModel(newSplitModel->splitLetter().at(0))};
-			splitModel->updateFromModel(newSplitModel);
-			appDBInterface()->saveMesoSplitComplete(splitModel);
+			DBMesoSplitModel* newSplitModel(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model)));
+			DBMesoSplitModel* splitModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter()));
+			if (splitModel) //exercises planner page for the current meso has been loaded in the session
+			{
+				splitModel->updateFromModel(newSplitModel);
+				appDBInterface()->saveMesoSplitComplete(splitModel);
+			}
+			else //exercises planner page for the current meso has NOT been loaded in the session
+				appDBInterface()->saveMesoSplitComplete(newSplitModel);
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
-			DBTrainingDayModel* newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
-			DBTrainingDayModel* tDayModel{m_itemManager.at(appMesoModel()->mostRecentOwnMesoIdx())->gettDayModel(QDate::currentDate())};
-			if (tDayModel->exerciseCount() == 0)
+			DBTrainingDayModel* newTDayModel(static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model)));
+			DBTrainingDayModel* tDayModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday());
+			if (tDayModel)
 			{
 				tDayModel->updateFromModel(newTDayModel);
 				appDBInterface()->saveTrainingDay(tDayModel);
 			}
 			else
-				; //Offer option to import into another day
+				appDBInterface()->saveTrainingDay(newTDayModel);
 		}
 		break;
 	}

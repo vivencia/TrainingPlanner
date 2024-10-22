@@ -27,7 +27,7 @@ public:
 	void createModel();
 	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
 	void updateModel(const QDate& startDate, const QString& newSplitLetter);
-	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter, const QString& dayIsFinished);
+	void updateDay(const QDate& date, const QString& tDay, const QString& splitLetter);
 
 	inline const QString& getDayInfo(const uint row, const uint day) const { return m_modeldata.at(row).at(day); }
 

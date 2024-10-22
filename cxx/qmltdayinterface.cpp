@@ -1,5 +1,6 @@
 #include "qmltdayinterface.h"
 #include "qmlexerciseinterface.h"
+#include "qmlitemmanager.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
 #include "dbtrainingdaymodel.h"
@@ -14,19 +15,6 @@
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
-
-QmlTDayInterface::QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date),
-		m_restTimer(nullptr), m_workoutTimer(nullptr)
-{
-	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, this, [this] (const uint old_meso_idx, const uint new_meso_idx) {
-		if (old_meso_idx == m_mesoIdx)
-		{
-			m_mesoIdx = new_meso_idx;
-			m_tDayModel->setMesoIdx(new_meso_idx);
-		}
-	});
-}
 
 QmlTDayInterface::~QmlTDayInterface()
 {
@@ -95,17 +83,17 @@ void QmlTDayInterface::setHeaderText(const QString&)
 	QString strWhatToTrain;
 	if (!bRestDay)
 	{
-		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, splitLetter()));
-		strWhatToTrain = tr("Workout number: <b>") + m_tDayModel->trainingDay() + u"</b><br><b>"_qs +
-			appMesoModel()->muscularGroup(m_mesoIdx, splitLetter() + u"</b>"_qs);
+		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
+		strWhatToTrain = std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + u"</b><br><b>"_qs +
+			appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()) + u"</b>"_qs);
 	}
 	else
 		strWhatToTrain = tr("Rest day");
-	m_headerText = u"<b>"_qs + appUtils()->formatDate(m_tDayModel->date()) + u"</b><br>"_qs + strWhatToTrain;
+	m_headerText = std::move(u"<b>"_qs + appUtils()->formatDate(m_tDayModel->date()) + u"</b><br>"_qs + strWhatToTrain);
 	emit headerTextChanged();
 }
 
-void QmlTDayInterface::setLastWorkoutLocation(const QString& new_value)
+void QmlTDayInterface::setLastWorkOutLocation(const QString& new_value)
 {
 	if (m_lastWorkOutLocation != new_value)
 	{
@@ -310,7 +298,7 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 	if (filename.isEmpty())
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
 	else
-		appControl()->openRequestedFile(filename, IFC_TDAY);
+		appItemManager()->openRequestedFile(filename, IFC_TDAY);
 }
 
 void QmlTDayInterface::prepareWorkOutTimer(const QString& strStartTime, const QString& strEndTime)
@@ -569,7 +557,7 @@ void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTra
 {
 	if (tDayModel->isReady())
 	{
-		setLastWorkoutLocation(tDayModel->location());
+		setLastWorkOutLocation(tDayModel->location());
 		setHasMesoPlan(tDayModel->trainingDay() == STR_ONE); //trainingDay() is just a placeholder for the value we need
 		if (tDayModel->count() == 2)
 		{

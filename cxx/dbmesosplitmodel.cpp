@@ -325,7 +325,7 @@ static void muscularGroupSimplified(QString& muscularGroup)
 
 QString DBMesoSplitModel::findSwappableModel() const
 {
-	QString muscularGroup1(appMesoModel()->muscularGroup(mesoIdx(), splitLetter()));
+	QString muscularGroup1(appMesoModel()->muscularGroup(mesoIdx(), _splitLetter()));
 	if (!muscularGroup1.isEmpty())
 	{
 		muscularGroupSimplified(muscularGroup1);
@@ -451,7 +451,7 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 	}
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return m_modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)

@@ -193,7 +193,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 				if (strstr(buf, ":") != NULL) //dont't put a colon in exportExtraInfo()
 				{
 					value = buf;
-					newExercise(value.remove(0, value.indexOf(':') + 2).trimmed().replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)), exercise_idx);
+					newExercise(exercise_idx, value.remove(0, value.indexOf(':') + 2).trimmed().replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;

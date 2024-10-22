@@ -75,13 +75,13 @@ Pane {
 				TPComboBox {
 					id: cboSplit
 					model: AppGlobals.splitModel
-					currentIndex: indexOfValue(txtMesoSplit.text.at(index))
+					currentIndex: indexOfValue(txtMesoSplit.text)
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
-						txtSplit.readOnly(cboindex === 6);
+						txtSplit.readOnly = cboindex === 6;
 						if (cboindex !== 6)
 							txtSplit.forceActiveFocus();
 					}
