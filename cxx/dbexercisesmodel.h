@@ -165,9 +165,9 @@ public:
 	int importFromFile(const QString& filename) override;
 	bool updateFromModel(const TPListModel* const model) override;
 
-	Q_INVOKABLE int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return numberOfFields(); }
-	Q_INVOKABLE QVariant data(const QModelIndex& index, int role) const override;
-	Q_INVOKABLE bool setData(const QModelIndex& index, const QVariant &value, int role) override;
+	int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return numberOfFields(); }
+	QVariant data(const QModelIndex& index, int role) const override;
+	[[maybe_unused]] bool setData(const QModelIndex& index, const QVariant &value, int role) override;
 
 signals:
 	void exerciseChanged(const uint index);

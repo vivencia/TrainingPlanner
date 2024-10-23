@@ -6,6 +6,8 @@
 #include <QSqlQuery>
 #include <QTime>
 
+#include <utility>
+
 DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
 	: TPDatabaseTable{}, m_model{model}
 {
@@ -56,13 +58,13 @@ void DBUserTable::getAllUsers()
 		{
 			if (query.first ())
 			{
-				QStringList user_info(USER_TOTAL_COLS);
 				do
 				{
+					QStringList user_info(USER_TOTAL_COLS);
 					for (uint i(USER_COL_ID); i < USER_TOTAL_COLS; ++i)
-						user_info[i] = query.value(static_cast<int>(i)).toString();
-					m_model->appendList(user_info);
-				} while (query.next ());
+						user_info[i] = std::move(query.value(static_cast<int>(i)).toString());
+					m_model->appendListMove(user_info);
+				} while (query.next());
 				ok = true;
 			}
 		}

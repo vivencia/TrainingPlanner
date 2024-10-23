@@ -386,7 +386,7 @@ TPPage {
 			backgroundColor: "transparent"
 			rounded: false
 			flat: true
-			visible: stackView.depth === 1 && mainwindow.bCanHaveTodaysWorkout
+			visible: stackView.depth === 1 && mesocyclesModel.canHaveTodaysWorkout
 
 			anchors {
 				top: btnImportMeso.bottom

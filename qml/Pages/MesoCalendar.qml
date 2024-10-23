@@ -36,7 +36,7 @@ TPPage {
 
 			TPLabel {
 				id: lbl1
-				text: mesocyclesModel.name(mesoCalendarModel.mesoIdx)
+				text: mesoManager.name
 				font: AppGlobals.titleFont
 				Layout.maximumWidth: parent.width - 10
 				Layout.minimumHeight: heightAvailable
@@ -46,8 +46,7 @@ TPPage {
 			}
 			TPLabel {
 				id: lbl2
-				text: qsTr("from  <b>") + mesocyclesModel.startDateFancy(mesoCalendarModel.mesoIdx) +
-						qsTr("</b>  through  <b>") + mesocyclesModel.endDateFancy(mesoCalendarModel.mesoIdx) + "</b>"
+				text: qsTr("from  <b>") + mesoManager.startDate + qsTr("</b>  through  <b>") + mesoManager.endDate + "</b>"
 				font: AppGlobals.titleFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
@@ -262,7 +261,6 @@ TPPage {
 			width: 60
 			height: 55
 			fixedSize: true
-			//enabled: TODO own meso
 
 			anchors {
 				right: parent.right

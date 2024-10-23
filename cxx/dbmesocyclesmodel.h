@@ -31,8 +31,9 @@ class DBMesocyclesModel : public TPListModel
 
 Q_OBJECT
 
-Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged)
-Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged)
+Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
+Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
+Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 
 public:
 
@@ -59,12 +60,15 @@ public:
 	inline QMLMesoInterface* mesoManager(const uint meso_idx) { return m_mesoManagerList.at(meso_idx); }
 	inline const QMLMesoInterface* mesoManager(const uint meso_idx) const { return m_mesoManagerList.at(meso_idx); }
 
-	const uint newMesocycle(const QStringList& infolist);
+	const uint newMesocycle(QStringList&& infolist);
 	void finishedLoadingFromDatabase();
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
 	inline bool isNewMeso(const int meso_idx = -1) const { return m_isNewMeso.at(meso_idx >= 0 ? meso_idx : currentMesoIdx()) != 0; }
+	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
+	void changeCanHaveTodaysWorkout();
+
 	void setModified(const uint meso_idx, const uint field);
 
 	inline const QString& id(const uint meso_idx) const
@@ -206,8 +210,6 @@ public:
 	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
 	void findNextOwnMeso();
 	int getPreviousMesoId(const int current_mesoid) const;
-	QDate getPreviousMesoEndDate(const int current_mesoid) const;
-	QDate getNextMesoStartDate(const int mesoid) const;
 	QDate getLastMesoEndDate() const;
 
 	bool isDifferent(const TPListModel* const model);
@@ -243,6 +245,7 @@ signals:
 	void muscularGroupChanged(const uint meso_idx, const uint initiator_id, const uint splitIndex, const QChar& splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
+	void canHaveTodaysWorkoutChanged();
 
 private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
@@ -251,6 +254,7 @@ private:
 	QList<uchar> m_isNewMeso;
 	QList<bool> m_newMesoCalendarChanged;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
+	bool m_bCanHaveTodaysWorkout;
 
 	static DBMesocyclesModel* app_meso_model;
 	friend DBMesocyclesModel* appMesoModel();

@@ -90,34 +90,22 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->load(url);
 
 	_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
-	connect(appMainWindow(), SIGNAL(openFileChosen(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
-	connect(appMainWindow(), SIGNAL(openFileRejected(const QString&)), this, SLOT(importSlot_FileChosen(const QString&)), static_cast<Qt::ConnectionType>(Qt::UniqueConnection));
+	connect(appMainWindow(), SIGNAL(openFileChosen(QString)), this, SLOT(importSlot_FileChosen(QString)));
+	connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
 	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_qs, QVariant::fromValue(appMainWindow()));
 
 	if (!appSettings()->mainUserConfigured())
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
 	else
-	{
-		appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
 		appOsInterface()->initialCheck();
-	}
 
-	connect(appMesoModel(), &DBMesocyclesModel::mostRecentOwnMesoChanged, this, [this] (const int meso_idx) {
-		appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
-	});
 	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
 		appSettings()->setMainUserConfigured(true);
 		appOsInterface()->initialCheck();
 	});
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE) {
-			appMesoModel()->updateColumnLabels();
-			appMainWindow()->setProperty("bCanHaveTodaysWorkout", appMesoModel()->isDateWithinMeso(appMesoModel()->mostRecentOwnMesoIdx(), QDate::currentDate()));
-		}
-	});
 
-	connect(appMainWindow(), SIGNAL(saveFileChosen(const QString&)), this, SLOT(exportSlot(const QString&)));
-	connect(appMainWindow(), SIGNAL(saveFileRejected(const QString&)), this, SLOT(exportSlot(const QString&)));
+	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
+	connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
 }
 
 void QmlItemManager::openMainMenuShortCut(const int button_id)
@@ -423,7 +411,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 
-void QmlItemManager::exportSlot(const QString& filePath)
+void QmlItemManager::exportSlot(QString filePath)
 {
 	if (!filePath.isEmpty())
 		QFile::copy(m_exportFilename, filePath);
@@ -431,7 +419,7 @@ void QmlItemManager::exportSlot(const QString& filePath)
 	QFile::remove(m_exportFilename);
 }
 
-void QmlItemManager::importSlot_FileChosen(const QString& filePath)
+void QmlItemManager::importSlot_FileChosen(QString filePath)
 {
 	if (!filePath.isEmpty())
 		openRequestedFile(filePath);
@@ -439,7 +427,6 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath)
 		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED);
 }
 
-//-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
 	if (m_mainMenuShortcutPages.contains(page))
@@ -480,4 +467,3 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 			m_mainMenuShortcutEntries.at(i)->setProperty("clickid", i);
 	}
 }
-//-----------------------------------------------------------OTHER ITEMS PRIVATE-----------------------------------------------------------

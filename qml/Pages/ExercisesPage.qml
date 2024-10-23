@@ -81,11 +81,11 @@ TPPage {
 				id: toolbarExercises
 				Layout.fillWidth: true
 				Layout.maximumHeight: 30
-				Layout.leftMargin: -5
+				Layout.leftMargin: 0
 				Layout.bottomMargin: 5
 				spacing: 0
 
-				readonly property int buttonWidth: Math.ceil(exercisesPage.width/4)
+				readonly property int buttonWidth: Math.floor(exercisesPage.width/4)
 
 				TPButton {
 					id: btnNewExercise

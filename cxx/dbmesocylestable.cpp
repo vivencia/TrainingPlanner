@@ -130,12 +130,12 @@ void DBMesocyclesTable::getAllMesocycles()
 		{
 			if (query.first ())
 			{
-				QStringList meso_info(MESOCYCLES_TOTAL_COLS);
 				do
 				{
+					QStringList meso_info(MESOCYCLES_TOTAL_COLS);
 					for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
-						meso_info[i] = query.value(i).toString();
-					static_cast<void>(m_model->newMesocycle(meso_info));
+						meso_info[i] = std::move(query.value(i).toString());
+					static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
 				} while (query.next ());
 				m_model->finishedLoadingFromDatabase();
 				ok = true;

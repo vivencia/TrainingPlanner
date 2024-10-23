@@ -38,17 +38,16 @@ public:
 public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;
-	void exportSlot(const QString& filePath = QString());
-	void importSlot_FileChosen(const QString& filePath = QString());
+	void exportSlot(QString filePath = QString());
+	void importSlot_FileChosen(QString filePath = QString());
+	void addMainMenuShortCut(const QString& label, QQuickItem* page);
+	void removeMainMenuShortCut(QQuickItem* page);
 
 private:
 	QList<QQuickItem*> m_mainMenuShortcutPages;
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	uint m_fileContents;
 	QString m_exportFilename, m_importFilename;
-
-	void addMainMenuShortCut(const QString& label, QQuickItem* page);
-	void removeMainMenuShortCut(QQuickItem* page);
 
 	static QmlItemManager* _appItemManager;
 	friend QmlItemManager* appItemManager();

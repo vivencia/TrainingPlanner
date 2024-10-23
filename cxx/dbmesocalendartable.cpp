@@ -125,7 +125,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 	if (openDatabase(true))
 	{
 		bool ok(false);
-		const QString& mesoId(m_model->getMesoId());
+		const QString& mesoId(m_execArgs.at(0).toString());
 		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT * FROM mesocycles_calendar_table WHERE meso_id="_qs + mesoId);
 
@@ -135,20 +135,20 @@ void DBMesoCalendarTable::getMesoCalendar()
 			{
 				// 0: id | 1: meso_id | 2: training day number | 3: split letter | 4: training_complete | 5: year | 6: month | 7: day
 				QStringList mesocal_info;
-				int month(-1), dbmonth(-1);
+				int month(-1);
 				QString strMonth, strYear;
 				uint day(1);
 
 				do
 				{
-					dbmonth = query.value(MESOCALENDAR_COL_MONTH).toInt();
+					const int dbmonth = query.value(MESOCALENDAR_COL_MONTH).toInt();
 					if (dbmonth != month)
 					{
 						strMonth = QString::number(dbmonth);
-						strYear = query.value(MESOCALENDAR_COL_YEAR).toString();
+						strYear = std::move(query.value(MESOCALENDAR_COL_YEAR).toString());
 						if (!mesocal_info.isEmpty())
 						{
-							m_model->appendList(mesocal_info);
+							m_model->appendListMove(mesocal_info);
 							mesocal_info.clear();
 							day = 1;
 						}
@@ -159,7 +159,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 							{
 								//Fill the model with info that reflects that these month days are not part of the meso
 								for( ; day < firstDayOfMeso; ++day)
-									mesocal_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
+									mesocal_info.append(std::move(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth));
 							}
 						}
 					}
@@ -174,8 +174,8 @@ void DBMesoCalendarTable::getMesoCalendar()
 					const uint lastDayOfMonth(QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth());
 					//Fill the model with info that reflects that these month days are not part of the meso
 					for( ; day <= lastDayOfMonth; ++day)
-						mesocal_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
-					m_model->appendList(mesocal_info);
+						mesocal_info.append(std::move(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth));
+					m_model->appendListMove(mesocal_info);
 				}
 			}
 			else
@@ -279,10 +279,10 @@ void DBMesoCalendarTable::updateDayIsFinished()
 		if (query.exec(strQuery))
 		{
 			query.first();
-			const QString strId(query.value(0).toString());
+			const QString& strId(query.value(0).toString());
 			query.finish();
 			strQuery = u"UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2"_qs
-									.arg(m_execArgs.at(1).toBool() ? u"1"_qs : u"0"_qs, strId);
+									.arg(m_execArgs.at(1).toBool() ? STR_ONE : STR_ZERO, strId);
 			ok = query.exec(strQuery);
 		}
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);

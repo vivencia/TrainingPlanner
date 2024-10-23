@@ -39,12 +39,16 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	mColumnNames.append(std::move(tr("Weekly Training Division: ")));
 	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
 	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
-	updateColumnLabels();
 	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
 	mColumnNames.append(std::move(tr("Type: ")));
 	mColumnNames.append(std::move(tr("Mesocycle-style plan: ")));
 
 	m_splitModel = new DBMesoSplitModel(this, false, -1);
+
+	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
+		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+			updateColumnLabels();
+	});
 }
 
 DBMesocyclesModel::~DBMesocyclesModel()
@@ -87,9 +91,16 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 		enddate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 
-	const uint meso_idx = newMesocycle(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString::number(startdate.toJulianDay()) <<
+	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString::number(startdate.toJulianDay()) <<
 		QString::number(enddate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startdate, enddate)) <<
-		std::move(u"ABCDERR"_qs) << appUserModel()->currentCoachName(0) << appUserModel()->currentUserName(0) << QString() << QString() << STR_ONE);
+		std::move(u"ABCDERR"_qs) << appUserModel()->currentCoachName(0) << appUserModel()->currentUserName(0) << QString() << QString() << STR_ONE));
+
+	uchar newMesoRequiredFields(0);
+	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
+	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
+	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
+	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
+	m_isNewMeso[meso_idx] = newMesoRequiredFields;
 
 	QMLMesoInterface* mesomanager{new QMLMesoInterface{this, appQmlEngine(), appMainWindow(), meso_idx}};
 	m_mesoManagerList.append(mesomanager);
@@ -124,7 +135,9 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 		m_mostRecentOwnMesoIdx = -1;
 		findNextOwnMeso();
 	}
+
 	emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+	changeCanHaveTodaysWorkout();
 }
 
 void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
@@ -147,28 +160,24 @@ void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const
 	m_mesoManagerList.at(meso_idx)->exportMeso(bShare, bCoachInfo);
 }
 
-const uint DBMesocyclesModel::newMesocycle(const QStringList& infolist)
+const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 {
-	appendList(infolist);
-	m_splitModel->appendList(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
+	appendListMove(infolist);
+	m_splitModel->appendListMove(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
 		QString() << QString() << QString() << QString());
 
 	const uint meso_idx(count()-1);
 	m_splitModel->setMesoIdx(meso_idx);
-	m_calendarModelList.append(new DBMesoCalendarModel(this, meso_idx));
+	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
 	if (isOwnMeso(meso_idx))
 	{
 		m_mostRecentOwnMesoIdx = meso_idx;
 		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+		changeCanHaveTodaysWorkout();
 	}
+	m_isNewMeso.append(uchar(0));
 	setCurrentMesoIdx(meso_idx);
-	uchar newMesoRequiredFields(0);
-	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
-	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
-	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
-	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
-	m_isNewMeso.append(newMesoRequiredFields);
 	return meso_idx;
 }
 
@@ -176,6 +185,15 @@ void DBMesocyclesModel::finishedLoadingFromDatabase()
 {
 	setReady(true);
 	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
+}
+
+void DBMesocyclesModel::changeCanHaveTodaysWorkout()
+{
+	if (m_bCanHaveTodaysWorkout != isDateWithinMeso(m_mostRecentOwnMesoIdx, QDate::currentDate()))
+	{
+		m_bCanHaveTodaysWorkout = !m_bCanHaveTodaysWorkout;
+		emit canHaveTodaysWorkoutChanged();
+	}
 }
 
 void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
@@ -249,7 +267,10 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 		const int cur_ownmeso(m_mostRecentOwnMesoIdx);
 		findNextOwnMeso();
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
+		{
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+			changeCanHaveTodaysWorkout();
+		}
 		emit isOwnMesoChanged(meso_idx);
 	}
 }
@@ -340,28 +361,6 @@ int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 			return _id(x-1);
 	}
 	return -1;
-}
-
-QDate DBMesocyclesModel::getPreviousMesoEndDate(const int current_mesoid) const
-{
-	for(uint x(1); x < count(); ++x)
-	{
-		if (_id(x) == current_mesoid)
-			return endDate(x-1);
-	}
-	// 1 or 0 meso records = no previous meso. The first meso can start anywhere in 2024
-	return QDate(2024, 1, 1);
-}
-
-QDate DBMesocyclesModel::getNextMesoStartDate(const int mesoid) const
-{
-	for(uint x(0); x < count() - 1; ++x)
-	{
-		if (_id(x) == mesoid)
-			return startDate(x+1);
-	}
-	 //This is the most current meso. The cut off date for it is undetermined. So we set a value that is 6 months away
-	return QDate::currentDate().addMonths(6);
 }
 
 QDate DBMesocyclesModel::getLastMesoEndDate() const

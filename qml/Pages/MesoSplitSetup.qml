@@ -7,8 +7,11 @@ import ".."
 
 Pane {
 	id: trainingSplitPane
-	implicitWidth: appSettings.pageWidth - 20
 	implicitHeight: mainLayout.implicitHeight + 100
+	spacing: 0
+	padding: 0
+	Layout.topMargin: 10
+	Layout.leftMargin: 0
 
 	property alias mesoSplitText: txtMesoSplit.text
 	readonly property int col1Width: width*0.15
@@ -44,7 +47,7 @@ Pane {
 		anchors {
 			top: parent.top
 			right: parent.right
-			rightMargin: 5
+			rightMargin: 20
 		}
 	}
 
@@ -75,7 +78,6 @@ Pane {
 				TPComboBox {
 					id: cboSplit
 					model: AppGlobals.splitModel
-					currentIndex: indexOfValue(txtMesoSplit.text)
 					implicitWidth: col2Width
 
 					onActivated: (cboindex) => {
@@ -85,6 +87,8 @@ Pane {
 						if (cboindex !== 6)
 							txtSplit.forceActiveFocus();
 					}
+
+					Component.onCompleted: currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
 				}
 
 				TPTextInput {
@@ -98,7 +102,7 @@ Pane {
 
 					Component.onCompleted: {
 						text = Qt.binding(function() {
-							switch (index) {
+							switch (cboSplit.currentIndex) {
 								case 0: return mesoManager.muscularGroupA;
 								case 1: return mesoManager.muscularGroupB;
 								case 2: return mesoManager.muscularGroupC;
@@ -109,14 +113,14 @@ Pane {
 							}
 						});
 
-						editingFinished.connect(function(str) {
-							switch (index) {
-								case 0: mesoManager.muscularGroupA = str; break;
-								case 1: mesoManager.muscularGroupB = str; break;
-								case 2: mesoManager.muscularGroupC = str; break;
-								case 3: mesoManager.muscularGroupD = str; break;
-								case 4: mesoManager.muscularGroupD = str; break;
-								case 5: mesoManager.muscularGroupF = str; break;
+						editingFinished.connect(function() {
+							switch (cboSplit.currentIndex) {
+								case 0: mesoManager.muscularGroupA = text; break;
+								case 1: mesoManager.muscularGroupB = text; break;
+								case 2: mesoManager.muscularGroupC = text; break;
+								case 3: mesoManager.muscularGroupD = text; break;
+								case 4: mesoManager.muscularGroupD = text; break;
+								case 5: mesoManager.muscularGroupF = text; break;
 							}
 						});
 					}

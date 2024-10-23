@@ -14,11 +14,16 @@ ComboBox {
 	implicitHeight: 25
 	textRole: "text"
 	valueRole: "value"
+	padding: 0
+	spacing: 0
 
 	delegate: ItemDelegate {
 		id: delegate
 		width: control.width
 		enabled: model.enabled
+		padding: 0
+		spacing: 0
+
 		required property var model
 		required property int index
 
@@ -28,7 +33,7 @@ ComboBox {
 			color: textColor
 			singleLine: true
 			verticalAlignment: Text.AlignVCenter
-			leftPadding: completeModel ? 10 : 0
+			leftPadding: completeModel ? 10 : 5
 
 			TPImage {
 				id: lblImg
@@ -78,7 +83,6 @@ ComboBox {
 		text: control.displayText
 		singleLine: true
 		width: control.width
-		rightPadding: control.indicator.width + control.spacing
 		verticalAlignment: Text.AlignVCenter
 		leftPadding: completeModel ? 30 : 5
 	}
@@ -111,7 +115,8 @@ ComboBox {
 		y: control.height - 1
 		width: control.width
 		implicitHeight: contentItem.implicitHeight
-		padding: 1
+		padding: 0
+		spacing: 0
 
 		contentItem: ListView {
 			implicitHeight: contentHeight

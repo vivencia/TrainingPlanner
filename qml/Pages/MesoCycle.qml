@@ -55,12 +55,12 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
+			anchors.leftMargin: 5
+			anchors.topMargin: 10
 			spacing: 5
 
 			TPLabel {
 				text: mesoManager.nameLabel
-				Layout.alignment: Qt.AlignHCenter
-				Layout.topMargin: 10
 			}
 			TPTextInput {
 				id: txtMesoName
@@ -69,7 +69,6 @@ TPPage {
 				ToolTip.text: qsTr("Name too short")
 				ToolTip.visible:!bMesoNameOK;
 				width: parent.width - 20
-				Layout.leftMargin: 10
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
@@ -92,7 +91,6 @@ TPPage {
 				visible: mesoManager.hasCoach
 				height: 30
 				spacing: 5
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				TPLabel {
@@ -131,7 +129,6 @@ TPPage {
 				text: qsTr("This plan is for myself")
 				checked: mesoManager.ownMeso
 				visible: mesoManager.ownerIsCoach
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				onClicked: mesoManager.ownMeso = checked;
@@ -139,13 +136,10 @@ TPPage {
 
 			RowLayout {
 				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
-				height: 30
 				spacing: 5
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				TPLabel {
-					id: lblClients
 					text: mesoManager.clientLabel
 				}
 
@@ -177,9 +171,7 @@ TPPage {
 			}
 
 			RowLayout {
-				height: 30
 				spacing: 5
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				TPLabel {
@@ -221,7 +213,6 @@ TPPage {
 				visible: cboMesoType.currentIndex === 6
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
-				Layout.leftMargin: 5
 
 				onEditingFinished: mesoManager.type = text;
 				onEnterOrReturnKeyPressed: txtMesoFile.forceActiveFocus();
@@ -230,14 +221,10 @@ TPPage {
 
 			TPLabel {
 				text: qsTr("Instructions file")
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
 			}
 
 			RowLayout {
-				height: 30
 				spacing: 0
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				TPTextInput {
@@ -246,6 +233,7 @@ TPPage {
 					readOnly: true
 					width: (mesoPropertiesPage.width - 20)*0.8
 					Layout.minimumWidth: width
+					Layout.maximumWidth: width
 				}
 
 				TPButton {
@@ -263,7 +251,7 @@ TPPage {
 						currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 						fileMode: FileDialog.OpenFile
 
-						onAccepted: btnOpenMesoFile.visible = mesoManager.file = selectedFile;
+						onAccepted: mesoManager.file = appUtils.getCorrectPath(selectedFile);
 					}
 				}
 
@@ -279,16 +267,13 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.startDateLabel
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
 			}
 
 			TPTextInput {
 				id: txtMesoStartDate
 				text: mesoManager.startDate
 				Layout.fillWidth: false
-				Layout.leftMargin: 5
-				Layout.minimumWidth: parent.width / 2
+				Layout.minimumWidth: parent.width/2
 				readOnly: true
 
 				CalendarDialog {
@@ -314,18 +299,15 @@ TPPage {
 			TPCheckBox {
 				text: qsTr("Mesocycle-style plan")
 				checked: mesoManager.realMeso
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
-
 				onClicked: mesoManager.realMeso = checked;
 			}
 
 			TPLabel {
 				text: mesoManager.endDateLabel
 				visible: mesoManager.realMeso
-				Layout.leftMargin: 5
 			}
 			TPTextInput {
 				id: txtMesoEndDate
@@ -333,8 +315,7 @@ TPPage {
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.fillWidth: false
-				Layout.leftMargin: 5
-				Layout.minimumWidth: parent.width / 2
+				Layout.minimumWidth: parent.width/2
 
 				CalendarDialog {
 					id: caldlg2
@@ -363,8 +344,6 @@ TPPage {
 				id: lblnWeeks
 				text: mesoManager.weeksLabel
 				visible: mesoManager.realMeso
-				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
 			}
 
 			TPTextInput {
@@ -373,26 +352,24 @@ TPPage {
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
-				Layout.leftMargin: 5
 				Layout.minimumWidth: parent.width / 2
 			}
 
 			MesoSplitSetup {
 				id: mesoSplitSetup
-				Layout.fillWidth: true
-				Layout.leftMargin: 0
+				width: parent.width
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
 			}
 
 			TPLabel {
 				text: mesoManager.notesLabel
-				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
 			Flickable {
 				height: Math.min(contentHeight, 60)
-				width: parent.width - 25
+				width: parent.width
 				contentHeight: txtMesoNotes.implicitHeight
-				Layout.leftMargin: 5
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 				Layout.minimumHeight: 60
@@ -449,8 +426,7 @@ TPPage {
 		mesoManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
 	}
 
-	function updateCoachesAndClientsModels(userrow: int) {
-		const use_mode = userModel.appUseMode(userrow);
+	function updateCoachesAndClientsModels(use_mode: int) {
 		if (use_mode === 2 || use_mode === 4) {
 			const coaches = userModel.getCoaches();
 			coachesModel.clear();

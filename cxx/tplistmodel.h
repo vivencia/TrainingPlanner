@@ -35,7 +35,7 @@ public:
 	Q_INVOKABLE void setCurrentRow(const int row);
 	Q_INVOKABLE void moveRow(const uint from, const uint to);
 
-	Q_INVOKABLE QString columnLabel(const uint col) const { return mColumnNames.at(col); }
+	[[nodiscard]] inline const QString& columnLabel(const uint col) const { return mColumnNames.at(col); }
 
 	virtual int exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true) const;
 	virtual int importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
@@ -58,10 +58,10 @@ public:
 	inline virtual void resetPrivateData() {}
 
 	// QAbstractItemModel interface
-	inline virtual int columnCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return 1; }
-	inline virtual int rowCount(const QModelIndex &parent) const override { Q_UNUSED(parent); return count(); }
-	inline virtual QVariant data(const QModelIndex &, int) const override { return QVariant(); }
-	inline virtual bool setData(const QModelIndex &, const QVariant &, int) override { return false; }
+	inline virtual int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return 1; }
+	inline virtual int rowCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return count(); }
+	inline virtual QVariant data(const QModelIndex&, int) const override { return QVariant(); }
+	inline virtual bool setData(const QModelIndex&, const QVariant &, int) override { return false; }
 
 signals:
 	void countChanged();

@@ -27,8 +27,8 @@ Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged 
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(QString nameLabel READ nameLabel CONSTANT FINAL)
-Q_PROPERTY(QString coachLabel READ coachLabel CONSTANT FINAL)
-Q_PROPERTY(QString clientLabel READ clientLabel CONSTANT FINAL)
+Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY coachLabelChanged FINAL)
+Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY clientLabelChanged FINAL)
 Q_PROPERTY(QString typeLabel READ typeLabel CONSTANT FINAL)
 Q_PROPERTY(QString startDateLabel READ startDateLabel CONSTANT FINAL)
 Q_PROPERTY(QString endDateLabel READ endDateLabel CONSTANT FINAL)
@@ -64,22 +64,22 @@ public:
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-	inline const uint mesoIdx() const { return m_mesoIdx; }
+	[[nodiscard]] inline const uint mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const uint new_value) { m_mesoIdx = new_value; }
 
-	inline bool ownerIsCoach() const { return m_bOwnerIsCoach; }
+	[[nodiscard]] inline bool ownerIsCoach() const { return m_bOwnerIsCoach; }
 	inline void setOwnerIsCoach(const bool new_value) { if (m_bOwnerIsCoach != new_value) { m_bOwnerIsCoach = new_value; emit ownerIsCoachChanged(); } };
 
-	inline bool hasCoach() const { return m_bHasCoach; }
+	[[nodiscard]] inline bool hasCoach() const { return m_bHasCoach; }
 	inline void setHasCoach(const bool new_value) { if (m_bHasCoach != new_value) { m_bHasCoach = new_value; emit hasCoachChanged(); } };
 
-	inline bool realMeso() const { return m_bRealMeso; }
+	[[nodiscard]] inline bool realMeso() const { return m_bRealMeso; }
 	void setRealMeso(const bool new_value, const bool bFromQml = true);
 
 	inline bool ownMeso() const { return m_bOwnMeso; }
 	void setOwnMeso(const bool new_value, const bool bFromQml = true);
 
-	bool isNewMeso() const;
+	[[nodiscard]] bool isNewMeso() const;
 
 	QString nameLabel() const;
 	QString coachLabel() const;
@@ -91,54 +91,54 @@ public:
 	QString splitLabel() const;
 	QString notesLabel() const;
 
-	inline QString name() const { return m_name; }
+	[[nodiscard]] inline QString name() const { return m_name; }
 	void setName(const QString& new_value, const bool bFromQml = true);
 
-	inline QString coach() const { return m_coach; }
+	[[nodiscard]] inline QString coach() const { return m_coach; }
 	void setCoach(const QString& new_value, const bool bFromQml = true);
 
-	inline QString client() const { return m_client; }
+	[[nodiscard]] inline QString client() const { return m_client; }
 	void setClient(const QString& new_value, const bool bFromQml = true);
 
-	inline QString type() const { return m_type; }
+	[[nodiscard]] inline QString type() const { return m_type; }
 	void setType(const QString& new_value, const bool bFromQml = true);
 
-	QString fileName() const;
-	inline QString file() const { return m_file; }
+	[[nodiscard]] QString fileName() const;
+	[[nodiscard]] inline QString file() const { return m_file; }
 	void setFile(const QString& new_value, const bool bFromQml = true);
 
-	inline QString startDate() const { return m_startDate; }
-	inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
+	[[nodiscard]] inline QString startDate() const { return m_startDate; }
+	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
 	void setMinimumMesoStartDate(const QDate& new_value, const bool bFromQml = true);
 
-	inline QString endDate() const { return m_endDate; }
-	inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
+	[[nodiscard]] inline QString endDate() const { return m_endDate; }
+	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
 	void setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml = true);
 
-	inline QString weeks() const { return m_weeks; }
+	[[nodiscard]] inline QString weeks() const { return m_weeks; }
 	void setWeeks(const QString& new_value, const bool bFromQml = true);
 
-	inline QString split() const { return m_split; }
+	[[nodiscard]] inline QString split() const { return m_split; }
 	void setSplit(const QString& new_value, const bool bFromQml = true);
 
-	inline QString notes() const { return m_notes; }
+	[[nodiscard]] inline QString notes() const { return m_notes; }
 	void setNotes(const QString& new_value, const bool bFromQml = true);
 
-	inline QString muscularGroupA() const { return m_muscularGroup.at(0); }
+	[[nodiscard]] inline QString muscularGroupA() const { return m_muscularGroup.at(0); }
 	void setMuscularGroupA(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupB() const { return m_muscularGroup.at(1); }
+	[[nodiscard]] inline QString muscularGroupB() const { return m_muscularGroup.at(1); }
 	void setMuscularGroupB(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupC() const { return m_muscularGroup.at(2); }
+	[[nodiscard]] inline QString muscularGroupC() const { return m_muscularGroup.at(2); }
 	void setMuscularGroupC(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupD() const { return m_muscularGroup.at(3); }
+	[[nodiscard]] inline QString muscularGroupD() const { return m_muscularGroup.at(3); }
 	void setMuscularGroupD(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupE() const { return m_muscularGroup.at(4); }
+	[[nodiscard]] inline QString muscularGroupE() const { return m_muscularGroup.at(4); }
 	void setMuscularGroupE(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupF() const { return m_muscularGroup.at(5); }
+	[[nodiscard]] inline QString muscularGroupF() const { return m_muscularGroup.at(5); }
 	void setMuscularGroupF(const QString& new_value, const bool bFromQml = true);
-	inline QString muscularGroupR() const { return m_muscularGroup.at(6); }
+	[[nodiscard]] inline QString muscularGroupR() const { return m_muscularGroup.at(6); }
 
-	inline QDate calendarStartDate() const { return m_calendarStartDate; }
+	[[nodiscard]] inline QDate calendarStartDate() const { return m_calendarStartDate; }
 	void setCalendarStartDate(const QDate& new_value);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
@@ -151,8 +151,8 @@ public:
 	void exportMeso(const bool bShare, const bool bCoachInfo);
 	void importMeso(const QString& filename = QString());
 
-	DBMesoSplitModel* plannerSplitModel(const QChar& splitLetter);
-	DBTrainingDayModel* tDayModelForToday();
+	[[nodiscard]] DBMesoSplitModel* plannerSplitModel(const QChar& splitLetter);
+	[[nodiscard]] DBTrainingDayModel* tDayModelForToday();
 
 signals:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -160,7 +160,10 @@ signals:
 	void hasCoachChanged();
 	void realMesoChanged();
 	void ownMesoChanged();
+	void nameLabelChanged();
 	void isNewMesoChanged();
+	void coachLabelChanged();
+	void clientLabelChanged();
 	void nameChanged();
 	void coachChanged();
 	void clientChanged();
@@ -207,8 +210,7 @@ private:
 	QmlMesoSplitInterface* m_exercisesPage;
 	QmlMesoCalendarInterface* m_calendarPage;
 
-	void createMesocyclePage(const QDate& minimumMesoStartDate = QDate(), const QDate& maximumMesoEndDate = QDate(),
-								const QDate& calendarStartDate = QDate());
+	void createMesocyclePage();
 	void createMesocyclePage_part2();
 	void setPropertiesBasedOnUseMode();
 	void updateMuscularGroupFromOutside(const uint splitIndex);

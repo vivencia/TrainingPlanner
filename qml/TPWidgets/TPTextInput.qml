@@ -21,7 +21,7 @@ TextField {
 	rightPadding: 5
 	placeholderTextColor: "gray"
 	implicitWidth: AppGlobals.fontMetricsText.boundingRect(text).width + 5
-	implicitHeight: AppGlobals.fontMetricsText.boundingRect("TM").height + 5
+	implicitHeight: 25
 
 	signal enterOrReturnKeyPressed()
 

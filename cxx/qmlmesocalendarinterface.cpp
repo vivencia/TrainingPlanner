@@ -1,5 +1,5 @@
 #include "qmlmesocalendarinterface.h"
-
+#include "qmlitemmanager.h"
 #include "qmlmesointerface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
@@ -58,5 +58,8 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 	#endif
 	m_qmlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
 	m_calPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
+
+	connect(this, &QmlMesoCalendarInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
+	connect(this, &QmlMesoCalendarInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }

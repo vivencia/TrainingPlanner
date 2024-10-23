@@ -179,8 +179,8 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
-	#ifdef DEBUG
 
+	#ifndef QT_NO_DEBUG
 	if (m_plannerComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_plannerComponent->errorString();
@@ -193,6 +193,9 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	m_plannerPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
 	emit plannerPageCreated();
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
+
+	connect(this, &QmlMesoSplitInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
+	connect(this, &QmlMesoSplitInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
@@ -213,7 +216,7 @@ void QmlMesoSplitInterface::createMesoSplitPage(const QChar& splitletter)
 
 void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_splitComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_splitComponent->errorString();
@@ -223,9 +226,9 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	}
 	#endif
 
-	DBMesoSplitModel* splitModel(m_splitModels.value(splitletter));
+	DBMesoSplitModel* splitmodel(m_splitModels.value(splitletter));
 
-	m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitModel);
+	m_splitProperties[u"splitModel"_qs] = QVariant::fromValue(splitmodel);
 	m_splitProperties[u"parentItem"_qs] = QVariant::fromValue(m_plannerPage);
 	m_splitProperties[u"splitManager"_qs] = QVariant::fromValue(this);
 	m_splitMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
@@ -238,16 +241,15 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	connect(item, SIGNAL(requestSimpleExercisesList(QQuickItem*,QVariant,QVariant,int)), this,
 							SLOT(requestExercisesList(QQuickItem*,QVariant,QVariant,int)));
 
-
-	if (splitModel->count() == 0)
-		splitModel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, u"4"_qs, u"12"_qs, u"20"_qs);
+	if (splitmodel->count() == 0)
+		splitmodel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, u"4"_qs, u"12"_qs, u"20"_qs);
 	else
-		splitModel->setCurrentRow(0);
-	setSplitPageProperties(item, splitModel);
+		splitmodel->setCurrentRow(0);
+	setSplitPageProperties(item, splitmodel);
 
-	m_splitPages.insert(splitModel->splitLetter().at(0), item);
+	m_splitPages.insert(splitmodel->splitLetter().at(0), item);
 	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
-								Q_ARG(int, appUtils()->splitLetterToIndex(splitModel->splitLetter())));
+								Q_ARG(int, appUtils()->splitLetterToIndex(splitmodel->splitLetter())));
 
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
 		if (meso_idx == m_mesoIdx && initiator_id != m_splitMuscularGroupId )
@@ -256,8 +258,8 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 				updateMuscularGroup(m_splitModels.value(splitLetter));
 		}
 	});
-	connect(splitModel, &DBMesoSplitModel::splitChanged, this, [this,splitModel] (const uint, const uint) {
-		appDBInterface()->saveMesoSplitComplete(splitModel);
+	connect(splitmodel, &DBMesoSplitModel::splitChanged, this, [this,splitmodel] (const uint, const uint) {
+		appDBInterface()->saveMesoSplitComplete(splitmodel);
 	});
 }
 

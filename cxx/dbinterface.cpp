@@ -426,6 +426,7 @@ void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplit
 void DBInterface::getMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { worker->getMesoCalendar(); });
 }
 

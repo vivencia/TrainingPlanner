@@ -160,7 +160,11 @@ void QMLMesoInterface::setFile(const QString& new_value, const bool bFromQml)
 	{
 		m_file = new_value;
 		if (bFromQml)
+		{
+			emit fileChanged();
+			emit fileNameChanged();
 			appMesoModel()->setFile(m_mesoIdx, m_file);
+		}
 	}
 }
 
@@ -467,10 +471,8 @@ DBTrainingDayModel* QMLMesoInterface::tDayModelForToday()
 	return tDayPage ? tDayPage->tDayModel() : nullptr;
 }
 
-void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, const QDate& maximumMesoEndDate, const QDate& calendarStartDate)
+void QMLMesoInterface::createMesocyclePage()
 {
-	const int meso_id(appMesoModel()->_id(m_mesoIdx));
-
 	m_muscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
 
 	setName(appMesoModel()->name(m_mesoIdx), false);
@@ -481,8 +483,9 @@ void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	setPropertiesBasedOnUseMode();
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
-	setMinimumMesoStartDate(!minimumMesoStartDate.isNull() ? minimumMesoStartDate : appMesoModel()->getPreviousMesoEndDate(meso_id), false);
-	setMaximumMesoEndDate(!maximumMesoEndDate.isNull() ? maximumMesoEndDate : appMesoModel()->getNextMesoStartDate(meso_id), false);
+	setMinimumMesoStartDate(appMesoModel()->startDate(m_mesoIdx), false);
+	setMaximumMesoEndDate(appMesoModel()->endDate(m_mesoIdx), false);
+	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'A'));
@@ -492,7 +495,7 @@ void QMLMesoInterface::createMesocyclePage(const QDate& minimumMesoStartDate, co
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'E'));
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'F'));
 	m_muscularGroup.append(std::move(tr("Rest day")));
-	setCalendarStartDate(!calendarStartDate.isNull() ? calendarStartDate: appMesoModel()->startDate(m_mesoIdx));
+	setCalendarStartDate(appMesoModel()->startDate(m_mesoIdx));
 
 	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
 
@@ -522,11 +525,17 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	m_qmlEngine->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
 	m_mesoPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
 
+	connect(this, &QMLMesoInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
+	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 
+	QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, appUserModel()->appUseMode(0)));
 	connect(appUserModel(), &DBUserModel::userAdded, this, [this] (const uint user_row) {
-		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, static_cast<int>(user_row)));
+		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, appUserModel()->appUseMode(0)));
 	});
+
+	appMesoModel()->updateColumnLabels();
+	setPropertiesBasedOnUseMode();
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
 			setPropertiesBasedOnUseMode();
@@ -575,6 +584,8 @@ void QMLMesoInterface::setPropertiesBasedOnUseMode()
 	const uint useMode(appUserModel()->appUseMode(0));
 	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
+	emit coachLabelChanged();
+	emit clientLabelChanged();
 }
 
 void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)

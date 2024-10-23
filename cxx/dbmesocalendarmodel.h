@@ -13,16 +13,13 @@
 #define MESOCALENDAR_COL_DAY 7
 #define MESOCALENDAR_TOTAL_COLS MESOCALENDAR_COL_DAY + 1
 
-class DBMesocyclesModel;
-
 class DBMesoCalendarModel : public TPListModel
 {
 
 Q_OBJECT
-QML_ELEMENT
 
 public:
-	explicit DBMesoCalendarModel(DBMesocyclesModel* parentModel, const int meso_idx);
+	explicit DBMesoCalendarModel(QObject* parent, const uint meso_idx);
 
 	void createModel();
 	void changeModel(const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore, const QDate& endDate);
@@ -67,9 +64,6 @@ public:
 
 signals:
 	void calendarChanged(const QDate& startDate, const QDate& endDate);
-
-private:
-	DBMesocyclesModel* m_parentModel;
 };
 
 #endif // DBMESOCALENDARMODEL_H

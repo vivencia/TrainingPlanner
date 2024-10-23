@@ -254,17 +254,15 @@ void QmlTDayInterface::changeSplit(const QString& newSplitLetter, const bool bCl
 
 void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay)
 {
-	uint tDay{m_tDayPage->property("tDay").toUInt()};
+	uint tDay(0);
 	if (newSplitLetter != u"R"_qs)
 	{
 		if (m_tDayModel->splitLetter() == u"R"_qs)
 			tDay = m_tDayModel->getWorkoutNumberForTrainingDay();
 	}
 	else
-	{
-		tDay = 0;
 		setDayIsFinished(false);
-	}
+
 	m_tDayModel->setTrainingDay(QString::number(tDay), false);
 	m_tDayModel->setSplitLetter(newSplitLetter, true);
 	if (bOnlyThisDay)
@@ -451,6 +449,8 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	m_qmlEngine->setObjectOwnership(m_tDayPage, QQmlEngine::CppOwnership);
 	m_tDayPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
 
+	connect(this, &QmlTDayInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
+	connect(this, &QmlTDayInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_tDayModel->date()), m_tDayPage);
 	setHeaderText();
 
@@ -502,8 +502,6 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 
 void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)
 {
-	//QMap<QDate,QQuickItem*>::const_iterator itr{m_tDayPages.constBegin()};
-	//const QMap<QDate,QQuickItem*>::const_iterator& itr_end{m_tDayPages.constEnd()};
 	if (m_Date > startDate) //the startDate page is the page that initiated the update. No need to alter it
 	{
 		if (m_Date <= endDate)

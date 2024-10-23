@@ -19,7 +19,6 @@ ApplicationWindow {
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window
 
 	property bool bBackButtonEnabled: appSettings.mainUserConfigured
-	property bool bCanHaveTodaysWorkout: false
 	property int backKey
 
 	signal saveFileChosen(filepath: string);
