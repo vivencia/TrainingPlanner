@@ -7,7 +7,7 @@
 
 class DBUserModel;
 
-static const QString DBUserFileName(u"User.db.sqlite"_qs);
+static const QString DBUserFileName(u"User.db.sqlite"_s);
 
 class DBUserTable : public TPDatabaseTable
 {

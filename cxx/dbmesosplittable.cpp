@@ -13,12 +13,12 @@ DBMesoSplitTable::DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* 
 	std::minstd_rand gen(std::random_device{}());
 	std::uniform_real_distribution<double> dist(0, 1);
 
-	m_tableName = u"mesocycles_splits"_qs;
+	m_tableName = u"mesocycles_splits"_s;
 	m_tableID = MESOSPLIT_TABLE_ID;
 	setObjectName(DBMesoSplitObjectName);
 	m_UniqueID = QString::number(dist(gen)).remove(0, 2).toUInt();
-	const QString& cnx_name(u"db_mesosplit_connection-"_qs + QString::number(dist(gen)));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
+	const QString& cnx_name(u"db_mesosplit_connection-"_s + QString::number(dist(gen)));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
 	const QString& dbname(dbFilePath + DBMesoSplitFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -78,7 +78,7 @@ void DBMesoSplitTable::createTable()
 										"splitF_exercisesset_types TEXT DEFAULT \"\", "
 										"splitF_exercisesset_subsets TEXT DEFAULT \"\", "
 										"splitF_exercisesset_reps TEXT DEFAULT \"\", "
-										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_qs);
+										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_s);
 
 		const bool ok = query.exec(strQuery);
 		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
@@ -96,7 +96,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_qs);
+		const QString& strQuery(u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_s);
 
 		if (query.exec(strQuery))
 		{
@@ -126,7 +126,7 @@ void DBMesoSplitTable::saveMesoSplit()
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 
-		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_qs.arg(m_model->id(row))))
+		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_s.arg(m_model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -137,14 +137,14 @@ void DBMesoSplitTable::saveMesoSplit()
 		if (!bUpdate)
 		{
 			strQuery = u"INSERT INTO mesocycles_splits (meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
-						" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_qs
+						" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_s
 							.arg(m_model->mesoId(row), m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
 							m_model->splitE(row), m_model->splitF(row));
 		}
 		else
 		{
 			strQuery = u"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', "
-					   "splitF=\'%6\' WHERE meso_id=%7"_qs
+					   "splitF=\'%6\' WHERE meso_id=%7"_s
 						.arg(m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
 							m_model->splitE(row), m_model->splitF(row), m_model->mesoId(row));
 		}
@@ -174,7 +174,7 @@ void DBMesoSplitTable::getAllSplits()
 		{
 			const QString& strQuery(u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(c).arg(mesoId));
+						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_s.arg(c).arg(mesoId));
 			bool ok(false);
 
 			if (query.exec(strQuery))
@@ -223,7 +223,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter).arg(mesoId));
+						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_s.arg(splitLetter).arg(mesoId));
 
 		if (query.exec(strQuery))
 		{
@@ -289,7 +289,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		bool bUpdate(false);
 		QString strQuery;
 
-		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_qs.arg(mesoId)))
+		if (query.exec(u"SELECT id FROM mesocycles_splits WHERE meso_id=%1"_s.arg(mesoId)))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -302,7 +302,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 								"split%1_exercisesset_n=\'%3\', split%1_exercisesset_notes=\'%4\', "
 								"split%1_exercisesset_types=\'%5\', split%1_exercisesset_subsets=\'%6\', "
 								"split%1_exercisesset_reps=\'%7\', split%1_exercisesset_weight=\'%8\', "
-								"split%1=\'%9\' WHERE meso_id=%10"_qs
+								"split%1=\'%9\' WHERE meso_id=%10"_s
 								.arg(m_model->splitLetter(), exercises, setsnumber, setsnotes, setstypes, setssubsets,
 										setsreps, setsweight, m_model->muscularGroup(), mesoId);
 		}
@@ -311,7 +311,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 			strQuery = u"INSERT INTO mesocycles_splits (meso_id, split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 								"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 								"split%1_exercisesset_weight, split%1)"
-								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')"_qs
+								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')"_s
 								.arg(m_model->splitLetter(), mesoId, exercises, setsnumber, setsnotes, setstypes, setssubsets,
 										setsreps, setsweight, m_model->muscularGroup());
 		}
@@ -329,7 +329,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 	if (openDatabase(true))
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_qs.arg(splitLetter, mesoId));
+		const QString& strQuery(u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_s.arg(splitLetter, mesoId));
 		ok = query.exec(strQuery);
 		if (ok)
 		{

@@ -7,7 +7,7 @@
 
 class DBMesoCalendarModel;
 
-static const QString DBMesoCalendarFileName(u"MesoCalendar.db.sqlite"_qs);
+static const QString DBMesoCalendarFileName(u"MesoCalendar.db.sqlite"_s);
 
 class DBMesoCalendarTable final : public TPDatabaseTable
 {

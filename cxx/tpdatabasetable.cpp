@@ -9,7 +9,7 @@ void TPDatabaseTable::removeEntry()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"DELETE FROM "_qs + m_tableName + u" WHERE id="_qs + m_execArgs.at(0).toString());
+		const QString& strQuery(u"DELETE FROM "_s + m_tableName + u" WHERE id="_s + m_execArgs.at(0).toString());
 		ok = query.exec(strQuery);
 		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
@@ -23,7 +23,7 @@ void TPDatabaseTable::clearTable()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u" DROP TABLE "_qs + m_tableName);
+		const QString& strQuery(u" DROP TABLE "_s + m_tableName);
 		ok = query.exec(strQuery);
 		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}

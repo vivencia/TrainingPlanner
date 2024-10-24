@@ -10,12 +10,12 @@
 DBExercisesTable::DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model)
 	: TPDatabaseTable{}, m_model(model), m_exercisesTableLastId(1000)
 {
-	m_tableName = u"exercises_table"_qs;
+	m_tableName = u"exercises_table"_s;
 	m_tableID = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(u"db_exercises_connection"_qs + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
+	const QString& cnx_name(u"db_exercises_connection"_s + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
 	const QString& dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -36,7 +36,7 @@ void DBExercisesTable::createTable()
 										"weight_unit TEXT,"
 										"media_path TEXT,"
 										"from_list INTEGER"
-									")"_qs
+									")"_s
 		);
 		const bool ok = query.exec(strQuery);
 		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
@@ -54,7 +54,7 @@ void DBExercisesTable::getAllExercises()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT * FROM exercises_table"_qs);
+		const QString& strQuery(u"SELECT * FROM exercises_table"_s);
 		if (query.exec(strQuery))
 		{
 			if (query.first())
@@ -92,7 +92,7 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_qs, SOURCE_LOCATION);
+		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_s, SOURCE_LOCATION);
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
@@ -105,7 +105,7 @@ void DBExercisesTable::updateExercisesList()
 		uint idx(0);
 
 		//remove previous list entries from DB
-		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_qs);
+		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_s);
 		ok = query.exec(strQuery);
 		if (!ok)
 		{
@@ -116,7 +116,7 @@ void DBExercisesTable::updateExercisesList()
 
 		const QString& queryStart(u"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES "_qs);
+								" VALUES "_s);
 
 		QStringList::const_iterator itr(m_ExercisesList.constBegin());
 		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
@@ -155,9 +155,9 @@ void DBExercisesTable::saveExercises()
 
 		const QString& queryInsert(u"INSERT INTO exercises_table"
 							"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_qs);
+							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_s);
 		const QString& queryUpdate(u"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_qs);
+							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_s);
 		for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
 			const uint& idx(m_model->modifiedIndex(i));
@@ -192,7 +192,7 @@ void DBExercisesTable::saveExercises()
 
 void DBExercisesTable::getExercisesList()
 {
-	QFile exercisesListFile(u":/extras/exerciseslist.lst"_qs);
+	QFile exercisesListFile(u":/extras/exerciseslist.lst"_s);
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[512];

@@ -100,7 +100,7 @@ TPPage {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
 					enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
-					currentValue: tDayManager.splitLetter
+					currentIndex: indexOfValue(tDayManager.splitLetter)
 					Layout.maximumWidth: 100
 
 					onActivated: (index) => tDayManager.splitLetter = valueAt(index);

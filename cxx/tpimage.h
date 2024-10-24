@@ -18,7 +18,7 @@ Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow FINAL)
 Q_PROPERTY(int imgSize READ imgSize WRITE setImgSize NOTIFY imgSizeChanged)
 
 public:
-	TPImage(QQuickItem* parent = nullptr);
+	explicit TPImage(QQuickItem* parent = nullptr);
 
 	inline QString source() const { return mSource; }
 	void setSource(const QString& source);

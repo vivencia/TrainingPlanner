@@ -11,7 +11,7 @@ TPTimer::TPTimer(QObject* parent)
 	connect(appUtils(), &TPUtils::appResumed, this, &TPTimer::correctTimer);
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
-	m_originalStartTime = u"00:00:00"_qs;
+	m_originalStartTime = u"00:00:00"_s;
 	setInterval(1000);
 }
 
@@ -172,13 +172,13 @@ void TPTimer::prepareFromString()
 	if (!m_originalStartTime.isEmpty())
 	{
 		if (m_originalStartTime.length() < 2)
-			m_originalStartTime.append(u"0:00:00"_qs);
+			m_originalStartTime.append(u"0:00:00"_s);
 		m_hours = m_originalStartTime.first(2).toUInt();
 		if (m_originalStartTime.length() < 5)
-			m_originalStartTime.append(u":00:00"_qs);
+			m_originalStartTime.append(u":00:00"_s);
 		m_minutes = m_originalStartTime.sliced(3, 2).toUInt();
 		if (m_originalStartTime.length() < 8)
-			m_originalStartTime.append(u":00"_qs);
+			m_originalStartTime.append(u":00"_s);
 		m_seconds = m_originalStartTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}

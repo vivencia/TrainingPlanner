@@ -23,7 +23,7 @@ void QmlExerciseInterface::createExerciseObject()
 {
 	if (!m_exercisesComponent)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_s}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
 				createExerciseObject();
@@ -65,7 +65,7 @@ void QmlExerciseInterface::createExercisesObjects()
 {
 	if (m_exercisesComponent == nullptr)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_qs}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_s}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
@@ -206,7 +206,7 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	}
 	#endif
 
-	m_exercisesProperties.insert(u"exerciseManager"_qs, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
+	m_exercisesProperties.insert(u"exerciseManager"_s, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 													m_exercisesProperties, m_qmlEngine->rootContext())));
@@ -224,16 +224,16 @@ void QmlExerciseInterface::getInfoFromExercisesList(QmlExerciseEntry* exerciseEn
 	QString exerciseName, nSets, nReps, nWeight;
 	if (appExercisesModel()->selectedEntriesCount() == 1)
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_qs + appExercisesModel()->selectedEntriesValue_fast(0, 2);
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_s + appExercisesModel()->selectedEntriesValue_fast(0, 2);
 		nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
 		nReps = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER);
 		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT);
 	}
 	else
 	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_qs +
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_s +
 						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + u" - "_qs +
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + u" - "_s +
 						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);

@@ -30,8 +30,8 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 	}
 	else
 	{
-		m_settingsProperties.insert(u"startPageIndex"_qs, startPageIndex);
-		m_settingsComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ConfigurationPage.qml"_qs}, QQmlComponent::Asynchronous};
+		m_settingsProperties.insert(u"startPageIndex"_s, startPageIndex);
+		m_settingsComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ConfigurationPage.qml"_s}, QQmlComponent::Asynchronous};
 		if (m_settingsComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_settingsComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
@@ -51,8 +51,8 @@ void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const 
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
 	else
 	{
-		m_clientsOrCoachesProperties.insert(u"userManager"_qs, QVariant::fromValue(this));
-		m_clientsOrCoachesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_qs}, QQmlComponent::Asynchronous};
+		m_clientsOrCoachesProperties.insert(u"userManager"_s, QVariant::fromValue(this));
+		m_clientsOrCoachesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ClientsOrCoachesPage.qml"_s}, QQmlComponent::Asynchronous};
 		if (m_clientsOrCoachesComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_clientsOrCoachesComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
@@ -96,7 +96,7 @@ void QmlUserInterface::createSettingsPage()
 		m_qmlEngine->setObjectOwnership(m_settingsPage, QQmlEngine::CppOwnership);
 		m_settingsPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_settingsPage));
-		m_userPage = m_settingsPage->findChild<QQuickItem*>(u"userPage"_qs);
+		m_userPage = m_settingsPage->findChild<QQuickItem*>(u"userPage"_s);
 		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		m_userPage->setProperty("userManager", QVariant::fromValue(this));
 
@@ -169,10 +169,10 @@ void QmlUserInterface::setClientsOrCoachesPagesProperties(const bool bManageClie
 	}
 	else
 	{
-		m_clientsOrCoachesProperties.insert(u"curUserRow"_qs, curUserRow);
-		m_clientsOrCoachesProperties.insert(u"firstUserRow"_qs, firstUserRow);
-		m_clientsOrCoachesProperties.insert(u"lastUserRow"_qs, lastUserRow);
-		m_clientsOrCoachesProperties.insert(u"showUsers"_qs, bManageClients);
-		m_clientsOrCoachesProperties.insert(u"showCoaches"_qs, bManageCoaches);
+		m_clientsOrCoachesProperties.insert(u"curUserRow"_s, curUserRow);
+		m_clientsOrCoachesProperties.insert(u"firstUserRow"_s, firstUserRow);
+		m_clientsOrCoachesProperties.insert(u"lastUserRow"_s, lastUserRow);
+		m_clientsOrCoachesProperties.insert(u"showUsers"_s, bManageClients);
+		m_clientsOrCoachesProperties.insert(u"showCoaches"_s, bManageCoaches);
 	}
 }

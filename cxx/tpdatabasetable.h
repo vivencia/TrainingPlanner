@@ -48,13 +48,13 @@ public:
 	inline bool openDatabase(const bool bReadOnly = false)
 	{
 		if (bReadOnly)
-			mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_qs);
+			mSqlLiteDB.setConnectOptions(u"QSQLITE_OPEN_READONLY"_s);
 		const bool ok = mSqlLiteDB.open();
 		#ifndef QT_NO_DEBUG
 		if (!ok)
 		{
 			DEFINE_SOURCE_LOCATION
-			ERROR_MESSAGE(u"Could not open Database file: "_qs, mSqlLiteDB.databaseName())
+			ERROR_MESSAGE(u"Could not open Database file: "_s, mSqlLiteDB.databaseName())
 		}
 		#endif
 		return ok;
@@ -65,12 +65,12 @@ public:
 		QSqlQuery query{mSqlLiteDB};
 		if (!mSqlLiteDB.connectOptions().isEmpty())
 			query.setForwardOnly(true);
-		static_cast<void>(query.exec(u"PRAGMA page_size = 4096"_qs));
-		static_cast<void>(query.exec(u"PRAGMA cache_size = 16384"_qs));
-		static_cast<void>(query.exec(u"PRAGMA temp_store = MEMORY"_qs));
-		static_cast<void>(query.exec(u"PRAGMA journal_mode = OFF"_qs));
-		static_cast<void>(query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs));
-		static_cast<void>(query.exec(u"PRAGMA synchronous = 0"_qs));
+		static_cast<void>(query.exec(u"PRAGMA page_size = 4096"_s));
+		static_cast<void>(query.exec(u"PRAGMA cache_size = 16384"_s));
+		static_cast<void>(query.exec(u"PRAGMA temp_store = MEMORY"_s));
+		static_cast<void>(query.exec(u"PRAGMA journal_mode = OFF"_s));
+		static_cast<void>(query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_s));
+		static_cast<void>(query.exec(u"PRAGMA synchronous = 0"_s));
 		return query;
 	}
 
@@ -93,7 +93,7 @@ public:
 		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
 		{
 			QSqlQuery query{mSqlLiteDB};
-			static_cast<void>(query.exec(u"PRAGMA optimize"_qs));
+			static_cast<void>(query.exec(u"PRAGMA optimize"_s));
 		}
 		mSqlLiteDB.close();
 	}

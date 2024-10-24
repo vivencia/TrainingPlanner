@@ -230,7 +230,7 @@ void QMLMesoInterface::setSplit(const QString& new_value, const bool bFromQml)
 	{
 		if (m_split != new_value)
 		{
-			if (new_value.contains(u"R"_qs))
+			if (new_value.contains(u"R"_s))
 			{
 				m_split = new_value;
 				emit splitChanged();
@@ -497,9 +497,9 @@ void QMLMesoInterface::createMesocyclePage()
 	m_muscularGroup.append(std::move(tr("Rest day")));
 	setCalendarStartDate(appMesoModel()->startDate(m_mesoIdx));
 
-	m_mesoProperties.insert(u"mesoManager"_qs, QVariant::fromValue(this));
+	m_mesoProperties.insert(u"mesoManager"_s, QVariant::fromValue(this));
 
-	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCycle.qml"_qs}, QQmlComponent::Asynchronous};
+	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCycle.qml"_s}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {

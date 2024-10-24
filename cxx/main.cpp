@@ -16,9 +16,9 @@ int main(int argc, char *argv[])
 	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
 	QApplication app(argc, argv);
 
-	app.setOrganizationName(u"Vivencia Software"_qs);
-	app.setOrganizationDomain(u"org.vivenciasoftware"_qs);
-	app.setApplicationName(u"TrainingPlanner"_qs);
+	app.setOrganizationName(u"Vivencia Software"_s);
+	app.setOrganizationDomain(u"org.vivenciasoftware"_s);
+	app.setApplicationName(u"TrainingPlanner"_s);
 
 	TPSettings tpSettings{};
 	TPUtils tpUtils{};

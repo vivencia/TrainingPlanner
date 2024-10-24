@@ -9,12 +9,12 @@
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model)
 	: TPDatabaseTable{nullptr}, m_model(model)
 {
-	m_tableName = u"training_day_table"_qs;
+	m_tableName = u"training_day_table"_s;
 	m_tableID = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(u"db_trainingday_connection"_qs + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_qs, cnx_name);
+	const QString& cnx_name(u"db_trainingday_connection"_s + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
 	const QString& dbname(dbFilePath + DBTrainingDayFileName);
 	mSqlLiteDB.setDatabaseName( dbname );
 }
@@ -41,7 +41,7 @@ void DBTrainingDayTable::createTable()
 										"setsreps TEXT DEFAULT \"\","
 										"setsweights TEXT DEFAULT \"\","
 										"setsnotes TEXT DEFAULT \"\","
-										"setscompleted TEXT DEFAULT \"\")"_qs);
+										"setscompleted TEXT DEFAULT \"\")"_s);
 		const bool ok = query.exec(strQuery);
 		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
 	}
@@ -54,15 +54,15 @@ void DBTrainingDayTable::updateTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		query.exec(u"PRAGMA page_size = 4096"_qs);
-		query.exec(u"PRAGMA cache_size = 16384"_qs);
-		query.exec(u"PRAGMA temp_store = MEMORY"_qs);
-		query.exec(u"PRAGMA journal_mode = OFF"_qs);
-		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_qs);
-		query.exec(u"PRAGMA synchronous = 0"_qs);
+		query.exec(u"PRAGMA page_size = 4096"_s);
+		query.exec(u"PRAGMA cache_size = 16384"_s);
+		query.exec(u"PRAGMA temp_store = MEMORY"_s);
+		query.exec(u"PRAGMA journal_mode = OFF"_s);
+		query.exec(u"PRAGMA locking_mode = EXCLUSIVE"_s);
+		query.exec(u"PRAGMA synchronous = 0"_s);
 		query.setForwardOnly(true);
 
-		if (query.exec(u"SELECT * FROM training_day_table"_qs))
+		if (query.exec(u"SELECT * FROM training_day_table"_s))
 		{
 			if (query.first ())
 			{
@@ -158,7 +158,7 @@ void DBTrainingDayTable::getTrainingDay()
 	{
 		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT id,meso_id,date,day_number,split_letter,time_in,time_out,location,notes "
-										"FROM training_day_table WHERE date="_qs + m_execArgs.at(0).toString());
+										"FROM training_day_table WHERE date="_s + m_execArgs.at(0).toString());
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
@@ -187,7 +187,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 		bool ok(false);
 		QSqlQuery query{getQuery()};
 		const QString& strQuery(u"SELECT exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted "
-						"FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
+						"FROM training_day_table WHERE date=%1 AND meso_id=%2"_s.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString()));
 
 		if (query.exec(strQuery))
 		{
@@ -208,7 +208,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 inline QString DBTrainingDayTable::formatDate(const uint julianDay) const
 {
 	const QDate& date(QDate::fromJulianDay(julianDay));
-	return appUtils()->appLocale()->toString(date, u"ddd d/M/yyyy"_qs);
+	return appUtils()->appLocale()->toString(date, u"ddd d/M/yyyy"_s);
 }
 
 void DBTrainingDayTable::getPreviousTrainingDaysInfo()
@@ -222,7 +222,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 		m_model->setDateStr(mainDate); //QmlItemManager needs this to know if the received model is the one it's looking for
 
 		QString strQuery(u"SELECT exercises,date FROM training_day_table "
-							"WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 ORDER BY date DESC LIMIT 10"_qs
+							"WHERE meso_id=%1 AND split_letter=\'%2\' AND date<%3 ORDER BY date DESC LIMIT 10"_s
 								.arg(m_execArgs.at(0).toString(), m_execArgs.at(1).toString(), mainDate));
 		if (query.exec(strQuery))
 		{
@@ -242,7 +242,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 
 		if (ok)
 		{
-			strQuery = u"SELECT location FROM training_day_table WHERE meso_id=%1 AND date<%3 ORDER BY date DESC LIMIT 5"_qs
+			strQuery = u"SELECT location FROM training_day_table WHERE meso_id=%1 AND date<%3 ORDER BY date DESC LIMIT 5"_s
 				.arg(m_execArgs.at(0).toString(), mainDate);
 			if (query.exec(strQuery))
 			{
@@ -275,7 +275,7 @@ void DBTrainingDayTable::saveTrainingDay()
 		bool bUpdate(false);
 		QString strQuery;
 
-		if (query.exec(u"SELECT id FROM training_day_table WHERE date=%1"_qs.arg(m_model->dateStr())))
+		if (query.exec(u"SELECT id FROM training_day_table WHERE date=%1"_s.arg(m_model->dateStr())))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -285,11 +285,11 @@ void DBTrainingDayTable::saveTrainingDay()
 		if (bUpdate)
 		{
 			strQuery = u"UPDATE training_day_table SET date=%1, day_number=\'%2\', "
-							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', "_qs
+							"split_letter=\'%3\', time_in=\'%4\', time_out=\'%5\', location=\'%6\', notes=\'%7\', "_s
 								.arg(m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
 									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes()) +
 						u"exercises=\'%1\', setstypes=\'%2\', setsresttimes=\'%3\', "
-							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9"_qs
+							"setssubsets=\'%4\', setsreps=\'%5\', setsweights=\'%6\', setsnotes=\'%7\', setscompleted=\'%8\' WHERE id=%9"_s
 								.arg(tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),
 									tDayInfoList.at(TDAY_EXERCISES_COL_RESTTIMES), tDayInfoList.at(TDAY_EXERCISES_COL_SUBSETS),
 									tDayInfoList.at(TDAY_EXERCISES_COL_REPS), tDayInfoList.at(TDAY_EXERCISES_COL_WEIGHTS),
@@ -301,7 +301,7 @@ void DBTrainingDayTable::saveTrainingDay()
 							"(meso_id,date,day_number,split_letter,time_in,time_out,location,notes,"
 							"exercises,setstypes,setsresttimes,setssubsets,setsreps,setsweights,setsnotes,setscompleted)"
 							" VALUES(%1, %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',"
-							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')"_qs
+							"\'%9\', \'%10\', \'%11\', \'%12\', \'%13\', \'%14\', \'%15\', \'%16\')"_s
 								.arg(m_model->mesoIdStr(), m_model->dateStr(), m_model->trainingDay(), m_model->splitLetter(),
 									m_model->timeIn(), m_model->timeOut(), m_model->location(), m_model->dayNotes(),
 									tDayInfoList.at(TDAY_EXERCISES_COL_NAMES), tDayInfoList.at(TDAY_EXERCISES_COL_TYPES),
@@ -322,7 +322,7 @@ void DBTrainingDayTable::removeTrainingDay()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_qs.arg(
+		const QString& strQuery(u"DELETE FROM training_day_table WHERE date=%1 AND meso_id=%2"_s.arg(
 							m_model->dateStr(), m_model->mesoIdStr()));
 		const bool ok = query.exec(strQuery);
 		if (ok)

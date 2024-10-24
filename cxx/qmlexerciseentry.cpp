@@ -9,8 +9,8 @@
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
 
-static const QStringList& setTypePages{QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_qs <<
-					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_qs << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_qs};
+static const QStringList& setTypePages{QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_s <<
+					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_s << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_s};
 
 QmlExerciseEntry::~QmlExerciseEntry()
 {
@@ -27,7 +27,7 @@ QmlExerciseEntry::~QmlExerciseEntry()
 void QmlExerciseEntry::setExerciseEntry(QQuickItem* item)
 {
 	m_exerciseEntry = item;
-	m_setsLayout = m_exerciseEntry->findChild<QQuickItem*>(u"exerciseSetsLayout"_qs);
+	m_setsLayout = m_exerciseEntry->findChild<QQuickItem*>(u"exerciseSetsLayout"_s);
 };
 
 void QmlExerciseEntry::setNewSetType(const uint new_value)
@@ -43,9 +43,9 @@ void QmlExerciseEntry::setNewSetType(const uint new_value)
 		switch(m_type)
 		{
 			case SET_TYPE_DROP: strSets = STR_ONE; break;
-			case SET_TYPE_CLUSTER: strSets = u"2"_qs; break;
-			case SET_TYPE_MYOREPS: strSets = u"3"_qs; break;
-			default: strSets = u"4"_qs; break;
+			case SET_TYPE_CLUSTER: strSets = u"2"_s; break;
+			case SET_TYPE_MYOREPS: strSets = u"3"_s; break;
+			default: strSets = u"4"_s; break;
 		}
 		setSetsNumber(strSets);
 	}
@@ -164,10 +164,10 @@ void QmlExerciseEntry::setAutoRestTime(const bool new_value)
 	for (uint i(0); i < m_setObjects.count(); ++i)
 		m_setObjects.at(i)->setAutoRestTime(m_bAutoRestTime);
 	if (m_bAutoRestTime)
-		setRestTime(u"00:00"_qs);
+		setRestTime(u"00:00"_s);
 	else
 	{
-		if (restTime() == u"00::00"_qs)
+		if (restTime() == u"00::00"_s)
 			setRestTime(m_tDayModel->nextSetSuggestedTime(m_exercise_idx, m_type, m_setObjects.count() - 1));
 	}
 }
@@ -329,7 +329,7 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 		case SET_MODE_START_REST:
 			setObj->setMode(SET_MODE_START_EXERCISE);
 			if (setObj->autoRestTime())
-				startRestTimer(set_number, u"00:00"_qs, true);
+				startRestTimer(set_number, u"00:00"_s, true);
 			else
 				startRestTimer(set_number, m_tDayModel->setRestTime(m_exercise_idx, set_number), false);
 		break;
@@ -432,7 +432,7 @@ void QmlExerciseEntry::createSetObject(const uint set_number, const uint type, c
 	if (m_setComponents[set_type_cpp] == nullptr)
 	{
 		m_setComponents[set_type_cpp] = new QQmlComponent{m_qmlEngine, QUrl{setTypePages.at(set_type_cpp)}, QQmlComponent::Asynchronous};
-		m_setObjectProperties.insert(u"exerciseManager"_qs, QVariant::fromValue(this));
+		m_setObjectProperties.insert(u"exerciseManager"_s, QVariant::fromValue(this));
 	}
 
 	if (m_tDayModel->exerciseCount() == 0)
@@ -485,7 +485,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || SET_TYPE_DROP);
 	insertSetEntry(set_number, newSetEntry);
 
-	m_setObjectProperties.insert(u"setManager"_qs, QVariant::fromValue(newSetEntry));
+	m_setObjectProperties.insert(u"setManager"_s, QVariant::fromValue(newSetEntry));
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
 								createWithInitialProperties(m_setObjectProperties, m_qmlEngine->rootContext())));

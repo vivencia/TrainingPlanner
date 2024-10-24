@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QUrl>
 
+using namespace Qt::Literals::StringLiterals;
+
 class TPUtils : public QObject
 {
 
@@ -33,18 +35,18 @@ public:
 	Q_INVOKABLE bool areDatesTheSame(const QDate& date1, const QDate& date2) const { return date1 == date2; }
 
 	Q_INVOKABLE QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
-	{ return time.toString((use_hours ? u"hh:mm"_qs : u"mm"_qs) + (use_secs ? u":ss"_qs : u""_qs)); }
+	{ return time.toString((use_hours ? u"hh:mm"_s : u"mm"_s) + (use_secs ? u":ss"_s : u""_s)); }
 	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
-					QTime::currentTime().toString(u"hh:mm"_qs) : QTime::currentTime().toString(u"hh:mm:ss"_qs); }
+					QTime::currentTime().toString(u"hh:mm"_s) : QTime::currentTime().toString(u"hh:mm:ss"_s); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
 	Q_INVOKABLE QString formatFutureTime(const uint hours, const uint mins) const { return addToTime(QTime::currentTime(), hours, mins); }
 	Q_INVOKABLE inline QString formatFutureTime(const QTime& addTime) const { return formatFutureTime(addTime.hour(), addTime.minute()); }
 	Q_INVOKABLE QString addToTime(const QString& origTime, const uint hours, const uint mins) const;
 	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString& strTime) const;
-	Q_INVOKABLE QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs)); }
-	Q_INVOKABLE QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_qs)); }
+	Q_INVOKABLE QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
+	Q_INVOKABLE QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
-	Q_INVOKABLE QTime timeFromStrTime(const QString& strTime) const { return QTime::fromString(strTime, u"hh:mm"_qs); }
+	Q_INVOKABLE QTime timeFromStrTime(const QString& strTime) const { return QTime::fromString(strTime, u"hh:mm"_s); }
 	Q_INVOKABLE QTime getCurrentTime() const { return QTime::currentTime(); }
 	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
 	Q_INVOKABLE QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
@@ -74,7 +76,7 @@ private:
 	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
 	{
 		const QTime& newTime(origTime.addSecs(mins*60 + hours*3600));
-		return newTime.toString(u"hh:mm"_qs);
+		return newTime.toString(u"hh:mm"_s);
 	}
 
 	static TPUtils* app_utils;

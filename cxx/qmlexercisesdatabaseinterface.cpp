@@ -77,9 +77,9 @@ void QmlExercisesDatabaseInterface::getExercisesPage(const bool bChooseButtonEna
 
 void QmlExercisesDatabaseInterface::createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
 {
-	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ExercisesPage.qml"_qs}, QQmlComponent::Asynchronous};
-	m_exercisesProperties.insert(u"bChooseButtonEnabled"_qs, bChooseButtonEnabled);
-	m_exercisesProperties.insert(u"exercisesManager"_qs, QVariant::fromValue(this));
+	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ExercisesPage.qml"_s}, QQmlComponent::Asynchronous};
+	m_exercisesProperties.insert(u"bChooseButtonEnabled"_s, bChooseButtonEnabled);
+	m_exercisesProperties.insert(u"exercisesManager"_s, QVariant::fromValue(this));
 
 	if (m_exercisesComponent->status() != QQmlComponent::Ready)
 	{

@@ -49,7 +49,7 @@ void DBExercisesModel::newExercise(const QString& name, const QString& subname, 
 {
 	setLastID(lastID() + 1);
 	appendList(QStringList() << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
-		std::move(u"3"_qs) << std::move(u"12"_qs) << std::move(u"20"_qs) << std::move(u"(kg)"_qs) << std::move(u"qrc:/images/no_image.jpg"_qs) <<
+		std::move(u"3"_s) << std::move(u"12"_s) << std::move(u"20"_s) << std::move(u"(kg)"_s) << std::move(u"qrc:/images/no_image.jpg"_s) <<
 			STR_ZERO << std::move(QString::number(m_modeldata.count())) << STR_ZERO);
 }
 
@@ -274,8 +274,8 @@ QString DBExercisesModel::makeTransactionStatementForDataBase(const uint index) 
 {
 	QString statement{'(' + id(index)};
 	for (uint i(1); i <= EXERCISES_COL_MEDIAPATH; ++i)
-		statement += u",\'"_qs + m_modeldata.at(index).at(i) + '\'';
-	statement += ',' + STR_ONE + u"),"_qs; //EXERCISES_COL_FROMAPPLIST
+		statement += u",\'"_s + m_modeldata.at(index).at(i) + '\'';
+	statement += ',' + STR_ONE + u"),"_s; //EXERCISES_COL_FROMAPPLIST
 	return statement;
 }
 
@@ -317,7 +317,7 @@ int DBExercisesModel::importFromFile(const QString& filename)
 					{
 						++n_items;
 						modeldata[EXERCISES_COL_ID] = QString::number(m_exercisesTableLastId + n_items);
-						modeldata[EXERCISES_COL_WEIGHTUNIT] = u"(kg)"_qs;
+						modeldata[EXERCISES_COL_WEIGHTUNIT] = u"(kg)"_s;
 						modeldata[EXERCISES_COL_FROMAPPLIST] = STR_ZERO;
 						modeldata[EXERCISES_COL_ACTUALINDEX] = QString::number(databaseLastIndex + n_items);
 						modeldata[EXERCISES_COL_SELECTED] = STR_ZERO;
@@ -385,7 +385,7 @@ QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
 bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, int role)
 {
 	const int row(index.row());
-	if( row >= 0 && row < m_modeldata.count() )
+	if(row >= 0 && row < m_modeldata.count())
 	{
 		switch(role) {
 			case exerciseIdRole:

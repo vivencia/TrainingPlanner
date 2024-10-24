@@ -87,7 +87,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 	{
 		if (writeHeader)
 		{
-			const QString& strHeader(u"## "_qs + exportName() + u"\n\n"_qs);
+			const QString& strHeader(u"## "_s + exportName() + u"\n\n"_s);
 			outFile->write(strHeader.toUtf8().constData());
 		}
 

@@ -27,7 +27,7 @@ DBInterface* DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
-	m_DBFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_qs;
+	m_DBFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_s;
 	QDir appDir(m_DBFilePath);
 	if (!appDir.mkpath(m_DBFilePath))
 	{
@@ -249,7 +249,7 @@ void DBInterface::updateExercisesList()
 void DBInterface::getExercisesListVersion()
 {
 	m_exercisesListVersion = STR_ZERO;
-	QFile exercisesListFile(u":/extras/exerciseslist.lst"_qs);
+	QFile exercisesListFile(u":/extras/exerciseslist.lst"_s);
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[20] = { 0 };
@@ -259,7 +259,7 @@ void DBInterface::getExercisesListVersion()
 		if (lineLength > 0)
 		{
 			line = buf;
-			if (line.startsWith(u"#Vers"_qs))
+			if (line.startsWith(u"#Vers"_s))
 				m_exercisesListVersion = line.split(';').at(1).trimmed();
 		}
 		exercisesListFile.close();
@@ -403,7 +403,7 @@ void DBInterface::saveMesoSplitComplete(DBMesoSplitModel* model)
 
 bool DBInterface::mesoHasPlan(const uint meso_id, const QString& splitLetter) const
 {
-	if (splitLetter != u"R"_qs)
+	if (splitLetter != u"R"_s)
 	{
 		DBMesoSplitTable* meso_split{new DBMesoSplitTable(m_DBFilePath)};
 		const bool ret(meso_split->mesoHasPlan(QString::number(meso_id), splitLetter));
@@ -545,7 +545,7 @@ void DBInterface::getTrainingDayExercises(DBTrainingDayModel* tDayModel)
 
 void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 {
-	if (tDayModel->splitLetter() >= u"A"_qs && tDayModel->splitLetter() <= u"F"_qs)
+	if (tDayModel->splitLetter() >= u"A"_s && tDayModel->splitLetter() <= u"F"_s)
 	{
 		DBTrainingDayModel* tempModel{new DBTrainingDayModel(this, tDayModel->mesoIdx())};
 		DBTrainingDayTable* worker{new DBTrainingDayTable(m_DBFilePath, tempModel)};

@@ -138,7 +138,6 @@ TPPage {
 					flat: false
 					textUnderIcon: true
 					fixedSize: true
-					enabled: mesocyclesModel.isOwnMeso(index)
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1
@@ -394,7 +393,7 @@ TPPage {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			onClicked: itemManager.todaysWorkout();
+			onClicked: mesocyclesModel.todaysWorkout();
 		}
 	} // footer
 

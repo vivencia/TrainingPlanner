@@ -50,6 +50,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
+qt_standard_project_setup()
+
 set( RESOURCE_FILES app_resources.qrc )
 
 set( CXX_SOURCES
@@ -188,18 +190,19 @@ qt_add_executable(TrainingPlanner
 	${QML_SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
+	android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
 )
 
 target_link_libraries(TrainingPlanner PUBLIC
 	Qt::Core
+	Qt6::CorePrivate
 	Qt::Gui
 	Qt::Multimedia
-	Qt::Widgets
-	Qt::Sql
 	Qt6::Qml
 	Qt6::Quick
 	Qt6::QuickControls2
-	Qt6::CorePrivate
+	Qt::Sql
+	Qt::Widgets
 )
 
 set(trainingplanner_resource_files

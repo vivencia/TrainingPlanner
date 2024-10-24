@@ -48,6 +48,7 @@ public:
 
 	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
+	QMLMesoInterface* mesoManager(const uint meso_idx);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
 	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
@@ -56,9 +57,6 @@ public:
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE void todaysWorkout();
-
-	inline QMLMesoInterface* mesoManager(const uint meso_idx) { return m_mesoManagerList.at(meso_idx); }
-	inline const QMLMesoInterface* mesoManager(const uint meso_idx) const { return m_mesoManagerList.at(meso_idx); }
 
 	const uint newMesocycle(QStringList&& infolist);
 	void finishedLoadingFromDatabase();
@@ -89,6 +87,7 @@ public:
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_NAME] = new_name;
 		setModified(meso_idx, MESOCYCLES_COL_NAME);
+		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoNameRole);
 	}
 
 	inline const QString& strStartDate(const uint meso_idx) const
@@ -146,6 +145,7 @@ public:
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_COACH] = new_coach;
 		setModified(meso_idx, MESOCYCLES_COL_COACH);
+		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoCoachRole);
 	}
 
 	inline const QString& client(const uint meso_idx) const
@@ -156,6 +156,7 @@ public:
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_CLIENT] = new_client;
 		setModified(meso_idx, MESOCYCLES_COL_CLIENT);
+		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoClientRole);
 	}
 
 	bool isOwnMeso(const int meso_idx) const;

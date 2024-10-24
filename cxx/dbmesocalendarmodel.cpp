@@ -49,7 +49,7 @@ void DBMesoCalendarModel::createModel()
 		if (firstDay > 1)
 		{
 			for( ; day < firstDay; ++day)
-				month_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
+				month_info.append(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth);
 			firstDay = 0;
 		}
 		for( ; day <= lastDay; day++ )
@@ -62,8 +62,8 @@ void DBMesoCalendarModel::createModel()
 			else
 				trainingDayNumber = 0;
 
-			month_info.append(u"-1,"_qs + strMesoId + ',' + QString::number(trainingDayNumber) + ',' +
-								strSplit.at(splitIdx) + u",0,"_qs + strYear + ',' + strMonth);
+			month_info.append(u"-1,"_s + strMesoId + ',' + QString::number(trainingDayNumber) + ',' +
+								strSplit.at(splitIdx) + u",0,"_s + strYear + ',' + strMonth);
 			splitIdx++;
 			if (splitIdx == strSplit.length())
 				splitIdx = 0;
@@ -80,7 +80,7 @@ void DBMesoCalendarModel::createModel()
 	if (day < lastDay)
 	{
 		for( ; day <= lastDay; ++day)
-			month_info.append(u"-1,-1,-1,N,-1,"_qs + strYear + ',' + strMonth);
+			month_info.append(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth);
 		appendList(month_info);
 	}
 }
@@ -205,7 +205,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 						}
 					}
 
-					if (mesoSplit.at(idx) == u"R"_qs)
+					if (mesoSplit.at(idx) == u"R"_s)
 						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = STR_ZERO;
 					else
 						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = QString::number(tday++);
@@ -256,9 +256,9 @@ QString DBMesoCalendarModel::getInfoLabelText(const uint year, const uint month,
 	{
 		const QString& splitLetter(getSplitLetter(month, day));
 		const QDate date{static_cast<int>(year), static_cast<int>(month), static_cast<int>(day)};
-		if (splitLetter != u"R")
+		if (splitLetter != u"R"_s)
 			return appUtils()->formatDate(date) + tr(": Workout #") + QString::number(getTrainingDay(month, day)) + tr(" Split: ") +
-					splitLetter + u" - "_qs + appMesoModel()->mesoSplitModel()->splitX(mesoIdx(), appUtils()->splitLetterToMesoSplitIndex(splitLetter));
+					splitLetter + u" - "_s + appMesoModel()->mesoSplitModel()->splitX(mesoIdx(), appUtils()->splitLetterToMesoSplitIndex(splitLetter));
 		else
 			return appUtils()->formatDate(date) + tr(": Rest day");
 	}
@@ -289,7 +289,7 @@ QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) co
 				return m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_SPLITLETTER);
 		}
 	}
-	return QStringLiteral("N");
+	return u"A"_s; //avoid errors downstream
 }
 
 bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
@@ -312,7 +312,7 @@ bool DBMesoCalendarModel::isPartOfMeso(const uint month, const uint day) const
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
 			if (day < m_modeldata.at(i).count())
-				return m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_SPLITLETTER) != u"N"_qs;
+				return m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_SPLITLETTER) != u"N"_s;
 		}
 	}
 	return false;

@@ -30,7 +30,7 @@ public:
 
 	inline QString getMesoId() const
 	{
-		return count() > 0 ? m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID) : u"-1"_qs;
+		return m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID);
 	}
 
 	Q_INVOKABLE uint getMonth(const uint index) const

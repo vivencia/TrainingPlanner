@@ -30,9 +30,9 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
-	m_calComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCalendar.qml"_qs}, QQmlComponent::Asynchronous};
-	m_calProperties.insert(u"mesoManager"_qs, QVariant::fromValue(m_mesoManager));
-	m_calProperties.insert(u"mesoCalendarModel"_qs, QVariant::fromValue(appMesoModel()->mesoCalendarModel(m_mesoIdx)));
+	m_calComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCalendar.qml"_s}, QQmlComponent::Asynchronous};
+	m_calProperties.insert(u"mesoManager"_s, QVariant::fromValue(m_mesoManager));
+	m_calProperties.insert(u"mesoCalendarModel"_s, QVariant::fromValue(appMesoModel()->mesoCalendarModel(m_mesoIdx)));
 
 	if (m_calComponent->status() != QQmlComponent::Ready)
 	{

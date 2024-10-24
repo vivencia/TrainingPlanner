@@ -7,6 +7,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 
+using namespace Qt::Literals::StringLiterals;
+
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem* parent)
@@ -20,11 +22,11 @@ void TPImage::setSource(const QString& source)
 {
 	if (!source.isEmpty() && mSource != source)
 	{
-		if (source.contains(u"png"_qs))
-			mSource = u":/images/"_qs + source;
+		if (source.contains(u"png"_s))
+			mSource = u":/images/"_s + source;
 		else
 		{
-			if (source.contains(u"provider"_qs))
+			if (source.contains(u"provider"_s))
 			{
 				mImage = tpImageProvider()->getAvatar(source);
 				if (!mImage.isNull())
@@ -37,7 +39,7 @@ void TPImage::setSource(const QString& source)
 				return;
 			}
 			else
-				mSource = u":/images/"_qs + source + u".png"_qs;
+				mSource = u":/images/"_s + source + u".png"_s;
 		}
 		if (mImage.load(mSource))
 		{

@@ -3,20 +3,22 @@
 
 #include <QString>
 
-static const QString& TP_APP_VERSION(u"v20241005-A"_qs);
+using namespace Qt::Literals::StringLiterals;
+
+static const QString& TP_APP_VERSION(u"v20241005-A"_s);
 
 #ifndef QT_NO_DEBUG
 #include <QDebug>
 #include <source_location>
 #define SOURCE_LOCATION {std::source_location::current()}
 #define DEFINE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
-#define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << u"::"_qs << location.function_name() << u"::"_qs << location.line();
-#define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_qs; qDebug() << message << message2; \
-			qDebug() << u"******SUCCESS******"_qs; qDebug() << ' '; }
-#define SUCCESS_MESSAGE_WITH_STATEMENT(statement) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_qs; \
-			statement; qDebug() << u"******SUCCESS******"_qs; qDebug() << ' '; }
-#define ERROR_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******ERROR******"_qs; \
-			PRINT_SOURCE_LOCATION; qDebug() << message1 << message2; qDebug() << u"******ERROR******"_qs; qDebug() << ' '; }
+#define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << u"::"_s << location.function_name() << u"::"_s << location.line();
+#define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_s; qDebug() << message << message2; \
+			qDebug() << u"******SUCCESS******"_s; qDebug() << ' '; }
+#define SUCCESS_MESSAGE_WITH_STATEMENT(statement) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_s; \
+			statement; qDebug() << u"******SUCCESS******"_s; qDebug() << ' '; }
+#define ERROR_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******ERROR******"_s; \
+			PRINT_SOURCE_LOCATION; qDebug() << message1 << message2; qDebug() << u"******ERROR******"_s; qDebug() << ' '; }
 #define LOG_MESSAGE(message) qDebug() << message;
 #else
 #define SOURCE_LOCATION
@@ -34,7 +36,7 @@ static const QLatin1Char comp_exercise_separator(30);
 static const QLatin1Char set_separator(31);
 static const QLatin1Char fancy_record_separator1('|');
 static const QLatin1Char fancy_record_separator2(';');
-static const QString& comp_exercise_fancy_separator(u" + "_qs);
+static const QString& comp_exercise_fancy_separator(u" + "_s);
 
 static const uint APP_TABLES_NUMBER(6);
 static const uint EXERCISES_TABLE_ID(0x0001);
@@ -44,28 +46,28 @@ static const uint MESOCALENDAR_TABLE_ID(0x0004);
 static const uint TRAININGDAY_TABLE_ID(0x0005);
 static const uint USER_TABLE_ID(0x0006);
 
-static const QString& DBExercisesObjectName(u"Exercises"_qs);
-static const QString& DBMesocyclesObjectName(u"Mesocycles"_qs);
-static const QString& DBMesoSplitObjectName(u"MesocyclesSplits"_qs);
-static const QString& DBMesoCalendarObjectName(u"MesoCalendar"_qs);
-static const QString& DBTrainingDayObjectName(u"TrainingDay"_qs);
-static const QString& DBUserObjectName(u"UserProfile"_qs);
+static const QString& DBExercisesObjectName(u"Exercises"_s);
+static const QString& DBMesocyclesObjectName(u"Mesocycles"_s);
+static const QString& DBMesoSplitObjectName(u"MesocyclesSplits"_s);
+static const QString& DBMesoCalendarObjectName(u"MesoCalendar"_s);
+static const QString& DBTrainingDayObjectName(u"TrainingDay"_s);
+static const QString& DBUserObjectName(u"UserProfile"_s);
 
-static const QString& STR_MINUS_ONE(u"-1"_qs);
-static const QString& STR_ZERO(u"0"_qs);
-static const QString& STR_ONE(u"1"_qs);
-static const QString& STR_END_EXPORT(u"####\n\n"_qs);
+static const QString& STR_MINUS_ONE(u"-1"_s);
+static const QString& STR_ZERO(u"0"_s);
+static const QString& STR_ONE(u"1"_s);
+static const QString& STR_END_EXPORT(u"####\n\n"_s);
 
 #ifdef Q_OS_ANDROID
-static const QString& FONT_POINT_SIZE(u"18"_qs);
-static const QString& FONT_POINT_SIZE_LISTS(u"14"_qs);
-static const QString& FONT_POINT_SIZE_TEXT(u"16"_qs);
-static const QString& FONT_POINT_SIZE_TITLE(u"23"_qs);
+static const QString& FONT_POINT_SIZE(u"18"_s);
+static const QString& FONT_POINT_SIZE_LISTS(u"14"_s);
+static const QString& FONT_POINT_SIZE_TEXT(u"16"_s);
+static const QString& FONT_POINT_SIZE_TITLE(u"23"_s);
 #else
-static const QString& FONT_POINT_SIZE(u"12"_qs);
-static const QString& FONT_POINT_SIZE_LISTS(u"8"_qs);
-static const QString& FONT_POINT_SIZE_TEXT(u"10"_qs);
-static const QString& FONT_POINT_SIZE_TITLE(u"18"_qs);
+static const QString& FONT_POINT_SIZE(u"12"_s);
+static const QString& FONT_POINT_SIZE_LISTS(u"8"_s);
+static const QString& FONT_POINT_SIZE_TEXT(u"10"_s);
+static const QString& FONT_POINT_SIZE_TITLE(u"18"_s);
 #endif
 
 enum {

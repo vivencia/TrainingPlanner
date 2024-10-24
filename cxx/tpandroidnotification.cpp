@@ -10,7 +10,7 @@ TPAndroidNotification::TPAndroidNotification(QObject* parent)
 {
 	if (QNativeInterface::QAndroidApplication::sdkVersion() >= __ANDROID_API_T__)
 	{
-		auto requestResult = QtAndroidPrivate::requestPermission(u"android.permission.POST_NOTIFICATIONS"_qs);
+		auto requestResult = QtAndroidPrivate::requestPermission(u"android.permission.POST_NOTIFICATIONS"_s);
 		if (requestResult.result() != QtAndroidPrivate::Authorized)
 		{
 			qWarning() << "Failed to acquire permission to post notifications "

@@ -36,22 +36,22 @@ void TranslationClass::selectLanguage()
 		strLocale = QLocale::system().name();
 		#endif
 	}
-	if (strLocale != u"en_US"_qs)
+	if (strLocale != u"en_US"_s)
 	{
-		mbOK = mTranslator->load(u"tplanner.%1.qm"_qs.arg(strLocale), u":/translations/"_qs, u"qm"_qs);
+		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(strLocale), u":/translations/"_s, u"qm"_s);
 		if (mbOK)
 			qApp->installTranslator(mTranslator);
 	}
-	appUtils()->setAppLocale(mbOK ? strLocale : u"en_US"_qs);
+	appUtils()->setAppLocale(mbOK ? strLocale : u"en_US"_s);
 }
 
 void TranslationClass::switchToLanguage(const QString& language)
 {
 	QCoreApplication::removeTranslator(mTranslator);
-	const bool bEnglish(language == u"en_US"_qs);
+	const bool bEnglish(language == u"en_US"_s);
 	mbOK = bEnglish;
 	if (!bEnglish)
-		mbOK = mTranslator->load(u"tplanner.%1.qm"_qs.arg(language), u":/translations/"_qs, u"qm"_qs);
+		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(language), u":/translations/"_s, u"qm"_s);
 	if (mbOK)
 	{
 		appUtils()->setAppLocale(language);

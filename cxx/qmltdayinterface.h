@@ -34,7 +34,7 @@ Q_PROPERTY(bool dayIsFinished READ dayIsFinished WRITE setDayIsFinished NOTIFY d
 Q_PROPERTY(bool dayIsEditable READ dayIsEditable WRITE setDayIsEditable NOTIFY dayIsEditableChanged FINAL)
 Q_PROPERTY(bool hasPreviousTDays READ hasPreviousTDays WRITE setHasPreviousTDays NOTIFY hasPreviousTDaysChanged FINAL)
 Q_PROPERTY(bool hasMesoPlan READ hasMesoPlan WRITE setHasMesoPlan NOTIFY hasMesoPlanChanged FINAL)
-Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsToday FINAL)
+Q_PROPERTY(bool mainDateIsToday READ mainDateIsToday WRITE setMainDateIsToday NOTIFY mainDateIsTodayChanged FINAL)
 Q_PROPERTY(bool needActivation READ needActivation WRITE setNeedActivation NOTIFY needActivationChanged FINAL)
 Q_PROPERTY(bool timerActive READ timerActive WRITE setTimerActive NOTIFY timerActiveChanged FINAL)
 Q_PROPERTY(bool hasExercises READ hasExercises WRITE setHasExercises NOTIFY hasExercisesChanged FINAL)

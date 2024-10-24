@@ -57,7 +57,7 @@ public:
 	const QString formatSetTypeToExport(const QString& fieldValue) const;
 	const QString formatSetTypeToImport(const QString& fieldValue) const;
 
-	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_qs); }
+	inline void appendRow() { appendList(QStringList(TDAY_TOTAL_COLS)); setId(u"-1"_s); }
 	void moveExercise(const uint from, const uint to);
 	Q_INVOKABLE uint getWorkoutNumberForTrainingDay() const;
 
@@ -171,7 +171,7 @@ public:
 	Q_INVOKABLE void setExerciseName2(const uint exercise_idx, const QString& name2);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
-					 const QString& nSubsets = u"0"_qs, const QString& notes = u" "_qs);
+					 const QString& nSubsets = u"0"_s, const QString& notes = u" "_s);
 	Q_INVOKABLE QString nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
 	const QString nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	const QString nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;

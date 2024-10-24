@@ -7,7 +7,7 @@
 
 class DBMesocyclesModel;
 
-static const QString DBMesocyclesFileName(u"Mesocycles.db.sqlite"_qs);
+static const QString DBMesocyclesFileName(u"Mesocycles.db.sqlite"_s);
 
 class DBMesocyclesTable final : public TPDatabaseTable
 {

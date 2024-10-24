@@ -68,16 +68,16 @@ void QmlItemManager::configureQmlEngine()
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties(7);
-	properties[0] = QQmlContext::PropertyPair{ u"appSettings"_qs, QVariant::fromValue(appSettings()) };
-	properties[1] = QQmlContext::PropertyPair{ u"appUtils"_qs, QVariant::fromValue(appUtils()) };
-	properties[2] = QQmlContext::PropertyPair{ u"appTr"_qs, QVariant::fromValue(appTr()) };
-	properties[3] = QQmlContext::PropertyPair{ u"userModel"_qs, QVariant::fromValue(appUserModel()) };
-	properties[4] = QQmlContext::PropertyPair{ u"mesocyclesModel"_qs, QVariant::fromValue(appMesoModel()) };
-	properties[5] = QQmlContext::PropertyPair{ u"exercisesModel"_qs, QVariant::fromValue(appExercisesModel()) };
-	properties[6] = QQmlContext::PropertyPair{ u"itemManager"_qs, QVariant::fromValue(this) };
+	properties[0] = QQmlContext::PropertyPair{ u"appSettings"_s, QVariant::fromValue(appSettings()) };
+	properties[1] = QQmlContext::PropertyPair{ u"appUtils"_s, QVariant::fromValue(appUtils()) };
+	properties[2] = QQmlContext::PropertyPair{ u"appTr"_s, QVariant::fromValue(appTr()) };
+	properties[3] = QQmlContext::PropertyPair{ u"userModel"_s, QVariant::fromValue(appUserModel()) };
+	properties[4] = QQmlContext::PropertyPair{ u"mesocyclesModel"_s, QVariant::fromValue(appMesoModel()) };
+	properties[5] = QQmlContext::PropertyPair{ u"exercisesModel"_s, QVariant::fromValue(appExercisesModel()) };
+	properties[6] = QQmlContext::PropertyPair{ u"itemManager"_s, QVariant::fromValue(this) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
-	const QUrl& url{u"qrc:/qml/main.qml"_qs};
+	const QUrl& url{u"qrc:/qml/main.qml"_s};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject* const obj, const QUrl& objUrl) {
 		if (!obj && url == objUrl)
 		{
@@ -85,14 +85,14 @@ void QmlItemManager::configureQmlEngine()
 			QCoreApplication::exit(-1);
 		}
 	});
-	appQmlEngine()->addImportPath(u":/"_qs);
-	appQmlEngine()->addImageProvider(u"tpimageprovider"_qs, new TPImageProvider{});
+	appQmlEngine()->addImportPath(u":/"_s);
+	appQmlEngine()->addImageProvider(u"tpimageprovider"_s, new TPImageProvider{});
 	appQmlEngine()->load(url);
 
 	_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 	connect(appMainWindow(), SIGNAL(openFileChosen(QString)), this, SLOT(importSlot_FileChosen(QString)));
 	connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
-	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_qs, QVariant::fromValue(appMainWindow()));
+	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_s, QVariant::fromValue(appMainWindow()));
 
 	if (!appSettings()->mainUserConfigured())
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
@@ -201,7 +201,7 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 			if (strstr(buf, "##") != NULL)
 			{
 				inData = buf;
-				if (inData.startsWith(u"##"_qs))
+				if (inData.startsWith(u"##"_s))
 				{
 					if (inData.indexOf(DBUserObjectName) != -1)
 						fileContents |= IFC_USER;

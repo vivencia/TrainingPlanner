@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-static const QString DBExercisesFileName(u"ExercisesList.db.sqlite"_qs);
+static const QString DBExercisesFileName(u"ExercisesList.db.sqlite"_s);
 
 class DBExercisesModel;
 

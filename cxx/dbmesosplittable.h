@@ -8,7 +8,7 @@
 class DBMesoSplitModel;
 class DBTrainingDayModel;
 
-static const QString DBMesoSplitFileName(u"MesocyclesSplits.db.sqlite"_qs);
+static const QString DBMesoSplitFileName(u"MesocyclesSplits.db.sqlite"_s);
 
 class DBMesoSplitTable final : public TPDatabaseTable
 {
