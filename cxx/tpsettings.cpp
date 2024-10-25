@@ -17,7 +17,7 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 
 	m_defaultValues.reserve(QML_PROPERTIES);
 	m_defaultValues << TP_APP_VERSION << u""_s << u"Material"_s << u"Blue"_s << u"#25b5f3"_s << u"#1976d2"_s << u"#bbdefb"_s <<
-		 u"#1976d2"_s << u"#6495ed"_s << u"#c8e3f0"_s << u"#c3cad5"_s << u"white"_s << u"darkgray"_s << u"(kg)"_s << u"0"_s  << u"white/"_s <<
+		 u"#1976d2"_s << u"#6495ed"_s << u"#c8e3f0"_s << u"#c3cad5"_s << u"#ffffff"_s << u"#dcdcdc"_s << u"(kg)"_s << u"0"_s  << u"white/"_s <<
 		 FONT_POINT_SIZE << FONT_POINT_SIZE_TEXT << FONT_POINT_SIZE_LISTS << FONT_POINT_SIZE_TITLE << STR_MINUS_ONE << u"300"_s << u"600"_s <<
 		 STR_ONE << STR_ZERO;
 }

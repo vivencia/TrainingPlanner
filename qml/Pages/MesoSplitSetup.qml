@@ -26,7 +26,7 @@ Pane {
 	TPLabel {
 		id: lblMesoSplit
 		text: mesoManager.splitLabel
-		widthAvailable: parent.width*0.6
+		widthAvailable: parent.width*0.7
 
 		anchors {
 			top: parent.top
@@ -40,7 +40,7 @@ Pane {
 		ToolTip.text: qsTr("On any training program, there should be at least one rest day(R) per week")
 		ToolTip.visible: !bMesoSplitTextOK
 		readOnly: true
-		width: parent.width*0.4
+		width: parent.width*0.3
 
 		onTextChanged: bMesoSplitTextOK = text.indexOf('R') !== -1
 
@@ -69,7 +69,7 @@ Pane {
 				Layout.fillWidth: true
 
 				TPLabel {
-					text: qsTr("Day ") + parseInt(index) + ":"
+					text: qsTr("Day ") + parseInt(index+1) + ":"
 					width: col1Width
 					Layout.minimumWidth: col1Width
 					Layout.maximumWidth: col1Width
@@ -132,8 +132,11 @@ Pane {
 	TPButton {
 		id: btnAcceptSplit
 		text: qsTr("Accept changes")
-		enabled: bMesoSplitTextOK
+		imageSource: "set-completed"
+		imageSize: 15
 		flat: false
+		checkable: true
+		enabled: bMesoSplitTextOK
 
 		anchors {
 			top: mainLayout.bottom
@@ -141,7 +144,15 @@ Pane {
 			horizontalCenter: parent.horizontalCenter
 		}
 
-		onClicked: mesoManager.split = txtMesoSplit.text;
+		onCheck: {
+			mainLayout.enabled = !checked;
+			if (checked) {
+				lblNewMesoRequiredFieldsCounter.decreaseCounter();
+				mesoManager.split = txtMesoSplit.text;
+			}
+			else
+				lblNewMesoRequiredFieldsCounter.increaseCounter();
+		}
 	}
 
 	TPButton {

@@ -23,7 +23,7 @@ void TPImage::setSource(const QString& source)
 	if (!source.isEmpty() && mSource != source)
 	{
 		if (source.contains(u"png"_s))
-			mSource = u":/images/"_s + source;
+			mSource = std::move(u":/images/"_s + source);
 		else
 		{
 			if (source.contains(u"provider"_s))
@@ -39,7 +39,7 @@ void TPImage::setSource(const QString& source)
 				return;
 			}
 			else
-				mSource = u":/images/"_s + source + u".png"_s;
+				mSource = std::move(u":/images/"_s + source + u".png"_s);
 		}
 		if (mImage.load(mSource))
 		{
@@ -178,15 +178,14 @@ void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
 	dstImg = srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
 	const uint imgHeight(dstImg.height());
 	const uint imgWidth(dstImg.width());
-	uint x(0), y(0), ci(0);
-	QRgb pixel, *scanLine;
-	for (; y < imgHeight; ++y)
+	QRgb pixel;
+	for (uint y{0}; y < imgHeight; ++y)
 	{
-		scanLine = reinterpret_cast<QRgb*>(dstImg.scanLine(y));
-		for (x = 0; x < imgWidth; ++x)
+		QRgb* scanLine{reinterpret_cast<QRgb*>(dstImg.scanLine(y))};
+		for (uint x{0}; x < imgWidth; ++x)
 		{
 			pixel = *scanLine;
-			ci = static_cast<uint>(qGray(pixel));
+			const uint ci{static_cast<uint>(qGray(pixel))};
 			*scanLine = qRgba(ci, ci, ci, qAlpha(pixel)/3);
 			++scanLine;
 		}

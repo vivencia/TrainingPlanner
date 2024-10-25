@@ -28,11 +28,6 @@ public:
 
 	inline const QString& getDayInfo(const uint row, const uint day) const { return m_modeldata.at(row).at(day); }
 
-	inline QString getMesoId() const
-	{
-		return m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MESOID);
-	}
-
 	Q_INVOKABLE uint getMonth(const uint index) const
 	{
 		return index < count() ? static_cast<QString>(m_modeldata.at(index).at(0)).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() - 1 : 0;

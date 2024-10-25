@@ -150,11 +150,6 @@ TPPage {
 					}
 
 					onClicked: mesocyclesModel.getMesoCalendarPage(index);
-
-					Component.onCompleted: mesocyclesModel.isOwnMesoChanged.connect(function(mesoidx) {
-						if (mesoidx === index)
-							enabled = mesocyclesModel.isOwnMeso(mesoidx);
-						});
 				}
 
 				TPButton {
@@ -274,7 +269,7 @@ TPPage {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentRow ? appSettings.entrySelectedColor : appSettings.listEntryColor2
+				color: index === mesocyclesModel.currentMesoIdx() ? appSettings.primaryLightColor : appSettings.listEntryColor2
 				visible: false
 			}
 
@@ -290,44 +285,51 @@ TPPage {
 				shadowVerticalOffset: 5
 				shadowColor: "black"
 				shadowScale: 1
-				opacity: index === mesocyclesModel.currentRow ? 0.8 : 0.6
+				opacity: 0.8
 			}
 
 			contentItem: ColumnLayout {
 				id: mesoContent
 				spacing: 2
 
+				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx() ? "black" : appSettings.fontColor
+
 				TPLabel {
 					text: mesoName
+					fontColor: mesoContent.fntColor
 					horizontalAlignment: Text.AlignHCenter
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
+					Layout.bottomMargin: 10
 				}
 				TPLabel {
 					text: mesoCoach
+					fontColor: mesoContent.fntColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
 				TPLabel {
 					text: mesoClient
+					fontColor: mesoContent.fntColor
 					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
 				TPLabel {
 					text: mesoStartDate
-					color: appSettings.fontColor
+					fontColor: mesoContent.fntColor
 				}
 				TPLabel {
 					text: mesoEndDate
-					color: appSettings.fontColor
+					fontColor: mesoContent.fntColor
 				}
 				TPLabel {
 					text: mesoSplit
-					width: availableWidth
 					singleLine: true
+					fontColor: mesoContent.fntColor
+					width: availableWidth
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}

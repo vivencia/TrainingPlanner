@@ -10,7 +10,7 @@
 DBMesoCalendarTable::DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model)
 	: TPDatabaseTable{}, m_model(model)
 {
-	m_tableName = u"mesocycles_calendar_table"_s;
+	m_tableName = std::move(u"mesocycles_calendar_table"_s);
 	m_tableID = MESOCALENDAR_TABLE_ID;
 	setObjectName(DBMesoCalendarObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
@@ -164,9 +164,9 @@ void DBMesoCalendarTable::getMesoCalendar()
 						}
 					}
 					month = dbmonth;
-					mesocal_info.append(query.value(MESOCALENDAR_COL_ID).toString() + ',' + mesoId + ',' + query.value(MESOCALENDAR_COL_TRAINING_DAY).toString() +
+					mesocal_info.append(std::move(query.value(MESOCALENDAR_COL_ID).toString() + ',' + mesoId + ',' + query.value(MESOCALENDAR_COL_TRAINING_DAY).toString() +
 						',' + query.value(MESOCALENDAR_COL_SPLITLETTER).toString() + ',' + query.value(MESOCALENDAR_COL_TRAININGCOMPLETE).toString() +
-						',' + strYear + ',' + strMonth);
+						',' + strYear + ',' + strMonth));
 					day++;
 				} while (query.next ());
 				if (!mesocal_info.isEmpty()) //The days of the last month
@@ -211,10 +211,10 @@ void DBMesoCalendarTable::saveMesoCalendar()
 				day_info = m_model->getDayInfo(i, x).split(',');
 				if (day_info.at(MESOCALENDAR_COL_MESOID) != STR_MINUS_ONE)
 				{
-					queryValues += '(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
+					queryValues += std::move('(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
 						u",\'"_s + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + u"\',"_s +
 								day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
-								day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + u"),"_s;
+								day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + u"),"_s);
 				}
 			}
 			if (n >= 150)
@@ -254,8 +254,8 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			const QString& strTrainingDay(m_execArgs.at(1).toString());
 			const QString& strSplit(m_execArgs.at(2).toString());
 
-			strQuery = u"UPDATE mesocycles_calendar_table SET training_day=%1, training_split=\'%2\' WHERE id=%3"_s
-											.arg(strTrainingDay, strSplit, strId);
+			strQuery = std::move(u"UPDATE mesocycles_calendar_table SET training_day=%1, training_split=\'%2\' WHERE id=%3"_s
+											.arg(strTrainingDay, strSplit, strId));
 			ok = query.exec(strQuery);
 			if (ok)
 				m_model->updateDay(date, strTrainingDay, strSplit);
@@ -274,15 +274,15 @@ void DBMesoCalendarTable::updateDayIsFinished()
 		QSqlQuery query{getQuery()};
 		QString strQuery;
 
-		strQuery = u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_s.arg(
-				QString::number(date.year()),QString::number(date.month()), QString::number(date.day()));
+		strQuery = std::move(u"SELECT id FROM mesocycles_calendar_table WHERE year=%1 AND month=%2 AND day=%3"_s.arg(
+				QString::number(date.year()),QString::number(date.month()), QString::number(date.day())));
 		if (query.exec(strQuery))
 		{
 			query.first();
 			const QString& strId(query.value(0).toString());
 			query.finish();
-			strQuery = u"UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2"_s
-									.arg(m_execArgs.at(1).toBool() ? STR_ONE : STR_ZERO, strId);
+			strQuery = std::move(u"UPDATE mesocycles_calendar_table SET training_complete=%1 WHERE id=%2"_s
+									.arg(m_execArgs.at(1).toBool() ? STR_ONE : STR_ZERO, strId));
 			ok = query.exec(strQuery);
 		}
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
@@ -303,10 +303,10 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 		{
 			if (query.first())
 			{
-				dayInfoList.append(query.value(0).toString());
-				dayInfoList.append(query.value(1).toString());
-				dayInfoList.append(query.value(2).toString());
-				dayInfoList.append(query.value(3).toString());
+				dayInfoList.append(std::move(query.value(0).toString()));
+				dayInfoList.append(std::move(query.value(1).toString()));
+				dayInfoList.append(std::move(query.value(2).toString()));
+				dayInfoList.append(std::move(query.value(3).toString()));
 				ok = true;
 			}
 		}
@@ -334,7 +334,7 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_s + m_model->getMesoId());
+		const QString& strQuery(u"DELETE FROM mesocycles_calendar_table WHERE meso_id="_s + m_execArgs.at(0).toString());
 		ok = query.exec(strQuery);
 		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
 	}	

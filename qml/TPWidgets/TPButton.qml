@@ -9,7 +9,7 @@ Rectangle {
 	focus: true
 	border.color: flat ? "transparent" : appSettings.fontColor
 	radius: rounded ? height : 6
-	opacity: bFollowParentsOpacity ? parent.opacity : 1
+	opacity: bFollowParentsOpacity ? parent.opacity : checked ? 0.7 : 1
 	color: backgroundColor
 
 	property color textColor: appSettings.fontColor
@@ -22,6 +22,7 @@ Rectangle {
 	property bool flat: true
 	property bool leftAlign: true
 	property bool rounded: true
+	property bool checkable: false
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
 	property Item associatedItem: null
@@ -30,10 +31,12 @@ Rectangle {
 	property bool hasDropShadow: true
 	property bool bPressed: false
 	property bool bEmitSignal: false
+	property bool checked: false
 	property bool bFollowParentsOpacity: false
 	property TPButtonImage buttonImage: null;
 
 	signal clicked(int clickid);
+	signal check(int clickid);
 
 	onImageSourceChanged: {
 		if (buttonImage)
@@ -135,7 +138,12 @@ Rectangle {
 				bPressed = true;
 				button.forceActiveFocus();
 				button.fillPosition = 0;
-				anim.start();
+				if (!checkable)
+					anim.start();
+				else {
+					checked = !checked;
+					check(button.clickId);
+				}
 			}
 		}
 		onReleased: (mouse) => {

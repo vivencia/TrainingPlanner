@@ -14,6 +14,7 @@ TPPage {
 	objectName: "mesoPage"
 
 	required property MesoManager mesoManager
+	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
 	header: ToolBar {
 		height: headerHeight
@@ -36,12 +37,43 @@ TPPage {
 			enabled: !mesoManager.isNewMeso
 
 			anchors {
-				left: parent.left
+				right: parent.right
 				verticalCenter: parent.verticalCenter
-				leftMargin: 20
+				rightMargin: 20
 			}
 
 			onClicked: mesoManager.getCalendarPage();
+		}
+
+		TPImage {
+			id: imgNewMesoOK
+			source: "set-completed.png"
+			enabled: !mesoManager.isNewMeso
+			width: 45
+			height: 45
+
+			anchors {
+				left: parent.left
+				verticalCenter: parent.verticalCenter
+				leftMargin: 50
+			}
+		}
+
+		TPLabel {
+			id: lblNewMesoRequiredFieldsCounter
+			text: parseInt(fieldCounter)
+			visible: mesoManager.isNewMeso
+			font: AppGlobals.listFont
+
+			property int fieldCounter: 4
+			anchors {
+				left: imgNewMesoOK.right
+				leftMargin: 5
+				bottom: parent.bottom
+			}
+
+			function decreaseCounter() { fieldCounter--; }
+			function increaseCounter() { fieldCounter++; }
 		}
 	}
 
@@ -61,7 +93,35 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.nameLabel
+
+				TPButton {
+					imageSource: "set-completed"
+					fixedSize: true
+					checkable: true
+					visible: mesoManager.isNewMeso
+					enabled: bMesoNameOK
+					height: 25
+					width: 25
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
+
+					onCheck: {
+						txtMesoName.readOnly = checked;
+						if (checked) {
+							mesoManager.name = txtMesoName.text;
+							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+						}
+						else {
+							txtMesoName.forceActiveFocus();
+							lblNewMesoRequiredFieldsCounter.increaseCounter();
+						}
+					}
+				}
 			}
+
 			TPTextInput {
 				id: txtMesoName
 				text: mesoManager.name
@@ -71,13 +131,6 @@ TPPage {
 				width: parent.width - 20
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
-
-				readonly property bool bMesoNameOK: text.length >= 5
-
-				onEditingFinished: {
-					if (bMesoNameOK)
-						mesoManager.name = text;
-				}
 
 				onEnterOrReturnKeyPressed: {
 					if (cboCoaches.visible)
@@ -101,7 +154,8 @@ TPPage {
 
 				TPComboBox {
 					id: cboCoaches
-					editText: mesoManager.coach
+					//editText: mesoManager.coach
+					currentIndex: userModel.currentCoach(userModel.userRow(mesoManager.client))
 					implicitWidth: appSettings.pageWidth/2
 					Layout.minimumWidth: width
 
@@ -145,7 +199,8 @@ TPPage {
 
 				TPComboBox {
 					id: cboClients
-					editText: mesoManager.client
+					//editText: mesoManager.client
+					currentIndex: userModel.currentClient(userModel.userRow(mesoManager.client))
 					implicitWidth: appSettings.pageWidth*0.6
 					Layout.minimumWidth: width
 
@@ -267,6 +322,32 @@ TPPage {
 
 			TPLabel {
 				text: mesoManager.startDateLabel
+
+				TPButton {
+					imageSource: "set-completed"
+					checkable: true
+					fixedSize: true
+					visible: mesoManager.isNewMeso
+					height: 25
+					width: 25
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
+
+					onCheck: {
+						btnStartDate.enabled = !checked;
+						if (checked) {
+							mesoManager.acceptStartDate();
+							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+						}
+						else {
+							caldlg.open();
+							lblNewMesoRequiredFieldsCounter.increaseCounter();
+						}
+					}
+				}
 			}
 
 			TPTextInput {
@@ -302,13 +383,48 @@ TPPage {
 				Layout.fillWidth: true
 
 				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
-				onClicked: mesoManager.realMeso = checked;
+				onClicked: {
+					mesoManager.realMeso = checked;
+					if (checked) {
+						mesoManager.acceptEndDate();
+						lblNewMesoRequiredFieldsCounter.decreaseCounter();
+					}
+					else
+						lblNewMesoRequiredFieldsCounter.increaseCounter();
+				}
 			}
 
 			TPLabel {
 				text: mesoManager.endDateLabel
 				visible: mesoManager.realMeso
+
+				TPButton {
+					imageSource: "set-completed"
+					checkable: true
+					fixedSize: true
+					visible: mesoManager.isNewMeso
+					height: 25
+					width: 25
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
+
+					onCheck: {
+						btnEndDate.enabled = !checked;
+						if (checked) {
+							mesoManager.acceptEndDate();
+							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+						}
+						else {
+							caldlg2.open();
+							lblNewMesoRequiredFieldsCounter.increaseCounter();
+						}
+					}
+				}
 			}
+
 			TPTextInput {
 				id: txtMesoEndDate
 				text: mesoManager.endDate

@@ -136,7 +136,8 @@ void QmlTDayInterface::setDayIsEditable(const bool new_value)
 {
 	m_bDayIsEditable = new_value;
 	emit dayIsEditableChanged();
-	m_exerciseManager->setExercisesEditable(m_bDayIsEditable);
+	if (m_exerciseManager)
+		m_exerciseManager->setExercisesEditable(m_bDayIsEditable);
 }
 
 void QmlTDayInterface::setMainDateIsToday(const bool new_value)
@@ -193,7 +194,15 @@ void QmlTDayInterface::getTrainingDayPage()
 		m_tDayModel->setTrainingDay(tday);
 		setTimeIn(u"--:--"_s);
 		setTimeOut(u"--:--"_s);
+		setEditMode(false);
+		setDayIsFinished(false);
+		setDayIsEditable(false);
+		setHasMesoPlan(false);
+		setHasPreviousTDays(false);
+		setMainDateIsToday(m_Date == QDate::currentDate());
 		setNeedActivation(false);
+		setTimerActive(false);
+		setHasExercises(false);
 		m_tDayProperties.insert(u"tDayManager"_s, QVariant::fromValue(this));
 		createTrainingDayPage();
 	}
@@ -358,7 +367,7 @@ void QmlTDayInterface::removeSetFromExercise(const uint exercise_idx, const uint
 void QmlTDayInterface::createExerciseObject()
 {
 	m_exerciseManager->createExerciseObject();
-	setHasExercises(false);
+	setHasExercises(true);
 }
 
 void QmlTDayInterface::removeExerciseObject(const uint exercise_idx, const bool bAsk)
@@ -496,8 +505,6 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
 
-	connect(m_tDayPage, SIGNAL(removeExercise(int)), this, SLOT(removeExercise(int)));
-	connect(m_tDayPage, SIGNAL(removeSet(int,int)), this, SLOT(removeSetFromExercise(int,int)));
 	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
 }
 

@@ -5,6 +5,7 @@
 #include "qmlitemmanager.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
+#include "dbinterface.h"
 
 #include <QSettings>
 #include <utility>
@@ -12,7 +13,8 @@
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
-	: TPListModel{parent}, m_mostRecentOwnMesoIdx(-1), m_bCanHaveTodaysWorkout(false)
+	: TPListModel{parent},
+	 m_mostRecentOwnMesoIdx(-1), m_bCanHaveTodaysWorkout(false)
 {
 	app_meso_model = this;
 
@@ -97,9 +99,12 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 		enddate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}
 
+	beginInsertRows(QModelIndex(), count(), count());
 	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString::number(startdate.toJulianDay()) <<
 		QString::number(enddate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startdate, enddate)) <<
-		std::move(u"ABCDERR"_s) << appUserModel()->currentCoachName(0) << appUserModel()->currentUserName(0) << QString() << QString() << STR_ONE));
+		std::move(u"ABCDERR"_s) << appUserModel()->currentCoachName(0) << appUserModel()->currentClientName(0) << QString() << QString() << STR_ONE));
+	emit countChanged();
+	endInsertRows();
 
 	uchar newMesoRequiredFields(0);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
@@ -117,6 +122,9 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 
 void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 {
+	if (_id(meso_idx) >= 0)
+		appDBInterface()->removeMesocycle(meso_idx);
+
 	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
 	m_isNewMeso.remove(meso_idx);
@@ -272,7 +280,7 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 {
 	if (isOwnMeso(meso_idx) != bOwnMeso)
 	{
-		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->getCurrentUserName(false));
+		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->currentClientName(0));
 		const int cur_ownmeso(m_mostRecentOwnMesoIdx);
 		findNextOwnMeso();
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
@@ -280,7 +288,6 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 			changeCanHaveTodaysWorkout();
 		}
-		emit isOwnMesoChanged(meso_idx);
 	}
 }
 

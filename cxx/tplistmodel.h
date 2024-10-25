@@ -25,7 +25,7 @@ public:
 	inline void setMesoIdx(const int new_mesoidx) { m_mesoIdx = new_mesoidx; }
 
 	void appendList(const QStringList& list);
-	void appendListMove(QStringList& list);
+	inline void appendListMove(QStringList& list) { m_modeldata.append(std::move(list)); }
 	virtual void clear();
 	void clearFast();
 

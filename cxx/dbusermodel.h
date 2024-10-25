@@ -18,9 +18,9 @@
 #define USER_COL_AVATAR 10
 #define USER_COL_APP_USE_MODE 11
 #define USER_COL_CURRENT_COACH 12
-#define USER_COL_CURRENT_USER 13
+#define USER_COL_CURRENT_CLIENT 13
 
-#define USER_TOTAL_COLS USER_COL_CURRENT_USER + 1
+#define USER_TOTAL_COLS USER_COL_CURRENT_CLIENT + 1
 
 #define APP_USE_MODE_CLIENTS 0
 #define APP_USE_MODE_SINGLE_USER 1
@@ -44,9 +44,7 @@ public:
 	Q_INVOKABLE int findNextUser(const bool bCoach = false);
 	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
 	Q_INVOKABLE int findLastUser(const bool bCoach = false);
-	Q_INVOKABLE QString getCurrentUserName(const bool bCoach) const;
 	const int getRowByCoachName(const QString& coachname) const;
-	Q_INVOKABLE const int getRowByName(const QString& username) const;
 
 	Q_INVOKABLE QStringList getCoaches() const;
 	Q_INVOKABLE QStringList getClients() const;
@@ -55,6 +53,7 @@ public:
 	inline const QString& _userId(const int row) const { return m_modeldata.at(row).at(USER_COL_ID); }
 	inline void setUserId(const uint row, const QString& new_id) { m_modeldata[row][USER_COL_ID] = new_id; }
 
+	Q_INVOKABLE uint userRow(const QString& userName) const;
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString& _userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
 	Q_INVOKABLE inline void setUserName(const int row, const QString& new_name)
@@ -170,17 +169,17 @@ public:
 		emit userModified(row, USER_COL_CURRENT_COACH);
 	}
 
-	Q_INVOKABLE inline int currentUser(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentUser(row).toUInt() : -1; }
-	inline const QString& _currentUser(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_USER); }
-	inline const QString currentUserName(const uint row) const
+	Q_INVOKABLE inline int currentClient(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentClient(row).toUInt() : -1; }
+	inline const QString& _currentClient(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_CLIENT); }
+	inline const QString currentClientName(const uint row) const
 	{
-		return currentUser(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select client ...)");
+		return currentClient(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select client ...)");
 	}
 
-	Q_INVOKABLE void setCurrentUser(const int row, const int new_current_user)
+	Q_INVOKABLE void setCurrentClient(const int row, const int new_current_user)
 	{
-		m_modeldata[row][USER_COL_CURRENT_USER] = QString::number(new_current_user);
-		emit userModified(row, USER_COL_CURRENT_USER);
+		m_modeldata[row][USER_COL_CURRENT_CLIENT] = QString::number(new_current_user);
+		emit userModified(row, USER_COL_CURRENT_CLIENT);
 	}
 
 	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }

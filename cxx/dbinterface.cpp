@@ -27,7 +27,7 @@ DBInterface* DBInterface::app_db_interface(nullptr);
 
 void DBInterface::init()
 {
-	m_DBFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_s;
+	m_DBFilePath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/Files/Database/"_s);
 	QDir appDir(m_DBFilePath);
 	if (!appDir.mkpath(m_DBFilePath))
 	{
@@ -187,6 +187,8 @@ void DBInterface::getAllUsers()
 		noUsers = appUserModel()->userName(0).isEmpty();
 	if (noUsers)
 		appUserModel()->addUser(false);
+	else
+		appMesoModel()->updateColumnLabels();
 }
 
 void DBInterface::saveUser(const uint row)
@@ -314,14 +316,11 @@ void DBInterface::saveMesocycle(const uint meso_idx)
 
 void DBInterface::removeMesocycle(const uint meso_idx)
 {
-	if (appMesoModel()->_id(meso_idx))
-	{
-		removeMesoCalendar(meso_idx);
-		removeMesoSplit(meso_idx);
-		DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath)};
-		worker->addExecArg(appMesoModel()->id(meso_idx));
-		createThread(worker, [worker] () { return worker->removeEntry(); });
-	}
+	removeMesoCalendar(meso_idx);
+	removeMesoSplit(meso_idx);
+	DBMesocyclesTable* worker{new DBMesocyclesTable(m_DBFilePath)};
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteMesocyclesTable(const bool bRemoveFile)
@@ -494,16 +493,16 @@ void DBInterface::setDayIsFinished(const uint meso_idx, const QDate& date, const
 	createThread(worker, [worker] () { worker->updateDayIsFinished(); });
 }
 
-void DBInterface::removeMesoCalendar(const uint meso_id)
+void DBInterface::removeMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath));
-	worker->addExecArg(QString::number(meso_id));
+	worker->addExecArg(appMesoModel()->id(meso_idx));
 	createThread(worker, [worker] () { return worker->removeMesoCalendar(); });
 }
 
 void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile)
 {
-	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)));
+	DBMesoCalendarTable* worker(new DBMesoCalendarTable(m_DBFilePath));
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------

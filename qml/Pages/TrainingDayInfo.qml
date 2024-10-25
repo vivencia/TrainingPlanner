@@ -566,7 +566,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: tDayManager.getExercisesPage(true, trainingDayPage);
+			onClicked: itemManager.getExercisesPage(true, trainingDayPage);
 		} // bntAddExercise
 	} //footer: ToolBar
 

@@ -63,7 +63,7 @@ ComboBox {
 
 		Connections {
 			target: control
-			function onPressedChanged() { canvas.requestPaint(); }
+			function onEnabledChanged() { canvas.requestPaint(); }
 		}
 
 		onPaint: {
@@ -73,7 +73,7 @@ ComboBox {
 				context.lineTo(width, 0);
 				context.lineTo(width / 2, height);
 				context.closePath();
-				context.fillStyle = textColor
+				context.fillStyle = control.enabled ? textColor : appSettings.disabledFontColor
 				context.fill();
 			}
 		}

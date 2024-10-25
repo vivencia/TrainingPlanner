@@ -31,8 +31,6 @@ class DBMesocyclesModel : public TPListModel
 
 Q_OBJECT
 
-Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
-Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 
 public:
@@ -63,7 +61,7 @@ public:
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
-	inline bool isNewMeso(const int meso_idx = -1) const { return m_isNewMeso.at(meso_idx >= 0 ? meso_idx : currentMesoIdx()) != 0; }
+	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
 	void changeCanHaveTodaysWorkout();
 
@@ -202,7 +200,7 @@ public:
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;
-	inline int currentMesoIdx() const { return m_currentMesoIdx; }
+	Q_INVOKABLE inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	void setCurrentMesoIdx(const uint meso_idx);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 
@@ -240,7 +238,6 @@ public:
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void isNewMesoChanged(const uint meso_idx);
-	void isOwnMesoChanged(const uint meso_idx);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx);
 	void muscularGroupChanged(const uint meso_idx, const uint initiator_id, const uint splitIndex, const QChar& splitLetter);

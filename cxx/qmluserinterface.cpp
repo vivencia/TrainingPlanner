@@ -142,7 +142,7 @@ void QmlUserInterface::setClientsOrCoachesPagesProperties(const bool bManageClie
 		{
 			firstUserRow = appUserModel()->findFirstUser(false);
 			lastUserRow = appUserModel()->findLastUser(false);
-			curUserRow = appUserModel()->currentUser(0);
+			curUserRow = appUserModel()->currentClient(0);
 		}
 	}
 

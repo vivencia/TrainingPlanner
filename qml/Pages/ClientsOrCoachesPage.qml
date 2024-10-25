@@ -24,7 +24,7 @@ TPPage {
 		if (showCoaches)
 			chkCurrent.checked = userModel.currentCoach(0) === curUserRow;
 		else
-			chkCurrent.checked = userModel.currentUser(0) === curUserRow;
+			chkCurrent.checked = userModel.currentClient(0) === curUserRow;
 	}
 
 	TPLabel {
@@ -164,7 +164,7 @@ TPPage {
 			if (showCoaches)
 				userModel.setCurrentCoach(0, checked ? curUserRow : -1);
 			else
-				userModel.setCurrentUser(0, checked ? curUserRow : -1);
+				userModel.setCurrentClient(0, checked ? curUserRow : -1);
 		}
 	}
 

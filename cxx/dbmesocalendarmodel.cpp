@@ -49,7 +49,7 @@ void DBMesoCalendarModel::createModel()
 		if (firstDay > 1)
 		{
 			for( ; day < firstDay; ++day)
-				month_info.append(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth);
+				month_info.append(std::move(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth));
 			firstDay = 0;
 		}
 		for( ; day <= lastDay; day++ )
@@ -62,8 +62,8 @@ void DBMesoCalendarModel::createModel()
 			else
 				trainingDayNumber = 0;
 
-			month_info.append(u"-1,"_s + strMesoId + ',' + QString::number(trainingDayNumber) + ',' +
-								strSplit.at(splitIdx) + u",0,"_s + strYear + ',' + strMonth);
+			month_info.append(std::move(u"-1,"_s + strMesoId + ',' + QString::number(trainingDayNumber) + ',' +
+								strSplit.at(splitIdx) + u",0,"_s + strYear + ',' + strMonth));
 			splitIdx++;
 			if (splitIdx == strSplit.length())
 				splitIdx = 0;
@@ -80,7 +80,7 @@ void DBMesoCalendarModel::createModel()
 	if (day < lastDay)
 	{
 		for( ; day <= lastDay; ++day)
-			month_info.append(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth);
+			month_info.append(std::move(u"-1,-1,-1,N,-1,"_s + strYear + ',' + strMonth));
 		appendList(month_info);
 	}
 }
@@ -138,17 +138,17 @@ void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bP
 	clear();
 	createModel();
 
-	uint month(0), y(0), lastday(0);
+	uint y(0);
 	for(i = 0; i < m_modeldata.count(); ++i)
 	{
 		const uint year = m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt();
 		if (year >= old_firsyear && year <= old_lastyear)
 		{
-			month = m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt();
+			const uint month = m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt();
 			if (month >= old_firstmonth && month <= old_lastmonth)
 			{
 				day = y == 0 ? old_firstday : 0;
-				lastday = y < oldInfo.count() - 1 ? oldInfo.at(y).count() : old_lastday;
+				const uint lastday = y < oldInfo.count() - 1 ? oldInfo.at(y).count() : old_lastday;
 				uint x(0);
 				for(; x < lastday; ++day, ++x)
 					m_modeldata[i][day] = std::move(oldInfo.at(y).at(x));
@@ -339,7 +339,7 @@ void DBMesoCalendarModel::setDayIsFinished(const QDate& date, const bool bFinish
 		{
 			QStringList dayInfo(m_modeldata.at(i).at(date.day()-1).split(','));
 			dayInfo.replace(MESOCALENDAR_COL_TRAININGCOMPLETE, bFinished ? STR_ONE : STR_ZERO);
-			m_modeldata[i].replace(date.day()-1, dayInfo.join(','));
+			m_modeldata[i].replace(date.day()-1, std::move(dayInfo.join(',')));
 		}
 	}
 }

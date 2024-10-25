@@ -503,33 +503,33 @@ TPPage {
 			switch (colorSchemeChosen) {
 				case 1:
 					appSettings.colorScheme = "Blue";
-					appSettings.fontColor = "white";
+					appSettings.fontColor = "#ffffff";
 					appSettings.iconFolder = "white/"
-					colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "lightgray"];
+					colorScheme = [recColor1.darkColor, recColor1.midColor, recColor1.lightColor, "#1976d2", "#6495ed", "dcdcdc"];
 				break;
 				case 2:
 					appSettings.colorScheme = "Green";
-					appSettings.fontColor = "white";
+					appSettings.fontColor = "#ffffff";
 					appSettings.iconFolder = "white/"
-					colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "lightgray"];
+					colorScheme = [recColor2.darkColor, recColor2.midColor, recColor2.lightColor, "#60d219", "#228b22", "dcdcdc"];
 				break;
 				case 3:
 					appSettings.colorScheme = "Red";
-					appSettings.fontColor = "white";
+					appSettings.fontColor = "#ffffff";
 					appSettings.iconFolder = "white/"
-					colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "lightgray"];
+					colorScheme = [recColor3.darkColor, recColor3.midColor, recColor3.lightColor, "#d22222", "#f08080", "dcdcdc"];
 				break;
 				case 4:
 					appSettings.colorScheme = "Dark";
-					appSettings.fontColor = "white";
+					appSettings.fontColor = "#ffffff";
 					appSettings.iconFolder = "white/"
-					colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "lightgray"];
+					colorScheme = [recColor4.darkColor, recColor4.midColor, recColor4.lightColor, "#757575", "#696969", "dcdcdc"];
 				break;
 				case 5:
 					appSettings.colorScheme = "Light";
-					appSettings.fontColor = "black";
+					appSettings.fontColor = "#000000";
 					appSettings.iconFolder = "black/"
-					colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "white"];
+					colorScheme = [recColor5.darkColor, recColor5.midColor, recColor5.lightColor, "#b3b3b3", "#b0c4de", "ffffff"];
 				break;
 			}
 			colorSchemeChosen = 0;

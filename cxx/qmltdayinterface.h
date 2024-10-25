@@ -43,7 +43,7 @@ Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays N
 public:
 	explicit inline QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
 		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date),
-			m_restTimer(nullptr), m_workoutTimer(nullptr) {}
+			m_exerciseManager(nullptr), m_workoutTimer(nullptr), m_restTimer(nullptr) {}
 	~QmlTDayInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------

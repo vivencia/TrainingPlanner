@@ -110,10 +110,12 @@ public:
 	[[nodiscard]] inline QString startDate() const { return m_startDate; }
 	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
 	void setMinimumMesoStartDate(const QDate& new_value, const bool bFromQml = true);
+	Q_INVOKABLE void acceptStartDate();
 
 	[[nodiscard]] inline QString endDate() const { return m_endDate; }
 	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
 	void setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml = true);
+	Q_INVOKABLE void acceptEndDate();
 
 	[[nodiscard]] inline QString weeks() const { return m_weeks; }
 	void setWeeks(const QString& new_value, const bool bFromQml = true);

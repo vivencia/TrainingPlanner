@@ -152,12 +152,6 @@ int DBUserModel::findLastUser(const bool bCoach)
 	return m_searchRow;
 }
 
-QString DBUserModel::getCurrentUserName(const bool bCoach) const
-{
-	const int row(m_modeldata.at(0).at(bCoach ? USER_COL_CURRENT_COACH : USER_COL_CURRENT_COACH).toInt());
-	return row > 0 ? m_modeldata.at(row).at(USER_COL_NAME) : QString();
-}
-
 const int DBUserModel::getRowByCoachName(const QString& coachname) const
 {
 	for (uint i(1); i < m_modeldata.count(); ++i)
@@ -165,16 +159,6 @@ const int DBUserModel::getRowByCoachName(const QString& coachname) const
 		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
 			if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)
 				return i;
-	}
-	return -1;
-}
-
-const int DBUserModel::getRowByName(const QString& username) const
-{
-	for (uint i(1); i < m_modeldata.count(); ++i)
-	{
-		if (m_modeldata.at(i).at(USER_COL_NAME) == username)
-			return i;
 	}
 	return -1;
 }
@@ -201,6 +185,16 @@ QStringList DBUserModel::getClients() const
 			clients.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
 	return clients;
+}
+
+uint DBUserModel::userRow(const QString& userName) const
+{
+	for (uint i(0); i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(USER_COL_NAME) == userName)
+			return i;
+	}
+	return 0; //Should neve reach here
 }
 
 int DBUserModel::importFromFile(const QString& filename)

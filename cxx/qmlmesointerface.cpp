@@ -192,10 +192,15 @@ void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value, const boo
 		{
 			emit minimumMesoStartDateChanged();
 			emit startDateChanged();
-			appMesoModel()->setStartDate(m_mesoIdx, m_minimumMesoStartDate);
-			appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
+			acceptStartDate();
 		}
 	}
+}
+
+void QMLMesoInterface::acceptStartDate()
+{
+	appMesoModel()->setStartDate(m_mesoIdx, m_minimumMesoStartDate);
+	appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
 }
 
 void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml)
@@ -208,10 +213,15 @@ void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value, const bool 
 		{
 			emit maximumMesoEndDateChanged();
 			emit endDateChanged();
-			appMesoModel()->setEndDate(m_mesoIdx, m_maximumMesoEndDate);
-			appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
+			acceptEndDate();
 		}
 	}
+}
+
+void QMLMesoInterface::acceptEndDate()
+{
+	appMesoModel()->setEndDate(m_mesoIdx, m_maximumMesoEndDate);
+	appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
 }
 
 void QMLMesoInterface::setWeeks(const QString& new_value, const bool bFromQml)
@@ -228,14 +238,11 @@ void QMLMesoInterface::setSplit(const QString& new_value, const bool bFromQml)
 {
 	if (bFromQml)
 	{
-		if (m_split != new_value)
+		if (new_value.contains(u"R"_s))
 		{
-			if (new_value.contains(u"R"_s))
-			{
-				m_split = new_value;
-				emit splitChanged();
-				appMesoModel()->setSplit(m_mesoIdx, m_split);
-			}
+			m_split = new_value;
+			emit splitChanged();
+			appMesoModel()->setSplit(m_mesoIdx, m_split);
 		}
 	}
 	else
@@ -534,7 +541,6 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, appUserModel()->appUseMode(0)));
 	});
 
-	appMesoModel()->updateColumnLabels();
 	setPropertiesBasedOnUseMode();
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
