@@ -5,6 +5,8 @@
 #include <QtCore/qjniobject.h>
 #include <QtCore/private/qandroidextras_p.h>
 
+using namespace Qt::Literals::StringLiterals;
+
 TPAndroidNotification::TPAndroidNotification(QObject* parent)
 	: QObject{parent}
 {

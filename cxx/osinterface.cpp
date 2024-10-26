@@ -38,6 +38,28 @@ OSInterface::OSInterface(QObject* parent)
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_s;
+
+#ifdef Q_OS_ANDROID
+	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
+
+	QJniObject::callStaticMethod<void>(
+		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
+		"setActivityContext",
+		"(Landroid/content/Context;)V",
+		context.object());
+
+	QJniObject::callStaticMethod<void>(
+		"org/vivenciasoftware/TrainingPlanner/NotificationClient",
+		"setActivityContext",
+		"(Landroid/content/Context;)V",
+		context.object());
+
+	QJniObject::callStaticMethod<void>(
+		"org/vivenciasoftware/TrainingPlanner/TPService",
+		"startTPService",
+		"(Landroid/content/Context;)V",
+		context.object());
+#endif
 }
 
 void OSInterface::exitApp()

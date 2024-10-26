@@ -19,27 +19,32 @@ import androidx.core.app.ShareCompat;
 
 public class NotificationClient
 {
+	private static Context TPActivityContext;
+
+	public static void setActivityContext(Context context) {
+		TPActivityContext = context;
+	}
+
     public static void notify(String title, String message, String action, int id) {
 		try {
-		    final Context context = QtNative.activity();
-		    Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
+		    Bitmap icon = BitmapFactory.decodeResource(TPActivityContext.getResources(), R.drawable.icon);
 
 		    NotificationManager m_notificationManager = (NotificationManager)
-			    context.getSystemService(Context.NOTIFICATION_SERVICE);
+			    TPActivityContext.getSystemService(Context.NOTIFICATION_SERVICE);
 		    NotificationChannel notificationChannel;
 		    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
 		    m_notificationManager.createNotificationChannel(notificationChannel);
 
-		    Intent launchIntent = QtNative.activity().getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
+		    Intent launchIntent = TPActivityContext.getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
 		    launchIntent.setAction(Intent.ACTION_MAIN);
 		    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 		    launchIntent.putExtra("TP_ACTION", action);
 		    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		    if (launchIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-				PendingIntent notifyPendingIntent = PendingIntent.getActivity(context, id, launchIntent,
+		    if (launchIntent.resolveActivity(TPActivityContext.getPackageManager()) != null) {
+				PendingIntent notifyPendingIntent = PendingIntent.getActivity(TPActivityContext, id, launchIntent,
 					PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-				Notification.Builder m_builder = new Notification.Builder(context, notificationChannel.getId());
+				Notification.Builder m_builder = new Notification.Builder(TPActivityContext, notificationChannel.getId());
 				m_builder.setSmallIcon(R.drawable.icon)
 				    .setLargeIcon(icon)
 				    .setContentTitle(title)
@@ -60,9 +65,8 @@ public class NotificationClient
 
     public static void cancelNotify(int id) {
 		try {
-		    final Context context = QtNative.activity();
 		    NotificationManager m_notificationManager = (NotificationManager)
-			    context.getSystemService(Context.NOTIFICATION_SERVICE);
+			    TPActivityContext.getSystemService(Context.NOTIFICATION_SERVICE);
 		    m_notificationManager.cancel(id);
 		} catch (Exception e) {
 		    e.printStackTrace();

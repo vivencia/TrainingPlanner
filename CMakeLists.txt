@@ -97,6 +97,7 @@ set( CXX_SOURCES
 )
 
 set( JAVA_SOURCES
+	java/TPService.java
     java/TPActivity.java
     java/QShareUtils.java
     java/QSharePathResolver.java

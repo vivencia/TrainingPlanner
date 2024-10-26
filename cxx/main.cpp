@@ -11,24 +11,42 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 
+#ifdef Q_OS_ANDROID
+#include <QtCore/private/qandroidextras_p.h>
+#endif
+
 int main(int argc, char *argv[])
 {
-	QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
-	QApplication app(argc, argv);
+	if (argc <= 1)
+	{
+		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
+		QApplication app(argc, argv);
 
-	app.setOrganizationName(u"Vivencia Software"_s);
-	app.setOrganizationDomain(u"org.vivenciasoftware"_s);
-	app.setApplicationName(u"TrainingPlanner"_s);
+		app.setOrganizationName(u"Vivencia Software"_s);
+		app.setOrganizationDomain(u"org.vivenciasoftware"_s);
+		app.setApplicationName(u"TrainingPlanner"_s);
 
-	TPSettings tpSettings{};
-	TPUtils tpUtils{};
-	TranslationClass appTranslations{};
-	OSInterface osInterface{};
-	DBInterface appDB{};
-	DBUserModel userModel{};
-	DBMesocyclesModel mesocyclesModel{};
-	DBExercisesModel exercisesModel{};
-	QQmlApplicationEngine qmlEngine;
-	QmlItemManager rootQmlManager{&qmlEngine};
-	return app.exec();
+		TPSettings tpSettings{};
+		TPUtils tpUtils{};
+		TranslationClass appTranslations{};
+		OSInterface osInterface{};
+		DBInterface appDB{};
+		DBUserModel userModel{};
+		DBMesocyclesModel mesocyclesModel{};
+		DBExercisesModel exercisesModel{};
+		QQmlApplicationEngine qmlEngine;
+		QmlItemManager rootQmlManager{&qmlEngine};
+		return app.exec();
+	}
+	else if (argc > 1 && strcmp(argv[1], "-service") == 0)
+	{
+		qInfo() << "Service starting with from the same .so file";
+		QAndroidService app(argc, argv);
+		return app.exec();
+	}
+	else
+	{
+		qWarning() << "Unrecognized command line argument";
+		return -1;
+	}
 }

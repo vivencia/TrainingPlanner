@@ -48,14 +48,14 @@ public class TPActivity extends QtActivity
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d(TAG, "onCreate QShareActivity");
-		workingDirPath = QtNative.activity().getFilesDir().getPath();
+		Log.d(TAG, "onCreate TPActivity");
+		workingDirPath = getFilesDir().getPath();
 
 		/*
 		Use, in the future, for system broadcasts, or some possible internal broadcast
 		TPBroadcastReceiver broadCast = new TPBroadcastReceiver();
 		IntentFilter intentFilter = new IntentFilter("org.vivenciasoftware.TrainingPlanner");
-		QtNative.activity().registerReceiver(broadCast, intentFilter);
+		registerReceiver(broadCast, intentFilter);
 		*/
 
 		// now we're checking if the App was started from another Android App via Intent

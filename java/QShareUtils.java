@@ -29,10 +29,10 @@ import android.os.Build;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import androidx.core.app.ShareCompat;
-
 import androidx.core.content.FileProvider;
 import android.util.Log;
 
+import org.qtproject.qt.android.bindings.QtActivity;
 import org.qtproject.qt.android.QtNative;
 
 import java.io.ByteArrayOutputStream;
@@ -52,12 +52,20 @@ public class QShareUtils {
     private static String AUTHORITY = "org.vivenciasoftware.TrainingPlanner.fileprovider";
     private static String TAG = "****************** QShareUtils ******************    ";
 
+	private static Context TPActivityContext;
+	private static PackageManager TPActivityPackageManager;
+
+	public static void setActivityContext(Context context) {
+		TPActivityContext = context;
+		TPActivityPackageManager = TPActivityContext.getPackageManager();
+	}
+
     protected QShareUtils() {
 	// Log.d(TAG, "QShareUtils()");
     }
 
     public static boolean checkMimeTypeView(String mimeType) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 	Intent myIntent = new Intent();
@@ -69,7 +77,7 @@ public class QShareUtils {
 	myIntent.setDataAndType(uri, mimeType);
 
 	// Verify that the intent will resolve to an activity
-	if (myIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+	if (myIntent.resolveActivity(TPActivityPackageManager) != null) {
 	    // Log.d(TAG, "checkMime YEP - we can go on and View");
 	    return true;
 	} else {
@@ -79,7 +87,7 @@ public class QShareUtils {
     }
 
     public static boolean share(String text, String url) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 	Intent sendIntent = new Intent();
@@ -88,8 +96,8 @@ public class QShareUtils {
 	sendIntent.setType("text/plain");
 
 	// Verify that the intent will resolve to an activity
-	if (sendIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-	    QtNative.activity().startActivity(sendIntent);
+	if (sendIntent.resolveActivity(TPActivityPackageManager) != null) {
+	    TPActivityContext.startActivity(sendIntent);
 	    return true;
 	} else {
 	    Log.d(TAG, "share Intent not resolved");
@@ -98,22 +106,22 @@ public class QShareUtils {
     }
 
     public static boolean openURL(String url) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 
 	Intent intent = new Intent();
 	intent.setAction(Intent.ACTION_VIEW);
 	intent.setData(Uri.parse(url));
-	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-	    QtNative.activity().startActivity(intent);
+	if (intent.resolveActivity(TPActivityPackageManager) != null) {
+	    TPActivityContext.startActivity(intent);
 	    return true;
 	}
 	return false;
     }
 
     public static boolean sendEmail(String address, String subject, String attachment) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 
@@ -125,42 +133,48 @@ public class QShareUtils {
 	intent.putExtra(Intent.EXTRA_SUBJECT, subject);
 
 	if (!attachment.isEmpty()) {
-	    final Context context = QtNative.activity();
 	    Uri uri = Uri.parse(attachment);
-	    context.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	    TPActivityContext.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 	    intent.putExtra(Intent.EXTRA_STREAM, uri);
 	}
 
-	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-	    //QtNative.activity().startActivity(intent);
-	    QtNative.activity().startActivity(Intent.createChooser(intent, "Send mail..."));
+	if (intent.resolveActivity(TPActivityPackageManager) != null) {
+	    //TPActivityContext.startActivity(intent);
+	    TPActivityContext.startActivity(Intent.createChooser(intent, "Send mail..."));
 	    return true;
 	}
 	return false;
     }
 
     public static boolean viewFile(String filePath, String title) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 
 	File fileToShare = new File(filePath);
 	// Using FileProvider you must get the URI from FileProvider using your AUTHORITY
-	//Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
-	Uri uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare).normalizeScheme();
-	QtNative.activity().grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-	//QtNative.activity().grantUriPermission("android", uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-	Intent intent = ShareCompat.IntentBuilder.from(QtNative.activity()).getIntent();
+	//Uri uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, fileToShare);
+	Uri uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, fileToShare).normalizeScheme();
+	TPActivityContext.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	//TPActivityContext.grantUriPermission("android", uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+	Intent intent = ShareCompat.IntentBuilder.from(this)
+											.setAction(Intent.ACTION_VIEW)
+											.setType(TPActivityContext.getContentResolver().getType(uri))
+											.setData(uri)
+											.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+											.getIntent();
+
+
 	//Intent intent = new Intent();
-	intent.setAction(Intent.ACTION_VIEW);
+	//intent.setAction(Intent.ACTION_VIEW);
 	//intent.setType(mimeType);
-	intent.setType(QtNative.activity().getContentResolver().getType(uri));
-	intent.setData(uri);
+	//intent.setType(TPActivityContext.getContentResolver().getType(uri));
+	//intent.setData(uri);
 	//intent.putExtra(Intent.EXTRA_STREAM, fileToShare);
-	intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	//intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 	//intent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-	if (intent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
-	    QtNative.activity().startActivity(Intent.createChooser(intent, title));
+	if (intent.resolveActivity(TPActivityPackageManager) != null) {
+	    TPActivityContext.startActivity(Intent.createChooser(intent, title));
 	    return true;
 	}
 	return false;
@@ -174,21 +188,18 @@ public class QShareUtils {
 							      String title,
 							      int requestId,
 							      Uri uri) {
-	final Context context = QtNative.activity();
-	final PackageManager packageManager = context.getPackageManager();
-
 	// MATCH_DEFAULT_ONLY: Resolution and querying flag. if set, only filters
 	// that support the CATEGORY_DEFAULT will be considered for matching. Check
 	// if there is a default app for this type of content.
 	/*ResolveInfo defaultAppInfo =
-		packageManager.resolveActivity(theIntent, PackageManager.MATCH_DEFAULT_ONLY);
+		TPActivityPackageManager.resolveActivity(theIntent, TPActivityPackageManager.MATCH_DEFAULT_ONLY);
 	if (defaultAppInfo == null) {
-	    Log.d(TAG, title + " PackageManager cannot resolve Activity");
+	    Log.d(TAG, title + " TPActivityPackageManager cannot resolve Activity");
 	    return false;
 	}*/
 
 	// Retrieve all apps for our intent. Check if there are any apps returned
-	List<ResolveInfo> appInfoList = packageManager.queryIntentActivities(theIntent, PackageManager.MATCH_ALL); // 0 or PackageManager.MATCH_DEFAULT_ONLY
+	List<ResolveInfo> appInfoList = TPActivityPackageManager.queryIntentActivities(theIntent, TPActivityPackageManager.MATCH_ALL); // 0 or PackageManager.MATCH_DEFAULT_ONLY
 	if (appInfoList.isEmpty()) {
 	    Log.d(TAG, title + " appInfoList.isEmpty");
 	    return false;
@@ -199,8 +210,8 @@ public class QShareUtils {
 	/*Collections.sort(appInfoList, new Comparator<ResolveInfo>() {
 	    @Override
 	    public int compare(ResolveInfo first, ResolveInfo second) {
-		String firstName = first.loadLabel(packageManager).toString();
-		String secondName = second.loadLabel(packageManager).toString();
+		String firstName = first.loadLabel(TPActivityPackageManager).toString();
+		String secondName = second.loadLabel(TPActivityPackageManager).toString();
 		return firstName.compareToIgnoreCase(secondName);
 	    }
 	});*/
@@ -213,7 +224,7 @@ public class QShareUtils {
 	    // we don't want to share with our own app
 	    // in fact sharing with own app with resultCode will crash because doesn't
 	    // work well with launch mode 'singleInstance'
-	    if (targetPackageName.equals(context.getPackageName())) {
+	    if (targetPackageName.equals(TPActivityContext.getPackageName())) {
 		continue;
 	    }
 	    // if you have a blacklist of apps please exclude them here
@@ -226,7 +237,7 @@ public class QShareUtils {
 	    //Log.d(TAG, "################# Adding app: " + targetPackageName);
 	    // collect all these targetedIntents
 	    targetedIntents.add(targetedIntent);
-	    context.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+	    TPActivityContext.grantUriPermission("android", uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 	}
 
 	/*boolean isAppInstalled;
@@ -235,10 +246,10 @@ public class QShareUtils {
 	appName = "org.telegram.messenger.web";
 	try
 	{
-	    packageManager.getPackageInfo(appName, PackageManager.GET_ACTIVITIES);
+	    TPActivityPackageManager.getPackageInfo(appName, TPActivityPackageManager.GET_ACTIVITIES);
 	    isAppInstalled =  true;
 	}
-	catch (PackageManager.NameNotFoundException e)
+	catch (TPActivityPackageManager.NameNotFoundException e)
 	{
 	    isAppInstalled = false;
 	}
@@ -258,10 +269,10 @@ public class QShareUtils {
 	appName = "com.whatsapp";
 	try
 	    {
-		packageManager.getPackageInfo(appName, PackageManager.GET_ACTIVITIES);
+		TPActivityPackageManager.getPackageInfo(appName, TPActivityPackageManager.GET_ACTIVITIES);
 		isAppInstalled =  true;
 	    }
-	    catch (PackageManager.NameNotFoundException e)
+	    catch (TPActivityPackageManager.NameNotFoundException e)
 	    {
 		isAppInstalled = false;
 	    }
@@ -298,17 +309,15 @@ public class QShareUtils {
 	// we're using the last targetedIntent as initializing Intent, because
 	// chooser adds its initializing intent to the end of EXTRA_INITIAL_INTENTS
 	// :)
-	Intent chooserIntent =
-		Intent.createChooser(theIntent, title);
-
-	    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntents.toArray(new Parcelable[] {}));
+	Intent chooserIntent = Intent.createChooser(theIntent, title);
+	chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetedIntents.toArray(new Parcelable[] {}));
 
 	// Verify that the intent will resolve to an activity
-	if (chooserIntent.resolveActivity(QtNative.activity().getPackageManager()) != null) {
+	if (chooserIntent.resolveActivity(TPActivityPackageManager) != null) {
 	    if (requestId > 0) {
-		QtNative.activity().startActivityForResult(chooserIntent, requestId);
+			TPActivityContext.startActivityForResult(chooserIntent, requestId);
 	    } else {
-		QtNative.activity().startActivity(chooserIntent);
+			TPActivityContext.startActivity(chooserIntent);
 	    }
 	    return true;
 	}
@@ -320,24 +329,23 @@ public class QShareUtils {
     // you don't delete or move the file: here's what you must done to revoke the
     // access
     public static void revokeFilePermissions(String filePath) {
-	final Context context = QtNative.activity();
 	if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
 	    File file = new File(filePath);
-	    Uri uri = FileProvider.getUriForFile(context, AUTHORITY, file);
-	    context.revokeUriPermission(
+	    Uri uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, file);
+	    TPActivityContext.revokeUriPermission(
 		    uri,
 		    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 	}
     }
 
     public static boolean sendFile(String filePath, String title, String mimeType, int requestId) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 
 	// using v4 support library create the Intent from ShareCompat
 	// Intent sendIntent = new Intent();
-	Intent sendIntent = ShareCompat.IntentBuilder.from(QtNative.activity()).getIntent();
+	Intent sendIntent = ShareCompat.IntentBuilder.from(TPActivityContext).getIntent();
 	sendIntent.setAction(Intent.ACTION_SEND);
 
 	File fileToShare = new File(filePath);
@@ -346,7 +354,7 @@ public class QShareUtils {
 	// AUTHORITY Uri uri = Uri.fromFile(imageFileToShare);
 	Uri uri;
 	try {
-	    uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
+	    uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, fileToShare);
 	} catch (IllegalArgumentException e) {
 	    Log.d("error", e.getMessage());
 	    Log.d(TAG, "sendFile - cannot be shared: " + filePath);
@@ -358,7 +366,7 @@ public class QShareUtils {
 
 	if (mimeType == null || mimeType.isEmpty()) {
 	    // fallback if mimeType not set
-	    mimeType = QtNative.activity().getContentResolver().getType(uri);
+	    mimeType = TPActivityContext.getContentResolver().getType(uri);
 	    // Log.d(TAG, "sendFile guessed mimeType:" + mimeType);
 	} else {
 	    // Log.d(TAG, "sendFile w mimeType:" + mimeType);
@@ -372,13 +380,13 @@ public class QShareUtils {
     }
 
     public static boolean viewFile_orig(String filePath, String title, String mimeType, int requestId) {
-	if (QtNative.activity() == null) {
+	if (TPActivityContext == null) {
 	    return false;
 	}
 
 	// using v4 support library create the Intent from ShareCompat
 //         Intent viewIntent = new Intent();
-	Intent viewIntent = ShareCompat.IntentBuilder.from(QtNative.activity()).getIntent();
+	Intent viewIntent = ShareCompat.IntentBuilder.from(TPActivityContext).getIntent();
 	viewIntent.setAction(Intent.ACTION_VIEW);
 
 	File fileToShare = new File(filePath);
@@ -387,7 +395,7 @@ public class QShareUtils {
 	// AUTHORITY
 	Uri uri;
 	try {
-	    uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, fileToShare);
+	    uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, fileToShare);
 	} catch (IllegalArgumentException e) {
 	     Log.d(TAG, "viewFile - cannot be viewed: " + filePath, e);
 	    return false;
@@ -401,7 +409,7 @@ public class QShareUtils {
 
 	if (mimeType == null || mimeType.isEmpty()) {
 	    // fallback if mimeType not set
-	    mimeType = QtNative.activity().getContentResolver().getType(uri);
+	    mimeType = TPActivityContext.getContentResolver().getType(uri);
 	    // Log.d(TAG, "viewFile guessed mimeType:" + mimeType);
 	} else {
 	    // Log.d(TAG, "viewFile w mimeType:" + mimeType);
@@ -416,12 +424,12 @@ public class QShareUtils {
     }
 
     public static boolean editFile(String filePath, String title, String mimeType, int requestId) {
-	if (QtNative.activity() == null)
+	if (TPActivityContext == null)
 	    return false;
 
 	// using v4 support library create the Intent from ShareCompat
 	// Intent editIntent = new Intent();
-	Intent editIntent = ShareCompat.IntentBuilder.from(QtNative.activity()).getIntent();
+	Intent editIntent = ShareCompat.IntentBuilder.from(TPActivityContext).getIntent();
 	editIntent.setAction(Intent.ACTION_EDIT);
 
 	File imageFileToShare = new File(filePath);
@@ -430,7 +438,7 @@ public class QShareUtils {
 	// AUTHORITY Uri uri = Uri.fromFile(imageFileToShare);
 	Uri uri;
 	try {
-	    uri = FileProvider.getUriForFile(QtNative.activity(), AUTHORITY, imageFileToShare);
+	    uri = FileProvider.getUriForFile(TPActivityContext, AUTHORITY, imageFileToShare);
 	} catch (IllegalArgumentException e) {
 	    // Log.d(TAG, "editFile - cannot be shared: " + filePath);
 	    return false;
@@ -439,7 +447,7 @@ public class QShareUtils {
 
 	if (mimeType == null || mimeType.isEmpty()) {
 	    // fallback if mimeType not set
-	    mimeType = QtNative.activity().getContentResolver().getType(uri);
+	    mimeType = TPActivityContext.getContentResolver().getType(uri);
 	    // Log.d(TAG, "editFile guessed mimeType:" + mimeType);
 	} else {
 	    // Log.d(TAG, "editFile w mimeType:" + mimeType);
