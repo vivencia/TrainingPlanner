@@ -32,10 +32,31 @@ class DBUserModel : public TPListModel
 {
 
 Q_OBJECT
-QML_ELEMENT
+
+Q_PROPERTY(QString nameLabel READ nameLabel CONSTANT FINAL)
+Q_PROPERTY(QString birthdayLabel READ birthdayLabel CONSTANT FINAL)
+Q_PROPERTY(QString sexLabel READ sexLabel CONSTANT FINAL)
+Q_PROPERTY(QString phoneLabel READ phoneLabel CONSTANT FINAL)
+Q_PROPERTY(QString emailLabel READ emailLabel CONSTANT FINAL)
+Q_PROPERTY(QString socialMediaLabel READ socialMediaLabel CONSTANT FINAL)
+Q_PROPERTY(QString userRoleLabel READ userRoleLabel CONSTANT FINAL)
+Q_PROPERTY(QString coachRoleLabel READ coachRoleLabel CONSTANT FINAL)
+Q_PROPERTY(QString goalLabel READ goalLabel CONSTANT FINAL)
+Q_PROPERTY(QString avatarLabel READ avatarLabel CONSTANT FINAL)
 
 public:
 	explicit DBUserModel(QObject* parent = nullptr);
+
+	inline QString nameLabel() const { return mColumnNames.at(USER_COL_NAME); }
+	inline QString birthdayLabel() const { return mColumnNames.at(USER_COL_BIRTHDAY); }
+	inline QString sexLabel() const { return mColumnNames.at(USER_COL_SEX); }
+	inline QString phoneLabel() const { return mColumnNames.at(USER_COL_PHONE); }
+	inline QString emailLabel() const { return mColumnNames.at(USER_COL_EMAIL); }
+	inline QString socialMediaLabel() const { return mColumnNames.at(USER_COL_SOCIALMEDIA); }
+	inline QString userRoleLabel() const { return mColumnNames.at(USER_COL_USERROLE); }
+	inline QString coachRoleLabel() const { return mColumnNames.at(USER_COL_COACHROLE); }
+	inline QString goalLabel() const { return mColumnNames.at(USER_COL_GOAL); }
+	inline QString avatarLabel() const { return mColumnNames.at(USER_COL_AVATAR); }
 
 	Q_INVOKABLE int addUser(const bool bCoach);
 	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);

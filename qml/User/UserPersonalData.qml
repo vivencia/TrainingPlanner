@@ -34,7 +34,7 @@ Frame {
 
 	TPLabel {
 		id: lblName
-		text: userModel.columnLabel(1)
+		text: userModel.nameLabel
 		height: controlsHeight
 
 		anchors {
@@ -88,7 +88,7 @@ Frame {
 
 	TPLabel {
 		id: lblBirthdate
-		text: userModel.columnLabel(2)
+		text: userModel.birthdayLabel
 		height: controlsHeight
 
 		anchors {

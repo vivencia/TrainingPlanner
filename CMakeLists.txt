@@ -191,7 +191,6 @@ qt_add_executable(TrainingPlanner
 	${QML_SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
-	android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
 )
 
 target_link_libraries(TrainingPlanner PUBLIC
@@ -269,3 +268,6 @@ set_property(TARGET TrainingPlanner APPEND PROPERTY
 #    PROPERTIES
 #        QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
 #)
+if (ANDROID)
+    include(/home/guilherme/Android/Sdk/android_openssl/CMakeLists.txt)
+endif()

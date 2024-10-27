@@ -5,14 +5,14 @@ import android.content.Context;
 import android.util.Log;
 import android.content.BroadcastReceiver;
 import org.qtproject.qt.android.bindings.QtService;
+import org.vivenciasoftware.TrainingPlanner.TPService;
 //import android.os.Bundle;
 
 public class TPBroadcastReceiver extends BroadcastReceiver
 {
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Class<?> c = Class.forName("org.vivenciasoftware.TrainingPlanner.TPService");
-		Intent startServiceIntent = new Intent(context, c);
+		Intent startServiceIntent = new Intent(context, TPService.class);
 		context.startService(startServiceIntent);
     }
 

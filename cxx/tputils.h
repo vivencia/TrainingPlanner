@@ -57,7 +57,7 @@ public:
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
-	void setAppLocale(const QString& localeStr);
+	void setAppLocale(const QString& localeStr, const bool bWriteConfig);
 
 	inline int splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
 	inline int splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }

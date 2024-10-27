@@ -17,8 +17,10 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_ANDROID
 	if (argc <= 1)
 	{
+#endif
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
 		QApplication app(argc, argv);
 
@@ -37,6 +39,7 @@ int main(int argc, char *argv[])
 		QQmlApplicationEngine qmlEngine;
 		QmlItemManager rootQmlManager{&qmlEngine};
 		return app.exec();
+#ifdef Q_OS_ANDROID
 	}
 	else if (argc > 1 && strcmp(argv[1], "-service") == 0)
 	{
@@ -49,4 +52,5 @@ int main(int argc, char *argv[])
 		qWarning() << "Unrecognized command line argument";
 		return -1;
 	}
+#endif
 }

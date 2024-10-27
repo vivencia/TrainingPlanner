@@ -60,7 +60,7 @@ Frame {
 
 	TPLabel {
 		id: lblUserRole
-		text: userModel.columnLabel(7)
+		text: userModel.userRoleLabel
 		visible: userModel.appUseMode(userRow) !== 2
 		height: controlsHeight
 		width: parent.width*0.20
@@ -104,7 +104,7 @@ Frame {
 
 	TPLabel {
 		id: lblGoal
-		text: userModel.columnLabel(9)
+		text: userModel.goalLabel
 		visible: userModel.appUseMode(userRow) !== 2
 		height: controlsHeight
 		width: parent.width*0.20
@@ -161,7 +161,7 @@ Frame {
 
 	TPLabel {
 		id: lblCoachRole
-		text: userModel.columnLabel(8)
+		text: userModel.coachRoleLabel
 		visible: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4
 		height: controlsHeight
 		width: parent.width*0.15
@@ -205,7 +205,7 @@ Frame {
 
 	TPLabel {
 		id: lblAvatar
-		text: userModel.columnLabel(10)
+		text: userModel.avatarLabel
 		color: appSettings.fontColor
 		height: controlsHeight
 		width: parent.width*0.2

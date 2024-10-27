@@ -31,7 +31,7 @@ Frame {
 
 	TPLabel {
 		id: lblPhone
-		text: userModel.columnLabel(4)
+		text: userModel.phoneLabel
 		height: controlsHeight
 
 		anchors {
@@ -124,7 +124,7 @@ Frame {
 
 	TPLabel {
 		id: lblEmail
-		text: userModel.columnLabel(5)
+		text: userModel.emailLabel
 		height: controlsHeight
 
 		anchors {
@@ -196,7 +196,7 @@ Frame {
 
 	TPLabel {
 		id: lblSocial
-		text: userModel.columnLabel(6)
+		text: userModel.socialMediaLabel
 		height: controlsHeight
 
 		anchors {

@@ -42,19 +42,19 @@ OSInterface::OSInterface(QObject* parent)
 #ifdef Q_OS_ANDROID
 	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
 
-	QJniObject::callStaticMethod<void>(
+	context.callMethod<void>(
 		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
 		"setActivityContext",
 		"(Landroid/content/Context;)V",
 		context.object());
 
-	QJniObject::callStaticMethod<void>(
+	context.callStaticMethod<void>(
 		"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 		"setActivityContext",
 		"(Landroid/content/Context;)V",
 		context.object());
 
-	QJniObject::callStaticMethod<void>(
+	context.callStaticMethod<void>(
 		"org/vivenciasoftware/TrainingPlanner/TPService",
 		"startTPService",
 		"(Landroid/content/Context;)V",

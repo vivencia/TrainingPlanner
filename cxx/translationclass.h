@@ -10,17 +10,21 @@ class TranslationClass : public QObject
 Q_OBJECT
 
 public:
-	explicit TranslationClass(QObject* parent = nullptr);
-	~TranslationClass();
+	explicit inline TranslationClass(QObject* parent = nullptr)
+	: QObject{parent}, mTranslator(nullptr), mbOK(false)
+	{
+		app_tr = this;
+		selectLanguage();
+	}
 
 	Q_INVOKABLE inline bool translatorOK() const { return mbOK; }
 	Q_INVOKABLE void switchToLanguage(const QString& language);
-	void selectLanguage();
 
 private:
 	QTranslator* mTranslator;
 	bool mbOK;
 
+	void selectLanguage();
 	static TranslationClass* app_tr;
 	friend TranslationClass* appTr();
 };

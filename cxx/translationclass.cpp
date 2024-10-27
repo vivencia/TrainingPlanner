@@ -10,19 +10,6 @@
 
 TranslationClass* TranslationClass::app_tr(nullptr);
 
-TranslationClass::TranslationClass(QObject* parent)
-	: QObject{parent}, mbOK(true)
-{
-	app_tr = this;
-	mTranslator = new QTranslator{this};
-	selectLanguage();
-}
-
-TranslationClass::~TranslationClass()
-{
-	delete mTranslator;
-}
-
 void TranslationClass::selectLanguage()
 {
 	QString strLocale{appSettings()->appLocale()};
@@ -37,26 +24,30 @@ void TranslationClass::selectLanguage()
 		#endif
 	}
 	if (strLocale != u"en_US"_s)
-	{
-		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(strLocale), u":/translations/"_s, u"qm"_s);
-		if (mbOK)
-			qApp->installTranslator(mTranslator);
-	}
-	appUtils()->setAppLocale(mbOK ? strLocale : u"en_US"_s);
+		switchToLanguage(strLocale);
+	else
+		appUtils()->setAppLocale(u"en_US"_s, false);
 }
 
 void TranslationClass::switchToLanguage(const QString& language)
 {
-	QCoreApplication::removeTranslator(mTranslator);
+	if (mTranslator)
+	{
+		QCoreApplication::removeTranslator(mTranslator);
+		delete mTranslator;
+	}
+	mTranslator = new QTranslator(this);
+
 	const bool bEnglish(language == u"en_US"_s);
 	mbOK = bEnglish;
 	if (!bEnglish)
-		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(language), u":/translations/"_s, u"qm"_s);
-	if (mbOK)
 	{
-		appUtils()->setAppLocale(language);
-		if (!bEnglish)
+		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(language), u":/translations/"_s, u"qm"_s);
+		if (mbOK)
+		{
 			qApp->installTranslator(mTranslator);
-		appQmlEngine()->retranslate();
+			appQmlEngine()->retranslate();
+		}
 	}
+	appUtils()->setAppLocale(language, true);
 }

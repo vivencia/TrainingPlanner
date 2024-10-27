@@ -426,7 +426,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	}
 }
 
-void TPUtils::setAppLocale(const QString& localeStr)
+void TPUtils::setAppLocale(const QString& localeStr, const bool bWriteConfig)
 {
 	if (m_appLocale)
 		delete m_appLocale;
@@ -452,5 +452,6 @@ void TPUtils::setAppLocale(const QString& localeStr)
 
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
-	appSettings()->setAppLocale(localeStr);
+	if (bWriteConfig)
+		appSettings()->setAppLocale(localeStr);
 }
