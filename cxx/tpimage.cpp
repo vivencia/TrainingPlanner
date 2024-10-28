@@ -22,7 +22,7 @@ void TPImage::setSource(const QString& source)
 {
 	if (!source.isEmpty() && mSource != source)
 	{
-		if (source.contains(u"png"_s))
+		if (source.endsWith(u"png"_s) || source.endsWith(u"svg"_s))
 			mSource = std::move(u":/images/"_s + source);
 		else
 		{

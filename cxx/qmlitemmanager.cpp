@@ -20,6 +20,7 @@
 #include "qmlmesosplitinterface.h"
 #include "qmltdayinterface.h"
 #include "qmlsetentry.h"
+#include "weather/weatherinfo.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
@@ -65,6 +66,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QmlTDayInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TDayManager");
 	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
 	qmlRegisterType<QmlSetEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SetEntryManager");
+	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties(7);

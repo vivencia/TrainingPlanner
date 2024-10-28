@@ -1,6 +1,7 @@
 #include "dbusermodel.h"
 #include "tpglobals.h"
 #include "tputils.h"
+#include "translationclass.h"
 
 #include <utility>
 
@@ -30,6 +31,18 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());
+
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+		mColumnNames[USER_COL_NAME] = std::move(tr("Name: "));
+		mColumnNames[USER_COL_BIRTHDAY] = std::move(tr("Birthday: "));
+		mColumnNames[USER_COL_SEX] = std::move(tr("Sex: "));
+		mColumnNames[USER_COL_PHONE] = std::move(tr("Phone: "));
+		mColumnNames[USER_COL_SOCIALMEDIA] = std::move(tr("Social Media: "));
+		mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
+		mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
+		mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
+		emit updateGUI();
+	});
 }
 
 int DBUserModel::addUser(const bool bCoach)

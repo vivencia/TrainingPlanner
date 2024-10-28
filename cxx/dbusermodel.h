@@ -227,6 +227,7 @@ signals:
 	void userModified(const uint row, const uint field);
 	void userAdded(const uint row);
 	void mainUserConfigurationFinishedSignal();
+	void updateGUI();
 
 private:
 	bool mb_empty;

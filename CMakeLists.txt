@@ -46,7 +46,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql Network Positioning LinguistTools)
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
@@ -94,6 +94,13 @@ set( CXX_SOURCES
 	cxx/qmlexerciseinterface.h cxx/qmlexerciseinterface.cpp
 	cxx/qmlexerciseentry.h cxx/qmlexerciseentry.cpp
 	cxx/qmlsetentry.h cxx/qmlsetentry.cpp
+
+	cxx/weather/providerbackend.h
+	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
+	cxx/weather/weatherapibackend.h cxx/weather/weatherapibackend.cpp
+	cxx/weather/openweathermapbackend.h
+	cxx/weather/openweathermapbackend.cpp
+	cxx/weather/openmeteobackend.h cxx/weather/openmeteobackend.cpp
 )
 
 set( JAVA_SOURCES
@@ -153,6 +160,10 @@ set( QML_SOURCES
     "qml/Pages/TPPage.qml"
     "qml/Pages/TrainingDayInfo.qml"
     "qml/Pages/UserPage.qml"
+	"qml/Pages/WeatherPage.qml"
+	"qml/Pages/WeatherPageElements/BigForecastIcon.qml"
+	"qml/Pages/WeatherPageElements/ForecastIcon.qml"
+	"qml/Pages/WeatherPageElements/WeatherIcon.qml"
     "qml/TPWidgets/TPBalloonTip.qml"
     "qml/TPWidgets/TPButton.qml"
     "qml/TPWidgets/TPButtonImage.qml"
@@ -194,15 +205,17 @@ qt_add_executable(TrainingPlanner
 )
 
 target_link_libraries(TrainingPlanner PUBLIC
-	Qt::Core
+	Qt6::Core
 	Qt6::CorePrivate
-	Qt::Gui
-	Qt::Multimedia
+	Qt6::Gui
+	Qt6::Multimedia
 	Qt6::Qml
 	Qt6::Quick
 	Qt6::QuickControls2
-	Qt::Sql
-	Qt::Widgets
+	Qt6::Sql
+	Qt6::Widgets
+	Qt6::Network
+    Qt6::Positioning
 )
 
 set(trainingplanner_resource_files

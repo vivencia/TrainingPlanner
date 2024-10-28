@@ -450,6 +450,7 @@ void TPUtils::setAppLocale(const QString& localeStr, const bool bWriteConfig)
 	else
 		territory = QLocale::UnitedStates;
 
+	m_strLocale = localeStr;
 	m_appLocale = new QLocale(language, territory);
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 	if (bWriteConfig)

@@ -12,8 +12,8 @@ import "TPWidgets"
 ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
-	width: 300
-	height: 640
+	width: appSettings.pageWidth
+	height: appSettings.pageHeight
 	visible: true
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window

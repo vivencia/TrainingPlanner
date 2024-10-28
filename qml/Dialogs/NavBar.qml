@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Controls
 
 import "../TPWidgets"
+import "../Pages"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ToolBar {
@@ -14,8 +15,9 @@ ToolBar {
 	spacing: 0
 	padding: 0
 
-	property var mainCalendar: null
-	property var mainTimer: null
+	property CalendarDialog mainCalendar: null
+	property TimerDialog mainTimer: null
+	property WeatherPage weatherPage: null
 
 	TPButton {
 		id: btnBack
@@ -147,10 +149,48 @@ ToolBar {
 		}
 	}
 
+	RoundButton {
+		id: btnWeather
+		padding: 5
+		anchors {
+			top: parent.top
+			topMargin: 5
+			right: btnTimer.left
+			rightMargin: 10
+		}
+
+		TPImage {
+			source: "weather/weather-sunny.svg"
+			dropShadow: false
+			width: 30
+			height: 30
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+		}
+
+		onClicked: {
+			if (weatherPage === null) {
+				var component = Qt.createComponent("qrc:/qml/Pages/WeatherPage.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					weatherPage = component.createObject(mainwindow, {});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			pushOntoStack(weatherPage);
+		}
+	}
+
 	Component.onDestruction: {
 		if (mainCalendar !== null)
 			mainCalendar.destroy();
 		if (mainTimer !== null)
 			mainTimer.destroy();
+		if (weatherPage !== null)
+			weatherPage.destroy();
 	}
 }

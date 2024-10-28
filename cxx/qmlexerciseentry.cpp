@@ -5,12 +5,13 @@
 #include "tpglobals.h"
 #include "tputils.h"
 #include "tptimer.h"
+#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
 
-static const QStringList& setTypePages{QStringList() << u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_s <<
-					u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_s << u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_s};
+static const QStringList& setTypePages{ QStringList() << std::move(u"qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_s) <<
+					std::move(u"qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_s) << std::move(u"qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_s) };
 
 QmlExerciseEntry::~QmlExerciseEntry()
 {
@@ -454,7 +455,7 @@ void QmlExerciseEntry::createSetObject(const uint set_number, const uint type, c
 
 void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint set_type_cpp)
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_setComponents[set_type_cpp]->status() == QQmlComponent::Error)
 	{
 		for (uint i(0); i < m_setComponents[set_type_cpp]->errors().count(); ++i)
@@ -512,6 +513,10 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	if (newSetEntry->type() == SET_TYPE_DROP)
 		QMetaObject::invokeMethod(item, "init");
 	emit setObjectCreated(set_number);
+
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this, newSetEntry] () {
+		emit newSetEntry->modeLabelChanged();
+	});
 }
 
 void QmlExerciseEntry::enableDisableExerciseCompletedButton()

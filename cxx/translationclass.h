@@ -7,6 +7,7 @@ class QTranslator;
 
 class TranslationClass : public QObject
 {
+
 Q_OBJECT
 
 public:
@@ -19,6 +20,9 @@ public:
 
 	Q_INVOKABLE inline bool translatorOK() const { return mbOK; }
 	Q_INVOKABLE void switchToLanguage(const QString& language);
+
+signals:
+	void applicationLanguageChanged();
 
 private:
 	QTranslator* mTranslator;

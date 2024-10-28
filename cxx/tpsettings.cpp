@@ -22,5 +22,5 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 		std::move(u"#25b5f3"_s) << std::move(u"#1976d2"_s) << std::move(u"#bbdefb"_s) << std::move(u"#1976d2"_s) << std::move(u"#6495ed"_s) <<
 		std::move(u"#c8e3f0"_s) << std::move(u"#c3cad5"_s) << std::move(u"#ffffff"_s) << std::move(u"#dcdcdc"_s) << std::move(u"(kg)"_s) <<
 		std::move(u"0"_s ) << std::move(u"white/"_s) << FONT_POINT_SIZE << FONT_POINT_SIZE_TEXT << FONT_POINT_SIZE_LISTS <<
-		FONT_POINT_SIZE_TITLE << STR_MINUS_ONE << std::move(u"300"_s) << std::move(u"600"_s) << STR_ONE << STR_ZERO;
+		FONT_POINT_SIZE_TITLE << STR_MINUS_ONE << std::move(u"360"_s) << std::move(u"640"_s) << STR_ONE << STR_ZERO;
 }

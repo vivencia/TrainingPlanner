@@ -58,6 +58,7 @@ public:
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
 	void setAppLocale(const QString& localeStr, const bool bWriteConfig);
+	inline const QString& strLocale() const { return m_strLocale; }
 
 	inline int splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
 	inline int splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
@@ -70,6 +71,7 @@ signals:
 
 private:
 	QLocale* m_appLocale;
+	QString m_strLocale;
 
 	bool mb_appSuspended;
 

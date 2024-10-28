@@ -110,5 +110,19 @@
         <file>images/us.png</file>
         <file>images/brazil.png</file>
         <file>images/error.png</file>
+        <file>images/weather/weather-thundershower.svg</file>
+        <file>images/weather/weather-sunny.svg</file>
+        <file>images/weather/weather-sunny-very-few-clouds.svg</file>
+        <file>images/weather/weather-storm.svg</file>
+        <file>images/weather/weather-snow.svg</file>
+        <file>images/weather/weather-sleet.svg</file>
+        <file>images/weather/weather-showers.svg</file>
+        <file>images/weather/weather-showers-scattered.svg</file>
+        <file>images/weather/weather-overcast.svg</file>
+        <file>images/weather/weather-icy.svg</file>
+        <file>images/weather/weather-haze.svg</file>
+        <file>images/weather/weather-fog.svg</file>
+        <file>images/weather/weather-few-clouds.svg</file>
+        <file>images/weather/waypoint.svg</file>
     </qresource>
 </RCC>

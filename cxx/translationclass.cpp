@@ -31,6 +31,9 @@ void TranslationClass::selectLanguage()
 
 void TranslationClass::switchToLanguage(const QString& language)
 {
+	if (language == appUtils()->strLocale())
+		return;
+
 	if (mTranslator)
 	{
 		QCoreApplication::removeTranslator(mTranslator);
@@ -46,8 +49,10 @@ void TranslationClass::switchToLanguage(const QString& language)
 		if (mbOK)
 		{
 			qApp->installTranslator(mTranslator);
-			appQmlEngine()->retranslate();
+			if (appQmlEngine())
+				appQmlEngine()->retranslate();
+			emit applicationLanguageChanged();
 		}
 	}
-	appUtils()->setAppLocale(language, true);
+	appUtils()->setAppLocale(language, mbOK);
 }

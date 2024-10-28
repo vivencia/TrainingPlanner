@@ -2,11 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.vivenciasoftware.TrainingPlanner" android:installLocation="auto" android:versionCode="1" android:versionName="1.0">
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.GLOBAL_SEARCH"/>
 	<uses-permission android:name="android.permission.READ_SOCIAL_STREAM"/>
-
+	<uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 	<uses-permission android:name="android.permission.READ_ASSISTANT_APP_SEARCH_DATA"/>
 	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>

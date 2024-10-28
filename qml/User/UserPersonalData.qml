@@ -212,6 +212,13 @@ Frame {
 		}
 	}
 
+	Component.onCompleted: {
+		userModel.updateGUI.connect(function () {
+			lblName.text = userModel.nameLabel;
+			lblBirthdate.text = userModel.birthdayLabel;
+		});
+	}
+
 	function focusOnFirstField() {
 		if (!bNameOK)
 			txtName.forceActiveFocus();

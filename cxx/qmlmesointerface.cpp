@@ -8,6 +8,7 @@
 #include "qmlitemmanager.h"
 #include "dbinterface.h"
 #include "osinterface.h"
+#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -582,6 +583,18 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
 		if (meso_idx == m_mesoIdx)
 			emit isNewMesoChanged();
+	});
+
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+		emit nameLabelChanged();
+		emit coachLabelChanged();
+		emit clientLabelChanged();
+		emit typeLabelChanged();
+		emit startDateLabelChanged();
+		emit endDateLabelChanged();
+		emit weeksLabelChanged();
+		emit splitLabelChanged();
+		emit notesLabelChanged();
 	});
 }
 
