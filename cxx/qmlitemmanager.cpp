@@ -97,11 +97,17 @@ void QmlItemManager::configureQmlEngine()
 	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_s, QVariant::fromValue(appMainWindow()));
 
 	if (!appSettings()->mainUserConfigured())
+	{
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
+		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
+			appDBInterface()->saveUser(user_row);
+		});
+	}
 	else
 		appOsInterface()->initialCheck();
 
 	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
+		disconnect(appUserModel(), nullptr, this, nullptr);
 		appSettings()->setMainUserConfigured(true);
 		appOsInterface()->initialCheck();
 	});

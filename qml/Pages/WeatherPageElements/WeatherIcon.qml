@@ -13,7 +13,7 @@ Item {
 
     TPImage {
         id: mask
-        source: "weather-" + container.weatherIcon + ".svg"
+        source: "weather/weather-" + container.weatherIcon + ".svg"
         smooth: true
         anchors.fill: parent
         layer.enabled: true

@@ -139,7 +139,7 @@ public:
 	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.at(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX).toUInt()).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
-	inline bool mainUserConfigured() const { return m_propertyNames.at(USER_INDEX), m_defaultValues.at(USER_INDEX).toUInt() != 0; }
+	inline bool mainUserConfigured() const { return value(m_propertyNames.at(USER_INDEX), m_defaultValues.at(USER_INDEX)).toUInt() != 0; }
 	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
 
 signals:

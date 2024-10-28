@@ -22,7 +22,8 @@ void TPImage::setSource(const QString& source)
 {
 	if (!source.isEmpty() && mSource != source)
 	{
-		if (source.endsWith(u"png"_s) || source.endsWith(u"svg"_s))
+		bool bIsSVG(false);
+		if (source.endsWith(u"png"_s) || (bIsSVG = source.endsWith(u"svg"_s)))
 			mSource = std::move(u":/images/"_s + source);
 		else
 		{
@@ -43,6 +44,8 @@ void TPImage::setSource(const QString& source)
 		}
 		if (mImage.load(mSource))
 		{
+			if (bIsSVG)
+				mDropShadow = false;
 			maybeResize(true);
 			emit sourceChanged();
 		}

@@ -81,7 +81,7 @@ void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
 
 void QmlUserInterface::createSettingsPage()
 {
-	#ifdef DEBUG
+	#ifndef QT_NO_DEBUG
 	if (m_settingsComponent->status() == QQmlComponent::Error)
 	{
 		qDebug() << m_settingsComponent->errorString();
@@ -101,10 +101,10 @@ void QmlUserInterface::createSettingsPage()
 		m_userPage->setProperty("userManager", QVariant::fromValue(this));
 
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-			m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
-		appDBInterface()->saveUser(user_row);
-	});
+			if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+				m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
+			appDBInterface()->saveUser(user_row);
+		});
 	}
 }
 
