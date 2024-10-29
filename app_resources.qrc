@@ -124,5 +124,6 @@
         <file>images/weather/weather-fog.svg</file>
         <file>images/weather/weather-few-clouds.svg</file>
         <file>images/weather/waypoint.svg</file>
+        <file>images/weather.png</file>
     </qresource>
 </RCC>

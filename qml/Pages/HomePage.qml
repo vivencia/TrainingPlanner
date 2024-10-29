@@ -340,7 +340,7 @@ TPPage {
 	footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
-		height: 85
+		height: 0.22*appSettings.pageHeight
 
 		background: Rectangle {
 			color: appSettings.primaryDarkColor
@@ -373,7 +373,6 @@ TPPage {
 
 			anchors {
 				top: btnAddMeso.bottom
-				topMargin: -5
 				horizontalCenter: parent.horizontalCenter
 			}
 
@@ -391,7 +390,6 @@ TPPage {
 
 			anchors {
 				top: btnImportMeso.bottom
-				topMargin: -5
 				horizontalCenter: parent.horizontalCenter
 			}
 

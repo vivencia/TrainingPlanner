@@ -1,10 +1,13 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Shapes
 import QtQuick.Effects
 import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 import "./WeatherPageElements"
+import "../TPWidgets"
+import ".."
 
 TPPage {
 	id: weatherPage
@@ -12,235 +15,271 @@ TPPage {
 	width: appSettings.pageWidth
 	height: appSettings.pageHeight
 
-	Shape {//Shape because Rectangle does not support diagonal gradient
-        preferredRendererType: Shape.CurveRenderer
+	//Shape because Rectangle does not support diagonal gradient
+	Shape {
+		preferredRendererType: Shape.CurveRenderer
 
-        ShapePath {
-            strokeWidth: 0
-            startX: 0; startY: 0
+		ShapePath {
+			strokeWidth: 0
+			startX: 0
+			startY: 0
 
-            PathLine { x: appSettings.pageWidth; y: 0 }
-            PathLine { x: appSettings.pageWidth; y: appSettings.pageHeight }
-            PathLine { x: 0; y: appSettings.pageHeight }
-            fillGradient: LinearGradient {
-                x1: 0; y1: appSettings.pageHeight / 4
-                x2: appSettings.pageWidth; y2:  appSettings.pageHeight / 4 * 3
-                GradientStop { position: 0.0; color: "#2CDE85" }
-                GradientStop { position: 1.0; color: "#9747FF" }
-            }
-        }
-    }
+			PathLine { x: appSettings.pageWidth; y: 0 }
+			PathLine { x: appSettings.pageWidth; y: appSettings.pageHeight }
+			PathLine { x: 0; y: appSettings.pageHeight }
+			fillGradient: LinearGradient {
+				x1: 0
+				y1: appSettings.pageHeight / 4
+				x2: appSettings.pageWidth
+				y2:  appSettings.pageHeight / 4 * 3
+				GradientStop { position: 0.0; color: "#31adff" }
+				GradientStop { position: 1.0; color: "#d0e3ff" }
+			}
+		}
+	}
 
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: parent.width / 2
-        width: appSettings.pageHeight > appSettings.pageWidth * 1.5 ? appSettings.pageHeight : appSettings.pageWidth * 1.5
-        height: width
-        radius: width / 2
-        color: "#000000"
-        opacity: 0.15
-    }
+	Rectangle {
+		anchors.horizontalCenter: parent.horizontalCenter
+		anchors.top: parent.top
+		anchors.topMargin: parent.width / 2
+		width: appSettings.pageHeight > appSettings.pageWidth * 1.5 ? appSettings.pageHeight : appSettings.pageWidth * 1.5
+		height: width
+		radius: width / 2
+		color: "#000000"
+		opacity: 0.15
+	}
 
-    Item {
-        id: statesItem
-        visible: false
-        state: "loading"
-        states: [
-            State {
-                name: "loading"
-                PropertyChanges { main.opacity: 0 }
-                PropertyChanges { wait.opacity: 1 }
-            },
-            State {
-                name: "ready"
-                PropertyChanges { main.opacity: 1 }
-                PropertyChanges { wait.opacity: 0 }
-            }
-        ]
-    }
+	Item {
+		id: statesItem
+		visible: false
+		state: "loading"
+		states: [
+			State {
+				name: "loading"
+				PropertyChanges { main.opacity: 0 }
+				PropertyChanges { wait.opacity: 1 }
+			},
+			State {
+				name: "ready"
+				PropertyChanges { main.opacity: 1 }
+				PropertyChanges { wait.opacity: 0 }
+			}
+		]
+	}
 
-//! [1]
-    WeatherInfo {
-        id: weatherInfo
-        onReadyChanged: {
-            if (weatherInfo.ready)
-                statesItem.state = "ready"
-            else
-                statesItem.state = "loading"
-        }
-    }
-//! [1]
-    Item {
-        id: wait
-        anchors.fill: parent
+	WeatherInfo {
+		id: weatherInfo
+		onReadyChanged: {
+			if (weatherInfo.ready)
+				statesItem.state = "ready"
+			else
+				statesItem.state = "loading"
+		}
+	}
 
-        Text {
-            text: "Loading weather data..."
-            anchors.centerIn: parent
-            font.pointSize: 18
-        }
-    }
+	Item {
+		id: wait
+		anchors.fill: parent
 
-    Item {
-        id: main
-        anchors.fill: parent
+		Text {
+			text: "Loading weather data..."
+			anchors.centerIn: parent
+			font.pointSize: 18
+		}
+	}
 
-        ColumnLayout {
-            id: layout
-            spacing: 4
+	ColumnLayout {
+		id: main
+		anchors.fill: parent
 
-            anchors {
-                fill: parent
-                topMargin: 6; bottomMargin: 6; leftMargin: 6; rightMargin: 6
-            }
+		Rectangle {
+			id: savedCities
+			radius: 8
+			color: "#3F000000"
+			Layout.alignment: Qt.AlignCenter
+			Layout.preferredWidth: parent.width
+			Layout.preferredHeight: scrollViewCities.height
 
-            Item {
-                Layout.preferredHeight: cityButton.height
-                Layout.fillWidth: true
+			ScrollView {
+				id: scrollViewCities
+				width: parent.width
+				contentHeight: citiesLayout.implicitHeight
+				contentWidth: width
+				Layout.minimumHeight: 0.1*appSettings.pageHeight
+				Layout.maximumHeight: 0.25*appSettings.pageHeight
+				Layout.topMargin: 10
+				Layout.bottomMargin: 10
 
-                Rectangle {
-                    id: cityButton
-                    property int margins: 10
-                    anchors.centerIn: parent
-                    width: cityName.contentWidth + cityIcon.width + 3 * margins
-                    height: cityName.contentHeight + 2 * margins
-                    radius: 8
-                    color: "#3F000000"
-                    visible: false
+				ScrollBar.vertical: ScrollBar {
+					policy: ScrollBar.AsNeeded
+					active: true; visible: citiesLayout.totalHeight > height
+				}
 
-                    Text {
-                        id: cityName
-                        text: (weatherInfo.hasValidCity ? weatherInfo.city : qsTr("Unknown location"))
-                              + (weatherInfo.useGps ? " (GPS)" : "")
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.margins: parent.margins
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 24
-                        color: "white"
-                    }
+				ColumnLayout {
+					id: citiesLayout
+					anchors.fill: parent
 
-                    TPImage {
-                        id: cityIcon
-                        source: "weather/waypoint.svg"
-                        height: cityName.font.pixelSize
-                        width: implicitWidth * height / implicitHeight
-                        anchors.left: cityName.right
-                        anchors.margins: parent.margins
-                        anchors.verticalCenter: cityName.verticalCenter
-                        anchors.verticalCenterOffset: 2
-                        visible: false
-                    }
-                    MultiEffect {
-                        source: cityIcon
-                        anchors.fill: cityIcon
-                        brightness: 1 // make icons white, remove for dark icons
-                    }
+					TPLabel {
+						id: gpsCity
+						text: weatherInfo.canUseGps ? ( (weatherInfo.hasValidCity ? weatherInfo.city : qsTr("Unknown location"))
+							  + (weatherInfo.useGps ? " (GPS)" : "") ) : qsTr("Cannot use GPS on this device")
+						font: AppGlobals.titleFont
+						fontColor: "white"
+						enabled: weatherInfo.canUseGps
+						width: 0.7*parent.width
+						Layout.alignment: Qt.AlignCenter
+						Layout.minimumWidth: width
+						Layout.maximumWidth: width
 
-                }
+						TPImage {
+							id: gpsIcon
+							source: "weather/waypoint.svg"
+							enabled: parent.enabled
+							height: 25
+							width: 25
 
-                MultiEffect {
-                    source: cityButton
-                    anchors.fill: cityButton
-                    shadowEnabled: true
-                    shadowBlur: 0.5
-                    shadowHorizontalOffset: 0
-                    shadowVerticalOffset: 2
-                }
+							anchors {
+								left: gpsCity.right
+								verticalCenter: gpsCity.verticalCenter
+								verticalCenterOffset: -2
+							}
+						}
 
-                MouseArea {
-                    anchors.fill: cityButton
-                    onClicked: {
-                        if (weatherInfo.useGps) {
-                            weatherInfo.useGps = false
-                            weatherInfo.city = "Brisbane"
-                        } else {
-                            switch (weatherInfo.city) {
-                            case "Brisbane":
-                                weatherInfo.city = "Oslo"
-                                break
-                            case "Oslo":
-                                weatherInfo.city = "Helsinki"
-                                break
-                            case "Helsinki":
-                                weatherInfo.city = "New York"
-                                break
-                            case "New York":
-                                weatherInfo.useGps = true
-                                break
-                            }
-                        }
-                    }
-                }
-            }
+						MouseArea {
+							anchors.fill: parent
+							onClicked: weatherInfo.useGps = true;
+						}
+					} //Text gpsCity
 
-            BigForecastIcon {
-                id: current
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+					Repeater {
+						model: appSettings.weatherCitiesCount
+						TPLabel {
+							id: cityName
+							text: appSettings.weatherCity(index)
+							font: AppGlobals.titleFont
+							fontColor: "white"
+							width: 0.7*parent.width
+							Layout.alignment: Qt.AlignCenter
+							Layout.minimumWidth: width
+							Layout.maximumWidth: width
 
-                weatherIcon: (weatherInfo.hasValidWeather
-                              ? weatherInfo.weather.weatherIcon
-                              : "sunny")
+							MouseArea {
+								anchors.fill: parent
+								onClicked: weatherInfo.city = cityName.text;
+							}
 
-                topText: (weatherInfo.hasValidWeather
-                          ? weatherInfo.weather.temperature
-                          : "??")
-                bottomText: (weatherInfo.hasValidWeather
-                             ? weatherInfo.weather.weatherDescription
-                             : qsTr("No weather data"))
-            }
+							TPButton {
+								imageSource: "remove"
+								fixedSize: true
+								height: 20
+								width: 20
 
-            Item {
-                implicitWidth: iconRow.implicitWidth + 40
-                implicitHeight: iconRow.implicitHeight + 40
+								anchors {
+									left: parent.right
+									verticalCenter: parent.verticalCenter
+								}
 
-                Layout.fillWidth: true
+								onClicked: appSettings.removeWeatherCity(index);
+							}
+						} //Text cityName
+					} //Repeater
 
-                Rectangle {
-                    id: forcastFrame
+					Row {
+						Layout.fillWidth: true
+						Layout.leftMargin: 5
+						Layout.rightMargin: 5
+						spacing: 0
+						padding: 0
 
-                    anchors.fill: parent
-                    color: "#3F000000"
-                    radius: 40
+						TPLabel {
+							text: qsTr("Add city:")
+							width: 0.2*parent.width
+							Layout.minimumWidth: width
+							Layout.maximumWidth: width
+						}
 
-                    Row {
-                        id: iconRow
-                        anchors.centerIn: parent
+						TPTextInput {
+							id: txtNewCity
+							width: 0.7*parent.width
+							Layout.minimumWidth: width
+							Layout.maximumWidth: width
+							property bool textOK: text.length > 5
 
-                        property int daysCount: weatherInfo.forecast.length
-                        property real iconWidth: (daysCount > 0) ? ((forcastFrame.width - 20) / daysCount)
-                                                                 : forcastFrame.width
+							onTextEdited: {
+								if (textOK)
+									weatherInfo.city = txtNewCity.text;
+							}
+						}
 
-                        Repeater {
-                            model: weatherInfo.forecast
-                            ForecastIcon {
-                                required property string dayOfWeek
-                                required property string temperature
-                                required property string weatherIcon
-                                id: forecast1
-                                width: iconRow.iconWidth
-                                topText: (weatherInfo.hasValidWeather ? dayOfWeek : "??")
-                                bottomText: (weatherInfo.hasValidWeather ? temperature : ("??" + "/??"))
-                                middleIcon: (weatherInfo.hasValidWeather ? weatherIcon : "sunny")
-                            }
-                        }
-                    }
-                    visible: false
-                }
+						TPButton {
+							id: btnAddCity
+							imageSource: "add-new"
+							imageSize: 30
+							enabled: txtNewCity.textOK && weatherInfo.hasValidWeather
 
-                MultiEffect {
-                    source: forcastFrame
-                    anchors.fill: forcastFrame
-                    shadowEnabled: true
-                    shadowBlur: 0.5
-                    shadowHorizontalOffset: 0
-                    shadowVerticalOffset: 4
-                    shadowOpacity: 0.6
-                }
-            }
-        }
-    }
+							onClicked: {
+								appSettings.appendWeatherCity(txtNewCity.text);
+								txtNewCity.clear();
+							}
+						}
+					} //Row txtNewCity
+				} //ColumnLayout citiesLayout
+			} //ScrollView
+		} // Rectangle savedCities
+
+		BigForecastIcon {
+			id: current
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+
+			topText: (weatherInfo.hasValidWeather ? weatherInfo.city + "  " + weatherInfo.weather.temperature : "??")
+			weatherIcon: (weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny")
+			bottomText: (weatherInfo.hasValidWeather ? weatherInfo.weather.weatherDescription : qsTr("No weather data"))
+		}
+
+		Item {
+			implicitWidth: iconRow.implicitWidth
+			implicitHeight: iconRow.implicitHeight
+			Layout.fillWidth: true
+
+			Rectangle {
+				id: forecastFrame
+				anchors.fill: parent
+				color: "#3F000000"
+				radius: 40
+
+				Row {
+					id: iconRow
+					anchors.centerIn: parent
+
+					property int daysCount: weatherInfo.forecast.length
+					property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
+
+					Repeater {
+						model: weatherInfo.forecast
+						ForecastIcon {
+							required property string dayOfWeek
+							required property string temperature
+							required property string weatherIcon
+							id: forecast1
+							width: iconRow.iconWidth
+							topText: (weatherInfo.hasValidWeather ? dayOfWeek : "??")
+							bottomText: (weatherInfo.hasValidWeather ? temperature : ("??" + "/??"))
+							middleIcon: (weatherInfo.hasValidWeather ? weatherIcon : "sunny")
+						}
+					}
+				}
+				visible: false
+			} //Rectangle forecastFrame
+			MultiEffect {
+				source: forecastFrame
+				anchors.fill: forecastFrame
+				shadowEnabled: true
+				shadowBlur: 0.5
+				shadowHorizontalOffset: 0
+				shadowVerticalOffset: 4
+				shadowOpacity: 0.6
+			}
+		}
+	}
 }

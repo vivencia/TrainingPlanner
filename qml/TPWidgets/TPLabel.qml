@@ -6,7 +6,8 @@ import "../"
 Label {
 	id: control
 	color: enabled ? fontColor : appSettings.disabledFontColor
-	wrapMode: Text.WordWrap
+	wrapMode: Text.NoWrap
+	elide: Text.ElideNone
 	font: AppGlobals.textFont
 	minimumPointSize: appSettings.fontSizeLists
 	maximumLineCount: singleLine ? 1 : 50
@@ -18,7 +19,7 @@ Label {
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
 	property int heightAvailable: 25
-	property bool singleLine: elide !== Text.ElideNone ? true : widthAvailable > _textWidth
+	property bool singleLine: wrapMode === Text.NoWrap ? true : widthAvailable > _textWidth
 
 	property int _textWidth
 	property int _textHeight

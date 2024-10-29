@@ -54,45 +54,37 @@ ToolBar {
 		}
 	}
 
-	RoundButton {
+	TPButton {
 		id: btnMainMenu
-		padding: 5
+		imageSource: "mainmenu"
+		hasDropShadow: false
+		imageSize: 30
+		fixedSize: true
+		width: 35
+		height: 35
+
 		anchors {
-			top: parent.top
-			topMargin: 5
+			verticalCenter: parent.verticalCenter
 			right: parent.right
 			rightMargin: 5
-		}
-
-		TPImage {
-			source: "mainmenu"
-			dropShadow: false
-			width: 30
-			height: 30
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
 		}
 
 		onClicked: mainMenu.open();
 	}
 
-	RoundButton {
+	TPButton {
 		id: btnCalendar
-		padding: 5
+		imageSource: "calendar"
+		hasDropShadow: false
+		imageSize: 30
+		fixedSize: true
+		width: 35
+		height: 35
+
 		anchors {
-			top: parent.top
-			topMargin: 5
+			verticalCenter: parent.verticalCenter
 			right: btnMainMenu.left
 			rightMargin: 10
-		}
-
-		TPImage {
-			source: "calendar"
-			dropShadow: false
-			width: 30
-			height: 30
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
 		}
 
 		onClicked: {
@@ -113,23 +105,19 @@ ToolBar {
 		}
 	}
 
-	RoundButton {
+	TPButton {
 		id: btnTimer
-		padding: 5
+		imageSource: "timer"
+		hasDropShadow: false
+		imageSize: 30
+		fixedSize: true
+		width: 35
+		height: 35
+
 		anchors {
-			top: parent.top
-			topMargin: 5
+			verticalCenter: parent.verticalCenter
 			right: btnCalendar.left
 			rightMargin: 10
-		}
-
-		TPImage {
-			source: "timer"
-			dropShadow: false
-			width: 30
-			height: 30
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
 		}
 
 		onClicked: {
@@ -149,23 +137,18 @@ ToolBar {
 		}
 	}
 
-	RoundButton {
-		id: btnWeather
-		padding: 5
+	TPButton {
+		imageSource: "weather"
+		hasDropShadow: false
+		imageSize: 30
+		fixedSize: true
+		width: 35
+		height: 35
+
 		anchors {
-			top: parent.top
-			topMargin: 5
+			verticalCenter: parent.verticalCenter
 			right: btnTimer.left
 			rightMargin: 10
-		}
-
-		TPImage {
-			source: "weather/weather-sunny.svg"
-			dropShadow: false
-			width: 30
-			height: 30
-			anchors.verticalCenter: parent.verticalCenter
-			anchors.horizontalCenter: parent.horizontalCenter
 		}
 
 		onClicked: {

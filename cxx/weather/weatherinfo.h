@@ -58,6 +58,7 @@ Q_PROPERTY(bool hasSource READ hasSource NOTIFY readyChanged)
 Q_PROPERTY(bool hasValidCity READ hasValidCity NOTIFY cityChanged)
 Q_PROPERTY(bool hasValidWeather READ hasValidWeather NOTIFY weatherChanged)
 Q_PROPERTY(bool useGps READ useGps WRITE setUseGps NOTIFY useGpsChanged)
+Q_PROPERTY(bool canUseGps READ canUseGps CONSTANT)
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
 Q_PROPERTY(WeatherData* weather READ weather NOTIFY weatherChanged)
 Q_PROPERTY(QQmlListProperty<WeatherData> forecast READ forecast NOTIFY weatherChanged)
@@ -71,9 +72,10 @@ public:
 	bool ready() const;
 	bool hasSource() const;
 	bool useGps() const;
+	bool canUseGps() const;
 	bool hasValidCity() const;
 	bool hasValidWeather() const;
-	void setUseGps(bool value);
+	void setUseGps(const bool value);
 
 	QString city() const;
 	void setCity(const QString& value);

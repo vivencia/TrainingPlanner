@@ -9,8 +9,8 @@ Page {
 	width: appSettings.pageWidth
 	height: appSettings.pageHeight
 
-	readonly property int headerHeight: 45
-	readonly property int footerHeight: 55
+	readonly property int headerHeight: 0.08*appSettings.pageHeight
+	readonly property int footerHeight: 0.10*appSettings.pageHeight
 
 	signal pageActivated();
 	signal pageDeActivated();

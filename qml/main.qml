@@ -13,7 +13,7 @@ ApplicationWindow {
 	id: mainwindow
 	objectName: "mainWindow"
 	width: appSettings.pageWidth
-	height: appSettings.pageHeight
+	height: 640
 	visible: true
 	title: "Training Planner"
 	flags: Qt.platform.os === "android" ? Qt.Window | Qt.FramelessWindowHint | Qt.WA_KeepScreenOn : Qt.Window

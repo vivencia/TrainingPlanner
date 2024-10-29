@@ -31,6 +31,8 @@
 #define ASK_CONFIRMATION_INDEX 23
 #define USER_INDEX 24
 
+#define WEATHER_CITIES_INDEX 25
+
 class TPSettings : public QSettings
 {
 
@@ -59,6 +61,7 @@ Q_PROPERTY(uint fontSizeTitle READ fontSizeTitle WRITE setFontSizeTitle NOTIFY f
 Q_PROPERTY(uint lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(uint pageWidth READ pageWidth WRITE setPageWidth NOTIFY pageWidthChanged)
 Q_PROPERTY(uint pageHeight READ pageHeight WRITE setPageHeight NOTIFY pageHeightChanged)
+Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured WRITE setMainUserConfigured NOTIFY mainUserConfiguredChanged)
@@ -142,6 +145,14 @@ public:
 	inline bool mainUserConfigured() const { return value(m_propertyNames.at(USER_INDEX), m_defaultValues.at(USER_INDEX)).toUInt() != 0; }
 	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
 
+	inline uint weatherCitiesCount() const { return m_weatherCities.count(); }
+	Q_INVOKABLE inline QString weatherCity(const int idx) const
+	{
+		return value(m_propertyNames.at(WEATHER_CITIES_INDEX), m_defaultValues.at(WEATHER_CITIES_INDEX)).value<QStringList>().at(idx);
+	}
+	Q_INVOKABLE void appendWeatherCity(const QString& city);
+	Q_INVOKABLE void removeWeatherCity(const int index);
+
 signals:
 	void appVersionChanged();
 	void appLocaleChanged();
@@ -165,12 +176,14 @@ signals:
 	void lastViewedMesoIdxChanged();
 	void pageWidthChanged();
 	void pageHeightChanged();
+	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
 	void mainUserConfiguredChanged();
 
 private:
 	QStringList m_propertyNames;
 	QStringList m_defaultValues;
+	QStringList m_weatherCities;
 
 	inline void changeValue(const uint index, const QVariant& new_value)
 	{
