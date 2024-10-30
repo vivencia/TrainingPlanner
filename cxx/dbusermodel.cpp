@@ -41,7 +41,7 @@ DBUserModel::DBUserModel(QObject *parent)
 		mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
 		mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
 		mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
-		emit updateGUI();
+		emit labelsChanged();
 	});
 }
 

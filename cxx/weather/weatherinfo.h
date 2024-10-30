@@ -15,6 +15,7 @@ class WeatherData : public QObject
 
 Q_OBJECT
 
+Q_PROPERTY(QString coordinates READ coordinates WRITE setCoordinates NOTIFY dataChanged)
 Q_PROPERTY(QString dayOfWeek READ dayOfWeek WRITE setDayOfWeek NOTIFY dataChanged)
 Q_PROPERTY(QString weatherIcon READ weatherIcon WRITE setWeatherIcon NOTIFY dataChanged)
 Q_PROPERTY(QString weatherDescription READ weatherDescription WRITE setWeatherDescription NOTIFY dataChanged)
@@ -22,24 +23,27 @@ Q_PROPERTY(QString temperature READ temperature WRITE setTemperature NOTIFY data
 QML_ANONYMOUS
 
 public:
-	explicit WeatherData(QObject *parent = nullptr);
+	explicit WeatherData(QObject* parent = nullptr);
 	explicit WeatherData(const WeatherData& other);
 	explicit WeatherData(const st_WeatherInfo& other);
 
+	QString coordinates() const;
 	QString dayOfWeek() const;
 	QString weatherIcon() const;
 	QString weatherDescription() const;
 	QString temperature() const;
 
-	void setDayOfWeek(const QString &value);
-	void setWeatherIcon(const QString &value);
-	void setWeatherDescription(const QString &value);
-	void setTemperature(const QString &value);
+	void setCoordinates(const QString& value);
+	void setDayOfWeek(const QString& value);
+	void setWeatherIcon(const QString& value);
+	void setWeatherDescription(const QString& value);
+	void setTemperature(const QString& value);
 
 signals:
 	void dataChanged();
 
 private:
+	QString m_coordinates;
 	QString m_dayOfWeek;
 	QString m_weather;
 	QString m_weatherDescription;
@@ -63,6 +67,9 @@ Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
 Q_PROPERTY(WeatherData* weather READ weather NOTIFY weatherChanged)
 Q_PROPERTY(QQmlListProperty<WeatherData> forecast READ forecast NOTIFY weatherChanged)
 
+#ifdef Q_OS_ANDROID
+Q_PROPERTY(QString gpsCity READ gpsCity WRITE setGpsCity NOTIFY gpsCityChanged)
+#endif
 QML_ELEMENT
 
 public:
@@ -78,7 +85,12 @@ public:
 	void setUseGps(const bool value);
 
 	QString city() const;
-	void setCity(const QString& value);
+	void setCity(const QString& value, const bool changeCityOnly = false);
+
+#ifdef Q_OS_ANDROID
+	QString gpsCity() const;
+	void setGpsCity(const QString& value);
+#endif
 
 	WeatherData* weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
@@ -97,6 +109,9 @@ signals:
 	void useGpsChanged();
 	void cityChanged();
 	void weatherChanged();
+#ifdef Q_OS_ANDROID
+	void gpsCityChanged();
+#endif
 
 private:
 	bool applyWeatherData(const QString& city, const QList<st_WeatherInfo>& weatherDetails);

@@ -26,15 +26,15 @@ Q_PROPERTY(bool hasCoach READ hasCoach WRITE setHasCoach NOTIFY hasCoachChanged 
 Q_PROPERTY(bool realMeso READ realMeso WRITE setRealMeso NOTIFY realMesoChanged FINAL)
 Q_PROPERTY(bool ownMeso READ ownMeso WRITE setOwnMeso NOTIFY ownMesoChanged FINAL)
 Q_PROPERTY(bool isNewMeso READ isNewMeso NOTIFY isNewMesoChanged FINAL)
-Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY nameLabelChanged FINAL)
-Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY coachLabelChanged FINAL)
-Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY clientLabelChanged FINAL)
-Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY typeLabelChanged FINAL)
-Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY startDateLabelChanged FINAL)
-Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY endDateLabelChanged FINAL)
-Q_PROPERTY(QString weeksLabel READ weeksLabel NOTIFY weeksLabelChanged FINAL)
-Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY splitLabelChanged FINAL)
-Q_PROPERTY(QString notesLabel READ notesLabel NOTIFY notesLabelChanged FINAL)
+Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString coachLabel READ coachLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString clientLabel READ clientLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString startDateLabel READ startDateLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString endDateLabel READ endDateLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString weeksLabel READ weeksLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString splitLabel READ splitLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString notesLabel READ notesLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged FINAL)
 Q_PROPERTY(QString coach READ coach WRITE setCoach NOTIFY coachChanged FINAL)
 Q_PROPERTY(QString client READ client WRITE setClient NOTIFY clientChanged FINAL)
@@ -163,15 +163,7 @@ signals:
 	void realMesoChanged();
 	void ownMesoChanged();
 	void isNewMesoChanged();
-	void nameLabelChanged();
-	void coachLabelChanged();
-	void clientLabelChanged();
-	void typeLabelChanged();
-	void startDateLabelChanged();
-	void endDateLabelChanged();
-	void weeksLabelChanged();
-	void splitLabelChanged();
-	void notesLabelChanged();
+	void labelsChanged();
 	void nameChanged();
 	void coachChanged();
 	void clientChanged();

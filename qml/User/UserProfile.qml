@@ -237,15 +237,6 @@ Frame {
 		}
 	}
 
-	Component.onCompleted: {
-		userModel.updateGUI.connect(function () {
-			lblUserRole.text = userModel.userRoleLabel;
-			lblGoal.text = userModel.goalLabel;
-			lblCoachRole.text = userModel.coachRoleLabel;
-			lblAvatar.text = userModel.avatarLabel;
-		});
-	}
-
 	property AvatarsPopup chooseAvatarDlg: null
 	function showAvatarsPopup() {
 		if (chooseAvatarDlg === null) {

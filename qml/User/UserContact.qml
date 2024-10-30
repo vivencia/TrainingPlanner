@@ -295,14 +295,6 @@ Frame {
 		onClicked: osInterface.openURL(txtSocial.text);
 	}
 
-	Component.onCompleted: {
-		userModel.updateGUI.connect(function () {
-			lblPhone.text = userModel.phoneLabel;
-			lblEmail.text = userModel.emailLabel;
-			lblSocial.text = userModel.socialMediaLabel;
-		});
-	}
-
 	function focusOnFirstField() {
 		if (!bPhoneOK)
 			txtPhone.forceActiveFocus();

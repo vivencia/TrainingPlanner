@@ -123,7 +123,8 @@
         <file>images/weather/weather-haze.svg</file>
         <file>images/weather/weather-fog.svg</file>
         <file>images/weather/weather-few-clouds.svg</file>
-        <file>images/weather/waypoint.svg</file>
         <file>images/weather.png</file>
+        <file>images/white/gps.png</file>
+        <file>images/black/gps.png</file>
     </qresource>
 </RCC>

@@ -27,14 +27,15 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_weatherCities = std::move(value(m_propertyNames.at(WEATHER_CITIES_INDEX)).value<QStringList>());
 }
 
-void TPSettings::appendWeatherCity(const QString& city)
+void TPSettings::setCurrentWeatherCity(const QString& city)
 {
-	if (!m_weatherCities.contains(city))
-	{
-		m_weatherCities.append(city);
-		changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherCities));
-		emit weatherCitiesCountChanged();
-	}
+	const int idx(m_weatherCities.indexOf(city));
+	if (idx == -1)
+		m_weatherCities.prepend(city);
+	else if (idx != 0)
+		m_weatherCities.move(idx, 0);
+	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherCities));
+	emit weatherCitiesCountChanged();
 }
 
 void TPSettings::removeWeatherCity(const int index)

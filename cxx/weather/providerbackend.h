@@ -9,10 +9,15 @@
 
 struct st_WeatherInfo
 {
+	QString m_coordinates;
 	QString m_dayOfWeek;
 	QString m_weatherIconId;
 	QString m_weatherDescription;
 	QString m_temperature;
+	QString m_temperature_feel;
+	QString m_humidity;
+	QString m_pressure;
+	QString m_wind;
 };
 
 struct st_LocationInfo

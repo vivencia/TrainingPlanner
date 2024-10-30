@@ -18,12 +18,12 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-WeatherData::WeatherData(QObject *parent) :
+WeatherData::WeatherData(QObject* parent) :
 		QObject(parent)
 {
 }
 
-WeatherData::WeatherData(const WeatherData &other) :
+WeatherData::WeatherData(const WeatherData& other) :
 		QObject(nullptr),
 		m_dayOfWeek(other.m_dayOfWeek),
 		m_weather(other.m_weather),
@@ -39,6 +39,11 @@ WeatherData::WeatherData(const st_WeatherInfo& other)
 	  m_weatherDescription(other.m_weatherDescription),
 	  m_temperature(other.m_temperature)
 {
+}
+
+QString WeatherData::coordinates() const
+{
+	return m_coordinates;
 }
 
 QString WeatherData::dayOfWeek() const
@@ -61,25 +66,31 @@ QString WeatherData::temperature() const
 	return m_temperature;
 }
 
-void WeatherData::setDayOfWeek(const QString &value)
+void WeatherData::setCoordinates(const QString& value)
+{
+	m_coordinates = value;
+	emit dataChanged();
+}
+
+void WeatherData::setDayOfWeek(const QString& value)
 {
 	m_dayOfWeek = value;
 	emit dataChanged();
 }
 
-void WeatherData::setWeatherIcon(const QString &value)
+void WeatherData::setWeatherIcon(const QString& value)
 {
 	m_weather = value;
 	emit dataChanged();
 }
 
-void WeatherData::setWeatherDescription(const QString &value)
+void WeatherData::setWeatherDescription(const QString& value)
 {
 	m_weatherDescription = value;
 	emit dataChanged();
 }
 
-void WeatherData::setTemperature(const QString &value)
+void WeatherData::setTemperature(const QString& value)
 {
 	m_temperature = value;
 	emit dataChanged();
@@ -190,6 +201,7 @@ public:
 #ifdef Q_OS_ANDROID
 	bool useGps = true;
 	bool canUseGPS = true;
+	QString gpsCity;
 #else
 	bool useGps = false;
 	bool canUseGPS = false;
@@ -231,9 +243,9 @@ WeatherInfo::WeatherInfo(QObject* parent)
 														   forecastAt,
 														   forecastClear};
 
-	d->m_supportedBackends.push_back(new OpenWeatherMapBackend(this));
-	d->m_supportedBackends.push_back(new WeatherApiBackend(this));
-	d->m_supportedBackends.push_back(new OpenMeteoBackend(this));
+	d->m_supportedBackends.push_back(new OpenWeatherMapBackend{this});
+	d->m_supportedBackends.push_back(new WeatherApiBackend{this});
+	d->m_supportedBackends.push_back(new OpenMeteoBackend{this});
 	registerBackend(0);
 
 	d->src = QGeoPositionInfoSource::createDefaultSource(this);
@@ -353,8 +365,10 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 
 	if (city != d->city && d->useGps)
 	{
-		d->city = city;
-		emit cityChanged();
+		setCity(city);
+#ifdef Q_OS_ANDROID
+		setGpsCity(city);
+#endif
 	}
 
 	// delete previous forecast
@@ -364,9 +378,14 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 	// The first item in the list represents current weather.
 	if (!weatherDetails.isEmpty())
 	{
-		d->now.setTemperature(weatherDetails.first().m_temperature);
-		d->now.setWeatherIcon(weatherDetails.first().m_weatherIconId);
-		d->now.setWeatherDescription(weatherDetails.first().m_weatherDescription);
+		const st_WeatherInfo& w_info(weatherDetails.first());
+		d->now.setCoordinates(w_info.m_coordinates);
+		d->now.setTemperature(w_info.m_temperature + tr("(Feels: ") + w_info.m_temperature_feel + ')');
+		d->now.setWeatherIcon(w_info.m_weatherIconId);
+		d->now.setWeatherDescription(w_info.m_weatherDescription + '\n' +
+										w_info.m_humidity + u"% / "_s +
+										w_info.m_pressure + u"Pa / "_s +
+										w_info.m_wind + u"km/h"_s);
 	}
 
 	// The other items represent weather forecast. The amount of items depends
@@ -382,6 +401,7 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 		d->ready = true;
 		emit readyChanged();
 	}
+	appSettings()->setCurrentWeatherCity(city);
 	emit weatherChanged();
 	return true;
 }
@@ -490,16 +510,37 @@ QString WeatherInfo::city() const
 	return d->city;
 }
 
-void WeatherInfo::setCity(const QString& value)
+void WeatherInfo::setCity(const QString& value, const bool changeCityOnly)
 {
 	if (value != d->city)
 	{
 		d->city = value;
+		appSettings()->setCurrentWeatherCity(value);
 		emit cityChanged();
-		if (!value.isEmpty())
+		if (!changeCityOnly)
 		{
-			setUseGps(false);
-			requestWeatherByCity();
+			if (!value.isEmpty())
+			{
+				setUseGps(false);
+				requestWeatherByCity();
+			}
 		}
 	}
 }
+
+#ifdef Q_OS_ANDROID
+QString WeatherInfo::gpsCity() const
+{
+	return d->gpsCity;
+}
+
+void WeatherInfo::setGpsCity(const QString& value)
+{
+	if (value != d->gpsCity)
+	{
+		d->gpsCity = value;
+		emit gpsCityChanged();
+	}
+}
+#endif
+

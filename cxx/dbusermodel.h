@@ -33,16 +33,16 @@ class DBUserModel : public TPListModel
 
 Q_OBJECT
 
-Q_PROPERTY(QString nameLabel READ nameLabel CONSTANT FINAL)
-Q_PROPERTY(QString birthdayLabel READ birthdayLabel CONSTANT FINAL)
-Q_PROPERTY(QString sexLabel READ sexLabel CONSTANT FINAL)
-Q_PROPERTY(QString phoneLabel READ phoneLabel CONSTANT FINAL)
-Q_PROPERTY(QString emailLabel READ emailLabel CONSTANT FINAL)
-Q_PROPERTY(QString socialMediaLabel READ socialMediaLabel CONSTANT FINAL)
-Q_PROPERTY(QString userRoleLabel READ userRoleLabel CONSTANT FINAL)
-Q_PROPERTY(QString coachRoleLabel READ coachRoleLabel CONSTANT FINAL)
-Q_PROPERTY(QString goalLabel READ goalLabel CONSTANT FINAL)
-Q_PROPERTY(QString avatarLabel READ avatarLabel CONSTANT FINAL)
+Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString birthdayLabel READ birthdayLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString sexLabel READ sexLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString phoneLabel READ phoneLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString emailLabel READ emailLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString socialMediaLabel READ socialMediaLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString userRoleLabel READ userRoleLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString coachRoleLabel READ coachRoleLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString goalLabel READ goalLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString avatarLabel READ avatarLabel NOTIFY labelsChanged FINAL)
 
 public:
 	explicit DBUserModel(QObject* parent = nullptr);
@@ -227,7 +227,7 @@ signals:
 	void userModified(const uint row, const uint field);
 	void userAdded(const uint row);
 	void mainUserConfigurationFinishedSignal();
-	void updateGUI();
+	void labelsChanged();
 
 private:
 	bool mb_empty;

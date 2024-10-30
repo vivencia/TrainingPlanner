@@ -9,6 +9,8 @@
 #include "dbinterface.h"
 #include "osinterface.h"
 #include "translationclass.h"
+#include "tputils.h"
+#include "dbusermodel.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -586,15 +588,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	});
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-		emit nameLabelChanged();
-		emit coachLabelChanged();
-		emit clientLabelChanged();
-		emit typeLabelChanged();
-		emit startDateLabelChanged();
-		emit endDateLabelChanged();
-		emit weeksLabelChanged();
-		emit splitLabelChanged();
-		emit notesLabelChanged();
+		appMesoModel()->fillColumnNames();
+		emit labelsChanged();
 	});
 }
 
@@ -603,8 +598,7 @@ void QMLMesoInterface::setPropertiesBasedOnUseMode()
 	const uint useMode(appUserModel()->appUseMode(0));
 	setOwnerIsCoach(useMode == APP_USE_MODE_SINGLE_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
 	setHasCoach(useMode == APP_USE_MODE_SINGLE_USER_WITH_COACH || useMode == APP_USE_MODE_COACH_USER_WITH_COACH);
-	emit coachLabelChanged();
-	emit clientLabelChanged();
+	emit labelsChanged();
 }
 
 void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)

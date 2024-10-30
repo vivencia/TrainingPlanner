@@ -13,6 +13,7 @@ CheckBox {
 	contentItem: TPLabel {
 		id: lblText
 		text: control.text
+		wrapMode: Text.WordWrap
 		leftPadding: control.indicator.width + control.spacing
 	}
 

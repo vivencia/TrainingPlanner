@@ -27,7 +27,7 @@ private slots:
 	void handleWeatherForecastReply(QNetworkReply* reply, const st_LocationInfo& location, const st_WeatherInfo& currentWeather);
 
 private:
-	void requestCurrentWeather(QUrlQuery& query, const QGeoCoordinate& coordinate);
+	void requestCurrentWeather(const QGeoCoordinate coordinate);
 	void requestWeatherForecast(const st_LocationInfo& location, const st_WeatherInfo& currentWeather);
 
 	QNetworkAccessManager* m_networkManager;

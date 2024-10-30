@@ -146,12 +146,12 @@ public:
 	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
 
 	inline uint weatherCitiesCount() const { return m_weatherCities.count(); }
+	void setCurrentWeatherCity(const QString& city);
+	Q_INVOKABLE void removeWeatherCity(const int index);
 	Q_INVOKABLE inline QString weatherCity(const int idx) const
 	{
 		return value(m_propertyNames.at(WEATHER_CITIES_INDEX), m_defaultValues.at(WEATHER_CITIES_INDEX)).value<QStringList>().at(idx);
 	}
-	Q_INVOKABLE void appendWeatherCity(const QString& city);
-	Q_INVOKABLE void removeWeatherCity(const int index);
 
 signals:
 	void appVersionChanged();

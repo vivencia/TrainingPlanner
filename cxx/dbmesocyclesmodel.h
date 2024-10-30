@@ -2,8 +2,6 @@
 #define DBMESOCYCLESMODEL_H
 
 #include "tplistmodel.h"
-#include "dbusermodel.h"
-#include "tputils.h"
 
 #define MESOCYCLES_COL_ID 0
 #define MESOCYCLES_COL_NAME 1
@@ -46,6 +44,7 @@ public:
 
 	explicit DBMesocyclesModel(QObject* parent = nullptr);
 	~DBMesocyclesModel();
+	void fillColumnNames();
 	QMLMesoInterface* mesoManager(const uint meso_idx);
 
 	Q_INVOKABLE void getMesocyclePage(const uint meso_idx);
@@ -187,11 +186,11 @@ public:
 	inline bool isRealMeso(const int meso_idx) const
 	{
 		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isRealMeso", "out of range meso_idx");
-		return realMeso(meso_idx) == STR_ONE;
+		return realMeso(meso_idx) == QStringLiteral("1");
 	}
 	inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? STR_ONE : STR_ZERO;
+		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? QStringLiteral("1") : QStringLiteral("0");
 		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 

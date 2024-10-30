@@ -1,9 +1,11 @@
 #include "qmlmesosplitinterface.h"
-#include "qmlitemmanager.h"
+
+#include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
-#include "dbinterface.h"
+#include "qmlitemmanager.h"
 #include "osinterface.h"
+#include "tputils.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>

@@ -1,11 +1,13 @@
 #include "dbmesocyclesmodel.h"
+
+#include "dbinterface.h"
 #include "dbmesocalendarmodel.h"
 #include "dbmesosplitmodel.h"
-#include "qmlmesointerface.h"
+#include "dbusermodel.h"
 #include "qmlitemmanager.h"
+#include "qmlmesointerface.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
-#include "dbinterface.h"
 
 #include <QSettings>
 #include <utility>
@@ -31,18 +33,9 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 	m_roleNames[mesoClientRole] = std::move("mesoClient");
 
 	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
-	mColumnNames.append(QString()); //MESOCYCLES_COL_ID
-	mColumnNames.append(std::move(tr("Plan's name: ")));
-	mColumnNames.append(std::move(tr("Start date: ")));
-	mColumnNames.append(std::move(tr("End date: ")));
-	mColumnNames.append(std::move(tr("Plan's considerations: ")));
-	mColumnNames.append(std::move(tr("Number of weeks: ")));
-	mColumnNames.append(std::move(tr("Weekly Training Division: ")));
-	mColumnNames.append(QString()); //MESOCYCLES_COL_COACH
-	mColumnNames.append(QString()); //MESOCYCLES_COL_CLIENT
-	mColumnNames.append(QString()); //MESOCYCLES_COL_FILE
-	mColumnNames.append(std::move(tr("Type: ")));
-	mColumnNames.append(std::move(tr("Mesocycle-style plan: ")));
+	for(uint i(0); i < MESOCYCLES_TOTAL_COLS; ++i)
+		mColumnNames.append(QString());
+	fillColumnNames();
 
 	m_splitModel = new DBMesoSplitModel(this, false, -1);
 
@@ -50,6 +43,19 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
 			updateColumnLabels();
 	});
+}
+
+void DBMesocyclesModel::fillColumnNames()
+{
+	mColumnNames[MESOCYCLES_COL_NAME] = std::move(tr("Plan's name: "));
+	mColumnNames[MESOCYCLES_COL_STARTDATE] = std::move(tr("Start date: "));
+	mColumnNames[MESOCYCLES_COL_ENDDATE] = std::move(tr("End date: "));
+	mColumnNames[MESOCYCLES_COL_NOTE] = std::move(tr("Plan's considerations: "));
+	mColumnNames[MESOCYCLES_COL_WEEKS] = std::move(tr("Number of weeks: "));
+	mColumnNames[MESOCYCLES_COL_SPLIT] = std::move(tr("Weekly Training Division: "));
+	mColumnNames[MESOCYCLES_COL_TYPE] = std::move(tr("Type: "));
+	mColumnNames[MESOCYCLES_COL_REALMESO] = std::move(tr("Mesocycle-style plan: "));
+	updateColumnLabels();
 }
 
 DBMesocyclesModel::~DBMesocyclesModel()

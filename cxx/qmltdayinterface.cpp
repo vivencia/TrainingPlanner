@@ -1,15 +1,17 @@
 #include "qmltdayinterface.h"
-#include "qmlexerciseinterface.h"
-#include "qmlitemmanager.h"
-#include "dbmesocyclesmodel.h"
-#include "dbmesocalendarmodel.h"
-#include "dbtrainingdaymodel.h"
-#include "dbmesosplitmodel.h"
+
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
+#include "dbmesocalendarmodel.h"
+#include "dbmesocyclesmodel.h"
+#include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
 #include "osinterface.h"
-#include "tptimer.h"
+#include "qmlexerciseinterface.h"
+#include "qmlitemmanager.h"
 #include "tpsettings.h"
+#include "tptimer.h"
+#include "tputils.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>

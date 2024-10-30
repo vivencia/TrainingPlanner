@@ -12,8 +12,6 @@ import ".."
 TPPage {
 	id: weatherPage
 	objectName: "weatherPage"
-	width: appSettings.pageWidth
-	height: appSettings.pageHeight
 
 	//Shape because Rectangle does not support diagonal gradient
 	Shape {
@@ -91,6 +89,7 @@ TPPage {
 	ColumnLayout {
 		id: main
 		anchors.fill: parent
+		spacing: 0
 
 		Rectangle {
 			id: savedCities
@@ -118,10 +117,11 @@ TPPage {
 				ColumnLayout {
 					id: citiesLayout
 					anchors.fill: parent
+					spacing: 0
 
 					TPLabel {
 						id: gpsCity
-						text: weatherInfo.canUseGps ? ( (weatherInfo.hasValidCity ? weatherInfo.city : qsTr("Unknown location"))
+						text: weatherInfo.canUseGps ? ( (weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location"))
 							  + (weatherInfo.useGps ? " (GPS)" : "") ) : qsTr("Cannot use GPS on this device")
 						font: AppGlobals.titleFont
 						fontColor: "white"
@@ -133,7 +133,7 @@ TPPage {
 
 						TPImage {
 							id: gpsIcon
-							source: "weather/waypoint.svg"
+							source: "appSettings.iconFolder/gps"
 							enabled: parent.enabled
 							height: 25
 							width: 25
@@ -153,31 +153,31 @@ TPPage {
 
 					Repeater {
 						model: appSettings.weatherCitiesCount
-						TPLabel {
-							id: cityName
-							text: appSettings.weatherCity(index)
-							font: AppGlobals.titleFont
-							fontColor: "white"
+						Row {
+							spacing: 10
 							width: 0.7*parent.width
+							height: 30
+							Layout.fillWidth: true
 							Layout.alignment: Qt.AlignCenter
 							Layout.minimumWidth: width
 							Layout.maximumWidth: width
 
-							MouseArea {
-								anchors.fill: parent
+							TPButton {
+								id: cityName
+								text: appSettings.weatherCity(index)
+								textColor: "white"
+								backgroundColor: "transparent"
+
 								onClicked: weatherInfo.city = cityName.text;
 							}
 
 							TPButton {
 								imageSource: "remove"
 								fixedSize: true
-								height: 20
-								width: 20
-
-								anchors {
-									left: parent.right
-									verticalCenter: parent.verticalCenter
-								}
+								imageSize: 25
+								height: 25
+								width: 25
+								Layout.topMargin: 5
 
 								onClicked: appSettings.removeWeatherCity(index);
 							}
@@ -188,11 +188,12 @@ TPPage {
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 						Layout.rightMargin: 5
+						Layout.bottomMargin: 5
 						spacing: 0
 						padding: 0
 
 						TPLabel {
-							text: qsTr("Add city:")
+							text: qsTr("Search city:")
 							width: 0.2*parent.width
 							Layout.minimumWidth: width
 							Layout.maximumWidth: width
@@ -210,18 +211,6 @@ TPPage {
 									weatherInfo.city = txtNewCity.text;
 							}
 						}
-
-						TPButton {
-							id: btnAddCity
-							imageSource: "add-new"
-							imageSize: 30
-							enabled: txtNewCity.textOK && weatherInfo.hasValidWeather
-
-							onClicked: {
-								appSettings.appendWeatherCity(txtNewCity.text);
-								txtNewCity.clear();
-							}
-						}
 					} //Row txtNewCity
 				} //ColumnLayout citiesLayout
 			} //ScrollView
@@ -232,9 +221,9 @@ TPPage {
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 
-			topText: (weatherInfo.hasValidWeather ? weatherInfo.city + "  " + weatherInfo.weather.temperature : "??")
-			weatherIcon: (weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny")
-			bottomText: (weatherInfo.hasValidWeather ? weatherInfo.weather.weatherDescription : qsTr("No weather data"))
+			topText: weatherInfo.hasValidWeather ? (weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature) : "??"
+			weatherIcon: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny"
+			bottomText: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherDescription : qsTr("No weather data")
 		}
 
 		Item {
