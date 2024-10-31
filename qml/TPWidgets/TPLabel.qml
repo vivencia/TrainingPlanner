@@ -12,7 +12,7 @@ Label {
 	minimumPointSize: appSettings.fontSizeLists
 	maximumLineCount: singleLine ? 1 : 50
 	fontSizeMode: elide !== Text.ElideNone ? Text.FixedSize : Text.Fit
-	topPadding: _lineCount > 1 ? -2*_lineCount : 2
+	topPadding: -2*_lineCount
 	width: _preferredWidth
 	height: _preferredHeight
 
@@ -28,15 +28,15 @@ Label {
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
 	onFontChanged: {
-		if (font == AppGlobals.textFont) {
+		if (font === AppGlobals.textFont) {
 			_textWidth = AppGlobals.fontMetricsText.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsText.boundingRect("TP").height
 		}
-		else if (font == AppGlobals.titleFont) {
+		else if (font === AppGlobals.titleFont) {
 			_textWidth = AppGlobals.fontMetricsTitle.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsTitle.boundingRect("TP").height
 		}
-		else if (font == AppGlobals.listFont) {
+		else if (font === AppGlobals.listFont) {
 			_textWidth = AppGlobals.fontMetricsList.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsList.boundingRect("TP").height
 		}
@@ -45,10 +45,4 @@ Label {
 			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height
 		}
 	}
-	/*property FontMetrics _fontMetrics: AppGlobals.fontMetricsText
-
-	onFontChanged: {
-		if (control.font.pointSize === appSettings.fontSizeTitle)
-			_fontMetrics = AppGlobals.fontMetricsTitle;
-	}*/
 }

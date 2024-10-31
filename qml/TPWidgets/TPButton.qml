@@ -116,7 +116,7 @@ Rectangle {
 				else {
 					anchors.horizontalCenter = button.horizontalCenter;
 					anchors.bottom = button.bottom;
-					anchors.bottomMargin = 2;
+					anchors.bottomMargin = 5;
 				}
 			}
 			else {

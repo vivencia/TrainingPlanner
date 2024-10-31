@@ -133,7 +133,8 @@ Pane {
 		id: btnAcceptSplit
 		text: qsTr("Accept changes")
 		imageSource: "set-completed"
-		imageSize: 15
+		hasDropShadow: false
+		imageSize: 20
 		flat: false
 		checkable: true
 		enabled: bMesoSplitTextOK

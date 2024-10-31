@@ -1,8 +1,10 @@
 #include "qmlexercisesdatabaseinterface.h"
-#include "qmlitemmanager.h"
+
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
+#include "qmlitemmanager.h"
 #include "osinterface.h"
+#include "translationclass.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -21,6 +23,14 @@ const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 	appExercisesModel()->removeExercise(row);
 	return row > 0 ? row - 1 : 0;
 }
+
+QString QmlExercisesDatabaseInterface::exerciseNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MAINNAME); }
+QString QmlExercisesDatabaseInterface::exerciseSubNameLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_SUBNAME); }
+QString QmlExercisesDatabaseInterface::muscularGroupLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MUSCULARGROUP); }
+QString QmlExercisesDatabaseInterface::setsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_SETSNUMBER); }
+QString QmlExercisesDatabaseInterface::repsNumberLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_REPSNUMBER); }
+QString QmlExercisesDatabaseInterface::weightLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_WEIGHT); }
+QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesModel()->columnLabel(EXERCISES_COL_MEDIAPATH); }
 
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
@@ -111,8 +121,14 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connec
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
+
 		connect(appExercisesModel(), &DBExercisesModel::exerciseChanged, this, [this] (const uint index) {
 			appDBInterface()->saveExercises();
 		});
+
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+			appExercisesModel()->fillColumnNames();
+		emit labelsChanged();
+	});
 	}
 }

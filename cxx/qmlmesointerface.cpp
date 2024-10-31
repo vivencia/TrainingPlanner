@@ -180,51 +180,59 @@ void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
 		{
 			emit realMesoChanged();
 			appMesoModel()->setIsRealMeso(m_mesoIdx, m_bRealMeso);
-			setMaximumMesoEndDate(m_bRealMeso ? maximumMesoEndDate() : appMesoModel()->endDate(m_mesoIdx));
+			setEndDate(m_bRealMeso ? appMesoModel()->endDate(m_mesoIdx) : maximumMesoEndDate());
 		}
 	}
 }
 
-void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value, const bool bFromQml)
+void QMLMesoInterface::setStartDate(const QDate& new_value)
 {
-	if (m_minimumMesoStartDate != new_value)
+	if (m_startDate != new_value)
 	{
-		m_minimumMesoStartDate = new_value;
-		m_startDate = appUtils()->formatDate(m_minimumMesoStartDate);
-		if (bFromQml)
-		{
-			emit minimumMesoStartDateChanged();
-			emit startDateChanged();
+		m_startDate = new_value;
+		m_strStartDate = std::move(appUtils()->formatDate(new_value));
+		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
+		emit startDateChanged();
+		if (!isNewMeso())
 			acceptStartDate();
-		}
 	}
+}
+
+void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value)
+{
+	m_startDate = m_minimumMesoStartDate = new_value;
+	m_strStartDate = std::move(appUtils()->formatDate(new_value));
 }
 
 void QMLMesoInterface::acceptStartDate()
 {
-	appMesoModel()->setStartDate(m_mesoIdx, m_minimumMesoStartDate);
-	appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
+	appMesoModel()->setStartDate(m_mesoIdx, m_startDate);
+	appMesoModel()->setWeeks(m_mesoIdx, m_weeks);
 }
 
-void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value, const bool bFromQml)
+void QMLMesoInterface::setEndDate(const QDate& new_value)
 {
-	if (m_maximumMesoEndDate != new_value)
+	if (m_endDate != new_value)
 	{
-		m_maximumMesoEndDate = new_value;
-		m_endDate = appUtils()->formatDate(m_maximumMesoEndDate);
-		if (bFromQml)
-		{
-			emit maximumMesoEndDateChanged();
-			emit endDateChanged();
+		m_endDate = new_value;
+		m_strEndDate = std::move(appUtils()->formatDate(new_value));
+		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
+		emit endDateChanged();
+		if (!isNewMeso())
 			acceptEndDate();
-		}
 	}
+}
+
+void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value)
+{
+	m_endDate = m_maximumMesoEndDate = new_value;
+	m_strEndDate = std::move(appUtils()->formatDate(new_value));
 }
 
 void QMLMesoInterface::acceptEndDate()
 {
-	appMesoModel()->setEndDate(m_mesoIdx, m_maximumMesoEndDate);
-	appMesoModel()->setWeeks(m_mesoIdx, QString::number(appUtils()->calculateNumberOfWeeks(m_minimumMesoStartDate, m_maximumMesoEndDate)));
+	appMesoModel()->setEndDate(m_mesoIdx, m_endDate);
+	appMesoModel()->setWeeks(m_mesoIdx, m_weeks);
 }
 
 void QMLMesoInterface::setWeeks(const QString& new_value, const bool bFromQml)
@@ -337,15 +345,6 @@ void QMLMesoInterface::setMuscularGroupF(const QString& new_value, const bool bF
 	emit muscularGroupFChanged();
 }
 
-void QMLMesoInterface::setCalendarStartDate(const QDate& new_value)
-{
-	if (m_calendarStartDate != new_value)
-	{
-		m_calendarStartDate = new_value;
-		emit calendarStartDateChanged();
-	}
-}
-
 void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday)
 {
 	appDBInterface()->changeMesoCalendar(m_mesoIdx, preserve_old_cal, preserve_untilyesterday);
@@ -370,12 +369,12 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 	QmlTDayInterface* tDayPage(m_tDayPages.value(date));
 	if (!tDayPage)
 	{
-		tDayPage = new QmlTDayInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx, date);
+		tDayPage = new QmlTDayInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx, date};
 		m_tDayPages.insert(date, tDayPage);
 
 		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
 			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+				m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
 			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(splitletter));
 			if (!splitModel)
 			{
@@ -395,7 +394,7 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 
 		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
 			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+				m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
 			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(tDayModel->_splitLetter()));
 			if (!splitModel)
 			{
@@ -493,8 +492,8 @@ void QMLMesoInterface::createMesocyclePage()
 	setPropertiesBasedOnUseMode();
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
-	setMinimumMesoStartDate(appMesoModel()->startDate(m_mesoIdx), false);
-	setMaximumMesoEndDate(appMesoModel()->endDate(m_mesoIdx), false);
+	setMinimumMesoStartDate(appMesoModel()->startDate(m_mesoIdx));
+	setMaximumMesoEndDate(appMesoModel()->endDate(m_mesoIdx));
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);
@@ -505,7 +504,6 @@ void QMLMesoInterface::createMesocyclePage()
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'E'));
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'F'));
 	m_muscularGroup.append(std::move(tr("Rest day")));
-	setCalendarStartDate(appMesoModel()->startDate(m_mesoIdx));
 
 	m_mesoProperties.insert(u"mesoManager"_s, QVariant::fromValue(this));
 

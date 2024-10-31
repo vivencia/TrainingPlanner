@@ -81,15 +81,20 @@ TPPage {
 		anchors.fill: parent
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-		contentWidth: availableWidth //stops bouncing to the sides
+		contentWidth: availableWidth
 		contentHeight: colMain.implicitHeight + 20
 
 		ColumnLayout {
 			id: colMain
-			anchors.fill: parent
-			anchors.leftMargin: 5
-			anchors.topMargin: 10
 			spacing: 5
+
+			anchors {
+				fill: parent
+				leftMargin: 5
+				rightMargin: 10
+				topMargin: 10
+				bottomMargin: 10
+			}
 
 			TPLabel {
 				text: mesoManager.nameLabel
@@ -125,12 +130,11 @@ TPPage {
 			TPTextInput {
 				id: txtMesoName
 				text: mesoManager.name
-				wrapMode: Text.WordWrap
 				ToolTip.text: qsTr("Name too short")
 				ToolTip.visible:!bMesoNameOK;
-				width: parent.width - 20
-				Layout.minimumWidth: width
+				width: 0.9*appSettings.itemMaxWidth
 				Layout.maximumWidth: width
+				Layout.minimumWidth: width
 
 				onEnterOrReturnKeyPressed: {
 					if (cboCoaches.visible)
@@ -143,20 +147,20 @@ TPPage {
 			RowLayout {
 				visible: mesoManager.hasCoach
 				height: 30
-				spacing: 5
+				spacing: 0
 				Layout.fillWidth: true
 
 				TPLabel {
 					id: lblCoaches
 					text: mesoManager.coachLabel
-					width: appSettings.pageWidth/2 - 10
+					width: 0.45*appSettings.itemMaxWidth
 				}
 
 				TPComboBox {
 					id: cboCoaches
 					//editText: mesoManager.coach
 					currentIndex: userModel.currentCoach(userModel.userRow(mesoManager.client))
-					implicitWidth: appSettings.pageWidth/2
+					implicitWidth: appSettings.itemMaxWidth/2
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -190,18 +194,19 @@ TPPage {
 
 			RowLayout {
 				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
-				spacing: 5
+				spacing: 0
 				Layout.fillWidth: true
 
 				TPLabel {
 					text: mesoManager.clientLabel
+					width: 0.30*appSettings.itemMaxWidth
 				}
 
 				TPComboBox {
 					id: cboClients
 					//editText: mesoManager.client
 					currentIndex: userModel.currentClient(userModel.userRow(mesoManager.client))
-					implicitWidth: appSettings.pageWidth*0.6
+					implicitWidth: 0.6*appSettings.itemMaxWidth
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -231,14 +236,14 @@ TPPage {
 
 				TPLabel {
 					text: mesoManager.typeLabel
-					width: (parent.width - 20)*0.2
+					width: 0.2*appSettings.itemMaxWidth
 				}
 
 				TPComboBox {
 					id: cboMesoType
 					model: mesoTypeModel
 					editText: mesoManager.type
-					width: (mesoPropertiesPage.width - 20)*0.75
+					width: 0.75*appSettings.itemMaxWidth
 					Layout.minimumWidth: width
 
 					onActivated: (index) => {
@@ -264,9 +269,8 @@ TPPage {
 			TPTextInput {
 				id: txtMesoTypeOther
 				text: mesoManager.type
-				width: parent.width - 20
 				visible: cboMesoType.currentIndex === 6
-				Layout.minimumWidth: width
+				width: appSettings.itemMaxWidth
 				Layout.maximumWidth: width
 
 				onEditingFinished: mesoManager.type = text;
@@ -286,9 +290,9 @@ TPPage {
 					id: txtMesoFile
 					text: mesoManager.fileName
 					readOnly: true
-					width: (mesoPropertiesPage.width - 20)*0.8
-					Layout.minimumWidth: width
+					width: 0.8*appSettings.itemMaxWidth
 					Layout.maximumWidth: width
+					Layout.minimumWidth: width
 				}
 
 				TPButton {
@@ -359,12 +363,12 @@ TPPage {
 
 				CalendarDialog {
 					id: caldlg
-					showDate: mesoManager.calendarStartDate
+					showDate: mesoManager.startDate
 					initDate: mesoManager.minimumMesoStartDate
 					finalDate: mesoManager.maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
-					onDateSelected: (date) => mesoManager.minimumMesoStartDate = date;
+					onDateSelected: (date) => mesoManager.startDate = date;
 				}
 
 				TPButton {
@@ -435,13 +439,13 @@ TPPage {
 
 				CalendarDialog {
 					id: caldlg2
-					showDate: mesoManager.calendarStartDate
+					showDate: mesoManager.endDate
 					initDate: mesoManager.minimumMesoStartDate
 					finalDate: mesoManager.maximumMesoEndDate
 					parentPage: mesoPropertiesPage
 
 					onDateSelected: (date) => {
-						mesoManager.maximumMesoEndDate = date;
+						mesoManager.endDate = date;
 						mesoSplitSetup.forcusOnFirstItem();
 					}
 				}
@@ -473,7 +477,7 @@ TPPage {
 
 			MesoSplitSetup {
 				id: mesoSplitSetup
-				width: parent.width
+				width: appSettings.itemMaxWidth
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 			}

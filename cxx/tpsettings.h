@@ -27,18 +27,19 @@
 #define MESO_IDX_INDEX 20
 #define PAGE_WIDTH_INDEX 21
 #define PAGE_HEIGHT_INDEX 22
+#define ITEM_MAX_WIDTH 23
 
-#define ASK_CONFIRMATION_INDEX 23
-#define USER_INDEX 24
+#define ASK_CONFIRMATION_INDEX 24
+#define USER_INDEX 25
 
-#define WEATHER_CITIES_INDEX 25
+#define WEATHER_CITIES_INDEX 26
 
 class TPSettings : public QSettings
 {
 
 Q_OBJECT
 
-Q_PROPERTY(QString appVersion READ appVersion WRITE setAppVersion NOTIFY appVersionChanged)
+Q_PROPERTY(QString appVersion READ appVersion CONSTANT)
 Q_PROPERTY(QString appLocale READ appLocale WRITE setAppLocale NOTIFY appLocaleChanged)
 Q_PROPERTY(QString themeStyle READ themeStyle WRITE setThemeStyle NOTIFY themeStyleChanged)
 Q_PROPERTY(QString colorScheme READ colorScheme WRITE setColorScheme NOTIFY colorSchemeChanged)
@@ -59,9 +60,10 @@ Q_PROPERTY(uint fontSizeText READ fontSizeText WRITE setFontSizeText NOTIFY font
 Q_PROPERTY(uint fontSizeLists READ fontSizeLists WRITE setFontSizeLists NOTIFY fontSizeListsChanged)
 Q_PROPERTY(uint fontSizeTitle READ fontSizeTitle WRITE setFontSizeTitle NOTIFY fontSizeTitleChanged)
 Q_PROPERTY(uint lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
-Q_PROPERTY(uint pageWidth READ pageWidth WRITE setPageWidth NOTIFY pageWidthChanged)
-Q_PROPERTY(uint pageHeight READ pageHeight WRITE setPageHeight NOTIFY pageHeightChanged)
+Q_PROPERTY(uint pageWidth READ pageWidth CONSTANT)
+Q_PROPERTY(uint pageHeight READ pageHeight CONSTANT)
 Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
+Q_PROPERTY(uint itemMaxWidth READ itemMaxWidth CONSTANT)
 
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured WRITE setMainUserConfigured NOTIFY mainUserConfiguredChanged)
@@ -70,7 +72,6 @@ public:
 	explicit TPSettings(QObject* parent = nullptr);
 
 	inline QString appVersion() const { return value(m_propertyNames.at(APP_VERSION_INDEX), m_defaultValues.at(APP_VERSION_INDEX)).toString(); }
-	inline void setAppVersion(const QString& new_value) { changeValue(APP_VERSION_INDEX, new_value); emit appVersionChanged(); }
 
 	inline QString appLocale() const { return value(m_propertyNames.at(APP_LOCALE_INDEX), m_defaultValues.at(APP_LOCALE_INDEX)).toString(); }
 	inline void setAppLocale(const QString& new_value) { changeValue(APP_LOCALE_INDEX, new_value); emit appLocaleChanged(); }
@@ -133,17 +134,11 @@ public:
 	inline void setLastViewedMesoIdx(const uint new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 
 	inline uint pageWidth() const { return value(m_propertyNames.at(PAGE_WIDTH_INDEX), m_defaultValues.at(PAGE_WIDTH_INDEX).toUInt()).toUInt(); }
-	inline void setPageWidth(const uint new_value) { changeValue(PAGE_WIDTH_INDEX, QString::number(new_value)); emit pageWidthChanged(); }
 
 	//mainWindow.height(640) - NavBar.height(40)
 	inline uint pageHeight() const { return value(m_propertyNames.at(PAGE_HEIGHT_INDEX), m_defaultValues.at(PAGE_HEIGHT_INDEX).toUInt()).toUInt(); }
-	inline void setPageHeight(const uint new_value) { changeValue(PAGE_HEIGHT_INDEX, QString::number(new_value)); emit pageHeightChanged(); }
 
-	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.at(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX).toUInt()).toBool(); }
-	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
-
-	inline bool mainUserConfigured() const { return value(m_propertyNames.at(USER_INDEX), m_defaultValues.at(USER_INDEX)).toUInt() != 0; }
-	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
+	inline uint itemMaxWidth() const { return value(m_propertyNames.at(ITEM_MAX_WIDTH), m_defaultValues.at(ITEM_MAX_WIDTH).toUInt()).toUInt(); }
 
 	inline uint weatherCitiesCount() const { return m_weatherCities.count(); }
 	void setCurrentWeatherCity(const QString& city);
@@ -153,8 +148,13 @@ public:
 		return value(m_propertyNames.at(WEATHER_CITIES_INDEX), m_defaultValues.at(WEATHER_CITIES_INDEX)).value<QStringList>().at(idx);
 	}
 
+	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.at(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX).toUInt()).toBool(); }
+	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
+
+	inline bool mainUserConfigured() const { return value(m_propertyNames.at(USER_INDEX), m_defaultValues.at(USER_INDEX)).toUInt() != 0; }
+	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
+
 signals:
-	void appVersionChanged();
 	void appLocaleChanged();
 	void themeStyleChanged();
 	void colorSchemeChanged();
@@ -174,8 +174,6 @@ signals:
 	void fontSizeTextChanged();
 	void fontSizeTitleChanged();
 	void lastViewedMesoIdxChanged();
-	void pageWidthChanged();
-	void pageHeightChanged();
 	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
 	void mainUserConfiguredChanged();

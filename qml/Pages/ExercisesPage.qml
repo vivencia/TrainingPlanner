@@ -192,10 +192,10 @@ TPPage {
 
 		ColumnLayout {
 			id: layoutMain
-			width: exercisesPage.width
+			width: appSettings.itemMaxWidth
 
 			TPLabel {
-				text: exercisesModel.columnLabel(1)
+				text: exercisesManager.exerciseNameLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -212,7 +212,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: exercisesModel.columnLabel(2)
+				text: exercisesManager.exerciseSubNameLabel
 				Layout.leftMargin: 5
 			}
 
@@ -229,7 +229,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: exercisesModel.columnLabel(3)
+				text: exercisesManager.muscularGroupLabel
 				Layout.leftMargin: 5
 				Layout.topMargin: 10
 			}
@@ -279,7 +279,6 @@ TPPage {
 						easing.type: Easing.InOutBack
 					}
 				}
-				clip: true
 				padding: 0
 				z: 0
 
@@ -304,7 +303,7 @@ TPPage {
 						id: txtNSets
 						type: SetInputField.Type.SetType
 						availableWidth: parent.width*0.6
-						alternativeLabels: ["", "", "", exercisesModel.columnLabel(4)]
+						alternativeLabels: ["", "", "", exercisesManager.setsNumberLabel]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: appSettings.fontColor
@@ -318,7 +317,7 @@ TPPage {
 						id: txtNReps
 						type: SetInputField.Type.RepType
 						availableWidth: parent.width*0.6
-						alternativeLabels: ["", exercisesModel.columnLabel(5)]
+						alternativeLabels: ["", exercisesManager.repsNumberLabel]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: appSettings.fontColor
@@ -332,7 +331,7 @@ TPPage {
 						id: txtNWeight
 						type: SetInputField.Type.WeightType
 						availableWidth: parent.width*0.6
-						alternativeLabels: [exercisesModel.columnLabel(6), ""]
+						alternativeLabels: [exercisesManager.weightLabel, ""]
 						backColor: "transparent"
 						borderColor: "transparent"
 						labelColor: appSettings.fontColor
@@ -345,7 +344,7 @@ TPPage {
 			} //Pane
 
 			TPLabel {
-				text: exercisesModel.columnLabel(8)
+				text: exercisesManager.mediaLabel
 				Layout.bottomMargin: 10
 				Layout.topMargin: 10
 				Layout.leftMargin: 5

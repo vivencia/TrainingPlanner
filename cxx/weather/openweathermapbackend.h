@@ -31,7 +31,6 @@ private:
 	void requestWeatherForecast(const st_LocationInfo& location, const st_WeatherInfo& currentWeather);
 
 	QNetworkAccessManager* m_networkManager;
-	const QString m_appId;
 };
 
 #endif // OPENWEATHERMAPBACKEND_H

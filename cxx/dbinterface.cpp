@@ -91,7 +91,7 @@ void DBInterface::init()
 		//updateDB(new DBMesocyclesTable(m_DBFilePath));
 		//DBUserTable user(m_DBFilePath);
 		//user.removeDBFile();
-		appSettings()->setAppVersion(TP_APP_VERSION);
+		//appSettings()->saveAppVersion(TP_APP_VERSION);
 	}
 }
 

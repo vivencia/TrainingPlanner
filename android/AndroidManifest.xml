@@ -20,7 +20,10 @@
 	<uses-feature android:glEsVersion="0x00020000" android:required="true"/>
 	-->
 	<application android:name="org.qtproject.qt.android.bindings.QtApplication" android:hardwareAccelerated="true" android:label="TrainingPlanner" android:requestLegacyExternalStorage="true" android:allowNativeHeapPointerTagging="false" android:allowBackup="true" android:fullBackupOnly="false" android:icon="@drawable/icon">
-
+		<!--<service android:name=".TPService" android:exported="true">
+			<meta-data android:name="android.app.background_running" android:value="true"/>
+			<meta-data android:name="android.app.arguments" android:value="-service"/>
+		</service> -->
 		<activity android:name=".TPActivity" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density" android:label="TrainingPlanner" android:launchMode="singleInstance" android:screenOrientation="portrait" android:exported="true" android:theme="@style/splashScreenTheme">
             <intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
@@ -93,7 +96,12 @@
         </activity>
 
 		<!-- If this receiver listens for broadcasts sent from the system or from other apps, even other apps that you own, set android:exported to "true". -->
-
+		<receiver android:name=".TPBroadcastReceiver" android:exported="true">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<!-- <action android:name="org.vivenciasoftware.TrainingPlanner.TP_BROADCAST"/> -->
+			</intent-filter>
+		</receiver>
 
 		<!-- For adding service(s) please check: https://wiki.qt.io/AndroidServices -->
 		<!-- Register the File Provider for document sharing -->

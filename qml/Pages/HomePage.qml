@@ -61,6 +61,7 @@ TPPage {
 
 	ListView {
 		id: mesosListView
+		boundsBehavior: Flickable.StopAtBounds
 		spacing: 10
 		model: mesocyclesModel
 
@@ -78,7 +79,7 @@ TPPage {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			width: ListView.view.width
+			width: appSettings.itemMaxWidth
 
 			onClicked: mesocyclesModel.getMesocyclePage(index);
 
@@ -110,6 +111,7 @@ TPPage {
 					id: btnMesoInfo
 					text: qsTr("View Plan")
 					imageSource: "mesocycle.png"
+					imageSize: 30
 					backgroundColor: "transparent"
 					textUnderIcon: true
 					rounded: false
@@ -133,6 +135,7 @@ TPPage {
 					id: btnMesoCalendar
 					text: qsTr("Calendar")
 					imageSource: "meso-calendar.png"
+					imageSize: 30
 					backgroundColor: "transparent"
 					rounded: false
 					flat: false
@@ -156,6 +159,7 @@ TPPage {
 					id: btnMesoPlan
 					text: qsTr("Exercises Table")
 					imageSource: "meso-splitplanner.png"
+					imageSize: 30
 					backgroundColor: "transparent"
 					rounded: false
 					flat: false
@@ -179,6 +183,7 @@ TPPage {
 					id: btnExport
 					text: qsTr("Export")
 					imageSource: "export.png"
+					imageSize: 30
 					backgroundColor: "transparent"
 					rounded: false
 					flat: false

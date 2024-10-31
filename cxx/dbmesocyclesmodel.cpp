@@ -245,7 +245,7 @@ void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
 
 void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 {
-	m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = QString::number(new_date.toJulianDay());
+	m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoStartDateRole);
 	if (!isNewMeso(meso_idx))
@@ -256,7 +256,7 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 
 void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 {
-	m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = QString::number(new_date.toJulianDay());
+	m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoEndDateRole);
 	if (!isNewMeso(meso_idx))

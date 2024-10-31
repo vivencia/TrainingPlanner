@@ -92,9 +92,11 @@ Drawer {
 
 		TPLabel {
 			text: "TrainingPlanner by VivenciaSoftware - " + appSettings.appVersion
+			width: drawer.implicitWidth-10
+			singleLine: false
 			horizontalAlignment: Text.AlignHCenter
-			Layout.fillWidth: true
-			Layout.topMargin: 0
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
 		}
 
 		TPImage {

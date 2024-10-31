@@ -42,6 +42,7 @@ public:
 	};
 
 	explicit DBExercisesModel(QObject* parent = nullptr);
+	void fillColumnNames();
 
 	inline const QString& id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ID); }
 	inline const int _id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ID).toInt(); }

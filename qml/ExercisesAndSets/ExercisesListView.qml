@@ -81,11 +81,9 @@ Column {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
-		width: parent.width
+		width: appSettings.itemMaxWidth
 		Layout.fillWidth: true
-		Layout.maximumHeight: 30
 		Layout.topMargin: 5
-		clip: true
 
 		TPButton {
 			id: btnClearText
@@ -114,19 +112,16 @@ Column {
 		id: lstExercises
 		model: exercisesModel
 		boundsBehavior: Flickable.StopAtBounds
-		clip: true
-		width: parent.width
+		width: appSettings.itemMaxWidth
 		height: parent.height * 0.75
-		contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
-		contentWidth: totalWidth //contentWidth: Essencial for the ScrollBars to work
-
-		property int totalHeight
-		property int totalWidth
+		contentHeight: exercisesModel.count*40*1.1//contentHeight: Essencial for the ScrollBars to work.
+		contentWidth: appSettings.itemMaxWidth
+		clip: true
 
 		ScrollBar.vertical: ScrollBar {
 			id: vBar
 			policy: ScrollBar.AsNeeded
-			active: true; visible: lstExercises.totalHeight > lstExercises.height
+			active: true; visible: lstExercises.contentHeight > lstExercises.height
 		}
 
 		function ensureVisible(item) {
@@ -147,24 +142,20 @@ Column {
 
 		delegate: SwipeDelegate {
 			id: delegate
+			spacing: 0
+			padding: 0
+			width: appSettings.itemMaxWidth
+			height: 40
 
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
 				color: exercisesModel.currentRow === index ? appSettings.fontColor : "black"
-				font.pointSize: appSettings.fontSizeLists
-				padding: 0
-			}
-			spacing: 0
-			padding: 0
-			width: Math.max(lstExercises.width, fontMetrics.boundingRect(listItem.text).width)
-			height: Math.max(40, fontMetrics.boundingRect(listItem.text).height)
-			clip: false
-
-			FontMetrics {
-				id: fontMetrics
-				font.family: listItem.font.family
-				font.pointSize: appSettings.fontSizeLists
+				font.pixelSize: appSettings.fontSize
+				leftPadding: 5
+				rightPadding: 5
+				topPadding: -5
+				bottomPadding: 2
 			}
 
 			background: Rectangle {
@@ -173,12 +164,6 @@ Column {
 			}
 
 			onClicked: itemClicked(index, true);
-
-			Component.onCompleted: {
-				if (lstExercises.totalWidth < width)
-					lstExercises.totalWidth = width;
-				lstExercises.totalHeight += height;
-			}
 
 			swipe.right: Rectangle {
 				width: parent.width

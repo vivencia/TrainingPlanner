@@ -20,6 +20,40 @@ using namespace Qt::Literals::StringLiterals;
 
 static constexpr auto kZeroKelvin = 273.15;
 
+static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
+{
+	QMap<QString,QString> parsedData;
+	if (!replyData.isEmpty())
+	{
+		QString word, key;
+		QByteArray::const_iterator itr(replyData.constBegin());
+		const QByteArray::const_iterator itr_end(replyData.constEnd());
+		do {
+			if (QChar::isLetterOrNumber(*itr))
+			{
+				word.append(*itr);
+			}
+			else
+			{
+				if (*itr == '-' || *itr == '.')
+					word.append(*itr);
+				else if (*itr == ':')
+				{
+					key = std::move(word);
+					word.clear();
+				}
+				else if (*itr == ',')
+				{
+
+					parsedData.insert(key, word);
+					word.clear();
+				}
+			}
+		} while (++itr != itr_end);
+	}
+	return parsedData;
+}
+
 static QString niceTemperatureString(double t)
 {
 	return QString::number(qRound(t - kZeroKelvin)) + QChar(0xB0);
@@ -72,7 +106,7 @@ static void parseWeatherDescription(const QJsonObject& object, st_WeatherInfo& i
 
 OpenWeatherMapBackend::OpenWeatherMapBackend(QObject *parent)
 	: ProviderBackend{parent},
-	  m_networkManager{new QNetworkAccessManager(this)}, m_appId{u"57aea211bfcdd2b58f211744cd134052"_s}
+	  m_networkManager{new QNetworkAccessManager(this)}
 {}
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QString& city)
@@ -85,30 +119,24 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QString& city)
 	net_request.setRawHeader("X-Api-Key", "fVD0CWxVLhaz7cnhK21PCw==aOqhLKStgURO363U");
 	QNetworkReply* reply{m_networkManager->get(net_request)};
 	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
+		DEFINE_SOURCE_LOCATION
 		if (!reply->error())
 		{
-			qDebug() << reply->readAll();
-			const QJsonDocument& document{QJsonDocument::fromJson(reply->readAll())};
-			qDebug() << document.isArray();
-			qDebug() << document.isObject();
-			const QJsonObject& documentObject{document.object()};
-			qDebug() << documentObject.keys();
-			QJsonObject::const_iterator itr(documentObject.constBegin());
-			const QJsonObject::const_iterator itr_end(documentObject.constEnd());
-			while (itr != itr_end) {
-				qDebug() << (*itr).toString();
+			const QMap<QString,QString>& parsedData(parseApiNinjasReply(reply->readAll()));
+			if (!parsedData.isEmpty())
+			{
+				const QGeoCoordinate coordinate(parsedData.value("latitude").toDouble(), parsedData.value("longitude").toDouble());
+				requestCurrentWeather(coordinate);
 			}
-			qDebug() << documentObject.value("name").toString();
-			qDebug() << documentObject.value("country").toString();
-			qDebug() << documentObject.value("state").toString();
-			qDebug() << documentObject.value("latitude").toString();
-			const QGeoCoordinate coordinate(documentObject.value("latitude").toDouble(), documentObject.value("longitude").toDouble());
-			requestCurrentWeather(coordinate);
+			else
+			{
+				emit errorOccurred();
+				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
+			}
 		}
 		else
 		{
 			emit errorOccurred();
-			DEFINE_SOURCE_LOCATION
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
 		}
 	});
@@ -131,6 +159,7 @@ void OpenWeatherMapBackend::handleCurrentWeatherReply(QNetworkReply* reply, cons
 	if (!reply->error())
 	{
 		// extract info about current weather
+		qDebug() << reply->readAll();
 		const QJsonDocument& document{QJsonDocument::fromJson(reply->readAll())};
 		const QJsonObject& documentObject{document.object()};
 
@@ -259,11 +288,10 @@ void OpenWeatherMapBackend::requestCurrentWeather(const QGeoCoordinate coordinat
 {
 	QUrlQuery query;
 	QUrl url{u"http://api.openweathermap.org/data/3.0/onecall"_s};
-	qWarning() << QString::number(coordinate.latitude());
-	qWarning() << QString::number(coordinate.longitude());
 	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
 	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
-	query.addQueryItem(u"appid"_s, m_appId);
+	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
+	query.addQueryItem(u"exclude"_s, u"minutly,hourly,alerts"_s);
 	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
 	url.setQuery(query);
 
@@ -276,7 +304,7 @@ void OpenWeatherMapBackend::requestWeatherForecast(const st_LocationInfo &locati
 	QUrl url{u"http://api.openweathermap.org/data/3.0/forecast/daily"_s};
 	QUrlQuery query;
 	query.addQueryItem(u"mode"_s, u"json"_s);
-	query.addQueryItem(u"APPID"_s, m_appId);
+//	query.addQueryItem(u"APPID"_s, m_appId);
 	query.addQueryItem(u"q"_s, location.m_name);
 	query.addQueryItem(u"cnt"_s, u"4"_s);
 	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
