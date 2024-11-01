@@ -20,6 +20,204 @@ using namespace Qt::Literals::StringLiterals;
 
 static constexpr auto kZeroKelvin = 273.15;
 
+static const QString& key_today{"current"_L1};
+static const QString& key_forecast{"daily"_L1};
+static const QString& key_date{"dt"_L1};
+static const QString& key_sunrise{"sunrise"_L1};
+static const QString& key_sunset{"sunset"_L1};
+static const QString& key_temp{"temp"_L1};
+static const QString& key_tempfeel{"feels_like"_L1};
+static const QString& key_min{"min"_L1};
+static const QString& key_max{"max"_L1};
+static const QString& key_pressure{"pressure"_L1};
+static const QString& key_humidity{"humidity"_L1};
+static const QString& key_uv{"uvi"_L1};
+static const QString& key_wind{"wind_speed"_L1};
+static const QString& key_description{"description"_L1};
+static const QString& key_icon{"icon"_L1};
+
+static const QString& keys_current{"dt sunrise sunset temp feels_like pressure humidity uvi wind_speed description icon "_L1};
+static const QString& keys_daily{"dt sunrise sunset min max pressure humidity uvi wind_speed description icon "_L1};
+static const QString& weather_field{"weather"_L1};
+
+class parseOpenWeatherAPIResponse
+{
+
+public:
+	explicit parseOpenWeatherAPIResponse(const QByteArray& net_response);
+	inline const bool parsedOK() const { return m_bParsedOK; }
+	inline const uint forecastDays() const { return m_weatherData.count(); }
+
+	inline QString date(const uint day) const { return formatDate(m_weatherData.at(day).value(key_date)); }
+	inline QString sunrise(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunrise)) + u"h"_s; }
+	inline QString sunset(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunset))  + u"h"_s; }
+	inline QString temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_temp)); }
+	inline QString feel_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_tempfeel)); }
+	inline QString min_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_min)); }
+	inline QString max_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_max)); }
+	inline QString pressure(const uint day) const { return m_weatherData.at(day).value(key_pressure) + u"hPa"_s; }
+	inline QString humidity(const uint day) const { return m_weatherData.at(day).value(key_humidity) + u"%"_s; }
+	inline QString uv_index(const uint day) const { return u"UV "_s + formatUVI(m_weatherData.at(day).value(key_uv)); }
+	inline QString wind_speed(const uint day) const { return m_weatherData.at(day).value(key_date) + u"km/h"_s; }
+	inline QString weather_description(const uint day) const { return m_weatherData.at(day).value(key_description); }
+	inline QString weather_icon(const uint day) const { return weatherIconCodeToString(m_weatherData.at(day).value(key_icon)); }
+
+private:
+	bool m_bParsedOK;
+	QList<QMap<QString,QString>> m_weatherData;
+	const QString* m_usedKeys;
+
+	inline const bool isCurrentKey(const QString& word)
+	{
+		if (word == key_today)
+		{
+			m_usedKeys = &keys_current;
+			return true;
+		}
+		return false;
+	}
+
+	inline const bool isDailyKey(const QString& word)
+	{
+		if (m_usedKeys == &keys_daily)
+			return true; //once daily starts, it continues until the end
+		if (word == key_forecast)
+		{
+			m_usedKeys = &keys_daily;
+			return true;
+		}
+		return false;
+	}
+
+	inline const bool isKey(const QString& word) const
+	{
+		return m_usedKeys ? m_usedKeys->contains(word + ' ') : false;
+	}
+
+	inline const bool isWeatherSubField(const QString& word) const
+	{
+		return weather_field == word;
+	}
+
+	inline QString formatTemp(const QString& strTemp) const
+	{
+		return QString::number(qRound(strTemp.toDouble() - kZeroKelvin)) + u"°C"_s; //QChar(0xB0);
+	}
+
+	inline QString formatDate(const QString& strDate) const
+	{
+		const QDateTime& dt{QDateTime::fromSecsSinceEpoch(strDate.toUInt())};
+		return appUtils()->appLocale()->toString(dt, u"ddd d/M");
+	}
+
+	inline QString formatTime(const QString& strDate) const
+	{
+		const QDateTime& dt{QDateTime::fromSecsSinceEpoch(strDate.toUInt())};
+		return appUtils()->appLocale()->toString(dt, u"HH:mm:ss");
+	}
+
+	inline QString formatUVI(const QString& strUVI) const
+	{
+		QString ret{strUVI.right(2)};
+		if (ret.at(0) == '0')
+			ret.remove(0, 1);
+		return ret;
+	}
+
+	QString weatherIconCodeToString(const QString& iconcode) const;
+};
+
+parseOpenWeatherAPIResponse::parseOpenWeatherAPIResponse(const QByteArray& net_response)
+	: m_usedKeys(nullptr)
+{
+	if (!net_response.isEmpty())
+	{
+		QString word, key;
+		bool have_key(false), inside_field(false);
+		QByteArray::const_iterator itr(net_response.constBegin());
+		const QByteArray::const_iterator itr_end(net_response.constEnd());
+		do {
+			if (QChar::isLetterOrNumber(*itr))
+				word.append(*itr);
+			else
+			{
+				switch (*itr)
+				{
+					case '{':
+						inside_field = isCurrentKey(word) || isDailyKey(word) || isWeatherSubField(word);
+						word.clear();
+					break;
+					case ':':
+						if (inside_field && isKey(word))
+						{
+							if (word == u"dt"_s)
+							{
+								if (m_weatherData.count() < 5)
+								{
+									QMap<QString,QString> data;
+									m_weatherData.append(std::move(data));
+								}
+								else
+									return;
+							}
+							key = std::move(word);
+							have_key = true;
+							word.clear();
+						}
+					break;
+
+					case '-':
+					case '.':
+					case ' ':
+					case '_':
+						word.append(*itr);
+					break;
+					case ',':
+						if (have_key)
+						{
+							QMap<QString,QString>& parsedData = m_weatherData.last();
+							parsedData.insert(std::move(key), std::move(word));
+							have_key = false;
+						}
+						word.clear();
+					break;
+
+					default: continue;
+				}
+			}
+		} while (++itr != itr_end);
+	}
+	m_bParsedOK = m_weatherData.count() > 0;
+}
+
+/*
+	Converts weather code to a string that will be used to show the icon.
+	The possible strings are based on the icon names. The icon name is built up
+	as follows: weather-[mystring].svg
+	where [mystring] is the value returned by this method.
+*/
+QString parseOpenWeatherAPIResponse::weatherIconCodeToString(const QString& code) const
+{
+	if (code == u"01d"_s || code == u"01n"_s)
+		return u"sunny"_s;
+	else if (code == u"02d"_s || code == u"02n"_s)
+		return u"sunny-very-few-clouds"_s;
+	else if (code == u"03d"_s || code == u"03n"_s)
+		return u"few-clouds"_s;
+	else if (code == u"04d"_s || code == u"04n"_s)
+		return u"overcast"_s;
+	else if (code == u"09d"_s || code == u"09n"_s || code == u"10d"_s || code == u"10n"_s)
+		return u"showers"_s;
+	else if (code == u"11d"_s || code == u"11n"_s)
+		return u"thundershower"_s;
+	else if (code == u"13d"_s || code == u"13n"_s)
+		return u"snow"_s;
+	else if (code == u"50d"_s || code == u"50n"_s)
+		return u"fog"_s;
+
+	return u"sunny"_s; // default choice
+}
+
 static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
 {
 	QMap<QString,QString> parsedData;
@@ -44,7 +242,6 @@ static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
 				}
 				else if (*itr == ',')
 				{
-
 					parsedData.insert(key, word);
 					word.clear();
 				}
@@ -54,40 +251,6 @@ static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
 	return parsedData;
 }
 
-static QString niceTemperatureString(double t)
-{
-	return QString::number(qRound(t - kZeroKelvin)) + QChar(0xB0);
-}
-
-/*
-	Converts weather code to a string that will be used to show the icon.
-	The possible strings are based on the icon names. The icon name is built up
-	as follows:
-		weather-[mystring].svg
-	where [mystring] is the value returned by this method.
-*/
-static QString weatherCodeToString(const QString& code)
-{
-	if (code == u"01d" || code == u"01n")
-		return "sunny";
-	else if (code == u"02d" || code == u"02n")
-		return "sunny-very-few-clouds";
-	else if (code == u"03d" || code == u"03n")
-		return "few-clouds";
-	else if (code == u"04d" || code == u"04n")
-		return "overcast";
-	else if (code == u"09d" || code == u"09n" || code == u"10d" || code == u"10n")
-		return "showers";
-	else if (code == u"11d" || code == u"11n")
-		return "thundershower";
-	else if (code == u"13d" || code == u"13n")
-		return "snow";
-	else if (code == u"50d" || code == u"50n")
-		return "fog";
-
-	return "sunny"; // default choice
-}
-
 static void parseWeatherDescription(const QJsonObject& object, st_WeatherInfo& info)
 {
 	const QJsonArray& weatherArray{object.value(u"weather").toArray()};
@@ -95,7 +258,7 @@ static void parseWeatherDescription(const QJsonObject& object, st_WeatherInfo& i
 	{
 		const QJsonObject& obj{weatherArray.first().toObject()};
 		info.m_weatherDescription = std::move(obj.value(u"description").toString());
-		info.m_weatherIconId = std::move(weatherCodeToString(obj.value(u"icon").toString()));
+		//info.m_weatherIconId = std::move(weatherCodeToString(obj.value(u"icon").toString()));
 	}
 	else
 	{
@@ -173,8 +336,8 @@ void OpenWeatherMapBackend::handleCurrentWeatherReply(QNetworkReply* reply, cons
 
 		const QJsonObject& currentObject{documentObject.value(u"current").toObject()};
 		const QJsonValue& tempValue{currentObject.value(u"temp")};
-		if (tempValue.isDouble())
-			currentWeather.m_temperature = niceTemperatureString(tempValue.toDouble());
+		//if (tempValue.isDouble())
+		//	currentWeather.m_temperature = niceTemperatureString(tempValue.toDouble());
 		currentWeather.m_coordinates = '(' + QString::number(coordinate.latitude()) + ',' + QString::number(coordinate.longitude()) + ')';
 
 		parsed = !currentLocation.m_name.isEmpty() && !currentWeather.m_temperature.isEmpty();
@@ -205,9 +368,9 @@ void OpenWeatherMapBackend::handleCurrentWeatherReply(QNetworkReply* reply, cons
 				const QJsonObject& tempObject{dayObject.value(u"temp").toObject()};
 				const QJsonValue& minTemp{tempObject.value(u"min")};
 				const QJsonValue& maxTemp{tempObject.value(u"max")};
-				if (minTemp.isDouble() && maxTemp.isDouble())
-					info.m_temperature = std::move(niceTemperatureString(minTemp.toDouble()) + QChar('/') + niceTemperatureString(maxTemp.toDouble()));
-				else
+				//if (minTemp.isDouble() && maxTemp.isDouble())
+				//	info.m_temperature = std::move(niceTemperatureString(minTemp.toDouble()) + QChar('/') + niceTemperatureString(maxTemp.toDouble()));
+				//else
 				{
 					DEFINE_SOURCE_LOCATION
 					ERROR_MESSAGE("Failed to parse min or max temperature.", QString())
@@ -260,9 +423,9 @@ void OpenWeatherMapBackend::handleWeatherForecastReply(QNetworkReply* reply, con
 			const QJsonObject& tempObject{dayObject.value(u"temp").toObject()};
 			const QJsonValue& minTemp{tempObject.value(u"min")};
 			const QJsonValue& maxTemp{tempObject.value(u"max")};
-			if (minTemp.isDouble() && maxTemp.isDouble())
-				info.m_temperature = std::move(niceTemperatureString(minTemp.toDouble()) + QChar('/') + niceTemperatureString(maxTemp.toDouble()));
-			else
+			//if (minTemp.isDouble() && maxTemp.isDouble())
+			//	info.m_temperature = std::move(niceTemperatureString(minTemp.toDouble()) + QChar('/') + niceTemperatureString(maxTemp.toDouble()));
+			//else
 			{
 				DEFINE_SOURCE_LOCATION
 				ERROR_MESSAGE("Failed to parse min or max temperature.", QString())
@@ -291,7 +454,7 @@ void OpenWeatherMapBackend::requestCurrentWeather(const QGeoCoordinate coordinat
 	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
 	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
 	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
-	query.addQueryItem(u"exclude"_s, u"minutly,hourly,alerts"_s);
+	query.addQueryItem(u"exclude"_s, u"minutely,hourly,alerts"_s);
 	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
 	url.setQuery(query);
 

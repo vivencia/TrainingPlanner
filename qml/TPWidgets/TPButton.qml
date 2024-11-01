@@ -104,6 +104,7 @@ Rectangle {
 			if (imageSource.length > 0) {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
+					anchors.verticalCenterOffset = 5;
 					if (leftAlign) {
 						anchors.left = button.left;
 						anchors.leftMargin = 5;

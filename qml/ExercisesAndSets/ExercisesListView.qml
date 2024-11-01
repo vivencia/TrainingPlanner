@@ -152,6 +152,7 @@ Column {
 				text: index+1 + ":  " + mainName + "\n"+ subName
 				color: exercisesModel.currentRow === index ? appSettings.fontColor : "black"
 				font.pixelSize: appSettings.fontSize
+				fontSizeMode: Text.Fit
 				leftPadding: 5
 				rightPadding: 5
 				topPadding: -5
@@ -187,9 +188,9 @@ Column {
 				}
 
 				Label {
-					text: qsTr("Removing in " + seconds/1000 + "s")
+					text: qsTr("Removing in ") + parseInt(seconds/1000) + "s"
 					color: appSettings.fontColor
-					padding: 5
+					padding: 40
 					anchors.fill: parent
 					horizontalAlignment: Qt.AlignLeft
 					verticalAlignment: Qt.AlignVCenter

@@ -85,7 +85,7 @@ TPPage {
 				Layout.bottomMargin: 5
 				spacing: 0
 
-				readonly property int buttonWidth: Math.floor(exercisesPage.width/4)
+				readonly property int buttonWidth: Math.floor(appSettings.itemMaxWidth/4)
 
 				TPButton {
 					id: btnNewExercise
