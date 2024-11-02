@@ -5,6 +5,16 @@ import QtQuick
 
 QtObject {
 
+	function customFont(ffamily: int, fweight: int, fitalic: bool, fsize: int) {
+		return Qt.font({
+			family: Qt.fontFamilies()[ffamily],
+			weight: fweight,
+			italic: fitalic,
+			styleStrategy: Font.PreferAntialias,
+			pointSize: fsize
+		});
+	}
+
 	readonly property font regularFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Medium,

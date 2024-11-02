@@ -11,13 +11,14 @@ Item {
     property string bottomText: "22*/23*"
 
     implicitHeight: dayText.implicitHeight + width + tempText.implicitHeight + 20
+
     Text {
         id: dayText
         horizontalAlignment: Text.AlignHCenter
         width: parent.width
         text: top.topText
         color: "white"
-        font.pixelSize: 24
+        font.pixelSize: 16
 
         anchors.top: parent.top
         anchors.margins: 10
@@ -40,7 +41,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         width: top.width
         text: top.bottomText
-        font.pixelSize: 16
+        font.pixelSize: 18
 
         anchors.bottom: parent.bottom
         anchors.margins: 10

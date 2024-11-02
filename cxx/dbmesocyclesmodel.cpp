@@ -92,15 +92,15 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 	if (count() == 0)
 	{
 		minimumStartDate.setDate(2023, 1, 2); //first monday of that year
-		startdate = QDate::currentDate();
-		enddate = appUtils()->createFutureDate(startdate, 0, 2, 0);
+		startdate = std::move(QDate::currentDate());
+		enddate = std::move(appUtils()->createFutureDate(startdate, 0, 2, 0));
 	}
 	else
 	{
 		if (isRealMeso(count() - 1))
-			minimumStartDate = appUtils()->getMesoStartDate(getLastMesoEndDate());
+			minimumStartDate = std::move(appUtils()->getNextMonday(getLastMesoEndDate()));
 		else
-			minimumStartDate = QDate::currentDate();
+			minimumStartDate = std::move(QDate::currentDate());
 		startdate = minimumStartDate;
 		enddate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
 	}

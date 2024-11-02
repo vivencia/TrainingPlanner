@@ -40,7 +40,7 @@ Label {
 			_textWidth = AppGlobals.fontMetricsList.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsList.boundingRect("TP").height
 		}
-		else {
+		else if (font === AppGlobals.regularFont) {
 			_textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height
 		}

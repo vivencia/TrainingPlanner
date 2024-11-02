@@ -23,14 +23,13 @@ public:
 	void requestWeatherInfo(const QGeoCoordinate& coordinate) override;
 
 private slots:
-	void handleCurrentWeatherReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
-	void handleWeatherForecastReply(QNetworkReply* reply, const st_LocationInfo& location, const st_WeatherInfo& currentWeather);
+	void handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
 
 private:
-	void requestCurrentWeather(const QGeoCoordinate coordinate);
-	void requestWeatherForecast(const st_LocationInfo& location, const st_WeatherInfo& currentWeather);
+	void requestWeatherInfoFromNet(const QGeoCoordinate coordinate);
 
 	QNetworkAccessManager* m_networkManager;
+	QString m_locationName;
 };
 
 #endif // OPENWEATHERMAPBACKEND_H

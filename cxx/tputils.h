@@ -26,30 +26,27 @@ public:
 	inline QLocale* appLocale() const { return m_appLocale; }
 
 	Q_INVOKABLE QString formatDate(const QDate& date) const;
-	Q_INVOKABLE QString formatTodayDate() const;
+	QString formatTodayDate() const;
+
 	QDate getDateFromStrDate(const QString& strDate) const;
-	Q_INVOKABLE uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
-	Q_INVOKABLE QDate getMesoStartDate(const QDate& lastMesoEndDate) const;
-	Q_INVOKABLE QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
-	Q_INVOKABLE QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
-	Q_INVOKABLE bool areDatesTheSame(const QDate& date1, const QDate& date2) const { return date1 == date2; }
+	uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
+	QDate getNextMonday(const QDate& fromDate) const;
+	QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
+	QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
 
 	Q_INVOKABLE QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
 	{ return time.toString((use_hours ? u"hh:mm"_s : u"mm"_s) + (use_secs ? u":ss"_s : u""_s)); }
 	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
 					QTime::currentTime().toString(u"hh:mm"_s) : QTime::currentTime().toString(u"hh:mm:ss"_s); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
-	Q_INVOKABLE QString formatFutureTime(const uint hours, const uint mins) const { return addToTime(QTime::currentTime(), hours, mins); }
-	Q_INVOKABLE inline QString formatFutureTime(const QTime& addTime) const { return formatFutureTime(addTime.hour(), addTime.minute()); }
-	Q_INVOKABLE QString addToTime(const QString& origTime, const uint hours, const uint mins) const;
 	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString& strTime) const;
 	Q_INVOKABLE QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
 	Q_INVOKABLE QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
-	Q_INVOKABLE QTime timeFromStrTime(const QString& strTime) const { return QTime::fromString(strTime, u"hh:mm"_s); }
+	QTime timeFromStrTime(const QString& strTime) const { return QTime::fromString(strTime, u"hh:mm"_s); }
 	Q_INVOKABLE QTime getCurrentTime() const { return QTime::currentTime(); }
-	Q_INVOKABLE QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
-	Q_INVOKABLE QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
+	QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
+	QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
 	QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
 	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const;
@@ -74,12 +71,6 @@ private:
 	QString m_strLocale;
 
 	bool mb_appSuspended;
-
-	inline QString addToTime(const QTime& origTime, const uint hours, const uint mins) const
-	{
-		const QTime& newTime(origTime.addSecs(mins*60 + hours*3600));
-		return newTime.toString(u"hh:mm"_s);
-	}
 
 	static TPUtils* app_utils;
 	friend TPUtils* appUtils();

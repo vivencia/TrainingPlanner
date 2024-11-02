@@ -345,7 +345,7 @@ TPPage {
 	footer: ToolBar {
 		id: homePageToolBar
 		width: parent.width
-		height: 0.22*appSettings.pageHeight
+		height: 0.16*appSettings.pageHeight
 
 		background: Rectangle {
 			color: appSettings.primaryDarkColor

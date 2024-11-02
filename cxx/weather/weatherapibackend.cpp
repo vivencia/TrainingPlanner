@@ -148,6 +148,7 @@ void WeatherApiBackend::handleWeatherForecastReply(QNetworkReply* reply, const Q
 
 				const QDateTime& dt{QDateTime::fromSecsSinceEpoch(dayInfo.value(u"date_epoch").toInteger())};
 				info.m_dayOfWeek = std::move(dt.toString(u"ddd"));
+				info.m_provider_name = std::move(u"www.weatherapi.com"_s);
 
 				const QJsonObject& dayObject = dayInfo.value(u"day").toObject();
 				const QJsonValue& minTemp{dayObject.value(u"mintemp_c")};

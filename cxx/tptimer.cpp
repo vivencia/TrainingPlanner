@@ -40,9 +40,9 @@ void TPTimer::startTimer(const QString& initialTimeOfDay)
 		m_elapsedTime.setHMS(0, 0, 0);
 		m_initialTime.setHMS(m_hours, m_minutes, m_seconds);
 		if (initialTimeOfDay.contains('-'))
-			m_timeOfDay = QTime::currentTime();
+			m_timeOfDay = std::move(QTime::currentTime());
 		else
-			m_timeOfDay = appUtils()->timeFromStrTime(initialTimeOfDay);
+			m_timeOfDay = std::move(appUtils()->timeFromStrTime(initialTimeOfDay));
 	}
 	else
 	{

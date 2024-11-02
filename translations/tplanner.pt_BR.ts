@@ -4,37 +4,37 @@
 <context>
     <name>AppGlobals</name>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="65"/>
+        <location filename="../qml/AppGlobals.qml" line="75"/>
         <source>Regular</source>
         <translation>Normal</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="66"/>
+        <location filename="../qml/AppGlobals.qml" line="76"/>
         <source>Pyramid</source>
         <translation>Pirâmide</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="67"/>
+        <location filename="../qml/AppGlobals.qml" line="77"/>
         <source>Drop Set</source>
         <translation>Drop Set</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="68"/>
+        <location filename="../qml/AppGlobals.qml" line="78"/>
         <source>Cluster Set</source>
         <translation>Cluster Set</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="69"/>
+        <location filename="../qml/AppGlobals.qml" line="79"/>
         <source>Giant Set</source>
         <translation>Bi-Set</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="70"/>
+        <location filename="../qml/AppGlobals.qml" line="80"/>
         <source>Myo Reps</source>
         <translation>Myo Reps</translation>
     </message>
     <message>
-        <location filename="../qml/AppGlobals.qml" line="71"/>
+        <location filename="../qml/AppGlobals.qml" line="81"/>
         <source>Inverted Pyramid</source>
         <translation>Pirâmide invertida</translation>
     </message>
@@ -111,32 +111,32 @@
 <context>
     <name>DBExercisesModel</name>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="38"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="44"/>
         <source>Exercise: </source>
         <translation>Exercício: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="39"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="45"/>
         <source>Specifics: </source>
         <translation>Detalhes: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="40"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="46"/>
         <source>Muscular Group: </source>
         <translation>Grupo muscular: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="41"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="47"/>
         <source>Sets: </source>
         <translation>Séries: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="43"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="49"/>
         <source>Weight: </source>
         <translation>Peso: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="42"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="48"/>
         <source>Reps: </source>
         <translation>Repetições: </translation>
     </message>
@@ -146,7 +146,7 @@
         <translation>Lista de Exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/dbexercisesmodel.cpp" line="45"/>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="50"/>
         <source>Descriptive media: </source>
         <translation>Mídia de exemplo: </translation>
     </message>
@@ -307,85 +307,85 @@
 <context>
     <name>DBMesocyclesModel</name>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="35"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="51"/>
         <source>Start date: </source>
         <translation>Início: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="36"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="52"/>
         <source>End date: </source>
         <translation>Término: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="34"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="50"/>
         <source>Plan&apos;s name: </source>
         <translation>Nome do plano: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="22"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="26"/>
         <source>Training Plan</source>
         <translation>Plano de Treinamento</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="37"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="53"/>
         <source>Plan&apos;s considerations: </source>
         <translation>Considerações sobre o plano: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="38"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="54"/>
         <source>Number of weeks: </source>
         <translation>Número de semanas: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="39"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="55"/>
         <source>Weekly Training Division: </source>
         <translation>Divisão Semanal dos Treinos: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="43"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="57"/>
         <source>Mesocycle-style plan: </source>
         <translation>Plano tipo Mesociclo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="74"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="109"/>
         <source>New Plan</source>
-        <translation>Novo PLano</translation>
+        <translation>Novo Plano</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="388"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="394"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="428"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="434"/>
         <source>Client: </source>
         <translation>Cliente: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="391"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="395"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="431"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="435"/>
         <source>Coach/Trainer: </source>
         <translation>Coach/Treinador: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="497"/>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="514"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="537"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="554"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="497"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="537"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="510"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="550"/>
         <source>Coach</source>
         <translation>Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="512"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="552"/>
         <source>Client</source>
         <translation>Cliente</translation>
     </message>
     <message>
-        <location filename="../cxx/dbmesocyclesmodel.cpp" line="42"/>
+        <location filename="../cxx/dbmesocyclesmodel.cpp" line="56"/>
         <source>Type: </source>
         <translation>Tipo: </translation>
     </message>
@@ -503,68 +503,76 @@
 <context>
     <name>DBUserModel</name>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="20"/>
+        <location filename="../cxx/dbusermodel.cpp" line="21"/>
+        <location filename="../cxx/dbusermodel.cpp" line="36"/>
         <source>Name: </source>
         <translation>Nome: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="21"/>
+        <location filename="../cxx/dbusermodel.cpp" line="22"/>
+        <location filename="../cxx/dbusermodel.cpp" line="37"/>
         <source>Birthday: </source>
         <translation>Aniversário: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="22"/>
+        <location filename="../cxx/dbusermodel.cpp" line="23"/>
+        <location filename="../cxx/dbusermodel.cpp" line="38"/>
         <source>Sex: </source>
         <translation>Sexo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="23"/>
+        <location filename="../cxx/dbusermodel.cpp" line="24"/>
+        <location filename="../cxx/dbusermodel.cpp" line="39"/>
         <source>Phone: </source>
         <translation>Cel: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="26"/>
+        <location filename="../cxx/dbusermodel.cpp" line="27"/>
+        <location filename="../cxx/dbusermodel.cpp" line="41"/>
         <source>Your are: </source>
         <translation>Você é: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="270"/>
-        <location filename="../cxx/dbusermodel.cpp" line="292"/>
+        <location filename="../cxx/dbusermodel.cpp" line="277"/>
+        <location filename="../cxx/dbusermodel.cpp" line="299"/>
         <source>Male</source>
         <translation>Homen</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="270"/>
+        <location filename="../cxx/dbusermodel.cpp" line="277"/>
         <source>Female</source>
         <translation>Mulher</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="25"/>
+        <location filename="../cxx/dbusermodel.cpp" line="26"/>
+        <location filename="../cxx/dbusermodel.cpp" line="40"/>
         <source>Social Media: </source>
         <translation>Media Social: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="16"/>
+        <location filename="../cxx/dbusermodel.cpp" line="17"/>
         <source>Coach information</source>
         <translation>Informações do Treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="27"/>
+        <location filename="../cxx/dbusermodel.cpp" line="28"/>
+        <location filename="../cxx/dbusermodel.cpp" line="42"/>
         <source>Professional job: </source>
         <translation>Profissão: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.cpp" line="28"/>
+        <location filename="../cxx/dbusermodel.cpp" line="29"/>
+        <location filename="../cxx/dbusermodel.cpp" line="43"/>
         <source>Goal: </source>
         <translation>Objetivo: </translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="164"/>
+        <location filename="../cxx/dbusermodel.h" line="184"/>
         <source>(Select coach ...)</source>
         <translation>(Selecionar treinador ...)</translation>
     </message>
     <message>
-        <location filename="../cxx/dbusermodel.h" line="177"/>
+        <location filename="../cxx/dbusermodel.h" line="197"/>
         <source>(Select client ...)</source>
         <translation>(Selecionar cliente ...)</translation>
     </message>
@@ -707,6 +715,11 @@
         <source>Multiple selection</source>
         <translation>Selecionar vários</translation>
     </message>
+    <message>
+        <location filename="../qml/ExercisesAndSets/ExercisesListView.qml" line="191"/>
+        <source>Removing in </source>
+        <translation>Removendo em </translation>
+    </message>
 </context>
 <context>
     <name>ExercisesPage</name>
@@ -744,57 +757,57 @@
         <translation>Detalhes do exercício:</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="356"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="355"/>
         <source>Choose media</source>
         <translation>Escolher mídia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="366"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="365"/>
         <source>Please choose a media file</source>
         <translation>Por favor, escolha um arquivo de mídia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="367"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="366"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="367"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="366"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="443"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="442"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="444"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="443"/>
         <source>Export</source>
         <translation>Exportar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="446"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="445"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="462"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="461"/>
         <source>Share custom exercises?</source>
         <translation>Compartilhar exercícios novos?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="462"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="461"/>
         <source>Export custom exercises to file?</source>
         <translation>Exportar exercícios novos para um arquivo?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="464"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="463"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="465"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="464"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -873,7 +886,7 @@
 <context>
     <name>HomePage</name>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="350"/>
+        <location filename="../qml/Pages/HomePage.qml" line="357"/>
         <source>New Training Plan</source>
         <translation>Novo programa de treinamento</translation>
     </message>
@@ -883,65 +896,65 @@
         <translation>Organizador de Treinos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="110"/>
+        <location filename="../qml/Pages/HomePage.qml" line="112"/>
         <source>View Plan</source>
         <translation>Ver plano</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="133"/>
+        <location filename="../qml/Pages/HomePage.qml" line="136"/>
         <source>Calendar</source>
         <translation>Calendário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="185"/>
-        <location filename="../qml/Pages/HomePage.qml" line="405"/>
+        <location filename="../qml/Pages/HomePage.qml" line="184"/>
+        <location filename="../qml/Pages/HomePage.qml" line="410"/>
         <source>Export</source>
         <translation>Exportar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="366"/>
+        <location filename="../qml/Pages/HomePage.qml" line="373"/>
         <source>Import plan from file</source>
         <translation>Importar plano de um arquivo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="414"/>
+        <location filename="../qml/Pages/HomePage.qml" line="419"/>
         <source>Share complete plan?</source>
         <translation>Compartilhar plano completo?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="414"/>
+        <location filename="../qml/Pages/HomePage.qml" line="419"/>
         <source>Export complete plan to file?</source>
         <translation>Exportar plano completo para um arquivo?</translation>
     </message>
     <message>
         <location filename="../qml/Pages/HomePage.qml" line="257"/>
-        <location filename="../qml/Pages/HomePage.qml" line="417"/>
+        <location filename="../qml/Pages/HomePage.qml" line="422"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="162"/>
+        <location filename="../qml/Pages/HomePage.qml" line="160"/>
         <source>Exercises Table</source>
         <translation>Tabela de Exercícios</translation>
     </message>
     <message>
         <location filename="../qml/Pages/HomePage.qml" line="258"/>
-        <location filename="../qml/Pages/HomePage.qml" line="418"/>
+        <location filename="../qml/Pages/HomePage.qml" line="423"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="383"/>
+        <location filename="../qml/Pages/HomePage.qml" line="389"/>
         <source>Today&apos;s workout</source>
         <translation>Treino de hoje</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="406"/>
+        <location filename="../qml/Pages/HomePage.qml" line="411"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/HomePage.qml" line="415"/>
+        <location filename="../qml/Pages/HomePage.qml" line="420"/>
         <source>Include Coach data?</source>
         <translation>Incluir dados do treinador?</translation>
     </message>
@@ -964,17 +977,17 @@
 <context>
     <name>ImportDialog</name>
     <message>
-        <location filename="../qml/Dialogs/ImportDialog.qml" line="41"/>
+        <location filename="../qml/Dialogs/ImportDialog.qml" line="40"/>
         <source>Try to import?</source>
         <translation>Tentar importar?</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/ImportDialog.qml" line="118"/>
+        <location filename="../qml/Dialogs/ImportDialog.qml" line="117"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/ImportDialog.qml" line="130"/>
+        <location filename="../qml/Dialogs/ImportDialog.qml" line="129"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
@@ -987,12 +1000,12 @@
         <translation>Sair</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="138"/>
+        <location filename="../qml/Dialogs/MainMenu.qml" line="140"/>
         <source>Exercises Database</source>
         <translation>Lista de Exercícios</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/MainMenu.qml" line="158"/>
+        <location filename="../qml/Dialogs/MainMenu.qml" line="160"/>
         <source>Settings</source>
         <translation>Configurações</translation>
     </message>
@@ -1005,72 +1018,72 @@
         <translation>desde  &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="50"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="49"/>
         <source>&lt;/b&gt;  through  &lt;b&gt;</source>
         <translation>&lt;/b&gt;  até  &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="82"/>
         <source>January</source>
         <translation>Janeiro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="82"/>
         <source>February</source>
         <translation>Fevereiro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="82"/>
         <source>March</source>
         <translation>Março</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="82"/>
         <source>April</source>
         <translation>Abril</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
         <source>May</source>
         <translation>Maio</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
         <source>June</source>
         <translation>Junho</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
         <source>July</source>
         <translation>Julho</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="83"/>
         <source>August</source>
         <translation>Agosto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="85"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
         <source>September</source>
         <translation>Setembro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="85"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
         <source>October</source>
         <translation>Outubro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="85"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
         <source>November</source>
         <translation>Novembro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="85"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="84"/>
         <source>December</source>
         <translation>Dezembro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCalendar.qml" line="257"/>
+        <location filename="../qml/Pages/MesoCalendar.qml" line="256"/>
         <source>Workout</source>
         <translation>Treino</translation>
     </message>
@@ -1078,97 +1091,97 @@
 <context>
     <name>MesoCycle</name>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="33"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="34"/>
         <source>Calendar</source>
         <translation>Calendário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="69"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="133"/>
         <source>Name too short</source>
         <translation>Nome muito curto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="131"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="187"/>
         <source>This plan is for myself</source>
         <translation>Este plano é para mim mesmo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="206"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="258"/>
         <source>Weigth Loss</source>
         <translation>Perder Peso</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="207"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="259"/>
         <source>Muscle Gain</source>
         <translation>Ganhar Músculo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="208"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="260"/>
         <source>Bulking</source>
         <translation>Bulking</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="209"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="261"/>
         <source>Pre-contest</source>
         <translation>Pre-contest</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="210"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="262"/>
         <source>Strength Build-up</source>
         <translation>Ganhar força</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="211"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="263"/>
         <source>Recovery</source>
         <translation>Recuperar-se</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="212"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="264"/>
         <source>Other</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="232"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="282"/>
         <source>Instructions file</source>
         <translation>Arquivo de instruções</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="260"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="307"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation>Escolha o arquivo de instruções para este mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="261"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="308"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="261"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="308"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="315"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="385"/>
         <source>Mesocycle-style plan</source>
         <translation>Plano estilo mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="320"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="389"/>
         <source>A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight</source>
         <translation>Um mesociclo é um plano de curto prazo, com datas de início e término definidas e um objetivo bem definido</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="429"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="526"/>
         <source>Adjust meso calendar?</source>
         <translation>Ajustar calendário do programa?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="430"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="527"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoCycle.qml" line="430"/>
+        <location filename="../qml/Pages/MesoCycle.qml" line="527"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -1249,22 +1262,22 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>MesoSplitSetup</name>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="37"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="40"/>
         <source>On any training program, there should be at least one rest day(R) per week</source>
         <translation>Em qualquer programa de treinamento, deve haver, pelo menos, um dia de recesso(R) por semana</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="69"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="72"/>
         <source>Day </source>
         <translation>Dia </translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="130"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="134"/>
         <source>Accept changes</source>
         <translation>Aceitar mudanças</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="145"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="161"/>
         <source>Exercises Planner</source>
         <translation>Programa de Exercícios</translation>
     </message>
@@ -1272,32 +1285,32 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>OSInterface</name>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="164"/>
+        <location filename="../cxx/osinterface.cpp" line="187"/>
         <source>Your training routine seems to go well. Workout for the day is concluded</source>
         <translation>Seu programa de treino está indo bem. Treino do dia concluído</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="166"/>
+        <location filename="../cxx/osinterface.cpp" line="189"/>
         <source>Today is training day. Start your workout number </source>
         <translation>Hoje é dia de treino. Comece seu treino número </translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="166"/>
+        <location filename="../cxx/osinterface.cpp" line="189"/>
         <source> division: </source>
         <translation> divisão: </translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="169"/>
+        <location filename="../cxx/osinterface.cpp" line="192"/>
         <source>Enjoy your day of rest from workouts!</source>
         <translation>Aproveite seu dia de dancanso dos treinos!</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="299"/>
+        <location filename="../cxx/osinterface.cpp" line="322"/>
         <source>Send file</source>
         <translation>Enviar arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/osinterface.cpp" line="374"/>
+        <location filename="../cxx/osinterface.cpp" line="397"/>
         <source>View file with...</source>
         <translation>Visualizar arquivo com...</translation>
     </message>
@@ -1305,12 +1318,12 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QMLMesoInterface</name>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="413"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="423"/>
         <source> - TP Complete Meso.txt</source>
         <translation> - TP Mesociclo Completo.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesointerface.cpp" line="466"/>
+        <location filename="../cxx/qmlmesointerface.cpp" line="506"/>
         <source>Rest day</source>
         <translation>Recesso</translation>
     </message>
@@ -1318,12 +1331,12 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QmlExerciseEntry</name>
     <message>
-        <location filename="../cxx/qmlexerciseentry.cpp" line="573"/>
+        <location filename="../cxx/qmlexerciseentry.cpp" line="578"/>
         <source>Cannot start timer!</source>
         <translation>Não é possível iniciar o temporizador!</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlexerciseentry.cpp" line="573"/>
+        <location filename="../cxx/qmlexerciseentry.cpp" line="578"/>
         <source>Another set is using it</source>
         <translation>Outra série em andamento</translation>
     </message>
@@ -1331,7 +1344,7 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QmlExercisesDatabaseInterface</name>
     <message>
-        <location filename="../cxx/qmlexercisesdatabaseinterface.cpp" line="29"/>
+        <location filename="../cxx/qmlexercisesdatabaseinterface.cpp" line="40"/>
         <source>TrainingPlanner Exercises List.txt</source>
         <translation>Lista de exercícios do app TrainingPlanner.txt</translation>
     </message>
@@ -1339,132 +1352,132 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QmlItemManager</name>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="353"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="359"/>
         <source>Succesfully exported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="357"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="363"/>
         <source>Succesfully shared</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="361"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="367"/>
         <source>Successfully imported</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="365"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="371"/>
         <source>Failed to open file</source>
         <translation>Falha ao abrir o arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="369"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="373"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="409"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="375"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="379"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="415"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="370"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="376"/>
         <source>File type not recognized</source>
         <translation>Tipo de arquivo não reconhecido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="374"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="380"/>
         <source>File is formatted wrongly or is corrupted</source>
         <translation>Formato desconhecido ou arquivo corrompido</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="377"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="383"/>
         <source>Nothing to be done</source>
         <translation>Nada a ser feito</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="378"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="384"/>
         <source>File had already been imported</source>
         <translation>Arquivo já havia sido importado antes</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="381"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="387"/>
         <source>No program to import into</source>
         <translation>Nenhum programa de treinos para importar os dados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="382"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="388"/>
         <source>Either create a new training plan or import from a complete program file</source>
         <translation>Crie um novo programa ou importe um programa completo de um arquivo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="385"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="391"/>
         <source>Nothing to export</source>
         <translation>Nada para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="386"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="392"/>
         <source>Only exercises that do not come by default with the app can be exported</source>
         <translation>Somente exercícios adicionados - que não vieram pré incluídos no programa - podem ser exportados ou compartilhados</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="389"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="395"/>
         <source>Sharing failed</source>
         <translation>Falha ao compartilhar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="393"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="399"/>
         <source>Export failed</source>
         <translation>Falha ao exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="394"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="398"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="400"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="404"/>
         <source>Operation canceled</source>
         <translation>Operação cancelada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="397"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="403"/>
         <source>Import failed</source>
         <translation>Falha ao importar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="401"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="407"/>
         <source>Could not open file for exporting</source>
         <translation>Não foi possível abrir arquivo para exportar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="405"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="411"/>
         <source>Cannot import</source>
         <translation>Não pode importar</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="406"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="412"/>
         <source>Contents of the file are incompatible with the requested operation</source>
         <translation>Conteúdo do arquivo é imcompativel com a operação requisitada</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="410"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="416"/>
         <source>Something went wrong</source>
         <translation>Algo deu errado</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="157"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="170"/>
         <source>Complete Training Plan</source>
         <translation>Programa de Treinamento Completo</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="159"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="172"/>
         <source>Coach information</source>
         <translation>Informações sobre o treinador</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="161"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="166"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="174"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="179"/>
         <source>Exercises Program</source>
         <translation>Programa de exercícios</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlitemmanager.cpp" line="168"/>
-        <location filename="../cxx/qmlitemmanager.cpp" line="170"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="181"/>
+        <location filename="../cxx/qmlitemmanager.cpp" line="183"/>
         <source>Exercises database update</source>
         <translation>Atualização para a lista de exercícios</translation>
     </message>
@@ -1473,7 +1486,7 @@ Esta ação não pode ser desfeita.</translation>
     <name>QmlMesoCalendarInterface</name>
     <message>
         <location filename="../cxx/qmlmesocalendarinterface.cpp" line="28"/>
-        <location filename="../cxx/qmlmesocalendarinterface.cpp" line="61"/>
+        <location filename="../cxx/qmlmesocalendarinterface.cpp" line="64"/>
         <source>Calendar: </source>
         <translation>Calendário: </translation>
     </message>
@@ -1481,23 +1494,23 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QmlMesoSplitInterface</name>
     <message>
-        <location filename="../cxx/qmlmesosplitinterface.cpp" line="75"/>
-        <location filename="../cxx/qmlmesosplitinterface.cpp" line="239"/>
+        <location filename="../cxx/qmlmesosplitinterface.cpp" line="76"/>
+        <location filename="../cxx/qmlmesosplitinterface.cpp" line="201"/>
         <source>Exercises Planner: </source>
         <translation>Programa de Exercícios: </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesosplitinterface.cpp" line="127"/>
+        <location filename="../cxx/qmlmesosplitinterface.cpp" line="113"/>
         <source> - Exercises Plan.txt</source>
         <translation> - Plano de Exercícios.txt</translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesosplitinterface.cpp" line="132"/>
+        <location filename="../cxx/qmlmesosplitinterface.cpp" line="118"/>
         <source> - Exercises Plan - Split </source>
         <translation> - Plano de exercícios - Divisão </translation>
     </message>
     <message>
-        <location filename="../cxx/qmlmesosplitinterface.cpp" line="271"/>
+        <location filename="../cxx/qmlmesosplitinterface.cpp" line="247"/>
         <source>Choose exercise...</source>
         <translation>Escolher exercício...</translation>
     </message>
@@ -1528,23 +1541,23 @@ Esta ação não pode ser desfeita.</translation>
 <context>
     <name>QmlTDayInterface</name>
     <message>
-        <location filename="../cxx/qmltdayinterface.cpp" line="99"/>
+        <location filename="../cxx/qmltdayinterface.cpp" line="89"/>
         <source>Workout number: &lt;b&gt;</source>
         <translation>Treino número: &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../cxx/qmltdayinterface.cpp" line="103"/>
+        <location filename="../cxx/qmltdayinterface.cpp" line="93"/>
         <source>Rest day</source>
         <translation>Recesso</translation>
     </message>
     <message>
-        <location filename="../cxx/qmltdayinterface.cpp" line="215"/>
+        <location filename="../cxx/qmltdayinterface.cpp" line="214"/>
         <location filename="../cxx/qmltdayinterface.cpp" line="466"/>
         <source>Workout: </source>
         <translation>Treino: </translation>
     </message>
     <message>
-        <location filename="../cxx/qmltdayinterface.cpp" line="293"/>
+        <location filename="../cxx/qmltdayinterface.cpp" line="290"/>
         <source> - Workout </source>
         <translation> - Treino </translation>
     </message>
@@ -2178,12 +2191,12 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Configurações do usuário</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/UserPage.qml" line="88"/>
+        <location filename="../qml/Pages/UserPage.qml" line="89"/>
         <source>Manage coach(es)/trainer(s)</source>
         <translation>Gerenciar coach(s)/treinador(es)</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/UserPage.qml" line="102"/>
+        <location filename="../qml/Pages/UserPage.qml" line="103"/>
         <source>Manage clients</source>
         <translation>Gerenciar clientes</translation>
     </message>
@@ -2310,14 +2323,80 @@ Vamos iniciar criando seu perfil de usuário.</translation>
     </message>
 </context>
 <context>
+    <name>WeatherData</name>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="25"/>
+        <source> (Feels: </source>
+        <translation> (Sensação: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="27"/>
+        <source>Weather now(</source>
+        <translation>Tempo agora(</translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="29"/>
+        <source>Humidity: </source>
+        <translation>Umidate: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="29"/>
+        <source>Pressure: </source>
+        <translation>Pressão: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="30"/>
+        <source>UV Index: </source>
+        <translation>Índice UV: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="30"/>
+        <source>Wind speed: </source>
+        <translation>Velocidade do vento: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="31"/>
+        <source>Sun rise: </source>
+        <translation>Nascer do sol: </translation>
+    </message>
+    <message>
+        <location filename="../cxx/weather/weatherinfo.cpp" line="31"/>
+        <source>Sun set: </source>
+        <translation>Pôr-do-sol: </translation>
+    </message>
+</context>
+<context>
+    <name>WeatherPage</name>
+    <message>
+        <location filename="../qml/Pages/WeatherPage.qml" line="137"/>
+        <source>Unknown location</source>
+        <translation>Localização desconhecida</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/WeatherPage.qml" line="138"/>
+        <source>Cannot use GPS on this device</source>
+        <translation>Não é possível utilizar GPS neste dispositivo</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/WeatherPage.qml" line="209"/>
+        <source>Search city:</source>
+        <translation>Procurar cidade:</translation>
+    </message>
+    <message>
+        <location filename="../qml/Pages/WeatherPage.qml" line="240"/>
+        <source>No weather data</source>
+        <translation>Sem informações sobre o tempo</translation>
+    </message>
+</context>
+<context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="129"/>
+        <location filename="../qml/main.qml" line="128"/>
         <source>Proceed with action?</source>
         <translation>Proceder com a acção?</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="207"/>
+        <location filename="../qml/main.qml" line="206"/>
         <source>Text copied to the clipboard</source>
         <translation>Texto copiado para a área de transferência</translation>
     </message>

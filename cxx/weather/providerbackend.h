@@ -15,9 +15,15 @@ struct st_WeatherInfo
 	QString m_weatherDescription;
 	QString m_temperature;
 	QString m_temperature_feel;
+	QString m_temp_max;
+	QString m_temp_min;
 	QString m_humidity;
 	QString m_pressure;
 	QString m_wind;
+	QString m_uvi;
+	QString m_sunrise;
+	QString m_sunset;
+	QString m_provider_name;
 };
 
 struct st_LocationInfo

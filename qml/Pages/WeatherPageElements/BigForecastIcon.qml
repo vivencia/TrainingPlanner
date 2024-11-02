@@ -11,18 +11,20 @@ Item {
 	id: current
 
 	property string topText: "20*"
-	property string bottomText: "Mostly cloudy"
 	property string weatherIcon: "sunny"
+	property string bottomText: "Mostly cloudy"
+	property string bottomBottomText: "Mostly cloudy"
+
 	property real smallSide: (current.width < current.height ? current.width : current.height)
 
 	TPLabel {
 		id: text1
 		text: current.topText
-		font: AppGlobals.titleFont
-		singleLine: true
+		singleLine: false
 		fontColor: "white"
-		width: appSettings.pageWidth
+		font: AppGlobals.titleFont
 		horizontalAlignment: Text.AlignHCenter
+		width: appSettings.pageWidth
 
 		anchors.top: parent.top
 		anchors.horizontalCenter: parent.horizontalCenter
@@ -43,25 +45,60 @@ Item {
 		weatherIcon: current.weatherIcon
 		width: current.smallSide * 0.5
 		height: current.smallSide * 0.5
-		anchors.top: text1.bottom
-		anchors.topMargin: 5
-		anchors.horizontalCenter: parent.horizontalCenter
+
+		anchors {
+			top: text1.bottom
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
 	}
 
 	TPLabel {
 		id: text2
 		text: current.bottomText
-		font: AppGlobals.titleFont
-		horizontalAlignment: Text.AlignHCenter
 		fontColor: "white"
-		anchors.top: img.bottom
-		anchors.topMargin: 5
-		anchors.horizontalCenter: parent.horizontalCenter
+		font: AppGlobals.regularFont
+		horizontalAlignment: Text.AlignHCenter
+		width: appSettings.pageWidth
+
+		anchors {
+			top: img.bottom
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
 	}
 
 	MultiEffect {
 		source: text2
 		anchors.fill: text2
+		shadowEnabled: true
+		shadowBlur: 0.5
+		shadowHorizontalOffset: 0
+		shadowVerticalOffset: 2
+		shadowOpacity: 0.6
+	}
+
+	TPLabel {
+		id: text3
+		text: current.bottomBottomText
+		font: AppGlobals.customFont(0, Font.bold, false, 16)
+		_textWidth: appSettings.pageWidth - 20
+		_textHeight: 15
+		leftPadding: 10
+		fontColor: "white"
+		singleLine: false
+		width: appSettings.pageWidth
+
+		anchors {
+			top: text2.bottom
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
+	}
+
+	MultiEffect {
+		source: text3
+		anchors.fill: text3
 		shadowEnabled: true
 		shadowBlur: 0.5
 		shadowHorizontalOffset: 0

@@ -182,6 +182,7 @@ void OpenMeteoBackend::handleWeatherForecastReply(QNetworkReply* reply, const st
 		if (!currentWeather.m_temperature.isEmpty() && !currentWeather.m_weatherIconId.isEmpty()
 				&& !currentWeather.m_weatherDescription.isEmpty())
 			weatherData.append(currentWeather);
+		currentWeather.m_provider_name = std::move(u"www.open-meteo.com"_s);
 
 		// daily weather
 		const QJsonObject& dailyData{documentObject.value("daily"_L1).toObject()};

@@ -220,10 +220,12 @@ TPPage {
 			id: current
 			Layout.fillWidth: true
 			Layout.fillHeight: true
+			Layout.alignment: Qt.AlignHCenter
 
 			topText: weatherInfo.hasValidWeather ? (weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature) : "??"
 			weatherIcon: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny"
 			bottomText: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherDescription : qsTr("No weather data")
+			bottomBottomText: weatherInfo.hasValidWeather ? weatherInfo.weather.extraInfo : ""
 		}
 
 		Item {
@@ -233,9 +235,11 @@ TPPage {
 
 			Rectangle {
 				id: forecastFrame
-				anchors.fill: parent
 				color: "#3F000000"
 				radius: 40
+				opacity: 0.15
+				anchors.fill: parent
+				visible: false
 
 				Row {
 					id: iconRow
@@ -246,19 +250,31 @@ TPPage {
 
 					Repeater {
 						model: weatherInfo.forecast
+
 						ForecastIcon {
 							required property string dayOfWeek
-							required property string temperature
+							required property string minMaxTemperatures
 							required property string weatherIcon
-							id: forecast1
+
 							width: iconRow.iconWidth
 							topText: (weatherInfo.hasValidWeather ? dayOfWeek : "??")
-							bottomText: (weatherInfo.hasValidWeather ? temperature : ("??" + "/??"))
 							middleIcon: (weatherInfo.hasValidWeather ? weatherIcon : "sunny")
+							bottomText: (weatherInfo.hasValidWeather ? minMaxTemperatures : ("??/??"))
 						}
 					}
 				}
-				visible: false
+
+				Label {
+					text: weatherInfo.weather.provider
+					color: "#ffffff"
+					font: AppGlobals.listFont
+
+					anchors {
+						bottom: parent.bottom
+						horizontalCenter: parent.horizontalCenter
+					}
+	}
+
 			} //Rectangle forecastFrame
 			MultiEffect {
 				source: forecastFrame

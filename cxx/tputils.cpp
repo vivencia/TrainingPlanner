@@ -123,11 +123,10 @@ uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) con
 	return n+1; //+1 include current week
 }
 
-QDate TPUtils::getMesoStartDate(const QDate& lastMesoEndDate) const
+QDate TPUtils::getNextMonday(const QDate& fromDate) const
 {
-	const uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
-	const QDate& date(lastMesoEndDate);
-	return date.addDays(daysToNextMonday[date.dayOfWeek()-1]);
+	constexpr uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
+	return fromDate.addDays(daysToNextMonday[fromDate.dayOfWeek()-1]);
 }
 
 QDate TPUtils::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const
@@ -168,12 +167,6 @@ QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, con
 	const QString& ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
 		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs)));
 	return ret;
-}
-
-QString TPUtils::addToTime(const QString& origTime, const uint hours, const uint mins) const
-{
-	const QTime time(origTime.first(2).toUInt(), origTime.last(2).toUInt());
-	return addToTime(time, hours, mins);
 }
 
 QString TPUtils::getHourOrMinutesFromStrTime(const QString& strTime) const

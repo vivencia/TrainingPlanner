@@ -10,34 +10,35 @@
 #include <QtQml/qqml.h>
 #include <QtQml/qqmllist.h>
 
-class WeatherData : public QObject
+class	WeatherData : public QObject
 {
 
 Q_OBJECT
 
-Q_PROPERTY(QString coordinates READ coordinates WRITE setCoordinates NOTIFY dataChanged)
-Q_PROPERTY(QString dayOfWeek READ dayOfWeek WRITE setDayOfWeek NOTIFY dataChanged)
-Q_PROPERTY(QString weatherIcon READ weatherIcon WRITE setWeatherIcon NOTIFY dataChanged)
-Q_PROPERTY(QString weatherDescription READ weatherDescription WRITE setWeatherDescription NOTIFY dataChanged)
-Q_PROPERTY(QString temperature READ temperature WRITE setTemperature NOTIFY dataChanged)
+Q_PROPERTY(QString coordinates READ coordinates NOTIFY dataChanged)
+Q_PROPERTY(QString dayOfWeek READ dayOfWeek NOTIFY dataChanged)
+Q_PROPERTY(QString weatherIcon READ weatherIcon NOTIFY dataChanged)
+Q_PROPERTY(QString weatherDescription READ weatherDescription NOTIFY dataChanged)
+Q_PROPERTY(QString temperature READ temperature NOTIFY dataChanged)
+Q_PROPERTY(QString extraInfo READ extraInfo NOTIFY dataChanged)
+Q_PROPERTY(QString provider READ provider NOTIFY dataChanged)
+Q_PROPERTY(QString minMaxTemperatures READ minMaxTemperatures NOTIFY dataChanged)
+
 QML_ANONYMOUS
 
 public:
-	explicit WeatherData(QObject* parent = nullptr);
-	explicit WeatherData(const WeatherData& other);
-	explicit WeatherData(const st_WeatherInfo& other);
+	explicit inline WeatherData(QObject* parent = nullptr) : QObject{parent} {}
 
-	QString coordinates() const;
-	QString dayOfWeek() const;
-	QString weatherIcon() const;
-	QString weatherDescription() const;
-	QString temperature() const;
+	inline QString coordinates() const { return m_coordinates; }
+	inline QString dayOfWeek() const { return m_dayOfWeek; }
+	inline QString weatherIcon() const { return m_icon; }
+	inline QString weatherDescription() const { return m_description; }
+	inline QString temperature() const { return m_temperature; }
+	inline QString extraInfo() const { return m_extra_info; }
+	inline QString provider() const { return m_provider; }
+	inline QString minMaxTemperatures() const { return m_minmax; }
 
-	void setCoordinates(const QString& value);
-	void setDayOfWeek(const QString& value);
-	void setWeatherIcon(const QString& value);
-	void setWeatherDescription(const QString& value);
-	void setTemperature(const QString& value);
+	void setWeatherInfo(const st_WeatherInfo& w_info);
 
 signals:
 	void dataChanged();
@@ -45,9 +46,12 @@ signals:
 private:
 	QString m_coordinates;
 	QString m_dayOfWeek;
-	QString m_weather;
-	QString m_weatherDescription;
+	QString m_icon;
+	QString m_description;
 	QString m_temperature;
+	QString m_minmax;
+	QString m_extra_info;
+	QString m_provider;
 };
 
 class WeatherInfoPrivate;

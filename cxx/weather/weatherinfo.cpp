@@ -6,6 +6,7 @@
 #include "openweathermapbackend.h"
 #include "weatherapibackend.h"
 #include "../tpsettings.h"
+#include "../tputils.h"
 
 #include <QtPositioning/qgeocircle.h>
 #include <QtPositioning/qgeocoordinate.h>
@@ -13,86 +14,23 @@
 #include <QtCore/qpermissions.h>
 #endif
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qloggingcategory.h>
 #include <QtCore/qtimer.h>
 
 using namespace Qt::Literals::StringLiterals;
 
-WeatherData::WeatherData(QObject* parent) :
-		QObject(parent)
+void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info)
 {
-}
-
-WeatherData::WeatherData(const WeatherData& other) :
-		QObject(nullptr),
-		m_dayOfWeek(other.m_dayOfWeek),
-		m_weather(other.m_weather),
-		m_weatherDescription(other.m_weatherDescription),
-		m_temperature(other.m_temperature)
-{
-}
-
-WeatherData::WeatherData(const st_WeatherInfo& other)
-	: QObject(nullptr),
-	  m_dayOfWeek(other.m_dayOfWeek),
-	  m_weather(other.m_weatherIconId),
-	  m_weatherDescription(other.m_weatherDescription),
-	  m_temperature(other.m_temperature)
-{
-}
-
-QString WeatherData::coordinates() const
-{
-	return m_coordinates;
-}
-
-QString WeatherData::dayOfWeek() const
-{
-	return m_dayOfWeek;
-}
-
-QString WeatherData::weatherIcon() const
-{
-	return m_weather;
-}
-
-QString WeatherData::weatherDescription() const
-{
-	return m_weatherDescription;
-}
-
-QString WeatherData::temperature() const
-{
-	return m_temperature;
-}
-
-void WeatherData::setCoordinates(const QString& value)
-{
-	m_coordinates = value;
-	emit dataChanged();
-}
-
-void WeatherData::setDayOfWeek(const QString& value)
-{
-	m_dayOfWeek = value;
-	emit dataChanged();
-}
-
-void WeatherData::setWeatherIcon(const QString& value)
-{
-	m_weather = value;
-	emit dataChanged();
-}
-
-void WeatherData::setWeatherDescription(const QString& value)
-{
-	m_weatherDescription = value;
-	emit dataChanged();
-}
-
-void WeatherData::setTemperature(const QString& value)
-{
-	m_temperature = value;
+	m_dayOfWeek = std::move(w_info.m_dayOfWeek);
+	m_coordinates = std::move(w_info.m_coordinates);
+	m_temperature = std::move(w_info.m_temperature + tr(" (Feels: ") + w_info.m_temperature_feel + ')');
+	m_icon = std::move(w_info.m_weatherIconId);
+	m_description = std::move(tr("Weather now(") + std::move(appUtils()->getCurrentTimeString()) + ")\n" + w_info.m_weatherDescription);
+	m_extra_info = std::move(
+					tr("Humidity: ") + w_info.m_humidity + '\t' + tr("Pressure: ") + w_info.m_pressure + '\n' +
+					tr("Wind speed: " ) + w_info.m_wind   + '\t' + tr("UV Index: ") + w_info.m_uvi    + '\n' +
+					tr("Sun rise: ") + w_info.m_sunrise  + '\t' + tr("Sun set: ") + w_info.m_sunset);
+	m_provider = std::move(w_info.m_provider_name);
+	m_minmax = std::move(w_info.m_temp_min + '/' + w_info.m_temp_max);
 	emit dataChanged();
 }
 
@@ -195,7 +133,7 @@ public:
 	QGeoCoordinate coord;
 	QString city;
 	WeatherData now;
-	QList<WeatherData*> forecast;
+	WeatherData nextThreeDays[3];
 	QQmlListProperty<WeatherData>* fcProp = nullptr;
 	bool ready = false;
 #ifdef Q_OS_ANDROID
@@ -221,18 +159,17 @@ static void forecastAppend(QQmlListProperty<WeatherData> *prop, WeatherData *val
 static WeatherData *forecastAt(QQmlListProperty<WeatherData>* prop, qsizetype index)
 {
 	WeatherInfoPrivate *d = static_cast<WeatherInfoPrivate*>(prop->data);
-	return d->forecast.at(index);
+	return &d->nextThreeDays[index];
 }
 
 static qsizetype forecastCount(QQmlListProperty<WeatherData>* prop)
 {
-	WeatherInfoPrivate* d = static_cast<WeatherInfoPrivate*>(prop->data);
-	return d->forecast.size();
+	return 3;
 }
 
 static void forecastClear(QQmlListProperty<WeatherData>* prop)
 {
-	static_cast<WeatherInfoPrivate*>(prop->data)->forecast.clear();
+	Q_UNUSED(prop);
 }
 
 WeatherInfo::WeatherInfo(QObject* parent)
@@ -302,7 +239,6 @@ WeatherInfo::~WeatherInfo()
 		d->src->stopUpdates();
 	if (d->fcProp)
 		delete d->fcProp;
-	qDeleteAll(d->forecast);
 	delete d;
 }
 
@@ -371,29 +307,12 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 #endif
 	}
 
-	// delete previous forecast
-	qDeleteAll(d->forecast);
-	d->forecast.clear();
-
-	// The first item in the list represents current weather.
 	if (!weatherDetails.isEmpty())
 	{
 		const st_WeatherInfo& w_info(weatherDetails.first());
-		d->now.setCoordinates(w_info.m_coordinates);
-		d->now.setTemperature(w_info.m_temperature + tr("(Feels: ") + w_info.m_temperature_feel + ')');
-		d->now.setWeatherIcon(w_info.m_weatherIconId);
-		d->now.setWeatherDescription(w_info.m_weatherDescription + '\n' +
-										w_info.m_humidity + u"% / "_s +
-										w_info.m_pressure + u"Pa / "_s +
-										w_info.m_wind + u"km/h"_s);
-	}
-
-	// The other items represent weather forecast. The amount of items depends
-	// on the provider backend.
-	for (qsizetype i(1); i < weatherDetails.size(); ++i)
-	{
-		WeatherData* forecastEntry{new WeatherData(weatherDetails.at(i))};
-		d->forecast.append(forecastEntry);
+		d->now.setWeatherInfo(w_info);
+		for(uint i(0); i < 3; ++i)
+			d->nextThreeDays[i].setWeatherInfo(weatherDetails.at(i+2));
 	}
 
 	if (!d->ready)
