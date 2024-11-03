@@ -21,7 +21,7 @@ Item {
         font.pixelSize: 16
 
         anchors.top: parent.top
-        anchors.margins: 10
+        anchors.margins: 5
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
@@ -32,7 +32,7 @@ Item {
         width: height
         anchors.top: dayText.bottom
         anchors.bottom: tempText.top
-        anchors.margins: 10
+        anchors.margins: 5
         anchors.horizontalCenter: parent.horizontalCenter
     }
 
@@ -41,10 +41,10 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         width: top.width
         text: top.bottomText
-        font.pixelSize: 18
+        font.pixelSize: 16
 
         anchors.bottom: parent.bottom
-        anchors.margins: 10
+        anchors.margins: 5
         anchors.horizontalCenter: parent.horizontalCenter
         color: "white"
 

@@ -26,7 +26,7 @@ Pane {
 	TPLabel {
 		id: lblMesoSplit
 		text: mesoManager.splitLabel
-		widthAvailable: parent.width*0.7
+		widthAvailable: parent.width*0.6
 
 		anchors {
 			top: parent.top

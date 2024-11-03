@@ -80,9 +80,9 @@ TPPage {
 		anchors.fill: parent
 
 		Text {
-			text: "Loading weather data..."
+			text: weatherInfo.loadMessage
 			anchors.centerIn: parent
-			font.pointSize: 18
+			font.pixelSize: 18
 		}
 	}
 
@@ -123,13 +123,14 @@ TPPage {
 						id: gpsCity
 						text: weatherInfo.canUseGps ? ( (weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location"))
 							  + (weatherInfo.useGps ? " (GPS)" : "") ) : qsTr("Cannot use GPS on this device")
-						font: AppGlobals.titleFont
+						font: AppGlobals.largeFont
 						fontColor: "white"
 						enabled: weatherInfo.canUseGps
-						width: 0.7*parent.width
+						width: 0.8*parent.width
 						Layout.alignment: Qt.AlignCenter
 						Layout.minimumWidth: width
 						Layout.maximumWidth: width
+						Layout.topMargin: 5
 
 						TPImage {
 							id: gpsIcon
@@ -149,12 +150,12 @@ TPPage {
 							anchors.fill: parent
 							onClicked: weatherInfo.useGps = true;
 						}
-					} //Text gpsCity
+					} //TPLabel gpsCity
 
 					Repeater {
 						model: appSettings.weatherCitiesCount
 						Row {
-							spacing: 10
+							spacing: 5
 							width: 0.7*parent.width
 							height: 30
 							Layout.fillWidth: true
@@ -174,7 +175,7 @@ TPPage {
 							TPButton {
 								imageSource: "remove"
 								fixedSize: true
-								imageSize: 25
+								imageSize: 20
 								height: 25
 								width: 25
 								Layout.topMargin: 5
@@ -193,7 +194,7 @@ TPPage {
 						padding: 0
 
 						TPLabel {
-							text: qsTr("Search city:")
+							text: qsTr("Search:")
 							width: 0.2*parent.width
 							Layout.minimumWidth: width
 							Layout.maximumWidth: width
@@ -267,7 +268,7 @@ TPPage {
 				Label {
 					text: weatherInfo.weather.provider
 					color: "#ffffff"
-					font: AppGlobals.listFont
+					font: AppGlobals.smallFont
 
 					anchors {
 						bottom: parent.bottom

@@ -110,7 +110,7 @@ FocusScope {
 					id: lblExerciseNumber
 					text: entryManager.exerciseNumber() + ":"
 					font.bold: true
-					font.pointSize: appSettings.fontSizeText
+					font.pixelSize: appSettings.largeFontSize
 					width: 15
 					Layout.leftMargin: 0
 				}

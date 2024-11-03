@@ -45,7 +45,7 @@ TPPage {
 
 		TPLabel {
 			text: qsTr("Training Organizer")
-			font: AppGlobals.titleFont
+			font: AppGlobals.extraLargeFont
 			singleLine: true
 
 			anchors {
@@ -79,7 +79,7 @@ TPPage {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			width: appSettings.itemMaxWidth
+			width: parent.width
 
 			onClicked: mesocyclesModel.getMesocyclePage(index);
 

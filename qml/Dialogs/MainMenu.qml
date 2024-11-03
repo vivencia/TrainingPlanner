@@ -92,9 +92,10 @@ Drawer {
 
 		TPLabel {
 			text: "TrainingPlanner by VivenciaSoftware - " + appSettings.appVersion
-			width: drawer.implicitWidth-10
-			singleLine: false
+			wrapMode: Text.WordWrap
+			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
+			width: drawer.implicitWidth-10
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
 		}
@@ -139,10 +140,10 @@ Drawer {
 			id: btnExercises
 			text: qsTr("Exercises Database")
 			fixedSize: true
-			Layout.minimumWidth: drawer.width - 10
-			Layout.maximumWidth: drawer.width - 10
-			Layout.minimumHeight: 25
-			Layout.maximumHeight: 25
+			width: drawer.width - 10
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
+			Layout.preferredHeight: 25
 
 			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
 				stackView.currentItem
@@ -161,8 +162,7 @@ Drawer {
 			fixedSize: true
 			Layout.minimumWidth: drawer.width - 10
 			Layout.maximumWidth: drawer.width - 10
-			Layout.minimumHeight: 25
-			Layout.maximumHeight: 25
+			Layout.preferredHeight: 25
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem

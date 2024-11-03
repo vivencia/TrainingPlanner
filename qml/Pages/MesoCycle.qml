@@ -63,7 +63,7 @@ TPPage {
 			id: lblNewMesoRequiredFieldsCounter
 			text: parseInt(fieldCounter)
 			visible: mesoManager.isNewMeso
-			font: AppGlobals.listFont
+			font: AppGlobals.smallFont
 
 			property int fieldCounter: 4
 			anchors {
@@ -78,23 +78,22 @@ TPPage {
 	}
 
 	ScrollView {
-		anchors.fill: parent
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth
 		contentHeight: colMain.implicitHeight + 20
+		anchors {
+			fill: parent
+			leftMargin: 5
+			rightMargin: 5
+			topMargin: 10
+			bottomMargin: 10
+		}
 
 		ColumnLayout {
 			id: colMain
 			spacing: 5
-
-			anchors {
-				fill: parent
-				leftMargin: 5
-				rightMargin: 10
-				topMargin: 10
-				bottomMargin: 10
-			}
+			anchors.fill: parent
 
 			TPLabel {
 				text: mesoManager.nameLabel
@@ -132,7 +131,7 @@ TPPage {
 				text: mesoManager.name
 				ToolTip.text: qsTr("Name too short")
 				ToolTip.visible:!bMesoNameOK;
-				width: 0.9*appSettings.itemMaxWidth
+				width: 0.9*parent.width
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
 
@@ -144,40 +143,38 @@ TPPage {
 				}
 			}
 
-			RowLayout {
+			TPLabel {
+				id: lblCoaches
+				text: mesoManager.coachLabel
 				visible: mesoManager.hasCoach
-				height: 30
-				spacing: 0
 				Layout.fillWidth: true
+			}
 
-				TPLabel {
-					id: lblCoaches
-					text: mesoManager.coachLabel
-					width: 0.45*appSettings.itemMaxWidth
-				}
+			TPComboBox {
+				id: cboCoaches
+				currentIndex: userModel.currentCoach(userModel.userRow(mesoManager.client))
+				visible: mesoManager.hasCoach
+				implicitWidth: parent.width*0.8
 
-				TPComboBox {
-					id: cboCoaches
-					//editText: mesoManager.coach
-					currentIndex: userModel.currentCoach(userModel.userRow(mesoManager.client))
-					implicitWidth: appSettings.itemMaxWidth/2
-					Layout.minimumWidth: width
+				model: ListModel {
+					id: coachesModel
 
-					model: ListModel {
-						id: coachesModel
-
-						Component.onCompleted: {
-							const coaches = userModel.getCoaches();
-							for(var i = 0; i < coaches.length; ++i)
-								append({ "text": coaches[i], "value": i, "enabled": true });
-						}
+					Component.onCompleted: {
+						const coaches = userModel.getCoaches();
+						for(var i = 0; i < coaches.length; ++i)
+							append({ "text": coaches[i], "value": i, "enabled": true });
 					}
-
-					onActivated: (index) => mesoManager.coach = textAt(index);
 				}
+
+				onActivated: (index) => mesoManager.coach = textAt(index);
 
 				TPButton {
 					imageSource: "manage-coaches"
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
 
 					onClicked: appControl.openClientsOrCoachesPage(false, true);
 				}
@@ -199,14 +196,14 @@ TPPage {
 
 				TPLabel {
 					text: mesoManager.clientLabel
-					width: 0.30*appSettings.itemMaxWidth
+					width: 0.30*parent.width
 				}
 
 				TPComboBox {
 					id: cboClients
 					//editText: mesoManager.client
 					currentIndex: userModel.currentClient(userModel.userRow(mesoManager.client))
-					implicitWidth: 0.6*appSettings.itemMaxWidth
+					implicitWidth: 0.6*parent.width
 					Layout.minimumWidth: width
 
 					model: ListModel {
@@ -236,14 +233,14 @@ TPPage {
 
 				TPLabel {
 					text: mesoManager.typeLabel
-					width: 0.2*appSettings.itemMaxWidth
+					width: 0.2*parent.width
 				}
 
 				TPComboBox {
 					id: cboMesoType
 					model: mesoTypeModel
 					editText: mesoManager.type
-					width: 0.75*appSettings.itemMaxWidth
+					width: 0.75*parent.width
 					Layout.minimumWidth: width
 
 					onActivated: (index) => {
@@ -270,7 +267,7 @@ TPPage {
 				id: txtMesoTypeOther
 				text: mesoManager.type
 				visible: cboMesoType.currentIndex === 6
-				width: appSettings.itemMaxWidth
+				width: parent.width
 				Layout.maximumWidth: width
 
 				onEditingFinished: mesoManager.type = text;
@@ -290,7 +287,7 @@ TPPage {
 					id: txtMesoFile
 					text: mesoManager.fileName
 					readOnly: true
-					width: 0.8*appSettings.itemMaxWidth
+					width: 0.8*parent.width
 					Layout.maximumWidth: width
 					Layout.minimumWidth: width
 				}
@@ -477,7 +474,7 @@ TPPage {
 
 			MesoSplitSetup {
 				id: mesoSplitSetup
-				width: appSettings.itemMaxWidth
+				width: parent.width
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 			}

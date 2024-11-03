@@ -26,7 +26,7 @@ Rectangle {
 	property alias buttonHeight: button.implicitHeight
 	property int clickId: -1
 	property Item associatedItem: null
-	property int imageSize: hasDropShadow ? 30 : 20
+	property int imageSize: hasDropShadow ? 25 : 15
 	property string imageSource
 	property bool hasDropShadow: true
 	property bool bPressed: false
@@ -61,7 +61,7 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		appSettings.fontSizeTextChanged.connect(resizeButton);
+		appSettings.fontSizeChanged.connect(resizeButton);
 		if (imageSource.length > 0)
 		{
 			var component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
@@ -93,10 +93,11 @@ Rectangle {
 	TPLabel {
 		id: buttonText
 		opacity: button.opacity
-		singleLine: true
 		color: button.enabled ? textColor : appSettings.disabledFontColor
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5
+		verticalAlignment: Text.AlignVCenter
+		horizontalAlignment: Text.AlignHCenter
 
 		onTextChanged: resizeButton();
 
@@ -104,7 +105,6 @@ Rectangle {
 			if (imageSource.length > 0) {
 				if (!textUnderIcon) {
 					anchors.verticalCenter = button.verticalCenter;
-					anchors.verticalCenterOffset = 5;
 					if (leftAlign) {
 						anchors.left = button.left;
 						anchors.leftMargin = 5;
@@ -197,6 +197,6 @@ Rectangle {
 			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
 		}
 		else
-			buttonText.widthAvailable = button.width - 5;
+			buttonText.widthAvailable = button.width - 10;
 	}
 } //Rectangle

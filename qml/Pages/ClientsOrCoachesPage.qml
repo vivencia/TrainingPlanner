@@ -30,7 +30,7 @@ TPPage {
 	TPLabel {
 		id: lblMain
 		text: showCoaches ? qsTr("Coaches or Trainers") : qsTr("Clients")
-		font: AppGlobals.titleFont
+		font: AppGlobals.extraLargeFont
 		width: parent.width
 		horizontalAlignment: Text.AlignHCenter
 

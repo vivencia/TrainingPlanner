@@ -53,7 +53,7 @@ Rectangle {
 			leftPadding: cellSize * 0.5
 			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
-			font.pointSize: fontSizePx * 2
+			font.pixelSize: fontSizePx * 2
 			font.bold: true
 			readOnly: true
 			inputMethodHints: Qt.ImhDigitsOnly
@@ -130,7 +130,7 @@ Rectangle {
 			id: selectedWeekDayMonth
 			leftPadding: cellSize * 0.5
 			verticalAlignment: Text.AlignVCenter
-			font.pointSize: height * 0.5
+			font.pixelSize: height * 0.5
 			font.bold: true
 			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
 			color: appSettings.fontColor
@@ -194,7 +194,7 @@ Rectangle {
 
 				Text {
 					anchors.centerIn: parent
-					font.pointSize: fontSizePx * 1.2
+					font.pixelSize: fontSizePx * 1.2
 					font.bold: true
 					text: calendar.months[model.month] + " " + model.year;
 				}
@@ -210,7 +210,7 @@ Rectangle {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
 					verticalAlignment: Text.AlignVCenter
-					font.pointSize: fontSizePx
+					font.pixelSize: fontSizePx
 					font.bold: true
 				}
 			}
@@ -245,7 +245,7 @@ Rectangle {
 					Text {
 						anchors.centerIn: parent
 						text: model.day
-						font.pointSize: fontSizePx
+						font.pixelSize: fontSizePx
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
@@ -294,7 +294,7 @@ Rectangle {
 
 			Text {
 				anchors.centerIn: parent
-				font.pointSize: fontSizePx * 1.5
+				font.pixelSize: fontSizePx * 1.5
 				text: name
 				scale: index === yearsList.currentYear - yearsList.startYear ? 1.5 : 1
 				color: appSettings.fontColor

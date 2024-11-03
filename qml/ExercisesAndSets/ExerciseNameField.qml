@@ -27,7 +27,7 @@ RowLayout {
 	TextField {
 		id: control
 		font.bold: true
-		font.pointSize: appSettings.fontSize
+		font.pixelSize: appSettings.fontSize
 		readOnly: true
 		wrapMode: Text.WordWrap
 		z: 1

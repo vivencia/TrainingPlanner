@@ -46,17 +46,17 @@ TPPage {
 
 		ColumnLayout {
 			anchors.fill: parent
+			anchors.leftMargin: 5
+			anchors.rightMargin: 5
+			anchors.topMargin: 5
 			spacing: 0
 
 			ExercisesListView {
 				id: exercisesList
 				canDoMultipleSelection: bChooseButtonEnabled
-				Layout.fillWidth: true
-				Layout.topMargin: 0
 				Layout.alignment: Qt.AlignTop
-				Layout.rightMargin: 5
+				Layout.fillWidth: true
 				Layout.fillHeight: true
-				Layout.leftMargin: 5
 				Layout.bottomMargin: 5
 
 				onExerciseEntrySelected: (index, multipleSelection) => {
@@ -77,15 +77,13 @@ TPPage {
 				}
 			}
 
-			RowLayout {
+			Row {
 				id: toolbarExercises
 				Layout.fillWidth: true
 				Layout.maximumHeight: 30
-				Layout.leftMargin: 0
-				Layout.bottomMargin: 5
 				spacing: 0
 
-				readonly property int buttonWidth: Math.floor(appSettings.itemMaxWidth/4)
+				readonly property int buttonWidth: parent.width*0.25
 
 				TPButton {
 					id: btnNewExercise
@@ -192,7 +190,7 @@ TPPage {
 
 		ColumnLayout {
 			id: layoutMain
-			width: appSettings.itemMaxWidth
+			width: appSettings.pageWidth
 
 			TPLabel {
 				text: exercisesManager.exerciseNameLabel

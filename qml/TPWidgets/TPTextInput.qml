@@ -8,7 +8,7 @@ TextField {
 	property string backgroundColor: appSettings.primaryDarkColor
 
 	id: control
-	font.pointSize: appSettings.fontSizeText
+	font.pixelSize: appSettings.fontSize
 	font.weight: Font.Bold //Font.ExtraBold
 	color: enabled ? textColor : appSettings.disabledFontColor
 	leftInset: 0
@@ -20,7 +20,7 @@ TextField {
 	bottomPadding: 0
 	rightPadding: 5
 	placeholderTextColor: "gray"
-	implicitWidth: AppGlobals.fontMetricsText.boundingRect(text).width + 5
+	implicitWidth: AppGlobals.fontMetricsLarge.boundingRect(text).width + 5
 	implicitHeight: 25
 
 	signal enterOrReturnKeyPressed()

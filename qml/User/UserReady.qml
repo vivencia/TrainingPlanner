@@ -7,7 +7,7 @@ import ".."
 TPLabel {
 	id: lblMain
 	text: qsTr("Ready to start using the App. Begin by creating a workout schedule, either within a fixed period of time or an open ended schedule")
-	font: AppGlobals.titleFont
+	font: AppGlobals.extraLargeFont
 
 	readonly property bool bReady: true
 

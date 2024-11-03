@@ -23,7 +23,7 @@ Frame {
 	property bool bReady: true
 	property bool bCoachOK: false
 	readonly property int controlsSpacing: 10
-	readonly property int minimumHeight: optPersonalUse.height + optCoachUse.height + chkHaveCoach.height
+	readonly property int minimumHeight: optPersonalUse.implicitHeight + optCoachUse.implicitHeight + chkHaveCoach.implicitHeight
 
 	TPRadioButton {
 		id: optPersonalUse

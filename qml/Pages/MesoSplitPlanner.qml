@@ -52,7 +52,7 @@ Frame {
 	TPLabel {
 		id: lblMain
 		text: qsTr("Training Division ") + splitModel.splitLetter()
-		font: AppGlobals.titleFont
+		font: AppGlobals.extraLargeFont
 		width: parent.width
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
@@ -332,7 +332,7 @@ Frame {
 												spacing: tabbutton.spacing
 												display: AbstractButton.TextOnly
 												text: tabbutton.text
-												font.pointSize: appSettings.fontSizeLists
+												font.pixelSize: appSettings.smallFontSize
 												color: appSettings.fontColor
 											}
 

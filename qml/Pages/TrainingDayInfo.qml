@@ -78,7 +78,7 @@ TPPage {
 			TPLabel {
 				id: lblHeader
 				text: tDayManager.headerText
-				font: AppGlobals.titleFont
+				font: AppGlobals.extraLargeFont
 				topPadding: 15
 				bottomPadding: 0
 				horizontalAlignment: Text.AlignHCenter
@@ -295,7 +295,7 @@ TPPage {
 			TPLabel {
 				id: lblExercisesStart
 				text: qsTr("--- EXERCISES ---")
-				font: AppGlobals.titleFont
+				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				verticalAlignment: Text.AlignVCenter
 				visible: tDayManager.splitLetter !== "R"

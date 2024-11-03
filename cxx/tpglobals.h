@@ -58,18 +58,6 @@ static const QString& STR_ZERO(u"0"_s);
 static const QString& STR_ONE(u"1"_s);
 static const QString& STR_END_EXPORT(u"####\n\n"_s);
 
-#ifdef Q_OS_ANDROID
-static const QString& FONT_POINT_SIZE(u"18"_s);
-static const QString& FONT_POINT_SIZE_LISTS(u"14"_s);
-static const QString& FONT_POINT_SIZE_TEXT(u"16"_s);
-static const QString& FONT_POINT_SIZE_TITLE(u"23"_s);
-#else
-static const QString& FONT_POINT_SIZE(u"12"_s);
-static const QString& FONT_POINT_SIZE_LISTS(u"8"_s);
-static const QString& FONT_POINT_SIZE_TEXT(u"10"_s);
-static const QString& FONT_POINT_SIZE_TITLE(u"18"_s);
-#endif
-
 enum {
 	IFC_USER = 0x01,
 	IFC_MESO = 0x02,

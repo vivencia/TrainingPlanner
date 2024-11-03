@@ -10,8 +10,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 ToolBar {
 	id: root
-	width: parent.width
-	height: 40
+	width: appSettings.windowWidth
+	height: appSettings.windowHeight - appSettings.pageHeight
 	spacing: 0
 	padding: 0
 

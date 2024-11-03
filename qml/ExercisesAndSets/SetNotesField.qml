@@ -58,7 +58,7 @@ Frame {
 
 			TextArea.flickable: TextArea {
 				id: txtNotes
-				font.pointSize: appSettings.fontSizeText
+				font.pixelSize: appSettings.largeFontSize
 				font.bold: true
 				padding: 0
 				topPadding: 5

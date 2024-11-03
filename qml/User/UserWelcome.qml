@@ -7,7 +7,7 @@ import ".."
 TPLabel {
 	id: lblMain
 	text: qsTr("Welcome to the Training Planner app!\nLet's first setup the application by creating your profile.")
-	font: AppGlobals.titleFont
+	font: AppGlobals.extraLargeFont
 
 	readonly property bool bReady: true
 

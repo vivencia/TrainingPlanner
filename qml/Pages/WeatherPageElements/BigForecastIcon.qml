@@ -22,7 +22,7 @@ Item {
 		text: current.topText
 		singleLine: false
 		fontColor: "white"
-		font: AppGlobals.titleFont
+		font: AppGlobals.extraLargeFont
 		horizontalAlignment: Text.AlignHCenter
 		width: appSettings.pageWidth
 

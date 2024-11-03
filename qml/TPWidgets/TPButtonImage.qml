@@ -19,11 +19,11 @@ TPImage {
 			if (!textUnderIcon) {
 				if (leftAlign) {
 					anchors.right = parent.right
-					anchors.rightMargin = 2;
+					anchors.rightMargin = 5;
 				}
 				else {
 					anchors.left = parent.left
-					anchors.leftMargin = 2;
+					anchors.leftMargin = 5;
 				}
 			}
 			else {

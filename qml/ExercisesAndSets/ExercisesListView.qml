@@ -48,22 +48,17 @@ Column {
 		}
 	} //Timer
 
-	Label {
-		Layout.leftMargin: 5
+	TPLabel {
 		text: qsTr("Search: ")
 		verticalAlignment: Text.AlignVCenter
-		font.pointSize: appSettings.fontSizeText
-		font.weight: Font.ExtraBold
-		color: appSettings.fontColor
-		width: parent.width/3
+		width: parent.width*0.5
 		height: 25
 
 		TPCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			enabled: canDoMultipleSelection
-			height: 25
-			width: mainItem.width/2
+			width: parent.width*0.5
 
 			anchors {
 				left: parent.right
@@ -81,7 +76,7 @@ Column {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
-		width: appSettings.itemMaxWidth
+		width: parent.width
 		Layout.fillWidth: true
 		Layout.topMargin: 5
 
@@ -112,10 +107,10 @@ Column {
 		id: lstExercises
 		model: exercisesModel
 		boundsBehavior: Flickable.StopAtBounds
-		width: appSettings.itemMaxWidth
+		width: parent.width
 		height: parent.height * 0.75
 		contentHeight: exercisesModel.count*40*1.1//contentHeight: Essencial for the ScrollBars to work.
-		contentWidth: appSettings.itemMaxWidth
+		contentWidth: width
 		clip: true
 
 		ScrollBar.vertical: ScrollBar {
@@ -144,7 +139,7 @@ Column {
 			id: delegate
 			spacing: 0
 			padding: 0
-			width: appSettings.itemMaxWidth
+			width: appSettings.pageWidth
 			height: 40
 
 			contentItem: Text {

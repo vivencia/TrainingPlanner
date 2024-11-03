@@ -37,7 +37,7 @@ TPPage {
 			TPLabel {
 				id: lbl1
 				text: mesoManager.name
-				font: AppGlobals.titleFont
+				font: AppGlobals.extraLargeFont
 				Layout.maximumWidth: parent.width - 10
 				Layout.minimumHeight: heightAvailable
 				Layout.maximumHeight: heightAvailable
@@ -47,7 +47,7 @@ TPPage {
 			TPLabel {
 				id: lbl2
 				text: qsTr("from  <b>") + mesoManager.startDate + qsTr("</b>  through  <b>") + mesoManager.endDate + "</b>"
-				font: AppGlobals.titleFont
+				font: AppGlobals.extraLargeFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
 				Layout.minimumHeight: heightAvailable
@@ -100,7 +100,7 @@ TPPage {
 				Text {
 					anchors.centerIn: parent
 					text: calendar.monthsNames[mesoCalendarModel.getMonth(index)] + " " + mesoCalendarModel.getYear(index);
-					font.pointSize: appSettings.fontSizeTitle
+					font.pixelSize: appSettings.extraLargeFontSize
 					font.bold: true
 				}
 			}
@@ -118,7 +118,7 @@ TPPage {
 					verticalAlignment: Text.AlignVCenter
 					color: appSettings.fontColor
 					font.bold: true
-					font.pointSize: appSettings.fontSize
+					font.pixelSize: appSettings.fontSize
 				}
 			}
 
@@ -166,7 +166,7 @@ TPPage {
 						text: monthGrid.month === model.month ? bIsTrainingDay ? model.day + "-" + mesoCalendarModel.getSplitLetter(model.month+1, model.day-1) : model.day : ""
 						color: todayDate ? "red" : appSettings.fontColor
 						font.bold: true
-						font.pointSize: appSettings.fontSize
+						font.pixelSize: appSettings.fontSize
 					}
 
 					SequentialAnimation {
@@ -242,7 +242,7 @@ TPPage {
 			color: appSettings.fontColor
 			width: parent.width - btnViewWorkout.width - 10
 			wrapMode: Text.WordWrap
-			font.pointSize: appSettings.fontSizeText
+			font.pixelSize: appSettings.largeFontSize
 			font.bold: true
 			anchors {
 				left: parent.left

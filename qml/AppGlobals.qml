@@ -11,7 +11,7 @@ QtObject {
 			weight: fweight,
 			italic: fitalic,
 			styleStrategy: Font.PreferAntialias,
-			pointSize: fsize
+			pixelSize: fsize
 		});
 	}
 
@@ -20,55 +20,55 @@ QtObject {
 	    weight: Font.Medium,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
-	    pointSize: appSettings.fontSize
+	    pixelSize: appSettings.fontSize
 	})
 
 	readonly property FontMetrics fontMetricsRegular: FontMetrics {
 		font.family: regularFont.family
-		font.pointSize: regularFont.pointSize
+		font.pixelSize: regularFont.pixelSize
 		font.weight: regularFont.weight
 	}
 
-	readonly property font listFont: Qt.font({
+	readonly property font smallFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
-	    pointSize: appSettings.fontSizeLists
+	    pixelSize: appSettings.smallFontSize
 	})
 
-	readonly property FontMetrics fontMetricsList: FontMetrics {
-		font.family: listFont.family
-		font.pointSize: listFont.pointSize
-		font.weight: listFont.weight
+	readonly property FontMetrics fontMetricsSmall: FontMetrics {
+		font.family: smallFont.family
+		font.pixelSize: smallFont.pixelSize
+		font.weight: smallFont.weight
 	}
 
-	readonly property font textFont: Qt.font({
+	readonly property font largeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
-	    pointSize: appSettings.fontSizeText
+	    pixelSize: appSettings.largeFontSize
 	})
 
-	readonly property FontMetrics fontMetricsText: FontMetrics {
-		font.family: textFont.family
-		font.pointSize: textFont.pointSize
-		font.weight: textFont.weight
+	readonly property FontMetrics fontMetricsLarge: FontMetrics {
+		font.family: largeFont.family
+		font.pixelSize: largeFont.pixelSize
+		font.weight: largeFont.weight
 	}
 
-	readonly property font titleFont: Qt.font({
+	readonly property font extraLargeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Bold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
-	    pointSize: appSettings.fontSizeTitle
+	    pixelSize: appSettings.extraLargeFontSize
 	})
 
-	readonly property FontMetrics fontMetricsTitle: FontMetrics {
-		font.family: titleFont.family
-		font.pointSize: titleFont.pointSize
-		font.weight: titleFont.weight
+	readonly property FontMetrics fontMetricsExtraLarge: FontMetrics {
+		font.family: extraLargeFont.family
+		font.pixelSize: extraLargeFont.pixelSize
+		font.weight: extraLargeFont.weight
 	}
 
 	property ListModel setTypesModel: ListModel {

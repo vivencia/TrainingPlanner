@@ -27,7 +27,7 @@ void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info)
 	m_description = std::move(tr("Weather now(") + std::move(appUtils()->getCurrentTimeString()) + ")\n" + w_info.m_weatherDescription);
 	m_extra_info = std::move(
 					tr("Humidity: ") + w_info.m_humidity + '\t' + tr("Pressure: ") + w_info.m_pressure + '\n' +
-					tr("Wind speed: " ) + w_info.m_wind   + '\t' + tr("UV Index: ") + w_info.m_uvi    + '\n' +
+					tr("Wind speed: " ) + w_info.m_wind   + ' ' + tr("UV Index: ") + w_info.m_uvi    + '\n' +
 					tr("Sun rise: ") + w_info.m_sunrise  + '\t' + tr("Sun set: ") + w_info.m_sunset);
 	m_provider = std::move(w_info.m_provider_name);
 	m_minmax = std::move(w_info.m_temp_min + '/' + w_info.m_temp_max);
@@ -136,13 +136,10 @@ public:
 	WeatherData nextThreeDays[3];
 	QQmlListProperty<WeatherData>* fcProp = nullptr;
 	bool ready = false;
-#ifdef Q_OS_ANDROID
-	bool useGps = true;
-	bool canUseGPS = true;
-	QString gpsCity;
-#else
 	bool useGps = false;
 	bool canUseGPS = false;
+#ifdef Q_OS_ANDROID
+	QString gpsCity;
 #endif
 	WeatherDataCache m_dataCache;
 	ProviderBackend* m_currentBackend = nullptr;
@@ -174,6 +171,9 @@ static void forecastClear(QQmlListProperty<WeatherData>* prop)
 
 WeatherInfo::WeatherInfo(QObject* parent)
 	: QObject{parent}, d{new WeatherInfoPrivate}
+#ifdef Q_OS_ANDROID
+	, gpsWaitTimer(nullptr)
+#endif
 {
 	d->fcProp = new QQmlListProperty<WeatherData>{this, d, forecastAppend,
 														   forecastCount,
@@ -185,13 +185,11 @@ WeatherInfo::WeatherInfo(QObject* parent)
 	d->m_supportedBackends.push_back(new OpenMeteoBackend{this});
 	registerBackend(0);
 
+#ifdef Q_OS_ANDROID
 	d->src = QGeoPositionInfoSource::createDefaultSource(this);
 
 	if (d->src)
 	{
-		d->useGps = true;
-		connect(d->src, &QGeoPositionInfoSource::positionUpdated, this, &WeatherInfo::positionUpdated);
-		connect(d->src, &QGeoPositionInfoSource::errorOccurred, this, &WeatherInfo::positionError);
 
 #if QT_CONFIG(permissions)
 		QLocationPermission permission;
@@ -203,7 +201,7 @@ WeatherInfo::WeatherInfo(QObject* parent)
 			case Qt::PermissionStatus::Undetermined:
 				qApp->requestPermission(permission, [this] (const QPermission& permission) {
 					if (permission.status() == Qt::PermissionStatus::Granted)
-						d->src->startUpdates();
+						d->canUseGPS = true;
 					else
 						positionError(QGeoPositionInfoSource::AccessError);
 				});
@@ -214,8 +212,17 @@ WeatherInfo::WeatherInfo(QObject* parent)
 				positionError(QGeoPositionInfoSource::AccessError);
 			break;
 			case Qt::PermissionStatus::Granted:
+				d->canUseGPS = true;
 				d->src->startUpdates();
 			break;
+		}
+
+		if (d->canUseGPS)
+		{
+			d->src->startUpdates();
+			connect(d->src, &QGeoPositionInfoSource::positionUpdated, this, &WeatherInfo::positionUpdated);
+			connect(d->src, &QGeoPositionInfoSource::errorOccurred, this, &WeatherInfo::positionError);
+			setUseGps(true);
 		}
 #else
 		d->src->startUpdates();
@@ -226,15 +233,17 @@ WeatherInfo::WeatherInfo(QObject* parent)
 		d->canUseGPS = false;
 		setCity(appSettings()->weatherCity(0));
 	}
-
-	QTimer* refreshTimer{new QTimer{this}};
-	connect(refreshTimer, &QTimer::timeout, this, &WeatherInfo::refreshWeather);
-	using namespace std::chrono;
-	refreshTimer->start(60s);
+#else
+	setCity(appSettings()->weatherCity(0));
+#endif
 }
 
 WeatherInfo::~WeatherInfo()
 {
+#ifdef Q_OS_ANDROID
+	if (gpsWaitTimer)
+		delete gpsWaitTimer;
+#endif
 	if (d->src)
 		d->src->stopUpdates();
 	if (d->fcProp)
@@ -255,7 +264,6 @@ void WeatherInfo::positionError(QGeoPositionInfoSource::Error e)
 	Q_UNUSED(e);
 	qWarning() << "Position source error. Falling back to simulation mode.";
 
-	// activate simulation mode
 	if (d->useGps)
 		setCity(appSettings()->weatherCity(0));
 }
@@ -327,6 +335,7 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 
 void WeatherInfo::requestWeatherByCoordinates()
 {
+	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->coord);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
 		applyWeatherData(cacheResult.first, cacheResult.second);
@@ -336,6 +345,7 @@ void WeatherInfo::requestWeatherByCoordinates()
 
 void WeatherInfo::requestWeatherByCity()
 {
+	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->city);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
 		applyWeatherData(cacheResult.first, cacheResult.second);
@@ -391,6 +401,20 @@ bool WeatherInfo::ready() const
 	return d->ready;
 }
 
+QString WeatherInfo::loadMessage() const
+{
+	if (!d->ready)
+	{
+		if (d->canUseGPS)
+		{
+			if (!d->coord.isValid())
+				return tr("Waiting for GPS signal...");
+		}
+		return tr("Loading weather data from the internet...");
+	}
+	return QString();
+}
+
 bool WeatherInfo::hasSource() const
 {
 	return (d->src != NULL);
@@ -412,13 +436,42 @@ void WeatherInfo::setUseGps(const bool value)
 	{
 		d->useGps = value;
 		if (value)
-		{
-			setCity(QString());
-			emit cityChanged();
-			emit weatherChanged();
+		{	
 			// if we already have a valid GPS position, do not wait until it updates, but query the city immediately
 			if (d->coord.isValid())
+			{
+				setCity(QString(), true);
 				requestWeatherByCoordinates();
+			}
+			else
+			{
+#ifdef Q_OS_ANDROID
+				if (!gpsWaitTimer)
+					gpsWaitTimer = new QTimer{this};
+				else
+				{
+					static uint attempts(0);
+					qDebug() << "GPS Attempt: " << attempts;
+					switch (attempts++)
+					{
+						case 0:
+							connect(gpsWaitTimer, &QTimer::timeout, this, [this] () { setUseGps(true); });
+							gpsWaitTimer->setInterval(10000);
+							gpsWaitTimer->start();
+							return;
+						break;
+						case 1: return;
+						case 2: //After 20 seconds, revert back to city mode
+							disconnect(gpsWaitTimer, &QTimer::timeout, nullptr, nullptr);
+							d->canUseGPS = false;
+							setCity(appSettings()->weatherCity(0));
+							attempts = 0; //can be attempted again any time later
+						break;
+					}
+				}
+#endif
+			requestWeatherByCity();
+			}
 		}
 		emit useGpsChanged();
 	}

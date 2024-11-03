@@ -10,6 +10,8 @@
 #include <QtQml/qqml.h>
 #include <QtQml/qqmllist.h>
 
+class QTimer;
+
 class	WeatherData : public QObject
 {
 
@@ -62,6 +64,7 @@ class WeatherInfo : public QObject
 Q_OBJECT
 
 Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
+Q_PROPERTY(QString loadMessage READ loadMessage NOTIFY readyChanged)
 Q_PROPERTY(bool hasSource READ hasSource NOTIFY readyChanged)
 Q_PROPERTY(bool hasValidCity READ hasValidCity NOTIFY cityChanged)
 Q_PROPERTY(bool hasValidWeather READ hasValidWeather NOTIFY weatherChanged)
@@ -81,6 +84,8 @@ public:
 	~WeatherInfo();
 
 	bool ready() const;
+	QString loadMessage() const;
+
 	bool hasSource() const;
 	bool useGps() const;
 	bool canUseGps() const;
@@ -124,8 +129,10 @@ private:
 	void registerBackend(qsizetype index);
 	void deregisterCurrentBackend();
 
-
 	WeatherInfoPrivate* d;
+#ifdef Q_OS_ANDROID
+	QTimer* gpsWaitTimer;
+#endif
 };
 
 #endif // WEATHERINFO_H

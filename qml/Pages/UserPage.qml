@@ -31,7 +31,7 @@ TPPage {
 
 			TPLabel {
 				text: qsTr("User Settings")
-				font: AppGlobals.titleFont
+				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.fillWidth: true
 				Layout.topMargin: 20

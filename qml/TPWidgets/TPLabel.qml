@@ -8,8 +8,8 @@ Label {
 	color: enabled ? fontColor : appSettings.disabledFontColor
 	wrapMode: Text.NoWrap
 	elide: Text.ElideNone
-	font: AppGlobals.textFont
-	minimumPointSize: appSettings.fontSizeLists
+	font: AppGlobals.regularFont
+	minimumPointSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
 	fontSizeMode: elide !== Text.ElideNone ? Text.FixedSize : Text.Fit
 	topPadding: -2*_lineCount
@@ -28,21 +28,23 @@ Label {
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
 	onFontChanged: {
-		if (font === AppGlobals.textFont) {
-			_textWidth = AppGlobals.fontMetricsText.boundingRect(text).width
-			_textHeight = AppGlobals.fontMetricsText.boundingRect("TP").height
-		}
-		else if (font === AppGlobals.titleFont) {
-			_textWidth = AppGlobals.fontMetricsTitle.boundingRect(text).width
-			_textHeight = AppGlobals.fontMetricsTitle.boundingRect("TP").height
-		}
-		else if (font === AppGlobals.listFont) {
-			_textWidth = AppGlobals.fontMetricsList.boundingRect(text).width
-			_textHeight = AppGlobals.fontMetricsList.boundingRect("TP").height
-		}
-		else if (font === AppGlobals.regularFont) {
+		if (font === AppGlobals.regularFont) {
 			_textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height
 		}
+		else if (font === AppGlobals.smallFont) {
+			_textWidth = AppGlobals.fontMetricsSmall.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsSmall.boundingRect("TP").height
+		}
+		else if (font === AppGlobals.largeFont) {
+			_textWidth = AppGlobals.fontMetricsLarge.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsLarge.boundingRect("TP").height
+		}
+		else if (font === AppGlobals.extraLargeFont) {
+			_textWidth = AppGlobals.fontMetricsExtraLarge.boundingRect(text).width
+			_textHeight = AppGlobals.fontMetricsExtraLarge.boundingRect("TP").height
+		}
+
+
 	}
 }

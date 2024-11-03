@@ -245,7 +245,7 @@ TPPopup {
 				checkable: true
 				contentItem: Label {
 					text: timePicker.hrsDisplay
-					font.pointSize: headerGrid.myPointSize
+					font.pixelSize: headerGrid.myPointSize
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: hrsButton.checked ? 1.0 : 0.6
@@ -263,7 +263,7 @@ TPPopup {
 			Label {
 				text: ":"
 				Layout.alignment: Text.AlignHCenter
-				font.pointSize: headerGrid.myPointSize
+				font.pixelSize: headerGrid.myPointSize
 				font.bold: true
 				fontSizeMode: Text.Fit
 				opacity: 0.6
@@ -278,7 +278,7 @@ TPPopup {
 				checkable: true
 				contentItem: Label {
 					text: timePicker.minutesDisplay
-					font.pointSize: headerGrid.myPointSize
+					font.pixelSize: headerGrid.myPointSize
 					font.bold: true
 					fontSizeMode: Text.Fit
 					opacity: minutesButton.checked ? 1.0 : 0.6

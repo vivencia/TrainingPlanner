@@ -120,7 +120,7 @@ TPPopup {
 
 			Label {
 				color: appSettings.fontColor
-				font.pointSize: appSettings.fontSizeLists
+				font.pixelSize: appSettings.smallFontSize
 				text: qsTr("Hours")
 				visible: !bJustMinsAndSecs
 				Layout.maximumWidth: txtWidth
@@ -131,7 +131,7 @@ TPPopup {
 			}
 			Label {
 				color: appSettings.fontColor
-				font.pointSize: appSettings.fontSizeLists
+				font.pixelSize: appSettings.smallFontSize
 				text: qsTr("Minutes")
 				Layout.maximumWidth: txtWidth
 				Layout.minimumWidth: txtWidth
@@ -141,7 +141,7 @@ TPPopup {
 			}
 			Label {
 				color: appSettings.fontColor
-				font.pointSize: appSettings.fontSizeLists
+				font.pixelSize: appSettings.smallFontSize
 				text: qsTr("Seconds")
 				visible: !timePickerOnly
 				Layout.maximumWidth: txtWidth
@@ -206,7 +206,7 @@ TPPopup {
 
 				Label {
 					text: ":"
-					font.pointSize: appSettings.fontSizeText
+					font.pixelSize: appSettings.largeFontSize
 					font.bold: true
 					horizontalAlignment: Text.AlignHCenter
 					color: "black"
@@ -264,7 +264,7 @@ TPPopup {
 
 				Label {
 					text: ":"
-					font.pointSize: appSettings.fontSizeText
+					font.pixelSize: appSettings.largeFontSize
 					font.bold: true
 					horizontalAlignment: Text.AlignHCenter
 					color: "black"
