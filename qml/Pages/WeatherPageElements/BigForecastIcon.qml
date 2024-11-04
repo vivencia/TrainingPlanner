@@ -43,12 +43,12 @@ Item {
 	WeatherIcon {
 		id: img
 		weatherIcon: current.weatherIcon
-		width: current.smallSide * 0.5
-		height: current.smallSide * 0.5
+		width: current.smallSide * 0.4
+		height: current.smallSide * 0.4
 
 		anchors {
 			top: text1.bottom
-			topMargin: 5
+			topMargin: -40
 			horizontalCenter: parent.horizontalCenter
 		}
 	}
@@ -81,17 +81,16 @@ Item {
 	TPLabel {
 		id: text3
 		text: current.bottomBottomText
-		font: AppGlobals.customFont(0, Font.bold, false, 16)
-		_textWidth: appSettings.pageWidth - 20
+		_textWidth: parent.width - 20
 		_textHeight: 15
-		leftPadding: 10
+		horizontalAlignment: Text.AlignHCenter
 		fontColor: "white"
 		singleLine: false
 		width: appSettings.pageWidth
 
 		anchors {
 			top: text2.bottom
-			topMargin: 5
+			topMargin: 15
 			horizontalCenter: parent.horizontalCenter
 		}
 	}

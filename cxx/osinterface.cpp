@@ -43,7 +43,6 @@ OSInterface::OSInterface(QObject* parent)
 	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
 
 	context.callMethod<void>(
-		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
 		"setActivityContext",
 		"(Landroid/content/Context;)V",
 		context.object());

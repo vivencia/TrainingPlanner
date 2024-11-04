@@ -26,7 +26,7 @@ private slots:
 	void handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
 
 private:
-	void requestWeatherInfoFromNet(const QGeoCoordinate coordinate);
+	void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate);
 
 	QNetworkAccessManager* m_networkManager;
 	QString m_locationName;

@@ -23,6 +23,7 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_propertyNames.insert(ASK_CONFIRMATION_INDEX, std::move(u"alwaysAskConfirmation"_s));
 	m_propertyNames.insert(USER_INDEX, std::move(u"mainUserConfigured"_s));
 	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move(u"weatherCities"_s));
+	m_propertyNames.insert(USEGPS_INDEX, std::move(u"useGPS"_s));
 
 	m_defaultValues.reserve(QML_PROPERTIES);
 	for(uint i(APP_VERSION_INDEX); i < SETTINGS_FIELD_COUNT; ++i)
@@ -33,6 +34,7 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_defaultValues[WEIGHT_UNIT_INDEX] = std::move(u"(kg)"_s);
 	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
 	m_defaultValues[USER_INDEX] = STR_ZERO;
+	m_defaultValues[USEGPS_INDEX] = STR_ZERO;
 	m_defaultValues[WEATHER_CITIES_INDEX] = std::move(u"São Paulo"_s);
 	m_weatherCities = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
 
@@ -91,20 +93,20 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 			entrySelColor = std::move(u"#228b22"_s);
 		break;
 		case 2: //Red
-			paneBackColor = std::move(u"#60d219"_s);
+			paneBackColor = std::move(u"#d21a45"_s);
 			entrySelColor = std::move(u"#228b22"_s);
 		break;
 		case 3: //Dark
-			paneBackColor = std::move(u"#60d219"_s);
+			paneBackColor = std::move(u"#3e3d48"_s);
 			entrySelColor = std::move(u"#228b22"_s);
 			disabledfntColor = std::move(u"e8e8e8"_s);
-			strIconFolder = std::move("black/");
 		break;
 		case 4: //Light
-			paneBackColor = std::move(u"#60d219"_s);
+			paneBackColor = std::move(u"#929299"_s);
 			entrySelColor = std::move(u"#228b22"_s);
 			fntColor = std::move(u"000000"_s);
 			disabledfntColor = std::move(u"a8a8a8"_s);
+			strIconFolder = std::move("black/");
 		break;
 	}
 

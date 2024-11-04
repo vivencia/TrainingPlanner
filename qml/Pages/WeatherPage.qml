@@ -37,14 +37,17 @@ TPPage {
 	}
 
 	Rectangle {
-		anchors.horizontalCenter: parent.horizontalCenter
-		anchors.top: parent.top
-		anchors.topMargin: parent.width / 2
-		width: appSettings.pageHeight > appSettings.pageWidth * 1.5 ? appSettings.pageHeight : appSettings.pageWidth * 1.5
-		height: width
-		radius: width / 2
 		color: "#000000"
 		opacity: 0.15
+		radius: width / 2
+		width: appSettings.heightToWidthRatio > 1.5 ? appSettings.pageHeight : appSettings.pageWidth * 1.5
+		height: width
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			top: parent.top
+			topMargin: parent.width / 2
+		}
 	}
 
 	Item {
@@ -88,8 +91,15 @@ TPPage {
 
 	ColumnLayout {
 		id: main
-		anchors.fill: parent
-		spacing: 0
+		spacing: 5
+
+		anchors {
+			fill: parent
+			leftMargin: 5
+			rightMargin: 5
+			topMargin: 10
+			bottomMargin: 5
+		}
 
 		Rectangle {
 			id: savedCities
@@ -101,13 +111,11 @@ TPPage {
 
 			ScrollView {
 				id: scrollViewCities
-				width: parent.width
+				width: main.width
 				contentHeight: citiesLayout.implicitHeight
 				contentWidth: width
-				Layout.minimumHeight: 0.1*appSettings.pageHeight
-				Layout.maximumHeight: 0.25*appSettings.pageHeight
-				Layout.topMargin: 10
-				Layout.bottomMargin: 10
+				Layout.minimumHeight: 0.1*main.height
+				Layout.maximumHeight: 0.25*main.height
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -119,46 +127,31 @@ TPPage {
 					anchors.fill: parent
 					spacing: 0
 
-					TPLabel {
+					TPButton {
 						id: gpsCity
-						text: weatherInfo.canUseGps ? ( (weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location"))
-							  + (weatherInfo.useGps ? " (GPS)" : "") ) : qsTr("Cannot use GPS on this device")
-						font: AppGlobals.largeFont
-						fontColor: "white"
+						text: weatherInfo.canUseGps ? (weatherInfo.useGps ?
+									(weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location")) : qsTr("Not using GPS now")) :
+									qsTr("Cannot use GPS on this device")
+
+						textColor: "white"
+						imageSource: "gps.png"
 						enabled: weatherInfo.canUseGps
-						width: 0.8*parent.width
+						width: 0.8*scrollViewCities.width
+						height: 30
 						Layout.alignment: Qt.AlignCenter
 						Layout.minimumWidth: width
 						Layout.maximumWidth: width
 						Layout.topMargin: 5
 
-						TPImage {
-							id: gpsIcon
-							source: "appSettings.iconFolder/gps"
-							enabled: parent.enabled
-							height: 25
-							width: 25
-
-							anchors {
-								left: gpsCity.right
-								verticalCenter: gpsCity.verticalCenter
-								verticalCenterOffset: -2
-							}
-						}
-
-						MouseArea {
-							anchors.fill: parent
-							onClicked: weatherInfo.useGps = true;
-						}
+						onClicked: weatherInfo.useGps = true;
 					} //TPLabel gpsCity
 
 					Repeater {
 						model: appSettings.weatherCitiesCount
 						Row {
 							spacing: 5
-							width: 0.7*parent.width
+							width: 0.8*scrollViewCities.width
 							height: 30
-							Layout.fillWidth: true
 							Layout.alignment: Qt.AlignCenter
 							Layout.minimumWidth: width
 							Layout.maximumWidth: width
@@ -195,7 +188,7 @@ TPPage {
 
 						TPLabel {
 							text: qsTr("Search:")
-							width: 0.2*parent.width
+							width: 0.3*parent.width
 							Layout.minimumWidth: width
 							Layout.maximumWidth: width
 						}
@@ -219,9 +212,11 @@ TPPage {
 
 		BigForecastIcon {
 			id: current
-			Layout.fillWidth: true
-			Layout.fillHeight: true
 			Layout.alignment: Qt.AlignHCenter
+			Layout.minimumHeight: 0.5*main.height
+			Layout.maximumHeight: 0.6*main.height
+			Layout.minimumWidth: main.width
+			Layout.maximumWidth: main.width
 
 			topText: weatherInfo.hasValidWeather ? (weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature) : "??"
 			weatherIcon: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny"
@@ -232,7 +227,11 @@ TPPage {
 		Item {
 			implicitWidth: iconRow.implicitWidth
 			implicitHeight: iconRow.implicitHeight
-			Layout.fillWidth: true
+			Layout.alignment: Qt.AlignHCenter
+			Layout.minimumHeight: 0.25*main.height
+			Layout.maximumHeight: 0.3*main.height
+			Layout.minimumWidth: main.width
+			Layout.maximumWidth: main.width
 
 			Rectangle {
 				id: forecastFrame
@@ -274,7 +273,7 @@ TPPage {
 						bottom: parent.bottom
 						horizontalCenter: parent.horizontalCenter
 					}
-	}
+				}
 
 			} //Rectangle forecastFrame
 			MultiEffect {

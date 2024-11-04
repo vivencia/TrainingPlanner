@@ -342,6 +342,7 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 	query.addQueryItem(u"limit"_s, STR_ONE);
 	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
 	url.setQuery(query);
+
 	QNetworkRequest net_request{url};
 	QNetworkReply* reply{m_networkManager->get(net_request)};
 	connect(reply, &QNetworkReply::finished, this, [this,reply,coordinate] () {
@@ -352,7 +353,7 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 			if (!parsedData.isEmpty())
 			{
 				m_locationName = parsedData.count() == 2 ? parsedData.at(1) : parsedData.at(0);
-				requestWeatherInfo(coordinate);
+				requestWeatherInfoFromNet(coordinate);
 			}
 			else
 			{
@@ -432,7 +433,7 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 	reply->deleteLater();
 }
 
-void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate coordinate)
+void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coordinate)
 {
 	QUrlQuery query;
 	QUrl url{u"http://api.openweathermap.org/data/3.0/onecall"_s};

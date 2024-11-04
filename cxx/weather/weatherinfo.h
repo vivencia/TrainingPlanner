@@ -108,8 +108,10 @@ public slots:
 	Q_INVOKABLE void refreshWeather();
 
 private slots:
-	void positionUpdated(QGeoPositionInfo gpsPos);
+#ifdef Q_OS_ANDROID
+	void positionUpdated(const QGeoPositionInfo& gpsPos);
 	void positionError(QGeoPositionInfoSource::Error e);
+#endif
 	void handleWeatherData(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
 	void switchToNextBackend();
 
@@ -132,6 +134,7 @@ private:
 	WeatherInfoPrivate* d;
 #ifdef Q_OS_ANDROID
 	QTimer* gpsWaitTimer;
+	uint m_gpsOnAttempts, m_gpsPosError;
 #endif
 };
 

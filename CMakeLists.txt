@@ -270,18 +270,18 @@ install(TARGETS TrainingPlanner
 	LIBRARY DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-
-set_property(TARGET TrainingPlanner APPEND PROPERTY
-    QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
-)
-
 #set_target_properties(
 #        TrainingPlanner
 #    PROPERTIES
 #        QT_QMLCACHEGEN_ARGUMENTS "--only-bytecode"
 #)
 if (ANDROID)
+	set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+
+	set_property(TARGET TrainingPlanner APPEND PROPERTY
+	    QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
+	)
+
     include(FetchContent)
     FetchContent_Declare(
         android_openssl
@@ -290,4 +290,6 @@ if (ANDROID)
     )
     FetchContent_MakeAvailable(android_openssl)
     include(/home/guilherme/Android/Sdk/android_openssl/android_openssl.cmake)
-endif()
+
+    add_android_openssl_libraries(TrainingPlanner)
+endif(ANDROID)

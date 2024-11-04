@@ -107,8 +107,7 @@ WeatherDataCache::getWeatherData(const QGeoCoordinate& coordinate) const
 
 void WeatherDataCache::addCacheElement(const st_LocationInfo& location, const QList<st_WeatherInfo>& info)
 {
-	// It it expected that we have valid QGeoCoordinate only when the weather
-	// is received based on coordinates.
+	// It it expected that we have valid QGeoCoordinate only when the weather is received based on coordinates.
 	const qint64 currentTime{QDateTime::currentSecsSinceEpoch()};
 	if (location.m_coordinate.isValid())
 	{
@@ -172,7 +171,7 @@ static void forecastClear(QQmlListProperty<WeatherData>* prop)
 WeatherInfo::WeatherInfo(QObject* parent)
 	: QObject{parent}, d{new WeatherInfoPrivate}
 #ifdef Q_OS_ANDROID
-	, gpsWaitTimer(nullptr)
+	,gpsWaitTimer(nullptr), m_gpsOnAttempts(0), m_gpsPosError(0)
 #endif
 {
 	d->fcProp = new QQmlListProperty<WeatherData>{this, d, forecastAppend,
@@ -187,7 +186,6 @@ WeatherInfo::WeatherInfo(QObject* parent)
 
 #ifdef Q_OS_ANDROID
 	d->src = QGeoPositionInfoSource::createDefaultSource(this);
-
 	if (d->src)
 	{
 
@@ -212,6 +210,7 @@ WeatherInfo::WeatherInfo(QObject* parent)
 				positionError(QGeoPositionInfoSource::AccessError);
 			break;
 			case Qt::PermissionStatus::Granted:
+
 				d->canUseGPS = true;
 				d->src->startUpdates();
 			break;
@@ -219,10 +218,13 @@ WeatherInfo::WeatherInfo(QObject* parent)
 
 		if (d->canUseGPS)
 		{
-			d->src->startUpdates();
-			connect(d->src, &QGeoPositionInfoSource::positionUpdated, this, &WeatherInfo::positionUpdated);
-			connect(d->src, &QGeoPositionInfoSource::errorOccurred, this, &WeatherInfo::positionError);
-			setUseGps(true);
+			if (appSettings()->useGPS())
+			{
+				qWarning() << "--------------"  << " Can use GPS startUpdates()" << "------------";
+				setUseGps(true);
+			}
+			else
+				setCity(appSettings()->weatherCity(0));
 		}
 #else
 		d->src->startUpdates();
@@ -251,22 +253,56 @@ WeatherInfo::~WeatherInfo()
 	delete d;
 }
 
-void WeatherInfo::positionUpdated(QGeoPositionInfo gpsPos)
+#ifdef Q_OS_ANDROID
+void WeatherInfo::positionUpdated(const QGeoPositionInfo& gpsPos)
 {
-	d->coord = gpsPos.coordinate();
-	if (!d->useGps)
-		return;
-	requestWeatherByCoordinates();
+	qWarning() << "--------------"  << "positionUpdated()" << "------------";
+	if (d->useGps)
+	{
+		qWarning() << "--------------"  << "positionUpdated() - distance to last position:   " << d->coord.distanceTo(gpsPos.coordinate()) << "------------";
+		m_gpsPosError = 0;
+		d->src->setUpdateInterval(1200000); //update every 20 minutes
+		d->src->startUpdates();
+		const QGeoCoordinate& newCoord = gpsPos.coordinate();
+		if (d->coord.isValid() && newCoord.isValid())
+		{
+			if (d->coord.distanceTo(newCoord) < 5000)
+				return;
+		}
+		qWarning() << "--------------"  << "positionUpdated() - calling requestWeatherByCoordinates()" << "------------";
+		d->coord = std::move(newCoord);
+		requestWeatherByCoordinates();
+	}
+	else //not using GPS for the moment, no need to keep track of its signal
+	{
+		d->src->stopUpdates();
+		d->src->disconnect();
+	}
 }
 
+//Not working
 void WeatherInfo::positionError(QGeoPositionInfoSource::Error e)
 {
 	Q_UNUSED(e);
-	qWarning() << "Position source error. Falling back to simulation mode.";
-
 	if (d->useGps)
-		setCity(appSettings()->weatherCity(0));
+	{
+		if (m_gpsPosError == 0)
+		{
+			d->src->stopUpdates();
+			d->src->setUpdateInterval(2000); //update every 2 seconds until positionUpdated gets called
+			d->src->startUpdates();
+			++m_gpsPosError;
+		}
+		else if (m_gpsPosError++ >= 5)
+			setUseGps(false);
+	}
+	else //not using GPS for the moment, no need to keep track of its signal
+	{
+		d->src->stopUpdates();
+		d->src->disconnect();
+	}
 }
+#endif
 
 void WeatherInfo::refreshWeather()
 {
@@ -309,7 +345,7 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 
 	if (city != d->city && d->useGps)
 	{
-		setCity(city);
+		setCity(city, true);
 #ifdef Q_OS_ANDROID
 		setGpsCity(city);
 #endif
@@ -338,9 +374,15 @@ void WeatherInfo::requestWeatherByCoordinates()
 	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->coord);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
+	{
+		qWarning() << "--------------"  << " requestWeatherByCoordinates() using cache" << "------------";
 		applyWeatherData(cacheResult.first, cacheResult.second);
+	}
 	else if (d->m_currentBackend)
+	{
+		qWarning() << "--------------"  << " requestWeatherByCoordinates() request weather for coordinates:  " << d->coord << "------------";
 		d->m_currentBackend->requestWeatherInfo(d->coord);
+	}
 }
 
 void WeatherInfo::requestWeatherByCity()
@@ -348,9 +390,15 @@ void WeatherInfo::requestWeatherByCity()
 	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->city);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
+	{
+		qWarning() << "--------------"  << " requestWeatherByCity() using cache" << "------------";
 		applyWeatherData(cacheResult.first, cacheResult.second);
+	}
 	else if (d->m_currentBackend)
+	{
+		qWarning() << "--------------"  << " requestWeatherByCity() request weather from backend for city:  " << d->city << "------------";
 		d->m_currentBackend->requestWeatherInfo(d->city);
+	}
 }
 
 void WeatherInfo::registerBackend(qsizetype index)
@@ -405,12 +453,12 @@ QString WeatherInfo::loadMessage() const
 {
 	if (!d->ready)
 	{
-		if (d->canUseGPS)
+		if (d->useGps)
 		{
 			if (!d->coord.isValid())
 				return tr("Waiting for GPS signal...");
 		}
-		return tr("Loading weather data from the internet...");
+		return tr("Loading weather data \nfrom the internet...");
 	}
 	return QString();
 }
@@ -432,49 +480,73 @@ bool WeatherInfo::canUseGps() const
 
 void WeatherInfo::setUseGps(const bool value)
 {
-	if (value != d->useGps)
+	if (!d->canUseGPS)
+		return;
+#ifdef Q_OS_ANDROID
+	if (d->useGps != value)
 	{
 		d->useGps = value;
+		emit useGpsChanged();
+		appSettings()->setUseGPS(value);
 		if (value)
-		{	
-			// if we already have a valid GPS position, do not wait until it updates, but query the city immediately
-			if (d->coord.isValid())
+		{
+			setGpsCity(tr("Resquesting GPS info..."));
+			connect(d->src, &QGeoPositionInfoSource::positionUpdated, this, &WeatherInfo::positionUpdated);
+			//connect(d->src, &QGeoPositionInfoSource::errorOccurred, this, &WeatherInfo::positionError);
+			d->src->requestUpdate();
+		}
+		else
+		{
+			d->src->stopUpdates();
+			d->src->disconnect();
+		}
+	}
+
+	if (value)
+	{
+		// if we already have a valid GPS position, do not wait until it updates, but query the city immediately
+		if (d->coord.isValid())
+		{
+			qWarning() << "--------------"  << " setUseGPS(true) -> d->coord.isValid()" << "------------";
+			if (gpsWaitTimer && gpsWaitTimer->isActive())
 			{
-				setCity(QString(), true);
-				requestWeatherByCoordinates();
+				gpsWaitTimer->stop();
+				disconnect(gpsWaitTimer, &QTimer::timeout, nullptr, nullptr);
+				m_gpsOnAttempts = 0;
 			}
-			else
+			setCity(QString(), true);
+			requestWeatherByCoordinates();
+		}
+		else
+		{
+			qWarning() << "--------------"  << " setUseGPS(true) -> !d->coord.isValid()" << "------------";
+			if (!gpsWaitTimer)
+				gpsWaitTimer = new QTimer{this};
+
+			qWarning() << "--------------"  << " setUseGPS(true) ->GPS Attempts: " << m_gpsOnAttempts;
+			switch (m_gpsOnAttempts++)
 			{
-#ifdef Q_OS_ANDROID
-				if (!gpsWaitTimer)
-					gpsWaitTimer = new QTimer{this};
-				else
-				{
-					static uint attempts(0);
-					qDebug() << "GPS Attempt: " << attempts;
-					switch (attempts++)
-					{
-						case 0:
-							connect(gpsWaitTimer, &QTimer::timeout, this, [this] () { setUseGps(true); });
-							gpsWaitTimer->setInterval(10000);
-							gpsWaitTimer->start();
-							return;
-						break;
-						case 1: return;
-						case 2: //After 20 seconds, revert back to city mode
-							disconnect(gpsWaitTimer, &QTimer::timeout, nullptr, nullptr);
-							d->canUseGPS = false;
-							setCity(appSettings()->weatherCity(0));
-							attempts = 0; //can be attempted again any time later
-						break;
-					}
-				}
-#endif
-			requestWeatherByCity();
+				case 0:
+					qWarning() << "--------------"  << " setUseGPS(true) -> starting timer: " << m_gpsOnAttempts;
+					connect(gpsWaitTimer, &QTimer::timeout, this, [this] () { setUseGps(true); });
+					gpsWaitTimer->setInterval(5000);
+					gpsWaitTimer->start();
+					return;
+				break;
+				case 4: //After 20 seconds, revert back to city mode
+					qWarning() << "--------------"  << " setUseGPS(true) -> GPS Failed" << "------------";
+					disconnect(gpsWaitTimer, &QTimer::timeout, nullptr, nullptr);
+					d->canUseGPS = false;
+					setCity(appSettings()->weatherCity(0));
+					m_gpsOnAttempts = 0; //can be attempted again any time later
+				break;
+				default: return;
 			}
 		}
-		emit useGpsChanged();
 	}
+#else
+	Q_UNUSED(value);
+#endif
 }
 
 QString WeatherInfo::city() const
@@ -493,6 +565,7 @@ void WeatherInfo::setCity(const QString& value, const bool changeCityOnly)
 		{
 			if (!value.isEmpty())
 			{
+				qWarning() << "--------------"  << " setCity(true) -> canceling GPS, requestWeatherByCity()" << "------------";
 				setUseGps(false);
 				requestWeatherByCity();
 			}

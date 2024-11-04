@@ -10,7 +10,7 @@ Item {
     property string middleIcon: "sunny"
     property string bottomText: "22*/23*"
 
-    implicitHeight: dayText.implicitHeight + width + tempText.implicitHeight + 20
+    implicitHeight: dayText.implicitHeight + icon.height + tempText.implicitHeight + 20
 
     Text {
         id: dayText
@@ -20,33 +20,37 @@ Item {
         color: "white"
         font.pixelSize: 16
 
-        anchors.top: parent.top
-        anchors.margins: 5
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors {
+			top: parent.top
+			margins: 5
+			horizontalCenter: parent.horizontalCenter
+		}
     }
 
     WeatherIcon {
         id: icon
         weatherIcon: top.middleIcon
-
+        height: 50
         width: height
-        anchors.top: dayText.bottom
-        anchors.bottom: tempText.top
-        anchors.margins: 5
-        anchors.horizontalCenter: parent.horizontalCenter
+
+        anchors {
+			top: dayText.bottom
+			horizontalCenter: parent.horizontalCenter
+		}
     }
 
     Text {
         id: tempText
-        horizontalAlignment: Text.AlignHCenter
-        width: top.width
         text: top.bottomText
-        font.pixelSize: 16
-
-        anchors.bottom: parent.bottom
-        anchors.margins: 5
-        anchors.horizontalCenter: parent.horizontalCenter
         color: "white"
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: 16
+        width: top.width
 
+        anchors {
+			bottom: parent.bottom
+			bottomMargin: 10
+			horizontalCenter: parent.horizontalCenter
+		}
     }
 }

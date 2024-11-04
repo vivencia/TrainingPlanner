@@ -33,8 +33,9 @@
 
 #define ASK_CONFIRMATION_INDEX 26
 #define USER_INDEX 27
+#define USEGPS_INDEX 28
 
-#define WEATHER_CITIES_INDEX 28
+#define WEATHER_CITIES_INDEX 29
 
 #define SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
 
@@ -75,6 +76,7 @@ Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesC
 
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
 Q_PROPERTY(bool mainUserConfigured READ mainUserConfigured WRITE setMainUserConfigured NOTIFY mainUserConfiguredChanged)
+Q_PROPERTY(bool useGPS READ useGPS WRITE setUseGPS NOTIFY useGPSChanged)
 
 public:
 	explicit TPSettings(QObject* parent = nullptr);
@@ -131,11 +133,14 @@ public:
 		return value(m_propertyNames.value(WEATHER_CITIES_INDEX), m_defaultValues.at(WEATHER_CITIES_INDEX)).value<QStringList>().at(idx);
 	}
 
-	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX).toUInt()).toBool(); }
+	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
 
-	inline bool mainUserConfigured() const { return value(m_propertyNames.value(USER_INDEX), m_defaultValues.at(USER_INDEX)).toUInt() != 0; }
+	inline bool mainUserConfigured() const { return value(m_propertyNames.value(USER_INDEX), m_defaultValues.at(USER_INDEX)).toBool(); }
 	inline void setMainUserConfigured(const bool new_value) { changeValue(USER_INDEX, QString::number(static_cast<uint>(new_value))); emit mainUserConfiguredChanged(); }
+
+	inline bool useGPS() const { return value(m_propertyNames.value(USEGPS_INDEX), m_defaultValues.at(USEGPS_INDEX)).toBool(); }
+	inline void setUseGPS(const bool new_value) { changeValue(USEGPS_INDEX, QString::number(static_cast<uint>(new_value))); emit useGPSChanged(); }
 
 signals:
 	void appLocaleChanged();
@@ -147,6 +152,7 @@ signals:
 	void weatherCitiesCountChanged();
 	void alwaysAskConfirmationChanged();
 	void mainUserConfiguredChanged();
+	void useGPSChanged();
 
 private:
 	QMap<uint,QString> m_propertyNames;

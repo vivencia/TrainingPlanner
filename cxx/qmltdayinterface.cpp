@@ -124,13 +124,17 @@ void QmlTDayInterface::setEditMode(const bool new_value)
 
 void QmlTDayInterface::setDayIsFinished(const bool new_value)
 {
-	const QDate& date(m_tDayModel->date());
-	appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, new_value);
-	appDBInterface()->setDayIsFinished(m_mesoIdx, date, new_value);
-	if (new_value)
+	if (m_bDayIsFinished != new_value)
 	{
-		calculateWorkoutTime();
-		rollUpExercises();
+		m_bDayIsFinished = new_value;
+		const QDate& date{m_tDayModel->date()};
+		appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, new_value);
+		appDBInterface()->setDayIsFinished(m_mesoIdx, date, new_value);
+		if (new_value)
+		{
+			calculateWorkoutTime();
+			rollUpExercises();
+		}
 	}
 }
 
@@ -157,7 +161,6 @@ void QmlTDayInterface::setMainDateIsToday(const bool new_value)
 			connect(m_workoutTimer, &TPTimer::hoursChanged, this, [this] () { setTimerHour(m_workoutTimer->hours()); });
 			connect(m_workoutTimer, &TPTimer::minutesChanged, this, [this] () { setTimerMinute(m_workoutTimer->minutes()); });
 			connect(m_workoutTimer, &TPTimer::secondsChanged, this, [this] () { setTimerSecond(m_workoutTimer->seconds()); });
-			connect(m_tDayPage, SIGNAL(silenceTimeWarning), this, SLOT(silenceTimeWarning));
 		}
 	}
 }
@@ -192,19 +195,19 @@ void QmlTDayInterface::getTrainingDayPage()
 		m_tDayModel->setDate(m_Date);
 
 		m_splitLetter = strSplitLetter;
-		m_tDayModel->setSplitLetter(strSplitLetter);
-		m_tDayModel->setTrainingDay(tday);
-		setTimeIn(u"--:--"_s);
-		setTimeOut(u"--:--"_s);
+		m_tDayModel->setSplitLetter(strSplitLetter, false);
+		m_tDayModel->setTrainingDay(tday, false);
+		setMainDateIsToday(m_Date == QDate::currentDate());
 		setEditMode(false);
+		//setDayIsEditable(false); //setEditMode already calls setDayIsEditable
 		setDayIsFinished(false);
-		setDayIsEditable(false);
 		setHasMesoPlan(false);
 		setHasPreviousTDays(false);
-		setMainDateIsToday(m_Date == QDate::currentDate());
 		setNeedActivation(false);
 		setTimerActive(false);
 		setHasExercises(false);
+		setTimeIn(u"--:--"_s);
+		setTimeOut(u"--:--"_s);
 		m_tDayProperties.insert(u"tDayManager"_s, QVariant::fromValue(this));
 		createTrainingDayPage();
 	}
@@ -507,6 +510,9 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		appDBInterface()->saveTrainingDay(m_tDayModel);
 	});
 
+	if (mainDateIsToday())
+		connect(m_tDayPage, SIGNAL(silenceTimeWarning), this, SLOT(silenceTimeWarning));
+
 	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
 }
 
@@ -561,9 +567,12 @@ void QmlTDayInterface::calculateWorkoutTime()
 	{
 		if (mainDateIsToday())
 		{
-			//optTimeConstrainedSession.checked = true;
-			m_workoutTimer->setStopWatch(false);
-			m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(appUtils()->getCurrentTimeString(), timeOut()));
+			if (!timeOut().isEmpty() && !timeOut().contains('-'))
+			{
+				//optTimeConstrainedSession.checked = true;
+				m_workoutTimer->setStopWatch(false);
+				m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(appUtils()->getCurrentTimeString(), timeOut()));
+			}
 		}
 	}
 }

@@ -33,7 +33,7 @@ ComboBox {
 			color: textColor
 			singleLine: true
 			verticalAlignment: Text.AlignVCenter
-			leftPadding: completeModel ? 10 : 5
+			leftPadding: completeModel ? 30 : 5
 
 			TPImage {
 				id: lblImg
@@ -45,7 +45,7 @@ ComboBox {
 
 				anchors {
 					left: parent.left
-					leftMargin: -12
+					leftMargin: 5
 					verticalCenter: parent.verticalCenter
 				}
 			}
