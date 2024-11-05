@@ -29,6 +29,9 @@ struct st_WeatherInfo
 struct st_LocationInfo
 {
 	QString m_name;
+	QString m_state;
+	QString m_country;
+	QString m_strCoordinate;
 	QGeoCoordinate m_coordinate;
 };
 
@@ -42,6 +45,7 @@ public:
 
 	virtual void requestWeatherInfo(const QString& city) = 0;
 	virtual void requestWeatherInfo(const QGeoCoordinate& coordinate) = 0;
+	virtual void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate) {}
 
 signals:
 	// The first element in weatherDetails represents current weather.

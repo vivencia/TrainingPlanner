@@ -24,7 +24,7 @@ Item {
 		fontColor: "white"
 		font: AppGlobals.extraLargeFont
 		horizontalAlignment: Text.AlignHCenter
-		width: appSettings.pageWidth
+		width: parent.width
 
 		anchors.top: parent.top
 		anchors.horizontalCenter: parent.horizontalCenter
@@ -48,7 +48,6 @@ Item {
 
 		anchors {
 			top: text1.bottom
-			topMargin: -40
 			horizontalCenter: parent.horizontalCenter
 		}
 	}
@@ -59,7 +58,7 @@ Item {
 		fontColor: "white"
 		font: AppGlobals.regularFont
 		horizontalAlignment: Text.AlignHCenter
-		width: appSettings.pageWidth
+		width: parent.width
 
 		anchors {
 			top: img.bottom
@@ -86,7 +85,7 @@ Item {
 		horizontalAlignment: Text.AlignHCenter
 		fontColor: "white"
 		singleLine: false
-		width: appSettings.pageWidth
+		width: parent.width
 
 		anchors {
 			top: text2.bottom

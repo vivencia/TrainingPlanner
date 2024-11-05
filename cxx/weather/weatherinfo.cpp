@@ -8,13 +8,18 @@
 #include "../tpsettings.h"
 #include "../tputils.h"
 
-#include <QtPositioning/qgeocircle.h>
-#include <QtPositioning/qgeocoordinate.h>
+#include <QCoreApplication>
+#include <QGeoCircle>
+#include <QGeoCoordinate>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QTimer>
+#include <QUrlQuery>
+
 #if QT_CONFIG(permissions)
-#include <QtCore/qpermissions.h>
+#include <QPermissions>
 #endif
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qtimer.h>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -24,7 +29,7 @@ void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info)
 	m_coordinates = std::move(w_info.m_coordinates);
 	m_temperature = std::move(w_info.m_temperature + tr(" (Feels: ") + w_info.m_temperature_feel + ')');
 	m_icon = std::move(w_info.m_weatherIconId);
-	m_description = std::move(tr("Weather now(") + std::move(appUtils()->getCurrentTimeString()) + ")\n" + w_info.m_weatherDescription);
+	m_description = std::move(tr("Weather now(") + std::move(appUtils()->currentFormattedTimeString()) + ")\n" + w_info.m_weatherDescription);
 	m_extra_info = std::move(
 					tr("Humidity: ") + w_info.m_humidity + '\t' + tr("Pressure: ") + w_info.m_pressure + '\n' +
 					tr("Wind speed: " ) + w_info.m_wind   + ' ' + tr("UV Index: ") + w_info.m_uvi    + '\n' +
@@ -169,7 +174,7 @@ static void forecastClear(QQmlListProperty<WeatherData>* prop)
 }
 
 WeatherInfo::WeatherInfo(QObject* parent)
-	: QObject{parent}, d{new WeatherInfoPrivate}
+	: QObject{parent}, d{new WeatherInfoPrivate}, m_netAccessManager(nullptr)
 #ifdef Q_OS_ANDROID
 	,gpsWaitTimer(nullptr), m_gpsOnAttempts(0), m_gpsPosError(0)
 #endif
@@ -570,6 +575,128 @@ void WeatherInfo::setCity(const QString& value, const bool changeCityOnly)
 				requestWeatherByCity();
 			}
 		}
+	}
+}
+
+static QList<st_LocationInfo> parseApiNinjasReply(const QByteArray& replyData)
+{
+	QList<st_LocationInfo> parsedData;
+	if (replyData.length() > 50)
+	{
+		st_LocationInfo tempData;
+		QString word, *strInfo(nullptr);
+		QByteArray::const_iterator itr(replyData.constBegin());
+		const QByteArray::const_iterator itr_end(replyData.constEnd());
+		do {
+			if (QChar::isLetterOrNumber(*itr))
+				word.append(*itr);
+			else
+			{
+				switch (*itr)
+				{
+					case '-':
+					case '.':
+					case ' ':
+					case '(':
+					case ')':
+						word.append(*itr);
+					break;
+					case ':':
+						if (word == "name"_L1)
+							strInfo = &(tempData.m_name);
+						else if (word.contains("lat"_L1))
+						{
+							tempData.m_coordinate.setLatitude(0);
+							strInfo = &(tempData.m_strCoordinate);
+						}
+						else if (word.contains("lon"_L1))
+							strInfo = &(tempData.m_strCoordinate);
+						else if (word.contains("cou"_L1))
+							strInfo = &(tempData.m_country);
+						else
+							strInfo = &(tempData.m_state);
+						word.clear();
+					break;
+					case ',':
+						if (strInfo)
+						{
+							*strInfo = std::move(word.simplified());
+							bool ok(false);
+							strInfo->left(2).toInt(&ok);
+							if (ok)
+							{
+								if (tempData.m_coordinate.latitude() == 0)
+									tempData.m_coordinate.setLatitude(strInfo->toDouble());
+								else
+									tempData.m_coordinate.setLongitude(strInfo->toDouble());
+							}
+							word.clear();
+						}
+					break;
+					case '}':
+						*strInfo = std::move(word.simplified());
+						strInfo = nullptr;
+						parsedData.append(tempData);
+						word.clear();
+					break;
+					default: continue;
+				}
+			}
+		} while (++itr != itr_end);
+	}
+	return parsedData;
+}
+
+void WeatherInfo::placeLookUp(const QString& place)
+{
+	if (place.length() >= 5)
+	{
+		QUrlQuery query;
+		QUrl url{u"https://api.api-ninjas.com/v1/geocoding"_s};
+		query.addQueryItem(u"city"_s, place);
+		url.setQuery(query);
+		if (!m_netAccessManager)
+			m_netAccessManager = new QNetworkAccessManager{this};
+		QNetworkRequest net_request{url};
+		net_request.setRawHeader("X-Api-Key", "fVD0CWxVLhaz7cnhK21PCw==aOqhLKStgURO363U");
+		QNetworkReply* reply{m_netAccessManager->get(net_request)};
+		connect(reply, &QNetworkReply::finished, this, [this,reply] () {
+			buildLocationList(QString(reply->readAll()).toUtf8());
+		});
+	}
+	else if (place.isEmpty())
+	{
+		m_locationList.clear();
+		m_foundLocations.clear();
+		emit locationListChanged();
+	}
+}
+
+void WeatherInfo::locationSelected(const uint index)
+{
+	d->city = m_foundLocations.at(index).m_name;
+	emit cityChanged();
+	d->coord = m_foundLocations.at(index).m_coordinate;
+	d->m_currentBackend->requestWeatherInfoFromNet(d->coord);
+	m_usedLocations.insert(m_locationList.at(index), std::move(m_foundLocations.at(index)));
+	m_locationList.clear();
+	m_foundLocations.clear();
+	emit locationListChanged();
+}
+
+void WeatherInfo::buildLocationList(const QByteArray& net_data)
+{
+	const QList<st_LocationInfo>& parsedData(parseApiNinjasReply(net_data));
+	if (parsedData.count() > 0)
+	{
+		m_locationList.clear();
+		for (uint i(0); i < parsedData.count(); ++i)
+		{
+			const st_LocationInfo* l_info(&(parsedData.at(i)));
+			m_locationList.append(l_info->m_name + u" ("_s + l_info->m_state + ' ' +  l_info->m_country + ')');
+			m_foundLocations.append(std::move(*l_info));
+		}
+		emit locationListChanged();
 	}
 }
 

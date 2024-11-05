@@ -253,8 +253,8 @@ void OpenMeteoBackend::generateWeatherRequest(const QString& city, const QGeoCoo
 	// If the city is known, we pass an empty QGeoCoordinate object, so that
 	// the WeatherDataCache is populated correctly.
 	const st_LocationInfo& info{city.isEmpty() ?
-						st_LocationInfo{coordinate.toString(QGeoCoordinate::DegreesMinutesWithHemisphere), coordinate} :
-						st_LocationInfo{city, QGeoCoordinate()}};
+						st_LocationInfo{coordinate.toString(QGeoCoordinate::DegreesMinutesWithHemisphere), QString(), QString(), QString(), coordinate} :
+						st_LocationInfo{city, QString(), QString(), QString(), QGeoCoordinate()}};
 
 	QNetworkReply* reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this, reply, info] () {

@@ -11,6 +11,7 @@
 #include <QtQml/qqmllist.h>
 
 class QTimer;
+class QNetworkAccessManager;
 
 class	WeatherData : public QObject
 {
@@ -71,13 +72,13 @@ Q_PROPERTY(bool hasValidWeather READ hasValidWeather NOTIFY weatherChanged)
 Q_PROPERTY(bool useGps READ useGps WRITE setUseGps NOTIFY useGpsChanged)
 Q_PROPERTY(bool canUseGps READ canUseGps CONSTANT)
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
+Q_PROPERTY(QStringList locationList READ locationList NOTIFY locationListChanged)
 Q_PROPERTY(WeatherData* weather READ weather NOTIFY weatherChanged)
 Q_PROPERTY(QQmlListProperty<WeatherData> forecast READ forecast NOTIFY weatherChanged)
 
 #ifdef Q_OS_ANDROID
 Q_PROPERTY(QString gpsCity READ gpsCity WRITE setGpsCity NOTIFY gpsCityChanged)
 #endif
-QML_ELEMENT
 
 public:
 	explicit WeatherInfo(QObject* parent = nullptr);
@@ -95,6 +96,10 @@ public:
 
 	QString city() const;
 	void setCity(const QString& value, const bool changeCityOnly = false);
+
+	QStringList locationList() const { return m_locationList; }
+	Q_INVOKABLE void placeLookUp(const QString& place);
+	Q_INVOKABLE void locationSelected(const uint index);
 
 #ifdef Q_OS_ANDROID
 	QString gpsCity() const;
@@ -120,6 +125,7 @@ signals:
 	void useGpsChanged();
 	void cityChanged();
 	void weatherChanged();
+	void locationListChanged();
 #ifdef Q_OS_ANDROID
 	void gpsCityChanged();
 #endif
@@ -130,8 +136,14 @@ private:
 	void requestWeatherByCity();
 	void registerBackend(qsizetype index);
 	void deregisterCurrentBackend();
+	void buildLocationList(const QByteArray& net_data);
 
 	WeatherInfoPrivate* d;
+	QNetworkAccessManager* m_netAccessManager;
+	QMap<QString, st_LocationInfo> m_usedLocations;
+	QList<st_LocationInfo> m_foundLocations;
+	QStringList m_locationList;
+
 #ifdef Q_OS_ANDROID
 	QTimer* gpsWaitTimer;
 	uint m_gpsOnAttempts, m_gpsPosError;

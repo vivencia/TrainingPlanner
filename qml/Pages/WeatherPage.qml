@@ -97,7 +97,7 @@ TPPage {
 			fill: parent
 			leftMargin: 5
 			rightMargin: 5
-			topMargin: 10
+			topMargin: 5
 			bottomMargin: 5
 		}
 
@@ -106,117 +106,176 @@ TPPage {
 			radius: 8
 			color: "#3F000000"
 			Layout.alignment: Qt.AlignCenter
-			Layout.preferredWidth: parent.width
-			Layout.preferredHeight: scrollViewCities.height
+			Layout.preferredHeight: 0.25*main.height
+			Layout.preferredWidth: main.width
 
-			ScrollView {
+			TPButton {
+				id: btnGPS
+				text: weatherInfo.canUseGps ? (weatherInfo.useGps ?
+							(weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location")) : qsTr("Not using GPS now")) :
+							qsTr("Cannot use GPS on this device")
+
+				textColor: "white"
+				imageSource: "gps.png"
+				enabled: weatherInfo.canUseGps
+				width: scrollViewCities.width
+				height: 25
+				fixedSize: true
+				Layout.alignment: Qt.AlignCenter
+				Layout.minimumWidth: width
+				Layout.maximumWidth: width
+
+				onClicked: weatherInfo.useGps = true;
+
+				anchors {
+					top: parent.top
+					horizontalCenter: parent.horizontalCenter
+				}
+			} //TPLabel gpsCity
+
+			ListView {
 				id: scrollViewCities
 				width: main.width
-				contentHeight: citiesLayout.implicitHeight
-				contentWidth: width
-				Layout.minimumHeight: 0.1*main.height
-				Layout.maximumHeight: 0.25*main.height
+				height: 0.7*parent.height
+				contentHeight: model.count*25*1.1
+				contentWidth: availableWidth
+				spacing: 0
+				clip: true
+				model: appSettings.weatherCitiesCount
+
+				anchors {
+					top: btnGPS.bottom
+					left: parent.left
+					right: parent.right
+				}
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
-					active: true; visible: citiesLayout.totalHeight > height
+					active: true; visible: scrollViewCities.contentHeight > scrollViewCities.height
 				}
 
-				ColumnLayout {
-					id: citiesLayout
-					anchors.fill: parent
+				delegate: ItemDelegate {
+					id: delegate
 					spacing: 0
+					padding: 0
+					width: parent.width
+					height: 25
 
-					TPButton {
-						id: gpsCity
-						text: weatherInfo.canUseGps ? (weatherInfo.useGps ?
-									(weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location")) : qsTr("Not using GPS now")) :
-									qsTr("Cannot use GPS on this device")
+					contentItem: Text {
+						text: appSettings.weatherCity(index)
+						font.pixelSize: appSettings.fontSize
+						fontSizeMode: Text.Fit
 
-						textColor: "white"
-						imageSource: "gps.png"
-						enabled: weatherInfo.canUseGps
-						width: 0.8*scrollViewCities.width
-						height: 30
-						Layout.alignment: Qt.AlignCenter
-						Layout.minimumWidth: width
-						Layout.maximumWidth: width
-						Layout.topMargin: 5
+						TPButton {
+							imageSource: "remove"
+							fixedSize: true
+							imageSize: 20
+							height: 25
+							width: 25
 
-						onClicked: weatherInfo.useGps = true;
-					} //TPLabel gpsCity
-
-					Repeater {
-						model: appSettings.weatherCitiesCount
-						Row {
-							spacing: 5
-							width: 0.8*scrollViewCities.width
-							height: 30
-							Layout.alignment: Qt.AlignCenter
-							Layout.minimumWidth: width
-							Layout.maximumWidth: width
-
-							TPButton {
-								id: cityName
-								text: appSettings.weatherCity(index)
-								textColor: "white"
-								backgroundColor: "transparent"
-
-								onClicked: weatherInfo.city = cityName.text;
+							anchors {
+								right: parent.right
+								rightMargin: 10
+								verticalCenter: parent.verticalCenter
 							}
 
-							TPButton {
-								imageSource: "remove"
-								fixedSize: true
-								imageSize: 20
-								height: 25
-								width: 25
-								Layout.topMargin: 5
+							onClicked: appSettings.removeWeatherCity(index);
+						}
+					} //contentItem
 
-								onClicked: appSettings.removeWeatherCity(index);
+					background: Rectangle {
+						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+					}
+					onClicked: weatherInfo.city = cityName.text;
+				} //ItemDelegate
+			} //ListView
+
+			RowLayout {
+				spacing: 0
+				height: 25
+
+				anchors {
+					top: scrollViewCities.bottom
+					topMargin: -10
+					left: parent.left
+					right: parent.right
+				}
+
+				TPLabel {
+					text: qsTr("Search:")
+					width: 0.25*parent.width
+					height: 25
+					Layout.leftMargin: 5
+					Layout.minimumWidth: width
+					Layout.maximumWidth: width
+					Layout.preferredHeight: height
+				}
+
+				TPTextInput {
+					id: txtCities
+					width: 0.70*parent.width
+					height: 25
+					Layout.minimumWidth: width
+					Layout.maximumWidth: width
+					Layout.preferredHeight: height
+
+					onTextEdited: weatherInfo.placeLookUp(text);
+
+					ListView {
+						id: citiesFound
+						model: weatherInfo.locationList
+						boundsBehavior: Flickable.StopAtBounds
+						visible: model.length > 0
+						highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+						focus: true
+						height: contentHeight
+						z: 3
+
+						delegate: ItemDelegate
+						{
+							spacing: 0
+							padding: 0
+							width: parent.width
+							height: 25
+
+							required property string modelData
+							required property int index
+
+							background: Rectangle {
+								color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 							}
-						} //Text cityName
-					} //Repeater
 
-					Row {
-						Layout.fillWidth: true
-						Layout.leftMargin: 5
-						Layout.rightMargin: 5
-						Layout.bottomMargin: 5
-						spacing: 0
-						padding: 0
+							contentItem: TPLabel {
+								text: parent.modelData
+								width: parent.width
+								height: parent.height
+							}
 
-						TPLabel {
-							text: qsTr("Search:")
-							width: 0.3*parent.width
-							Layout.minimumWidth: width
-							Layout.maximumWidth: width
+							onClicked: {
+								weatherInfo.locationSelected(index);
+								citiesFound.parent.clear();
+							}
 						}
 
-						TPTextInput {
-							id: txtNewCity
-							width: 0.7*parent.width
-							Layout.minimumWidth: width
-							Layout.maximumWidth: width
-							property bool textOK: text.length > 5
-
-							onTextEdited: {
-								if (textOK)
-									weatherInfo.city = txtNewCity.text;
-							}
+						anchors {
+							top: txtCities.bottom
+							left: txtCities.left
+							right: txtCities.right
 						}
-					} //Row txtNewCity
-				} //ColumnLayout citiesLayout
-			} //ScrollView
+					}
+				}
+			} //Row txtNewCity
 		} // Rectangle savedCities
 
 		BigForecastIcon {
 			id: current
+			height: 0.5*main.height
+			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
-			Layout.minimumHeight: 0.5*main.height
-			Layout.maximumHeight: 0.6*main.height
-			Layout.minimumWidth: main.width
-			Layout.maximumWidth: main.width
+			Layout.minimumHeight: height
+			Layout.maximumHeight: height
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
 
 			topText: weatherInfo.hasValidWeather ? (weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature) : "??"
 			weatherIcon: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny"
@@ -225,13 +284,14 @@ TPPage {
 		}
 
 		Item {
-			implicitWidth: iconRow.implicitWidth
-			implicitHeight: iconRow.implicitHeight
+			width: parent.width
+			height: 0.25*main.height
+			Layout.topMargin: -15
 			Layout.alignment: Qt.AlignHCenter
-			Layout.minimumHeight: 0.25*main.height
-			Layout.maximumHeight: 0.3*main.height
-			Layout.minimumWidth: main.width
-			Layout.maximumWidth: main.width
+			Layout.minimumHeight: height
+			Layout.maximumHeight: height
+			Layout.minimumWidth: width
+			Layout.maximumWidth: width
 
 			Rectangle {
 				id: forecastFrame

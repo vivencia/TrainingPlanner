@@ -369,6 +369,21 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 	});
 }
 
+void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coordinate)
+{
+	QUrlQuery query;
+	QUrl url{u"http://api.openweathermap.org/data/3.0/onecall"_s};
+	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
+	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
+	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
+	query.addQueryItem(u"exclude"_s, u"minutely,hourly,alerts"_s);
+	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
+	url.setQuery(query);
+
+	QNetworkReply* reply{m_networkManager->get(QNetworkRequest{url})};
+	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoResquestReply(reply, coordinate); });
+}
+
 void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)
 {
 	if (!reply)
@@ -431,19 +446,4 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 			ERROR_MESSAGE("Failed to parse current weather JSON.", reply->readAll());
 	}
 	reply->deleteLater();
-}
-
-void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coordinate)
-{
-	QUrlQuery query;
-	QUrl url{u"http://api.openweathermap.org/data/3.0/onecall"_s};
-	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
-	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
-	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
-	query.addQueryItem(u"exclude"_s, u"minutely,hourly,alerts"_s);
-	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
-	url.setQuery(query);
-
-	QNetworkReply* reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoResquestReply(reply, coordinate); });
 }

@@ -36,6 +36,14 @@ public:
 
 	Q_INVOKABLE QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
 	{ return time.toString((use_hours ? u"hh:mm"_s : u"mm"_s) + (use_secs ? u":ss"_s : u""_s)); }
+	QString currentFormattedTimeString() const
+	{
+		QString strTime{std::move(QTime::currentTime().toString(u"hh:mm"_s))};
+		strTime.insert(5, std::move(u"min"_s));
+		strTime.insert(2, std::move(u"hs"_s));
+		return strTime;
+	}
+
 	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
 					QTime::currentTime().toString(u"hh:mm"_s) : QTime::currentTime().toString(u"hh:mm:ss"_s); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;

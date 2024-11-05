@@ -139,7 +139,7 @@ Column {
 			id: delegate
 			spacing: 0
 			padding: 0
-			width: appSettings.pageWidth
+			width: parent.width
 			height: 40
 
 			contentItem: Text {
