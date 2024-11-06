@@ -384,6 +384,12 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coor
 	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoResquestReply(reply, coordinate); });
 }
 
+void OpenWeatherMapBackend::requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate)
+{
+	m_locationName = city;
+	requestWeatherInfoFromNet(coordinate);
+}
+
 void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)
 {
 	if (!reply)

@@ -1,4 +1,6 @@
 #include "tpsettings.h"
+
+#include "tputils.h"
 #include "tpglobals.h"
 
 #include <QScreen>
@@ -22,7 +24,7 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_propertyNames.insert(MESO_IDX_INDEX, std::move(u"lastViewedMesoIdx"_s));
 	m_propertyNames.insert(ASK_CONFIRMATION_INDEX, std::move(u"alwaysAskConfirmation"_s));
 	m_propertyNames.insert(USER_INDEX, std::move(u"mainUserConfigured"_s));
-	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move(u"weatherCities"_s));
+	m_propertyNames.insert(WEATHER_CITIES_INDEX, std::move(u"weatherLocations"_s));
 	m_propertyNames.insert(USEGPS_INDEX, std::move(u"useGPS"_s));
 
 	m_defaultValues.reserve(QML_PROPERTIES);
@@ -35,8 +37,6 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	m_defaultValues[ASK_CONFIRMATION_INDEX] = STR_ONE;
 	m_defaultValues[USER_INDEX] = STR_ZERO;
 	m_defaultValues[USEGPS_INDEX] = STR_ZERO;
-	m_defaultValues[WEATHER_CITIES_INDEX] = std::move(u"São Paulo"_s);
-	m_weatherCities = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
 
 	getScreenMeasures();
 	const QFontInfo fi{QGuiApplication::font()};
@@ -180,23 +180,56 @@ void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 	}
 }
 
-void TPSettings::setCurrentWeatherCity(const QString& city)
+QString TPSettings::weatherCity(const uint idx)
 {
-	const int idx(m_weatherCities.indexOf(city));
-	if (idx == -1)
-		m_weatherCities.prepend(city);
-	else if (idx != 0)
-		m_weatherCities.move(idx, 0);
-	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherCities));
+	if (m_weatherInfo.isEmpty())
+		m_weatherInfo = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QMap<QString,QString>>());
+
+	uint i(0);
+	QMap<QString,QString>::const_iterator loc(m_weatherInfo.constBegin());
+	const QMap<QString,QString>::const_iterator loc_end(m_weatherInfo.constEnd());
+	while (loc != loc_end)
+	{
+		if (i == static_cast<uint>(idx))
+			return loc.key();
+		++i;
+		++loc;
+	}
+	return QString();
+}
+
+QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx) const
+{
+	QGeoCoordinate coord;
+	uint i(0);
+	QMap<QString,QString>::const_iterator loc(m_weatherInfo.constBegin());
+	const QMap<QString,QString>::const_iterator loc_end(m_weatherInfo.constEnd());
+	while (loc != loc_end)
+	{
+		if (i == static_cast<uint>(idx))
+		{
+			coord.setLatitude(appUtils()->getCompositeValue(0, loc.value(), record_separator).toDouble());
+			coord.setLongitude(appUtils()->getCompositeValue(1, loc.value(), record_separator).toDouble());
+			break;
+		}
+		++i;
+		++loc;
+	}
+	return coord;
+}
+
+void TPSettings::addWeatherCity(const QString& city, const QString& latitude, const QString& longitude)
+{
+	m_weatherInfo.insert(city, latitude + record_separator + longitude);
+	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherInfo));
 	emit weatherCitiesCountChanged();
 }
 
-void TPSettings::removeWeatherCity(const int index)
+void TPSettings::removeWeatherCity(const QString& city)
 {
-	if (index >= 0 && index < m_weatherCities.count())
+	if (m_weatherInfo.remove(city) > 0)
 	{
-		m_weatherCities.removeAt(index);
-		changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherCities)) ;
+		changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherInfo)) ;
 		emit weatherCitiesCountChanged();
 	}
 }

@@ -22,6 +22,7 @@ public:
 	void requestWeatherInfo(const QString& city) override;
 	void requestWeatherInfo(const QGeoCoordinate& coordinate) override;
 	void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate) override;
+	void requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate) override;
 
 private slots:
 	void handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);

@@ -95,16 +95,17 @@ public:
 	void setUseGps(const bool value);
 
 	QString city() const;
-	void setCity(const QString& value, const bool changeCityOnly = false);
-
-	QStringList locationList() const { return m_locationList; }
-	Q_INVOKABLE void placeLookUp(const QString& place);
-	Q_INVOKABLE void locationSelected(const uint index);
+	void setCity(const QString& value);
 
 #ifdef Q_OS_ANDROID
 	QString gpsCity() const;
 	void setGpsCity(const QString& value);
 #endif
+
+	QStringList locationList() const { return m_locationList; }
+	Q_INVOKABLE void placeLookUp(const QString& place);
+	Q_INVOKABLE void locationSelected(const uint index);
+	Q_INVOKABLE void requestWeatherFor(const QString& city, const QGeoCoordinate& coord);
 
 	WeatherData* weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
@@ -137,6 +138,7 @@ private:
 	void registerBackend(qsizetype index);
 	void deregisterCurrentBackend();
 	void buildLocationList(const QByteArray& net_data);
+	void parseReply(const QByteArray& replyData);
 
 	WeatherInfoPrivate* d;
 	QNetworkAccessManager* m_netAccessManager;

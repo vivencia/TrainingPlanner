@@ -162,6 +162,7 @@ TPPage {
 					height: 25
 
 					contentItem: Text {
+						id: txtCity
 						text: appSettings.weatherCity(index)
 						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
@@ -179,14 +180,14 @@ TPPage {
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: appSettings.removeWeatherCity(index);
+							onClicked: appSettings.removeWeatherCity(txtCity.text);
 						}
 					} //contentItem
 
 					background: Rectangle {
 						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 					}
-					onClicked: weatherInfo.city = cityName.text;
+					onClicked: weatherInforequestWeatherFor(appSettings.weatherCity(index), appSettings.weatherCityCoordinates(index));
 				} //ItemDelegate
 			} //ListView
 
@@ -221,48 +222,7 @@ TPPage {
 
 					onTextEdited: weatherInfo.placeLookUp(text);
 
-					ListView {
-						id: citiesFound
-						model: weatherInfo.locationList
-						boundsBehavior: Flickable.StopAtBounds
-						visible: model.length > 0
-						highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
-						focus: true
-						height: contentHeight
-						z: 3
-
-						delegate: ItemDelegate
-						{
-							spacing: 0
-							padding: 0
-							width: parent.width
-							height: 25
-
-							required property string modelData
-							required property int index
-
-							background: Rectangle {
-								color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
-							}
-
-							contentItem: TPLabel {
-								text: parent.modelData
-								width: parent.width
-								height: parent.height
-							}
-
-							onClicked: {
-								weatherInfo.locationSelected(index);
-								citiesFound.parent.clear();
-							}
-						}
-
-						anchors {
-							top: txtCities.bottom
-							left: txtCities.left
-							right: txtCities.right
-						}
-					}
+					Component.onCompleted: weatherInfo.locationListChanged.connect(showLocationsList);
 				}
 			} //Row txtNewCity
 		} // Rectangle savedCities
@@ -345,6 +305,25 @@ TPPage {
 				shadowVerticalOffset: 4
 				shadowOpacity: 0.6
 			}
+		}
+	}
+
+	property TPFloatingMenuBar locationsMenu: null
+	function showLocationsList() {
+		const list_len = weatherInfo.locationList.length;
+		if (list_len > 0) {
+			if (locationsMenu === null) {
+				var locationsMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage, width: weatherPage.width*0.9 });
+				locationsMenu.menuEntrySelected.connect(function(id) { weatherInfo.locationSelected(id);  txtCities.clear(); });
+			}
+			for(var i = 0; i < list_len; ++i)
+				locationsMenu.addEntry(weatherInfo.locationList[i], "", i, true);
+			locationsMenu.show(savedCities, 3);
+		}
+		else {
+			if (locationsMenu)
+				locationsMenu.clear();
 		}
 	}
 }

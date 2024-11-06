@@ -43,6 +43,7 @@ Q_OBJECT
 public:
 	explicit inline ProviderBackend(QObject* parent = nullptr) : QObject{parent} {}
 
+	virtual void requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate) {};
 	virtual void requestWeatherInfo(const QString& city) = 0;
 	virtual void requestWeatherInfo(const QGeoCoordinate& coordinate) = 0;
 	virtual void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate) {}

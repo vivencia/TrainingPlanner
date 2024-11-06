@@ -18,10 +18,7 @@ TPPopup {
 	property int largestEntryWidth: 0
 	property var entryComponent: null
 
-	Component.onDestruction: {
-		for(var i = 0; i < entriesList.length; ++i)
-			delete entriesList[i];
-	}
+	Component.onDestruction: clear();
 
 	ColumnLayout {
 		id: mainLayout
@@ -54,12 +51,21 @@ TPPopup {
 			entryComponent.statusChanged.connect(finishCreation);
 	}
 
+	function clear() {
+		close();
+		for(var i = 0; i < entriesList.length; ++i)
+			delete entriesList[i];
+		entriesList.length = 0;
+	}
+
 	function enableMenuEntry(id: int, benabled: bool) {
-		entriesList[id].enabled = benabled;;
+		if (id < entriesList.length)
+			entriesList[id].enabled = benabled;;
 	}
 
 	function setMenuText(id: int, newText: string) {
-		entriesList[id].text = newText;
+		if (id < entriesList.length)
+			entriesList[id].text = newText;
 	}
 
 	function show(targetItem: Item, pos: int) {
@@ -87,8 +93,8 @@ TPPopup {
 
 		if (xpos < 0)
 			xpos = 0;
-		else if (xpos + largestEntryWidth > parent.width - 20)
-			xpos = parent.width - largestEntryWidth - 10;
+		//else if (xpos + largestEntryWidth > parent.width - 20)
+		//	xpos = parent.width - largestEntryWidth - 10;
 		if (ypos < 0)
 			ypos = 0;
 		else if (ypos + entriesTotalHeight > parent.height)
