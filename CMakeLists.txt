@@ -95,12 +95,9 @@ set( CXX_SOURCES
 	cxx/qmlexerciseentry.h cxx/qmlexerciseentry.cpp
 	cxx/qmlsetentry.h cxx/qmlsetentry.cpp
 
-	cxx/weather/providerbackend.h
 	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
-	cxx/weather/weatherapibackend.h cxx/weather/weatherapibackend.cpp
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
-	cxx/weather/openmeteobackend.h cxx/weather/openmeteobackend.cpp
 )
 
 set( JAVA_SOURCES

@@ -182,54 +182,41 @@ void TPSettings::setFontSize(const uint new_value, const bool bFromQml)
 
 QString TPSettings::weatherCity(const uint idx)
 {
-	if (m_weatherInfo.isEmpty())
-		m_weatherInfo = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QMap<QString,QString>>());
+	if (m_weatherLocations.isEmpty())
+		m_weatherLocations = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
 
-	uint i(0);
-	QMap<QString,QString>::const_iterator loc(m_weatherInfo.constBegin());
-	const QMap<QString,QString>::const_iterator loc_end(m_weatherInfo.constEnd());
-	while (loc != loc_end)
-	{
-		if (i == static_cast<uint>(idx))
-			return loc.key();
-		++i;
-		++loc;
-	}
-	return QString();
+	return idx < m_weatherLocations.count() ? appUtils()->getCompositeValue(0, m_weatherLocations.at(idx), record_separator) : QString();
 }
 
-QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx) const
+QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 {
+	if (m_weatherLocations.isEmpty())
+		m_weatherLocations = std::move(value(m_propertyNames.value(WEATHER_CITIES_INDEX)).value<QStringList>());
+
 	QGeoCoordinate coord;
-	uint i(0);
-	QMap<QString,QString>::const_iterator loc(m_weatherInfo.constBegin());
-	const QMap<QString,QString>::const_iterator loc_end(m_weatherInfo.constEnd());
-	while (loc != loc_end)
+	if (idx < m_weatherLocations.count())
 	{
-		if (i == static_cast<uint>(idx))
-		{
-			coord.setLatitude(appUtils()->getCompositeValue(0, loc.value(), record_separator).toDouble());
-			coord.setLongitude(appUtils()->getCompositeValue(1, loc.value(), record_separator).toDouble());
-			break;
-		}
-		++i;
-		++loc;
+		coord.setLatitude(appUtils()->getCompositeValue(1, m_weatherLocations.at(idx), record_separator).toDouble());
+		coord.setLongitude(appUtils()->getCompositeValue(2, m_weatherLocations.at(idx), record_separator).toDouble());
 	}
 	return coord;
 }
 
 void TPSettings::addWeatherCity(const QString& city, const QString& latitude, const QString& longitude)
 {
-	m_weatherInfo.insert(city, latitude + record_separator + longitude);
-	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherInfo));
+	for(uint i(0); i < m_weatherLocations.count(); ++i)
+	{
+		if (m_weatherLocations.at(i).contains(city, Qt::CaseInsensitive))
+			return;
+	}
+	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude);
+	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
 	emit weatherCitiesCountChanged();
 }
 
-void TPSettings::removeWeatherCity(const QString& city)
+void TPSettings::removeWeatherCity(const uint idx)
 {
-	if (m_weatherInfo.remove(city) > 0)
-	{
-		changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherInfo)) ;
-		emit weatherCitiesCountChanged();
-	}
+	m_weatherLocations.removeAt(idx);
+	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations)) ;
+	emit weatherCitiesCountChanged();
 }

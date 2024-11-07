@@ -1,7 +1,7 @@
 #ifndef WEATHERINFO_H
 #define WEATHERINFO_H
 
-#include "providerbackend.h"
+#include "openweathermapbackend.h"
 
 #include <QObject>
 #include <QString>
@@ -64,9 +64,6 @@ class WeatherInfo : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
-Q_PROPERTY(QString loadMessage READ loadMessage NOTIFY readyChanged)
-Q_PROPERTY(bool hasSource READ hasSource NOTIFY readyChanged)
 Q_PROPERTY(bool hasValidCity READ hasValidCity NOTIFY cityChanged)
 Q_PROPERTY(bool hasValidWeather READ hasValidWeather NOTIFY weatherChanged)
 Q_PROPERTY(bool useGps READ useGps WRITE setUseGps NOTIFY useGpsChanged)
@@ -84,10 +81,6 @@ public:
 	explicit WeatherInfo(QObject* parent = nullptr);
 	~WeatherInfo();
 
-	bool ready() const;
-	QString loadMessage() const;
-
-	bool hasSource() const;
 	bool useGps() const;
 	bool canUseGps() const;
 	bool hasValidCity() const;
@@ -103,6 +96,7 @@ public:
 #endif
 
 	QStringList locationList() const { return m_locationList; }
+	Q_INVOKABLE void refreshWeather();
 	Q_INVOKABLE void placeLookUp(const QString& place);
 	Q_INVOKABLE void locationSelected(const uint index);
 	Q_INVOKABLE void requestWeatherFor(const QString& city, const QGeoCoordinate& coord);
@@ -110,19 +104,14 @@ public:
 	WeatherData* weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
 
-public slots:
-	Q_INVOKABLE void refreshWeather();
-
 private slots:
 #ifdef Q_OS_ANDROID
 	void positionUpdated(const QGeoPositionInfo& gpsPos);
 	void positionError(QGeoPositionInfoSource::Error e);
 #endif
 	void handleWeatherData(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
-	void switchToNextBackend();
 
 signals:
-	void readyChanged();
 	void useGpsChanged();
 	void cityChanged();
 	void weatherChanged();
@@ -135,8 +124,6 @@ private:
 	bool applyWeatherData(const QString& city, const QList<st_WeatherInfo>& weatherDetails);
 	void requestWeatherByCoordinates();
 	void requestWeatherByCity();
-	void registerBackend(qsizetype index);
-	void deregisterCurrentBackend();
 	void buildLocationList(const QByteArray& net_data);
 	void parseReply(const QByteArray& replyData);
 

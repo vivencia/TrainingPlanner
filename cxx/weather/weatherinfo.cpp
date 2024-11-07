@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "weatherinfo.h"
-#include "openmeteobackend.h"
 #include "openweathermapbackend.h"
-#include "weatherapibackend.h"
 #include "../tpsettings.h"
 #include "../tputils.h"
 
@@ -139,16 +137,13 @@ public:
 	WeatherData now;
 	WeatherData nextThreeDays[3];
 	QQmlListProperty<WeatherData>* fcProp = nullptr;
-	bool ready = false;
 	bool useGps = false;
 	bool canUseGPS = false;
 #ifdef Q_OS_ANDROID
 	QString gpsCity;
 #endif
 	WeatherDataCache m_dataCache;
-	ProviderBackend* m_currentBackend = nullptr;
-	QList<ProviderBackend*> m_supportedBackends;
-	qsizetype m_currentBackendIndex = 0;
+	OpenWeatherMapBackend* m_currentBackend = nullptr;
 };
 
 static void forecastAppend(QQmlListProperty<WeatherData> *prop, WeatherData *val)
@@ -184,10 +179,8 @@ WeatherInfo::WeatherInfo(QObject* parent)
 														   forecastAt,
 														   forecastClear};
 
-	d->m_supportedBackends.push_back(new OpenWeatherMapBackend{this});
-	d->m_supportedBackends.push_back(new WeatherApiBackend{this});
-	d->m_supportedBackends.push_back(new OpenMeteoBackend{this});
-	registerBackend(0);
+	d->m_currentBackend = new OpenWeatherMapBackend{this};
+	connect(d->m_currentBackend, &OpenWeatherMapBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
 
 #ifdef Q_OS_ANDROID
 	d->src = QGeoPositionInfoSource::createDefaultSource(this);
@@ -304,37 +297,10 @@ void WeatherInfo::positionError(QGeoPositionInfoSource::Error e)
 }
 #endif
 
-void WeatherInfo::refreshWeather()
-{
-	if (d->city.isEmpty())
-		return;
-	requestWeatherByCity();
-}
-
 void WeatherInfo::handleWeatherData(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails)
 {
 	if (applyWeatherData(location.m_name, weatherDetails))
 		d->m_dataCache.addCacheElement(location, weatherDetails);
-}
-
-void WeatherInfo::switchToNextBackend()
-{
-	deregisterCurrentBackend();
-	registerBackend(d->m_currentBackendIndex + 1);
-	if (d->m_currentBackend)
-	{
-		// repeat the query
-		if (d->useGps)
-			requestWeatherByCoordinates();
-		else
-			requestWeatherByCity();
-	}
-	else
-	{
-		qWarning("The application has iterated through all of the weather backends, "
-				 "and none of them seems to respond now. Please wait until any of the "
-				 "backends becomes available again.");
-	}
 }
 
 bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherInfo>& weatherDetails)
@@ -355,23 +321,20 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 		}
 	}
 
-	if (!d->ready)
-	{
-		d->ready = true;
-		emit readyChanged();
-	}
 	const QString* coordinates{&(weatherDetails.first().m_coordinates)};
 	const int comma_idx = coordinates->indexOf(',');
 	const QString latitude{std::move(coordinates->sliced(1, comma_idx-1))};
-	const QString longitude{std::move(coordinates->sliced(comma_idx+1,coordinates->length()-comma_idx-1))};
+	const QString longitude{std::move(coordinates->sliced(comma_idx+1,coordinates->length()-comma_idx-2))};
 	appSettings()->addWeatherCity(city, latitude, longitude);
 	emit weatherChanged();
+
+	d->coord.setLatitude(latitude.toDouble());
+	d->coord.setLongitude(longitude.toDouble());
 	return true;
 }
 
 void WeatherInfo::requestWeatherByCoordinates()
 {
-	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->coord);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
 	{
@@ -387,7 +350,6 @@ void WeatherInfo::requestWeatherByCoordinates()
 
 void WeatherInfo::requestWeatherByCity()
 {
-	d->ready = false;
 	const auto cacheResult = d->m_dataCache.getWeatherData(d->city);
 	if (WeatherDataCache::isCacheResultValid(cacheResult))
 	{
@@ -398,27 +360,6 @@ void WeatherInfo::requestWeatherByCity()
 	{
 		qWarning() << "--------------"  << " requestWeatherByCity() request weather from backend for city:  " << d->city << "------------";
 		d->m_currentBackend->requestWeatherInfo(d->city);
-	}
-}
-
-void WeatherInfo::registerBackend(qsizetype index)
-{
-	if (index >= 0 && index < d->m_supportedBackends.size())
-	{
-		d->m_currentBackend = d->m_supportedBackends.at(index);
-		d->m_currentBackendIndex = index;
-		connect(d->m_currentBackend, &ProviderBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
-		connect(d->m_currentBackend, &ProviderBackend::errorOccurred, this, &WeatherInfo::switchToNextBackend);
-	}
-}
-
-void WeatherInfo::deregisterCurrentBackend()
-{
-	if (d->m_currentBackend)
-	{
-		disconnect(d->m_currentBackend, &ProviderBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
-		disconnect(d->m_currentBackend, &ProviderBackend::errorOccurred, this, &WeatherInfo::switchToNextBackend);
-		d->m_currentBackend = nullptr;
 	}
 }
 
@@ -442,30 +383,6 @@ WeatherData *WeatherInfo::weather() const
 QQmlListProperty<WeatherData> WeatherInfo::forecast() const
 {
 	return *(d->fcProp);
-}
-
-bool WeatherInfo::ready() const
-{
-	return d->ready;
-}
-
-QString WeatherInfo::loadMessage() const
-{
-	if (!d->ready)
-	{
-		if (d->useGps)
-		{
-			if (!d->coord.isValid())
-				return tr("Waiting for GPS signal...");
-		}
-		return tr("Loading weather data \nfrom the internet...");
-	}
-	return QString();
-}
-
-bool WeatherInfo::hasSource() const
-{
-	return (d->src != NULL);
 }
 
 bool WeatherInfo::useGps() const
@@ -579,8 +496,17 @@ void WeatherInfo::setGpsCity(const QString& value)
 }
 #endif
 
+void WeatherInfo::refreshWeather()
+{
+	requestWeatherFor(d->city, d->coord);
+}
+
 void WeatherInfo::placeLookUp(const QString& place)
 {
+	m_locationList.clear();
+	m_foundLocations.clear();
+	emit locationListChanged();
+
 	if (place.length() >= 5)
 	{
 		QUrlQuery query;
@@ -596,20 +522,11 @@ void WeatherInfo::placeLookUp(const QString& place)
 			buildLocationList(reply->readAll());
 		});
 	}
-	else if (place.isEmpty())
-	{
-		m_locationList.clear();
-		m_foundLocations.clear();
-		emit locationListChanged();
-	}
 }
 
 void WeatherInfo::locationSelected(const uint index)
 {
-	d->city = m_foundLocations.at(index).m_name;
-	emit cityChanged();
-	d->coord = m_foundLocations.at(index).m_coordinate;
-	d->m_currentBackend->requestWeatherInfoFromNet(d->coord);
+	d->m_currentBackend->requestWeatherInfo(m_foundLocations.at(index).m_name, m_foundLocations.at(index).m_coordinate);
 	m_usedLocations.insert(m_locationList.at(index), std::move(m_foundLocations.at(index)));
 	m_locationList.clear();
 	m_foundLocations.clear();
@@ -620,11 +537,6 @@ void WeatherInfo::requestWeatherFor(const QString& city, const QGeoCoordinate& c
 {
 	if (!city.isEmpty())
 		d->m_currentBackend->requestWeatherInfo(city, coord);
-	else
-	{
-		d->ready = true;
-		emit readyChanged();
-	}
 }
 
 void WeatherInfo::buildLocationList(const QByteArray& net_data)
@@ -669,63 +581,64 @@ void WeatherInfo::parseReply(const QByteArray& replyData)
 				word_end = pos;
 		}
 		else {
-		switch ((*itr).cell())
-		{
-			case '-':
-				if ((*(itr-1)).cell() == ':')
-					word_start = pos;
-			break;
-			case ':':
-				word = data.sliced(word_start, word_end-word_start+1);
-				if (word.contains("local_"))
-					ignore_untill_lext_bracket = true;
-				else
-				{
-					if (word.contains("name"_L1))
-						strInfo = &(tempData.m_name);
-					else if (word.contains("lat"_L1))
-					{
-						tempData.m_coordinate.setLatitude(0);
-						strInfo = &(tempData.m_strCoordinate);
-					}
-					else if (word.contains("lon"_L1))
-						strInfo = &(tempData.m_strCoordinate);
-					else if (word.contains("cou"_L1))
-						strInfo = &(tempData.m_country);
+			switch ((*itr).cell())
+			{
+				case '-':
+					if ((*(itr-1)).cell() == ':')
+						word_start = pos;
+				break;
+				case ':':
+					word = data.sliced(word_start, word_end-word_start+1);
+					if (word.contains("local_"))
+						ignore_untill_lext_bracket = true;
 					else
-						strInfo = &(tempData.m_state);
-				}
-				word_start = word_end = 0;
-			break;
-			case ',':
-				if (strInfo)
-				{
-					*strInfo = data.sliced(word_start, word_end-word_start+1);
-					bool ok(false);
-					strInfo->left(2).toInt(&ok);
-					if (ok)
 					{
-						if (tempData.m_coordinate.latitude() == 0)
-							tempData.m_coordinate.setLatitude(strInfo->toDouble());
+						if (word.contains("name"_L1))
+							strInfo = &(tempData.m_name);
+						else if (word.contains("lat"_L1))
+						{
+							tempData.m_coordinate.setLatitude(0);
+							strInfo = &(tempData.m_strCoordinate);
+						}
+						else if (word.contains("lon"_L1))
+							strInfo = &(tempData.m_strCoordinate);
+						else if (word.contains("cou"_L1))
+							strInfo = &(tempData.m_country);
 						else
-							tempData.m_coordinate.setLongitude(strInfo->toDouble());
+							strInfo = &(tempData.m_state);
 					}
 					word_start = word_end = 0;
-				}
-			break;
-			case '}':
-				if (ignore_untill_lext_bracket)
-					ignore_untill_lext_bracket = false;
-				else
-				{
-					*strInfo = data.sliced(word_start, word_end-word_start+1);
-					strInfo = nullptr;
-					m_foundLocations.append(tempData);
-					word_start = word_end = 0;
-				}
-			break;
-			default: continue;
-		}
+				break;
+				case ',':
+					if (strInfo)
+					{
+						*strInfo = data.sliced(word_start, word_end-word_start+1);
+						bool ok(false);
+						strInfo->left(2).toInt(&ok);
+						if (ok)
+						{
+							if (tempData.m_coordinate.latitude() == 0)
+								tempData.m_coordinate.setLatitude(strInfo->toDouble());
+							else
+								tempData.m_coordinate.setLongitude(strInfo->toDouble());
+						}
+						strInfo = nullptr;
+						word_start = word_end = 0;
+					}
+				break;
+				case '}':
+					if (ignore_untill_lext_bracket)
+						ignore_untill_lext_bracket = false;
+					else
+					{
+						*strInfo = data.sliced(word_start, word_end-word_start+1);
+						strInfo = nullptr;
+						m_foundLocations.append(tempData);
+						word_start = word_end = 0;
+					}
+				break;
+				default: continue;
+			}
 		}
 	} while (++pos && (++itr != itr_end));
 }

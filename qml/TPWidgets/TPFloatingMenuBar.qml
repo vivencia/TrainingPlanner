@@ -52,10 +52,11 @@ TPPopup {
 	}
 
 	function clear() {
-		close();
 		for(var i = 0; i < entriesList.length; ++i)
-			delete entriesList[i];
+			entriesList[i].destroy();
 		entriesList.length = 0;
+		entriesTotalHeight = 0;
+		close();
 	}
 
 	function enableMenuEntry(id: int, benabled: bool) {

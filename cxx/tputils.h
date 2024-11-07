@@ -34,12 +34,16 @@ public:
 	QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
 	QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
 
-	Q_INVOKABLE QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
-	{ return time.toString((use_hours ? u"hh:mm"_s : u"mm"_s) + (use_secs ? u":ss"_s : u""_s)); }
-	QString currentFormattedTimeString() const
+	Q_INVOKABLE inline QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
 	{
-		QString strTime{std::move(QTime::currentTime().toString(u"hh:mm"_s))};
-		strTime.insert(5, std::move(u"min"_s));
+		return time.toString((use_hours ? u"hh:mm"_s : u"mm"_s) + (use_secs ? u":ss"_s : u""_s));
+	}
+
+	inline QString currentFormattedTimeString() const
+	{
+		QString strTime{std::move(QTime::currentTime().toString(u"hh  mm"_s))};
+		strTime.insert(6, std::move(u"min"_s));
+		strTime.insert(3, std::move(tr("and")));
 		strTime.insert(2, std::move(u"hs"_s));
 		return strTime;
 	}
@@ -47,9 +51,9 @@ public:
 	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
 					QTime::currentTime().toString(u"hh:mm"_s) : QTime::currentTime().toString(u"hh:mm:ss"_s); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const;
+	Q_INVOKABLE inline QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
+	Q_INVOKABLE inline QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
 	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString& strTime) const;
-	Q_INVOKABLE QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
-	Q_INVOKABLE QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString(u"hh:mm"_s)); }
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString& strTime) const;
 	QTime timeFromStrTime(const QString& strTime) const { return QTime::fromString(strTime, u"hh:mm"_s); }
 	Q_INVOKABLE QTime getCurrentTime() const { return QTime::currentTime(); }

@@ -126,5 +126,6 @@
         <file>images/weather.png</file>
         <file>images/white/gps.png</file>
         <file>images/black/gps.png</file>
+        <file>images/reload.png</file>
     </qresource>
 </RCC>

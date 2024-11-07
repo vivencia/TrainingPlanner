@@ -36,57 +36,8 @@ TPPage {
 		}
 	}
 
-	Rectangle {
-		color: "#000000"
-		opacity: 0.15
-		radius: width / 2
-		width: appSettings.heightToWidthRatio > 1.5 ? appSettings.pageHeight : appSettings.pageWidth * 1.5
-		height: width
-
-		anchors {
-			horizontalCenter: parent.horizontalCenter
-			top: parent.top
-			topMargin: parent.width / 2
-		}
-	}
-
-	Item {
-		id: statesItem
-		visible: false
-		state: "loading"
-		states: [
-			State {
-				name: "loading"
-				PropertyChanges { main.opacity: 0 }
-				PropertyChanges { wait.opacity: 1 }
-			},
-			State {
-				name: "ready"
-				PropertyChanges { main.opacity: 1 }
-				PropertyChanges { wait.opacity: 0 }
-			}
-		]
-	}
-
 	WeatherInfo {
 		id: weatherInfo
-		onReadyChanged: {
-			if (weatherInfo.ready)
-				statesItem.state = "ready"
-			else
-				statesItem.state = "loading"
-		}
-	}
-
-	Item {
-		id: wait
-		anchors.fill: parent
-
-		Text {
-			text: weatherInfo.loadMessage
-			anchors.centerIn: parent
-			font.pixelSize: 18
-		}
 	}
 
 	ColumnLayout {
@@ -166,6 +117,8 @@ TPPage {
 						text: appSettings.weatherCity(index)
 						font.pixelSize: appSettings.fontSize
 						fontSizeMode: Text.Fit
+						leftPadding: 5
+						bottomPadding: 2
 
 						TPButton {
 							imageSource: "remove"
@@ -180,14 +133,14 @@ TPPage {
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: appSettings.removeWeatherCity(txtCity.text);
+							onClicked: appSettings.removeWeatherCity(index);
 						}
 					} //contentItem
 
 					background: Rectangle {
 						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 					}
-					onClicked: weatherInforequestWeatherFor(appSettings.weatherCity(index), appSettings.weatherCityCoordinates(index));
+					onClicked: weatherInfo.requestWeatherFor(appSettings.weatherCity(index), appSettings.weatherCityCoordinates(index));
 				} //ItemDelegate
 			} //ListView
 

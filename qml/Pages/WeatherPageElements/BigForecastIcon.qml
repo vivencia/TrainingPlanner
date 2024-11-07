@@ -24,7 +24,7 @@ Item {
 		fontColor: "white"
 		font: AppGlobals.extraLargeFont
 		horizontalAlignment: Text.AlignHCenter
-		width: parent.width
+		width: parent.width - 50
 
 		anchors.top: parent.top
 		anchors.horizontalCenter: parent.horizontalCenter
@@ -38,6 +38,24 @@ Item {
 		shadowHorizontalOffset: 0
 		shadowVerticalOffset: 2
 		shadowOpacity: 0.6
+	}
+
+	TPButton {
+		imageSource: "reload"
+		imageSize: 50
+		fixedSize: true
+		visible: weatherInfo.hasValidWeather
+		width: 50
+		height: 50
+
+		anchors {
+			top: parent.top
+			topMargin: 30
+			left: text1.right
+			leftMargin: -30
+		}
+
+		onClicked: weatherInfo.refreshWeather();
 	}
 
 	WeatherIcon {

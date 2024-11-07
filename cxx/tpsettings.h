@@ -126,11 +126,11 @@ public:
 	inline uint lastViewedMesoIdx() const { return value(m_propertyNames.value(MESO_IDX_INDEX), m_defaultValues.at(MESO_IDX_INDEX).toUInt()).toUInt(); }
 	inline void setLastViewedMesoIdx(const uint new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 
-	inline uint weatherCitiesCount() const { return m_weatherInfo.count(); }
+	inline uint weatherCitiesCount() const { return m_weatherLocations.count(); }
 	void addWeatherCity(const QString& city, const QString& latitude, const QString& longitude);
-	Q_INVOKABLE void removeWeatherCity(const QString& city);
+	Q_INVOKABLE void removeWeatherCity(const uint idx);
 	Q_INVOKABLE QString weatherCity(const uint idx);
-	Q_INVOKABLE QGeoCoordinate weatherCityCoordinates(const uint idx) const; //weatherCity *must always* be called ahead of this
+	Q_INVOKABLE QGeoCoordinate weatherCityCoordinates(const uint idx);
 
 	inline bool alwaysAskConfirmation() const { return value(m_propertyNames.value(ASK_CONFIRMATION_INDEX), m_defaultValues.at(ASK_CONFIRMATION_INDEX)).toBool(); }
 	inline void setAlwaysAskConfirmation(const bool new_value) { changeValue(ASK_CONFIRMATION_INDEX, QString::number(new_value)); emit alwaysAskConfirmationChanged(); }
@@ -156,7 +156,7 @@ signals:
 private:
 	QMap<uint,QString> m_propertyNames;
 	QStringList m_defaultValues;
-	QMap<QString,QString> m_weatherInfo;
+	QStringList m_weatherLocations;
 
 	inline void changeValue(const uint index, const QVariant& new_value)
 	{

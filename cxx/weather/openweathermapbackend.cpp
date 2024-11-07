@@ -49,14 +49,14 @@ public:
 	inline const uint forecastDays() const { return m_weatherData.count(); }
 
 	inline QString date(const uint day) const { return formatDate(m_weatherData.at(day).value(key_date)); }
-	inline QString sunrise(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunrise)) + u"hs"_s; }
-	inline QString sunset(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunset))  + u"hs"_s; }
+	inline QString sunrise(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunrise)) + "hs"_L1; }
+	inline QString sunset(const uint day) const { return formatTime(m_weatherData.at(day).value(key_sunset))  + "hs"_L1; }
 	inline QString temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_temp)); }
 	inline QString feel_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_tempfeel)); }
 	inline QString min_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_min)); }
 	inline QString max_temperature(const uint day) const { return formatTemp(m_weatherData.at(day).value(key_max)); }
-	inline QString pressure(const uint day) const { return m_weatherData.at(day).value(key_pressure) + u"hPa"_s; }
-	inline QString humidity(const uint day) const { return m_weatherData.at(day).value(key_humidity) + u"%"_s; }
+	inline QString pressure(const uint day) const { return m_weatherData.at(day).value(key_pressure) + "hPa"_L1; }
+	inline QString humidity(const uint day) const { return m_weatherData.at(day).value(key_humidity) + "%"_L1; }
 	inline QString uv_index(const uint day) const { return m_weatherData.at(day).value(key_uv); }
 	inline QString wind_speed(const uint day) const { return formatSpeed(m_weatherData.at(day).value(key_wind)); }
 	inline QString weather_description(const uint day) const { return m_weatherData.at(day).value(key_description); }
@@ -101,24 +101,24 @@ private:
 
 	inline QString formatTemp(const QString& strTemp) const
 	{
-		return QString::number(qRound(strTemp.toDouble() - kZeroKelvin)) + u"°C"_s; //QChar(0xB0);
+		return QString::number(qRound(strTemp.toDouble() - kZeroKelvin)) + u"°C"_s;
 	}
 
 	inline QString formatDate(const QString& strDate) const
 	{
 		const QDateTime& dt{QDateTime::fromSecsSinceEpoch(strDate.toUInt())};
-		return appUtils()->appLocale()->toString(dt, u"ddd d/M");
+		return appUtils()->appLocale()->toString(dt, "ddd d/M"_L1);
 	}
 
 	inline QString formatTime(const QString& strDate) const
 	{
 		const QDateTime& dt{QDateTime::fromSecsSinceEpoch(strDate.toUInt())};
-		return appUtils()->appLocale()->toString(dt.toLocalTime(), u"HH:mm:ss");
+		return appUtils()->appLocale()->toString(dt.toLocalTime(), "HH:mm:ss"_L1);
 	}
 
 	inline QString formatSpeed(const QString& strSpeed) const
 	{
-		return QString::number(qRound(strSpeed.toDouble() * 3.6)) + u"km/h"_s;
+		return QString::number(qRound(strSpeed.toDouble() * 3.6)) + "km/h"_L1;
 	}
 
 	QString weatherIconCodeToString(const QString& iconcode) const;
@@ -147,7 +147,7 @@ parseOpenWeatherAPIResponse::parseOpenWeatherAPIResponse(const QByteArray& net_r
 					case ':':
 						if (inside_field && isKey(word))
 						{
-							if (word == u"dt"_s)
+							if (word == "dt"_L1)
 							{
 								if (m_weatherData.count() < 5)
 								{
@@ -198,24 +198,24 @@ parseOpenWeatherAPIResponse::parseOpenWeatherAPIResponse(const QByteArray& net_r
 */
 QString parseOpenWeatherAPIResponse::weatherIconCodeToString(const QString& code) const
 {
-	if (code == u"01d"_s || code == u"01n"_s)
-		return u"sunny"_s;
-	else if (code == u"02d"_s || code == u"02n"_s)
-		return u"sunny-very-few-clouds"_s;
-	else if (code == u"03d"_s || code == u"03n"_s)
-		return u"few-clouds"_s;
-	else if (code == u"04d"_s || code == u"04n"_s)
-		return u"overcast"_s;
-	else if (code == u"09d"_s || code == u"09n"_s || code == u"10d"_s || code == u"10n"_s)
-		return u"showers"_s;
-	else if (code == u"11d"_s || code == u"11n"_s)
-		return u"thundershower"_s;
-	else if (code == u"13d"_s || code == u"13n"_s)
-		return u"snow"_s;
-	else if (code == u"50d"_s || code == u"50n"_s)
-		return u"fog"_s;
+	if (code == "01d"_L1 || code == "01n"_L1)
+		return "sunny"_L1;
+	else if (code == "02d"_L1 || code == "02n"_L1)
+		return "sunny-very-few-clouds"_L1;
+	else if (code == "03d"_L1 || code == "03n"_L1)
+		return "few-clouds"_L1;
+	else if (code == "04d"_L1 || code == "04n"_L1)
+		return "overcast"_L1;
+	else if (code == "09d"_L1 || code == "09n"_L1 || code == "10d"_L1 || code == "10n"_L1)
+		return "showers"_L1;
+	else if (code == "11d"_L1 || code == "11n"_L1)
+		return "thundershower"_L1;
+	else if (code == "13d"_L1 || code == "13n"_L1)
+		return "snow"_L1;
+	else if (code == "50d"_L1 || code == "50n"_L1)
+		return "fog"_L1;
 
-	return u"sunny"_s; // default choice
+	return "sunny"_L1; // default choice
 }
 
 static QStringList parseOpenWeatherReverseGeocodingReply(const QByteArray& replyData)
@@ -295,7 +295,7 @@ static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
 }
 
 OpenWeatherMapBackend::OpenWeatherMapBackend(QObject *parent)
-	: ProviderBackend{parent},
+	: QObject{parent},
 	  m_networkManager{new QNetworkAccessManager(this)}
 {}
 
@@ -303,8 +303,8 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QString& city)
 {
 	m_locationName = city;
 	QUrlQuery query;
-	QUrl url{u"https://api.api-ninjas.com/v1/geocoding"_s};
-	query.addQueryItem(u"city"_s, city);
+	QUrl url{"https://api.api-ninjas.com/v1/geocoding"_L1};
+	query.addQueryItem("city"_L1, city);
 	url.setQuery(query);
 	QNetworkRequest net_request{url};
 	net_request.setRawHeader("X-Api-Key", "fVD0CWxVLhaz7cnhK21PCw==aOqhLKStgURO363U");
@@ -320,27 +320,21 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QString& city)
 				requestWeatherInfoFromNet(coordinate);
 			}
 			else
-			{
-				emit errorOccurred();
 				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
-			}
 		}
 		else
-		{
-			emit errorOccurred();
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
-		}
 	});
 }
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 {
 	QUrlQuery query;
-	QUrl url{u"http://api.openweathermap.org/geo/1.0/reverse"_s};
-	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
-	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
-	query.addQueryItem(u"limit"_s, STR_ONE);
-	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
+	QUrl url{"http://api.openweathermap.org/geo/1.0/reverse"_L1};
+	query.addQueryItem("lat"_L1, QString::number(coordinate.latitude()));
+	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
+	query.addQueryItem("limit"_L1, STR_ONE);
+	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
 	url.setQuery(query);
 
 	QNetworkRequest net_request{url};
@@ -356,28 +350,22 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 				requestWeatherInfoFromNet(coordinate);
 			}
 			else
-			{
-				emit errorOccurred();
 				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
-			}
 		}
 		else
-		{
-			emit errorOccurred();
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
-		}
 	});
 }
 
 void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coordinate)
 {
 	QUrlQuery query;
-	QUrl url{u"http://api.openweathermap.org/data/3.0/onecall"_s};
-	query.addQueryItem(u"lat"_s, QString::number(coordinate.latitude()));
-	query.addQueryItem(u"lon"_s, QString::number(coordinate.longitude()));
-	query.addQueryItem(u"appid"_s, u"31d07fed3c1e19a6465c04a40c71e9a0"_s);
-	query.addQueryItem(u"exclude"_s, u"minutely,hourly,alerts"_s);
-	query.addQueryItem(u"lang"_s, appSettings()->appLocale().left(2));
+	QUrl url{"http://api.openweathermap.org/data/3.0/onecall"_L1};
+	query.addQueryItem("lat"_L1, QString::number(coordinate.latitude()));
+	query.addQueryItem("lon"_L1, QString::number(coordinate.longitude()));
+	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
+	query.addQueryItem("exclude"_L1, "minutely,hourly,alerts"_L1);
+	query.addQueryItem("lang"_L1, appSettings()->appLocale().left(2));
 	url.setQuery(query);
 
 	QNetworkReply* reply{m_networkManager->get(QNetworkRequest{url})};
@@ -393,16 +381,12 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QString& city, const QGeoCo
 void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)
 {
 	if (!reply)
-	{
-		emit errorOccurred();
 		return;
-	}
 
 	bool parsed(false);
 	if (!reply->error())
 	{
-		// extract info about current weather
-		const parseOpenWeatherAPIResponse netData(reply->readAll());
+		const parseOpenWeatherAPIResponse netData{reply->readAll()};
 		parsed = netData.parsedOK();
 		if (parsed)
 		{
@@ -414,7 +398,7 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 			for (uint i(0); i < netData.forecastDays(); ++i)
 			{
 				st_WeatherInfo weatherInfo;
-				weatherInfo.m_coordinates = '(' + QString::number(coordinate.latitude()) + ',' + QString::number(coordinate.longitude()) + ')';
+				weatherInfo.m_coordinates = '(' + std::move(QString::number(coordinate.latitude())) + ',' + std::move(QString::number(coordinate.longitude())) + ')';
 				weatherInfo.m_dayOfWeek = std::move(netData.date(i));
 				weatherInfo.m_weatherIconId = std::move(netData.weather_icon(i));
 				weatherInfo.m_weatherDescription = std::move(netData.weather_description(i));
@@ -434,7 +418,7 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 					case 0:
 						weatherInfo.m_temperature = std::move(netData.temperature(0));
 						weatherInfo.m_temperature_feel = std::move(netData.feel_temperature(0));
-						weatherInfo.m_provider_name = std::move(u"www.openweathermap.org"_s);
+						weatherInfo.m_provider_name = std::move("www.openweathermap.org"_L1);
 					break;
 				}
 				weatherDetails.append(weatherInfo);
@@ -444,7 +428,6 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 	}
 	if (!parsed)
 	{
-		emit errorOccurred();
 		DEFINE_SOURCE_LOCATION
 		if (reply->error())
 			ERROR_MESSAGE("Reply error.", reply->errorString())
