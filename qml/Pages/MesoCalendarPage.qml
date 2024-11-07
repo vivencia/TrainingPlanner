@@ -10,7 +10,7 @@ TPPage {
 	id: mesoCalendarPage
 	objectName: "mesoCalendarPage"
 
-	required property MesoManager mesoManager
+	required property CalendarManager calendarManager
 	required property DBMesoCalendarModel mesoCalendarModel
 
 	property date _today
@@ -36,17 +36,16 @@ TPPage {
 
 			TPLabel {
 				id: lbl1
-				text: mesoManager.name
+				text: calendarManager.nameLabel
 				font: AppGlobals.extraLargeFont
-				Layout.maximumWidth: parent.width - 10
-				Layout.minimumHeight: heightAvailable
-				Layout.maximumHeight: heightAvailable
+				widthAvailable: parent.width*0.8
+				Layout.maximumWidth: widthAvailable
 				Layout.alignment: Qt.AlignCenter
 				Layout.topMargin: 5
 			}
 			TPLabel {
 				id: lbl2
-				text: qsTr("from  <b>") + mesoManager.startDate + qsTr("</b>  through  <b>") + mesoManager.endDate + "</b>"
+				text: calendarManager.dateLabel
 				font: AppGlobals.extraLargeFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
@@ -61,27 +60,26 @@ TPPage {
 
 	ListView {
 		id: calendar
+		snapMode: ListView.SnapToItem
+		spacing: 2
+		anchors.fill: parent
 
-		//property date startDate
 		readonly property double mm: Screen.pixelDensity
 		readonly property double cellSize: mm * 7
 		readonly property int fontSizePx: calendar.cellSize * 0.32
-
-		anchors.fill: parent
-		snapMode: ListView.SnapToItem
-		spacing: 2
-		ScrollBar.vertical: ScrollBar {
-			policy: ScrollBar.AsNeeded
-			active: true//ScrollBar.AlwaysOn
-		}
+		readonly property var monthsNames: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
+									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
+									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
 
 		property date dayInfoDate
 		property int currentDay
 		property int currentMonth
 		property int currentYear
-		readonly property var monthsNames: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
-									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
-									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
+
+		ScrollBar.vertical: ScrollBar {
+			policy: ScrollBar.AsNeeded
+			active: true//ScrollBar.AlwaysOn
+		}
 
 		delegate: Rectangle {
 			height: calendar.cellSize * 10.5
@@ -237,17 +235,20 @@ TPPage {
 			opacity: 0.8
 		}
 
-		Label {
+		TPLabel {
 			id: lblInfo
-			color: appSettings.fontColor
-			width: parent.width - btnViewWorkout.width - 10
+			text: calendarManager.dayInfo(calendar.currentYear, calendar.currentMonth+1, calendar.currentDay-1)
 			wrapMode: Text.WordWrap
-			font.pixelSize: appSettings.largeFontSize
-			font.bold: true
+			font: AppGlobals.largeFont
+			width: parent.width - btnViewWorkout.width - 10
+			height: footerHeight
+
+
 			anchors {
 				left: parent.left
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
+				verticalCenterOffset: 2
 			}
 		}
 
@@ -268,7 +269,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: mesoManager.getTrainingDayPage(calendar.dayInfoDate);
+			onClicked: calendarManager.getTrainingDayPage(calendar.dayInfoDate);
 		}
 	} // footer: ToolBar
 
@@ -298,6 +299,6 @@ TPPage {
 		calendar.currentMonth = month;
 		calendar.currentYear = year;
 		calendar.dayInfoDate = new Date(year, month, day);
-		lblInfo.text = mesoCalendarModel.getInfoLabelText(year, month+1, day-1);
+		//lblInfo.text = calendarManager.dayInfo(year, month+1, day-1);
 	}
 } //Page

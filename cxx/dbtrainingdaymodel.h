@@ -78,8 +78,6 @@ public:
 	inline void setDateStr(const QString& date_str) { m_modeldata[TDDAY_MODEL_ROW][TDAY_COL_DATE] = date_str; }
 
 	inline const QString& trainingDay() const { return m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER); }
-	//Do not set model's modified to true because this is called from onTextChanged on TrainingDayInfo.qml, which gets called when the property
-	//is changed even for the first time, i.e., when the page is receiving default values
 	inline void setTrainingDay(const QString& trainingday, const bool bEmitSave = true)
 	{
 		if (trainingday != m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER))

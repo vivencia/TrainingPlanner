@@ -1,34 +1,37 @@
 #include "qmlitemmanager.h"
-#include "tpsettings.h"
-#include "dbusermodel.h"
+
 #include "dbinterface.h"
-#include "dbmesocyclesmodel.h"
 #include "dbexercisesmodel.h"
 #include "dbmesocalendarmodel.h"
+#include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
-#include "tpimage.h"
-#include "tpimageprovider.h"
-#include "tptimer.h"
-#include "osinterface.h"
-#include "translationclass.h"
+#include "dbusermodel.h"
+
 #include "qmlexerciseentry.h"
-#include "qmlsetentry.h"
-#include "qmluserinterface.h"
 #include "qmlexercisesdatabaseinterface.h"
+#include "qmlmesocalendarinterface.h"
 #include "qmlmesointerface.h"
 #include "qmlmesosplitinterface.h"
-#include "qmltdayinterface.h"
 #include "qmlsetentry.h"
+#include "qmltdayinterface.h"
+#include "qmluserinterface.h"
+
+#include "osinterface.h"
+#include "tpimage.h"
+#include "tpimageprovider.h"
+#include "tpsettings.h"
+#include "tptimer.h"
+#include "translationclass.h"
 #include "weather/weatherinfo.h"
 
-#include <QQmlApplicationEngine>
-#include <QQuickStyle>
-#include <QQuickItem>
-#include <QQuickWindow>
-#include <QQmlContext>
-#include <QSettings>
 #include <QFile>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickItem>
+#include <QQuickStyle>
+#include <QQuickWindow>
+#include <QSettings>
 
 QmlItemManager* QmlItemManager::_appItemManager(nullptr);
 QQmlApplicationEngine* QmlItemManager::_appQmlEngine(nullptr);
@@ -62,6 +65,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QmlUserInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "UserManager");
 	qmlRegisterType<QmlExercisesDatabaseInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExercisesListManager");
 	qmlRegisterType<QMLMesoInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "MesoManager");
+	qmlRegisterType<QmlMesoCalendarInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "CalendarManager");
 	qmlRegisterType<QmlMesoSplitInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SplitManager");
 	qmlRegisterType<QmlTDayInterface>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "TDayManager");
 	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
@@ -139,11 +143,11 @@ void QmlItemManager::getSettingsPage(const uint startPageIndex)
 	m_usersManager->getSettingsPage(startPageIndex);
 }
 
-void QmlItemManager::getExercisesPage(const bool bChooseButtonEnabled)
+void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
 {
 	if (!m_exercisesListManager)
 		m_exercisesListManager = new QmlExercisesDatabaseInterface{this, appQmlEngine(), appMainWindow()};
-	m_exercisesListManager->getExercisesPage(bChooseButtonEnabled);
+	m_exercisesListManager->getExercisesPage(connectPage);
 }
 
 void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const

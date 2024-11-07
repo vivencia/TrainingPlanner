@@ -44,7 +44,5 @@ Label {
 			_textWidth = AppGlobals.fontMetricsExtraLarge.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsExtraLarge.boundingRect("TP").height
 		}
-
-
 	}
 }

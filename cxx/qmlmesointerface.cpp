@@ -19,9 +19,12 @@
 
 QMLMesoInterface::~QMLMesoInterface()
 {
-	emit removePageFromMainMenu(m_mesoPage);
-	delete m_mesoPage;
-	delete m_mesoComponent;
+	if (m_mesoComponent)
+	{
+		emit removePageFromMainMenu(m_mesoPage);
+		delete m_mesoPage;
+		delete m_mesoComponent;
+	}
 	if (m_exercisesPage)
 		delete m_exercisesPage;
 	if (m_calendarPage)
@@ -353,14 +356,14 @@ void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal, const boo
 void QMLMesoInterface::getCalendarPage()
 {
 	if (!m_calendarPage)
-		m_calendarPage = new QmlMesoCalendarInterface(this, this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+		m_calendarPage = new QmlMesoCalendarInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
 	m_calendarPage->getMesoCalendarPage();
 }
 
 void QMLMesoInterface::getExercisesPlannerPage()
 {
 	if (!m_exercisesPage)
-		m_exercisesPage = new QmlMesoSplitInterface(this, m_qmlEngine, m_mainWindow, m_mesoIdx);
+		m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
 	m_exercisesPage->getExercisesPlannerPage();
 }
 
@@ -507,7 +510,7 @@ void QMLMesoInterface::createMesocyclePage()
 
 	m_mesoProperties.insert(u"mesoManager"_s, QVariant::fromValue(this));
 
-	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoCycle.qml"_s}, QQmlComponent::Asynchronous};
+	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesocyclePage.qml"_s}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {

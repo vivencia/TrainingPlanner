@@ -62,9 +62,9 @@ public:
 	Q_INVOKABLE inline void addWarningAtMinute(const uint minute) { mMinutesWarnings.append(minute); }
 	Q_INVOKABLE inline void addWarningAtSecond(const uint second) { mSecondsWarnings.append(second); }
 
-	Q_INVOKABLE inline uint orignalHours() const { return m_originalStartTime.first(2).toUInt(); }
-	Q_INVOKABLE inline uint orignalMinutes() const { return m_originalStartTime.sliced(3, 2).toUInt(); }
-	Q_INVOKABLE inline uint orignalSeconds() const { return m_originalStartTime.last(2).toUInt(); }
+	Q_INVOKABLE inline uint orignalHours() const { return m_displayStartingTime.first(2).toUInt(); }
+	Q_INVOKABLE inline uint orignalMinutes() const { return m_displayStartingTime.sliced(3, 2).toUInt(); }
+	Q_INVOKABLE inline uint orignalSeconds() const { return m_displayStartingTime.last(2).toUInt(); }
 
 	inline uint totalSeconds() const { return m_totalSeconds; }
 	inline bool paused() const { return mb_paused; }
@@ -89,7 +89,7 @@ private:
 	uint m_totalSeconds, m_progressValue;
 	int mWarningIdx;
 	bool mb_stopWatch, mb_timerForward, mb_paused, mb_pausedTimePositive;
-	QString m_alarmSoundFile, m_originalStartTime;
+	QString m_alarmSoundFile, m_displayStartingTime;
 	QTime m_elapsedTime;
 	QTime m_initialTime;
 	QTime m_timeOfDay;

@@ -128,7 +128,7 @@ TPPage {
 						leftMargin: 5
 					}
 
-					onClicked: appControl.getMesocyclePage(index);
+					onClicked: mesocyclesModel.getMesocyclePage(index);
 				}
 
 				TPButton {

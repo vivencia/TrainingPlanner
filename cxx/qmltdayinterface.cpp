@@ -81,17 +81,17 @@ void QmlTDayInterface::setTimeOut(const QString& new_value)
 
 void QmlTDayInterface::setHeaderText(const QString&)
 {
-	const bool bRestDay(splitLetter() == u"R"_s);
+	const bool bRestDay(splitLetter() == "R"_L1);
 	QString strWhatToTrain;
 	if (!bRestDay)
 	{
 		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
-		strWhatToTrain = std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + u"</b><br><b>"_s +
-			appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()) + u"</b>"_s);
+		strWhatToTrain = std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + "</b><br><b>"_L1 +
+			std::move(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter())) + "</b>"_L1);
 	}
 	else
-		strWhatToTrain = tr("Rest day");
-	m_headerText = std::move(u"<b>"_s + appUtils()->formatDate(m_tDayModel->date()) + u"</b><br>"_s + strWhatToTrain);
+		strWhatToTrain = std::move(tr("Rest day"));
+	m_headerText = std::move("<b>"_L1 + appUtils()->formatDate(m_tDayModel->date()) + "</b><br>"_L1 + strWhatToTrain);
 	emit headerTextChanged();
 }
 
@@ -336,7 +336,6 @@ void QmlTDayInterface::startWorkout()
 {
 	if (timeIn().contains('-'))
 		setTimeIn(appUtils()->getCurrentTimeString());
-	m_workoutTimer->prepareTimer(timeIn());
 	setDayIsEditable(true);
 	m_workoutTimer->startTimer();
 	setTimerActive(true);
@@ -440,7 +439,7 @@ void QmlTDayInterface::silenceTimeWarning()
 
 void QmlTDayInterface::createTrainingDayPage()
 {
-	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayInfo.qml"_s}, QQmlComponent::Asynchronous};
+	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayPage.qml"_s}, QQmlComponent::Asynchronous};
 	if (m_tDayComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
 			{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -511,7 +510,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	});
 
 	if (mainDateIsToday())
-		connect(m_tDayPage, SIGNAL(silenceTimeWarning), this, SLOT(silenceTimeWarning));
+		connect(m_tDayPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
 
 	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
 }

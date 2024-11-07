@@ -60,9 +60,16 @@ TPPage {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
-		contentWidth: trainingDayPage.width //stops bouncing to the sides
+		contentWidth: availableWidth //stops bouncing to the sides
 		contentHeight: colMain.height + exercisesLayout.implicitHeight
-		anchors.fill: parent
+
+		anchors {
+			fill: parent
+			leftMargin: 5
+			rightMargin: 5
+			topMargin: 10
+			bottomMargin: 10
+		}
 
 		ColumnLayout {
 			id: colMain
@@ -75,16 +82,14 @@ TPPage {
 				right: parent.right
 			}
 
-			TPLabel {
+			Label {
 				id: lblHeader
 				text: tDayManager.headerText
-				font: AppGlobals.extraLargeFont
-				topPadding: 15
-				bottomPadding: 0
-				horizontalAlignment: Text.AlignHCenter
-				Layout.fillWidth: true
-				Layout.leftMargin: 10
-				Layout.rightMargin: 10
+				wrapMode: Text.WordWrap
+				color: appSettings.fontColor
+				font: AppGlobals.largeFont
+				horizontalAlignment: Text.AlignJustify
+				Layout.alignment: Qt.AlignCenter
 			}
 
 			RowLayout {
@@ -100,8 +105,9 @@ TPPage {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
 					enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
-					currentIndex: indexOfValue(tDayManager.splitLetter)
 					Layout.maximumWidth: 100
+
+					Component.onCompleted: currentIndex = Qt.binding(indexOfValue(tDayManager.splitLetter));
 
 					onActivated: (index) => tDayManager.splitLetter = valueAt(index);
 				} //TPComboBox
@@ -134,7 +140,7 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: tDayManager.splitLetter !== "R"
-				enabled: tDayManager.timerActive ? false : tDayManager.editMode
+				enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
 				height: 330
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
@@ -566,7 +572,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: itemManager.getExercisesPage(true, trainingDayPage);
+			onClicked: itemManager.getExercisesPage(trainingDayPage);
 		} // bntAddExercise
 	} //footer: ToolBar
 

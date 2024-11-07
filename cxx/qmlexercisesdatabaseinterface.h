@@ -39,7 +39,7 @@ public:
 	Q_INVOKABLE void exportExercises(const bool bShare);
 	Q_INVOKABLE void importExercises(const QString& filename = QString());
 
-	void getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage = nullptr);
+	void getExercisesPage(QQuickItem* connectPage = nullptr);
 
 signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
@@ -52,7 +52,7 @@ private:
 	QQuickItem* m_exercisesPage;
 	QVariantMap m_exercisesProperties;
 
-	void createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage);
+	void createExercisesPage(QQuickItem* connectPage);
 	void createExercisesPage_part2(QQuickItem* connectPage);
 
 };

@@ -359,7 +359,7 @@ QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 
 void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString& new_name)
 {
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName", "out of range exercise_idx");
+	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName", "out of range exercise_idx: ");
 	const int idx(new_name.indexOf(comp_exercise_fancy_separator));
 	if (idx == -1)
 		m_ExerciseData.at(exercise_idx)->name = new_name;

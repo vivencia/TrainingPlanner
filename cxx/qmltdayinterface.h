@@ -122,8 +122,7 @@ public:
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE void removeExercise(const uint exercise_idx);
 	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
-
-	void createExerciseObject();
+	Q_INVOKABLE void createExerciseObject();
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }

@@ -64,17 +64,17 @@ void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
 		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
 
-void QmlExercisesDatabaseInterface::getExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
+void QmlExercisesDatabaseInterface::getExercisesPage(QQuickItem* connectPage)
 {
 	if (!m_exercisesComponent)
 	{
 		if (appExercisesModel()->count() == 0)
 			appDBInterface()->getAllExercises();
-		createExercisesPage(bChooseButtonEnabled, connectPage);
+		createExercisesPage(connectPage);
 	}
 	else
 	{
-		m_exercisesPage->setProperty("bChooseButtonEnabled", bChooseButtonEnabled);
+		m_exercisesPage->setProperty("bChooseButtonEnabled", connectPage != nullptr);
 		appExercisesModel()->clearSelectedEntries();
 		if (connectPage)
 		{
@@ -85,10 +85,10 @@ void QmlExercisesDatabaseInterface::getExercisesPage(const bool bChooseButtonEna
 	}
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage(const bool bChooseButtonEnabled, QQuickItem* connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage(QQuickItem* connectPage)
 {
 	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ExercisesPage.qml"_s}, QQmlComponent::Asynchronous};
-	m_exercisesProperties.insert(u"bChooseButtonEnabled"_s, bChooseButtonEnabled);
+	m_exercisesProperties.insert(u"bChooseButtonEnabled"_s, connectPage != nullptr);
 	m_exercisesProperties.insert(u"exercisesManager"_s, QVariant::fromValue(this));
 
 	if (m_exercisesComponent->status() != QQmlComponent::Ready)

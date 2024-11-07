@@ -82,6 +82,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth
 		contentHeight: colMain.implicitHeight + 20
+
 		anchors {
 			fill: parent
 			leftMargin: 5
@@ -353,7 +354,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoStartDate
-				text: mesoManager.startDate
+				text: mesoManager.strStartDate
 				Layout.fillWidth: false
 				Layout.minimumWidth: parent.width/2
 				readOnly: true
@@ -428,7 +429,7 @@ TPPage {
 
 			TPTextInput {
 				id: txtMesoEndDate
-				text: mesoManager.endDate
+				text: mesoManager.strEndDate
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.fillWidth: false
@@ -469,7 +470,8 @@ TPPage {
 				readOnly: true
 				visible: mesoManager.realMeso
 				Layout.alignment: Qt.AlignLeft
-				Layout.minimumWidth: parent.width / 2
+				Layout.maximumWidth: parent.width*0.2
+				Layout.minimumWidth: parent.width*0.2
 			}
 
 			MesoSplitSetup {

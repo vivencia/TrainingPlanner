@@ -282,7 +282,7 @@ void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const 
 	splitPage->setProperty("bCanSwapPlan", !swappableLetter.isEmpty());
 }
 
-//Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesoCycle.qml
+//Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesocyclePage.qml
 void QmlMesoSplitInterface::updateMuscularGroup(DBMesoSplitModel* splitModel)
 {
 	const QString& musculargroup{appMesoModel()->muscularGroup(m_mesoIdx, splitModel->_splitLetter())};

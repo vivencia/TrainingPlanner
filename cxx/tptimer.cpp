@@ -11,7 +11,7 @@ TPTimer::TPTimer(QObject* parent)
 	connect(appUtils(), &TPUtils::appResumed, this, &TPTimer::correctTimer);
 	m_pausedTime.setHMS(0, 0, 0);
 	m_timeOfPause.setHMS(0, 0 ,0);
-	m_originalStartTime = u"00:00:00"_s;
+	m_displayStartingTime = "00:00:00"_L1;
 	setInterval(1000);
 }
 
@@ -23,7 +23,7 @@ TPTimer::~TPTimer()
 
 void TPTimer::prepareTimer(const QString& strStartTime)
 {
-	m_originalStartTime = strStartTime;
+	m_displayStartingTime = strStartTime;
 	prepareFromString();
 	emit hoursChanged();
 	emit minutesChanged();
@@ -111,7 +111,7 @@ void TPTimer::setStrHours(QString& str_hours)
 {
 	if (str_hours.length() == 1)
 		str_hours.prepend('0');
-	prepareTimer(m_originalStartTime.replace(0, 2, str_hours));
+	prepareTimer(m_displayStartingTime.replace(0, 2, str_hours));
 }
 
 QString TPTimer::strMinutes() const
@@ -126,7 +126,7 @@ void TPTimer::setStrMinutes(QString& str_minutes)
 {
 	if (str_minutes.length() == 1)
 		str_minutes.prepend('0');
-	prepareTimer(m_originalStartTime.replace(3, 2, str_minutes));
+	prepareTimer(m_displayStartingTime.replace(3, 2, str_minutes));
 }
 
 QString TPTimer::strSeconds() const
@@ -141,7 +141,7 @@ void TPTimer::setStrSeconds(QString& str_seconds)
 {
 	if (str_seconds.length() == 1)
 		str_seconds.prepend('0');
-	prepareTimer(m_originalStartTime.replace(6, 2, str_seconds));
+	prepareTimer(m_displayStartingTime.replace(6, 2, str_seconds));
 }
 
 void TPTimer::setAlarmSoundFile(const QString& soundFileName)
@@ -169,17 +169,17 @@ void TPTimer::setAlarmSoundLoops(const uint nloops)
 
 void TPTimer::prepareFromString()
 {
-	if (!m_originalStartTime.isEmpty())
+	if (!m_displayStartingTime.isEmpty())
 	{
-		if (m_originalStartTime.length() < 2)
-			m_originalStartTime.append(u"0:00:00"_s);
-		m_hours = m_originalStartTime.first(2).toUInt();
-		if (m_originalStartTime.length() < 5)
-			m_originalStartTime.append(u":00:00"_s);
-		m_minutes = m_originalStartTime.sliced(3, 2).toUInt();
-		if (m_originalStartTime.length() < 8)
-			m_originalStartTime.append(u":00"_s);
-		m_seconds = m_originalStartTime.last(2).toUInt();
+		if (m_displayStartingTime.length() < 2)
+			m_displayStartingTime.append("0:00:00"_L1);
+		m_hours = m_displayStartingTime.first(2).toUInt();
+		if (m_displayStartingTime.length() < 5)
+			m_displayStartingTime.append(":00:00"_L1);
+		m_minutes = m_displayStartingTime.sliced(3, 2).toUInt();
+		if (m_displayStartingTime.length() < 8)
+			m_displayStartingTime.append(":00"_L1);
+		m_seconds = m_displayStartingTime.last(2).toUInt();
 		mb_timerForward = mb_stopWatch;
 	}
 	else
