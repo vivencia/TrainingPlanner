@@ -280,23 +280,22 @@ TPPage {
 				text: qsTr("Instructions file")
 			}
 
-			RowLayout {
-				spacing: 0
-				Layout.fillWidth: true
-
-				TPTextInput {
-					id: txtMesoFile
-					text: mesoManager.fileName
-					readOnly: true
-					width: 0.8*parent.width
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
-				}
+			TPTextInput {
+				id: txtMesoFile
+				text: mesoManager.fileName
+				readOnly: true
+				width: 0.8*parent.width
+				Layout.maximumWidth: width
+				Layout.minimumWidth: width
 
 				TPButton {
 					id: btnChooseMesoFile
 					imageSource: "choose-file"
-					Layout.leftMargin: 5
+
+					anchors {
+						left: parent.right
+						verticalCenter: parent.verticalCenter
+					}
 
 					onClicked: fileDialog.open();
 
@@ -316,7 +315,11 @@ TPPage {
 					id: btnOpenMesoFile
 					imageSource: txtMesoFile.text.indexOf("pdf") !== -1 ? "pdf-icon" : "doc-icon"
 					visible: appUtils.canReadFile(mesoManager.file)
-					Layout.leftMargin: -10
+
+					anchors {
+						left: btnChooseMesoFile.right
+						verticalCenter: parent.verticalCenter
+					}
 
 					onClicked: osInterface.viewExternalFile(mesoManager.file);
 				}

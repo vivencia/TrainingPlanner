@@ -15,24 +15,22 @@ FocusScope {
 
 	required property ExerciseEntryManager exerciseManager
 
-	property bool bListRequestForExercise1: false
-	property bool bListRequestForExercise2: false
-
 	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
 
 	Frame {
 		id: paneExercise
-		property bool shown: entryManager.nSets === 0
 		visible: height > 0
-		height: shown ? implicitHeight : txtExerciseName.height + 20
-		implicitHeight: layoutMain.implicitHeight + 10
+		height: shown ? implicitHeight : exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight + 20
+		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.implicitHeight + 20
 		implicitWidth: width
-		width: appSettings.pageWidth - 10
+		width: parent.width
 		clip: true
 		padding: 0
 		spacing: 0
 		z: 0
 		Layout.fillWidth: true
+
+		property bool shown: exerciseManager.setsNumber === 0
 
 		Behavior on height {
 			NumberAnimation {
@@ -41,7 +39,7 @@ FocusScope {
 		}
 
 		background: Rectangle {
-			color: entryManager.exerciseIdx % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+			color: exerciseManager.exerciseIdx % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 			border.color: "transparent"
 			opacity: 0.8
 			radius: 10
@@ -51,7 +49,7 @@ FocusScope {
 			id: btnMoveExerciseUp
 			imageSource: "up"
 			hasDropShadow: false
-			enabled: entryManager.exerciseIdx > 0
+			enabled: exerciseManager.exerciseIdx > 0
 			visible: exerciseManager.isEditable
 			height: 30
 			width: 30
@@ -93,43 +91,38 @@ FocusScope {
 			RowLayout {
 				spacing: 0
 				Layout.fillWidth: true
-				Layout.leftMargin: -10
-				Layout.topMargin: 5
 
 				TPButton {
 					id: btnFoldIcon
 					imageSource: paneExercise.shown ? "black/fold-up" : "black/fold-down"
 					hasDropShadow: false
 					imageSize: 18
-					onClicked: paneExerciseShowHide(false, false);
-					Layout.leftMargin: 8
-					z: 1
+					onClicked: paneExerciseShowHide(!paneExercise.shown);
+					Layout.leftMargin: 5
 				}
 
 				Label {
 					id: lblExerciseNumber
-					text: entryManager.exerciseNumber() + ":"
+					text: exerciseManager.exerciseNumber + ":"
 					font.bold: true
-					font.pixelSize: appSettings.largeFontSize
+					font.pixelSize: appSettings.fontSize
 					width: 15
-					Layout.leftMargin: 0
 				}
 
 				ExerciseNameField {
 					id: txtExerciseName
 					text: exerciseManager.exerciseName
 					bEditable: exerciseManager.isEditable
-					width: appSettings.pageWidth - 55
-					height: 70
-					Layout.minimumWidth: width
-					Layout.maximumWidth: width
-					Layout.leftMargin: 0
+					width: layoutMain.width*0.9
+					height: appSettings.pageHeight*0.08
+					Layout.preferredWidth: width
+					Layout.preferredHeight: height
 
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
 					onRemoveButtonClicked: exerciseManager.removeExercise();
 					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
-					onItemClicked: paneExerciseShowHide(false, false);
+					onItemClicked: paneExerciseShowHide(!paneExercise.shown);
 				}
 			} //Row txtExerciseName
 
@@ -144,7 +137,8 @@ FocusScope {
 					text: qsTr("Track rest times?")
 					textColor: "black"
 					checked: exerciseManager.trackRestTime
-					width: paneExercise.width/2 - 10
+					width: layoutMain.width*0.45
+					Layout.preferredWidth: width
 
 					onClicked: exerciseManager.trackRestTime = checked;
 				}
@@ -153,9 +147,10 @@ FocusScope {
 					id: chkAutoRestTime
 					text: qsTr("Auto tracking")
 					textColor: "black"
-					width: paneExercise.width/2 - 10
 					enabled: exerciseManager.trackRestTime
 					checked: exerciseManager.autoRestTime
+					width: layoutMain.width*0.45
+					Layout.preferredWidth: width
 
 					onPressAndHold: ToolTip.show(qsTr("Tap on Start Rest/Stop Rest to have the rest time automatically recorded"), 5000);
 					onClicked: exerciseManager.autoRestTime = checked;
@@ -171,7 +166,7 @@ FocusScope {
 					id: txtNReps
 					text: exerciseManager.repsForExercise1
 					type: SetInputField.Type.RepType
-					availableWidth: layoutMain.width / 2
+					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
 
@@ -183,7 +178,7 @@ FocusScope {
 					id: txtNWeight
 					text: exerciseManager.weightForExercise1
 					type: SetInputField.Type.WeightType
-					availableWidth: layoutMain.width / 2
+					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
 
@@ -201,7 +196,7 @@ FocusScope {
 					id: txtNReps2
 					text: exerciseManager.repsForExercise2
 					type: SetInputField.Type.RepType
-					availableWidth: layoutMain.width / 2
+					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
 
@@ -213,7 +208,7 @@ FocusScope {
 					id: txtNWeight2
 					text: exerciseManager.weightForExercise2
 					type: SetInputField.Type.WeightType
-					availableWidth: layoutMain.width / 2
+					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
 
@@ -226,7 +221,7 @@ FocusScope {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
 				text: exerciseManager.restTime
-				availableWidth: paneExercise.width/2
+				availableWidth: layoutMain.width*0.45
 				backColor: "transparent"
 				borderColor: "transparent"
 				enabled: exerciseManager.trackRestTime && !exerciseManager.autoRestTime
@@ -253,7 +248,7 @@ FocusScope {
 					id: cboSetType
 					currentIndex: exerciseManager.newSetType
 					model: AppGlobals.setTypesModel
-					implicitWidth: 160
+					implicitWidth: layoutMain.width*0.6
 
 					onActivated: (index) => exerciseManager.newSetType = index;
 				}
@@ -262,7 +257,7 @@ FocusScope {
 					id: txtNSets
 					text: exerciseManager.setsNumber
 					type: SetInputField.Type.SetType
-					availableWidth: layoutMain.width / 3
+					availableWidth: layoutMain.width*0.3
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
@@ -276,7 +271,7 @@ FocusScope {
 					imageSize: 30
 					Layout.leftMargin: 15
 
-					onClicked: exerciseManager.addNewSet();
+					onClicked: exerciseManager.appendNewSet();
 				}
 			} // RowLayout
 		} // ColumnLayout layoutMain
@@ -284,22 +279,20 @@ FocusScope {
 		GridLayout {
 			id: exerciseSetsLayout
 			objectName: "exerciseSetsLayout"
-			width: appSettings.pageWidth - 10
+			width: parent.width
 			columns: 1
 
 			anchors {
 				left: parent.left
-				leftMargin: 5
-				rightMargin: 5
 				right:parent.right
 				top: layoutMain.bottom
 			}
 		}
 	} //paneExercise
 
-	function paneExerciseShowHide(show: bool, force: bool) {
-		paneExercise.shown = force ? show : !paneExercise.shown
-		if (paneExercise.shown)
+	function paneExerciseShowHide(show: bool) {
+		paneExercise.shown = show;
+		if (show)
 			exerciseManager.createAvailableSets();
 	}
 } //Item

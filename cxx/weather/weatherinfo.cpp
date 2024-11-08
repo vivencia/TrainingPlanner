@@ -431,7 +431,7 @@ void WeatherInfo::setUseGps(const bool value)
 				disconnect(gpsWaitTimer, &QTimer::timeout, nullptr, nullptr);
 				m_gpsOnAttempts = 0;
 			}
-			setCity(QString(), true);
+			setCity(QString());
 			requestWeatherByCoordinates();
 		}
 		else

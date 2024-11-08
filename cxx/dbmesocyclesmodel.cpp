@@ -143,9 +143,9 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 
 	for (uint i(meso_idx); i < count(); ++i)
 	{
-		m_splitModel->setMesoIdx(i-1);
-		m_calendarModelList.at(i)->setMesoIdx(i-1);
-		emit mesoIdxChanged(i, i-1);
+		m_splitModel->setMesoIdx(i);
+		m_calendarModelList.at(i)->setMesoIdx(i);
+		emit mesoIdxChanged(i+1, i);
 	}
 
 	if (m_mostRecentOwnMesoIdx > meso_idx)

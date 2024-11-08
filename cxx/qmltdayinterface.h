@@ -126,6 +126,8 @@ public:
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
+	inline QQuickItem* tDayPage() const { return m_tDayPage; }
+
 	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
 

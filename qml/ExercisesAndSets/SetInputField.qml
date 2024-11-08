@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../"
-import "../TPWidgets"
+import "../TPWidgets/"
 
 FocusScope {
 	id: control

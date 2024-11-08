@@ -5,20 +5,20 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-static const QString& TP_APP_VERSION(u"v20241005-A"_s);
+static const QString& TP_APP_VERSION("v20241005-A"_L1);
 
 #ifndef QT_NO_DEBUG
 #include <QDebug>
 #include <source_location>
 #define SOURCE_LOCATION {std::source_location::current()}
 #define DEFINE_SOURCE_LOCATION const std::source_location& location SOURCE_LOCATION;;
-#define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << u"::"_s << location.function_name() << u"::"_s << location.line();
-#define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_s; qDebug() << message << message2; \
-			qDebug() << u"******SUCCESS******"_s; qDebug() << ' '; }
-#define SUCCESS_MESSAGE_WITH_STATEMENT(statement) { qDebug() << ' '; qDebug() << u"******SUCCESS******"_s; \
-			statement; qDebug() << u"******SUCCESS******"_s; qDebug() << ' '; }
-#define ERROR_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << u"******ERROR******"_s; \
-			PRINT_SOURCE_LOCATION; qDebug() << message1 << message2; qDebug() << u"******ERROR******"_s; qDebug() << ' '; }
+#define PRINT_SOURCE_LOCATION qDebug().noquote() << location.file_name() << "::"_L1 << location.function_name() << "::"_L1 << location.line();
+#define SUCCESS_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << "******SUCCESS******"_L1; qDebug() << message << message2; \
+			qDebug() << "******SUCCESS******"_L1; qDebug() << ' '; }
+#define SUCCESS_MESSAGE_WITH_STATEMENT(statement) { qDebug() << ' '; qDebug() << "******SUCCESS******"_L1; \
+			statement; qDebug() << "******SUCCESS******"_L1; qDebug() << ' '; }
+#define ERROR_MESSAGE(message1, message2) { qDebug() << ' '; qDebug() << "******ERROR******"_L1; \
+			PRINT_SOURCE_LOCATION; qDebug() << message1 << message2; qDebug() << "******ERROR******"_L1; qDebug() << ' '; }
 #define LOG_MESSAGE(message) qDebug() << message;
 #else
 #define SOURCE_LOCATION
@@ -36,7 +36,7 @@ static const QLatin1Char comp_exercise_separator(30);
 static const QLatin1Char set_separator(31);
 static const QLatin1Char fancy_record_separator1('|');
 static const QLatin1Char fancy_record_separator2(';');
-static const QString& comp_exercise_fancy_separator(u" + "_s);
+static const QString& comp_exercise_fancy_separator(" + "_L1);
 
 static const uint APP_TABLES_NUMBER(6);
 static const uint EXERCISES_TABLE_ID(0x0001);
@@ -46,17 +46,17 @@ static const uint MESOCALENDAR_TABLE_ID(0x0004);
 static const uint TRAININGDAY_TABLE_ID(0x0005);
 static const uint USER_TABLE_ID(0x0006);
 
-static const QString& DBExercisesObjectName(u"Exercises"_s);
-static const QString& DBMesocyclesObjectName(u"Mesocycles"_s);
-static const QString& DBMesoSplitObjectName(u"MesocyclesSplits"_s);
-static const QString& DBMesoCalendarObjectName(u"MesoCalendar"_s);
-static const QString& DBTrainingDayObjectName(u"TrainingDay"_s);
-static const QString& DBUserObjectName(u"UserProfile"_s);
+static const QString& DBExercisesObjectName("Exercises"_L1);
+static const QString& DBMesocyclesObjectName("Mesocycles"_L1);
+static const QString& DBMesoSplitObjectName("MesocyclesSplits"_L1);
+static const QString& DBMesoCalendarObjectName("MesoCalendar"_L1);
+static const QString& DBTrainingDayObjectName("TrainingDay"_L1);
+static const QString& DBUserObjectName("UserProfile"_L1);
 
-static const QString& STR_MINUS_ONE(u"-1"_s);
-static const QString& STR_ZERO(u"0"_s);
-static const QString& STR_ONE(u"1"_s);
-static const QString& STR_END_EXPORT(u"####\n\n"_s);
+static const QString& STR_MINUS_ONE("-1"_L1);
+static const QString& STR_ZERO("0"_L1);
+static const QString& STR_ONE("1"_L1);
+static const QString& STR_END_EXPORT("####\n\n"_L1);
 
 enum {
 	IFC_USER = 0x01,

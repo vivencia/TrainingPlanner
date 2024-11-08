@@ -23,7 +23,7 @@ void QmlExerciseInterface::createExerciseObject()
 {
 	if (!m_exercisesComponent)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_s}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
 				createExerciseObject();
@@ -43,12 +43,14 @@ void QmlExerciseInterface::createExerciseObject()
 	else
 		nRestTime = m_tDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry(this, m_tDayPage, m_qmlEngine, m_tDayModel, exercise_idx)};
+	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_qmlEngine, m_tDayModel, exercise_idx}};
+	if (exercise_idx > 0)
+		m_exercisesList.last()->setLastExercise(false);
+	m_exercisesList.append(newExercise);
 	getInfoFromExercisesList(newExercise);
-
 	m_tDayModel->newExercise(exercise_idx, newExercise->exerciseName());
-	m_tDayModel->setTrackRestTime(exercise_idx, bTrackRestTime);
-	m_tDayModel->setAutoRestTime(exercise_idx, bAutoRestTime);
+
+	newExercise->setIsEditable(true);
 	newExercise->setRestTime(nRestTime);
 	newExercise->setLastExercise(true);
 	newExercise->setTrackRestTime(bTrackRestTime);
@@ -56,8 +58,7 @@ void QmlExerciseInterface::createExerciseObject()
 	newExercise->setCanEditRestTimeTracking(true);
 	newExercise->setIsCompleted(false);
 	newExercise->setLastExercise(true);
-	m_exercisesList.last()->setLastExercise(false);
-	m_exercisesList.append(newExercise);
+
 	createExerciseObject_part2(exercise_idx);
 }
 
@@ -65,7 +66,7 @@ void QmlExerciseInterface::createExercisesObjects()
 {
 	if (m_exercisesComponent == nullptr)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_s}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
@@ -149,25 +150,25 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 {
 	if (exercise_idx < m_exercisesList.count())
 	{
-		QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
+		QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
 		for(uint i(exercise_idx+1); i < m_exercisesList.count(); ++i)
 		{
 			if (!m_exercisesList.at(exercise_idx)->exerciseEntry())
 			{
-				QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx+1)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true), Q_ARG(bool, true));
-				QMetaObject::invokeMethod(m_tDayPage, "placeSetIntoView", Q_ARG(int, m_exercisesList.at(exercise_idx+1)->exerciseEntry()->y() + 50));
+				QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx+1)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
+				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, m_exercisesList.at(exercise_idx+1)->exerciseEntry()->y() + 50));
 				return;
 			}
 		}
-		QMetaObject::invokeMethod(m_tDayPage, "placeSetIntoView", Q_ARG(int, 0));
+		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
 	}
 }
 
 void QmlExerciseInterface::hideSets() const
 {
 	for(uint i(0); i < m_exercisesList.count(); ++i)
-		QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false), Q_ARG(bool, true));
-	QMetaObject::invokeMethod(m_tDayPage, "placeSetIntoView", Q_ARG(int, 0));
+		QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
+	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
 }
 
 void QmlExerciseInterface::showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel)
@@ -177,7 +178,7 @@ void QmlExerciseInterface::showSimpleExercisesList(const uint exercise_idx, cons
 		m_simpleExercisesListRequester = exercise_idx;
 		connect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
 		connect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-		QMetaObject::invokeMethod(m_tDayPage, "showSimpleExercisesList", Q_ARG(bool, bMultiSel));
+		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "showSimpleExercisesList", Q_ARG(bool, bMultiSel));
 	}
 }
 
@@ -185,7 +186,7 @@ void QmlExerciseInterface::hideSimpleExercisesList()
 {
 	disconnect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
 	disconnect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-	QMetaObject::invokeMethod(m_tDayPage, "hideSimpleExercisesList");
+	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "hideSimpleExercisesList");
 	m_simpleExercisesListRequester = -1;
 }
 
@@ -206,7 +207,7 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	}
 	#endif
 
-	m_exercisesProperties.insert(u"exerciseManager"_s, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
+	m_exercisesProperties.insert("exerciseManager"_L1, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
 													m_exercisesProperties, m_qmlEngine->rootContext())));
@@ -215,7 +216,6 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
 
-	QMetaObject::invokeMethod(item, "liberateSignals", Q_ARG(bool, true));
 	m_exercisesList.at(exercise_idx)->setExerciseEntry(item);
 }
 
@@ -224,16 +224,16 @@ void QmlExerciseInterface::getInfoFromExercisesList(QmlExerciseEntry* exerciseEn
 	QString exerciseName, nSets, nReps, nWeight;
 	if (appExercisesModel()->selectedEntriesCount() == 1)
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_s + appExercisesModel()->selectedEntriesValue_fast(0, 2);
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, 2);
 		nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
 		nReps = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER);
 		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT);
 	}
 	else
 	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + u" - "_s +
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
 						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + u" - "_s +
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
 						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);

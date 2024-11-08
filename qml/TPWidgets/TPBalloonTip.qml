@@ -62,6 +62,7 @@ TPPopup {
 	TPLabel {
 		id: lblMessage
 		text: message
+		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignJustify
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
 		visible: message.length > 0

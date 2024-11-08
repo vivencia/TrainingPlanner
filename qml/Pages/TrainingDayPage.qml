@@ -349,8 +349,6 @@ TPPage {
 
 			anchors {
 				left: parent.left
-				leftMargin: 5
-				rightMargin: 5
 				right:parent.right
 				top: colMain.bottom
 			}

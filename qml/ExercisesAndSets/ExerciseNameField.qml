@@ -5,13 +5,11 @@ import QtQuick.Layouts
 import "../"
 import "../TPWidgets"
 
-RowLayout {
-	spacing: 5
-	height: 60
-	z: 0
+Item {
+	id: control
 
-	property alias text: control.text
-	property alias readOnly: control.readOnly
+	property alias text: txtField.text
+	property alias readOnly: txtField.readOnly
 	property bool showRemoveButton: true
 	property bool bCanEmitTextChanged: false
 	property bool bTextChanged: false
@@ -25,19 +23,26 @@ RowLayout {
 	signal itemClicked()
 
 	TextField {
-		id: control
+		id: txtField
 		font.bold: true
 		font.pixelSize: appSettings.fontSize
 		readOnly: true
 		wrapMode: Text.WordWrap
-		z: 1
-		width: parent.width-(showRemoveButton ? 55 : 25)
-		leftPadding: 15
-		rightPadding: 0
-		height: parent.height
-		Layout.maximumWidth: width
-		Layout.minimumWidth: width
-		Layout.topMargin: 0
+		topPadding: 5
+		leftPadding: 10
+		rightPadding: 10
+		bottomPadding: 5
+		topInset: 0
+		leftInset: 0
+		rightInset: 0
+		bottomInset: 0
+		width: 0.8*control.width
+
+		anchors {
+			top: control.top
+			left: control.left
+			bottom: control.bottom
+		}
 
 		background: Rectangle {
 			color: control.readOnly ? "transparent" : "white"
@@ -49,9 +54,8 @@ RowLayout {
 		onPressAndHold: (mouse) => mousePressAndHold(mouse);
 
 		MouseArea {
-			anchors.fill: control
-			enabled: control.readOnly
-			z:2
+			enabled: txtField.readOnly
+			anchors.fill: txtField
 			onClicked: itemClicked();
 		}
 
@@ -97,46 +101,58 @@ RowLayout {
 		TPButton {
 			id: btnClearText
 			imageSource: "edit-clear"
-			visible: !control.readOnly
+			visible: !txtField.readOnly
+			focus: false
 
 			anchors {
-				right: control.right
+				right: txtField.right
 				rightMargin: 5
-				verticalCenter: control.verticalCenter
+				verticalCenter: txtField.verticalCenter
 			}
 
 			onClicked: {
-				control.clear();
-				control.forceActiveFocus();
+				txtField.clear();
+				txtField.forceActiveFocus();
 			}
+		}
+	}
+
+	TPButton {
+		id: btnEditExercise
+		imageSource: "black/edit"
+		imageSize: 25
+		height: 25
+		width: 25
+		enabled: bEditable
+
+		anchors {
+			left: txtField.right
+			leftMargin: -10
+			verticalCenter: control.verticalCenter
+		}
+
+		onClicked: {
+			txtField.readOnly = !txtField.readOnly;
+			editButtonClicked();
 		}
 	}
 
 	TPButton {
 		id: btnRemoveExercise
 		imageSource: "remove"
-		height: 20
-		width: 20
+		imageSize: 25
+		height: 25
+		width: 25
 		visible: showRemoveButton
 		enabled: bEditable
-		Layout.leftMargin: -12
-		z: 1
+
+		anchors {
+			left: btnEditExercise.right
+			rightMargin: 5
+			verticalCenter: control.verticalCenter
+		}
 
 		onClicked: removeButtonClicked();
 	} //btnRemoveExercise
-
-	TPButton {
-		id: btnEditExercise
-		imageSource: "black/edit"
-		height: 20
-		width: 20
-		enabled: bEditable
-		z: 1
-		Layout.leftMargin: -15
-
-		onClicked: {
-			control.readOnly = !control.readOnly;
-			editButtonClicked();
-		}
-	}
 }
+
