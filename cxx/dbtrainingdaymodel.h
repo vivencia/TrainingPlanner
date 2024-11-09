@@ -26,6 +26,7 @@
 #define TDAY_EXERCISES_TOTALCOLS TDAY_EXERCISES_COL_COMPLETED+1
 
 #define TDDAY_MODEL_ROW 0
+#define USE_LAST_SET_DATA 100
 
 class DBExercisesModel;
 class DBMesoSplitModel;

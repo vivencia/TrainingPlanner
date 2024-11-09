@@ -81,6 +81,7 @@ FocusScope {
 			id: lblMain
 			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
 			fontColor: labelColor
+			width: availableWidth*0.5
 			visible: showLabel
 
 			anchors {
@@ -140,7 +141,7 @@ FocusScope {
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? 50 : type === SetInputField.Type.WeightType ? 45 : 35
+			width: type === SetInputField.Type.TimeType ? availableWidth*0.4 : availableWidth*0.3
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
 

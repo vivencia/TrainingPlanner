@@ -4,12 +4,15 @@
 #ifndef OPENWEATHERMAPBACKEND_H
 #define OPENWEATHERMAPBACKEND_H
 
+#include <QApplication>
 #include <QGeoCoordinate>
 #include <QObject>
 
 class QNetworkAccessManager;
 class QNetworkReply;
 class QUrlQuery;
+
+using namespace Qt::Literals::StringLiterals;
 
 struct st_WeatherInfo
 {
@@ -19,8 +22,8 @@ struct st_WeatherInfo
 	QString m_weatherDescription;
 	QString m_temperature;
 	QString m_temperature_feel;
-	QString m_temp_max;
 	QString m_temp_min;
+	QString m_temp_max;
 	QString m_humidity;
 	QString m_pressure;
 	QString m_wind;
@@ -28,6 +31,11 @@ struct st_WeatherInfo
 	QString m_sunrise;
 	QString m_sunset;
 	QString m_provider_name;
+
+	st_WeatherInfo() :
+		m_coordinates("(0,0)"_L1), m_dayOfWeek("??"_L1), m_weatherIconId("error.png"_L1),
+		m_weatherDescription{std::move(qApp->tr("No weather data"))}, m_temperature(u"??°C"_s),
+		m_temp_min("??"_L1), m_temp_max("??"_L1) {}
 };
 
 struct st_LocationInfo
@@ -48,12 +56,14 @@ public:
 	explicit OpenWeatherMapBackend(QObject* parent = nullptr);
 	~OpenWeatherMapBackend() = default;
 
-	void requestWeatherInfo(const QString& city);
-	void requestWeatherInfo(const QGeoCoordinate& coordinate);
+	void getCityFromCoordinates(const QGeoCoordinate& coordinate);
+	void searchForCities(const QString& search_term);
 	void requestWeatherInfoFromNet(const QGeoCoordinate& coordinate);
 	void requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate);
 
 signals:
+	void receivedCityFromCoordinates(const QString& city, const QGeoCoordinate& coordinate);
+	void receivedCitiesFromSearch(QList<st_LocationInfo>* foundLocations);
 	void weatherInformation(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
 
 private slots:
@@ -62,6 +72,11 @@ private slots:
 private:
 	QNetworkAccessManager* m_networkManager;
 	QString m_locationName;
+	QList<st_LocationInfo> m_foundLocations;
+	QStringList m_citiesFromCoords;
+
+	void parseOpenWeatherGeocodingReply(const QByteArray& replyData);
+	void parseOpenWeatherReverseGeocodingReply(const QByteArray& replyData);
 };
 
 #endif // OPENWEATHERMAPBACKEND_H

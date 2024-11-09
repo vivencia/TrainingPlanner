@@ -62,9 +62,7 @@ TPPage {
 
 			TPButton {
 				id: btnGPS
-				text: weatherInfo.canUseGps ? (weatherInfo.useGps ?
-							(weatherInfo.hasValidCity ? weatherInfo.gpsCity : qsTr("Unknown location")) : qsTr("Not using GPS now")) :
-							qsTr("Cannot use GPS on this device")
+				text: weatherInfo.gpsCity
 
 				textColor: "white"
 				imageSource: "gps.png"
@@ -76,7 +74,7 @@ TPPage {
 				Layout.minimumWidth: width
 				Layout.maximumWidth: width
 
-				onClicked: weatherInfo.useGps = true;
+				onClicked: weatherInfo.requestWeatherForGpsCity();
 
 				anchors {
 					top: parent.top
@@ -140,7 +138,7 @@ TPPage {
 					background: Rectangle {
 						color: index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 					}
-					onClicked: weatherInfo.requestWeatherFor(appSettings.weatherCity(index), appSettings.weatherCityCoordinates(index));
+					onClicked: weatherInfo.requestWeatherForSavedCity(index);
 				} //ItemDelegate
 			} //ListView
 
@@ -173,7 +171,7 @@ TPPage {
 					Layout.maximumWidth: width
 					Layout.preferredHeight: height
 
-					onTextEdited: weatherInfo.placeLookUp(text);
+					onTextEdited: weatherInfo.searchForCities(text);
 
 					Component.onCompleted: weatherInfo.locationListChanged.connect(showLocationsList);
 				}
@@ -190,10 +188,10 @@ TPPage {
 			Layout.minimumWidth: width
 			Layout.maximumWidth: width
 
-			topText: weatherInfo.hasValidWeather ? (weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature) : "??"
-			weatherIcon: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherIcon : "sunny"
-			bottomText: weatherInfo.hasValidWeather ? weatherInfo.weather.weatherDescription : qsTr("No weather data")
-			bottomBottomText: weatherInfo.hasValidWeather ? weatherInfo.weather.extraInfo : ""
+			topText: weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature
+			weatherIcon: weatherInfo.weather.weatherIcon
+			bottomText: weatherInfo.weather.weatherDescription
+			bottomBottomText: weatherInfo.weather.extraInfo
 		}
 
 		Item {
@@ -230,9 +228,9 @@ TPPage {
 							required property string weatherIcon
 
 							width: iconRow.iconWidth
-							topText: (weatherInfo.hasValidWeather ? dayOfWeek : "??")
-							middleIcon: (weatherInfo.hasValidWeather ? weatherIcon : "sunny")
-							bottomText: (weatherInfo.hasValidWeather ? minMaxTemperatures : ("??/??"))
+							topText: dayOfWeek
+							middleIcon: weatherIcon
+							bottomText: minMaxTemperatures
 						}
 					}
 				}

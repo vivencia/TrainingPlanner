@@ -534,7 +534,7 @@ QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const 
 			return m_ExerciseData.at(exercise_idx)->resttime.at(0);
 		if (m_ExerciseData.at(exercise_idx)->mb_AutoRestTime)
 			return "00:00"_L1;
-		strSetTime = set_number == 100 ?
+		strSetTime = set_number == USE_LAST_SET_DATA ?
 			m_ExerciseData.at(exercise_idx)->resttime.constLast() :
 			m_ExerciseData.at(exercise_idx)->resttime.at(set_number);
 	}
@@ -584,13 +584,13 @@ const QString DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, 
 			}
 			return strSetReps;
 		break;
-		case 100:
-			strSetReps = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->reps.constLast() :
+		case USE_LAST_SET_DATA:
+			strSetReps = sub_set == USE_LAST_SET_DATA ? m_ExerciseData.at(exercise_idx)->reps.constLast() :
 							std::move(m_ExerciseData.at(exercise_idx)->reps.constLast().split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set));
 		break;
 		default:
 			const QString& reps(m_ExerciseData.at(exercise_idx)->reps.at(set_number));
-			strSetReps = sub_set == 100 ? reps : reps.contains(comp_exercise_separator) ?
+			strSetReps = sub_set == USE_LAST_SET_DATA ? reps : reps.contains(comp_exercise_separator) ?
 													std::move(reps.split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set)) :
 													std::move(reps);
 		break;
@@ -623,13 +623,13 @@ const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx
 		case 0:
 			return "20"_L1;
 		break;
-		case 100:
-			strStrWeight = sub_set == 100 ? m_ExerciseData.at(exercise_idx)->weight.constLast() :
+		case USE_LAST_SET_DATA:
+			strStrWeight = sub_set == USE_LAST_SET_DATA ? m_ExerciseData.at(exercise_idx)->weight.constLast() :
 							std::move(m_ExerciseData.at(exercise_idx)->weight.constLast().split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set));
 		break;
 		default:
 			const QString& weight(m_ExerciseData.at(exercise_idx)->weight.at(set_number));
-			strStrWeight = sub_set == 100 ? weight : weight.contains(comp_exercise_separator) ?
+			strStrWeight = sub_set == USE_LAST_SET_DATA ? weight : weight.contains(comp_exercise_separator) ?
 													std::move(weight.split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set)) :
 													std::move(weight);
 		break;
@@ -704,7 +704,7 @@ void DBTrainingDayModel::removeSet(const uint exercise_idx, const uint set_numbe
 
 uint DBTrainingDayModel::setType(const uint exercise_idx, const uint set_number) const
 {
-	Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setType()", "out of range set_number");
+	//Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setType()", "out of range set_number");
 	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		return m_ExerciseData.at(exercise_idx)->type.at(set_number).toUInt();
 	return SET_TYPE_REGULAR;
@@ -736,17 +736,17 @@ void DBTrainingDayModel::changeSetType(const uint exercise_idx, const uint set_n
 			{
 				m_ExerciseData.at(exercise_idx)->reps[set_number].append(dropSetReps(reps));
 				m_ExerciseData.at(exercise_idx)->weight[set_number].append(dropSetWeight(weight));
-				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_s;
+				m_ExerciseData.at(exercise_idx)->subsets[set_number] = "3"_L1;
 			}
 			else if (new_type == SET_TYPE_CLUSTER)
-				m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_s;
+				m_ExerciseData.at(exercise_idx)->subsets[set_number]= "4"_L1;
 		break;
 
 		case SET_TYPE_GIANT:
 		case SET_TYPE_DROP:
 			if (new_type == SET_TYPE_DROP)
 			{
-				m_ExerciseData.at(exercise_idx)->subsets[set_number] = u"3"_s;
+				m_ExerciseData.at(exercise_idx)->subsets[set_number] = "3"_L1;
 				const QString& new_reps(appUtils()->getCompositeValue(0, reps, comp_exercise_separator));
 				m_ExerciseData.at(exercise_idx)->reps[set_number] = new_reps + dropSetReps(new_reps);
 				const QString& new_weight(appUtils()->getCompositeValue(0, weight, comp_exercise_separator));
@@ -764,7 +764,7 @@ void DBTrainingDayModel::changeSetType(const uint exercise_idx, const uint set_n
 				m_ExerciseData.at(exercise_idx)->reps[set_number] = appUtils()->getCompositeValue(0, reps, comp_exercise_separator);
 				m_ExerciseData.at(exercise_idx)->weight[set_number] = appUtils()->getCompositeValue(0, weight, comp_exercise_separator);
 				if (new_type == SET_TYPE_CLUSTER)
-					m_ExerciseData.at(exercise_idx)->subsets[set_number]= u"4"_s;
+					m_ExerciseData.at(exercise_idx)->subsets[set_number]= "4"_L1;
 			}
 		break;
 	}

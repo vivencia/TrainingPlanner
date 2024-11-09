@@ -248,7 +248,7 @@ FocusScope {
 					id: cboSetType
 					currentIndex: exerciseManager.newSetType
 					model: AppGlobals.setTypesModel
-					implicitWidth: layoutMain.width*0.6
+					width: layoutMain.width*0.5
 
 					onActivated: (index) => exerciseManager.newSetType = index;
 				}
@@ -269,7 +269,7 @@ FocusScope {
 					id: btnAddSet
 					imageSource: "add-new"
 					imageSize: 30
-					Layout.leftMargin: 15
+					Layout.leftMargin: 20
 
 					onClicked: exerciseManager.appendNewSet();
 				}

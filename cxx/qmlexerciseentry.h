@@ -161,7 +161,7 @@ private:
 	uint m_expectedSetNumber;
 
 	void insertSetEntry(const uint set_number, QmlSetEntry* new_setobject);
-	void createSetObject(const uint set_number, const uint type, const QString& resttime, const QString& nreps, const QString& weight);
+	void createSetObject(const uint set_number, const uint type);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void enableDisableExerciseCompletedButton();
 	inline uint findSetMode(const uint set_number) const;

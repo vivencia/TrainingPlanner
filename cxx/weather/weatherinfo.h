@@ -3,15 +3,12 @@
 
 #include "openweathermapbackend.h"
 
+#include <QGeoPositionInfo>
+#include <QGeoPositionInfoSource>
 #include <QObject>
+#include <qqml.h>
+#include <QQmlListProperty>
 #include <QString>
-#include <QtPositioning/qgeopositioninfo.h>
-#include <QtPositioning/qgeopositioninfosource.h>
-#include <QtQml/qqml.h>
-#include <QtQml/qqmllist.h>
-
-class QTimer;
-class QNetworkAccessManager;
 
 class	WeatherData : public QObject
 {
@@ -64,79 +61,57 @@ class WeatherInfo : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(bool hasValidCity READ hasValidCity NOTIFY cityChanged)
-Q_PROPERTY(bool hasValidWeather READ hasValidWeather NOTIFY weatherChanged)
-Q_PROPERTY(bool useGps READ useGps WRITE setUseGps NOTIFY useGpsChanged)
 Q_PROPERTY(bool canUseGps READ canUseGps CONSTANT)
 Q_PROPERTY(QString city READ city WRITE setCity NOTIFY cityChanged)
+Q_PROPERTY(QString gpsCity READ gpsCity WRITE setGpsCity NOTIFY gpsCityChanged)
 Q_PROPERTY(QStringList locationList READ locationList NOTIFY locationListChanged)
 Q_PROPERTY(WeatherData* weather READ weather NOTIFY weatherChanged)
 Q_PROPERTY(QQmlListProperty<WeatherData> forecast READ forecast NOTIFY weatherChanged)
-
-#ifdef Q_OS_ANDROID
-Q_PROPERTY(QString gpsCity READ gpsCity WRITE setGpsCity NOTIFY gpsCityChanged)
-#endif
 
 public:
 	explicit WeatherInfo(QObject* parent = nullptr);
 	~WeatherInfo();
 
-	bool useGps() const;
 	bool canUseGps() const;
-	bool hasValidCity() const;
-	bool hasValidWeather() const;
-	void setUseGps(const bool value);
-
 	QString city() const;
 	void setCity(const QString& value);
-
-#ifdef Q_OS_ANDROID
 	QString gpsCity() const;
 	void setGpsCity(const QString& value);
-#endif
-
 	QStringList locationList() const { return m_locationList; }
-	Q_INVOKABLE void refreshWeather();
-	Q_INVOKABLE void placeLookUp(const QString& place);
-	Q_INVOKABLE void locationSelected(const uint index);
-	Q_INVOKABLE void requestWeatherFor(const QString& city, const QGeoCoordinate& coord);
-
 	WeatherData* weather() const;
 	QQmlListProperty<WeatherData> forecast() const;
+
+#ifdef Q_OS_ANDROID
+	Q_INVOKABLE void requestWeatherForGpsCity();
+#endif
+	Q_INVOKABLE void requestWeatherForSavedCity(const uint index);
+	Q_INVOKABLE void refreshWeather();
+	Q_INVOKABLE void searchForCities(const QString& place);
+	Q_INVOKABLE void locationSelected(const uint index);
 
 private slots:
 #ifdef Q_OS_ANDROID
 	void positionUpdated(const QGeoPositionInfo& gpsPos);
 	void positionError(QGeoPositionInfoSource::Error e);
+	void gotGPSLocation(const QString& city, const QGeoCoordinate& coord);
 #endif
 	void handleWeatherData(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
+	void buildLocationsList(QList<st_LocationInfo>* foundLocations);
 
 signals:
-	void useGpsChanged();
 	void cityChanged();
+	void gpsCityChanged();
 	void weatherChanged();
 	void locationListChanged();
-#ifdef Q_OS_ANDROID
-	void gpsCityChanged();
-#endif
 
 private:
 	bool applyWeatherData(const QString& city, const QList<st_WeatherInfo>& weatherDetails);
-	void requestWeatherByCoordinates();
-	void requestWeatherByCity();
-	void buildLocationList(const QByteArray& net_data);
-	void parseReply(const QByteArray& replyData);
 
 	WeatherInfoPrivate* d;
-	QNetworkAccessManager* m_netAccessManager;
 	QMap<QString, st_LocationInfo> m_usedLocations;
-	QList<st_LocationInfo> m_foundLocations;
+	QList<st_LocationInfo>* m_foundLocations;
+	st_LocationInfo m_gpsLocation;
 	QStringList m_locationList;
-
-#ifdef Q_OS_ANDROID
-	QTimer* gpsWaitTimer;
-	uint m_gpsOnAttempts, m_gpsPosError;
-#endif
 };
 
 #endif // WEATHERINFO_H

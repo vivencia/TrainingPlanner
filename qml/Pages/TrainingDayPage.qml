@@ -107,7 +107,7 @@ TPPage {
 					enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
 					Layout.maximumWidth: 100
 
-					Component.onCompleted: currentIndex = Qt.binding(indexOfValue(tDayManager.splitLetter));
+					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(tDayManager.splitLetter); });
 
 					onActivated: (index) => tDayManager.splitLetter = valueAt(index);
 				} //TPComboBox

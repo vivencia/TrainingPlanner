@@ -44,7 +44,6 @@ Item {
 		imageSource: "reload"
 		imageSize: 50
 		fixedSize: true
-		visible: weatherInfo.hasValidWeather
 		width: 50
 		height: 50
 

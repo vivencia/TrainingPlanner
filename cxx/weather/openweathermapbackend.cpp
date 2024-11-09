@@ -40,11 +40,11 @@ static const QString& keys_current{"dt sunrise sunset temp feels_like pressure h
 static const QString& keys_daily{"dt sunrise sunset min max pressure humidity uvi wind_speed description icon "_L1};
 static const QString& weather_field{"weather"_L1};
 
-class parseOpenWeatherAPIResponse
+class parseOpenWeatherMapReply
 {
 
 public:
-	explicit parseOpenWeatherAPIResponse(const QByteArray& net_response);
+	explicit parseOpenWeatherMapReply(const QByteArray& net_response);
 	inline const bool parsedOK() const { return m_bParsedOK; }
 	inline const uint forecastDays() const { return m_weatherData.count(); }
 
@@ -124,7 +124,7 @@ private:
 	QString weatherIconCodeToString(const QString& iconcode) const;
 };
 
-parseOpenWeatherAPIResponse::parseOpenWeatherAPIResponse(const QByteArray& net_response)
+parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QByteArray& net_response)
 	: m_usedKeys(nullptr)
 {
 	if (!net_response.isEmpty())
@@ -196,7 +196,7 @@ parseOpenWeatherAPIResponse::parseOpenWeatherAPIResponse(const QByteArray& net_r
 	as follows: weather-[mystring].svg
 	where [mystring] is the value returned by this method.
 */
-QString parseOpenWeatherAPIResponse::weatherIconCodeToString(const QString& code) const
+QString parseOpenWeatherMapReply::weatherIconCodeToString(const QString& code) const
 {
 	if (code == "01d"_L1 || code == "01n"_L1)
 		return "sunny"_L1;
@@ -218,116 +218,12 @@ QString parseOpenWeatherAPIResponse::weatherIconCodeToString(const QString& code
 	return "sunny"_L1; // default choice
 }
 
-static QStringList parseOpenWeatherReverseGeocodingReply(const QByteArray& replyData)
-{
-	QStringList parsedData;
-	if (!replyData.isEmpty())
-	{
-		bool bCanInsert(true);
-		QString word;
-		QByteArray::const_iterator itr(replyData.constBegin());
-		const QByteArray::const_iterator itr_end(replyData.constEnd());
-		do {
-			if (QChar::isLetterOrNumber(*itr))
-				word.append(*itr);
-			else
-			{
-				switch (*itr)
-				{
-					case ' ':
-						word.append(*itr);
-					break;
-					case ':':
-						bCanInsert = (word == appSettings()->appLocale().left(2));
-						word.clear();
-					break;
-					case ',':
-						if (bCanInsert)
-						{
-							parsedData.append(std::move(word));
-							if (parsedData.count() == 2)
-								return parsedData;
-						}
-						word.clear();
-					default:
-						continue;
-				}
-			}
-		} while (++itr != itr_end);
-	}
-	return parsedData;
-}
-
-static QMap<QString,QString> parseApiNinjasReply(const QByteArray& replyData)
-{
-	QMap<QString,QString> parsedData;
-	if (!replyData.isEmpty())
-	{
-		QString word, key;
-		QByteArray::const_iterator itr(replyData.constBegin());
-		const QByteArray::const_iterator itr_end(replyData.constEnd());
-		do {
-			if (QChar::isLetterOrNumber(*itr))
-				word.append(*itr);
-			else
-			{
-				switch (*itr)
-				{
-					case '-':
-					case '.':
-					case ' ':
-						word.append(*itr);
-					break;
-					case ':':
-						key = std::move(word.simplified());
-						word.clear();
-					break;
-					case ',':
-						parsedData.insert(key, word.simplified());
-						word.clear();
-					break;
-					default: continue;
-				}
-			}
-		} while (++itr != itr_end);
-	}
-	return parsedData;
-}
-
 OpenWeatherMapBackend::OpenWeatherMapBackend(QObject *parent)
 	: QObject{parent},
 	  m_networkManager{new QNetworkAccessManager(this)}
 {}
 
-void OpenWeatherMapBackend::requestWeatherInfo(const QString& city)
-{
-	m_locationName = city;
-	QUrlQuery query;
-	QUrl url{"https://api.api-ninjas.com/v1/geocoding"_L1};
-	query.addQueryItem("city"_L1, city);
-	url.setQuery(query);
-	QNetworkRequest net_request{url};
-	net_request.setRawHeader("X-Api-Key", "fVD0CWxVLhaz7cnhK21PCw==aOqhLKStgURO363U");
-	QNetworkReply* reply{m_networkManager->get(net_request)};
-	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
-		DEFINE_SOURCE_LOCATION
-		if (!reply->error())
-		{
-			const QMap<QString,QString>& parsedData(parseApiNinjasReply(reply->readAll()));
-			if (!parsedData.isEmpty())
-			{
-				const QGeoCoordinate coordinate(parsedData.value("latitude").toDouble(), parsedData.value("longitude").toDouble());
-				requestWeatherInfoFromNet(coordinate);
-			}
-			else
-				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
-		}
-		else
-			ERROR_MESSAGE("Network reply:  ", reply->errorString())
-	});
-}
-
-void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
+void OpenWeatherMapBackend::getCityFromCoordinates(const QGeoCoordinate& coordinate)
 {
 	QUrlQuery query;
 	QUrl url{"http://api.openweathermap.org/geo/1.0/reverse"_L1};
@@ -343,17 +239,33 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QGeoCoordinate& coordinate)
 		DEFINE_SOURCE_LOCATION
 		if (!reply->error())
 		{
-			const QStringList& parsedData(parseOpenWeatherReverseGeocodingReply(reply->readAll()));
-			if (!parsedData.isEmpty())
+			parseOpenWeatherReverseGeocodingReply(reply->readAll());
+			if (!m_citiesFromCoords.isEmpty())
 			{
-				m_locationName = parsedData.count() == 2 ? parsedData.at(1) : parsedData.at(0);
-				requestWeatherInfoFromNet(coordinate);
+				m_locationName = m_citiesFromCoords.count() == 2 ? m_citiesFromCoords.at(1) : m_citiesFromCoords.at(0);
+				emit receivedCityFromCoordinates(m_locationName, coordinate);
 			}
 			else
 				ERROR_MESSAGE("Could not parse network reply:  ", reply->readAll())
 		}
 		else
 			ERROR_MESSAGE("Network reply:  ", reply->errorString())
+	});
+}
+
+void OpenWeatherMapBackend::searchForCities(const QString& search_term)
+{
+	QUrlQuery query;
+	QUrl url{"http://api.openweathermap.org/geo/1.0/direct"_L1};
+	query.addQueryItem("q"_L1, search_term);
+	query.addQueryItem("appid"_L1, "31d07fed3c1e19a6465c04a40c71e9a0"_L1);
+	url.setQuery(query);
+	QNetworkRequest net_request{url};
+	QNetworkReply* reply{m_networkManager->get(net_request)};
+	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
+		parseOpenWeatherGeocodingReply(reply->readAll());
+		if (!m_foundLocations.isEmpty())
+			emit receivedCitiesFromSearch(&m_foundLocations);
 	});
 }
 
@@ -386,7 +298,7 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 	bool parsed(false);
 	if (!reply->error())
 	{
-		const parseOpenWeatherAPIResponse netData{reply->readAll()};
+		const parseOpenWeatherMapReply netData{reply->readAll()};
 		parsed = netData.parsedOK();
 		if (parsed)
 		{
@@ -435,4 +347,132 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 			ERROR_MESSAGE("Failed to parse current weather JSON.", reply->readAll());
 	}
 	reply->deleteLater();
+}
+
+void OpenWeatherMapBackend::parseOpenWeatherReverseGeocodingReply(const QByteArray& replyData)
+{
+	if (replyData.length() > 50)
+	{
+		bool bCanInsert(true);
+		QString word;
+		QByteArray::const_iterator itr(replyData.constBegin());
+		const QByteArray::const_iterator itr_end(replyData.constEnd());
+		do {
+			if (QChar::isLetterOrNumber(*itr))
+				word.append(*itr);
+			else
+			{
+				switch (*itr)
+				{
+					case ' ':
+						word.append(*itr);
+					break;
+					case ':':
+						bCanInsert = (word == appSettings()->appLocale().left(2));
+						word.clear();
+					break;
+					case ',':
+						if (bCanInsert)
+						{
+							m_citiesFromCoords.append(std::move(word));
+							if (m_citiesFromCoords.count() == 2)
+								return;
+						}
+						word.clear();
+					default:
+						continue;
+				}
+			}
+		} while (++itr != itr_end);
+	}
+}
+
+void OpenWeatherMapBackend::parseOpenWeatherGeocodingReply(const QByteArray& replyData)
+{
+	m_foundLocations.clear();
+	if (replyData.length() < 50)
+		return;
+
+	st_LocationInfo tempData;
+	QString word, *strInfo(nullptr);
+	uint pos(0), word_start(0), word_end(0);
+	bool ignore_untill_lext_bracket(false);
+
+	const QString data{replyData};
+	QString::const_iterator itr(data.constBegin());
+	const QString::const_iterator itr_end(data.constEnd());
+	do {
+		if (ignore_untill_lext_bracket)
+		{
+			if (*itr != '}')
+				continue;
+		}
+		if (((*itr).isLetterOrNumber()))
+		{
+			if (word_start == 0)
+				word_start = pos;
+			else
+				word_end = pos;
+		}
+		else {
+			switch ((*itr).cell())
+			{
+				case '-':
+					if ((*(itr-1)).cell() == ':')
+						word_start = pos;
+				break;
+				case ':':
+					word = data.sliced(word_start, word_end-word_start+1);
+					if (word.contains("local_"_L1))
+						ignore_untill_lext_bracket = true;
+					else
+					{
+						if (word.contains("name"_L1))
+							strInfo = &(tempData.m_name);
+						else if (word.contains("lat"_L1))
+						{
+							tempData.m_coordinate.setLatitude(0);
+							strInfo = &(tempData.m_strCoordinate);
+						}
+						else if (word.contains("lon"_L1))
+							strInfo = &(tempData.m_strCoordinate);
+						else if (word.contains("cou"_L1))
+							strInfo = &(tempData.m_country);
+						else
+							strInfo = &(tempData.m_state);
+					}
+					word_start = word_end = 0;
+				break;
+				case ',':
+					if (strInfo)
+					{
+						*strInfo = data.sliced(word_start, word_end-word_start+1);
+						bool ok(false);
+						strInfo->left(2).toInt(&ok);
+						if (ok)
+						{
+							if (tempData.m_coordinate.latitude() == 0)
+								tempData.m_coordinate.setLatitude(strInfo->toDouble());
+							else
+								tempData.m_coordinate.setLongitude(strInfo->toDouble());
+						}
+						strInfo = nullptr;
+						word_start = word_end = 0;
+					}
+				break;
+				case '}':
+					if (ignore_untill_lext_bracket)
+						ignore_untill_lext_bracket = false;
+					else
+					{
+						*strInfo = data.sliced(word_start, word_end-word_start+1);
+						strInfo = nullptr;
+						m_foundLocations.append(tempData);
+						word_start = word_end = 0;
+					}
+				break;
+				default: continue;
+			}
+		}
+	} while (++pos && (++itr != itr_end));
 }

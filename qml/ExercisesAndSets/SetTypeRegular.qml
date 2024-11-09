@@ -10,8 +10,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Item {
 	id: setItem
-	height: setLayout.height + 15
-	implicitHeight: setLayout.implicitHeight + 15
+	//height: setLayout.height + 15
+	implicitHeight: setLayout.height + 15
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
 	Layout.leftMargin: 5
@@ -24,12 +24,12 @@ Item {
 	readonly property var myoLabels: setManager.type === 5 ? [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
 
-	Connections {
+	/*Connections {
 		setManager.onTypeChanged: btnCopySetType.visible = !btnCopySetType.visible;
 		setManager.onRestTimeChanged: btnCopyTimeValue.visible = !btnCopyTimeValue.visible;
 		setManager.onReps1Changed: btnCopySetReps.visible = !btnCopySetReps.visible
 		setManager.onWeight1Changed: btnCopySetWeight.visible = !btnCopySetWeight.visible
-	}
+	}*/
 
 	Rectangle {
 		id: indicatorRec
@@ -60,8 +60,7 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		Layout.fillWidth: true
-		Layout.bottomMargin: 5
+		anchors.fill: parent
 
 		Item {
 			height: 30
@@ -100,10 +99,10 @@ Item {
 			Layout.bottomMargin: 10
 
 			TPComboBox {
-				id: cboSettype
+				id: cboSetType
 				currentIndex: setManager.type
 				enabled: !setManager.completed
-				model: AppGlobals.setManager.typesModel
+				model: AppGlobals.setTypesModel
 				implicitWidth: 160
 
 				anchors {
@@ -124,7 +123,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: cbosetManager.type.right
+					left: cboSetType.right
 					leftMargin: 10
 				}
 
@@ -139,7 +138,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: btnCopySetType.visible ? btnCopySetType.right : cbosetManager.type.right
+					left: btnCopySetType.visible ? btnCopySetType.right : cboSetType.right
 					leftMargin: 10
 				}
 
@@ -184,7 +183,7 @@ Item {
 
 		SetInputField {
 			id: txtNSubSets
-			type: SetInputField.Type.setManager.type
+			type: SetInputField.SetType
 			text: setManager.subSets
 			availableWidth: controlWidth
 			visible: setManager.hasSubSets
@@ -203,7 +202,7 @@ Item {
 
 				anchors {
 					top: parent.verticalCenter
-					topMargin: -height/2
+					topMargin: -(height/2)
 					left: parent.horizontalCenter
 					leftMargin: 10
 				}

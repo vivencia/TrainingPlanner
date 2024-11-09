@@ -10,8 +10,8 @@
 #include <QQmlApplicationEngine>
 #include <QQuickItem>
 
-static const QStringList& setTypePages{ QStringList() << std::move("qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1) <<
-					std::move("qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1) << std::move("qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1) };
+static const QString setTypePages[3] { std::move("qrc:/qml/ExercisesAndSets/SetTypeRegular.qml"_L1),
+					std::move("qrc:/qml/ExercisesAndSets/SetTypeDrop.qml"_L1), std::move("qrc:/qml/ExercisesAndSets/SetTypeGiant.qml"_L1) };
 
 QmlExerciseEntry::~QmlExerciseEntry()
 {
@@ -50,13 +50,14 @@ void QmlExerciseEntry::setNewSetType(const uint new_value)
 		}
 		setSetsNumber(strSets);
 	}
-	setRestTime(m_tDayModel->nextSetSuggestedTime(m_exercise_idx, m_type, nsets));
-	setRepsForExercise1(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, m_type, nsets, 0));
-	setWeightForExercise1(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, m_type, nsets, 0));
+	const uint dataFromSetNumber(m_setObjects.isEmpty() ? 0 : USE_LAST_SET_DATA);
+	setRestTime(m_tDayModel->nextSetSuggestedTime(m_exercise_idx, m_type, dataFromSetNumber));
+	setRepsForExercise1(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, m_type, dataFromSetNumber, 0));
+	setWeightForExercise1(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, m_type, dataFromSetNumber, 0));
 	if (m_type == SET_TYPE_GIANT)
 	{
-		setRepsForExercise2(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, m_type, nsets, 1));
-		setWeightForExercise2(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, m_type, nsets, 1));
+		setRepsForExercise2(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, m_type, dataFromSetNumber, 1));
+		setWeightForExercise2(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, m_type, dataFromSetNumber, 1));
 	}
 }
 
@@ -188,8 +189,7 @@ void QmlExerciseEntry::createAvailableSets()
 		for (uint i(0); i < nsets; ++i)
 		{
 			m_expectedSetNumber = i;
-			createSetObject(i, m_tDayModel->setType(m_exercise_idx, i), m_tDayModel->setRestTime(m_exercise_idx, i),
-				m_tDayModel->setReps(m_exercise_idx, i), m_tDayModel->setWeight(m_exercise_idx, i));
+			createSetObject(i, m_tDayModel->setType(m_exercise_idx, i));
 		}
 		findCurrentSet();
 		emit hasSetsChanged();
@@ -212,8 +212,13 @@ void QmlExerciseEntry::exerciseCompleted()
 void QmlExerciseEntry::appendNewSet()
 {
 	m_expectedSetNumber = m_setObjects.count();
-	m_setObjects.last()->setLastSet(false);
-	createSetObject(m_expectedSetNumber, m_type, m_reps, m_weight, m_restTime);
+	if (m_expectedSetNumber > 0)
+		m_setObjects.last()->setLastSet(false);
+	if (m_expectedSetNumber == 0)
+		m_tDayModel->newFirstSet(m_exercise_idx, newSetType(), reps(), weight(), restTime());
+	else
+		m_tDayModel->newSet(m_expectedSetNumber, m_exercise_idx, newSetType(), reps(), weight(), restTime());
+	createSetObject(m_expectedSetNumber, m_type);
 	connect(this, &QmlExerciseEntry::setObjectCreated, this, [this] {
 			emit hasSetsChanged();
 			setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
@@ -271,7 +276,7 @@ void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
 
 void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 {
-	if (new_type != 100)
+	if (new_type != USE_LAST_SET_DATA)
 	{
 		const uint current_type(m_setObjects.at(set_number)->type());
 		if (current_type != new_type)
@@ -287,20 +292,23 @@ void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 			}
 			removeSetObject(set_number);
 
-			m_expectedSetNumber = 100; //do not add the object to the parent layout
+			m_expectedSetNumber = USE_LAST_SET_DATA; //do not add the object to the parent layout
 			connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,set_number] {
-				changeSetType(set_number, 100);
+				changeSetType(set_number, USE_LAST_SET_DATA);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
 			const QString& strRestTime{m_tDayModel->nextSetSuggestedTime(m_exercise_idx, new_type, set_number)};
-			QString strReps{m_tDayModel->nextSetSuggestedReps(m_exercise_idx, new_type, set_number, 0)};
-			QString strWeight{m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, new_type, set_number, 0)};
+			QString strReps{std::move(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, new_type, set_number, 0))};
+			QString strWeight{std::move(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, new_type, set_number, 0))};
 			if (m_type == SET_TYPE_GIANT)
 			{
 				strReps += comp_exercise_separator + std::move(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, new_type, set_number, 1));
 				strWeight += comp_exercise_separator + std::move(m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, new_type, set_number, 1));
 			}
-			createSetObject(set_number, new_type, strRestTime, strReps, strWeight);
+			m_tDayModel->setSetRestTime(m_exercise_idx, set_number, strRestTime);
+			m_tDayModel->setSetReps(m_exercise_idx, set_number, strReps);
+			m_tDayModel->setSetWeight(m_exercise_idx, set_number, strWeight);
+			createSetObject(set_number, new_type);
 		}
 	}
 	else
@@ -435,21 +443,13 @@ void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry* new_se
 	m_setObjects[set_number] = new_setobject;
 }
 
-void QmlExerciseEntry::createSetObject(const uint set_number, const uint type, const QString& resttime, const QString& nreps, const QString& weight)
+void QmlExerciseEntry::createSetObject(const uint set_number, const uint type)
 {
-	const uint set_type_cpp(m_type == SET_TYPE_DROP ? 1 : m_type == SET_TYPE_GIANT ? 2 : 0);
+	const uint set_type_cpp(type == SET_TYPE_DROP ? 1 : type == SET_TYPE_GIANT ? 2 : 0);
 	if (m_setComponents[set_type_cpp] == nullptr)
 	{
-		m_setComponents[set_type_cpp] = new QQmlComponent{m_qmlEngine, QUrl{setTypePages.at(set_type_cpp)}, QQmlComponent::Asynchronous};
+		m_setComponents[set_type_cpp] = new QQmlComponent{m_qmlEngine, QUrl{setTypePages[set_type_cpp]}, QQmlComponent::Asynchronous};
 		m_setObjectProperties.insert("exerciseManager"_L1, QVariant::fromValue(this));
-	}
-
-	if (m_tDayModel->exerciseCount() == 0)
-	{
-		if (set_number == 0)
-			m_tDayModel->newFirstSet(m_exercise_idx, type, nreps, weight, resttime);
-		else
-			m_tDayModel->newSet(set_number, m_exercise_idx, type, nreps, weight, resttime);
 	}
 
 	if (m_setComponents[set_type_cpp]->status() != QQmlComponent::Ready)
