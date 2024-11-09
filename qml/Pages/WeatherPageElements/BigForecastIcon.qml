@@ -66,7 +66,7 @@ Item {
 		anchors {
 			top: text1.bottom
 			topMargin: {
-				Qt.platform.os === "android" ? -30 : 0;
+				Qt.platform.os === "android" ? -20 : 0;
 			}
 			horizontalCenter: parent.horizontalCenter
 		}

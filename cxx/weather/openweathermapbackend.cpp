@@ -264,6 +264,7 @@ void OpenWeatherMapBackend::searchForCities(const QString& search_term)
 	QNetworkReply* reply{m_networkManager->get(net_request)};
 	connect(reply, &QNetworkReply::finished, this, [this,reply] () {
 		parseOpenWeatherGeocodingReply(reply->readAll());
+		qDebug() << "%%%%%%%%%" << m_foundLocations.count();
 		if (!m_foundLocations.isEmpty())
 			emit receivedCitiesFromSearch(&m_foundLocations);
 	});

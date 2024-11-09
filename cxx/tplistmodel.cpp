@@ -41,7 +41,6 @@ void TPListModel::clearFast()
 
 void TPListModel::setCurrentRow(const int row)
 {
-	Q_ASSERT_X(row < m_modeldata.count(), "TPListModel::setCurrentRow", "out of range row");
 	m_currentRow = row;
 	emit currentRowChanged();
 }
@@ -56,14 +55,14 @@ void TPListModel::moveRow(const uint from, const uint to)
 		if (to > from)
 		{
 			for(uint i(from); i < to; ++i)
-				m_modeldata[i] = m_modeldata.at(i+1);
+				m_modeldata[i] = std::move(m_modeldata.at(i+1));
 		}
 		else
 		{
 			for(uint i(from); i > to; --i)
-				m_modeldata[i] = m_modeldata.at(i-1);
+				m_modeldata[i] = std::move(m_modeldata.at(i-1));
 		}
-		m_modeldata[to] = tempList;
+		m_modeldata[to] = std::move(tempList);
 		QList<int> roles;
 		for (uint role(0); role < m_roleNames.count(); ++role)
 			roles.append(Qt::UserRole+role);
@@ -79,7 +78,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 	{
 		if (writeHeader)
 		{
-			const QString& strHeader(u"## "_s + exportName() + u"\n\n"_s);
+			const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);
 			outFile->write(strHeader.toUtf8().constData());
 		}
 

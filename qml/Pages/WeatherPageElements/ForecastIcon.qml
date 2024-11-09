@@ -44,7 +44,7 @@ Item {
         text: top.bottomText
         color: "white"
         horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: 16
+        font.pixelSize: 18
         width: top.width
 
         anchors {

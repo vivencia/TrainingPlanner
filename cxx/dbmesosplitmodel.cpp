@@ -77,7 +77,7 @@ void DBMesoSplitModel::setModified(const uint row, const uint field)
 
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList() << exercise_name << sets << u" "_s << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
+	appendList(QStringList() << exercise_name << sets << " "_L1 << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
@@ -120,8 +120,8 @@ const QString DBMesoSplitModel::exerciseName(const int row)
 
 void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 {
-	QString name(new_name);
-	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = name.replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
+	QString name{new_name};
+	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = std::move(name.replace(comp_exercise_fancy_separator, QString(comp_exercise_separator)));
 	emit exerciseNameChanged();
 	setModified(row, MESOSPLIT_COL_EXERCISENAME);
 }
@@ -129,8 +129,9 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 QString DBMesoSplitModel::exerciseName1(const uint row) const
 {
 	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
-	return idx != -1 ? u"2: "_s + static_cast<QString>(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME)).first(idx) :
-			m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ? tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
+	return idx != -1 ? "2: "_L1 + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).first(idx) :
+						m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ?
+						tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
 }
 
 void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
@@ -142,7 +143,8 @@ void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
 QString DBMesoSplitModel::exerciseName2(const uint row) const
 {
 	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
-	return idx != -1 ? u"2: "_s + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) : tr("2: Add exercise ...");
+	return idx != -1 ? "2: "_L1 + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) :
+						tr("2: Add exercise ...");
 }
 
 void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
@@ -540,11 +542,15 @@ QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_n
 
 void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_number, const uint field, const uint pos, const QString& value)
 {
-	QString fieldValue(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator));
-
+	QString fieldValue{std::move(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator))};
 	const int idx(fieldValue.indexOf(comp_exercise_separator));
 	if (idx == -1)
-		fieldValue = pos == 1 ? value : fieldValue += comp_exercise_separator + value;
+	{
+		if (pos == 1)
+			fieldValue = value;
+		else
+			fieldValue += comp_exercise_separator + value;
+	}
 	else
 	{
 		if (pos == 1)

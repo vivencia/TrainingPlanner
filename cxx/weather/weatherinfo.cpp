@@ -235,15 +235,7 @@ WeatherInfo::~WeatherInfo()
 #ifdef Q_OS_ANDROID
 void WeatherInfo::positionUpdated(const QGeoPositionInfo& gpsPos)
 {
-	qWarning() << "--------------"  << "positionUpdated() - distance to last position:   " << d->coord.distanceTo(gpsPos.coordinate()) << "------------";
-	const QGeoCoordinate& newCoord{gpsPos.coordinate()};
-	if (d->coord.isValid() && newCoord.isValid())
-	{
-		if (d->coord.distanceTo(newCoord) < 5000)
-			return;
-	}
-	qWarning() << "--------------"  << "positionUpdated() - calling getCityFromCoordinates()" << "------------";
-	d->m_currentBackend->getCityFromCoordinates(newCoord);
+	d->m_currentBackend->getCityFromCoordinates(gpsPos.coordinate());
 }
 
 //Not working
