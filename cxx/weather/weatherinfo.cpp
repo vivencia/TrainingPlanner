@@ -367,6 +367,7 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 		const int comma_idx = coordinates->indexOf(',');
 		const QString latitude{std::move(coordinates->sliced(1, comma_idx-1))};
 		const QString longitude{std::move(coordinates->sliced(comma_idx+1,coordinates->length()-comma_idx-2))};
+		qWarning() << "----------------" << "Saving location to config file" << "----------------";
 		appSettings()->addWeatherCity(city, latitude, longitude);
 		emit weatherChanged();
 

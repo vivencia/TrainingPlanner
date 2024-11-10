@@ -190,7 +190,7 @@ TPPage {
 				onClicked: mesoManager.ownMeso = checked;
 			}
 
-			RowLayout {
+			Row {
 				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
 				spacing: 0
 				Layout.fillWidth: true
@@ -228,7 +228,7 @@ TPPage {
 				}
 			}
 
-			RowLayout {
+			Row {
 				spacing: 5
 				Layout.fillWidth: true
 

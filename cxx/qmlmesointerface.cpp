@@ -203,8 +203,7 @@ void QMLMesoInterface::setStartDate(const QDate& new_value)
 
 void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value)
 {
-	m_startDate = m_minimumMesoStartDate = new_value;
-	m_strStartDate = std::move(appUtils()->formatDate(new_value));
+	m_minimumMesoStartDate = new_value;
 }
 
 void QMLMesoInterface::acceptStartDate()
@@ -228,8 +227,7 @@ void QMLMesoInterface::setEndDate(const QDate& new_value)
 
 void QMLMesoInterface::setMaximumMesoEndDate(const QDate& new_value)
 {
-	m_endDate = m_maximumMesoEndDate = new_value;
-	m_strEndDate = std::move(appUtils()->formatDate(new_value));
+	m_maximumMesoEndDate = new_value;
 }
 
 void QMLMesoInterface::acceptEndDate()
@@ -487,6 +485,19 @@ void QMLMesoInterface::createMesocyclePage()
 {
 	m_muscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
 
+	QDate startdate, enddate, minimumStartDate;
+	if (appMesoModel()->count() == 1)
+	{
+		minimumStartDate.setDate(2024, 7, 1); //monday, July 01 2024
+		startdate = std::move(QDate::currentDate());
+	}
+	else
+	{
+		minimumStartDate = std::move(appUtils()->getNextMonday(appMesoModel()->getLastMesoEndDate()));
+		startdate = minimumStartDate;
+	}
+	enddate = std::move(appUtils()->createFutureDate(startdate, 0, 2, 0));
+
 	setName(appMesoModel()->name(m_mesoIdx), false);
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
 	setClient(appMesoModel()->client(m_mesoIdx), false);
@@ -495,8 +506,10 @@ void QMLMesoInterface::createMesocyclePage()
 	setPropertiesBasedOnUseMode();
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
-	setMinimumMesoStartDate(appMesoModel()->startDate(m_mesoIdx));
-	setMaximumMesoEndDate(appMesoModel()->endDate(m_mesoIdx));
+	setMinimumMesoStartDate(minimumStartDate);
+	setMaximumMesoEndDate(appUtils()->createFutureDate(minimumStartDate, 0, 6, 0));
+	setStartDate(startdate);
+	setEndDate(enddate);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);

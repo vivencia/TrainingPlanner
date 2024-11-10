@@ -115,7 +115,7 @@ uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) con
 	//Every 6 years we have a 53 week year
 	if (week2 < week1)
 	{
-		const uint totalWeeksInYear (QDate::currentDate().year() != 2026 ? 52 : 53);
+		const uint totalWeeksInYear(QDate::currentDate().year() != 2026 ? 52 : 53);
 		n = (totalWeeksInYear - week1) + week2;
 	}
 	else

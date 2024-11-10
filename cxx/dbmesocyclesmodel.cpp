@@ -88,27 +88,10 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 
 uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
-	QDate startdate, enddate, minimumStartDate;
-	if (count() == 0)
-	{
-		minimumStartDate.setDate(2023, 1, 2); //first monday of that year
-		startdate = std::move(QDate::currentDate());
-		enddate = std::move(appUtils()->createFutureDate(startdate, 0, 2, 0));
-	}
-	else
-	{
-		if (isRealMeso(count() - 1))
-			minimumStartDate = std::move(appUtils()->getNextMonday(getLastMesoEndDate()));
-		else
-			minimumStartDate = std::move(QDate::currentDate());
-		startdate = minimumStartDate;
-		enddate = appUtils()->createFutureDate(minimumStartDate, 0, 2, 0);
-	}
-
 	beginInsertRows(QModelIndex(), count(), count());
-	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString::number(startdate.toJulianDay()) <<
-		QString::number(enddate.toJulianDay()) << QString() << QString::number(appUtils()->calculateNumberOfWeeks(startdate, enddate)) <<
-		std::move(u"ABCDERR"_s) << appUserModel()->currentCoachName(0) << appUserModel()->currentClientName(0) << QString() << QString() << STR_ONE));
+	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString() << QString() <<
+		QString() << QString() << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->currentClientName(0) <<
+		QString() << QString() << STR_ONE));
 	emit countChanged();
 	endInsertRows();
 
@@ -248,6 +231,7 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 	m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoStartDateRole);
+	changeCanHaveTodaysWorkout();
 	if (!isNewMeso(meso_idx))
 		emit mesoCalendarFieldsChanged(meso_idx);
 	else
@@ -259,6 +243,7 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 	m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = std::move(QString::number(new_date.toJulianDay()));
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoEndDateRole);
+	changeCanHaveTodaysWorkout();
 	if (!isNewMeso(meso_idx))
 		emit mesoCalendarFieldsChanged(meso_idx);
 	else
@@ -270,7 +255,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 	m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
 	setModified(meso_idx, MESOCYCLES_COL_SPLIT);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoSplitRole);
-	if (isNewMeso(meso_idx))
+	if (!isNewMeso(meso_idx))
 		emit mesoCalendarFieldsChanged(meso_idx);
 	else
 		m_newMesoCalendarChanged[meso_idx] = true;
@@ -339,23 +324,23 @@ QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
 		{
 			case mesoNameRole:
 				if (appUserModel()->userName(0) == client(row))
-					return QVariant(u"<b>**  "_s + name(row) + u"  **</b>"_s);
+					return QVariant("<b>**  "_L1 + name(row) + "  **</b>"_L1);
 				else
-					return QVariant(u"<b>"_s + name(row) + u"</b>"_s);
+					return QVariant("<b>"_L1 + name(row) + "</b>"_L1);
 			case mesoStartDateRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + u"<b>"_s +
-					appUtils()->formatDate(startDate(row)) + u"</b>"_s);
+				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
+					appUtils()->formatDate(startDate(row)) + "</b>"_L1);
 			case mesoEndDateRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_ENDDATE) + u"<b>"_s +
-					appUtils()->formatDate(endDate(row)) + u"</b>"_s);
+				return QVariant(mColumnNames.at(MESOCYCLES_COL_ENDDATE) + "<b>"_L1 +
+					appUtils()->formatDate(endDate(row)) + "</b>"_L1);
 			case mesoSplitRole:
-				return QVariant(mColumnNames.at(MESOCYCLES_COL_SPLIT) + u"<b>"_s + split(row) + u"</b>"_s);
+				return QVariant(mColumnNames.at(MESOCYCLES_COL_SPLIT) + "<b>"_L1 + split(row) + "</b>"_L1);
 			case mesoCoachRole:
 				if (!coach(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_COACH) + u"<b>"_s + coach(row) + u"</b>"_s);
+					return QVariant(mColumnNames.at(MESOCYCLES_COL_COACH) + "<b>"_L1 + coach(row) + "</b>"_L1);
 			case mesoClientRole:
 				if (!client(row).isEmpty())
-					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + u"<b>"_s + client(row) + u"</b>"_s);
+					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + "<b>"_L1 + client(row) + "</b>"_L1);
 		}
 	}
 	return QString();
@@ -383,7 +368,7 @@ int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
-	if (count() > 0)
+	if (count() > 1)
 		return endDate(count()-1);
 	return QDate::currentDate();
 }
@@ -484,9 +469,9 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 							value = buf;
 							value.remove(0, value.indexOf(':') + 2);
 							if (isFieldFormatSpecial(col))
-								modeldata[col] = formatFieldToImport(col, value, buf);
+								modeldata[col] = std::move(formatFieldToImport(col, value, buf));
 							else
-								modeldata[col] = value;
+								modeldata[col] = std::move(value);
 						}
 					}
 					else
@@ -494,9 +479,9 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 						if (col == SIMPLE_MESOSPLIT_TOTAL_COLS)
 							break;
 						value = buf;
-						const int splitidx(static_cast<int>(value.at(value.indexOf(':')-1).cell()) - static_cast<int>('A') + 2);
+						const int splitidx(appUtils()->splitLetterToMesoSplitIndex(value.at(value.indexOf(':')-1)));
 						if (splitidx >= 2 && splitidx <= 7)
-							splitmodeldata[splitidx] = value.remove(0, value.indexOf(':') + 2);
+							splitmodeldata[splitidx] = std::move(value.remove(0, value.indexOf(':') + 2));
 					}
 					++col;
 				}
@@ -505,8 +490,8 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 		else
 			break;
 	}
-	m_modeldata.append(modeldata);
-	m_splitModel->m_modeldata.append(splitmodeldata);
+	m_modeldata.append(std::move(modeldata));
+	m_splitModel->m_modeldata.append(std::move(splitmodeldata));
 	inFile->close();
 	delete inFile;
 	return col >= MESOCYCLES_COL_SPLIT ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
