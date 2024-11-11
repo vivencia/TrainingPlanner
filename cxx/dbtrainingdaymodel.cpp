@@ -96,7 +96,7 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 		for(uint x(1); x < nsets; ++x)
 		{
 			splitModel->setWorkingSet(i, x, false);
-			newSet(splitModel->setsNumber(i) - 1, i, splitModel->setType(i, x), splitModel->setReps(i, x), splitModel->setWeight(i, x),
+			newSet(i, splitModel->setsNumber(i) - 1, splitModel->setType(i, x), splitModel->setReps(i, x), splitModel->setWeight(i, x),
 				nextSetSuggestedTime(i, splitModel->setType(i, x)), splitModel->setSubsets(i, x));
 		}
 		splitModel->setWorkingSet(i, orig_workingset, false);
@@ -244,7 +244,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 						appUtils()->getCompositeValue(0, resttime, set_separator), appUtils()->getCompositeValue(0, subsets, set_separator),
 						appUtils()->getCompositeValue(0, notes, set_separator));
 					for (uint i(1); i < nsets; ++i)
-						newSet(i, exercise_idx, appUtils()->getCompositeValue(i, type, set_separator).toUInt(),
+						newSet(exercise_idx, i, appUtils()->getCompositeValue(i, type, set_separator).toUInt(),
 						appUtils()->getCompositeValue(i, reps, set_separator), appUtils()->getCompositeValue(i, weight, set_separator),
 						appUtils()->getCompositeValue(i, resttime, set_separator), appUtils()->getCompositeValue(i, subsets, set_separator));
 				}
@@ -331,12 +331,12 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 		if (to > from)
 		{
 			for(uint i(from); i < to; ++i)
-				m_ExerciseData[i] = m_ExerciseData.at(i+1);
+				m_ExerciseData[i] = std::move(m_ExerciseData.at(i+1));
 		}
 		else
 		{
 			for(uint i(from); i > to; --i)
-				m_ExerciseData[i] = m_ExerciseData.at(i-1);
+				m_ExerciseData[i] = std::move(m_ExerciseData.at(i-1));
 		}
 		m_ExerciseData[to] = tempExerciseData;
 	}
@@ -366,7 +366,7 @@ void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString&
 	else
 	{
 		QString new_name_copy(new_name);
-		m_ExerciseData.at(exercise_idx)->name = new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
+		m_ExerciseData.at(exercise_idx)->name = std::move(new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
 	}
 }
 
@@ -397,11 +397,11 @@ void DBTrainingDayModel::changeExerciseName(const uint exercise_idx, DBExercises
 	const uint nSel(model->selectedEntriesCount());
 
 	if (nSel == 1)
-		name = model->selectedEntriesValue_fast(0, 1) + u" - "_s + model->selectedEntriesValue_fast(0, 2);
+		name = model->selectedEntriesValue_fast(0, 1) + " - "_L1 + model->selectedEntriesValue_fast(0, 2);
 	else
 	{
 		for (uint i(0); i < nSel; ++i)
-			name += model->selectedEntriesValue_fast(i, 1) + u" - "_s + model->selectedEntriesValue_fast(i, 2) + comp_exercise_separator;
+			name += model->selectedEntriesValue_fast(i, 1) + " - "_L1 + model->selectedEntriesValue_fast(i, 2) + comp_exercise_separator;
 		name.chop(1);
 	}
 	setExerciseName(exercise_idx, name);
@@ -411,7 +411,7 @@ QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName1", "out of range exercise_idx");
 	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	return idx != -1 ? u"1: "_s + m_ExerciseData.at(exercise_idx)->name.first(idx) : m_ExerciseData.at(exercise_idx)->name;
+	return idx != -1 ? "1: "_L1 + m_ExerciseData.at(exercise_idx)->name.first(idx) : m_ExerciseData.at(exercise_idx)->name;
 }
 
 void DBTrainingDayModel::setExerciseName1(const uint exercise_idx, const QString& name1)
@@ -422,7 +422,7 @@ void DBTrainingDayModel::setExerciseName1(const uint exercise_idx, const QString
 	new_name1 = name1 + comp_exercise_separator;
 	if (idx != -1)
 		new_name1 = name1 + comp_exercise_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
-	m_ExerciseData.at(exercise_idx)->name = new_name1.replace(u"1: "_s, "");
+	m_ExerciseData.at(exercise_idx)->name = std::move(new_name1.replace("1: "_L1, ""));
 }
 
 QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
@@ -441,7 +441,7 @@ void DBTrainingDayModel::setExerciseName2(const uint exercise_idx, const QString
 		new_name2 = std::move(m_ExerciseData.at(exercise_idx)->name.first(idx)) + comp_exercise_separator + name2;
 	else
 		new_name2 = comp_exercise_separator + name2;
-	m_ExerciseData.at(exercise_idx)->name = new_name2.replace("2: "_L1, "");
+	m_ExerciseData.at(exercise_idx)->name = std::move(new_name2.replace("2: "_L1, ""));
 }
 
 static QString increaseStringTimeBy(const QString& strtime, const uint add_mins, const uint add_secs)

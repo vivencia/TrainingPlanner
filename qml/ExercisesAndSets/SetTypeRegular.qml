@@ -8,14 +8,11 @@ import "../TPWidgets"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Item {
+FocusScope {
 	id: setItem
-	//height: setLayout.height + 15
-	implicitHeight: setLayout.height + 15
+	implicitHeight: setLayout.implicitHeight + 20
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -65,7 +62,6 @@ Item {
 		Item {
 			height: 30
 			Layout.fillWidth: true
-			Layout.topMargin: 10
 
 			TPButton {
 				id: btnManageSet
@@ -95,8 +91,6 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
@@ -146,17 +140,15 @@ Item {
 			}
 		}
 
-		RowLayout {
+		Row {
 			visible: setManager.number > 0 && setManager.trackRestTime
 			enabled: !setManager.completed && !setManager.autoRestTime
-			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
 				text: setManager.restTime
 				availableWidth: btnCopyTimeValue.visible ? controlWidth - 40 : controlWidth
-				windowTitle: lblSetNumber.text
 				showButtons: !setManager.autoRestTime
 
 				onValueChanged: (str) => setManager.restTime = str;
@@ -189,7 +181,6 @@ Item {
 			visible: setManager.hasSubSets
 			alternativeLabels: myoLabels
 			enabled: !setManager.completed
-			Layout.leftMargin: 5
 
 			onValueChanged: (str) => setManager.subSets = str;
 
@@ -209,7 +200,7 @@ Item {
 			}
 		}
 
-		RowLayout {
+		Row {
 			Layout.fillWidth: true
 			enabled: !setManager.completed
 
@@ -219,7 +210,6 @@ Item {
 				text: setManager.reps1
 				availableWidth: btnCopySetReps.visible ? controlWidth - 40 : controlWidth
 				alternativeLabels: myoLabels
-				Layout.leftMargin: 5
 
 				onValueChanged: (str) => setManager.reps1 = str;
 				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -240,7 +230,6 @@ Item {
 		RowLayout {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
-			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtNWeight
@@ -268,8 +257,6 @@ Item {
 			id: btnShowHideNotes
 			text: setManager.notes
 			enabled: !setManager.completed
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
 			Layout.fillWidth: true
 
 			onEditFinished: (new_text) => setManager.notes = new_text;

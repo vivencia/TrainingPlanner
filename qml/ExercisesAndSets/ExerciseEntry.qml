@@ -10,8 +10,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: exerciseItem
-	Layout.fillWidth: true
 	implicitHeight: paneExercise.height
+	Layout.fillWidth: true
 
 	required property ExerciseEntryManager exerciseManager
 
@@ -27,10 +27,11 @@ FocusScope {
 		clip: true
 		padding: 0
 		spacing: 0
-		z: 0
 		Layout.fillWidth: true
 
-		property bool shown: exerciseManager.setsNumber === 0
+		property bool shown: true
+
+		//Component.onCompleted: shown = !exerciseManager.hasSets;
 
 		Behavior on height {
 			NumberAnimation {
@@ -85,8 +86,15 @@ FocusScope {
 
 		ColumnLayout {
 			id: layoutMain
-			anchors.fill: parent
 			spacing: 0
+
+			anchors {
+				top: parent.top
+				left: parent.left
+				leftMargin: 5
+				right: parent.right
+				rightMargin: 5
+			}
 
 			RowLayout {
 				spacing: 0
@@ -98,7 +106,6 @@ FocusScope {
 					hasDropShadow: false
 					imageSize: 18
 					onClicked: paneExerciseShowHide(!paneExercise.shown);
-					Layout.leftMargin: 5
 				}
 
 				Label {
@@ -129,8 +136,8 @@ FocusScope {
 			RowLayout {
 				id: trackRestTimeRow
 				enabled: exerciseManager.isEditable && exerciseManager.canEditRestTimeTracking
+				spacing: 0
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
 
 				TPCheckBox {
 					id: chkTrackRestTime
@@ -159,8 +166,8 @@ FocusScope {
 
 			RowLayout {
 				enabled: exerciseManager.isEditable
-				Layout.topMargin: 10
-				Layout.leftMargin: 5
+				spacing: 0
+				Layout.fillWidth: true
 
 				SetInputField {
 					id: txtNReps
@@ -169,6 +176,7 @@ FocusScope {
 					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
+					Layout.preferredWidth: width
 
 					onValueChanged: (str) => exerciseManager.repsForExercise1 = str;
 					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -181,6 +189,7 @@ FocusScope {
 					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
+					Layout.preferredWidth: width
 
 					onValueChanged: (str) => exerciseManager.weightForExercise1 = str;
 					onEnterOrReturnKeyPressed: !exerciseManager.compositeExercise ? txtNSets.forceActiveFocus() : txtNReps2.forceActiveFocus();
@@ -190,7 +199,8 @@ FocusScope {
 			RowLayout {
 				enabled: exerciseManager.isEditable
 				visible: exerciseManager.compositeExercise
-				Layout.leftMargin: 5
+				spacing: 0
+				Layout.fillWidth: true
 
 				SetInputField {
 					id: txtNReps2
@@ -199,6 +209,7 @@ FocusScope {
 					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
+					Layout.preferredWidth: width
 
 					onValueChanged: (str) => exerciseManager.repsForExercise2 = str;
 					onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
@@ -211,6 +222,7 @@ FocusScope {
 					availableWidth: layoutMain.width*0.45
 					backColor: "transparent"
 					borderColor: "transparent"
+					Layout.preferredWidth: width
 
 					onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
 					onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
@@ -225,7 +237,7 @@ FocusScope {
 				backColor: "transparent"
 				borderColor: "transparent"
 				enabled: exerciseManager.trackRestTime && !exerciseManager.autoRestTime
-				Layout.leftMargin: 5
+				Layout.preferredWidth: width
 
 				onValueChanged: (str) => exerciseManager.restTime = str;
 			}
@@ -233,22 +245,19 @@ FocusScope {
 			Label {
 				text: qsTr("Set type: ")
 				font.bold: true
-				Layout.leftMargin: 5
 			}
 
 			RowLayout {
 				enabled: exerciseManager.isEditable
+				spacing: 0
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
-				Layout.bottomMargin: 10
-				spacing: 1
 
 				TPComboBox {
 					id: cboSetType
 					currentIndex: exerciseManager.newSetType
 					model: AppGlobals.setTypesModel
-					width: layoutMain.width*0.5
+					width: layoutMain.width*0.45
+					Layout.preferredWidth: width
 
 					onActivated: (index) => exerciseManager.newSetType = index;
 				}
@@ -261,6 +270,7 @@ FocusScope {
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
+					Layout.preferredWidth: width
 
 					onValueChanged: (str)=> exerciseManager.setsNumber = str;
 				}
@@ -283,9 +293,12 @@ FocusScope {
 			columns: 1
 
 			anchors {
-				left: parent.left
-				right:parent.right
 				top: layoutMain.bottom
+				topMargin: 10
+				left: parent.left
+				leftMargin: 5
+				right:parent.right
+				rightMargin: 5
 			}
 		}
 	} //paneExercise

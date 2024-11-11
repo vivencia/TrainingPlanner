@@ -19,7 +19,7 @@ class QmlSetEntry : public QObject
 Q_OBJECT
 
 Q_PROPERTY(uint type READ type WRITE setType NOTIFY typeChanged FINAL)
-Q_PROPERTY(uint number READ number WRITE setMode NOTIFY numberChanged FINAL)
+Q_PROPERTY(uint number READ number WRITE setNumber NOTIFY numberChanged FINAL)
 Q_PROPERTY(uint mode READ mode WRITE setMode NOTIFY modeChanged FINAL)
 Q_PROPERTY(uint nSubSets READ nSubSets WRITE setNSubSets NOTIFY nSubSetsChanged FINAL)
 Q_PROPERTY(QString exerciseName1 READ exerciseName1 WRITE setExerciseName1 NOTIFY exerciseName1Changed FINAL)
@@ -49,7 +49,10 @@ Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
 
 public:
 	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr) {}
+		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
+		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
+		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bFinishButtonEnabled(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
+		m_bCurrent(false), m_bHasSubSets(false) {}
 
 	inline const uint exerciseIdx() const { return m_exercise_idx; }
 	inline void setExerciseIdx(const uint new_value) { m_exercise_idx = new_value; }
@@ -138,10 +141,10 @@ public:
 	inline void setFinishButtonEnabled(const bool new_value) { if (m_bFinishButtonEnabled != new_value) {m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); } }
 
 	inline const bool trackRestTime() const { return m_bTrackRestTime; }
-	inline void setTrackRestTime(const bool new_value) { if (m_bTrackRestTime != new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); } }
+	inline void setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); }
 
 	inline const bool autoRestTime() const { return m_bAutoRestTime; }
-	inline void setAutoRestTime(const bool new_value) { if (m_bAutoRestTime != new_value) { m_bAutoRestTime = new_value; emit autoRestTimeChanged(); } }
+	inline void setAutoRestTime(const bool new_value) { m_bAutoRestTime = new_value; emit autoRestTimeChanged(); }
 
 	inline const bool current() const { return m_bCurrent; }
 	inline void setCurrent(const bool new_value) { if (m_bCurrent != new_value) { m_bCurrent = new_value; emit currentChanged(); } }

@@ -208,7 +208,7 @@ void QmlTDayInterface::getTrainingDayPage()
 		setHasExercises(false);
 		setTimeIn(u"--:--"_s);
 		setTimeOut(u"--:--"_s);
-		m_tDayProperties.insert(u"tDayManager"_s, QVariant::fromValue(this));
+		m_tDayProperties.insert("tDayManager"_L1, QVariant::fromValue(this));
 		createTrainingDayPage();
 	}
 	else
@@ -253,8 +253,8 @@ void QmlTDayInterface::convertTDayToPlan()
 void QmlTDayInterface::resetWorkout()
 {
 	setEditMode(false);
-	setTimeIn(u"--:--"_s);
-	setTimeOut(u"--:--"_s);
+	setTimeIn("--:--"_L1);
+	setTimeOut("--:--"_L1);
 	setDayIsFinished(false);
 	m_workoutTimer->prepareTimer();
 }
@@ -269,9 +269,9 @@ void QmlTDayInterface::changeSplit(const QString& newSplitLetter, const bool bCl
 void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool bOnlyThisDay)
 {
 	uint tDay(0);
-	if (newSplitLetter != u"R"_s)
+	if (newSplitLetter != "R"_L1)
 	{
-		if (m_tDayModel->splitLetter() == u"R"_s)
+		if (m_tDayModel->splitLetter() == "R"_L1)
 			tDay = m_tDayModel->getWorkoutNumberForTrainingDay();
 	}
 	else
@@ -283,14 +283,14 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 		appDBInterface()->updateMesoCalendarEntry(m_tDayModel);
 	else
 		appDBInterface()->updateMesoCalendarModel(m_tDayModel);
-	if (newSplitLetter != u"R"_s)
+	if (newSplitLetter != "R"_L1)
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
 	setHeaderText();
 }
 
 void QmlTDayInterface::exportTrainingDay(const bool bShare)
 {
-	const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr(" - Workout ") + splitLetter() + u".txt"_s};
+	const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr(" - Workout ") + splitLetter() + ".txt"_L1};
 	int exportFileMessageId{m_tDayModel->exportToFile(exportFileName)};
 	if (exportFileMessageId >= 0)
 	{
@@ -326,7 +326,7 @@ void QmlTDayInterface::prepareWorkOutTimer(const QString& strStartTime, const QS
 	{
 		m_workoutTimer->setStopWatch(true);
 		if (strStartTime.isEmpty())
-			m_workoutTimer->prepareTimer(u"00:00:00"_s); //a regular workout timer. Open end time, start when begin workout is clicked
+			m_workoutTimer->prepareTimer("00:00:00"_L1); //a regular workout timer. Open end time, start when begin workout is clicked
 		else //some error made the app crash. We have saved the start time on tDayModel, but it is a little later now, so adjust
 			m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(strStartTime, appUtils()->getCurrentTimeString()));
 	}
@@ -439,7 +439,7 @@ void QmlTDayInterface::silenceTimeWarning()
 
 void QmlTDayInterface::createTrainingDayPage()
 {
-	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/TrainingDayPage.qml"_s}, QQmlComponent::Asynchronous};
+	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_tDayComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
 			{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -477,13 +477,13 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			//The connected signal is only meant for the working page. All *possible* other pages are not affected by it, so we must filter them out
 			if (tDayModel->dateStr() == m_tDayModel->dateStr())
 			{
-				if (m_tDayModel->splitLetter() != u"R"_s)
+				if (m_tDayModel->splitLetter() != "R"_L1)
 					setTrainingDayPageEmptyDayOrChangedDayOptions(data.value<DBTrainingDayModel*>());
 			}
 		}
 	});
 
-	if (m_tDayModel->splitLetter() != u"R"_s)
+	if (m_tDayModel->splitLetter() != "R"_L1)
 		appDBInterface()->getTrainingDay(m_tDayModel);
 
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]

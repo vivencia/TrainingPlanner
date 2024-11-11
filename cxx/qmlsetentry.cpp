@@ -42,7 +42,7 @@ void QmlSetEntry::setType(const uint new_value)
 	//new_value already checked under QmlExerciseEntry::changeSetType
 	m_type = new_value;
 	emit typeChanged();
-	const bool bHasSubSets(m_type == SET_TYPE_CLUSTER || SET_TYPE_DROP);
+	const bool bHasSubSets(m_type == SET_TYPE_CLUSTER || m_type == SET_TYPE_DROP);
 	if (m_bHasSubSets != bHasSubSets)
 	{
 		m_bHasSubSets = bHasSubSets;
@@ -81,7 +81,7 @@ void QmlSetEntry::setReps1(const QString& new_value)
 	{
 		appUtils()->setCompositeValue(0, new_value, m_reps, comp_exercise_separator);
 		emit reps1Changed();
-		if (m_bHasSubSets)
+		if (hasSubSets())
 			emit strTotalRepsChanged();
 		m_tDayModel->setSetReps(m_exercise_idx, number(), 0, new_value);
 	}

@@ -202,14 +202,12 @@ QGeoCoordinate TPSettings::weatherCityCoordinates(const uint idx)
 
 void TPSettings::addWeatherCity(const QString& city, const QString& latitude, const QString& longitude)
 {
-	qWarning() << "----------------" << city << "(" << latitude << "," << longitude << ")----------------";
 	for(uint i(0); i < m_weatherLocations.count(); ++i)
 	{
 		if (m_weatherLocations.at(i).contains(city, Qt::CaseInsensitive))
 			return;
 	}
 	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude);
-	qWarning() << "----------------Saved: " << m_weatherLocations.last() << "----------------";
 	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
 	emit weatherCitiesCountChanged();
 }

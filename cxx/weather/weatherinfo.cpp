@@ -168,11 +168,7 @@ static void forecastClear(QQmlListProperty<WeatherData>* prop)
 WeatherInfo::WeatherInfo(QObject* parent)
 	: QObject{parent}, d{new WeatherInfoPrivate}
 {
-	d->fcProp = new QQmlListProperty<WeatherData>{this, d, forecastAppend,
-														   forecastCount,
-														   forecastAt,
-														   forecastClear};
-
+	d->fcProp = new QQmlListProperty<WeatherData>{this, d, forecastAppend, forecastCount, forecastAt, forecastClear};
 	d->m_currentBackend = new OpenWeatherMapBackend{this};
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::receivedCitiesFromSearch, this, &WeatherInfo::buildLocationsList);
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
@@ -219,8 +215,8 @@ WeatherInfo::WeatherInfo(QObject* parent)
 	}
 #else
 	setGpsCity(tr("Cannot use GPS on this device"));
-	requestWeatherForSavedCity(0);
 #endif
+	requestWeatherForSavedCity(0);
 }
 
 WeatherInfo::~WeatherInfo()
@@ -367,7 +363,6 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 		const int comma_idx = coordinates->indexOf(',');
 		const QString latitude{std::move(coordinates->sliced(1, comma_idx-1))};
 		const QString longitude{std::move(coordinates->sliced(comma_idx+1,coordinates->length()-comma_idx-2))};
-		qWarning() << "----------------" << "Saving location to config file" << "----------------";
 		appSettings()->addWeatherCity(city, latitude, longitude);
 		emit weatherChanged();
 

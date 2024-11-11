@@ -61,7 +61,7 @@ TPPage {
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.active: true
 		contentWidth: availableWidth //stops bouncing to the sides
-		contentHeight: colMain.height + exercisesLayout.implicitHeight
+		contentHeight: layoutMain.height + exercisesLayout.implicitHeight
 
 		anchors {
 			fill: parent
@@ -72,7 +72,7 @@ TPPage {
 		}
 
 		ColumnLayout {
-			id: colMain
+			id: layoutMain
 			width: parent.width
 			spacing: 10
 
@@ -339,7 +339,7 @@ TPPage {
 					onClicked: showClearExercisesMessage();
 				}
 			}
-		}// colMain
+		}// layoutMain
 
 		GridLayout {
 			id: exercisesLayout
@@ -350,7 +350,7 @@ TPPage {
 			anchors {
 				left: parent.left
 				right:parent.right
-				top: colMain.bottom
+				top: layoutMain.bottom
 			}
 		}
 
@@ -696,14 +696,12 @@ TPPage {
 	}
 
 	function gotExercise() {
-		function readyToProceed(object, id) {
-			scrollTimer.init(phantomItem.y);
-			return;
-		}
 		tDayManager.createExerciseObject();
 	}
 
 	function placeSetIntoView(ypos: int) {
+		if (ypos === -1)
+			ypos = phantomItem.y;
 		scrollTimer.init(ypos);
 	}
 

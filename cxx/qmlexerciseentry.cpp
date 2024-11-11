@@ -157,7 +157,7 @@ void QmlExerciseEntry::setTrackRestTime(const bool new_value)
 {
 	m_bTrackRestTime = new_value;
 	emit trackRestTimeChanged();
-	m_tDayModel->setTrackRestTime(m_bTrackRestTime, m_exercise_idx);
+	m_tDayModel->setTrackRestTime(m_exercise_idx, m_bTrackRestTime);
 	for (uint i(0); i < m_setObjects.count(); ++i)
 		m_setObjects.at(i)->setTrackRestTime(m_bTrackRestTime);
 	if (!m_bTrackRestTime)
@@ -184,7 +184,6 @@ void QmlExerciseEntry::createAvailableSets()
 {
 	if (m_setObjects.isEmpty())
 	{
-		m_expectedSetNumber = 0;
 		const uint nsets(m_tDayModel->setsNumber(m_exercise_idx));
 		for (uint i(0); i < nsets; ++i)
 		{
@@ -193,6 +192,7 @@ void QmlExerciseEntry::createAvailableSets()
 		}
 		findCurrentSet();
 		emit hasSetsChanged();
+		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
 	m_tDayPage->gotoNextExercise(0);
 }
@@ -211,19 +211,25 @@ void QmlExerciseEntry::exerciseCompleted()
 
 void QmlExerciseEntry::appendNewSet()
 {
-	m_expectedSetNumber = m_setObjects.count();
-	if (m_expectedSetNumber > 0)
-		m_setObjects.last()->setLastSet(false);
-	if (m_expectedSetNumber == 0)
-		m_tDayModel->newFirstSet(m_exercise_idx, newSetType(), reps(), weight(), restTime());
-	else
-		m_tDayModel->newSet(m_expectedSetNumber, m_exercise_idx, newSetType(), reps(), weight(), restTime());
-	createSetObject(m_expectedSetNumber, m_type);
-	connect(this, &QmlExerciseEntry::setObjectCreated, this, [this] {
-			emit hasSetsChanged();
-			setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
-			findCurrentSet();
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	const uint nsets(nSets());
+	if (nsets > 0)
+	{
+		if (!m_setObjects.isEmpty())
+			m_setObjects.last()->setLastSet(false);
+
+		for (uint i(0); i < nsets; ++i)
+		{
+			m_expectedSetNumber = i;
+			if (i == 0)
+				m_tDayModel->newFirstSet(m_exercise_idx, newSetType(), reps(), weight(), restTime());
+			else
+				m_tDayModel->newSet(m_exercise_idx, m_expectedSetNumber, newSetType(), reps(), weight(), restTime());
+			createSetObject(i, newSetType());
+		}
+		findCurrentSet();
+		emit hasSetsChanged();
+		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
+	}
 }
 
 void QmlExerciseEntry::removeSetObject(const uint set_number, const bool bAsk)
@@ -491,7 +497,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setTrackRestTime(m_tDayModel->trackRestTime(m_exercise_idx));
 	newSetEntry->_setAutoRestTime(m_tDayModel->autoRestTime(m_exercise_idx));
 	newSetEntry->_setCurrent(set_number == 0);
-	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || SET_TYPE_DROP);
+	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || set_type == SET_TYPE_DROP);
 	insertSetEntry(set_number, newSetEntry);
 
 	m_setObjectProperties.insert("setManager"_L1, QVariant::fromValue(newSetEntry));
@@ -517,9 +523,6 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 			}
 		}
 	}
-
-	if (newSetEntry->type() == SET_TYPE_DROP)
-		QMetaObject::invokeMethod(item, "init");
 	emit setObjectCreated(set_number);
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this, newSetEntry] () {
@@ -562,7 +565,11 @@ inline void QmlExerciseEntry::findCurrentSet()
 			current = i > 0 ? m_tDayModel->setCompleted(m_exercise_idx, i) : true;
 		m_setObjects.at(i)->setCurrent(current);
 		if (current)
+		{
+			const QQuickItem* const setObj(m_setObjects.at(i)->setEntry());
+			QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
 			break;
+		}
 	}
 }
 
@@ -573,12 +580,9 @@ void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& star
 	{
 		set_timer->setStopWatch(bStopWatch);
 		set_timer->prepareTimer(startTime);
-		QQuickItem* set_object(m_setObjects.at(set_number)->setEntry());
-		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,set_object] () {
-			QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
-		});
-		connect(set_timer, &TPTimer::minutesChanged, this, [this,set_timer,set_object] () {
-			QMetaObject::invokeMethod(set_object, "updateRestTime", Q_ARG(QString, set_timer->strMinutes() + ':' + set_timer->strSeconds()));
+		QmlSetEntry* const setObj(m_setObjects.at(set_number));
+		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,setObj] () {
+			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
 		});
 		set_timer->startTimer();
 	}
@@ -593,10 +597,8 @@ void QmlExerciseEntry::stopRestTimer(const uint set_number)
 	{
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
-		QmlSetEntry* setObj(m_setObjects.at(set_number));
-		if (setObj->autoRestTime())
-			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
-		else
+		QmlSetEntry* const setObj(m_setObjects.at(set_number));
+		if (!setObj->autoRestTime())
 			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true));
 	}
 }

@@ -215,8 +215,8 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	item->setParentItem(m_parentLayout);
 	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
-
 	m_exercisesList.at(exercise_idx)->setExerciseEntry(item);
+	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
 }
 
 void QmlExerciseInterface::getInfoFromExercisesList(QmlExerciseEntry* exerciseEntry)

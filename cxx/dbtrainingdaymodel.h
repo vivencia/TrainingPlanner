@@ -168,7 +168,7 @@ public:
 	void setExerciseName2(const uint exercise_idx, const QString& name2);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
-					 const QString& nSubsets = u"0"_s, const QString& notes = u" "_s);
+					 const QString& nSubsets = "0"_L1, const QString& notes = " "_L1);
 	QString nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number = 100) const;
 	const QString nextSetSuggestedReps(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;
 	const QString nextSetSuggestedWeight(const uint exercise_idx, const uint type, const uint set_number = 100, const uint sub_set = 100) const;

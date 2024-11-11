@@ -10,12 +10,10 @@ FocusScope {
 	required property int type
 	required property int availableWidth
 
+	property alias text: txtMain.text
 	property bool showLabel: true
 	property bool showButtons: true
-	property alias text: txtMain.text
-	property string windowTitle
 	property var alternativeLabels: []
-
 	property bool bClearInput: true
 	property color borderColor: appSettings.fontColor
 	property color labelColor: "black"
@@ -101,7 +99,7 @@ FocusScope {
 
 
 			anchors {
-				left: lblMain.visible ? lblMain.right : parent.left
+				left: showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -122,7 +120,7 @@ FocusScope {
 			visible: showButtons
 
 			anchors {
-				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : lblMain.visible ? lblMain.right : parent.left
+				left: btnIncreaseMinutes.visible ? btnIncreaseMinutes.right : showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
@@ -141,12 +139,12 @@ FocusScope {
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? availableWidth*0.4 : availableWidth*0.3
+			width: type === SetInputField.Type.TimeType ? Math.min(availableWidth*0.4, 2*height) : Math.min(availableWidth*0.3, 2*height)
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
 
 			anchors {
-				left: btnDecrease.right
+				left: showButtons ? btnDecrease.right : showLabel ? lblMain.right : parent.left
 				leftMargin: 1
 				rightMargin: 1
 				verticalCenter: parent.verticalCenter
