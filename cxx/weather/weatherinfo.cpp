@@ -172,6 +172,7 @@ WeatherInfo::WeatherInfo(QObject* parent)
 	d->m_currentBackend = new OpenWeatherMapBackend{this};
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::receivedCitiesFromSearch, this, &WeatherInfo::buildLocationsList);
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::weatherInformation, this, &WeatherInfo::handleWeatherData);
+	requestWeatherForSavedCity(0);
 
 #ifdef Q_OS_ANDROID
 	connect(d->m_currentBackend, &OpenWeatherMapBackend::receivedCityFromCoordinates, this, &WeatherInfo::gotGPSLocation);
@@ -216,7 +217,6 @@ WeatherInfo::WeatherInfo(QObject* parent)
 #else
 	setGpsCity(tr("Cannot use GPS on this device"));
 #endif
-	requestWeatherForSavedCity(0);
 }
 
 WeatherInfo::~WeatherInfo()

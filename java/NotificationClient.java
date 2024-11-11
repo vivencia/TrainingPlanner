@@ -21,11 +21,13 @@ public class NotificationClient
 {
 	private static Context TPActivityContext;
 
-	public static void setActivityContext(Context context) {
+	public static void setActivityContext(Context context)
+	{
 		TPActivityContext = context;
 	}
 
-    public static void notify(String title, String message, String action, int id) {
+    public static void notify(String title, String message, String action, int id)
+    {
 		try {
 		    Bitmap icon = BitmapFactory.decodeResource(TPActivityContext.getResources(), R.drawable.icon);
 

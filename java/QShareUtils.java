@@ -56,14 +56,10 @@ public class QShareUtils
 	private static Context TPActivityContext;
 	private static PackageManager TPActivityPackageManager;
 
-	public void setActivityContext(Context context)
+	public static void setActivityContext(Context context)
 	{
 		TPActivityContext = context;
 		TPActivityPackageManager = TPActivityContext.getPackageManager();
-	}
-
-	protected QShareUtils() {
-	// Log.d(TAG, "QShareUtils()");
 	}
 
 	public static boolean checkMimeTypeView(String mimeType)
