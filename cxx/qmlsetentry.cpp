@@ -60,14 +60,13 @@ void QmlSetEntry::setNumber(const uint new_value)
 	}
 }
 
-void QmlSetEntry::setRestTime(const QString& new_value)
+void QmlSetEntry::setRestTime(const QString& new_value, const bool bJustUpdateValue)
 {
-	if (m_restTime != new_value)
-	{
-		m_restTime = new_value;
+	m_restTime = new_value;
+	if (bJustUpdateValue)
 		emit restTimeChanged();
+	else
 		m_tDayModel->setSetRestTime(m_exercise_idx, number(), m_restTime);
-	}
 }
 
 QString QmlSetEntry::reps1() const

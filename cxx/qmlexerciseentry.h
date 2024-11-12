@@ -86,7 +86,7 @@ public:
 	inline QString& weight() { return m_weight; }
 	inline void setWeight(const QString& new_value) { m_weight = new_value; emit weightForExercise1Changed(); if (m_bCompositeExercise) emit weightForExercise2Changed(); }
 
-	inline const bool hasSets() const { return !m_setObjects.isEmpty(); }
+	const bool hasSets() const;
 	inline const bool lastExercise() const { return m_bLast; }
 	inline void setLastExercise(const bool new_value) { m_bLast = new_value; emit lastExerciseChanged(); }
 

@@ -145,6 +145,11 @@ void QmlExerciseEntry::setWeightForExercise2(const QString& new_value)
 	emit weightForExercise2Changed();
 }
 
+const bool QmlExerciseEntry::hasSets() const
+{
+	return m_tDayModel->setsNumber(m_exercise_idx);
+}
+
 void QmlExerciseEntry::setIsEditable(const bool new_value)
 {
 	m_bEditable = new_value;
@@ -190,7 +195,6 @@ void QmlExerciseEntry::createAvailableSets()
 			m_expectedSetNumber = i;
 			createSetObject(i, m_tDayModel->setType(m_exercise_idx, i));
 		}
-		findCurrentSet();
 		emit hasSetsChanged();
 		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
@@ -226,7 +230,6 @@ void QmlExerciseEntry::appendNewSet()
 				m_tDayModel->newSet(m_exercise_idx, m_expectedSetNumber, newSetType(), reps(), weight(), restTime());
 			createSetObject(i, newSetType());
 		}
-		findCurrentSet();
 		emit hasSetsChanged();
 		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
@@ -340,10 +343,11 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 	switch(setObj->mode())
 	{
 		case SET_MODE_UNDEFINED:
-			if (!setObj->trackRestTime())
+			if (set_number == 0 || !setObj->trackRestTime())
 			{
 				setObj->setCompleted(true);
 				setObj->setMode(SET_MODE_SET_COMPLETED);
+				m_tDayModel->setSetCompleted(m_exercise_idx, set_number, true);
 				findCurrentSet();
 			}
 			else
@@ -358,16 +362,18 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 		break;
 		case SET_MODE_START_EXERCISE:
 			setObj->setMode(SET_MODE_SET_COMPLETED);
+			m_tDayModel->setSetCompleted(m_exercise_idx, set_number, true);
 			stopRestTimer(set_number);
 		break;
 		case SET_MODE_SET_COMPLETED:
-			if (!setObj->autoRestTime())
+			if (set_number == 0 || !setObj->autoRestTime())
 			{
 				setObj->setCompleted(false);
 				setObj->setMode(SET_MODE_UNDEFINED);
 			}
 			else
 				setObj->setMode(SET_MODE_START_REST);
+			m_tDayModel->setSetCompleted(m_exercise_idx, set_number, false);
 	}
 }
 
@@ -489,15 +495,20 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setWeight(m_tDayModel->setWeight(m_exercise_idx, set_number));
 	newSetEntry->_setSubSets(m_tDayModel->setSubSets(m_exercise_idx, set_number));
 	newSetEntry->_setNotes(m_tDayModel->setsNotes(m_exercise_idx));
-	newSetEntry->_setMode(findSetMode(set_number));
-	newSetEntry->_setEditable(isEditable());
 	newSetEntry->_setCompleted(m_tDayModel->setCompleted(m_exercise_idx, set_number));
 	newSetEntry->_setLastSet(m_tDayModel->setsNumber(m_exercise_idx) == set_number + 1);
 	newSetEntry->setFinishButtonEnabled(m_tDayModel->allSetsCompleted(m_exercise_idx));
 	newSetEntry->_setTrackRestTime(m_tDayModel->trackRestTime(m_exercise_idx));
 	newSetEntry->_setAutoRestTime(m_tDayModel->autoRestTime(m_exercise_idx));
-	newSetEntry->_setCurrent(set_number == 0);
 	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || set_type == SET_TYPE_DROP);
+	newSetEntry->_setMode(findSetMode(set_number));
+	if (!m_tDayPage->mainDateIsToday())
+	{
+		newSetEntry->setCurrent(false);
+		newSetEntry->setIsEditable(isEditable());
+	}
+	else
+		findCurrentSet();
 	insertSetEntry(set_number, newSetEntry);
 
 	m_setObjectProperties.insert("setManager"_L1, QVariant::fromValue(newSetEntry));
@@ -547,28 +558,38 @@ void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 
 inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 {
-	int ret(SET_MODE_SET_COMPLETED);
 	if (!m_tDayModel->setCompleted(m_exercise_idx, set_number))
 	{
-		if (m_tDayModel->trackRestTime(m_exercise_idx))
-			ret = m_tDayModel->autoRestTime(m_exercise_idx) ? SET_MODE_UNDEFINED : SET_MODE_START_REST;
+		int ret(SET_MODE_UNDEFINED);
+		if (set_number > 0)
+		{
+			if (m_tDayModel->trackRestTime(m_exercise_idx) || m_tDayModel->autoRestTime(m_exercise_idx))
+				ret =  SET_MODE_START_REST;
+		}
+		return ret;
 	}
-	return ret;
+	return SET_MODE_SET_COMPLETED;
 }
 
 inline void QmlExerciseEntry::findCurrentSet()
 {
-	for(uint i(0); i < m_setObjects.count(); ++i)
+	if (m_tDayPage->mainDateIsToday())
 	{
-		bool current = !m_tDayModel->setCompleted(m_exercise_idx, i);
-		if (!current)
-			current = i > 0 ? m_tDayModel->setCompleted(m_exercise_idx, i) : true;
-		m_setObjects.at(i)->setCurrent(current);
-		if (current)
+		for(uint i(0); i < m_setObjects.count(); ++i)
 		{
-			const QQuickItem* const setObj(m_setObjects.at(i)->setEntry());
-			QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
-			break;
+			if (!m_tDayModel->setCompleted(m_exercise_idx, i))
+			{
+				m_setObjects.at(i)->setCurrent(true);
+				m_setObjects.at(i)->setIsEditable(true);
+				const QQuickItem* const setObj(m_setObjects.at(i)->setEntry());
+				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
+				break;
+			}
+			else
+			{
+				m_setObjects.at(i)->setCurrent(false);
+				m_setObjects.at(i)->setIsEditable(true);
+			}
 		}
 	}
 }
@@ -581,6 +602,7 @@ void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& star
 		set_timer->setStopWatch(bStopWatch);
 		set_timer->prepareTimer(startTime);
 		QmlSetEntry* const setObj(m_setObjects.at(set_number));
+		setObj->setRestTime(startTime);
 		connect(set_timer, &TPTimer::secondsChanged, this, [this,set_timer,setObj] () {
 			setObj->setRestTime(set_timer->strMinutes() + ':' + set_timer->strSeconds());
 		});
@@ -598,7 +620,9 @@ void QmlExerciseEntry::stopRestTimer(const uint set_number)
 		set_timer->stopTimer();
 		disconnect(set_timer, nullptr, nullptr, nullptr);
 		QmlSetEntry* const setObj(m_setObjects.at(set_number));
-		if (!setObj->autoRestTime())
-			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true));
+		if (setObj->autoRestTime())
+			setObj->setRestTime(setObj->restTime(), false); //update the model with the current value displayed
+		else
+			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true), false);
 	}
 }

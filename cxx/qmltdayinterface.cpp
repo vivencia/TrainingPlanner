@@ -45,7 +45,7 @@ void QmlTDayInterface::setSplitLetter(const QString& new_value, const bool bFrom
 			}
 		}
 	}
-	if (new_value != u"X"_s)
+	if (new_value != "X"_L1)
 	{
 		m_splitLetter = new_value;
 		if (bDontConfirm || !appSettings()->alwaysAskConfirmation())
@@ -194,8 +194,8 @@ void QmlTDayInterface::getTrainingDayPage()
 		m_tDayModel->setMesoId(appMesoModel()->id(m_mesoIdx));
 		m_tDayModel->setDate(m_Date);
 
-		m_splitLetter = strSplitLetter;
-		m_tDayModel->setSplitLetter(strSplitLetter, false);
+		m_splitLetter = std::move(strSplitLetter);
+		m_tDayModel->setSplitLetter(m_splitLetter, false);
 		m_tDayModel->setTrainingDay(tday, false);
 		setMainDateIsToday(m_Date == QDate::currentDate());
 		setEditMode(false);
@@ -206,8 +206,8 @@ void QmlTDayInterface::getTrainingDayPage()
 		setNeedActivation(false);
 		setTimerActive(false);
 		setHasExercises(false);
-		setTimeIn(u"--:--"_s);
-		setTimeOut(u"--:--"_s);
+		setTimeIn("--:--"_L1);
+		setTimeOut("--:--"_L1);
 		m_tDayProperties.insert("tDayManager"_L1, QVariant::fromValue(this));
 		createTrainingDayPage();
 	}
@@ -222,10 +222,7 @@ void QmlTDayInterface::loadExercisesFromDate(const QString& strDate)
 {
 	//setModified is called with param true because the loaded exercises do not -yet- belong to the day indicated by strDate
 	connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint) {
-		const bool btoday(m_tDayModel->date() == QDate::currentDate());
-		setDayIsFinished(!btoday);
-		m_exerciseManager->createExercisesObjects();
-		setHasExercises(true);
+		loadExercises();
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appDBInterface()->loadExercisesFromDate(strDate, m_tDayModel);
 }
@@ -473,12 +470,20 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
 			disconnect(*conn);
-			const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
-			//The connected signal is only meant for the working page. All *possible* other pages are not affected by it, so we must filter them out
-			if (tDayModel->dateStr() == m_tDayModel->dateStr())
+			if (data.isValid())
 			{
-				if (m_tDayModel->splitLetter() != "R"_L1)
-					setTrainingDayPageEmptyDayOrChangedDayOptions(data.value<DBTrainingDayModel*>());
+				const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
+				//The connected signal is only meant for the working page. All *possible* other pages are not affected by it, so we must filter them out
+				if (tDayModel->dateStr() == m_tDayModel->dateStr())
+				{
+					if (m_tDayModel->splitLetter() != "R"_L1)
+						setTrainingDayPageEmptyDayOrChangedDayOptions(data.value<DBTrainingDayModel*>());
+				}
+			}
+			else
+			{
+				if (m_tDayModel->isReady())
+					loadExercises();
 			}
 		}
 	});
@@ -543,6 +548,14 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 				setHeaderText();
 		}
 	}
+}
+
+void QmlTDayInterface::loadExercises()
+{
+	const bool btoday(m_tDayModel->date() == QDate::currentDate());
+	setDayIsFinished(!btoday);
+	m_exerciseManager->createExercisesObjects();
+	setHasExercises(true);
 }
 
 void QmlTDayInterface::calculateWorkoutTime()

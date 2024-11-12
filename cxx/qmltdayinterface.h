@@ -193,6 +193,7 @@ private:
 
 	void createTrainingDayPage();
 	void createTrainingDayPage_part2();
+	void loadExercises();
 	void updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate);
 	void calculateWorkoutTime();
 	void setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const model);

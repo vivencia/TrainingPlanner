@@ -20,7 +20,7 @@ FocusScope {
 	Frame {
 		id: paneExercise
 		visible: height > 0
-		height: shown ? implicitHeight : exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight + 20
+		height: shown ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight) + 20
 		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.implicitHeight + 20
 		implicitWidth: width
 		width: parent.width
@@ -29,7 +29,7 @@ FocusScope {
 		spacing: 0
 		Layout.fillWidth: true
 
-		property bool shown: true
+		property bool shown: false
 
 		//Component.onCompleted: shown = !exerciseManager.hasSets;
 

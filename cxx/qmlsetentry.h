@@ -84,16 +84,16 @@ public:
 		QString ret;
 		switch (mode())
 		{
-			case SET_MODE_UNDEFINED: ret = tr("Set completed?"); break;
-			case SET_MODE_START_REST: ret = tr("Start rest"); break;
-			case SET_MODE_START_EXERCISE: ret = tr("Begin exercise"); break;
+			case SET_MODE_UNDEFINED: ret = std::move(tr("Set completed?")); break;
+			case SET_MODE_START_REST: ret = std::move(tr("Start rest")); break;
+			case SET_MODE_START_EXERCISE: ret = std::move(tr("Begin exercise")); break;
 			case SET_MODE_SET_COMPLETED: break;
 		}
 		return ret;
 	}
 
 	inline QString restTime() const { return m_restTime; }
-	void setRestTime(const QString& new_value);
+	void setRestTime(const QString& new_value, const bool bJustUpdateValue = true);
 
 	QString reps1() const;
 	void setReps1(const QString& new_value);

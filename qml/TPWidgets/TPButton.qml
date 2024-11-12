@@ -43,6 +43,8 @@ Rectangle {
 			buttonImage.imageSource = imageSource;
 	}
 
+	onTextChanged: resizeButton();
+
 	onHighlightedChanged:
 		if (highlighted) {
 			fillPosition = 0;

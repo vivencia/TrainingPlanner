@@ -234,7 +234,7 @@ private:
 		QStringList completed;
 		bool mb_TrackRestTime, mb_AutoRestTime;
 
-		exerciseEntry() : nsets(0) {}
+		inline exerciseEntry() : nsets(0), mb_TrackRestTime(false), mb_AutoRestTime(false) {}
 	};
 
 	QList<exerciseEntry*> m_ExerciseData;

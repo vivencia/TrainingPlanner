@@ -80,9 +80,9 @@ void QmlExerciseInterface::createExercisesObjects()
 	for(uint i(0), set_type(0), last_set(0); i < n_exercises; ++i)
 	{
 		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_qmlEngine, m_tDayModel, i}};
-		last_set = m_tDayModel->setsNumber(i);
+		last_set = m_tDayModel->setsNumber(i) - 1;
 		if (last_set > 10) last_set = 0; //setsNumber was 0
-		set_type = m_tDayModel->setType(last_set, i);
+		set_type = m_tDayModel->setType(i, last_set);
 		newExercise->setExerciseName(m_tDayModel->exerciseName(i), false);
 		newExercise->setNewSetType(set_type);
 		newExercise->setTrackRestTime(m_tDayModel->trackRestTime(i-(i >= 1 ? 1 : 0)));
