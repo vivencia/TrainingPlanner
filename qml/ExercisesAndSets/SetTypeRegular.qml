@@ -265,6 +265,7 @@ FocusScope {
 		TPButton {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
+			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
 			Layout.alignment: Qt.AlignHCenter

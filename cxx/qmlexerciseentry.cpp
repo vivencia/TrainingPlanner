@@ -198,7 +198,8 @@ void QmlExerciseEntry::createAvailableSets()
 		emit hasSetsChanged();
 		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
-	m_tDayPage->gotoNextExercise(0);
+	if (!m_setObjects.isEmpty())
+		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, m_setObjects.at(0)->setEntry()->y() + 50));
 }
 
 void QmlExerciseEntry::removeExercise(const bool bAsk)

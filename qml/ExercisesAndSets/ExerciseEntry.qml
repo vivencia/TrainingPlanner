@@ -31,8 +31,6 @@ FocusScope {
 
 		property bool shown: false
 
-		//Component.onCompleted: shown = !exerciseManager.hasSets;
-
 		Behavior on height {
 			NumberAnimation {
 				easing.type: Easing.InOutBack
