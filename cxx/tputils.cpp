@@ -40,11 +40,11 @@ const QString TPUtils::getCorrectPath(const QUrl& url) const
 int TPUtils::getFileType(const QString& filename) const
 {
 	#ifdef Q_OS_ANDROID
-		return filename.contains(u"video%"_s) ? 1 : (filename.contains(u"image%"_s) ? 0 : -1);
+		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
 	#else
-		if (filename.endsWith(u".mp4"_s) || filename.endsWith(u".mkv"_s) || filename.endsWith(u".mov"_s))
+		if (filename.endsWith(".mp4"_L1) || filename.endsWith(".mkv"_L1) || filename.endsWith(".mov"_L1))
 			return 1;
-		else return (filename.endsWith(u".png"_s) || filename.endsWith(u".jpg"_s)) ? 0 : -1;
+		else return (filename.endsWith(".png"_L1) || filename.endsWith(".jpg"_L1)) ? 0 : -1;
 	#endif
 }
 
@@ -63,13 +63,13 @@ bool TPUtils::canReadFile(const QString& filename) const
 
 QString TPUtils::formatDate(const QDate& date) const
 {
-	return m_appLocale->toString(date, u"ddd d/M/yyyy"_s);
+	return m_appLocale->toString(date, "ddd d/M/yyyy"_L1);
 }
 
 QString TPUtils::formatTodayDate() const
 {
 	const QDate& today(QDate::currentDate());
-	return m_appLocale->toString(today, u"ddd d/M/yyyy"_s);
+	return m_appLocale->toString(today, "ddd d/M/yyyy"_L1);
 }
 
 QDate TPUtils::getDateFromStrDate(const QString& strDate) const
@@ -184,7 +184,7 @@ QString TPUtils::getMinutesOrSeconsFromStrTime(const QString& strTime) const
 QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
 {
 	const QTime& time(calculateTimeDifference(strTimeInit, strTimeFinal));
-	return time.toString(u"hh:mm:ss");
+	return time.toString("hh:mm:ss"_L1);
 }
 
 QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
@@ -280,8 +280,8 @@ bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2)
 QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
 {
 	strValue.replace('.', ',');
-	strValue.replace('-', u""_s);
-	strValue.replace('E', u""_s);
+	strValue.replace('-', ""_L1);
+	strValue.replace('E', ""_L1);
 	strValue = strValue.trimmed();
 	const char rightmostDigit(!strValue.isEmpty() ? strValue.at(strValue.length()-1).toLatin1() : '0');
 
@@ -349,7 +349,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				result = 0;
 
 			strValue = QString::number(result, 'f', 2);
-			if (strValue.last(2) != u"50"_s)
+			if (strValue.last(2) != "50"_L1)
 				strValue.chop(3);
 			return strValue;
 		break;
@@ -380,7 +380,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				}
 				else
 					result += 5;
-				strValue = strValue.first(3) + (result < 10 ? u"0"_s : u""_s) + QString::number(static_cast<uint>(result));
+				strValue = strValue.first(3) + (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result));
 			}
 			else
 			{
@@ -393,7 +393,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 					result -= 5;
 				if (result < 0)
 					result = 0;
-				strValue = (result < 10 ? u"0"_s : u""_s) + QString::number(static_cast<uint>(result)) + strValue.last(3);
+				strValue = (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)) + strValue.last(3);
 			}
 			return strValue;
 		}
@@ -429,16 +429,16 @@ void TPUtils::setAppLocale(const QString& localeStr, const bool bWriteConfig)
 	QLocale::Language language;
 	QLocale::Territory territory;
 
-	if (strLanguage == u"pt"_s)
+	if (strLanguage == "pt"_L1)
 		language = QLocale::Portuguese;
-	else if (strLanguage == u"de"_s)
+	else if (strLanguage == "de"_L1)
 		language = QLocale::German;
 	else
 		language = QLocale::English;
 
-	if (strTerritory == u"BR"_s)
+	if (strTerritory == "BR"_L1)
 		territory = QLocale::Brazil;
-	else if (strTerritory == u"DE"_s)
+	else if (strTerritory == "DE"_L1)
 		territory = QLocale::Germany;
 	else
 		territory = QLocale::UnitedStates;

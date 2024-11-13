@@ -9,12 +9,12 @@
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
 	: TPDatabaseTable{}, m_model(model)
 {
-	m_tableName = u"mesocycles_table"_s;
+	m_tableName = std::move("mesocycles_table"_L1);
 	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(u"db_meso_connection"_s + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
+	const QString& cnx_name("db_meso_connection"_L1 + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
 	const QString& dbname(dbFilePath + DBMesocyclesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -24,7 +24,7 @@ void DBMesocyclesTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS mesocycles_table ("
+		const QString& strQuery{"CREATE TABLE IF NOT EXISTS mesocycles_table ("
 										"id INTEGER PRIMARY KEY AUTOINCREMENT,"
 										"meso_name TEXT,"
 										"meso_start_date INTEGER,"
@@ -37,10 +37,10 @@ void DBMesocyclesTable::createTable()
 										"meso_program_file TEXT,"
 										"meso_type TEXT,"
 										"real_meso INTEGER"
-									")"_s
-		);
+									")"_L1
+		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -124,7 +124,7 @@ void DBMesocyclesTable::getAllMesocycles()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT * FROM mesocycles_table"_s);
+		const QString& strQuery{"SELECT * FROM mesocycles_table"_L1};
 
 		if (query.exec(strQuery))
 		{
@@ -139,9 +139,10 @@ void DBMesocyclesTable::getAllMesocycles()
 				} while (query.next ());
 				m_model->finishedLoadingFromDatabase();
 				ok = true;
+				m_model->setReady(true);
 			}
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -155,7 +156,7 @@ void DBMesocyclesTable::saveMesocycle()
 		bool bUpdate(false);
 		QString strQuery;
 
-		if (query.exec(u"SELECT id FROM mesocycles_table WHERE id=%1"_s.arg(m_model->id(row))))
+		if (query.exec("SELECT id FROM mesocycles_table WHERE id=%1"_L1.arg(m_model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -164,22 +165,22 @@ void DBMesocyclesTable::saveMesocycle()
 
 		if (bUpdate)
 		{
-			strQuery = u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
+			strQuery = std::move(u"UPDATE mesocycles_table SET meso_name=\'%1\', meso_start_date=%2, meso_end_date=%3, "
 							"meso_note=\'%4\', meso_nweeks=%5, meso_split=\'%6\', meso_coach=\'%7\', meso_client=\'%8\', "
 							"meso_program_file=\'%9\', meso_type=\'%10\', real_meso=\'%11\' WHERE id=%12"_s
 								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
 									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
-									m_model->file(row), m_model->type(row), m_model->realMeso(row), m_model->id(row));
+									m_model->file(row), m_model->type(row), m_model->realMeso(row), m_model->id(row)));
 		}
 		else
 		{
-			strQuery = u"INSERT INTO mesocycles_table "
+			strQuery = std::move(u"INSERT INTO mesocycles_table "
 							"(meso_name,meso_start_date,meso_end_date,meso_note,meso_nweeks,meso_split,"
 							"meso_coach,meso_client,meso_program_file,meso_type,real_meso)"
 							" VALUES(\'%1\', %2, %3, \'%4\', %5, \'%6\', \'%7\', \'%8\', \'%9\', \'%10\', %11)"_s
 								.arg(m_model->name(row), m_model->strStartDate(row), m_model->strEndDate(row), m_model->notes(row),
 									m_model->nWeeks(row), m_model->split(row), m_model->coach(row), m_model->client(row),
-									m_model->file(row), m_model->type(row), m_model->realMeso(row));
+									m_model->file(row), m_model->type(row), m_model->realMeso(row)));
 		}
 		ok = query.exec(strQuery);
 		if (ok)
@@ -190,7 +191,7 @@ void DBMesocyclesTable::saveMesocycle()
 				m_model->setImportMode(false);
 			}
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

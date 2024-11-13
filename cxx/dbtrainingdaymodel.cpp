@@ -114,7 +114,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString& strHeader(u"## "_s + exportName() + u"\n\n"_s);
+		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);
 		outFile->write(strHeader.toUtf8().constData());
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);
@@ -123,7 +123,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 		bool bHasSubsSets(false);
 		for (uint i(0); i < m_ExerciseData.count(); ++i)
 		{
-			outFile->write(QString(QString::number(i+1) + u": "_s).toUtf8().constData());
+			outFile->write(QString(QString::number(i+1) + ": "_L1).toUtf8().constData());
 			outFile->write(exerciseName(i).replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
 			outFile->write("\n", 1);
 			outFile->write(tr("Number of sets: ").toUtf8().constData());
@@ -216,7 +216,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 					value = buf;
 					if (value.indexOf(tr("subsets")) == -1)
 					{
-						subsets = u"0"_s;
+						subsets = "0"_L1;
 						reps = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator);
 					}
 					else
@@ -237,7 +237,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 					value = buf;
 					notes = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator).replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
 					if (notes.isEmpty())
-						notes = u" "_s;
+						notes = " "_L1;
 
 					newFirstSet(exercise_idx, appUtils()->getCompositeValue(0, type, set_separator).toUInt(),
 						appUtils()->getCompositeValue(0, reps, set_separator), appUtils()->getCompositeValue(0, weight, set_separator),
@@ -286,7 +286,7 @@ bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
 const QString DBTrainingDayModel::exportExtraInfo() const
 {
 	return tr("Workout #") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_TRAININGDAYNUMBER) + tr(", split ") + m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER) +
-		u" ("_s + appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))) +
+		" ("_L1 + appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_modeldata.at(TDDAY_MODEL_ROW).at(TDAY_COL_SPLITLETTER))) +
 		tr(") at ") + appUtils()->formatDate(date());
 }
 

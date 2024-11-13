@@ -6,7 +6,7 @@ using namespace Qt::Literals::StringLiterals;
 
 static const uint avatarWidth(140);
 static const uint avatarHeight(140);
-static const QString& avatarsFile(u":/images/avatars.png"_s);
+static const QString& avatarsFile(":/images/avatars.png"_L1);
 TPImageProvider* TPImageProvider::mtpImageProvider(nullptr);
 
 TPImageProvider::TPImageProvider()
@@ -37,7 +37,7 @@ QImage TPImageProvider::getAvatar(const uint id, const QString& strSex)
 {
 	const uint x((id % 5) * avatarWidth);
 	uint y(0);
-	if (strSex == u"m"_s)
+	if (strSex == "m"_L1)
 	{
 		if (id >= 5)
 			y = qFloor((id+10) / 5) * avatarHeight;

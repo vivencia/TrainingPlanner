@@ -23,11 +23,11 @@ void TPImage::setSource(const QString& source)
 	if (!source.isEmpty() && mSource != source)
 	{
 		bool bIsSVG(false);
-		if (source.endsWith(u"png"_s) || (bIsSVG = source.endsWith(u"svg"_s)))
-			mSource = std::move(u":/images/"_s + source);
+		if (source.endsWith("png"_L1) || (bIsSVG = source.endsWith("svg"_L1)))
+			mSource = std::move(":/images/"_L1 + source);
 		else
 		{
-			if (source.contains(u"provider"_s))
+			if (source.contains("provider"_L1))
 			{
 				mImage = tpImageProvider()->getAvatar(source);
 				if (!mImage.isNull())
@@ -40,7 +40,7 @@ void TPImage::setSource(const QString& source)
 				return;
 			}
 			else
-				mSource = std::move(u":/images/"_s + source + u".png"_s);
+				mSource = std::move(":/images/"_L1 + source + ".png"_L1);
 		}
 		if (mImage.load(mSource))
 		{

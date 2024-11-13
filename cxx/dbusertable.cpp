@@ -11,12 +11,12 @@
 DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
 	: TPDatabaseTable{}, m_model{model}
 {
-	m_tableName = u"user_table"_s;
+	m_tableName = std::move("user_table"_L1);
 	m_tableID = USER_TABLE_ID;
 	setObjectName(DBUserObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(QStringLiteral("db_exercises_connection") + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), cnx_name);
+	const QString& cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
 	const QString& dbname(dbFilePath + DBUserFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -26,7 +26,7 @@ void DBUserTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS user_table ("
+		const QString& strQuery{"CREATE TABLE IF NOT EXISTS user_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
 										"birthday INTEGER,"
@@ -41,9 +41,10 @@ void DBUserTable::createTable()
 										"use_mode INTEGER DEFAULT 1,"
 										"current_coach INTEGER, "
 										"current_user INTEGER"
-									")"_s);
+									")"_L1
+		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -65,10 +66,11 @@ void DBUserTable::getAllUsers()
 						user_info[i] = std::move(query.value(static_cast<int>(i)).toString());
 					m_model->appendListMove(user_info);
 				} while (query.next());
+				m_model->setReady(true);
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -81,7 +83,7 @@ void DBUserTable::saveUser()
 		const uint row(m_execArgs.at(0).toUInt());
 		bool bUpdate(false);
 		QString strQuery;
-		if (query.exec(u"SELECT id FROM user_table WHERE id=%1"_s.arg(m_model->_userId(row))))
+		if (query.exec("SELECT id FROM user_table WHERE id=%1"_L1.arg(m_model->_userId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -109,7 +111,7 @@ void DBUserTable::saveUser()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setUserId(row, query.lastInsertId().toString());
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

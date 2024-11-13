@@ -2,7 +2,6 @@
 #include "tpglobals.h"
 
 #include <QFile>
-#include <QRegularExpression>
 
 #include <utility>
 
@@ -54,7 +53,7 @@ void DBExercisesModel::newExercise(const QString& name, const QString& subname, 
 {
 	setLastID(lastID() + 1);
 	appendList(QStringList() << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
-		std::move(u"3"_s) << std::move(u"12"_s) << std::move(u"20"_s) << std::move(u"(kg)"_s) << std::move(u"qrc:/images/no_image.jpg"_s) <<
+		std::move("3"_L1) << std::move("12"_L1) << std::move("20"_L1) << std::move("(kg)"_L1) << std::move("qrc:/images/no_image.jpg"_L1) <<
 			STR_ZERO << std::move(QString::number(m_modeldata.count())) << STR_ZERO);
 }
 
@@ -83,20 +82,28 @@ void DBExercisesModel::removeExercise(const uint index)
 
 void DBExercisesModel::setFilter(const QString& filter, const bool resetSelection)
 {
-	if (filter.length() >=3)
+	if (filter.length() >= 3)
 	{
 		uint idx(0);
-		bool bFound(false), bFirst(true);
-		const QRegularExpression regex{filter, QRegularExpression::CaseInsensitiveOption};
+		bool bFirst(true);
 
 		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator& lst_itrend(m_modeldata.constEnd());
-		for ( ; lst_itr != lst_itrend; ++lst_itr, ++idx )
+		for(; lst_itr != lst_itrend; ++lst_itr, ++idx)
 		{
-			bFound = regex.match((*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)).hasMatch();
-			if (!bFound)
-				bFound = regex.match((*lst_itr).at(EXERCISES_COL_MAINNAME)).hasMatch();
-
+			const QString& subject{(*lst_itr).at(EXERCISES_COL_MAINNAME) + ' ' +
+						(*lst_itr).at(EXERCISES_COL_SUBNAME) + ' ' +
+						(*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)};
+			const QStringList& words_list{filter.split(' ')};
+			bool bFound = true;
+			for(uint i(0); i < words_list.count(); ++i)
+			{
+				if (!subject.contains(words_list.at(i), Qt::CaseInsensitive))
+				{
+					bFound = false;
+					break;
+				}
+			}
 			if (bFound)
 			{
 				if (bFirst)
@@ -279,8 +286,8 @@ QString DBExercisesModel::makeTransactionStatementForDataBase(const uint index) 
 {
 	QString statement{'(' + id(index)};
 	for (uint i(1); i <= EXERCISES_COL_MEDIAPATH; ++i)
-		statement += u",\'"_s + m_modeldata.at(index).at(i) + '\'';
-	statement += ',' + STR_ONE + u"),"_s; //EXERCISES_COL_FROMAPPLIST
+		statement += ",\'"_L1 + m_modeldata.at(index).at(i) + '\'';
+	statement += ',' + STR_ONE + "),"_L1; //EXERCISES_COL_FROMAPPLIST
 	return statement;
 }
 
@@ -322,7 +329,7 @@ int DBExercisesModel::importFromFile(const QString& filename)
 					{
 						++n_items;
 						modeldata[EXERCISES_COL_ID] = QString::number(m_exercisesTableLastId + n_items);
-						modeldata[EXERCISES_COL_WEIGHTUNIT] = u"(kg)"_s;
+						modeldata[EXERCISES_COL_WEIGHTUNIT] = "(kg)"_L1;
 						modeldata[EXERCISES_COL_FROMAPPLIST] = STR_ZERO;
 						modeldata[EXERCISES_COL_ACTUALINDEX] = QString::number(databaseLastIndex + n_items);
 						modeldata[EXERCISES_COL_SELECTED] = STR_ZERO;
@@ -404,9 +411,9 @@ bool DBExercisesModel::setData(const QModelIndex &index, const QVariant& value, 
 			case mediaPathRole:
 			case actualIndexRole:
 				if (!m_bFilterApplied)
-					m_modeldata[row][role-Qt::UserRole] = value.toString();
+					m_modeldata[row][role-Qt::UserRole] = std::move(value.toString());
 				else
-					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = value.toString();
+					m_modeldata[m_indexProxy.at(row)][role-Qt::UserRole] = std::move(value.toString());
 				emit dataChanged(index, index, QList<int>() << role);
 				return true;
 

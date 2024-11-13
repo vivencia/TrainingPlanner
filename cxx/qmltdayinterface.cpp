@@ -47,12 +47,15 @@ void QmlTDayInterface::setSplitLetter(const QString& new_value, const bool bFrom
 	}
 	if (new_value != "X"_L1)
 	{
-		m_splitLetter = new_value;
-		if (bDontConfirm || !appSettings()->alwaysAskConfirmation())
-			adjustCalendar(m_splitLetter, true);
-		else
-			QMetaObject::invokeMethod(m_tDayPage, "showAdjustCalendarDialog");
-		m_tDayModel->setSplitLetter(m_splitLetter);
+		if (m_splitLetter != new_value)
+		{
+			m_splitLetter = new_value;
+			if (bDontConfirm || !appSettings()->alwaysAskConfirmation())
+				adjustCalendar(m_splitLetter, true);
+			else
+				QMetaObject::invokeMethod(m_tDayPage, "showAdjustCalendarDialog");
+			m_tDayModel->setSplitLetter(m_splitLetter);
+		}
 	}
 	emit splitLetterChanged();
 }
@@ -176,7 +179,7 @@ void QmlTDayInterface::getTrainingDayPage()
 {
 	if (!m_tDayPage)
 	{
-		if (appMesoModel()->mesoCalendarModel(m_mesoIdx)->count() == 0)
+		if (!appMesoModel()->mesoCalendarModel(m_mesoIdx)->isReady())
 		{
 			connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
 				getTrainingDayPage();
@@ -282,7 +285,6 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 		appDBInterface()->updateMesoCalendarModel(m_tDayModel);
 	if (newSplitLetter != "R"_L1)
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
-	setHeaderText();
 }
 
 void QmlTDayInterface::exportTrainingDay(const bool bShare)
@@ -539,7 +541,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 			{
 				setSplitLetter(strSplitLetter, false, true);
 				tDayChanged = true;
-				if (strSplitLetter == u"R"_s)
+				if (strSplitLetter == "R"_L1)
 					m_exerciseManager->clearExercises();
 				else
 					appDBInterface()->verifyTDayOptions(m_tDayModel);

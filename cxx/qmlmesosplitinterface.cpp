@@ -107,7 +107,7 @@ void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& sp
 	QString mesoSplit, suggestedName, exportFileName;
 	if (filePath.isEmpty())
 	{
-		if (splitLetter == u"X"_s)
+		if (splitLetter == "X"_L1)
 		{
 			mesoSplit = appMesoModel()->split(m_mesoIdx);
 			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan.txt");
@@ -115,7 +115,7 @@ void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& sp
 		else
 		{
 			mesoSplit = splitLetter;
-			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan - Split ") + splitLetter + u".txt"_s;
+			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan - Split ") + splitLetter + ".txt"_L1;
 		}
 		exportFileName = appOsInterface()->appDataFilesPath() + suggestedName;
 	}
@@ -159,8 +159,8 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 
 void QmlMesoSplitInterface::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ExercisesPlanner.qml"_s}, QQmlComponent::Asynchronous};
-	m_plannerProperties[u"splitManager"_s] = QVariant::fromValue(this);
+	m_plannerComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
+	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
 			if (status == QQmlComponent::Ready)
@@ -204,7 +204,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 void QmlMesoSplitInterface::createMesoSplitPage(const QChar& splitletter)
 {
 	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesoSplitPlanner.qml"_s}, QQmlComponent::Asynchronous};
+		m_splitComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/MesoSplitPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 
 	if (m_splitComponent->status() == QQmlComponent::Ready)
 		createMesoSplitPage_part2(splitletter);
@@ -230,11 +230,11 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 
 	DBMesoSplitModel* splitmodel(m_splitModels.value(splitletter));
 
-	m_splitProperties[u"splitModel"_s] = QVariant::fromValue(splitmodel);
-	m_splitProperties[u"parentItem"_s] = QVariant::fromValue(m_plannerPage);
-	m_splitProperties[u"splitManager"_s] = QVariant::fromValue(this);
+	m_splitProperties["splitModel"_L1] = QVariant::fromValue(splitmodel);
+	m_splitProperties["parentItem"_L1] = QVariant::fromValue(m_plannerPage);
+	m_splitProperties["splitManager"_L1] = QVariant::fromValue(this);
 	m_splitMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
-	m_splitProperties[u"muscularGroupId"_s] = m_splitMuscularGroupId;
+	m_splitProperties["muscularGroupId"_L1] = m_splitMuscularGroupId;
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_qmlEngine->rootContext())));
 	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
@@ -244,7 +244,7 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 							SLOT(requestExercisesList(QQuickItem*,QVariant,QVariant,int)));
 
 	if (splitmodel->count() == 0)
-		splitmodel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, u"4"_s, u"12"_s, u"20"_s);
+		splitmodel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, "4"_L1, "12"_L1, "20"_L1);
 	else
 		splitmodel->setCurrentRow(0);
 	setSplitPageProperties(item, splitmodel);

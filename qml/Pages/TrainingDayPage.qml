@@ -637,7 +637,7 @@ TPPage {
 	}
 
 	property TPComplexDialog adjustCalendarBox: null
-	function showAdjustCalendarDialog(newSplitLetter: string) {
+	function showAdjustCalendarDialog() {
 		if (!adjustCalendarBox) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
@@ -645,7 +645,7 @@ TPPage {
 				adjustCalendarBox = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Re-adjust meso calendar?"),
 					button1Text: qsTr("Adjust"), button2Text: qsTr("Cancel"), customItemSource:"TPDialogWithMessageAndCheckBox.qml",
 					customStringProperty1: lblHeader.text, customStringProperty2: qsTr("Only alter this day"), customStringProperty3: "calendar.png" });
-				adjustCalendarBox.button1Clicked.connect(function() { tDayManager.adjustCalendar(newSplitLetter, adjustCalendarBox.customBoolProperty1); });
+				adjustCalendarBox.button1Clicked.connect(function() { tDayManager.adjustCalendar(tDayManager.splitLetter, adjustCalendarBox.customBoolProperty1); });
 			}
 
 			if (component.status === Component.Ready)

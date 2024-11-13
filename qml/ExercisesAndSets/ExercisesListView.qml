@@ -139,7 +139,7 @@ Column {
 			id: delegate
 			spacing: 0
 			padding: 0
-			width: parent.width
+			width: lstExercises.width
 			height: 40
 
 			contentItem: Text {

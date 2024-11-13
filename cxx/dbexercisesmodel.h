@@ -118,6 +118,7 @@ public:
 		addModifiedIndex(index);
 	}
 
+	inline uint count() const override { return m_indexProxy.count(); }
 	Q_INVOKABLE void newExercise(const QString& name = QString(), const QString& subname = QString(), const QString& muscular_group = QString());
 	Q_INVOKABLE void removeExercise(const uint index);
 	Q_INVOKABLE void setFilter(const QString& filter, const bool resetSelection);
@@ -168,6 +169,7 @@ public:
 	bool updateFromModel(const TPListModel* const model) override;
 
 	int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return numberOfFields(); }
+	inline int rowCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex& index, int role) const override;
 	[[maybe_unused]] bool setData(const QModelIndex& index, const QVariant &value, int role) override;
 
@@ -175,9 +177,11 @@ signals:
 	void exerciseChanged(const uint index);
 
 private:
-	typedef struct {
+	typedef struct st_SelEntry{
 		uint real_index;
 		uint view_index;
+
+		explicit inline st_SelEntry() : real_index(0), view_index(0) {}
 	} selectedEntry;
 
 	QList<uint> m_indexProxy;

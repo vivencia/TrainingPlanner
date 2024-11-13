@@ -41,9 +41,10 @@ void DBTrainingDayTable::createTable()
 										"setsreps TEXT DEFAULT \"\","
 										"setsweights TEXT DEFAULT \"\","
 										"setsnotes TEXT DEFAULT \"\","
-										"setscompleted TEXT DEFAULT \"\")"_L1};
+										"setscompleted TEXT DEFAULT \"\")"_L1
+		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -174,7 +175,7 @@ void DBTrainingDayTable::getTrainingDay()
 				return;
 			}	
 		}
-		setResult(false, m_model, strQuery, SOURCE_LOCATION);
+		setResult(false, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -196,10 +197,11 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 				for (uint i(TDAY_EXERCISES_COL_NAMES); i < TDAY_EXERCISES_TOTALCOLS; ++i)
 					workout_info[i] = std::move(query.value(static_cast<int>(i)).toString());
 				m_model->fromDataBase(workout_info, bClearSomeFieldsForReUse);
+				m_model->setReady(true);
 				ok = true;
 			}
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -255,10 +257,11 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 							break;
 						}
 					} while (query.next());
+					m_model->setReady(true);
 				}
 			}
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -310,7 +313,7 @@ void DBTrainingDayTable::saveTrainingDay()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setId(query.lastInsertId().toString());
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -324,8 +327,11 @@ void DBTrainingDayTable::removeTrainingDay()
 							m_model->dateStr(), m_model->mesoIdStr())};
 		const bool ok = query.exec(strQuery);
 		if (ok)
-			m_model->clear();
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		{
+			m_model->clearFast();
+			m_model->setReady(false);
+		}
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

@@ -151,7 +151,7 @@ Drawer {
 			}
 
 			onClicked: {
-				itemManager.getExercisesPage(false);
+				itemManager.getExercisesPage();
 				close();
 			}
 		}
@@ -196,7 +196,7 @@ Drawer {
 			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, associatedItem: page,
 				"Layout.minimumWidth": drawer.width - 10, "Layout.maximumWidth": drawer.width - 10, "Layout.minimumHeight": 25,
 				"Layout.maximumHeight": 25 });
-			button.clicked.connect(function () { itemManager.openMainMenuShortCut();} );
+			button.clicked.connect(function (id) { itemManager.openMainMenuShortCut(id);} );
 			itemManager.addMainMenuShortCutEntry(button);
 		}
 

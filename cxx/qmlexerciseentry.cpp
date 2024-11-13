@@ -346,9 +346,8 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 		case SET_MODE_UNDEFINED:
 			if (set_number == 0 || !setObj->trackRestTime())
 			{
-				setObj->setCompleted(true);
+				changeSetCompleteStatus(set_number, true);
 				setObj->setMode(SET_MODE_SET_COMPLETED);
-				m_tDayModel->setSetCompleted(m_exercise_idx, set_number, true);
 				findCurrentSet();
 			}
 			else
@@ -362,14 +361,13 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 				startRestTimer(set_number, m_tDayModel->setRestTime(m_exercise_idx, set_number), false);
 		break;
 		case SET_MODE_START_EXERCISE:
-			setObj->setMode(SET_MODE_SET_COMPLETED);
-			m_tDayModel->setSetCompleted(m_exercise_idx, set_number, true);
 			stopRestTimer(set_number);
+			changeSetCompleteStatus(set_number, true);
 		break;
 		case SET_MODE_SET_COMPLETED:
 			if (set_number == 0 || !setObj->autoRestTime())
 			{
-				setObj->setCompleted(false);
+				changeSetCompleteStatus(set_number, false);
 				setObj->setMode(SET_MODE_UNDEFINED);
 			}
 			else
@@ -557,6 +555,13 @@ void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 	m_bIsCompleted = bAllSetsCompleted;
 }
 
+inline void QmlExerciseEntry::changeSetCompleteStatus(const uint set_number, const bool bCompleted)
+{
+	m_setObjects.at(set_number)->setCompleted(bCompleted);
+	m_tDayModel->setSetCompleted(m_exercise_idx, set_number, bCompleted);
+	enableDisableExerciseCompletedButton();
+}
+
 inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 {
 	if (!m_tDayModel->setCompleted(m_exercise_idx, set_number))
@@ -581,7 +586,7 @@ inline void QmlExerciseEntry::findCurrentSet()
 			if (!m_tDayModel->setCompleted(m_exercise_idx, i))
 			{
 				m_setObjects.at(i)->setCurrent(true);
-				m_setObjects.at(i)->setIsEditable(true);
+				m_setObjects.at(i)->setIsEditable(isEditable());
 				const QQuickItem* const setObj(m_setObjects.at(i)->setEntry());
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
 				break;
@@ -589,7 +594,7 @@ inline void QmlExerciseEntry::findCurrentSet()
 			else
 			{
 				m_setObjects.at(i)->setCurrent(false);
-				m_setObjects.at(i)->setIsEditable(true);
+				m_setObjects.at(i)->setIsEditable(false);
 			}
 		}
 	}

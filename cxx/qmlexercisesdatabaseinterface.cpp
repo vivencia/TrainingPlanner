@@ -37,7 +37,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 	int exportFileMessageId(0);
 	if (appExercisesModel()->collectExportData())
 	{
-		const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr("TrainingPlanner Exercises List.txt")};
+		const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
 		exportFileMessageId = appExercisesModel()->exportToFile(exportFileName);
 		if (exportFileMessageId >= 0)
 		{
@@ -87,9 +87,9 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QQuickItem* connectPage)
 
 void QmlExercisesDatabaseInterface::createExercisesPage(QQuickItem* connectPage)
 {
-	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/ExercisesPage.qml"_s}, QQmlComponent::Asynchronous};
-	m_exercisesProperties.insert(u"bChooseButtonEnabled"_s, connectPage != nullptr);
-	m_exercisesProperties.insert(u"exercisesManager"_s, QVariant::fromValue(this));
+	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
+	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
 
 	if (m_exercisesComponent->status() != QQmlComponent::Ready)
 	{

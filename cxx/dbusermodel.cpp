@@ -84,8 +84,8 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList(QStringList() << STR_MINUS_ONE << QString() << std::move(u"2451545"_s) << STR_ZERO << QString() <<
-		QString() << QString() << QString() << QString() << QString() << std::move(u"image://tpimageprovider/m5"_s) <<
+	appendList(QStringList() << STR_MINUS_ONE << QString() << std::move("2451545"_L1) << STR_ZERO << QString() <<
+		QString() << QString() << QString() << QString() << QString() << std::move("image://tpimageprovider/m5"_L1) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
 	return m_modeldata.count() - 1;
 }
@@ -106,7 +106,7 @@ int DBUserModel::findFirstUser(const bool bCoach)
 	m_searchRow = -1;
 	for (; searchRow < m_modeldata.count(); ++searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_s : u"0"_s))
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -125,7 +125,7 @@ int DBUserModel::findNextUser(const bool bCoach)
 	int searchRow(m_searchRow + 1);
 	for (; searchRow < m_modeldata.count(); ++searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_s : u"0"_s))
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -142,7 +142,7 @@ int DBUserModel::findPrevUser(const bool bCoach)
 	int searchRow(m_searchRow - 1);
 	for (; searchRow >= 0; --searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_s : u"0"_s))
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -156,7 +156,7 @@ int DBUserModel::findLastUser(const bool bCoach)
 	int searchRow(m_modeldata.count() - 1);
 	for (; searchRow >= 0; --searchRow)
 	{
-		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? u"2"_s : u"0"_s))
+		if (m_modeldata.at(searchRow).at(USER_COL_APP_USE_MODE) == (bCoach ? "2"_L1 : "0"_L1))
 		{
 			m_searchRow = searchRow;
 			break;
@@ -241,9 +241,9 @@ int DBUserModel::importFromFile(const QString& filename)
 						{
 							value = buf;
 							if (!isFieldFormatSpecial(col))
-								modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+								modeldata[col] = std::move(value.remove(0, value.indexOf(':') + 2));
 							else
-								modeldata[col] = formatFieldToImport(col, value.remove(0, value.indexOf(':') + 2));
+								modeldata[col] = std::move(formatFieldToImport(col, value.remove(0, value.indexOf(':') + 2)));
 						}
 						++col;
 					}
@@ -258,7 +258,7 @@ int DBUserModel::importFromFile(const QString& filename)
 	m_modeldata.append(modeldata);
 	inFile->close();
 	delete inFile;
-	return modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
+	return col >= USER_COL_APP_USE_MODE ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBUserModel::updateFromModel(const TPListModel* const model)
@@ -274,17 +274,17 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 		case USER_COL_BIRTHDAY:
 			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
 		case USER_COL_SEX:
-			return fieldValue == STR_ZERO ? tr("Male") : tr("Female");
+			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
 		case USER_COL_SOCIALMEDIA:
 		{
 			QString strSocial{fieldValue};
 			return strSocial.replace(record_separator, fancy_record_separator1);
 		}
 		case USER_COL_AVATAR:
-			if (fieldValue.contains(u"tpimageprovider"_s))
+			if (fieldValue.contains("tpimageprovider"_L1))
 				return fieldValue.last(fieldValue.length()-24);
 			else
-				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? u"Avatar-m5"_s : u"Avatar-f0"_s;
+				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? std::move("Avatar-m5"_L1) : std::move("Avatar-f0"_L1);
 		default: return QString();
 	}
 }
@@ -303,7 +303,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 			return strSocial.replace(fancy_record_separator1, record_separator);
 		}
 		case USER_COL_AVATAR:
-			return u"image://tpimageprovider/"_s + fieldValue.last(fieldValue.length()-7);
+			return "image://tpimageprovider/"_L1 + fieldValue.last(fieldValue.length()-7);
 		default: return QString();
 	}
 }

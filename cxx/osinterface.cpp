@@ -116,7 +116,7 @@ bool OSInterface::sendFile(const QString& filePath, const QString& title, const 
 void OSInterface::androidOpenURL(const QString& address) const
 {
 	QString url;
-	if (!address.startsWith(u"http"_s))
+	if (!address.startsWith("http"_L1))
 		url = u"https://" + address;
 	else
 		url = address;
@@ -135,7 +135,7 @@ void OSInterface::androidOpenURL(const QString& address) const
 
 bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
 {
-	const QString& attachment_file(attachment.isEmpty() ? QString() : u"file://"_s + attachment);
+	const QString& attachment_file(attachment.isEmpty() ? QString() : "file://"_L1 + attachment);
 	const QJniObject& jsAddress = QJniObject::fromString(address);
 	const QJniObject& jsSubject = QJniObject::fromString(subject);
 	const QJniObject& jsAttach = QJniObject::fromString(attachment_file);
@@ -181,16 +181,16 @@ void OSInterface::appStartUpNotifications()
 		{
 			QString message;
 			const QString& splitLetter{dayInfoList.at(2)};
-			if (splitLetter != u"R"_s) //day is training day
+			if (splitLetter != "R"_L1) //day is training day
 			{
 				if (dayInfoList.at(3) == STR_ONE) //day is completed
-					message = tr("Your training routine seems to go well. Workout for the day is concluded");
+					message = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
 				else
-					message = tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter;
+					message = std::move(tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter);
 			}
 			else
-				message = tr("Enjoy your day of rest from workouts!");
-			m_AndroidNotification->sendNotification(u"Training Planner"_s, message, WORKOUT_NOTIFICATION);
+				message = std::move(tr("Enjoy your day of rest from workouts!"));
+			m_AndroidNotification->sendNotification("Training Planner"_L1, message, WORKOUT_NOTIFICATION);
 		}
 		delete calTable;
 	}
@@ -346,10 +346,10 @@ void OSInterface::startChatApp(const QString& phone, const QString& appname) con
 	} while (++itr != itr_end);
 
 	QString address;
-	if (appname.contains(u"Whats"_s))
-		address = u"https://wa.me/"_s + phoneNumbers;
+	if (appname.contains("Whats"_L1))
+		address = std::move("https://wa.me/"_L1 + phoneNumbers);
 	else
-		address = u"https://t.me/+"_s + phoneNumbers;
+		address = std::move("https://t.me/+"_L1 + phoneNumbers);
 
 	openURL(address);
 }
@@ -359,7 +359,7 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 	#ifdef Q_OS_ANDROID
 	if (!androidSendMail(address, subject, attachment_file))
 	{
-		if (appUserModel()->email(0).contains(u"gmail.com"_s))
+		if (appUserModel()->email(0).contains("gmail.com"_L1))
 		{
 			const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
 			openURL(gmailURL);
@@ -367,15 +367,15 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 	}
 	#else
 	const QStringList& args (QStringList() <<
-		u"--utf8"_s << u"--subject"_s << QChar('\'') + subject + QChar('\'') << u"--attach"_s << attachment_file <<
+		"--utf8"_L1 << "--subject"_L1 << QChar('\'') + subject + QChar('\'') << "--attach"_L1 << attachment_file <<
 			QChar('\'') + address + QChar('\''));
 	auto* __restrict proc(new QProcess ());
-	proc->start(u"xdg-email"_s, args);
+	proc->start("xdg-email"_L1, args);
 	connect(proc, &QProcess::finished, this, [&,proc,address,subject] (int exitCode, QProcess::ExitStatus)
 	{
 		if (exitCode != 0)
 		{
-			if (appUserModel()->email(0).contains(u"gmail.com"_s))
+			if (appUserModel()->email(0).contains("gmail.com"_L1))
 			{
 				const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
 				openURL(gmailURL);
@@ -391,12 +391,12 @@ void OSInterface::viewExternalFile(const QString& filename) const
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString& localFile{m_appDataFilesPath + u"tempfile"_s + filename.last(4)};
+	const QString& localFile{m_appDataFilesPath + "tempfile"_L1 + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));
 	else
-		qDebug() << "coud not copy:  " << filename << "    to   " << localFile;
+		qDebug() << "could not copy:  " << filename << "    to   " << localFile;
 	#else
 	openURL(filename);
 	#endif

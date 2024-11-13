@@ -29,10 +29,10 @@ public:
 	virtual void clear();
 	void clearFast();
 
+	virtual inline uint count() const { return m_modeldata.count(); }
+	inline int currentRow() const { return m_currentRow; }
+	void setCurrentRow(const int row);
 	Q_INVOKABLE void removeRow (const uint row);
-	Q_INVOKABLE inline uint count() const { return m_modeldata.count(); }
-	Q_INVOKABLE inline int currentRow() const { return m_currentRow; }
-	Q_INVOKABLE void setCurrentRow(const int row);
 	Q_INVOKABLE void moveRow(const uint from, const uint to);
 
 	[[nodiscard]] inline const QString& columnLabel(const uint col) const { return mColumnNames.at(col); }

@@ -164,6 +164,7 @@ private:
 	void createSetObject(const uint set_number, const uint type);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void enableDisableExerciseCompletedButton();
+	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
 	inline uint findSetMode(const uint set_number) const;
 	inline void findCurrentSet();
 	void startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch);

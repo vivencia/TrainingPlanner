@@ -10,12 +10,12 @@
 DBExercisesTable::DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model)
 	: TPDatabaseTable{}, m_model(model), m_exercisesTableLastId(1000)
 {
-	m_tableName = u"exercises_table"_s;
+	m_tableName = std::move("exercises_table"_L1);
 	m_tableID = EXERCISES_TABLE_ID;
 	setObjectName(DBExercisesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(u"db_exercises_connection"_s + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
+	const QString& cnx_name{"db_exercises_connection"_L1 + QString::number(m_UniqueID)};
+	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
 	const QString& dbname(dbFilePath + DBExercisesFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -25,7 +25,7 @@ void DBExercisesTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"CREATE TABLE IF NOT EXISTS exercises_table ("
+		const QString& strQuery{"CREATE TABLE IF NOT EXISTS exercises_table ("
 										"id INTEGER PRIMARY KEY,"
 										"primary_name TEXT,"
 										"secondary_name TEXT,"
@@ -36,10 +36,10 @@ void DBExercisesTable::createTable()
 										"weight_unit TEXT,"
 										"media_path TEXT,"
 										"from_list INTEGER"
-									")"_s
-		);
+									")"_L1
+		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, nullptr, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -54,7 +54,7 @@ void DBExercisesTable::getAllExercises()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT * FROM exercises_table"_s);
+		const QString& strQuery{"SELECT * FROM exercises_table"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first())
@@ -81,8 +81,9 @@ void DBExercisesTable::getAllExercises()
 				mSqlLiteDB.close();
 				updateExercisesList();
 			}
+			m_model->setReady(true);
 		}
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -92,7 +93,7 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		setResult(false, m_model, u"DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_s, SOURCE_LOCATION);
+		setResult(false, "DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_L1, SOURCE_LOCATION);
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
@@ -105,7 +106,7 @@ void DBExercisesTable::updateExercisesList()
 		uint idx(0);
 
 		//remove previous list entries from DB
-		const QString& strQuery(u"DELETE FROM exercises_table WHERE from_list=1"_s);
+		const QString& strQuery{"DELETE FROM exercises_table WHERE from_list=1"_L1};
 		ok = query.exec(strQuery);
 		if (!ok)
 		{
@@ -114,9 +115,9 @@ void DBExercisesTable::updateExercisesList()
 		}
 		query.finish();
 
-		const QString& queryStart(u"INSERT INTO exercises_table "
+		const QString& queryStart{"INSERT INTO exercises_table "
 								"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-								" VALUES "_s);
+								" VALUES "_L1};
 
 		QStringList::const_iterator itr(m_ExercisesList.constBegin());
 		const QStringList::const_iterator& itr_end(m_ExercisesList.constEnd());
@@ -137,7 +138,7 @@ void DBExercisesTable::updateExercisesList()
 		}
 		else
 			static_cast<void>(mSqlLiteDB.commit());
-		setResult(ok, m_model, queryStart + queryValues, SOURCE_LOCATION);
+		setResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 		if (ok)
 			emit updatedFromExercisesList();
 	}
@@ -153,11 +154,11 @@ void DBExercisesTable::saveExercises()
 		uint highest_id(0);
 		QString strQuery;
 
-		const QString& queryInsert(u"INSERT INTO exercises_table"
+		const QString& queryInsert{"INSERT INTO exercises_table"
 							"(id,primary_name,secondary_name,muscular_group,sets,reps,weight,weight_unit,media_path,from_list)"
-							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_s);
-		const QString& queryUpdate(u"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
-							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_s);
+							" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', 0) "_L1};
+		const QString& queryUpdate{"UPDATE exercises_table SET primary_name=\'%1\', secondary_name=\'%2\', muscular_group=\'%3\', "
+							"sets=\'%4\', reps=\'%5\', weight=\'%6\', weight_unit=\'%7\', media_path=\'%8\', from_list=0 WHERE id=%9 "_L1};
 		for (uint i(0); i < m_model->modifiedIndicesCount(); ++i)
 		{
 			const uint& idx(m_model->modifiedIndex(i));
@@ -180,7 +181,7 @@ void DBExercisesTable::saveExercises()
 		}
 		static_cast<void>(mSqlLiteDB.commit());
 		const bool ok = query.exec(strQuery);
-		setResult(ok, m_model, strQuery, SOURCE_LOCATION);
+		setResult(ok, strQuery, SOURCE_LOCATION);
 		if (ok)
 		{
 			m_exercisesTableLastId = highest_id;
@@ -192,7 +193,7 @@ void DBExercisesTable::saveExercises()
 
 void DBExercisesTable::getExercisesList()
 {
-	QFile exercisesListFile(u":/extras/exerciseslist.lst"_s);
+	QFile exercisesListFile{":/extras/exerciseslist.lst"_L1};
 	if (exercisesListFile.open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		char buf[512];

@@ -24,7 +24,8 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 {
 	if (!m_calComponent)
 	{
-		appDBInterface()->getMesoCalendar(m_mesoIdx);
+		if (!appMesoModel()->mesoCalendarModel(m_mesoIdx)->isReady())
+			appDBInterface()->getMesoCalendar(m_mesoIdx);
 		createMesoCalendarPage();
 	}
 	else
