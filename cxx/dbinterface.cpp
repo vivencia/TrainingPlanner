@@ -368,8 +368,6 @@ void DBInterface::loadCompleteMesoSplit(DBMesoSplitModel* splitModel)
 void DBInterface::loadAllSplits(const uint meso_idx)
 {
 	const QString& mesoSplit{appMesoModel()->split(meso_idx)};
-	QString mesoLetters;
-
 	if (m_allSplits.isEmpty())
 		for(char c('A'); c <= char('F'); ++c)
 			m_allSplits.insert(c, new DBMesoSplitModel{this, true, meso_idx});

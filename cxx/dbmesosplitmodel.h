@@ -31,9 +31,11 @@ class DBMesoSplitModel : public TPListModel
 {
 
 Q_OBJECT
-QML_ELEMENT
 
 Q_PROPERTY(int workingSet READ workingSet WRITE setWorkingSet NOTIFY workingSetChanged)
+Q_PROPERTY(QString instructionsLabel READ instructionsLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString typeLabel READ typeLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString subSetsLabel READ subSetsLabel NOTIFY labelsChanged FINAL)
 
 public:
 	explicit DBMesoSplitModel(QObject* parent, const bool bComplete, const uint meso_idx = 0);
@@ -58,6 +60,10 @@ public:
 	{
 		m_modeldata[row][field] = value;
 	}
+
+	inline QString instructionsLabel() const { return columnLabel(MESOSPLIT_COL_NOTES); }
+	inline QString typeLabel() const { return columnLabel(MESOSPLIT_COL_SETTYPE); }
+	inline QString subSetsLabel() const { return columnLabel(MESOSPLIT_COL_SUBSETSNUMBER); }
 
 	Q_INVOKABLE inline QString muscularGroup() const { return m_muscularGroup; }
 	Q_INVOKABLE inline void setMuscularGroup(const QString& muscularGroup) { m_muscularGroup = muscularGroup; }
@@ -120,7 +126,6 @@ public:
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
-	Q_INVOKABLE void changeExercise(const DBExercisesModel* const model);
 	Q_INVOKABLE QString findSwappableModel() const;
 
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
@@ -143,6 +148,7 @@ signals:
 	void setTypeChanged();
 	void workingSetChanged();
 	void splitChanged(const uint meso_idx, const uint field);
+	void labelsChanged();
 
 private:
 	uint m_nextAddedExercisePos;
@@ -153,6 +159,7 @@ private:
 
 	QString getFromCompositeValue(const uint row, const uint set_number, const uint field, const uint pos) const;
 	void replaceCompositeValue(const uint row, const uint set_number, const uint field, const uint pos, const QString& value);
+	void fillColumnNames();
 };
 
 //Q_DECLARE_METATYPE(DBMesoSplitModel*)

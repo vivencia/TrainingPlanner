@@ -1,9 +1,11 @@
 #include "dbmesosplitmodel.h"
-#include "tpglobals.h"
-#include "dbtrainingdaymodel.h"
+
 #include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
+#include "dbtrainingdaymodel.h"
+#include "tpglobals.h"
 #include "tputils.h"
+#include "translationclass.h"
 
 #include <utility>
 
@@ -12,36 +14,19 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 {
 	setObjectName(DBMesoSplitObjectName);
 	m_tableId = MESOSPLIT_TABLE_ID;
-	m_exportName = std::move(tr("Exercises Program"));
+	m_exportName = std::move(tr("Exercises Program"));	
+	const uint totalCols(mb_Complete ? COMPLETE_MESOSPLIT_TOTAL_COLS : SIMPLE_MESOSPLIT_TOTAL_COLS);
+	m_fieldCount = totalCols;
+	m_modeldata.reserve(totalCols);
+	mColumnNames.reserve(totalCols);
+	for(uint i(0); i < totalCols; ++i)
+		mColumnNames.append(QString());
+	fillColumnNames();
 
-	if (mb_Complete)
-	{
-		m_fieldCount = COMPLETE_MESOSPLIT_TOTAL_COLS;
-		m_modeldata.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.reserve(COMPLETE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.append(std::move(tr("Exercise name: ")));
-		mColumnNames.append(std::move(tr("Number of sets: ")));
-		mColumnNames.append(std::move(tr("Set instructions: ")));
-		mColumnNames.append(std::move(tr("Set type: ")));
-		mColumnNames.append(std::move(tr("Number of subsets: ")));
-		mColumnNames.append(std::move(tr("Reps: ")));
-		mColumnNames.append(std::move(tr("Weight: ")));
-		mColumnNames.append(QString()); //MESOSPLIT_COL_WORKINGSET
-	}
-	else
-	{
-		m_fieldCount = SIMPLE_MESOSPLIT_TOTAL_COLS;
-		m_modeldata.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.reserve(SIMPLE_MESOSPLIT_TOTAL_COLS);
-		mColumnNames.append(QString()); //MESOSPLIT_COL_ID
-		mColumnNames.append(QString()); //MESOSPLIT_COL_MESOID
-		mColumnNames.append(std::move(tr("Split A: ")));
-		mColumnNames.append(std::move(tr("Split B: ")));
-		mColumnNames.append(std::move(tr("Split C: ")));
-		mColumnNames.append(std::move(tr("Split D: ")));
-		mColumnNames.append(std::move(tr("Split E: ")));
-		mColumnNames.append(std::move(tr("Split F: ")));
-	}
+	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+		fillColumnNames();
+		emit labelsChanged();
+	});
 }
 
 void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDayModel)
@@ -185,6 +170,8 @@ void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const u
 	appUtils()->setCompositeValue(set_number, QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], set_separator);
 	setModified(row, MESOSPLIT_COL_SETTYPE);
 	emit setTypeChanged();
+	if (exerciseName(row).isEmpty())
+		setExerciseName(row, new_type != SET_TYPE_GIANT ? tr("Choose exercise...") : tr("Choose exercises..."));
 }
 
 QString DBMesoSplitModel::setSubsets(const int row, const uint set_number) const
@@ -264,38 +251,6 @@ void DBMesoSplitModel::setWorkingSet(const uint row, const uint new_workingset, 
 	m_modeldata[row][MESOSPLIT_COL_WORKINGSET] = QString::number(new_workingset);
 	if (emitSignal)
 		emit workingSetChanged();
-}
-
-void DBMesoSplitModel::changeExercise(const DBExercisesModel* const model)
-{
-	QString name, reps, weight;
-	const uint nSel(model->selectedEntriesCount());
-
-	if (nSel == 1)
-	{
-		name = model->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
-				model->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME);
-		reps = model->selectedEntriesValue(0, EXERCISES_COL_REPSNUMBER);
-		weight = model->selectedEntriesValue(0, EXERCISES_COL_WEIGHT);
-	}
-	else
-	{
-		for (uint i(0); i < nSel; ++i)
-		{
-			name += model->selectedEntriesValue_fast(i, EXERCISES_COL_MAINNAME) + " - "_L1 +
-					model->selectedEntriesValue_fast(i, EXERCISES_COL_SUBNAME) + comp_exercise_separator;
-			reps += model->selectedEntriesValue(i, EXERCISES_COL_REPSNUMBER) + comp_exercise_separator;
-			weight += model->selectedEntriesValue(i, EXERCISES_COL_WEIGHT) + comp_exercise_separator;
-		}
-		name.chop(1);
-		reps.chop(1);
-		weight.chop(1);
-	}
-
-	setExerciseName(currentRow(), name);
-	setSetReps(currentRow(), workingSet(), reps);
-	setSetWeight(currentRow(), workingSet(), weight);
-	setSetsNumber(currentRow(), model->selectedEntriesValue(0, EXERCISES_COL_SETSNUMBER).toUInt());
 }
 
 static void muscularGroupSimplified(QString& muscularGroup)
@@ -563,4 +518,27 @@ void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_numb
 	}
 	appUtils()->setCompositeValue(set_number, fieldValue, m_modeldata[row][field], comp_exercise_separator);
 	setModified(row, field);
+}
+
+void DBMesoSplitModel::fillColumnNames()
+{
+	if (mb_Complete)
+	{
+		mColumnNames[MESOSPLIT_COL_EXERCISENAME] = std::move(tr("Exercise name: "));
+		mColumnNames[MESOSPLIT_COL_SETSNUMBER] = std::move(tr("Number of sets: "));
+		mColumnNames[MESOSPLIT_COL_NOTES] = std::move(tr("Set instructions: "));
+		mColumnNames[MESOSPLIT_COL_SETTYPE] = std::move(tr("Set type: "));
+		mColumnNames[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(tr("Number of subsets: "));
+		mColumnNames[MESOSPLIT_COL_REPSNUMBER] = std::move(tr("Reps: "));
+		mColumnNames[MESOSPLIT_COL_WEIGHT] = std::move(tr("Weight: "));
+	}
+	else
+	{
+		mColumnNames[MESOSPLIT_A] = std::move(tr("Split A: "));
+		mColumnNames[MESOSPLIT_B] = std::move(tr("Split B: "));
+		mColumnNames[MESOSPLIT_C] = std::move(tr("Split C: "));
+		mColumnNames[MESOSPLIT_D] = std::move(tr("Split D: "));
+		mColumnNames[MESOSPLIT_E] = std::move(tr("Split E: "));
+		mColumnNames[MESOSPLIT_F] = std::move(tr("Split F: "));
+	}
 }

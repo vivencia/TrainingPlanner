@@ -18,6 +18,9 @@ TPPage {
 	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
 
+	signal exerciseSelectedFromSimpleExercisesList();
+	signal simpleExercisesListClosed();
+
 	Keys.onPressed: (event) => {
 		if (event.key === mainwindow.backKey) {
 			event.accepted = true;
@@ -31,13 +34,7 @@ TPPage {
 	SwipeView {
 		id: splitView
 		interactive: !exercisesPane.visible
-		height: parent.height
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
+		anchors.fill: parent
 	} //SwipeView
 
 	PageIndicator {
@@ -115,7 +112,6 @@ TPPage {
 			onClicked: {
 				currentPage.splitModel.clear();
 				currentPage.appendNewExerciseToDivision();
-				requestSimpleExercisesList(null, false);
 			}
 		}
 
@@ -183,12 +179,17 @@ TPPage {
 	SimpleExercisesListPanel {
 		id: exercisesPane
 		parentPage: pagePlanner
+		onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
+		onListClosed: simpleExercisesListClosed();
 	}
 
-	function requestSimpleExercisesList(object, visible, multipleSel) {
-		exercisesPane.itemThatRequestedSimpleList = visible ? object : null;
+	function hideSimpleExercisesList() {
+		exercisesPane.visible = false;
+	}
+
+	function showSimpleExercisesList(multipleSel: bool) {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
-		exercisesPane.visible = visible;
+		exercisesPane.open();
 	}
 
 	function createNavButtons() {

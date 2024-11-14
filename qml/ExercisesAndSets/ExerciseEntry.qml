@@ -15,8 +15,6 @@ FocusScope {
 
 	required property ExerciseEntryManager exerciseManager
 
-	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
-
 	Frame {
 		id: paneExercise
 		visible: height > 0
@@ -126,7 +124,7 @@ FocusScope {
 					Keys.onReturnPressed: txtNReps.forceActiveFocus();
 					onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
 					onRemoveButtonClicked: exerciseManager.removeExercise();
-					onEditButtonClicked: requestSimpleExercisesList(exerciseItem, !readOnly, true, 1);
+					onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
 					onItemClicked: paneExerciseShowHide(!paneExercise.shown);
 				}
 			} //Row txtExerciseName

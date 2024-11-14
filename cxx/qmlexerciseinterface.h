@@ -35,11 +35,11 @@ public:
 	void gotoNextExercise(const uint exercise_idx) const;
 	void hideSets() const;
 	void showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel);
-	void hideSimpleExercisesList();
 	inline uint exercisesCount() const { return m_exercisesList.count(); }
 
 public slots:
 	void exerciseSelected();
+	void hideSimpleExercisesList();
 
 private:
 	QmlTDayInterface* m_tDayPage;

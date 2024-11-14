@@ -167,7 +167,6 @@ void DBTrainingDayTable::getTrainingDay()
 				QStringList& split_info(m_model->getRow(0));
 				for (uint i(TDAY_COL_ID); i < TDAY_TOTAL_COLS; ++i)
 					split_info[i] = std::move(query.value(static_cast<int>(i)).toString());
-				mSqlLiteDB.close();
 				m_model->setReady(true);
 				SUCCESS_MESSAGE_WITH_STATEMENT(DEFINE_SOURCE_LOCATION PRINT_SOURCE_LOCATION)
 				mSqlLiteDB.close();

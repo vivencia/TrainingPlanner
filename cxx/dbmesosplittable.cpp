@@ -178,6 +178,7 @@ void DBMesoSplitTable::getAllSplits()
 						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(c).arg(mesoId)};
 			bool ok(false);
 
+			(*splitModel)->setSplitLetter(c);
 			if (query.exec(strQuery))
 			{
 				if (query.first ())
@@ -206,10 +207,20 @@ void DBMesoSplitTable::getAllSplits()
 					ok = true;
 					(*splitModel)->setReady(true);
 				}
+				else
+					ok = false;
 			}
-			setResult(ok, strQuery, SOURCE_LOCATION);
+			#ifndef QT_NO_DEBUG
+			DEFINE_SOURCE_LOCATION
+			if (ok)
+				SUCCESS_MESSAGE_WITH_STATEMENT(PRINT_SOURCE_LOCATION)
+			else
+				ERROR_MESSAGE(strQuery, "")
+			#endif
+			query.finish();
 			++splitModel;
 		}
+		mSqlLiteDB.close();
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

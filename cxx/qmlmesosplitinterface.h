@@ -18,7 +18,7 @@ Q_OBJECT
 
 public:
 	explicit inline QmlMesoSplitInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_plannerComponent(nullptr), m_mesoIdx(meso_idx) {}
+		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_plannerComponent(nullptr), m_splitComponent(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoSplitInterface();
 
 	void setMesoIdx(const uint new_meso_idx);
@@ -27,6 +27,7 @@ public:
 	Q_INVOKABLE void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id);
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel);
+	Q_INVOKABLE void simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath = QString(), const bool bJustExport = false);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
 
@@ -38,6 +39,10 @@ signals:
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
 	void addPageToMainMenu(const QString& label, QQuickItem* page);
 	void removePageFromMainMenu(QQuickItem* page);
+
+public slots:
+	void exerciseSelected();
+	void hideSimpleExercisesList();
 
 private:
 	QQmlApplicationEngine* m_qmlEngine;
@@ -51,6 +56,9 @@ private:
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
 	uint m_mesoIdx, m_splitMuscularGroupId;
+
+	DBMesoSplitModel* m_simpleExercisesListRequester;
+	uint m_simpleExercisesListExerciseIdx;
 
 	void createPlannerPage();
 	void createPlannerPage_part2();

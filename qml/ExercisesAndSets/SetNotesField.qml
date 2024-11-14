@@ -28,6 +28,7 @@ Frame {
 		TPLabel {
 			id: label
 			text: qsTr("Notes:")
+			fontColor: foreColor
 			height: 20
 			Layout.alignment: Qt.AlignLeft
 			Layout.fillWidth: false

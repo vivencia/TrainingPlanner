@@ -22,16 +22,9 @@ Frame {
 	property string prevMesoName
 	property int prevMesoId
 
-	property bool bListRequestForExercise1: false
-	property bool bListRequestForExercise2: false
-
-	signal requestSimpleExercisesList(Item requester, var bVisible, var bMultipleSelection, int id)
-
 	width: appSettings.pageWidth
-	height: appSettings.pageHeight - 55
 	padding: 0
 	spacing: 0
-	Layout.leftMargin: 5
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -105,16 +98,14 @@ Frame {
 			id: lstSplitExercises
 			boundsBehavior: Flickable.StopAtBounds
 			flickableDirection: Flickable.VerticalFlick
-			contentHeight: totalHeight * 1.1 + 20//contentHeight: Essencial for the ScrollBars to work.
+			contentHeight: totalHeight * 1.1//contentHeight: Essencial for the ScrollBars to work.
 			property int totalHeight
 
 			anchors {
 				top: txtGroups.bottom
 				topMargin: 10
 				left: parent.left
-				leftMargin: 5
 				right: parent.right
-				rightMargin: 5
 				bottom: parent.bottom
 				bottomMargin: 10
 			}
@@ -153,16 +144,23 @@ Frame {
 
 				ColumnLayout {
 					id: contentsLayout
-					anchors.fill: parent
-					spacing: 5
+					spacing: 10
+
+					anchors {
+						fill: parent
+						topMargin: 5
+						leftMargin: 5
+						rightMargin: 5
+						bottomMargin: 5
+					}
 
 					TPRadioButton {
 						id: optCurrentExercise
 						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
 						textColor: "black"
 						checked: index === splitModel.currentRow
-						Layout.minimumWidth: parent.width
-						Layout.maximumWidth: parent.width
+						width: parent.width
+						Layout.preferredWidth: width
 
 						onClicked: splitModel.currentRow = index;
 
@@ -205,10 +203,10 @@ Frame {
 						id: txtExerciseName
 						text: splitModel.exerciseName(index)
 						enabled: index === splitModel.currentRow
-						Layout.leftMargin: 5
-						Layout.minimumWidth: parent.width - 20
-						Layout.maximumWidth: parent.width - 20
-						Layout.maximumHeight: 70
+						width: parent.width*0.9
+						height: appSettings.pageHeight*0.08
+						Layout.preferredWidth: width
+						Layout.preferredHeight: height
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
@@ -228,7 +226,7 @@ Frame {
 
 						onEditButtonClicked: {
 							splitModel.currentRow = index;
-							requestSimpleExercisesList(paneSplit, !readOnly, cboSetType.currentIndex === 4, 0);
+							splitManager.simpleExercisesList(splitModel, !readOnly, cboSetType.currentIndex === 4, 0);
 						}
 
 						onMousePressed: (mouse) => {
@@ -248,10 +246,8 @@ Frame {
 					} //ExerciseNameField
 
 					SetNotesField {
-						info: splitModel.columnLabel(2)
+						info: splitModel.instructionsLabel
 						text: splitModel.setsNotes(index)
-						Layout.leftMargin: 5
-						Layout.fillWidth: true
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
 					}
@@ -263,7 +259,7 @@ Frame {
 						Layout.rightMargin: 0
 						Layout.bottomMargin: 0
 						Layout.topMargin: -20
-						height: 256
+						height: appSettings.pageHeight*0.3
 						enabled: index === splitModel.currentRow
 
 						background: Rectangle {
@@ -326,11 +322,9 @@ Frame {
 											height: setsTabBar.height
 											checkable: true
 											checked: index === setsTabBar.currentIndex
-											width: 70
+											width: paneSets.width*0.22
 
-											contentItem: IconLabel {
-												spacing: tabbutton.spacing
-												display: AbstractButton.TextOnly
+											contentItem: Label {
 												text: tabbutton.text
 												font.pixelSize: appSettings.smallFontSize
 												color: appSettings.fontColor
@@ -371,25 +365,22 @@ Frame {
 								Layout.rightMargin: 20
 
 								TPLabel {
-									text: splitModel.columnLabel(3)
-									Layout.minimumWidth: listItem.width/2 - 40
-									Layout.maximumWidth: listItem.width/2 - 40
+									text: splitModel.typeLabel
+									fontColor: "black"
+									width: listItem.width*0.4
+									Layout.preferredWidth: width
 								}
 								TPComboBox {
 									id: cboSetType
 									enabled: index === splitModel.currentRow
 									model: AppGlobals.setTypesModel
-									implicitWidth: 160
 									currentIndex: splitModel.setType(index, splitModel.workingSet)
+									width: listItem.width*0.55
 									Layout.rightMargin: 5
 
 									onActivated: (cboIndex) => {
 										setListItemHeight(lstSplitExercises.currentItem, cboIndex);
 										splitModel.setSetType(index, splitModel.workingSet, cboIndex);
-										if (cboIndex !== 4)
-											txtExerciseName.text = (qsTr("Choose exercise..."));
-										else
-											txtExerciseName.text = (qsTr("Choose exercises..."));
 									}
 								}
 							}
@@ -401,7 +392,8 @@ Frame {
 								Layout.fillWidth: true
 
 								TPLabel {
-									text: splitModel.columnLabel(4)
+									text: splitModel.subSetsLabel
+									fontColor: "black"
 									Layout.minimumWidth: listItem.width/2
 								}
 								SetInputField {
@@ -411,7 +403,7 @@ Frame {
 									availableWidth: listItem.width / 3
 									showLabel: false
 
-									onValueChanged: (str) => splitModel.setsetSubsets(index, splitModel.workingSet, str);
+									onValueChanged: (str) => splitModel.setSetsSubsets(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function() {
@@ -441,17 +433,15 @@ Frame {
 								TPLabel {
 									id: lblExercise1
 									text: splitModel.exerciseName1(index)
-									width: listItem.width*0.5-10
+									width: listItem.width*0.5
 									Layout.alignment: Qt.AlignCenter
-									Layout.maximumWidth: width
-									Layout.minimumWidth: width
+									Layout.preferredWidth: width
 
 									MouseArea {
 										anchors.fill: parent
 										onClicked: {
 											splitModel.currentRow = index;
-											bListRequestForExercise1 = true;
-											requestSimpleExercisesList(paneSplit, true, false, 0);
+											splitManager.simpleExercisesList(splitModel, true, false, 1);
 										}
 									}
 								}
@@ -459,17 +449,15 @@ Frame {
 								TPLabel {
 									id: lblExercise2
 									text: splitModel.exerciseName2(index)
-									width: listItem.width*0.5-10
+									width: listItem.width*0.5
 									Layout.alignment: Qt.AlignCenter
-									Layout.maximumWidth: width
-									Layout.minimumWidth: width
+									Layout.preferredWidth: width
 
 									MouseArea {
 										anchors.fill: parent
 										onClicked: {
 											splitModel.currentRow = index;
-											bListRequestForExercise2 = true;
-											requestSimpleExercisesList(paneSplit, true, false, 0);
+											splitManager.simpleExercisesList(splitModel, true, false, 2);
 										}
 									}
 								}
@@ -614,7 +602,7 @@ Frame {
 
 				contentItem: Rectangle {
 					id: listItem
-					width: lstSplitExercises.width - 10
+					width: lstSplitExercises.width
 					border.color: "transparent"
 					color: "transparent"
 					radius: 5
@@ -667,27 +655,6 @@ Frame {
 		if (splitModel.count === 0)
 			appendNewExerciseToDivision();
 		splitModel.setCurrentRow(idx);
-	}
-
-	function changeExercise(fromList: bool) {
-		if (bListRequestForExercise1) {
-			splitModel.exerciseName1 = exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2);
-			splitModel.setsNumber = exercisesModel.selectedEntriesValue(0, 4);
-			splitModel.setReps1 = exercisesModel.selectedEntriesValue(0, 5);
-			splitModel.setWeight1 = exercisesModel.selectedEntriesValue(0, 6);
-			bListRequestForExercise1 = false;
-			requestSimpleExercisesList(null, false, false, 0);
-		}
-		else if (bListRequestForExercise2) {
-			splitModel.exerciseName2 = exercisesModel.selectedEntriesValue(0, 1) + " - " + exercisesModel.selectedEntriesValue(0, 2);
-			splitModel.setsNumber = exercisesModel.selectedEntriesValue(0, 4);
-			splitModel.setReps2 = exercisesModel.selectedEntriesValue(0, 5);
-			splitModel.setWeight2 = exercisesModel.selectedEntriesValue(0, 6);
-			bListRequestForExercise2 = false;
-			requestSimpleExercisesList(null, false, false, 0);
-		}
-		else
-			splitModel.changeExercise(exercisesModel);
 	}
 
 	function updateTxtGroups(musculargroup: string)

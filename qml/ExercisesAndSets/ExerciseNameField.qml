@@ -127,7 +127,6 @@ Item {
 
 		anchors {
 			left: txtField.right
-			leftMargin: -10
 			verticalCenter: control.verticalCenter
 		}
 

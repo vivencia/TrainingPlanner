@@ -176,10 +176,15 @@ void QmlExerciseInterface::showSimpleExercisesList(const uint exercise_idx, cons
 	if (m_simpleExercisesListRequester < 0)
 	{
 		m_simpleExercisesListRequester = exercise_idx;
-		connect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
-		connect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
+		connect(m_tDayPage->tDayPage(), SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
+		connect(m_tDayPage->tDayPage(), SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
 		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "showSimpleExercisesList", Q_ARG(bool, bMultiSel));
 	}
+}
+
+void QmlExerciseInterface::exerciseSelected()
+{
+	getInfoFromExercisesList(m_exercisesList.at(m_simpleExercisesListRequester));
 }
 
 void QmlExerciseInterface::hideSimpleExercisesList()
@@ -188,11 +193,6 @@ void QmlExerciseInterface::hideSimpleExercisesList()
 	disconnect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
 	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "hideSimpleExercisesList");
 	m_simpleExercisesListRequester = -1;
-}
-
-void QmlExerciseInterface::exerciseSelected()
-{
-	getInfoFromExercisesList(m_exercisesList.at(m_simpleExercisesListRequester));
 }
 
 void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)

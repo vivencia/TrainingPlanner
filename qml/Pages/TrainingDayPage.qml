@@ -709,7 +709,7 @@ TPPage {
 		exercisesPane.visible = false;
 	}
 
-	function showSimpleExercisesList(multipleSel) {
+	function showSimpleExercisesList(multipleSel: bool) {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
 		exercisesPane.open();
 	}
