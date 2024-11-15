@@ -84,9 +84,9 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList(QStringList() << STR_MINUS_ONE << QString() << std::move("2451545"_L1) << STR_ZERO << QString() <<
+	appendList_fast(std::move(QStringList() << STR_MINUS_ONE << QString() << std::move("2451545"_L1) << STR_ZERO << QString() <<
 		QString() << QString() << QString() << QString() << QString() << std::move("image://tpimageprovider/m5"_L1) <<
-		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client));
+		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
 }
 

@@ -160,7 +160,9 @@ public:
 	inline int lastID() const { return m_exercisesTableLastId; }
 	bool collectExportData();
 
+	inline QStringList& lastRow() { return m_modeldata.last(); }
 	void appendList(const QStringList& list);
+	void appendList(QStringList&& list);
 	void clear() override;
 	QString makeTransactionStatementForDataBase(const uint index) const;
 

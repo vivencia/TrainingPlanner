@@ -24,8 +24,9 @@ Item {
 
 	TextField {
 		id: txtField
-		font.bold: true
-		font.pixelSize: appSettings.fontSize
+		font.weight: Font.Bold
+	    font.hintingPreference: Font.PreferFullHinting
+	    font.pixelSize: appSettings.fontSize
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -37,6 +38,7 @@ Item {
 		rightInset: 0
 		bottomInset: 0
 		width: 0.8*control.width
+		height: control.height
 
 		anchors {
 			top: control.top

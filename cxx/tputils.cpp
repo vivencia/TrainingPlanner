@@ -200,6 +200,21 @@ QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString
 	return QTime(hour, min, 0);
 }
 
+QString TPUtils::makeCompositeValue(const QString& defaultValue, const uint n_fields, const QLatin1Char& chr_sep) const
+{
+	QString comp;
+	for(uint i(0); i < n_fields; ++i)
+		comp += defaultValue + chr_sep;
+	return comp;
+}
+
+QString TPUtils::makeDoubleCompositeValue(const QString& defaultValue, const uint n_fields1, const uint n_fields2,
+												const QLatin1Char& chr_sep1, const QLatin1Char& chr_sep2) const
+{
+	QString comp1{std::move(makeCompositeValue(defaultValue, n_fields1, chr_sep1))};
+	return makeCompositeValue(comp1, n_fields2, chr_sep2);
+}
+
 QString TPUtils::getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const
 {
 	QString::const_iterator itr(compositeString.constBegin());
@@ -257,6 +272,23 @@ void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString
 	while (++n_seps < idx)
 		compositeString += chr_sep;
 	compositeString += newValue + chr_sep;
+}
+
+void TPUtils::removeFieldFromCompositeValue(const uint idx, QString& compositeString, const QLatin1Char& chr_sep) const
+{
+	int sep_pos(compositeString.indexOf(chr_sep));
+	int n_seps(-1), del_pos_1(0), del_pos_2(-1);
+	do {
+		++n_seps;
+		if (n_seps == idx)
+		{
+			del_pos_2 = sep_pos;
+			break;
+		}
+		del_pos_1 = sep_pos + 1;
+		sep_pos = compositeString.indexOf(chr_sep, sep_pos + 1);
+	} while(sep_pos != -1);
+	compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
 }
 
 bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2) const

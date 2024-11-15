@@ -20,6 +20,7 @@ QtObject {
 	    weight: Font.Medium,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
+	    hintingPreference: Font.PreferFullHinting,
 	    pixelSize: appSettings.fontSize
 	})
 
@@ -34,6 +35,7 @@ QtObject {
 	    weight: Font.DemiBold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
+	    hintingPreference: Font.PreferFullHinting,
 	    pixelSize: appSettings.smallFontSize
 	})
 
@@ -48,6 +50,7 @@ QtObject {
 	    weight: Font.DemiBold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
+	    hintingPreference: Font.PreferFullHinting,
 	    pixelSize: appSettings.largeFontSize
 	})
 
@@ -62,6 +65,7 @@ QtObject {
 	    weight: Font.Bold,
 	    italic: false,
 	    styleStrategy: Font.PreferAntialias,
+	    hintingPreference: Font.PreferFullHinting,
 	    pixelSize: appSettings.extraLargeFontSize
 	})
 

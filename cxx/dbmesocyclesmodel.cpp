@@ -165,9 +165,9 @@ void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const
 
 const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 {
-	appendListMove(infolist);
-	m_splitModel->appendListMove(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
-		QString() << QString() << QString() << QString());
+	appendList_fast(std::move(infolist));
+	m_splitModel->appendList_fast(std::move(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
+		QString() << QString() << QString() << QString()));
 
 	const uint meso_idx(count()-1);
 	m_splitModel->setMesoIdx(meso_idx);

@@ -231,10 +231,10 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 				QStringList dates;
 				do {
 				if (!query.value(0).toString().isEmpty())
-					dates.append(formatDate(query.value(1).toUInt()));
+					dates.append(std::move(formatDate(query.value(1).toUInt())));
 				} while (query.next());
 				if (!dates.isEmpty())
-					m_model->appendList(dates);
+					m_model->appendList_fast(std::move(dates));
 				ok = true;
 			}
 			query.finish();

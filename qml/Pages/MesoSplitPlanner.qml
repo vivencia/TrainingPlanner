@@ -203,8 +203,8 @@ Frame {
 						id: txtExerciseName
 						text: splitModel.exerciseName(index)
 						enabled: index === splitModel.currentRow
-						width: parent.width*0.9
-						height: appSettings.pageHeight*0.08
+						width: parent.width
+						height: appSettings.pageHeight*0.09
 						Layout.preferredWidth: width
 						Layout.preferredHeight: height
 
@@ -313,8 +313,17 @@ Frame {
 
 									Repeater {
 										id: buttonsRepeater
-										model: splitModel.nbrSets === 1 ? splitModel.setsNumber(index) : splitModel.setsNumber(index)
+										model: splitModel.setsNumber(index)
 										anchors.fill: parent
+
+										Component.onCompleted: {
+											splitModel.setsNumberChanged.connect(function() {
+												if (!visible) return;
+												if (index === splitModel.currentRow) {
+													model = splitModel.setsNumber(index);
+												}
+											});
+										}
 
 										TabButton {
 											id: tabbutton

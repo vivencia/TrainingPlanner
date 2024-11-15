@@ -106,16 +106,16 @@ public:
 	Q_INVOKABLE void setSetsSubsets(const uint row, const uint set_number, const QString& new_setssubsets);
 
 	inline const QString& _setsReps(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_REPSNUMBER); }
-	Q_INVOKABLE QString setReps(const int row, const uint set_number) const;
-	Q_INVOKABLE void setSetReps(const uint row, const uint set_number, const QString& new_setsreps);
+	QString setReps(const int row, const uint set_number) const;
+	void setSetReps(const uint row, const uint set_number, const QString& new_setsreps);
 	Q_INVOKABLE QString setReps1(const int row, const uint set_number) const;
 	Q_INVOKABLE void setSetReps1(const uint row, const uint set_number, const QString& new_setsreps);
 	Q_INVOKABLE QString setReps2(const int row, const uint set_number) const;
 	Q_INVOKABLE void setSetReps2(const uint row, const uint set_number, const QString& new_setsreps);
 
 	inline const QString& _setsWeights(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WEIGHT); }
-	Q_INVOKABLE QString setWeight(const int row, const uint set_number) const;
-	Q_INVOKABLE void setSetWeight(const uint row, const uint set_number, const QString& new_setsweight);
+	QString setWeight(const int row, const uint set_number) const;
+	void setSetWeight(const uint row, const uint set_number, const QString& new_setsweight);
 	Q_INVOKABLE QString setWeight1(const int row, const uint set_number) const;
 	Q_INVOKABLE void setSetWeight1(const uint row, const uint set_number, const QString& new_setsweight);
 	Q_INVOKABLE QString setWeight2(const int row, const uint set_number) const;
@@ -145,6 +145,7 @@ public:
 
 signals:
 	void exerciseNameChanged();
+	void setsNumberChanged();
 	void setTypeChanged();
 	void workingSetChanged();
 	void splitChanged(const uint meso_idx, const uint field);

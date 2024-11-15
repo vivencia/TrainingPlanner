@@ -46,7 +46,7 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_AUTOGEN_VERBOSE on)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 Widgets Sql Network Positioning LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick QuickControls2 LinguistTools Widgets Sql Network Positioning Charts)
 add_compile_definitions(REQUEST_PERMISSIONS_ON_ANDROID)
 add_compile_options(-std=c++20 ${CMAKE_CXX_FLAGS_INIT})
 
@@ -98,6 +98,8 @@ set( CXX_SOURCES
 	cxx/weather/weatherinfo.h cxx/weather/weatherinfo.cpp
 	cxx/weather/openweathermapbackend.h
 	cxx/weather/openweathermapbackend.cpp
+
+	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 )
 
 set( JAVA_SOURCES
@@ -154,6 +156,7 @@ set( QML_SOURCES
     "qml/Pages/MesoSplitPlanner.qml"
     "qml/Pages/MesoSplitSetup.qml"
     "qml/Pages/SettingsPage.qml"
+    "qml/Pages/StatisticsPage.qml"
     "qml/Pages/TPPage.qml"
 	"qml/Pages/TrainingDayPage.qml"
     "qml/Pages/UserPage.qml"
@@ -213,6 +216,7 @@ target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Widgets
 	Qt6::Network
     Qt6::Positioning
+    Qt6::Charts
 )
 
 set(trainingplanner_resource_files

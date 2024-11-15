@@ -54,7 +54,7 @@ void DBUserTable::getAllUsers()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery(u"SELECT * FROM user_table"_s);
+		const QString& strQuery{"SELECT * FROM user_table"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
@@ -64,7 +64,7 @@ void DBUserTable::getAllUsers()
 					QStringList user_info(USER_TOTAL_COLS);
 					for (uint i(USER_COL_ID); i < USER_TOTAL_COLS; ++i)
 						user_info[i] = std::move(query.value(static_cast<int>(i)).toString());
-					m_model->appendListMove(user_info);
+					m_model->appendList_fast(std::move(user_info));
 				} while (query.next());
 				m_model->setReady(true);
 				ok = true;

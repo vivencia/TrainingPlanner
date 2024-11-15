@@ -62,7 +62,10 @@ void DBMesoSplitModel::setModified(const uint row, const uint field)
 
 void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
 {
-	appendList(QStringList() << exercise_name << sets << " "_L1 << QString::number(settype) << STR_ZERO << reps << weight << STR_ZERO);
+	const uint nsets(sets.toUInt());
+	appendList(std::move(QStringList() << exercise_name << sets << " "_L1 << QString::number(settype) << STR_ZERO <<
+							appUtils()->makeDoubleCompositeValue(reps, nsets, 2, set_separator, comp_exercise_separator) <<
+							appUtils()->makeDoubleCompositeValue(weight, nsets, 2, set_separator, comp_exercise_separator) <<  STR_ZERO));
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
@@ -78,6 +81,20 @@ void DBMesoSplitModel::addSet(const uint row)
 	uint nsets(setsNumber(row));
 	if (nsets < 10)
 	{
+		QString exercise1data{std::move(appUtils()->getCompositeValue(0, _setsReps(row), comp_exercise_separator))};
+		appUtils()->setCompositeValue(nsets+1, setReps1(row, nsets-1), exercise1data, set_separator);
+		QString exercise2data{std::move(appUtils()->getCompositeValue(1, _setsReps(row), comp_exercise_separator))};
+		appUtils()->setCompositeValue(nsets+1, setReps2(row, nsets-1), exercise2data, set_separator);
+		appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
+		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
+
+		exercise1data = std::move(appUtils()->getCompositeValue(0, _setsWeights(row), comp_exercise_separator));
+		appUtils()->setCompositeValue(nsets+1, setReps1(row, nsets-1), exercise1data, set_separator);
+		exercise2data = std::move(appUtils()->getCompositeValue(1, _setsWeights(row), comp_exercise_separator));
+		appUtils()->setCompositeValue(nsets+1, setReps2(row, nsets-1), exercise2data, set_separator);
+		appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
+		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
+
 		++nsets;
 		setSetsNumber(row, nsets);
 	}
@@ -88,6 +105,20 @@ void DBMesoSplitModel::delSet(const uint row)
 	uint nsets(setsNumber(row));
 	if (nsets > 1)
 	{
+		QString exercise1data{std::move(appUtils()->getCompositeValue(0, _setsReps(row), comp_exercise_separator))};
+		appUtils()->removeFieldFromCompositeValue(nsets, exercise1data, set_separator);
+		QString exercise2data{std::move(appUtils()->getCompositeValue(1, _setsReps(row), comp_exercise_separator))};
+		appUtils()->removeFieldFromCompositeValue(nsets, exercise2data, set_separator);
+		appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
+		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
+
+		exercise1data = std::move(appUtils()->getCompositeValue(0, _setsWeights(row), comp_exercise_separator));
+		appUtils()->removeFieldFromCompositeValue(nsets, exercise1data, set_separator);
+		exercise2data = std::move(appUtils()->getCompositeValue(1, _setsWeights(row), comp_exercise_separator));
+		appUtils()->removeFieldFromCompositeValue(nsets, exercise2data, set_separator);
+		appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
+		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
+
 		--nsets;
 		setSetsNumber(row, nsets);
 	}
@@ -114,27 +145,27 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 QString DBMesoSplitModel::exerciseName1(const uint row) const
 {
 	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
-	return idx != -1 ? "2: "_L1 + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).first(idx) :
+	return idx != -1 ? "2: "_L1 + std::move(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).first(idx)) :
 						m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).isEmpty() ?
-						tr("1: Add exercise ...") : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
+						std::move(tr("1: Add exercise ...")) : m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME);
 }
 
 void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
 {
-	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 1, new_name);
+	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 0, new_name);
 	emit exerciseNameChanged();
 }
 
 QString DBMesoSplitModel::exerciseName2(const uint row) const
 {
 	const int idx(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).indexOf(comp_exercise_separator));
-	return idx != -1 ? "2: "_L1 + m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1) :
-						tr("2: Add exercise ...");
+	return idx != -1 ? "2: "_L1 + std::move(m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).sliced(idx+1)) :
+						std::move(tr("2: Add exercise ..."));
 }
 
 void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
 {
-	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 2, new_name);
+	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 1, new_name);
 	emit exerciseNameChanged();
 }
 
@@ -146,6 +177,7 @@ inline uint DBMesoSplitModel::setsNumber(const int row) const
 void DBMesoSplitModel::setSetsNumber(const uint row, const uint new_setsnumber)
 {
 	m_modeldata[row][MESOSPLIT_COL_SETSNUMBER] = QString::number(new_setsnumber);
+	emit setsNumberChanged();
 	setModified(row, MESOSPLIT_COL_SETSNUMBER);
 }
 
@@ -192,27 +224,26 @@ QString DBMesoSplitModel::setReps(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetReps(const uint row, const uint set_number, const QString& new_setsreps)
 {
 	appUtils()->setCompositeValue(set_number, new_setsreps, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], set_separator);
-	setModified(row, MESOSPLIT_COL_REPSNUMBER);
 }
 
 QString DBMesoSplitModel::setReps1(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 0);
 }
 
 void DBMesoSplitModel::setSetReps1(const uint row, const uint set_number, const QString& new_setsreps)
 {
-	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1, new_setsreps);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 0, new_setsreps);
 }
 
 QString DBMesoSplitModel::setReps2(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 2);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1);
 }
 
 void DBMesoSplitModel::setSetReps2(const uint row, const uint set_number, const QString& new_setsreps)
 {
-	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 2, new_setsreps);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_REPSNUMBER, 1, new_setsreps);
 }
 
 QString DBMesoSplitModel::setWeight(const int row, const uint set_number) const
@@ -223,27 +254,26 @@ QString DBMesoSplitModel::setWeight(const int row, const uint set_number) const
 void DBMesoSplitModel::setSetWeight(const uint row, const uint set_number, const QString& new_setsweight)
 {
 	appUtils()->setCompositeValue(set_number, new_setsweight, m_modeldata[row][MESOSPLIT_COL_WEIGHT], set_separator);
-	setModified(row, MESOSPLIT_COL_WEIGHT);
 }
 
 QString DBMesoSplitModel::setWeight1(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 0);
 }
 
 void DBMesoSplitModel::setSetWeight1(const uint row, const uint set_number, const QString& new_setsweight)
 {
-	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1, new_setsweight);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 0, new_setsweight);
 }
 
 QString DBMesoSplitModel::setWeight2(const int row, const uint set_number) const
 {
-	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 2);
+	return getFromCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1);
 }
 
 void DBMesoSplitModel::setSetWeight2(const uint row, const uint set_number, const QString& new_setsweight)
 {
-	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 2, new_setsweight);
+	replaceCompositeValue(row, set_number, MESOSPLIT_COL_WEIGHT, 1, new_setsweight);
 }
 
 void DBMesoSplitModel::setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal)
@@ -466,7 +496,7 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 
 		}
 		else
-			ret = u"0"_s;
+			ret = "0"_L1;
 	}
 	return ret;
 }
@@ -490,33 +520,15 @@ bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
 
 QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_number, const uint field, const uint pos) const
 {
-	const QString& value(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator));
-	const int idx(value.indexOf(comp_exercise_separator));
-	return idx != -1 ? pos == 1 ? value.first(idx) : value.sliced(idx+1) : value;
+	const QString& value(appUtils()->getCompositeValue(pos, m_modeldata.at(row).at(field), comp_exercise_separator));
+	return appUtils()->getCompositeValue(set_number, value, set_separator);
 }
 
 void DBMesoSplitModel::replaceCompositeValue(const uint row, const uint set_number, const uint field, const uint pos, const QString& value)
 {
-	QString fieldValue{std::move(appUtils()->getCompositeValue(set_number, m_modeldata.at(row).at(field), comp_exercise_separator))};
-	const int idx(fieldValue.indexOf(comp_exercise_separator));
-	if (idx == -1)
-	{
-		if (pos == 1)
-			fieldValue = value;
-		else
-			fieldValue += comp_exercise_separator + value;
-	}
-	else
-	{
-		if (pos == 1)
-			fieldValue.replace(0, idx, value);
-		else
-		{
-			fieldValue.truncate(idx+1);
-			fieldValue.append(value);
-		}
-	}
-	appUtils()->setCompositeValue(set_number, fieldValue, m_modeldata[row][field], comp_exercise_separator);
+	QString fieldValue{std::move(appUtils()->getCompositeValue(pos, m_modeldata.at(row).at(field), comp_exercise_separator))};
+	appUtils()->setCompositeValue(set_number, value, fieldValue, set_separator);
+	appUtils()->setCompositeValue(pos, fieldValue, m_modeldata[row][field], comp_exercise_separator);
 	setModified(row, field);
 }
 

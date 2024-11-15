@@ -60,8 +60,12 @@ public:
 	QString calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const;
 	QTime calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const;
 
+	QString makeCompositeValue(const QString& defaultValue, const uint n_fields, const QLatin1Char& chr_sep) const;
+	QString makeDoubleCompositeValue(const QString& defaultValue, const uint n_fields1, const uint n_fields2,
+										const QLatin1Char& chr_sep1, const QLatin1Char& chr_sep2) const;
 	QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
 	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const;
+	void removeFieldFromCompositeValue(const uint idx, QString& compositeString, const QLatin1Char& chr_sep) const;
 
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;

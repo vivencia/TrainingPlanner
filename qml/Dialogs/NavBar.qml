@@ -18,6 +18,7 @@ ToolBar {
 	property CalendarDialog mainCalendar: null
 	property TimerDialog mainTimer: null
 	property WeatherPage weatherPage: null
+	property StatisticsPage statsPage: null
 
 	TPButton {
 		id: btnBack
@@ -138,6 +139,7 @@ ToolBar {
 	}
 
 	TPButton {
+		id: btnWeather
 		imageSource: "weather"
 		hasDropShadow: false
 		imageSize: 30
@@ -168,6 +170,37 @@ ToolBar {
 		}
 	}
 
+	TPButton {
+		imageSource: "statistics"
+		hasDropShadow: false
+		imageSize: 30
+		fixedSize: true
+		width: 35
+		height: 35
+
+		anchors {
+			verticalCenter: parent.verticalCenter
+			right: btnWeather.left
+			rightMargin: 10
+		}
+
+		onClicked: {
+			if (statsPage === null) {
+				var component = Qt.createComponent("qrc:/qml/Pages/StatisticsPage.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					statsPage = component.createObject(mainwindow, {});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			pushOntoStack(statsPage);
+		}
+	}
+
 	Component.onDestruction: {
 		if (mainCalendar !== null)
 			mainCalendar.destroy();
@@ -175,5 +208,7 @@ ToolBar {
 			mainTimer.destroy();
 		if (weatherPage !== null)
 			weatherPage.destroy();
+		if (statsPage !== null)
+			statsPage.destroy();
 	}
 }

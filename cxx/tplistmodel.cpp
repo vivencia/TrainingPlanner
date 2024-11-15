@@ -23,6 +23,14 @@ void TPListModel::appendList(const QStringList& list)
 	endInsertRows();
 }
 
+void TPListModel::appendList(QStringList&& list)
+{
+	beginInsertRows(QModelIndex(), count(), count());
+	m_modeldata.append(std::move(list));
+	emit countChanged();
+	endInsertRows();
+}
+
 void TPListModel::clear()
 {
 	beginRemoveRows(QModelIndex(), 0, count()-1);

@@ -21,6 +21,7 @@
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
+#include "statistics/tpstatistics.h"
 #include "tptimer.h"
 #include "translationclass.h"
 #include "weather/weatherinfo.h"
@@ -71,19 +72,21 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QmlExerciseEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "ExerciseEntryManager");
 	qmlRegisterType<QmlSetEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SetEntryManager");
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
+	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(7);
-	properties[0] = QQmlContext::PropertyPair{ u"appSettings"_s, QVariant::fromValue(appSettings()) };
-	properties[1] = QQmlContext::PropertyPair{ u"appUtils"_s, QVariant::fromValue(appUtils()) };
-	properties[2] = QQmlContext::PropertyPair{ u"appTr"_s, QVariant::fromValue(appTr()) };
-	properties[3] = QQmlContext::PropertyPair{ u"userModel"_s, QVariant::fromValue(appUserModel()) };
-	properties[4] = QQmlContext::PropertyPair{ u"mesocyclesModel"_s, QVariant::fromValue(appMesoModel()) };
-	properties[5] = QQmlContext::PropertyPair{ u"exercisesModel"_s, QVariant::fromValue(appExercisesModel()) };
-	properties[6] = QQmlContext::PropertyPair{ u"itemManager"_s, QVariant::fromValue(this) };
+	QList<QQmlContext::PropertyPair> properties(8);
+	properties[0] = QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) };
+	properties[1] = QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) };
+	properties[2] = QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) };
+	properties[3] = QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) };
+	properties[4] = QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) };
+	properties[5] = QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesModel()) };
+	properties[6] = QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) };
+	properties[7] = QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
-	const QUrl& url{u"qrc:/qml/main.qml"_s};
+	const QUrl& url{"qrc:/qml/main.qml"_L1};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject* const obj, const QUrl& objUrl) {
 		if (!obj && url == objUrl)
 		{
@@ -91,14 +94,14 @@ void QmlItemManager::configureQmlEngine()
 			QCoreApplication::exit(-1);
 		}
 	});
-	appQmlEngine()->addImportPath(u":/"_s);
-	appQmlEngine()->addImageProvider(u"tpimageprovider"_s, new TPImageProvider{});
+	appQmlEngine()->addImportPath(":/"_L1);
+	appQmlEngine()->addImageProvider("tpimageprovider"_L1, new TPImageProvider{});
 	appQmlEngine()->load(url);
 
 	_appMainWindow = qobject_cast<QQuickWindow*>(appQmlEngine()->rootObjects().at(0));
 	connect(appMainWindow(), SIGNAL(openFileChosen(QString)), this, SLOT(importSlot_FileChosen(QString)));
 	connect(appMainWindow(), SIGNAL(openFileRejected(QString)), this, SLOT(importSlot_FileChosen(QString)));
-	appQmlEngine()->rootContext()->setContextProperty(u"mainwindow"_s, QVariant::fromValue(appMainWindow()));
+	appQmlEngine()->rootContext()->setContextProperty("mainwindow"_L1, QVariant::fromValue(appMainWindow()));
 
 	if (!appSettings()->mainUserConfigured())
 	{
@@ -171,20 +174,20 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	QStringList importOptions;
 	if (m_fileContents & IFC_MESO)
 	{
-		importOptions.append(tr("Complete Training Plan"));
+		importOptions.append(std::move(tr("Complete Training Plan")));
 		if (m_fileContents & IFC_USER)
-			importOptions.append(tr("Coach information"));
+			importOptions.append(std::move(tr("Coach information")));
 		if (m_fileContents & IFC_MESOSPLIT)
-			importOptions.append(tr("Exercises Program"));
+			importOptions.append(std::move(tr("Exercises Program")));
 	}
 	else
 	{
 		if (m_fileContents & IFC_MESOSPLIT)
-			importOptions.append(tr("Exercises Program"));
+			importOptions.append(std::move(tr("Exercises Program")));
 		else if (m_fileContents & IFC_TDAY)
-			importOptions.append(tr("Exercises database update"));
+			importOptions.append(std::move(tr("Exercises database update")));
 		else if (m_fileContents & IFC_EXERCISES)
-			importOptions.append(tr("Exercises database update"));
+			importOptions.append(std::move(tr("Exercises database update")));
 	}
 
 	const QList<bool> selectedFields(importOptions.count(), true);
@@ -213,7 +216,7 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 			if (strstr(buf, "##") != NULL)
 			{
 				inData = buf;
-				if (inData.startsWith(u"##"_s))
+				if (inData.startsWith("##"_L1))
 				{
 					if (inData.indexOf(DBUserObjectName) != -1)
 						fileContents |= IFC_USER;
@@ -360,70 +363,70 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	switch (message_id)
 	{
 		case APPWINDOW_MSG_EXPORT_OK:
-			title = tr("Succesfully exported");
-			message = fileName;
+			title = std::move(tr("Succesfully exported"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_SHARE_OK:
-			title = tr("Succesfully shared");
-			message = fileName;
+			title = std::move(tr("Succesfully shared"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_IMPORT_OK:
-			title = tr("Successfully imported");
-			message = fileName;
+			title = std::move(tr("Successfully imported"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_OPEN_FAILED:
-			title = tr("Failed to open file");
-			message = fileName;
+			title = std::move(tr("Failed to open file"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_UNKNOWN_FILE_FORMAT:
-			title = tr("Error");
-			message = tr("File type not recognized");
+			title = std::move(tr("Error"));
+			message = std::move(tr("File type not recognized"));
 		break;
 		case APPWINDOW_MSG_CORRUPT_FILE:
-			title = tr("Error");
-			message = tr("File is formatted wrongly or is corrupted");
+			title = std::move(tr("Error"));
+			message = std::move(tr("File is formatted wrongly or is corrupted"));
 		break;
 		case APPWINDOW_MSG_NOTHING_TODO:
-			title = tr("Nothing to be done");
-			message = tr("File had already been imported");
+			title = std::move(tr("Nothing to be done"));
+			message = std::move(tr("File had already been imported"));
 		break;
 		case APPWINDOW_MSG_NO_MESO:
-			title = tr("No program to import into");
-			message = tr("Either create a new training plan or import from a complete program file");
+			title = std::move(tr("No program to import into"));
+			message = std::move(tr("Either create a new training plan or import from a complete program file"));
 		break;
 		case APPWINDOW_MSG_NOTHING_TO_EXPORT:
-			title = tr("Nothing to export");
-			message = tr("Only exercises that do not come by default with the app can be exported");
+			title = std::move(tr("Nothing to export"));
+			message = std::move(tr("Only exercises that do not come by default with the app can be exported"));
 		break;
 		case APPWINDOW_MSG_SHARE_FAILED:
-			title = tr("Sharing failed");
-			message = fileName;
+			title = std::move(tr("Sharing failed"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_EXPORT_FAILED:
-			title = tr("Export failed");
-			message = tr("Operation canceled");
+			title = std::move(tr("Export failed"));
+			message = std::move(tr("Operation canceled"));
 		break;
 		case APPWINDOW_MSG_IMPORT_FAILED:
-			title = tr("Import failed");
-			message = tr("Operation canceled");
+			title = std::move(tr("Import failed"));
+			message = std::move(tr("Operation canceled"));
 		break;
 		case APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED:
-			title = tr("Could not open file for exporting");
-			message = fileName;
+			title = std::move(tr("Could not open file for exporting"));
+			message = std::move(fileName);
 		break;
 		case APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE:
-			title = tr("Cannot import");
-			message = tr("Contents of the file are incompatible with the requested operation");
+			title = std::move(tr("Cannot import"));
+			message = std::move(tr("Contents of the file are incompatible with the requested operation"));
 		break;
 		case APPWINDOW_MSG_UNKNOWN_ERROR:
-			title = tr("Error");
-			message = tr("Something went wrong");
+			title = std::move(tr("Error"));
+			message = std::move(tr("Something went wrong"));
 		break;
 	}
 	QMetaObject::invokeMethod(appMainWindow(), "displayResultMessage", Q_ARG(QString, title), Q_ARG(QString, message));
 }
 
-void QmlItemManager::exportSlot(QString filePath)
+void QmlItemManager::exportSlot(const QString& filePath)
 {
 	if (!filePath.isEmpty())
 		QFile::copy(m_exportFilename, filePath);
@@ -431,7 +434,7 @@ void QmlItemManager::exportSlot(QString filePath)
 	QFile::remove(m_exportFilename);
 }
 
-void QmlItemManager::importSlot_FileChosen(QString filePath)
+void QmlItemManager::importSlot_FileChosen(const QString& filePath)
 {
 	if (!filePath.isEmpty())
 		openRequestedFile(filePath);

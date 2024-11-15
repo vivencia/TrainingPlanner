@@ -148,7 +148,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 						strYear = std::move(query.value(MESOCALENDAR_COL_YEAR).toString());
 						if (!mesocal_info.isEmpty())
 						{
-							m_model->appendListMove(mesocal_info);
+							m_model->appendList_fast(std::move(mesocal_info));
 							mesocal_info.clear();
 							day = 1;
 						}
@@ -175,7 +175,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 					//Fill the model with info that reflects that these month days are not part of the meso
 					for( ; day <= lastDayOfMonth; ++day)
 						mesocal_info.append(std::move("-1,-1,-1,N,-1,"_L1 + strYear + ',' + strMonth));
-					m_model->appendListMove(mesocal_info);
+					m_model->appendList_fast(std::move(mesocal_info));
 				}
 			}
 			else

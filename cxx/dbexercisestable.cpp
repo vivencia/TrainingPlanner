@@ -59,16 +59,13 @@ void DBExercisesTable::getAllExercises()
 		{
 			if (query.first())
 			{
-				QStringList exercise_info(EXERCISES_TOTAL_COLS);
-				exercise_info[EXERCISES_COL_SELECTED] = STR_ZERO;
-
-				uint i(0);
 				do
 				{
+					m_model->appendList(std::move(QStringList(EXERCISES_TOTAL_COLS)));
 					for (uint i(EXERCISES_COL_ID); i < EXERCISES_COL_ACTUALINDEX; ++i)
-						exercise_info[i] = query.value(static_cast<int>(i)).toString();
-					exercise_info[EXERCISES_COL_ACTUALINDEX] = QString::number(i);
-					m_model->appendList(exercise_info);
+						m_model->lastRow()[i] = std::move(query.value(static_cast<int>(i)).toString());
+					m_model->lastRow()[EXERCISES_COL_ACTUALINDEX] = std::move(QString::number(m_model->count()));
+					m_model->lastRow()[EXERCISES_COL_SELECTED] = STR_ZERO;
 				} while (query.next ());
 				const uint highest_id (m_model->_id(m_model->count() - 1));
 				if (highest_id >= m_exercisesTableLastId)
@@ -76,7 +73,7 @@ void DBExercisesTable::getAllExercises()
 				m_model->setLastID(m_exercisesTableLastId);
 				ok = true;
 			}
-			else //for some reason the database table is empty. Populate it with the app provided exercises list
+			else //for whatever reason the database table is empty. Populate it with the app provided exercises list
 			{
 				mSqlLiteDB.close();
 				updateExercisesList();

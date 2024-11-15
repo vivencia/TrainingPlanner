@@ -52,9 +52,9 @@ void DBExercisesModel::fillColumnNames()
 void DBExercisesModel::newExercise(const QString& name, const QString& subname, const QString& muscular_group)
 {
 	setLastID(lastID() + 1);
-	appendList(QStringList() << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
+	appendList(std::move(QStringList() << std::move(QString::number(lastID())) << std::move(name) << std::move(subname) << std::move(muscular_group) <<
 		std::move("3"_L1) << std::move("12"_L1) << std::move("20"_L1) << std::move("(kg)"_L1) << std::move("qrc:/images/no_image.jpg"_L1) <<
-			STR_ZERO << std::move(QString::number(m_modeldata.count())) << STR_ZERO);
+			STR_ZERO << std::move(QString::number(m_modeldata.count())) << STR_ZERO));
 }
 
 void DBExercisesModel::removeExercise(const uint index)
@@ -194,7 +194,7 @@ bool DBExercisesModel::manageSelectedEntries(const uint item_pos, const uint max
 	selectedEntry entry;
 	uint real_item_pos(item_pos);
 	if (m_bFilterApplied)
-		real_item_pos = m_modeldata.at(m_indexProxy.at(item_pos)).at(10).toUInt();
+		real_item_pos = m_indexProxy.at(item_pos);
 	entry.real_index = real_item_pos;
 	entry.view_index = item_pos;
 
@@ -270,6 +270,12 @@ bool DBExercisesModel::collectExportData()
 }
 
 void DBExercisesModel::appendList(const QStringList& list)
+{
+	TPListModel::appendList(list);
+	m_indexProxy.append(m_modeldata.count() - 1);
+}
+
+void DBExercisesModel::appendList(QStringList&& list)
 {
 	TPListModel::appendList(list);
 	m_indexProxy.append(m_modeldata.count() - 1);

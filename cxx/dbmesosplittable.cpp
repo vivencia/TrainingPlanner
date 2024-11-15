@@ -202,7 +202,7 @@ void DBMesoSplitTable::getAllSplits()
 						split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 						split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 						split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
-						(*splitModel)->appendListMove(split_info);
+						(*splitModel)->appendList_fast(std::move(split_info));
 					}
 					ok = true;
 					(*splitModel)->setReady(true);
@@ -263,7 +263,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 					split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 					split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
-					m_model->appendListMove(split_info);
+					m_model->appendList_fast(std::move(split_info));
 				}
 				ok = true;
 				m_model->setReady(true);

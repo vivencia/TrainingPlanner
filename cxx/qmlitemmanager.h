@@ -38,8 +38,8 @@ public:
 public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;
-	void exportSlot(QString filePath = QString());
-	void importSlot_FileChosen(QString filePath = QString());
+	void exportSlot(const QString& filePath = QString());
+	void importSlot_FileChosen(const QString& filePath = QString());
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 
