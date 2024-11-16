@@ -358,9 +358,9 @@ TPPage {
 			TPTextInput {
 				id: txtMesoStartDate
 				text: mesoManager.strStartDate
+				readOnly: true
 				Layout.fillWidth: false
 				Layout.minimumWidth: parent.width/2
-				readOnly: true
 
 				CalendarDialog {
 					id: caldlg

@@ -40,6 +40,7 @@ Q_PROPERTY(QString subSetsLabel READ subSetsLabel NOTIFY labelsChanged FINAL)
 public:
 	explicit DBMesoSplitModel(QObject* parent, const bool bComplete, const uint meso_idx = 0);
 	void convertFromTDayModel(const DBTrainingDayModel* const tDayModel);
+	void addExerciseFromDatabase(QStringList* exercise_info);
 	inline bool completeSplit() const { return mb_Complete; }
 
 	inline const QString& id(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_ID); }
@@ -76,7 +77,7 @@ public:
 	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
-	Q_INVOKABLE void addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight);
+	Q_INVOKABLE void appendExercise();
 	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); m_exerciseIsNew.remove(row); }
 	Q_INVOKABLE void addSet(const uint row);
 	Q_INVOKABLE void delSet(const uint row);
@@ -144,11 +145,11 @@ public:
 	bool importExtraInfo(const QString& extrainfo);
 
 signals:
-	void exerciseNameChanged();
-	void setsNumberChanged();
-	void setTypeChanged();
-	void workingSetChanged();
-	void splitChanged(const uint meso_idx, const uint field);
+	void exerciseNameChanged(const int row);
+	void setsNumberChanged(const int row);
+	void setTypeChanged(const int row);
+	void workingSetChanged(const int row);
+	void splitChanged(const uint row, const uint field);
 	void labelsChanged();
 
 private:

@@ -186,25 +186,26 @@ void QmlMesoSplitInterface::exerciseSelected()
 {
 	QString exerciseName, nSets, nReps, nWeight;
 	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
-	if (!b_is_composite)
+	nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
+	const uint nsets(nSets.toUInt());
+
+	nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+							nsets, 2, set_separator, comp_exercise_separator));
+	nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+							nsets, 2, set_separator, comp_exercise_separator));
+	exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
+					appExercisesModel()->selectedEntriesValue_fast(0, 2);
+
+	if (b_is_composite)
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, 2);
-		nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
-		nReps = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER);
-		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT);
-	}
-	else
-	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
-						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
 						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nsets, set_separator),
+										nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nsets, set_separator),
+										nWeight, comp_exercise_separator);
 	}
 	const uint row(m_simpleExercisesListRequester->currentRow());
 	switch (m_simpleExercisesListExerciseIdx)
@@ -218,7 +219,7 @@ void QmlMesoSplitInterface::exerciseSelected()
 			else if (!b_is_composite && cur_set_type == SET_TYPE_GIANT)
 				m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_REGULAR);
 			m_simpleExercisesListRequester->setExerciseName(row, exerciseName);
-			m_simpleExercisesListRequester->setSetsNumber(row, nSets.toUInt());
+			m_simpleExercisesListRequester->setSetsNumber(row, nsets);
 			m_simpleExercisesListRequester->setSetReps(row, set_number, nReps);
 			m_simpleExercisesListRequester->setSetWeight(row, set_number, nWeight);
 		}
@@ -319,9 +320,7 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_plannerPage);
 
-	if (splitmodel->count() == 0)
-		splitmodel->addExercise(tr("Choose exercise..."), SET_TYPE_REGULAR, "4"_L1, "12"_L1, "20"_L1);
-	else
+	if (splitmodel->count() > 0)
 		splitmodel->setCurrentRow(0);
 	setSplitPageProperties(item, splitmodel);
 

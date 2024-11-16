@@ -61,9 +61,9 @@ TPPage {
 
 	ListView {
 		id: mesosListView
+		model: mesocyclesModel
 		boundsBehavior: Flickable.StopAtBounds
 		spacing: 10
-		model: mesocyclesModel
 
 		anchors {
 			fill: parent
@@ -274,7 +274,7 @@ TPPage {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentMesoIdx() ? appSettings.primaryLightColor : appSettings.listEntryColor2
+				color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
 				visible: false
 			}
 
@@ -297,7 +297,7 @@ TPPage {
 				id: mesoContent
 				spacing: 2
 
-				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx() ? "black" : appSettings.fontColor
+				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
 
 				TPLabel {
 					text: mesoName

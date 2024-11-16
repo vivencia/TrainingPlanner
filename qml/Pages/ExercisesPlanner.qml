@@ -109,10 +109,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: {
-				currentPage.splitModel.clear();
-				currentPage.appendNewExerciseToDivision();
-			}
+			onClicked: currentPage.splitModel.clear();
 		}
 
 		TPButton {

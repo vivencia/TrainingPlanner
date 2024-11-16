@@ -135,7 +135,7 @@ Frame {
 
 			model: splitModel.count
 
-			delegate: SwipeDelegate {
+			delegate: ItemDelegate {
 				id: delegate
 				spacing: 10
 				padding: 0
@@ -145,6 +145,25 @@ Frame {
 				ColumnLayout {
 					id: contentsLayout
 					spacing: 10
+
+					Connections {
+						target: splitModel
+
+						function onExerciseNameChanged(row) {
+							if (splitModel.currentRow === row) {
+								txtExerciseName.text = splitModel.exerciseName(row);
+								if (lblExercise1.visible) {
+									lblExercise1.text = splitModel.exerciseName1(row);
+									lblExercise2.text = splitModel.exerciseName2(row);
+								}
+							}
+						}
+
+						function onSetsNumberChanged(row) {
+							if (splitModel.currentRow === row)
+								buttonsRepeater.model = splitModel.setsNumber(row);
+						}
+					}
 
 					anchors {
 						fill: parent
@@ -239,10 +258,6 @@ Frame {
 						}
 
 						onMousePressAndHold: (mouse) => mouse.accepted = false;
-
-						Component.onCompleted: {
-							splitModel.exerciseNameChanged.connect(function () { text = splitModel.exerciseName(index); } );
-						}
 					} //ExerciseNameField
 
 					SetNotesField {
@@ -315,15 +330,6 @@ Frame {
 										id: buttonsRepeater
 										model: splitModel.setsNumber(index)
 										anchors.fill: parent
-
-										Component.onCompleted: {
-											splitModel.setsNumberChanged.connect(function() {
-												if (!visible) return;
-												if (index === splitModel.currentRow) {
-													model = splitModel.setsNumber(index);
-												}
-											});
-										}
 
 										TabButton {
 											id: tabbutton
@@ -415,10 +421,10 @@ Frame {
 									onValueChanged: (str) => splitModel.setSetsSubsets(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setSubsets(index);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setSubsets(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -484,10 +490,10 @@ Frame {
 								onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 								Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setReps1(index, splitModel.workingSet);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setReps1(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -508,10 +514,10 @@ Frame {
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 
 									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setReps1(index, splitModel.workingSet);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setReps1(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -528,10 +534,10 @@ Frame {
 									onEnterOrReturnKeyPressed: txtNWeight1.forceActiveFocus();
 
 									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setReps2(index, splitModel.workingSet);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setReps2(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -550,10 +556,10 @@ Frame {
 								onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 
 								Component.onCompleted: {
-									splitModel.workingSetChanged.connect(function() {
-										if (!visible) return;
-										if (index === splitModel.currentRow) {
-											text = splitModel.setWeight1(index, splitModel.workingSet);
+									splitModel.workingSetChanged.connect(function(row) {
+										if (visible) {
+											if (index === row)
+												text = splitModel.setWeight1(row, splitModel.workingSet);
 										}
 									});
 								}
@@ -575,10 +581,10 @@ Frame {
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 
 									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setWeight1(index, splitModel.workingSet);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setWeight1(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -596,10 +602,10 @@ Frame {
 									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function() {
-											if (!visible) return;
-											if (index === splitModel.currentRow) {
-												text = splitModel.setWeight2(index, splitModel.workingSet);
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													text = splitModel.setWeight2(row, splitModel.workingSet);
 											}
 										});
 									}
@@ -661,8 +667,6 @@ Frame {
 		splitModel.removeExercise(idx);
 		if (idx > 0)
 			--idx;
-		if (splitModel.count === 0)
-			appendNewExerciseToDivision();
 		splitModel.setCurrentRow(idx);
 	}
 
@@ -673,7 +677,7 @@ Frame {
 	}
 
 	function appendNewExerciseToDivision() {
-		splitModel.addExercise(qsTr("Choose exercise..."), 0, "4", "12", "20");
+		splitModel.appendExercise();
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
 	}

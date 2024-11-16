@@ -167,8 +167,6 @@ void DBMesoSplitTable::getAllSplits()
 		const QString& mesoId(m_execArgs.at(0).toString());
 		QMap<QChar,DBMesoSplitModel*>* allSplits(m_execArgs.at(1).value<QMap<QChar,DBMesoSplitModel*>*>());
 		QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits->constBegin());
-		QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
-		split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 		QSqlQuery query{getQuery()};
 
 		for(char c('A'); c <= char('F'); ++c)
@@ -195,6 +193,7 @@ void DBMesoSplitTable::getAllSplits()
 
 					for(uint i(0); i < exercises.count(); ++i)
 					{
+						QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
 						split_info[MESOSPLIT_COL_EXERCISENAME] = std::move(exercises.at(i));
 						split_info[MESOSPLIT_COL_SETSNUMBER] = std::move(setsnumber.at(i));
 						split_info[MESOSPLIT_COL_NOTES] = std::move(setsnotes.at(i));
@@ -202,7 +201,8 @@ void DBMesoSplitTable::getAllSplits()
 						split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 						split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 						split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
-						(*splitModel)->appendList_fast(std::move(split_info));
+						split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
+						(*splitModel)->addExerciseFromDatabase(&split_info);
 					}
 					ok = true;
 					(*splitModel)->setReady(true);
@@ -263,7 +263,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 					split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 					split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
-					m_model->appendList_fast(std::move(split_info));
+					m_model->addExerciseFromDatabase(&split_info);
 				}
 				ok = true;
 				m_model->setReady(true);

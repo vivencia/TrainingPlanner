@@ -175,6 +175,7 @@ ToolBar {
 		hasDropShadow: false
 		imageSize: 30
 		fixedSize: true
+		enabled: mesocyclesModel.count > 0
 		width: 35
 		height: 35
 

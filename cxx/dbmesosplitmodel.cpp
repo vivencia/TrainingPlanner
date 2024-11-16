@@ -1,6 +1,5 @@
 #include "dbmesosplitmodel.h"
 
-#include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "tpglobals.h"
@@ -44,9 +43,16 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDay
 		exerciseInfo[MESOSPLIT_COL_SUBSETSNUMBER] = tDayModel->setsSubSets(i);
 		exerciseInfo[MESOSPLIT_COL_REPSNUMBER] = tDayModel->setsReps(i);
 		exerciseInfo[MESOSPLIT_COL_WEIGHT] = tDayModel->setsWeight(i);
-		m_modeldata.append(std::move(exerciseInfo));
+		appendList(std::move(exerciseInfo));
+		m_exerciseIsNew.append(0);
 	}
 	setReady(true);
+}
+
+void DBMesoSplitModel::addExerciseFromDatabase(QStringList* exercise_info)
+{
+	appendList(std::move(*(exercise_info)));
+	m_exerciseIsNew.append(0);
 }
 
 void DBMesoSplitModel::setModified(const uint row, const uint field)
@@ -60,12 +66,11 @@ void DBMesoSplitModel::setModified(const uint row, const uint field)
 	emit splitChanged(row, field);
 }
 
-void DBMesoSplitModel::addExercise(const QString& exercise_name, const uint settype, const QString& sets, const QString& reps, const QString& weight)
+void DBMesoSplitModel::appendExercise()
 {
-	const uint nsets(sets.toUInt());
-	appendList(std::move(QStringList() << exercise_name << sets << " "_L1 << QString::number(settype) << STR_ZERO <<
-							appUtils()->makeDoubleCompositeValue(reps, nsets, 2, set_separator, comp_exercise_separator) <<
-							appUtils()->makeDoubleCompositeValue(weight, nsets, 2, set_separator, comp_exercise_separator) <<  STR_ZERO));
+	appendList(std::move(QStringList() << std::move(tr("Choose exercise...")) << STR_MINUS_ONE << " "_L1 << STR_ZERO << STR_ZERO <<
+							appUtils()->makeDoubleCompositeValue("12"_L1, 1, 2, set_separator, comp_exercise_separator) <<
+							appUtils()->makeDoubleCompositeValue("20"_L1, 1, 2, set_separator, comp_exercise_separator) <<  STR_ZERO));
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
@@ -138,7 +143,7 @@ void DBMesoSplitModel::setExerciseName(const uint row, const QString& new_name)
 {
 	QString name{new_name};
 	m_modeldata[row][MESOSPLIT_COL_EXERCISENAME] = std::move(name.replace(comp_exercise_fancy_separator, QString(comp_exercise_separator)));
-	emit exerciseNameChanged();
+	emit exerciseNameChanged(row);
 	setModified(row, MESOSPLIT_COL_EXERCISENAME);
 }
 
@@ -153,7 +158,7 @@ QString DBMesoSplitModel::exerciseName1(const uint row) const
 void DBMesoSplitModel::setExerciseName1(const uint row, const QString& new_name)
 {
 	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 0, new_name);
-	emit exerciseNameChanged();
+	emit exerciseNameChanged(row);
 }
 
 QString DBMesoSplitModel::exerciseName2(const uint row) const
@@ -166,7 +171,7 @@ QString DBMesoSplitModel::exerciseName2(const uint row) const
 void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
 {
 	replaceCompositeValue(row, 0, MESOSPLIT_COL_EXERCISENAME, 1, new_name);
-	emit exerciseNameChanged();
+	emit exerciseNameChanged(row);
 }
 
 inline uint DBMesoSplitModel::setsNumber(const int row) const
@@ -177,7 +182,7 @@ inline uint DBMesoSplitModel::setsNumber(const int row) const
 void DBMesoSplitModel::setSetsNumber(const uint row, const uint new_setsnumber)
 {
 	m_modeldata[row][MESOSPLIT_COL_SETSNUMBER] = QString::number(new_setsnumber);
-	emit setsNumberChanged();
+	emit setsNumberChanged(row);
 	setModified(row, MESOSPLIT_COL_SETSNUMBER);
 }
 
@@ -201,7 +206,7 @@ void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const u
 {
 	appUtils()->setCompositeValue(set_number, QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], set_separator);
 	setModified(row, MESOSPLIT_COL_SETTYPE);
-	emit setTypeChanged();
+	emit setTypeChanged(row);
 	if (exerciseName(row).isEmpty())
 		setExerciseName(row, new_type != SET_TYPE_GIANT ? tr("Choose exercise...") : tr("Choose exercises..."));
 }
@@ -280,7 +285,7 @@ void DBMesoSplitModel::setWorkingSet(const uint row, const uint new_workingset, 
 {
 	m_modeldata[row][MESOSPLIT_COL_WORKINGSET] = QString::number(new_workingset);
 	if (emitSignal)
-		emit workingSetChanged();
+		emit workingSetChanged(row);
 }
 
 static void muscularGroupSimplified(QString& muscularGroup)

@@ -7,6 +7,7 @@ import QtQuick.Layouts
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import "../TPWidgets"
+import "../Dialogs"
 import ".."
 
 TPPage {
@@ -48,6 +49,139 @@ TPPage {
 			bottomMargin: 5
 		}
 
+		ListView {
+			id: mesosList
+			model: mesocyclesModel
+			boundsBehavior: Flickable.StopAtBounds
+			spacing: 0
+			height: parent.height*0.2
+			Layout.fillWidth: true
+			Layout.maximumHeight: height
+
+			ScrollBar.vertical: ScrollBar {
+				policy: ScrollBar.AsNeeded
+				active: ScrollBar.AsNeeded
+			}
+
+			delegate: ItemDelegate {
+				id: statsMesoDelegate
+				width: mesosList.width
+				height: mesosList.height*0.25
+
+				background: Rectangle {
+					id: backRec
+					radius: 6
+					color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
+					opacity: 0.8
+					anchors.fill: parent
+				}
+
+				onClicked: mesocyclesModel.getMesocyclePage(index);
+
+				contentItem: Label {
+					id: mesoNameLabel
+					text: mesoName
+					color: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+				}
+			}
+
+			Component.onCompleted: positionViewAtIndex(mesocyclesModel.currentMesoIdx, ListView.Center);
+		}
+
+		Frame {
+			height: parent.height*0.3
+			spacing: 0
+			padding: 0
+			Layout.preferredHeight: height
+			Layout.fillWidth: true
+
+			GridLayout {
+				columns: 2
+				rows: 5
+				columnSpacing: 0
+				rowSpacing: 0
+				anchors {
+					fill: parent
+					topMargin: 0
+					leftMargin: 5
+					rightMargin: 5
+				}
+
+				TPLabel {
+					text: qsTr("Date range:")
+					Layout.row: 0
+					Layout.column: 0
+					Layout.columnSpan: 2
+				}
+
+				TPTextInput {
+					id: txtStartDate
+					text: appUtils.formatDate(mesocyclesModel.startDate(mesosList.currentIndex))
+					readOnly: true
+					width: parent.width*0.4
+					Layout.preferredWidth: width
+					Layout.row: 1
+					Layout.column: 0
+
+					CalendarDialog {
+						id: caldlg
+						showDate: mesocyclesModel.startDate(mesosList.currentIndex)
+						initDate: mesocyclesModel.startDate(mesosList.currentIndex)
+						finalDate: mesocyclesModel.endDate(mesosList.currentIndex)
+						parentPage: statisticsPage
+
+						onDateSelected: (date) => txtStartDate.text = appUtils.formatDate(date);
+					}
+
+					TPButton {
+						id: btnStartDate
+						imageSource: "calendar.png"
+
+						anchors {
+							left: txtStartDate.right
+							leftMargin: -5
+							verticalCenter: txtStartDate.verticalCenter
+						}
+
+						onClicked: caldlg.open();
+					}
+				}
+
+				TPTextInput {
+					id: txtEndDate
+					text: appUtils.formatDate(mesocyclesModel.endDate(mesosList.currentIndex))
+					readOnly: true
+					width: parent.width*0.4
+					Layout.preferredWidth: width
+					Layout.row: 1
+					Layout.column: 1
+
+					CalendarDialog {
+						id: caldlg2
+						showDate: mesocyclesModel.endDate(mesosList.currentIndex)
+						initDate: mesocyclesModel.startDate(mesosList.currentIndex)
+						finalDate: mesocyclesModel.endDate(mesosList.currentIndex)
+						parentPage: statisticsPage
+
+						onDateSelected: (date) => txtEndDate.text = appUtils.formatDate(date);
+					}
+
+					TPButton {
+						id: btnEndDate
+						imageSource: "calendar.png"
+
+						anchors {
+							left: txtEndDate.right
+							leftMargin: -5
+							verticalCenter: txtEndDate.verticalCenter
+						}
+
+						onClicked: caldlg2.open();
+					}
+				}
+			}
+		}
+
 		ChartView {
 			id: chartView
 			antialiasing: true
@@ -63,8 +197,9 @@ TPPage {
 						return ChartView.ChartThemeQt;
 				}
 			}
+			height: parent.height*0.5
 			Layout.fillWidth: true
-			Layout.fillHeight: true
+			Layout.preferredHeight: height
 
 			ValueAxis {
 				id: axisY1

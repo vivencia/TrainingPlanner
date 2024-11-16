@@ -30,6 +30,7 @@ class DBMesocyclesModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
+Q_PROPERTY(uint currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 
 public:
 
@@ -199,7 +200,7 @@ public:
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;
-	Q_INVOKABLE inline int currentMesoIdx() const { return m_currentMesoIdx; }
+	inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	void setCurrentMesoIdx(const uint meso_idx);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 
