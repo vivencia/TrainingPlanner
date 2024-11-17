@@ -39,7 +39,7 @@ void DBExercisesTable::createTable()
 									")"_L1
 		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -80,7 +80,7 @@ void DBExercisesTable::getAllExercises()
 			}
 			m_model->setReady(true);
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -90,7 +90,7 @@ void DBExercisesTable::updateExercisesList()
 	getExercisesList();
 	if (m_ExercisesList.isEmpty())
 	{
-		setResult(false, "DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_L1, SOURCE_LOCATION);
+		setQueryResult(false, "DBExercisesTable::updateExercisesList -> m_ExercisesList is empty"_L1, SOURCE_LOCATION);
 		doneFunc(static_cast<TPDatabaseTable*>(this));
 		return;
 	}
@@ -135,7 +135,7 @@ void DBExercisesTable::updateExercisesList()
 		}
 		else
 			static_cast<void>(mSqlLiteDB.commit());
-		setResult(ok, queryStart + queryValues, SOURCE_LOCATION);
+		setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 		if (ok)
 			emit updatedFromExercisesList();
 	}
@@ -178,7 +178,7 @@ void DBExercisesTable::saveExercises()
 		}
 		static_cast<void>(mSqlLiteDB.commit());
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		if (ok)
 		{
 			m_exercisesTableLastId = highest_id;

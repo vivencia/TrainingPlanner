@@ -36,7 +36,7 @@ void DBMesoCalendarTable::createTable()
 										"day INTEGER"
 									")"_L1};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -186,7 +186,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 			ok = true;
 			m_model->setReady(true);
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -232,7 +232,7 @@ void DBMesoCalendarTable::saveMesoCalendar()
 			ok = query.exec(queryStart + queryValues);
 		}
 		static_cast<void>(mSqlLiteDB.commit());
-		setResult(ok, queryStart + queryValues, SOURCE_LOCATION);
+		setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -261,7 +261,7 @@ void DBMesoCalendarTable::updateMesoCalendarEntry()
 			if (ok)
 				m_model->updateDay(date, strTrainingDay, strSplit);
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -286,7 +286,7 @@ void DBMesoCalendarTable::updateDayIsFinished()
 									.arg(m_execArgs.at(1).toBool() ? STR_ONE : STR_ZERO, strId));
 			ok = query.exec(strQuery);
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -311,7 +311,7 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 				ok = true;
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -339,7 +339,7 @@ void DBMesoCalendarTable::removeMesoCalendar()
 		QSqlQuery query{getQuery()};
 		const QString& strQuery{"DELETE FROM mesocycles_calendar_table WHERE meso_id="_L1 + m_execArgs.at(0).toString()};
 		ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

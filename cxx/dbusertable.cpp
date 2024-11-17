@@ -44,7 +44,7 @@ void DBUserTable::createTable()
 									")"_L1
 		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -70,7 +70,7 @@ void DBUserTable::getAllUsers()
 				ok = true;
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -111,7 +111,7 @@ void DBUserTable::saveUser()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setUserId(row, query.lastInsertId().toString());
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

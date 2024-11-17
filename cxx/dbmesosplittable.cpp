@@ -81,7 +81,7 @@ void DBMesoSplitTable::createTable()
 										"splitF_exercisesset_weight TEXT DEFAULT \"\")"_L1
 		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -113,7 +113,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 				m_model->setReady(true);
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -155,7 +155,7 @@ void DBMesoSplitTable::saveMesoSplit()
 			if (!bUpdate)
 				m_model->setId(row, query.lastInsertId().toString());
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -252,10 +252,9 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 				const QStringList& setsreps(query.value(MESOSPLIT_COL_REPSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
 				const QStringList& setsweight(query.value(MESOSPLIT_COL_WEIGHT).toString().split(record_separator, Qt::SkipEmptyParts));
 
-				QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
-				split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 				for(uint i(0); i < exercises.count(); ++i)
 				{
+					QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
 					split_info[MESOSPLIT_COL_EXERCISENAME] = std::move(exercises.at(i));
 					split_info[MESOSPLIT_COL_SETSNUMBER] = std::move(setsnumber.at(i));
 					split_info[MESOSPLIT_COL_NOTES] = std::move(setsnotes.at(i));
@@ -263,13 +262,14 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 					split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 					split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
+					split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 					m_model->addExerciseFromDatabase(&split_info);
 				}
 				ok = true;
 				m_model->setReady(true);
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	if (bEmitSignal)
 		doneFunc(static_cast<TPDatabaseTable*>(this));
@@ -332,7 +332,7 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setId(0, query.lastInsertId().toString()); //Not used -yet-. But might be, someday. Anyway, it costs nothings
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -351,7 +351,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 			if (ok)
 				ok = query.value(0).toString().length() > 0;
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	return ok;
 }

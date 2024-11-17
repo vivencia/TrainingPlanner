@@ -15,7 +15,6 @@ TPPage {
 	objectName: "statisticsPage"
 
 	property int selectedMesoIdx: -1
-	property int dataSet: -1
 	property string selectedMesoSplit
 
 	onSelectedMesoIdxChanged: if (selectedMesoIdx >= 0) cboUsedSplitsModel.loadData();
@@ -45,7 +44,6 @@ TPPage {
 
 	ColumnLayout {
 		id: mainLayout
-		spacing: 5
 
 		anchors {
 			fill: parent
@@ -59,11 +57,11 @@ TPPage {
 			id: mesosList
 			model: mesocyclesModel
 			boundsBehavior: Flickable.StopAtBounds
-			spacing: 0
-			height: parent.height*0.2
+			spacing: 1
+			clip: true
 			Layout.fillWidth: true
-			Layout.minimumHeight: height
-			Layout.maximumHeight: height
+			Layout.minimumHeight: parent.height*0.08
+			Layout.maximumHeight: parent.height*0.15
 
 			ScrollBar.vertical: ScrollBar {
 				policy: ScrollBar.AsNeeded
@@ -73,7 +71,7 @@ TPPage {
 			delegate: ItemDelegate {
 				id: statsMesoDelegate
 				width: mesosList.width
-				height: mesosList.height*0.25
+				height: 25
 
 				background: Rectangle {
 					id: backRec
@@ -88,7 +86,9 @@ TPPage {
 				contentItem: Label {
 					id: mesoNameLabel
 					text: mesoName
+					elide: Text.ElideRight
 					color: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+					topPadding: -3
 				}
 			}
 
@@ -100,11 +100,17 @@ TPPage {
 		}
 
 		Frame {
-			height: parent.height*0.4
+			height: parent.height*0.38
 			spacing: 0
 			padding: 0
+			bottomInset: 0
+			topInset: 0
 			Layout.preferredHeight: height
 			Layout.fillWidth: true
+
+			background: Rectangle {
+				color: "transparent"
+			}
 
 			ColumnLayout {
 				spacing: 0
@@ -219,6 +225,7 @@ TPPage {
 						}
 
 						function loadData() {
+							clear();
 							const splits = mesocyclesModel.usedSplits(selectedMesoIdx);
 							for(var i = 0; i < splits.length; ++i)
 								append({ "text": splits[i] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
@@ -231,7 +238,7 @@ TPPage {
 
 					onActivated: (index) => {
 						selectedMesoSplit = valueAt(index);
-						dataSet = appStatistics.createDataSet(selectedMesoIdx, selectedMesoSplit);
+						appStatistics.createDataSet(selectedMesoIdx, selectedMesoSplit);
 					}
 				} //TPComboBox
 
@@ -241,13 +248,14 @@ TPPage {
 						id: exercisesModel
 
 						Component.onCompleted: {
-							appStatistics.exercisesListChanged(function(meso_idx, splitletter) {
+							appStatistics.exercisesListChanged.connect(function(meso_idx, splitletter) {
 							if (meso_idx === selectedMesoIdx && splitletter === selectedMesoSplit)
 								loadData();
 							});
 						}
 
 						function loadData() {
+							clear();
 							const exercises = appStatistics.exercisesList();
 							for(var i = 0; i < exercises.length; ++i)
 								append({ "text": exercises[i], "value": i });
@@ -263,7 +271,8 @@ TPPage {
 
 						TPCheckBox {
 							Layout.fillWidth: true
-							text: exercisesModel.get(index).text
+							text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
+							checked: appStatistics ? appStatistics.exerciseIncluded(index) : false
 
 							onClicked: {
 								appStatistics.includeExercise(index, checked);
@@ -293,6 +302,7 @@ TPPage {
 			height: parent.height*0.5
 			Layout.fillWidth: true
 			Layout.preferredHeight: height
+			Layout.topMargin: -10
 
 			ValueAxis {
 				id: axisY1
@@ -312,11 +322,11 @@ TPPage {
 				max: 1024
 			}
 
-			Component.onCompleted: {
+			/*Component.onCompleted: {
 				changeSeriesType("line");
 				appStatistics.update(chartView.series(0));
 				appStatistics.update(chartView.series(1));
-			}
+			}*/
 		} //ChartView
 	} //ColumnLayout: mainLayout
 

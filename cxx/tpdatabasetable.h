@@ -75,10 +75,10 @@ public:
 	}
 
 	#ifndef QT_NO_DEBUG
-	#define setResult(result, message, location) \
-		_setResult(result, location, message)
+	#define setQueryResult(result, message, location) \
+		_setQueryResult(result, location, message)
 
-	inline void _setResult(const bool bResultOK, const std::source_location& location, const QString& message = QString())
+	inline void _setQueryResult(const bool bResultOK, const std::source_location& location, const QString& message = QString())
 	{
 		mb_result = bResultOK;
 		if (!message.isEmpty())
@@ -96,9 +96,9 @@ public:
 		mSqlLiteDB.close();
 	}
 	#else
-	#define setResult(result, message, location) \
-		_setResult(result)
-	inline void _setResult(const bool bResultOK)
+	#define setQueryResult(result, message, location) \
+		_setQueryResult(result)
+	inline void _setQueryResult(const bool bResultOK)
 	{
 		mb_result = bResultOK;
 	}

@@ -7,8 +7,8 @@
 #include <QtCharts/QtCharts>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QXYSeries>
-#include <QRandomGenerator>
 #include <QtMath>
+#include <QPointF>
 
 TPStatistics* TPStatistics::_appStatistics(nullptr);
 
@@ -16,7 +16,7 @@ struct DataSet {
 	QList<QPointF> m_DataPoints;
 	DBMesoSplitModel* m_Source;
 	QChar m_SplitLetter;
-	uint m_MesoIdx, m_Index;
+	uint m_MesoIdx;
 	QStringList m_ExercisesList;
 	QList<bool> m_exercisesIncluded;
 };
@@ -27,7 +27,7 @@ TPStatistics::~TPStatistics()
 		delete m_dataSet.at(i);
 }
 
-void TPStatistics::update(QAbstractSeries *series)
+/*void TPStatistics::update(QAbstractSeries *series)
 {
 	if (series)
 	{
@@ -40,9 +40,9 @@ void TPStatistics::update(QAbstractSeries *series)
 		// Use replace instead of clear + append, it's optimized for performance
 		xySeries->replace(points);
 	}
-}
+}*/
 
-uint TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
+void TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
 {
 	QList<DataSet*>::const_iterator itr(m_dataSet.constBegin());
 	const QList<DataSet*>::const_iterator itr_end(m_dataSet.constEnd());
@@ -51,7 +51,10 @@ uint TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
 		if ((*itr)->m_MesoIdx == meso_idx)
 		{
 			if ((*itr)->m_SplitLetter == splitLetter)
-				return (*itr)->m_Index;
+			{
+				m_workingDataSet = *itr;
+				generateExercisesForPlotting((*itr)->m_Source);
+			}
 		}
 		++itr;
 	}
@@ -66,66 +69,57 @@ uint TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
 			if (receivedSplit->mesoIdx() == meso_idx && receivedSplit->_splitLetter() == splitLetter)
 			{
 				disconnect(*conn);
-				if (receivedSplit->count() > 0)
-					generateExercisesForPlotting(receivedSplit);
+				generateExercisesForPlotting(receivedSplit);
+
 			}
 		}
 	});
 	appDBInterface()->loadCompleteMesoSplit(splitModel);
 
-	DataSet* data{new DataSet};
-	data->m_MesoIdx = meso_idx;
-	data->m_SplitLetter = splitLetter;
-	data->m_Source = splitModel;
-	data->m_Index = m_dataSet.count();
-	m_dataSet.append(data);
-	return data->m_Index;
+	m_workingDataSet = new DataSet;
+	m_workingDataSet->m_MesoIdx = meso_idx;
+	m_workingDataSet->m_SplitLetter = splitLetter;
+	m_workingDataSet->m_Source = splitModel;
+	m_dataSet.append(m_workingDataSet);
 }
 
 void TPStatistics::includeExercise(const uint exercise_idx, const bool include)
 {
-
-}
-
-DataSet* TPStatistics::findDataSet(const DBMesoSplitModel* const splitModel) const
-{
-	QList<DataSet*>::const_iterator itr(m_dataSet.constBegin());
-	const QList<DataSet*>::const_iterator itr_end(m_dataSet.constEnd());
-	while (itr != itr_end)
-	{
-		if ((*itr)->m_MesoIdx == splitModel->mesoIdx())
-		{
-			if ((*itr)->m_SplitLetter == splitModel->splitLetter())
-				return m_dataSet.at((*itr)->m_Index);
-		}
-		++itr;
-	}
-	return nullptr;
+	m_workingDataSet->m_exercisesIncluded[exercise_idx] = include;
 }
 
 void TPStatistics::generateExercisesForPlotting(const DBMesoSplitModel* const splitModel)
 {
-	DataSet* dataSet = findDataSet(splitModel);
-	if (dataSet)
+	if (m_workingDataSet)
 	{
-		for (uint i(0); i < splitModel->count(); ++i)
+		if (m_workingDataSet->m_ExercisesList.isEmpty())
 		{
-			dataSet->m_ExercisesList.append(std::move(splitModel->exerciseName(i)));
-			dataSet->m_exercisesIncluded.append(true);
+			for (uint i(0); i < splitModel->count(); ++i)
+			{
+				m_workingDataSet->m_ExercisesList.append(std::move(splitModel->exerciseName(i)));
+				m_workingDataSet->m_exercisesIncluded.append(true);
+			}
 		}
-		m_exercisesForPlotting = &(m_dataSet.at(dataSet->m_Index)->m_ExercisesList);
 	}
-	else
-		m_exercisesForPlotting = nullptr;
 	emit exercisesListChanged(splitModel->mesoIdx(), splitModel->_splitLetter());
 }
 
-void TPStatistics::generateDataSet(const uint dataSetIndex, const QDate& startDate, const QDate& endDate)
+void TPStatistics::generateDataSet(const QDate& startDate, const QDate& endDate)
 {
 
 }
 
-void TPStatistics::generateData(int type, int rowCount, int colCount)
+QStringList TPStatistics::exercisesList() const
+{
+	return m_workingDataSet->m_ExercisesList;
+}
+
+bool TPStatistics::exerciseIncluded(const int exercise_idx) const
+{
+	return exercise_idx >= 0 ? m_workingDataSet->m_exercisesIncluded.at(exercise_idx) : false;
+}
+
+/*void TPStatistics::generateData(int type, int rowCount, int colCount)
 {
 	// Remove previous data
 	m_data.clear();
@@ -159,4 +153,4 @@ void TPStatistics::generateData(int type, int rowCount, int colCount)
 		}
 		m_data.append(points);
 	}
-}
+}*/

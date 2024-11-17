@@ -1,6 +1,4 @@
 #include "dbinterface.h"
-#include "tpsettings.h"
-#include "tputils.h"
 
 #include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
@@ -14,6 +12,9 @@
 #include "dbtrainingdaymodel.h"
 #include "dbusertable.h"
 #include "dbusermodel.h"
+#include "tpglobals.h"
+#include "tpsettings.h"
+#include "tputils.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -37,7 +38,7 @@ void DBInterface::init()
 
 	if (!f_info.isReadable())
 	{
-		DBExercisesTable* db_exercises{new DBExercisesTable(m_DBFilePath)};
+		DBExercisesTable* db_exercises{new DBExercisesTable{m_DBFilePath}};
 		db_exercises->createTable();
 		delete db_exercises;
 		appSettings()->setExercisesListVersion(STR_ZERO);
@@ -84,7 +85,7 @@ void DBInterface::init()
 
 	if (appSettings()->appVersion() != TP_APP_VERSION)
 	{
-		//All update code goes in here
+		//All the code to update the database goes in here
 		//updateDB(new DBMesoCalendarTable(m_DBFilePath));
 		//updateDB(new DBMesocyclesTable(m_DBFilePath));
 		//DBUserTable user(m_DBFilePath);

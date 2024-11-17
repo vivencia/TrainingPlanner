@@ -44,7 +44,7 @@ void DBTrainingDayTable::createTable()
 										"setscompleted TEXT DEFAULT \"\")"_L1
 		};
 		const bool ok = query.exec(strQuery);
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
 
@@ -174,7 +174,7 @@ void DBTrainingDayTable::getTrainingDay()
 				return;
 			}	
 		}
-		setResult(false, strQuery, SOURCE_LOCATION);
+		setQueryResult(false, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -200,7 +200,7 @@ void DBTrainingDayTable::getTrainingDayExercises(const bool bClearSomeFieldsForR
 				ok = true;
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -260,7 +260,7 @@ void DBTrainingDayTable::getPreviousTrainingDaysInfo()
 				}
 			}
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -312,7 +312,7 @@ void DBTrainingDayTable::saveTrainingDay()
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)
 			m_model->setId(query.lastInsertId().toString());
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
@@ -330,7 +330,7 @@ void DBTrainingDayTable::removeTrainingDay()
 			m_model->clearFast();
 			m_model->setReady(false);
 		}
-		setResult(ok, strQuery, SOURCE_LOCATION);
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

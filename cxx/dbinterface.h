@@ -2,7 +2,6 @@
 #define DBINTERFACE_H
 
 #include "tplistmodel.h"
-#include "tpglobals.h"
 #include "tpdatabasetable.h"
 
 #include <QObject>
