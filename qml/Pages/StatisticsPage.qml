@@ -14,6 +14,11 @@ TPPage {
 	id: statisticsPage
 	objectName: "statisticsPage"
 
+	property int selectedMesoIdx: -1
+	property string selectedMesoSplit
+
+	onSelectedMesoIdxChanged: if (selectedMesoIdx >= 0) cboUsedSplitsModel.loadData();
+
 	//Shape because Rectangle does not support diagonal gradient
 	Shape {
 		preferredRendererType: Shape.CurveRenderer
@@ -56,6 +61,7 @@ TPPage {
 			spacing: 0
 			height: parent.height*0.2
 			Layout.fillWidth: true
+			Layout.minimumHeight: height
 			Layout.maximumHeight: height
 
 			ScrollBar.vertical: ScrollBar {
@@ -76,7 +82,7 @@ TPPage {
 					anchors.fill: parent
 				}
 
-				onClicked: mesocyclesModel.getMesocyclePage(index);
+				onClicked: selectedMesoIdx = index;
 
 				contentItem: Label {
 					id: mesoNameLabel
@@ -85,21 +91,23 @@ TPPage {
 				}
 			}
 
-			Component.onCompleted: positionViewAtIndex(mesocyclesModel.currentMesoIdx, ListView.Center);
+			Component.onCompleted: {
+				currentIndex = mesocyclesModel.currentMesoIdx;
+				selectedMesoIdx = currentIndex;
+				positionViewAtIndex(currentIndex, ListView.Center);
+			}
 		}
 
 		Frame {
-			height: parent.height*0.3
+			height: parent.height*0.4
 			spacing: 0
 			padding: 0
 			Layout.preferredHeight: height
 			Layout.fillWidth: true
 
-			GridLayout {
-				columns: 2
-				rows: 5
-				columnSpacing: 0
-				rowSpacing: 0
+			ColumnLayout {
+				spacing: 0
+
 				anchors {
 					fill: parent
 					topMargin: 0
@@ -107,80 +115,142 @@ TPPage {
 					rightMargin: 5
 				}
 
-				TPLabel {
-					text: qsTr("Date range:")
-					Layout.row: 0
-					Layout.column: 0
-					Layout.columnSpan: 2
+				Row {
+					spacing: 30
+					padding: 0
+					width: parent.width
+					Layout.fillWidth: true
+
+					TPLabel {
+						text: qsTr("Initial date:")
+						width: parent.width/2
+					}
+					TPLabel {
+						text: qsTr("Final date:")
+						width: parent.width/2
+						Layout.leftMargin: -10
+					}
 				}
 
-				TPTextInput {
-					id: txtStartDate
-					text: appUtils.formatDate(mesocyclesModel.startDate(mesosList.currentIndex))
-					readOnly: true
-					width: parent.width*0.4
-					Layout.preferredWidth: width
-					Layout.row: 1
-					Layout.column: 0
+				Row {
+					spacing: btnStartDate.width
+					padding: 0
+					width: parent.width
+					Layout.fillWidth: true
 
-					CalendarDialog {
-						id: caldlg
-						showDate: mesocyclesModel.startDate(mesosList.currentIndex)
-						initDate: mesocyclesModel.startDate(mesosList.currentIndex)
-						finalDate: mesocyclesModel.endDate(mesosList.currentIndex)
-						parentPage: statisticsPage
+					TPTextInput {
+						id: txtStartDate
+						text: appUtils.formatDate(mesocyclesModel.startDate(selectedMesoIdx))
+						readOnly: true
+						width: parent.width*0.4
 
-						onDateSelected: (date) => txtStartDate.text = appUtils.formatDate(date);
-					}
+						CalendarDialog {
+							id: caldlg
+							showDate: mesocyclesModel.startDate(selectedMesoIdx)
+							initDate: mesocyclesModel.startDate(selectedMesoIdx)
+							finalDate: mesocyclesModel.endDate(selectedMesoIdx)
+							parentPage: statisticsPage
 
-					TPButton {
-						id: btnStartDate
-						imageSource: "calendar.png"
-
-						anchors {
-							left: txtStartDate.right
-							leftMargin: -5
-							verticalCenter: txtStartDate.verticalCenter
+							onDateSelected: (date) => txtStartDate.text = appUtils.formatDate(date);
 						}
+
+						TPButton {
+							id: btnStartDate
+							imageSource: "calendar.png"
+							width: 30
+							height: 30
+							fixedSize: true
+
+							anchors {
+								left: txtStartDate.right
+								verticalCenter: txtStartDate.verticalCenter
+							}
 
 						onClicked: caldlg.open();
-					}
-				}
+						}
+					} //TPTextInput: txtStartDate
 
-				TPTextInput {
-					id: txtEndDate
-					text: appUtils.formatDate(mesocyclesModel.endDate(mesosList.currentIndex))
-					readOnly: true
-					width: parent.width*0.4
-					Layout.preferredWidth: width
-					Layout.row: 1
-					Layout.column: 1
+					TPTextInput {
+						id: txtEndDate
+						text: appUtils.formatDate(mesocyclesModel.endDate(selectedMesoIdx))
+						readOnly: true
+						width: parent.width*0.4
+						Layout.leftMargin: -10
 
-					CalendarDialog {
-						id: caldlg2
-						showDate: mesocyclesModel.endDate(mesosList.currentIndex)
-						initDate: mesocyclesModel.startDate(mesosList.currentIndex)
-						finalDate: mesocyclesModel.endDate(mesosList.currentIndex)
-						parentPage: statisticsPage
+						CalendarDialog {
+							id: caldlg2
+							showDate: mesocyclesModel.endDate(selectedMesoIdx)
+							initDate: mesocyclesModel.startDate(selectedMesoIdx)
+							finalDate: mesocyclesModel.endDate(selectedMesoIdx)
+							parentPage: statisticsPage
 
-						onDateSelected: (date) => txtEndDate.text = appUtils.formatDate(date);
-					}
-
-					TPButton {
-						id: btnEndDate
-						imageSource: "calendar.png"
-
-						anchors {
-							left: txtEndDate.right
-							leftMargin: -5
-							verticalCenter: txtEndDate.verticalCenter
+							onDateSelected: (date) => txtEndDate.text = appUtils.formatDate(date);
 						}
 
-						onClicked: caldlg2.open();
+						TPButton {
+							id: btnEndDate
+							imageSource: "calendar.png"
+							width: 30
+							height: 30
+							fixedSize: true
+
+							anchors {
+								left: txtEndDate.right
+								verticalCenter: txtEndDate.verticalCenter
+							}
+
+							onClicked: caldlg2.open();
+						}
+					} //TPTextInput: txtEndDate
+				} //Row
+
+				TPComboBox {
+					id: cboUsedSplits
+
+					model: ListModel {
+						id: cboUsedSplitsModel
+
+						Component.onCompleted: {
+							mesocyclesModel.usedSplitsChanged.connect(function(meso_idx) {
+							if (meso_idx === selectedMesoIdx)
+								loadData();
+							});
+						}
+
+						function loadData() {
+							const splits = mesocyclesModel.usedSplits(selectedMesoIdx);
+							for(var i = 0; i < splits.length; ++i)
+								append({ "text": splits[i] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
+										"value": splits[i], "enabled": true });
+						}
+					}
+
+					width: parent.width
+					Layout.fillWidth: true
+
+					onActivated: (index) => selectedMesoSplit = valueAt(index);
+				} //TPComboBox
+
+				Repeater {
+					id: exercisesRepeater
+					model: mesocyclesModel.usedSplits(selectedMesoIdx)
+					width: parent.width
+					Layout.fillWidth: true
+
+					ColumnLayout {
+						spacing: 0
+						Layout.fillWidth: true
+
+						TPCheckBox {
+							Layout.fillWidth: true
+							text: splitRepeater.model[index] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splitRepeater.model[index]);
+
+							onClicked: selectedMesoSplit = splitRepeater.model[index];
+						}
 					}
 				}
-			}
-		}
+			} //GridLayout
+		} //Frame
 
 		ChartView {
 			id: chartView

@@ -71,6 +71,7 @@ public:
 
 	inline bool isExerciseNew(const uint row) const { return m_exerciseIsNew.at(row) != 0; }
 	void setModified(const uint row, const uint field);
+	bool isFieldUserModified(const uint row, const uint field) const;
 
 	inline const QChar& _splitLetter() const { return m_splitLetter; }
 	Q_INVOKABLE inline QString splitLetter() const { return QString(m_splitLetter); }
@@ -99,8 +100,8 @@ public:
 	Q_INVOKABLE void setSetsNotes(const uint row, const QString& new_setsnotes);
 
 	inline const QString& _setsTypes(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SETTYPE); }
-	Q_INVOKABLE uint setType(const int row, const uint set_number) const;
-	Q_INVOKABLE void setSetType(const uint row, const uint set_number, const uint new_type);
+	Q_INVOKABLE int setType(const int row, const uint set_number) const;
+	Q_INVOKABLE void setSetType(const uint row, const uint set_number, const uint new_type, const bool b_emit_modified = true);
 
 	inline const QString& _setsSubSets(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SUBSETSNUMBER); }
 	Q_INVOKABLE QString setSubsets(const int row, const uint set_number) const;

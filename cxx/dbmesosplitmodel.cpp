@@ -66,10 +66,15 @@ void DBMesoSplitModel::setModified(const uint row, const uint field)
 	emit splitChanged(row, field);
 }
 
+bool DBMesoSplitModel::isFieldUserModified(const uint row, const uint field) const
+{
+	return !isBitSet(m_exerciseIsNew.at(row), field);
+}
+
 void DBMesoSplitModel::appendExercise()
 {
-	appendList(std::move(QStringList() << std::move(tr("Choose exercise...")) << STR_MINUS_ONE << " "_L1 << STR_ZERO << STR_ZERO <<
-							appUtils()->makeDoubleCompositeValue("12"_L1, 1, 2, set_separator, comp_exercise_separator) <<
+	appendList(std::move(QStringList() << std::move(tr("Choose exercise...")) << STR_MINUS_ONE << " "_L1 << STR_MINUS_ONE << STR_ZERO <<
+							appUtils()->makeDoubleCompositeValue("10"_L1, 1, 2, set_separator, comp_exercise_separator) <<
 							appUtils()->makeDoubleCompositeValue("20"_L1, 1, 2, set_separator, comp_exercise_separator) <<  STR_ZERO));
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
@@ -197,16 +202,17 @@ void DBMesoSplitModel::setSetsNotes(const uint row, const QString& new_setsnotes
 	setModified(row, MESOSPLIT_COL_NOTES);
 }
 
-uint DBMesoSplitModel::setType(const int row, const uint set_number) const
+int DBMesoSplitModel::setType(const int row, const uint set_number) const
 {
-	return (row >= 0 && row < m_modeldata.count()) ? appUtils()->getCompositeValue(set_number, _setsTypes(static_cast<uint>(row)), set_separator).toUInt() : 0;
+	return (row >= 0 && row < m_modeldata.count()) ? appUtils()->getCompositeValue(set_number, _setsTypes(static_cast<uint>(row)), set_separator).toInt() : -1;
 }
 
-void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const uint new_type)
+void DBMesoSplitModel::setSetType(const uint row, const uint set_number, const uint new_type, const bool b_emit_modified)
 {
 	appUtils()->setCompositeValue(set_number, QString::number(new_type), m_modeldata[row][MESOSPLIT_COL_SETTYPE], set_separator);
 	setModified(row, MESOSPLIT_COL_SETTYPE);
-	emit setTypeChanged(row);
+	if (b_emit_modified)
+		emit setTypeChanged(row);
 	if (exerciseName(row).isEmpty())
 		setExerciseName(row, new_type != SET_TYPE_GIANT ? tr("Choose exercise...") : tr("Choose exercises..."));
 }

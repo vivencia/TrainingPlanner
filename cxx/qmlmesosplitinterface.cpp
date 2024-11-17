@@ -212,16 +212,21 @@ void QmlMesoSplitInterface::exerciseSelected()
 	{
 		case 0:
 		{
-			const uint set_number(m_simpleExercisesListRequester->workingSet(row));
-			const uint cur_set_type(m_simpleExercisesListRequester->setType(row, set_number));
-			if (b_is_composite && cur_set_type != SET_TYPE_GIANT)
-				m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_GIANT);
-			else if (!b_is_composite && cur_set_type == SET_TYPE_GIANT)
-				m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_REGULAR);
 			m_simpleExercisesListRequester->setExerciseName(row, exerciseName);
-			m_simpleExercisesListRequester->setSetsNumber(row, nsets);
-			m_simpleExercisesListRequester->setSetReps(row, set_number, nReps);
-			m_simpleExercisesListRequester->setSetWeight(row, set_number, nWeight);
+			//If the user altered these two fields, do not override their modifications. Maybe include more fields in the future
+			if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_SETTYPE) ||
+				!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_REPSNUMBER) )
+			{
+				const uint set_number(m_simpleExercisesListRequester->workingSet(row));
+				const int cur_set_type(m_simpleExercisesListRequester->setType(row, set_number));
+				if (b_is_composite && cur_set_type != SET_TYPE_GIANT)
+					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_GIANT, false);
+				else if (!b_is_composite && cur_set_type == SET_TYPE_GIANT)
+					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_REGULAR, false);
+				m_simpleExercisesListRequester->setSetsNumber(row, nsets);
+				m_simpleExercisesListRequester->setSetReps(row, set_number, nReps);
+				m_simpleExercisesListRequester->setSetWeight(row, set_number, nWeight);
+			}
 		}
 		break;
 		case 1:

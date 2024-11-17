@@ -148,6 +148,12 @@ void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
 	mesoManager(meso_idx)->getExercisesPlannerPage();
 }
 
+DBMesoSplitModel* DBMesocyclesModel::getSplitExercises(const uint meso_idx, const QChar& splitLetter)
+{
+
+	appDBInterface()->loadCompleteMesoSplit()
+}
+
 void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 {
 	mesoManager(meso_idx)->getCalendarPage();
@@ -179,6 +185,8 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 		changeCanHaveTodaysWorkout();
 	}
+	m_usedSplits.append(QStringList());
+	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(uchar(0));
 	setCurrentMesoIdx(meso_idx);
 	return meso_idx;
@@ -252,13 +260,17 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 
 void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 {
-	m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
-	setModified(meso_idx, MESOCYCLES_COL_SPLIT);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoSplitRole);
-	if (!isNewMeso(meso_idx))
-		emit mesoCalendarFieldsChanged(meso_idx);
-	else
-		m_newMesoCalendarChanged[meso_idx] = true;
+	if (new_split != split(meso_idx))
+	{
+		m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
+		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
+		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoSplitRole);
+		if (!isNewMeso(meso_idx))
+			emit mesoCalendarFieldsChanged(meso_idx);
+		else
+			m_newMesoCalendarChanged[meso_idx] = true;
+		makeUsedSplits(meso_idx);
+	}
 }
 
 bool DBMesocyclesModel::isOwnMeso(const int meso_idx) const
@@ -301,6 +313,20 @@ void DBMesocyclesModel::setCurrentMesoIdx(const uint meso_idx)
 		appSettings()->setLastViewedMesoIdx(meso_idx);
 		emit currentMesoIdxChanged();
 	}
+}
+
+void DBMesocyclesModel::makeUsedSplits(const uint meso_idx)
+{
+	QStringList* usedSplit = &(m_usedSplits[meso_idx]);
+	usedSplit->clear();
+	const QString& strSplit{split(meso_idx)};
+	for (uint i(0); i < strSplit.length(); ++i)
+	{
+		const char chr(strSplit.at(i).toLatin1());
+		if (chr != 'R' && !usedSplit->contains(chr))
+			usedSplit->append(QString(chr));
+	}
+	emit usedSplitsChanged(meso_idx);
 }
 
 void DBMesocyclesModel::findNextOwnMeso()

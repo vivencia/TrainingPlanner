@@ -15,7 +15,6 @@ CheckBox {
 		text: control.text
 		wrapMode: Text.WordWrap
 		leftPadding: control.indicator.width + control.spacing
-		singleLine: false
 	}
 
 	indicator: Rectangle {

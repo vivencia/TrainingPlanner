@@ -397,6 +397,15 @@ Frame {
 										setListItemHeight(lstSplitExercises.currentItem, cboIndex);
 										splitModel.setSetType(index, splitModel.workingSet, cboIndex);
 									}
+
+									Component.onCompleted: {
+										splitModel.workingSetChanged.connect(function(row) {
+											if (visible) {
+												if (index === row)
+													currentIndex = splitModel.setType(row, splitModel.workingSet)
+											}
+										});
+									}
 								}
 							}
 

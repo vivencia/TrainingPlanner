@@ -52,6 +52,7 @@ public:
 	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
+	Q_INVOKABLE DBMesoSplitModel* getSplitExercises(const uint meso_idx, const QChar& splitLetter);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE void todaysWorkout();
@@ -92,9 +93,9 @@ public:
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE);
 	}
-	inline QDate startDate(const uint meso_idx) const
+	Q_INVOKABLE inline QDate startDate(const int meso_idx) const
 	{
-		return QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE).toLongLong());
+		return meso_idx >= 0 ? QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_STARTDATE).toLongLong()) : QDate();
 	}
 	void setStartDate(const uint meso_idx, const QDate& new_date);
 
@@ -102,10 +103,10 @@ public:
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE);
 	}
-	inline QDate endDate(const uint meso_idx) const
+	Q_INVOKABLE inline QDate endDate(const int meso_idx) const
 	{
-		return isRealMeso(meso_idx) ? QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()) :
-							QDate::currentDate().addDays(730);
+		return meso_idx >= 0 ? isRealMeso(meso_idx) ?
+			QDate::fromJulianDay(m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ENDDATE).toLongLong()) : QDate::currentDate().addDays(730) : QDate();
 	}
 	void setEndDate(const uint meso_idx, const QDate& new_date);
 
@@ -187,15 +188,15 @@ public:
 	inline bool isRealMeso(const int meso_idx) const
 	{
 		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isRealMeso", "out of range meso_idx");
-		return realMeso(meso_idx) == QStringLiteral("1");
+		return realMeso(meso_idx) == '1';
 	}
 	inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? QStringLiteral("1") : QStringLiteral("0");
+		m_modeldata[meso_idx][MESOCYCLES_COL_REALMESO] = bRealMeso ? '1' : '0';
 		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 
-	QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
+	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const uint initiator_id);
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
@@ -203,6 +204,8 @@ public:
 	inline int currentMesoIdx() const { return m_currentMesoIdx; }
 	void setCurrentMesoIdx(const uint meso_idx);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
+	Q_INVOKABLE inline QStringList usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
+	void makeUsedSplits(const uint meso_idx);
 
 	inline bool newMesoCalendarChanged(const uint meso_idx) const { return m_newMesoCalendarChanged.at(meso_idx); }
 	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
@@ -244,6 +247,7 @@ signals:
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();
+	void usedSplitsChanged(const uint meso_idx);
 
 private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
@@ -251,6 +255,7 @@ private:
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<uchar> m_isNewMeso;
 	QList<bool> m_newMesoCalendarChanged;
+	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
 	bool m_bCanHaveTodaysWorkout;
 
