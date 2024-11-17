@@ -15,6 +15,7 @@ TPPage {
 	objectName: "statisticsPage"
 
 	property int selectedMesoIdx: -1
+	property int dataSet: -1
 	property string selectedMesoSplit
 
 	onSelectedMesoIdxChanged: if (selectedMesoIdx >= 0) cboUsedSplitsModel.loadData();
@@ -228,12 +229,31 @@ TPPage {
 					width: parent.width
 					Layout.fillWidth: true
 
-					onActivated: (index) => selectedMesoSplit = valueAt(index);
+					onActivated: (index) => {
+						selectedMesoSplit = valueAt(index);
+						dataSet = appStatistics.createDataSet(selectedMesoIdx, selectedMesoSplit);
+					}
 				} //TPComboBox
 
 				Repeater {
 					id: exercisesRepeater
-					model: mesocyclesModel.usedSplits(selectedMesoIdx)
+					model: ListModel {
+						id: exercisesModel
+
+						Component.onCompleted: {
+							appStatistics.exercisesListChanged(function(meso_idx, splitletter) {
+							if (meso_idx === selectedMesoIdx && splitletter === selectedMesoSplit)
+								loadData();
+							});
+						}
+
+						function loadData() {
+							const exercises = appStatistics.exercisesList();
+							for(var i = 0; i < exercises.length; ++i)
+								append({ "text": exercises[i], "value": i });
+						}
+					}
+
 					width: parent.width
 					Layout.fillWidth: true
 
@@ -243,9 +263,12 @@ TPPage {
 
 						TPCheckBox {
 							Layout.fillWidth: true
-							text: splitRepeater.model[index] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splitRepeater.model[index]);
+							text: exercisesModel.get(index).text
 
-							onClicked: selectedMesoSplit = splitRepeater.model[index];
+							onClicked: {
+								appStatistics.includeExercise(index, checked);
+								//appStatistics.generateData();
+							}
 						}
 					}
 				}
@@ -330,7 +353,7 @@ TPPage {
 
 	function createAxis(min, max) {
 		// The following creates a ValueAxis object that can be then set as a x or y axis for a series
-		return Qt.createQmlObject("import QtQuick 2.0; import QtCharts 2.0; ValueAxis { min: "
+		return Qt.createQmlObject("import QtQuick; import QtCharts; ValueAxis { min: "
 								  + min + "; max: " + max + " }", chartView);
 	}
 }

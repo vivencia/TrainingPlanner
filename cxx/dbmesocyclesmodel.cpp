@@ -148,12 +148,6 @@ void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
 	mesoManager(meso_idx)->getExercisesPlannerPage();
 }
 
-DBMesoSplitModel* DBMesocyclesModel::getSplitExercises(const uint meso_idx, const QChar& splitLetter)
-{
-
-	appDBInterface()->loadCompleteMesoSplit()
-}
-
 void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 {
 	mesoManager(meso_idx)->getCalendarPage();

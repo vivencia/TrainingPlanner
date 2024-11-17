@@ -84,7 +84,7 @@ public:
 	Q_INVOKABLE void delSet(const uint row);
 
 	inline const QString& _exerciseName(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME); }
-	Q_INVOKABLE const QString exerciseName(const int row);
+	Q_INVOKABLE QString exerciseName(const int row) const;
 	Q_INVOKABLE void setExerciseName(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName1(const uint row) const;
 	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);

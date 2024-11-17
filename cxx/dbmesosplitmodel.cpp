@@ -134,7 +134,7 @@ void DBMesoSplitModel::delSet(const uint row)
 	}
 }
 
-const QString DBMesoSplitModel::exerciseName(const int row)
+QString DBMesoSplitModel::exerciseName(const int row) const
 {
 	if (row >= 0 && row < m_modeldata.count())
 	{

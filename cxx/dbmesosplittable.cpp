@@ -230,8 +230,8 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 	if (openDatabase(true))
 	{
 		bool ok(false);
-		const QString& mesoId(m_execArgs.at(0).toString());
-		const QChar& splitLetter(m_execArgs.at(1).toChar());
+		const QString& mesoId{m_execArgs.at(0).toString()};
+		const QChar& splitLetter{m_execArgs.at(1).toChar()};
 
 		QSqlQuery query{getQuery()};
 		const QString& strQuery{"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "

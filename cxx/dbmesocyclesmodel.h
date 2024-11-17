@@ -52,7 +52,6 @@ public:
 	Q_INVOKABLE uint createNewMesocycle(const bool bCreatePage);
 	Q_INVOKABLE void removeMesocycle(const uint meso_idx);
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
-	Q_INVOKABLE DBMesoSplitModel* getSplitExercises(const uint meso_idx, const QChar& splitLetter);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
 	Q_INVOKABLE void todaysWorkout();
