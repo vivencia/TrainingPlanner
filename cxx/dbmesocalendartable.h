@@ -26,8 +26,13 @@ public:
 	void updateMesoCalendar();
 	void removeMesoCalendar();
 
+	//Functions for TPStatistics
+	void completedDaysForSplitWithinTimePeriod();
+	inline const QList<QDate>& retrievedDates() const { return m_completedWorkoutDates; }
+
 private:
 	DBMesoCalendarModel* m_model;
+	QList<QDate> m_completedWorkoutDates;
 };
 
 #endif // DBMESOCALENDARTABLE_H

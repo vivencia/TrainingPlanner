@@ -20,6 +20,16 @@ ToolBar {
 	property WeatherPage weatherPage: null
 	property StatisticsPage statsPage: null
 
+	background: Rectangle {
+		gradient: Gradient {
+			orientation: Gradient.Horizontal
+			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+			GradientStop { position: 0.50; color: appSettings.primaryColor; }
+			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+		}
+	}
+
 	TPButton {
 		id: btnBack
 		imageSource: "back.png"

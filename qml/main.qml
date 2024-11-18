@@ -45,11 +45,6 @@ ApplicationWindow {
 
 	header: NavBar {
 		id: navBar
-
-		background: Rectangle {
-			color: appSettings.primaryDarkColor
-			opacity: 0.7
-		}
 	}
 
 	MainMenu {

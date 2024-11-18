@@ -13,7 +13,6 @@ TPPage {
 	property date minimumStartDate;
 
 	header: ToolBar {
-		topPadding: 5
 		bottomPadding: 20
 		height: headerHeight
 
@@ -37,7 +36,6 @@ TPPage {
 
 			anchors {
 				top: parent.top
-				topMargin: -10
 				left: parent.left
 				leftMargin: 5
 			}

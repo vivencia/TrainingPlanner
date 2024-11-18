@@ -51,18 +51,18 @@ Column {
 	TPLabel {
 		text: qsTr("Search: ")
 		verticalAlignment: Text.AlignVCenter
-		width: parent.width*0.5
-		height: 25
+		width: parent.width*0.3
+		Layout.preferredWidth: width
 
 		TPCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			enabled: canDoMultipleSelection
-			width: parent.width*0.5
+			width: mainItem.width*0.4
 
 			anchors {
 				left: parent.right
-				top: parent.top
+				verticalCenter: parent.verticalCenter
 			}
 
 			onCheckedChanged: {

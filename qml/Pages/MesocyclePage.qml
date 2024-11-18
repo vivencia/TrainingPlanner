@@ -81,7 +81,6 @@ TPPage {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 		contentWidth: availableWidth
-		contentHeight: colMain.implicitHeight + 20
 
 		anchors {
 			fill: parent

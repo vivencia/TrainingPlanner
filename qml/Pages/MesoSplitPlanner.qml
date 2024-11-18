@@ -38,7 +38,10 @@ Frame {
 		imageSource: "remove"
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
-		onButton1Clicked: removeExercise(idxToRemove);
+		onButton1Clicked: {
+			splitModel.removeExercise(splitModel.currentRow);
+			lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
+		}
 		parentPage: parentItem
 	} //TPBalloonTip
 
@@ -98,8 +101,6 @@ Frame {
 			id: lstSplitExercises
 			boundsBehavior: Flickable.StopAtBounds
 			flickableDirection: Flickable.VerticalFlick
-			contentHeight: totalHeight * 1.1//contentHeight: Essencial for the ScrollBars to work.
-			property int totalHeight
 
 			anchors {
 				top: txtGroups.bottom
@@ -113,7 +114,8 @@ Frame {
 			ScrollBar.vertical: ScrollBar {
 				id: vBar
 				policy: ScrollBar.AsNeeded
-				active: true; visible: lstSplitExercises.contentHeight > lstSplitExercises.height
+				active: ScrollBar.AsNeeded
+				visible: lstSplitExercises.contentHeight > lstSplitExercises.height
 
 				onPositionChanged: {
 					if (parentItem.navButtons) {
@@ -140,7 +142,9 @@ Frame {
 				spacing: 10
 				padding: 0
 				implicitWidth: lstSplitExercises.width
-				implicitHeight: listItem.height
+				implicitHeight: contentsLayout.implicitHeight
+
+				required property int index
 
 				ColumnLayout {
 					id: contentsLayout
@@ -151,11 +155,15 @@ Frame {
 
 						function onExerciseNameChanged(row) {
 							if (splitModel.currentRow === row) {
-								txtExerciseName.text = splitModel.exerciseName(row);
-								if (lblExercise1.visible) {
-									lblExercise1.text = splitModel.exerciseName1(row);
-									lblExercise2.text = splitModel.exerciseName2(row);
+								if (splitModel.exerciseIsComposite(row))
+									cboSetType.currentIndex = 4;
+								else {
+									if (cboSetType.currentIndex === 4)
+										cboSetType.currentIndex = -1;
 								}
+								txtExerciseName.text = splitModel.exerciseName(row);
+								lblExercise1.text = splitModel.exerciseName1(row);
+								lblExercise2.text = splitModel.exerciseName2(row);
 							}
 						}
 
@@ -223,30 +231,17 @@ Frame {
 						text: splitModel.exerciseName(index)
 						enabled: index === splitModel.currentRow
 						width: parent.width
-						height: appSettings.pageHeight*0.09
+						height: appSettings.pageHeight*0.1
 						Layout.preferredWidth: width
 						Layout.preferredHeight: height
 
 						//Alphanumeric keyboard
 						Keys.onReturnPressed: cboSetType.forceActiveFocus();
-						onExerciseChanged: (new_text) => {
-							splitModel.setExerciseName(index, new_text);
-							if (cboSetType.currentIndex === 4) {
-								lblExercise1.text = splitModel.exerciseName1(index);
-								lblExercise2.text = splitModel.exerciseName2(index);
-							}
-						}
+						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
 						onItemClicked: splitModel.currentRow = index;
 
-						onRemoveButtonClicked: {
-							splitModel.currentRow = index;
-							msgDlgRemove.show(0);
-						}
-
-						onEditButtonClicked: {
-							splitModel.currentRow = index;
-							splitManager.simpleExercisesList(splitModel, !readOnly, cboSetType.currentIndex === 4, 0);
-						}
+						onRemoveButtonClicked: msgDlgRemove.show(0);
+						onEditButtonClicked: splitManager.simpleExercisesList(splitModel, !readOnly, true, 0);
 
 						onMousePressed: (mouse) => {
 							if (!readOnly) {
@@ -263,6 +258,7 @@ Frame {
 					SetNotesField {
 						info: splitModel.instructionsLabel
 						text: splitModel.setsNotes(index)
+						Layout.fillWidth: true
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
 					}
@@ -303,7 +299,10 @@ Frame {
 									imageSize: 30
 									z:2
 
-									onClicked: splitModel.addSet(index)
+									onClicked: {
+										splitModel.addSet(index)
+										setsTabBar.setCurrentIndex(splitModel.workingSet);
+									}
 
 									anchors {
 										left: parent.left
@@ -393,17 +392,14 @@ Frame {
 									width: listItem.width*0.55
 									Layout.rightMargin: 5
 
-									onActivated: (cboIndex) => {
-										setListItemHeight(lstSplitExercises.currentItem, cboIndex);
-										splitModel.setSetType(index, splitModel.workingSet, cboIndex);
-									}
+									onActivated: (cboIndex) => splitModel.setSetType(index, splitModel.workingSet, cboIndex);
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													currentIndex = splitModel.setType(row, splitModel.workingSet)
-											}
+											//}
 										});
 									}
 								}
@@ -411,30 +407,30 @@ Frame {
 
 							RowLayout {
 								visible: cboSetType.currentIndex === 2 || cboSetType.currentIndex === 3 || cboSetType.currentIndex === 5
-								Layout.leftMargin: 20
-								Layout.rightMargin: 20
+								Layout.leftMargin: 10
+								Layout.rightMargin: 10
 								Layout.fillWidth: true
 
 								TPLabel {
 									text: splitModel.subSetsLabel
 									fontColor: "black"
-									Layout.minimumWidth: listItem.width/2
+									Layout.preferredWidth: listItem.width*0.5
 								}
 								SetInputField {
 									id: txtNSubsets
 									text: splitModel.setSubsets(index, splitModel.workingSet)
 									type: SetInputField.Type.SetType
-									availableWidth: listItem.width / 3
+									availableWidth: listItem.width*0.3
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetsSubsets(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setSubsets(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 
@@ -448,18 +444,21 @@ Frame {
 							}
 
 							RowLayout {
+								uniformCellSizes: true
 								visible: cboSetType.currentIndex === 4
-								Layout.leftMargin: 20
 								Layout.fillWidth: true
-								Layout.topMargin: 5
-								Layout.bottomMargin: 5
+								Layout.topMargin: 10
+								Layout.leftMargin: 10
 
 								TPLabel {
 									id: lblExercise1
 									text: splitModel.exerciseName1(index)
+									wrapMode: Text.WordWrap
+									fontColor: "black"
 									width: listItem.width*0.5
-									Layout.alignment: Qt.AlignCenter
 									Layout.preferredWidth: width
+									Layout.preferredHeight: _preferredHeight
+									Layout.alignment: Qt.AlignHCenter
 
 									MouseArea {
 										anchors.fill: parent
@@ -473,9 +472,12 @@ Frame {
 								TPLabel {
 									id: lblExercise2
 									text: splitModel.exerciseName2(index)
+									wrapMode: Text.WordWrap
+									fontColor: "black"
 									width: listItem.width*0.5
-									Layout.alignment: Qt.AlignCenter
 									Layout.preferredWidth: width
+									Layout.preferredHeight: _preferredHeight
+									Layout.alignment: Qt.AlignRight
 
 									MouseArea {
 										anchors.fill: parent
@@ -500,34 +502,34 @@ Frame {
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 								Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setReps1(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 							}
 
 							RowLayout {
 								visible: cboSetType.currentIndex === 4
+								Layout.fillWidth: true
+								Layout.leftMargin: 10
 
 								SetInputField {
 									id: txtNReps1
 									text: splitModel.setReps1(index, splitModel.workingSet)
 									type: SetInputField.Type.RepType
-									availableWidth: listItem.width/2 + 10
-									Layout.alignment: Qt.AlignLeft
-									Layout.leftMargin: 20
+									availableWidth: listItem.width*0.6
 
 									onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setReps1(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 								}
@@ -536,7 +538,7 @@ Frame {
 									id: txtNReps2
 									text: splitModel.setReps2(index, splitModel.workingSet)
 									type: SetInputField.Type.RepType
-									availableWidth: listItem.width/3
+									availableWidth: listItem.width*0.3
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetReps2(index, splitModel.workingSet, str);
@@ -544,10 +546,10 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setReps2(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 								}
@@ -566,10 +568,10 @@ Frame {
 
 								Component.onCompleted: {
 									splitModel.workingSetChanged.connect(function(row) {
-										if (visible) {
+										//if (visible) {
 											if (index === row)
 												text = splitModel.setWeight1(row, splitModel.workingSet);
-										}
+										//}
 									});
 								}
 							}
@@ -577,24 +579,23 @@ Frame {
 							RowLayout {
 								visible: cboSetType.currentIndex === 4
 								Layout.fillWidth: true
+								Layout.leftMargin: 10
 
 								SetInputField {
 									id: txtNWeight1
 									text: splitModel.setWeight1(index, splitModel.workingSet)
 									type: SetInputField.Type.WeightType
-									availableWidth: listItem.width/2 + 10
-									Layout.alignment: Qt.AlignCenter
-									Layout.leftMargin: 20
+									availableWidth: listItem.width*0.6
 
 									onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setWeight1(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 								}
@@ -604,18 +605,16 @@ Frame {
 									text: splitModel.setWeight2(index, splitModel.workingSet)
 									type: SetInputField.Type.WeightType
 									showLabel: false
-									availableWidth: listItem.width/3
-									Layout.alignment: Qt.AlignRight
-									Layout.rightMargin: listItem.width/6
+									availableWidth: listItem.width*0.3
 
 									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											if (visible) {
+											//if (visible) {
 												if (index === row)
 													text = splitModel.setWeight2(row, splitModel.workingSet);
-											}
+											//}
 										});
 									}
 								}
@@ -630,7 +629,6 @@ Frame {
 					border.color: "transparent"
 					color: "transparent"
 					radius: 5
-					Component.onCompleted: setListItemHeight(this, cboSetType.currentIndex);
 				}
 
 				background: Rectangle {
@@ -639,9 +637,8 @@ Frame {
 					color: splitModel.currentRow === index ? appSettings.primaryLightColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
 
-				Component.onCompleted: lstSplitExercises.totalHeight += height;
 				onClicked: splitModel.currentRow = index;
-			} //delegate: SwipeDelegate
+			} //delegate: ItemDelegate
 		} //ListView
 
 	Component.onCompleted: {
@@ -655,28 +652,6 @@ Frame {
 			vBar.setPosition(0);
 		else
 			vBar.setPosition(pos - vBar.size/2);
-	}
-
-	//Each layout row(10) * 32(height per row) + 20(extra space)
-	function setListItemHeight(item, settype) {
-		var nheight;
-		switch (settype) {
-			case 4:
-				nheight = 360; break;
-			case 3:
-			case 5:
-				nheight = 340; break;
-			default:
-				nheight = 300; break;
-		}
-		item.height = nheight;
-	}
-
-	function removeExercise(idx: int) {
-		splitModel.removeExercise(idx);
-		if (idx > 0)
-			--idx;
-		splitModel.setCurrentRow(idx);
 	}
 
 	function updateTxtGroups(musculargroup: string)

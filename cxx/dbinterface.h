@@ -98,6 +98,11 @@ public:
 	void deleteTrainingDayTable(const bool bRemoveFile);
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
+	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
+	void completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate& startDate, const QDate& endDate);
+	void workoutInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates);
+	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
+
 signals:
 	void databaseReady(const uint db_id);
 	void databaseReadyWithData(const uint table_idx, const QVariant data);

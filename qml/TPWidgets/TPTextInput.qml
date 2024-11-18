@@ -9,7 +9,7 @@ TextField {
 
 	id: control
 	font.pixelSize: appSettings.fontSize
-	font.weight: Font.Bold //Font.ExtraBold
+	font.weight: Font.Bold
 	color: enabled ? textColor : appSettings.disabledFontColor
 	leftInset: 0
 	rightInset: 0
@@ -26,9 +26,9 @@ TextField {
 	signal enterOrReturnKeyPressed()
 
 	MouseArea {
-		anchors.fill: parent
-		pressAndHoldInterval: 300
+		pressAndHoldInterval: 400
 		enabled: parent.enabled ? true : !parent.readOnly
+		anchors.fill: parent
 
 		onPressAndHold: (mouse) => {
 			appUtils.copyToClipBoard(control.text);

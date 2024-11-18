@@ -21,7 +21,7 @@ Item {
 		id: text1
 		text: current.topText
 		singleLine: false
-		fontColor: "white"
+		fontColor: "black"
 		font: AppGlobals.extraLargeFont
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width - 50
@@ -75,7 +75,7 @@ Item {
 	TPLabel {
 		id: text2
 		text: current.bottomText
-		fontColor: "white"
+		fontColor: "black"
 		font: AppGlobals.regularFont
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
@@ -103,7 +103,7 @@ Item {
 		_textWidth: parent.width - 20
 		_textHeight: 15
 		horizontalAlignment: Text.AlignHCenter
-		fontColor: "white"
+		fontColor: "black"
 		singleLine: false
 		width: parent.width
 

@@ -79,7 +79,7 @@ public:
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
 	Q_INVOKABLE void appendExercise();
-	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); m_exerciseIsNew.remove(row); }
+	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); m_exerciseIsNew.remove(row); emit splitChanged(row, 100); }
 	Q_INVOKABLE void addSet(const uint row);
 	Q_INVOKABLE void delSet(const uint row);
 
@@ -90,6 +90,7 @@ public:
 	Q_INVOKABLE void setExerciseName1(const uint row, const QString& new_name);
 	Q_INVOKABLE QString exerciseName2(const uint row) const;
 	Q_INVOKABLE void setExerciseName2(const uint row, const QString& new_name);
+	Q_INVOKABLE bool exerciseIsComposite(const uint row) const;
 
 	inline const QString& _setsNumber(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_SETSNUMBER); }
 	Q_INVOKABLE uint setsNumber(const int row) const;

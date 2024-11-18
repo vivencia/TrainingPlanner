@@ -618,3 +618,38 @@ void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
+
+//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
+void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate& startDate, const QDate& endDate)
+{
+	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath}};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			emit databaseReadyWithData(MESOCALENDAR_TABLE_ID, QVariant::fromValue(worker->retrievedDates()));
+		}
+	});
+	worker->addExecArg(splitLetter);
+	worker->addExecArg(startDate);
+	worker->addExecArg(endDate);
+	createThread(worker, [worker] () { return worker->completedDaysForSplitWithinTimePeriod(); });
+}
+
+void DBInterface::workoutInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates)
+{
+	DBTrainingDayTable* worker{new DBTrainingDayTable{m_DBFilePath}};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(worker->workoutInfo()));
+		}
+	});
+	worker->addExecArg(exercises);
+	worker->addExecArg(QVariant::fromValue(workoutDates));
+	createThread(worker, [worker] () { return worker->workoutInfoForTimePeriod(); });
+}
+//-----------------------------------------------------------STATISTICS-----------------------------------------------------------

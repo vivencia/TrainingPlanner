@@ -334,3 +334,41 @@ void DBTrainingDayTable::removeTrainingDay()
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
+
+void DBTrainingDayTable::workoutInfoForTimePeriod()
+{
+	m_workoutInfo.clear();
+	if (openDatabase(true))
+	{
+		const QStringList& exercises{m_execArgs.at(0).toStringList()};
+		const QList<QDate>& dates{m_execArgs.at(1).value<QList<QDate>>()};
+
+		QString datesList{'('};
+		for (uint i(0); i < dates.count(); ++i)
+			datesList += QString::number(dates.at(i).toJulianDay()) + ',';
+		datesList.chop(1);
+		datesList.append(')');
+
+		QSqlQuery query{getQuery()};
+		const QString& strQuery{"SELECT exercises,setsreps,setsweights FROM training_day_table WHERE date IN(%1)"_L1.arg(datesList)};
+
+		bool ok(false);
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+			{
+				do
+				{
+					if (query.value(0).toInt() == 1)
+					{
+						QDate date{query.value(1).toInt(), query.value(2).toInt(), query.value(3).toInt()};
+						//m_completedWorkoutDates.append(std::move(date));
+					}
+				} while (query.next());
+				ok = true;
+			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}

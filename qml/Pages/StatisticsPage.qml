@@ -42,328 +42,319 @@ TPPage {
 		}
 	}
 
-	ColumnLayout {
-		id: mainLayout
+	ScrollView {
+		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+		ScrollBar.vertical.policy: ScrollBar.AsNeeded
+		contentWidth: availableWidth
 
 		anchors {
 			fill: parent
 			leftMargin: 5
 			rightMargin: 5
 			topMargin: 5
-			bottomMargin: 5
+			bottomMargin: 10
 		}
 
-		ListView {
-			id: mesosList
-			model: mesocyclesModel
-			boundsBehavior: Flickable.StopAtBounds
-			spacing: 1
-			clip: true
-			Layout.fillWidth: true
-			Layout.minimumHeight: parent.height*0.08
-			Layout.maximumHeight: parent.height*0.15
+		ColumnLayout {
+			id: mainLayout
+			spacing: 10
+			anchors.fill: parent
 
-			ScrollBar.vertical: ScrollBar {
-				policy: ScrollBar.AsNeeded
-				active: ScrollBar.AsNeeded
+			ListView {
+				id: mesosList
+				model: mesocyclesModel
+				boundsBehavior: Flickable.StopAtBounds
+				spacing: 1
+				clip: true
+				Layout.fillWidth: true
+				Layout.minimumHeight: statisticsPage.height*0.08
+				Layout.maximumHeight: statisticsPage.height*0.15
+
+				ScrollBar.vertical: ScrollBar {
+					policy: ScrollBar.AsNeeded
+					active: ScrollBar.AsNeeded
+				}
+
+				delegate: ItemDelegate {
+					id: statsMesoDelegate
+					width: mesosList.width
+					height: 25
+
+					background: Rectangle {
+						id: backRec
+						radius: 6
+						color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
+						opacity: 0.8
+						anchors.fill: parent
+					}
+
+					onClicked: {
+						selectedMesoIdx = index;
+						setDates();
+					}
+
+					contentItem: Label {
+						id: mesoNameLabel
+						text: mesoName
+						elide: Text.ElideRight
+						color: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+						topPadding: -3
+					}
+				}
+
+				Component.onCompleted: {
+					currentIndex = mesocyclesModel.currentMesoIdx;
+					selectedMesoIdx = currentIndex;
+					setDates();
+					positionViewAtIndex(currentIndex, ListView.Center);
+				}
 			}
 
-			delegate: ItemDelegate {
-				id: statsMesoDelegate
-				width: mesosList.width
-				height: 25
+			Frame {
+				spacing: 0
+				padding: 0
+				bottomInset: 0
+				topInset: 0
+				height: statisticsPage.height*0.45
+				Layout.preferredHeight: height
+				Layout.fillWidth: true
 
 				background: Rectangle {
-					id: backRec
-					radius: 6
-					color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
-					opacity: 0.8
-					anchors.fill: parent
+					color: "transparent"
 				}
 
-				onClicked: selectedMesoIdx = index;
+				ColumnLayout {
+					spacing: 5
 
-				contentItem: Label {
-					id: mesoNameLabel
-					text: mesoName
-					elide: Text.ElideRight
-					color: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
-					topPadding: -3
-				}
-			}
-
-			Component.onCompleted: {
-				currentIndex = mesocyclesModel.currentMesoIdx;
-				selectedMesoIdx = currentIndex;
-				positionViewAtIndex(currentIndex, ListView.Center);
-			}
-		}
-
-		Frame {
-			height: parent.height*0.38
-			spacing: 0
-			padding: 0
-			bottomInset: 0
-			topInset: 0
-			Layout.preferredHeight: height
-			Layout.fillWidth: true
-
-			background: Rectangle {
-				color: "transparent"
-			}
-
-			ColumnLayout {
-				spacing: 0
-
-				anchors {
-					fill: parent
-					topMargin: 0
-					leftMargin: 5
-					rightMargin: 5
-				}
-
-				Row {
-					spacing: 30
-					padding: 0
-					width: parent.width
-					Layout.fillWidth: true
-
-					TPLabel {
-						text: qsTr("Initial date:")
-						width: parent.width/2
-					}
-					TPLabel {
-						text: qsTr("Final date:")
-						width: parent.width/2
-						Layout.leftMargin: -10
-					}
-				}
-
-				Row {
-					spacing: btnStartDate.width
-					padding: 0
-					width: parent.width
-					Layout.fillWidth: true
-
-					TPTextInput {
-						id: txtStartDate
-						text: appUtils.formatDate(mesocyclesModel.startDate(selectedMesoIdx))
-						readOnly: true
-						width: parent.width*0.4
-
-						CalendarDialog {
-							id: caldlg
-							showDate: mesocyclesModel.startDate(selectedMesoIdx)
-							initDate: mesocyclesModel.startDate(selectedMesoIdx)
-							finalDate: mesocyclesModel.endDate(selectedMesoIdx)
-							parentPage: statisticsPage
-
-							onDateSelected: (date) => txtStartDate.text = appUtils.formatDate(date);
-						}
-
-						TPButton {
-							id: btnStartDate
-							imageSource: "calendar.png"
-							width: 30
-							height: 30
-							fixedSize: true
-
-							anchors {
-								left: txtStartDate.right
-								verticalCenter: txtStartDate.verticalCenter
-							}
-
-						onClicked: caldlg.open();
-						}
-					} //TPTextInput: txtStartDate
-
-					TPTextInput {
-						id: txtEndDate
-						text: appUtils.formatDate(mesocyclesModel.endDate(selectedMesoIdx))
-						readOnly: true
-						width: parent.width*0.4
-						Layout.leftMargin: -10
-
-						CalendarDialog {
-							id: caldlg2
-							showDate: mesocyclesModel.endDate(selectedMesoIdx)
-							initDate: mesocyclesModel.startDate(selectedMesoIdx)
-							finalDate: mesocyclesModel.endDate(selectedMesoIdx)
-							parentPage: statisticsPage
-
-							onDateSelected: (date) => txtEndDate.text = appUtils.formatDate(date);
-						}
-
-						TPButton {
-							id: btnEndDate
-							imageSource: "calendar.png"
-							width: 30
-							height: 30
-							fixedSize: true
-
-							anchors {
-								left: txtEndDate.right
-								verticalCenter: txtEndDate.verticalCenter
-							}
-
-							onClicked: caldlg2.open();
-						}
-					} //TPTextInput: txtEndDate
-				} //Row
-
-				TPComboBox {
-					id: cboUsedSplits
-
-					model: ListModel {
-						id: cboUsedSplitsModel
-
-						Component.onCompleted: {
-							mesocyclesModel.usedSplitsChanged.connect(function(meso_idx) {
-							if (meso_idx === selectedMesoIdx)
-								loadData();
-							});
-						}
-
-						function loadData() {
-							clear();
-							const splits = mesocyclesModel.usedSplits(selectedMesoIdx);
-							for(var i = 0; i < splits.length; ++i)
-								append({ "text": splits[i] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
-										"value": splits[i], "enabled": true });
-						}
+					anchors {
+						fill: parent
+						topMargin: 0
+						leftMargin: 5
+						rightMargin: 5
 					}
 
-					width: parent.width
-					Layout.fillWidth: true
-
-					onActivated: (index) => {
-						selectedMesoSplit = valueAt(index);
-						appStatistics.createDataSet(selectedMesoIdx, selectedMesoSplit);
-					}
-				} //TPComboBox
-
-				Repeater {
-					id: exercisesRepeater
-					model: ListModel {
-						id: exercisesModel
-
-						Component.onCompleted: {
-							appStatistics.exercisesListChanged.connect(function(meso_idx, splitletter) {
-							if (meso_idx === selectedMesoIdx && splitletter === selectedMesoSplit)
-								loadData();
-							});
-						}
-
-						function loadData() {
-							clear();
-							const exercises = appStatistics.exercisesList();
-							for(var i = 0; i < exercises.length; ++i)
-								append({ "text": exercises[i], "value": i });
-						}
-					}
-
-					width: parent.width
-					Layout.fillWidth: true
-
-					ColumnLayout {
-						spacing: 0
+					Row {
+						spacing: 30
+						padding: 0
+						width: parent.width
 						Layout.fillWidth: true
 
-						TPCheckBox {
-							Layout.fillWidth: true
-							text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
-							checked: appStatistics ? appStatistics.exerciseIncluded(index) : false
+						TPLabel {
+							text: qsTr("Initial date:")
+							width: parent.width/2
+						}
+						TPLabel {
+							text: qsTr("Final date:")
+							width: parent.width/2
+							Layout.leftMargin: -10
+						}
+					}
 
-							onClicked: {
-								appStatistics.includeExercise(index, checked);
-								//appStatistics.generateData();
+					Row {
+						spacing: btnStartDate.width
+						padding: 0
+						width: parent.width
+						Layout.fillWidth: true
+
+						TPTextInput {
+							id: txtStartDate
+							text: appUtils.formatDate(mesocyclesModel.startDate(selectedMesoIdx))
+							readOnly: true
+							width: parent.width*0.4
+
+							CalendarDialog {
+								id: caldlg
+								showDate: mesocyclesModel.startDate(selectedMesoIdx)
+								initDate: mesocyclesModel.startDate(selectedMesoIdx)
+								finalDate: mesocyclesModel.endDate(selectedMesoIdx)
+								parentPage: statisticsPage
+
+								onDateSelected: (date) => {
+									txtStartDate.text = appUtils.formatDate(date);
+									appStatistics.setStartDate(date);
+								}
+							}
+
+							TPButton {
+								id: btnStartDate
+								imageSource: "calendar.png"
+								width: 30
+								height: 30
+								fixedSize: true
+
+								anchors {
+									left: txtStartDate.right
+									verticalCenter: txtStartDate.verticalCenter
+								}
+
+							onClicked: caldlg.open();
+							}
+						} //TPTextInput: txtStartDate
+
+						TPTextInput {
+							id: txtEndDate
+							text: appUtils.formatDate(mesocyclesModel.endDate(selectedMesoIdx))
+							readOnly: true
+							width: parent.width*0.4
+							Layout.leftMargin: -10
+
+							CalendarDialog {
+								id: caldlg2
+								showDate: mesocyclesModel.endDate(selectedMesoIdx)
+								initDate: mesocyclesModel.startDate(selectedMesoIdx)
+								finalDate: mesocyclesModel.endDate(selectedMesoIdx)
+								parentPage: statisticsPage
+
+								onDateSelected: (date) => {
+									txtEndDate.text = appUtils.formatDate(date);
+									appStatistics.setEndDate(date);
+								}
+							}
+
+							TPButton {
+								id: btnEndDate
+								imageSource: "calendar.png"
+								width: 30
+								height: 30
+								fixedSize: true
+
+								anchors {
+									left: txtEndDate.right
+									verticalCenter: txtEndDate.verticalCenter
+								}
+
+								onClicked: caldlg2.open();
+							}
+						} //TPTextInput: txtEndDate
+					} //Row
+
+					TPComboBox {
+						id: cboUsedSplits
+						width: parent.width
+						Layout.fillWidth: true
+
+						model: ListModel {
+							id: cboUsedSplitsModel
+
+							Component.onCompleted: {
+								mesocyclesModel.usedSplitsChanged.connect(function(meso_idx) {
+								if (meso_idx === selectedMesoIdx)
+									loadData();
+								});
+							}
+
+							function loadData() {
+								clear();
+								const splits = mesocyclesModel.usedSplits(selectedMesoIdx);
+								for(var i = 0; i < splits.length; ++i)
+									append({ "text": splits[i] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
+											"value": splits[i], "enabled": true });
+							}
+						}
+
+						onActivated: (index) => {
+							selectedMesoSplit = valueAt(index);
+							appStatistics.createDataSet(selectedMesoIdx, selectedMesoSplit);
+						}
+					} //TPComboBox
+
+					Repeater {
+						id: exercisesRepeater
+						width: parent.width
+						Layout.fillWidth: true
+
+						model: ListModel {
+							id: exercisesModel
+
+							Component.onCompleted: {
+								appStatistics.exercisesListChanged.connect(function(meso_idx, splitletter) {
+								if (meso_idx === selectedMesoIdx && splitletter === selectedMesoSplit)
+									loadData();
+								});
+							}
+
+							function loadData() {
+								clear();
+								const exercises = appStatistics.exercisesList();
+								for(var i = 0; i < exercises.length; ++i)
+									append({ "text": exercises[i], "value": i });
+							}
+						}
+
+						ColumnLayout {
+							spacing: 5
+							Layout.fillWidth: true
+
+							TPCheckBox {
+								Layout.fillWidth: true
+								text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
+								checked: appStatistics ? appStatistics.exerciseIncluded(index) : false
+
+								onClicked: {
+									appStatistics.includeExercise(index, checked);
+									//appStatistics.generateData();
+								}
 							}
 						}
 					}
+				} //GridLayout
+			} //Frame
+
+			ChartView {
+				id: chartView
+				antialiasing: true
+				height: statisticsPage.height*0.5
+				Layout.fillWidth: true
+				Layout.preferredHeight: height
+
+				theme: {
+					switch (appSettings.colorScheme) {
+						case 0: //blue
+							return ChartView.ChartThemeBlueIcy;
+						case 3: //dark
+							return ChartView.ChartThemeDark;
+						case 4: //light
+							return ChartView.ChartThemeLight;
+						default:
+							return ChartView.ChartThemeQt;
+					}
 				}
-			} //GridLayout
-		} //Frame
 
-		ChartView {
-			id: chartView
-			antialiasing: true
-			theme: {
-				switch (appSettings.colorScheme) {
-					case 0: //blue
-						return ChartView.ChartThemeBlueIcy;
-					case 3: //dark
-						return ChartView.ChartThemeDark;
-					case 4: //light
-						return ChartView.ChartThemeLight;
-					default:
-						return ChartView.ChartThemeQt;
+				ValueAxis {
+					id: axisX
+					min: appSettings.xMin
+					max: appSettings.xMax
 				}
-			}
-			height: parent.height*0.5
-			Layout.fillWidth: true
-			Layout.preferredHeight: height
-			Layout.topMargin: -10
 
-			ValueAxis {
-				id: axisY1
-				min: -1
-				max: 4
-			}
+				ValueAxis {
+					id: axisY
+					min: appSettings.yMin
+					max: appSettings.yMax
+					labelFormat: "kg"
+				}
 
-			ValueAxis {
-				id: axisY2
-				min: -10
-				max: 5
-			}
+				Component.onCompleted: {
+					appStatistics.exercisesSeriesChanged.connect(changeSeries);
+				}
+			} //ChartView
+		} //ColumnLayout: mainLayout
+	} //ScroolView
 
-			ValueAxis {
-				id: axisX
-				min: 0
-				max: 1024
-			}
-
-			/*Component.onCompleted: {
-				changeSeriesType("line");
-				appStatistics.update(chartView.series(0));
-				appStatistics.update(chartView.series(1));
-			}*/
-		} //ChartView
-	} //ColumnLayout: mainLayout
-
-	function changeSeriesType(type) {
-		chartView.removeAllSeries();
-
-		// Create two new series of the correct type. Axis x is the same for both of the series,
-		// but the series have their own y-axes to make it possible to control the y-offset
-		// of the "signal sources".
-		var series1
-		var series2
-		if (type === "line") {
-			series1 = chartView.createSeries(ChartView.SeriesTypeLine, "signal 1",
-											 axisX, axisY1);
-			series1.useOpenGL = true;
-
-			series2 = chartView.createSeries(ChartView.SeriesTypeLine, "signal 2",
-											 axisX, axisY2);
-			series2.useOpenGL = true;
-		} else {
-			series1 = chartView.createSeries(ChartView.SeriesTypeScatter, "signal 1",
-											 axisX, axisY1);
-			series1.markerSize = 2;
-			series1.borderColor = "transparent";
-			series1.useOpenGL = true;
-
-			series2 = chartView.createSeries(ChartView.SeriesTypeScatter, "signal 2",
-											 axisX, axisY2);
-			series2.markerSize = 2;
-			series2.borderColor = "transparent";
-			series2.useOpenGL = true;
-		}
+	function setDates() {
+		appStatistics.setStartDate(mesocyclesModel.startDate(selectedMesoIdx));
+		appStatistics.setEndDate(mesocyclesModel.endDate(selectedMesoIdx));
 	}
 
-	function createAxis(min, max) {
-		// The following creates a ValueAxis object that can be then set as a x or y axis for a series
-		return Qt.createQmlObject("import QtQuick; import QtCharts; ValueAxis { min: "
-								  + min + "; max: " + max + " }", chartView);
+	function changeSeries(type) {
+		if (appStatistics.exercisesSeries === 0)
+			chartView.removeAllSeries();
+		else {
+			const nSeries = appStatistics.exercisesSeries;
+			for (let i = 0; i < nSeries; ++i) {
+				let series = chartView.createSeries(ChartView.SeriesTypeLine, appStatistics.exerciseName(i), axisX, axisY);
+				series.useOpenGL = true;
+				appStatistics.update(i, series);
+			}
+		}
 	}
 }

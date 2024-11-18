@@ -343,3 +343,38 @@ void DBMesoCalendarTable::removeMesoCalendar()
 	}	
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
+
+void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()
+{
+	m_completedWorkoutDates.clear();
+	if (openDatabase(true))
+	{
+		const QChar& splitLetter{m_execArgs.at(0).toChar()};
+		const QDate& startDate{m_execArgs.at(1).toDate()};
+		const QDate& endDate{m_execArgs.at(2).toDate()};
+		QSqlQuery query{getQuery()};
+		const QString& strQuery{"SELECT training_complete,year,month,day FROM mesocycles_calendar_table WHERE training_split=%1 AND "
+			"year>=%2 AND year<=%3 AND month>=%4 AND month<=%5 AND year>=%6 AND year<=%7"_L1.arg(
+				QString(splitLetter), QString::number(startDate.year()), QString::number(endDate.year()), QString::number(startDate.month()),
+				QString::number(endDate.month()), QString::number(startDate.day()), QString::number(endDate.day()))};
+
+		bool ok(false);
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+			{
+				do
+				{
+					if (query.value(0).toInt() == 1)
+					{
+						QDate date{query.value(1).toInt(), query.value(2).toInt(), query.value(3).toInt()};
+						m_completedWorkoutDates.append(std::move(date));
+					}
+				} while (query.next());
+				ok = true;
+			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}

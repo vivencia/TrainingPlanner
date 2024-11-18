@@ -25,8 +25,13 @@ public:
 
 	inline DBTrainingDayModel* model() const { return m_model; }
 
+	//Functions for TPStatistics
+	void workoutInfoForTimePeriod();
+	inline const QList<QStringList>& workoutInfo() const { return m_workoutInfo; }
+
 private:
 	DBTrainingDayModel* m_model;
+	QList<QStringList> m_workoutInfo;
 	inline QString formatDate(const uint julianDay) const;
 };
 

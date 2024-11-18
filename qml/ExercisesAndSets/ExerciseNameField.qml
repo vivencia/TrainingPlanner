@@ -129,6 +129,7 @@ Item {
 
 		anchors {
 			left: txtField.right
+			leftMargin: 5
 			verticalCenter: control.verticalCenter
 		}
 
@@ -149,7 +150,7 @@ Item {
 
 		anchors {
 			left: btnEditExercise.right
-			rightMargin: 5
+			leftMargin: 10
 			verticalCenter: control.verticalCenter
 		}
 

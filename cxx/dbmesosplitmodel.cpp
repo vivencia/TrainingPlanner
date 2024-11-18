@@ -105,6 +105,7 @@ void DBMesoSplitModel::addSet(const uint row)
 		appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
 		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
 
+		setWorkingSet(row, nsets);
 		++nsets;
 		setSetsNumber(row, nsets);
 	}
@@ -130,6 +131,8 @@ void DBMesoSplitModel::delSet(const uint row)
 		appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
 
 		--nsets;
+		if (workingSet(row) == nsets)
+			setWorkingSet(row, nsets-1);
 		setSetsNumber(row, nsets);
 	}
 }
@@ -138,7 +141,9 @@ QString DBMesoSplitModel::exerciseName(const int row) const
 {
 	if (row >= 0 && row < m_modeldata.count())
 	{
-		QString name(_exerciseName(static_cast<uint>(row)));
+		QString name{_exerciseName(static_cast<uint>(row))};
+		if (name.endsWith(comp_exercise_separator))
+			name.chop(1);
 		return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 	}
 	return QString();
@@ -179,7 +184,12 @@ void DBMesoSplitModel::setExerciseName2(const uint row, const QString& new_name)
 	emit exerciseNameChanged(row);
 }
 
-inline uint DBMesoSplitModel::setsNumber(const int row) const
+bool DBMesoSplitModel::exerciseIsComposite(const uint row) const
+{
+	return m_modeldata.at(row).at(MESOSPLIT_COL_EXERCISENAME).contains(comp_exercise_separator);
+}
+
+uint DBMesoSplitModel::setsNumber(const int row) const
 {
 	return (row >= 0 && row < m_modeldata.count()) ? _setsNumber(static_cast<uint>(row)).toUInt() : 0;
 }
