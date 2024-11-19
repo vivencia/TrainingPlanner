@@ -335,9 +335,9 @@ void DBTrainingDayTable::removeTrainingDay()
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
-void DBTrainingDayTable::workoutInfoForTimePeriod()
+void DBTrainingDayTable::workoutsInfoForTimePeriod()
 {
-	m_workoutInfo.clear();
+	m_workoutsInfo.clear();
 	if (openDatabase(true))
 	{
 		const QStringList& exercises{m_execArgs.at(0).toStringList()};
@@ -359,10 +359,18 @@ void DBTrainingDayTable::workoutInfoForTimePeriod()
 			{
 				do
 				{
-					if (query.value(0).toInt() == 1)
+					const QString& exercise{query.value(0).toString()};
+					if (exercises.contains(exercise))
 					{
-						QDate date{query.value(1).toInt(), query.value(2).toInt(), query.value(3).toInt()};
-						//m_completedWorkoutDates.append(std::move(date));
+						QList<QStringList> workout;
+						workout.append(std::move(query.value(1).toString().split(exercises_separator, Qt::SkipEmptyParts)));
+						workout.append(std::move(query.value(2).toString().split(exercises_separator, Qt::SkipEmptyParts)));
+						workout.append(std::move(QStringList(workout.at(0).count())));
+						for (uint i(0); i < workout.at(2).count(); ++i)
+						{
+							const uint nsets(workout.at(0).at(i).count(record_separator));
+							workout[2][i] = std::move(QString::number(nsets))+exercises_separator;
+						}
 					}
 				} while (query.next());
 				ok = true;

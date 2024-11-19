@@ -156,7 +156,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 	uint month(startDate.month());
 	uint day(startDate.day()-1);
 	int tday(0);
-	int idx(mesoSplit.indexOf(newSplitLetter));
+	int idx(mesoSplit.lastIndexOf(newSplitLetter));
 
 	for(uint i(0); i < m_modeldata.count(); ++i)
 	{

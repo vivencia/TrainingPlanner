@@ -36,8 +36,8 @@ TPPage {
 				y1: appSettings.pageHeight / 4
 				x2: appSettings.pageWidth
 				y2:  appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: "#31adff" }
-				GradientStop { position: 1.0; color: "#d0e3ff" }
+				GradientStop { position: 0.0; color: "#d0e3ff" }
+				GradientStop { position: 1.0; color: "#31adff" }
 			}
 		}
 	}
@@ -111,10 +111,6 @@ TPPage {
 			}
 
 			Frame {
-				spacing: 0
-				padding: 0
-				bottomInset: 0
-				topInset: 0
 				height: statisticsPage.height*0.45
 				Layout.preferredHeight: height
 				Layout.fillWidth: true
@@ -306,6 +302,7 @@ TPPage {
 				height: statisticsPage.height*0.5
 				Layout.fillWidth: true
 				Layout.preferredHeight: height
+				Layout.topMargin: 30
 
 				theme: {
 					switch (appSettings.colorScheme) {
@@ -322,14 +319,14 @@ TPPage {
 
 				ValueAxis {
 					id: axisX
-					min: appSettings.xMin
-					max: appSettings.xMax
+					min: appStatistics.xMin
+					max: appStatistics.xMax
 				}
 
 				ValueAxis {
 					id: axisY
-					min: appSettings.yMin
-					max: appSettings.yMax
+					min: appStatistics.yMin
+					max: appStatistics.yMax
 					labelFormat: "kg"
 				}
 

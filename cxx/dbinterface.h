@@ -79,8 +79,8 @@ public:
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	void getMesoCalendar(const uint meso_idx);
 	void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
-	void updateMesoCalendarModel(const DBTrainingDayModel* const tDayModel);
-	void updateMesoCalendarEntry(const DBTrainingDayModel* const tDayModel);
+	void updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString& splitLetter);
+	void updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString& trainingDay, const QString& splitLetter);
 	void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
@@ -99,8 +99,9 @@ public:
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
+	void getExercisesForSplitWithinMeso(const uint meso_idx, const QChar& splitLetter);
 	void completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate& startDate, const QDate& endDate);
-	void workoutInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates);
+	void workoutsInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates);
 	//-----------------------------------------------------------STATISTICS-----------------------------------------------------------
 
 signals:

@@ -32,25 +32,38 @@ void QmlMesoCalendarInterface::getMesoCalendarPage()
 		emit addPageToMainMenu(tr("Calendar: ") + appMesoModel()->name(m_mesoIdx), m_calPage);
 }
 
+void QmlMesoCalendarInterface::changeCalendar(const bool bUntillTheEnd, const QString& newSplitLetter)
+{
+	if (!bUntillTheEnd)
+		appDBInterface()->updateMesoCalendarEntry(m_mesoIdx, m_selectedDate, m_selectedTrainingDay, newSplitLetter);
+	else
+		appDBInterface()->updateMesoCalendarModel(m_mesoIdx, m_selectedDate, newSplitLetter);
+}
+
 void QmlMesoCalendarInterface::getTrainingDayPage(const QDate& date)
 {
 	qobject_cast<QMLMesoInterface*>(parent())->getTrainingDayPage(date);
 }
 
-QString QmlMesoCalendarInterface::dayInfo(const uint year, const uint month, const uint day) const
+QString QmlMesoCalendarInterface::dayInfo(const uint year, const uint month, const uint day)
 {
+	if (day == 0 || year == 0)
+		return QString();
 	const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
 	const bool bDayOK(mesoCal->isPartOfMeso(month, day));
 	if (bDayOK)
 	{
-		const QString& splitLetter(mesoCal->getSplitLetter(month, day));
-		const QDate date{static_cast<int>(year), static_cast<int>(month), static_cast<int>(day)};
-		if (splitLetter != "R"_L1)
-			return std::move(appUtils()->formatDate(date)) + std::move(tr(": Workout #")) +
-				std::move(QString::number(mesoCal->getTrainingDay(month, day))) + std::move(tr(" Split: ")) + splitLetter + " - "_L1 +
-				std::move(appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)));
+		m_selectedSplitLetter = std::move(mesoCal->getSplitLetter(month, day));
+		emit selectedSplitLetterChanged();
+		m_selectedTrainingDay = std::move(QString::number(mesoCal->getTrainingDay(month, day)));
+		static_cast<void>(m_selectedDate.setDate(static_cast<int>(year), static_cast<int>(month), static_cast<int>(day+1)));
+
+		if (m_selectedSplitLetter != "R"_L1)
+			return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Workout #")) +
+				m_selectedTrainingDay + std::move(tr(" Split: ")) + m_selectedSplitLetter + " - "_L1 +
+				std::move(appMesoModel()->mesoSplitModel()->splitX(m_mesoIdx, appUtils()->splitLetterToMesoSplitIndex(m_selectedSplitLetter)));
 		else
-			return std::move(appUtils()->formatDate(date)) + std::move(tr(": Rest day"));
+			return std::move(appUtils()->formatDate(m_selectedDate)) + std::move(tr(": Rest day"));
 	}
 	else
 		return tr("Selected day is not part of the current mesocycle");

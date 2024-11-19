@@ -280,9 +280,9 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 	m_tDayModel->setTrainingDay(QString::number(tDay), false);
 	m_tDayModel->setSplitLetter(newSplitLetter, true);
 	if (bOnlyThisDay)
-		appDBInterface()->updateMesoCalendarEntry(m_tDayModel);
+		appDBInterface()->updateMesoCalendarEntry(m_mesoIdx, m_Date, m_tDayModel->trainingDay(), m_splitLetter);
 	else
-		appDBInterface()->updateMesoCalendarModel(m_tDayModel);
+		appDBInterface()->updateMesoCalendarModel(m_mesoIdx, m_Date, m_splitLetter);
 	if (newSplitLetter != "R"_L1)
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
 }

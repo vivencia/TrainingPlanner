@@ -2,7 +2,7 @@
 
 #include "../dbmesocalendarmodel.h"
 #include "../dbmesocyclesmodel.h"
-#include "../dbmesosplitmodel.h"
+#include "../dbmesosplittable.h"
 #include "../dbinterface.h"
 #include "../dbtrainingdaymodel.h"
 
@@ -16,7 +16,6 @@ TPStatistics* TPStatistics::_appStatistics(nullptr);
 
 struct DataSet {
 	QList<QList<QPointF>> m_DataPoints;
-	DBMesoSplitModel* m_Source;
 	QChar m_SplitLetter;
 	uint m_MesoIdx;
 	QStringList m_ExercisesList;
@@ -38,35 +37,30 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
 		if ((*itr)->m_MesoIdx == meso_idx)
 		{
 			if ((*itr)->m_SplitLetter == splitLetter)
-			{
 				m_workingDataSet = *itr;
-				generateExercisesForPlotting((*itr)->m_Source);
-			}
 		}
 		++itr;
 	}
-	DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true, meso_idx}};
-	splitModel->setSplitLetter(splitLetter);
 
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter] (const uint table_idx, const QVariant data) {
+	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter]
+										(const uint table_idx, const QVariant data) {
 		if (table_idx == MESOSPLIT_TABLE_ID)
 		{
-			DBMesoSplitModel* receivedSplit(data.value<DBMesoSplitModel*>());
-			if (receivedSplit->mesoIdx() == meso_idx && receivedSplit->_splitLetter() == splitLetter)
+			const statsInfo& receivedSplit(data.value<statsInfo>());
+			if (receivedSplit.mesoIdx == meso_idx && receivedSplit.splitLetter == splitLetter)
 			{
 				disconnect(*conn);
-				generateExercisesForPlotting(receivedSplit);
+				generateExercisesForPlotting(&receivedSplit);
 
 			}
 		}
 	});
-	appDBInterface()->loadCompleteMesoSplit(splitModel);
+	appDBInterface()->getExercisesForSplitWithinMeso(meso_idx, splitLetter);
 
 	m_workingDataSet = new DataSet;
 	m_workingDataSet->m_MesoIdx = meso_idx;
 	m_workingDataSet->m_SplitLetter = splitLetter;
-	m_workingDataSet->m_Source = splitModel;
 	m_dataSet.append(m_workingDataSet);
 }
 
@@ -75,21 +69,22 @@ void TPStatistics::includeExercise(const uint exercise_idx, const bool include)
 	m_workingDataSet->m_exercisesIncluded[exercise_idx] = include;
 }
 
-void TPStatistics::generateExercisesForPlotting(const DBMesoSplitModel* const splitModel)
+void TPStatistics::generateExercisesForPlotting(const statsInfo* const splitInfo)
 {
 	if (m_workingDataSet)
 	{
-		if (m_workingDataSet->m_ExercisesList.isEmpty())
+		if (m_workingDataSet->m_ExercisesList.isEmpty() && splitInfo)
 		{
-			for (uint i(0); i < splitModel->count(); ++i)
+			m_workingDataSet->m_ExercisesList = std::move(splitInfo->exercises);
+			for (uint i(0); i < m_workingDataSet->m_ExercisesList.count(); ++i)
 			{
-				m_workingDataSet->m_ExercisesList.append(std::move(splitModel->exerciseName(i)));
 				m_workingDataSet->m_exercisesIncluded.append(true);
+				m_workingDataSet->m_DataPoints.append(QList<QPointF>());
 			}
 		}
 		generateDataSet();
 	}
-	emit exercisesListChanged(splitModel->mesoIdx(), splitModel->_splitLetter());
+	emit exercisesListChanged(m_workingDataSet->m_MesoIdx, m_workingDataSet->m_SplitLetter);
 }
 
 void TPStatistics::createXData(const QList<QDate>& dates)
@@ -111,27 +106,30 @@ void TPStatistics::createXData(const QList<QDate>& dates)
 	}
 }
 
-void TPStatistics::createYData(const QList<QStringList>& workoutInfo)
+void TPStatistics::createYData(const QList<QList<QStringList>>& workoutInfo)
 {
 	m_ymin = 10000;
 	for (uint i(0); i < m_workingDataSet->m_ExercisesList.count(); ++i)
 	{
-		QList<QPointF>* dataPoints{&(m_workingDataSet->m_DataPoints[i])};
-		for (uint x(0); x < workoutInfo.count(); ++x)
+		if (m_workingDataSet->m_exercisesIncluded.at(i))
 		{
-			int weight(0);
-			const QStringList& weights{workoutInfo.at(x).at(2)};
-			for(uint y(0); y < weights.count(); ++y)
+			QList<QPointF>* dataPoints{&(m_workingDataSet->m_DataPoints[i])};
+			for (uint x(0); x < workoutInfo.count(); ++x)
 			{
-				const int w(weights.at(y).toUInt());
-				if (weight < w)
-					weight = w;
+				int weight(0);
+				const QStringList& weights{workoutInfo.at(x).at(1)};
+				for(uint y(0); y < weights.count(); ++y)
+				{
+					const int w(weights.at(y).toUInt());
+					if (weight < w)
+						weight = w;
+				}
+				if (m_ymax < weight)
+					m_ymax = weight;
+				if (m_ymin > weight)
+					m_ymin = weight;
+				(*dataPoints)[i].setY(weight);
 			}
-			if (m_ymax < weight)
-				m_ymax = weight;
-			if (m_ymin > weight)
-				m_ymin = weight;
-			(*dataPoints)[i].setY(weight);
 		}
 	}
 	emit yAxisChanged();
@@ -140,7 +138,7 @@ void TPStatistics::createYData(const QList<QStringList>& workoutInfo)
 
 void TPStatistics::generateDataSet()
 {
-	const uint mesoIdx(m_workingDataSet->m_Source->mesoIdx());
+	const uint mesoIdx(m_workingDataSet->m_MesoIdx);
 	if (!appMesoModel()->mesoCalendarModel(mesoIdx)->isReady())
 	{
 		connect(appDBInterface(), &DBInterface::databaseReady, this, [this] (const uint db_id) {
@@ -158,13 +156,13 @@ void TPStatistics::generateDataSet()
 			createXData(dates);
 			auto conn2 = std::make_shared<QMetaObject::Connection>();
 			*conn2 = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&dates] (const uint table_idx, const QVariant data2) {
-				if (table_idx == MESOCALENDAR_TABLE_ID)
+				if (table_idx == TRAININGDAY_TABLE_ID)
 				{
 					disconnect(*conn2);
-					createYData(data2.value<QList<QStringList>>());
+					createYData(data2.value<QList<QList<QStringList>>>());
 				}
 			});
-			appDBInterface()->workoutInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
+			appDBInterface()->workoutsInfoForTimePeriod(m_workingDataSet->m_ExercisesList, dates);
 		}
 	});
 	appDBInterface()->completedDaysForSplitWithinTimePeriod(m_workingDataSet->m_SplitLetter, m_startDate, m_endDate);

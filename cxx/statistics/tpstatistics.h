@@ -8,7 +8,8 @@
 
 QT_FORWARD_DECLARE_CLASS(DBMesoSplitModel)
 QT_FORWARD_DECLARE_CLASS(QAbstractSeries)
-QT_FORWARD_DECLARE_STRUCT(DataSet);
+QT_FORWARD_DECLARE_STRUCT(DataSet)
+QT_FORWARD_DECLARE_STRUCT(statsInfo)
 
 class TPStatistics : public QObject
 {
@@ -16,14 +17,14 @@ class TPStatistics : public QObject
 Q_OBJECT
 
 Q_PROPERTY(int exercisesSeries READ exercisesSeries NOTIFY exercisesSeriesChanged)
-Q_PROPERTY(int xMin READ xMin NOTIFY xAxisChanged)
-Q_PROPERTY(int xMax READ xMax NOTIFY xAxisChanged)
-Q_PROPERTY(int yMin READ yMin NOTIFY yAxisChanged)
-Q_PROPERTY(int yMax READ yMax NOTIFY yAxisChanged)
+Q_PROPERTY(double xMin READ xMin NOTIFY xAxisChanged)
+Q_PROPERTY(double xMax READ xMax NOTIFY xAxisChanged)
+Q_PROPERTY(double yMin READ yMin NOTIFY yAxisChanged)
+Q_PROPERTY(double yMax READ yMax NOTIFY yAxisChanged)
 
 public:
 	explicit inline TPStatistics(QObject* parent = nullptr) : QObject{parent}, m_workingDataSet(nullptr),
-		m_xmin(0), m_xmax(20), m_ymin(0), m_ymax(100) {}
+		m_xmin(0.0), m_xmax(20.0), m_ymin(0.0), m_ymax(100.0) {}
 	~TPStatistics();
 
 	//Q_INVOKABLE void update(QAbstractSeries* series);
@@ -37,10 +38,10 @@ public:
 	Q_INVOKABLE QString exerciseName(const int exercise_idx) const;
 	Q_INVOKABLE bool exerciseIncluded(const int exercise_idx) const;
 
-	inline int xMin() const { return m_xmin; }
-	inline int xMax() const { return m_xmax; }
-	inline int yMin() const { return m_ymin; }
-	inline int yMax() const { return m_ymax; }
+	inline double xMin() const { return m_xmin; }
+	inline double xMax() const { return m_xmax; }
+	inline double yMin() const { return m_ymin; }
+	inline double yMax() const { return m_ymax; }
 	int exercisesSeries() const;
 
 signals:
@@ -53,11 +54,11 @@ private:
 	QList<DataSet*> m_dataSet;
 	DataSet* m_workingDataSet;
 	QDate m_startDate, m_endDate;
-	int m_xmin, m_xmax, m_ymin, m_ymax;
+	double m_xmin, m_xmax, m_ymin, m_ymax;
 
-	void generateExercisesForPlotting(const DBMesoSplitModel* const splitModel);
+	void generateExercisesForPlotting(const statsInfo* const splitInfo = nullptr);
 	void createXData(const QList<QDate>&dates);
-	void createYData(const QList<QStringList>& workoutInfo);
+	void createYData(const QList<QList<QStringList>>& workoutInfo);
 	friend TPStatistics* appStatistics();
 	static TPStatistics* _appStatistics;
 };

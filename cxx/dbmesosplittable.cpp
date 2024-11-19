@@ -361,3 +361,29 @@ void DBMesoSplitTable::convertTDayExercisesToMesoPlan(const DBTrainingDayModel* 
 	m_model->convertFromTDayModel(tDayModel);
 	saveMesoSplitComplete();
 }
+
+void DBMesoSplitTable::getExercisesForSplitWithinMeso()
+{
+	m_statsInfo.exercises.clear();
+	if (openDatabase(true))
+	{
+		const QChar& splitLetter{m_execArgs.at(0).toChar()};
+		const QString& mesoId{m_execArgs.at(1).toString()};
+		QSqlQuery query{getQuery()};
+		const QString& strQuery{"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(splitLetter, mesoId)};
+
+		bool ok(false);
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+			{
+				m_statsInfo.mesoIdx = m_execArgs.at(2).toUInt();
+				m_statsInfo.splitLetter = splitLetter;
+				m_statsInfo.exercises = std::move(query.value(0).toString().split(record_separator, Qt::SkipEmptyParts));
+				ok = true;
+			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}

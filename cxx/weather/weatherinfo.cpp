@@ -21,11 +21,13 @@
 
 using namespace Qt::Literals::StringLiterals;
 
-void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info)
+void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info, const st_WeatherInfo* w_currentdayforecast)
 {
 	m_dayOfWeek = std::move(w_info.m_dayOfWeek);
 	m_coordinates = std::move(w_info.m_coordinates);
 	m_temperature = std::move(w_info.m_temperature + tr(" (Feels: ") + w_info.m_temperature_feel + ')');
+	if (w_currentdayforecast)
+		m_temperature += '\n' + std::move(w_currentdayforecast->m_temp_min + '/' + w_currentdayforecast->m_temp_max);
 	m_icon = std::move(w_info.m_weatherIconId);
 	m_description = std::move(tr("Weather now(") + std::move(appUtils()->currentFormattedTimeString()) + ")\n"_L1 + w_info.m_weatherDescription);
 	m_extra_info = std::move(
@@ -350,7 +352,7 @@ bool WeatherInfo::applyWeatherData(const QString& city, const QList<st_WeatherIn
 	if (!weatherDetails.isEmpty())
 	{
 		const st_WeatherInfo& w_info(weatherDetails.first());
-		d->now.setWeatherInfo(w_info);
+		d->now.setWeatherInfo(w_info, &(weatherDetails.at(1)));
 		for(uint i(0); i < 3; ++i)
 		{
 			if (weatherDetails.count() > i+2)

@@ -8,7 +8,13 @@
 class DBMesoSplitModel;
 class DBTrainingDayModel;
 
-static const QString DBMesoSplitFileName(u"MesocyclesSplits.db.sqlite"_s);
+static const QString& DBMesoSplitFileName("MesocyclesSplits.db.sqlite"_L1);
+
+struct statsInfo {
+	uint mesoIdx;
+	QChar splitLetter;
+	QStringList exercises;
+};
 
 class DBMesoSplitTable final : public TPDatabaseTable
 {
@@ -28,8 +34,14 @@ public:
 	inline DBMesoSplitModel* model() const { return m_model; }
 	inline void setAnotherModel(DBMesoSplitModel* new_model) { m_model = new_model; }
 
+	//Functions for TPStatistics
+	void getExercisesForSplitWithinMeso();
+	inline const statsInfo& retrievedStats() const { return m_statsInfo; }
+
+
 private:
 	DBMesoSplitModel* m_model;
+	statsInfo m_statsInfo;
 };
 
 #endif // DBMESOSPLITTABLE_H

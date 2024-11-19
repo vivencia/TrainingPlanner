@@ -447,30 +447,21 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); });
 }
 
-void DBInterface::updateMesoCalendarModel(const DBTrainingDayModel* const tDayModel)
+void DBInterface::updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString& splitLetter)
 {
-	const uint meso_idx{static_cast<uint>(tDayModel->mesoIdx())};
-	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
-	{
-		connect(this, &DBInterface::databaseReady, this, [this,tDayModel] () {
-				return updateMesoCalendarModel(tDayModel);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		getMesoCalendar(meso_idx);
-		return;
-	}
-	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
+	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
 	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed for DBMesoCalendarTable::removeMesoCalendar()
-	worker->addExecArg(tDayModel->date());
-	worker->addExecArg(tDayModel->splitLetter());
+	worker->addExecArg(date);
+	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); });
 }
 
-void DBInterface::updateMesoCalendarEntry(const DBTrainingDayModel* const tDayModel)
+void DBInterface::updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString& trainingDay, const QString& splitLetter)
 {
-	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(tDayModel->mesoIdx()))};
-	worker->addExecArg(tDayModel->date());
-	worker->addExecArg(tDayModel->trainingDay());
-	worker->addExecArg(tDayModel->splitLetter());
+	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
+	worker->addExecArg(date);
+	worker->addExecArg(trainingDay);
+	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
 }
 
@@ -484,7 +475,7 @@ void DBInterface::setDayIsFinished(const uint meso_idx, const QDate& date, const
 		getMesoCalendar(meso_idx);
 		return;
 	}
-	DBMesoCalendarTable* worker{new DBMesoCalendarTable(m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx))};
+	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
 	worker->addExecArg(date);
 	worker->addExecArg(bFinished);
 	createThread(worker, [worker] () { worker->updateDayIsFinished(); });
@@ -620,6 +611,23 @@ void DBInterface::deleteTrainingDayTable(const bool bRemoveFile)
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------STATISTICS-----------------------------------------------------------
+void DBInterface::getExercisesForSplitWithinMeso(const uint meso_idx, const QChar& splitLetter)
+{
+	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath}};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->retrievedStats()));
+		}
+	});
+	worker->addExecArg(splitLetter);
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(meso_idx);
+	createThread(worker, [worker] () { return worker->getExercisesForSplitWithinMeso(); });
+}
+
 void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar& splitLetter, const QDate& startDate, const QDate& endDate)
 {
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath}};
@@ -637,7 +645,7 @@ void DBInterface::completedDaysForSplitWithinTimePeriod(const QChar& splitLetter
 	createThread(worker, [worker] () { return worker->completedDaysForSplitWithinTimePeriod(); });
 }
 
-void DBInterface::workoutInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates)
+void DBInterface::workoutsInfoForTimePeriod(const QStringList& exercises, const QList<QDate>& workoutDates)
 {
 	DBTrainingDayTable* worker{new DBTrainingDayTable{m_DBFilePath}};
 	auto conn = std::make_shared<QMetaObject::Connection>();
@@ -645,11 +653,11 @@ void DBInterface::workoutInfoForTimePeriod(const QStringList& exercises, const Q
 		if (db_id == worker->uniqueID())
 		{
 			disconnect(*conn);
-			emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(worker->workoutInfo()));
+			emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));
 		}
 	});
 	worker->addExecArg(exercises);
 	worker->addExecArg(QVariant::fromValue(workoutDates));
-	createThread(worker, [worker] () { return worker->workoutInfoForTimePeriod(); });
+	createThread(worker, [worker] () { return worker->workoutsInfoForTimePeriod(); });
 }
 //-----------------------------------------------------------STATISTICS-----------------------------------------------------------

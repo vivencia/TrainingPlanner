@@ -29,9 +29,9 @@ TPPage {
 				x1: 0
 				y1: appSettings.pageHeight / 4
 				x2: appSettings.pageWidth
-				y2:  appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: "#31adff" }
-				GradientStop { position: 1.0; color: "#d0e3ff" }
+				y2: appSettings.pageHeight / 4 * 3
+				GradientStop { position: 0.0; color: "#d0e3ff" }
+				GradientStop { position: 1.0; color: "#31adff" }
 			}
 		}
 	}

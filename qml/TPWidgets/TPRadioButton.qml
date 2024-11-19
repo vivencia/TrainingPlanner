@@ -15,6 +15,7 @@ RadioButton {
 		text: control.text
 		wrapMode: Text.WordWrap
 		leftPadding: control.indicator.width + control.spacing
+		widthAvailable: control.width - leftPadding
 	}
 
 	indicator: Rectangle {

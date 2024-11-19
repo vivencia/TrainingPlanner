@@ -38,7 +38,7 @@ public:
 	inline QString provider() const { return m_provider; }
 	inline QString minMaxTemperatures() const { return m_minmax; }
 
-	void setWeatherInfo(const st_WeatherInfo& w_info);
+	void setWeatherInfo(const st_WeatherInfo& w_info, const st_WeatherInfo* w_currentdayforecast = nullptr);
 
 signals:
 	void dataChanged();

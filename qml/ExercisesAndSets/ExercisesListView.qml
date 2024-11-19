@@ -58,7 +58,7 @@ Column {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			enabled: canDoMultipleSelection
-			width: mainItem.width*0.4
+			width: mainItem.width*0.6
 
 			anchors {
 				left: parent.right

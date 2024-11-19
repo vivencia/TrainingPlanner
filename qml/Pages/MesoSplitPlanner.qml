@@ -106,7 +106,9 @@ Frame {
 				top: txtGroups.bottom
 				topMargin: 10
 				left: parent.left
+				leftMargin: 5
 				right: parent.right
+				rightMargin: 5
 				bottom: parent.bottom
 				bottomMargin: 10
 			}

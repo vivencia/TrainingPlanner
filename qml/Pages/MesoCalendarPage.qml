@@ -41,18 +41,16 @@ TPPage {
 				widthAvailable: parent.width*0.8
 				Layout.maximumWidth: widthAvailable
 				Layout.alignment: Qt.AlignCenter
-				Layout.topMargin: 5
 			}
 			TPLabel {
 				id: lbl2
 				text: calendarManager.dateLabel
-				font: AppGlobals.extraLargeFont
+				font: AppGlobals.regularFont
 				Layout.alignment: Qt.AlignCenter
 				Layout.maximumWidth: parent.width - 10
-				Layout.minimumHeight: heightAvailable
-				Layout.maximumHeight: heightAvailable
+				Layout.preferredHeight: heightAvailable
 				Layout.leftMargin: 5
-				Layout.topMargin: 5
+				Layout.rightMargin: 5
 				Layout.bottomMargin: 5
 			}
 		}
@@ -60,6 +58,7 @@ TPPage {
 
 	ListView {
 		id: calendar
+		model: mesoCalendarModel
 		snapMode: ListView.SnapToItem
 		spacing: 2
 		anchors.fill: parent
@@ -222,7 +221,7 @@ TPPage {
 
 	footer: ToolBar {
 		width: parent.width
-		height: footerHeight
+		height: footerHeight*2.5
 
 		background: Rectangle {
 			gradient: Gradient {
@@ -239,16 +238,74 @@ TPPage {
 			id: lblInfo
 			text: calendarManager.dayInfo(calendar.currentYear, calendar.currentMonth+1, calendar.currentDay-1)
 			wrapMode: Text.WordWrap
-			font: AppGlobals.largeFont
-			width: parent.width - btnViewWorkout.width - 10
-			height: footerHeight
+			horizontalAlignment: Text.AlignHCenter
+			verticalAlignment: Text.AlignVCenter
+			width: parent.width
+			height: parent.height*0.25
 
+			anchors {
+				top: parent.top
+				topMargin: 10
+				horizontalCenter: parent.horizontalCenter
+			}
+		}
+
+		TPComboBox {
+			id: cboSplitLetter
+			model: AppGlobals.splitModel
+			currentIndex: indexOfValue(calendarManager.selectedSplitLetter);
+			width: parent.width*0.2
+
+			onActivated: (index) => optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = calendarManager.selectedSplitLetter !== valueAt(index);
+
+			anchors {
+				top: optChangeOnlyThisDay.bottom
+				topMargin: -height/2
+				left: parent.left
+				leftMargin: 5
+			}
+		} //TPComboBox
+
+		TPRadioButton {
+			id: optChangeOnlyThisDay
+			text: qsTr("Change only this day")
+
+			anchors {
+				top: lblInfo.bottom
+				left: cboSplitLetter.right
+				leftMargin: 10
+				right: parent.right
+			}
+		}
+		TPRadioButton {
+			id: optChangeAfterThisDay
+			text: qsTr("Adjust calendar from this day")
+
+			anchors {
+				top: optChangeOnlyThisDay.bottom
+				left: cboSplitLetter.right
+				leftMargin: 10
+				right: parent.right
+			}
+		}
+
+		TPButton {
+			id: btnChangeCalendar
+			text: qsTr("Change Calendar")
+			imageSource: "edit-calendar.png"
+			enabled: optChangeOnlyThisDay.checked || optChangeAfterThisDay.checked
+
+			onClicked: {
+				calendarManager.changeCalendar(optChangeAfterThisDay.checked, cboSplitLetter.currentValue);
+				optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
+				optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
+			}
 
 			anchors {
 				left: parent.left
 				leftMargin: 5
-				verticalCenter: parent.verticalCenter
-				verticalCenterOffset: 2
+				bottom: parent.bottom
+				bottomMargin: 5
 			}
 		}
 
@@ -256,17 +313,12 @@ TPPage {
 			id: btnViewWorkout
 			text: qsTr("Workout")
 			imageSource: "workout.png"
-			textUnderIcon: true
-			rounded: false
-			flat: false
-			width: 60
-			height: 55
-			fixedSize: true
 
 			anchors {
 				right: parent.right
 				rightMargin: 5
-				verticalCenter: parent.verticalCenter
+				bottom: parent.bottom
+				bottomMargin: 5
 			}
 
 			onClicked: calendarManager.getTrainingDayPage(calendar.dayInfoDate);
@@ -278,7 +330,6 @@ TPPage {
 	function pageActivation() {
 		_today = new Date();
 		if (!bAlreadyLoaded) {
-			calendar.model = mesoCalendarModel;
 			mesoCalendarModel.calendarChanged.connect(reloadModel);
 			selectDay(_today.getFullYear(), _today.getMonth(), _today.getDate());
 			calendar.positionViewAtIndex(mesoCalendarModel.getIndex(_today), ListView.Center);
@@ -291,14 +342,15 @@ TPPage {
 		calendar.model = mesoCalendarModel;
 	}
 
-	//Javascript date values differ from QDate's and TP's.
-	//Month: JS 0-11 TP: 1-12
-	//Date: JS 1-31 TP:0-30
+	//Javascript date values differ from QDate's and TP's and Qt's
+	//Month: JS 0-11 TP: 1-12 Qt:1-12
+	//Date: JS 1-31 TP:0-30 Qt: 1-31
 	function selectDay(year, month, day) {
 		calendar.currentDay = day;
 		calendar.currentMonth = month;
 		calendar.currentYear = year;
 		calendar.dayInfoDate = new Date(year, month, day);
-		//lblInfo.text = calendarManager.dayInfo(year, month+1, day-1);
+		optChangeOnlyThisDay.checked = optChangeAfterThisDay.checked = false;
+		optChangeOnlyThisDay.enabled = optChangeAfterThisDay.enabled = false;
 	}
 } //Page
