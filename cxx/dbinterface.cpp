@@ -255,11 +255,10 @@ void DBInterface::getExercisesListVersion()
 	{
 		char buf[20] = { 0 };
 		qint64 lineLength;
-		QString line;
 		lineLength = exercisesListFile.readLine(buf, sizeof(buf));
 		if (lineLength > 0)
 		{
-			line = buf;
+			QString line{std::move(buf)};
 			if (line.startsWith("#Vers"_L1))
 				m_exercisesListVersion = std::move(line.split(';').at(1).trimmed());
 		}
@@ -350,17 +349,20 @@ void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); });
 }
 
-void DBInterface::loadCompleteMesoSplit(DBMesoSplitModel* splitModel)
+void DBInterface::loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter)
 {
+	DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true, meso_idx}};
+	splitModel->setSplitLetter(splitLetter);
 	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath, splitModel}};
-	worker->addExecArg(appMesoModel()->id(splitModel->mesoIdx()));
-	worker->addExecArg(splitModel->_splitLetter());
+	worker->addExecArg(appMesoModel()->id(meso_idx));
+	worker->addExecArg(splitLetter);
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
 		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 		{
 			disconnect(*conn);
 			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(worker->model()));
+			worker->model()->deleteLater();
 		}
 	});
 	createThread(worker, [worker] () { return worker->getCompleteMesoSplit(); });
@@ -549,7 +551,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel* tDayModel)
 				DBTrainingDayModel* tempModel{worker->model()};
 				//setTrainingDay does not relate to training day in the temporary model. It's only a place to store a value we need this model to carry
 				const bool bHasMesoPlan(mesoHasPlan(appMesoModel()->_id(tDayModel->mesoIdx()), tDayModel->splitLetter()));
-				tempModel->setTrainingDay( bHasMesoPlan ? STR_ONE : STR_ZERO);
+				tempModel->setTrainingDay(bHasMesoPlan ? STR_ONE : STR_ZERO);
 				emit databaseReadyWithData(TRAININGDAY_TABLE_ID, QVariant::fromValue(tempModel));
 				delete tempModel;
 			}

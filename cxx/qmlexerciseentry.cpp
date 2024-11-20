@@ -199,7 +199,7 @@ void QmlExerciseEntry::createAvailableSets()
 		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
 	if (!m_setObjects.isEmpty())
-		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, m_setObjects.at(0)->setEntry()->y() + 50));
+		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
 }
 
 void QmlExerciseEntry::removeExercise(const bool bAsk)
@@ -209,7 +209,8 @@ void QmlExerciseEntry::removeExercise(const bool bAsk)
 
 void QmlExerciseEntry::exerciseCompleted()
 {
-	enableDisableExerciseCompletedButton();
+	m_setObjects.last()->setFinishButtonEnabled(false);
+	m_setObjects.last()->setIsEditable(false);
 	if (m_bIsCompleted)
 		m_tDayPage->gotoNextExercise(m_exercise_idx);
 }
@@ -542,12 +543,12 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 
 void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 {
-	bool bNoSetsCompleted(false);
+	bool bNoSetsCompleted(true);
 	bool bAllSetsCompleted(true);
 	for (uint i(0); i < m_setObjects.count() - 1; ++i)
 	{
 		m_setObjects.at(i)->setFinishButtonEnabled(false);
-		bNoSetsCompleted |= m_setObjects.at(i)->completed();
+		bNoSetsCompleted &= !m_setObjects.at(i)->completed();
 		bAllSetsCompleted &= m_setObjects.at(i)->completed();
 	}
 	m_setObjects.last()->setFinishButtonEnabled(bAllSetsCompleted);
@@ -583,18 +584,19 @@ inline void QmlExerciseEntry::findCurrentSet()
 	{
 		for(uint i(0); i < m_setObjects.count(); ++i)
 		{
+			QmlSetEntry* set(m_setObjects.at(i));
 			if (!m_tDayModel->setCompleted(m_exercise_idx, i))
 			{
-				m_setObjects.at(i)->setCurrent(true);
-				m_setObjects.at(i)->setIsEditable(isEditable());
-				const QQuickItem* const setObj(m_setObjects.at(i)->setEntry());
+				set->setCurrent(true);
+				set->setIsEditable(isEditable());
+				const QQuickItem* const setObj(set->setEntry());
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
 				break;
 			}
 			else
 			{
-				m_setObjects.at(i)->setCurrent(false);
-				m_setObjects.at(i)->setIsEditable(false);
+				set->setCurrent(false);
+				set->setIsEditable(set->finishButtonEnabled());
 			}
 		}
 	}

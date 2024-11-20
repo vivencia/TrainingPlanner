@@ -96,7 +96,7 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 		for(uint x(1); x < nsets; ++x)
 		{
 			splitModel->setWorkingSet(i, x, false);
-			newSet(i, splitModel->setsNumber(i) - 1, splitModel->setType(i, x), splitModel->setReps(i, x), splitModel->setWeight(i, x),
+			newSet(i, x, splitModel->setType(i, x), splitModel->setReps(i, x), splitModel->setWeight(i, x),
 				nextSetSuggestedTime(i, splitModel->setType(i, x)), splitModel->setSubsets(i, x));
 		}
 		splitModel->setWorkingSet(i, orig_workingset, false);
@@ -682,7 +682,7 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 		if (n_exercises > 1)
 		{
 			if (strType != m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2))
-				changeSetType (set_number, exercise_idx, m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2).toUInt(), type);
+				changeSetType(exercise_idx, set_number, m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2).toUInt(), type);
 		}
 		//setSetCompleted(exercise_idx, i, false);
 	}
@@ -768,7 +768,7 @@ void DBTrainingDayModel::changeSetType(const uint exercise_idx, const uint set_n
 			}
 		break;
 	}
-	setSetType(set_number, exercise_idx, new_type);
+	setSetType(exercise_idx, set_number, new_type);
 }
 
 QString DBTrainingDayModel::setRestTime(const uint exercise_idx, const uint set_number) const

@@ -31,18 +31,17 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDayModel)
 {
 	m_modeldata.clear();
-	QStringList exerciseInfo(COMPLETE_MESOSPLIT_TOTAL_COLS);
-	exerciseInfo[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
-
 	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
 	{
+		QStringList exerciseInfo(COMPLETE_MESOSPLIT_TOTAL_COLS);
 		exerciseInfo[MESOSPLIT_COL_EXERCISENAME] = tDayModel->_exerciseName(i);
-		exerciseInfo[MESOSPLIT_COL_SETSNUMBER] = tDayModel->_setsNumber(i);
-		exerciseInfo[MESOSPLIT_COL_NOTES] = tDayModel->setsNotes(i);
-		exerciseInfo[MESOSPLIT_COL_SETTYPE] = tDayModel->setsTypes(i);
-		exerciseInfo[MESOSPLIT_COL_SUBSETSNUMBER] = tDayModel->setsSubSets(i);
-		exerciseInfo[MESOSPLIT_COL_REPSNUMBER] = tDayModel->setsReps(i);
-		exerciseInfo[MESOSPLIT_COL_WEIGHT] = tDayModel->setsWeight(i);
+		exerciseInfo[MESOSPLIT_COL_SETSNUMBER] = std::move(QString::number(tDayModel->setsNumber(i)));
+		exerciseInfo[MESOSPLIT_COL_NOTES] = std::move(tDayModel->setsNotes(i));
+		exerciseInfo[MESOSPLIT_COL_SETTYPE] = std::move(tDayModel->setsTypes(i));
+		exerciseInfo[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(tDayModel->setsSubSets(i));
+		exerciseInfo[MESOSPLIT_COL_REPSNUMBER] = std::move(tDayModel->setsReps(i));
+		exerciseInfo[MESOSPLIT_COL_WEIGHT] = std::move(tDayModel->setsWeight(i));
+		exerciseInfo[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 		appendList(std::move(exerciseInfo));
 		m_exerciseIsNew.append(0);
 	}

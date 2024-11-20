@@ -475,7 +475,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			if (data.isValid())
 			{
 				const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
-				//The connected signal is only meant for the working page. All *possible* other pages are not affected by it, so we must filter them out
+				//The connected signal is only meant for the working page. All *possible* other pages are not to be affected by it, so we must filter them out
 				if (tDayModel->dateStr() == m_tDayModel->dateStr())
 				{
 					if (m_tDayModel->splitLetter() != "R"_L1)
@@ -593,19 +593,15 @@ void QmlTDayInterface::calculateWorkoutTime()
 
 void QmlTDayInterface::setTrainingDayPageEmptyDayOrChangedDayOptions(const DBTrainingDayModel* const tDayModel)
 {
-	if (tDayModel->isReady())
+	setLastWorkOutLocation(tDayModel->location());
+	setHasMesoPlan(tDayModel->trainingDay() == STR_ONE); //trainingDay() is just a placeholder for the value we need
+	if (tDayModel->count() == 2)
 	{
-		setLastWorkOutLocation(tDayModel->location());
-		setHasMesoPlan(tDayModel->trainingDay() == STR_ONE); //trainingDay() is just a placeholder for the value we need
-		if (tDayModel->count() == 2)
-		{
-			setHasPreviousTDays(true);
-			setPreviousTDays(tDayModel->getRow_const(1));
-		}
+		setHasPreviousTDays(true);
+		setPreviousTDays(tDayModel->getRow_const(1));
 	}
 	else
 	{
-		setHasMesoPlan(false);
 		setHasPreviousTDays(false);
 		setPreviousTDays(QStringList());
 	}

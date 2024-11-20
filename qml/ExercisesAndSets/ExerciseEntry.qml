@@ -18,7 +18,7 @@ FocusScope {
 	Frame {
 		id: paneExercise
 		visible: height > 0
-		height: shown ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight) + 20
+		height: shown ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
 		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.implicitHeight + 20
 		implicitWidth: width
 		width: parent.width
@@ -116,8 +116,8 @@ FocusScope {
 					id: txtExerciseName
 					text: exerciseManager.exerciseName
 					bEditable: exerciseManager.isEditable
-					width: layoutMain.width*0.9
-					height: appSettings.pageHeight*0.08
+					width: layoutMain.width*0.85
+					height: appSettings.pageHeight*0.1
 					Layout.preferredWidth: width
 					Layout.preferredHeight: height
 
@@ -275,7 +275,7 @@ FocusScope {
 					id: btnAddSet
 					imageSource: "add-new"
 					imageSize: 30
-					Layout.leftMargin: 20
+					Layout.leftMargin: 40
 
 					onClicked: exerciseManager.appendNewSet();
 				}

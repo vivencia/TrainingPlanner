@@ -69,7 +69,7 @@ public:
 	void saveMesoSplit(const uint meso_idx);
 	void removeMesoSplit(const uint meso_idx);
 	void deleteMesoSplitTable(const bool bRemoveFile);
-	void loadCompleteMesoSplit(DBMesoSplitModel* splitModel);
+	void loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter);
 	void loadAllSplits(const uint meso_idx);
 	void saveMesoSplitComplete(DBMesoSplitModel* model);
 	bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;

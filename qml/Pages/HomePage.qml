@@ -301,24 +301,18 @@ TPPage {
 					text: mesoName
 					fontColor: mesoContent.fntColor
 					horizontalAlignment: Text.AlignHCenter
-					width: availableWidth
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
 					Layout.bottomMargin: 10
+					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoCoach
 					fontColor: mesoContent.fntColor
-					width: availableWidth
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
+					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoClient
 					fontColor: mesoContent.fntColor
-					width: availableWidth
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
+					Layout.maximumWidth: parent.width
 				}
 				TPLabel {
 					text: mesoStartDate
@@ -330,11 +324,8 @@ TPPage {
 				}
 				TPLabel {
 					text: mesoSplit
-					singleLine: true
 					fontColor: mesoContent.fntColor
-					width: availableWidth
-					Layout.maximumWidth: width
-					Layout.minimumWidth: width
+					Layout.maximumWidth: parent.width
 				}
 			}
 		} //delegate

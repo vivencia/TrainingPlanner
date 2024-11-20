@@ -37,7 +37,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
 		mColumnNames.append(QString());
 	fillColumnNames();
 
-	m_splitModel = new DBMesoSplitModel(this, false, -1);
+	m_splitModel = new DBMesoSplitModel{this, false, 10000};
 
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
@@ -166,8 +166,7 @@ void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const
 const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 {
 	appendList_fast(std::move(infolist));
-	m_splitModel->appendList_fast(std::move(QStringList() << STR_MINUS_ONE << STR_MINUS_ONE << QString() << QString() <<
-		QString() << QString() << QString() << QString()));
+	m_splitModel->appendList_fast(std::move(QStringList(SIMPLE_MESOSPLIT_TOTAL_COLS)));
 
 	const uint meso_idx(count()-1);
 	m_splitModel->setMesoIdx(meso_idx);

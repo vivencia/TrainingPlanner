@@ -11,7 +11,7 @@ Label {
 	font: AppGlobals.regularFont
 	minimumPointSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
-	fontSizeMode: elide !== Text.ElideNone ? Text.FixedSize : Text.Fit
+	fontSizeMode: singleLine && width <= _preferredWidth ? Text.Fit : Text.FixedSize
 	topPadding: _lineCount === 1 ? 0 : -3*_lineCount
 	width: _preferredWidth
 	height: _preferredHeight
@@ -19,7 +19,7 @@ Label {
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
 	property int heightAvailable: 25
-	property bool singleLine: wrapMode === Text.NoWrap ? true : widthAvailable > _textWidth
+	property bool singleLine: wrapMode === Text.NoWrap ? true : width > _textWidth
 
 	property int _textWidth
 	property int _textHeight

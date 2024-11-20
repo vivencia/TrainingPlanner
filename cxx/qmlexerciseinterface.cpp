@@ -38,7 +38,7 @@ void QmlExerciseInterface::createExerciseObject()
 	{
 		bTrackRestTime = m_tDayModel->trackRestTime(exercise_idx-1);
 		bAutoRestTime = m_tDayModel->autoRestTime(exercise_idx-1);
-		nRestTime = m_tDayModel->nextSetSuggestedTime(exercise_idx, SET_TYPE_REGULAR);
+		nRestTime = m_tDayModel->nextSetSuggestedTime(exercise_idx-1, SET_TYPE_REGULAR);
 	}
 	else
 		nRestTime = m_tDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);

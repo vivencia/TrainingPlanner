@@ -17,7 +17,6 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         width: parent.width
         text: top.topText
-        color: "white"
         font.pixelSize: 16
 
         anchors {
@@ -42,7 +41,6 @@ Item {
     Text {
         id: tempText
         text: top.bottomText
-        color: "white"
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: 18
         width: top.width

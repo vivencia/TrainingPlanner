@@ -60,15 +60,20 @@ TPPage {
 			spacing: 10
 			anchors.fill: parent
 
+			Rectangle {
+				id: mesosRec
+				radius: 8
+				color: "#3F000000"
+				Layout.fillWidth: true
+				Layout.preferredHeight: statisticsPage.height*0.15
+
 			ListView {
 				id: mesosList
 				model: mesocyclesModel
 				boundsBehavior: Flickable.StopAtBounds
 				spacing: 1
 				clip: true
-				Layout.fillWidth: true
-				Layout.minimumHeight: statisticsPage.height*0.08
-				Layout.maximumHeight: statisticsPage.height*0.15
+				anchors.fill: parent
 
 				ScrollBar.vertical: ScrollBar {
 					policy: ScrollBar.AsNeeded
@@ -108,6 +113,7 @@ TPPage {
 					setDates();
 					positionViewAtIndex(currentIndex, ListView.Center);
 				}
+			}
 			}
 
 			Frame {

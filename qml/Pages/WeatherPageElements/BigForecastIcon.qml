@@ -22,6 +22,7 @@ Item {
 		text: current.topText
 		singleLine: false
 		font: AppGlobals.extraLargeFont
+		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width - 50
 
@@ -75,6 +76,7 @@ Item {
 		id: text2
 		text: current.bottomText
 		font: AppGlobals.regularFont
+		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		width: parent.width
 
@@ -100,6 +102,7 @@ Item {
 		text: current.bottomBottomText
 		_textWidth: parent.width - 20
 		_textHeight: 15
+		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false
 		width: parent.width

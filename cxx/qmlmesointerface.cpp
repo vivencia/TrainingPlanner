@@ -376,21 +376,15 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
 			if (!m_exercisesPage)
 				m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
-			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(splitletter));
-			if (!splitModel)
-			{
-				auto conn = std::make_shared<QMetaObject::Connection>();
-				*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
-					if (table_idx == MESOSPLIT_TABLE_ID)
-					{
-						disconnect(*conn);
-						tDayPage->loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
-					}
-				});
-				appDBInterface()->loadCompleteMesoSplit(splitModel);
-			}
-			else
-				appDBInterface()->loadCompleteMesoSplit(splitModel);
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
+				if (table_idx == MESOSPLIT_TABLE_ID)
+				{
+					disconnect(*conn);
+					tDayPage->loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
+				}
+			});
+			appDBInterface()->loadCompleteMesoSplit(m_mesoIdx, splitletter);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
 		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
