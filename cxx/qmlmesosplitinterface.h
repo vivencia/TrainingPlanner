@@ -28,7 +28,7 @@ public:
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel);
 	Q_INVOKABLE void simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);
-	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath = QString(), const bool bJustExport = false);
+	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
 
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }

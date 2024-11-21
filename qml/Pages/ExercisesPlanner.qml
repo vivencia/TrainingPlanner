@@ -180,13 +180,13 @@ TPPage {
 		onListClosed: simpleExercisesListClosed();
 	}
 
-	function hideSimpleExercisesList() {
-		exercisesPane.visible = false;
-	}
-
 	function showSimpleExercisesList(multipleSel: bool) {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
 		exercisesPane.open();
+	}
+
+	function hideSimpleExercisesList() {
+		exercisesPane.visible = false;
 	}
 
 	function createNavButtons() {
@@ -228,12 +228,12 @@ TPPage {
 	function showInExMenu() {
 		if (imExportMenu === null) {
 			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
-			imExportMenu = imExportMenuComponent.createObject(page, { parentPage: pagePlanner });
+			imExportMenu = imExportMenuComponent.createObject(pagePlanner, { parentPage: pagePlanner });
 			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
-			imExportMenu.addEntry(qsTr("Import from ") + currentPage.prevMesoName, "import.png", 0, currentPage.prevMesoId >= 0);
-			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 1, true);
+			imExportMenu.addEntry(qsTr("Import from ") + currentPage.prevMesoName, "import.png", 1, currentPage.prevMesoId >= 0);
+			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 2, true);
 			if (Qt.platform.os === "android")
-				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
+				imExportMenu.addEntry(qsTr("Share"), "export.png", 3, true);
 			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
 		imExportMenu.setMenuText(1)

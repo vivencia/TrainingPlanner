@@ -21,12 +21,13 @@ FocusScope {
 	readonly property var myoLabels: setManager.type === 5 ? [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
 						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
 
-	/*Connections {
-		setManager.onTypeChanged: btnCopySetType.visible = !btnCopySetType.visible;
-		setManager.onRestTimeChanged: btnCopyTimeValue.visible = !btnCopyTimeValue.visible;
-		setManager.onReps1Changed: btnCopySetReps.visible = !btnCopySetReps.visible
-		setManager.onWeight1Changed: btnCopySetWeight.visible = !btnCopySetWeight.visible
-	}*/
+	Connections {
+		target: setManager
+			function ontypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = !btnCopyTimeValue.visible; }
+			function onReps1Changed() { btnCopySetReps.visible = !btnCopySetReps.visible; }
+			function onWeight1Changed() { btnCopySetWeight.visible = !btnCopySetWeight.visible; }
+	}
 
 	Rectangle {
 		id: indicatorRec
@@ -201,8 +202,8 @@ FocusScope {
 		}
 
 		Row {
-			Layout.fillWidth: true
 			enabled: !setManager.completed
+			Layout.fillWidth: true
 
 			SetInputField {
 				id: txtNReps
@@ -268,7 +269,7 @@ FocusScope {
 			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
-			Layout.alignment: Qt.AlignHCenter
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
 				setLayout.enabled = false;

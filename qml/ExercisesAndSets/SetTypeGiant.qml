@@ -14,8 +14,6 @@ Item {
 	implicitHeight: setLayout.implicitHeight + 15
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -23,12 +21,13 @@ Item {
 	readonly property int controlWidth: setItem.width - 20
 
 	Connections {
-		setManager.onTypeChanged: btnCopySetType.visible = !btnCopySetType.visible;
-		setManager.onRestTimeChanged: btnCopyTimeValue.visible = !btnCopyTimeValue.visible;
-		setManager.onReps1Changed: btnCopySetReps1.visible = !btnCopySetReps1.visible
-		setManager.onWeight1Changed: btnCopySetWeight1.visible = !btnCopySetWeight1.visible
-		setManager.onReps2Changed: btnCopySetReps2.visible = !btnCopySetReps2.visible
-		setManager.onWeight2Changed: btnCopySetWeight2.visible = !btnCopySetWeight2.visible
+		target: setManager
+			function ontypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = !btnCopyTimeValue.visible; }
+			function onReps1Changed() { btnCopySetReps1.visible = !btnCopySetReps1.visible; }
+			function onWeight1Changed() { btnCopySetWeight1.visible = !btnCopySetWeight1.visible; }
+			function onReps1Changed() { btnCopySetReps2.visible = !btnCopySetReps2.visible; }
+			function onWeight1Changed() { btnCopySetWeight2.visible = !btnCopySetWeight2.visible; }
 	}
 
 	Rectangle {
@@ -44,7 +43,7 @@ Item {
 
 	MultiEffect {
 		id: currentSetEffect
-		visible: bCurrentSet
+		visible: setManager.current
 		source: indicatorRec
 		shadowEnabled: true
 		shadowOpacity: 0.5
@@ -60,13 +59,11 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		Layout.fillWidth: true
-		Layout.bottomMargin: 5
+		anchors.fill: parent
 
 		Item {
 			height: 30
 			Layout.fillWidth: true
-			Layout.topMargin: 10
 
 			TPButton {
 				id: btnManageSet
@@ -96,8 +93,6 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
@@ -124,7 +119,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: cbosetManager.type.right
+					left: cboSetType.right
 					leftMargin: 10
 				}
 
@@ -147,17 +142,15 @@ Item {
 			}
 		}
 
-		RowLayout {
+		Row {
 			visible: setManager.number > 0 && setManager.trackRestTime
 			enabled: !setManager.completed && !setManager.autoRestTime
-			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
 				text: setManager.restTime
 				availableWidth: btnCopyTimeValue.visible ? controlWidth - 40 : controlWidth
-				windowTitle: lblSetNumber.text
 				showButtons: !setManager.autoRestTime
 
 				onValueChanged: (str) => setManager.restTime = str;
@@ -177,48 +170,53 @@ Item {
 		}
 
 		RowLayout {
-			Layout.fillWidth: true
+			uniformCellSizes: true
 			enabled: !setCompleted
+			spacing: 0
+			Layout.fillWidth: true
 
-			ExerciseNameField {
-				id: txtExercise1
+			TPLabel {
+				id: lblExercise1
 				text: setManager.exerciseName1
-				showRemoveButton: false
-				width: controlWidth/2 + 10
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
-				Layout.leftMargin: -10
+				wrapMode: Text.WordWrap
+				fontColor: "black"
+				width: controlWidth*0.5
+				Layout.preferredWidth: width
+				Layout.preferredHeight: _preferredHeight
+				Layout.alignment: Qt.AlignHCenter
 
-				onExerciseChanged: (new_text) => setManager.exerciseName1 = new_text;
-				onEditButtonClicked: exerciseManager.simpleExercisesList(true, false);
+				MouseArea {
+					anchors.fill: parent
+					onClicked: exerciseManager.simpleExercisesList(true, false, 1);
+				}
 			}
 
-			ExerciseNameField {
-				id: txtExercise2
+			TPLabel {
+				id: lblExercise2
 				text: setManager.exerciseName2
-				showRemoveButton: false
-				width: controlWidth/2 + 10
-				Layout.alignment: Qt.AlignCenter
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
-				Layout.leftMargin: -10
+				wrapMode: Text.WordWrap
+				fontColor: "black"
+				width: controlWidth*0.5
+				Layout.preferredWidth: width
+				Layout.preferredHeight: _preferredHeight
+				Layout.alignment: Qt.AlignHCenter
 
-				onExerciseChanged: (new_text) => setManager.exerciseName2 = new_text;
-				onEditButtonClicked: exerciseManager.simpleExercisesList(true, false);
+				MouseArea {
+					anchors.fill: parent
+					onClicked: exerciseManager.simpleExercisesList(true, false, 2);
+				}
 			}
 		}
 
-		RowLayout {
+		Row {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
-			spacing: 5
 
 			SetInputField {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: setManager.reps1
 				availableWidth: btnCopySetReps1.visible ? controlWidth - 40 : controlWidth
-				Layout.alignment: Qt.AlignLeft
 				showLabel: !btnCopySetReps1.visible
 
 				onValueChanged: (str) => setManager.reps1 = str;
@@ -231,7 +229,6 @@ Item {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
 
 				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
 			}
@@ -240,7 +237,7 @@ Item {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
 				text: setManager.reps2
-				availableWidth: controlWidth/3
+				availableWidth: controlWidth*0.3
 				showLabel: false
 
 				onValueChanged: (str) => setManager.reps2 = str;
@@ -252,7 +249,6 @@ Item {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
 
 				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number, 1);
 			}
@@ -261,14 +257,12 @@ Item {
 		RowLayout {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
-			spacing: 5
 
 			SetInputField {
 				id: txtNWeight1
 				text: setManager.weight1
 				type: SetInputField.Type.WeightType
 				availableWidth: btnCopySetWeight1.visible ? controlWidth - 40 : controlWidth
-				Layout.alignment: Qt.AlignLeft
 				showLabel: !btnCopySetWeight1.visible
 
 				onValueChanged: (str) => setManager.weight1 = str;
@@ -289,7 +283,7 @@ Item {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
 				text: setManager.weight2
-				availableWidth: controlWidth/3 + 10
+				availableWidth: controlWidth*0.3
 				showLabel: false
 
 				onValueChanged: (str) => setManager.weight2 = str;
@@ -300,7 +294,6 @@ Item {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
 
 				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number, 1);
 			}
@@ -310,8 +303,6 @@ Item {
 			id: btnShowHideNotes
 			text: setManager.notes
 			enabled: !setManager.completed
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
 			Layout.fillWidth: true
 
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
@@ -320,6 +311,7 @@ Item {
 		TPButton {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
+			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
 			Layout.alignment: Qt.AlignCenter

@@ -153,6 +153,28 @@ void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
 	m_exercisesListManager->getExercisesPage(connectPage);
 }
 
+const QString& QmlItemManager::setExportFileName(const QString& filename)
+{
+	m_exportFilename = appOsInterface()->appDataFilesPath() + filename;
+	return m_exportFilename;
+}
+
+void QmlItemManager::continueExport(int exportMessageId, const bool bShare)
+{
+	const QString& filename{appUtils()->getFileName(m_exportFilename)};
+	if (exportMessageId == APPWINDOW_MSG_EXPORT_OK)
+	{
+		if (bShare)
+		{
+			appOsInterface()->shareFile(m_exportFilename);
+			exportMessageId = APPWINDOW_MSG_SHARE_OK;
+		}
+		else
+			QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, filename));
+	}
+	displayMessageOnAppWindow(exportMessageId, filename);
+}
+
 void QmlItemManager::displayActivityResultMessage(const int requestCode, const int resultCode) const
 {
 	int message_id(0);
@@ -432,6 +454,7 @@ void QmlItemManager::exportSlot(const QString& filePath)
 		QFile::copy(m_exportFilename, filePath);
 	displayMessageOnAppWindow(filePath.isEmpty() ? APPWINDOW_MSG_EXPORT_FAILED : APPWINDOW_MSG_EXPORT_OK);
 	QFile::remove(m_exportFilename);
+	m_exportFilename.clear();
 }
 
 void QmlItemManager::importSlot_FileChosen(const QString& filePath)

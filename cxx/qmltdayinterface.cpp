@@ -6,7 +6,7 @@
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
-#include "osinterface.h"
+#include "qmlexerciseentry.h"
 #include "qmlexerciseinterface.h"
 #include "qmlitemmanager.h"
 #include "tpsettings.h"
@@ -289,19 +289,8 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 
 void QmlTDayInterface::exportTrainingDay(const bool bShare)
 {
-	const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr(" - Workout ") + splitLetter() + ".txt"_L1};
-	int exportFileMessageId{m_tDayModel->exportToFile(exportFileName)};
-	if (exportFileMessageId >= 0)
-	{
-		if (bShare)
-		{
-			appOsInterface()->shareFile(exportFileName);
-			exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
-		}
-		else
-			QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, exportFileName));
-	}
-	emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+	const QString& exportFileName{appItemManager()->setExportFileName(tr(" - Workout ") + splitLetter() + ".txt"_L1)};
+	appItemManager()->continueExport(m_tDayModel->exportToFile(exportFileName), bShare);
 }
 
 void QmlTDayInterface::importTrainingDay(const QString& filename)
@@ -381,6 +370,26 @@ void QmlTDayInterface::removeExerciseObject(const uint exercise_idx, const bool 
 		removeExercise(exercise_idx);
 }
 
+void QmlTDayInterface::simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise)
+{
+	m_SimpleExercisesListRequesterExerciseIdx = exercise_idx;
+	m_SimpleExercisesListRequesterExerciseComp = comp_exercise;
+	if (show)
+	{
+		if (appExercisesModel()->count() == 0)
+			appDBInterface()->getAllExercises();
+		connect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
+		connect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
+		QMetaObject::invokeMethod(m_tDayPage, "showSimpleExercisesList", Q_ARG(bool, multi_sel));
+	}
+	else
+	{
+		disconnect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
+		disconnect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
+		QMetaObject::invokeMethod(m_tDayPage, "hideSimpleExercisesList");
+	}
+}
+
 void QmlTDayInterface::displayMessage(const QString& title, const QString& message, const bool error, const uint msecs) const
 {
 	QMetaObject::invokeMethod(m_tDayPage, "showMessageDialog", Q_ARG(QString, title), Q_ARG(QString, message), Q_ARG(bool, error), Q_ARG(int, static_cast<int>(msecs)));
@@ -414,16 +423,6 @@ void QmlTDayInterface::rollUpExercises() const
 	m_exerciseManager->hideSets();
 }
 
-void QmlTDayInterface::showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel)
-{
-	m_exerciseManager->showSimpleExercisesList(exercise_idx, bMultiSel);
-}
-
-void QmlTDayInterface::hideSimpleExercisesList()
-{
-	m_exerciseManager->hideSimpleExercisesList();
-}
-
 TPTimer* QmlTDayInterface::restTimer()
 {
 	if (!m_restTimer)
@@ -434,6 +433,58 @@ TPTimer* QmlTDayInterface::restTimer()
 void QmlTDayInterface::silenceTimeWarning()
 {
 	m_workoutTimer->stopAlarmSound();
+}
+
+void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
+{
+	QString exerciseName, nSets, nReps, nWeight;
+	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
+	nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
+	const uint nsets(nSets.toUInt());
+
+	nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+							nsets, 2, set_separator, comp_exercise_separator));
+	nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+							nsets, 2, set_separator, comp_exercise_separator));
+	exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
+					appExercisesModel()->selectedEntriesValue_fast(0, 2);
+
+	if (b_is_composite)
+	{
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
+						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nsets, set_separator),
+										nReps, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
+										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nsets, set_separator),
+										nWeight, comp_exercise_separator);
+	}
+
+	if (!exerciseEntry)
+		exerciseEntry = m_exerciseManager->exerciseEntry(m_SimpleExercisesListRequesterExerciseIdx);
+	switch (m_SimpleExercisesListRequesterExerciseComp)
+	{
+		case 0:
+			exerciseEntry->setExerciseName(exerciseName);
+			exerciseEntry->setNewSetType(b_is_composite ? SET_TYPE_REGULAR : SET_TYPE_GIANT);
+			exerciseEntry->setSetsNumber(nSets);
+			exerciseEntry->setReps(nReps);
+			exerciseEntry->setWeight(nWeight);
+		break;
+		case 1:
+			appUtils()->setCompositeValue(1, m_tDayModel->exerciseName2(m_SimpleExercisesListRequesterExerciseIdx), exerciseName, comp_exercise_separator);
+			exerciseEntry->setExerciseName(exerciseName);
+		break;
+		case 2:
+			appUtils()->setCompositeValue(0, m_tDayModel->exerciseName1(m_SimpleExercisesListRequesterExerciseIdx), exerciseName, comp_exercise_separator);
+			exerciseEntry->setExerciseName(exerciseName);
+	}
+}
+
+void QmlTDayInterface::hideSimpleExercisesList()
+{
+	simpleExercisesList(-1, false, false, 0);
 }
 
 void QmlTDayInterface::createTrainingDayPage()

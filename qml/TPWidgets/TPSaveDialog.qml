@@ -12,7 +12,7 @@ FileDialog {
 	onRejected: mainwindow.saveFileRejected("");
 
 	function init(suggestedName: string, bShare: bool, extraArg: string) {
-		currentFile = suggestedName;
+		selectedFile = suggestedName;
 		open();
 	}
 }

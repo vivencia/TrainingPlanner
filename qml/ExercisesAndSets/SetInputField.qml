@@ -79,7 +79,7 @@ FocusScope {
 			id: lblMain
 			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
 			fontColor: labelColor
-			width: availableWidth*0.5
+			widthAvailable: availableWidth*0.5
 			visible: showLabel
 
 			anchors {
@@ -139,9 +139,21 @@ FocusScope {
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
 			readOnly: type === SetInputField.Type.TimeType
-			width: type === SetInputField.Type.TimeType ? Math.min(availableWidth*0.4, 2*height) : Math.min(availableWidth*0.3, 2*height)
 			padding: 0
 			focus: type !== SetInputField.Type.TimeType
+
+			width: {
+				switch (type) {
+					case SetInputField.WeightType:
+						return Math.min(availableWidth*0.35, 2*height);
+					case SetInputField.RepType:
+						return Math.min(availableWidth*0.25, 1.5*height);
+					case SetInputField.Type.TimeType:
+						return Math.min(availableWidth*0.4, 3*height);
+					case SetInputField.SetType:
+						return Math.min(availableWidth*0.15, height);
+				}
+			}
 
 			anchors {
 				left: showButtons ? btnDecrease.right : showLabel ? lblMain.right : parent.left
@@ -170,14 +182,7 @@ FocusScope {
 			}
 
 			onTextEdited: valueChanged(text = sanitizeText(text));
-
-			MouseArea {
-				id: mousearea
-				anchors.fill: parent
-				enabled: type === SetInputField.Type.TimeType
-
-				onClicked: openTimerDialog();
-			}
+			onTextChanged: if (!activeFocus) bClearInput = true;
 		} //TextInput
 
 		TPButton {

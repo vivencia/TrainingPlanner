@@ -37,7 +37,7 @@ Item {
 		leftInset: 0
 		rightInset: 0
 		bottomInset: 0
-		width: 0.8*control.width
+		width: 0.75*control.width
 		height: control.height
 
 		anchors {
@@ -150,7 +150,7 @@ Item {
 
 		anchors {
 			left: btnEditExercise.right
-			leftMargin: 10
+			leftMargin: 5
 			verticalCenter: control.verticalCenter
 		}
 

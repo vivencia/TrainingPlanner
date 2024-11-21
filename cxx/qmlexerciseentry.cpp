@@ -437,12 +437,9 @@ void QmlExerciseEntry::copyWeightValueIntoOtherSets(const uint set_number, const
 	}
 }
 
-void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel)
+void QmlExerciseEntry::simpleExercisesList(const bool show, const bool multi_sel, uint comp_exercise)
 {
-	if (show)
-		m_tDayPage->showSimpleExercisesList(m_exercise_idx, multi_sel);
-	else
-		m_tDayPage->hideSimpleExercisesList();
+	m_tDayPage->simpleExercisesList(m_exercise_idx, show, multi_sel, comp_exercise);
 }
 
 void QmlExerciseEntry::insertSetEntry(const uint set_number, QmlSetEntry* new_setobject)

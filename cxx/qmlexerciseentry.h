@@ -120,7 +120,7 @@ public:
 	Q_INVOKABLE void copyTimeValueIntoOtherSets(const uint set_number);
 	Q_INVOKABLE void copyRepsValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
 	Q_INVOKABLE void copyWeightValueIntoOtherSets(const uint set_number, const uint sub_set = 0);
-	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel);
+	Q_INVOKABLE void simpleExercisesList(const bool show, const bool multi_sel, uint comp_exercise = 0);
 
 signals:
 	void exerciseIdxChanged();

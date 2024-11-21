@@ -11,7 +11,7 @@ Label {
 	font: AppGlobals.regularFont
 	minimumPointSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
-	fontSizeMode: singleLine && width <= _preferredWidth ? Text.Fit : Text.FixedSize
+	fontSizeMode: Text.Fit
 	topPadding: _lineCount === 1 ? 0 : -3*_lineCount
 	width: _preferredWidth
 	height: _preferredHeight

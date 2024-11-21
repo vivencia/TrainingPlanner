@@ -36,10 +36,7 @@ public:
 	void hideSets() const;
 	void showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel);
 	inline uint exercisesCount() const { return m_exercisesList.count(); }
-
-public slots:
-	void exerciseSelected();
-	void hideSimpleExercisesList();
+	inline QmlExerciseEntry* exerciseEntry(const uint exercise_idx) const { return m_exercisesList.at(exercise_idx); }
 
 private:
 	QmlTDayInterface* m_tDayPage;
@@ -52,7 +49,6 @@ private:
 	int m_simpleExercisesListRequester;
 
 	void createExerciseObject_part2(const uint exercise_idx);
-	void getInfoFromExercisesList(QmlExerciseEntry* exerciseEntry);
 };
 
 #endif // QMLEXERCISEINTERFACE_H

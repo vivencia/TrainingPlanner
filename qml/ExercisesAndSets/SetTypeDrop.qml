@@ -14,8 +14,6 @@ Item {
 	implicitHeight: setLayout.implicitHeight + 15
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -35,7 +33,7 @@ Item {
 
 	MultiEffect {
 		id: currentSetEffect
-		visible: bCurrentSet
+		visible: setManager.current
 		source: indicatorRec
 		shadowEnabled: true
 		shadowOpacity: 0.5
@@ -52,12 +50,10 @@ Item {
 	ColumnLayout {
 		id: setLayout
 		Layout.fillWidth: true
-		Layout.bottomMargin: 5
 
 		Item {
 			height: 30
 			Layout.fillWidth: true
-			Layout.topMargin: 10
 
 			TPButton {
 				id: btnManageSet
@@ -87,8 +83,6 @@ Item {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
-			Layout.topMargin: 10
-			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
@@ -115,7 +109,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: cbosetManager.type.right
+					left: cboSetType.right
 					leftMargin: 10
 				}
 
@@ -138,17 +132,15 @@ Item {
 			}
 		}
 
-		RowLayout {
+		Row {
 			visible: setManager.number > 0 && setManager.trackRestTime
 			enabled: !setManager.completed && !setManager.autoRestTime
-			Layout.leftMargin: 5
 
 			SetInputField {
 				id: txtRestTime
 				type: SetInputField.Type.TimeType
 				text: setManager.restTime
 				availableWidth: btnCopyTimeValue.visible ? controlWidth - 40 : controlWidth
-				windowTitle: lblSetNumber.text
 				showButtons: !setManager.autoRestTime
 
 				onValueChanged: (str) => setManager.restTime = str;
@@ -168,8 +160,8 @@ Item {
 		}
 
 		RowLayout {
-			Layout.fillWidth: true
 			enabled: !setCompleted
+			Layout.fillWidth: true
 
 			TPButton {
 				id: btnAddSubSet
@@ -178,9 +170,8 @@ Item {
 				flat: false
 				rounded: false
 				enabled: setManager.nSubSets <= 3
-				width: controlWidth/2 + 10
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
+				width: controlWidth*0.5
+				Layout.preferredWidth: width
 
 				onClicked: setManager.nSubSets = setManager.nSubSets + 1;
 			}
@@ -192,9 +183,8 @@ Item {
 				flat: false
 				rounded: false
 				enabled: setManager.nSubSets > 1
-				width: controlWidth/2 + 10
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
+				width: controlWidth*0.5
+				Layout.preferredWidth: width
 
 				onClicked: setManager.nSubSets = setManager.nSubSets - 1;
 			}
@@ -213,7 +203,7 @@ Item {
 				SetInputField {
 					id: txtNReps
 					type: SetInputField.Type.RepType
-					availableWidth: controlWidth/3
+					availableWidth: controlWidth*0.4
 					Layout.alignment: Qt.AlignLeft
 					showLabel: !btnCopySetReps.visible
 
@@ -262,7 +252,7 @@ Item {
 				SetInputField {
 					id: txtNWeight
 					type: SetInputField.Type.WeightType
-					availableWidth: controlWidth/3
+					availableWidth: controlWidth*0.4
 					showLabel: false
 
 					Component.onCompleted: {
@@ -311,8 +301,6 @@ Item {
 			id: btnShowHideNotes
 			text: setManager.notes
 			enabled: !setManager.completed
-			Layout.leftMargin: 5
-			Layout.rightMargin: 5
 			Layout.fillWidth: true
 
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
@@ -321,6 +309,7 @@ Item {
 		TPButton {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
+			flat: true
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
 			Layout.alignment: Qt.AlignCenter

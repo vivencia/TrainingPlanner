@@ -88,6 +88,8 @@ Frame {
 			topMargin: 5
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 			bottomMargin: 10
 		}
 
@@ -521,7 +523,7 @@ Frame {
 									id: txtNReps1
 									text: splitModel.setReps1(index, splitModel.workingSet)
 									type: SetInputField.Type.RepType
-									availableWidth: listItem.width*0.6
+									availableWidth: listItem.width*0.55
 
 									onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNReps2.forceActiveFocus();
@@ -540,7 +542,7 @@ Frame {
 									id: txtNReps2
 									text: splitModel.setReps2(index, splitModel.workingSet)
 									type: SetInputField.Type.RepType
-									availableWidth: listItem.width*0.3
+									availableWidth: listItem.width*0.4
 									showLabel: false
 
 									onValueChanged: (str) => splitModel.setSetReps2(index, splitModel.workingSet, str);
@@ -587,7 +589,7 @@ Frame {
 									id: txtNWeight1
 									text: splitModel.setWeight1(index, splitModel.workingSet)
 									type: SetInputField.Type.WeightType
-									availableWidth: listItem.width*0.6
+									availableWidth: listItem.width*0.55
 
 									onValueChanged: (str) => splitModel.setSetWeight1(index, splitModel.workingSet, str);
 									onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
@@ -607,7 +609,7 @@ Frame {
 									text: splitModel.setWeight2(index, splitModel.workingSet)
 									type: SetInputField.Type.WeightType
 									showLabel: false
-									availableWidth: listItem.width*0.3
+									availableWidth: listItem.width*0.4
 
 									onValueChanged: (str) => splitModel.setSetWeight2(index, splitModel.workingSet, str);
 

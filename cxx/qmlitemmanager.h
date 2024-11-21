@@ -29,6 +29,8 @@ public:
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage = nullptr);
 
+	const QString& setExportFileName(const QString& filename);
+	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);

@@ -26,7 +26,7 @@ TextField {
 	signal enterOrReturnKeyPressed()
 
 	MouseArea {
-		pressAndHoldInterval: 400
+		pressAndHoldInterval: 800
 		enabled: parent.enabled ? true : !parent.readOnly
 		anchors.fill: parent
 

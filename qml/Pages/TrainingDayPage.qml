@@ -698,13 +698,13 @@ TPPage {
 		scrollTimer.init(ypos);
 	}
 
-	function hideSimpleExercisesList() {
-		exercisesPane.visible = false;
-	}
-
 	function showSimpleExercisesList(multipleSel: bool) {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
 		exercisesPane.open();
+	}
+
+	function hideSimpleExercisesList() {
+		exercisesPane.visible = false;
 	}
 
 	property TimerDialog dlgSessionLength: null
@@ -885,7 +885,7 @@ TPPage {
 		switch (menuid) {
 			case 0:
 				if (tDayManager.editMode)
-					tDayManager.setDayIsFinished(true);
+					tDayManager.dayIsFinished = true;
 				tDayManager.editMode = !tDayManager.editMode;
 				tDayManager.dayIsEditable = tDayManager.editMode;
 				optionsMenu.setMenuText(0, tDayManager.editMode ? qsTr("Done") : qsTr("Edit workout"));

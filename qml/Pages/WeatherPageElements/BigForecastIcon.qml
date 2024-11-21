@@ -20,14 +20,21 @@ Item {
 	TPLabel {
 		id: text1
 		text: current.topText
-		singleLine: false
+		wrapMode: Text.WordWrap
 		font: AppGlobals.extraLargeFont
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
-		width: parent.width - 50
+		heightAvailable: 0.1*appSettings.pageHeight
+		singleLine: false
 
-		anchors.top: parent.top
-		anchors.horizontalCenter: parent.horizontalCenter
+		anchors {
+			top: parent.top
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
 	}
 
 	MultiEffect {
@@ -49,9 +56,9 @@ Item {
 
 		anchors {
 			top: parent.top
-			topMargin: 30
-			left: text1.right
-			leftMargin: -30
+			topMargin: 40
+			right: parent.right
+			rightMargin: 10
 		}
 
 		onClicked: weatherInfo.refreshWeather();
@@ -100,17 +107,17 @@ Item {
 	TPLabel {
 		id: text3
 		text: current.bottomBottomText
-		_textWidth: parent.width - 20
-		_textHeight: 15
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		singleLine: false
-		width: parent.width
 
 		anchors {
 			top: text2.bottom
 			topMargin: 15
-			horizontalCenter: parent.horizontalCenter
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 	}
 

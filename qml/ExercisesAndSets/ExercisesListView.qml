@@ -21,8 +21,10 @@ Column {
 	//does not, bMultipleSelection will be left however the previous caller might have left it. We must make sure
 	//the new object does not encounter a list that is doing multiple selection but the button to control it is not visisble
 	onCanDoMultipleSelectionChanged: {
-		if (!canDoMultipleSelection)
+		if (!canDoMultipleSelection) {
 			bMultipleSelection = false;
+			chkMultipleSelection.checked = false;
+		}
 	}
 
 	Timer {

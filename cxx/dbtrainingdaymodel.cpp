@@ -60,7 +60,7 @@ const QStringList DBTrainingDayModel::getSaveInfo() const
 	QStringList data(TDAY_EXERCISES_TOTALCOLS);
 	for(uint i(0); i < m_ExerciseData.count(); ++i)
 	{
-		data[TDAY_EXERCISES_COL_NAMES].append(m_ExerciseData.at(i)->name + record_separator);
+		data[TDAY_EXERCISES_COL_NAMES].append(m_ExerciseData.at(i)->name + exercises_separator);
 		for(uint x(0); x < m_ExerciseData.at(i)->nsets; ++x)
 		{
 			data[TDAY_EXERCISES_COL_TYPES].append(m_ExerciseData.at(i)->type.at(x) + record_separator);

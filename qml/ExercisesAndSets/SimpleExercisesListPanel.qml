@@ -20,10 +20,12 @@ TPPopup {
 
 	onVisibleChanged: {
 		shown = visible;
-		if (shown) {
+		if (visible) {
 			focus = true;
 			exercisesList.canDoMultipleSelection = bEnableMultipleSelection;
 		}
+		else
+			exercisesModel.clearSelectedEntries();
 	}
 
 	Behavior on height {
@@ -85,7 +87,10 @@ TPPopup {
 					verticalCenter: parent.verticalCenter
 				}
 
-				onClicked: dlgExercisesList.visible = false;
+				onClicked: {
+					listClosed();
+					dlgExercisesList.visible = false;
+				}
 			}
 		}
 

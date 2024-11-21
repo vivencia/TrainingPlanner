@@ -8,6 +8,7 @@
 class DBTrainingDayModel;
 class DBMesoSplitModel;
 class QmlExerciseInterface;
+class QmlExerciseEntry;
 class TPTimer;
 
 class QQmlApplicationEngine;
@@ -43,7 +44,7 @@ Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays N
 public:
 	explicit inline QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
 		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date),
-			m_exerciseManager(nullptr), m_workoutTimer(nullptr), m_restTimer(nullptr) {}
+			m_exerciseManager(nullptr), m_workoutTimer(nullptr), m_restTimer(nullptr), m_SimpleExercisesListRequesterExerciseComp(0) {}
 	~QmlTDayInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -128,14 +129,12 @@ public:
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
 	inline QQuickItem* tDayPage() const { return m_tDayPage; }
 
+	void simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise);
 	void displayMessage(const QString& title, const QString& message, const bool error = false, const uint msecs = 0) const;
 	void askRemoveExercise(const uint exercise_idx);
-
 	void askRemoveSet(const uint exercise_idx, const uint set_number);
 	void gotoNextExercise(const uint exercise_idx);
 	void rollUpExercises() const;
-	void showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel);
-	void hideSimpleExercisesList();
 
 	TPTimer* restTimer();
 
@@ -170,6 +169,8 @@ signals:
 
 public slots:
 	void silenceTimeWarning();
+	void exerciseSelected(QmlExerciseEntry* exerciseEntry = nullptr);
+	void hideSimpleExercisesList();
 
 private:
 	QQmlApplicationEngine* m_qmlEngine;
@@ -182,6 +183,7 @@ private:
 	uint m_mesoIdx;
 	QDate m_Date;
 	TPTimer* m_workoutTimer, *m_restTimer;
+	int m_SimpleExercisesListRequesterExerciseIdx, m_SimpleExercisesListRequesterExerciseComp;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_hour, m_min, m_sec;

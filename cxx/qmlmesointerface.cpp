@@ -1,15 +1,15 @@
 #include "qmlmesointerface.h"
+
+#include "dbinterface.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
-#include "qmltdayinterface.h"
-#include "qmlmesosplitinterface.h"
-#include "qmlmesocalendarinterface.h"
 #include "qmlitemmanager.h"
-#include "dbinterface.h"
-#include "osinterface.h"
-#include "translationclass.h"
+#include "qmlmesocalendarinterface.h"
+#include "qmlmesosplitinterface.h"
+#include "qmltdayinterface.h"
 #include "tputils.h"
+#include "translationclass.h"
 #include "dbusermodel.h"
 
 #include <QQmlApplicationEngine>
@@ -415,7 +415,8 @@ void QMLMesoInterface::getMesocyclePage()
 void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	int exportFileMessageId(APPWINDOW_MSG_EXPORT_OK);
-	const QString& exportFileName{appOsInterface()->appDataFilesPath() + appMesoModel()->name(m_mesoIdx) + tr(" - TP Complete Meso.txt")};
+	const QString& exportFileName{appItemManager()->setExportFileName(appMesoModel()->name(m_mesoIdx) + std::move(tr(" - TP Complete Meso.txt")))};
+	appItemManager()->setExportFileName(exportFileName);
 	if (bCoachInfo)
 	{
 		appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->coach(m_mesoIdx)));
@@ -438,15 +439,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 					do {
 						(*splitModel)->exportToFile(exportFileName);
 					} while (++splitModel != mapEnd);
-					if (bShare)
-					{
-						appOsInterface()->shareFile(exportFileName);
-						exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
-					}
-					else
-						QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, exportFileName));
-
-					emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+					appItemManager()->continueExport(exportFileMessageId, bShare);
 				}
 			});
 			appDBInterface()->loadAllSplits(m_mesoIdx);

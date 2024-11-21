@@ -126,29 +126,21 @@ void QmlMesoSplitInterface::simpleExercisesList(DBMesoSplitModel* splitModel, co
 	}
 }
 
-void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& splitLetter, const QString& filePath, const bool bJustExport)
+void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& splitLetter)
 {
 	int exportFileMessageId(0);
-	QString mesoSplit, suggestedName, exportFileName;
-	if (filePath.isEmpty())
+	QString mesoSplit, suggestedName;
+	if (splitLetter == "X"_L1)
 	{
-		if (splitLetter == "X"_L1)
-		{
-			mesoSplit = appMesoModel()->split(m_mesoIdx);
-			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan.txt");
-		}
-		else
-		{
-			mesoSplit = splitLetter;
-			suggestedName = appMesoModel()->name(m_mesoIdx) + tr(" - Exercises Plan - Split ") + splitLetter + ".txt"_L1;
-		}
-		exportFileName = appOsInterface()->appDataFilesPath() + suggestedName;
+		mesoSplit = appMesoModel()->split(m_mesoIdx);
+		suggestedName = appMesoModel()->name(m_mesoIdx) + std::move(tr(" - Exercises Plan.txt"));
 	}
 	else
 	{
-		exportFileName = filePath;
-		mesoSplit = appMesoModel()->split(m_mesoIdx);
+		mesoSplit = splitLetter;
+		suggestedName = appMesoModel()->name(m_mesoIdx) + std::move(tr(" - Exercises Plan - Split ")) + splitLetter + ".txt"_L1;
 	}
+	const QString& exportFileName{appItemManager()->setExportFileName(suggestedName)};
 
 	QString mesoLetters;
 	QString::const_iterator itr(mesoSplit.constBegin());
@@ -159,19 +151,9 @@ void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& sp
 		if (mesoLetters.contains(*itr))
 			continue;
 		mesoLetters.append(*itr);
-		m_splitModels.value(*itr)->exportToFile(exportFileName);
+		exportFileMessageId = m_splitModels.value(*itr)->exportToFile(exportFileName);
 	} while (++itr != itr_end);
-	if (bJustExport)
-		return;
-	if (bShare)
-	{
-		appOsInterface()->shareFile(exportFileName);
-		exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
-	}
-	else
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, suggestedName));
-
-	emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
+	appItemManager()->continueExport(exportFileMessageId, bShare);
 }
 
 void QmlMesoSplitInterface::importMesoSplit(const QString& filename)

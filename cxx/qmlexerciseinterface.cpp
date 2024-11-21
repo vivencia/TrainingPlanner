@@ -1,11 +1,10 @@
 #include "qmlexerciseinterface.h"
-#include "qmltdayinterface.h"
-#include "qmlexerciseentry.h"
-#include "dbtrainingdaymodel.h"
-#include "dbmesosplitmodel.h"
-#include "dbexercisesmodel.h"
+
 #include "dbinterface.h"
-#include "tputils.h"
+#include "dbmesosplitmodel.h"
+#include "dbtrainingdaymodel.h"
+#include "qmlexerciseentry.h"
+#include "qmltdayinterface.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -47,7 +46,7 @@ void QmlExerciseInterface::createExerciseObject()
 	if (exercise_idx > 0)
 		m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
-	getInfoFromExercisesList(newExercise);
+	m_tDayPage->exerciseSelected(newExercise);
 	m_tDayModel->newExercise(exercise_idx, newExercise->exerciseName());
 
 	newExercise->setIsEditable(true);
@@ -171,30 +170,6 @@ void QmlExerciseInterface::hideSets() const
 	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
 }
 
-void QmlExerciseInterface::showSimpleExercisesList(const uint exercise_idx, const bool bMultiSel)
-{
-	if (m_simpleExercisesListRequester < 0)
-	{
-		m_simpleExercisesListRequester = exercise_idx;
-		connect(m_tDayPage->tDayPage(), SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
-		connect(m_tDayPage->tDayPage(), SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "showSimpleExercisesList", Q_ARG(bool, bMultiSel));
-	}
-}
-
-void QmlExerciseInterface::exerciseSelected()
-{
-	getInfoFromExercisesList(m_exercisesList.at(m_simpleExercisesListRequester));
-}
-
-void QmlExerciseInterface::hideSimpleExercisesList()
-{
-	disconnect(m_tDayPage, SIGNAL(exerciseSelectedFromSimpleExercisesList()), this, SLOT(exerciseSelected()));
-	disconnect(m_tDayPage, SIGNAL(simpleExercisesListClosed()), this, SLOT(hideSimpleExercisesList()));
-	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "hideSimpleExercisesList");
-	m_simpleExercisesListRequester = -1;
-}
-
 void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 {
 	#ifndef QT_NO_DEBUG
@@ -217,34 +192,4 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	item->setProperty("Layout.column", 0);
 	m_exercisesList.at(exercise_idx)->setExerciseEntry(item);
 	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
-}
-
-void QmlExerciseInterface::getInfoFromExercisesList(QmlExerciseEntry* exerciseEntry)
-{
-	QString exerciseName, nSets, nReps, nWeight;
-	if (appExercisesModel()->selectedEntriesCount() == 1)
-	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, 2);
-		nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
-		nReps = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER);
-		nWeight = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT);
-	}
-	else
-	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
-						appExercisesModel()->selectedEntriesValue_fast(0, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
-						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SETSNUMBER), nSets, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_REPSNUMBER), nReps, comp_exercise_separator);
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nWeight, comp_exercise_separator);
-	}
-	exerciseEntry->setExerciseName(exerciseName, false);
-	exerciseEntry->setNewSetType(!exerciseEntry->compositeExercise() ? SET_TYPE_REGULAR : SET_TYPE_GIANT);
-	exerciseEntry->setSetsNumber(nSets);
-	exerciseEntry->setReps(nReps);
-	exerciseEntry->setWeight(nWeight);
 }
