@@ -95,7 +95,7 @@ Rectangle {
 	TPLabel {
 		id: buttonText
 		opacity: button.opacity
-		fontSizeMode: fixedSize ? Text.Fit : Text.FixedSize
+		fontSizeMode: Text.Fit
 		color: button.enabled ? textColor : appSettings.disabledFontColor
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5

@@ -72,9 +72,12 @@ bool DBMesoSplitModel::isFieldUserModified(const uint row, const uint field) con
 
 void DBMesoSplitModel::appendExercise()
 {
-	appendList(std::move(QStringList() << std::move(tr("Choose exercise...")) << STR_MINUS_ONE << " "_L1 << STR_MINUS_ONE << STR_ZERO <<
-							appUtils()->makeDoubleCompositeValue("10"_L1, 1, 2, set_separator, comp_exercise_separator) <<
-							appUtils()->makeDoubleCompositeValue("20"_L1, 1, 2, set_separator, comp_exercise_separator) <<  STR_ZERO));
+	appendList(std::move(QStringList() << std::move(tr("Choose exercise...")) << STR_ZERO << " "_L1 <<
+							appUtils()->makeDoubleCompositeValue(STR_MINUS_ONE, 1, 2, set_separator, comp_exercise_separator) << //type
+							appUtils()->makeDoubleCompositeValue(STR_ZERO, 1, 2, set_separator, comp_exercise_separator) << //subsets
+							appUtils()->makeDoubleCompositeValue("10"_L1, 1, 2, set_separator, comp_exercise_separator) << //reps
+							appUtils()->makeDoubleCompositeValue("20"_L1, 1, 2, set_separator, comp_exercise_separator) << //weight
+							STR_ZERO));
 	setCurrentRow(count() - 1);
 	uchar newExerciseRequiredFields(0);
 	setBit(newExerciseRequiredFields, MESOSPLIT_COL_EXERCISENAME);
@@ -359,16 +362,18 @@ QString DBMesoSplitModel::findSwappableModel() const
 	return QString();
 }
 
-int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBMesoSplitModel::exportToFile(const QString& filename, const bool writeHeader, const bool) const
 {
 	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	const bool bOK(outFile->open(writeHeader ? QIODeviceBase::WriteOnly|QIODeviceBase::Text :
+			QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
 		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);
 		outFile->write(strHeader.toUtf8().constData());
 
 		QString value;
+		bool bIsComposite(false);
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator& itr_end(m_modeldata.constEnd());
 
@@ -384,7 +389,18 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 						if (!isFieldFormatSpecial(i))
 							value = (*itr).at(i);
 						else
+						{
 							value = formatFieldToExport(i, (*itr).at(i));
+							bIsComposite = (*itr).at(i).contains("4"_L1);
+						}
+						if (!bIsComposite)
+						{
+							const int sep_idx(value.indexOf(comp_exercise_fancy_separator));
+							value.remove(sep_idx, value.length() - sep_idx);
+							value.chop(1);
+						}
+						else
+							value.chop(2);
 						value.replace(set_separator, fancy_record_separator2);
 						value.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 						outFile->write(value.toUtf8().constData());
@@ -392,6 +408,7 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 					}
 				}
 			}
+			bIsComposite = false;
 			outFile->write("\n", 1);
 			++itr;
 		}
@@ -416,8 +433,7 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 	qint64 lineLength(0);
 	uint col(1);
 	QString value;
-	bool bexpect_extrainfo(false);
-
+	bool bexpect_extrainfo(false), bIsComposite(false);
 	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
 	modeldata[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 
@@ -437,16 +453,29 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 					value = buf;
 					value.remove(0, value.indexOf(':') + 2);
 					if (!isFieldFormatSpecial(col))
-						modeldata[col] = value;
+					{
+						if (bIsComposite)
+							modeldata[col] = std::move(value);
+						else
+						{
+							modeldata[col] = std::move(appUtils()->makeCompositeValue(value, 2, comp_exercise_separator));
+							modeldata[col].chop(1);
+						}
+					}
 					else
+					{
 						modeldata[col] = formatFieldToImport(col, value);
+						bIsComposite = modeldata.at(col).contains('4');
+					}
 					modeldata[col].replace(fancy_record_separator2, set_separator);
 					modeldata[col].replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
+					modeldata[col].append(set_separator + comp_exercise_separator);
 					col++;
 					if (col == MESOSPLIT_COL_WORKINGSET)
 					{
 						m_modeldata.append(modeldata);
 						col = 0;
+						bIsComposite = false;
 					}
 				}
 				else
@@ -556,10 +585,10 @@ void DBMesoSplitModel::fillColumnNames()
 {
 	if (mb_Complete)
 	{
-		mColumnNames[MESOSPLIT_COL_EXERCISENAME] = std::move(tr("Exercise name: "));
+		mColumnNames[MESOSPLIT_COL_EXERCISENAME] = std::move(tr("Exercise: "));
 		mColumnNames[MESOSPLIT_COL_SETSNUMBER] = std::move(tr("Number of sets: "));
 		mColumnNames[MESOSPLIT_COL_NOTES] = std::move(tr("Set instructions: "));
-		mColumnNames[MESOSPLIT_COL_SETTYPE] = std::move(tr("Set type: "));
+		mColumnNames[MESOSPLIT_COL_SETTYPE] = std::move(tr("Sets type: "));
 		mColumnNames[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(tr("Number of subsets: "));
 		mColumnNames[MESOSPLIT_COL_REPSNUMBER] = std::move(tr("Reps: "));
 		mColumnNames[MESOSPLIT_COL_WEIGHT] = std::move(tr("Weight: "));

@@ -111,7 +111,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
 
 	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	const bool bOK(outFile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Text));
 	if (bOK)
 	{
 		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);

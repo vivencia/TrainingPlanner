@@ -142,6 +142,16 @@ QDate TPUtils::createFutureDate(const QDate& date, const uint years, const uint 
 	return newDate;
 }
 
+int TPUtils::daysInMonth(const int month, const int year) const
+{
+	switch (month)
+	{
+		case 3: case 5: case 8: case 10: return 30;
+		case 1: return year % 4 == 0 ? 29 : 28;
+		default: return 31;
+	}
+}
+
 QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
 {
 	int secs(QStringView{strTime}.sliced(3, 2).toUInt());

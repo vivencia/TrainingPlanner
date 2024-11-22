@@ -128,5 +128,7 @@
         <file>images/black/gps.png</file>
         <file>images/reload.png</file>
         <file>images/statistics.png</file>
+        <file>images/white/calendar.png</file>
+        <file>images/black/calendar.png</file>
     </qresource>
 </RCC>

@@ -39,6 +39,7 @@ TPPage {
 				text: calendarManager.nameLabel
 				font: AppGlobals.extraLargeFont
 				widthAvailable: parent.width*0.8
+				singleLine: true
 				Layout.maximumWidth: widthAvailable
 				Layout.alignment: Qt.AlignCenter
 			}

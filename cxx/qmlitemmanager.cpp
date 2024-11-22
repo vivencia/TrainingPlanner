@@ -451,7 +451,10 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 void QmlItemManager::exportSlot(const QString& filePath)
 {
 	if (!filePath.isEmpty())
-		QFile::copy(m_exportFilename, filePath);
+	{
+		static_cast<void>(QFile::remove(filePath));
+		static_cast<void>(QFile::copy(m_exportFilename, filePath));
+	}
 	displayMessageOnAppWindow(filePath.isEmpty() ? APPWINDOW_MSG_EXPORT_FAILED : APPWINDOW_MSG_EXPORT_OK);
 	QFile::remove(m_exportFilename);
 	m_exportFilename.clear();

@@ -27,12 +27,12 @@ public:
 
 	Q_INVOKABLE QString formatDate(const QDate& date) const;
 	QString formatTodayDate() const;
-
 	QDate getDateFromStrDate(const QString& strDate) const;
 	uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	QDate getNextMonday(const QDate& fromDate) const;
 	QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
-	QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
+	inline QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
+	int daysInMonth(const int month, const int year) const;
 
 	Q_INVOKABLE inline QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const
 	{

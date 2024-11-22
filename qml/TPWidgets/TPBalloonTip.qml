@@ -75,7 +75,7 @@ TPPopup {
 		text: button1Text
 		flat: false
 		visible: button1Text.length > 0
-		x: button2Text.length > 0 ? (balloon.width - implicitWidth - btn2.implicitWidth)/2 : (balloon.width - implicitWidth)/2;
+		x: button2Text.length > 0 ? (balloon.width - width - btn2.width)/2 : (balloon.width - implicitWidth)/2;
 		y: balloon.height - buttonHeight - 5;
 		z: 2
 
@@ -90,7 +90,8 @@ TPPopup {
 		text: button2Text
 		flat: false
 		visible: button2Text.length > 0
-		x: button1Text.length > 0 ? btn1.x + btn1.width + 5 : (balloon.width - implicitWidth)/2;
+		width: balloon.width - btn1.width - 10
+		x: btn1.x + btn1.width + 5;
 		y: balloon.height - buttonHeight - 5;
 		z: 2
 

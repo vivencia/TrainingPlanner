@@ -135,48 +135,28 @@ void DBMesoCalendarTable::getMesoCalendar()
 			{
 				// 0: id | 1: meso_id | 2: training day number | 3: split letter | 4: training_complete | 5: year | 6: month | 7: day
 				QStringList mesocal_info;
-				int month(-1);
 				QString strMonth, strYear;
-				uint day(1);
-
+				int month(-1);
 				do
 				{
 					const int dbmonth = query.value(MESOCALENDAR_COL_MONTH).toInt();
 					if (dbmonth != month)
 					{
-						strMonth = QString::number(dbmonth);
+						month = dbmonth;
+						strMonth = std::move(QString::number(dbmonth));
 						strYear = std::move(query.value(MESOCALENDAR_COL_YEAR).toString());
 						if (!mesocal_info.isEmpty())
 						{
 							m_model->appendList_fast(std::move(mesocal_info));
 							mesocal_info.clear();
-							day = 1;
-						}
-						else
-						{
-							const uint firstDayOfMeso(query.value(MESOCALENDAR_COL_DAY).toUInt());
-							if (firstDayOfMeso > 1)
-							{
-								//Fill the model with info that reflects that these month days are not part of the meso
-								for( ; day < firstDayOfMeso; ++day)
-									mesocal_info.append(std::move("-1,-1,-1,N,-1,"_L1 + strYear + ',' + strMonth));
-							}
 						}
 					}
-					month = dbmonth;
 					mesocal_info.append(std::move(query.value(MESOCALENDAR_COL_ID).toString() + ',' + mesoId + ',' + query.value(MESOCALENDAR_COL_TRAINING_DAY).toString() +
 						',' + query.value(MESOCALENDAR_COL_SPLITLETTER).toString() + ',' + query.value(MESOCALENDAR_COL_TRAININGCOMPLETE).toString() +
 						',' + strYear + ',' + strMonth));
-					day++;
 				} while (query.next ());
-				if (!mesocal_info.isEmpty()) //The days of the last month
-				{
-					const uint lastDayOfMonth(QDate(strYear.toInt(), strMonth.toInt(), ++day).daysInMonth());
-					//Fill the model with info that reflects that these month days are not part of the meso
-					for( ; day <= lastDayOfMonth; ++day)
-						mesocal_info.append(std::move("-1,-1,-1,N,-1,"_L1 + strYear + ',' + strMonth));
+				if (!mesocal_info.isEmpty())
 					m_model->appendList_fast(std::move(mesocal_info));
-				}
 			}
 			else
 			{
@@ -202,34 +182,21 @@ void DBMesoCalendarTable::saveMesoCalendar()
 									"(meso_id, training_day, training_split, training_complete, year, month, day) VALUES "_L1};
 		QString queryValues;
 		QStringList day_info;
-		uint n(0);
 
 		static_cast<void>(mSqlLiteDB.transaction());
 		for (uint i(0), x(0); i < m_model->count(); ++i)
 		{
-			for (x = 0; x < m_model->getRow_const(i).count(); ++x, ++n)
+			for (x = 0; x < m_model->getRow_const(i).count(); ++x)
 			{
-				day_info = m_model->getDayInfo(i, x).split(',');
-				if (day_info.at(MESOCALENDAR_COL_MESOID) != STR_MINUS_ONE)
-				{
-					queryValues += std::move('(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
+				day_info = std::move(m_model->getDayInfo(i, x).split(','));
+				queryValues += std::move('(' + day_info.at(MESOCALENDAR_COL_MESOID) + ',' + day_info.at(MESOCALENDAR_COL_TRAINING_DAY) +
 						",\'"_L1 + day_info.at(MESOCALENDAR_COL_SPLITLETTER) + "\',"_L1 +
 								day_info.at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + day_info.at(MESOCALENDAR_COL_YEAR) + ',' +
 								day_info.at(MESOCALENDAR_COL_MONTH) + ',' + QString::number(x+1) + "),"_L1);
-				}
 			}
-			if (n >= 150)
-			{
-				queryValues.chop(1);
-				ok = query.exec(queryStart + queryValues);
-				queryValues.clear();
-				n = 0;
-			}
-		}
-		if (!queryValues.isEmpty())
-		{
 			queryValues.chop(1);
-			ok = query.exec(queryStart + queryValues);
+			ok = query.exec(queryStart + queryValues); //Save one month at a time
+			queryValues.clear();
 		}
 		static_cast<void>(mSqlLiteDB.commit());
 		setQueryResult(ok, queryStart + queryValues, SOURCE_LOCATION);

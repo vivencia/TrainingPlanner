@@ -1,6 +1,7 @@
 #include "dbmesocalendarmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "tpglobals.h"
+#include "tputils.h"
 
 DBMesoCalendarModel::DBMesoCalendarModel(QObject *parent, const uint meso_idx)
 	: TPListModel(parent, meso_idx)
@@ -84,69 +85,88 @@ void DBMesoCalendarModel::changeModel(const bool bPreserveOldInfo, const bool bP
 		return;
 	}
 
-	uint day(0);
-	for(; day < m_modeldata.at(0).count(); ++day)
+	QList<QStringList> old_model_data{std::move(m_modeldata)};
+	m_modeldata.clear();
+	createModel();
+
+	const QStringList& oldFirstMonthInfo{old_model_data.constFirst()};
+	int old_firstday(0);
+	for(; old_firstday < oldFirstMonthInfo.count(); ++old_firstday)
 	{
-		if (m_modeldata.at(0).at(day).split(',').at(MESOCALENDAR_COL_TRAINING_DAY).toInt() > 0)
+		if (oldFirstMonthInfo.at(old_firstday).split(',').at(MESOCALENDAR_COL_TRAINING_DAY) != STR_MINUS_ONE)
 			break;
 	}
-	const uint old_firstday(day);
-	const uint old_firstmonth(m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
-	const uint old_firsyear(m_modeldata.at(0).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
+	int old_firstmonth(oldFirstMonthInfo.at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
+	int old_firstyear(oldFirstMonthInfo.at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
 
-	QList<QStringList> oldInfo;
-	const uint old_lastmonth(bPreserveOldInfoUntilDayBefore ? endDate.month() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
-	const uint old_lastyear(bPreserveOldInfoUntilDayBefore ? endDate.year() : m_modeldata.last().at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
+	const QStringList& oldLastMonthInfo{old_model_data.constLast()};
+	int old_lastday(0);
+	for(; old_lastday < oldLastMonthInfo.count(); ++old_lastday)
+	{
+		if (oldLastMonthInfo.at(old_firstday).split(',').at(MESOCALENDAR_COL_TRAINING_DAY) != STR_MINUS_ONE)
+			break;
+	}
+	int old_lastmonth(bPreserveOldInfoUntilDayBefore ? endDate.month() : oldLastMonthInfo.at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt());
+	int old_lastyear(bPreserveOldInfoUntilDayBefore ? endDate.year() : oldLastMonthInfo.at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt());
+
+	QDate startDate{old_firstyear, old_firstmonth, old_firstday};
+	if (startDate < appMesoModel()->startDate(m_mesoIdx))
+	{
+		startDate = appMesoModel()->startDate(m_mesoIdx);
+		old_firstday = startDate.day();
+		old_firstmonth = startDate.month();
+		old_firstyear = startDate.year();
+	}
+	QDate finalDate{old_lastyear, old_lastmonth, old_lastday};
+	if (finalDate > appMesoModel()->endDate(m_mesoIdx))
+	{
+		finalDate = appMesoModel()->startDate(m_mesoIdx);
+		old_lastday = finalDate.day();
+		old_lastmonth = finalDate.month();
+		old_lastyear = finalDate.year();
+	}
 
 	uint i(0);
 	for(; i < m_modeldata.count(); ++i)
 	{
-		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt() <= old_lastyear)
+		const QStringList& monthAndYear{m_modeldata.at(i).at(0).split(',')};
+		const int new_year(monthAndYear.at(MESOCALENDAR_COL_YEAR).toInt());
+		if (new_year >= old_firstyear && new_year <= old_lastyear)
 		{
-			if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() <= old_lastmonth)
-			{
-				if (i == m_modeldata.count() - 1)
-				{
-					for(day = 0; day < m_modeldata.at(i).count(); ++day)
-					{
-						if (m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_MESOID).toInt() == -1)
-							break;
-					}
-				}
-				else
-					day = m_modeldata.at(i).count();
-
-				oldInfo.append(QStringList());
-				uint x(i == 0 ? old_firstday : 0);
-				for(; x < day; ++x)
-					oldInfo.last().append(m_modeldata.at(i).at(x));
-			}
+			const int new_month(monthAndYear.at(MESOCALENDAR_COL_MONTH).toInt());
+			if (new_month >= old_firstmonth && new_month <= old_lastmonth)
+				break;
 		}
 	}
-	const uint old_lastday(bPreserveOldInfoUntilDayBefore ? endDate.day() - 1 : day);
 
-	clear();
-	createModel();
-
-	uint y(0);
-	for(i = 0; i < m_modeldata.count(); ++i)
+	uint old_i(0);
+	int month(-1), year(-1);
+	for(; old_i < old_model_data.count(); ++old_i)
 	{
-		const uint year = m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt();
-		if (year >= old_firsyear && year <= old_lastyear)
+		const QStringList& monthAndYear{old_model_data.at(old_i).at(0).split(',')};
+		year = monthAndYear.at(MESOCALENDAR_COL_YEAR).toInt();
+		if (year >= old_firstyear && year <= old_lastyear)
 		{
-			const uint month = m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt();
+			month = monthAndYear.at(MESOCALENDAR_COL_MONTH).toInt();
 			if (month >= old_firstmonth && month <= old_lastmonth)
-			{
-				day = y == 0 ? old_firstday : 0;
-				const uint lastday = y < oldInfo.count() - 1 ? oldInfo.at(y).count() : old_lastday;
-				uint x(0);
-				for(; x < lastday; ++day, ++x)
-					m_modeldata[i][day] = std::move(oldInfo.at(y).at(x));
-				y++;
-			}
+				break;
 		}
 	}
-	emit calendarChanged(QDate(old_firsyear, old_firstmonth, old_firstday), QDate(old_lastyear, old_lastmonth, old_lastday));
+
+	for(; old_i < old_model_data.count(); ++old_i, ++i)
+	{
+		const int last_day(old_i == old_model_data.count() ? old_lastday : appUtils()->daysInMonth(month, year));
+		for (; old_firstday < last_day; ++old_firstday)
+			m_modeldata[i][old_firstday] = std::move(old_model_data[old_i][old_firstday]);
+		month++;
+		old_firstday = 0;
+		if (month == 13)
+		{
+			month = 1;
+			year++;
+		}
+	}
+	emit calendarChanged(startDate, finalDate);
 }
 
 void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& newSplitLetter)
@@ -155,7 +175,7 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 	uint year(startDate.year());
 	uint month(startDate.month());
 	uint day(startDate.day()-1);
-	int tday(0);
+	int tday(-1);
 	int idx(mesoSplit.lastIndexOf(newSplitLetter));
 
 	for(uint i(0); i < m_modeldata.count(); ++i)
@@ -169,11 +189,10 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 				for(; day < monthInfo.count(); ++day)
 				{
 					dayInfo = std::move(monthInfo.at(day).split(','));
-					if (tday == 0)
+					if (tday == -1)
 					{
-						if (dayInfo[MESOCALENDAR_COL_TRAINING_DAY] != STR_ZERO)
-							tday = dayInfo[MESOCALENDAR_COL_TRAINING_DAY].toUInt();
-						else
+						tday = dayInfo[MESOCALENDAR_COL_TRAINING_DAY].toUInt();
+						if (tday == 0 && mesoSplit.at(idx) != "R"_L1)
 						{
 							uint x(day-1);
 							do {
@@ -181,20 +200,8 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 								if (tday > 0) break;
 								--x;
 							} while (x > 0);
-							if (tday <= 0) //will only try one month behind. If there is ever a month with no training then we have a problem
-							{
-								x = 30;
-								do {
-									tday = getTrainingDay(month, x);
-									if (tday > 0) break;
-									--x;
-								} while (x > 0);
-							}
-							if (tday < 0)
-								tday = 0;
 						}
 					}
-
 					if (mesoSplit.at(idx) == "R"_L1)
 						dayInfo[MESOCALENDAR_COL_TRAINING_DAY] = STR_ZERO;
 					else
