@@ -91,6 +91,7 @@ public:
 		if (mSqlLiteDB.connectOptions().isEmpty()) //optimize after modifying the database
 		{
 			QSqlQuery query{mSqlLiteDB};
+			static_cast<void>(query.exec("VACUUM"_L1));
 			static_cast<void>(query.exec("PRAGMA optimize"_L1));
 		}
 		mSqlLiteDB.close();

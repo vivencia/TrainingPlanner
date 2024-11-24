@@ -9,13 +9,15 @@ Rectangle {
 	focus: true
 	border.color: flat ? "transparent" : appSettings.fontColor
 	radius: rounded ? height : 6
-	opacity: bFollowParentsOpacity ? parent.opacity : checked ? 0.7 : 1
+	opacity: checked ? 0.7 : 1
 	color: backgroundColor
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
 	property alias text: buttonText.text
 	property string backgroundColor: text.length > 0 ? appSettings.paneBackgroundColor : "transparent"
+	property string imageSource
+
 	property bool textUnderIcon: false
 	property bool highlighted: false
 	property bool fixedSize: false
@@ -23,16 +25,14 @@ Rectangle {
 	property bool leftAlign: true
 	property bool rounded: true
 	property bool checkable: false
-	property alias buttonHeight: button.implicitHeight
-	property int clickId: -1
-	property Item associatedItem: null
-	property int imageSize: hasDropShadow ? 30 : 20
-	property string imageSource
 	property bool hasDropShadow: true
+	property bool checked: false
+	property bool autoResize: false
+	property int clickId: -1
+	property int imageSize: hasDropShadow ? 30 : 20
 	property bool bPressed: false
 	property bool bEmitSignal: false
-	property bool checked: false
-	property bool bFollowParentsOpacity: false
+	property Item associatedItem: null
 	property TPButtonImage buttonImage: null;
 
 	signal clicked(int clickid);
@@ -95,7 +95,7 @@ Rectangle {
 	TPLabel {
 		id: buttonText
 		opacity: button.opacity
-		fontSizeMode: Text.Fit
+		fontSizeMode: autoResize ? Text.Fit : Text.FixedSize
 		color: button.enabled ? textColor : appSettings.disabledFontColor
 		topPadding: textUnderIcon ? 10 : 5
 		bottomPadding: 5

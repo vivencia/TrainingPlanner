@@ -229,7 +229,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 {
 	QString::const_iterator itr(compositeString.constBegin());
 	const QString::const_iterator& itr_end(compositeString.constEnd());
-	uint n_seps(0);
+	int n_seps(-1);
 	int chr_pos(0);
 	uint last_sep_pos(0);
 
@@ -237,16 +237,15 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 	{
 		if ((*itr).toLatin1() == chr_sep)
 		{
-			if (n_seps == idx)
-				return compositeString.sliced(last_sep_pos, chr_pos);
-			++n_seps;
+			if (++n_seps == idx)
+				return compositeString.sliced(last_sep_pos, chr_pos);	
 			last_sep_pos += chr_pos + 1;
 			chr_pos = -1;
 		}
 		++chr_pos;
 		++itr;
 	}
-	return compositeString.sliced(last_sep_pos, chr_pos);
+	return idx == 0 ? compositeString : QString();
 }
 
 void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const

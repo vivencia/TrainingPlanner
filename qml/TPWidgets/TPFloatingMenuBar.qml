@@ -35,7 +35,7 @@ TPPopup {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
 				rounded: false, imageSize: 20, color: "transparent", "Layout.fillWidth": true });
 			if (bvisible) {
-				entriesTotalHeight += button.buttonHeight;
+				entriesTotalHeight += button.implicitHeight;
 				if (button.implicitWidth > largestEntryWidth)
 					largestEntryWidth = button.implicitWidth + 10;
 				button.clicked.connect(menuEntryClicked);

@@ -78,6 +78,7 @@ public:
 	Q_INVOKABLE inline void setSplitLetter(const QChar& splitLetter) { m_splitLetter = splitLetter; }
 	Q_INVOKABLE inline void setSplitLetter(const QString& splitLetter ) { setSplitLetter(splitLetter.at(0)); }
 
+	Q_INVOKABLE void clearExercises() { clear(); emit splitChanged(100, 100); }
 	Q_INVOKABLE void appendExercise();
 	Q_INVOKABLE inline void removeExercise(const uint row) { removeRow(row); m_exerciseIsNew.remove(row); emit splitChanged(row, 100); }
 	Q_INVOKABLE void addSet(const uint row);
@@ -109,6 +110,7 @@ public:
 	Q_INVOKABLE void setSetsSubsets(const uint row, const uint set_number, const QString& new_setssubsets);
 
 	inline const QString& _setsReps(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_REPSNUMBER); }
+	inline void _setSetsReps(const uint row, const QString& all_reps) { m_modeldata[row][MESOSPLIT_COL_REPSNUMBER] = all_reps; }
 	QString setReps(const int row, const uint set_number) const;
 	void setSetReps(const uint row, const uint set_number, const QString& new_setsreps);
 	Q_INVOKABLE QString setReps1(const int row, const uint set_number) const;
@@ -117,6 +119,7 @@ public:
 	Q_INVOKABLE void setSetReps2(const uint row, const uint set_number, const QString& new_setsreps);
 
 	inline const QString& _setsWeights(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_WEIGHT); }
+	inline void _setSetsWeights(const uint row, const QString& all_weights) { m_modeldata[row][MESOSPLIT_COL_WEIGHT] = all_weights; }
 	QString setWeight(const int row, const uint set_number) const;
 	void setSetWeight(const uint row, const uint set_number, const QString& new_setsweight);
 	Q_INVOKABLE QString setWeight1(const int row, const uint set_number) const;

@@ -15,6 +15,7 @@ TPPopup {
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor
 	property bool highlightMessage: false
+	property bool closable: false
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -38,14 +39,33 @@ TPPopup {
 		easing.type: Easing.InOutCubic
 	}
 
+	TPButton {
+		imageSource: "close.png"
+		hasDropShadow: false
+		visible: closable
+		height: 30
+		width: 30
+
+		z:2
+
+		anchors {
+			top: parent.top
+			topMargin: -3
+			right: parent.right
+			rightMargin: -3
+		}
+
+		onClicked: close();
+	}
+
 	TPLabel {
 		id: lblTitle
 		text: title
 		horizontalAlignment: Text.AlignHCenter
 		visible: title.length > 0
 		width: parent.width - 20
-		x: 10
-		y: 5
+		x: closable ? 5 : 10
+		y: closable ? 10 : 5
 	}
 
 	TPImage {
@@ -70,36 +90,49 @@ TPPopup {
 		y: lblTitle.visible ? lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
 	}
 
-	TPButton {
-		id: btn1
-		text: button1Text
-		flat: false
-		visible: button1Text.length > 0
-		x: button2Text.length > 0 ? (balloon.width - width - btn2.width)/2 : (balloon.width - implicitWidth)/2;
-		y: balloon.height - buttonHeight - 5;
-		z: 2
+	RowLayout {
+		spacing: 0
+		anchors {
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+			bottom: parent.bottom
+			bottomMargin: 5
+		}
 
-		onClicked: {
-			button1Clicked();
-			balloon.close();
+		TPButton {
+			id: btn1
+			text: button1Text
+			flat: false
+			autoResize: true
+			visible: button1Text.length > 0
+			z: 2
+			Layout.alignment: Qt.AlignCenter
+
+			onClicked: {
+				button1Clicked();
+				balloon.close();
+			}
+		}
+
+		TPButton {
+			id: btn2
+			text: button2Text
+			flat: false
+			autoResize: true
+			visible: button2Text.length > 0
+			z: 2
+			Layout.alignment: Qt.AlignCenter
+			Layout.maximumWidth: availableWidth - btn1.width - 10
+
+			onClicked: {
+				button2Clicked();
+				balloon.close();
+			}
 		}
 	}
 
-	TPButton {
-		id: btn2
-		text: button2Text
-		flat: false
-		visible: button2Text.length > 0
-		width: balloon.width - btn1.width - 10
-		x: btn1.x + btn1.width + 5;
-		y: balloon.height - buttonHeight - 5;
-		z: 2
-
-		onClicked: {
-			button2Clicked();
-			balloon.close();
-		}
-	}
 
 	SequentialAnimation {
 		loops: Animation.Infinite
@@ -178,7 +211,7 @@ TPPopup {
 
 	function show(ypos: int) {
 		balloon.height = lblTitle.height + lblMessage.height +
-						(button1Text.length > 0 ? 2*btn1.buttonHeight : (button2Text.length > 0 ? 2*btn1.buttonHeight : 10));
+						(button1Text.length > 0 ? 2*btn1.implicitHeight : (button2Text.length > 0 ? 2*btn1.implicitHeight : 10));
 		balloon.x = (appSettings.pageWidth - width)/2;
 
 		if (ypos < 0)

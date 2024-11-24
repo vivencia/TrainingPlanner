@@ -9,7 +9,7 @@ Label {
 	wrapMode: Text.NoWrap
 	elide: Text.ElideNone
 	font: AppGlobals.regularFont
-	minimumPointSize: appSettings.smallFontSize
+	minimumPointSize: appSettings.fontSize
 	maximumLineCount: singleLine ? 1 : 50
 	fontSizeMode: Text.Fit
 	topPadding: _lineCount === 1 ? 0 : -3*_lineCount

@@ -37,6 +37,7 @@ Column {
 			id: lblMessage
 			text: parentDlg.customStringProperty1
 			color: textColor
+			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignJustify
 			width: mainLayout.width - imgElement.width - 10
 			Layout.maximumWidth: width

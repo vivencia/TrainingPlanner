@@ -102,14 +102,14 @@ TPPage {
 			rounded: false
 			flat: false
 			width: footerHeight
-			height: footerHeight
+			height: footerHeight - 4
 			anchors {
 				left: parent.left
 				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: currentPage.splitModel.clear();
+			onClicked: currentPage.splitModel.clearExercises();
 		}
 
 		TPButton {
@@ -122,7 +122,7 @@ TPPage {
 			rounded: false
 			flat: false
 			width: footerHeight
-			height: footerHeight
+			height: footerHeight - 4
 			anchors {
 				left: btnClearPlan.right
 				leftMargin: 3
@@ -141,7 +141,7 @@ TPPage {
 			rounded: false
 			flat: false
 			width: footerHeight
-			height: footerHeight
+			height: footerHeight - 4
 
 			anchors {
 				left: btnSwapPlan.right
@@ -161,7 +161,7 @@ TPPage {
 			rounded: false
 			flat: false
 			width: 70
-			height: footerHeight
+			height: footerHeight - 4
 
 			anchors {
 				right: parent.right
@@ -253,6 +253,7 @@ TPPage {
 		id: exportTypeTip
 		title: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
 		imageSource: "export"
+		closable: true
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner

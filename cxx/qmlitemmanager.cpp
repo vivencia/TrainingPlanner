@@ -450,12 +450,18 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 
 void QmlItemManager::exportSlot(const QString& filePath)
 {
+	int messageId(APPWINDOW_MSG_EXPORT_FAILED);
 	if (!filePath.isEmpty())
 	{
-		static_cast<void>(QFile::remove(filePath));
-		static_cast<void>(QFile::copy(m_exportFilename, filePath));
+		messageId = APPWINDOW_MSG_EXPORT_OK;
+		QFile file{filePath};
+		if (file.exists())
+			messageId = file.remove() ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_EXPORT_FAILED;
+		if (messageId == APPWINDOW_MSG_EXPORT_OK)
+			if (!QFile::copy(m_exportFilename, filePath))
+				messageId = APPWINDOW_MSG_EXPORT_FAILED;
 	}
-	displayMessageOnAppWindow(filePath.isEmpty() ? APPWINDOW_MSG_EXPORT_FAILED : APPWINDOW_MSG_EXPORT_OK);
+	displayMessageOnAppWindow(messageId);
 	QFile::remove(m_exportFilename);
 	m_exportFilename.clear();
 }

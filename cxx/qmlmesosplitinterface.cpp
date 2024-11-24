@@ -166,20 +166,28 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 
 void QmlMesoSplitInterface::exerciseSelected()
 {
-	QString exerciseName, nSets, nReps, nWeight;
-	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
-	nSets = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER);
-	const uint nsets(nSets.toUInt());
+	const uint row(m_simpleExercisesListRequester->currentRow());
+	const uint nsets(m_simpleExercisesListRequester->setsNumber(row));
 
-	nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
-							nsets, 2, set_separator, comp_exercise_separator));
-	nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
-							nsets, 2, set_separator, comp_exercise_separator));
+	QString exerciseName, nReps, nWeight;
+	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
+
 	exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
 					appExercisesModel()->selectedEntriesValue_fast(0, 2);
 
-	if (b_is_composite)
+	if (!b_is_composite)
 	{
+		nReps = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+							nsets, set_separator));
+		nWeight = std::move(appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+							nsets, set_separator));
+	}
+	else
+	{
+		nReps = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+							nsets, 2, set_separator, comp_exercise_separator));
+		nWeight = std::move(appUtils()->makeDoubleCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+							nsets, 2, set_separator, comp_exercise_separator));
 		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) + " - "_L1 +
 						appExercisesModel()->selectedEntriesValue_fast(1, 2), exerciseName, comp_exercise_separator);
 		appUtils()->setCompositeValue(1, appUtils()->makeCompositeValue(
@@ -189,25 +197,30 @@ void QmlMesoSplitInterface::exerciseSelected()
 										appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_WEIGHT), nsets, set_separator),
 										nWeight, comp_exercise_separator);
 	}
-	const uint row(m_simpleExercisesListRequester->currentRow());
+
 	switch (m_simpleExercisesListExerciseIdx)
 	{
 		case 0:
 		{
 			m_simpleExercisesListRequester->setExerciseName(row, exerciseName);
-			//If the user altered these two fields, do not override their modifications. Maybe include more fields in the future
-			if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_SETTYPE) ||
-				!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_REPSNUMBER) )
+			const uint set_number(m_simpleExercisesListRequester->workingSet(row));
+			if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_SETTYPE))
 			{
-				const uint set_number(m_simpleExercisesListRequester->workingSet(row));
 				const int cur_set_type(m_simpleExercisesListRequester->setType(row, set_number));
 				if (b_is_composite && cur_set_type != SET_TYPE_GIANT)
 					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_GIANT, false);
 				else if (!b_is_composite && cur_set_type == SET_TYPE_GIANT)
 					m_simpleExercisesListRequester->setSetType(row, set_number, SET_TYPE_REGULAR, false);
-				m_simpleExercisesListRequester->setSetsNumber(row, nsets);
-				m_simpleExercisesListRequester->setSetReps(row, set_number, nReps);
-				m_simpleExercisesListRequester->setSetWeight(row, set_number, nWeight);
+			}
+			if (!nReps.isEmpty())
+			{
+				if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_REPSNUMBER))
+					m_simpleExercisesListRequester->_setSetsReps(row, nReps);
+			}
+			if (!nWeight.isEmpty())
+			{
+				if (!m_simpleExercisesListRequester->isFieldUserModified(row, MESOSPLIT_COL_WEIGHT))
+					m_simpleExercisesListRequester->_setSetsWeights(row, nWeight);
 			}
 		}
 		break;
@@ -322,8 +335,11 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 				updateMuscularGroup(m_splitModels.value(splitLetter));
 		}
 	});
-	connect(splitmodel, &DBMesoSplitModel::splitChanged, this, [this,splitmodel] (const uint, const uint) {
-		appDBInterface()->saveMesoSplitComplete(splitmodel);
+	connect(splitmodel, &DBMesoSplitModel::splitChanged, this, [this,splitmodel] (const uint row, const uint) {
+		if (row == 100)
+			appDBInterface()->deleteMesoSplitTable(splitmodel);
+		else
+			appDBInterface()->saveMesoSplitComplete(splitmodel);
 	});
 }
 
