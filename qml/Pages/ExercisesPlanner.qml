@@ -92,6 +92,8 @@ TPPage {
 			opacity: 0.8
 		}
 
+		readonly property int buttonWidth: width*0.22
+
 		TPButton {
 			id: btnClearPlan
 			text: qsTr("Clear")
@@ -101,8 +103,9 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: footerHeight
+			width: splitToolBar.buttonWidth
 			height: footerHeight - 4
+
 			anchors {
 				left: parent.left
 				leftMargin: 5
@@ -121,8 +124,9 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: footerHeight
+			width: splitToolBar.buttonWidth
 			height: footerHeight - 4
+
 			anchors {
 				left: btnClearPlan.right
 				leftMargin: 3
@@ -140,7 +144,7 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: footerHeight
+			width: splitToolBar.buttonWidth
 			height: footerHeight - 4
 
 			anchors {
@@ -160,7 +164,7 @@ TPPage {
 			fixedSize: true
 			rounded: false
 			flat: false
-			width: 70
+			width: splitToolBar.buttonWidth*1.3
 			height: footerHeight - 4
 
 			anchors {

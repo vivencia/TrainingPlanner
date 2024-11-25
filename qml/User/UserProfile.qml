@@ -268,6 +268,11 @@ Frame {
 		imgAvatar.source = userModel.avatar(userRow);
 	}
 
+	function defaultAvatarChanged(row: int) {
+		if (row === userRow)
+			imgAvatar.source = userModel.avatar(userRow);
+	}
+
 	function focusOnFirstField() {
 		return;
 	}

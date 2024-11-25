@@ -17,12 +17,15 @@ Q_OBJECT
 public:
 	explicit inline QmlUserInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow)
 		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow),
-			m_settingsComponent(nullptr), m_clientsOrCoachesComponent(nullptr), m_userPage(nullptr) {}
+			m_settingsComponent(nullptr), m_clientsOrCoachesPage(nullptr), m_userPage(nullptr) {}
 	~QmlUserInterface();
 
 	void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
+
+public slots:
+	void userModifiedSlot(const uint user_row, const uint field);
 
 private:
 	QQmlApplicationEngine* m_qmlEngine;

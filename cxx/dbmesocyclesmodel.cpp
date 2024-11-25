@@ -387,9 +387,14 @@ int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
 
 QDate DBMesocyclesModel::getLastMesoEndDate() const
 {
-	if (count() > 1)
-		return endDate(count()-1);
-	return QDate::currentDate();
+	int meso_idx(count()-1);
+	while (meso_idx >= 0)
+	{
+		if (id(meso_idx) != STR_MINUS_ONE)
+			break;
+		--meso_idx;
+	}
+	return isRealMeso(meso_idx) ? endDate(meso_idx) : QDate::currentDate();
 }
 
 //Called when importing from a text file

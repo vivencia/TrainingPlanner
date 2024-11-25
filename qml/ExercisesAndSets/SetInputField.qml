@@ -151,7 +151,7 @@ FocusScope {
 					case SetInputField.Type.TimeType:
 						return Math.min(availableWidth*0.4, 3*height);
 					case SetInputField.SetType:
-						return Math.min(availableWidth*0.15, height);
+						return Math.min(availableWidth*0.2, height);
 				}
 			}
 

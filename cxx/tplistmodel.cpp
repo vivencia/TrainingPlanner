@@ -81,8 +81,7 @@ void TPListModel::moveRow(const uint from, const uint to)
 int TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
 {
 	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(writeHeader ? QIODeviceBase::WriteOnly|QIODeviceBase::Text :
-			QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
 		if (writeHeader)

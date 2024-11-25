@@ -159,7 +159,7 @@ TPPage {
 				model: ListModel {
 					id: coachesModel
 
-					Component.onCompleted: {
+					function populate() {
 						const coaches = userModel.getCoaches();
 						for(var i = 0; i < coaches.length; ++i)
 							append({ "text": coaches[i], "value": i, "enabled": true });
@@ -176,7 +176,7 @@ TPPage {
 						verticalCenter: parent.verticalCenter
 					}
 
-					onClicked: appControl.openClientsOrCoachesPage(false, true);
+					onClicked: itemManager.getClientsOrCoachesPage(false, true);
 				}
 			}
 
@@ -209,7 +209,7 @@ TPPage {
 					model: ListModel {
 						id: clientsModel
 
-						Component.onCompleted: {
+						function populate() {
 							const clients = userModel.getClients();
 							for(var x = 0; x < clients.length; ++x)
 								append({ "text": clients[x], "value": x, "enabled":true });
@@ -223,7 +223,7 @@ TPPage {
 					id: btnManageClients
 					imageSource: "manage-clients"
 
-					onClicked: appControl.openClientsOrCoachesPage(true, false);
+					onClicked: itemManager.getClientsOrCoachesPage(true, false);
 				}
 			}
 
@@ -548,17 +548,19 @@ TPPage {
 	}
 
 	function updateCoachesAndClientsModels(use_mode: int) {
-		if (use_mode === 2 || use_mode === 4) {
-			const coaches = userModel.getCoaches();
-			coachesModel.clear();
-			for(var i = 0; i < coaches.length; ++i)
-				coachesModel.append({ "text": coaches[i], "value": i});
-		}
-		else if (use_mode === 0) {
-			const clients = userModel.getClients();
-			clientsModel.clear();
-			for(var x = 0; x < clients.length; ++x)
-				clientsModel.append({ "text": clients[x], "value": x});
+		switch (use_mode) {
+			case -1:
+				coachesModel.populate();
+				clientsModel.populate();
+			break;
+			case 0:
+				coachesModel.clear();
+				coachesModel.populate();
+			break;
+			case 1:
+				clientsModel.clear();
+				clientsModel.populate();
+			break;
 		}
 	}
 } //Page

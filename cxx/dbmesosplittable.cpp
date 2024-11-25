@@ -108,6 +108,8 @@ void DBMesoSplitTable::getAllMesoSplits()
 					for (uint i(0); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
 						m_model->setFast(meso_idx, i, query.value(i).toString());
 					++meso_idx;
+					if (meso_idx >= m_model->count())
+						break;
 				} while (query.next ());
 				ok = true;
 				m_model->setReady(true);

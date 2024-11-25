@@ -80,7 +80,7 @@ public:
 	[[nodiscard]] inline bool realMeso() const { return m_bRealMeso; }
 	void setRealMeso(const bool new_value, const bool bFromQml = true);
 
-	inline bool ownMeso() const { return m_bOwnMeso; }
+	[[nodiscard]] inline bool ownMeso() const { return m_bOwnMeso; }
 	void setOwnMeso(const bool new_value, const bool bFromQml = true);
 
 	[[nodiscard]] bool isNewMeso() const;
@@ -114,14 +114,14 @@ public:
 	[[nodiscard]] inline QString strStartDate() const { return m_strStartDate; }
 	[[nodiscard]] inline QDate startDate() const { return m_startDate; }
 	[[nodiscard]] inline QDate minimumMesoStartDate() const { return m_minimumMesoStartDate; }
-	void setStartDate(const QDate& new_value);
+	void setStartDate(const QDate& new_value, const bool bFromQml = true);
 	void setMinimumMesoStartDate(const QDate& new_value);
 	Q_INVOKABLE void acceptStartDate();
 
 	[[nodiscard]] inline QString strEndDate() const { return m_strEndDate; }
 	[[nodiscard]] inline QDate endDate() const { return m_endDate; }
 	[[nodiscard]] inline QDate maximumMesoEndDate() const { return m_maximumMesoEndDate; }
-	void setEndDate(const QDate& new_value);
+	void setEndDate(const QDate& new_value, const bool bFromQml = true);
 	void setMaximumMesoEndDate(const QDate& new_value);
 	Q_INVOKABLE void acceptEndDate();
 

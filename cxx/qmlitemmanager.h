@@ -27,6 +27,7 @@ public:
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
+	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage = nullptr);
 
 	const QString& setExportFileName(const QString& filename);

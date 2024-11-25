@@ -82,7 +82,7 @@ public:
 		m_modeldata[row][USER_COL_NAME] = new_name;
 		emit userModified(row, USER_COL_NAME);
 		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-			emit userAdded(row);
+			emit userAddedOrRemoved(row, true);
 	}
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
@@ -106,11 +106,12 @@ public:
 	{
 		m_modeldata[row][USER_COL_SEX] = QString::number(new_sex);
 		emit userModified(row, USER_COL_SEX);
+		setAvatar(row, new_sex == 0 ? std::move("image://tpimageprovider/m5"_L1) : std::move("image://tpimageprovider/f1"_L1));
 	}
 
 	Q_INVOKABLE inline QString phone(const int row) const { return row >= 0 && row < m_modeldata.count() ? _phone(row) : QString(); }
 	inline const QString& _phone(const uint row) const { return m_modeldata.at(row).at(USER_COL_PHONE); }
-	Q_INVOKABLE void setPhone(const int row, const QString& new_phone)
+	Q_INVOKABLE inline void setPhone(const int row, const QString& new_phone)
 	{
 		m_modeldata[row][USER_COL_PHONE] = new_phone;
 		emit userModified(row, USER_COL_PHONE);
@@ -118,7 +119,7 @@ public:
 
 	Q_INVOKABLE inline QString email(const int row) const { return row >= 0 && row < m_modeldata.count() ? _email(row) : QString(); }
 	inline const QString& _email(const uint row) const { return m_modeldata.at(row).at(USER_COL_EMAIL); }
-	Q_INVOKABLE void setEmail(const int row, const QString& new_email)
+	Q_INVOKABLE inline void setEmail(const int row, const QString& new_email)
 	{
 		m_modeldata[row][USER_COL_EMAIL] = new_email;
 		emit userModified(row, USER_COL_EMAIL);
@@ -131,7 +132,7 @@ public:
 		QString();
 	}
 	inline const QString& _socialMedia(const uint row) const { return m_modeldata.at(row).at(USER_COL_SOCIALMEDIA); }
-	Q_INVOKABLE void setSocialMedia(const int row, const uint index, const QString& new_social)
+	Q_INVOKABLE inline void setSocialMedia(const int row, const uint index, const QString& new_social)
 	{
 		appUtils()->setCompositeValue(index, new_social, m_modeldata[row][USER_COL_SOCIALMEDIA], record_separator);
 		emit userModified(row, USER_COL_SOCIALMEDIA);
@@ -139,7 +140,7 @@ public:
 
 	Q_INVOKABLE inline QString userRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userRole(row) : QString(); }
 	inline const QString& _userRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_USERROLE); }
-	Q_INVOKABLE void setUserRole(const int row, const QString& new_role)
+	Q_INVOKABLE inline void setUserRole(const int row, const QString& new_role)
 	{
 		m_modeldata[row][USER_COL_USERROLE] = new_role;
 		emit userModified(row, USER_COL_USERROLE);
@@ -147,7 +148,7 @@ public:
 
 	Q_INVOKABLE inline QString coachRole(const int row) const { return row >= 0 && row < m_modeldata.count() ? _coachRole(row) : QString(); }
 	inline const QString& _coachRole(const uint row) const { return m_modeldata.at(row).at(USER_COL_COACHROLE); }
-	Q_INVOKABLE void setCoachRole(const int row, const QString& new_role)
+	Q_INVOKABLE inline void setCoachRole(const int row, const QString& new_role)
 	{
 		m_modeldata[row][USER_COL_COACHROLE] = new_role;
 		emit userModified(row, USER_COL_COACHROLE);
@@ -155,7 +156,7 @@ public:
 
 	Q_INVOKABLE inline QString goal(const int row) const { return row >= 0 && row < m_modeldata.count() ? _goal(row) : QString(); }
 	inline const QString& _goal(const uint row) const { return m_modeldata.at(row).at(USER_COL_GOAL); }
-	Q_INVOKABLE void setGoal(const int row, const QString& new_goal)
+	Q_INVOKABLE inline void setGoal(const int row, const QString& new_goal)
 	{
 		m_modeldata[row][USER_COL_GOAL] = new_goal;
 		emit userModified(row, USER_COL_GOAL);
@@ -163,7 +164,7 @@ public:
 
 	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 && row < m_modeldata.count() ? _avatar(row) : QString(); }
 	inline const QString& _avatar(const uint row) const { return m_modeldata.at(row).at(USER_COL_AVATAR); }
-	Q_INVOKABLE void setAvatar(const int row, const QString& new_avatar)
+	Q_INVOKABLE inline void setAvatar(const int row, const QString& new_avatar)
 	{
 		m_modeldata[row][USER_COL_AVATAR] = new_avatar;
 		emit userModified(row, USER_COL_AVATAR);
@@ -171,7 +172,7 @@ public:
 
 	Q_INVOKABLE inline int appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString& _appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
-	Q_INVOKABLE void setAppUseMode(const int row, const int new_use_opt)
+	Q_INVOKABLE inline void setAppUseMode(const int row, const int new_use_opt)
 	{
 		m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 		emit userModified(row, USER_COL_APP_USE_MODE);
@@ -184,7 +185,7 @@ public:
 		return currentCoach(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select coach ...)");
 	}
 
-	Q_INVOKABLE void setCurrentCoach(const int row, const int new_current_coach)
+	Q_INVOKABLE inline void setCurrentCoach(const int row, const int new_current_coach)
 	{
 		m_modeldata[row][USER_COL_CURRENT_COACH] = QString::number(new_current_coach);
 		emit userModified(row, USER_COL_CURRENT_COACH);
@@ -197,7 +198,7 @@ public:
 		return currentClient(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select client ...)");
 	}
 
-	Q_INVOKABLE void setCurrentClient(const int row, const int new_current_user)
+	Q_INVOKABLE inline void setCurrentClient(const int row, const int new_current_user)
 	{
 		m_modeldata[row][USER_COL_CURRENT_CLIENT] = QString::number(new_current_user);
 		emit userModified(row, USER_COL_CURRENT_CLIENT);
@@ -225,7 +226,7 @@ public:
 
 signals:
 	void userModified(const uint row, const uint field);
-	void userAdded(const uint row);
+	void userAddedOrRemoved(const uint row, const bool bAdded);
 	void mainUserConfigurationFinishedSignal();
 	void labelsChanged();
 

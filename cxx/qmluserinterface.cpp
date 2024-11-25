@@ -14,7 +14,7 @@ QmlUserInterface::~QmlUserInterface()
 		delete m_settingsPage;
 		delete m_settingsComponent;
 	}
-	if (m_clientsOrCoachesComponent)
+	if (m_clientsOrCoachesPage)
 	{
 		delete m_clientsOrCoachesPage;
 		delete m_clientsOrCoachesComponent;
@@ -47,7 +47,7 @@ void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const 
 {
 	setClientsOrCoachesPagesProperties(bManageClients, bManageCoaches);
 
-	if (m_clientsOrCoachesComponent)
+	if (m_clientsOrCoachesPage)
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
 	else
 	{
@@ -79,6 +79,23 @@ void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
 	m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
 }
 
+void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)
+{
+	if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0)); //if user_row == 0, then m_userPage exists
+	else
+	{
+		if (field == USER_COL_AVATAR)
+		{
+			if (m_userPage)
+				QMetaObject::invokeMethod(m_userPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+			if (m_clientsOrCoachesPage)
+				QMetaObject::invokeMethod(m_clientsOrCoachesPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
+		}
+	}
+	appDBInterface()->saveUser(user_row);
+}
+
 void QmlUserInterface::createSettingsPage()
 {
 	#ifndef QT_NO_DEBUG
@@ -100,11 +117,8 @@ void QmlUserInterface::createSettingsPage()
 		m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
 		m_userPage->setProperty("userManager", QVariant::fromValue(this));
 
-		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-			if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-				m_userPage->setProperty("useMode", appUserModel()->appUseMode(0));
-			appDBInterface()->saveUser(user_row);
-		});
+		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
+			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }
 
@@ -126,6 +140,9 @@ void QmlUserInterface::createClientsOrCoachesPage()
 		m_qmlEngine->setObjectOwnership(m_clientsOrCoachesPage, QQmlEngine::CppOwnership);
 		m_clientsOrCoachesPage->setParentItem(m_mainWindow->contentItem());
 		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_clientsOrCoachesPage));
+
+		connect(appUserModel(), SIGNAL(userModified(const uint,const uint)), this, SLOT(userModifiedSlot(const uint,const uint)),
+			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
 	}
 }
 

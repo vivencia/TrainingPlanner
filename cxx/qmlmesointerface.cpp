@@ -38,13 +38,30 @@ QMLMesoInterface::~QMLMesoInterface()
 	}
 }
 
+void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
+{
+	if (m_bRealMeso != new_value)
+	{
+		m_bRealMeso = new_value;
+		if (bFromQml)
+		{
+			emit realMesoChanged();
+			appMesoModel()->setIsRealMeso(m_mesoIdx, m_bRealMeso);
+			setEndDate(m_bRealMeso ? appMesoModel()->endDate(m_mesoIdx) : maximumMesoEndDate());
+		}
+	}
+}
+
 void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 {
 	if (m_bOwnMeso != new_value)
 	{
 		m_bOwnMeso = new_value;
 		if (bFromQml)
+		{
+			emit ownMesoChanged();
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
+		}
 	}
 }
 
@@ -174,30 +191,19 @@ void QMLMesoInterface::setFile(const QString& new_value, const bool bFromQml)
 	}
 }
 
-void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
-{
-	if (m_bRealMeso != new_value)
-	{
-		m_bRealMeso = new_value;
-		if (bFromQml)
-		{
-			emit realMesoChanged();
-			appMesoModel()->setIsRealMeso(m_mesoIdx, m_bRealMeso);
-			setEndDate(m_bRealMeso ? appMesoModel()->endDate(m_mesoIdx) : maximumMesoEndDate());
-		}
-	}
-}
-
-void QMLMesoInterface::setStartDate(const QDate& new_value)
+void QMLMesoInterface::setStartDate(const QDate& new_value, const bool bFromQml)
 {
 	if (m_startDate != new_value)
 	{
 		m_startDate = new_value;
 		m_strStartDate = std::move(appUtils()->formatDate(new_value));
-		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
-		emit startDateChanged();
-		if (!isNewMeso())
-			acceptStartDate();
+		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)), bFromQml);
+		if (bFromQml)
+		{
+			emit startDateChanged();
+			if (!isNewMeso())
+				acceptStartDate();
+		}
 	}
 }
 
@@ -212,16 +218,19 @@ void QMLMesoInterface::acceptStartDate()
 	appMesoModel()->setWeeks(m_mesoIdx, m_weeks);
 }
 
-void QMLMesoInterface::setEndDate(const QDate& new_value)
+void QMLMesoInterface::setEndDate(const QDate& new_value, const bool bFromQml)
 {
 	if (m_endDate != new_value)
 	{
 		m_endDate = new_value;
 		m_strEndDate = std::move(appUtils()->formatDate(new_value));
-		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)));
-		emit endDateChanged();
-		if (!isNewMeso())
-			acceptEndDate();
+		setWeeks(QString::number(appUtils()->calculateNumberOfWeeks(m_startDate, m_endDate)), bFromQml);
+		if (bFromQml)
+		{
+			emit endDateChanged();
+			if (!isNewMeso())
+				acceptEndDate();
+		}
 	}
 }
 
@@ -250,7 +259,7 @@ void QMLMesoInterface::setSplit(const QString& new_value, const bool bFromQml)
 {
 	if (bFromQml)
 	{
-		if (new_value.contains(u"R"_s))
+		if (new_value.contains("R"_L1))
 		{
 			m_split = new_value;
 			emit splitChanged();
@@ -540,9 +549,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(appMesoModel()->name(m_mesoIdx), m_mesoPage);
 
-	QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, appUserModel()->appUseMode(0)));
-	connect(appUserModel(), &DBUserModel::userAdded, this, [this] (const uint user_row) {
-		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, appUserModel()->appUseMode(0)));
+	QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, -1));
+	connect(appUserModel(), &DBUserModel::userAddedOrRemoved, this, [this] (const uint user_row, const bool bAdded) {
+		const int mode(appUserModel()->appUseMode(user_row) == APP_USE_MODE_SINGLE_COACH ? 0 : 1);
+		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, mode));
 	});
 
 	setPropertiesBasedOnUseMode();

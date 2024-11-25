@@ -21,16 +21,9 @@ void TPDatabaseTable::clearTable()
 {
 	if (openDatabase())
 	{
-		bool ok(false);
 		QSqlQuery query{getQuery()};
-		QString strQuery{std::move("DELETE FROM "_L1 + m_tableName)};
-		ok = query.exec(strQuery);
-		if (ok)
-		{
-			query.finish();
-			strQuery = std::move("VACUUM"_L1);
-			ok = query.exec(strQuery);
-		}
+		const QString& strQuery{std::move("DELETE FROM "_L1 + m_tableName)};
+		const bool ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	if (doneFunc)

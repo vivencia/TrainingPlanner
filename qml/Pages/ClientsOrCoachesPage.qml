@@ -226,9 +226,9 @@ TPPage {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					msgRemoveUser = component.createObject(clientsOrCoachesPage, { parentPage: clientsOrCoachesPage, imageSource: "remove.png",
-						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") } );
-					msgRemoveUser.button1Clicked.connect(function () { userManager.removeUser(curUserRow, showCoaches); } );
+					msgRemoveUser = component.createObject(clientsOrCoachesPage, { parentPage: clientsOrCoachesPage, imageSource: "remove",
+						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") });
+					msgRemoveUser.button1Clicked.connect(function () { userManager.removeUser(curUserRow, showCoaches); });
 				}
 
 				if (component.status === Component.Ready)
@@ -238,7 +238,11 @@ TPPage {
 			}
 			createMessageBox();
 		}
-		msgRemoveUser.title = qsTr("Remove ") + userModel.userName + "?"
+		msgRemoveUser.title = qsTr("Remove ") + userModel.userName(curUserRow) + "?"
 		msgRemoveUser.show(-1);
+	}
+
+	function avatarChangedBySexSelection(row: int) {
+		usrProfile.defaultAvatarChanged(row);
 	}
 }

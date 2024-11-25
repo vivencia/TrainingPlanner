@@ -62,4 +62,23 @@ TextField {
 			default: return;
 		}
 	}
+
+	onTextChanged: {
+		if (readOnly) {
+			ensureVisible(0);
+			cursorPosition = 0;
+		}
+	}
+
+	onReadOnlyChanged: {
+		if (readOnly) {
+			ensureVisible(0);
+			cursorPosition = 0;
+		}
+		else {
+			const len = text.length
+			ensureVisible(len-1);
+			cursorPosition = len;
+		}
+	}
 }

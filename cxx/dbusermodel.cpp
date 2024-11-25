@@ -95,6 +95,7 @@ uint DBUserModel::removeUser(const int row, const bool bCoach)
 	if (row >= 1 && row < m_modeldata.count())
 	{
 		removeRow(row);
+		emit userAddedOrRemoved(row, false);
 		return findNextUser(bCoach);
 	}
 	return row;

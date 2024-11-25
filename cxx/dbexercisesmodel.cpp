@@ -80,6 +80,19 @@ void DBExercisesModel::removeExercise(const uint index)
 	endRemoveRows();
 }
 
+static QString stripDiacritics(const QString& src)
+{
+	QString filtered;
+    for (uint i(0); i < src.length(); ++i)
+	{
+		if (src.at(i).decompositionTag() != QChar::NoDecomposition)
+			filtered.push_back(src.at(i).decomposition().at(0));
+		else
+			filtered.push_back(src.at(i));
+	}
+	return filtered;
+}
+
 void DBExercisesModel::setFilter(const QString& filter, const bool resetSelection)
 {
 	if (filter.length() >= 3)
@@ -89,14 +102,14 @@ void DBExercisesModel::setFilter(const QString& filter, const bool resetSelectio
 
 		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator& lst_itrend(m_modeldata.constEnd());
-		for(; lst_itr != lst_itrend; ++lst_itr, ++idx)
+		for (; lst_itr != lst_itrend; ++lst_itr, ++idx)
 		{
 			const QString& subject{(*lst_itr).at(EXERCISES_COL_MAINNAME) + ' ' +
 						(*lst_itr).at(EXERCISES_COL_SUBNAME) + ' ' +
 						(*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)};
-			const QStringList& words_list{filter.split(' ')};
+			const QStringList& words_list{stripDiacritics(filter).split(' ')};
 			bool bFound = true;
-			for(uint i(0); i < words_list.count(); ++i)
+			for (uint i(0); i < words_list.count(); ++i)
 			{
 				if (!subject.contains(words_list.at(i), Qt::CaseInsensitive))
 				{
@@ -139,7 +152,7 @@ void DBExercisesModel::setFilter(const QString& filter, const bool resetSelectio
 			}
 			endRemoveRows();
 			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
-			for( uint i (0); i < m_modeldata.count(); ++i )
+			for (uint i (0); i < m_modeldata.count(); ++i)
 				m_indexProxy.append(i);
 			endInsertRows();
 		}

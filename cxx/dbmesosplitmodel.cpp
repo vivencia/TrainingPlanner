@@ -92,29 +92,37 @@ void DBMesoSplitModel::addSet(const uint row)
 		const uint referenceSet(nsets > 0 ? nsets-1 : 0);
 		QString exercise1data{std::move(appUtils()->getCompositeValue(0, _setsReps(row), comp_exercise_separator))};
 		appUtils()->setCompositeValue(nsets, setReps1(row, referenceSet), exercise1data, set_separator);
-		m_modeldata[row][MESOSPLIT_COL_REPSNUMBER] = std::move(exercise1data);
 
 		QString exercise2data{std::move(appUtils()->getCompositeValue(1, _setsReps(row), comp_exercise_separator))};
 		if (!exercise2data.isEmpty())
 		{
 			appUtils()->setCompositeValue(nsets, setReps2(row, referenceSet), exercise2data, set_separator);
+			appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
 			appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_REPSNUMBER], comp_exercise_separator);
 		}
+		else
+			m_modeldata[row][MESOSPLIT_COL_REPSNUMBER] = std::move(exercise1data);
 
 		exercise1data = std::move(appUtils()->getCompositeValue(0, _setsWeights(row), comp_exercise_separator));
 		appUtils()->setCompositeValue(nsets, setWeight1(row, referenceSet), exercise1data, set_separator);
-		m_modeldata[row][MESOSPLIT_COL_WEIGHT] = std::move(exercise1data);
 
 		exercise2data = std::move(appUtils()->getCompositeValue(1, _setsWeights(row), comp_exercise_separator));
 		if (!exercise2data.isEmpty())
 		{
 			appUtils()->setCompositeValue(nsets, setWeight2(row, referenceSet), exercise2data, set_separator);
+			appUtils()->setCompositeValue(0, exercise1data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
 			appUtils()->setCompositeValue(1, exercise2data, m_modeldata[row][MESOSPLIT_COL_WEIGHT], comp_exercise_separator);
 		}
+		else
+			m_modeldata[row][MESOSPLIT_COL_WEIGHT] = std::move(exercise1data);
 
 		exercise1data = std::move(appUtils()->getCompositeValue(0, _setsTypes(row), comp_exercise_separator));
 		appUtils()->setCompositeValue(nsets, QString::number(setType(row, referenceSet)), exercise1data, set_separator);
 		m_modeldata[row][MESOSPLIT_COL_SETTYPE] = std::move(exercise1data);
+
+		exercise1data = std::move(appUtils()->getCompositeValue(0, _setsSubSets(row), comp_exercise_separator));
+		appUtils()->setCompositeValue(nsets, setSubsets(row, referenceSet), exercise1data, set_separator);
+		m_modeldata[row][MESOSPLIT_COL_SUBSETSNUMBER] = std::move(exercise1data);
 
 		setWorkingSet(row, nsets);
 		++nsets;
@@ -371,11 +379,10 @@ QString DBMesoSplitModel::findSwappableModel() const
 	return QString();
 }
 
-int DBMesoSplitModel::exportToFile(const QString& filename, const bool writeHeader, const bool) const
+int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
 {
 	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(writeHeader ? QIODeviceBase::WriteOnly|QIODeviceBase::Text :
-			QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
+	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
 		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);

@@ -92,6 +92,8 @@ TPPopup {
 
 	RowLayout {
 		spacing: 0
+		z: 2
+
 		anchors {
 			left: parent.left
 			leftMargin: 5
@@ -210,7 +212,7 @@ TPPopup {
 	}
 
 	function show(ypos: int) {
-		balloon.height = lblTitle.height + lblMessage.height +
+		balloon.height = lblTitle.height + lblMessage.height + 20 +
 						(button1Text.length > 0 ? 2*btn1.implicitHeight : (button2Text.length > 0 ? 2*btn1.implicitHeight : 10));
 		balloon.x = (appSettings.pageWidth - width)/2;
 

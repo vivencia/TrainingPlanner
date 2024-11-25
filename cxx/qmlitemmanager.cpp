@@ -146,6 +146,13 @@ void QmlItemManager::getSettingsPage(const uint startPageIndex)
 	m_usersManager->getSettingsPage(startPageIndex);
 }
 
+void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
+{
+	if (!m_usersManager)
+		m_usersManager = new QmlUserInterface{this, appQmlEngine(), appMainWindow()};
+	m_usersManager->getClientsOrCoachesPage(bManageClients, bManageCoaches);
+}
+
 void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
 {
 	if (!m_exercisesListManager)

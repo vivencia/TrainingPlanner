@@ -112,4 +112,8 @@ TPPage {
 			onClicked: userManager.getClientsOrCoachesPage(true, false);
 		}
 	}
+
+	function avatarChangedBySexSelection(row: int) {
+		usrProfile.defaultAvatarChanged(row);
+	}
 }

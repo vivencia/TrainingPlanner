@@ -186,8 +186,7 @@ public:
 	}
 	inline bool isRealMeso(const int meso_idx) const
 	{
-		Q_ASSERT_X(meso_idx >= 0 && meso_idx < m_modeldata.count(), "DBMesocyclesModel::isRealMeso", "out of range meso_idx");
-		return realMeso(meso_idx) == '1';
+		return meso_idx >= 0 ? realMeso(meso_idx) == '1' : false;
 	}
 	inline void setIsRealMeso(const uint meso_idx, const bool bRealMeso)
 	{
