@@ -220,8 +220,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	}
 
 	const QList<bool> selectedFields(importOptions.count(), true);
-	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QmlItemManager*, this),
-				Q_ARG(QVariant, importOptions), Q_ARG(QVariant, QVariant::fromValue(selectedFields)));
+	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QVariant, importOptions),
+								Q_ARG(QVariant, QVariant::fromValue(selectedFields)));
 }
 
 void QmlItemManager::openRequestedFile(const QString& filename, const int wanted_content)
@@ -244,18 +244,18 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 		{
 			if (strstr(buf, "##") != NULL)
 			{
-				inData = buf;
-				if (inData.startsWith("##"_L1))
+				if (strstr(buf, "0x00") != NULL)
 				{
-					if (inData.indexOf(DBUserObjectName) != -1)
+					inData = buf;
+					if (inData.indexOf(QString::number(USER_TABLE_ID)) != -1)
 						fileContents |= IFC_USER;
-					if (inData.indexOf(DBMesoSplitObjectName) != -1)
+					if (inData.indexOf(QString::number(MESOSPLIT_TABLE_ID)) != -1)
 						fileContents |= IFC_MESOSPLIT;
-					else if (inData.indexOf(DBMesocyclesObjectName) != -1)
+					else if (inData.indexOf(QString::number(MESOCYCLES_TABLE_ID)) != -1)
 						fileContents |= IFC_MESO;
-					else if (inData.indexOf(DBTrainingDayObjectName) != -1)
+					else if (inData.indexOf(QString::number(TRAININGDAY_TABLE_ID)) != -1)
 						fileContents |= IFC_TDAY;
-					else if (inData.indexOf(DBExercisesObjectName) != -1)
+					else if (inData.indexOf(QString::number(EXERCISES_TABLE_ID)) != -1)
 						fileContents |= IFC_EXERCISES;
 				}
 			}

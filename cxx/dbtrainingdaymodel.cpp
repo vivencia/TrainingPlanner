@@ -114,7 +114,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 	const bool bOK(outFile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);
+		const QString& strHeader("## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1);
 		outFile->write(strHeader.toUtf8().constData());
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);

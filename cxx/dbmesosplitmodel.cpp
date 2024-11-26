@@ -13,7 +13,7 @@ DBMesoSplitModel::DBMesoSplitModel(QObject* parent, const bool bComplete, const 
 {
 	setObjectName(DBMesoSplitObjectName);
 	m_tableId = MESOSPLIT_TABLE_ID;
-	m_exportName = std::move(tr("Exercises Program"));	
+	m_exportName = std::move(tr("Exercises Program"));
 	const uint totalCols(mb_Complete ? COMPLETE_MESOSPLIT_TOTAL_COLS : SIMPLE_MESOSPLIT_TOTAL_COLS);
 	m_fieldCount = totalCols;
 	m_modeldata.reserve(totalCols);
@@ -385,8 +385,10 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString& strHeader("## "_L1 + exportName() + "\n\n"_L1);
+		const QString& strHeader("## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1);
 		outFile->write(strHeader.toUtf8().constData());
+		outFile->write(exportExtraInfo().toUtf8().constData());
+		outFile->write("\n\n", 2);
 
 		QString value;
 		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
@@ -444,7 +446,7 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 	qint64 lineLength(0);
 	uint col(1);
 	QString value;
-	bool bexpect_extrainfo(false), bIsComposite(false);
+	bool bexpect_extrainfo(false);
 	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
 	modeldata[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 
@@ -455,6 +457,8 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 			if (lineLength > 10)
 			{
 				if (strstr(buf, "##") != NULL)
+					bexpect_extrainfo = true;
+				else
 				{
 					if (bexpect_extrainfo)
 					{
@@ -464,33 +468,18 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 					value = buf;
 					value.remove(0, value.indexOf(':') + 2);
 					if (!isFieldFormatSpecial(col))
-					{
-						if (bIsComposite)
-							modeldata[col] = std::move(value);
-						else
-						{
-							modeldata[col] = std::move(appUtils()->makeCompositeValue(value, 2, comp_exercise_separator));
-							modeldata[col].chop(1);
-						}
-					}
+						modeldata[col] = std::move(value.simplified());
 					else
-					{
-						modeldata[col] = formatFieldToImport(col, value);
-						bIsComposite = modeldata.at(col).contains('4');
-					}
+						modeldata[col] = std::move(formatFieldToImport(col, value));
 					modeldata[col].replace(fancy_record_separator2, set_separator);
 					modeldata[col].replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
-					modeldata[col].append(set_separator + comp_exercise_separator);
 					col++;
 					if (col == MESOSPLIT_COL_WORKINGSET)
 					{
 						m_modeldata.append(modeldata);
 						col = 0;
-						bIsComposite = false;
 					}
-				}
-				else
-					bexpect_extrainfo = true;
+				}	
 			}
 		}
 		else
@@ -514,11 +503,6 @@ bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
 	setMesoIdx(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->mesoIdx());
 	setImportMode(true);
 	return true;
-}
-
-const QString DBMesoSplitModel::exportExtraInfo() const
-{
-	return mb_Complete ? tr("Split: ") + m_splitLetter + u" - "_s + m_muscularGroup : QString();
 }
 
 QString DBMesoSplitModel::formatFieldToExport(const uint field, const QString& fieldValue) const
@@ -545,7 +529,7 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 	{
 		if (!fieldValue.isEmpty())
 		{
-			ret = fieldValue;
+			ret = fieldValue.simplified();
 			ret.replace(tr("Regular"), "0"_L1);
 			ret.replace(tr("Pyramid"), "1"_L1);
 			ret.replace(tr("Drop Set"), "2"_L1);
@@ -559,6 +543,11 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 			ret = "0"_L1;
 	}
 	return ret;
+}
+
+const QString DBMesoSplitModel::exportExtraInfo() const
+{
+	return mb_Complete ? std::move(tr("Split: ")) + m_splitLetter + " - "_L1 + std::move(m_muscularGroup) : QString();
 }
 
 bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)

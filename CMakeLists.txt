@@ -71,7 +71,7 @@ set( CXX_SOURCES
 
 	cxx/tpdatabasetable.h cxx/tpdatabasetable.cpp
 	cxx/dbexercisestable.h cxx/dbexercisestable.cpp
-	cxx/dbmesocylestable.h cxx/dbmesocylestable.cpp
+	cxx/dbmesocyclestable.h cxx/dbmesocyclestable.cpp
 	cxx/dbmesosplittable.h cxx/dbmesosplittable.cpp
 	cxx/dbmesocalendartable.h cxx/dbmesocalendartable.cpp
 	cxx/dbtrainingdaytable.h cxx/dbtrainingdaytable.cpp

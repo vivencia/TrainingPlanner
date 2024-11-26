@@ -375,26 +375,28 @@ bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate& date) 
 	return false;
 }
 
-int DBMesocyclesModel::getPreviousMesoId(const int current_mesoid) const
-{
-	for(uint x(1); x < count(); ++x)
-	{
-		if (_id(x) == current_mesoid)
-			return _id(x-1);
-	}
-	return -1;
-}
-
-QDate DBMesocyclesModel::getLastMesoEndDate() const
+int DBMesocyclesModel::getPreviousMesoId(const QString& clientName, const int current_mesoid) const
 {
 	int meso_idx(count()-1);
-	while (meso_idx >= 0)
+	for (; meso_idx >= 0; --meso_idx)
 	{
-		if (id(meso_idx) != STR_MINUS_ONE)
-			break;
-		--meso_idx;
+		if (client(meso_idx) == clientName)
+			if (_id(meso_idx) < current_mesoid)
+				break;
 	}
-	return isRealMeso(meso_idx) ? endDate(meso_idx) : QDate::currentDate();
+	return meso_idx >= 0 ? _id(meso_idx) : -1;
+}
+
+QDate DBMesocyclesModel::getNewMesoMinimumStartDate(const QString& clientName) const
+{
+	int meso_idx(count()-1);
+	for (; meso_idx >= 0; --meso_idx)
+	{
+		if (client(meso_idx) == clientName)
+			if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
+				break;
+	}
+	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, -6, 0);
 }
 
 //Called when importing from a text file

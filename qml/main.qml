@@ -148,7 +148,7 @@ ApplicationWindow {
 	}
 
 	property ImportDialog importConfirmDialog: null
-	function createImportConfirmDialog(itemManager: QmlItemManager, importOptions: var, selectedFields: var) {
+	function createImportConfirmDialog(importOptions: var, selectedFields: var) {
 		if (importConfirmDialog === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
@@ -165,7 +165,6 @@ ApplicationWindow {
 		}
 		else
 		{
-			importConfirmDialog.itemManager = itemManager;
 			importConfirmDialog.parentPage = stackView.currentItem;
 			importConfirmDialog.importOptions = importOptions;
 			importConfirmDialog.selectedFields = selectedFields;

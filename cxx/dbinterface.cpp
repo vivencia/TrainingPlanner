@@ -2,7 +2,7 @@
 
 #include "dbexercisestable.h"
 #include "dbexercisesmodel.h"
-#include "dbmesocylestable.h"
+#include "dbmesocyclestable.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesosplittable.h"
 #include "dbmesosplitmodel.h"

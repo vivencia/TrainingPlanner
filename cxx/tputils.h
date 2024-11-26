@@ -30,7 +30,7 @@ public:
 	QDate getDateFromStrDate(const QString& strDate) const;
 	uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	QDate getNextMonday(const QDate& fromDate) const;
-	QDate createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const;
+	QDate createDate(const QDate& fromDate, const int years, const int months, const int days) const;
 	inline QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
 	int daysInMonth(const int month, const int year) const;
 

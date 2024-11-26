@@ -193,9 +193,8 @@ Drawer {
 			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid,
-				"Layout.minimumWidth": drawer.width - 10, "Layout.maximumWidth": drawer.width - 10, "Layout.minimumHeight": 25,
-				"Layout.maximumHeight": 25 });
+			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, autoResize: true,
+				"Layout.preferredWidth": drawer.width - 5, "Layout.preferredHeight": 25 });
 			button.clicked.connect(function (id) { itemManager.openMainMenuShortCut(id);} );
 			itemManager.addMainMenuShortCutEntry(button);
 		}

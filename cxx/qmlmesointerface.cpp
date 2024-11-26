@@ -150,6 +150,10 @@ void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 		{
 			emit clientChanged();
 			appMesoModel()->setClient(m_mesoIdx, m_client);
+			if (!ownMeso()) {
+				setMinimumMesoStartDate(appMesoModel()->getNewMesoMinimumStartDate(m_client));
+				setStartDate(m_minimumMesoStartDate);
+			}
 		}
 	}
 }
@@ -210,6 +214,7 @@ void QMLMesoInterface::setStartDate(const QDate& new_value, const bool bFromQml)
 void QMLMesoInterface::setMinimumMesoStartDate(const QDate& new_value)
 {
 	m_minimumMesoStartDate = new_value;
+	emit minimumStartDateChanged();
 }
 
 void QMLMesoInterface::acceptStartDate()
@@ -489,10 +494,10 @@ void QMLMesoInterface::createMesocyclePage()
 	}
 	else
 	{
-		minimumStartDate = std::move(appUtils()->getNextMonday(appMesoModel()->getLastMesoEndDate()));
+		minimumStartDate = std::move(appUtils()->getNextMonday(appMesoModel()->getNewMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx))));
 		startdate = minimumStartDate;
 	}
-	enddate = std::move(appUtils()->createFutureDate(startdate, 0, 2, 0));
+	enddate = std::move(appUtils()->createDate(startdate, 0, 2, 0));
 
 	setName(appMesoModel()->name(m_mesoIdx), false);
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
@@ -503,7 +508,7 @@ void QMLMesoInterface::createMesocyclePage()
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
 	setMinimumMesoStartDate(minimumStartDate);
-	setMaximumMesoEndDate(appUtils()->createFutureDate(minimumStartDate, 0, 6, 0));
+	setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
 	setStartDate(startdate);
 	setEndDate(enddate);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
@@ -517,9 +522,9 @@ void QMLMesoInterface::createMesocyclePage()
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'F'));
 	m_muscularGroup.append(std::move(tr("Rest day")));
 
-	m_mesoProperties.insert(u"mesoManager"_s, QVariant::fromValue(this));
+	m_mesoProperties.insert("mesoManager"_L1, QVariant::fromValue(this));
 
-	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{u"qrc:/qml/Pages/MesocyclePage.qml"_s}, QQmlComponent::Asynchronous};
+	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
@@ -543,7 +548,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 	#endif
 	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, m_qmlEngine->rootContext()));
 	m_qmlEngine->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
-	m_mesoPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
+	m_mesoPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"_L1));
 
 	connect(this, &QMLMesoInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);

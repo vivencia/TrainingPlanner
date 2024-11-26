@@ -209,8 +209,8 @@ public:
 	inline void setNewMesoCalendarChanged(const uint meso_idx, const bool changed) { m_newMesoCalendarChanged[meso_idx] = changed; }
 	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
 	void findNextOwnMeso();
-	int getPreviousMesoId(const int current_mesoid) const;
-	QDate getLastMesoEndDate() const;
+	int getPreviousMesoId(const QString& clientName, const int current_mesoid) const;
+	QDate getNewMesoMinimumStartDate(const QString& clientName) const;
 
 	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();

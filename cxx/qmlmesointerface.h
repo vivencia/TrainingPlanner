@@ -58,7 +58,7 @@ Q_PROPERTY(QString muscularGroupR READ muscularGroupR CONSTANT FINAL)
 
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
-Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate CONSTANT FINAL)
+Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate NOTIFY minimumStartDateChanged FINAL)
 Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 
 public:
@@ -178,6 +178,7 @@ signals:
 	void fileChanged();
 	void startDateChanged();
 	void endDateChanged();
+	void minimumStartDateChanged();
 	void weeksChanged();
 	void splitChanged();
 	void notesChanged();

@@ -152,7 +152,7 @@ TPPage {
 
 			TPComboBox {
 				id: cboCoaches
-				currentIndex: userModel.currentCoach(userModel.userRow(mesoManager.client))
+				currentIndex: indexOfValue(mesoManager.coach)
 				visible: mesoManager.hasCoach
 				implicitWidth: parent.width*0.8
 
@@ -160,9 +160,13 @@ TPPage {
 					id: coachesModel
 
 					function populate() {
+						const currentCoach = userModel.userName(userModel.currentCoach(userModel.userRow(mesoManager.coach)));
+						append({ "text": currentCoach, "value": 0, "enabled": true });
 						const coaches = userModel.getCoaches();
-						for(var i = 0; i < coaches.length; ++i)
-							append({ "text": coaches[i], "value": i, "enabled": true });
+						for(var i = 0; i < coaches.length; ++i) {
+							if (coaches[i] !== currentCoach)
+								append({ "text": coaches[i], "value": i, "enabled": true });
+						}
 					}
 				}
 
@@ -196,23 +200,26 @@ TPPage {
 
 				TPLabel {
 					text: mesoManager.clientLabel
-					width: 0.30*parent.width
+					width: 0.20*parent.width
 				}
 
 				TPComboBox {
 					id: cboClients
-					//editText: mesoManager.client
-					currentIndex: userModel.currentClient(userModel.userRow(mesoManager.client))
-					implicitWidth: 0.6*parent.width
+					currentIndex: indexOfValue(mesoManager.client)
+					implicitWidth: 0.7*parent.width
 					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: clientsModel
 
 						function populate() {
+							const currentClient = userModel.userName(userModel.currentClient(userModel.userRow(mesoManager.client)));
+							append({ "text": currentClient, "value": 0, "enabled": true });
 							const clients = userModel.getClients();
-							for(var x = 0; x < clients.length; ++x)
-								append({ "text": clients[x], "value": x, "enabled":true });
+							for(var x = 0; x < clients.length; ++x) {
+								if (clients[x] !== currentClient)
+									append({ "text": clients[x], "value": x, "enabled": true });
+							}
 						}
 					}
 

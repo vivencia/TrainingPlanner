@@ -1,5 +1,5 @@
-#ifndef DBMESOCYLESTABLE_H
-#define DBMESOCYLESTABLE_H
+#ifndef DBMESOCYCLESTABLE_H
+#define DBMESOCYCLESTABLE_H
 
 #include "tpdatabasetable.h"
 
@@ -24,4 +24,4 @@ private:
 	DBMesocyclesModel* m_model;
 };
 
-#endif // DBMESOCYLESTABLE_H
+#endif // DBMESOCYCLESTABLE_H

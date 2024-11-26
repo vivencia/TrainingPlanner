@@ -90,7 +90,7 @@ TPPopup {
 					selectedFields[index] = checked;
 					if (index === 0) {
 						if (importOptions.length > 1) {
-							for (var i = 1; i < importOptions.length; i++) {
+							for (let i = 1; i < importOptions.length; i++) {
 								repeater.itemAt(i).children[0].enabled = checked;
 								selectedFields[i] = checked;
 							}

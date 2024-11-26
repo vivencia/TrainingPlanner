@@ -129,16 +129,12 @@ QDate TPUtils::getNextMonday(const QDate& fromDate) const
 	return fromDate.addDays(daysToNextMonday[fromDate.dayOfWeek()-1]);
 }
 
-QDate TPUtils::createFutureDate(const QDate& date, const uint years, const uint months, const uint days) const
+QDate TPUtils::createDate(const QDate& fromDate, const int years, const int months, const int days) const
 {
-	QDate newDate(date);
-	if (days > 0)
-		newDate = newDate.addDays(days);
-	if (months > 0)
-		newDate = newDate.addMonths(months);
-	if (years > 0)
-		newDate = newDate.addYears(years);
-	//qDebug() << "createFutureDate: in " << date.toString("d 'de' MMMM 'de' yyyy") << "  out  " << newDate.toString("d 'de' MMMM 'de' yyyy");
+	QDate newDate{fromDate};
+	newDate = std::move(newDate.addDays(days));
+	newDate = std::move(newDate.addMonths(months));
+	newDate = std::move(newDate.addYears(years));
 	return newDate;
 }
 

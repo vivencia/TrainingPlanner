@@ -345,14 +345,13 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 
 void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)
 {
-	int prevMesoId{appMesoModel()->getPreviousMesoId(appMesoModel()->_id(m_mesoIdx))};
+	int prevMesoId{appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx))};
 	if (prevMesoId >= 0)
 	{
 		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
-		{
 			splitPage->setProperty("prevMesoName", appMesoModel()->name(prevMesoId));
+		else
 			prevMesoId = -1; //Nothing from previous meso to import
-		}
 	}
 	const QString& swappableLetter(splitModel->findSwappableModel());
 	splitPage->setProperty("prevMesoId", prevMesoId);

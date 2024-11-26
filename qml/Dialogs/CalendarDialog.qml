@@ -12,10 +12,10 @@ TPPopup {
 	x: (appSettings.pageWidth - width) / 2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height) / 2 // vertically centered
 
-	required property date showDate
-	required property date initDate
-	required property date finalDate
-	readonly property date selectedDate: datePickerControl.selectedDate
+	property alias initDate: datePickerControl.startDate
+	property alias showDate: datePickerControl.displayDate
+	property alias finalDate: datePickerControl.endDate
+	property alias selectedDate: datePickerControl.selectedDate
 
 	property bool simpleCalendar: false
 
@@ -27,9 +27,6 @@ TPPopup {
 
 		DatePicker {
 			id: datePickerControl
-			displayDate: showDate
-			startDate: initDate
-			endDate: finalDate
 			justCalendar: simpleCalendar
 			focus: true
 
