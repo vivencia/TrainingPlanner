@@ -8,10 +8,11 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgExercisesList
 	bKeepAbove: true
+	finalYPos: 0
+	closable: false
 	width: appSettings.pageWidth
 	height: shown ? appSettings.pageHeight * 0.5 : 30
 	x: 0
-	finalYPos: 0
 
 	property bool shown: false
 	property bool bEnableMultipleSelection: false

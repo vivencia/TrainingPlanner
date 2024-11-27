@@ -15,6 +15,7 @@ Popup {
 	required property Page parentPage
 	property bool bKeepAbove
 	property bool bVisible: false
+	property bool closable: true
 	property int finalYPos: 0
 	property int startYPos: 0
 
@@ -60,6 +61,25 @@ Popup {
 				close();
 			}
 		}
+	}
+
+	TPButton {
+		imageSource: "close.png"
+		hasDropShadow: false
+		visible: closable
+		height: 30
+		width: 30
+
+		z:2
+
+		anchors {
+			top: parent.top
+			topMargin: -3
+			right: parent.right
+			rightMargin: -3
+		}
+
+		onClicked: close();
 	}
 
 	enter: Transition {

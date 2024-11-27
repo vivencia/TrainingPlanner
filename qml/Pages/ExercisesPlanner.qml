@@ -246,7 +246,7 @@ TPPage {
 
 	function selectedMenuOption(menuid) {
 		switch (menuid) {
-			case 0: mainwindow.chooseFileToImport(); break;
+			case 0: splitManager.importMesoSplit(); break;
 			case 1: currentPage.showImportFromPreviousMesoMessage(); break;
 			case 2: exportTypeTip.init(false); break;
 			case 3: exportTypeTip.init(true); break;

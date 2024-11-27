@@ -159,7 +159,10 @@ void QmlMesoSplitInterface::exportMesoSplit(const bool bShare, const QString& sp
 void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 {
 	if (filename.isEmpty())
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
+	{
+		appMesoModel()->setImportIdx(m_mesoIdx);
+		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport", Q_ARG(int, IFC_MESOSPLIT));
+	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
 }

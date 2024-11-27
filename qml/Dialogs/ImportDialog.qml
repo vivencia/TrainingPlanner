@@ -12,34 +12,13 @@ TPPopup {
 	width: appSettings.pageWidth * 0.9
 	height: totalHeight + 20
 
-	property var importOptions: []
-	property var selectedFields: []
-
-	property string backColor: appSettings.primaryColor
-	property string textColor: appSettings.fontColor
+	property string importOptions: []
+	property bool selectedFields: []
 	property int totalHeight: 0
-
-	TPButton {
-		imageSource: "close.png"
-		hasDropShadow: false
-		height: 30
-		width: 30
-
-		z:2
-
-		anchors {
-			top: parent.top
-			right: parent.right
-		}
-
-		onClicked: close();
-	}
 
 	TPLabel {
 		id: lblTitle
 		text: qsTr("Try to import?")
-		color: textColor
-		elide: Text.ElideRight
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
@@ -83,7 +62,7 @@ TPPopup {
 			TPCheckBox {
 				id: chkImportField
 				text: importOptions[index]
-				checked: true
+				checked: selectedFields[index]
 				width: parent.width
 
 				onClicked: {

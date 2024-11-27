@@ -296,7 +296,10 @@ void QmlTDayInterface::exportTrainingDay(const bool bShare)
 void QmlTDayInterface::importTrainingDay(const QString& filename)
 {
 	if (filename.isEmpty())
+	{
+		appMesoModel()->setImportIdx(m_mesoIdx);
 		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
+	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_TDAY);
 }

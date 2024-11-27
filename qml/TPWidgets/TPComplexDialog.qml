@@ -26,7 +26,6 @@ TPPopup {
 	property string customStringProperty3
 	property var customModel: []
 	property bool bAdjustHeightEveryOpen: false
-	property bool bClosable: true
 	property int totalHeight: 0
 
 	signal button1Clicked();
@@ -65,23 +64,6 @@ TPPopup {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-	}
-
-	TPButton {
-		imageSource: "close.png"
-		hasDropShadow: false
-		visible: bClosable
-		height: 30
-		width: 30
-
-		z:2
-
-		anchors {
-			top: parent.top
-			right: parent.right
-		}
-
-		onClicked: close();
 	}
 
 	GridLayout {

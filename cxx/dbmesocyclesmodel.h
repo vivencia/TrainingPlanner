@@ -30,7 +30,7 @@ class DBMesocyclesModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
-Q_PROPERTY(uint currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
+Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 
 public:
 
@@ -200,7 +200,7 @@ public:
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;
 	inline int currentMesoIdx() const { return m_currentMesoIdx; }
-	void setCurrentMesoIdx(const uint meso_idx);
+	void setCurrentMesoIdx(const int meso_idx, const bool bEmitSignal = true);
 	inline int mostRecentOwnMesoIdx() const { return m_mostRecentOwnMesoIdx; }
 	Q_INVOKABLE inline QStringList usedSplits(const uint meso_idx) const { return m_usedSplits.at(meso_idx); }
 	void makeUsedSplits(const uint meso_idx);
@@ -215,6 +215,8 @@ public:
 	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();
 
+	inline int importIdx() const { return m_importMesoIdx; }
+	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
 	int importFromFile(const QString& filename) override;
 	bool updateFromModel(const uint meso_idx, TPListModel* model);
@@ -254,7 +256,7 @@ private:
 	QList<uchar> m_isNewMeso;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<QStringList> m_usedSplits;
-	int m_currentMesoIdx, m_mostRecentOwnMesoIdx;
+	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;
 	bool m_bCanHaveTodaysWorkout;
 
 	static DBMesocyclesModel* app_meso_model;

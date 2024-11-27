@@ -23,7 +23,7 @@ ApplicationWindow {
 
 	signal saveFileChosen(filepath: string);
 	signal saveFileRejected(filepath: string);
-	signal openFileChosen(filepath: string);
+	signal openFileChosen(filepath: string, filetype: int);
 	signal openFileRejected(filepath: string);
 
 	Component.onCompleted: {
@@ -126,14 +126,13 @@ ApplicationWindow {
 	}
 
 	property TPImportDialog importOpenDialog: null
-	function chooseFileToImport() {
+	function chooseFileToImport(filetype: int) {
 		if (importOpenDialog === null) {
 			function createImportDialog() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					importOpenDialog = component.createObject(contentItem, {});
-					importOpenDialog.open();
+					importOpenDialog = component.createObject(contentItem, {fileType: filetype});
 				}
 
 				if (component.status === Component.Ready)
@@ -143,18 +142,16 @@ ApplicationWindow {
 			}
 			createImportDialog();
 		}
-		else
-			importOpenDialog.open();
+		importOpenDialog.open();
 	}
 
 	property ImportDialog importConfirmDialog: null
-	function createImportConfirmDialog(importOptions: var, selectedFields: var) {
+	function createImportConfirmDialog(importOptions: list<string>, selectedFields: list<bool>) {
 		if (importConfirmDialog === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem,
-							itemManager: itemManager, importOptions: importOptions, selectedFields: selectedFields});
+				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem, itemManager: itemManager});
 				importConfirmDialog.show(-1);
 			}
 
@@ -163,13 +160,32 @@ ApplicationWindow {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		else
-		{
-			importConfirmDialog.parentPage = stackView.currentItem;
-			importConfirmDialog.importOptions = importOptions;
-			importConfirmDialog.selectedFields = selectedFields;
-			importConfirmDialog.show(-1);
+		importConfirmDialog.parentPage = stackView.currentItem;
+		importConfirmDialog.importOptions = importOptions;
+		importConfirmDialog.selectedFields = selectedFields;
+		importConfirmDialog.show(-1);
+	}
+
+	property ImportDialog selectMesoDlg: null
+	function selectMesoDialog(msg: string, mesoInfo: list<string>, idxsList: list<int>) {
+		if (selectMesoDlg === null) {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/SelectMesoForImport.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				selectMesoDlg = component.createObject(contentItem, {parentPage: stackView.currentItem, itemManager: itemManager});
+				selectMesoDlg.show(-1);
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
 		}
+		selectMesoDlg.parentPage = stackView.currentItem;
+		selectMesoDlg.message = msg;
+		selectMesoDlg.mesosList = mesoInfo;
+		selectMesoDlg.idxsList = idxsList;
+		selectMesoDlg.show(-1);
 	}
 
 	property TPSaveDialog saveDialog: null
@@ -180,7 +196,6 @@ ApplicationWindow {
 
 				function finishCreation() {
 					saveDialog = component.createObject(contentItem, {});
-					saveDialog.init(filename);
 				}
 
 				if (component.status === Component.Ready)
@@ -190,8 +205,7 @@ ApplicationWindow {
 			}
 			createSaveDialog();
 		}
-		else
-			saveDialog.init(filename);
+		saveDialog.init(filename);
 	}
 
 	TPBalloonTip {

@@ -25,6 +25,7 @@ public:
 
 	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
+	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
@@ -33,16 +34,17 @@ public:
 	const QString& setExportFileName(const QString& filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
+	void selectWhichMesoToImportInto();
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
-	void openRequestedFile(const QString& filename, const int wanted_content = 0xFF);
-	void importFromFile(const QString& filename, const int wanted_content = 0xFF);
+	void openRequestedFile(const QString& filename, const importFileContents wanted_content = IFC_ANY);
+	void importFromFile(const QString& filename, const int wanted_content = IFC_ANY);
 	void incorporateImportedData(TPListModel* model);
 
 public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;
 	void exportSlot(const QString& filePath = QString());
-	void importSlot_FileChosen(const QString& filePath = QString());
+	void importSlot_FileChosen(const QString& filePath = QString(), const int fileType = IFC_ANY);
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 

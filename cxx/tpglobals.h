@@ -59,12 +59,18 @@ static const QString& STR_ONE("1"_L1);
 static const QString& STR_END_EXPORT("####\n\n"_L1);
 
 enum {
-	IFC_USER = 0x01,
-	IFC_MESO = 0x02,
-	IFC_MESOSPLIT = 0x04,
-	IFC_EXERCISES = 0x08,
-	IFC_TDAY = 0x10,
-	IFC_ANY= 0x1F
+	IFC_USER = 1,
+	IFC_MESO = 2,
+	IFC_MESOSPLIT = 3,
+		IFC_MESOSPLIT_A = 4,
+		IFC_MESOSPLIT_B = 5,
+		IFC_MESOSPLIT_C = 6,
+		IFC_MESOSPLIT_D = 7,
+		IFC_MESOSPLIT_E = 8,
+		IFC_MESOSPLIT_F = 9,
+	IFC_EXERCISES = 10,
+	IFC_TDAY = 11,
+	IFC_ANY= 12
 } typedef importFileContents;
 
 #define APPWINDOW_MSG_IMPORT_OK 3

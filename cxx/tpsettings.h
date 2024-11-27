@@ -71,7 +71,7 @@ Q_PROPERTY(QString disabledFontColor READ disabledFontColor NOTIFY colorChanged)
 Q_PROPERTY(QString iconFolder READ iconFolder NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
 
-Q_PROPERTY(uint lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
+Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
 Q_PROPERTY(uint weatherCitiesCount READ weatherCitiesCount NOTIFY weatherCitiesCountChanged)
 
 Q_PROPERTY(bool alwaysAskConfirmation READ alwaysAskConfirmation WRITE setAlwaysAskConfirmation NOTIFY alwaysAskConfirmationChanged)
@@ -121,8 +121,8 @@ public:
 	inline void setWeightUnit(const QString& new_value) { changeValue(WEIGHT_UNIT_INDEX, new_value); emit weightUnitChanged(); }
 	inline QString exercisesListVersion() const { return value(m_propertyNames.value(EXERCISES_VERSION_INDEX), m_defaultValues.at(EXERCISES_VERSION_INDEX)).toString(); }
 	inline void setExercisesListVersion(const QString& new_value) { changeValue(EXERCISES_VERSION_INDEX, new_value); }
-	inline uint lastViewedMesoIdx() const { return value(m_propertyNames.value(MESO_IDX_INDEX), m_defaultValues.at(MESO_IDX_INDEX).toUInt()).toUInt(); }
-	inline void setLastViewedMesoIdx(const uint new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
+	inline int lastViewedMesoIdx() const { return value(m_propertyNames.value(MESO_IDX_INDEX), m_defaultValues.at(MESO_IDX_INDEX)).toInt(); }
+	inline void setLastViewedMesoIdx(const int new_value) { changeValue(MESO_IDX_INDEX, QString::number(new_value)); emit lastViewedMesoIdxChanged(); }
 
 	inline uint weatherCitiesCount() const { return m_weatherLocations.count(); }
 	void addWeatherCity(const QString& city, const QString& latitude, const QString& longitude);

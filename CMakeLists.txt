@@ -134,6 +134,7 @@ set( QML_SOURCES
     "qml/Dialogs/ImportDialog.qml"
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/NavBar.qml"
+    "qml/Dialogs/SelectMesoForImport.qml"
     "qml/Dialogs/TimePicker.qml"
     "qml/Dialogs/TimerDialog.qml"
     "qml/ExercisesAndSets/ExerciseEntry.qml"

@@ -658,7 +658,7 @@ TPPage {
 
 			function finishCreation() {
 				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("What do you want to do today?"),
-					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", bClosable: false, customBoolProperty1: tDayManager.hasMesoPlan,
+					button1Text: qsTr("Proceed"), customItemSource:"TPTDayIntentGroup.qml", customBoolProperty1: tDayManager.hasMesoPlan,
 					customStringProperty2: tDayManager.splitLetter, customModel: tDayManager.previousTDays,
 					customBoolProperty2: tDayManager.hasPreviousTDays, customBoolProperty3: !tDayManager.hasExercises });
 				intentDlg.button1Clicked.connect(intentChosen);

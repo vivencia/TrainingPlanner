@@ -82,7 +82,7 @@ QMLMesoInterface* DBMesocyclesModel::mesoManager(const uint meso_idx)
 
 void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 {
-	setCurrentMesoIdx(m_mesoIdx);
+	setCurrentMesoIdx(meso_idx, true);
 	mesoManager(meso_idx)->getMesocyclePage();
 }
 
@@ -181,7 +181,7 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 	m_usedSplits.append(QStringList());
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(uchar(0));
-	setCurrentMesoIdx(meso_idx);
+	setCurrentMesoIdx(meso_idx, false);
 	return meso_idx;
 }
 
@@ -189,6 +189,8 @@ void DBMesocyclesModel::finishedLoadingFromDatabase()
 {
 	setReady(true);
 	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
+	if (m_currentMesoIdx == -1)
+		setCurrentMesoIdx(count()-1, false);
 }
 
 void DBMesocyclesModel::changeCanHaveTodaysWorkout()
@@ -298,13 +300,16 @@ void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar& split
 	}
 }
 
-void DBMesocyclesModel::setCurrentMesoIdx(const uint meso_idx)
+void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSignal)
 {
 	if (meso_idx != m_currentMesoIdx)
 	{
 		m_currentMesoIdx = meso_idx;
-		appSettings()->setLastViewedMesoIdx(meso_idx);
-		emit currentMesoIdxChanged();
+		if (bEmitSignal)
+		{
+			appSettings()->setLastViewedMesoIdx(meso_idx);
+			emit currentMesoIdxChanged();
+		}
 	}
 }
 

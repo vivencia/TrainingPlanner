@@ -39,25 +39,6 @@ TPPopup {
 		easing.type: Easing.InOutCubic
 	}
 
-	TPButton {
-		imageSource: "close.png"
-		hasDropShadow: false
-		visible: closable
-		height: 30
-		width: 30
-
-		z:2
-
-		anchors {
-			top: parent.top
-			topMargin: -3
-			right: parent.right
-			rightMargin: -3
-		}
-
-		onClicked: close();
-	}
-
 	TPLabel {
 		id: lblTitle
 		text: title
