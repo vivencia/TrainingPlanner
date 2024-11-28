@@ -12,8 +12,8 @@ TPPopup {
 	width: appSettings.pageWidth * 0.9
 	height: totalHeight + 20
 
-	property string importOptions: []
-	property bool selectedFields: []
+	property list<string> importOptions
+	property list<bool> selectedFields
 	property int totalHeight: 0
 
 	TPLabel {
@@ -27,7 +27,7 @@ TPPopup {
 			right: parent.right
 		}
 
-		Component.onCompleted: totalHeight += height;
+		Component.onCompleted: totalHeight += height + importImg.height;
 	}
 
 	TPImage {
@@ -53,6 +53,7 @@ TPPopup {
 			top: lblTitle.bottom
 			left: importImg.right
 			right: parent.right
+			rightMargin: 5
 		}
 
 		Repeater {
@@ -62,7 +63,6 @@ TPPopup {
 			TPCheckBox {
 				id: chkImportField
 				text: importOptions[index]
-				checked: selectedFields[index]
 				width: parent.width
 
 				onClicked: {
@@ -88,7 +88,7 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 			bottom: parent.bottom
-			bottomMargin: 10
+			bottomMargin: 5
 		}
 
 		TPButton {

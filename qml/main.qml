@@ -151,8 +151,7 @@ ApplicationWindow {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem, itemManager: itemManager});
-				importConfirmDialog.show(-1);
+				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem});
 			}
 
 			if (component.status === Component.Ready)
@@ -166,14 +165,13 @@ ApplicationWindow {
 		importConfirmDialog.show(-1);
 	}
 
-	property ImportDialog selectMesoDlg: null
+	property SelectMesoForImport selectMesoDlg: null
 	function selectMesoDialog(msg: string, mesoInfo: list<string>, idxsList: list<int>) {
 		if (selectMesoDlg === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/SelectMesoForImport.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				selectMesoDlg = component.createObject(contentItem, {parentPage: stackView.currentItem, itemManager: itemManager});
-				selectMesoDlg.show(-1);
+				selectMesoDlg = component.createObject(contentItem, {parentPage: stackView.currentItem});
 			}
 
 			if (component.status === Component.Ready)

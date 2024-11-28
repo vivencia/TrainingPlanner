@@ -10,25 +10,12 @@ TPPopup {
 	id: selectMesoDlg
 	modal: true
 	width: appSettings.pageWidth * 0.9
-	height: lblTitle.height + mesosListView.height + btnSelect.height + 20
+	height: totalHeight*1.3
 
-	property string mesosList: []
-	property int idxsList: []
+	property list<string> mesosList
+	property list<int> idxsList
 	property string message
-
-	TPLabel {
-		id: lblTitle
-		text: message
-		wrapMode: Text.WordWrap
-		fontSizeMode: Text.FixedSize
-		horizontalAlignment: Text.AlignHCenter
-
-		anchors {
-			top: parent.top
-			left: parent.left
-			right: parent.right
-		}
-	}
+	property int totalHeight: 0
 
 	TPImage {
 		id: importImg
@@ -38,30 +25,50 @@ TPPopup {
 
 		anchors {
 			top: parent.top
-			topMargin: lblTitle.height
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 		}
+	}
+
+	TPLabel {
+		id: lblTitle
+		text: message
+		wrapMode: Text.WordWrap
+		horizontalAlignment: Text.AlignHCenter
+
+		anchors {
+			top: parent.top
+			topMargin: lblTitle.lineCount*5
+			left: importImg.right
+			right: parent.right
+			rightMargin: 15
+		}
+
+		Component.onCompleted: totalHeight += Math.max(height, importImg.height);
 	}
 
 	ListView {
 		id: mesosListView
 		contentHeight: model.count*50*1.1
 		contentWidth: availableWidth
-		height: 0.4*appSettings.pageHeight
+		height: 0.15*appSettings.pageHeight
 		spacing: 0
 		clip: true
 		model: mesosList
 
 		anchors {
-			top: lblTitle.bottom
-			left: importImg.right
+			left: parent.left
+			leftMargin: 5
 			right: parent.right
+			rightMargin: 5
+			bottom: buttonsRow.top
+			bottomMargin: 5
 		}
 
 		ScrollBar.vertical: ScrollBar {
 			policy: ScrollBar.AsNeeded
-			active: true; visible: scrollViewCities.contentHeight > scrollViewCities.height
+			active: true; visible: mesosListView.contentHeight > mesosListView.height
 		}
 
 		delegate: ItemDelegate {
@@ -87,15 +94,23 @@ TPPopup {
 
 			onClicked: mesosListView.currentIndex = index;
 		} //ItemDelegate
+
+		Component.onCompleted: totalHeight += height;
 	} //ListView
 
 	RowLayout
 	{
+		id: buttonsRow
+		uniformCellSizes: true
+		height: 30
+
 		anchors {
 			left: parent.left
+			leftMargin: 5
 			right: parent.right
+			rightMargin: 5
 			bottom: parent.bottom
-			bottomMargin: 10
+			bottomMargin: 5
 		}
 
 		TPButton {
@@ -118,6 +133,8 @@ TPPopup {
 
 			onClicked: selectMesoDlg.close();
 		}
+
+		Component.onCompleted: totalHeight += height;
 	}
 
 	function show(ypos) {

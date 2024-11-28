@@ -271,6 +271,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('A'))
 					importOptions.append(std::move(tr("Exercises Program A")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_A);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program A")));
@@ -281,6 +283,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('B'))
 					importOptions.append(std::move(tr("Exercises Program B")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_B);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program B")));
@@ -291,6 +295,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('C'))
 					importOptions.append(std::move(tr("Exercises Program C")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_C);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program C")));
@@ -301,6 +307,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('D'))
 					importOptions.append(std::move(tr("Exercises Program D")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_D);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program D")));
@@ -311,6 +319,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('E'))
 					importOptions.append(std::move(tr("Exercises Program E")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_E);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program E")));
@@ -321,6 +331,8 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 			{
 				if (appMesoModel()->split(appMesoModel()->importIdx()).contains('F'))
 					importOptions.append(std::move(tr("Exercises Program F")));
+				else
+					unSetBit(m_fileContents, IFC_MESOSPLIT_F);
 			}
 			else
 				importOptions.append(std::move(tr("Exercises Program F")));
@@ -462,6 +474,8 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 		{
 			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true}};
 			splitModel->deleteLater();
+			if (isBitSet(wanted_content, IFC_MESOSPLIT_A))
+				splitModel
 			importFileMessageId = splitModel->importFromFile(filename);
 			if (importFileMessageId >= 0)
 				incorporateImportedData(splitModel);

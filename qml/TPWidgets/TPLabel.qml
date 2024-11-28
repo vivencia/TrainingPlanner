@@ -27,7 +27,10 @@ Label {
 	readonly property int _lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
-	onFontChanged: {
+	onFontChanged: adjustFontSize();
+	onTextChanged: adjustFontSize();
+
+	function adjustFontSize() {
 		if (font === AppGlobals.regularFont) {
 			_textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height
