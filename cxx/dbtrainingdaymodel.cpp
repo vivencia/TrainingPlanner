@@ -269,13 +269,14 @@ bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
 					tDayModel->setSubSets(0, 1), tDayModel->setNotes(0, i));
 		for (uint x(1); x < tDayModel->setsNumber(i); ++x)
 		{
-			newSet(x, i, tDayModel->setType(x, i), tDayModel->setReps(x, i), tDayModel->setWeight(x, i), tDayModel->setRestTime(x, i),
+			newSet(i, x, tDayModel->setType(x, i), tDayModel->setReps(x, i), tDayModel->setWeight(x, i), tDayModel->setRestTime(x, i),
 					tDayModel->setSubSets(x, 1));
 		}
 	}
+	if (tDayModel->importMode())
+		delete tDayModel;
 	if (exerciseCount() > 0)
 	{
-		setImportMode(true);
 		emit exerciseCountChanged();
 		return true;
 	}

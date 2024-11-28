@@ -26,6 +26,7 @@
 class DBTrainingDayModel;
 class DBExercisesModel;
 class DBMesocyclesModel;
+class QFile;
 
 class DBMesoSplitModel : public TPListModel
 {
@@ -135,6 +136,7 @@ public:
 	Q_INVOKABLE QString findSwappableModel() const;
 
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	bool checkIfFileContentMatchesThisSplit(QFile* inFile);
 	int importFromFile(const QString& filename) override;
 	bool updateFromModel(const TPListModel* model) override;
 
@@ -147,7 +149,6 @@ public:
 	QString formatFieldToExport(const uint field, const QString& value) const override;
 	QString formatFieldToImport(const uint field, const QString& fieldValue) const;
 	const QString exportExtraInfo() const;
-	bool importExtraInfo(const QString& extrainfo);
 
 signals:
 	void exerciseNameChanged(const int row);

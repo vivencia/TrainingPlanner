@@ -313,6 +313,8 @@ void DBTrainingDayTable::saveTrainingDay()
 		if (ok && !bUpdate)
 			m_model->setId(query.lastInsertId().toString());
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+		if (m_model->importMode())
+			delete m_model;
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

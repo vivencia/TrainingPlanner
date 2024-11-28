@@ -117,6 +117,7 @@ TPPopup {
 			id: btnSelect
 			text: qsTr("Select")
 			flat: false
+			enabled: mesosListView.currentIndex >= 0
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
@@ -138,6 +139,7 @@ TPPopup {
 	}
 
 	function show(ypos) {
+		mesosListView.currentIndex = -1;
 		selectMesoDlg.x = (appSettings.pageWidth - selectMesoDlg.width)/2;
 
 		if (ypos < 0)

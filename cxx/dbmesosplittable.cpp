@@ -198,7 +198,7 @@ void DBMesoSplitTable::getAllSplits()
 						QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
 						split_info[MESOSPLIT_COL_EXERCISENAME] = std::move(exercises.at(i));
 						split_info[MESOSPLIT_COL_SETSNUMBER] = std::move(setsnumber.at(i));
-						split_info[MESOSPLIT_COL_NOTES] = std::move(setsnotes.at(i));
+						split_info[MESOSPLIT_COL_NOTES] = i < setsnotes.count() ? std::move(setsnotes.at(i)) : " "_L1; //might be empty when importing
 						split_info[MESOSPLIT_COL_SETTYPE] = std::move(setstypes.at(i));
 						split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 						split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
@@ -335,6 +335,8 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 		if (ok && !bUpdate)
 			m_model->setId(0, query.lastInsertId().toString()); //Not used -yet-. But might be, someday. Anyway, it costs nothings
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+		if (m_model->importMode())
+			delete m_model;
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));
 }

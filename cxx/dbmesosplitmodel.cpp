@@ -432,6 +432,37 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
+bool DBMesoSplitModel::checkIfFileContentMatchesThisSplit(QFile* inFile)
+{
+	char buf[256];
+	int lineLength(0);
+	QString inData;
+	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
+	{
+		if (lineLength > 10)
+		{
+			inData = buf;
+			int idx(inData.indexOf(tr("Split: ")));
+			if (idx != -1)
+			{
+				idx += 7;
+				const QChar& splitletter(inData.sliced(idx+2, 1).at(0));
+				if (splitletter == _splitLetter())
+				{
+					idx = inData.indexOf('-', idx+1);
+					if (idx != -1)
+					{
+						setMuscularGroup(inData.sliced(idx+2, inData.length() - idx - 3));
+						return true;
+					}
+				}
+				break;
+			}
+		}
+	}
+	return false;
+}
+
 //Only for a complete meso split
 int DBMesoSplitModel::importFromFile(const QString& filename)
 {
@@ -444,9 +475,9 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 
 	char buf[512];
 	qint64 lineLength(0);
-	uint col(1);
+	uint col(MESOSPLIT_COL_EXERCISENAME);
 	QString value;
-	bool bexpect_extrainfo(false);
+	bool split_match(false);
 	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
 	modeldata[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 
@@ -457,29 +488,34 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 			if (lineLength > 10)
 			{
 				if (strstr(buf, "##") != NULL)
-					bexpect_extrainfo = true;
-				else
 				{
-					if (bexpect_extrainfo)
+					if (!split_match)
 					{
-						bexpect_extrainfo = !importExtraInfo(buf);
+						split_match = checkIfFileContentMatchesThisSplit(inFile);
 						continue;
 					}
+					else
+						break;
+				}
+				else
+				{
+					if (!split_match)
+						continue;
 					value = buf;
 					value.remove(0, value.indexOf(':') + 2);
+					value.replace(fancy_record_separator2, set_separator);
+					value.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
 					if (!isFieldFormatSpecial(col))
 						modeldata[col] = std::move(value.simplified());
 					else
 						modeldata[col] = std::move(formatFieldToImport(col, value));
-					modeldata[col].replace(fancy_record_separator2, set_separator);
-					modeldata[col].replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
 					col++;
 					if (col == MESOSPLIT_COL_WORKINGSET)
 					{
 						m_modeldata.append(modeldata);
 						col = 0;
 					}
-				}	
+				}
 			}
 		}
 		else
@@ -501,7 +537,8 @@ bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
 	setSplitLetter(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->splitLetter());
 	setMuscularGroup(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->muscularGroup());
 	setMesoIdx(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->mesoIdx());
-	setImportMode(true);
+	if (model->importMode())
+		delete model;
 	return true;
 }
 
@@ -548,23 +585,6 @@ QString DBMesoSplitModel::formatFieldToImport(const uint field, const QString& f
 const QString DBMesoSplitModel::exportExtraInfo() const
 {
 	return mb_Complete ? std::move(tr("Split: ")) + m_splitLetter + " - "_L1 + std::move(m_muscularGroup) : QString();
-}
-
-bool DBMesoSplitModel::importExtraInfo(const QString& extrainfo)
-{
-	int idx(extrainfo.indexOf(':'));
-	if (idx != -1)
-	{
-		setSplitLetter(extrainfo.sliced(idx+2, 1));
-		idx = extrainfo.indexOf('-', idx+1);
-		if (idx != -1)
-		{
-			setMuscularGroup(extrainfo.sliced(idx+2, extrainfo.length() - idx - 3));
-			mb_Complete = true;
-			return true;
-		}
-	}
-	return false;
 }
 
 QString DBMesoSplitModel::getFromCompositeValue(const uint row, const uint set_number, const uint field, const uint pos) const

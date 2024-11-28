@@ -144,17 +144,17 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 		const uint fieldStart((m_fileContents & IFC_MESO) ? 2 : 0);
 		const uint wanted_content_temp(wanted_content);
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
-			setBit(wanted_content, selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_B))
-			setBit(wanted_content, selectedFields.at(fieldStart+1) ? IFC_MESOSPLIT_B : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart+1) ? IFC_MESOSPLIT_B : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_C))
-			setBit(wanted_content, selectedFields.at(fieldStart+2) ? IFC_MESOSPLIT_C : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart+2) ? IFC_MESOSPLIT_C : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_D))
-			setBit(wanted_content, selectedFields.at(fieldStart+3) ? IFC_MESOSPLIT_D : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart+3) ? IFC_MESOSPLIT_D : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_E))
-			setBit(wanted_content, selectedFields.at(fieldStart+4) ? IFC_MESOSPLIT_E : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart+4) ? IFC_MESOSPLIT_E : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_F))
-			setBit(wanted_content, selectedFields.at(fieldStart+5) ? IFC_MESOSPLIT_F : 0);
+			setBit(wanted_content, (selectedFields.at(fieldStart+5) ? IFC_MESOSPLIT_F : 0));
 		if (wanted_content_temp != wanted_content)
 			setBit(wanted_content, IFC_MESOSPLIT);
 	}
@@ -226,9 +226,9 @@ void QmlItemManager::displayActivityResultMessage(const int requestCode, const i
 void QmlItemManager::selectWhichMesoToImportInto()
 {
 	QString message;
-	if (m_fileContents & IFC_MESOSPLIT)
+	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 		message = std::move(tr("You're trying to import an exercises selection plan. Select into which program you'd wish to incorporate it."));
-	else if (m_fileContents & IFC_TDAY)
+	else if (isBitSet(m_fileContents, IFC_TDAY))
 		message = std::move(tr("You're trying to import a one day workout. Select in which program you'd wish to include it."));
 	QStringList mesoInfo;
 	QList<int> idxsList;
@@ -472,18 +472,24 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	{
 		if (isBitSet(wanted_content, IFC_MESOSPLIT))
 		{
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true}};
-			splitModel->deleteLater();
-			if (isBitSet(wanted_content, IFC_MESOSPLIT_A))
-				splitModel
-			importFileMessageId = splitModel->importFromFile(filename);
-			if (importFileMessageId >= 0)
-				incorporateImportedData(splitModel);
+			DBMesoSplitModel* splitModels[6];
+			for (uint i(0), ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
+			{
+				if (isBitSet(wanted_content, ifc))
+				{
+					splitModels[i] = new DBMesoSplitModel{this, true};
+					splitModels[i]->setImportMode(true);
+					splitModels[i]->setSplitLetter(static_cast<char>('A' + i));
+					splitModels[i]->setMesoIdx(appMesoModel()->importIdx());
+					if (splitModels[i]->importFromFile(filename) >= 0)
+						incorporateImportedData(splitModels[i]);
+				}
+			}
 		}
 		else if (isBitSet(wanted_content, IFC_TDAY))
 		{
 			DBTrainingDayModel* tDayModel{new DBTrainingDayModel{this}};
-			tDayModel->deleteLater();
+			tDayModel->setImportMode(true);
 			importFileMessageId = tDayModel->importFromFile(filename);
 			if (importFileMessageId >= 0)
 				incorporateImportedData(tDayModel);
@@ -539,8 +545,8 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 			DBTrainingDayModel* tDayModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday());
 			if (tDayModel)
 			{
-				tDayModel->updateFromModel(newTDayModel);
-				appDBInterface()->saveTrainingDay(tDayModel);
+				if (tDayModel->updateFromModel(newTDayModel))
+					appDBInterface()->saveTrainingDay(tDayModel);
 			}
 			else
 				appDBInterface()->saveTrainingDay(newTDayModel);

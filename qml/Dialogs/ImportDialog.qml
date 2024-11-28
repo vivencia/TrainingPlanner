@@ -63,6 +63,7 @@ TPPopup {
 			TPCheckBox {
 				id: chkImportField
 				text: importOptions[index]
+				checked: true
 				width: parent.width
 
 				onClicked: {
