@@ -16,7 +16,6 @@ Frame {
 	required property DBMesoSplitModel splitModel
 	required property SplitManager splitManager
 
-	property int muscularGroupId
 	property bool bCanSwapPlan
 	property string swappableLetter
 	property string prevMesoName
@@ -94,7 +93,7 @@ Frame {
 		}
 
 		onEditingFinished: {
-			splitManager.changeMuscularGroup(text, splitModel, muscularGroupId);
+			splitManager.changeMuscularGroup(text, splitModel);
 			exercisesModel.makeFilterString(text);
 		}
 	}
@@ -651,20 +650,19 @@ Frame {
 		lstSplitExercises.positionViewAtIndex(0, ListView.Center);
 	}
 
-	function setScrollBarPosition(pos) {
+	function setScrollBarPosition(pos): void {
 		if (pos === 0)
 			vBar.setPosition(0);
 		else
 			vBar.setPosition(pos - vBar.size/2);
 	}
 
-	function updateTxtGroups(musculargroup: string)
-	{
+	function updateTxtGroups(musculargroup: string): void {
 		txtGroups.text = musculargroup;
 		exercisesModel.makeFilterString(musculargroup);
 	}
 
-	function appendNewExerciseToDivision() {
+	function appendNewExerciseToDivision(): void {
 		splitModel.appendExercise();
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
@@ -683,7 +681,7 @@ Frame {
 		onButton1Clicked: splitManager.loadSplitFromPreviousMeso(splitModel);
 	} //TPBalloonTip
 
-	function showImportFromPreviousMesoMessage()
+	function showImportFromPreviousMesoMessage(): void
 	{
 		msgDlgImport.show(-1);
 	}

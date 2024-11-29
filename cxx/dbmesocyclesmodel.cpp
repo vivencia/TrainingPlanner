@@ -289,14 +289,15 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 	}
 }
 
-void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const uint initiator_id)
+void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const bool bEmitSignal)
 {
 	const uint splitField(appUtils()->splitLetterToMesoSplitIndex(splitLetter));
 	if (splitField < SIMPLE_MESOSPLIT_TOTAL_COLS)
 	{
 		m_splitModel->m_modeldata[meso_idx][splitField] = newSplitValue;
 		setModified(meso_idx, MESOCYCLES_COL_MUSCULARGROUP);
-		emit muscularGroupChanged(meso_idx, initiator_id, splitField, splitLetter);
+		if (bEmitSignal)
+			emit muscularGroupChanged(meso_idx, splitField, splitLetter);
 	}
 }
 
@@ -392,16 +393,31 @@ int DBMesocyclesModel::getPreviousMesoId(const QString& clientName, const int cu
 	return meso_idx >= 0 ? _id(meso_idx) : -1;
 }
 
-QDate DBMesocyclesModel::getNewMesoMinimumStartDate(const QString& clientName) const
+QDate DBMesocyclesModel::getMesoMinimumStartDate(const QString& clientName, const uint exclude_idx) const
 {
 	int meso_idx(count()-1);
 	for (; meso_idx >= 0; --meso_idx)
+	{
+		if (meso_idx != exclude_idx)
+		{
+			if (client(meso_idx) == clientName)
+				if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
+					break;
+		}
+	}
+	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, -6, 0);
+}
+
+QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString& clientName, const uint exclude_idx) const
+{
+	int meso_idx(exclude_idx+1);
+	for (; meso_idx < count(); ++meso_idx)
 	{
 		if (client(meso_idx) == clientName)
 			if (id(meso_idx) != STR_MINUS_ONE && isRealMeso(meso_idx))
 				break;
 	}
-	return meso_idx >= 0 ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, -6, 0);
+	return meso_idx < count() ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, 6, 0);
 }
 
 //Called when importing from a text file

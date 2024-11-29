@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Shapes
 
 import "../"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
@@ -20,26 +21,37 @@ Page {
 		mainwindow.pageDeActivated_main.connect(pageDeActivation);
 	}
 
-	TPImage {
+	background: Shape {
+		preferredRendererType: Shape.CurveRenderer
 		anchors.fill: parent
-		source: "app_logo"
-		dropShadow: false
-		opacity: 0.6
+
+		ShapePath {
+			strokeWidth: 0
+			startX: 0
+			startY: 0
+
+			PathLine { x: appSettings.pageWidth; y: 0 }
+			PathLine { x: appSettings.pageWidth; y: appSettings.pageHeight }
+			PathLine { x: 0; y: appSettings.pageHeight }
+			fillGradient: LinearGradient {
+				x1: 0
+				y1: appSettings.pageHeight / 4
+				x2: appSettings.pageWidth
+				y2:  appSettings.pageHeight / 4 * 3
+				GradientStop { position: 0.0; color: appSettings.primaryLightColor }
+				GradientStop { position: 1.0; color: appSettings.primaryDarkColor }
+			}
+		}
 	}
 
-	background: Rectangle {
-		color: appSettings.primaryDarkColor
-		opacity: 0.7
-	}
-
-	function pageDeActivation(page: Item) {
+	function pageDeActivation(page: Item): void {
 		if (page !== null) {
 			if (page.objectName === tpPage.objectName)
 				pageDeActivated();
 		}
 	}
 
-	function pageActivation(page: Item) {
+	function pageActivation(page: Item): void {
 		if (page !== null) {
 			if (page.objectName === tpPage.objectName)
 				pageActivated();

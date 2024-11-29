@@ -55,7 +55,7 @@ private:
 	QMap<QChar,QQuickItem*> m_splitPages;
 	QMap<QChar,DBMesoSplitModel*> m_splitModels;
 	QVariantMap m_splitProperties;
-	uint m_mesoIdx, m_splitMuscularGroupId;
+	uint m_mesoIdx;
 
 	DBMesoSplitModel* m_simpleExercisesListRequester;
 	uint m_simpleExercisesListExerciseIdx;

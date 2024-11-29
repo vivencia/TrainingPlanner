@@ -11,21 +11,18 @@ Rectangle {
 	height: cellSize * 10.5
 	width: cellSize * 8
 
-	required property date displayDate
-	required property date startDate
-	required property date endDate
-
+	property date displayDate
+	property date startDate
+	property date endDate
 	property date selectedDate: displayDate
 	property bool justCalendar: false
 
-	property date thisDay
+	readonly property date thisDay: new Date()
 	readonly property double cellSize: Screen.pixelDensity * 7
-	property int fontSizePx: cellSize * 0.32
+	readonly property int fontSizePx: cellSize * 0.32
 
 	signal okClicked(date selDate)
 	signal cancelClicked
-
-	Component.onCompleted: thisDay = new Date();
 
 	Rectangle {
 		id: titleOfDate
@@ -108,7 +105,7 @@ Rectangle {
 				}
 			}
 
-			function filterInput() {
+			function filterInput(): void {
 				yearsModel.clear();
 				var topYear, bottomYear;
 				yearOK = false;
@@ -220,11 +217,11 @@ Rectangle {
 				month: model.month
 				year: model.year
 				spacing: 0
-				anchors.top: weekTitles.bottom
+				locale: Qt.locale(appSettings.appLocale)
 				width: cellSize * 7
 				height: cellSize * 6
+				anchors.top: weekTitles.bottom
 
-				locale: Qt.locale(appSettings.appLocale)
 				delegate: Rectangle {
 					height: cellSize
 					width: cellSize
@@ -243,13 +240,13 @@ Rectangle {
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()
 
 					Text {
-						anchors.centerIn: parent
 						text: model.day
 						font.pixelSize: fontSizePx
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
 						color: todayDate ? "red" : parent.highlighted ? "black" : monthGrid.month === model.month ? "white" : "gray"
+						anchors.centerIn: parent
 					}
 					MouseArea {
 						anchors.fill: parent
@@ -305,26 +302,26 @@ Rectangle {
 			}
 		}
 
-		function show() {
+		function show(): void {
 			visible = true;
 			calendar.visible = false
 			currentYear = calendar.currentYear
 			yearsList.positionViewAtIndex(currentYear - startYear, ListView.SnapToItem);
 		}
 
-		function hide() {
+		function hide(): void {
 			visible = false;
 			calendar.visible = true;
 		}
 	} // ListView yearsList
 
-	function yearChosen(year: int) {
+	function yearChosen(year: int): void {
 		setDate(new Date(year, showDate.getMonth(), showDate.getDate()));
 		selectedYear.readOnly = true;
 		yearsList.hide();
 	}
 
-	function setDate(newDate) {
+	function setDate(newDate): void {
 		selectedDate = newDate;
 		calendar.currentIndex = calendarModel.indexOf(selectedDate);
 		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);

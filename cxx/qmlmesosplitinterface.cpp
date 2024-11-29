@@ -316,8 +316,6 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	m_splitProperties["splitModel"_L1] = QVariant::fromValue(splitmodel);
 	m_splitProperties["parentItem"_L1] = QVariant::fromValue(m_plannerPage);
 	m_splitProperties["splitManager"_L1] = QVariant::fromValue(this);
-	m_splitMuscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
-	m_splitProperties["muscularGroupId"_L1] = m_splitMuscularGroupId;
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_qmlEngine->rootContext())));
 	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
@@ -331,8 +329,8 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	QMetaObject::invokeMethod(m_plannerPage, "insertSplitPage", Q_ARG(QQuickItem*, item),
 								Q_ARG(int, appUtils()->splitLetterToIndex(splitmodel->splitLetter())));
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-		if (meso_idx == m_mesoIdx && initiator_id != m_splitMuscularGroupId )
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& splitLetter) {
+		if (meso_idx == m_mesoIdx)
 		{
 			if (splitIndex < m_splitModels.count())
 				updateMuscularGroup(m_splitModels.value(splitLetter));

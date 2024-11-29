@@ -290,6 +290,7 @@ TPPage {
 				id: txtMesoFile
 				text: mesoManager.fileName
 				readOnly: true
+				ToolTip.text: mesoManager.fileName
 				width: 0.8*parent.width
 				Layout.maximumWidth: width
 				Layout.minimumWidth: width
@@ -526,7 +527,7 @@ TPPage {
 
 	property bool alreadyCalled: false
 	property TPComplexDialog calendarChangeDlg: null
-	function showCalendarChangedDialog() {
+	function showCalendarChangedDialog(): void {
 		if (!calendarChangeDlg) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
@@ -550,11 +551,11 @@ TPPage {
 		}
 	}
 
-	function changeCalendar() {
+	function changeCalendar(): void {
 		mesoManager.changeMesoCalendar(calendarChangeDlg.customBoolProperty1, calendarChangeDlg.customBoolProperty2);
 	}
 
-	function updateCoachesAndClientsModels(use_mode: int) {
+	function updateCoachesAndClientsModels(use_mode: int): void {
 		switch (use_mode) {
 			case -1:
 				coachesModel.populate();

@@ -399,7 +399,7 @@ TPPage {
 	} // footer
 
 	property TPFloatingMenuBar exportMenu: null
-	function showExportMenu(meso_idx) {
+	function showExportMenu(meso_idx): void {
 		if (exportMenu === null) {
 			var exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
@@ -425,7 +425,7 @@ TPPage {
 		property int mesoIdx
 		property bool bShare
 
-		function init(meso_idx: int, share: bool) {
+		function init(meso_idx: int, share: bool): void {
 			mesoIdx = meso_idx;
 			bShare = share;
 			show(-1);

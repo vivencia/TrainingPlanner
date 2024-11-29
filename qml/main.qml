@@ -32,7 +32,7 @@ ApplicationWindow {
 		else
 			backKey = Qt.Key_Left;
 
-		contentItem.Keys.pressed.connect( function(event) {
+		contentItem.Keys.pressed.connect(function(event) {
 			if (event.key === backKey) {
 				event.accepted = true;
 				if (stackView.depth >= 2)
@@ -82,7 +82,7 @@ ApplicationWindow {
 	}*/
 
 	property var firstTimeDlg: null
-	function showFirstUseTimeDialog() {
+	function showFirstUseTimeDialog(): void {
 		function createFirstTimeDialog() {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
 
@@ -101,7 +101,7 @@ ApplicationWindow {
 	}
 
 	signal pageDeActivated_main(Item page);
-	function popFromStack(page: Item) {
+	function popFromStack(page: Item): void {
 		pageDeActivated_main(stackView.currentItem);
 		if (page)
 			stackView.pop(page);
@@ -111,7 +111,7 @@ ApplicationWindow {
 	}
 
 	signal pageActivated_main(Item page);
-	function pushOntoStack(page: Item) {
+	function pushOntoStack(page: Item): void {
 		if (stackView.currentItem === page)
 			return;
 		pageDeActivated_main(stackView.currentItem);
@@ -119,14 +119,14 @@ ApplicationWindow {
 		pageActivated_main(page);
 	}
 
-	function confirmImport(message: string) {
+	function confirmImport(message: string): void {
 		importConfirmDialog.title = qsTr("Proceed with action?");
 		importConfirmDialog.message = message;
 		importConfirmDialog.show(-1);
 	}
 
 	property TPImportDialog importOpenDialog: null
-	function chooseFileToImport(filetype: int) {
+	function chooseFileToImport(filetype: int): void {
 		if (importOpenDialog === null) {
 			function createImportDialog() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPImportDialog.qml", Qt.Asynchronous);
@@ -146,7 +146,7 @@ ApplicationWindow {
 	}
 
 	property ImportDialog importConfirmDialog: null
-	function createImportConfirmDialog(importOptions: list<string>, selectedFields: list<bool>) {
+	function createImportConfirmDialog(importOptions: list<string>, selectedFields: list<bool>): void {
 		if (importConfirmDialog === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
@@ -166,7 +166,7 @@ ApplicationWindow {
 	}
 
 	property SelectMesoForImport selectMesoDlg: null
-	function selectMesoDialog(msg: string, mesoInfo: list<string>, idxsList: list<int>) {
+	function selectMesoDialog(msg: string, mesoInfo: list<string>, idxsList: list<int>): void {
 		if (selectMesoDlg === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/SelectMesoForImport.qml", Qt.Asynchronous);
 
@@ -187,7 +187,7 @@ ApplicationWindow {
 	}
 
 	property TPSaveDialog saveDialog: null
-	function chooseFolderToSave(filename: string) {
+	function chooseFolderToSave(filename: string): void {
 		if (saveDialog === null) {
 			function createSaveDialog() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPSaveDialog.qml", Qt.Asynchronous);
@@ -212,7 +212,7 @@ ApplicationWindow {
 		message: qsTr("Text copied to the clipboard")
 		parentPage: homePage
 	}
-	function showTextCopiedMessage() {
+	function showTextCopiedMessage(): void {
 		textCopiedInfo.showTimed(3000, 0);
 	}
 
@@ -223,11 +223,11 @@ ApplicationWindow {
 		parentPage: homePage
 	}
 
-	function createShortCut(label: string, page: Item, clickid: int) {
+	function createShortCut(label: string, page: Item, clickid: int): void {
 		mainMenu.createShortCut(label, page, clickid);
 	}
 
-	function displayResultMessage(title: string, message: string) {
+	function displayResultMessage(title: string, message: string): void {
 		activityFinishedTip.title = title;
 		activityFinishedTip.message = message;
 		activityFinishedTip.showTimed(5000, 0);

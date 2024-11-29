@@ -32,7 +32,7 @@ TPUtils::TPUtils(QObject* parent)
 const QString TPUtils::getCorrectPath(const QUrl& url) const
 {
 	QString path(url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme));
-	if (path.startsWith(u"file://"_s))
+	if (path.startsWith("file://"_L1))
 		path.remove(0, 7);
 	return path;
 }
@@ -75,36 +75,14 @@ QString TPUtils::formatTodayDate() const
 QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 {
 	const QStringView& strdate(strDate);
-	//if (appLocale->name() == u"pt_BR"_s)
-	//{
-		const int spaceIdx(strdate.indexOf(' '));
-		const int fSlashIdx(strdate.indexOf('/'));
-		const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
-		const uint day(strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toUInt());
-		const uint month(strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toUInt());
-		const uint year(strdate.last(4).toUInt());
-		const QDate date(year, month, day);
-		return date;
-	/*}
-	else
-	{
-		static const QString months[12] = {u"Jan"_s,u"Feb"_s,u"Mar"_s,u"Apr"_s,u"May"_s,
-		u"Jun"_s,u"Jul"_s,u"Aug"_s,u"Sep"_s,u"Oct"_s,u"Nov"_s,u"Dez"_s };
-		const QStringView strMonth(strdate.sliced(4, 3));
-		uint i(0);
-		for(; i < 12; ++ i)
-		{
-			if (months[i] == strMonth) break;
-		}
-		const uint month(i);
-		const uint year(strdate.last(4).toUInt());
-
-		const int spaceIdx(strdate.indexOf(' '));
-		const int spaceIdx2(strdate.indexOf(' ', spaceIdx+1));
-		const uint day(strdate.sliced(spaceIdx+1, spaceIdx2-spaceIdx-1).toUInt());
-		const QDate date(year, month, day);
-		return date;
-	}*/
+	const int spaceIdx(strdate.indexOf(' '));
+	const int fSlashIdx(strdate.indexOf('/'));
+	const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
+	const int day(strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toInt());
+	const int month(strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt());
+	const int year(strdate.last(4).toInt());
+	const QDate date{year, month, day};
+	return date;
 }
 
 uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const

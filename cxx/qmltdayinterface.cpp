@@ -553,7 +553,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			updateTDayPageWithNewCalendarInfo(startDate, endDate);
 	});
 
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& chrSplitLetter) {
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& chrSplitLetter) {
 		if (meso_idx == m_mesoIdx)
 		{
 			if (splitLetter().at(0) == chrSplitLetter)

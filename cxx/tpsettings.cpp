@@ -129,7 +129,7 @@ QString TPSettings::colorForScheme(const uint scheme) const
 {
 	switch (scheme)
 	{
-		case 0: return std::move("#25b5f3"_L1); break;
+		case 0: return std::move("#47a0f3"_L1); break;
 		case 1: return std::move("#97dd81"_L1); break;
 		case 2: return std::move("#fd9ab1"_L1); break;
 		case 3: return std::move("#9ea6a3"_L1); break;

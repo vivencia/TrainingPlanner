@@ -200,7 +200,6 @@ private:
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;
-	uint m_muscularGroupId;
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;

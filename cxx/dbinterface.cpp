@@ -430,7 +430,7 @@ void DBInterface::getMesoCalendar(const uint meso_idx)
 
 void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore)
 {
-	if (!appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
+	if (bPreserveOldInfo && !appMesoModel()->mesoCalendarModel(meso_idx)->isReady())
 	{
 		connect(this, &DBInterface::databaseReady, this, [this,meso_idx,bPreserveOldInfo,bPreserveOldInfoUntilDayBefore] ()
 		{

@@ -104,7 +104,7 @@ ToolBar {
 
 				function finishCreation() {
 					mainCalendar = component.createObject(mainwindow, { parentPage: homePage, showDate:new Date(),
-						simpleCalendar:true, initDate: new Date(2000, 0, 1), finalDate: new Date(2025, 11, 31) });
+						simpleCalendar:true, initDate: new Date(2000, 0, 1), finalDate: new Date(2030, 11, 31) });
 				}
 
 				if (component.status === Component.Ready)

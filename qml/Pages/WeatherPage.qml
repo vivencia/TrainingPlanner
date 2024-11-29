@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Shapes
 import QtQuick.Effects
 import QtQuick.Layouts
 
@@ -12,29 +11,6 @@ import ".."
 TPPage {
 	id: weatherPage
 	objectName: "weatherPage"
-
-	//Shape because Rectangle does not support diagonal gradient
-	Shape {
-		preferredRendererType: Shape.CurveRenderer
-
-		ShapePath {
-			strokeWidth: 0
-			startX: 0
-			startY: 0
-
-			PathLine { x: appSettings.pageWidth; y: 0 }
-			PathLine { x: appSettings.pageWidth; y: appSettings.pageHeight }
-			PathLine { x: 0; y: appSettings.pageHeight }
-			fillGradient: LinearGradient {
-				x1: 0
-				y1: appSettings.pageHeight / 4
-				x2: appSettings.pageWidth
-				y2: appSettings.pageHeight / 4 * 3
-				GradientStop { position: 0.0; color: "#d0e3ff" }
-				GradientStop { position: 1.0; color: "#31adff" }
-			}
-		}
-	}
 
 	WeatherInfo {
 		id: weatherInfo

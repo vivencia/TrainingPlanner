@@ -18,6 +18,7 @@ Pane {
 	readonly property int col2Width: width*0.15
 	readonly property int col3Width: width*0.6
 	property bool bMesoSplitTextOK: true
+	property bool bMesoSplitChanged: false
 
 	background: Rectangle {
 		color: "transparent"
@@ -84,6 +85,7 @@ Pane {
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						txtSplit.readOnly = cboindex === 6;
+						bMesoSplitChanged = true;
 						if (cboindex !== 6)
 							txtSplit.forceActiveFocus();
 					}
@@ -122,6 +124,7 @@ Pane {
 								case 4: mesoManager.muscularGroupD = text; break;
 								case 5: mesoManager.muscularGroupF = text; break;
 							}
+							bMesoSplitChanged = true;
 						});
 					}
 				}
@@ -137,7 +140,7 @@ Pane {
 		imageSize: 20
 		flat: false
 		checkable: true
-		enabled: bMesoSplitTextOK
+		enabled: bMesoSplitChanged
 
 		anchors {
 			top: mainLayout.bottom
@@ -146,7 +149,7 @@ Pane {
 		}
 
 		onCheck: {
-			mainLayout.enabled = !checked;
+			bMesoSplitChanged = !checked;
 			if (checked) {
 				lblNewMesoRequiredFieldsCounter.decreaseCounter();
 				mesoManager.split = txtMesoSplit.text;
@@ -171,7 +174,7 @@ Pane {
 		onClicked: mesoManager.getExercisesPlannerPage();
 	}
 
-	function forcusOnFirstItem() {
+	function forcusOnFirstItem(): void {
 		splitRepeater.itemAt(0).children[1].forceActiveFocus();
 	}
 } //Pane

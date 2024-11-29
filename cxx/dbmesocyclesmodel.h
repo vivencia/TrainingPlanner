@@ -195,7 +195,7 @@ public:
 	}
 
 	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
-	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const uint initiator_id);
+	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const bool bEmitSignal = true);
 
 	QString splitLetter(const uint meso_idx, const uint day_of_week) const;
 	QVariant data(const QModelIndex &index, int role) const override;
@@ -210,7 +210,8 @@ public:
 	bool isDateWithinMeso(const int meso_idx, const QDate& date) const;
 	void findNextOwnMeso();
 	int getPreviousMesoId(const QString& clientName, const int current_mesoid) const;
-	QDate getNewMesoMinimumStartDate(const QString& clientName) const;
+	QDate getMesoMinimumStartDate(const QString& clientName, const uint exclude_idx) const;
+	QDate getMesoMaximumEndDate(const QString& clientName, const uint exclude_idx) const;
 
 	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();
@@ -243,7 +244,7 @@ signals:
 	void isNewMesoChanged(const uint meso_idx);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx);
-	void muscularGroupChanged(const uint meso_idx, const uint initiator_id, const uint splitIndex, const QChar& splitLetter);
+	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar& splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();

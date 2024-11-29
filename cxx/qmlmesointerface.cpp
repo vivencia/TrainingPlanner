@@ -150,8 +150,9 @@ void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 		{
 			emit clientChanged();
 			appMesoModel()->setClient(m_mesoIdx, m_client);
-			if (!ownMeso()) {
-				setMinimumMesoStartDate(appMesoModel()->getNewMesoMinimumStartDate(m_client));
+			if (!ownMeso())
+			{
+				setMinimumMesoStartDate(appMesoModel()->getMesoMinimumStartDate(m_client, m_mesoIdx));
 				setStartDate(m_minimumMesoStartDate);
 			}
 		}
@@ -287,7 +288,7 @@ void QMLMesoInterface::setMuscularGroupA(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(0) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'A', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'A', new_value);
 		else
 			return;
 	}
@@ -300,7 +301,7 @@ void QMLMesoInterface::setMuscularGroupB(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(1) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'B', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'B', new_value);
 		else
 			return;
 	}
@@ -313,7 +314,7 @@ void QMLMesoInterface::setMuscularGroupC(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(2) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'C', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'C', new_value);
 		else
 			return;
 	}
@@ -326,7 +327,7 @@ void QMLMesoInterface::setMuscularGroupD(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(3) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'D', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'D', new_value);
 		else
 			return;
 	}
@@ -339,7 +340,7 @@ void QMLMesoInterface::setMuscularGroupE(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(4) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'E', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'E', new_value);
 		else
 			return;
 	}
@@ -352,7 +353,7 @@ void QMLMesoInterface::setMuscularGroupF(const QString& new_value, const bool bF
 	if (bFromQml)
 	{
 		if (m_muscularGroup.at(5) != new_value)
-			appMesoModel()->setMuscularGroup(m_mesoIdx, 'F', new_value, m_muscularGroupId);
+			appMesoModel()->setMuscularGroup(m_mesoIdx, 'F', new_value);
 		else
 			return;
 	}
@@ -484,20 +485,21 @@ DBTrainingDayModel* QMLMesoInterface::tDayModelForToday()
 
 void QMLMesoInterface::createMesocyclePage()
 {
-	m_muscularGroupId = QTime::currentTime().msecsSinceStartOfDay();
-
-	QDate startdate, enddate, minimumStartDate;
-	if (appMesoModel()->count() == 1)
+	if (!appMesoModel()->isNewMeso(m_mesoIdx))
 	{
-		minimumStartDate.setDate(2024, 7, 1); //monday, July 01 2024
-		startdate = std::move(QDate::currentDate());
+		setStartDate(appMesoModel()->startDate(m_mesoIdx), false);
+		setEndDate(appMesoModel()->endDate(m_mesoIdx), false);
+		setMinimumMesoStartDate(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), m_mesoIdx));
+		setMaximumMesoEndDate(appMesoModel()->getMesoMaximumEndDate(appMesoModel()->client(m_mesoIdx), m_mesoIdx));
 	}
 	else
 	{
-		minimumStartDate = std::move(appUtils()->getNextMonday(appMesoModel()->getNewMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx))));
-		startdate = minimumStartDate;
+		const QDate& minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
+		setStartDate(minimumStartDate, false);
+		setEndDate(appUtils()->createDate(minimumStartDate, 0, 2, 0), false);
+		setMinimumMesoStartDate(minimumStartDate);
+		setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
 	}
-	enddate = std::move(appUtils()->createDate(startdate, 0, 2, 0));
 
 	setName(appMesoModel()->name(m_mesoIdx), false);
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
@@ -507,10 +509,6 @@ void QMLMesoInterface::createMesocyclePage()
 	setPropertiesBasedOnUseMode();
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
-	setMinimumMesoStartDate(minimumStartDate);
-	setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
-	setStartDate(startdate);
-	setEndDate(enddate);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
 	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);
@@ -587,8 +585,8 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		if (meso_idx == m_mesoIdx)
 			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
 	});
-	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const uint initiator_id, const int splitIndex, const QChar& splitLetter) {
-		if (meso_idx == m_mesoIdx && initiator_id != m_muscularGroupId )
+	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& splitLetter) {
+		if (meso_idx == m_mesoIdx)
 			updateMuscularGroupFromOutside(splitIndex);
 	});
 	connect(appMesoModel(), &DBMesocyclesModel::mesoChanged, this, [this] (const uint meso_idx, const uint meso_field) {
@@ -622,10 +620,10 @@ void QMLMesoInterface::updateMuscularGroupFromOutside(const uint splitIndex)
 	switch (splitIndex)
 	{
 		case 0: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'A'), false); break;
-		case 1: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'B'), false); break;
-		case 2: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'C'), false); break;
-		case 3: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'D'), false); break;
-		case 4: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'E'), false); break;
-		case 5: setMuscularGroupA(appMesoModel()->muscularGroup(m_mesoIdx, 'F'), false); break;
+		case 1: setMuscularGroupB(appMesoModel()->muscularGroup(m_mesoIdx, 'B'), false); break;
+		case 2: setMuscularGroupC(appMesoModel()->muscularGroup(m_mesoIdx, 'C'), false); break;
+		case 3: setMuscularGroupD(appMesoModel()->muscularGroup(m_mesoIdx, 'D'), false); break;
+		case 4: setMuscularGroupE(appMesoModel()->muscularGroup(m_mesoIdx, 'E'), false); break;
+		case 5: setMuscularGroupF(appMesoModel()->muscularGroup(m_mesoIdx, 'F'), false); break;
 	}
 }

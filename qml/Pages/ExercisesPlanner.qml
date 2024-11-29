@@ -184,16 +184,16 @@ TPPage {
 		onListClosed: simpleExercisesListClosed();
 	}
 
-	function showSimpleExercisesList(multipleSel: bool) {
+	function showSimpleExercisesList(multipleSel: bool): void {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
 		exercisesPane.open();
 	}
 
-	function hideSimpleExercisesList() {
+	function hideSimpleExercisesList(): void {
 		exercisesPane.visible = false;
 	}
 
-	function createNavButtons() {
+	function createNavButtons(): void {
 		if (navButtons === null) {
 			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
@@ -209,12 +209,12 @@ TPPage {
 		}
 	}
 
-	function setScrollBarPosition(pos) {
+	function setScrollBarPosition(pos): void {
 		if (currentPage)
 			currentPage.setScrollBarPosition(pos);
 	}
 
-	function insertSplitPage(page: Item, idx: int) {
+	function insertSplitPage(page: Item, idx: int): void {
 		splitView.insertItem(idx, page);
 	}
 
@@ -229,7 +229,7 @@ TPPage {
 		}
 	}
 
-	function showInExMenu() {
+	function showInExMenu(): void {
 		if (imExportMenu === null) {
 			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			imExportMenu = imExportMenuComponent.createObject(pagePlanner, { parentPage: pagePlanner });
@@ -244,7 +244,7 @@ TPPage {
 		imExportMenu.show(btnImExport, 0);
 	}
 
-	function selectedMenuOption(menuid) {
+	function selectedMenuOption(menuid): void {
 		switch (menuid) {
 			case 0: splitManager.importMesoSplit(); break;
 			case 1: currentPage.showImportFromPreviousMesoMessage(); break;
@@ -267,7 +267,7 @@ TPPage {
 
 		property bool bShare: false
 
-		function init(share: bool) {
+		function init(share: bool): void {
 			bShare = share;
 			show(-1);
 		}
