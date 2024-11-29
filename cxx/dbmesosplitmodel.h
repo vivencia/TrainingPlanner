@@ -129,7 +129,7 @@ public:
 	Q_INVOKABLE void setSetWeight2(const uint row, const uint set_number, const QString& new_setsweight);
 
 	inline uint workingSet() const { return workingSet(currentRow()); }
-	inline uint workingSet(const int row) const { return row >= 0 ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
+	inline uint workingSet(const int row) const { return row >= 0 && row < m_modeldata.count() ? m_modeldata.at(row).at(MESOSPLIT_COL_WORKINGSET).toUInt() : 0; }
 	void setWorkingSet(const uint new_workingset) { setWorkingSet(currentRow(), new_workingset, true); }
 	void setWorkingSet(const uint row, const uint new_workingset, const bool emitSignal = true);
 
@@ -157,6 +157,7 @@ signals:
 	void workingSetChanged(const int row);
 	void splitChanged(const uint row, const uint field);
 	void labelsChanged();
+	void modelChanged();
 
 private:
 	uint m_nextAddedExercisePos;

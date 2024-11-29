@@ -81,11 +81,12 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 		emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
 }
 
-void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel, const uint initiator_id)
+void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel)
 {
 	splitModel->setMuscularGroup(new_musculargroup);
-	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->_splitLetter(), new_musculargroup, initiator_id);
+	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->_splitLetter(), new_musculargroup, false);
 	setSplitPageProperties(m_splitPages.value(splitModel->_splitLetter()), splitModel);
+	appExercisesModel()->makeFilterString(new_musculargroup);
 }
 
 void QmlMesoSplitInterface::swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2)

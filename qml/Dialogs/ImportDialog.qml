@@ -10,11 +10,9 @@ TPPopup {
 	id: importDlg
 	modal: true
 	width: appSettings.pageWidth * 0.9
-	height: totalHeight + 20
 
 	property list<string> importOptions
 	property list<bool> selectedFields
-	property int totalHeight: 0
 
 	TPLabel {
 		id: lblTitle
@@ -26,8 +24,6 @@ TPPopup {
 			left: parent.left
 			right: parent.right
 		}
-
-		Component.onCompleted: totalHeight += height + importImg.height;
 	}
 
 	TPImage {
@@ -60,6 +56,8 @@ TPPopup {
 			id: repeater
 			model: importOptions.length
 
+			property int itemsHeight: 0
+
 			TPCheckBox {
 				id: chkImportField
 				text: importOptions[index]
@@ -77,10 +75,14 @@ TPPopup {
 						}
 					}
 				}
+
+				Component.onCompleted: {
+					if (index === 0)
+						repeater.itemsHeight = 0;
+					repeater.itemsHeight += height;
+				}
 			}
 		} //Repeater
-
-		Component.onCompleted: totalHeight += repeater.count * 30
 	} //ColumnLayout
 
 	RowLayout
@@ -112,15 +114,15 @@ TPPopup {
 
 			onClicked: importDlg.close();
 		}
-
-		Component.onCompleted: totalHeight += 30;
 	}
 
-	function show(ypos) {
+	function show(ypos): void {
+		importDlg.height = 0;
+		importDlg.height = Math.max(height + importImg.height) + repeater.itemsHeight + btnImport.height + 30;
 		importDlg.x = (appSettings.pageWidth - importDlg.width)/2;
 
 		if (ypos < 0)
-			ypos = (appSettings.pageHeight-importDlg.height)/2;
+			ypos = (appSettings.pageHeight - importDlg.height)/2;
 
 		finalYPos = ypos;
 		if (ypos <= appSettings.pageHeight/2)

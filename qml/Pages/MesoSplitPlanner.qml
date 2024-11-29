@@ -92,10 +92,7 @@ Frame {
 			bottomMargin: 10
 		}
 
-		onEditingFinished: {
-			splitManager.changeMuscularGroup(text, splitModel);
-			exercisesModel.makeFilterString(text);
-		}
+		onEditingFinished: splitManager.changeMuscularGroup(text, splitModel);
 	}
 
 		ListView {
@@ -648,6 +645,13 @@ Frame {
 		exercisesModel.makeFilterString(txtGroups.text);
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(0, ListView.Center);
+		splitModel.modelChanged.connect(reloadModel);
+	}
+
+	function reloadModel() {
+		lstSplitExercises.model = null;
+		lstSplitExercises.model = splitModel;
+		txtGroups.text = splitModel.muscularGroup();
 	}
 
 	function setScrollBarPosition(pos): void {

@@ -538,6 +538,7 @@ bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
 	setMuscularGroup(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->muscularGroup());
 	setMesoIdx(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->mesoIdx());
 	appMesoModel()->setMuscularGroup(m_mesoIdx, _splitLetter(), muscularGroup(), false);
+	emit modelChanged();
 	if (model->importMode())
 		delete model;
 	return true;

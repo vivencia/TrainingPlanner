@@ -536,7 +536,10 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 					appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
 			else //exercises planner page for the current meso has NOT been loaded in the session
+			{
+				appMesoModel()->setMuscularGroup(newSplitModel->mesoIdx(), newSplitModel->_splitLetter(), newSplitModel->muscularGroup(), false);
 				appDBInterface()->saveMesoSplitComplete(newSplitModel);
+			}
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:
