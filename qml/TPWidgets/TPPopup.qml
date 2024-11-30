@@ -5,7 +5,7 @@ import QtQuick.Effects
 import "../"
 
 Popup {
-	id: tppopup
+	id: tpPopup
 	objectName: "TPPopup"
 	closePolicy: bKeepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
@@ -21,8 +21,8 @@ Popup {
 
 	Component.onCompleted: {
 		if (!modal && bKeepAbove) {
-			parentPage.pageDeActivated.connect(function() { bVisible = tppopup.visible; tppopup.visible = false; });
-			parentPage.pageActivated.connect(function() { if (bVisible) tppopup.visible = true; });
+			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
+			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
 		}
 	}
 
@@ -52,6 +52,11 @@ Popup {
 		shadowColor: "black"
 		shadowScale: 1
 		opacity: 0.9
+	}
+
+	TPMouseArea {
+		movableWidget: tpPopup
+		movingWidget: backgroundEffect
 	}
 
 	contentItem {

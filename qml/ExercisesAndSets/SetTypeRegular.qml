@@ -23,7 +23,7 @@ FocusScope {
 
 	Connections {
 		target: setManager
-			function ontypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
+			function onTypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
 			function onRestTimeChanged() { btnCopyTimeValue.visible = !btnCopyTimeValue.visible; }
 			function onReps1Changed() { btnCopySetReps.visible = !btnCopySetReps.visible; }
 			function onWeight1Changed() { btnCopySetWeight.visible = !btnCopySetWeight.visible; }

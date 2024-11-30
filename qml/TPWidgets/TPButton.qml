@@ -194,8 +194,8 @@ Rectangle {
 
 	function resizeButton() {
 		if (!fixedSize) {
-			const fwidth = buttonText.width;
-			const fheight = buttonText.height;
+			const fwidth = buttonText._textWidth;
+			const fheight = buttonText._textHeight;
 			implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
 			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
 		}

@@ -371,22 +371,26 @@ void DBInterface::loadCompleteMesoSplit(const uint meso_idx, const QChar& splitL
 void DBInterface::loadAllSplits(const uint meso_idx)
 {
 	const QString& mesoSplit{appMesoModel()->split(meso_idx)};
-	if (m_allSplits.isEmpty())
-		for(char c('A'); c <= char('F'); ++c)
-			m_allSplits.insert(c, new DBMesoSplitModel{this, true, meso_idx});
-	else
-		for(char c('A'); c <= char('F'); ++c)
-			m_allSplits.value(c)->clearFast();
+	QMap<QChar,DBMesoSplitModel*> allSplits;
+	for(char c('A'); c <= char('F'); ++c)
+	{
+		if (appMesoModel()->split(meso_idx).contains(c))
+		{
+			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true, meso_idx}};
+			splitModel->setSplitLetter(c);
+			allSplits.insert(c, splitModel);
+		}
+	}
 
 	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	worker->addExecArg(QVariant::fromValue(&m_allSplits));
+	worker->addExecArg(QVariant::fromValue(&allSplits));
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn] (const uint db_id) {
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,worker,conn,allSplits] (const uint db_id) {
 		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
 		{
 			disconnect(*conn);
-			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(m_allSplits));
+			emit databaseReadyWithData(MESOSPLIT_TABLE_ID, QVariant::fromValue(allSplits));
 		}
 	});
 	createThread(worker, [worker] () { return worker->getAllSplits(); });

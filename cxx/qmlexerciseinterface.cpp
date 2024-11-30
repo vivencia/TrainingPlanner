@@ -46,8 +46,8 @@ void QmlExerciseInterface::createExerciseObject()
 	if (exercise_idx > 0)
 		m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
+	m_tDayModel->newExercise(exercise_idx);
 	m_tDayPage->exerciseSelected(newExercise);
-	m_tDayModel->newExercise(exercise_idx, newExercise->exerciseName());
 
 	newExercise->setIsEditable(true);
 	newExercise->setRestTime(nRestTime);
@@ -59,6 +59,7 @@ void QmlExerciseInterface::createExerciseObject()
 	newExercise->setLastExercise(true);
 
 	createExerciseObject_part2(exercise_idx);
+	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -2));
 }
 
 void QmlExerciseInterface::createExercisesObjects()
@@ -92,6 +93,7 @@ void QmlExerciseInterface::createExercisesObjects()
 		m_exercisesList.append(newExercise);
 		createExerciseObject_part2(i);
 	}
+	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
 }
 
 void QmlExerciseInterface::removeExerciseObject(const uint exercise_idx)
@@ -191,5 +193,4 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
 	m_exercisesList.at(exercise_idx)->setExerciseEntry(item);
-	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
 }

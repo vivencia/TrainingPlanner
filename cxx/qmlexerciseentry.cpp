@@ -190,6 +190,15 @@ void QmlExerciseEntry::createAvailableSets()
 	if (m_setObjects.isEmpty())
 	{
 		const uint nsets(m_tDayModel->setsNumber(m_exercise_idx));
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn] (const uint set_number) {
+			if (set_number == 0)
+			{
+				disconnect(*conn);
+				QQuickItem* setObj(m_setObjects.at(0)->setEntry());
+				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
+			}
+		});
 		for (uint i(0); i < nsets; ++i)
 		{
 			m_expectedSetNumber = i;
@@ -198,8 +207,6 @@ void QmlExerciseEntry::createAvailableSets()
 		emit hasSetsChanged();
 		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
-	if (!m_setObjects.isEmpty())
-		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, -1));
 }
 
 void QmlExerciseEntry::removeExercise(const bool bAsk)

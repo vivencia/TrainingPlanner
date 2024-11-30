@@ -44,7 +44,7 @@ public:
 	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const { Q_UNUSED(field); return fieldValue; }
 
 	inline const QString& exportName() const { return m_exportName; }
-	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.clear(); m_exportRows.append(row); }
+	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.append(row); }
 	void setExportFilter(const QString& filter, const uint field);
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
 

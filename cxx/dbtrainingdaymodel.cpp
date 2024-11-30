@@ -193,7 +193,8 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 				if (strstr(buf, ":") != NULL) //dont't put a colon in exportExtraInfo()
 				{
 					value = buf;
-					newExercise(exercise_idx, value.remove(0, value.indexOf(':') + 2).trimmed().replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
+					newExercise(exercise_idx);
+					setExerciseName(exercise_idx, value.remove(0, value.indexOf(':') + 2).trimmed().replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
@@ -264,7 +265,8 @@ bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
 	const DBTrainingDayModel* const tDayModel(static_cast<const DBTrainingDayModel* const>(const_cast<TPListModel*>(model)));
 	for (uint i(0); i < tDayModel->exerciseCount(); ++i)
 	{
-		newExercise(i, tDayModel->exerciseName(i));
+		newExercise(i);
+		setExerciseName(i, tDayModel->exerciseName(i));
 		newFirstSet(i, tDayModel->setType(0, i), tDayModel->setReps(0, i), tDayModel->setWeight(0, i), tDayModel->setRestTime(0, i),
 					tDayModel->setSubSets(0, 1), tDayModel->setNotes(0, i));
 		for (uint x(1); x < tDayModel->setsNumber(i); ++x)
@@ -371,7 +373,7 @@ void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString&
 	}
 }
 
-void DBTrainingDayModel::newExercise(const uint exercise_idx, const QString& new_exercise)
+void DBTrainingDayModel::newExercise(const uint exercise_idx)
 {
 	const uint total(m_ExerciseData.count());
 	const int n(exercise_idx - total);
@@ -380,7 +382,6 @@ void DBTrainingDayModel::newExercise(const uint exercise_idx, const QString& new
 		for(uint i(0); i <= n; ++i)
 			m_ExerciseData.append(new exerciseEntry);
 	}
-	m_ExerciseData.at(exercise_idx)->name = new_exercise;
 	emit exerciseCountChanged();
 }
 

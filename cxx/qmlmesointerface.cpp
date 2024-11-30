@@ -431,7 +431,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 {
 	int exportFileMessageId(APPWINDOW_MSG_EXPORT_OK);
 	const QString& exportFileName{appItemManager()->setExportFileName(appMesoModel()->name(m_mesoIdx) + std::move(tr(" - TP Complete Meso.txt")))};
-	appItemManager()->setExportFileName(exportFileName);
+	static_cast<void>(QFile::remove(exportFileName)); //remove any left overs to avoid errors
 	if (bCoachInfo)
 	{
 		appUserModel()->setExportRow(appUserModel()->getRowByCoachName(appMesoModel()->coach(m_mesoIdx)));
@@ -443,22 +443,54 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 		exportFileMessageId = appMesoModel()->exportToFile(exportFileName);
 		if (exportFileMessageId == APPWINDOW_MSG_EXPORT_OK)
 		{
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&exportFileMessageId,&exportFileName] (const uint table_idx, const QVariant data) {
-				if (table_idx == MESOSPLIT_TABLE_ID)
+			QChar splitletter('R');
+			uint i(0);
+			for (; i < appMesoModel()->split(m_mesoIdx).length(); ++i)
+			{
+				splitletter = appMesoModel()->split(m_mesoIdx).at(i);
+				if (splitletter != 'R')
+					break;
+			}
+			if (splitletter != 'R')
+			{
+				DBMesoSplitModel* splitModel(appMesoModel()->mesoManager(m_mesoIdx)->plannerSplitModel(splitletter));
+				if (!splitModel)
 				{
-					disconnect(*conn);
-					QMap<QChar,DBMesoSplitModel*>* allSplits(data.value<QMap<QChar,DBMesoSplitModel*>*>());
-					QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits->constBegin());
-					const QMap<QChar,DBMesoSplitModel*>::const_iterator mapEnd(allSplits->constEnd());
-					do {
-						(*splitModel)->exportToFile(exportFileName);
-					} while (++splitModel != mapEnd);
+					auto conn = std::make_shared<QMetaObject::Connection>();
+					*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&exportFileMessageId,&exportFileName]
+																					(const uint table_idx, const QVariant data) {
+						if (table_idx == MESOSPLIT_TABLE_ID)
+						{
+							disconnect(*conn);
+							const QMap<QChar,DBMesoSplitModel*>& allSplits(data.value<QMap<QChar,DBMesoSplitModel*>>());
+							QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits.constBegin());
+							const QMap<QChar,DBMesoSplitModel*>::const_iterator mapEnd(allSplits.constEnd());
+							do {
+								(*splitModel)->exportToFile(exportFileName);
+							} while (++splitModel != mapEnd);
+							appItemManager()->continueExport(exportFileMessageId, bShare);
+						}
+					});
+					appDBInterface()->loadAllSplits(m_mesoIdx);
+					return;
+				}
+				else
+				{
+					do
+					{
+						if (splitModel)
+							splitModel->exportToFile(exportFileName);
+						if (++i < appMesoModel()->split(m_mesoIdx).length())
+						{
+							splitletter = appMesoModel()->split(m_mesoIdx).at(i);
+							splitModel = splitletter != 'R' ? appMesoModel()->mesoManager(m_mesoIdx)->plannerSplitModel(splitletter) : nullptr;
+						}
+						else
+							break;
+					} while (true);
 					appItemManager()->continueExport(exportFileMessageId, bShare);
 				}
-			});
-			appDBInterface()->loadAllSplits(m_mesoIdx);
-			return;
+			}
 		}
 	}
 	emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);

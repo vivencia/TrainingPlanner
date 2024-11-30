@@ -157,7 +157,7 @@ public:
 	inline const QString& _exerciseName(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->name; }
 
 	void setExerciseName(const uint exercise_idx, const QString& new_name);
-	void newExercise(const uint exercise_idx, const QString& new_exercise);
+	void newExercise(const uint exercise_idx);
 	void removeExercise(const uint exercise_idx);
 	void changeExerciseName(const uint exercise_idx, DBExercisesModel* model);
 

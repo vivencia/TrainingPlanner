@@ -476,8 +476,9 @@ int DBMesocyclesModel::exportToFile(const QString& filename, const bool, const b
 	int res(this->TPListModel::exportToFile(filename, true, false));
 	if (res >= 0)
 	{
-		m_splitModel->setExportRow(m_mesoIdx);
+		m_splitModel->setExportRow(m_exportRows.at(0));
 		res = m_splitModel->TPListModel::exportToFile(filename, false, true);
+		const_cast<DBMesocyclesModel*>(this)->m_exportRows.clear();
 	}
 	return res;
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 14.0.2, 2024-11-28T14:33:26. -->
+<!-- Written by QtCreator 14.0.2, 2024-11-30T13:25:50. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -181,8 +181,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">TrainingPlanner</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.TrainingPlanner</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">TrainingPlanner</value>
-    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
-    <value type="QString" key="RunConfiguration.Arguments">/home/guilherme/Documents/Fase de transição - Exercícios.txt</value>
+    <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

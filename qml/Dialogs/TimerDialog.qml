@@ -46,58 +46,6 @@ TPPopup {
 		anchors.fill: parent
 		spacing: 0
 
-		Rectangle {
-			id: recTitleBar
-			height: 20
-			width: dlgTimer.width
-			color: appSettings.paneBackgroundColor
-			z: 0
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-
-			Label {
-				id: lblTitle
-				text: windowTitle
-				color: appSettings.fontColor
-				height: parent.height
-				anchors {
-					left: parent.left
-					right: parent.right
-					rightMargin: 30
-					leftMargin: 10
-					verticalCenter: parent.verticalCenter
-				}
-				elide: Text.ElideLeft
-
-				TPMouseArea {
-					movableWidget: dlgTimer
-					movingWidget: lblTitle
-				}
-			}
-
-			TPButton {
-				id: btnCloseWindow
-				imageSource: "close.png"
-				hasDropShadow: false
-				width: 20
-				height: 20
-
-				anchors {
-					right: parent.right
-					top: parent.top
-					rightMargin: 12
-				}
-
-				onClicked: { dlgTimer.close(); }
-			}
-		}
-
 		TPCheckBox {
 			id: chkStopWatch
 			text: qsTr("Stopwatch")
@@ -351,13 +299,12 @@ TPPopup {
 			}
 		} // ProgressBar
 
-		Row {
+		RowLayout {
 			id: btnsRow
-			spacing: txtWidth/2
+			spacing: 5
 			Layout.topMargin: 3
 			Layout.preferredWidth: rowWidth
 			Layout.leftMargin: !timePickerOnly ? 10 : 50
-			readonly property int buttonWidth: !timePickerOnly ? rowWidth/3 - 10 : 50
 
 			TPButton {
 				id: btnStartPause
@@ -365,8 +312,6 @@ TPPopup {
 				flat: false
 				enabled: mainTimer.stopWatch ? true : mainTimer.totalSeconds > 0
 				visible: !timePickerOnly
-				Layout.minimumWidth: btnsRow.buttonWidth
-				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: {
 					if (!mainTimer.active)
@@ -381,8 +326,6 @@ TPPopup {
 				text: qsTr("Reset")
 				flat: false
 				visible: !timePickerOnly
-				Layout.minimumWidth: btnsRow.buttonWidth
-				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: mainTimer.resetTimer(mainTimer.active);
 			}
@@ -391,8 +334,6 @@ TPPopup {
 				id: btnUseTime
 				text: simpleTimer ? qsTr("Close") : timePickerOnly ? qsTr("Done") : qsTr("Use")
 				flat: false
-				Layout.minimumWidth: btnsRow.buttonWidth
-				Layout.maximumWidth: btnsRow.buttonWidth
 
 				onClicked: {
 					if (timePickerOnly)

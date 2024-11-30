@@ -168,11 +168,14 @@ int DBUserModel::findLastUser(const bool bCoach)
 
 const int DBUserModel::getRowByCoachName(const QString& coachname) const
 {
-	for (uint i(1); i < m_modeldata.count(); ++i)
+	for (uint i(0); i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
-			if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)
+		{
+			const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+			if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
 				return i;
+		}
 	}
 	return -1;
 }
@@ -180,11 +183,10 @@ const int DBUserModel::getRowByCoachName(const QString& coachname) const
 QStringList DBUserModel::getCoaches() const
 {
 	QStringList coaches;
-	if (appUseMode(0) >= APP_USE_MODE_SINGLE_USER_WITH_COACH)
-		coaches.append(m_modeldata.at(0).at(USER_COL_NAME));
-	for (uint i(1); i < m_modeldata.count(); ++i)
+	for (uint i(0); i < m_modeldata.count(); ++i)
 	{
-		if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_SINGLE_COACH)
+		const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+		if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
 			coaches.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
 	return coaches;
@@ -193,9 +195,10 @@ QStringList DBUserModel::getCoaches() const
 QStringList DBUserModel::getClients() const
 {
 	QStringList clients;
-	for (uint i(1); i < m_modeldata.count(); ++i)
+	for (uint i(0); i < m_modeldata.count(); ++i)
 	{
-		if (m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt() == APP_USE_MODE_CLIENTS)
+		const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+		if (app_use_mode == APP_USE_MODE_CLIENTS || app_use_mode == APP_USE_MODE_SINGLE_USER_WITH_COACH)
 			clients.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
 	return clients;

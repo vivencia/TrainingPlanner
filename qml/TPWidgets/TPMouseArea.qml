@@ -2,7 +2,7 @@ import QtQuick
 
 MouseArea {
 	id: mousearea
-	z: 1
+	z: 0
 	anchors.fill: movingWidget
 
 	required property var movingWidget

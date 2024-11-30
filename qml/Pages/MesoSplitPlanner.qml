@@ -153,7 +153,7 @@ Frame {
 					Connections {
 						target: splitModel
 
-						function onExerciseNameChanged(row) {
+						function onExerciseNameChanged(row): void {
 							if (splitModel.currentRow === row) {
 								if (splitModel.exerciseIsComposite(row))
 									cboSetType.currentIndex = 4;
@@ -167,7 +167,7 @@ Frame {
 							}
 						}
 
-						function onSetsNumberChanged(row) {
+						function onSetsNumberChanged(row): void {
 							if (splitModel.currentRow === row)
 								buttonsRepeater.model = splitModel.setsNumber(row);
 						}

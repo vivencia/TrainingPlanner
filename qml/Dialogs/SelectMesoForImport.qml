@@ -10,12 +10,10 @@ TPPopup {
 	id: selectMesoDlg
 	modal: true
 	width: appSettings.pageWidth * 0.9
-	height: totalHeight*1.3
 
 	property list<string> mesosList
 	property list<int> idxsList
 	property string message
-	property int totalHeight: 0
 
 	TPImage {
 		id: importImg
@@ -44,8 +42,6 @@ TPPopup {
 			right: parent.right
 			rightMargin: 15
 		}
-
-		Component.onCompleted: totalHeight += Math.max(height, importImg.height);
 	}
 
 	ListView {
@@ -94,15 +90,13 @@ TPPopup {
 
 			onClicked: mesosListView.currentIndex = index;
 		} //ItemDelegate
-
-		Component.onCompleted: totalHeight += height;
 	} //ListView
 
 	RowLayout
 	{
 		id: buttonsRow
 		uniformCellSizes: true
-		height: 30
+		height: 25
 
 		anchors {
 			left: parent.left
@@ -134,12 +128,12 @@ TPPopup {
 
 			onClicked: selectMesoDlg.close();
 		}
-
-		Component.onCompleted: totalHeight += height;
 	}
 
-	function show(ypos) {
+	function show(ypos): void {
 		mesosListView.currentIndex = -1;
+		selectMesoDlg.height = 0;
+		selectMesoDlg.height = Math.max(lblTitle.height, importImg.height) + mesosListView.height + btnCancel.height + 20;
 		selectMesoDlg.x = (appSettings.pageWidth - selectMesoDlg.width)/2;
 
 		if (ypos < 0)

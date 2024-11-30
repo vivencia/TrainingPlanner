@@ -140,7 +140,6 @@ private:
 	workerLocks m_WorkerLock[APP_TABLES_NUMBER+1];
 	QTimer m_threadCleaner;
 	QString m_exercisesListVersion;
-	QMap<QChar,DBMesoSplitModel*> m_allSplits;
 
 	void updateDB(TPDatabaseTable* worker);
 	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);

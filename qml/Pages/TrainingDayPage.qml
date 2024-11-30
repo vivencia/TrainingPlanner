@@ -367,7 +367,7 @@ TPPage {
 					navButtons.showUpButton = false;
 					navButtons.showDownButton = true;
 				}
-				else if (Math.abs(contentItem.contentY - (phantomItem.y - lblExercisesStart.y)) < 50) {
+				else if (Math.abs(contentItem.contentY - (phantomItem.y - exercisesLayout.y)) < 50) {
 					navButtons.showUpButton = true;
 					navButtons.showDownButton = false;
 				}
@@ -402,7 +402,7 @@ TPPage {
 
 		function init(pos) {
 			if (pos >= 0)
-				ypos = exercisesLayout.y + pos;
+				ypos = pos;
 			else
 				ypos = 0;
 			start();
@@ -694,7 +694,11 @@ TPPage {
 
 	function placeSetIntoView(ypos: int) {
 		if (ypos === -1)
+			ypos = phantomItem.y - lblExercisesStart.y;
+		else if (ypos === -2)
 			ypos = phantomItem.y;
+		else
+			ypos += exercisesLayout.y;
 		scrollTimer.init(ypos);
 	}
 

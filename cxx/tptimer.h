@@ -70,7 +70,7 @@ public:
 	inline bool paused() const { return mb_paused; }
 	inline uint progressValue() const { return m_progressValue; }
 	inline const QTime& elapsedTime() const { return m_elapsedTime; }
-	inline const QTime& currentElapsedTime() { calculateElapsedTime(); return m_elapsedTime; }
+	Q_INVOKABLE QTime currentElapsedTime() { calculateElapsedTime(); return m_elapsedTime; }
 	inline const QTime& initialTime() const { return m_initialTime; }
 
 signals:

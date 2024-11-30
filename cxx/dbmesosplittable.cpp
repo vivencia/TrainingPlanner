@@ -168,23 +168,25 @@ void DBMesoSplitTable::getAllSplits()
 	{
 		const QString& mesoId(m_execArgs.at(0).toString());
 		QMap<QChar,DBMesoSplitModel*>* allSplits(m_execArgs.at(1).value<QMap<QChar,DBMesoSplitModel*>*>());
-		QMap<QChar,DBMesoSplitModel*>::const_iterator splitModel(allSplits->constBegin());
+
 		QSqlQuery query{getQuery()};
 
 		for(char c('A'); c <= char('F'); ++c)
 		{
+			DBMesoSplitModel* splitModel(allSplits->value(c));
+			if (!splitModel)
+				continue;
+
 			const QString& strQuery{"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(c).arg(mesoId)};
 			bool ok(false);
 
-			(*splitModel)->setSplitLetter(c);
 			if (query.exec(strQuery))
 			{
 				if (query.first ())
 				{
-
-					(*splitModel)->setMuscularGroup(query.value(7).toString());
+					splitModel->setMuscularGroup(query.value(7).toString());
 					const QStringList& exercises(query.value(MESOSPLIT_COL_EXERCISENAME).toString().split(record_separator, Qt::SkipEmptyParts));
 					const QStringList& setsnumber(query.value(MESOSPLIT_COL_SETSNUMBER).toString().split(record_separator, Qt::SkipEmptyParts));
 					const QStringList& setsnotes(query.value(MESOSPLIT_COL_NOTES).toString().split(record_separator, Qt::SkipEmptyParts));
@@ -204,10 +206,10 @@ void DBMesoSplitTable::getAllSplits()
 						split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));
 						split_info[MESOSPLIT_COL_WEIGHT] = std::move(setsweight.at(i));
 						split_info[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
-						(*splitModel)->addExerciseFromDatabase(&split_info);
+						splitModel->addExerciseFromDatabase(&split_info);
 					}
 					ok = true;
-					(*splitModel)->setReady(true);
+					splitModel->setReady(true);
 				}
 				else
 					ok = false;
@@ -220,7 +222,6 @@ void DBMesoSplitTable::getAllSplits()
 				ERROR_MESSAGE(strQuery, "")
 			#endif
 			query.finish();
-			++splitModel;
 		}
 		mSqlLiteDB.close();
 	}
@@ -259,7 +260,7 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 					QStringList split_info(COMPLETE_MESOSPLIT_TOTAL_COLS);
 					split_info[MESOSPLIT_COL_EXERCISENAME] = std::move(exercises.at(i));
 					split_info[MESOSPLIT_COL_SETSNUMBER] = std::move(setsnumber.at(i));
-					split_info[MESOSPLIT_COL_NOTES] = std::move(setsnotes.at(i));
+					split_info[MESOSPLIT_COL_NOTES] = i < setsnotes.count() ? std::move(setsnotes.at(i)) : " "_L1; //might be empty when importing
 					split_info[MESOSPLIT_COL_SETTYPE] = std::move(setstypes.at(i));
 					split_info[MESOSPLIT_COL_SUBSETSNUMBER] = std::move(setssubsets.at(i));
 					split_info[MESOSPLIT_COL_REPSNUMBER] = std::move(setsreps.at(i));

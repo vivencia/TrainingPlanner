@@ -9,7 +9,7 @@ Label {
 	wrapMode: Text.NoWrap
 	elide: Text.ElideNone
 	font: AppGlobals.regularFont
-	minimumPointSize: appSettings.fontSize
+	minimumPointSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
 	fontSizeMode: Text.Fit
 	topPadding: _lineCount === 1 ? 0 : -3*_lineCount
@@ -27,10 +27,10 @@ Label {
 	readonly property int _lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
-	onFontChanged: adjustFontSize();
-	onTextChanged: adjustFontSize();
+	onFontChanged: adjustTextSize();
+	onTextChanged: adjustTextSize();
 
-	function adjustFontSize() {
+	function adjustTextSize() {
 		if (font === AppGlobals.regularFont) {
 			_textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsRegular.boundingRect("TP").height

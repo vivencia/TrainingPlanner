@@ -194,7 +194,7 @@ Drawer {
 
 		function finishCreation() {
 			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, autoResize: true,
-				"Layout.preferredWidth": drawer.width - 5, "Layout.preferredHeight": 25 });
+				"Layout.preferredWidth": drawer.width - 5, "Layout.minimumHeight": 25, "Layout.maximumHeight": 50 });
 			button.clicked.connect(function (id) { itemManager.openMainMenuShortCut(id);} );
 			itemManager.addMainMenuShortCutEntry(button);
 		}
