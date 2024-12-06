@@ -31,7 +31,7 @@ public:
 	uint calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const;
 	QDate getNextMonday(const QDate& fromDate) const;
 	QDate createDate(const QDate& fromDate, const int years, const int months, const int days) const;
-	inline QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
+	Q_INVOKABLE inline QDate getDayBefore(const QDate& date) const { return date.addDays(-1); }
 	int daysInMonth(const int month, const int year) const;
 
 	Q_INVOKABLE inline QString formatTime(const QTime& time, const bool use_hours = false, const bool use_secs = false) const

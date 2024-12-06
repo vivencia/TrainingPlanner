@@ -40,29 +40,33 @@ QMLMesoInterface::~QMLMesoInterface()
 
 void QMLMesoInterface::setRealMeso(const bool new_value, const bool bFromQml)
 {
-	if (m_bRealMeso != new_value)
+	if (bFromQml)
 	{
-		m_bRealMeso = new_value;
-		if (bFromQml)
+		if (m_bRealMeso != new_value)
 		{
+			m_bRealMeso = new_value;
 			emit realMesoChanged();
 			appMesoModel()->setIsRealMeso(m_mesoIdx, m_bRealMeso);
 			setEndDate(m_bRealMeso ? appMesoModel()->endDate(m_mesoIdx) : maximumMesoEndDate());
 		}
 	}
+	else
+		m_bRealMeso = new_value;
 }
 
 void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 {
-	if (m_bOwnMeso != new_value)
+	if (bFromQml)
 	{
-		m_bOwnMeso = new_value;
-		if (bFromQml)
+		if (m_bOwnMeso != new_value)
 		{
+			m_bOwnMeso = new_value;
 			emit ownMesoChanged();
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
 		}
 	}
+	else
+		m_bOwnMeso = new_value;
 }
 
 bool QMLMesoInterface::isNewMeso() const
@@ -117,37 +121,41 @@ QString QMLMesoInterface::notesLabel() const
 
 void QMLMesoInterface::setName(const QString& new_value, const bool bFromQml)
 {
-	if (m_name != new_value)
+	if (bFromQml)
 	{
-		m_name = new_value;
-		if (bFromQml)
+		if (m_name != new_value)
 		{
+			m_name = new_value;
 			emit nameChanged();
 			appMesoModel()->setName(m_mesoIdx, m_name);
 		}
 	}
+	else
+		m_name = new_value;
 }
 
 void QMLMesoInterface::setCoach(const QString& new_value, const bool bFromQml)
 {
-	if (m_coach != new_value)
+	if (bFromQml)
 	{
-		m_coach = new_value;
-		if (bFromQml)
+		if (m_coach != new_value)
 		{
+			m_coach = new_value;
 			emit coachChanged();
 			appMesoModel()->setCoach(m_mesoIdx, m_coach);
 		}
 	}
+	else
+		m_coach = new_value;
 }
 
 void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 {
-	if (m_client != new_value)
+	if (bFromQml)
 	{
-		m_client = new_value;
-		if (bFromQml)
+		if (m_client != new_value)
 		{
+			m_client = new_value;
 			emit clientChanged();
 			appMesoModel()->setClient(m_mesoIdx, m_client);
 			if (!ownMeso())
@@ -157,15 +165,14 @@ void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 			}
 		}
 	}
+	else
+		m_client = new_value;
 }
 
 void QMLMesoInterface::setType(const QString& new_value, const bool bFromQml)
 {
 	if (bFromQml)
 	{
-		const QString& good_filepath(appUtils()->getCorrectPath(new_value));
-		if (!appUtils()->canReadFile(good_filepath))
-			return;
 		if (m_type != new_value)
 		{
 			m_type = new_value;
@@ -184,16 +191,21 @@ QString QMLMesoInterface::fileName() const
 
 void QMLMesoInterface::setFile(const QString& new_value, const bool bFromQml)
 {
-	if (m_file != new_value)
+	if (bFromQml)
 	{
-		m_file = new_value;
-		if (bFromQml)
+		if (m_file != new_value)
 		{
+			const QString& good_filepath(appUtils()->getCorrectPath(new_value));
+			if (!appUtils()->canReadFile(good_filepath))
+				return;
+			m_file = new_value;
 			emit fileChanged();
 			emit fileNameChanged();
 			appMesoModel()->setFile(m_mesoIdx, m_file);
 		}
 	}
+	else
+		m_file = new_value;
 }
 
 void QMLMesoInterface::setStartDate(const QDate& new_value, const bool bFromQml)

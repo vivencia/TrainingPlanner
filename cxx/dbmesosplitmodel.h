@@ -44,9 +44,9 @@ public:
 	void addExerciseFromDatabase(QStringList* exercise_info);
 	inline bool completeSplit() const { return mb_Complete; }
 
+	//------------------------------------------- Simple Split model used by appMesoModel() -------------------------------------------
 	inline const QString& id(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_ID); }
 	inline void setId(const uint row, const QString& new_id) { m_modeldata[row][MESOSPLIT_COL_ID] = new_id; }
-
 	inline const QString& mesoId(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_COL_MESOID); }
 	inline void setMesoId(const uint row, const QString& new_id) { m_modeldata[row][MESOSPLIT_COL_MESOID] = new_id; }
 
@@ -57,6 +57,7 @@ public:
 	inline const QString& splitE(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_E); }
 	inline const QString& splitF(const uint row) const { return m_modeldata.at(row).at(MESOSPLIT_F); }
 	inline const QString& splitX(const uint row, const uint split_idx) const { return m_modeldata.at(row).at(split_idx); }
+	//------------------------------------------- Simple Split model used by appMesoModel() -------------------------------------------
 
 	inline void setFast(const uint row, const uint field, const QString& value)
 	{

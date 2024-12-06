@@ -152,20 +152,21 @@ TPPage {
 
 			TPComboBox {
 				id: cboCoaches
-				currentIndex: indexOfValue(mesoManager.coach)
 				visible: mesoManager.hasCoach
 				implicitWidth: parent.width*0.8
 
 				model: ListModel {
 					id: coachesModel
 
-					function populate() {
+					function populate(): void {
 						const currentCoach = userModel.userName(userModel.currentCoach(userModel.userRow(mesoManager.coach)));
 						append({ "text": currentCoach, "value": 0, "enabled": true });
 						const coaches = userModel.getCoaches();
-						for(var i = 0; i < coaches.length; ++i) {
+						for(let i = 0; i < coaches.length; ++i) {
 							if (coaches[i] !== currentCoach)
 								append({ "text": coaches[i], "value": i, "enabled": true });
+							if (coaches[i] === mesoManager.coach)
+								cboCoaches.currentIndex = i;
 						}
 					}
 				}
@@ -205,20 +206,21 @@ TPPage {
 
 				TPComboBox {
 					id: cboClients
-					currentIndex: indexOfValue(mesoManager.client)
 					implicitWidth: 0.7*parent.width
 					Layout.minimumWidth: width
 
 					model: ListModel {
 						id: clientsModel
 
-						function populate() {
-							const currentClient = userModel.userName(userModel.currentClient(userModel.userRow(mesoManager.client)));
+						function populate(): void {
+							const currentClient = userModel.userName(userModel.currentClient());
 							append({ "text": currentClient, "value": 0, "enabled": true });
 							const clients = userModel.getClients();
-							for(var x = 0; x < clients.length; ++x) {
-								if (clients[x] !== currentClient)
-									append({ "text": clients[x], "value": x, "enabled": true });
+							for(let i = 0; i < clients.length; ++i) {
+								if (clients[i] !== currentClient)
+									append({ "text": clients[i], "value": i, "enabled": true });
+								if (clients[i] === mesoManager.client)
+									cboClients.currentIndex = i;
 							}
 						}
 					}
@@ -245,27 +247,36 @@ TPPage {
 
 				TPComboBox {
 					id: cboMesoType
-					model: mesoTypeModel
-					editText: mesoManager.type
 					width: 0.75*parent.width
 					Layout.minimumWidth: width
 
-					onActivated: (index) => {
-						if (index < 6)
-							mesoManager.type = textAt(index);
-						else
-							txtMesoTypeOther.forceActiveFocus();
-					}
-
-					ListModel {
-						id: mesoTypeModel
+					model: ListModel {
+						id: typeModel
 						ListElement { text: qsTr("Weigth Loss"); value: 0; enabled: true; }
 						ListElement { text: qsTr("Muscle Gain"); value: 1; enabled: true; }
 						ListElement { text: qsTr("Bulking"); value: 2; enabled: true; }
 						ListElement { text: qsTr("Pre-contest"); value: 3; enabled: true; }
 						ListElement { text: qsTr("Strength Build-up"); value: 4; enabled: true; }
-						ListElement { text: qsTr("Recovery"); value: 5; enabled: true; }
-						ListElement { text: qsTr("Other"); value: 6; enabled: true; }
+						ListElement { text: qsTr("Physical Recovery"); value: 5; enabled: true; }
+						ListElement { text: qsTr("Physical Maintenance"); value: 6; enabled: true; }
+						ListElement { text: qsTr("Other"); value: 7; enabled: true; }
+
+						Component.onCompleted: {
+							for(let i = 0; i < count; ++i) {
+								if (get(i) === mesoManager.type)
+								{
+									cboMesoType.currentIndex = i;
+									return;
+								}
+							}
+						}
+					}
+
+					onActivated: (index) => {
+						if (index < (typeModel.count - 1))
+							mesoManager.type = textAt(index);
+						else
+							txtMesoTypeOther.forceActiveFocus();
 					}
 				}
 			}

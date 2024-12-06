@@ -41,6 +41,13 @@ TPSettings::TPSettings(QObject* parent) : QSettings{parent}
 	const QFontInfo fi{QGuiApplication::font()};
 	setFontSize(value(m_propertyNames.value(FONT_SIZE_INDEX), fi.pixelSize()).toUInt(), false);
 	setColorScheme(value(m_propertyNames.value(COLOR_SCHEME_INDEX), 0).toUInt(), false);
+
+	if (value(m_propertyNames.value(APP_VERSION_INDEX)).isNull())
+	{
+		setValue(m_propertyNames.value(APP_VERSION_INDEX), TP_APP_VERSION);
+		remove(m_propertyNames.value(WEATHER_CITIES_INDEX));
+		sync();
+	}
 }
 
 void TPSettings::getScreenMeasures()
@@ -208,7 +215,7 @@ void TPSettings::addWeatherCity(const QString& city, const QString& latitude, co
 		if (m_weatherLocations.at(i).contains(city, Qt::CaseInsensitive))
 			return;
 	}
-	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude);
+	m_weatherLocations.append(city + record_separator + latitude + record_separator + longitude + record_separator);
 	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
 	emit weatherCitiesCountChanged();
 }
@@ -216,6 +223,6 @@ void TPSettings::addWeatherCity(const QString& city, const QString& latitude, co
 void TPSettings::removeWeatherCity(const uint idx)
 {
 	m_weatherLocations.removeAt(idx);
-	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations)) ;
+	changeValue(WEATHER_CITIES_INDEX, QVariant::fromValue(m_weatherLocations));
 	emit weatherCitiesCountChanged();
 }

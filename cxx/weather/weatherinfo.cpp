@@ -186,7 +186,8 @@ void WeatherInfo::handleWeatherData(const st_LocationInfo& location, const QList
 		d->coord.setLatitude(latitude.toDouble());
 		d->coord.setLongitude(longitude.toDouble());
 	}
-	d->now.setWeatherInfo(st_WeatherInfo{});
+	else
+		d->now.setWeatherInfo(st_WeatherInfo{});
 }
 
 void WeatherInfo::buildLocationsList(QList<st_LocationInfo>* foundLocations)

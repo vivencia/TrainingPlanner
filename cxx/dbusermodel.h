@@ -191,12 +191,8 @@ public:
 		emit userModified(row, USER_COL_CURRENT_COACH);
 	}
 
-	Q_INVOKABLE inline int currentClient(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentClient(row).toUInt() : -1; }
-	inline const QString& _currentClient(const uint row) const { return m_modeldata.at(row).at(USER_COL_CURRENT_CLIENT); }
-	inline const QString currentClientName(const uint row) const
-	{
-		return currentClient(row) >= 0 ? m_modeldata.at(row).at(USER_COL_NAME) : tr("(Select client ...)");
-	}
+	Q_INVOKABLE inline int currentClient() const { return _currentClient().toUInt(); }
+	inline const QString& _currentClient() const { return m_modeldata.at(0).at(USER_COL_CURRENT_CLIENT); }
 
 	Q_INVOKABLE inline void setCurrentClient(const int row, const int new_current_user)
 	{

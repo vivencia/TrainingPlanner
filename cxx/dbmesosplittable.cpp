@@ -96,7 +96,7 @@ void DBMesoSplitTable::getAllMesoSplits()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_L1};
+		const QString& strQuery{u"SELECT id,meso_id,splitA,splitB,splitC,splitD,splitE,splitF FROM mesocycles_splits"_s};
 
 		if (query.exec(strQuery))
 		{
@@ -126,10 +126,10 @@ void DBMesoSplitTable::saveMesoSplit()
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const uint row(m_execArgs.at(0).toUInt());
+		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate(false);
 
-		if (query.exec("SELECT id FROM mesocycles_splits WHERE meso_id=%1"_L1.arg(m_model->id(row))))
+		if (query.exec("SELECT id FROM mesocycles_splits WHERE id=%1"_L1.arg(m_model->id(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -139,17 +139,17 @@ void DBMesoSplitTable::saveMesoSplit()
 		QString strQuery;
 		if (!bUpdate)
 		{
-			strQuery = std::move("INSERT INTO mesocycles_splits (meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
-						" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_L1
+			strQuery = std::move(u"INSERT INTO mesocycles_splits (meso_id, splitA, splitB, splitC, splitD, splitE, splitF)"
+						" VALUES(%1, \'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\')"_s
 							.arg(m_model->mesoId(row), m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
-							m_model->splitE(row), m_model->splitF(row)));
+								m_model->splitE(row), m_model->splitF(row)));
 		}
 		else
 		{
-			strQuery = std::move("UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', "
-					   "splitF=\'%6\' WHERE meso_id=%7"_L1
-						.arg(m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row),
-							m_model->splitE(row), m_model->splitF(row), m_model->mesoId(row)));
+			strQuery = std::move(u"UPDATE mesocycles_splits SET splitA=\'%1\', splitB=\'%2\', splitC=\'%3\', splitD=\'%4\', splitE=\'%5\', "
+					   "splitF=\'%6\' WHERE meso_id=%7"_s
+						.arg(m_model->splitA(row), m_model->splitB(row), m_model->splitC(row), m_model->splitD(row), m_model->splitE(row),
+							m_model->splitF(row), m_model->mesoId(row)));
 		}
 		ok = query.exec(strQuery);
 		if (ok)
@@ -177,9 +177,9 @@ void DBMesoSplitTable::getAllSplits()
 			if (!splitModel)
 				continue;
 
-			const QString& strQuery{"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
+			const QString& strQuery{u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(c).arg(mesoId)};
+						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_s.arg(c).arg(mesoId)};
 			bool ok(false);
 
 			if (query.exec(strQuery))
@@ -237,9 +237,9 @@ void DBMesoSplitTable::getCompleteMesoSplit(const bool bEmitSignal)
 		const QChar& splitLetter{m_execArgs.at(1).toChar()};
 
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
+		const QString& strQuery{u"SELECT split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 						"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
-						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(splitLetter).arg(mesoId)};
+						"split%1_exercisesset_weight, split%1 FROM mesocycles_splits WHERE meso_id=%2"_s.arg(splitLetter).arg(mesoId)};
 
 		if (query.exec(strQuery))
 		{
@@ -315,26 +315,24 @@ void DBMesoSplitTable::saveMesoSplitComplete()
 
 		if (bUpdate)
 		{
-			strQuery = std::move("UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
+			strQuery = std::move(u"UPDATE mesocycles_splits SET split%1_exercisesnames=\'%2\', "
 								"split%1_exercisesset_n=\'%3\', split%1_exercisesset_notes=\'%4\', "
 								"split%1_exercisesset_types=\'%5\', split%1_exercisesset_subsets=\'%6\', "
 								"split%1_exercisesset_reps=\'%7\', split%1_exercisesset_weight=\'%8\', "
-								"split%1=\'%9\' WHERE meso_id=%10"_L1
+								"split%1=\'%9\' WHERE meso_id=%10"_s
 								.arg(m_model->splitLetter(), exercises, setsnumber, setsnotes, setstypes, setssubsets,
 										setsreps, setsweight, m_model->muscularGroup(), mesoId));
 		}
 		else
 		{
-			strQuery = std::move("INSERT INTO mesocycles_splits (meso_id, split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
+			strQuery = std::move(u"INSERT INTO mesocycles_splits (meso_id, split%1_exercisesnames, split%1_exercisesset_n, split%1_exercisesset_notes, "
 								"split%1_exercisesset_types, split%1_exercisesset_subsets, split%1_exercisesset_reps, "
 								"split%1_exercisesset_weight, split%1)"
-								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')"_L1
+								" VALUES(\'%2\', \'%3\', \'%4\', \'%5\', \'%6\', \'%7\', \'%8\', \'%9\', \'%10\')"_s
 								.arg(m_model->splitLetter(), mesoId, exercises, setsnumber, setsnotes, setstypes, setssubsets,
 										setsreps, setsweight, m_model->muscularGroup()));
 		}
 		ok = query.exec(strQuery);
-		if (ok && !bUpdate)
-			m_model->setId(0, query.lastInsertId().toString()); //Not used -yet-. But might be, someday. Anyway, it costs nothings
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 		if (m_model->importMode())
 			delete m_model;
@@ -348,7 +346,7 @@ bool DBMesoSplitTable::mesoHasPlan(const QString& mesoId, const QString& splitLe
 	if (openDatabase(true))
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(splitLetter, mesoId)};
+		const QString& strQuery{u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_s.arg(splitLetter, mesoId)};
 		ok = query.exec(strQuery);
 		if (ok)
 		{
@@ -375,7 +373,7 @@ void DBMesoSplitTable::getExercisesForSplitWithinMeso()
 		const QChar& splitLetter{m_execArgs.at(0).toChar()};
 		const QString& mesoId{m_execArgs.at(1).toString()};
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_L1.arg(splitLetter, mesoId)};
+		const QString& strQuery{u"SELECT split%1_exercisesnames FROM mesocycles_splits WHERE meso_id=%2"_s.arg(splitLetter, mesoId)};
 
 		bool ok(false);
 		if (query.exec(strQuery))

@@ -286,8 +286,11 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coor
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate)
 {
-	m_locationName = city;
-	requestWeatherInfoFromNet(coordinate);
+	if (!city.isEmpty())
+	{
+		m_locationName = city;
+		requestWeatherInfoFromNet(coordinate);
+	}
 }
 
 void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)

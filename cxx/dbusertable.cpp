@@ -97,7 +97,7 @@ void DBUserTable::saveUser()
 						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14"_s
 				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
-					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient(row), m_model->_userId(row)));
+					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient(), m_model->_userId(row)));
 		}
 		else
 		{
@@ -106,7 +106,7 @@ void DBUserTable::saveUser()
 				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)"_s
 					.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
-					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient(row)));
+					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient()));
 		}
 		ok = query.exec(strQuery);
 		if (ok && !bUpdate)

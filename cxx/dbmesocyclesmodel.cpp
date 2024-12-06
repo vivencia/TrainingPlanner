@@ -90,7 +90,7 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
 	beginInsertRows(QModelIndex(), count(), count());
 	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString() << QString() <<
-		QString() << QString() << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->currentClientName(0) <<
+		QString() << QString() << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
 		QString() << QString() << STR_ONE));
 	emit countChanged();
 	endInsertRows();
@@ -169,7 +169,7 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 	m_splitModel->appendList_fast(std::move(QStringList(SIMPLE_MESOSPLIT_TOTAL_COLS)));
 
 	const uint meso_idx(count()-1);
-	m_splitModel->setMesoIdx(meso_idx);
+	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
 	if (isOwnMeso(meso_idx))
@@ -278,7 +278,7 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 {
 	if (isOwnMeso(meso_idx) != bOwnMeso)
 	{
-		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->currentClientName(0));
+		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->userName(0));
 		const int cur_ownmeso(m_mostRecentOwnMesoIdx);
 		findNextOwnMeso();
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)

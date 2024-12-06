@@ -32,10 +32,10 @@ struct st_WeatherInfo
 	QString m_sunset;
 	QString m_provider_name;
 
-	st_WeatherInfo() :
-		m_coordinates("(0,0)"_L1), m_dayOfWeek("??"_L1), m_weatherIconId("error.png"_L1),
-		m_weatherDescription{std::move(qApp->tr("No weather data"))}, m_temperature(u"??°C"_s),
-		m_temp_min("??"_L1), m_temp_max("??"_L1) {}
+	explicit inline st_WeatherInfo() :
+		m_coordinates{std::move("(0,0)"_L1)}, m_dayOfWeek{std::move("??"_L1)}, m_weatherIconId{std::move("error.png"_L1)},
+		m_weatherDescription{std::move(qApp->tr("No weather data"))}, m_temperature{std::move(u"??°C"_s)},
+		m_temp_min{std::move("??"_L1)}, m_temp_max{std::move("??"_L1)} {}
 };
 
 struct st_LocationInfo

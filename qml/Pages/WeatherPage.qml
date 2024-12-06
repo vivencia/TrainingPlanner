@@ -46,9 +46,9 @@ TPPage {
 				width: scrollViewCities.width
 				height: 25
 				fixedSize: true
+				autoResize: true
 				Layout.alignment: Qt.AlignCenter
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
+				Layout.preferredWidth: width
 
 				onClicked: weatherInfo.requestWeatherForGpsCity();
 
@@ -159,10 +159,9 @@ TPPage {
 			height: 0.5*main.height
 			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
-			Layout.minimumHeight: height
-			Layout.maximumHeight: height
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
+			Layout.preferredHeight: height
+			Layout.preferredWidth: width
+			Layout.topMargin: 10
 
 			topText: weatherInfo.city + "  " + weatherInfo.weather.coordinates + "\n" + weatherInfo.weather.temperature
 			weatherIcon: weatherInfo.weather.weatherIcon
@@ -173,12 +172,11 @@ TPPage {
 		Item {
 			width: parent.width
 			height: 0.25*main.height
-			Layout.topMargin: -15
 			Layout.alignment: Qt.AlignHCenter
-			Layout.minimumHeight: height
-			Layout.maximumHeight: height
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
+			Layout.preferredHeight: height
+			Layout.preferredWidth: width
+			Layout.topMargin: -15
+			Layout.bottomMargin: 10
 
 			Rectangle {
 				id: forecastFrame
@@ -240,11 +238,11 @@ TPPage {
 		const list_len = weatherInfo.locationList.length;
 		if (list_len > 0) {
 			if (locationsMenu === null) {
-				var locationsMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+				let locationsMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 				locationsMenu = locationsMenuComponent.createObject(weatherPage, { parentPage: weatherPage, width: weatherPage.width*0.9 });
 				locationsMenu.menuEntrySelected.connect(function(id) { weatherInfo.locationSelected(id);  txtCities.clear(); });
 			}
-			for(var i = 0; i < list_len; ++i)
+			for(let i = 0; i < list_len; ++i)
 				locationsMenu.addEntry(weatherInfo.locationList[i], "", i, true);
 			locationsMenu.show(savedCities, 3);
 		}
