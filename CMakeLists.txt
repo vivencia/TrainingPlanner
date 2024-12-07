@@ -183,6 +183,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPRadioButton.qml"
     "qml/TPWidgets/TPSaveDialog.qml"
     "qml/TPWidgets/TPTextInput.qml"
+    "qml/TPWidgets/TPToolBar.qml"
     "qml/TPWidgets/ComplexDialogModules/TPAdjustMesoCalendarFrame.qml"
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
     "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"

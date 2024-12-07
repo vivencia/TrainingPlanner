@@ -121,8 +121,11 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	m_splitModel->removeRow(meso_idx);
 	removeRow(meso_idx);
 
-	delete m_mesoManagerList.at(meso_idx);
-	m_mesoManagerList.removeAt(meso_idx);
+	if (meso_idx < m_mesoManagerList.count())
+	{
+		delete m_mesoManagerList.at(meso_idx);
+		m_mesoManagerList.removeAt(meso_idx);
+	}
 
 	for (uint i(meso_idx); i < count(); ++i)
 	{

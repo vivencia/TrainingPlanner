@@ -156,7 +156,7 @@ void DBMesoCalendarTable::getMesoCalendar()
 						',' + strYear + ',' + strMonth));
 				} while (query.next ());
 				if (!mesocal_info.isEmpty())
-					m_model->appendList_fast(std::move(mesocal_info));
+					m_model->appendList(std::move(mesocal_info));
 			}
 			else
 			{

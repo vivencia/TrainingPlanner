@@ -68,7 +68,7 @@ TPPopup {
 		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
 		visible: message.length > 0
 		x: imgElement.visible ? imgElement.width + 10 : 10
-		y: lblTitle.visible ? lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
+		y: lblTitle.visible ? lblTitle.y + lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
 	}
 
 	RowLayout {
@@ -193,7 +193,7 @@ TPPopup {
 	}
 
 	function show(ypos: int) {
-		balloon.height = lblTitle.height + lblMessage.height + 20 +
+		balloon.height = lblTitle.height + lblMessage.height +
 						(button1Text.length > 0 ? 2*btn1.implicitHeight : (button2Text.length > 0 ? 2*btn1.implicitHeight : 10));
 		balloon.x = (appSettings.pageWidth - width)/2;
 

@@ -29,6 +29,7 @@ Frame {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 		checked: userModel.appUseMode(userRow) === 1 || userModel.appUseMode(userRow) === 3;
+		multiLine: true
 
 		onClicked: {
 			if (checked)
@@ -50,6 +51,7 @@ Frame {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		checked: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4;
+		multiLine: true
 
 		onClicked: {
 			if (checked)
@@ -71,6 +73,7 @@ Frame {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
 		checked: userModel.appUseMode(userRow) === 3 || userModel.appUseMode(userRow) === 4;
+		multiLine: true
 
 		onClicked: {
 			if (checked)
@@ -89,7 +92,7 @@ Frame {
 		}
 	}
 
-	function focusOnFirstField() {
+	function focusOnFirstField(): void {
 		optPersonalUse.forceActiveFocus();
 	}
 }

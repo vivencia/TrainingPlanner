@@ -4,10 +4,8 @@
 #include <QObject>
 #include <QVariantMap>
 
-class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
-class QQuickWindow;
 
 class QmlExercisesDatabaseInterface : public QObject
 {
@@ -23,8 +21,7 @@ Q_PROPERTY(QString weightLabel READ weightLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString mediaLabel READ mediaLabel NOTIFY labelsChanged FINAL)
 
 public:
-	inline explicit QmlExercisesDatabaseInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_exercisesComponent(nullptr) {}
+	inline explicit QmlExercisesDatabaseInterface(QObject* parent) : QObject{parent}, m_exercisesComponent(nullptr) {}
 	~QmlExercisesDatabaseInterface();
 
 	QString exerciseNameLabel() const;
@@ -46,8 +43,6 @@ signals:
 	void labelsChanged();
 
 private:
-	QQmlApplicationEngine* m_qmlEngine;
-	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_exercisesComponent;
 	QQuickItem* m_exercisesPage;
 	QVariantMap m_exercisesProperties;

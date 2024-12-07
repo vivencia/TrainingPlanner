@@ -13,7 +13,7 @@ DBUserModel::DBUserModel(QObject *parent)
 	_appUserModel = this;
 
 	setObjectName(DBUserObjectName);
-	m_tableId = EXERCISES_TABLE_ID;
+	m_tableId = USER_TABLE_ID;
 	m_exportName = std::move(tr("Coach information"));
 
 	mColumnNames.reserve(USER_TOTAL_COLS);
@@ -22,12 +22,12 @@ DBUserModel::DBUserModel(QObject *parent)
 	mColumnNames.append(std::move(tr("Birthday: ")));
 	mColumnNames.append(std::move(tr("Sex: ")));
 	mColumnNames.append(std::move(tr("Phone: ")));
-	mColumnNames.append(std::move(u"E-mail: "_s));
+	mColumnNames.append(std::move("E-mail: "_L1));
 	mColumnNames.append(std::move(tr("Social Media: ")));
 	mColumnNames.append(std::move(tr("Your are: ")));
 	mColumnNames.append(std::move(tr("Professional job: ")));
 	mColumnNames.append(std::move(tr("Goal: ")));
-	mColumnNames.append(std::move(u"Avatar: "_s));
+	mColumnNames.append(std::move("Avatar: "_L1));
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());
 	mColumnNames.append(QString());

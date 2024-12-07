@@ -16,19 +16,8 @@ TPPage {
 	property date _today
 	property bool bAlreadyLoaded: false
 
-	header: ToolBar {
-		height: 60
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
+	header: TPToolBar {
+		height: appSettings.pageHeight*0.1
 
 		ColumnLayout {
 			anchors.fill: parent
@@ -220,20 +209,8 @@ TPPage {
 		} //delegate: Rectangle
 	} //ListView
 
-	footer: ToolBar {
-		width: parent.width
-		height: footerHeight*2.5
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
+	footer: TPToolBar {
+		height: footerHeight*2.7
 
 		TPLabel {
 			id: lblInfo
@@ -328,7 +305,7 @@ TPPage {
 
 	Component.onCompleted: mesoCalendarPage.StackView.activating.connect(pageActivation);
 
-	function pageActivation() {
+	function pageActivation(): void {
 		_today = new Date();
 		if (!bAlreadyLoaded) {
 			mesoCalendarModel.calendarChanged.connect(reloadModel);
@@ -338,7 +315,7 @@ TPPage {
 		}
 	}
 
-	function reloadModel() {
+	function reloadModel(): void {
 		calendar.model = null;
 		calendar.model = mesoCalendarModel;
 	}
@@ -346,7 +323,7 @@ TPPage {
 	//Javascript date values differ from QDate's and TP's and Qt's
 	//Month: JS 0-11 TP: 1-12 Qt:1-12
 	//Date: JS 1-31 TP:0-30 Qt: 1-31
-	function selectDay(year, month, day) {
+	function selectDay(year, month, day): void {
 		calendar.currentDay = day;
 		calendar.currentMonth = month;
 		calendar.currentYear = year;

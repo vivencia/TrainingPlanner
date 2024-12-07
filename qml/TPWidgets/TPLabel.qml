@@ -12,9 +12,10 @@ Label {
 	minimumPointSize: appSettings.smallFontSize
 	maximumLineCount: singleLine ? 1 : 50
 	fontSizeMode: Text.Fit
-	topPadding: _lineCount === 1 ? 0 : -3*_lineCount
+	//topPadding: _lineCount === 1 ? 0 : -3*_lineCount
 	width: _preferredWidth
 	height: _preferredHeight
+	verticalAlignment: Text.AlignVCenter
 
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20

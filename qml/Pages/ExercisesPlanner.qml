@@ -76,21 +76,8 @@ TPPage {
 		}
 	}
 
-	footer: ToolBar {
+	footer: TPToolBar {
 		id: splitToolBar
-		width: parent.width
-		height: footerHeight
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
 
 		readonly property int buttonWidth: width*0.22
 

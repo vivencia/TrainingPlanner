@@ -78,7 +78,6 @@ Frame {
 
 		anchors {
 			top: lblName.bottom
-			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -117,7 +116,6 @@ Frame {
 
 		anchors {
 			top: lblBirthdate.bottom
-			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -175,6 +173,7 @@ Frame {
 			text: qsTr("Male")
 			height: controlsHeight
 			checked: userModel.sex(userRow) === 0
+			width: frmSex.width/2
 
 			onClicked: {
 				bSexOK = true;
@@ -195,6 +194,7 @@ Frame {
 			text: qsTr("Female")
 			height: controlsHeight
 			checked: userModel.sex(userRow) === 1
+			width: frmSex.width/2
 
 			onClicked: {
 				bSexOK = true;

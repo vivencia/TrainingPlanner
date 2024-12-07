@@ -12,20 +12,8 @@ TPPage {
 
 	property date minimumStartDate;
 
-	header: ToolBar {
+	header: TPToolBar {
 		bottomPadding: 20
-		height: headerHeight
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
 
 		TPImage {
 			id: imgAppIcon
@@ -332,21 +320,9 @@ TPPage {
 		} //delegate
 	} //ListView
 
-	footer: ToolBar {
+	footer: TPToolBar {
 		id: homePageToolBar
-		width: parent.width
 		height: 0.16*appSettings.pageHeight
-
-		background: Rectangle {
-			color: appSettings.primaryDarkColor
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-		}
 
 		TPButton {
 			id: btnAddMeso
@@ -358,6 +334,7 @@ TPPage {
 
 			anchors {
 				top: parent.top
+				topMargin: 5
 				horizontalCenter: parent.horizontalCenter
 			}
 
@@ -377,7 +354,7 @@ TPPage {
 				horizontalCenter: parent.horizontalCenter
 			}
 
-			onClicked: mainwindow.chooseFileToImport();
+			onClicked: itemManager.chooseFileToImport();
 		}
 
 		TPButton {

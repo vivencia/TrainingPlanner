@@ -24,6 +24,7 @@ public:
 	void configureQmlEngine();
 
 	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
+	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }

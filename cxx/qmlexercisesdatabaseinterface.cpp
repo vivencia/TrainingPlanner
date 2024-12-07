@@ -47,7 +47,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 				exportFileMessageId = APPWINDOW_MSG_SHARE_OK;
 			}
 			else
-				QMetaObject::invokeMethod(m_mainWindow, "chooseFolderToSave", Q_ARG(QString, exportFileName));
+				QMetaObject::invokeMethod(appMainWindow(), "chooseFolderToSave", Q_ARG(QString, exportFileName));
 		}
 		emit displayMessageOnAppWindow(exportFileMessageId, exportFileName);
 	}
@@ -59,7 +59,7 @@ void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
 {
 	if (filename.isEmpty())
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_EXERCISES));
 	else
 		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
@@ -81,13 +81,13 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QQuickItem* connectPage)
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
 		}
-		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 	}
 }
 
 void QmlExercisesDatabaseInterface::createExercisesPage(QQuickItem* connectPage)
 {
-	m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
 	m_exercisesProperties.insert("exercisesManager"_L1, QVariant::fromValue(this));
 
@@ -114,11 +114,11 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connec
 	#endif
 	if (m_exercisesComponent->status() == QQmlComponent::Ready)
 	{
-		m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, m_qmlEngine->rootContext()));
-		m_qmlEngine->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
-		m_exercisesPage->setParentItem(m_mainWindow->contentItem());
+		m_exercisesPage = static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(m_exercisesProperties, appQmlEngine()->rootContext()));
+		appQmlEngine()->setObjectOwnership(m_exercisesPage, QQmlEngine::CppOwnership);
+		m_exercisesPage->setParentItem(appMainWindow()->contentItem());
 		appExercisesModel()->clearSelectedEntries();
-		QMetaObject::invokeMethod(m_mainWindow, "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
+		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
 
@@ -128,7 +128,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connec
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 			appExercisesModel()->fillColumnNames();
-		emit labelsChanged();
-	});
+			emit labelsChanged();
+		});
 	}
 }

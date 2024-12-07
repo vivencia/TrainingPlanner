@@ -26,23 +26,9 @@ TPPage {
 
 	onPageActivated: if (exercisesModel.count > 0) exercisesList.simulateMouseClick(0, true);
 
-	header: ToolBar {
+	header: TPToolBar {
 		id: bottomPane
-		width: parent.width
 		height: parent.height * 0.5
-		spacing: 0
-		padding: 0
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
 
 		ColumnLayout {
 			anchors.fill: parent
@@ -448,7 +434,7 @@ TPPage {
 
 	function selectedMenuOption(menuid: int) {
 		switch (menuid) {
-			case 0: mainwindow.chooseFileToImport(); break;
+			case 0: exercisesManager.importExercises(); break;
 			case 1: exportTypeTip.init(false); break;
 			case 2: exportTypeTip.init(true); break;
 		}

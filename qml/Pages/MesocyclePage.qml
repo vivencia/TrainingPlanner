@@ -16,20 +16,7 @@ TPPage {
 	required property MesoManager mesoManager
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
-	header: ToolBar {
-		height: headerHeight
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
-
+	header: TPToolBar {
 		TPButton {
 			text: qsTr("Calendar")
 			imageSource: "meso-calendar.png"
@@ -262,7 +249,7 @@ TPPage {
 						ListElement { text: qsTr("Other"); value: 7; enabled: true; }
 
 						Component.onCompleted: {
-							for(let i = 0; i < count; ++i) {
+							for (let i = 0; i < count; ++i) {
 								if (get(i) === mesoManager.type)
 								{
 									cboMesoType.currentIndex = i;
@@ -284,7 +271,7 @@ TPPage {
 			TPTextInput {
 				id: txtMesoTypeOther
 				text: mesoManager.type
-				visible: cboMesoType.currentIndex === 6
+				visible: cboMesoType.currentIndex === typeModel.count - 1
 				width: parent.width
 				Layout.maximumWidth: width
 

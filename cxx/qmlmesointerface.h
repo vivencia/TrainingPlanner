@@ -149,7 +149,6 @@ public:
 	[[nodiscard]] inline QString muscularGroupR() const { return m_muscularGroup.at(6); }
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
-
 	Q_INVOKABLE void changeMesoCalendar(const bool preserve_old_cal, const bool preserve_untilyesterday);
 	Q_INVOKABLE void getCalendarPage();
 	Q_INVOKABLE void getExercisesPlannerPage();
@@ -163,7 +162,6 @@ public:
 	[[nodiscard]] DBTrainingDayModel* tDayModelForToday();
 
 signals:
-	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	void ownerIsCoachChanged();
 	void hasCoachChanged();
 	void realMesoChanged();

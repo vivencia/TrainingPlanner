@@ -34,6 +34,8 @@ TPPage {
 				font: AppGlobals.extraLargeFont
 				horizontalAlignment: Text.AlignHCenter
 				Layout.fillWidth: true
+				Layout.leftMargin: 20
+				Layout.rightMargin: 20
 				Layout.topMargin: 20
 			}
 
@@ -47,8 +49,7 @@ TPPage {
 			UserContact {
 				id: usrContact
 				userRow: 0
-				width: appSettings.pageWidth - 20
-				Layout.topMargin: -30
+				width: appSettings.pageWidth - 20				
 			}
 
 			UserCoach {
@@ -68,21 +69,9 @@ TPPage {
 		}
 	}
 
-	footer: ToolBar {
+	footer: TPToolBar {
 		id: coachsClientsToolBar
-		width: parent.width
-		height: 75
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
+		height: appSettings.pageHeight*0.15
 
 		TPButton {
 			id: btnManageCoach
@@ -113,7 +102,7 @@ TPPage {
 		}
 	}
 
-	function avatarChangedBySexSelection(row: int) {
+	function avatarChangedBySexSelection(row: int): void {
 		usrProfile.defaultAvatarChanged(row);
 	}
 }

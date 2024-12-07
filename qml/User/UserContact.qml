@@ -84,7 +84,6 @@ Frame {
 
 		anchors {
 			top: lblPhone.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}
@@ -172,7 +171,6 @@ Frame {
 
 		anchors {
 			top: lblEmail.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}
@@ -232,7 +230,6 @@ Frame {
 
 		anchors {
 			top: lblSocial.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 		}

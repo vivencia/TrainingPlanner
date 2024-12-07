@@ -378,11 +378,11 @@ TPPage {
 			}
 		}
 
-		function scrollToPos(y_pos) {
+		function scrollToPos(y_pos): void {
 			contentItem.contentY = y_pos;
 		}
 
-		function setScrollBarPosition(pos) {
+		function setScrollBarPosition(pos): void {
 			if (pos === 0)
 				ScrollBar.vertical.setPosition(0);
 			else
@@ -400,7 +400,7 @@ TPPage {
 
 		onTriggered: scrollTraining.scrollToPos(ypos);
 
-		function init(pos) {
+		function init(pos): void {
 			if (pos >= 0)
 				ypos = pos;
 			else
@@ -409,22 +409,10 @@ TPPage {
 		}
 	}
 
-	footer: ToolBar {
+	footer: TPToolBar {
 		id: dayInfoToolBar
-		width: parent.width
-		height: 100
+		height: appSettings.pageHeight*0.18
 		visible: tDayManager.splitLetter !== "R"
-
-		background: Rectangle {
-			gradient: Gradient {
-				orientation: Gradient.Horizontal
-				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-				GradientStop { position: 0.50; color: appSettings.primaryColor; }
-				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-			}
-			opacity: 0.8
-		}
 
 		RowLayout {
 			id: workoutLengthRow
@@ -576,7 +564,7 @@ TPPage {
 		onListClosed: simpleExercisesListClosed();
 	}
 
-	function changeComboModel(mesoSplit: string) {
+	function changeComboModel(mesoSplit: string): void {
 		cboModel.get(0).enabled = mesoSplit.indexOf('A') !== -1;
 		cboModel.get(1).enabled = mesoSplit.indexOf('B') !== -1;
 		cboModel.get(2).enabled = mesoSplit.indexOf('C') !== -1;
@@ -587,7 +575,7 @@ TPPage {
 	}
 
 	property TPComplexDialog changeSplitLetterDialog: null
-	function showSplitLetterChangedDialog() {
+	function showSplitLetterChangedDialog(): void {
 		if (!changeSplitLetterDialog) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
@@ -610,7 +598,7 @@ TPPage {
 	}
 
 	property TPBalloonTip msgClearExercises: null
-	function showClearExercisesMessage() {
+	function showClearExercisesMessage(): void {
 		if (msgClearExercises === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -632,7 +620,7 @@ TPPage {
 	}
 
 	property TPComplexDialog adjustCalendarBox: null
-	function showAdjustCalendarDialog() {
+	function showAdjustCalendarDialog(): void {
 		if (!adjustCalendarBox) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
@@ -652,7 +640,7 @@ TPPage {
 	}
 
 	property TPComplexDialog intentDlg: null
-	function showIntentionDialog() {
+	function showIntentionDialog(): void {
 		if (!intentDlg) {
 			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
@@ -672,7 +660,7 @@ TPPage {
 		intentDlg.show(-1);
 	}
 
-	function intentChosen() {
+	function intentChosen(): void {
 		switch (intentDlg.customIntProperty1) {
 			case 1: //use meso plan
 				tDayManager.loadExercisesFromMesoPlan();
@@ -688,11 +676,11 @@ TPPage {
 		}
 	}
 
-	function gotExercise() {
+	function gotExercise(): void {
 		tDayManager.createExerciseObject();
 	}
 
-	function placeSetIntoView(ypos: int) {
+	function placeSetIntoView(ypos: int): void {
 		if (ypos === -1)
 			ypos = phantomItem.y - lblExercisesStart.y;
 		else if (ypos === -2)
@@ -702,17 +690,17 @@ TPPage {
 		scrollTimer.init(ypos);
 	}
 
-	function showSimpleExercisesList(multipleSel: bool) {
+	function showSimpleExercisesList(multipleSel: bool): void {
 		exercisesPane.bEnableMultipleSelection = multipleSel;
 		exercisesPane.open();
 	}
 
-	function hideSimpleExercisesList() {
+	function hideSimpleExercisesList(): void {
 		exercisesPane.visible = false;
 	}
 
 	property TimerDialog dlgSessionLength: null
-	function limitedTimeSessionTimer() {
+	function limitedTimeSessionTimer(): void {
 		if (dlgSessionLength === null) {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
@@ -731,7 +719,7 @@ TPPage {
 	}
 
 	property TPBalloonTip tipTimeWarn: null
-	function displayTimeWarning(timeleft: string, bmin: bool) {
+	function displayTimeWarning(timeleft: string, bmin: bool): void {
 		if (tipTimeWarn === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -762,7 +750,7 @@ TPPage {
 	}
 
 	property TPBalloonTip generalMessage: null
-	function showMessageDialog(title: string, message: string, error: bool, msecs: int) {
+	function showMessageDialog(title: string, message: string, error: bool, msecs: int): void {
 		if (generalMessage === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -789,7 +777,7 @@ TPPage {
 	}
 
 	property TPBalloonTip msgRemoveExercise: null
-	function showRemoveExerciseMessage(exerciseidx: int, exercisename: string) {
+	function showRemoveExerciseMessage(exerciseidx: int, exercisename: string): void {
 		if (msgRemoveExercise === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -812,7 +800,7 @@ TPPage {
 	}
 
 	property TPBalloonTip msgRemoveSet: null
-	function showRemoveSetMessage(setnumber: int, exerciseidx: int) {
+	function showRemoveSetMessage(setnumber: int, exerciseidx: int): void {
 		if (msgRemoveSet === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -835,7 +823,7 @@ TPPage {
 	}
 
 	property TPBalloonTip resetWorkoutMsg: null
-	function resetWorkoutMessage() {
+	function resetWorkoutMessage(): void {
 		if (resetWorkoutMsg === null) {
 			function createMessageBox() {
 				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
@@ -857,13 +845,14 @@ TPPage {
 	}
 
 	property PageScrollButtons navButtons: null
-	function createNavButtons() {
+	function createNavButtons(): void {
 		if (navButtons === null) {
 			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				navButtons = component.createObject(trainingDayPage, { ownerPage: trainingDayPage });
 				navButtons.scrollTo.connect(scrollTraining.setScrollBarPosition);
+				navButtons.visible = Qt.binding(function() { return tDayManager.splitLetter !== "R"; });
 			}
 
 			if (component.status === Component.Ready)
@@ -874,7 +863,7 @@ TPPage {
 	}
 
 	property TPFloatingMenuBar optionsMenu: null
-	function showFinishedWorkoutOptions() {
+	function showFinishedWorkoutOptions(): void {
 		if (optionsMenu === null) {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
@@ -885,7 +874,7 @@ TPPage {
 		optionsMenu.show(btnFinishedDayOptions, 0);
 	}
 
-	function selectedOptionsMenuOption(menuid) {
+	function selectedOptionsMenuOption(menuid): void {
 		switch (menuid) {
 			case 0:
 				if (tDayManager.editMode)
@@ -902,7 +891,7 @@ TPPage {
 
 	readonly property bool bExportEnabled: tDayManager.dayIsFinished && tDayManager.hasExercises
 	property TPFloatingMenuBar exportMenu: null
-	function showExportMenu() {
+	function showExportMenu(): void {
 		if (exportMenu === null) {
 			var exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
@@ -929,7 +918,7 @@ TPPage {
 
 		property bool bShare
 
-		function init(share: bool) {
+		function init(share: bool): void {
 			bShare = share;
 			show(-1);
 		}

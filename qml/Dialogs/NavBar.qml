@@ -8,27 +8,14 @@ import "../TPWidgets"
 import "../Pages"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-ToolBar {
+TPToolBar {
 	id: root
-	width: appSettings.windowWidth
 	height: appSettings.windowHeight - appSettings.pageHeight
-	spacing: 0
-	padding: 0
 
 	property CalendarDialog mainCalendar: null
 	property TimerDialog mainTimer: null
 	property WeatherPage weatherPage: null
 	property StatisticsPage statsPage: null
-
-	background: Rectangle {
-		gradient: Gradient {
-			orientation: Gradient.Horizontal
-			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-			GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
-			GradientStop { position: 0.50; color: appSettings.primaryColor; }
-			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
-		}
-	}
 
 	TPButton {
 		id: btnBack

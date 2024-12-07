@@ -1,6 +1,6 @@
 #!/bin/sh
 
-QTDIR=${HOME}/Qt/6.7.2
+QTDIR=${HOME}/Qt/6.8.1
 QTBINDIR=${QTDIR}/gcc_64/bin
 TPHOME=${HOME}/software/trainingplanner
 TRDIR=${TPHOME}/translations

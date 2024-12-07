@@ -67,7 +67,6 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -84,7 +83,6 @@ Frame {
 
 		anchors {
 			top: lblUserRole.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -141,7 +139,6 @@ Frame {
 
 		anchors {
 			top: lblGoal.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -185,7 +182,6 @@ Frame {
 
 		anchors {
 			top: lblCoachRole.bottom
-			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -238,7 +234,7 @@ Frame {
 	}
 
 	property AvatarsPopup chooseAvatarDlg: null
-	function showAvatarsPopup() {
+	function showAvatarsPopup(): void {
 		if (chooseAvatarDlg === null) {
 			function createAvatarsDialog() {
 				var component = Qt.createComponent("qrc:/qml/User/AvatarsPopup.qml", Qt.Asynchronous);
@@ -258,22 +254,22 @@ Frame {
 		chooseAvatarDlg.open();
 	}
 
-	function selectAvatar(id: string) {
+	function selectAvatar(id: string): void {
 		userModel.setAvatar(userRow, "image://tpimageprovider/" + id);
 		imgAvatar.source = userModel.avatar(userRow);
 	}
 
-	function selectExternalAvatar(filename: string) {
+	function selectExternalAvatar(filename: string): void {
 		userModel.setAvatar(userRow, filename);
 		imgAvatar.source = userModel.avatar(userRow);
 	}
 
-	function defaultAvatarChanged(row: int) {
+	function defaultAvatarChanged(row: int): void {
 		if (row === userRow)
 			imgAvatar.source = userModel.avatar(userRow);
 	}
 
-	function focusOnFirstField() {
+	function focusOnFirstField(): void {
 		return;
 	}
 }

@@ -128,6 +128,11 @@ void QmlItemManager::openMainMenuShortCut(const int button_id)
 	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 
+void QmlItemManager::chooseFileToImport()
+{
+	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_ANY));
+}
+
 void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 {
 	uint wanted_content(0);
@@ -184,7 +189,7 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
 {
 	if (!m_exercisesListManager)
-		m_exercisesListManager = new QmlExercisesDatabaseInterface{this, appQmlEngine(), appMainWindow()};
+		m_exercisesListManager = new QmlExercisesDatabaseInterface{this};
 	m_exercisesListManager->getExercisesPage(connectPage);
 }
 
@@ -525,6 +530,8 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 				appMesoModel()->updateFromModel(meso_idx, model);
 				appDBInterface()->saveMesocycle(meso_idx);
 			}
+			else
+				displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA);
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
@@ -535,7 +542,7 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 				if (splitModel->updateFromModel(newSplitModel))
 					appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
-			else //exercises planner page for the current meso has NOT been loaded in the session
+			else //exercises planner page for the current meso has NOT -yet- been loaded during the session
 			{
 				appMesoModel()->setMuscularGroup(newSplitModel->mesoIdx(), newSplitModel->_splitLetter(), newSplitModel->muscularGroup(), false);
 				appDBInterface()->saveMesoSplitComplete(newSplitModel);
@@ -614,7 +621,11 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			title = std::move(tr("Export failed"));
 			message = std::move(tr("Operation canceled"));
 		break;
-		case APPWINDOW_MSG_IMPORT_FAILED:
+		case APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA:
+			title = std::move(tr("Import failed"));
+			message = std::move(tr("The file does not contain any new data that is not already in use"));
+		break;
+		case APPWINDOW_MSG_IMPORT_CANCELED:
 			title = std::move(tr("Import failed"));
 			message = std::move(tr("Operation canceled"));
 		break;
@@ -657,7 +668,7 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath, const int fi
 	if (!filePath.isEmpty())
 		openRequestedFile(filePath, static_cast<importFileContents>(fileType));
 	else
-		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED);
+		displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_CANCELED);
 }
 
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)

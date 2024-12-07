@@ -13,10 +13,10 @@
 
 #include <QJniObject>
 #include <qnativeinterface.h>
-	#if QT_VERSION == QT_VERSION_CHECK(6, 8, 0)
-		#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
+	#if QT_VERSION == QT_VERSION_CHECK(6, 8, 1)
+		#include <QtCore/6.8.1/QtCore/private/qandroidextras_p.h>
 	#else
-		#include <QtCore/6.7.2/QtCore/private/qandroidextras_p.h>
+		#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
 	#endif
 #else
 #include <QProcess>
