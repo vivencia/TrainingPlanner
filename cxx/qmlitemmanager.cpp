@@ -39,7 +39,7 @@ QQmlApplicationEngine* QmlItemManager::_appQmlEngine(nullptr);
 QQuickWindow* QmlItemManager::_appMainWindow(nullptr);
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
-		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr)
+		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr), m_weatherPage(nullptr), m_statisticsPage(nullptr)
 {
 	_appItemManager = this;
 	appDBInterface()->init();
@@ -49,6 +49,20 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
 #ifdef Q_OS_ANDROID
 	appOsInterface()->appStartUpNotifications();
 #endif
+}
+
+QmlItemManager::~QmlItemManager()
+{
+	if (m_weatherPage)
+	{
+		delete m_weatherPage;
+		delete m_weatherComponent;
+	}
+	if (m_statisticsPage)
+	{
+		delete m_statisticsPage;
+		delete m_statisticsComponent;
+	}
 }
 
 void QmlItemManager::configureQmlEngine()
@@ -139,7 +153,7 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	if (isBitSet(m_fileContents, IFC_MESO))
 	{
 		const uint fieldStart((isBitSet(m_fileContents, IFC_USER)) ? 1 : 0);
-		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) && selectedFields.at(0) ? IFC_USER : 0);
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) && selectedFields.at(1) ? IFC_USER : 0);
 		setBit(wanted_content, selectedFields.at(fieldStart) ? IFC_MESO : 0);
 	}
 	setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0);
@@ -191,6 +205,42 @@ void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
 	if (!m_exercisesListManager)
 		m_exercisesListManager = new QmlExercisesDatabaseInterface{this};
 	m_exercisesListManager->getExercisesPage(connectPage);
+}
+
+void QmlItemManager::getWeatherPage()
+{
+	if (!m_weatherPage)
+	{
+		m_weatherComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/WeatherPage.qml"_L1}, QQmlComponent::Asynchronous};
+		if (m_weatherComponent->status() != QQmlComponent::Ready)
+		{
+			connect(m_weatherComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
+				createWeatherPage_part2();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
+		else
+			createWeatherPage_part2();
+	}
+	else
+		addMainMenuShortCut(QString(), m_weatherPage);
+}
+
+void QmlItemManager::getStatisticsPage()
+{
+	if (!m_statisticsPage)
+	{
+		m_statisticsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/StatisticsPage.qml"_L1}, QQmlComponent::Asynchronous};
+		if (m_statisticsComponent->status() != QQmlComponent::Ready)
+		{
+			connect(m_statisticsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
+				createStatisticsPage_part2();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
+		else
+			createStatisticsPage_part2();
+	}
+	else
+		addMainMenuShortCut(QString(), m_statisticsPage);
 }
 
 const QString& QmlItemManager::setExportFileName(const QString& filename)
@@ -673,7 +723,7 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath, const int fi
 
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
-	if (m_mainMenuShortcutPages.contains(page))
+	if (m_mainMenuShortcutPages.contains(page) || label.isEmpty())
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
 	else
 	{
@@ -710,4 +760,39 @@ void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 		for (uint i(idx); i < m_mainMenuShortcutEntries.count(); ++i)
 			m_mainMenuShortcutEntries.at(i)->setProperty("clickid", i);
 	}
+}
+
+
+void QmlItemManager::createWeatherPage_part2()
+{
+	m_weatherPage = static_cast<QQuickItem*>(m_weatherComponent->create(appQmlEngine()->rootContext()));
+	#ifndef QT_NO_DEBUG
+	if (m_weatherComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_weatherComponent->errorString();
+		for (uint i(0); i < m_weatherComponent->errors().count(); ++i)
+			qDebug() << m_weatherComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
+	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	addMainMenuShortCut(QString(), m_weatherPage);
+}
+
+void QmlItemManager::createStatisticsPage_part2()
+{
+	m_statisticsPage = static_cast<QQuickItem*>(m_statisticsComponent->create(appQmlEngine()->rootContext()));
+	#ifndef QT_NO_DEBUG
+	if (m_statisticsComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_statisticsComponent->errorString();
+		for (uint i(0); i < m_statisticsComponent->errors().count(); ++i)
+			qDebug() << m_statisticsComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
+	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	addMainMenuShortCut(QString(), m_statisticsPage);
 }

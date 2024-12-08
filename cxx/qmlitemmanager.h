@@ -21,6 +21,7 @@ Q_OBJECT
 
 public:
 	explicit QmlItemManager(QQmlApplicationEngine* qml_engine);
+	~QmlItemManager();
 	void configureQmlEngine();
 
 	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
@@ -31,6 +32,8 @@ public:
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage = nullptr);
+	Q_INVOKABLE void getWeatherPage();
+	Q_INVOKABLE void getStatisticsPage();
 
 	const QString& setExportFileName(const QString& filename);
 	void continueExport(int exportMessageId, const bool bShare);
@@ -54,6 +57,10 @@ private:
 	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	uint m_fileContents;
 	QString m_exportFilename, m_importFilename;
+	QmlUserInterface* m_usersManager;
+	QmlExercisesDatabaseInterface* m_exercisesListManager;
+	QQmlComponent* m_weatherComponent, *m_statisticsComponent;
+	QQuickItem* m_weatherPage, *m_statisticsPage;
 
 	static QmlItemManager* _appItemManager;
 	friend QmlItemManager* appItemManager();
@@ -64,8 +71,8 @@ private:
 	static QQuickWindow* _appMainWindow;
 	friend QQuickWindow* appMainWindow();
 
-	QmlUserInterface* m_usersManager;
-	QmlExercisesDatabaseInterface* m_exercisesListManager;
+	void createWeatherPage_part2();
+	void createStatisticsPage_part2();
 };
 
 inline QmlItemManager* appItemManager() { return QmlItemManager::_appItemManager; }

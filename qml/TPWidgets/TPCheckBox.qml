@@ -13,6 +13,7 @@ Item {
 	property bool multiLine: false
 
 	signal clicked();
+	signal pressAndHold();
 
 	Rectangle {
 		id: indicator
@@ -72,5 +73,7 @@ Item {
 			control.checked = !control.checked;
 			control.clicked();
 		}
+
+		onPressAndHold: control.pressAndHold();
 	}
 }

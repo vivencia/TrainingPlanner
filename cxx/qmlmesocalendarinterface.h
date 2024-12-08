@@ -6,10 +6,8 @@
 #include <QVariantMap>
 
 class QMLMesoInterface;
-class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
-class QQuickWindow;
 
 class QmlMesoCalendarInterface : public QObject
 {
@@ -21,9 +19,8 @@ Q_PROPERTY(QString dateLabel READ dateLabel NOTIFY dateLabelChanged FINAL)
 Q_PROPERTY(QString selectedSplitLetter READ selectedSplitLetter NOTIFY selectedSplitLetterChanged FINAL)
 
 public:
-	explicit inline QmlMesoCalendarInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow),
-			m_calComponent(nullptr), m_calPage(nullptr), m_mesoIdx(meso_idx) {}
+	explicit inline QmlMesoCalendarInterface(QObject* parent, const uint meso_idx)
+		: QObject{parent}, m_calComponent(nullptr), m_calPage(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoCalendarInterface();
 
 	inline void setMesoIdx(const uint new_meso_idx) { m_mesoIdx = new_meso_idx; }
@@ -44,8 +41,6 @@ signals:
 	void selectedSplitLetterChanged();
 
 private:
-	QQmlApplicationEngine* m_qmlEngine;
-	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_calComponent;
 	QQuickItem* m_calPage;
 	QVariantMap m_calProperties;

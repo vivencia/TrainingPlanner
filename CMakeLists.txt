@@ -175,7 +175,6 @@ set( QML_SOURCES
     "qml/TPWidgets/TPComplexDialog.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
-    "qml/TPWidgets/TPGroupBox.qml"
     "qml/TPWidgets/TPImportDialog.qml"
     "qml/TPWidgets/TPLabel.qml"
     "qml/TPWidgets/TPMouseArea.qml"

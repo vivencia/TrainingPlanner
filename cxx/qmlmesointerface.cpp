@@ -381,7 +381,7 @@ void QMLMesoInterface::changeMesoCalendar(const bool preserve_old_cal, const boo
 void QMLMesoInterface::getCalendarPage()
 {
 	if (!m_calendarPage)
-		m_calendarPage = new QmlMesoCalendarInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
+		m_calendarPage = new QmlMesoCalendarInterface{this, m_mesoIdx};
 	m_calendarPage->getMesoCalendarPage();
 }
 

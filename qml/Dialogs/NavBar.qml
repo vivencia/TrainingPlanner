@@ -14,8 +14,6 @@ TPToolBar {
 
 	property CalendarDialog mainCalendar: null
 	property TimerDialog mainTimer: null
-	property WeatherPage weatherPage: null
-	property StatisticsPage statsPage: null
 
 	TPButton {
 		id: btnBack
@@ -150,21 +148,7 @@ TPToolBar {
 			rightMargin: 10
 		}
 
-		onClicked: {
-			if (weatherPage === null) {
-				var component = Qt.createComponent("qrc:/qml/Pages/WeatherPage.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					weatherPage = component.createObject(mainwindow, {});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			pushOntoStack(weatherPage);
-		}
+		onClicked: itemManager.getWeatherPage();
 	}
 
 	TPButton {
@@ -182,21 +166,7 @@ TPToolBar {
 			rightMargin: 10
 		}
 
-		onClicked: {
-			if (statsPage === null) {
-				var component = Qt.createComponent("qrc:/qml/Pages/StatisticsPage.qml", Qt.Asynchronous);
-
-				function finishCreation() {
-					statsPage = component.createObject(mainwindow, {});
-				}
-
-				if (component.status === Component.Ready)
-					finishCreation();
-				else
-					component.statusChanged.connect(finishCreation);
-			}
-			pushOntoStack(statsPage);
-		}
+		onClicked: itemManager.getStatisticsPage();
 	}
 
 	Component.onDestruction: {
@@ -204,9 +174,5 @@ TPToolBar {
 			mainCalendar.destroy();
 		if (mainTimer !== null)
 			mainTimer.destroy();
-		if (weatherPage !== null)
-			weatherPage.destroy();
-		if (statsPage !== null)
-			statsPage.destroy();
 	}
 }

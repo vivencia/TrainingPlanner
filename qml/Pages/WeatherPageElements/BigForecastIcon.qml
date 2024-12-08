@@ -67,8 +67,8 @@ Item {
 	WeatherIcon {
 		id: img
 		weatherIcon: current.weatherIcon
-		width: current.smallSide * 0.4
-		height: current.smallSide * 0.4
+		width: current.smallSide * 0.3
+		height: current.smallSide * 0.3
 
 		anchors {
 			top: text1.bottom
@@ -85,11 +85,11 @@ Item {
 		font: AppGlobals.regularFont
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
+		wrapMode: Text.WordWrap
 		width: parent.width
 
 		anchors {
 			top: img.bottom
-			topMargin: 5
 			horizontalCenter: parent.horizontalCenter
 		}
 	}
@@ -113,7 +113,6 @@ Item {
 
 		anchors {
 			top: text2.bottom
-			topMargin: 15
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

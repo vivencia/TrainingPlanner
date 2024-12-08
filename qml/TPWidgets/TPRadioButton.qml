@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 
+import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+
 import "../"
 
 Item {
@@ -9,10 +11,15 @@ Item {
 
 	property alias text: lblText.text
 	property alias textColor: lblText.color
+	property alias image: img.source
+
+	property int imageHeight: 20
+	property int imageWidth: 20
 	property bool checked
 	property bool multiLine: false
 
 	signal clicked();
+	signal pressAndHold();
 
 	Rectangle {
 		id: indicator
@@ -41,16 +48,16 @@ Item {
 
 	TPLabel {
 		id: lblText
-		text: control.text
 		wrapMode: multiLine ? Text.WordWrap : Text.NoWrap
 		topPadding: 5
 		bottomPadding: 5
 		leftPadding: 0
 		rightPadding: 0
+		visible: text.length > 0
 
 		anchors {
 			top: parent.top
-			left: indicator.right
+			left: img.visible ? img.right : indicator.right
 			leftMargin: 5
 			right: parent.right
 		}
@@ -65,12 +72,29 @@ Item {
 		}
 	}
 
+	TPImage {
+		id: img
+		height: imageHeight
+		width: imageWidth
+		dropShadow: false
+		visible: source.length > 0
+
+		anchors {
+			left: indicator.right
+			leftMargin: 5
+			verticalCenter: lblText.verticalCenter
+		}
+	}
+
 	MouseArea {
 		anchors.fill: parent
+		z: 2
 
 		onClicked: {
 			control.checked = !control.checked;
 			control.clicked();
 		}
+
+		onPressAndHold: control.pressAndHold();
 	}
 }

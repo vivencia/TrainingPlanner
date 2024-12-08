@@ -83,7 +83,7 @@ QString QmlMesoCalendarInterface::dateLabel() const
 
 void QmlMesoCalendarInterface::createMesoCalendarPage()
 {
-	m_calComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_calComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoCalendarPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_calProperties.insert("calendarManager"_L1, QVariant::fromValue(this));
 	m_calProperties.insert("mesoCalendarModel"_L1, QVariant::fromValue(appMesoModel()->mesoCalendarModel(m_mesoIdx)));
 
@@ -99,7 +99,7 @@ void QmlMesoCalendarInterface::createMesoCalendarPage()
 
 void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 {
-	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, m_qmlEngine->rootContext()));
+	m_calPage = static_cast<QQuickItem*>(m_calComponent->createWithInitialProperties(m_calProperties, appQmlEngine()->rootContext()));
 	#ifndef QT_NO_DEBUG
 	if (m_calComponent->status() == QQmlComponent::Error)
 	{
@@ -109,8 +109,8 @@ void QmlMesoCalendarInterface::createMesoCalendarPage_part2()
 		return;
 	}
 	#endif
-	m_qmlEngine->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
-	m_calPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
+	appQmlEngine()->setObjectOwnership(m_calPage, QQmlEngine::CppOwnership);
+	m_calPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 
 	connect(this, &QmlMesoCalendarInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QmlMesoCalendarInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);

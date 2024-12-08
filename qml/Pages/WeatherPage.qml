@@ -4,6 +4,7 @@ import QtQuick.Effects
 import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
+
 import "./WeatherPageElements"
 import "../TPWidgets"
 import ".."
@@ -33,7 +34,7 @@ TPPage {
 			radius: 8
 			color: "#3F000000"
 			Layout.alignment: Qt.AlignCenter
-			Layout.preferredHeight: 0.25*main.height
+			Layout.preferredHeight: 0.20*main.height
 			Layout.preferredWidth: main.width
 
 			TPButton {
@@ -123,8 +124,8 @@ TPPage {
 				height: 25
 
 				anchors {
-					top: scrollViewCities.bottom
-					topMargin: -10
+					bottom: parent.bottom
+					bottomMargin: 5
 					left: parent.left
 					right: parent.right
 				}
@@ -156,7 +157,7 @@ TPPage {
 
 		BigForecastIcon {
 			id: current
-			height: 0.5*main.height
+			height: 0.55*main.height
 			width: parent.width
 			Layout.alignment: Qt.AlignHCenter
 			Layout.preferredHeight: height

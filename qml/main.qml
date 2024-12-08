@@ -115,7 +115,10 @@ ApplicationWindow {
 		if (stackView.currentItem === page)
 			return;
 		pageDeActivated_main(stackView.currentItem);
-		stackView.push(page);
+		if (stackView.find((item, index) => { return item === page; }))
+			stackView.popToItem(page);
+		else
+			stackView.push(page);
 		pageActivated_main(page);
 	}
 
