@@ -181,7 +181,8 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 	QString value;
 	uint exercise_idx(0), nsets(0);
 	QString type, resttime, subsets, reps, weight, notes, strTypes;
-
+	const QString tableIdStr("0x000"_L1 + QString::number(TRAININGDAY_TABLE_ID));
+	bool bFoundModelInfo(false);
 	char buf[128];
 	qint64 lineLength(0);
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
@@ -190,7 +191,9 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 		{
 			if (lineLength > 10)
 			{
-				if (strstr(buf, ":") != NULL) //dont't put a colon in exportExtraInfo()
+				if (!bFoundModelInfo)
+					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
+				else
 				{
 					value = buf;
 					newExercise(exercise_idx);
@@ -204,13 +207,13 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
 					value = buf;
-					resttime = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator);
+					resttime = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator));
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
 					value = buf;
-					strTypes = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator);
-					type = formatSetTypeToImport(strTypes);
+					strTypes = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator));
+					type = std::move(formatSetTypeToImport(strTypes));
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
@@ -218,25 +221,25 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 					if (value.indexOf(tr("subsets")) == -1)
 					{
 						subsets = "0"_L1;
-						reps = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator);
+						reps = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator));
 					}
 					else
 					{
-						subsets = value.remove(0, value.indexOf(':') + 2).trimmed();
+						subsets = std::move(value.remove(0, value.indexOf(':') + 2).trimmed());
 						if (inFile->readLine(buf, sizeof(buf)) == -1)
 							return false;
-						reps = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator);
+						reps = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator));
 					}
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
 					value = buf;
-					weight = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator).replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
+					weight = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator).replace(comp_exercise_fancy_separator, QString(comp_exercise_separator)));
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
 					value = buf;
-					notes = value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator).replace(comp_exercise_fancy_separator, QString(comp_exercise_separator));
+					notes = std::move(value.remove(0, value.indexOf(':') + 2).trimmed().replace(fancy_record_separator2, set_separator).replace(comp_exercise_fancy_separator, QString(comp_exercise_separator)));
 					if (notes.isEmpty())
 						notes = " "_L1;
 

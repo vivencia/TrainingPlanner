@@ -19,6 +19,11 @@ Popup {
 	property int finalYPos: 0
 	property int startYPos: 0
 
+	onClosed: {
+		bVisible = false;
+		visible = false;
+	}
+
 	Component.onCompleted: {
 		if (!modal && bKeepAbove) {
 			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });

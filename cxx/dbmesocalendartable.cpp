@@ -284,31 +284,18 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 
 void DBMesoCalendarTable::changeMesoCalendar()
 {
-	removeMesoCalendar();
-	m_model->changeModel(m_execArgs.at(0).toBool(), m_execArgs.at(1).toBool(), m_execArgs.at(2).toDate());
+	removeEntry();
+	m_model->changeModel(m_execArgs.at(1).toBool(), m_execArgs.at(2).toBool(), m_execArgs.at(3).toDate());
 	m_model->setReady(true);
 	saveMesoCalendar();
 }
 
 void DBMesoCalendarTable::updateMesoCalendar()
 {
-	removeMesoCalendar();
+	removeEntry();
 	m_model->updateModel(m_execArgs.at(1).toDate(), m_execArgs.at(2).toString());
 	m_model->setReady(true);
 	saveMesoCalendar();
-}
-
-void DBMesoCalendarTable::removeMesoCalendar()
-{
-	if (openDatabase())
-	{
-		bool ok(false);
-		QSqlQuery query{getQuery()};
-		const QString& strQuery{"DELETE FROM mesocycles_calendar_table WHERE meso_id="_L1 + m_execArgs.at(0).toString()};
-		ok = query.exec(strQuery);
-		setQueryResult(ok, strQuery, SOURCE_LOCATION);
-	}	
-	doneFunc(static_cast<TPDatabaseTable*>(this));
 }
 
 void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()

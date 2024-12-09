@@ -388,7 +388,7 @@ void QMLMesoInterface::getCalendarPage()
 void QMLMesoInterface::getExercisesPlannerPage()
 {
 	if (!m_exercisesPage)
-		m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
+		m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoIdx};
 	m_exercisesPage->getExercisesPlannerPage();
 }
 
@@ -397,12 +397,12 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 	QmlTDayInterface* tDayPage(m_tDayPages.value(date));
 	if (!tDayPage)
 	{
-		tDayPage = new QmlTDayInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx, date};
+		tDayPage = new QmlTDayInterface{this, m_mesoIdx, date};
 		m_tDayPages.insert(date, tDayPage);
 
 		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
 			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
+				m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoIdx};
 			auto conn = std::make_shared<QMetaObject::Connection>();
 			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
 				if (table_idx == MESOSPLIT_TABLE_ID)
@@ -416,7 +416,7 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 
 		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
 			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface{this, m_qmlEngine, m_mainWindow, m_mesoIdx};
+				m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoIdx};
 			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(tDayModel->_splitLetter()));
 			if (!splitModel)
 			{
@@ -511,7 +511,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 void QMLMesoInterface::importMeso(const QString& filename)
 {
 	if (filename.isEmpty())
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	else
 		appItemManager()->openRequestedFile(filename, IFC_MESO);
 }
@@ -566,7 +566,7 @@ void QMLMesoInterface::createMesocyclePage()
 
 	m_mesoProperties.insert("mesoManager"_L1, QVariant::fromValue(this));
 
-	m_mesoComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_mesoComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesocyclePage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_mesoComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_mesoComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status) {
@@ -588,9 +588,9 @@ void QMLMesoInterface::createMesocyclePage_part2()
 		return;
 	}
 	#endif
-	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, m_qmlEngine->rootContext()));
-	m_qmlEngine->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
-	m_mesoPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"_L1));
+	m_mesoPage = static_cast<QQuickItem*>(m_mesoComponent->createWithInitialProperties(m_mesoProperties, appQmlEngine()->rootContext()));
+	appQmlEngine()->setObjectOwnership(m_mesoPage, QQmlEngine::CppOwnership);
+	m_mesoPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"_L1));
 
 	connect(this, &QMLMesoInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QMLMesoInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);

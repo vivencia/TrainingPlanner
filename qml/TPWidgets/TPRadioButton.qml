@@ -62,14 +62,14 @@ Item {
 			right: parent.right
 		}
 
-		Component.onCompleted: {
+		/*Component.onCompleted: {
 			if (!multiLine)
 			{
 				adjustTextSize();
 				if (_textWidth > control.width)
 					wrapMode = Text.WordWrap;
 			}
-		}
+		}*/
 	}
 
 	TPImage {

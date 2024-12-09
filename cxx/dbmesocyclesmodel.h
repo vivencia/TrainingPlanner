@@ -43,7 +43,7 @@ public:
 		mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
 	};
 
-	explicit DBMesocyclesModel(QObject* parent = nullptr);
+	explicit DBMesocyclesModel(QObject* parent = nullptr, const bool bMainAppModel = true);
 	~DBMesocyclesModel();
 	void fillColumnNames();
 	QMLMesoInterface* mesoManager(const uint meso_idx);
@@ -212,10 +212,12 @@ public:
 	int getPreviousMesoId(const QString& clientName, const int current_mesoid) const;
 	QDate getMesoMinimumStartDate(const QString& clientName, const uint exclude_idx) const;
 	QDate getMesoMaximumEndDate(const QString& clientName, const uint exclude_idx) const;
-
-	bool isDifferent(const TPListModel* const model);
 	void updateColumnLabels();
 
+	//When importing a complete program: importIdx() will be set to -1 because we will be getting a new meso model. When other parts of the code
+	//check importIdx() and get a -1, they will act in accordance with whole program import. After the meso model has been succesfully imported
+	//and incorporated into the database and appMesoModel(), any other model that depends on a meso_idx can query mesoIdx() which will now reflect
+	//the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;

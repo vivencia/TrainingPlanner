@@ -340,7 +340,7 @@ void DBInterface::removeMesoSplit(const uint meso_idx)
 {
 	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { return worker->removeEntry(); });
+	createThread(worker, [worker] () { return worker->removeEntry(true); });
 }
 
 void DBInterface::deleteMesoSplitTable(const bool bRemoveFile)
@@ -444,11 +444,13 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 		return;
 	}
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
+	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed to remove the calendar records for the meso
+	worker->addExecArg(bPreserveOldInfo);
+	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
+
 	const QDate& endDate{bPreserveOldInfo && bPreserveOldInfoUntilDayBefore ?
 					QDate::currentDate() :
 					appMesoModel()->endDate(meso_idx)};
-	worker->addExecArg(bPreserveOldInfo);
-	worker->addExecArg(bPreserveOldInfoUntilDayBefore);
 	worker->addExecArg(endDate);
 	createThread(worker, [worker] () { worker->changeMesoCalendar(); });
 }
@@ -456,7 +458,7 @@ void DBInterface::changeMesoCalendar(const uint meso_idx, const bool bPreserveOl
 void DBInterface::updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString& splitLetter)
 {
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath, appMesoModel()->mesoCalendarModel(meso_idx)}};
-	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed for DBMesoCalendarTable::removeMesoCalendar()
+	worker->addExecArg(appMesoModel()->id(meso_idx)); //needed to remove the calendar records for the meso
 	worker->addExecArg(date);
 	worker->addExecArg(splitLetter);
 	createThread(worker, [worker] () { worker->updateMesoCalendar(); });
@@ -468,7 +470,7 @@ void DBInterface::updateMesoCalendarEntry(const uint meso_idx, const QDate& date
 	worker->addExecArg(date);
 	worker->addExecArg(trainingDay);
 	worker->addExecArg(splitLetter);
-	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); } );
+	createThread(worker, [worker] () { worker->updateMesoCalendarEntry(); });
 }
 
 void DBInterface::setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished)
@@ -491,7 +493,7 @@ void DBInterface::removeMesoCalendar(const uint meso_idx)
 {
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath}};
 	worker->addExecArg(appMesoModel()->id(meso_idx));
-	createThread(worker, [worker] () { return worker->removeMesoCalendar(); });
+	createThread(worker, [worker] () { return worker->removeEntry(true); });
 }
 
 void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile)

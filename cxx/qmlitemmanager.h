@@ -42,7 +42,7 @@ public:
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 	void openRequestedFile(const QString& filename, const importFileContents wanted_content = IFC_ANY);
 	void importFromFile(const QString& filename, const int wanted_content = IFC_ANY);
-	void incorporateImportedData(TPListModel* model);
+	int incorporateImportedData(TPListModel* model);
 
 public slots:
 	void mainWindowStarted() const;

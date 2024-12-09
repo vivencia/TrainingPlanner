@@ -149,9 +149,9 @@ TPPage {
 					backgroundColor: "transparent"
 					rounded: false
 					flat: false
+					autoResize: true
 					textUnderIcon: true
 					fixedSize: true
-					autoResize: true
 					width: parent.width/2 - 10
 					height: parent.height/2 - 10
 					z:1

@@ -78,6 +78,35 @@ void TPListModel::moveRow(const uint from, const uint to)
 	}
 }
 
+//Called when importing from a text file
+bool TPListModel::isDifferent(const TPListModel* const model) const
+{
+	if (model->count() > 0)
+	{
+		if (count() == 0)
+			return true;
+	}
+	else
+		return false; //model is not usefull
+
+	bool bEqual(true);
+	for (uint n(0); n < count(); ++n)
+	{
+		for (uint i(1); i < model->m_modeldata.at(0).count(); ++i)
+		{
+			if (m_modeldata.at(n).at(i) != model->m_modeldata.at(0).at(i))
+			{
+				bEqual = false;
+				break;
+			}
+		}
+		if (bEqual)
+			return false;
+		bEqual = true;
+	}
+	return true;
+}
+
 int TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd) const
 {
 	QFile* outFile{new QFile(filename)};

@@ -162,7 +162,7 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 	if (filename.isEmpty())
 	{
 		appMesoModel()->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport", Q_ARG(int, IFC_MESOSPLIT));
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_MESOSPLIT));
 	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
@@ -243,7 +243,7 @@ void QmlMesoSplitInterface::hideSimpleExercisesList()
 
 void QmlMesoSplitInterface::createPlannerPage()
 {
-	m_plannerComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
+	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
@@ -256,7 +256,7 @@ void QmlMesoSplitInterface::createPlannerPage()
 
 void QmlMesoSplitInterface::createPlannerPage_part2()
 {
-	m_plannerPage = static_cast<QQuickItem*>(m_plannerComponent->createWithInitialProperties(m_plannerProperties, m_qmlEngine->rootContext()));
+	m_plannerPage = static_cast<QQuickItem*>(m_plannerComponent->createWithInitialProperties(m_plannerProperties, appQmlEngine()->rootContext()));
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 	{
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
@@ -275,8 +275,8 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 		return;
 	}
 	#endif
-	m_qmlEngine->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
-	m_plannerPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
+	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
+	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	emit plannerPageCreated();
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
 
@@ -288,7 +288,7 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 void QmlMesoSplitInterface::createMesoSplitPage(const QChar& splitletter)
 {
 	if (m_splitComponent == nullptr)
-		m_splitComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/MesoSplitPlanner.qml"_L1}, QQmlComponent::Asynchronous};
+		m_splitComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/MesoSplitPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 
 	if (m_splitComponent->status() == QQmlComponent::Ready)
 		createMesoSplitPage_part2(splitletter);
@@ -318,8 +318,8 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	m_splitProperties["parentItem"_L1] = QVariant::fromValue(m_plannerPage);
 	m_splitProperties["splitManager"_L1] = QVariant::fromValue(this);
 
-	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, m_qmlEngine->rootContext())));
-	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));
+	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_plannerPage);
 
 	if (splitmodel->count() > 0)

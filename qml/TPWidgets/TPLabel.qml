@@ -28,8 +28,10 @@ Label {
 	readonly property int _lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(_lineCount * _textHeight, heightAvailable) : _lineCount * _textHeight;
 
-	onFontChanged: adjustTextSize();
-	onTextChanged: adjustTextSize();
+	onTextChanged: text => {
+		if (text.length > 0)
+			adjustTextSize();
+	}
 
 	function adjustTextSize() {
 		if (font === AppGlobals.regularFont) {
@@ -47,6 +49,14 @@ Label {
 		else if (font === AppGlobals.extraLargeFont) {
 			_textWidth = AppGlobals.fontMetricsExtraLarge.boundingRect(text).width
 			_textHeight = AppGlobals.fontMetricsExtraLarge.boundingRect("TP").height
+		}
+
+		if (_textWidth > control.width)
+		{
+			if (font.pixelSize > AppGlobals.smallFont.pixelSize)
+				font.pixelSize *= 0.9;
+			if (lineCount * font.pixelSize*1.35 > control.height)
+				wrapMode = Text.WordWrap;
 		}
 	}
 }

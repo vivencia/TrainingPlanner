@@ -7,35 +7,37 @@
 
 DBExercisesModel* DBExercisesModel::app_exercises_model(nullptr);
 
-DBExercisesModel::DBExercisesModel(QObject* parent)
+DBExercisesModel::DBExercisesModel(QObject* parent, const bool bMainExercisesModel)
 	: TPListModel{parent},
 		m_selectedEntryToReplace(0), m_exercisesTableLastId(-1), m_bFilterApplied(false)
 {
-	if (!app_exercises_model)
-		app_exercises_model = this;
-
 	setObjectName(DBExercisesObjectName);
 	m_tableId = EXERCISES_TABLE_ID;
 	m_fieldCount = EXERCISES_TOTAL_COLS;
-	m_exportName = std::move(tr("Exercises List"));
 
-	m_roleNames[exerciseIdRole] = std::move("exerciseId");
-	m_roleNames[mainNameRole] = std::move("mainName");
-	m_roleNames[subNameRole] = std::move("subName");
-	m_roleNames[muscularGroupRole] = std::move("muscularGroup");
-	m_roleNames[nSetsRole] = std::move("nSets");
-	m_roleNames[nRepsRole] = std::move("nReps");
-	m_roleNames[nWeightRole] = std::move("nWeight");
-	m_roleNames[uWeightRole] = std::move("uWeight");
-	m_roleNames[mediaPathRole] = std::move("mediaPath");
-	m_roleNames[fromListRole] = std::move("fromList");
-	m_roleNames[actualIndexRole] = std::move("actualIndex");
-	m_roleNames[selectedRole] = std::move("selected");
+	if (bMainExercisesModel)
+	{
+		app_exercises_model = this;
+		m_exportName = std::move(tr("Exercises List"));
 
-	mColumnNames.reserve(EXERCISES_TOTAL_COLS);
-	for(uint i(0); i < EXERCISES_TOTAL_COLS; ++i)
-		mColumnNames.append(QString());
-	fillColumnNames();
+		m_roleNames[exerciseIdRole] = std::move("exerciseId");
+		m_roleNames[mainNameRole] = std::move("mainName");
+		m_roleNames[subNameRole] = std::move("subName");
+		m_roleNames[muscularGroupRole] = std::move("muscularGroup");
+		m_roleNames[nSetsRole] = std::move("nSets");
+		m_roleNames[nRepsRole] = std::move("nReps");
+		m_roleNames[nWeightRole] = std::move("nWeight");
+		m_roleNames[uWeightRole] = std::move("uWeight");
+		m_roleNames[mediaPathRole] = std::move("mediaPath");
+		m_roleNames[fromListRole] = std::move("fromList");
+		m_roleNames[actualIndexRole] = std::move("actualIndex");
+		m_roleNames[selectedRole] = std::move("selected");
+
+		mColumnNames.reserve(EXERCISES_TOTAL_COLS);
+		for(uint i(EXERCISES_COL_ID); i < EXERCISES_TOTAL_COLS; ++i)
+			mColumnNames.append(QString());
+		fillColumnNames();
+	}
 }
 
 void DBExercisesModel::fillColumnNames()
@@ -320,10 +322,12 @@ int DBExercisesModel::importFromFile(const QString& filename)
 	}
 
 	QStringList modeldata(EXERCISES_TOTAL_COLS);
-	uint col(1);
+	uint col(EXERCISES_COL_MAINNAME);
 	QString value;
 	uint n_items(0);
 	const uint databaseLastIndex(appExercisesModel()->m_modeldata.count());
+	const QString tableIdStr("0x000"_L1 + QString::number(EXERCISES_TABLE_ID));
+	bool bFoundModelInfo(false);
 
 	char buf[256];
 	qint64 lineLength(0);
@@ -333,24 +337,26 @@ int DBExercisesModel::importFromFile(const QString& filename)
 		{
 			if (lineLength > 10)
 			{
-				if (strstr(buf, "##") != NULL)
+				if (!bFoundModelInfo)
+					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
+				else
 				{
 					if (col <= EXERCISES_COL_MEDIAPATH)
 					{
 						if (col != EXERCISES_COL_WEIGHTUNIT)
 						{
 							value = buf;
-							modeldata[col] = value.remove(0, value.indexOf(':') + 2);
+							modeldata[col] = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
 						}
 						++col;
 					}
 					else
 					{
 						++n_items;
-						modeldata[EXERCISES_COL_ID] = QString::number(m_exercisesTableLastId + n_items);
-						modeldata[EXERCISES_COL_WEIGHTUNIT] = "(kg)"_L1;
+						modeldata[EXERCISES_COL_ID] = std::move(QString::number(m_exercisesTableLastId + n_items));
+						modeldata[EXERCISES_COL_WEIGHTUNIT] = std::move("(kg)"_L1);
 						modeldata[EXERCISES_COL_FROMAPPLIST] = STR_ZERO;
-						modeldata[EXERCISES_COL_ACTUALINDEX] = QString::number(databaseLastIndex + n_items);
+						modeldata[EXERCISES_COL_ACTUALINDEX] = std::move(QString::number(databaseLastIndex + n_items));
 						modeldata[EXERCISES_COL_SELECTED] = STR_ZERO;
 						m_modeldata.append(modeldata);
 						col = 0;

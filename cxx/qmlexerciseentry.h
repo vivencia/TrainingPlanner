@@ -10,8 +10,6 @@ class DBTrainingDayModel;
 class QmlTDayInterface;
 class QmlSetEntry;
 
-class QQmlApplicationEngine;
-
 class QmlExerciseEntry : public QObject
 {
 
@@ -37,10 +35,9 @@ Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY auto
 Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCanEditRestTimeTracking NOTIFY canEditRestTimeTrackingChanged FINAL)
 
 public:
-	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, QQmlApplicationEngine* qmlEngine,
-										DBTrainingDayModel* tDayModel, const uint exercise_idx)
-		: QObject{parent}, m_tDayPage(tDayPage), m_qmlEngine(qmlEngine), m_tDayModel(tDayModel),
-			m_exercise_idx(exercise_idx), m_type(0), m_setTimer(nullptr), m_setComponents{nullptr} {}
+	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, DBTrainingDayModel* tDayModel, const uint exercise_idx)
+		: QObject{parent}, m_tDayPage(tDayPage), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_type(0),
+				m_setTimer(nullptr), m_setComponents{nullptr} {}
 	~QmlExerciseEntry();
 
 	inline const QQuickItem* exerciseEntry() const { return m_exerciseEntry; }
@@ -145,7 +142,6 @@ signals:
 
 private:
 	QmlTDayInterface* m_tDayPage;
-	QQmlApplicationEngine* m_qmlEngine;
 	DBTrainingDayModel* m_tDayModel;
 	uint m_exercise_idx;
 	QQuickItem* m_exerciseEntry;

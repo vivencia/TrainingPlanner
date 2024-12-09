@@ -6,10 +6,8 @@
 
 class DBMesoSplitModel;
 
-class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
-class QQuickWindow;
 
 class QmlMesoSplitInterface : public QObject
 {
@@ -17,8 +15,8 @@ class QmlMesoSplitInterface : public QObject
 Q_OBJECT
 
 public:
-	explicit inline QmlMesoSplitInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_plannerComponent(nullptr), m_splitComponent(nullptr), m_mesoIdx(meso_idx) {}
+	explicit inline QmlMesoSplitInterface(QObject* parent, const uint meso_idx)
+		: QObject{parent}, m_plannerComponent(nullptr), m_splitComponent(nullptr), m_mesoIdx(meso_idx) {}
 	~QmlMesoSplitInterface();
 
 	void setMesoIdx(const uint new_meso_idx);
@@ -45,8 +43,6 @@ public slots:
 	void hideSimpleExercisesList();
 
 private:
-	QQmlApplicationEngine* m_qmlEngine;
-	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_plannerComponent;
 	QQuickItem* m_plannerPage;
 	QVariantMap m_plannerProperties;

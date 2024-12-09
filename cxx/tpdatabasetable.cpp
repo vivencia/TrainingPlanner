@@ -3,13 +3,13 @@
 
 #include <QFile>
 
-void TPDatabaseTable::removeEntry()
+void TPDatabaseTable::removeEntry(const bool bUseMesoId)
 {
 	if (openDatabase())
 	{
 		bool ok(false);
 		QSqlQuery query{getQuery()};
-		const QString& strQuery("DELETE FROM "_L1 + m_tableName + " WHERE id="_L1 + m_execArgs.at(0).toString());
+		const QString& strQuery("DELETE FROM "_L1 + m_tableName + (bUseMesoId ? " WHERE meso_id="_L1 : " WHERE id="_L1) + m_execArgs.at(0).toString());
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

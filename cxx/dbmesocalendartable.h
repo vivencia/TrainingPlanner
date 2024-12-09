@@ -24,7 +24,6 @@ public:
 	void dayInfo(const QDate& date, QStringList& dayInfoList);
 	void changeMesoCalendar();
 	void updateMesoCalendar();
-	void removeMesoCalendar();
 
 	//Functions for TPStatistics
 	void completedDaysForSplitWithinTimePeriod();

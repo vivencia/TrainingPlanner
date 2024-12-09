@@ -41,7 +41,7 @@ public:
 			m_execArgs[pos] = arg;
 	}
 
-	void removeEntry();
+	void removeEntry(const bool bUseMesoId = false);
 	void clearTable();
 	void removeDBFile();
 

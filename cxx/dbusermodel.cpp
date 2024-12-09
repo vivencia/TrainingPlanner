@@ -7,42 +7,45 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
-DBUserModel::DBUserModel(QObject *parent)
+DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
 {
-	_appUserModel = this;
-
 	setObjectName(DBUserObjectName);
 	m_tableId = USER_TABLE_ID;
-	m_exportName = std::move(tr("Coach information"));
 
-	mColumnNames.reserve(USER_TOTAL_COLS);
-	mColumnNames.append(QString());
-	mColumnNames.append(std::move(tr("Name: ")));
-	mColumnNames.append(std::move(tr("Birthday: ")));
-	mColumnNames.append(std::move(tr("Sex: ")));
-	mColumnNames.append(std::move(tr("Phone: ")));
-	mColumnNames.append(std::move("E-mail: "_L1));
-	mColumnNames.append(std::move(tr("Social Media: ")));
-	mColumnNames.append(std::move(tr("Your are: ")));
-	mColumnNames.append(std::move(tr("Professional job: ")));
-	mColumnNames.append(std::move(tr("Goal: ")));
-	mColumnNames.append(std::move("Avatar: "_L1));
-	mColumnNames.append(QString());
-	mColumnNames.append(QString());
-	mColumnNames.append(QString());
+	if (bMainUserModel)
+	{
+		_appUserModel = this;
+		m_exportName = std::move(tr("Coach information"));
 
-	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
-		mColumnNames[USER_COL_NAME] = std::move(tr("Name: "));
-		mColumnNames[USER_COL_BIRTHDAY] = std::move(tr("Birthday: "));
-		mColumnNames[USER_COL_SEX] = std::move(tr("Sex: "));
-		mColumnNames[USER_COL_PHONE] = std::move(tr("Phone: "));
-		mColumnNames[USER_COL_SOCIALMEDIA] = std::move(tr("Social Media: "));
-		mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
-		mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
-		mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
-		emit labelsChanged();
-	});
+		mColumnNames.reserve(USER_TOTAL_COLS);
+		mColumnNames.append(QString());
+		mColumnNames.append(std::move(tr("Name: ")));
+		mColumnNames.append(std::move(tr("Birthday: ")));
+		mColumnNames.append(std::move(tr("Sex: ")));
+		mColumnNames.append(std::move(tr("Phone: ")));
+		mColumnNames.append(std::move("E-mail: "_L1));
+		mColumnNames.append(std::move(tr("Social Media: ")));
+		mColumnNames.append(std::move(tr("Your are: ")));
+		mColumnNames.append(std::move(tr("Professional job: ")));
+		mColumnNames.append(std::move(tr("Goal: ")));
+		mColumnNames.append(std::move("Avatar: "_L1));
+		mColumnNames.append(QString());
+		mColumnNames.append(QString());
+		mColumnNames.append(QString());
+
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+			mColumnNames[USER_COL_NAME] = std::move(tr("Name: "));
+			mColumnNames[USER_COL_BIRTHDAY] = std::move(tr("Birthday: "));
+			mColumnNames[USER_COL_SEX] = std::move(tr("Sex: "));
+			mColumnNames[USER_COL_PHONE] = std::move(tr("Phone: "));
+			mColumnNames[USER_COL_SOCIALMEDIA] = std::move(tr("Social Media: "));
+			mColumnNames[USER_COL_USERROLE] = std::move(tr("Your are: "));
+			mColumnNames[USER_COL_COACHROLE] = std::move(tr("Professional job: "));
+			mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
+			emit labelsChanged();
+		});
+	}
 }
 
 int DBUserModel::addUser(const bool bCoach)
@@ -225,9 +228,10 @@ int DBUserModel::importFromFile(const QString& filename)
 
 	char buf[128];
 	qint64 lineLength(0);
-	uint col(1);
+	uint col(USER_COL_NAME);
 	QString value;
-
+	bool bFoundModelInfo(false);
+	const QString tableIdStr("0x000"_L1 + QString::number(USER_TABLE_ID));
 	QStringList modeldata(USER_TOTAL_COLS);
 	modeldata[0] = STR_MINUS_ONE;
 
@@ -237,17 +241,20 @@ int DBUserModel::importFromFile(const QString& filename)
 		{
 			if (lineLength > 10)
 			{
-				if (strstr(buf, "##") != NULL)
+				if (!bFoundModelInfo)
+					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
+				else
 				{
 					if (col < USER_COL_APP_USE_MODE)
 					{
 						if (col != USER_COL_USERROLE)
 						{
 							value = buf;
+							value = value.remove(0, value.indexOf(':') + 2).simplified();
 							if (!isFieldFormatSpecial(col))
-								modeldata[col] = std::move(value.remove(0, value.indexOf(':') + 2));
+								modeldata[col] = std::move(value);
 							else
-								modeldata[col] = std::move(formatFieldToImport(col, value.remove(0, value.indexOf(':') + 2)));
+								modeldata[col] = std::move(formatFieldToImport(col, value));
 						}
 						++col;
 					}
@@ -259,9 +266,10 @@ int DBUserModel::importFromFile(const QString& filename)
 		else
 			break;
 	}
-	m_modeldata.append(modeldata);
 	inFile->close();
 	delete inFile;
+	if (bFoundModelInfo)
+		m_modeldata.append(modeldata);
 	return col >= USER_COL_APP_USE_MODE ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
@@ -307,7 +315,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 			return strSocial.replace(fancy_record_separator1, record_separator);
 		}
 		case USER_COL_AVATAR:
-			return "image://tpimageprovider/"_L1 + fieldValue.last(fieldValue.length()-7);
+			return "image://tpimageprovider/"_L1 + fieldValue;
 		default: return QString();
 	}
 }

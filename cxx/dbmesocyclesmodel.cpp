@@ -14,35 +14,37 @@
 
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
-DBMesocyclesModel::DBMesocyclesModel(QObject* parent)
+DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 	: TPListModel{parent},
 	 m_mostRecentOwnMesoIdx(-1), m_bCanHaveTodaysWorkout(false)
 {
-	app_meso_model = this;
-
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
-	m_exportName = std::move(tr("Training Plan"));
-
-	m_roleNames[mesoNameRole] = std::move("mesoName");
-	m_roleNames[mesoStartDateRole] = std::move("mesoStartDate");
-	m_roleNames[mesoEndDateRole] = std::move("mesoEndDate");
-	m_roleNames[mesoSplitRole] = std::move("mesoSplit");
-	m_roleNames[mesoCoachRole] = std::move("mesoCoach");
-	m_roleNames[mesoClientRole] = std::move("mesoClient");
-
-	mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
-	for(uint i(0); i < MESOCYCLES_TOTAL_COLS; ++i)
-		mColumnNames.append(QString());
-	fillColumnNames();
-
 	m_splitModel = new DBMesoSplitModel{this, false, 10000};
 
-	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
-		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
-			updateColumnLabels();
-	});
+	if (bMainAppModel)
+	{
+		app_meso_model = this;
+		m_exportName = std::move(tr("Training Plan"));
+
+		m_roleNames[mesoNameRole] = std::move("mesoName");
+		m_roleNames[mesoStartDateRole] = std::move("mesoStartDate");
+		m_roleNames[mesoEndDateRole] = std::move("mesoEndDate");
+		m_roleNames[mesoSplitRole] = std::move("mesoSplit");
+		m_roleNames[mesoCoachRole] = std::move("mesoCoach");
+		m_roleNames[mesoClientRole] = std::move("mesoClient");
+
+		mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
+		for(uint i(0); i < MESOCYCLES_TOTAL_COLS; ++i)
+			mColumnNames.append(QString());
+		fillColumnNames();
+
+		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
+			if (user_row == 0 && field == USER_COL_APP_USE_MODE)
+				updateColumnLabels();
+		});
+	}
 }
 
 void DBMesocyclesModel::fillColumnNames()
@@ -73,7 +75,7 @@ QMLMesoInterface* DBMesocyclesModel::mesoManager(const uint meso_idx)
 	{
 		for (uint i(m_mesoManagerList.count()); i <= meso_idx ; ++i)
 		{
-			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, appQmlEngine(), appMainWindow(), i}};
+			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, i}};
 			m_mesoManagerList.append(mesomanager);
 		}
 	}
@@ -102,7 +104,7 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_SPLIT);
 	m_isNewMeso[meso_idx] = newMesoRequiredFields;
 
-	QMLMesoInterface* mesomanager{new QMLMesoInterface{this, appQmlEngine(), appMainWindow(), meso_idx}};
+	QMLMesoInterface* mesomanager{new QMLMesoInterface{this, meso_idx}};
 	m_mesoManagerList.append(mesomanager);
 	if (bCreatePage)
 		mesomanager->getMesocyclePage();
@@ -117,7 +119,6 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
 	m_isNewMeso.remove(meso_idx);
-
 	m_splitModel->removeRow(meso_idx);
 	removeRow(meso_idx);
 
@@ -357,10 +358,10 @@ QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
 					return QVariant("<b>"_L1 + name(row) + "</b>"_L1);
 			case mesoStartDateRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_STARTDATE) + "<b>"_L1 +
-					appUtils()->formatDate(startDate(row)) + "</b>"_L1);
+					(!isNewMeso(row) ? appUtils()->formatDate(startDate(row)) : tr("Not set")) + "</b>"_L1);
 			case mesoEndDateRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_ENDDATE) + "<b>"_L1 +
-					appUtils()->formatDate(endDate(row)) + "</b>"_L1);
+					(!isNewMeso(row) ? appUtils()->formatDate(endDate(row)) : tr("Not set")) + "</b>"_L1);
 			case mesoSplitRole:
 				return QVariant(mColumnNames.at(MESOCYCLES_COL_SPLIT) + "<b>"_L1 + split(row) + "</b>"_L1);
 			case mesoCoachRole:
@@ -423,35 +424,6 @@ QDate DBMesocyclesModel::getMesoMaximumEndDate(const QString& clientName, const 
 	return meso_idx < count() ? endDate(meso_idx) : appUtils()->createDate(QDate::currentDate(), 0, 6, 0);
 }
 
-//Called when importing from a text file
-bool DBMesocyclesModel::isDifferent(const TPListModel* const model)
-{
-	if (model->count() > 0)
-	{
-		if (count() == 0)
-			return true;
-	}
-	else
-		return false; //model is not usefull
-
-	bool bEqual(true);
-	for (uint n(0); n < count(); ++n)
-	{
-		for (uint i(1); i < model->m_modeldata.at(0).count(); ++i)
-		{
-			if (m_modeldata.at(n).at(i) != model->m_modeldata.at(0).at(i))
-			{
-				bEqual = false;
-				break;
-			}
-		}
-		if (bEqual)
-			return false;
-		bEqual = true;
-	}
-	return true;
-}
-
 void DBMesocyclesModel::updateColumnLabels()
 {
 	QString strCoach;
@@ -501,61 +473,72 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 	splitmodeldata[MESOSPLIT_COL_ID] = STR_MINUS_ONE;
 	splitmodeldata[MESOSPLIT_COL_MESOID] = STR_MINUS_ONE;
 
-	uint col(2);
+	uint col(MESOCYCLES_COL_NAME);
 	QString value;
 	char buf[512];
 	qint64 lineLength(0);
+	const QString tableIdStr("0x000"_L1 + QString::number(MESOCYCLES_TABLE_ID));
+	bool bFoundModelInfo(false);
+
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
 		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
 		{
 			if (lineLength > 10)
 			{
-				if (strstr(buf, "##") != NULL)
+				if (!bFoundModelInfo)
+					bFoundModelInfo = strstr(buf, tableIdStr.toLatin1().constData()) != NULL;
+				else
 				{
 					if (col < MESOCYCLES_TOTAL_COLS)
 					{
-						if (col != MESOCYCLES_COL_FILE)
-						{
-							value = buf;
-							value.remove(0, value.indexOf(':') + 2);
-							if (isFieldFormatSpecial(col))
-								modeldata[col] = std::move(formatFieldToImport(col, value, buf));
-							else
-								modeldata[col] = std::move(value);
-						}
+						value = buf;
+						value = value.remove(0, value.indexOf(':') + 2).simplified();
+						if (!isFieldFormatSpecial(col))
+							modeldata[col] = std::move(value);
+						else
+							modeldata[col] = std::move(formatFieldToImport(col, value, buf));
+						if (col == MESOCYCLES_COL_CLIENT)
+							col ++; //skip MESOCYCLES_COL_FILE
 					}
 					else
 					{
-						if (col == SIMPLE_MESOSPLIT_TOTAL_COLS)
-							break;
 						value = buf;
 						const int splitidx(appUtils()->splitLetterToMesoSplitIndex(value.at(value.indexOf(':')-1)));
 						if (splitidx >= 2 && splitidx <= 7)
-							splitmodeldata[splitidx] = std::move(value.remove(0, value.indexOf(':') + 2));
+							splitmodeldata[splitidx] = std::move(value.remove(0, value.indexOf(':') + 2).simplified());
+						else
+							break;
+						if (col >= MESOCYCLES_TOTAL_COLS + 5)
+							break;
 					}
-					++col;
+					col++;
 				}
 			}
 		}
 		else
 			break;
 	}
-	m_modeldata.append(std::move(modeldata));
-	m_splitModel->m_modeldata.append(std::move(splitmodeldata));
 	inFile->close();
 	delete inFile;
+	if (bFoundModelInfo)
+	{
+		m_modeldata.append(std::move(modeldata));
+		m_splitModel->m_modeldata.append(std::move(splitmodeldata));
+	}
 	return col >= MESOCYCLES_COL_SPLIT ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
 bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
 {
 	setImportMode(true);
-	for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
+	for (uint i(MESOCYCLES_COL_NAME); i < MESOCYCLES_TOTAL_COLS; ++i)
 		m_modeldata[meso_idx][i] = std::move(model->m_modeldata.at(0).at(i));
-	const DBMesoSplitModel* const splitModel(static_cast<const DBMesoSplitModel* const>(const_cast<TPListModel*>(model)));
-	for (uint i(MESOSPLIT_COL_ID); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+	const DBMesoSplitModel* const splitModel(static_cast<DBMesocyclesModel*>(model)->mesoSplitModel());
+	for (uint i(MESOSPLIT_A); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
 		m_splitModel->m_modeldata[meso_idx][i] = splitModel->m_modeldata.at(0).at(i);
+	setImportIdx(meso_idx);
+	m_isNewMeso[meso_idx] = 0;
 	return true;
 }
 

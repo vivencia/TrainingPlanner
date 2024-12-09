@@ -11,10 +11,8 @@ class QmlExerciseInterface;
 class QmlExerciseEntry;
 class TPTimer;
 
-class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
-class QQuickWindow;
 
 class QmlTDayInterface : public QObject
 {
@@ -42,9 +40,9 @@ Q_PROPERTY(bool hasExercises READ hasExercises WRITE setHasExercises NOTIFY hasE
 Q_PROPERTY(QStringList previousTDays READ previousTDays WRITE setPreviousTDays NOTIFY previousTDaysChanged FINAL)
 
 public:
-	explicit inline QmlTDayInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx, const QDate& date)
-		: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date),
-			m_exerciseManager(nullptr), m_workoutTimer(nullptr), m_restTimer(nullptr), m_SimpleExercisesListRequesterExerciseComp(0) {}
+	explicit inline QmlTDayInterface(QObject* parent, const uint meso_idx, const QDate& date)
+		: QObject{parent}, m_tDayPage(nullptr), m_mesoIdx(meso_idx), m_Date(date), m_exerciseManager(nullptr),
+				m_workoutTimer(nullptr), m_restTimer(nullptr), m_SimpleExercisesListRequesterExerciseComp(0) {}
 	~QmlTDayInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -173,8 +171,6 @@ public slots:
 	void hideSimpleExercisesList();
 
 private:
-	QQmlApplicationEngine* m_qmlEngine;
-	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_tDayComponent;
 	DBTrainingDayModel* m_tDayModel;
 	QQuickItem* m_tDayPage;

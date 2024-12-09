@@ -1,10 +1,13 @@
 #include "qmlexerciseentry.h"
-#include "qmltdayinterface.h"
-#include "qmlsetentry.h"
+
 #include "dbtrainingdaymodel.h"
+#include "qmlsetentry.h"
+#include "qmlitemmanager.h"
+#include "qmltdayinterface.h"
+
 #include "tpglobals.h"
-#include "tputils.h"
 #include "tptimer.h"
+#include "tputils.h"
 #include "translationclass.h"
 
 #include <QQmlApplicationEngine>
@@ -464,7 +467,7 @@ void QmlExerciseEntry::createSetObject(const uint set_number, const uint type)
 	const uint set_type_cpp(type == SET_TYPE_DROP ? 1 : type == SET_TYPE_GIANT ? 2 : 0);
 	if (m_setComponents[set_type_cpp] == nullptr)
 	{
-		m_setComponents[set_type_cpp] = new QQmlComponent{m_qmlEngine, QUrl{setTypePages[set_type_cpp]}, QQmlComponent::Asynchronous};
+		m_setComponents[set_type_cpp] = new QQmlComponent{appQmlEngine(), QUrl{setTypePages[set_type_cpp]}, QQmlComponent::Asynchronous};
 		m_setObjectProperties.insert("exerciseManager"_L1, QVariant::fromValue(this));
 	}
 
@@ -518,8 +521,8 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	m_setObjectProperties.insert("setManager"_L1, QVariant::fromValue(newSetEntry));
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_setComponents[set_type_cpp]->
-								createWithInitialProperties(m_setObjectProperties, m_qmlEngine->rootContext())));
-	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+								createWithInitialProperties(m_setObjectProperties, appQmlEngine()->rootContext())));
+	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	m_setObjects.at(set_number)->setSetEntry(item);
 
 	//Sets may be created at any random order, specially when there are set objects of different kinds within an exercise. m_expectedSetNumber keeps

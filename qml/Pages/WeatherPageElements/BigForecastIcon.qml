@@ -72,9 +72,6 @@ Item {
 
 		anchors {
 			top: text1.bottom
-			/*topMargin: {
-				Qt.platform.os === "android" ? -30 : 0;
-			}*/
 			horizontalCenter: parent.horizontalCenter
 		}
 	}
@@ -113,6 +110,9 @@ Item {
 
 		anchors {
 			top: text2.bottom
+			topMargin: {
+				Qt.platform.os === "android" ? -30 : 0;
+			}
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

@@ -120,7 +120,7 @@ Rectangle {
 				else {
 					anchors.horizontalCenter = button.horizontalCenter;
 					anchors.bottom = button.bottom;
-					anchors.bottomMargin = 5;
+					anchors.bottomMargin = !autoResize ? 5 : -5; //autoResize causes the label's line count to produce a empty space on the bottom
 				}
 			}
 			else {
@@ -130,34 +130,33 @@ Rectangle {
 		}
 	}
 
+	function onMousePressed(mouse: MouseEvent): void {
+		mouse.accepted = true;
+		bPressed = true;
+		forceActiveFocus();
+		fillPosition = 0;
+		if (!checkable)
+			anim.start();
+		else {
+			checked = !checked;
+			check(clickId);
+		}
+	}
+
+	function onMouseReleased(mouse: MouseEvent): void {
+		mouse.accepted = true;
+		if (bPressed) {
+			bEmitSignal = true;
+			bPressed = false;
+		}
+	}
+
 	MouseArea {
-		anchors.fill: button
-		enabled: button.enabled
 		hoverEnabled: true
-		z: button.z + 1
+		anchors.fill: button
 
-		onPressed: (mouse) => {
-			if (enabled) {
-				mouse.accepted = true;
-				bPressed = true;
-				button.forceActiveFocus();
-				button.fillPosition = 0;
-				if (!checkable)
-					anim.start();
-				else {
-					checked = !checked;
-					check(button.clickId);
-				}
-			}
-		}
-		onReleased: (mouse) => {
-			mouse.accepted = true;
-			if (bPressed) {
-				bEmitSignal = true;
-				bPressed = false;
-			}
-		}
-
+		onPressed: (mouse) => onMousePressed(mouse);
+		onReleased: (mouse) => onMouseReleased(mouse);
 		onEntered: button.highlighted = true;
 		onExited: button.highlighted = false;
 	}
@@ -200,6 +199,10 @@ Rectangle {
 			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
 		}
 		else
+		{
 			buttonText.widthAvailable = button.width - 10;
+			if (!autoResize)
+				buttonText.heightAvailable = buttonText.singleLine ? 25 : button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
+		}
 	}
 } //Rectangle

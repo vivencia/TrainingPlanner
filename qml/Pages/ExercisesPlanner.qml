@@ -78,6 +78,7 @@ TPPage {
 
 	footer: TPToolBar {
 		id: splitToolBar
+		height: footerHeight
 
 		readonly property int buttonWidth: width*0.22
 

@@ -11,10 +11,8 @@ class QmlMesoCalendarInterface;
 class DBMesoSplitModel;
 class DBTrainingDayModel;
 
-class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
-class QQuickWindow;
 
 class QMLMesoInterface : public QObject
 {
@@ -62,9 +60,8 @@ Q_PROPERTY(QDate minimumMesoStartDate READ minimumMesoStartDate NOTIFY minimumSt
 Q_PROPERTY(QDate maximumMesoEndDate READ maximumMesoEndDate CONSTANT FINAL)
 
 public:
-	explicit inline QMLMesoInterface(QObject* parent, QQmlApplicationEngine* qmlEngine, QQuickWindow* mainWindow, const uint meso_idx)
-	: QObject{parent}, m_qmlEngine(qmlEngine), m_mainWindow(mainWindow), m_mesoComponent(nullptr), m_mesoIdx(meso_idx),
-		m_exercisesPage(nullptr), m_calendarPage(nullptr) {}
+	explicit inline QMLMesoInterface(QObject* parent, const uint meso_idx)
+		: QObject{parent}, m_mesoComponent(nullptr), m_mesoIdx(meso_idx), m_exercisesPage(nullptr), m_calendarPage(nullptr) {}
 	~QMLMesoInterface();
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
@@ -193,8 +190,6 @@ signals:
 	void removePageFromMainMenu(QQuickItem* page);
 
 private:
-	QQmlApplicationEngine* m_qmlEngine;
-	QQuickWindow* m_mainWindow;
 	QQmlComponent* m_mesoComponent;
 	QQuickItem* m_mesoPage;
 	QVariantMap m_mesoProperties;

@@ -298,7 +298,7 @@ void QmlTDayInterface::importTrainingDay(const QString& filename)
 	if (filename.isEmpty())
 	{
 		appMesoModel()->setImportIdx(m_mesoIdx);
-		QMetaObject::invokeMethod(m_mainWindow, "chooseFileToImport");
+		QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport");
 	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_TDAY);
@@ -477,7 +477,7 @@ void QmlTDayInterface::hideSimpleExercisesList()
 
 void QmlTDayInterface::createTrainingDayPage()
 {
-	m_tDayComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
+	m_tDayComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/TrainingDayPage.qml"_L1}, QQmlComponent::Asynchronous};
 	if (m_tDayComponent->status() != QQmlComponent::Ready)
 		connect(m_tDayComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status)
 			{ return createTrainingDayPage_part2(); }, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -496,10 +496,10 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		return;
 	}
 	#endif
-	m_tDayPage = static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, m_qmlEngine->rootContext()));
-	m_qmlEngine->setObjectOwnership(m_tDayPage, QQmlEngine::CppOwnership);
-	m_tDayPage->setParentItem(m_mainWindow->findChild<QQuickItem*>("appStackView"));
-	m_exerciseManager = new QmlExerciseInterface{this, this, m_qmlEngine, m_tDayModel, m_tDayPage->findChild<QQuickItem*>(u"tDayExercisesLayout"_s)};
+	m_tDayPage = static_cast<QQuickItem*>(m_tDayComponent->createWithInitialProperties(m_tDayProperties, appQmlEngine()->rootContext()));
+	appQmlEngine()->setObjectOwnership(m_tDayPage, QQmlEngine::CppOwnership);
+	m_tDayPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	m_exerciseManager = new QmlExerciseInterface{this, this, m_tDayModel, m_tDayPage->findChild<QQuickItem*>("tDayExercisesLayout"_L1)};
 
 	connect(this, &QmlTDayInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QmlTDayInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);

@@ -152,12 +152,9 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	uint wanted_content(0);
 	if (isBitSet(m_fileContents, IFC_MESO))
 	{
-		const uint fieldStart((isBitSet(m_fileContents, IFC_USER)) ? 1 : 0);
 		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) && selectedFields.at(1) ? IFC_USER : 0);
-		setBit(wanted_content, selectedFields.at(fieldStart) ? IFC_MESO : 0);
+		setBit(wanted_content, selectedFields.at(0) ? IFC_MESO : 0);
 	}
-	setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0);
-	setBit(wanted_content, isBitSet(m_fileContents, IFC_EXERCISES) && selectedFields.at(0) ? IFC_EXERCISES : 0);
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
 		const uint fieldStart((m_fileContents & IFC_MESO) ? 2 : 0);
@@ -176,6 +173,11 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 			setBit(wanted_content, (selectedFields.at(fieldStart+5) ? IFC_MESOSPLIT_F : 0));
 		if (wanted_content_temp != wanted_content)
 			setBit(wanted_content, IFC_MESOSPLIT);
+	}
+	else
+	{
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_TDAY) && selectedFields.at(0) ? IFC_TDAY : 0);
+		setBit(wanted_content, isBitSet(m_fileContents, IFC_EXERCISES) && selectedFields.at(0) ? IFC_EXERCISES : 0);
 	}
 	importFromFile(m_importFilename, wanted_content);
 }
@@ -496,92 +498,79 @@ void QmlItemManager::openRequestedFile(const QString& filename, const importFile
 
 void QmlItemManager::importFromFile(const QString& filename, const int wanted_content)
 {
-	int importFileMessageId(0);
+	int importFileMessageId(APPWINDOW_MSG_IMPORT_FAILED);
 	if (isBitSet(wanted_content, IFC_MESO))
 	{
 		if (isBitSet(wanted_content, IFC_USER))
 		{
-			DBUserModel* usermodel{new DBUserModel{this}};
+			DBUserModel* usermodel{new DBUserModel{this, false}};
 			usermodel->deleteLater();
-			importFileMessageId = usermodel->importFromFile(filename);
-			if (importFileMessageId >= 0)
-				incorporateImportedData(usermodel);
+			if (usermodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+				importFileMessageId = incorporateImportedData(usermodel);
 		}
 
-		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this}};
+		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this, false}};
 		mesomodel->deleteLater();
-		importFileMessageId = mesomodel->importFromFile(filename);
-		if (importFileMessageId >= 0)
-			incorporateImportedData(mesomodel);
-
-		if (isBitSet(wanted_content, IFC_MESOSPLIT))
-		{
-			DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true}};
-			splitModel->deleteLater();
-			importFileMessageId = splitModel->importFromFile(filename);
-			if (importFileMessageId >= 0)
-				incorporateImportedData(splitModel);
-		}
+		if (mesomodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+			importFileMessageId = incorporateImportedData(mesomodel);
 	}
-	else
+	if (isBitSet(wanted_content, IFC_MESOSPLIT))
 	{
-		if (isBitSet(wanted_content, IFC_MESOSPLIT))
+		DBMesoSplitModel* splitModels[6];
+		for (uint i(0), ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
 		{
-			DBMesoSplitModel* splitModels[6];
-			for (uint i(0), ifc(IFC_MESOSPLIT_A); i < 6; ++i, ++ifc)
+			if (isBitSet(wanted_content, ifc))
 			{
-				if (isBitSet(wanted_content, ifc))
-				{
-					splitModels[i] = new DBMesoSplitModel{this, true};
-					splitModels[i]->setImportMode(true);
-					splitModels[i]->setSplitLetter(static_cast<char>('A' + i));
-					splitModels[i]->setMesoIdx(appMesoModel()->importIdx());
-					if (splitModels[i]->importFromFile(filename) >= 0)
-						incorporateImportedData(splitModels[i]);
-				}
+				splitModels[i] = new DBMesoSplitModel{this, true};
+				splitModels[i]->setImportMode(true);
+				splitModels[i]->setSplitLetter(static_cast<char>('A' + i));
+				splitModels[i]->setMesoIdx(appMesoModel()->importIdx());
+				if (splitModels[i]->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+					importFileMessageId = incorporateImportedData(splitModels[i]);
 			}
 		}
-		else if (isBitSet(wanted_content, IFC_TDAY))
-		{
-			DBTrainingDayModel* tDayModel{new DBTrainingDayModel{this}};
-			tDayModel->setImportMode(true);
-			importFileMessageId = tDayModel->importFromFile(filename);
-			if (importFileMessageId >= 0)
-				incorporateImportedData(tDayModel);
-		}
-		else if (isBitSet(wanted_content, IFC_EXERCISES))
-		{
-			DBExercisesModel* exercisesModel{new DBExercisesModel};
-			exercisesModel->deleteLater();
-			importFileMessageId = exercisesModel->importFromFile(filename);
-			if (importFileMessageId >= 0)
-				incorporateImportedData(exercisesModel);
-		}
 	}
-	displayMessageOnAppWindow(importFileMessageId);
+	else if (isBitSet(wanted_content, IFC_TDAY))
+	{
+		DBTrainingDayModel* tDayModel{new DBTrainingDayModel{this}};
+		tDayModel->setImportMode(true);
+		if (tDayModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+			importFileMessageId = incorporateImportedData(tDayModel);
+	}
+	else if (isBitSet(wanted_content, IFC_EXERCISES))
+	{
+		DBExercisesModel* exercisesModel{new DBExercisesModel{this, false}};
+		exercisesModel->deleteLater();
+		if (exercisesModel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+			importFileMessageId = incorporateImportedData(exercisesModel);
+	}
+
+	displayMessageOnAppWindow(importFileMessageId, filename);
 }
 
-void QmlItemManager::incorporateImportedData(TPListModel* model)
+int QmlItemManager::incorporateImportedData(TPListModel* model)
 {
+	bool ok(false);
 	switch (model->tableID())
 	{
 		case EXERCISES_TABLE_ID:
-			appExercisesModel()->updateFromModel(model);
-			appDBInterface()->saveExercises();
+			if ((ok = appExercisesModel()->updateFromModel(model)))
+				appDBInterface()->saveExercises();
 		break;
 		case USER_TABLE_ID:
-			static_cast<void>(appUserModel()->updateFromModel(model));
-			appDBInterface()->saveUser(appUserModel()->count()-1);
+			if (appUserModel()->isDifferent(model))
+			{
+				if ((ok = appUserModel()->updateFromModel(model)))
+					appDBInterface()->saveUser(appUserModel()->count()-1);
+			}
 		break;
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
 			{
 				const uint meso_idx = appMesoModel()->createNewMesocycle(false);
-				appMesoModel()->updateFromModel(meso_idx, model);
-				appDBInterface()->saveMesocycle(meso_idx);
+				if ((ok = appMesoModel()->updateFromModel(meso_idx, model)))
+					appDBInterface()->saveMesocycle(meso_idx);
 			}
-			else
-				displayMessageOnAppWindow(APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA);
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
@@ -589,13 +578,14 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 			DBMesoSplitModel* splitModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter()));
 			if (splitModel) //exercises planner page for the current meso has been loaded in the session
 			{
-				if (splitModel->updateFromModel(newSplitModel))
+				if ((ok = splitModel->updateFromModel(newSplitModel)))
 					appDBInterface()->saveMesoSplitComplete(splitModel);
 			}
 			else //exercises planner page for the current meso has NOT -yet- been loaded during the session
 			{
 				appMesoModel()->setMuscularGroup(newSplitModel->mesoIdx(), newSplitModel->_splitLetter(), newSplitModel->muscularGroup(), false);
 				appDBInterface()->saveMesoSplitComplete(newSplitModel);
+				ok = true;
 			}
 		}
 		break;
@@ -605,14 +595,18 @@ void QmlItemManager::incorporateImportedData(TPListModel* model)
 			DBTrainingDayModel* tDayModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday());
 			if (tDayModel)
 			{
-				if (tDayModel->updateFromModel(newTDayModel))
+				if ((ok = tDayModel->updateFromModel(newTDayModel)))
 					appDBInterface()->saveTrainingDay(tDayModel);
 			}
 			else
+			{
 				appDBInterface()->saveTrainingDay(newTDayModel);
+				ok = true;
+			}
 		}
 		break;
 	}
+	return ok ? APPWINDOW_MSG_IMPORT_OK : APPWINDOW_MSG_IMPORT_FAILED_SAME_DATA;
 }
 //-----------------------------------------------------------OTHER ITEMS-----------------------------------------------------------
 
@@ -629,19 +623,19 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	{
 		case APPWINDOW_MSG_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_SHARE_OK:
 			title = std::move(tr("Succesfully shared"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_IMPORT_OK:
 			title = std::move(tr("Successfully imported"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_OPEN_FAILED:
 			title = std::move(tr("Failed to open file"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_UNKNOWN_FILE_FORMAT:
 			title = std::move(tr("Error"));
@@ -665,7 +659,7 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 		break;
 		case APPWINDOW_MSG_SHARE_FAILED:
 			title = std::move(tr("Sharing failed"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_EXPORT_FAILED:
 			title = std::move(tr("Export failed"));
@@ -679,9 +673,13 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 			title = std::move(tr("Import failed"));
 			message = std::move(tr("Operation canceled"));
 		break;
+		case APPWINDOW_MSG_IMPORT_FAILED:
+			title = std::move(tr("Import from file failed"));
+			message = std::move(appUtils()->getFileName(fileName));
+		break;
 		case APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED:
 			title = std::move(tr("Could not open file for exporting"));
-			message = std::move(fileName);
+			message = std::move(appUtils()->getFileName(fileName));
 		break;
 		case APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE:
 			title = std::move(tr("Cannot import"));

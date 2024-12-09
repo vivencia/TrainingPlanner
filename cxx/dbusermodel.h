@@ -45,7 +45,7 @@ Q_PROPERTY(QString goalLabel READ goalLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString avatarLabel READ avatarLabel NOTIFY labelsChanged FINAL)
 
 public:
-	explicit DBUserModel(QObject* parent = nullptr);
+	explicit DBUserModel(QObject* parent = nullptr, const bool bMainUserModel = true);
 
 	inline QString nameLabel() const { return mColumnNames.at(USER_COL_NAME); }
 	inline QString birthdayLabel() const { return mColumnNames.at(USER_COL_BIRTHDAY); }

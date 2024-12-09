@@ -41,7 +41,7 @@ public:
 		selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
 	};
 
-	explicit DBExercisesModel(QObject* parent = nullptr);
+	explicit DBExercisesModel(QObject* parent = nullptr, const bool bMainExercisesModel = true);
 	void fillColumnNames();
 
 	inline const QString& id(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_ID); }

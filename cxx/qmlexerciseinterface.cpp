@@ -4,6 +4,7 @@
 #include "dbmesosplitmodel.h"
 #include "dbtrainingdaymodel.h"
 #include "qmlexerciseentry.h"
+#include "qmlitemmanager.h"
 #include "qmltdayinterface.h"
 
 #include <QQmlApplicationEngine>
@@ -22,7 +23,7 @@ void QmlExerciseInterface::createExerciseObject()
 {
 	if (!m_exercisesComponent)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
 				createExerciseObject();
@@ -42,7 +43,7 @@ void QmlExerciseInterface::createExerciseObject()
 	else
 		nRestTime = m_tDayModel->nextSetSuggestedTime(0, SET_TYPE_REGULAR, 0);
 
-	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_qmlEngine, m_tDayModel, exercise_idx}};
+	QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_tDayModel, exercise_idx}};
 	if (exercise_idx > 0)
 		m_exercisesList.last()->setLastExercise(false);
 	m_exercisesList.append(newExercise);
@@ -66,7 +67,7 @@ void QmlExerciseInterface::createExercisesObjects()
 {
 	if (m_exercisesComponent == nullptr)
 	{
-		m_exercisesComponent = new QQmlComponent{m_qmlEngine, QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
+		m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/ExercisesAndSets/ExerciseEntry.qml"_L1}, QQmlComponent::Asynchronous};
 		if (m_exercisesComponent->status() != QQmlComponent::Ready)
 		{
 			connect(m_exercisesComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
@@ -79,7 +80,7 @@ void QmlExerciseInterface::createExercisesObjects()
 	const uint n_exercises(m_tDayModel->exerciseCount());
 	for(uint i(0), set_type(0), last_set(0); i < n_exercises; ++i)
 	{
-		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_qmlEngine, m_tDayModel, i}};
+		QmlExerciseEntry* newExercise{new QmlExerciseEntry{this, m_tDayPage, m_tDayModel, i}};
 		last_set = m_tDayModel->setsNumber(i) - 1;
 		if (last_set > 10) last_set = 0; //setsNumber was 0
 		set_type = m_tDayModel->setType(i, last_set);
@@ -187,8 +188,8 @@ void QmlExerciseInterface::createExerciseObject_part2(const uint exercise_idx)
 	m_exercisesProperties.insert("exerciseManager"_L1, QVariant::fromValue(m_exercisesList.at(exercise_idx)));
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_exercisesComponent->createWithInitialProperties(
-													m_exercisesProperties, m_qmlEngine->rootContext())));
-	m_qmlEngine->setObjectOwnership(item, QQmlEngine::CppOwnership);
+													m_exercisesProperties, appQmlEngine()->rootContext())));
+	appQmlEngine()->setObjectOwnership(item, QQmlEngine::CppOwnership);
 	item->setParentItem(m_parentLayout);
 	item->setProperty("Layout.row", exercise_idx);
 	item->setProperty("Layout.column", 0);
