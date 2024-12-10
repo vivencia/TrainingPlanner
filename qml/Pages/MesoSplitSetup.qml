@@ -66,6 +66,8 @@ Pane {
 			id: splitRepeater
 			model: 7
 
+			property int highest_letter_idx: 0;
+
 			RowLayout {
 				Layout.fillWidth: true
 
@@ -77,9 +79,19 @@ Pane {
 				}
 
 				TPComboBox {
+					// Don't allow a day to skip a letter. Letters must be added sequentially or be repeated, never skipped
 					id: cboSplit
-					model: AppGlobals.splitModel
 					implicitWidth: col2Width
+
+					model: ListModel {
+						ListElement { text: "A"; value: "A"; enabled: true; }
+						ListElement { text: "B"; value: "B"; enabled: true; }
+						ListElement { text: "C"; value: "C"; enabled: true; }
+						ListElement { text: "D"; value: "D"; enabled: true; }
+						ListElement { text: "E"; value: "E"; enabled: true; }
+						ListElement { text: "F"; value: "F"; enabled: true; }
+						ListElement { text: "R"; value: "R"; enabled: true; }
+					}
 
 					onActivated: (cboindex) => {
 						var mesoSplit = txtMesoSplit.text;
@@ -88,9 +100,55 @@ Pane {
 						bMesoSplitChanged = true;
 						if (cboindex !== 6)
 							txtSplit.forceActiveFocus();
+						else
+							return;
+
+						let last_letter_idx;
+						switch(valueAt(cboindex)) {
+							case "A": last_letter_idx = 0; break;
+							case "B": last_letter_idx = 1; break;
+							case "C": last_letter_idx = 2; break;
+							case "D": last_letter_idx = 3; break;
+							case "E": last_letter_idx = 4; break;
+							case "F": last_letter_idx = 5; break;
+						}
+						++last_letter_idx;
+						if (splitRepeater.highest_letter_idx < last_letter_idx)
+							splitRepeater.highest_letter_idx = last_letter_idx;
+
+						for (let i = index + 1; i < 7; ++i) {
+							let cboModel = splitRepeater.itemAt(i).children[1].model;
+							for (let x = 0; x < 6; ++x)
+								cboModel.get(x).enabled = x <= splitRepeater.highest_letter_idx;
+						}
 					}
 
-					Component.onCompleted: currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
+					Component.onCompleted: {
+						currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
+						if (index >=1)
+						{
+							let last_letter_idx;
+							switch(splitRepeater.itemAt(index-1).children[1].currentValue) {
+								case "A": last_letter_idx = 0; break;
+								case "B": last_letter_idx = 1; break;
+								case "C": last_letter_idx = 2; break;
+								case "D": last_letter_idx = 3; break;
+								case "E": last_letter_idx = 4; break;
+								case "F": last_letter_idx = 5; break;
+								case "R": last_letter_idx = -1; break;
+							}
+							++last_letter_idx;
+							if (splitRepeater.highest_letter_idx < last_letter_idx)
+								splitRepeater.highest_letter_idx = last_letter_idx;
+
+							for (let x = 0; x < 6; ++x)
+								model.get(x).enabled = x <= splitRepeater.highest_letter_idx;
+						}
+						else {
+							for (let y = 1; y < 6; ++y)
+								model.get(y).enabled = false;
+						}
+					}
 				}
 
 				TPTextInput {

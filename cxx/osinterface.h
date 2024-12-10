@@ -53,6 +53,7 @@ public:
 	void androidOpenURL(const QString& address) const;
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
 	bool viewFile(const QString& filePath, const QString& title) const;
+	QString readFileFromAndroidFileDialog(const QString& android_uri) const;
 	void appStartUpNotifications();
 #else
 	void processArguments() const;

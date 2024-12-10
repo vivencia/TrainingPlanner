@@ -186,10 +186,7 @@ void DBMesocyclesTable::saveMesocycle()
 		if (ok)
 		{
 			if (!bUpdate)
-			{
 				m_model->setId(row, query.lastInsertId().toString());
-				m_model->setImportMode(false);
-			}
 		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}

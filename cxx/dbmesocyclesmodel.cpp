@@ -539,6 +539,7 @@ bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
 		m_splitModel->m_modeldata[meso_idx][i] = splitModel->m_modeldata.at(0).at(i);
 	setImportIdx(meso_idx);
 	m_isNewMeso[meso_idx] = 0;
+	changeCanHaveTodaysWorkout();
 	return true;
 }
 

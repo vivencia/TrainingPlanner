@@ -409,7 +409,17 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 
 void QmlItemManager::openRequestedFile(const QString& filename, const importFileContents wanted_content)
 {
+	#ifdef Q_OS_ANDROID
+	const QString& androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};
+	if (androidFilename.isEmpty())
+	{
+		displayMessageOnAppWindow(APPWINDOW_MSG_OPEN_FAILED, filename);
+		return;
+	}
+	QFile* inFile{new QFile{androidFilename}};
+	#else
 	QFile* inFile{new QFile{filename}};
+	#endif
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -490,7 +500,11 @@ void QmlItemManager::openRequestedFile(const QString& filename, const importFile
 	{
 		if (wanted_content == IFC_ANY)
 			appMesoModel()->setImportIdx(-1);
-		displayImportDialogMessage(fileContents, filename);
+		#ifdef Q_OS_ANDROID
+			displayImportDialogMessage(fileContents, androidFilename);
+		#else
+			displayImportDialogMessage(fileContents, filename);
+		#endif
 	}
 	else
 		displayMessageOnAppWindow(APPWINDOW_MSG_WRONG_IMPORT_FILE_TYPE);
@@ -512,7 +526,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this, false}};
 		mesomodel->deleteLater();
 		if (mesomodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-			importFileMessageId = incorporateImportedData(mesomodel);
+			importFileMessageId = incorporateImportedData(mesomodel, wanted_content);
 	}
 	if (isBitSet(wanted_content, IFC_MESOSPLIT))
 	{
@@ -526,7 +540,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 				splitModels[i]->setSplitLetter(static_cast<char>('A' + i));
 				splitModels[i]->setMesoIdx(appMesoModel()->importIdx());
 				if (splitModels[i]->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-					importFileMessageId = incorporateImportedData(splitModels[i]);
+					importFileMessageId = incorporateImportedData(splitModels[i], wanted_content);
 			}
 		}
 	}
@@ -548,7 +562,7 @@ void QmlItemManager::importFromFile(const QString& filename, const int wanted_co
 	displayMessageOnAppWindow(importFileMessageId, filename);
 }
 
-int QmlItemManager::incorporateImportedData(TPListModel* model)
+int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted_content)
 {
 	bool ok(false);
 	switch (model->tableID())
@@ -569,7 +583,13 @@ int QmlItemManager::incorporateImportedData(TPListModel* model)
 			{
 				const uint meso_idx = appMesoModel()->createNewMesocycle(false);
 				if ((ok = appMesoModel()->updateFromModel(meso_idx, model)))
+				{
+					//If we are importing a complete program with splits as well, let them save split code to the database. The code to save a
+					//a simple split can interfere with the multiple split threads
+					if (!isBitSet(wanted_content, IFC_MESOSPLIT))
+						appMesoModel()->setImportMode(false);
 					appDBInterface()->saveMesocycle(meso_idx);
+				}
 			}
 		break;
 		case MESOSPLIT_TABLE_ID:
@@ -587,6 +607,10 @@ int QmlItemManager::incorporateImportedData(TPListModel* model)
 				appDBInterface()->saveMesoSplitComplete(newSplitModel);
 				ok = true;
 			}
+			//If we imported a complete plan we could not change the import mode before because saving a simple split is disabled when importing
+			//Now it is safe(and necessary) to set the correct import state to the main model
+			if (isBitSet(wanted_content, IFC_MESO))
+				appMesoModel()->setImportMode(false);
 		}
 		break;
 		case TRAININGDAY_TABLE_ID:

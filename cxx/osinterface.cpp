@@ -18,6 +18,9 @@
 	#else
 		#include <QtCore/6.8.0/QtCore/private/qandroidextras_p.h>
 	#endif
+
+//"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
+// String f(Context, Uri)
 #else
 #include <QProcess>
 extern "C"
@@ -37,7 +40,7 @@ OSInterface::OSInterface(QObject* parent)
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
-	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + u"/"_s;
+	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + '/';
 
 #ifdef Q_OS_ANDROID
 	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
@@ -117,7 +120,7 @@ void OSInterface::androidOpenURL(const QString& address) const
 {
 	QString url;
 	if (!address.startsWith("http"_L1))
-		url = u"https://" + address;
+		url = "https://"_L1 + address;
 	else
 		url = address;
 
@@ -160,6 +163,20 @@ bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 		ERROR_MESSAGE("Unable to resolve view activity from Java", QString())
 	}
 	return ok;
+}
+
+QString OSInterface::readFileFromAndroidFileDialog(const QString& android_uri) const
+{
+	if (android_uri.startsWith("//com"_L1))
+	{
+		QString properFilename;
+		properFilename = "content:"_L1 + android_uri;
+		const QString& localFile{m_appDataFilesPath + "tempfile"_L1};
+		static_cast<void>(QFile::remove(localFile));
+		return QFile::copy(properFilename, localFile) ? properFilename : QString();
+	}
+	// else: uri is not a uri it's already been translated by QShareUtils via android's open with or share
+	return android_uri;
 }
 
 void OSInterface::appStartUpNotifications()
