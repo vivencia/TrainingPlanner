@@ -295,7 +295,7 @@ void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
 	}
 }
 
-void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
+void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type, const bool bSetIsManuallyModified)
 {
 	if (new_type != USE_LAST_SET_DATA)
 	{
@@ -307,7 +307,7 @@ void QmlExerciseEntry::changeSetType(const uint set_number, const uint new_type)
 			{
 				if (new_type != SET_TYPE_DROP && new_type != SET_TYPE_GIANT)
 				{
-					m_setObjects.at(set_number)->setType(new_type); //all types supported by SetTypeRegular.qml only require a simple property change
+					m_setObjects.at(set_number)->setType(new_type, bSetIsManuallyModified); //all types supported by SetTypeRegular.qml only require a simple property change
 					return;
 				}
 			}
@@ -383,7 +383,6 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 			}
 			else
 				setObj->setMode(SET_MODE_START_REST);
-			m_tDayModel->setSetCompleted(m_exercise_idx, set_number, false);
 	}
 }
 
@@ -395,7 +394,7 @@ void QmlExerciseEntry::copyTypeValueIntoOtherSets(const uint set_number)
 	for (uint i(set_number+1); i < nsets; ++i)
 	{
 		if (!m_setObjects.at(i)->completed())
-			changeSetType(i, set_type);
+			changeSetType(i, set_type, false);
 	}
 }
 
@@ -410,7 +409,7 @@ void QmlExerciseEntry::copyTimeValueIntoOtherSets(const uint set_number)
 		if (!m_setObjects.at(i)->completed())
 		{
 			strRestTime = m_tDayModel->nextSetSuggestedTime(m_exercise_idx, set_type, i-1);
-			m_setObjects.at(i)->setRestTime(strRestTime);
+			m_setObjects.at(i)->setRestTime(strRestTime, false, false);
 		}
 	}
 }
@@ -426,7 +425,13 @@ void QmlExerciseEntry::copyRepsValueIntoOtherSets(const uint set_number, const u
 		if (!m_setObjects.at(i)->completed())
 		{
 			strReps = m_tDayModel->nextSetSuggestedReps(m_exercise_idx, set_type, i-1, sub_set);
-			m_tDayModel->setSetReps(m_exercise_idx, i, sub_set, strReps);
+			switch (sub_set)
+			{
+				case 0: m_setObjects.at(i)->setReps1(strReps, false); break;
+				case 1: m_setObjects.at(i)->setReps2(strReps, false); break;
+				case 2: m_setObjects.at(i)->setReps3(strReps, false); break;
+				case 3: m_setObjects.at(i)->setReps4(strReps, false); break;
+			}
 		}
 	}
 }
@@ -442,7 +447,13 @@ void QmlExerciseEntry::copyWeightValueIntoOtherSets(const uint set_number, const
 		if (!m_setObjects.at(i)->completed())
 		{
 			strWeight = m_tDayModel->nextSetSuggestedWeight(m_exercise_idx, set_type, i-1, sub_set);
-			m_tDayModel->setSetWeight(m_exercise_idx, i, sub_set, strWeight);
+			switch (sub_set)
+			{
+				case 0: m_setObjects.at(i)->setWeight1(strWeight, false); break;
+				case 1: m_setObjects.at(i)->setWeight2(strWeight, false); break;
+				case 2: m_setObjects.at(i)->setWeight3(strWeight, false); break;
+				case 3: m_setObjects.at(i)->setWeight4(strWeight, false); break;
+			}
 		}
 	}
 }
@@ -491,7 +502,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	}
 	#endif
 
-	QmlSetEntry* newSetEntry{new QmlSetEntry(this, this, m_tDayModel, m_exercise_idx)};
+	QmlSetEntry* newSetEntry{new QmlSetEntry{this, this, m_tDayModel, m_exercise_idx}};
 	const uint set_type(m_tDayModel->setType(m_exercise_idx, set_number));
 
 	newSetEntry->_setExerciseName(m_tDayModel->exerciseName(m_exercise_idx));

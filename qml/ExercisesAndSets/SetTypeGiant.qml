@@ -14,6 +14,10 @@ Item {
 	implicitHeight: setLayout.implicitHeight + 15
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
+	Layout.leftMargin: 5
+	Layout.rightMargin: 5
+	Layout.topMargin: 5
+	Layout.bottomMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -230,7 +234,7 @@ Item {
 				height: 25
 				width: 25
 
-				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
+				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number, 0);
 			}
 
 			SetInputField {
@@ -276,7 +280,7 @@ Item {
 				width: 25
 				Layout.alignment: Qt.AlignRight
 
-				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
+				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number, 0);
 			}
 
 			SetInputField {

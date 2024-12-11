@@ -8,7 +8,7 @@ Column {
 	id: frmMesoAdjust
 	padding: 0
 	spacing: 10
-	height: 120
+	height: chkPreserveOldCalendar.implicitHeight + optPreserveOldCalendar.implicitHeight + optPreserveOldCalendarUntilYesterday.implicitHeight + 30
 
 	required property var parentDlg
 
@@ -36,8 +36,9 @@ Column {
 		enabled: chkPreserveOldCalendar.checked
 		checked: false
 		width: frmMesoAdjust.width
-		Layout.leftMargin: 30
+		Layout.leftMargin: 15
 
+		onClicked: optPreserveOldCalendarUntilYesterday.checked = false;
 		onCheckedChanged: parentDlg.customBoolProperty1 = checked;
 	}
 
@@ -47,8 +48,9 @@ Column {
 		checked: false
 		enabled: chkPreserveOldCalendar.checked
 		width: frmMesoAdjust.width
-		Layout.leftMargin: 30
+		Layout.leftMargin: 15
 
+		onClicked: optPreserveOldCalendar.checked = false;
 		onCheckedChanged: parentDlg.customBoolProperty2 = checked;
 	}
 } // ColumnLayout

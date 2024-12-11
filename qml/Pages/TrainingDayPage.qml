@@ -194,7 +194,6 @@ TPPage {
 					TPLabel {
 						id: lblInTime
 						text: qsTr("In time:")
-						bottomPadding: 15
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 
@@ -203,10 +202,9 @@ TPPage {
 							text: tDayManager.timeIn
 							readOnly: true
 							anchors {
-								top: parent.top
-								topMargin: -5
 								left: parent.left
 								leftMargin: 80
+								verticalCenter: parent.verticalCenter
 							}
 						}
 
@@ -217,9 +215,8 @@ TPPage {
 							enabled: tDayManager.editMode || tDayManager.mainDateIsToday
 
 							anchors {
-								top: parent.top
-								topMargin: -5
 								left: txtInTime.right
+								verticalCenter: parent.verticalCenter
 							}
 
 							onClicked: dlgTimeIn.open();
@@ -229,7 +226,6 @@ TPPage {
 					TPLabel {
 						id: lblOutTime
 						text: qsTr("Out time:")
-						bottomPadding: 10
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
 
@@ -237,13 +233,11 @@ TPPage {
 							id: txtOutTime
 							text: tDayManager.timeOut
 							readOnly: true
-							Layout.leftMargin: 5
 
 							anchors {
-								top: parent.top
-								topMargin: -5
 								left: parent.left
 								leftMargin: 80
+								verticalCenter: parent.verticalCenter
 							}
 						}
 
@@ -254,9 +248,8 @@ TPPage {
 							enabled: tDayManager.editMode || tDayManager.mainDateIsToday
 
 							anchors {
-								top: parent.top
-								topMargin: -5
 								left: txtOutTime.right
+								verticalCenter: parent.verticalCenter
 							}
 
 							onClicked: dlgTimeOut.open();

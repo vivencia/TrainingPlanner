@@ -10,7 +10,7 @@ ComboBox {
 	property bool completeModel: false
 
 	id: control
-	implicitWidth: 120//fontMetrics.boundingRect("LorenIpsuM").width + 15
+	implicitWidth: 120
 	implicitHeight: 25
 	textRole: "text"
 	valueRole: "value"
@@ -28,9 +28,8 @@ ComboBox {
 		required property int index
 
 		contentItem: TPLabel {
-			//text: control.textRole ? (Array.isArray(control.model) ? modelData[control.textRole] : model[control.textRole]) : modelData
-			text: delegate.model[control.textRole]
-			color: textColor
+			text: model.text
+			enabled: model.enabled
 			singleLine: true
 			verticalAlignment: Text.AlignVCenter
 			leftPadding: completeModel ? 30 : 5
@@ -82,7 +81,6 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		singleLine: true
-		width: control.width
 		verticalAlignment: Text.AlignVCenter
 		leftPadding: completeModel ? 30 : 5
 	}
@@ -122,16 +120,6 @@ ComboBox {
 			implicitHeight: contentHeight
 			model: control.popup.visible ? control.delegateModel : null
 			currentIndex: control.highlightedIndex
-
-			delegate: Text {
-				text: model.key
-				color: control.highlighted ? appSettings.primaryLightColor : textColor
-				minimumPointSize: 8
-				fontSizeMode: Text.Fit
-				font.weight: Font.ExtraBold
-				elide: Text.ElideRight
-			}
-			ScrollIndicator.vertical: ScrollIndicator { }
 		}
 
 		background: Rectangle {
@@ -140,9 +128,5 @@ ComboBox {
 			opacity: 0.9
 			radius: 6
 		}
-	}
-
-	function enableIndex(index: int, enabled: bool) {
-		control.model.setProperty(index, "enabled", enabled);
 	}
 }

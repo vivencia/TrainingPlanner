@@ -8,17 +8,34 @@ import "../TPWidgets"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Item {
+FocusScope {
 	id: setItem
-	height: setLayout.height + 15
-	implicitHeight: setLayout.implicitHeight + 15
+	implicitHeight: setLayout.implicitHeight + 20
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
+	Layout.leftMargin: 5
+	Layout.rightMargin: 5
+	Layout.topMargin: 5
+	Layout.bottomMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
 
 	readonly property int controlWidth: setItem.width - 20
+	readonly property var myoLabels: setManager.type === 5 ? [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
+						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
+
+	Connections {
+		target: setManager
+			function onTypeChanged() { btnCopySetType.visible = true; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = true; }
+			function onReps1Changed() { btnCopySetReps.visible = true; }
+			function onWeight1Changed() { btnCopySetWeight.visible = true; }
+			function onIsManuallyModifiedChanged() {
+					if (!setManager.isManuallyModified)
+						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps.visible = btnCopySetWeight.visible = false;
+			}
+	}
 
 	Rectangle {
 		id: indicatorRec
@@ -49,7 +66,7 @@ Item {
 
 	ColumnLayout {
 		id: setLayout
-		Layout.fillWidth: true
+		anchors.fill: parent
 
 		Item {
 			height: 30
@@ -124,7 +141,7 @@ Item {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: btnCopySetType.visible ? btnCopySetType.right : cbosetManager.type.right
+					left: btnCopySetType.visible ? btnCopySetType.right : cboSetType.right
 					leftMargin: 10
 				}
 
@@ -144,7 +161,13 @@ Item {
 				showButtons: !setManager.autoRestTime
 
 				onValueChanged: (str) => setManager.restTime = str;
-				onEnterOrReturnKeyPressed: txtNReps1.forceActiveFocus();
+
+				onEnterOrReturnKeyPressed: {
+					if (txtNSubSets.visible)
+						txtNSubSets.forceActiveFocus();
+					else
+						txtNReps.forceActiveFocus();
+				}
 			}
 
 			TPButton {
@@ -159,143 +182,85 @@ Item {
 			}
 		}
 
-		RowLayout {
-			enabled: !setCompleted
-			Layout.fillWidth: true
+		SetInputField {
+			id: txtNSubSets
+			type: SetInputField.SetType
+			text: setManager.subSets
+			availableWidth: controlWidth
+			visible: setManager.hasSubSets
+			alternativeLabels: myoLabels
+			enabled: !setManager.completed
 
-			TPButton {
-				id: btnAddSubSet
-				text: qsTr("Add subset")
-				imageSource: "add-new.png"
-				flat: false
-				rounded: false
-				enabled: setManager.nSubSets <= 3
-				width: controlWidth*0.5
-				Layout.preferredWidth: width
+			onValueChanged: (str) => setManager.subSets = str;
 
-				onClicked: setManager.nSubSets = setManager.nSubSets + 1;
-			}
+			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 
-			TPButton {
-				id: btnDelSubSet
-				text: qsTr("Remove subset")
-				imageSource: "remove.png"
-				flat: false
-				rounded: false
-				enabled: setManager.nSubSets > 1
-				width: controlWidth*0.5
-				Layout.preferredWidth: width
+			TPLabel {
+				id: lblTotalReps
+				text: setManager.strTotalReps
+				visible: setManager.hasSubSets
 
-				onClicked: setManager.nSubSets = setManager.nSubSets - 1;
+				anchors {
+					top: parent.verticalCenter
+					topMargin: -(height/2)
+					left: parent.horizontalCenter
+					leftMargin: 10
+				}
 			}
 		}
 
-		Repeater {
-			id: subSetsRepeater
-			model: setManager.nSubSets
+		Row {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
-			RowLayout {
-				id: subSetsLayout
-				anchors.fill: parent
+			SetInputField {
+				id: txtNReps
+				type: SetInputField.Type.RepType
+				text: setManager.reps1
+				availableWidth: btnCopySetReps.visible ? controlWidth - 40 : controlWidth
+				alternativeLabels: myoLabels
 
-				SetInputField {
-					id: txtNReps
-					type: SetInputField.Type.RepType
-					availableWidth: controlWidth*0.4
-					Layout.alignment: Qt.AlignLeft
-					showLabel: !btnCopySetReps.visible
-
-					onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
-
-					Component.onCompleted: {
-						text = Qt.binding(function() {
-							switch(index) {
-								case 0: return setManager.reps1;
-								case 1: return setManager.reps2;
-								case 2: return setManager.reps3;
-								case 3: return setManager.reps4;
-							}
-						});
-						valueChanged.connect(function(str) {
-							switch(index) {
-								case 0: setManager.reps1 = str; break;
-								case 1: setManager.reps2 = str; break;
-								case 2: setManager.reps3 = str; break;
-								case 3: setManager.reps4 = str; break;
-							}
-						});
-					}
-				}
-
-				TPButton {
-					id: btnCopySetReps
-					visible: false
-					imageSource: "copy-setvalue"
-					height: 25
-					width: 25
-					Layout.alignment: Qt.AlignRight
-
-					Component.onCompleted: {
-						switch (index) {
-							case 0: setManager.reps1Changed.connect(function () { visible = !visible; } ); break;
-							case 1: setManager.reps2Changed.connect(function () { visible = !visible; } ); break;
-							case 2: setManager.reps3Changed.connect(function () { visible = !visible; } ); break;
-							case 3: setManager.reps4Changed.connect(function () { visible = !visible; } ); break;
-						}
-					}
-
-					onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number, index);
-				}
-
-				SetInputField {
-					id: txtNWeight
-					type: SetInputField.Type.WeightType
-					availableWidth: controlWidth*0.4
-					showLabel: false
-
-					Component.onCompleted: {
-						text = Qt.binding(function() {
-							switch(index) {
-								case 0: return setManager.weight1;
-								case 1: return setManager.weight2;
-								case 2: return setManager.weight3;
-								case 3: return setManager.weight4;
-							}
-						});
-						txtNWeight.valueChanged.connect(function(str) {
-							switch(index) {
-								case 0: setManager.weight1 = str; break;
-								case 1: setManager.weight2 = str; break;
-								case 2: setManager.weight3 = str; break;
-								case 3: setManager.weight4 = str; break;
-							}
-						});
-					}
-				}
-
-				TPButton {
-					id: btnCopySetWeight
-					visible: false
-					imageSource: "copy-setvalue"
-					height: 25
-					width: 25
-					Layout.alignment: Qt.AlignRight
-
-					Component.onCompleted: {
-						switch (index) {
-							case 0: setManager.weight1Changed.connect(function () { visible = !visible; } ); break;
-							case 1: setManager.weight2Changed.connect(function () { visible = !visible; } ); break;
-							case 2: setManager.weight3Changed.connect(function () { visible = !visible; } ); break;
-							case 3: setManager.weight4Changed.connect(function () { visible = !visible; } ); break;
-						}
-					}
-
-					onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number, index);
-				}
+				onValueChanged: (str) => setManager.reps1 = str;
+				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 			}
-		}
+
+			TPButton {
+				id: btnCopySetReps
+				visible: false
+				imageSource: "copy-setvalue"
+				height: 25
+				width: 25
+				Layout.alignment: Qt.AlignRight
+
+				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
+			}
+		} //RowLayout
+
+		RowLayout {
+			enabled: !setManager.completed
+			Layout.fillWidth: true
+
+			SetInputField {
+				id: txtNWeight
+				type: SetInputField.Type.WeightType
+				text: setManager.weight1
+				availableWidth: btnCopySetWeight.visible ? controlWidth - 40 : controlWidth
+				alternativeLabels: myoLabels
+
+				onValueChanged: (str) => setManager.weight1 = str;
+			}
+
+			TPButton {
+				id: btnCopySetWeight
+				visible: false
+				imageSource: "copy-setvalue"
+				height: 25
+				width: 25
+				Layout.alignment: Qt.AlignRight
+
+				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
+			}
+		} //RowLayout
 
 		SetNotesField {
 			id: btnShowHideNotes
@@ -303,13 +268,13 @@ Item {
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
-			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
+			onEditFinished: (new_text) => setManager.notes = new_text;
 		}
 
 		TPButton {
 			id: btnCompleteExercise
 			text: qsTr("Exercise completed")
-			flat: true
+			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
 			Layout.alignment: Qt.AlignCenter

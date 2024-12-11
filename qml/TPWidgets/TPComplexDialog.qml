@@ -55,7 +55,7 @@ TPPopup {
 
 			function finishCreation() {
 				customItem = component.createObject(mainLayout, { parentDlg: dialog, "Layout.row": 1,  "Layout.column": 0, "Layout.columnSpan": 2,
-						"Layout.leftMargin": 5, "Layout.rightMargin": 5, "Layout.fillWidth": true, z:2 });
+						"Layout.leftMargin": 5, "Layout.rightMargin": 5, "Layout.fillWidth": true });
 				totalHeight += customItem.height;
 			}
 
@@ -79,15 +79,14 @@ TPPopup {
 			text: title
 			horizontalAlignment: Text.AlignHCenter
 			visible: title.length > 0
-			height: visible ? 30 : 0
+			height: visible ? _preferredHeight : 0
 			Layout.row: 0
 			Layout.column: 0
 			Layout.columnSpan: 2
 			Layout.leftMargin: 5
 			Layout.topMargin: 20
 			Layout.rightMargin: 5
-			Layout.minimumWidth: mainLayout.width - 10
-			Layout.maximumWidth: mainLayout.width - 10
+			Layout.preferredWidth: mainLayout.width - 10
 		}
 
 		TPButton {

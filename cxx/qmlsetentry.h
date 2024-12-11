@@ -46,13 +46,14 @@ Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY t
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
 Q_PROPERTY(bool hasSubSets READ hasSubSets NOTIFY hasSubSetsChanged FINAL)
+Q_PROPERTY(bool isManuallyModified READ isManuallyModified WRITE setIsManuallyModified NOTIFY isManuallyModifiedChanged FINAL)
 
 public:
 	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
 		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
 		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
 		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bFinishButtonEnabled(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
-		m_bCurrent(false), m_bHasSubSets(false) {}
+		m_bCurrent(false), m_bHasSubSets(false), m_bIsManuallyModified(false) {}
 
 	inline const uint exerciseIdx() const { return m_exercise_idx; }
 	inline void setExerciseIdx(const uint new_value) { m_exercise_idx = new_value; }
@@ -68,7 +69,7 @@ public:
 	void setExerciseName2(const QString& new_value, const bool bFromQML = true);
 
 	inline const uint type() const { return m_type; }
-	void setType(const uint new_value);
+	void setType(const uint new_value, const bool bSetIsManuallyModified = true);
 
 	inline const uint number() const { return m_number; }
 	void setNumber(const uint new_value);
@@ -93,31 +94,31 @@ public:
 	}
 
 	inline QString restTime() const { return m_restTime; }
-	void setRestTime(const QString& new_value, const bool bJustUpdateValue = true);
+	void setRestTime(const QString& new_value, const bool bJustUpdateValue = true, const bool bSetIsManuallyModified = true);
 
 	QString reps1() const;
-	void setReps1(const QString& new_value);
+	void setReps1(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString weight1() const;
-	void setWeight1(const QString& new_value);
+	void setWeight1(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString reps2() const;
-	void setReps2(const QString& new_value);
+	void setReps2(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString weight2() const;
-	void setWeight2(const QString& new_value);
+	void setWeight2(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString reps3() const;
-	void setReps3(const QString& new_value);
+	void setReps3(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString weight3() const;
-	void setWeight3(const QString& new_value);
+	void setWeight3(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString reps4() const;
-	void setReps4(const QString& new_value);
+	void setReps4(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	QString weight4() const;
-	void setWeight4(const QString& new_value);
+	void setWeight4(const QString& new_value, const bool bSetIsManuallyModified = true);
 
 	inline QString subSets() const { return m_subsets; }
 	void setSubSets(const QString& new_value);
@@ -132,7 +133,8 @@ public:
 	inline void setIsEditable(const bool new_value) { if (m_bEditable != new_value) { m_bEditable = new_value; emit isEditableChanged(); } }
 
 	inline const bool completed() const { return m_bCompleted; }
-	inline void setCompleted(const bool new_value) { if (m_bCompleted != new_value) { m_bCompleted = new_value; emit completedChanged(); } }
+	inline void setCompleted(const bool new_value) { if (m_bCompleted != new_value)
+						{ m_bCompleted = new_value; emit completedChanged(); setIsManuallyModified(false); } }
 
 	inline const bool lastSet() const { return m_bLastSet; }
 	inline void setLastSet(const bool new_value) { if (m_bLastSet != new_value) { m_bLastSet = new_value; emit lastSetChanged(); } }
@@ -150,6 +152,10 @@ public:
 	inline void setCurrent(const bool new_value) { if (m_bCurrent != new_value) { m_bCurrent = new_value; emit currentChanged(); } }
 
 	inline const bool hasSubSets() const { return m_bHasSubSets; }
+
+	inline const bool isManuallyModified() const { return m_bIsManuallyModified; }
+	inline void setIsManuallyModified(const bool new_value) { if (m_bIsManuallyModified != new_value)
+										{ m_bIsManuallyModified = new_value; emit isManuallyModifiedChanged(); } }
 
 	//Called by QmlExerciseEntry upon new set creation
 	inline void _setExerciseName(const QString& new_value) { m_exerciseName = new_value; }
@@ -199,6 +205,7 @@ signals:
 	void autoRestTimeChanged();
 	void currentChanged();
 	void hasSubSetsChanged();
+	void isManuallyModifiedChanged();
 
 private:
 	QmlExerciseEntry* m_parentExercise;
@@ -208,7 +215,7 @@ private:
 	QQuickItem* m_setEntry;
 	QString m_exerciseName, m_restTime, m_reps, m_weight, m_subsets, m_notes;
 	uint m_type, m_number, m_mode, m_nsubsets;
-	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets;
+	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets, m_bIsManuallyModified;
 };
 
 #endif // QMLSETENTRY_H

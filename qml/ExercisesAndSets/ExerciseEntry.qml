@@ -299,7 +299,7 @@ FocusScope {
 		}
 	} //paneExercise
 
-	function paneExerciseShowHide(show: bool) {
+	function paneExerciseShowHide(show: bool): void {
 		paneExercise.shown = show;
 		if (show)
 			exerciseManager.createAvailableSets();

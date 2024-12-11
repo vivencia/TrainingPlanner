@@ -13,6 +13,10 @@ FocusScope {
 	implicitHeight: setLayout.implicitHeight + 20
 	enabled: setManager.isEditable
 	Layout.fillWidth: true
+	Layout.leftMargin: 5
+	Layout.rightMargin: 5
+	Layout.topMargin: 5
+	Layout.bottomMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -23,10 +27,15 @@ FocusScope {
 
 	Connections {
 		target: setManager
-			function onTypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
-			function onRestTimeChanged() { btnCopyTimeValue.visible = !btnCopyTimeValue.visible; }
-			function onReps1Changed() { btnCopySetReps.visible = !btnCopySetReps.visible; }
-			function onWeight1Changed() { btnCopySetWeight.visible = !btnCopySetWeight.visible; }
+			function onTypeChanged() { btnCopySetType.visible = true; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = true; }
+			function onReps1Changed() { btnCopySetReps.visible = true; }
+			function onWeight1Changed() { btnCopySetWeight.visible = true; }
+			function onIsManuallyModifiedChanged() {
+					if (!setManager.isManuallyModified)
+						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps.visible = btnCopySetWeight.visible = false;
+			}
+
 	}
 
 	Rectangle {
