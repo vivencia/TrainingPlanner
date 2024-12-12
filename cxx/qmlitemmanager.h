@@ -1,18 +1,20 @@
 #ifndef QMLITEMMANAGER_H
 #define QMLITEMMANAGER_H
 
-#include "tpglobals.h"
-
 #include <QObject>
 
-class TPListModel;
-class QmlUserInterface;
 class QmlExercisesDatabaseInterface;
+class QmlTDayInterface;
+class QmlUserInterface;
+class TPListModel;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
 class QQuickItem;
 class QQuickWindow;
+
+//Avoid including tpglobals.h only for this value
+#define IFC_ANY_ 12
 
 class QmlItemManager : public QObject
 {
@@ -31,7 +33,7 @@ public:
 	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
-	Q_INVOKABLE void getExercisesPage(QQuickItem* connectPage = nullptr);
+	Q_INVOKABLE void getExercisesPage(QmlTDayInterface* connectPage = nullptr);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
 
@@ -40,15 +42,15 @@ public:
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
 	void selectWhichMesoToImportInto();
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
-	void openRequestedFile(const QString& filename, const importFileContents wanted_content = IFC_ANY);
-	void importFromFile(const QString& filename, const int wanted_content = IFC_ANY);
+	void openRequestedFile(const QString& filename, const int wanted_content = IFC_ANY_);
+	void importFromFile(const QString& filename, const int wanted_content = IFC_ANY_);
 	int incorporateImportedData(TPListModel* model, const int wanted_content = 0);
 
 public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;
 	void exportSlot(const QString& filePath = QString());
-	void importSlot_FileChosen(const QString& filePath = QString(), const int fileType = IFC_ANY);
+	void importSlot_FileChosen(const QString& filePath = QString(), const int fileType = IFC_ANY_);
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
 

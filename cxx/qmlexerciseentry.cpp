@@ -190,25 +190,18 @@ void QmlExerciseEntry::setAutoRestTime(const bool new_value)
 
 void QmlExerciseEntry::createAvailableSets()
 {
-	if (m_setObjects.isEmpty())
+	if (m_setObjects.isEmpty() && hasSets())
 	{
 		const uint nsets(m_tDayModel->setsNumber(m_exercise_idx));
 		auto conn = std::make_shared<QMetaObject::Connection>();
-		*conn = connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn] (const uint set_number) {
-			if (set_number == 0)
-			{
-				disconnect(*conn);
-				QQuickItem* setObj(m_setObjects.at(0)->setEntry());
-				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
-			}
+		*conn = connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn,nsets] (const uint set_number) {
+			setCreated(set_number, nsets, conn);
 		});
 		for (uint i(0); i < nsets; ++i)
 		{
 			m_expectedSetNumber = i;
 			createSetObject(i, m_tDayModel->setType(m_exercise_idx, i));
 		}
-		emit hasSetsChanged();
-		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
 }
 
@@ -233,6 +226,11 @@ void QmlExerciseEntry::appendNewSet()
 		if (!m_setObjects.isEmpty())
 			m_setObjects.last()->setLastSet(false);
 
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn =  connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn,nsets] (const uint set_number) {
+				setCreated(set_number, nsets, conn);
+			});
+
 		for (uint i(0); i < nsets; ++i)
 		{
 			m_expectedSetNumber = i;
@@ -242,8 +240,6 @@ void QmlExerciseEntry::appendNewSet()
 				m_tDayModel->newSet(m_exercise_idx, m_expectedSetNumber, newSetType(), reps(), weight(), restTime());
 			createSetObject(i, newSetType());
 		}
-		emit hasSetsChanged();
-		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
 	}
 }
 
@@ -559,6 +555,22 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	});
 }
 
+void QmlExerciseEntry::setCreated(const uint set_number, const uint nsets, auto conn)
+{
+	static int sets_created(0);
+	if (++sets_created == nsets)
+	{
+		disconnect(*conn);
+		sets_created = 0;
+		setNewSetType(m_tDayModel->setType(m_exercise_idx, m_setObjects.count() - 1));
+		emit hasSetsChanged();
+		m_exerciseEntry->setProperty("showSets", true);
+		const uint view_set(nsets > 1 ? 0 : m_setObjects.count() - 1);
+		QQuickItem* setObj(m_setObjects.at(view_set)->setEntry());
+		QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exerciseEntry()->y() + exerciseEntry()->height() + setObj->y() + setObj->height()));
+	}
+}
+
 void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 {
 	bool bNoSetsCompleted(true);
@@ -606,16 +618,12 @@ inline void QmlExerciseEntry::findCurrentSet()
 			if (!m_tDayModel->setCompleted(m_exercise_idx, i))
 			{
 				set->setCurrent(true);
-				set->setIsEditable(isEditable());
 				const QQuickItem* const setObj(set->setEntry());
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
 				break;
 			}
 			else
-			{
 				set->setCurrent(false);
-				set->setIsEditable(set->finishButtonEnabled());
-			}
 		}
 	}
 }

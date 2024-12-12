@@ -10,13 +10,8 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight + 20
-	enabled: setManager.isEditable
+	implicitHeight: setLayout.implicitHeight*1.2
 	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
-	Layout.topMargin: 5
-	Layout.bottomMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -35,7 +30,6 @@ FocusScope {
 					if (!setManager.isManuallyModified)
 						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps.visible = btnCopySetWeight.visible = false;
 			}
-
 	}
 
 	Rectangle {
@@ -65,36 +59,55 @@ FocusScope {
 		anchors.fill: parent
 	}
 
+	Item {
+		id: setModeItem
+		enabled: setManager.current
+		height: 30
+		width: parent.width
+
+		anchors {
+			top: parent.top
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
+
+		TPButton {
+			id: btnManageSet
+			text: setManager.modeLabel
+			flat: false
+			visible: !setManager.completed
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: exerciseManager.changeSetMode(setManager.number);
+		}
+
+		TPButton {
+			id: imgCompleted
+			imageSource: "set-completed"
+			visible: setManager.completed
+			height: 30
+			width: 30
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: exerciseManager.changeSetMode(setManager.number);
+		}
+	}
+
 	ColumnLayout {
 		id: setLayout
-		anchors.fill: parent
+		enabled: setManager.isEditable ? setManager.current : false
 
-		Item {
-			height: 30
-			Layout.fillWidth: true
-
-			TPButton {
-				id: btnManageSet
-				text: setManager.modeLabel
-				flat: false
-				visible: !setManager.completed
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-
-				onClicked: exerciseManager.changeSetMode(setManager.number);
-			}
-
-			TPButton {
-				id: imgCompleted
-				imageSource: "set-completed"
-				visible: setManager.completed
-				height: 30
-				width: 30
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-
-				onClicked: exerciseManager.changeSetMode(setManager.number);
-			}
+		anchors {
+			top: setModeItem.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+			bottom: parent.bottom
+			bottomMargin: 5
 		}
 
 		Label {

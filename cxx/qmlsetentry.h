@@ -164,7 +164,7 @@ public:
 	inline void _setRestTime(const QString& new_value) { m_restTime = new_value; }
 	inline void _setReps(const QString& new_value) { m_reps = new_value; }
 	inline void _setWeight(const QString& new_value) { m_weight = new_value; }
-	inline void _setSubSets(const QString& new_value) { m_subsets = new_value; }
+	inline void _setSubSets(const QString& new_value) { m_subsets = new_value; m_nsubsets = new_value.toUInt(); }
 	inline void _setNotes(const QString& new_value) { m_notes = new_value; }
 	inline void _setMode(const uint new_value) { m_mode = new_value; }
 	inline void _setEditable(const bool new_value) { m_bEditable = new_value; }

@@ -192,17 +192,22 @@ Rectangle {
 	}
 
 	function resizeButton() {
-		if (!fixedSize) {
-			const fwidth = buttonText._textWidth;
-			const fheight = buttonText._textHeight;
-			implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
-			implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
+		if (text.length > 0)
+		{
+			if (!fixedSize) {
+				const fwidth = buttonText._textWidth;
+				const fheight = buttonText._textHeight;
+				implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
+				implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
+			}
+			else
+			{
+				buttonText.widthAvailable = button.width - 10;
+				if (!autoResize)
+					buttonText.heightAvailable = buttonText.singleLine ? 25 : button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
+			}
 		}
 		else
-		{
-			buttonText.widthAvailable = button.width - 10;
-			if (!autoResize)
-				buttonText.heightAvailable = buttonText.singleLine ? 25 : button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
-		}
+			width = height = imageSize;
 	}
 } //Rectangle

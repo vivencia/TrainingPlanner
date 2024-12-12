@@ -359,12 +359,6 @@ void QmlTDayInterface::removeSetFromExercise(const uint exercise_idx, const uint
 	m_exerciseManager->removeExerciseSet(exercise_idx, set_number);
 }
 
-void QmlTDayInterface::createExerciseObject()
-{
-	m_exerciseManager->createExerciseObject();
-	setHasExercises(true);
-}
-
 void QmlTDayInterface::removeExerciseObject(const uint exercise_idx, const bool bAsk)
 {
 	if (bAsk)
@@ -433,6 +427,12 @@ TPTimer* QmlTDayInterface::restTimer()
 	return m_restTimer;
 }
 
+void QmlTDayInterface::createExerciseObject()
+{
+	m_exerciseManager->createExerciseObject();
+	setHasExercises(true);
+}
+
 void QmlTDayInterface::silenceTimeWarning()
 {
 	m_workoutTimer->stopAlarmSound();
@@ -455,7 +455,7 @@ void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 	{
 		case 0:
 			exerciseEntry->setExerciseName(exerciseName);
-			exerciseEntry->setNewSetType(b_is_composite ? SET_TYPE_REGULAR : SET_TYPE_GIANT);
+			exerciseEntry->setNewSetType(b_is_composite ? SET_TYPE_GIANT : SET_TYPE_REGULAR);
 			exerciseEntry->setSetsNumber(nSets);
 			exerciseEntry->setReps(nReps);
 			exerciseEntry->setWeight(nWeight);

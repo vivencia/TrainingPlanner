@@ -228,6 +228,7 @@ TPPage {
 						text: qsTr("Out time:")
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
+						Layout.topMargin: 10
 
 						TPTextInput {
 							id: txtOutTime
@@ -546,7 +547,7 @@ TPPage {
 				bottomMargin: 5
 			}
 
-			onClicked: itemManager.getExercisesPage(trainingDayPage);
+			onClicked: itemManager.getExercisesPage(tDayManager);
 		} // bntAddExercise
 	} //footer: ToolBar
 
@@ -667,10 +668,6 @@ TPPage {
 			case 4: //empty session
 			break;
 		}
-	}
-
-	function gotExercise(): void {
-		tDayManager.createExerciseObject();
 	}
 
 	function placeSetIntoView(ypos: int): void {

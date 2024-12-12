@@ -3,6 +3,7 @@
 #include "dbexercisesmodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
+#include "qmltdayinterface.h"
 #include "osinterface.h"
 #include "translationclass.h"
 
@@ -64,7 +65,7 @@ void QmlExercisesDatabaseInterface::importExercises(const QString& filename)
 		appItemManager()->openRequestedFile(filename, IFC_EXERCISES);
 }
 
-void QmlExercisesDatabaseInterface::getExercisesPage(QQuickItem* connectPage)
+void QmlExercisesDatabaseInterface::getExercisesPage(QmlTDayInterface* connectPage)
 {
 	if (!m_exercisesComponent)
 	{
@@ -79,13 +80,13 @@ void QmlExercisesDatabaseInterface::getExercisesPage(QQuickItem* connectPage)
 		if (connectPage)
 		{
 			disconnect(m_exercisesPage, SIGNAL(exerciseChosen()), nullptr, nullptr);
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
 		}
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 	}
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage(QQuickItem* connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage(QmlTDayInterface* connectPage)
 {
 	m_exercisesComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPage.qml"_L1}, QQmlComponent::Asynchronous};
 	m_exercisesProperties.insert("bChooseButtonEnabled"_L1, connectPage != nullptr);
@@ -101,7 +102,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage(QQuickItem* connectPage)
 		createExercisesPage_part2(connectPage);
 }
 
-void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connectPage)
+void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlTDayInterface *connectPage)
 {
 	#ifndef QT_NO_DEBUG
 	if (m_exercisesComponent->status() == QQmlComponent::Error)
@@ -120,7 +121,7 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QQuickItem* connec
 		appExercisesModel()->clearSelectedEntries();
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
-			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(gotExercise()));
+			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
 
 		connect(appExercisesModel(), &DBExercisesModel::exerciseChanged, this, [this] (const uint index) {
 			appDBInterface()->saveExercises();

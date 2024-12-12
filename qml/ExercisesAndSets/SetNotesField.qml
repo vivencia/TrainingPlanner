@@ -6,7 +6,7 @@ import "../"
 import "../TPWidgets"
 
 Frame {
-	height: label.height + txtSetNotes.height
+	implicitHeight: label.height + setNotesArea.height + 30
 	padding: 0
 	spacing: 0
 
@@ -22,6 +22,7 @@ Frame {
 	signal editFinished(string new_text)
 
 	ColumnLayout {
+		id: notesLayout
 		anchors.fill: parent
 		spacing: 0
 
@@ -29,13 +30,11 @@ Frame {
 			id: label
 			text: qsTr("Notes:")
 			fontColor: foreColor
-			height: 20
-			Layout.alignment: Qt.AlignLeft
-			Layout.fillWidth: false
+			Layout.preferredWidth: _preferredWidth
 
 			TPButton {
 				id: button
-				imageSource: foreColor + (txtSetNotes.visible ? "/fold-up" : "/fold-down")
+				imageSource: foreColor + (setNotesArea.visible ? "/fold-up" : "/fold-down")
 				hasDropShadow: false
 				width: 20
 				height: 20
@@ -43,16 +42,16 @@ Frame {
 				anchors {
 					left: parent.right
 					top: parent.top
-					rightMargin: 20
+					leftMargin: 5
 				}
 
-				onClicked: txtSetNotes.visible = !txtSetNotes.visible;
+				onClicked: setNotesArea.visible = !setNotesArea.visible;
 			}
 		} //Label
 
 		Flickable {
-			id: txtSetNotes
-			height: visible ? txtNotes.implicitHeight : 0
+			id: setNotesArea
+			height: visible ? txtNotes.implicitHeight : 30
 			width: parent.width - 20
 			visible: false
 			Layout.fillWidth: true

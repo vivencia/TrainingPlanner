@@ -121,7 +121,6 @@ public:
 	Q_INVOKABLE void stopWorkout();
 	Q_INVOKABLE void removeExercise(const uint exercise_idx);
 	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
-	Q_INVOKABLE void createExerciseObject();
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
 
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
@@ -166,6 +165,7 @@ signals:
 	void convertTDayToSplitPlan(const DBTrainingDayModel* const tDayModel);
 
 public slots:
+	void createExerciseObject();
 	void silenceTimeWarning();
 	void exerciseSelected(QmlExerciseEntry* exerciseEntry = nullptr);
 	void hideSimpleExercisesList();

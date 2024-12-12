@@ -18,10 +18,11 @@
 #include "qmluserinterface.h"
 
 #include "osinterface.h"
+#include "statistics/tpstatistics.h"
+#include "tpglobals.h"
 #include "tpimage.h"
 #include "tpimageprovider.h"
 #include "tpsettings.h"
-#include "statistics/tpstatistics.h"
 #include "tptimer.h"
 #include "translationclass.h"
 #include "weather/weatherinfo.h"
@@ -202,7 +203,7 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 	m_usersManager->getClientsOrCoachesPage(bManageClients, bManageCoaches);
 }
 
-void QmlItemManager::getExercisesPage(QQuickItem* connectPage)
+void QmlItemManager::getExercisesPage(QmlTDayInterface* connectPage)
 {
 	if (!m_exercisesListManager)
 		m_exercisesListManager = new QmlExercisesDatabaseInterface{this};
@@ -407,7 +408,7 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 	QMetaObject::invokeMethod(appMainWindow(), "createImportConfirmDialog", Q_ARG(QStringList, importOptions), Q_ARG(QList<bool>, selectedFields));
 }
 
-void QmlItemManager::openRequestedFile(const QString& filename, const importFileContents wanted_content)
+void QmlItemManager::openRequestedFile(const QString& filename, const int wanted_content)
 {
 	#ifdef Q_OS_ANDROID
 	const QString& androidFilename{appOsInterface()->readFileFromAndroidFileDialog(filename)};

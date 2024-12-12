@@ -8,16 +8,10 @@ import "../TPWidgets"
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
-Item {
+FocusScope {
 	id: setItem
-	height: setLayout.height + 15
-	implicitHeight: setLayout.implicitHeight + 15
-	enabled: setManager.isEditable
+	implicitHeight: setLayout.implicitHeight*1.2
 	Layout.fillWidth: true
-	Layout.leftMargin: 5
-	Layout.rightMargin: 5
-	Layout.topMargin: 5
-	Layout.bottomMargin: 5
 
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
@@ -26,12 +20,18 @@ Item {
 
 	Connections {
 		target: setManager
-			function onTypeChanged() { btnCopySetType.visible = !btnCopySetType.visible; }
-			function onRestTimeChanged() { btnCopyTimeValue.visible = !btnCopyTimeValue.visible; }
-			function onReps1Changed() { btnCopySetReps1.visible = !btnCopySetReps1.visible; }
-			function onWeight1Changed() { btnCopySetWeight1.visible = !btnCopySetWeight1.visible; }
-			function onReps1Changed() { btnCopySetReps2.visible = !btnCopySetReps2.visible; }
-			function onWeight1Changed() { btnCopySetWeight2.visible = !btnCopySetWeight2.visible; }
+			function onTypeChanged() { btnCopySetType.visible = true; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = true; }
+			function onReps1Changed() { btnCopySetReps1.visible = true; }
+			function onWeight1Changed() { btnCopySetWeight1.visible = true; }
+			function onReps1Changed() { btnCopySetReps2.visible = true; }
+			function onWeight1Changed() { btnCopySetWeight2.visible = true; }
+
+			function onIsManuallyModifiedChanged() {
+					if (!setManager.isManuallyModified)
+						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps1.visible = btnCopySetWeight1.visible =
+							btnCopySetReps2.visible = btnCopySetWeight2.visible = false;
+			}
 	}
 
 	Rectangle {
@@ -61,36 +61,55 @@ Item {
 		anchors.fill: parent
 	}
 
+	Item {
+		id: setModeItem
+		enabled: setManager.current
+		height: 30
+		width: parent.width
+
+		anchors {
+			top: parent.top
+			topMargin: 5
+			horizontalCenter: parent.horizontalCenter
+		}
+
+		TPButton {
+			id: btnManageSet
+			text: setManager.modeLabel
+			flat: false
+			visible: !setManager.completed
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: exerciseManager.changeSetMode(setManager.number);
+		}
+
+		TPButton {
+			id: imgCompleted
+			imageSource: "set-completed"
+			visible: setManager.completed
+			height: 30
+			width: 30
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.horizontalCenter: parent.horizontalCenter
+
+			onClicked: exerciseManager.changeSetMode(setManager.number);
+		}
+	}
+
 	ColumnLayout {
 		id: setLayout
-		anchors.fill: parent
+		enabled: setManager.isEditable ? setManager.current : false
 
-		Item {
-			height: 30
-			Layout.fillWidth: true
-
-			TPButton {
-				id: btnManageSet
-				text: setManager.modeLabel
-				flat: false
-				visible: !setManager.completed
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-
-				onClicked: exerciseManager.changeSetMode(setManager.number);
-			}
-
-			TPButton {
-				id: imgCompleted
-				imageSource: "set-completed"
-				visible: setManager.completed
-				height: 30
-				width: 30
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.horizontalCenter: parent.horizontalCenter
-
-				onClicked: exerciseManager.changeSetMode(setManager.number);
-			}
+		anchors {
+			top: setModeItem.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+			bottom: parent.bottom
+			bottomMargin: 5
 		}
 
 		Label {

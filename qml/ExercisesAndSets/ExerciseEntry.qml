@@ -14,20 +14,19 @@ FocusScope {
 	Layout.fillWidth: true
 
 	required property ExerciseEntryManager exerciseManager
+	property bool showSets: false
 
 	Frame {
 		id: paneExercise
 		visible: height > 0
-		height: shown ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
-		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.implicitHeight + 20
+		height: showSets ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
+		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.height + 20
 		implicitWidth: width
 		width: parent.width
 		clip: true
 		padding: 0
 		spacing: 0
 		Layout.fillWidth: true
-
-		property bool shown: false
 
 		Behavior on height {
 			NumberAnimation {
@@ -55,7 +54,7 @@ FocusScope {
 				left: parent.left
 				leftMargin: 0
 				top: parent.top
-				topMargin: -15
+				topMargin: -5
 			}
 
 			onClicked: moveExercise(true, true);
@@ -74,7 +73,7 @@ FocusScope {
 				left: parent.left
 				leftMargin: 20
 				top: parent.top
-				topMargin: -15
+				topMargin: -5
 			}
 
 			onClicked: moveExercise(false, true);
@@ -95,13 +94,16 @@ FocusScope {
 			RowLayout {
 				spacing: 0
 				Layout.fillWidth: true
+				Layout.leftMargin: 5
 
 				TPButton {
 					id: btnFoldIcon
-					imageSource: paneExercise.shown ? "black/fold-up" : "black/fold-down"
+					imageSource: showSets ? "black/fold-up" : "black/fold-down"
 					hasDropShadow: false
 					imageSize: 18
-					onClicked: paneExerciseShowHide(!paneExercise.shown);
+					Layout.preferredWidth: 18
+					Layout.preferredHeight: 18
+					onClicked: paneExerciseShowHide();
 				}
 
 				Label {
@@ -109,7 +111,7 @@ FocusScope {
 					text: exerciseManager.exerciseNumber + ":"
 					font.bold: true
 					font.pixelSize: appSettings.fontSize
-					width: 15
+					Layout.leftMargin: 5
 				}
 
 				ExerciseNameField {
@@ -125,7 +127,7 @@ FocusScope {
 					onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
 					onRemoveButtonClicked: exerciseManager.removeExercise();
 					onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
-					onItemClicked: paneExerciseShowHide(!paneExercise.shown);
+					onItemClicked: paneExerciseShowHide();
 				}
 			} //Row txtExerciseName
 
@@ -275,7 +277,9 @@ FocusScope {
 					id: btnAddSet
 					imageSource: "add-new"
 					imageSize: 30
-					Layout.leftMargin: 40
+					Layout.leftMargin: 30
+					Layout.preferredHeight: 30
+					Layout.preferredWidth: 30
 
 					onClicked: exerciseManager.appendNewSet();
 				}
@@ -299,9 +303,11 @@ FocusScope {
 		}
 	} //paneExercise
 
-	function paneExerciseShowHide(show: bool): void {
-		paneExercise.shown = show;
-		if (show)
+	function paneExerciseShowHide(): void {
+		if (exerciseManager.hasSets)
+		{
 			exerciseManager.createAvailableSets();
+			showSets = !showSets;
+		}
 	}
 } //Item

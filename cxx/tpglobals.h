@@ -70,7 +70,7 @@ enum {
 		IFC_MESOSPLIT_F = 9,
 	IFC_EXERCISES = 10,
 	IFC_TDAY = 11,
-	IFC_ANY= 12
+	IFC_ANY = 12 //This value is needed for QmlItemManager but this .h file is not included in qmlitemmanager.h. Remember: change here, change there
 } typedef importFileContents;
 
 #define APPWINDOW_MSG_IMPORT_OK 3

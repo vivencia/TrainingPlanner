@@ -159,6 +159,7 @@ private:
 	void insertSetEntry(const uint set_number, QmlSetEntry* new_setobject);
 	void createSetObject(const uint set_number, const uint type);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
+	void setCreated(const uint set_number, const uint nsets, auto conn);
 	void enableDisableExerciseCompletedButton();
 	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
 	inline uint findSetMode(const uint set_number) const;

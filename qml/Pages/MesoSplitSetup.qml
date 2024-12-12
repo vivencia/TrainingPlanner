@@ -99,7 +99,10 @@ Pane {
 						txtSplit.readOnly = cboindex === 6;
 						bMesoSplitChanged = true;
 						if (cboindex !== 6)
-							txtSplit.forceActiveFocus();
+						{
+							if (txtSplit.text.length === 0)
+								txtSplit.forceActiveFocus();
+						}
 						else
 							return;
 
