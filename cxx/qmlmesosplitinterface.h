@@ -23,6 +23,7 @@ public:
 
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);
+	Q_INVOKABLE void moveRow(const uint from, const uint to, DBMesoSplitModel *splitModel);
 	Q_INVOKABLE void swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2);
 	Q_INVOKABLE void loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel);
 	Q_INVOKABLE void simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);

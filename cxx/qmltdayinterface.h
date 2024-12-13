@@ -60,10 +60,10 @@ public:
 	void setSplitLetter(const QString& new_value, const bool bFromQml = true, const bool bDontConfirm = false);
 
 	inline QString timeIn() const { return m_timeIn; }
-	void setTimeIn(const QString& new_value);
+	void setTimeIn(const QString& new_value, const bool bFromQml = true);
 
 	inline QString timeOut() const { return m_timeOut; }
-	void setTimeOut(const QString& new_value);
+	void setTimeOut(const QString& new_value, const bool bFromQml = true);
 
 	inline QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString& = QString());
@@ -72,13 +72,13 @@ public:
 	void setLastWorkOutLocation(const QString& new_value);
 
 	inline QString dayNotes() const { return m_dayNotes; }
-	void setDayNotes(const QString& new_value);
+	void setDayNotes(const QString& new_value, const bool bFromQml = true);
 
 	inline bool editMode() const { return m_bEditMode; }
 	void setEditMode(const bool new_value);
 
 	inline bool dayIsFinished() const { return m_bDayIsFinished; }
-	void setDayIsFinished(const bool new_value);
+	void setDayIsFinished(const bool new_value, const bool bFromQml = true);
 
 	inline bool dayIsEditable() const { return m_bDayIsEditable; }
 	void setDayIsEditable(const bool new_value);

@@ -163,9 +163,11 @@ private:
 	void enableDisableExerciseCompletedButton();
 	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
 	inline uint findSetMode(const uint set_number) const;
-	inline void findCurrentSet();
+	[[maybe_unused]] inline int findCurrentSet();
 	void startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch);
 	void stopRestTimer(const uint set_number);
+	inline bool allSetsCompleted() const;
+	inline bool noSetsCompleted() const;
 };
 
 #endif // QMLEXERCISEENTRY_H

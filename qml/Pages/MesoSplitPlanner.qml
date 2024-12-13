@@ -63,8 +63,8 @@ Frame {
 	TPLabel {
 		id: lblGroups
 		text: qsTr("Muscle groups trained in this division:")
-		singleLine: true
 		color: "black"
+		width: parent.width-10
 
 		anchors {
 			top: lblMain.bottom
@@ -181,15 +181,24 @@ Frame {
 						bottomMargin: 5
 					}
 
-					TPRadioButton {
-						id: optCurrentExercise
-						text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
-						textColor: "black"
-						checked: index === splitModel.currentRow
-						width: parent.width
-						Layout.preferredWidth: width
+					Item {
+						height: 25
+						Layout.fillWidth: true
 
-						onClicked: splitModel.currentRow = index;
+						TPRadioButton {
+							id: optCurrentExercise
+							text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
+							textColor: "black"
+							checked: index === splitModel.currentRow
+							width: parent.width/2
+
+							anchors {
+								left: parent.left
+								verticalCenter: parent.verticalCenter
+							}
+
+							onClicked: splitModel.currentRow = index;
+						}
 
 						TPButton {
 							id: btnMoveExerciseUp
@@ -201,11 +210,11 @@ Frame {
 
 							anchors {
 								right: btnMoveExerciseDown.left
-								rightMargin: -5
+								rightMargin: 10
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: splitModel.moveRow(index,index-1);
+							onClicked: splitManager.moveRow(index, index-1, splitModel);
 						}
 
 						TPButton {
@@ -222,7 +231,7 @@ Frame {
 								verticalCenter: parent.verticalCenter
 							}
 
-							onClicked: splitModel.moveRow(index,index+1);
+							onClicked: splitManager.moveRow(index, index+1, splitModel);
 						}
 					}
 
@@ -644,13 +653,13 @@ Frame {
 	Component.onCompleted: {
 		exercisesModel.makeFilterString(txtGroups.text);
 		lstSplitExercises.currentIndex = splitModel.currentRow;
-		lstSplitExercises.positionViewAtIndex(0, ListView.Center);
+		lstSplitExercises.positionViewAtIndex(0, ListView.Beginning);
 		splitModel.modelChanged.connect(reloadModel);
 	}
 
-	function reloadModel() {
-		lstSplitExercises.model = null;
-		lstSplitExercises.model = splitModel;
+	function reloadModel(): void {
+		lstSplitExercises.model = 0;
+		lstSplitExercises.model = splitModel.count;
 		txtGroups.text = splitModel.muscularGroup();
 	}
 

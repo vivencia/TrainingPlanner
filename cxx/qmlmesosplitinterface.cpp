@@ -89,6 +89,13 @@ void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup
 	appExercisesModel()->makeFilterString(new_musculargroup);
 }
 
+void QmlMesoSplitInterface::moveRow(const uint from, const uint to, DBMesoSplitModel* splitModel)
+{
+	splitModel->moveRow(from, to);
+	emit splitModel->modelChanged(); //Update the view on QML
+	emit splitModel->splitChanged(0, 100); //Save the data
+}
+
 void QmlMesoSplitInterface::swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2)
 {
 	m_splitPages.value(splitLetter1.at(0))->setProperty("splitLetter", splitLetter2);

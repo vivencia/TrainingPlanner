@@ -63,7 +63,7 @@ FocusScope {
 
 	Item {
 		id: setModeItem
-		enabled: setManager.current
+		enabled: setManager.isEditable
 		height: 30
 		width: parent.width
 
@@ -116,6 +116,7 @@ FocusScope {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
+			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType

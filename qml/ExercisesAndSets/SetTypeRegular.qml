@@ -10,7 +10,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight*1.2
+	implicitHeight: setLayout.implicitHeight*1.25
 	Layout.fillWidth: true
 
 	required property SetEntryManager setManager
@@ -61,7 +61,7 @@ FocusScope {
 
 	Item {
 		id: setModeItem
-		enabled: setManager.current
+		enabled: setManager.isEditable
 		height: 30
 		width: parent.width
 
@@ -114,6 +114,7 @@ FocusScope {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
+			Layout.bottomMargin: 10
 
 			TPComboBox {
 				id: cboSetType
@@ -291,7 +292,12 @@ FocusScope {
 			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
+			width: implicitWidth
+			height: implicitHeight
 			Layout.alignment: Qt.AlignCenter
+			Layout.topMargin: -10
+			Layout.preferredHeight: height
+			Layout.preferredWidth: width
 
 			onClicked: {
 				setLayout.enabled = false;

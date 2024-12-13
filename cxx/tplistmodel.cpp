@@ -57,24 +57,28 @@ void TPListModel::moveRow(const uint from, const uint to)
 {
 	if (from < count() && to < count())
 	{
-		const QModelIndex& sourceParent(index(from < to ? from : to, 0));
-		const QModelIndex& destinationParent(index(to > from ? to : from, 0));
-		const QStringList& tempList(m_modeldata.at(from));
+		QStringList tempList(std::move(m_modeldata.at(from)));
+
 		if (to > from)
 		{
+			beginMoveRows(QModelIndex(), from, from, QModelIndex(), to+1);
 			for(uint i(from); i < to; ++i)
 				m_modeldata[i] = std::move(m_modeldata.at(i+1));
 		}
 		else
 		{
+			beginMoveRows(QModelIndex(), to, to, QModelIndex(), from+1);
 			for(uint i(from); i > to; --i)
 				m_modeldata[i] = std::move(m_modeldata.at(i-1));
 		}
 		m_modeldata[to] = std::move(tempList);
+		endMoveRows();
+		/*const QModelIndex& sourceParent(index(from < to ? from : to, 0));
+		const QModelIndex& destinationParent(index(to > from ? to : from, 0));
 		QList<int> roles;
 		for (uint role(0); role < m_roleNames.count(); ++role)
 			roles.append(Qt::UserRole+role);
-		emit dataChanged(sourceParent, destinationParent, roles);
+		emit dataChanged(sourceParent, destinationParent, roles);*/
 	}
 }
 

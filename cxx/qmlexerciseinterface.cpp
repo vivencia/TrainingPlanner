@@ -152,12 +152,12 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 {
 	if (exercise_idx < m_exercisesList.count())
 	{
-		QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
+		QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx)->exerciseEntry(), "paneExerciseShowHide");
 		for(uint i(exercise_idx+1); i < m_exercisesList.count(); ++i)
 		{
 			if (!m_exercisesList.at(exercise_idx)->exerciseEntry())
 			{
-				QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx+1)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
+				QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx+1)->exerciseEntry(), "paneExerciseShowHide");
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, m_exercisesList.at(exercise_idx+1)->exerciseEntry()->y() + 50));
 				return;
 			}
@@ -169,7 +169,7 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 void QmlExerciseInterface::hideSets() const
 {
 	for(uint i(0); i < m_exercisesList.count(); ++i)
-		QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
+		QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide");
 	QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, 0));
 }
 

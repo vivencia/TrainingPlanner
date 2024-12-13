@@ -374,6 +374,10 @@ void QmlExerciseEntry::changeSetMode(const uint set_number)
 		case SET_MODE_SET_COMPLETED:
 			if (set_number == 0 || !setObj->autoRestTime())
 			{
+				const int curSet(findCurrentSet());
+				if (curSet >= 0)
+					m_setObjects.at(curSet)->setCurrent(false);
+				setObj->setCurrent(true);
 				changeSetCompleteStatus(set_number, false);
 				setObj->setMode(SET_MODE_UNDEFINED);
 			}
@@ -516,11 +520,9 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setAutoRestTime(m_tDayModel->autoRestTime(m_exercise_idx));
 	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || set_type == SET_TYPE_DROP);
 	newSetEntry->_setMode(findSetMode(set_number));
+	newSetEntry->setIsEditable(isEditable());
 	if (!m_tDayPage->mainDateIsToday())
-	{
 		newSetEntry->setCurrent(false);
-		newSetEntry->setIsEditable(isEditable());
-	}
 	else
 		findCurrentSet();
 	insertSetEntry(set_number, newSetEntry);
@@ -573,15 +575,12 @@ void QmlExerciseEntry::setCreated(const uint set_number, const uint nsets, auto 
 
 void QmlExerciseEntry::enableDisableExerciseCompletedButton()
 {
-	bool bNoSetsCompleted(true);
-	bool bAllSetsCompleted(true);
-	for (uint i(0); i < m_setObjects.count() - 1; ++i)
-	{
+	const bool bNoSetsCompleted{noSetsCompleted()};
+	const bool bAllSetsCompleted{allSetsCompleted()};
+	uint i(0);
+	for (; i < m_setObjects.count()-1; ++i)
 		m_setObjects.at(i)->setFinishButtonEnabled(false);
-		bNoSetsCompleted &= !m_setObjects.at(i)->completed();
-		bAllSetsCompleted &= m_setObjects.at(i)->completed();
-	}
-	m_setObjects.last()->setFinishButtonEnabled(bAllSetsCompleted);
+	m_setObjects.at(i)->setFinishButtonEnabled(bAllSetsCompleted);
 	setCanEditRestTimeTracking(!bNoSetsCompleted);
 	m_bIsCompleted = bAllSetsCompleted;
 }
@@ -608,7 +607,7 @@ inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
 	return SET_MODE_SET_COMPLETED;
 }
 
-inline void QmlExerciseEntry::findCurrentSet()
+inline int QmlExerciseEntry::findCurrentSet()
 {
 	if (m_tDayPage->mainDateIsToday())
 	{
@@ -620,12 +619,13 @@ inline void QmlExerciseEntry::findCurrentSet()
 				set->setCurrent(true);
 				const QQuickItem* const setObj(set->setEntry());
 				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, setObj->y() + setObj->height()));
-				break;
+				return i;
 			}
 			else
 				set->setCurrent(false);
 		}
 	}
+	return -1;
 }
 
 void QmlExerciseEntry::startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch)
@@ -659,4 +659,20 @@ void QmlExerciseEntry::stopRestTimer(const uint set_number)
 		else
 			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true), false);
 	}
+}
+
+inline bool QmlExerciseEntry::allSetsCompleted() const
+{
+	for (uint i(0); i < m_setObjects.count(); ++i)
+		if (!m_setObjects.at(i)->completed())
+			return false;
+	return true;
+}
+
+inline bool QmlExerciseEntry::noSetsCompleted() const
+{
+	for (uint i(0); i < m_setObjects.count(); ++i)
+		if (m_setObjects.at(i)->completed())
+			return false;
+	return true;
 }

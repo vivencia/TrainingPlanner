@@ -34,7 +34,7 @@ public:
 	inline int currentRow() const { return m_currentRow; }
 	void setCurrentRow(const int row);
 	Q_INVOKABLE void removeRow (const uint row);
-	Q_INVOKABLE void moveRow(const uint from, const uint to);
+	void moveRow(const uint from, const uint to);
 
 	[[nodiscard]] inline const QString& columnLabel(const uint col) const { return mColumnNames.at(col); }
 

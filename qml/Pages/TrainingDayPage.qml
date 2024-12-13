@@ -266,6 +266,7 @@ TPPage {
 				visible: tDayManager.splitLetter !== "R"
 				foreColor: appSettings.fontColor
 				Layout.leftMargin: 5
+				Layout.fillWidth: true
 
 				onEditFinished: (new_text) => tDayManager.dayNotes = new_text;
 			}
