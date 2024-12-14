@@ -85,6 +85,7 @@ void QmlExerciseInterface::createExercisesObjects()
 		if (last_set > 10) last_set = 0; //setsNumber was 0
 		set_type = m_tDayModel->setType(i, last_set);
 		newExercise->setExerciseName(m_tDayModel->exerciseName(i), false);
+		newExercise->setIsEditable(false);
 		newExercise->setNewSetType(set_type);
 		newExercise->setTrackRestTime(m_tDayModel->trackRestTime(i-(i >= 1 ? 1 : 0)));
 		newExercise->setAutoRestTime(m_tDayModel->autoRestTime(i-(i >= 1 ? 1 : 0)));
@@ -117,7 +118,7 @@ void QmlExerciseInterface::clearExercises()
 	m_tDayModel->clearExercises();
 	m_tDayPage->setDayIsFinished(false);
 	for(uint i(0); i < m_exercisesList.count(); ++i)
-		m_exercisesList.at(i)->deleteLater();
+		delete m_exercisesList.at(i);
 	m_exercisesList.clear();
 }
 
@@ -129,11 +130,14 @@ void QmlExerciseInterface::setExercisesEditable(const bool editable)
 
 void QmlExerciseInterface::moveExercise(const uint exercise_idx, const uint new_idx)
 {
-	for(uint i(0); i < m_exercisesList.count(); ++i)
-		m_exercisesList.at(i)->exerciseEntry()->setParentItem(nullptr);
 	m_exercisesList.swapItemsAt(exercise_idx, new_idx);
+	m_tDayModel->moveExercise(exercise_idx, new_idx);
+
 	for(uint i(0); i < m_exercisesList.count(); ++i)
+	{
+		m_exercisesList.at(i)->exerciseEntry()->setParentItem(nullptr);
 		m_exercisesList.at(i)->exerciseEntry()->setParentItem(m_parentLayout);
+	}
 	m_exercisesList.at(exercise_idx)->setExerciseIdx(exercise_idx);
 	m_exercisesList.at(new_idx)->setExerciseIdx(new_idx);
 	if (exercise_idx == m_exercisesList.count() - 1)

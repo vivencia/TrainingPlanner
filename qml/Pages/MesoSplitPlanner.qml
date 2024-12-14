@@ -251,26 +251,15 @@ Frame {
 
 						onRemoveButtonClicked: msgDlgRemove.show(0);
 						onEditButtonClicked: splitManager.simpleExercisesList(splitModel, !readOnly, true, 0);
-
-						onMousePressed: (mouse) => {
-							if (!readOnly) {
-								mouse.accepted = true;
-								forceActiveFocus();
-							}
-							else
-								mouse.accepted = false; //relay the signal to the delegate
-						}
-
-						onMousePressAndHold: (mouse) => mouse.accepted = false;
 					} //ExerciseNameField
 
-					SetNotesField {
+					/*SetNotesField {
 						info: splitModel.instructionsLabel
 						text: splitModel.setsNotes(index)
 						Layout.fillWidth: true
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
-					}
+					}*/
 
 					Pane {
 						id: paneSets

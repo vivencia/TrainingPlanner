@@ -16,7 +16,7 @@ TPPopup {
 	property var entriesList: []
 	property int entriesTotalHeight: 0
 	property int largestEntryWidth: 0
-	property var entryComponent: null
+	property Component entryComponent: null
 
 	Component.onDestruction: clear();
 
@@ -27,7 +27,7 @@ TPPopup {
 		opacity: menu.opacity
 	}
 
-	function addEntry(label: string, img: string, id: int, bvisible: bool) {
+	function addEntry(label: string, img: string, id: int, bvisible: bool): void {
 		if (!entryComponent)
 			entryComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
@@ -51,7 +51,7 @@ TPPopup {
 			entryComponent.statusChanged.connect(finishCreation);
 	}
 
-	function clear() {
+	function clear(): void {
 		for(var i = 0; i < entriesList.length; ++i)
 			entriesList[i].destroy();
 		entriesList.length = 0;
@@ -59,17 +59,17 @@ TPPopup {
 		close();
 	}
 
-	function enableMenuEntry(id: int, benabled: bool) {
+	function enableMenuEntry(id: int, benabled: bool): void {
 		if (id < entriesList.length)
 			entriesList[id].enabled = benabled;;
 	}
 
-	function setMenuText(id: int, newText: string) {
+	function setMenuText(id: int, newText: string): void {
 		if (id < entriesList.length)
 			entriesList[id].text = newText;
 	}
 
-	function show(targetItem: Item, pos: int) {
+	function show(targetItem: Item, pos: int): void {
 		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 
 		var xpos, ypos;
@@ -107,7 +107,7 @@ TPPopup {
 		open();
 	}
 
-	function menuEntryClicked(buttonid: int) {
+	function menuEntryClicked(buttonid: int): void {
 		menuEntrySelected(buttonid);
 		menu.close();
 	}

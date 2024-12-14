@@ -335,7 +335,7 @@ FocusScope {
 			}
 		}
 
-		SetNotesField {
+		/*SetNotesField {
 			id: btnShowHideNotes
 			text: setManager.notes
 			enabled: !setManager.completed
@@ -344,7 +344,7 @@ FocusScope {
 			Layout.fillWidth: true
 
 			onEditFinished: (new_text) => tDayModel.setSetNotes(setNumber, exerciseIdx, new_text);
-		}
+		}*/
 
 		TPButton {
 			id: btnCompleteExercise

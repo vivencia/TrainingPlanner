@@ -25,7 +25,8 @@ QmlExerciseEntry::~QmlExerciseEntry()
 	if (m_setComponents[2])
 		delete m_setComponents[2];
 	for (uint i(0); i < m_setObjects.count(); ++i)
-		m_setObjects.at(i)->deleteLater();
+		delete m_setObjects.at(i);
+	delete m_exerciseEntry;
 }
 
 void QmlExerciseEntry::setExerciseEntry(QQuickItem* item)
@@ -188,6 +189,31 @@ void QmlExerciseEntry::setAutoRestTime(const bool new_value)
 	}
 }
 
+void QmlExerciseEntry::removeExercise(const bool bAsk)
+{
+	m_tDayPage->removeExerciseObject(m_exercise_idx, bAsk);
+}
+
+void QmlExerciseEntry::exerciseCompleted()
+{
+	m_setObjects.last()->setFinishButtonEnabled(false);
+	m_setObjects.last()->setIsEditable(false);
+	if (m_bIsCompleted)
+		m_tDayPage->gotoNextExercise(m_exercise_idx);
+}
+
+void QmlExerciseEntry::moveExerciseUp()
+{
+	if (m_exercise_idx >= 1)
+		m_tDayPage->moveExercise(m_exercise_idx, m_exercise_idx-1);
+}
+
+void QmlExerciseEntry::moveExerciseDown()
+{
+	if (!lastExercise())
+		m_tDayPage->moveExercise(m_exercise_idx, m_exercise_idx+1);
+}
+
 void QmlExerciseEntry::createAvailableSets()
 {
 	if (m_setObjects.isEmpty() && hasSets())
@@ -203,19 +229,6 @@ void QmlExerciseEntry::createAvailableSets()
 			createSetObject(i, m_tDayModel->setType(m_exercise_idx, i));
 		}
 	}
-}
-
-void QmlExerciseEntry::removeExercise(const bool bAsk)
-{
-	m_tDayPage->removeExerciseObject(m_exercise_idx, bAsk);
-}
-
-void QmlExerciseEntry::exerciseCompleted()
-{
-	m_setObjects.last()->setFinishButtonEnabled(false);
-	m_setObjects.last()->setIsEditable(false);
-	if (m_bIsCompleted)
-		m_tDayPage->gotoNextExercise(m_exercise_idx);
 }
 
 void QmlExerciseEntry::appendNewSet()
@@ -272,11 +285,13 @@ void QmlExerciseEntry::removeSetObject(const uint set_number, const bool bAsk)
 
 void QmlExerciseEntry::moveSet(const uint set_number, const uint new_set_number)
 {
-	for(uint i(0); i < m_setObjects.count(); ++i)
-		m_setObjects.at(i)->setEntry()->setParentItem(nullptr);
 	m_setObjects.swapItemsAt(set_number, new_set_number);
+
 	for(uint i(0); i < m_setObjects.count(); ++i)
+	{
+		m_setObjects.at(i)->setEntry()->setParentItem(nullptr);
 		m_setObjects.at(i)->setEntry()->setParentItem(m_setsLayout);
+	}
 	m_setObjects.at(set_number)->setNumber(set_number);
 	m_setObjects.at(new_set_number)->setNumber(new_set_number);
 	if (set_number == m_setObjects.count() - 1)

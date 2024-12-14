@@ -119,9 +119,11 @@ public:
 	Q_INVOKABLE void prepareWorkOutTimer(const QString& strStartTime = QString(), const QString& strEndTime = QString());
 	Q_INVOKABLE void startWorkout();
 	Q_INVOKABLE void stopWorkout();
+	Q_INVOKABLE void clearExercises();
 	Q_INVOKABLE void removeExercise(const uint exercise_idx);
 	Q_INVOKABLE void removeSetFromExercise(const uint exercise_idx, const uint set_number);
 	void removeExerciseObject(const uint exercise_idx, const bool bAsk);
+	void moveExercise(const uint exercise_idx, const uint new_idx);
 
 	inline DBTrainingDayModel* tDayModel() const { return m_tDayModel; }
 	inline QQuickItem* tDayPage() const { return m_tDayPage; }

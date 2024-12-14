@@ -228,7 +228,7 @@ TPPage {
 				imExportMenu.addEntry(qsTr("Share"), "export.png", 3, true);
 			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
-		imExportMenu.setMenuText(1)
+		imExportMenu.setMenuText(1);
 		imExportMenu.show(btnImExport, 0);
 	}
 

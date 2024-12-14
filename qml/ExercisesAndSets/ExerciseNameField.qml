@@ -18,8 +18,6 @@ Item {
 	signal exerciseChanged(string new_exercise)
 	signal removeButtonClicked()
 	signal editButtonClicked()
-	signal mousePressed(var mouse)
-	signal mousePressAndHold(var mouse)
 	signal itemClicked()
 
 	TextField {
@@ -27,6 +25,7 @@ Item {
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
 	    font.pixelSize: appSettings.fontSize
+	    color: readOnly ? "transparent" : "black"
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -52,13 +51,23 @@ Item {
 			radius: 5
 		}
 
-		onPressed: (mouse) => mousePressed(mouse);
-		onPressAndHold: (mouse) => mousePressAndHold(mouse);
-
 		MouseArea {
 			enabled: txtField.readOnly
 			anchors.fill: txtField
 			onClicked: itemClicked();
+		}
+
+		TPLabel {
+			id: readOnlyText
+			text: parent.text
+			wrapMode: Text.WordWrap
+			fontColor: enabled ? "black" : appSettings.disabledFontColor
+			visible: parent.readOnly
+			leftPadding: 10
+			width: parent.width
+			height: parent.height
+			x: 0
+			y: 0
 		}
 
 		Component.onCompleted: {
@@ -68,8 +77,8 @@ Item {
 
 		onReadOnlyChanged: {
 			if (readOnly) {
-				ensureVisible(0);
-				cursorPosition = 0;
+				//ensureVisible(0);
+				//cursorPosition = 0;
 				if (bTextChanged) {
 					bTextChanged = false;
 					exerciseChanged(text);

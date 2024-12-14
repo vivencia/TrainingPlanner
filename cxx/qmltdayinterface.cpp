@@ -68,7 +68,7 @@ void QmlTDayInterface::setTimeIn(const QString& new_value, const bool bFromQml)
 		emit timeInChanged();
 		if (bFromQml)
 		{
-			m_tDayModel->setTimeIn(m_timeIn);
+			m_tDayModel->setTimeIn(m_timeIn.startsWith("--"_L1) ? QString() : m_timeIn);
 			calculateWorkoutTime();
 		}
 	}
@@ -82,7 +82,7 @@ void QmlTDayInterface::setTimeOut(const QString& new_value, const bool bFromQml)
 		emit timeOutChanged();
 		if (bFromQml)
 		{
-			m_tDayModel->setTimeOut(m_timeOut);
+			m_tDayModel->setTimeOut(m_timeOut.startsWith("--"_L1) ? QString() : m_timeOut);
 			calculateWorkoutTime();
 		}
 	}
@@ -129,6 +129,7 @@ void QmlTDayInterface::setEditMode(const bool new_value)
 		m_bEditMode = new_value;
 		emit editModeChanged();
 		setDayIsEditable(m_bEditMode);
+		setDayIsFinished(m_bEditMode);
 	}
 }
 
@@ -212,17 +213,6 @@ void QmlTDayInterface::getTrainingDayPage()
 		m_splitLetter = std::move(strSplitLetter);
 		m_tDayModel->setSplitLetter(m_splitLetter, false);
 		m_tDayModel->setTrainingDay(tday, false);
-		setMainDateIsToday(m_Date == QDate::currentDate());
-		setEditMode(false);
-		//setDayIsEditable(false); //setEditMode already calls setDayIsEditable
-		setDayIsFinished(false, false);
-		setHasMesoPlan(false);
-		setHasPreviousTDays(false);
-		setNeedActivation(false);
-		setTimerActive(false);
-		setHasExercises(false);
-		setTimeIn("--:--"_L1, false);
-		setTimeOut("--:--"_L1, false);
 		m_tDayProperties.insert("tDayManager"_L1, QVariant::fromValue(this));
 		createTrainingDayPage();
 	}
@@ -264,7 +254,6 @@ void QmlTDayInterface::convertTDayToPlan()
 
 void QmlTDayInterface::resetWorkout()
 {
-	setEditMode(false);
 	setTimeIn("--:--"_L1);
 	setTimeOut("--:--"_L1);
 	setDayIsFinished(false);
@@ -274,7 +263,7 @@ void QmlTDayInterface::resetWorkout()
 void QmlTDayInterface::changeSplit(const QString& newSplitLetter, const bool bClearExercises)
 {
 	if (bClearExercises)
-		m_exerciseManager->clearExercises();
+		clearExercises();
 	setSplitLetter(newSplitLetter, false);
 }
 
@@ -360,6 +349,12 @@ void QmlTDayInterface::stopWorkout()
 	setDayIsFinished(true);
 }
 
+void QmlTDayInterface::clearExercises()
+{
+	m_exerciseManager->clearExercises();
+	setHasExercises(false);
+}
+
 void QmlTDayInterface::removeExercise(const uint exercise_idx)
 {
 	m_exerciseManager->removeExerciseObject(exercise_idx);
@@ -377,6 +372,11 @@ void QmlTDayInterface::removeExerciseObject(const uint exercise_idx, const bool 
 		askRemoveExercise(exercise_idx);
 	else
 		removeExercise(exercise_idx);
+}
+
+void QmlTDayInterface::moveExercise(const uint exercise_idx, const uint new_idx)
+{
+	m_exerciseManager->moveExercise(exercise_idx, new_idx);
 }
 
 void QmlTDayInterface::simpleExercisesList(const uint exercise_idx, const bool show, const bool multi_sel, const uint comp_exercise)
@@ -523,10 +523,24 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
 			disconnect(*conn);
-			setTimeIn(m_tDayModel->timeIn(), false);
-			setTimeOut(m_tDayModel->timeOut(), false);
+
+			setMainDateIsToday(m_Date == QDate::currentDate());
+			setEditMode(false);
+			setDayIsFinished(false, false);
+			setHasMesoPlan(false);
+			setHasPreviousTDays(false);
+			setNeedActivation(false);
+			setTimerActive(false);
+			setHasExercises(false);
+
+			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
+			setDayIsFinished(bFinished, false);
+			setTimeOut(bFinished ? m_tDayModel->timeOut() : "--:--"_L1, false);
 			setDayNotes(m_tDayModel->dayNotes(), false);
-			setDayIsFinished(!timeOut().contains('-'), false);
+			setTimeIn(m_tDayModel->timeIn().isEmpty() ? "--:--"_L1 : m_tDayModel->timeIn(), false);
+			if (bFinished)
+				calculateWorkoutTime();
+
 			if (data.isValid())
 			{
 				const DBTrainingDayModel* const tDayModel{data.value<DBTrainingDayModel*>()};
@@ -597,7 +611,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 				setSplitLetter(strSplitLetter, false, true);
 				tDayChanged = true;
 				if (strSplitLetter == "R"_L1)
-					m_exerciseManager->clearExercises();
+					clearExercises();
 				else
 					appDBInterface()->verifyTDayOptions(m_tDayModel);
 			}

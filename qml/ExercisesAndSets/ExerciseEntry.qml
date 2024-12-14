@@ -57,7 +57,7 @@ FocusScope {
 				topMargin: -5
 			}
 
-			onClicked: moveExercise(true, true);
+			onClicked: exerciseManager.moveExerciseUp();
 		}
 
 		TPButton {
@@ -76,7 +76,7 @@ FocusScope {
 				topMargin: -5
 			}
 
-			onClicked: moveExercise(false, true);
+			onClicked: exerciseManager.moveExerciseDown();
 		}
 
 		ColumnLayout {
@@ -140,7 +140,7 @@ FocusScope {
 				TPCheckBox {
 					id: chkTrackRestTime
 					text: qsTr("Track rest times?")
-					textColor: "black"
+					textColor: enabled ? "black" : appSettings.disabledFontColor
 					checked: exerciseManager.trackRestTime
 					width: layoutMain.width*0.45
 					Layout.preferredWidth: width
@@ -151,7 +151,7 @@ FocusScope {
 				TPCheckBox {
 					id: chkAutoRestTime
 					text: qsTr("Auto tracking")
-					textColor: "black"
+					textColor: enabled ? "black" : appSettings.disabledFontColor
 					enabled: exerciseManager.trackRestTime
 					checked: exerciseManager.autoRestTime
 					width: layoutMain.width*0.45
@@ -188,6 +188,7 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 					Layout.preferredWidth: width
+					Layout.leftMargin: 5
 
 					onValueChanged: (str) => exerciseManager.weightForExercise1 = str;
 					onEnterOrReturnKeyPressed: !exerciseManager.compositeExercise ? txtNSets.forceActiveFocus() : txtNReps2.forceActiveFocus();
@@ -221,6 +222,7 @@ FocusScope {
 					backColor: "transparent"
 					borderColor: "transparent"
 					Layout.preferredWidth: width
+					Layout.leftMargin: 5
 
 					onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
 					onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
@@ -264,7 +266,7 @@ FocusScope {
 					id: txtNSets
 					text: exerciseManager.setsNumber
 					type: SetInputField.Type.SetType
-					availableWidth: layoutMain.width*0.3
+					availableWidth: layoutMain.width*0.35
 					alternativeLabels: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
@@ -277,7 +279,7 @@ FocusScope {
 					id: btnAddSet
 					imageSource: "add-new"
 					imageSize: 30
-					Layout.leftMargin: 30
+					Layout.leftMargin: 20
 					Layout.preferredHeight: 30
 					Layout.preferredWidth: 30
 

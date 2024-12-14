@@ -45,7 +45,6 @@ public:
 	explicit DBTrainingDayModel(QObject* parent, const uint meso_idx = 0);
 	~DBTrainingDayModel() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; }
 
-	inline void clearExercises() { for(uint i(0); i < m_ExerciseData.count(); ++i) delete m_ExerciseData[i]; m_ExerciseData.clear(); }
 	void fromDataBase(const QStringList& list, const bool bClearSomeFieldsForReUse = false);
 	const QStringList getSaveInfo() const;
 	void convertMesoSplitModelToTDayModel(DBMesoSplitModel* const splitModel);
@@ -58,7 +57,24 @@ public:
 	const QString formatSetTypeToExport(const QString& fieldValue) const;
 	const QString formatSetTypeToImport(const QString& fieldValue) const;
 
-	inline void appendRow() { appendList_fast(std::move(QStringList(TDAY_TOTAL_COLS))); setId("-1"_L1); }
+	inline void appendRow()
+	{
+		appendList_fast(std::move(QStringList(TDAY_TOTAL_COLS)));
+		setId("-1"_L1);
+	}
+
+	inline void clearExercises()
+	{
+		const uint n_exercises(m_ExerciseData.count());
+		if (n_exercises > 0)
+		{
+			for(uint i(0); i < n_exercises; ++i)
+				delete m_ExerciseData[i];
+			m_ExerciseData.clear();
+			emit tDayChanged();
+		}
+	}
+
 	void moveExercise(const uint from, const uint to);
 	uint getWorkoutNumberForTrainingDay() const;
 

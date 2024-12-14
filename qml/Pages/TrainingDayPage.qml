@@ -259,7 +259,7 @@ TPPage {
 				} //ColumnLayout
 			} //Frame
 
-			SetNotesField {
+			/*SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayManager.dayNotes
 				readOnly: !tDayManager.dayIsEditable
@@ -269,7 +269,7 @@ TPPage {
 				Layout.fillWidth: true
 
 				onEditFinished: (new_text) => tDayManager.dayNotes = new_text;
-			}
+			}*/
 
 			TPButton {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + tDayManager.splitLetter + qsTr( " of this mesocycle")
@@ -278,12 +278,10 @@ TPPage {
 				visible: tDayManager.dayIsFinished && tDayManager.hasExercises
 				enabled: tDayManager.editMode;
 				width: parent.width - 10
-				fixedSize: true
 				Layout.fillWidth: true
 				Layout.leftMargin: 5
 				Layout.rightMargin: 5
 				Layout.bottomMargin: 10
-				Layout.topMargin: -10
 
 				onClicked: tDayManager.convertTDayToPlan();
 			}
@@ -317,7 +315,7 @@ TPPage {
 					imageSource: "revert-day.png"
 					imageSize: 20
 					visible: tDayManager.hasExercises
-					enabled: tDayManager.dayIsEditable
+					enabled: tDayManager.dayIsEditable ? true : !tDayManager.dayIsFinished
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -511,7 +509,7 @@ TPPage {
 			fixedSize: true
 			width: 70
 			height: 55
-			visible: tDayManager.dayIsFinished
+			visible: tDayManager.dayIsFinished && tDayManager.hasExercises
 
 			anchors {
 				left: btnFinishedDayOptions.right
@@ -534,6 +532,7 @@ TPPage {
 			text: qsTr("Add exercise")
 			imageSource: "exercises-add.png"
 			rounded: false
+			autoResize: true
 			textUnderIcon: true
 			flat: false
 			height: 55
@@ -601,7 +600,7 @@ TPPage {
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),
 						message: qsTr("All exercises changes will be removed"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "revert-day.png" } );
-					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(tDayManager); } );
+					msgClearExercises.button1Clicked.connect(function () { tDayManager.clearExercises(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -822,7 +821,7 @@ TPPage {
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
 						message: qsTr("Exercises will not be afected"), button1Text: qsTr("Yes"), button2Text: qsTr("No"), imageSource: "reset.png" } );
-					tipTimeWarn.button1Clicked.connect(function () { tDayManager.resetWorkout(); } );
+					resetWorkoutMsg.button1Clicked.connect(function () { tDayManager.resetWorkout(); } );
 				}
 
 				if (component.status === Component.Ready)
@@ -859,7 +858,7 @@ TPPage {
 			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
-			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, tDayManager.mainDateIsToday);
+			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
 		}
 		optionsMenu.show(btnFinishedDayOptions, 0);
@@ -868,10 +867,7 @@ TPPage {
 	function selectedOptionsMenuOption(menuid): void {
 		switch (menuid) {
 			case 0:
-				if (tDayManager.editMode)
-					tDayManager.dayIsFinished = true;
 				tDayManager.editMode = !tDayManager.editMode;
-				tDayManager.dayIsEditable = tDayManager.editMode;
 				optionsMenu.setMenuText(0, tDayManager.editMode ? qsTr("Done") : qsTr("Edit workout"));
 			break;
 			case 1:
@@ -880,7 +876,6 @@ TPPage {
 		}
 	}
 
-	readonly property bool bExportEnabled: tDayManager.dayIsFinished && tDayManager.hasExercises
 	property TPFloatingMenuBar exportMenu: null
 	function showExportMenu(): void {
 		if (exportMenu === null) {
@@ -891,10 +886,7 @@ TPPage {
 				exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
 			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(id === 1); });
 		}
-		exportMenu.enableMenuEntry(0, bExportEnabled);
-		if (Qt.platform.os === "android")
-			exportMenu.enableMenuEntry(1, bExportEnabled);
-		exportMenu.show(btnImExport, 0);
+		exportMenu.show(btnExport, 0);
 	}
 
 	TPBalloonTip {

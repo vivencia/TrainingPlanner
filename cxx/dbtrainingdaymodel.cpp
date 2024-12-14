@@ -332,7 +332,7 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())
 	{
-		exerciseEntry* tempExerciseData(m_ExerciseData.at(from));
+		exerciseEntry* tempExerciseData(std::move(m_ExerciseData.at(from)));
 
 		if (to > from)
 		{
@@ -344,7 +344,8 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 			for(uint i(from); i > to; --i)
 				m_ExerciseData[i] = std::move(m_ExerciseData.at(i-1));
 		}
-		m_ExerciseData[to] = tempExerciseData;
+		m_ExerciseData[to] = std::move(tempExerciseData);
+		emit tDayChanged();
 	}
 }
 

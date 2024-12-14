@@ -7,6 +7,11 @@ import "../TPWidgets/"
 
 FocusScope {
 	id: control
+	implicitWidth: availableWidth
+	width: availableWidth
+	implicitHeight: 30
+	height: visible ? implicitHeight : 0
+
 	required property int type
 	required property int availableWidth
 
@@ -27,10 +32,6 @@ FocusScope {
 
 	signal valueChanged(string str)
 	signal enterOrReturnKeyPressed()
-
-	implicitWidth: availableWidth
-	width: availableWidth
-	implicitHeight: 30
 
 	enum Type {
 		WeightType,
