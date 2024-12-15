@@ -493,32 +493,26 @@ TPPage {
 				text: mesoManager.notesLabel
 				Layout.topMargin: 10
 			}
-			Flickable {
-				height: Math.min(contentHeight, 60)
-				width: parent.width
-				contentHeight: txtMesoNotes.implicitHeight
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
-				Layout.minimumHeight: 60
 
-				TextArea.flickable: TextArea {
+			ScrollView {
+				ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+				ScrollBar.vertical.policy: ScrollBar.AsNeeded
+				contentWidth: availableWidth
+				height: appSettings.pageHeight*0.15
+				Layout.fillWidth: true
+				Layout.preferredHeight: height
+
+				TextArea {
 					id: txtMesoNotes
 					text: mesoManager.notes
 					color: appSettings.fontColor
-
-					background: Rectangle {
-						color: appSettings.primaryColor
-						opacity: 0.8
-						radius: 6
-						border.color: appSettings.fontColor
-					}
+					textMargin: 0
+					height: 50
 
 					onEditingFinished: mesoManager.notes = text;
+					onActiveFocusChanged: cursorPosition = activeFocus ? length : 0;
+					onTextChanged: cursorPosition = 0;
 				}
-
-				Component.onCompleted: vBar2.position = 0
-				ScrollBar.vertical: ScrollBar { id: vBar2 }
-				ScrollBar.horizontal: ScrollBar {}
 			}
 		} //ColumnLayout
 	} //ScrollView

@@ -278,14 +278,14 @@ FocusScope {
 			}
 		} //RowLayout
 
-		/*SetNotesField {
+		SetNotesField {
 			id: btnShowHideNotes
 			text: setManager.notes
 			enabled: !setManager.completed
 			Layout.fillWidth: true
 
 			onEditFinished: (new_text) => setManager.notes = new_text;
-		}*/
+		}
 
 		TPButton {
 			id: btnCompleteExercise

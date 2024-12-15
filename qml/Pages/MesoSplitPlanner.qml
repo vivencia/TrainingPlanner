@@ -244,22 +244,20 @@ Frame {
 						Layout.preferredWidth: width
 						Layout.preferredHeight: height
 
-						//Alphanumeric keyboard
-						Keys.onReturnPressed: cboSetType.forceActiveFocus();
+						Keys.onReturnPressed: cboSetType.forceActiveFocus(); //Alphanumeric keyboard
 						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
 						onItemClicked: splitModel.currentRow = index;
-
 						onRemoveButtonClicked: msgDlgRemove.show(0);
 						onEditButtonClicked: splitManager.simpleExercisesList(splitModel, !readOnly, true, 0);
 					} //ExerciseNameField
 
-					/*SetNotesField {
+					SetNotesField {
 						info: splitModel.instructionsLabel
 						text: splitModel.setsNotes(index)
 						Layout.fillWidth: true
 
 						onEditFinished: (new_text) => splitModel.setSetsNotes(index, new_text);
-					}*/
+					}
 
 					Pane {
 						id: paneSets

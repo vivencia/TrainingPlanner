@@ -223,7 +223,6 @@ TPPage {
 
 			anchors {
 				top: parent.top
-				topMargin: 10
 				horizontalCenter: parent.horizontalCenter
 			}
 		}

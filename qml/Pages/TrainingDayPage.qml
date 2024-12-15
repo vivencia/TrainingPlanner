@@ -74,7 +74,9 @@ TPPage {
 			anchors {
 				top: parent.top
 				left: parent.left
+				leftMargin: 5
 				right: parent.right
+				rightMargin: 5
 			}
 
 			Label {
@@ -89,8 +91,6 @@ TPPage {
 
 			RowLayout {
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
 
 				TPLabel {
 					text: qsTr("Training Division:")
@@ -111,8 +111,6 @@ TPPage {
 			RowLayout {
 				visible: tDayManager.splitLetter !== "R"
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
 
 				TPLabel {
 					text: qsTr("Location:")
@@ -138,8 +136,6 @@ TPPage {
 				enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
 				height: 330
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
 
 				background: Rectangle {
 					border.color: appSettings.fontColor
@@ -259,17 +255,16 @@ TPPage {
 				} //ColumnLayout
 			} //Frame
 
-			/*SetNotesField {
+			SetNotesField {
 				info: qsTr("This training session considerations:")
 				text: tDayManager.dayNotes
 				readOnly: !tDayManager.dayIsEditable
 				visible: tDayManager.splitLetter !== "R"
 				foreColor: appSettings.fontColor
-				Layout.leftMargin: 5
 				Layout.fillWidth: true
 
 				onEditFinished: (new_text) => tDayManager.dayNotes = new_text;
-			}*/
+			}
 
 			TPButton {
 				text: qsTr("Use this workout exercises as the default exercises plan for the division ") + tDayManager.splitLetter + qsTr( " of this mesocycle")
@@ -279,8 +274,6 @@ TPPage {
 				enabled: tDayManager.editMode;
 				width: parent.width - 10
 				Layout.fillWidth: true
-				Layout.leftMargin: 5
-				Layout.rightMargin: 5
 				Layout.bottomMargin: 10
 
 				onClicked: tDayManager.convertTDayToPlan();
@@ -296,8 +289,7 @@ TPPage {
 				height: 40
 				Layout.bottomMargin: 10
 				Layout.fillWidth: true
-				Layout.minimumHeight: height
-				Layout.maximumHeight: height
+				Layout.preferredHeight: height
 
 				background: Rectangle {
 					gradient: Gradient {
