@@ -91,7 +91,7 @@ TPPage {
 				shadowColor: "black"
 				shadowScale: 1
 				opacity: mesoDelegate.swipe.complete ? 0.8 : mesoDelegate.swipe.position
-				Behavior on opacity { NumberAnimation { } }
+				Behavior on opacity { NumberAnimation {} }
 
 				TPButton {
 					id: btnMesoInfo
@@ -221,7 +221,7 @@ TPPage {
 				shadowColor: "black"
 				shadowScale: 1
 				opacity: mesoDelegate.swipe.complete ? 0.8 : 0-mesoDelegate.swipe.position
-				Behavior on opacity { NumberAnimation { } }
+				Behavior on opacity { NumberAnimation {} }
 
 				TPButton {
 					text: qsTr("Remove Plan")
@@ -395,6 +395,7 @@ TPPage {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+		closeButtonVisible: true
 		parentPage: homePage
 
 		onButton1Clicked: mesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);

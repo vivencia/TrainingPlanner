@@ -4,12 +4,15 @@ import QtQuick.Layouts
 
 import "../"
 import "../TPWidgets"
+import "../Dialogs"
+
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 Column {
 	id: mainItem
 	spacing: 5
 
+	required property Item parentPage
 	property int seconds
 	property bool bMultipleSelection: false
 	property bool canDoMultipleSelection: false
@@ -78,9 +81,11 @@ Column {
 		id: txtFilter
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
-		width: parent.width
-		Layout.fillWidth: true
+		width: parent.width*0.9
+		Layout.preferredWidth: width
 		Layout.topMargin: 5
+
+		onTextChanged: exercisesModel.setFilter(text, false);
 
 		TPButton {
 			id: btnClearText
@@ -102,7 +107,19 @@ Column {
 			}
 		}
 
-		onTextChanged: exercisesModel.setFilter(text, false);
+		TPButton {
+			id: btnMuscularGroups
+			imageSource: "filter.png"
+			imageSize: 25
+
+			anchors {
+				left: parent.right
+				leftMargin: 5
+				verticalCenter: parent.verticalCenter
+			}
+
+			onClicked: showFilterDialog();
+		}
 	} // txtFilter
 
 	ListView {
@@ -192,7 +209,7 @@ Column {
 					horizontalAlignment: Qt.AlignLeft
 					verticalAlignment: Qt.AlignVCenter
 					opacity: delegate.swipe.complete ? 1 : 0
-					Behavior on opacity { NumberAnimation { } }
+					Behavior on opacity { NumberAnimation {} }
 					z:0
 				}
 
@@ -207,7 +224,7 @@ Column {
 		} // SwipeDelegate
 	} // ListView
 
-	function itemClicked(idx: int, emit_signal: bool) {
+	function itemClicked(idx: int, emit_signal: bool): void {
 		if (!bMultipleSelection) {
 			if (exercisesModel.manageSelectedEntries(idx, 1)) {
 				exercisesModel.currentRow = idx;
@@ -229,12 +246,30 @@ Column {
 		lstExercises.forceActiveFocus();
 	}
 
-	function simulateMouseClick(new_index: int, emit_signal: bool) {
+	function simulateMouseClick(new_index: int, emit_signal: bool): void {
 		lstExercises.positionViewAtIndex(new_index, ListView.Center);
 		itemClicked(new_index, emit_signal);
 	}
 
-	function setFilter() {
+	function setFilter(): void {
 		txtFilter.text = exercisesModel.getFilter();
+	}
+
+	property MuscularGroupPicker filterDlg: null
+	function showFilterDialog(): void {
+		if (filterDlg === null) {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
+				filterDlg.muscularGroupCreated.connect(function(filterStr) { txtFilter.text = filterStr; });
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		filterDlg.show(btnMuscularGroups, 3);
 	}
 }

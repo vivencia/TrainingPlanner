@@ -256,7 +256,7 @@ TPPage {
 		}
 		TPRadioButton {
 			id: optChangeAfterThisDay
-			text: qsTr("Adjust calendar from this day")
+			text: qsTr("Adjust calendar from this day on")
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom

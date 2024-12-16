@@ -888,6 +888,7 @@ TPPage {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		parentPage: trainingDayPage
+		closeButtonVisible: true
 
 		onButton1Clicked: tDayManager.exportTrainingDay(bShare);
 

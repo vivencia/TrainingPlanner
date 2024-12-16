@@ -130,5 +130,7 @@
         <file>images/statistics.png</file>
         <file>images/white/calendar.png</file>
         <file>images/black/calendar.png</file>
+        <file>images/black/filter.png</file>
+        <file>images/white/filter.png</file>
     </qresource>
 </RCC>

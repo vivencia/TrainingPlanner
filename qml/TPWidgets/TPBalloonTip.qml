@@ -15,7 +15,6 @@ TPPopup {
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor
 	property bool highlightMessage: false
-	property bool closable: false
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -25,6 +24,7 @@ TPPopup {
 
 	id: balloon
 	bKeepAbove: true
+	closeButtonVisible: false
 	width: appSettings.pageWidth * 0.8
 
 	NumberAnimation {
@@ -45,8 +45,8 @@ TPPopup {
 		horizontalAlignment: Text.AlignHCenter
 		visible: title.length > 0
 		width: parent.width - 20
-		x: closable ? 5 : 10
-		y: closable ? 10 : 5
+		x: closeButtonVisible ? 5 : 10
+		y: closeButtonVisible ? 10 : 5
 	}
 
 	TPImage {

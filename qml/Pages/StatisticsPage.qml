@@ -259,23 +259,19 @@ TPPage {
 							}
 						}
 
-						ColumnLayout {
-							spacing: 5
+
+						TPCheckBox {
 							Layout.fillWidth: true
+							text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
+							checked: appStatistics ? appStatistics.exerciseIncluded(index) : false
 
-							TPCheckBox {
-								Layout.fillWidth: true
-								text: exercisesModel.count > 0 ? exercisesModel.get(index).text : ""
-								checked: appStatistics ? appStatistics.exerciseIncluded(index) : false
-
-								onClicked: {
-									appStatistics.includeExercise(index, checked);
-									//appStatistics.generateData();
-								}
+							onClicked: {
+								appStatistics.includeExercise(index, checked);
+								//appStatistics.generateData();
 							}
 						}
-					}
-				} //GridLayout
+					} //Repeater
+				}
 			} //Frame
 
 			ChartView {

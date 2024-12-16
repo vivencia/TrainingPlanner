@@ -15,7 +15,7 @@ Popup {
 	required property Page parentPage
 	property bool bKeepAbove
 	property bool bVisible: false
-	property bool closable: true
+	property bool closeButtonVisible: true
 	property int finalYPos: 0
 	property int startYPos: 0
 
@@ -76,7 +76,7 @@ Popup {
 	TPButton {
 		imageSource: "close.png"
 		hasDropShadow: false
-		visible: closable
+		visible: closeButtonVisible
 		height: 30
 		width: 30
 
@@ -84,9 +84,7 @@ Popup {
 
 		anchors {
 			top: parent.top
-			topMargin: -3
 			right: parent.right
-			rightMargin: -3
 		}
 
 		onClicked: close();
@@ -125,5 +123,43 @@ Popup {
 			duration: 500
 			easing.type: Easing.InOutCubic
 		}
+	}
+
+	function show(targetItem: Item, pos: int): void {
+		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
+
+		var xpos, ypos;
+		switch (pos) {
+			case 0: //top
+				xpos = point.x;
+				ypos = point.y - height - 15;
+			break;
+			case 1: //left
+				xpos = point.x - width - 15;
+				ypos = point.y;
+			break;
+			case 2: //right
+				xpos = point.x + targetItem.width;
+				ypos = point.y;
+			break;
+			case 3: //bottom
+				xpos = point.x;
+				ypos = point.y + targetItem.height;
+			break;
+		}
+
+		if (xpos < 0)
+			xpos = 0;
+		else if (xpos + width > parentPage.width - 20)
+			xpos = parentPage.width - width - 10;
+		if (ypos < 0)
+			ypos = 0;
+		else if (ypos + height > parentPage.height)
+			ypos = parentPage.height - h - 10;
+		x = xpos;
+		finalYPos = ypos;
+		if (ypos > appSettings.pageHeight/2)
+			startYPos = appSettings.pageHeight;
+		open();
 	}
 }

@@ -245,7 +245,7 @@ TPPage {
 		id: exportTypeTip
 		title: bShare ? qsTr("What do you want to share?") : qsTr("What to you want to export?")
 		imageSource: "export"
-		closable: true
+		closeButtonVisible: true
 		button1Text: qsTr("Entire plan")
 		button2Text: qsTr("Just this split")
 		parentPage: pagePlanner

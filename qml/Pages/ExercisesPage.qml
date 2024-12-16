@@ -39,6 +39,7 @@ TPPage {
 
 			ExercisesListView {
 				id: exercisesList
+				parentPage: exercisesPage
 				canDoMultipleSelection: bChooseButtonEnabled
 				Layout.alignment: Qt.AlignTop
 				Layout.fillWidth: true
@@ -139,6 +140,7 @@ TPPage {
 					enabled: bChooseButtonEnabled && !bCanEdit && exercisesModel.currentRow >= 0
 					text: qsTr("Add")
 					fixedSize: true
+					autoResize: true
 					width: toolbarExercises.buttonWidth
 					height: 25
 					rounded: false
@@ -152,6 +154,7 @@ TPPage {
 					text: qsTr("In/Export")
 					visible: !bChooseButtonEnabled
 					fixedSize: true
+					autoResize: true
 					width: toolbarExercises.buttonWidth
 					height: 25
 					rounded: false
@@ -447,6 +450,7 @@ TPPage {
 		button1Text: qsTr("Yes")
 		button2Text: qsTr("No")
 		parentPage: exercisesPage
+		closeButtonVisible: true
 
 		onButton1Clicked: exercisesManager.exportExercises(bShare);
 

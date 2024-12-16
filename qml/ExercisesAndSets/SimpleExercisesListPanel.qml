@@ -9,7 +9,6 @@ TPPopup {
 	id: dlgExercisesList
 	bKeepAbove: true
 	finalYPos: 0
-	closable: false
 	width: appSettings.pageWidth
 	height: shown ? appSettings.pageHeight * 0.5 : 30
 	x: 0
@@ -28,6 +27,8 @@ TPPopup {
 		else
 			exercisesModel.clearSelectedEntries();
 	}
+
+	onClosed: listClosed();
 
 	Behavior on height {
 		NumberAnimation {
@@ -55,18 +56,12 @@ TPPopup {
 			}
 			opacity: 0.8
 
-			TPMouseArea {
-				movableWidget: dlgExercisesList
-				movingWidget: recTitleBar
-			}
-
 			TPButton {
 				id: btnShowHideList
 				imageSource: dlgExercisesList.shown ? "fold-up.png" : "fold-down.png"
 				hasDropShadow: false
 				imageSize: 25
 				height: 25
-				z: 2
 
 				anchors {
 					left: parent.left
@@ -75,29 +70,12 @@ TPPopup {
 
 				onClicked: dlgExercisesList.shown = !dlgExercisesList.shown;
 			}
-
-			TPButton {
-				id: btnCloseList
-				imageSource: "close.png"
-				hasDropShadow: false
-				imageSize: 20
-				z: 2
-
-				anchors {
-					right: parent.right
-					verticalCenter: parent.verticalCenter
-				}
-
-				onClicked: {
-					listClosed();
-					dlgExercisesList.visible = false;
-				}
-			}
 		}
 
 		ExercisesListView {
 			id: exercisesList
 			height: dlgExercisesList.height - 30
+			parentPage: dlgExercisesList.parentPage
 			Layout.fillWidth: true
 			Layout.topMargin: 0
 			Layout.alignment: Qt.AlignTop

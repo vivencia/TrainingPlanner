@@ -156,7 +156,13 @@ TPToolBar {
 		hasDropShadow: false
 		imageSize: 30
 		fixedSize: true
-		enabled: mesocyclesModel.count > 0 && !mesocyclesModel.isNewMeso
+		enabled: {
+			switch (mesocyclesModel.count) {
+				case 0: return false;
+				case 1: return !mesocyclesModel.isNewMeso();
+				default: return true;
+			}
+		}
 		width: 35
 		height: 35
 
