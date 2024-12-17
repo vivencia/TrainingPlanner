@@ -121,7 +121,8 @@ public:
 	inline uint count() const override { return m_indexProxy.count(); }
 	Q_INVOKABLE void newExercise(const QString& name = QString(), const QString& subname = QString(), const QString& muscular_group = QString());
 	Q_INVOKABLE void removeExercise(const uint index);
-	Q_INVOKABLE void setFilter(const QString& filter, const bool resetSelection);
+	Q_INVOKABLE void setFilter(const QString& filter);
+	Q_INVOKABLE void search(const QString& search_term);
 	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
@@ -186,6 +187,7 @@ private:
 		explicit inline st_SelEntry() : real_index(0), view_index(0) {}
 	} selectedEntry;
 
+	QList<uint> m_filteredIndices;
 	QList<uint> m_indexProxy;
 	QMap<uint,uint> m_modifiedIndices;
 	QList<selectedEntry> m_selectedEntries;

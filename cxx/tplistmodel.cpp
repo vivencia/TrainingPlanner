@@ -49,8 +49,11 @@ void TPListModel::clearFast()
 
 void TPListModel::setCurrentRow(const int row)
 {
-	m_currentRow = row;
-	emit currentRowChanged();
+	if (m_currentRow != row)
+	{
+		m_currentRow = row;
+		emit currentRowChanged();
+	}
 }
 
 void TPListModel::moveRow(const uint from, const uint to)

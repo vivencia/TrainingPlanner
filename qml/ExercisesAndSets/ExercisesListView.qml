@@ -85,15 +85,13 @@ Column {
 		Layout.preferredWidth: width
 		Layout.topMargin: 5
 
-		onTextChanged: exercisesModel.setFilter(text, false);
+		onTextChanged: exercisesModel.search(text);
 
 		TPButton {
 			id: btnClearText
 			imageSource: "edit-clear"
 			hasDropShadow: false
 			imageSize: 20
-			height: 20
-			width: 20
 
 			anchors {
 				left: txtFilter.right
@@ -251,10 +249,6 @@ Column {
 		itemClicked(new_index, emit_signal);
 	}
 
-	function setFilter(): void {
-		txtFilter.text = exercisesModel.getFilter();
-	}
-
 	property MuscularGroupPicker filterDlg: null
 	function showFilterDialog(): void {
 		if (filterDlg === null) {
@@ -262,7 +256,7 @@ Column {
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, { parentPage: mainItem.parentPage });
-				filterDlg.muscularGroupCreated.connect(function(filterStr) { txtFilter.text = filterStr; });
+				filterDlg.muscularGroupCreated.connect(function(filterStr) { exercisesModel.setFilter(filterStr); });
 			}
 
 			if (component.status === Component.Ready)

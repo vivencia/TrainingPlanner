@@ -211,7 +211,9 @@ Rectangle {
 			}
 			else
 			{
-				buttonText.widthAvailable = button.width - 10;
+				buttonText.width = button.width - 10;
+				if (buttonText.height > button.height)
+					buttonText.height = button.height;
 				if (!autoResize)
 					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
 			}

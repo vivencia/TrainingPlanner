@@ -16,23 +16,24 @@ TPPopup {
 	signal muscularGroupCreated(group: string);
 
 	property ListModel groupsModel: ListModel {
-		ListElement { text: qsTr("Quadriceps"); value: false; }
-		ListElement { text: qsTr("Hamstrings"); value: false; }
-		ListElement { text: qsTr("Calves"); value: false; }
-		ListElement	{ text: qsTr("Upper Back"); value: false; }
-		ListElement { text: qsTr("Middle Back"); value: false; }
-		ListElement { text: qsTr("Lower Back"); value: false; }
-		ListElement { text: qsTr("Biceps"); value: false; }
-		ListElement { text: qsTr("Triceps"); value: false; }
-		ListElement { text: qsTr("Forearms"); value: false; }
-		ListElement { text: qsTr("Upper Chest"); value: false; }
-		ListElement { text: qsTr("Middle Chest"); value: false; }
-		ListElement { text: qsTr("Lower Chest"); value: false; }
-		ListElement { text: qsTr("Front Shoulders"); value: false; }
-		ListElement { text: qsTr("Lateral Shoulders"); value: false; }
-		ListElement { text: qsTr("Rear Shoulders"); value: false; }
-		ListElement { text: qsTr("Traps"); value: false; }
-		ListElement { text: qsTr("Abdominals"); value: false; }
+		ListElement { text: qsTr("Quadriceps"); value: "quadriceps"; selected: false; }
+		ListElement { text: qsTr("Hamstrings"); value: "hamstrings"; selected: false; }
+		ListElement { text: qsTr("Calves"); value: "calves"; selected: false; }
+		ListElement { text: qsTr("Glutes"); value: "glutes"; selected: false; }
+		ListElement	{ text: qsTr("Upper Back"); value: "upper back"; selected: false; }
+		ListElement { text: qsTr("Middle Back"); value: "middle back"; selected: false; }
+		ListElement { text: qsTr("Lower Back"); value: "lower back"; selected: false; }
+		ListElement { text: qsTr("Biceps"); value: "biceps"; selected: false; }
+		ListElement { text: qsTr("Triceps"); value: "triceps"; selected: false; }
+		ListElement { text: qsTr("Forearms"); value: "fore arms"; selected: false; }
+		ListElement { text: qsTr("Upper Chest"); value: "upper chest"; selected: false; }
+		ListElement { text: qsTr("Middle Chest"); value: "middle chest"; selected: false; }
+		ListElement { text: qsTr("Lower Chest"); value: "lower chest"; selected: false; }
+		ListElement { text: qsTr("Front Delts"); value: "front delts"; selected: false; }
+		ListElement { text: qsTr("Lateral Delts"); value: "lateral delts"; selected: false; }
+		ListElement { text: qsTr("Rear Delts"); value: "rear delts"; selected: false; }
+		ListElement { text: qsTr("Traps"); value: "traps"; selected: false; }
+		ListElement { text: qsTr("Abs"); value: "abs"; selected: false; }
 	}
 
 	Behavior on height {
@@ -103,11 +104,11 @@ TPPopup {
 
 				TPCheckBox {
 					text: model.text
-					checked: model.value
+					checked: model.selected
 					width: parent.width
 					height: 25
 
-					onClicked: model.value = checked;
+					onClicked: model.selected = checked;
 				}
 			} //Repeater
 		} //ColumnLayout
@@ -135,8 +136,8 @@ TPPopup {
 			let muscularGroup = "";
 			for (let i = 0; i < groupsModel.count; ++i)
 			{
-				if (groupsModel.get(i).value)
-					muscularGroup += groupsModel.get(i).text + ' ';
+				if (groupsModel.get(i).selected)
+					muscularGroup += groupsModel.get(i).value + '|'; //use fancy_record_separator1 as separator
 			}
 			muscularGroupCreated(muscularGroup);
 		}

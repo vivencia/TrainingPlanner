@@ -37,6 +37,11 @@ DBExercisesModel::DBExercisesModel(QObject* parent, const bool bMainExercisesMod
 		for(uint i(EXERCISES_COL_ID); i < EXERCISES_TOTAL_COLS; ++i)
 			mColumnNames.append(QString());
 		fillColumnNames();
+
+		//Value is hardcoded based on the most current exercises list
+		m_modeldata.reserve(305);
+		m_indexProxy.reserve(305);
+		m_filteredIndices.reserve(305);
 	}
 }
 
@@ -95,68 +100,123 @@ static QString stripDiacritics(const QString& src)
 	return filtered;
 }
 
-void DBExercisesModel::setFilter(const QString& filter, const bool resetSelection)
+void DBExercisesModel::setFilter(const QString& filter)
 {
-	if (filter.length() >= 3)
+	beginRemoveRows(QModelIndex(), 0, count()-1);
+	m_indexProxy.clear();
+	endRemoveRows();
+
+	if (!filter.isEmpty())
 	{
 		uint idx(0);
-		bool bFirst(true);
-
 		QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());
 		const QList<QStringList>::const_iterator& lst_itrend(m_modeldata.constEnd());
 		for (; lst_itr != lst_itrend; ++lst_itr, ++idx)
 		{
-			const QString& subject{(*lst_itr).at(EXERCISES_COL_MAINNAME) + ' ' +
-						(*lst_itr).at(EXERCISES_COL_SUBNAME) + ' ' +
-						(*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)};
-			const QStringList& words_list{stripDiacritics(filter).split(' ')};
-			bool bFound = true;
+			const QString& subject{(*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)};
+			const QStringList& words_list{filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive)};
 			for (uint i(0); i < words_list.count(); ++i)
 			{
-				if (!subject.contains(words_list.at(i), Qt::CaseInsensitive))
+				if (subject.contains(words_list.at(i), Qt::CaseInsensitive))
 				{
-					bFound = false;
+					beginInsertRows(QModelIndex(), count(), count());
+					m_indexProxy.append(idx);
+					endInsertRows();
+					m_filteredIndices.append(idx);
 					break;
 				}
 			}
-			if (bFound)
-			{
-				if (bFirst)
-				{
-					bFirst = false;
-					beginRemoveRows(QModelIndex(), 0, count()-1);
-					m_indexProxy.clear();
-					if (resetSelection)
-					{
-						resetPrivateData();
-						setCurrentRow(-1);
-					}
-					endRemoveRows();
-				}
-				beginInsertRows(QModelIndex(), count(), count());
-				m_indexProxy.append(idx);
-				endInsertRows();
-			}
 		}
-		m_bFilterApplied = m_indexProxy.count() != m_modeldata.count();
+		m_bFilterApplied = m_filteredIndices.count() != m_modeldata.count();
 	}
 	else
 	{
 		if (m_bFilterApplied)
 		{
 			m_bFilterApplied = false;
-			beginRemoveRows(QModelIndex(), 0, count()-1);
-			m_indexProxy.clear();
-			if (resetSelection)
-			{
-				resetPrivateData();
-				setCurrentRow(-1);
-			}
-			endRemoveRows();
 			beginInsertRows(QModelIndex(), 0, m_modeldata.count());
 			for (uint i (0); i < m_modeldata.count(); ++i)
 				m_indexProxy.append(i);
 			endInsertRows();
+		}
+	}
+}
+
+void DBExercisesModel::search(const QString& search_term)
+{
+	if (search_term.length() >= 3)
+	{
+		bool bFound{false};
+		const qsizetype modelCount{m_filteredIndices.isEmpty() ? m_modeldata.count() : m_filteredIndices.count()};
+
+		for (uint i{0}; i < modelCount; ++i)
+		{
+			const uint idx{m_filteredIndices.isEmpty() ? i : m_filteredIndices.at(i)};
+			const QString& subject{m_modeldata.at(idx).at(EXERCISES_COL_MAINNAME) +
+						' ' + m_modeldata.at(idx).at(EXERCISES_COL_SUBNAME)};
+			const QStringList& words_list{stripDiacritics(search_term).split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
+
+			for (uint x{0}; x < words_list.count(); ++x)
+			{
+				if (subject.contains(words_list.at(x), Qt::CaseInsensitive))
+				{
+					if (!bFound)
+					{
+						bFound = true;
+						beginRemoveRows(QModelIndex(), 0, count()-1);
+						m_indexProxy.clear();
+						endRemoveRows();
+						resetPrivateData();
+						setCurrentRow(-1);
+						m_bFilterApplied = true;
+					}
+					beginInsertRows(QModelIndex(), count(), count());
+					m_indexProxy.append(idx);
+					endInsertRows();
+				}
+			}
+		}
+		if (!bFound)
+		{
+			beginRemoveRows(QModelIndex(), 0, count()-1);
+			m_indexProxy.clear();
+			endRemoveRows();
+			if (m_filteredIndices.isEmpty())
+				m_bFilterApplied = false;
+		}
+	}
+	else
+	{
+		if (m_bFilterApplied)
+		{
+			bool indexProxyModified(false);
+			if (m_filteredIndices.isEmpty())
+			{
+				m_bFilterApplied = false;
+				indexProxyModified = m_indexProxy.count() < m_modeldata.count();
+			}
+			else
+				indexProxyModified = m_indexProxy.count() != m_filteredIndices.count();
+
+			if (indexProxyModified)
+			{
+				beginRemoveRows(QModelIndex(), 0, count()-1);
+				m_indexProxy.clear();
+				endRemoveRows();
+				if (!m_bFilterApplied)
+				{
+					beginInsertRows(QModelIndex(), 0, m_modeldata.count());
+					for (uint i {0}; i < m_modeldata.count(); ++i)
+						m_indexProxy.append(i);
+				}
+				else
+				{
+					beginInsertRows(QModelIndex(), 0, m_filteredIndices.count());
+					for (uint i {0}; i < m_filteredIndices.count(); ++i)
+						m_indexProxy.append(m_filteredIndices.at(i));
+				}
+				endInsertRows();
+			}
 		}
 	}
 }

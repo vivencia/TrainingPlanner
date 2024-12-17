@@ -122,7 +122,7 @@ void DBExercisesTable::updateExercisesList()
 		{
 			const QStringList& fields{(*itr).split(';')};
 			m_model->newExercise(fields.at(0), fields.at(1), fields.at(2).trimmed());
-			queryValues += m_model->makeTransactionStatementForDataBase(idx);
+			queryValues += std::move(m_model->makeTransactionStatementForDataBase(idx));
 		}
 		queryValues.chop(1);
 		static_cast<void>(mSqlLiteDB.transaction());
