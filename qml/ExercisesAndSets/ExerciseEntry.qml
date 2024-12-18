@@ -103,7 +103,7 @@ FocusScope {
 					imageSize: 18
 					Layout.preferredWidth: 18
 					Layout.preferredHeight: 18
-					onClicked: paneExerciseShowHide();
+					onClicked: paneExerciseShowHide(!showSets);
 				}
 
 				Label {
@@ -127,7 +127,7 @@ FocusScope {
 					onExerciseChanged: (new_text) => exerciseManager.exerciseName = new_text;
 					onRemoveButtonClicked: exerciseManager.removeExercise();
 					onEditButtonClicked: exerciseManager.simpleExercisesList(!readOnly, true);
-					onItemClicked: paneExerciseShowHide();
+					onItemClicked: paneExerciseShowHide(!showSets);
 				}
 			} //Row txtExerciseName
 
@@ -305,11 +305,9 @@ FocusScope {
 		}
 	} //paneExercise
 
-	function paneExerciseShowHide(): void {
+	function paneExerciseShowHide(show: bool): void {
 		if (exerciseManager.hasSets)
-		{
 			exerciseManager.createAvailableSets();
-			showSets = !showSets;
-		}
+		showSets = show;
 	}
 } //Item

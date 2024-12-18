@@ -10,7 +10,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight*1.25
+	implicitHeight: setLayout.childrenRect.height*1.25 + setModeItem.height
 	Layout.fillWidth: true
 
 	required property SetEntryManager setManager
@@ -22,10 +22,10 @@ FocusScope {
 
 	Connections {
 		target: setManager
-			function onTypeChanged() { btnCopySetType.visible = true; }
-			function onRestTimeChanged() { btnCopyTimeValue.visible = true; }
-			function onReps1Changed() { btnCopySetReps.visible = true; }
-			function onWeight1Changed() { btnCopySetWeight.visible = true; }
+			function onTypeChanged() { btnCopySetType.visible = setManager.isManuallyModified; }
+			function onRestTimeChanged() { btnCopyTimeValue.visible = setManager.isManuallyModified; }
+			function onReps1Changed() { btnCopySetReps.visible = setManager.isManuallyModified; }
+			function onWeight1Changed() { btnCopySetWeight.visible = setManager.isManuallyModified; }
 			function onIsManuallyModifiedChanged() {
 					if (!setManager.isManuallyModified)
 						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps.visible = btnCopySetWeight.visible = false;
@@ -107,8 +107,6 @@ FocusScope {
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
-			bottom: parent.bottom
-			bottomMargin: 5
 		}
 
 		Label {
@@ -146,7 +144,10 @@ FocusScope {
 					leftMargin: 10
 				}
 
-				onClicked: exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+				onClicked: {
+					exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+					visible = false;
+				}
 			}
 
 			TPButton {
@@ -192,9 +193,12 @@ FocusScope {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
+				Layout.leftMargin: 10
 
-				onClicked: exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
+				onClicked: {
+					exerciseManager.copyTimeValueIntoOtherSets(setManager.number);
+					visible = false;
+				}
 			}
 		}
 
@@ -246,9 +250,12 @@ FocusScope {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
+				Layout.leftMargin: 10
 
-				onClicked: exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
+				onClicked: {
+					exerciseManager.copyRepsValueIntoOtherSets(setManager.number);
+					visible = false;
+				}
 			}
 		} //RowLayout
 
@@ -272,9 +279,12 @@ FocusScope {
 				imageSource: "copy-setvalue"
 				height: 25
 				width: 25
-				Layout.alignment: Qt.AlignRight
+				Layout.leftMargin: 10
 
-				onClicked: exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
+				onClicked: {
+					exerciseManager.copyWeightValueIntoOtherSets(setManager.number);
+					visible = false;
+				}
 			}
 		} //RowLayout
 
@@ -293,12 +303,9 @@ FocusScope {
 			flat: false
 			visible: setManager.lastSet
 			enabled: setManager.finishButtonEnabled
-			width: implicitWidth
-			height: implicitHeight
 			Layout.alignment: Qt.AlignCenter
 			Layout.topMargin: -10
-			Layout.preferredHeight: height
-			Layout.preferredWidth: width
+			Layout.preferredWidth: implicitWidth
 
 			onClicked: {
 				setLayout.enabled = false;

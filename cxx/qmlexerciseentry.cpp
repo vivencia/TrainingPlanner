@@ -52,8 +52,8 @@ void QmlExerciseEntry::setNewSetType(const uint new_value)
 			case SET_TYPE_MYOREPS: strSets = "3"_L1; break;
 			default: strSets = "4"_L1; break;
 		}
-		setSetsNumber(strSets);
 	}
+	setSetsNumber(strSets);
 	const uint dataFromSetNumber(m_setObjects.isEmpty() ? 0 : USE_LAST_SET_DATA);
 	setRestTime(m_tDayModel->nextSetSuggestedTime(m_exercise_idx, m_type, dataFromSetNumber));
 	setRepsForExercise1(m_tDayModel->nextSetSuggestedReps(m_exercise_idx, m_type, dataFromSetNumber, 0));
@@ -239,19 +239,21 @@ void QmlExerciseEntry::appendNewSet()
 		if (!m_setObjects.isEmpty())
 			m_setObjects.last()->setLastSet(false);
 
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn =  connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn,nsets] (const uint set_number) {
-				setCreated(set_number, nsets, conn);
-			});
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn =  connect(this, &QmlExerciseEntry::setObjectCreated, this, [this,conn,nsets] (const uint set_number) {
+			setCreated(set_number, nsets, conn);
+		});
 
+		uint new_set_number(m_setObjects.count());
+		m_expectedSetNumber = new_set_number;
 		for (uint i(0); i < nsets; ++i)
 		{
-			m_expectedSetNumber = i;
-			if (i == 0)
+			if (new_set_number == 0)
 				m_tDayModel->newFirstSet(m_exercise_idx, newSetType(), reps(), weight(), restTime());
 			else
-				m_tDayModel->newSet(m_exercise_idx, m_expectedSetNumber, newSetType(), reps(), weight(), restTime());
-			createSetObject(i, newSetType());
+				m_tDayModel->newSet(m_exercise_idx, new_set_number, newSetType(), reps(), weight(), restTime());
+			createSetObject(new_set_number, newSetType());
+			++new_set_number;
 		}
 	}
 }

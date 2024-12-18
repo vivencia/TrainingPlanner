@@ -132,5 +132,7 @@
         <file>images/black/calendar.png</file>
         <file>images/black/filter.png</file>
         <file>images/white/filter.png</file>
+        <file>images/white/choose.png</file>
+        <file>images/black/choose.png</file>
     </qresource>
 </RCC>

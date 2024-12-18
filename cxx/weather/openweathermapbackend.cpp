@@ -44,7 +44,7 @@ class parseOpenWeatherMapReply
 {
 
 public:
-	explicit parseOpenWeatherMapReply(const QByteArray& net_response);
+	explicit parseOpenWeatherMapReply(const QString& net_response);
 	inline const bool parsedOK() const { return m_bParsedOK; }
 	inline const uint forecastDays() const { return m_weatherData.count(); }
 
@@ -124,21 +124,21 @@ private:
 	QString weatherIconCodeToString(const QString& iconcode) const;
 };
 
-parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QByteArray& net_response)
+parseOpenWeatherMapReply::parseOpenWeatherMapReply(const QString& net_response)
 	: m_usedKeys(nullptr)
 {
 	if (!net_response.isEmpty())
 	{
 		QString word, key;
 		bool have_key(false), inside_field(false);
-		QByteArray::const_iterator itr(net_response.constBegin());
-		const QByteArray::const_iterator itr_end(net_response.constEnd());
+		QString::const_iterator itr(net_response.constBegin());
+		const QString::const_iterator itr_end(net_response.constEnd());
 		do {
-			if (QChar::isLetterOrNumber(*itr))
+			if ((*itr).isLetterOrNumber())
 				word.append(*itr);
 			else
 			{
-				switch (*itr)
+				switch ((*itr).toLatin1())
 				{
 					case '{':
 						inside_field = isCurrentKey(word) || isDailyKey(word) || isWeatherSubField(word);
@@ -301,7 +301,7 @@ void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply,
 	bool parsed(false);
 	if (!reply->error())
 	{
-		const parseOpenWeatherMapReply netData{reply->readAll()};
+		const parseOpenWeatherMapReply netData{QString::fromUtf8(reply->readAll())};
 		parsed = netData.parsedOK();
 		if (parsed)
 		{

@@ -10,7 +10,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: setItem
-	implicitHeight: setLayout.implicitHeight*1.2
+	implicitHeight: setLayout.childrenRect.height*1.25 + setModeItem.height
 	Layout.fillWidth: true
 
 	required property SetEntryManager setManager
@@ -92,8 +92,6 @@ FocusScope {
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
-			bottom: parent.bottom
-			bottomMargin: 5
 		}
 
 		Label {
@@ -131,7 +129,10 @@ FocusScope {
 					leftMargin: 10
 				}
 
-				onClicked: exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+				onClicked: {
+					exerciseManager.copyTypeValueIntoOtherSets(setManager.number);
+					visible = false;
+				}
 			}
 
 			TPButton {
@@ -251,23 +252,24 @@ FocusScope {
 					imageSource: "copy-setvalue"
 					height: 25
 					width: 25
+					Layout.leftMargin: 10
 
 					Component.onCompleted: {
 						switch (index) {
 							case 0:
-								setManager.reps1Changed.connect(function () { visible = true; });
+								setManager.reps1Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 1:
-								setManager.reps2Changed.connect(function () { visible = true; });
+								setManager.reps2Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 2:
-								setManager.reps3Changed.connect(function () { visible = true; });
+								setManager.reps3Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 3:
-								setManager.reps4Changed.connect(function () { visible = true; });
+								setManager.reps4Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 						}
@@ -308,23 +310,24 @@ FocusScope {
 					imageSource: "copy-setvalue"
 					height: 25
 					width: 25
+					Layout.leftMargin: 10
 
 					Component.onCompleted: {
 						switch (index) {
 							case 0:
-								setManager.weight1Changed.connect(function () { visible = true; });
+								setManager.weight1Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 1:
-								setManager.weight2Changed.connect(function () { visible = true; });
+								setManager.weight2Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 2:
-								setManager.weight3Changed.connect(function () { visible = true; });
+								setManager.weight3Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 							case 3:
-								setManager.weight4Changed.connect(function () { visible = true; });
+								setManager.weight4Changed.connect(function () { visible = setManager.isManuallyModified; });
 								setManager.isManuallyModifiedChanged.connect(function() { if (!setManager.isManuallyModified) visible = false; })
 							break;
 						}

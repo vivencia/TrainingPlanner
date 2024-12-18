@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../TPWidgets"
+import "../Dialogs"
 import ".."
 
 Pane {
@@ -16,7 +17,8 @@ Pane {
 	property alias mesoSplitText: txtMesoSplit.text
 	readonly property int col1Width: width*0.15
 	readonly property int col2Width: width*0.15
-	readonly property int col3Width: width*0.6
+	readonly property int col3Width: width*0.5
+	readonly property int col4Width: width*0.1
 	property bool bMesoSplitTextOK: true
 	property bool bMesoSplitChanged: false
 
@@ -96,14 +98,8 @@ Pane {
 					onActivated: (cboindex) => {
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
-						txtSplit.readOnly = cboindex === 6;
 						bMesoSplitChanged = true;
-						if (cboindex !== 6)
-						{
-							if (txtSplit.text.length === 0)
-								txtSplit.forceActiveFocus();
-						}
-						else
+						if (cboindex === 6)
 							return;
 
 						let last_letter_idx;
@@ -128,6 +124,7 @@ Pane {
 
 					Component.onCompleted: {
 						currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
+						btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
 						if (index >=1)
 						{
 							let last_letter_idx;
@@ -154,14 +151,10 @@ Pane {
 					}
 				}
 
-				TPTextInput {
-					id: txtSplit
-					implicitWidth: col3Width
-
-					onEnterOrReturnKeyPressed: {
-						if (index < 6)
-							splitRepeater.itemAt(index+1).children[1].forceActiveFocus();
-					}
+				TPLabel {
+					id: lblSplit
+					width: col3Width
+					elide: Text.ElideMiddle
 
 					Component.onCompleted: {
 						text = Qt.binding(function() {
@@ -175,19 +168,17 @@ Pane {
 								case 6: return mesoManager.muscularGroupR;
 							}
 						});
-
-						editingFinished.connect(function() {
-							switch (cboSplit.currentIndex) {
-								case 0: mesoManager.muscularGroupA = text; break;
-								case 1: mesoManager.muscularGroupB = text; break;
-								case 2: mesoManager.muscularGroupC = text; break;
-								case 3: mesoManager.muscularGroupD = text; break;
-								case 4: mesoManager.muscularGroupD = text; break;
-								case 5: mesoManager.muscularGroupF = text; break;
-							}
-							bMesoSplitChanged = true;
-						});
 					}
+				}
+
+				TPButton {
+					id: btnMuscularGroups
+					imageSource: "choose.png"
+					imageSize: col4Width
+					Layout.preferredWidth: col4Width
+					Layout.preferredHeight: col4Width
+
+					onClicked: showMGDialog(this, index, lblSplit);
 				}
 			} //RowLayout
 		} //Repeater
@@ -237,5 +228,34 @@ Pane {
 
 	function forcusOnFirstItem(): void {
 		splitRepeater.itemAt(0).children[1].forceActiveFocus();
+	}
+
+	property MuscularGroupPicker filterDlg: null
+	property TPLabel curLabel: null
+	function showMGDialog(button: TPButton, letter_index: int, label: TPLabel): void {
+		if (filterDlg === null) {
+			var component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				filterDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, buttonLabel: qsTr("Define"), useFancyNames: true });
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+
+		function setLabelText(groups) {
+			curLabel.text = groups;
+			bMesoSplitChanged = true;
+		}
+
+		filterDlg.muscularGroupCreated.disconnect(setLabelText);
+		curLabel = label;
+
+		filterDlg.muscularGroupCreated.connect(setLabelText);
+		filterDlg.show(button, 3);
+
 	}
 } //Pane

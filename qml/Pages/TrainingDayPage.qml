@@ -133,7 +133,7 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: tDayManager.splitLetter !== "R"
-				enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
+				enabled: tDayManager.timerActive ? false : tDayManager.dayIsEditable
 				height: 330
 				Layout.fillWidth: true
 
@@ -305,7 +305,7 @@ TPPage {
 				TPButton {
 					id: btnClearExercises
 					imageSource: "revert-day.png"
-					imageSize: 20
+					imageSize: 30
 					visible: tDayManager.hasExercises
 					enabled: tDayManager.dayIsEditable ? true : !tDayManager.dayIsFinished
 					ToolTip.text: "Remove all exercises"

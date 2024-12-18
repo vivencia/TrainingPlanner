@@ -11,6 +11,8 @@ TPPopup {
 	width: appSettings.pageWidth/2
 	height: shown ? dlgHeight : 25
 
+	property string buttonLabel: qsTr("Filter")
+	property bool useFancyNames: false
 	readonly property int dlgHeight: appSettings.pageHeight * 0.5
 	property bool shown: true
 	signal muscularGroupCreated(group: string);
@@ -101,11 +103,12 @@ TPPopup {
 			Repeater {
 				id: groupsRepeater
 				model: groupsModel
+				Layout.fillWidth: true
 
 				TPCheckBox {
 					text: model.text
 					checked: model.selected
-					width: parent.width
+					width: itemsLayout.width
 					height: 25
 
 					onClicked: model.selected = checked;
@@ -116,7 +119,7 @@ TPPopup {
 
 	TPButton {
 		id: btnMakeFilter
-		text: qsTr("Filter")
+		text: buttonLabel
 		flat: false
 		width: parent.width*0.6
 		height: 25
@@ -134,10 +137,13 @@ TPPopup {
 
 		onClicked: {
 			let muscularGroup = "";
-			for (let i = 0; i < groupsModel.count; ++i)
-			{
-				if (groupsModel.get(i).selected)
-					muscularGroup += groupsModel.get(i).value + '|'; //use fancy_record_separator1 as separator
+			for (let i = 0; i < groupsModel.count; ++i) {
+				if (groupsModel.get(i).selected) {
+					if (!useFancyNames)
+						muscularGroup += groupsModel.get(i).value + '|'; //use fancy_record_separator1 as separator
+					else
+						muscularGroup += groupsModel.get(i).text + '|';
+				}
 			}
 			muscularGroupCreated(muscularGroup);
 		}

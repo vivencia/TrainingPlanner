@@ -155,7 +155,7 @@ Popup {
 		if (ypos < 0)
 			ypos = 0;
 		else if (ypos + height > parentPage.height)
-			ypos = parentPage.height - h - 10;
+			ypos = parentPage.height - height - 10;
 		x = xpos;
 		finalYPos = ypos;
 		if (ypos > appSettings.pageHeight/2)

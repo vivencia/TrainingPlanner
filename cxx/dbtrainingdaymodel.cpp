@@ -332,17 +332,17 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 {
 	if (from < m_ExerciseData.count() && to < m_ExerciseData.count())
 	{
-		exerciseEntry* tempExerciseData(std::move(m_ExerciseData.at(from)));
+		exerciseEntry* tempExerciseData(std::move(m_ExerciseData[from]));
 
 		if (to > from)
 		{
 			for(uint i(from); i < to; ++i)
-				m_ExerciseData[i] = std::move(m_ExerciseData.at(i+1));
+				m_ExerciseData[i] = std::move(m_ExerciseData[i+1]);
 		}
 		else
 		{
 			for(uint i(from); i > to; --i)
-				m_ExerciseData[i] = std::move(m_ExerciseData.at(i-1));
+				m_ExerciseData[i] = std::move(m_ExerciseData[i-1]);
 		}
 		m_ExerciseData[to] = std::move(tempExerciseData);
 		emit tDayChanged();
@@ -524,9 +524,6 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 	m_ExerciseData.at(exercise_idx)->reps.append(nReps);
 	m_ExerciseData.at(exercise_idx)->weight.append(nWeight);
 	m_ExerciseData.at(exercise_idx)->subsets.append(nSubsets);
-	/*setSetCompleted(exercise_idx, 0, false);
-	setTrackRestTime(exercise_idx, true);
-	setAutoRestTime(exercise_idx, false);*/
 }
 
 QString DBTrainingDayModel::nextSetSuggestedTime(const uint exercise_idx, const uint type, const uint set_number) const
@@ -690,7 +687,6 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 			if (strType != m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2))
 				changeSetType(exercise_idx, set_number, m_ExerciseData.at(exercise_idx)->type.at(n_exercises - 2).toUInt(), type);
 		}
-		//setSetCompleted(exercise_idx, i, false);
 	}
 }
 
@@ -710,7 +706,6 @@ void DBTrainingDayModel::removeSet(const uint exercise_idx, const uint set_numbe
 
 uint DBTrainingDayModel::setType(const uint exercise_idx, const uint set_number) const
 {
-	//Q_ASSERT_X(set_number < m_ExerciseData.at(exercise_idx)->nsets, "DBTrainingDayModel::setType()", "out of range set_number");
 	if (set_number < m_ExerciseData.at(exercise_idx)->nsets)
 		return m_ExerciseData.at(exercise_idx)->type.at(set_number).toUInt();
 	return SET_TYPE_REGULAR;

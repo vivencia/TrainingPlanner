@@ -140,7 +140,7 @@ public:
 	inline void setLastSet(const bool new_value) { if (m_bLastSet != new_value) { m_bLastSet = new_value; emit lastSetChanged(); } }
 
 	inline const bool finishButtonEnabled () const { return m_bFinishButtonEnabled; }
-	inline void setFinishButtonEnabled(const bool new_value) { if (m_bFinishButtonEnabled != new_value) {m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); } }
+	inline void setFinishButtonEnabled(const bool new_value) { if (m_bFinishButtonEnabled != new_value) { m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); } }
 
 	inline const bool trackRestTime() const { return m_bTrackRestTime; }
 	inline void setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); }

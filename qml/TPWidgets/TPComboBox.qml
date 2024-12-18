@@ -31,6 +31,7 @@ ComboBox {
 			text: model.text
 			enabled: model.enabled
 			singleLine: true
+			widthAvailable: control.width
 			verticalAlignment: Text.AlignVCenter
 			leftPadding: completeModel ? 30 : 5
 
@@ -81,6 +82,7 @@ ComboBox {
 	contentItem: TPLabel {
 		text: control.displayText
 		singleLine: true
+		widthAvailable: control.width
 		verticalAlignment: Text.AlignVCenter
 		leftPadding: completeModel ? 30 : 5
 	}

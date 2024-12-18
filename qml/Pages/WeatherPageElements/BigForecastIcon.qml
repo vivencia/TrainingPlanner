@@ -83,6 +83,7 @@ Item {
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		wrapMode: Text.WordWrap
+		singleLine: false
 		width: parent.width
 
 		anchors {
