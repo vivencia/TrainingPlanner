@@ -13,6 +13,9 @@ TPPopup {
 	height: appSettings.pageHeight * 0.60
 	x: (appSettings.pageWidth - width) / 2
 	finalYPos: (appSettings.pageHeight - height) / 2
+	topPadding: 0
+	leftPadding: 0
+	rightPadding: 0
 
 	property bool isOK: false
 	property int timeButtonsPaneSize: timePicker.width
@@ -25,7 +28,7 @@ TPPopup {
 	// m: minutes
 	// q: only quarters allowed for minutes, disable the other ones
 	// data model used to display labels on picker circles
-	property var timePickerModel: [
+	readonly property var timePickerModel: [
 		{"c1":"12","c2":"00","d":"12","n":"00","m":"00","q":true},
 		{"c1":"1","c2":"13","d":"13","n":"1","m":"05","q":false},
 		{"c1":"2","c2":"14","d":"14","n":"2","m":"10","q":false},
@@ -41,7 +44,7 @@ TPPopup {
 	]
 	// this model used to display selected time
 	// so you can add per ex. AM, PM or so
-	property var timePickerDisplayModel: [
+	readonly property var timePickerDisplayModel: [
 		{"c1":"12","c2":"00","d":"12","n":"00","m":"00","q":true},
 		{"c1":"01","c2":"13","d":"13","n":"01","m":"05","q":false},
 		{"c1":"02","c2":"14","d":"14","n":"02","m":"10","q":false},
@@ -57,9 +60,9 @@ TPPopup {
 	]
 
 	// set these properties before start
-	property bool bOnlyFutureTime: false
 	property int outerButtonIndex: 0
 	property int innerButtonIndex: -1
+	property bool bOnlyFutureTime: false
 	property bool pickMinutes: false
 	property bool useWorkTimes: true
 	property bool onlyQuartersAllowed: false
@@ -69,54 +72,52 @@ TPPopup {
 	property string minutesDisplay: "00"
 
 	signal timeSet(string hour, string minutes)
+
 	// opening TimePicker with a given HH:MM value
 	// ATTENTION TimePicker is rounding DOWN to next lower 05 / 15 Minutes
 	// if you want to round UP do it before calling this function
-	function setDisplay(hhmm, q, w) {
+	function setDisplay(hhmm, q, w): void {
 		onlyQuartersAllowed = q;
 		useWorkTimes = w;
-		var s = hhmm.split(':');
-		if(s.length === 2) {
-			var hours = s[0];
-			var minutes = s[1];
-			if(onlyQuartersAllowed) {
-				minutes = minutes - minutes%15;
-			} else {
-				minutes = minutes - minutes%5;
-			}
+		const s = hhmm.split(':');
+		if (s.length === 2) {
+			const hours = s[0];
+			let minutes = s[1];
+			minutes = minutes - onlyQuartersAllowed ? minutes%15 : minutes%5;
 			showMinutes(minutes.toString());
 			showHour(hours.toString());
 			checkDisplay();
 		}
 	}
 
-	function showHour(hour) {
-		for(var i=0; i < timePickerDisplayModel.length; i++) {
-			var h = timePickerDisplayModel[i];
-			if(useWorkTimes) {
-				if(h.d === hour) {
+	function showHour(hour): void {
+		for (let i = 0; i < timePickerDisplayModel.length; i++) {
+			const h = timePickerDisplayModel[i];
+			if (useWorkTimes) {
+				if (h.d === hour) {
 					pickMinutes = false;
 					innerButtonIndex = -1;
 					outerButtonIndex = i;
 					updateDisplayHour();
 					return;
 				}
-				if(h.n === hour) {
+				if (h.n === hour) {
 					pickMinutes = false;
 					outerButtonIndex = -1;
 					innerButtonIndex = i;
 					updateDisplayHour();
 					return;
 				}
-			} else {
-				if(h.c1 === hour) {
+			}
+			else {
+				if (h.c1 === hour) {
 					pickMinutes = false;
 					innerButtonIndex = -1;
 					outerButtonIndex = i;
 					updateDisplayHour();
 					return;
 				}
-				if(h.c2 === hour) {
+				if (h.c2 === hour) {
 					pickMinutes = false;
 					outerButtonIndex = -1;
 					innerButtonIndex = i;
@@ -132,26 +133,18 @@ TPPopup {
 		outerButtonIndex = 0;
 		updateDisplayHour();
 	}
-	function updateDisplayHour() {
-		if (innerButtonIndex >= 0) {
-			if(useWorkTimes) {
-				hrsDisplay = timePickerDisplayModel[innerButtonIndex].n;
-			} else {
-				hrsDisplay = timePickerDisplayModel[innerButtonIndex].c2;
-			}
-			return;
-		}
-		if(timePicker.useWorkTimes) {
-			hrsDisplay = timePickerDisplayModel[outerButtonIndex].d;
-		} else {
-			hrsDisplay = timePickerDisplayModel[outerButtonIndex].c1;
-		}
+
+	function updateDisplayHour(): void {
+		if (innerButtonIndex >= 0)
+			hrsDisplay = useWorkTimes ? timePickerDisplayModel[innerButtonIndex].n : timePickerDisplayModel[innerButtonIndex].c2;
+		else
+			hrsDisplay = useWorkTimes ? timePickerDisplayModel[outerButtonIndex].d : timePickerDisplayModel[outerButtonIndex].c1;
 	}
 
-	function showMinutes(minutes) {
-		for(var i=0; i < timePickerDisplayModel.length; i++) {
-			var m = timePickerDisplayModel[i];
-			if(m.m === minutes) {
+	function showMinutes(minutes): void {
+		for (let i=0; i < timePickerDisplayModel.length; i++) {
+			const m = timePickerDisplayModel[i];
+			if (m.m === minutes) {
 				innerButtonIndex = -1;
 				outerButtonIndex = i;
 				pickMinutes = true;
@@ -165,57 +158,52 @@ TPPopup {
 		outerButtonIndex = 0;
 		pickMinutes = true;
 		updateDisplayMinutes();
-		return
 	} // showMinutes
 
-	function updateDisplayMinutes() {
+	function updateDisplayMinutes(): void {
 		minutesDisplay = timePickerDisplayModel[outerButtonIndex].m;
 	}
 
-	function checkDisplay() {
-		if(pickMinutes) {
+	function checkDisplay(): void {
+		if (pickMinutes) {
 			hrsButton.checked = false;
 			minutesButton.checked = true;
-		} else {
+		}
+		else {
 			minutesButton.checked = false;
 			hrsButton.checked = true;
 		}
 	}
 
-	function onMinutesButtonClicked() {
+	function onMinutesButtonClicked(): void {
 		hrsButton.checked = false;
 		minutesButton.checked = true;
 		timePicker.pickMinutes = true;
 		timePicker.showMinutes(timePicker.minutesDisplay);
 	}
 
-	function onHoursButtonClicked() {
+	function onHoursButtonClicked(): void {
 		minutesButton.checked = false;
 		hrsButton.checked = true;
 		timePicker.pickMinutes = false;
 		timePicker.showHour(timePicker.hrsDisplay);
 	}
 
-	function buttonsIsEnabled(buttonText: string, bHour: bool) : bool {
+	function buttonsIsEnabled(buttonText: string, bHour: bool): bool {
 		if (bOnlyFutureTime) {
+			const curHour = parseInt(appUtils.getHourFromCurrentTime());
+			const buttonTextValue = parseInt(buttonText);
 			if (bHour)
-				return parseInt(buttonText) >= parseInt(appUtils.getHourFromCurrentTime());
+				return buttonTextValue >= curHour;
 			else {
-				if (parseInt(hrsDisplay) > parseInt(appUtils.getHourFromCurrentTime()))
-					return true;
-				else if (parseInt(hrsDisplay) < parseInt(appUtils.getHourFromCurrentTime()))
-					return false;
-				else
-					return parseInt(buttonText) >= parseInt(appUtils.getMinutesFromCurrentTime())
+				const hsrDisplayValue = parseInt(hrsDisplay);
+				if (hsrDisplayValue === curHour)
+					return buttonTextValue >= parseInt(appUtils.getMinutesFromCurrentTime())
+				return hsrDisplayValue > curHour;
 			}
 		}
-		else
-			return true;
+		return true;
 	}
-
-	topPadding: 0
-	leftPadding: 0
-	rightPadding: 0
 
 	Pane {
 		id: headerPane

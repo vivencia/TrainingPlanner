@@ -43,8 +43,6 @@ Rectangle {
 			buttonImage.imageSource = imageSource;
 	}
 
-	onTextChanged: resizeButton();
-
 	onHighlightedChanged:
 		if (highlighted) {
 			fillPosition = 0;
@@ -63,7 +61,6 @@ Rectangle {
 	}
 
 	Component.onCompleted: {
-		appSettings.fontSizeChanged.connect(resizeButton);
 		if (imageSource.length > 0)
 		{
 			var component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
@@ -72,7 +69,6 @@ Rectangle {
 				buttonImage = component.createObject(button,
 					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
 							width: imageSize, height: imageSize, dropShadow: hasDropShadow});
-				resizeButton();
 			}
 
 			if (component.status === Component.Ready)
@@ -80,8 +76,7 @@ Rectangle {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		else
-			resizeButton();
+		resizeButton();
 	}
 
 	property double fillPosition: 1
@@ -102,7 +97,7 @@ Rectangle {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
-		onTextChanged: resizeButton();
+		onSizeChanged: resizeButton();
 
 		Component.onCompleted: {
 			if (imageSource.length > 0) {
@@ -120,7 +115,7 @@ Rectangle {
 				else {
 					anchors.horizontalCenter = button.horizontalCenter;
 					anchors.bottom = button.bottom;
-					anchors.bottomMargin = !autoResize ? 5 : -5; //autoResize causes the label's line count to produce a empty space on the bottom
+					anchors.bottomMargin = 5
 				}
 			}
 			else {
@@ -205,8 +200,10 @@ Rectangle {
 				else
 				{
 					buttonText.wrapMode = Text.WordWrap;
+					buttonText.singleLine = false;
+					buttonText.widthAvailable = availableWidth;
 					implicitWidth = buttonText._preferredWidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
-					implicitHeight = buttonText._preferredHeight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
+					implicitHeight = buttonText._preferredHeight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 10);
 				}
 			}
 			else

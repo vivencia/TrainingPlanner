@@ -18,7 +18,7 @@ FocusScope {
 	property alias text: txtMain.text
 	property bool showLabel: true
 	property bool showButtons: true
-	property var alternativeLabels: []
+	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property bool bClearInput: true
 	property color borderColor: appSettings.fontColor
 	property color labelColor: "black"
@@ -27,7 +27,6 @@ FocusScope {
 
 	readonly property var validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property var maxLen: [5,4,5,1]
-	readonly property var labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property string origText
 
 	signal valueChanged(string str)
@@ -78,7 +77,7 @@ FocusScope {
 
 		TPLabel {
 			id: lblMain
-			text: alternativeLabels.length === 0 ? labelText[type] : alternativeLabels[type];
+			text: labelText[type]
 			fontColor: labelColor
 			widthAvailable: availableWidth*0.5
 			visible: showLabel
@@ -232,7 +231,7 @@ FocusScope {
 		}
 	} //Rectangle
 
-	function sanitizeText(text) {
+	function sanitizeText(text): void {
 		text = text.replace('.', ',');
 		text = text.replace('-', '');
 		text = text.replace('E', '');

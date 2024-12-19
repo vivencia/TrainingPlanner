@@ -13,9 +13,7 @@ Drawer {
 	spacing: 0
 	padding: 0
 	edge: Qt.LeftEdge
-	opacity: 0.8
-
-	property var buttonComponent: null
+	opacity: 0.8	
 
 	onOpened: {
 		if (userModel.avatar(0) !== imgAvatar.source) {
@@ -188,13 +186,13 @@ Drawer {
 		}
 	} //ColumnLayout
 
-	function createShortCut(label: string, page: Item, clickid: int) {
+	property Component buttonComponent: null
+	function createShortCut(label: string, page: Item, clickid: int): void {
 		if (!buttonComponent)
 			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
 
 		function finishCreation() {
-			var button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, autoResize: true,
-				"Layout.preferredWidth": drawer.width - 5, "Layout.minimumHeight": 25, "Layout.maximumHeight": 50 });
+			const button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, autoResize: true, "Layout.fillWidth": true });
 			button.clicked.connect(function (id) { itemManager.openMainMenuShortCut(id);} );
 			itemManager.addMainMenuShortCutEntry(button);
 		}

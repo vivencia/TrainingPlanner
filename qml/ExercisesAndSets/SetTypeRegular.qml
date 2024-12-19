@@ -208,7 +208,7 @@ FocusScope {
 			text: setManager.subSets
 			availableWidth: controlWidth
 			visible: setManager.hasSubSets
-			alternativeLabels: myoLabels
+			labelText: myoLabels
 			enabled: !setManager.completed
 
 			onValueChanged: (str) => setManager.subSets = str;
@@ -238,7 +238,7 @@ FocusScope {
 				type: SetInputField.Type.RepType
 				text: setManager.reps1
 				availableWidth: btnCopySetReps.visible ? controlWidth - 40 : controlWidth
-				alternativeLabels: myoLabels
+				labelText: myoLabels
 
 				onValueChanged: (str) => setManager.reps1 = str;
 				onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
@@ -268,7 +268,7 @@ FocusScope {
 				type: SetInputField.Type.WeightType
 				text: setManager.weight1
 				availableWidth: btnCopySetWeight.visible ? controlWidth - 40 : controlWidth
-				alternativeLabels: myoLabels
+				labelText: myoLabels
 
 				onValueChanged: (str) => setManager.weight1 = str;
 			}

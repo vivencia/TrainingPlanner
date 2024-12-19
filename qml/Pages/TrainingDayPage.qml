@@ -35,7 +35,7 @@ TPPage {
 		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
 		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
 		parentPage: trainingDayPage
-		bOnlyFutureTime: tDayManager.mainDateIsToday
+		bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
 
 		onTimeSet: (hour, minutes) => tDayManager.timeOut = hour + ":" + minutes;
 	}
@@ -44,7 +44,7 @@ TPPage {
 		id: dlgTimeEndSession
 		hrsDisplay: appUtils.getHourFromCurrentTime()
 		minutesDisplay: appUtils.getMinutesFromCurrentTime()
-		bOnlyFutureTime: tDayManager.mainDateIsToday
+		bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
 		parentPage: trainingDayPage
 
 		onTimeSet: (hour, minutes) => tDayManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);

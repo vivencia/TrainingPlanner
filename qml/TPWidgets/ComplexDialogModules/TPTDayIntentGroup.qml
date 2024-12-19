@@ -24,6 +24,7 @@ Column {
 		id: optMesoPlan
 		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")
 		checked: selectedOpt === 1
+		multiLine: true
 		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
 		width: parent.width
 
@@ -34,6 +35,7 @@ Column {
 		id: optPreviousDay
 		text: qsTr("Base this session off the one from the one the days in the list below")
 		checked: selectedOpt === 2
+		multiLine: true
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
 		width: grpIntent.width
 

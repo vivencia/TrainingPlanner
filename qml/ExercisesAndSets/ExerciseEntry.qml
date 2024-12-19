@@ -267,7 +267,7 @@ FocusScope {
 					text: exerciseManager.setsNumber
 					type: SetInputField.Type.SetType
 					availableWidth: layoutMain.width*0.35
-					alternativeLabels: ["","","",qsTr("sets #:")]
+					labelText: ["","","",qsTr("sets #:")]
 					backColor: "transparent"
 					borderColor: "transparent"
 					Layout.preferredWidth: width

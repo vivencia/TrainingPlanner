@@ -93,7 +93,7 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	{
 		case 0: //Blue
 			paneBackColor = std::move("#1976d2"_L1);
-			entrySelColor = std::move("#6495ed"_L1);
+			entrySelColor = std::move("#6caaed"_L1);
 		break;
 		case 1: //Green
 			paneBackColor = std::move("#60d219"_L1);
@@ -101,16 +101,16 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 		break;
 		case 2: //Red
 			paneBackColor = std::move("#d21a45"_L1);
-			entrySelColor = std::move("#228b22"_L1);
+			entrySelColor = std::move("#a82844"_L1);
 		break;
 		case 3: //Dark
 			paneBackColor = std::move("#3e3d48"_L1);
-			entrySelColor = std::move("#228b22"_L1);
+			entrySelColor = std::move("#6c6f73"_L1);
 			disabledfntColor = std::move("e8e8e8"_L1);
 		break;
 		case 4: //Light
 			paneBackColor = std::move("#929299"_L1);
-			entrySelColor = std::move("#228b22"_L1);
+			entrySelColor = std::move("#65696c"_L1);
 			fntColor = std::move("000000"_L1);
 			disabledfntColor = std::move("a8a8a8"_L1);
 			strIconFolder = std::move("black/"_L1);

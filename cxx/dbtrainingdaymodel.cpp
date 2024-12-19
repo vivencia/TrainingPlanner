@@ -89,17 +89,43 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 		m_ExerciseData.append(new exerciseEntry);
 		m_ExerciseData[i]->name = splitModel->_exerciseName(i);
 		const uint nsets{splitModel->setsNumber(i)};
-		const uint orig_workingset{splitModel->workingSet(i)}; //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
-		splitModel->setWorkingSet(i, 0, false);
-		newFirstSet(i, splitModel->setType(i, 0), splitModel->setReps(i, 0), splitModel->setWeight(i, 0),
-								nextSetSuggestedTime(i, splitModel->setType(i, 0), 0), splitModel->setSubsets(i, 0), splitModel->_setsNotes(i));
+		//const uint orig_workingset{splitModel->workingSet(i)}; //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
+		//splitModel->setWorkingSet(i, 0, false);
+
+		uint set_type = splitModel->setType(i, 0);
+		QString nreps, nweight;
+		if (set_type != SET_TYPE_GIANT)
+		{
+			nreps = std::move(splitModel->setReps(i, 0));
+			nweight = std::move(splitModel->setWeight(i, 0));
+		}
+		else
+		{
+			appUtils()->setCompositeValue(0, splitModel->setReps1(i, 0), nreps, comp_exercise_separator);
+			appUtils()->setCompositeValue(1, splitModel->setReps2(i, 0), nreps, comp_exercise_separator);
+			appUtils()->setCompositeValue(0, splitModel->setWeight1(i, 0), nweight, comp_exercise_separator);
+			appUtils()->setCompositeValue(1, splitModel->setWeight2(i, 0), nweight, comp_exercise_separator);
+		}
+		newFirstSet(i, set_type, nreps, nweight, nextSetSuggestedTime(i, set_type, 0), splitModel->setSubsets(i, 0), splitModel->_setsNotes(i));
 		for(uint x(1); x < nsets; ++x)
 		{
 			splitModel->setWorkingSet(i, x, false);
-			newSet(i, x, splitModel->setType(i, x), splitModel->setReps(i, x), splitModel->setWeight(i, x),
-				nextSetSuggestedTime(i, splitModel->setType(i, x)), splitModel->setSubsets(i, x));
+			set_type = splitModel->setType(i, x);
+			if (set_type != SET_TYPE_GIANT)
+			{
+				nreps = std::move(splitModel->setReps(i, x));
+				nweight = std::move(splitModel->setWeight(i, x));
+			}
+			else
+			{
+				appUtils()->setCompositeValue(0, splitModel->setReps1(i, x), nreps, comp_exercise_separator);
+				appUtils()->setCompositeValue(1, splitModel->setReps2(i, x), nreps, comp_exercise_separator);
+				appUtils()->setCompositeValue(0, splitModel->setWeight1(i, x), nweight, comp_exercise_separator);
+				appUtils()->setCompositeValue(1, splitModel->setWeight2(i, x), nweight, comp_exercise_separator);
+			}
+			newSet(i, x, set_type, nreps, nweight, nextSetSuggestedTime(i, set_type), splitModel->setSubsets(i, x));
 		}
-		splitModel->setWorkingSet(i, orig_workingset, false);
+		//splitModel->setWorkingSet(i, orig_workingset, false);
 	}
 	emit exerciseCountChanged();
 	emit tDayChanged(); //save now
@@ -121,7 +147,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 
 		QString setsTypes, subSets;
 		bool bHasSubsSets(false);
-		for (uint i(0); i < m_ExerciseData.count(); ++i)
+		for (uint i{0}; i < m_ExerciseData.count(); ++i)
 		{
 			outFile->write(QString(QString::number(i+1) + ": "_L1).toUtf8().constData());
 			outFile->write(exerciseName(i).replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
@@ -133,7 +159,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 			outFile->write(setRestTime(0, i).replace(set_separator, fancy_record_separator2).toUtf8().constData());
 			outFile->write("\n", 1);
 
-			for (uint n(0); n < setsNumber(i); ++n)
+			for (uint n{0}; n < setsNumber(i); ++n)
 			{
 				const uint settype{setType(n, i)};
 				setsTypes += formatSetTypeToExport(QString::number(settype)) + fancy_record_separator2;

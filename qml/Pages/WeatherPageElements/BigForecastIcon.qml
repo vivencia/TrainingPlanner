@@ -25,7 +25,6 @@ Item {
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		heightAvailable: 0.1*appSettings.pageHeight
-		singleLine: false
 
 		anchors {
 			top: parent.top
@@ -34,7 +33,6 @@ Item {
 			right: parent.right
 			rightMargin: 5
 		}
-
 	}
 
 	MultiEffect {
@@ -83,7 +81,6 @@ Item {
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		wrapMode: Text.WordWrap
-		singleLine: false
 		width: parent.width
 
 		anchors {
@@ -107,7 +104,6 @@ Item {
 		text: current.bottomBottomText
 		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
-		singleLine: false
 
 		anchors {
 			top: text2.bottom
