@@ -65,9 +65,10 @@ TPPage {
 	}
 
 	ScrollView {
+		contentWidth: availableWidth
+		ScrollBar.vertical.interactive: true
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 		ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-		contentWidth: availableWidth
 
 		anchors {
 			fill: parent
@@ -484,9 +485,8 @@ TPPage {
 
 			MesoSplitSetup {
 				id: mesoSplitSetup
-				width: parent.width
-				Layout.minimumWidth: width
-				Layout.maximumWidth: width
+				Layout.fillWidth: true
+				Layout.topMargin: 10
 			}
 
 			TPLabel {
@@ -495,12 +495,14 @@ TPPage {
 			}
 
 			ScrollView {
-				ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-				ScrollBar.vertical.policy: ScrollBar.AsNeeded
 				contentWidth: availableWidth
 				height: appSettings.pageHeight*0.15
 				Layout.fillWidth: true
 				Layout.preferredHeight: height
+				ScrollBar.horizontal.interactive: true
+				ScrollBar.vertical.interactive: true
+				ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+				ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
 				TextArea {
 					id: txtMesoNotes

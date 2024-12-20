@@ -131,9 +131,10 @@ Column {
 		clip: true
 
 		ScrollBar.vertical: ScrollBar {
-			id: vBar
 			policy: ScrollBar.AsNeeded
-			active: true; visible: lstExercises.contentHeight > lstExercises.height
+			active: true
+			visible: lstExercises.contentHeight > lstExercises.height
+			interactive: true
 		}
 
 		function ensureVisible(item) {

@@ -15,10 +15,11 @@ Pane {
 	Layout.leftMargin: 0
 
 	property alias mesoSplitText: txtMesoSplit.text
-	readonly property int col1Width: width*0.15
+	readonly property int col1Width: width*0.10
 	readonly property int col2Width: width*0.15
-	readonly property int col3Width: width*0.5
-	readonly property int col4Width: width*0.1
+	readonly property int col3Width: appSettings.pageWidth*0.60
+	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
+
 	property bool bMesoSplitTextOK: true
 	property bool bMesoSplitChanged: false
 
@@ -74,7 +75,7 @@ Pane {
 				Layout.fillWidth: true
 
 				TPLabel {
-					text: qsTr("Day ") + parseInt(index+1) + ":"
+					text: daysOfWeek[index]
 					width: col1Width
 					Layout.minimumWidth: col1Width
 					Layout.maximumWidth: col1Width
@@ -124,7 +125,7 @@ Pane {
 
 					Component.onCompleted: {
 						currentIndex = Qt.binding(function() { return indexOfValue(txtMesoSplit.text.charAt(index)); });
-						btnMuscularGroups.enabled = Qt.binding(function() { return currentIndex !== 6; });
+						btnMuscularGroups.visible = Qt.binding(function() { return currentIndex !== 6; });
 						if (index >=1)
 						{
 							let last_letter_idx;
@@ -151,32 +152,62 @@ Pane {
 					}
 				}
 
-				TPLabel {
-					id: lblSplit
-					width: col3Width
-					elide: Text.ElideMiddle
+				ScrollView {
+					Layout.minimumWidth: col3Width
+					Layout.maximumWidth: col3Width
+					Layout.preferredHeight: 35
 
-					Component.onCompleted: {
-						text = Qt.binding(function() {
-							switch (cboSplit.currentIndex) {
-								case 0: return mesoManager.muscularGroupA;
-								case 1: return mesoManager.muscularGroupB;
-								case 2: return mesoManager.muscularGroupC;
-								case 3: return mesoManager.muscularGroupD;
-								case 4: return mesoManager.muscularGroupD;
-								case 5: return mesoManager.muscularGroupF;
-								case 6: return mesoManager.muscularGroupR;
-							}
-						});
+					ScrollBar.horizontal: ScrollBar {
+						policy: ScrollBar.AsNeeded
+						active: true
+						visible: lblSplit._textWidth >= col3Width
+						interactive: true
+					}
+
+					background: Rectangle {
+						border.color: activeFocus ? appSettings.entrySelectedColor : appSettings.fontColor
+						color: "transparent"
+						radius: 6
+					}
+
+					TPLabel {
+						id: lblSplit
+						widthAvailable: _textWidth
+						width: _textWidth
+
+						Component.onCompleted: {
+							text = Qt.binding(function() {
+								switch (cboSplit.currentIndex) {
+									case 0: return mesoManager.muscularGroupA;
+									case 1: return mesoManager.muscularGroupB;
+									case 2: return mesoManager.muscularGroupC;
+									case 3: return mesoManager.muscularGroupD;
+									case 4: return mesoManager.muscularGroupD;
+									case 5: return mesoManager.muscularGroupF;
+									case 6: return mesoManager.muscularGroupR;
+								}
+							});
+
+							textChanged.connect(function() {
+								switch (cboSplit.currentIndex) {
+									case 0: mesoManager.muscularGroupA = text; break;
+									case 1: mesoManager.muscularGroupB = text; break;
+									case 2: mesoManager.muscularGroupC = text; break;
+									case 3: mesoManager.muscularGroupD = text; break;
+									case 4: mesoManager.muscularGroupD = text; break;
+									case 5: mesoManager.muscularGroupF = text; break;
+								}
+							});
+						}
 					}
 				}
 
 				TPButton {
 					id: btnMuscularGroups
 					imageSource: "choose.png"
-					imageSize: col4Width
-					Layout.preferredWidth: col4Width
-					Layout.preferredHeight: col4Width
+					imageSize: 25
+					Layout.preferredWidth: 25
+					Layout.preferredHeight: 25
 
 					onClicked: showMGDialog(this, index, lblSplit);
 				}
@@ -254,6 +285,7 @@ Pane {
 		filterDlg.muscularGroupCreated.disconnect(setLabelText);
 		curLabel = label;
 
+		filterDlg.initialGroups = label.text;
 		filterDlg.muscularGroupCreated.connect(setLabelText);
 		filterDlg.show(button, 3);
 

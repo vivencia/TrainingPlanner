@@ -47,14 +47,9 @@ TPPage {
 				Layout.bottomMargin: 5
 
 				onExerciseEntrySelected: (index, multipleSelection) => {
-					if (multipleSelection === 2) return;
-
 					txtExerciseName.text = exercisesModel.mainName(index);
 					txtExerciseSubName.text = exercisesModel.subName(index);
 					txtMuscularGroup.text = exercisesModel.muscularGroup(index);
-					txtNSets.text = exercisesModel.setsNumber(index);
-					txtNReps.text = exercisesModel.repsNumber(index);
-					txtNWeight.text = exercisesModel.weight(index);
 					displaySelectedMedia();
 				}
 
@@ -264,13 +259,13 @@ TPPage {
 		}
 	}
 
-	function chooseExercise() {
+	function chooseExercise(): void {
 		exerciseChosen();
 		mainwindow.popFromStack();
 	}
 
-	function displaySelectedMedia(strMediaPath: string) {
-		var mediaType = appUtils.getFileType(strMediaPath);
+	function displaySelectedMedia(strMediaPath: string): void {
+		const mediaType = appUtils.getFileType(strMediaPath);
 		if (mediaType === 1) { //video
 			if (imageViewer !== null) {
 				imageViewer.destroy();
@@ -295,7 +290,7 @@ TPPage {
 		}
 	}
 
-	function generateObject(obj: int, strMediaPath: string) {
+	function generateObject(obj: int, strMediaPath: string): void {
 		var component = Qt.createComponent(obj === 0 ? "../ImageViewer.qml" : "../VideoPlayer.qml", Qt.Asynchronous);
 		function finishCreation(Obj) {
 			if (Obj === 0)
@@ -324,7 +319,7 @@ TPPage {
 		}
 	}
 
-	function showInExMenu() {
+	function showInExMenu(): void {
 		if (imExportMenu === null) {
 			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			imExportMenu = imExportMenuComponent.createObject(exercisesPage, { parentPage: exercisesPage });
@@ -337,7 +332,7 @@ TPPage {
 		imExportMenu.show(btnImExport, 0);
 	}
 
-	function selectedMenuOption(menuid: int) {
+	function selectedMenuOption(menuid: int): void {
 		switch (menuid) {
 			case 0: exercisesManager.importExercises(); break;
 			case 1: exportTypeTip.init(false); break;
@@ -358,7 +353,7 @@ TPPage {
 
 		property bool bShare: false
 
-		function init(share: bool) {
+		function init(share: bool): void {
 			bShare = share;
 			show(-1);
 		}

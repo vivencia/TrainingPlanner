@@ -13,34 +13,50 @@ TPPopup {
 
 	property string buttonLabel: qsTr("Filter")
 	property bool useFancyNames: false
-	readonly property int dlgHeight: appSettings.pageHeight * 0.5
 	property bool shown: true
+	property string initialGroups
+	readonly property int dlgHeight: appSettings.pageHeight * 0.5
 	signal muscularGroupCreated(group: string);
 
 	property ListModel groupsModel: ListModel {
-		ListElement { text: qsTr("Quadriceps"); value: "quadriceps"; selected: false; }
-		ListElement { text: qsTr("Hamstrings"); value: "hamstrings"; selected: false; }
-		ListElement { text: qsTr("Calves"); value: "calves"; selected: false; }
-		ListElement { text: qsTr("Glutes"); value: "glutes"; selected: false; }
-		ListElement	{ text: qsTr("Upper Back"); value: "upper back"; selected: false; }
-		ListElement { text: qsTr("Middle Back"); value: "middle back"; selected: false; }
-		ListElement { text: qsTr("Lower Back"); value: "lower back"; selected: false; }
-		ListElement { text: qsTr("Biceps"); value: "biceps"; selected: false; }
-		ListElement { text: qsTr("Triceps"); value: "triceps"; selected: false; }
-		ListElement { text: qsTr("Forearms"); value: "fore arms"; selected: false; }
-		ListElement { text: qsTr("Upper Chest"); value: "upper chest"; selected: false; }
-		ListElement { text: qsTr("Middle Chest"); value: "middle chest"; selected: false; }
-		ListElement { text: qsTr("Lower Chest"); value: "lower chest"; selected: false; }
-		ListElement { text: qsTr("Front Delts"); value: "front delts"; selected: false; }
-		ListElement { text: qsTr("Lateral Delts"); value: "lateral delts"; selected: false; }
-		ListElement { text: qsTr("Rear Delts"); value: "rear delts"; selected: false; }
-		ListElement { text: qsTr("Traps"); value: "traps"; selected: false; }
-		ListElement { text: qsTr("Abs"); value: "abs"; selected: false; }
+		ListElement { display: qsTr("Quadriceps"); value: "quadriceps"; selected: false; }
+		ListElement { display: qsTr("Hamstrings"); value: "hamstrings"; selected: false; }
+		ListElement { display: qsTr("Calves"); value: "calves"; selected: false; }
+		ListElement { display: qsTr("Glutes"); value: "glutes"; selected: false; }
+		ListElement	{ display: qsTr("Upper Back"); value: "upper back"; selected: false; }
+		ListElement { display: qsTr("Middle Back"); value: "middle back"; selected: false; }
+		ListElement { display: qsTr("Lower Back"); value: "lower back"; selected: false; }
+		ListElement { display: qsTr("Biceps"); value: "biceps"; selected: false; }
+		ListElement { display: qsTr("Triceps"); value: "triceps"; selected: false; }
+		ListElement { display: qsTr("Forearms"); value: "fore arms"; selected: false; }
+		ListElement { display: qsTr("Upper Chest"); value: "upper chest"; selected: false; }
+		ListElement { display: qsTr("Middle Chest"); value: "middle chest"; selected: false; }
+		ListElement { display: qsTr("Lower Chest"); value: "lower chest"; selected: false; }
+		ListElement { display: qsTr("Front Delts"); value: "front delts"; selected: false; }
+		ListElement { display: qsTr("Lateral Delts"); value: "lateral delts"; selected: false; }
+		ListElement { display: qsTr("Rear Delts"); value: "rear delts"; selected: false; }
+		ListElement { display: qsTr("Traps"); value: "traps"; selected: false; }
+		ListElement { display: qsTr("Abs"); value: "abs"; selected: false; }
 	}
 
 	Behavior on height {
 		NumberAnimation {
 			easing.type: Easing.InOutBack
+		}
+	}
+
+	onInitialGroupsChanged: {
+		const groups = initialGroups.split('|');
+		for (let y=0; y < groupsModel.count; ++y)
+			groupsRepeater.itemAt(y).checked = false;
+
+		for (let i=0; i < groups.length; ++i) {
+			for (let x=0; x < groupsModel.count; ++x) {
+				if (groupsModel.get(x).display === groups[i])
+					groupsRepeater.itemAt(x).checked = true;
+				//groupsModel.set(x, {selected: groupsModel.get(x).display === groups[i]});
+				//groupsModel.setProperty(x, "selected", groupsModel.get(x).display === groups[i]);
+			}
 		}
 	}
 
@@ -103,15 +119,15 @@ TPPopup {
 			Repeater {
 				id: groupsRepeater
 				model: groupsModel
-				Layout.fillWidth: true
 
-				TPCheckBox {
-					text: model.text
+				delegate: TPCheckBox {
+					text: model.display
 					checked: model.selected
 					width: itemsLayout.width
+					Layout.fillWidth: true
 					height: 25
 
-					onClicked: model.selected = checked;
+					onCheckedChanged: { model.selected = checked; }
 				}
 			} //Repeater
 		} //ColumnLayout
@@ -142,7 +158,7 @@ TPPopup {
 					if (!useFancyNames)
 						muscularGroup += groupsModel.get(i).value + '|'; //use fancy_record_separator1 as separator
 					else
-						muscularGroup += groupsModel.get(i).text + '|';
+						muscularGroup += groupsModel.get(i).display + '|';
 				}
 			}
 			muscularGroupCreated(muscularGroup);

@@ -20,6 +20,7 @@ public:
 	~QmlMesoSplitInterface();
 
 	void setMesoIdx(const uint new_meso_idx);
+	Q_INVOKABLE inline uint mesoIdx() const { return m_mesoIdx; }
 
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);

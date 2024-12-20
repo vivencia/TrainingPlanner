@@ -80,19 +80,27 @@ Frame {
 	TPTextInput {
 		id: txtGroups
 		text: splitModel.muscularGroup()
-		width: parent.width - 20
+		width: parent.width*0.9
+		readOnly: true
 
 		anchors {
 			top: lblGroups.bottom
 			topMargin: 5
 			left: parent.left
 			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-			bottomMargin: 10
+		}
+	}
+
+	TPButton {
+		imageSource: "black/choose"
+		imageSize: txtGroups.height
+
+		anchors {
+			left: txtGroups.right
+			verticalCenter: txtGroups.verticalCenter
 		}
 
-		onEditingFinished: splitManager.changeMuscularGroup(text, splitModel);
+		onClicked: mesocyclesModel.getMesocyclePage(splitManager.mesoIdx());
 	}
 
 		ListView {
