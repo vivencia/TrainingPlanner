@@ -75,13 +75,18 @@ void QmlExerciseEntry::setExerciseIdx(const uint new_value)
 		m_setObjects.at(i)->setExerciseIdx(m_exercise_idx);
 }
 
+const QString QmlExerciseEntry::exerciseName() const
+{
+	QString ret{m_name};
+	return ret.replace(comp_exercise_separator, comp_exercise_fancy_separator);
+}
+
 void QmlExerciseEntry::setExerciseName(const QString& new_value, const bool bFromQML)
 {
 	if (new_value != m_name)
 	{
 		m_name = new_value;
-		m_name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
-		setCompositeExercise(m_name.contains('+'));
+		setCompositeExercise(m_name.contains(comp_exercise_separator));
 		if (bFromQML)
 		{
 			m_tDayModel->setExerciseName(m_exercise_idx, new_value);

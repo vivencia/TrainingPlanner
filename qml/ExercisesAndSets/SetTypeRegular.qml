@@ -17,8 +17,8 @@ FocusScope {
 	required property ExerciseEntryManager exerciseManager
 
 	readonly property int controlWidth: setItem.width - 20
-	readonly property var myoLabels: setManager.type === 5 ? [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
-						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ] : []
+	readonly property list<string> myoLabels: [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
+						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
 
 	Connections {
 		target: setManager

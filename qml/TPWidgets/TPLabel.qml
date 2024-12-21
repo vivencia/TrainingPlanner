@@ -24,7 +24,7 @@ Label {
 
 	property int _textWidth
 	property int _textHeight
-	readonly property int _preferredWidth: Math.min(_textWidth, widthAvailable)
+	readonly property int _preferredWidth: widthAvailable >= 20 ? Math.min(_textWidth, widthAvailable) : _textWidth
 	readonly property int _preferredHeight: singleLine ? heightAvailable : heightAvailable != 25 ? Math.min(lineCount * _textHeight, heightAvailable) : lineCount * _textHeight;
 
 	signal sizeChanged()

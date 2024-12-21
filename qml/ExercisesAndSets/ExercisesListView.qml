@@ -53,20 +53,30 @@ Column {
 		}
 	} //Timer
 
-	TPLabel {
-		text: qsTr("Search: ")
-		verticalAlignment: Text.AlignVCenter
-		width: parent.width*0.3
-		Layout.preferredWidth: width
+	Item {
+		width: parent.width
+		height: 25
+
+		TPLabel {
+			text: qsTr("Search: ")
+			width: parent.width*0.3
+
+			anchors {
+				left: parent.left
+				leftMargin: 5
+				verticalCenter: parent.verticalCenter
+			}
+		}
 
 		TPCheckBox {
 			id: chkMultipleSelection
 			text: qsTr("Multiple selection")
 			enabled: canDoMultipleSelection
-			width: mainItem.width*0.6
+			width: parent.width*0.6
 
 			anchors {
-				left: parent.right
+				right: parent.right
+				rightMargin: -50
 				verticalCenter: parent.verticalCenter
 			}
 
@@ -82,7 +92,6 @@ Column {
 		readOnly: !mainItem.enabled
 		enabled: exercisesModel.count > 0
 		width: parent.width*0.9
-		Layout.preferredWidth: width
 		Layout.topMargin: 5
 
 		onTextChanged: exercisesModel.search(text);

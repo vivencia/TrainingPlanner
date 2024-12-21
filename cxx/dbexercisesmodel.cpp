@@ -258,6 +258,7 @@ void DBExercisesModel::clearSelectedEntries()
 		emit dataChanged(index(m_selectedEntries.at(i).view_index, 0),
 				index(m_selectedEntries.at(i).view_index, 0), QList<int>() << selectedRole);
 	}
+	setCurrentRow(-1);
 	m_selectedEntries.clear();
 	m_selectedEntryToReplace = 0;
 }

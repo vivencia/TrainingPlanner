@@ -16,7 +16,10 @@ FocusScope {
 	required property SetEntryManager setManager
 	required property ExerciseEntryManager exerciseManager
 
-	readonly property int controlWidth: setItem.width - 20
+	readonly property int controlWidth: (setItem.width - 20)/2
+	readonly property list<string> myoLabels: [ qsTr("Weight:"), setManager.number === 0 ? qsTr("Reps to failure:") : qsTr("Reps to match:"),
+						qsTr("Rest time:"), qsTr("Number of short rest pauses:") ]
+
 
 	Connections {
 		target: setManager
@@ -24,13 +27,14 @@ FocusScope {
 			function onRestTimeChanged() { btnCopyTimeValue.visible = setManager.isManuallyModified; }
 			function onReps1Changed() { btnCopySetReps1.visible = setManager.isManuallyModified; }
 			function onWeight1Changed() { btnCopySetWeight1.visible = setManager.isManuallyModified; }
-			function onReps1Changed() { btnCopySetReps2.visible = setManager.isManuallyModified; }
-			function onWeight1Changed() { btnCopySetWeight2.visible = setManager.isManuallyModified; }
+			function onReps2Changed() { btnCopySetReps2.visible = setManager.isManuallyModified; }
+			function onWeight2Changed() { btnCopySetWeight2.visible = setManager.isManuallyModified; }
 
 			function onIsManuallyModifiedChanged() {
-					if (!setManager.isManuallyModified)
+					if (!setManager.isManuallyModified) {
 						btnCopySetType.visible = btnCopyTimeValue.visible = btnCopySetReps1.visible = btnCopySetWeight1.visible =
 							btnCopySetReps2.visible = btnCopySetWeight2.visible = false;
+					}
 			}
 	}
 
@@ -159,7 +163,7 @@ FocusScope {
 
 				anchors {
 					verticalCenter: parent.verticalCenter
-					left: btnCopySetType.visible ? btnCopySetType.right : cbosetManager.type.right
+					left: btnCopySetType.visible ? btnCopySetType.right : cboSetType.right
 					leftMargin: 10
 				}
 
@@ -194,42 +198,25 @@ FocusScope {
 			}
 		}
 
-		RowLayout {
-			uniformCellSizes: true
-			enabled: !setCompleted
+		Row {
+			enabled: !setManager.completed
 			spacing: 0
 			Layout.fillWidth: true
 
-			TPLabel {
+			TPButton {
 				id: lblExercise1
 				text: setManager.exerciseName1
-				wrapMode: Text.WordWrap
-				fontColor: "black"
-				width: controlWidth*0.5
-				Layout.preferredWidth: width
-				Layout.preferredHeight: _preferredHeight
-				Layout.alignment: Qt.AlignHCenter
+				width: controlWidth
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: exerciseManager.simpleExercisesList(true, false, 1);
-				}
+				onClicked: exerciseManager.simpleExercisesList(true, false, 1);
 			}
 
-			TPLabel {
+			TPButton {
 				id: lblExercise2
 				text: setManager.exerciseName2
-				wrapMode: Text.WordWrap
-				fontColor: "black"
-				width: controlWidth*0.5
-				Layout.preferredWidth: width
-				Layout.preferredHeight: _preferredHeight
-				Layout.alignment: Qt.AlignHCenter
+				width: controlWidth
 
-				MouseArea {
-					anchors.fill: parent
-					onClicked: exerciseManager.simpleExercisesList(true, false, 2);
-				}
+				onClicked: exerciseManager.simpleExercisesList(true, false, 2);
 			}
 		}
 
@@ -241,7 +228,7 @@ FocusScope {
 				id: txtNReps1
 				type: SetInputField.Type.RepType
 				text: setManager.reps1
-				availableWidth: btnCopySetReps1.visible ? controlWidth - 40 : controlWidth
+				availableWidth: btnCopySetReps1.visible ? controlWidth*1.3 - 30 : controlWidth*1.3
 				showLabel: !btnCopySetReps1.visible
 
 				onValueChanged: (str) => setManager.reps1 = str;
@@ -265,7 +252,7 @@ FocusScope {
 				id: txtNReps2
 				type: SetInputField.Type.RepType
 				text: setManager.reps2
-				availableWidth: controlWidth*0.3
+				availableWidth: controlWidth*0.6
 				showLabel: false
 
 				onValueChanged: (str) => setManager.reps2 = str;
@@ -293,7 +280,7 @@ FocusScope {
 				id: txtNWeight1
 				text: setManager.weight1
 				type: SetInputField.Type.WeightType
-				availableWidth: btnCopySetWeight1.visible ? controlWidth - 40 : controlWidth
+				availableWidth: btnCopySetWeight1.visible ? controlWidth*1.3 - 40 : controlWidth*1.3
 				showLabel: !btnCopySetWeight1.visible
 
 				onValueChanged: (str) => setManager.weight1 = str;
@@ -316,7 +303,7 @@ FocusScope {
 				id: txtNWeight2
 				type: SetInputField.Type.WeightType
 				text: setManager.weight2
-				availableWidth: controlWidth*0.3
+				availableWidth: controlWidth*0.6
 				showLabel: false
 
 				onValueChanged: (str) => setManager.weight2 = str;

@@ -199,9 +199,12 @@ Rectangle {
 				}
 				else
 				{
-					buttonText.wrapMode = Text.WordWrap;
-					buttonText.singleLine = false;
-					buttonText.widthAvailable = availableWidth;
+					if (width > 50) {
+						buttonText.wrapMode = Text.WordWrap;
+						buttonText.singleLine = false;
+					}
+					if (availableWidth)
+						buttonText.widthAvailable = availableWidth;
 					implicitWidth = buttonText._preferredWidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
 					implicitHeight = buttonText._preferredHeight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 10);
 				}

@@ -51,7 +51,7 @@ public:
 	inline const uint newSetType() const { return m_type; }
 	void setNewSetType(const uint new_value);
 
-	inline const QString exerciseName() const { return m_name; }
+	const QString exerciseName() const;
 	void setExerciseName(const QString& new_value, const bool bFromQML = true);
 
 	inline const uint nSets() const { return m_sets.toUInt(); }

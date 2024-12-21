@@ -454,12 +454,27 @@ void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 {
 	const bool b_is_composite(appExercisesModel()->selectedEntriesCount() > 1);
 	const QString& nSets{appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SETSNUMBER)};
-	const QString& nReps{appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
-							2, comp_exercise_separator)};
-	const QString& nWeight{appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
-							2, comp_exercise_separator)};
-	QString exerciseName{appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) + " - "_L1 +
-					appExercisesModel()->selectedEntriesValue_fast(0, 2)};
+	const QString& nReps{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER),
+							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_REPSNUMBER)};
+	const QString& nWeight{b_is_composite ? appUtils()->makeCompositeValue(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT),
+							2, comp_exercise_separator) : appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_WEIGHT)};
+
+	QString exerciseName;
+	if (b_is_composite)
+	{
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
+					(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString(comp_exercise_separator) :
+						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME) + comp_exercise_separator) +
+					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
+					(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
+						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME));
+	}
+	else
+	{
+		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME);
+		if (!appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty())
+			exerciseName += " - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME);
+	}
 
 	if (!exerciseEntry)
 		exerciseEntry = m_exerciseManager->exerciseEntry(m_SimpleExercisesListRequesterExerciseIdx);

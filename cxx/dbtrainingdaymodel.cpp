@@ -387,20 +387,21 @@ QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
 	name = m_ExerciseData.at(exercise_idx)->name;
 	if (name.endsWith(comp_exercise_separator))
 		name.chop(1);
-	return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
+	return name;
+	//return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 }
 
 void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString& new_name)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName", "out of range exercise_idx: ");
-	const int idx(new_name.indexOf(comp_exercise_fancy_separator));
-	if (idx == -1)
+	//const int idx(new_name.indexOf(comp_exercise_fancy_separator));
+	//if (idx == -1)
 		m_ExerciseData.at(exercise_idx)->name = new_name;
-	else
-	{
-		QString new_name_copy(new_name);
-		m_ExerciseData.at(exercise_idx)->name = std::move(new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
-	}
+	//else
+	//{
+	//	QString new_name_copy(new_name);
+	//	m_ExerciseData.at(exercise_idx)->name = std::move(new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
+	//}
 }
 
 void DBTrainingDayModel::newExercise(const uint exercise_idx)
