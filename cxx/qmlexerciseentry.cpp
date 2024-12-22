@@ -78,6 +78,8 @@ void QmlExerciseEntry::setExerciseIdx(const uint new_value)
 const QString QmlExerciseEntry::exerciseName() const
 {
 	QString ret{m_name};
+	if (ret.endsWith(comp_exercise_separator))
+		ret.chop(1);
 	return ret.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 }
 
@@ -92,18 +94,15 @@ void QmlExerciseEntry::setExerciseName(const QString& new_value, const bool bFro
 			m_tDayModel->setExerciseName(m_exercise_idx, new_value);
 			emit exerciseNameChanged();
 		}
-		else
+		if (compositeExercise())
 		{
-			if (compositeExercise())
+			for (uint i(0); i < m_setObjects.count(); ++i)
 			{
-				for (uint i(0); i < m_setObjects.count(); ++i)
+				QmlSetEntry* const setObj(m_setObjects.at(i));
+				if (setObj->type() == SET_TYPE_GIANT)
 				{
-					QmlSetEntry* const setObj(m_setObjects.at(i));
-					if (setObj->type() == SET_TYPE_GIANT)
-					{
-						setObj->setExerciseName1(appUtils()->getCompositeValue(0, new_value, comp_exercise_separator), false);
-						setObj->setExerciseName2(appUtils()->getCompositeValue(1, new_value, comp_exercise_separator), false);
-					}
+					setObj->setExerciseName1(appUtils()->getCompositeValue(0, new_value, comp_exercise_separator));
+					setObj->setExerciseName2(appUtils()->getCompositeValue(1, new_value, comp_exercise_separator));
 				}
 			}
 		}
@@ -164,7 +163,11 @@ void QmlExerciseEntry::setIsEditable(const bool new_value)
 	m_bEditable = new_value;
 	emit isEditableChanged();
 	for (uint i(0); i < m_setObjects.count(); ++i)
+	{
 		m_setObjects.at(i)->setIsEditable(m_bEditable);
+		if (!m_tDayPage->mainDateIsToday())
+			m_setObjects.at(i)->setCurrent(m_bEditable);
+	}
 }
 
 void QmlExerciseEntry::setTrackRestTime(const bool new_value)
@@ -544,7 +547,7 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setMode(findSetMode(set_number));
 	newSetEntry->setIsEditable(isEditable());
 	if (!m_tDayPage->mainDateIsToday())
-		newSetEntry->setCurrent(false);
+		newSetEntry->setCurrent(true);
 	else
 		findCurrentSet();
 	insertSetEntry(set_number, newSetEntry);

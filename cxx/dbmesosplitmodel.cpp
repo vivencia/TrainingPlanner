@@ -34,7 +34,7 @@ void DBMesoSplitModel::convertFromTDayModel(const DBTrainingDayModel* const tDay
 	for (uint i(0); i < tDayModel->m_ExerciseData.count(); ++i)
 	{
 		QStringList exerciseInfo(COMPLETE_MESOSPLIT_TOTAL_COLS);
-		exerciseInfo[MESOSPLIT_COL_EXERCISENAME] = tDayModel->_exerciseName(i);
+		exerciseInfo[MESOSPLIT_COL_EXERCISENAME] = tDayModel->exerciseName(i);
 		exerciseInfo[MESOSPLIT_COL_SETSNUMBER] = std::move(QString::number(tDayModel->setsNumber(i)));
 		exerciseInfo[MESOSPLIT_COL_NOTES] = std::move(tDayModel->setsNotes(i));
 		exerciseInfo[MESOSPLIT_COL_SETTYPE] = std::move(tDayModel->setsTypes(i));

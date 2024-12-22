@@ -12,6 +12,7 @@ TPPopup {
 	bKeepAbove: false
 	height: entriesTotalHeight
 	width: largestEntryWidth
+	closeButtonVisible: false
 
 	property list<Item> entriesList: []
 	property int entriesTotalHeight: 0
@@ -23,7 +24,7 @@ TPPopup {
 	ColumnLayout {
 		id: mainLayout
 		anchors.fill: parent
-		spacing: 0
+		spacing: 5
 		opacity: menu.opacity
 	}
 
@@ -35,9 +36,9 @@ TPPopup {
 			var button = entryComponent.createObject(mainLayout, { text: label, imageSource: img, clickId: id,
 				rounded: false, imageSize: 20, color: "transparent", "Layout.fillWidth": true });
 			if (bvisible) {
-				entriesTotalHeight += button.implicitHeight;
-				if (button.implicitWidth > largestEntryWidth)
-					largestEntryWidth = button.implicitWidth + 10;
+				entriesTotalHeight += button.height + 7;
+				if (button.width > largestEntryWidth)
+					largestEntryWidth = button.width + 10;
 				button.clicked.connect(menuEntryClicked);
 			}
 			else

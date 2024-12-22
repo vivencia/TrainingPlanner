@@ -200,13 +200,15 @@ FocusScope {
 
 		Row {
 			enabled: !setManager.completed
-			spacing: 0
+			spacing: 10
 			Layout.fillWidth: true
 
 			TPButton {
 				id: lblExercise1
 				text: setManager.exerciseName1
 				width: controlWidth
+				autoResize: true
+				rounded: false
 
 				onClicked: exerciseManager.simpleExercisesList(true, false, 1);
 			}
@@ -215,6 +217,8 @@ FocusScope {
 				id: lblExercise2
 				text: setManager.exerciseName2
 				width: controlWidth
+				autoResize: true
+				rounded: false
 
 				onClicked: exerciseManager.simpleExercisesList(true, false, 2);
 			}
@@ -222,6 +226,7 @@ FocusScope {
 
 		Row {
 			enabled: !setManager.completed
+			spacing: 5
 			Layout.fillWidth: true
 
 			SetInputField {
@@ -262,6 +267,7 @@ FocusScope {
 			TPButton {
 				id: btnCopySetReps2
 				imageSource: "copy-setvalue"
+				visible: false
 				height: 25
 				width: 25
 
@@ -274,6 +280,7 @@ FocusScope {
 
 		RowLayout {
 			enabled: !setManager.completed
+			spacing: 5
 			Layout.fillWidth: true
 
 			SetInputField {
@@ -290,6 +297,7 @@ FocusScope {
 			TPButton {
 				id: btnCopySetWeight1
 				imageSource: "copy-setvalue"
+				visible: false
 				height: 25
 				width: 25
 
@@ -312,6 +320,7 @@ FocusScope {
 			TPButton {
 				id: btnCopySetWeight2
 				imageSource: "copy-setvalue"
+				visible: false
 				height: 25
 				width: 25
 

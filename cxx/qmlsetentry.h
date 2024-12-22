@@ -63,10 +63,10 @@ public:
 	inline void setSetEntry(QQuickItem* item) { m_setEntry = item; }
 
 	QString exerciseName1() const;
-	void setExerciseName1(const QString& new_value, const bool bFromQML = true);
+	void setExerciseName1(const QString& new_value);
 
 	QString exerciseName2() const;
-	void setExerciseName2(const QString& new_value, const bool bFromQML = true);
+	void setExerciseName2(const QString& new_value);
 
 	inline const uint type() const { return m_type; }
 	void setType(const uint new_value, const bool bSetIsManuallyModified = true);

@@ -227,7 +227,7 @@ TPPage {
 					text: qsTr("Remove Plan")
 					imageSource: "remove"
 					hasDropShadow: false
-					z:2
+					z: 2
 
 					anchors {
 						horizontalCenter: parent.horizontalCenter
@@ -331,6 +331,7 @@ TPPage {
 			backgroundColor: "transparent"
 			rounded: false
 			flat: true
+			width: parent.width
 
 			anchors {
 				top: parent.top
@@ -348,6 +349,7 @@ TPPage {
 			backgroundColor: "transparent"
 			rounded: false
 			flat: true
+			width: parent.width
 
 			anchors {
 				top: btnAddMeso.bottom
@@ -365,6 +367,7 @@ TPPage {
 			rounded: false
 			flat: true
 			visible: stackView.depth === 1 && mesocyclesModel.canHaveTodaysWorkout
+			width: parent.width
 
 			anchors {
 				top: btnImportMeso.bottom
@@ -411,49 +414,3 @@ TPPage {
 	}
 } //Page
 
-
-/*MouseArea {
-				id: swipeDetector
-				anchors.fill: parent
-				preventStealing: true
-				pressAndHoldInterval: 300
-				property int xPrev: 0
-				property bool tracing: false
-
-				onClicked: {
-					if (!recRemoveMeso.visible)
-						appDB.getMesocycle(index);
-					else
-						recRemoveMeso.visible = false;
-				}
-
-				onPressAndHold: (mouse) => {
-					xPrev = mouse.x;
-					if (!recRemoveMeso.visible) {
-						if (xPrev >= width/3) {
-							tracing = true;
-							recRemoveMeso.width = width - xPrev;
-							recRemoveMeso.visible = true;
-						}
-					}
-				}
-
-				onPositionChanged: (mouse) => {
-					if (!tracing) return;
-					if (mouse.x <= 0)
-						recRemoveMeso.width = mesosListView.width;
-					else {
-						recRemoveMeso.width += (xPrev - mouse.x);
-						if (mouse.x > xPrev) {
-							if (recRemoveMeso.width <= 30)
-								recRemoveMeso.visible = false;
-						}
-						xPrev = mouse.x;
-					}
-				}
-
-				onReleased: (mouse) => {
-					if (tracing)
-						tracing = false;
-				}
-			} //MouseArea */

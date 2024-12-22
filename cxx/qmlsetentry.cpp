@@ -10,14 +10,12 @@ QString QmlSetEntry::exerciseName1() const
 	return appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator);
 }
 
-void QmlSetEntry::setExerciseName1(const QString& new_value, const bool bFromQML)
+void QmlSetEntry::setExerciseName1(const QString& new_value)
 {
 	if (appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator) != new_value)
 	{
-		appUtils()->setCompositeValue(0, new_value, m_reps, comp_exercise_separator);
+		appUtils()->setCompositeValue(0, new_value, m_exerciseName, comp_exercise_separator);
 		emit exerciseName1Changed();
-		if (bFromQML)
-			m_parentExercise->setExerciseName(m_exerciseName, false);
 	}
 }
 
@@ -26,14 +24,12 @@ QString QmlSetEntry::exerciseName2() const
 	return appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator);
 }
 
-void QmlSetEntry::setExerciseName2(const QString& new_value, const bool bFromQML)
+void QmlSetEntry::setExerciseName2(const QString& new_value)
 {
 	if (appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator) != new_value)
 	{
-		appUtils()->setCompositeValue(1, new_value, m_reps, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, new_value, m_exerciseName, comp_exercise_separator);
 		emit exerciseName2Changed();
-		if (bFromQML)
-			m_parentExercise->setExerciseName(m_exerciseName, false);
 	}
 }
 

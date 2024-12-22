@@ -285,7 +285,10 @@ void QmlTDayInterface::adjustCalendar(const QString& newSplitLetter, const bool 
 	else
 		appDBInterface()->updateMesoCalendarModel(m_mesoIdx, m_Date, m_splitLetter);
 	if (newSplitLetter != "R"_L1)
+	{
 		appDBInterface()->verifyTDayOptions(m_tDayModel);
+		QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
+	}
 }
 
 void QmlTDayInterface::exportTrainingDay(const bool bShare)
@@ -462,12 +465,12 @@ void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 	QString exerciseName;
 	if (b_is_composite)
 	{
-		exerciseName = appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
-					(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString(comp_exercise_separator) :
-						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME) + comp_exercise_separator) +
-					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
+		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
+					(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
+						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME)), exerciseName, comp_exercise_separator);
+		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
 					(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
-						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME));
+						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME)), exerciseName, comp_exercise_separator);
 	}
 	else
 	{
@@ -575,7 +578,10 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	});
 
 	if (m_tDayModel->splitLetter() != "R"_L1)
+	{
 		appDBInterface()->getTrainingDay(m_tDayModel);
+		QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
+	}
 
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
@@ -602,8 +608,6 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 
 	if (mainDateIsToday())
 		connect(m_tDayPage, SIGNAL(silenceTimeWarning()), this, SLOT(silenceTimeWarning()));
-
-	QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
 }
 
 void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate, const QDate& endDate)

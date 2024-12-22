@@ -11,6 +11,8 @@ Rectangle {
 	radius: rounded ? height : 6
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
+	height: 25
+	width: buttonText._preferredWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
@@ -33,7 +35,7 @@ Rectangle {
 	property bool bPressed: false
 	property bool bEmitSignal: false
 	property Item associatedItem: null
-	property TPButtonImage buttonImage: null;
+	property TPButtonImage buttonImage: null
 
 	signal clicked(int clickid);
 	signal check(int clickid);
@@ -60,6 +62,17 @@ Rectangle {
 		onTriggered: fillPosition = 1;
 	}
 
+	onWidthChanged: {
+		if (!fixedSize && text.length > 0) {
+			const fwidth = buttonText._textWidth;
+			if (fwidth >= width) {
+				buttonText.wrapMode = Text.WordWrap;
+				buttonText.singleLine = false;
+				buttonText.width = textUnderIcon ? width - 10 : width - (imageSource.length > 0 ? imageSize : 0) - 10;
+			}
+		}
+	}
+
 	Component.onCompleted: {
 		if (imageSource.length > 0)
 		{
@@ -69,6 +82,10 @@ Rectangle {
 				buttonImage = component.createObject(button,
 					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
 							width: imageSize, height: imageSize, dropShadow: hasDropShadow});
+				if (button.text.length === 0) {
+					fixedSize = true;
+					width = height = imageSize;
+				}
 			}
 
 			if (component.status === Component.Ready)
@@ -76,7 +93,6 @@ Rectangle {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		resizeButton();
 	}
 
 	property double fillPosition: 1
@@ -97,7 +113,15 @@ Rectangle {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
-		onSizeChanged: resizeButton();
+		onSingleLineChanged: {
+			if (!fixedSize && text.length > 0) {
+				lineCount = Math.ceil(_textWidth/button.width) + 1;
+				height = singleLine ? _textHeight : lineCount * _textHeight
+				console.log(text, lineCount, singleLine, _textHeight, height, button.height);
+				if (height > button.height)
+					button.height = 10 + (textUnderIcon ? height + imageSize : height);
+			}
+		}
 
 		Component.onCompleted: {
 			if (imageSource.length > 0) {
@@ -121,6 +145,14 @@ Rectangle {
 			else {
 				anchors.horizontalCenter = button.horizontalCenter;
 				anchors.verticalCenter = button.verticalCenter;
+			}
+
+			if (fixedSize) {
+				buttonText.width = button.width - 10;
+				if (buttonText.height > button.height)
+					buttonText.height = button.height;
+				if (!autoResize)
+					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
 			}
 		}
 	}
@@ -184,41 +216,5 @@ Rectangle {
 				button.clicked(button.clickId);
 			}
 		}
-	}
-
-	function resizeButton() {
-		if (text.length > 0)
-		{
-			if (!fixedSize) {
-				const fwidth = buttonText._textWidth;
-				const fheight = buttonText._textHeight;
-				if (fwidth < width)
-				{
-					implicitWidth = fwidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
-					implicitHeight = fheight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 5);
-				}
-				else
-				{
-					if (width > 50) {
-						buttonText.wrapMode = Text.WordWrap;
-						buttonText.singleLine = false;
-					}
-					if (availableWidth)
-						buttonText.widthAvailable = availableWidth;
-					implicitWidth = buttonText._preferredWidth + (imageSource.length > 1 ? (textUnderIcon ? 10 : imageSize + 10) : 15);
-					implicitHeight = buttonText._preferredHeight + (imageSource.length > 1 ? (textUnderIcon ? imageSize : 5) : 10);
-				}
-			}
-			else
-			{
-				buttonText.width = button.width - 10;
-				if (buttonText.height > button.height)
-					buttonText.height = button.height;
-				if (!autoResize)
-					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
-			}
-		}
-		else
-			width = height = imageSize;
 	}
 } //Rectangle

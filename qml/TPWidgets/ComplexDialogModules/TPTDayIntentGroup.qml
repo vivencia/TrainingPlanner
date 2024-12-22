@@ -10,9 +10,6 @@ Column {
 	spacing: 5
 
 	required property var parentDlg
-	property int selectedOpt: 4
-
-	onSelectedOptChanged: parentDlg.customIntProperty1 = selectedOpt
 
 	Component.onCompleted: {
 		parentDlg.customIntProperty1 = 4;
@@ -23,23 +20,23 @@ Column {
 	TPRadioButton {
 		id: optMesoPlan
 		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")
-		checked: selectedOpt === 1
+		checked: parentDlg.customIntProperty1 === 1
 		multiLine: true
 		visible: parentDlg.customBoolProperty1	//bHasMesoPlan
 		width: parent.width
 
-		onClicked: selectedOpt = 1;
+		onClicked: parentDlg.customIntProperty1 = 1;
 	}
 
 	TPRadioButton {
 		id: optPreviousDay
 		text: qsTr("Base this session off the one from the one the days in the list below")
-		checked: selectedOpt === 2
+		checked: parentDlg.customIntProperty1 === 2
 		multiLine: true
 		visible: parentDlg.customBoolProperty2	//bHasPreviousTDays
 		width: grpIntent.width
 
-		onClicked: selectedOpt = 2;
+		onClicked: parentDlg.customIntProperty1 = 2;
 	}
 
 	TPComboBox {
@@ -61,20 +58,20 @@ Column {
 	TPRadioButton {
 		id: optLoadFromFile
 		text: qsTr("Import workout from file")
-		checked: selectedOpt === 3
+		checked: parentDlg.customIntProperty1 === 3
 		visible: parentDlg.customBoolProperty3	//noExercises
 		width: grpIntent.width
 
-		onClicked: selectedOpt = 3;
+		onClicked: parentDlg.customIntProperty1 = 3;
 	}
 
 	TPRadioButton {
 		id: optEmptySession
 		text: qsTr("Start a new session")
-		checked: selectedOpt === 4
+		checked: parentDlg.customIntProperty1 === 4
 		width: grpIntent.width
 
-		onClicked: selectedOpt = 4;
+		onClicked: parentDlg.customIntProperty1 = 4;
 	}
 
 	function resize(): void {

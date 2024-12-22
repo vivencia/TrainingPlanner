@@ -20,7 +20,7 @@ Label {
 	property int widthAvailable: appSettings.pageWidth - 20
 	property int heightAvailable: 25
 	property bool singleLine: wrapMode === Text.NoWrap ? true : width > _textWidth
-	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/widthAvailable) + 1
+	property int lineCount: singleLine ? 1 : Math.ceil(_textWidth/width) + 1
 
 	property int _textWidth
 	property int _textHeight

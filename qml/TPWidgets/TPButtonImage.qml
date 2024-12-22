@@ -18,11 +18,11 @@ TPImage {
 				anchors.verticalCenter = parent.verticalCenter
 				if (leftAlign) {
 					anchors.right = parent.right
-					anchors.rightMargin = parent.flat ? 0 : 5;
+					anchors.rightMargin = 5;
 				}
 				else {
 					anchors.left = parent.left
-					anchors.leftMargin = parent.flat ? 0 : 5;
+					anchors.leftMargin = 5;
 				}
 			}
 			else {

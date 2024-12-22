@@ -164,15 +164,13 @@ public:
 	inline const QString _setsNumber(const uint exercise_idx) const { return QString::number(m_ExerciseData.at(exercise_idx)->nsets); }
 
 	inline bool trackRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_TrackRestTime; }
-	inline void setTrackRestTime(const uint exercise_idx, const bool track_resttime) { m_ExerciseData[exercise_idx]->mb_TrackRestTime = track_resttime; }
+	inline void setTrackRestTime(const uint exercise_idx, const bool track_resttime) { m_ExerciseData.at(exercise_idx)->mb_TrackRestTime = track_resttime; }
 
 	inline bool autoRestTime(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->mb_AutoRestTime; }
-	inline void setAutoRestTime(const uint exercise_idx, const bool auto_resttime) { m_ExerciseData[exercise_idx]->mb_AutoRestTime = auto_resttime; }
+	inline void setAutoRestTime(const uint exercise_idx, const bool auto_resttime) { m_ExerciseData.at(exercise_idx)->mb_AutoRestTime = auto_resttime; }
 
-	QString exerciseName(const uint exercise_idx) const;
-	inline const QString& _exerciseName(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->name; }
-
-	void setExerciseName(const uint exercise_idx, const QString& new_name);
+	inline const QString& exerciseName(const uint exercise_idx) const { return m_ExerciseData.at(exercise_idx)->name; }
+	inline void setExerciseName(const uint exercise_idx, const QString& new_name) { m_ExerciseData.at(exercise_idx)->name = new_name; }
 	void newExercise(const uint exercise_idx);
 	void removeExercise(const uint exercise_idx);
 	void changeExerciseName(const uint exercise_idx, DBExercisesModel* model);

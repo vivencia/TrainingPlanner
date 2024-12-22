@@ -87,7 +87,7 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
 		m_ExerciseData.append(new exerciseEntry);
-		m_ExerciseData[i]->name = splitModel->_exerciseName(i);
+		m_ExerciseData[i]->name = splitModel->exerciseName(i);
 		const uint nsets{splitModel->setsNumber(i)};
 		//const uint orig_workingset{splitModel->workingSet(i)}; //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
 		//splitModel->setWorkingSet(i, 0, false);
@@ -150,7 +150,7 @@ int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const 
 		for (uint i{0}; i < m_ExerciseData.count(); ++i)
 		{
 			outFile->write(QString(QString::number(i+1) + ": "_L1).toUtf8().constData());
-			outFile->write(exerciseName(i).replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
+			outFile->write(QString(exerciseName(i)).replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
 			outFile->write("\n", 1);
 			outFile->write(tr("Number of sets: ").toUtf8().constData());
 			outFile->write(QString::number(setsNumber(i)).toUtf8().constData());
@@ -378,30 +378,6 @@ void DBTrainingDayModel::moveExercise(const uint from, const uint to)
 uint DBTrainingDayModel::getWorkoutNumberForTrainingDay() const
 {
 	return appMesoModel()->mesoCalendarModel(mesoIdx())->getLastTrainingDayBeforeDate(date()) + 1;
-}
-
-QString DBTrainingDayModel::exerciseName(const uint exercise_idx) const
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName", "out of range exercise_idx");
-	QString name;
-	name = m_ExerciseData.at(exercise_idx)->name;
-	if (name.endsWith(comp_exercise_separator))
-		name.chop(1);
-	return name;
-	//return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
-}
-
-void DBTrainingDayModel::setExerciseName(const uint exercise_idx, const QString& new_name)
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName", "out of range exercise_idx: ");
-	//const int idx(new_name.indexOf(comp_exercise_fancy_separator));
-	//if (idx == -1)
-		m_ExerciseData.at(exercise_idx)->name = new_name;
-	//else
-	//{
-	//	QString new_name_copy(new_name);
-	//	m_ExerciseData.at(exercise_idx)->name = std::move(new_name_copy.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator)));
-	//}
 }
 
 void DBTrainingDayModel::newExercise(const uint exercise_idx)
