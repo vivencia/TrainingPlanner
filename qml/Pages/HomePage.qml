@@ -387,7 +387,7 @@ TPPage {
 			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
 			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(meso_idx, id === 1); });
 		}
-		exportMenu.show(btnImExport, 0);
+		exportMenu.show2(btnImExport, 0);
 	}
 
 	TPComplexDialog {

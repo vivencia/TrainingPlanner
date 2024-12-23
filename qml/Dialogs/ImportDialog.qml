@@ -119,17 +119,6 @@ TPPopup {
 	function show(ypos): void {
 		importDlg.height = 0;
 		importDlg.height = Math.max(height + importImg.height) + repeater.itemsHeight + btnImport.height + 30;
-		importDlg.x = (appSettings.pageWidth - importDlg.width)/2;
-
-		if (ypos < 0)
-			ypos = (appSettings.pageHeight - importDlg.height)/2;
-
-		finalYPos = ypos;
-		if (ypos <= appSettings.pageHeight/2)
-			startYPos = -300;
-		else
-			startYPos = appSettings.pageHeight + 300;
-
-		importDlg.open();
+		show1(ypos);
 	}
 }

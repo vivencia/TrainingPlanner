@@ -129,7 +129,7 @@ void QmlTDayInterface::setEditMode(const bool new_value)
 		m_bEditMode = new_value;
 		emit editModeChanged();
 		setDayIsEditable(m_bEditMode);
-		setDayIsFinished(m_bEditMode);
+		setDayIsFinished(m_bEditMode ? true : !m_tDayModel->timeOut().isEmpty());
 	}
 }
 
@@ -263,7 +263,7 @@ void QmlTDayInterface::resetWorkout()
 void QmlTDayInterface::changeSplit(const QString& newSplitLetter, const bool bClearExercises)
 {
 	if (bClearExercises)
-		clearExercises();
+		clearExercises(false);
 	setSplitLetter(newSplitLetter, false);
 }
 
@@ -352,10 +352,12 @@ void QmlTDayInterface::stopWorkout()
 	setDayIsFinished(true);
 }
 
-void QmlTDayInterface::clearExercises()
+void QmlTDayInterface::clearExercises(const bool bShowIntentDialog)
 {
 	m_exerciseManager->clearExercises();
 	setHasExercises(false);
+	if (bShowIntentDialog)
+		appDBInterface()->verifyTDayOptions(m_tDayModel);
 }
 
 void QmlTDayInterface::removeExercise(const uint exercise_idx)
@@ -465,12 +467,13 @@ void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 	QString exerciseName;
 	if (b_is_composite)
 	{
-		appUtils()->setCompositeValue(0, appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
-					(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
-						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME)), exerciseName, comp_exercise_separator);
-		appUtils()->setCompositeValue(1, appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
-					(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
-						" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME)), exerciseName, comp_exercise_separator);
+		exerciseName = std::move(appUtils()->string_strings({
+					appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_MAINNAME) +
+						(appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(0, EXERCISES_COL_SUBNAME)),
+					appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_MAINNAME) +
+						(appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME).isEmpty() ? QString() :
+							" - "_L1 + appExercisesModel()->selectedEntriesValue_fast(1, EXERCISES_COL_SUBNAME))}, comp_exercise_separator));
 	}
 	else
 	{
@@ -491,12 +494,17 @@ void QmlTDayInterface::exerciseSelected(QmlExerciseEntry* exerciseEntry)
 			exerciseEntry->setWeight(nWeight);
 		break;
 		case 1:
-			appUtils()->setCompositeValue(1, m_tDayModel->exerciseName2(m_SimpleExercisesListRequesterExerciseIdx), exerciseName, comp_exercise_separator);
+			exerciseName = std::move(appUtils()->string_strings({ exerciseName,
+					appUtils()->getCompositeValue(1, m_tDayModel->exerciseName(m_SimpleExercisesListRequesterExerciseIdx), comp_exercise_separator)
+				}, comp_exercise_separator));
 			exerciseEntry->setExerciseName(exerciseName);
 		break;
 		case 2:
-			appUtils()->setCompositeValue(0, m_tDayModel->exerciseName1(m_SimpleExercisesListRequesterExerciseIdx), exerciseName, comp_exercise_separator);
+			exerciseName = std::move(appUtils()->string_strings({
+					appUtils()->getCompositeValue(0, m_tDayModel->exerciseName(m_SimpleExercisesListRequesterExerciseIdx), comp_exercise_separator),
+				exerciseName }, comp_exercise_separator));
 			exerciseEntry->setExerciseName(exerciseName);
+		break;
 	}
 }
 
@@ -536,12 +544,9 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_tDayModel->date()), m_tDayPage);
 	setHeaderText();
 
-	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_id, const QVariant data) {
+	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
-			disconnect(*conn);
-
 			setMainDateIsToday(m_Date == QDate::currentDate());
 			setEditMode(false);
 			setDayIsFinished(false, false);
@@ -630,7 +635,7 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 				setSplitLetter(strSplitLetter, false, true);
 				tDayChanged = true;
 				if (strSplitLetter == "R"_L1)
-					clearExercises();
+					clearExercises(false);
 				else
 					appDBInterface()->verifyTDayOptions(m_tDayModel);
 			}

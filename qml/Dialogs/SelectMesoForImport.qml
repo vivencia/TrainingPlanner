@@ -130,21 +130,10 @@ TPPopup {
 		}
 	}
 
-	function show(ypos): void {
+	function show(ypos: int): void {
 		mesosListView.currentIndex = -1;
 		selectMesoDlg.height = 0;
 		selectMesoDlg.height = Math.max(lblTitle.height, importImg.height) + mesosListView.height + btnCancel.height + 20;
-		selectMesoDlg.x = (appSettings.pageWidth - selectMesoDlg.width)/2;
-
-		if (ypos < 0)
-			ypos = (appSettings.pageHeight-selectMesoDlg.height)/2;
-
-		finalYPos = ypos;
-		if (ypos <= appSettings.pageHeight/2)
-			startYPos = -300;
-		else
-			startYPos = appSettings.pageHeight + 300;
-
-		selectMesoDlg.open();
+		show1();
 	}
 }

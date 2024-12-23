@@ -274,6 +274,6 @@ Column {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		filterDlg.show(btnMuscularGroups, 3);
+		filterDlg.show2(btnMuscularGroups, 3);
 	}
 }

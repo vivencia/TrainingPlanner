@@ -7,7 +7,7 @@
 
 QString QmlSetEntry::exerciseName1() const
 {
-	return appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator);
+	return "1: "_L1 + std::move(appUtils()->getCompositeValue(0, m_exerciseName, comp_exercise_separator));
 }
 
 void QmlSetEntry::setExerciseName1(const QString& new_value)
@@ -21,7 +21,8 @@ void QmlSetEntry::setExerciseName1(const QString& new_value)
 
 QString QmlSetEntry::exerciseName2() const
 {
-	return appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator);
+	QString exercisename{std::move(appUtils()->getCompositeValue(1, m_exerciseName, comp_exercise_separator))};
+	return "2: "_L1 + (exercisename.isEmpty() ? std::move(tr("Add exercise ...")) : exercisename);
 }
 
 void QmlSetEntry::setExerciseName2(const QString& new_value)

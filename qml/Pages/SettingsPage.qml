@@ -254,7 +254,7 @@ TPPage {
 
 			GridLayout {
 				columns: 2
-				rows: 5
+				rows: 6
 				uniformCellHeights: true
 				uniformCellWidths: true
 				Layout.fillWidth: true
@@ -320,7 +320,7 @@ TPPage {
 				}
 
 				TPRadioButton {
-					text: qsTr("Dark")
+					text: qsTr("Gray")
 					checked: appSettings.colorScheme === 3
 					Layout.column: 0
 					Layout.row: 3
@@ -340,7 +340,7 @@ TPPage {
 				}
 
 				TPRadioButton {
-					text: qsTr("Light")
+					text: qsTr("Dark")
 					checked: appSettings.colorScheme === 4
 					Layout.column: 0
 					Layout.row: 4
@@ -356,6 +356,26 @@ TPPage {
 					darkColor: appSettings.darkColorForScheme(4)
 					Layout.column: 1
 					Layout.row: 4
+					Layout.leftMargin: 20
+				}
+
+				TPRadioButton {
+					text: qsTr("Light")
+					checked: appSettings.colorScheme === 5
+					Layout.column: 0
+					Layout.row: 5
+					Layout.leftMargin: 10
+					Layout.fillWidth: true
+
+					onClicked: appSettings.colorScheme = 5;
+				}
+
+				TPColorRectangle {
+					midColor: appSettings.colorForScheme(5)
+					lightColor: appSettings.lightColorForScheme(5)
+					darkColor: appSettings.darkColorForScheme(5)
+					Layout.column: 1
+					Layout.row: 5
 					Layout.leftMargin: 20
 				}
 			}

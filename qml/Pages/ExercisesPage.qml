@@ -329,7 +329,7 @@ TPPage {
 				imExportMenu.addEntry(qsTr("Share"), "export.png", 2, true);
 			imExportMenu.menuEntrySelected.connect(functionselectedMenuOption);
 		}
-		imExportMenu.show(btnImExport, 0);
+		imExportMenu.show2(btnImExport, 0);
 	}
 
 	function selectedMenuOption(menuid: int): void {

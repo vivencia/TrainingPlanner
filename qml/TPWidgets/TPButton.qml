@@ -69,6 +69,10 @@ Rectangle {
 				buttonText.wrapMode = Text.WordWrap;
 				buttonText.singleLine = false;
 				buttonText.width = textUnderIcon ? width - 10 : width - (imageSource.length > 0 ? imageSize : 0) - 10;
+				buttonText.lineCount = Math.ceil(fwidth/width) + 1;
+				buttonText.height = buttonText.lineCount * buttonText._textHeight;
+				if (buttonText.height > height)
+					height = 10 + (textUnderIcon ? buttonText.height + imageSize : buttonText.height);
 			}
 		}
 	}
@@ -112,16 +116,6 @@ Rectangle {
 		bottomPadding: 5
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
-
-		onSingleLineChanged: {
-			if (!fixedSize && text.length > 0) {
-				lineCount = Math.ceil(_textWidth/button.width) + 1;
-				height = singleLine ? _textHeight : lineCount * _textHeight
-				console.log(text, lineCount, singleLine, _textHeight, height, button.height);
-				if (height > button.height)
-					button.height = 10 + (textUnderIcon ? height + imageSize : height);
-			}
-		}
 
 		Component.onCompleted: {
 			if (imageSource.length > 0) {

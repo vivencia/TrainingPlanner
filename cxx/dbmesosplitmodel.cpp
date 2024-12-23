@@ -156,14 +156,19 @@ void DBMesoSplitModel::delSet(const uint row)
 	}
 }
 
-QString DBMesoSplitModel::exerciseName(const int row) const
+QString DBMesoSplitModel::exerciseName(const int row, const bool b_raw) const
 {
 	if (row >= 0 && row < m_modeldata.count())
 	{
-		QString name{_exerciseName(static_cast<uint>(row))};
-		if (name.endsWith(comp_exercise_separator))
-			name.chop(1);
-		return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
+		if (!b_raw)
+		{
+			QString name{_exerciseName(static_cast<uint>(row))};
+			if (name.endsWith(comp_exercise_separator))
+				name.chop(1);
+			return name.replace(comp_exercise_separator, comp_exercise_fancy_separator);
+		}
+		else
+			return _exerciseName(row);
 	}
 	return QString();
 }
@@ -407,16 +412,13 @@ int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bo
 							value = (*itr).at(i);
 						else
 							value = formatFieldToExport(i, (*itr).at(i));
-						const int sep_idx(value.indexOf(comp_exercise_fancy_separator));
+						const int sep_idx(value.indexOf(comp_exercise_separator));
 						if (sep_idx >= 0)
 						{
-							value.remove(sep_idx, value.length() - sep_idx);
 							value.chop(1);
-							if (value.endsWith(set_separator))
-								value.chop(1);
+							value.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 						}
 						value.replace(set_separator, fancy_record_separator2);
-						value.replace(comp_exercise_separator, comp_exercise_fancy_separator);
 						outFile->write(value.toUtf8().constData());
 						outFile->write("\n", 1);
 					}
@@ -504,6 +506,8 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 					value = buf;
 					value.remove(0, value.indexOf(':') + 2);
 					value.replace(fancy_record_separator2, set_separator);
+					if (value.contains(comp_exercise_fancy_separator))
+						value.append(comp_exercise_separator);
 					value.replace(comp_exercise_fancy_separator, QChar(comp_exercise_separator));
 					if (!isFieldFormatSpecial(col))
 						modeldata[col] = std::move(value.simplified());

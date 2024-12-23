@@ -245,7 +245,7 @@ TPPage {
 			}
 			for(let i = 0; i < list_len; ++i)
 				locationsMenu.addEntry(weatherInfo.locationList[i], "", i, true);
-			locationsMenu.show(savedCities, 3);
+			locationsMenu.show2(savedCities, 3);
 		}
 		else {
 			if (locationsMenu)

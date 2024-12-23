@@ -125,7 +125,22 @@ Popup {
 		}
 	}
 
-	function show(targetItem: Item, pos: int): void {
+	function show1(ypos: int): void {
+		x = (appSettings.pageWidth - width)/2;
+
+		if (ypos < 0)
+			ypos = (appSettings.pageHeight - height)/2;
+
+		finalYPos = ypos;
+		if (ypos <= appSettings.pageHeight/2)
+			startYPos = -300;
+		else
+			startYPos = appSettings.pageHeight + 300;
+
+		open();
+	}
+
+	function show2(targetItem: Item, pos: int): void {
 		const point = targetItem.parent.mapToItem(parent, targetItem.x, targetItem.y);;
 
 		var xpos, ypos;

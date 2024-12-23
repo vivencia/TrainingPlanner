@@ -133,21 +133,11 @@ TPPopup {
 		}
 	} //GridLayout
 
-	function show(ypos) {
-		dialog.x = (appSettings.pageWidth - dialog.width)/2;
-
-		if (ypos < 0)
-			ypos = (appSettings.pageHeight-dialog.height)/2;
-
-		finalYPos = ypos;
-		if (ypos <= appSettings.pageHeight/2)
-			startYPos = -300;
-		else
-			startYPos = appSettings.pageHeight + 300;
+	function show(ypos: int): void {
 		if (bAdjustHeightEveryOpen) {
 			dialogOpened();
 			totalHeight = lblTitle.height + 2*btn1.height + customItem.height + 20;
 		}
-		dialog.open();
+		show1(ypos);
 	}
 }

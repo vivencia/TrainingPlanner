@@ -103,16 +103,23 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 			paneBackColor = std::move("#d21a45"_L1);
 			entrySelColor = std::move("#a82844"_L1);
 		break;
-		case 3: //Dark
-			paneBackColor = std::move("#3e3d48"_L1);
-			entrySelColor = std::move("#6c6f73"_L1);
-			disabledfntColor = std::move("e8e8e8"_L1);
-		break;
-		case 4: //Light
+		case 3: //Gray
 			paneBackColor = std::move("#929299"_L1);
 			entrySelColor = std::move("#65696c"_L1);
 			fntColor = std::move("000000"_L1);
 			disabledfntColor = std::move("a8a8a8"_L1);
+			strIconFolder = std::move("black/"_L1);
+		break;
+		case 4: //Dark
+			paneBackColor = std::move("#3e3d48"_L1);
+			entrySelColor = std::move("#6c6f73"_L1);
+			disabledfntColor = std::move("e8e8e8"_L1);
+		break;
+		case 5: //Light
+			paneBackColor = std::move("#ffffff"_L1);
+			entrySelColor = std::move("#bbefff"_L1);
+			fntColor = std::move("000000"_L1);
+			disabledfntColor = std::move("b9b9b9"_L1);
 			strIconFolder = std::move("black/"_L1);
 		break;
 	}
@@ -140,8 +147,9 @@ QString TPSettings::colorForScheme(const uint scheme) const
 		case 0: return std::move("#47a0f3"_L1); break;
 		case 1: return std::move("#97dd81"_L1); break;
 		case 2: return std::move("#fd9ab1"_L1); break;
-		case 3: return std::move("#9ea6a3"_L1); break;
-		default: return std::move("#cccccc"_L1); break;
+		case 3: return std::move("#cccccc"_L1); break;
+		case 4: return std::move("#9ea6a3"_L1); break;
+		default: return std::move("#e6e5d6"_L1); break;
 	}
 }
 
@@ -152,8 +160,9 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 		case 0: return std::move("#bbdefb"_L1); break;
 		case 1: return std::move("#d4fdc0"_L1); break;
 		case 2: return std::move("#ebafc7"_L1); break;
-		case 3: return std::move("#d7e2de"_L1); break;
-		default: return std::move("#f3f3f3"_L1); break;
+		case 3: return std::move("#f3f3f3"_L1); break;
+		case 4: return std::move("#d7e2de"_L1); break;
+		default: return std::move("#f9f9f9"_L1); break;
 	}
 }
 
@@ -164,8 +173,9 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 		case 0: return std::move("#1976d2"_L1); break;
 		case 1: return std::move("#12a35a"_L1); break;
 		case 2: return std::move("#fd1c20"_L1); break;
-		case 3: return std::move("#000000"_L1); break;
-		default: return std::move("#c1c1c1"_L1); break;
+		case 3: return std::move("#c1c1c1"_L1); break;
+		case 4: return std::move("#000000"_L1); break;
+		default: return std::move("#c7cfc6"_L1); break;
 	}
 }
 

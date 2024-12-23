@@ -306,7 +306,7 @@ FocusScope {
 	} //paneExercise
 
 	function paneExerciseShowHide(show: bool): void {
-		if (exerciseManager.hasSets)
+		if (show && exerciseManager.hasSets)
 			exerciseManager.createAvailableSets();
 		showSets = show;
 	}

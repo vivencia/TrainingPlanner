@@ -307,7 +307,7 @@ TPPage {
 					imageSource: "revert-day.png"
 					imageSize: 30
 					visible: tDayManager.hasExercises
-					enabled: tDayManager.dayIsEditable ? true : !tDayManager.dayIsFinished
+					enabled: tDayManager.dayIsEditable ? true : tDayManager.editMode
 					ToolTip.text: "Remove all exercises"
 
 					anchors {
@@ -853,7 +853,7 @@ TPPage {
 			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
 			optionsMenu.menuEntrySelected.connect(selectedOptionsMenuOption);
 		}
-		optionsMenu.show(btnFinishedDayOptions, 0);
+		optionsMenu.show2(btnFinishedDayOptions, 0);
 	}
 
 	function selectedOptionsMenuOption(menuid): void {
@@ -878,7 +878,7 @@ TPPage {
 				exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
 			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(id === 1); });
 		}
-		exportMenu.show(btnExport, 0);
+		exportMenu.show2(btnExport, 0);
 	}
 
 	TPBalloonTip {

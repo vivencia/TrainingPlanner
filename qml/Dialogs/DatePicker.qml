@@ -304,8 +304,8 @@ Rectangle {
 
 		function show(): void {
 			visible = true;
-			calendar.visible = false
-			currentYear = calendar.currentYear
+			calendar.visible = false;
+			currentYear = calendar.currentYear;
 			yearsList.positionViewAtIndex(currentYear - startYear, ListView.SnapToItem);
 		}
 

@@ -206,9 +206,7 @@ TPPage {
 		splitView.insertItem(idx, page);
 	}
 
-	property TPFloatingMenuBar imExportMenu: null
 	readonly property bool bExportEnabled: currentPage ? currentPage.splitModel.count > 1 : false
-
 	onBExportEnabledChanged: {
 		if (imExportMenu) {
 			imExportMenu.enableMenuEntry(1, bExportEnabled);
@@ -217,6 +215,7 @@ TPPage {
 		}
 	}
 
+	property TPFloatingMenuBar imExportMenu: null
 	function showInExMenu(): void {
 		if (imExportMenu === null) {
 			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
@@ -229,7 +228,7 @@ TPPage {
 			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
 		imExportMenu.setMenuText(1);
-		imExportMenu.show(btnImExport, 0);
+		imExportMenu.show2(btnImExport, 0);
 	}
 
 	function selectedMenuOption(menuid): void {

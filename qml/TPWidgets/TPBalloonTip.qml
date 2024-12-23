@@ -6,6 +6,11 @@ import "../"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
+	id: balloon
+	bKeepAbove: true
+	closeButtonVisible: false
+	width: appSettings.pageWidth * 0.8
+
 	property string message: ""
 	property string title: ""
 	property string button1Text: ""
@@ -21,11 +26,6 @@ TPPopup {
 
 	signal button1Clicked();
 	signal button2Clicked();
-
-	id: balloon
-	bKeepAbove: true
-	closeButtonVisible: false
-	width: appSettings.pageWidth * 0.8
 
 	NumberAnimation {
 		id: alternateCloseTransition
@@ -44,7 +44,7 @@ TPPopup {
 		text: title
 		horizontalAlignment: Text.AlignHCenter
 		visible: title.length > 0
-		width: parent.width - 20
+		width: parent.width - (closeButtonVisible ? 20 : 10)
 		x: closeButtonVisible ? 5 : 10
 		y: closeButtonVisible ? 10 : 5
 	}
@@ -57,7 +57,7 @@ TPPopup {
 		height: 50
 		layer.enabled: true
 		x: 5
-		y: lblTitle.visible ? (balloon.height-height)/2 : (balloon.height-height)/3
+		y: title.length > 0 ? (balloon.height-height)/2 : (balloon.height-height)/3
 	}
 
 	TPLabel {
@@ -65,10 +65,10 @@ TPPopup {
 		text: message
 		wrapMode: Text.WordWrap
 		horizontalAlignment: Text.AlignJustify
-		width: (imgElement.visible ? balloon.width - imgElement.width : balloon.width) - 25
+		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
-		x: imgElement.visible ? imgElement.width + 10 : 10
-		y: lblTitle.visible ? lblTitle.y + lblTitle.height + 10 : imgElement.visible ? imgElement.y : 10
+		x: imageSource.length > 0 ? imgElement.width + 5 : 5
+		y: title.length > 0 ? lblTitle.y + lblTitle.height + 10 : imageSource.length > 0 ? imgElement.y : 10
 	}
 
 	RowLayout {
@@ -177,14 +177,14 @@ TPPopup {
 				balloon.show(startYPosition);
 		}
 
-		function delayedOpen(timeout: int) {
+		function delayedOpen(timeout: int): void {
 			bCloseOnFinished = false;
 			interval = timeout;
 			start();
 			balloon.show(startYPos);
 		}
 
-		function openTimed(timeout: int) {
+		function openTimed(timeout: int): void {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
@@ -192,28 +192,18 @@ TPPopup {
 		}
 	}
 
-	function show(ypos: int) {
-		balloon.height = lblTitle.height + lblMessage.height +
-						(button1Text.length > 0 ? 2*btn1.implicitHeight : (button2Text.length > 0 ? 2*btn1.implicitHeight : 10));
-		balloon.x = (appSettings.pageWidth - width)/2;
-
-		if (ypos < 0)
-			ypos = (appSettings.pageHeight-balloon.height)/2;
-
-		finalYPos = ypos;
-		if (ypos <= appSettings.pageHeight/2)
-			startYPos = -300;
-		else
-			startYPos = appSettings.pageHeight + 300;
-		balloon.open();
+	function show(ypos: int): void {
+		balloon.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) +
+						(button1Text.length > 0 ? 2*btn1.height : 0)
+		show1();
 	}
 
-	function showTimed(timeout: int, ypos: int) {
+	function showTimed(timeout: int, ypos: int): void {
 		startYPos = ypos;
 		hideTimer.openTimed(timeout);
 	}
 
-	function showLate(timeout: int, ypos: int) {
+	function showLate(timeout: int, ypos: int): void {
 		startYPos = ypos;
 		hideTimer.delayedOpen(timeout);
 	}

@@ -87,7 +87,7 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 	for(uint i(0); i < splitModel->count(); ++i)
 	{
 		m_ExerciseData.append(new exerciseEntry);
-		m_ExerciseData[i]->name = splitModel->exerciseName(i);
+		m_ExerciseData[i]->name = splitModel->exerciseName(i, true);
 		const uint nsets{splitModel->setsNumber(i)};
 		//const uint orig_workingset{splitModel->workingSet(i)}; //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
 		//splitModel->setWorkingSet(i, 0, false);
@@ -398,59 +398,6 @@ void DBTrainingDayModel::removeExercise(const uint exercise_idx)
 	delete m_ExerciseData.at(exercise_idx);
 	m_ExerciseData.remove(exercise_idx);
 	emit exerciseCountChanged();
-}
-
-void DBTrainingDayModel::changeExerciseName(const uint exercise_idx, DBExercisesModel* model)
-{
-	QString name;
-	const uint nSel(model->selectedEntriesCount());
-
-	if (nSel == 1)
-		name = model->selectedEntriesValue_fast(0, 1) + " - "_L1 + model->selectedEntriesValue_fast(0, 2);
-	else
-	{
-		for (uint i(0); i < nSel; ++i)
-			name += model->selectedEntriesValue_fast(i, 1) + " - "_L1 + model->selectedEntriesValue_fast(i, 2) + comp_exercise_separator;
-		name.chop(1);
-	}
-	setExerciseName(exercise_idx, name);
-}
-
-QString DBTrainingDayModel::exerciseName1(const uint exercise_idx) const
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName1", "out of range exercise_idx");
-	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	return idx != -1 ? "1: "_L1 + m_ExerciseData.at(exercise_idx)->name.first(idx) : m_ExerciseData.at(exercise_idx)->name;
-}
-
-void DBTrainingDayModel::setExerciseName1(const uint exercise_idx, const QString& name1)
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName1", "out of range exercise_idx");
-	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	QString new_name1;
-	new_name1 = name1 + comp_exercise_separator;
-	if (idx != -1)
-		new_name1 = name1 + comp_exercise_separator + m_ExerciseData.at(exercise_idx)->name.sliced(idx+1);
-	m_ExerciseData.at(exercise_idx)->name = std::move(new_name1.replace("1: "_L1, ""));
-}
-
-QString DBTrainingDayModel::exerciseName2(const uint exercise_idx) const
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::exerciseName2", "out of range exercise_idx");
-	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	return idx != -1 ? "2: "_L1 + std::move(m_ExerciseData.at(exercise_idx)->name.sliced(idx+1)) : std::move(tr("2: Add exercise ..."));
-}
-
-void DBTrainingDayModel::setExerciseName2(const uint exercise_idx, const QString& name2)
-{
-	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::setExerciseName2", "out of range exercise_idx");
-	const int idx(m_ExerciseData.at(exercise_idx)->name.indexOf(comp_exercise_separator));
-	QString new_name2;
-	if (idx != -1)
-		new_name2 = std::move(m_ExerciseData.at(exercise_idx)->name.first(idx)) + comp_exercise_separator + name2;
-	else
-		new_name2 = comp_exercise_separator + name2;
-	m_ExerciseData.at(exercise_idx)->name = std::move(new_name2.replace("2: "_L1, ""));
 }
 
 static QString increaseStringTimeBy(const QString& strtime, const uint add_mins, const uint add_secs)

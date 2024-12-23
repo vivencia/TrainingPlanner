@@ -173,13 +173,6 @@ public:
 	inline void setExerciseName(const uint exercise_idx, const QString& new_name) { m_ExerciseData.at(exercise_idx)->name = new_name; }
 	void newExercise(const uint exercise_idx);
 	void removeExercise(const uint exercise_idx);
-	void changeExerciseName(const uint exercise_idx, DBExercisesModel* model);
-
-	QString exerciseName1(const uint exercise_idx) const;
-	void setExerciseName1(const uint exercise_idx, const QString& name1);
-
-	QString exerciseName2(const uint exercise_idx) const;
-	void setExerciseName2(const uint exercise_idx, const QString& name2);
 
 	void newFirstSet(const uint exercise_idx, const uint type, const QString& nReps, const QString& nWeight, const QString& nRestTime,
 					 const QString& nSubsets = "0"_L1, const QString& notes = " "_L1);

@@ -66,6 +66,13 @@ public:
 	QString getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const;
 	void setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const;
 	void removeFieldFromCompositeValue(const uint idx, QString& compositeString, const QLatin1Char& chr_sep) const;
+	inline QString string_strings( const std::initializer_list<QString>& strings, const QLatin1Char& chr_sep) const
+	{
+		QString ret;
+		for (QString i : strings)
+			ret += i + chr_sep;
+		return ret;
+	}
 
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
