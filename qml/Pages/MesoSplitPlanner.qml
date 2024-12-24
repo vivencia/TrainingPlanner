@@ -47,9 +47,9 @@ Frame {
 	TPLabel {
 		id: lblMain
 		text: qsTr("Training Division ") + splitModel.splitLetter()
-		font: AppGlobals.extraLargeFont
+		font: AppGlobals.largeFont
 		width: parent.width
-		fontColor: "black"
+		height: 40
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {
@@ -63,7 +63,6 @@ Frame {
 	TPLabel {
 		id: lblGroups
 		text: qsTr("Muscle groups trained in this division:")
-		color: "black"
 		width: parent.width-10
 
 		anchors {
@@ -77,27 +76,38 @@ Frame {
 		}
 	}
 
-	TPTextInput {
-		id: txtGroups
-		text: splitModel.muscularGroup()
-		width: parent.width*0.9
-		readOnly: true
+	Rectangle {
+		id: recMuscularGroup
+		color: appSettings.primaryColor
+		radius: 6
+		height: txtGroups.height
 
 		anchors {
 			top: lblGroups.bottom
 			topMargin: 5
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 35
+		}
+
+		TPLabel {
+			id: txtGroups
+			text: splitModel.muscularGroup()
+			anchors {
+				fill: parent
+				leftMargin: 5
+				rightMargin: 5
+			}
 		}
 	}
 
 	TPButton {
 		imageSource: "black/choose"
-		imageSize: txtGroups.height
 
 		anchors {
-			left: txtGroups.right
-			verticalCenter: txtGroups.verticalCenter
+			left: recMuscularGroup.right
+			verticalCenter: recMuscularGroup.verticalCenter
 		}
 
 		onClicked: mesocyclesModel.getMesocyclePage(splitManager.mesoIdx());
@@ -109,7 +119,7 @@ Frame {
 			flickableDirection: Flickable.VerticalFlick
 
 			anchors {
-				top: txtGroups.bottom
+				top: recMuscularGroup.bottom
 				topMargin: 10
 				left: parent.left
 				leftMargin: 5
@@ -289,6 +299,7 @@ Frame {
 							Frame {
 								Layout.minimumWidth: listItem.width
 								Layout.maximumWidth: listItem.width
+								Layout.preferredHeight: 30
 								clip: true
 
 								background: Rectangle {
@@ -646,7 +657,6 @@ Frame {
 		} //ListView
 
 	Component.onCompleted: {
-		exercisesModel.makeFilterString(txtGroups.text);
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(0, ListView.Beginning);
 		splitModel.modelChanged.connect(reloadModel);
@@ -667,7 +677,6 @@ Frame {
 
 	function updateTxtGroups(musculargroup: string): void {
 		txtGroups.text = musculargroup;
-		exercisesModel.makeFilterString(musculargroup);
 	}
 
 	function appendNewExerciseToDivision(): void {

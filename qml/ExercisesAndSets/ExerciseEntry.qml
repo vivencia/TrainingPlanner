@@ -54,7 +54,7 @@ FocusScope {
 				left: parent.left
 				leftMargin: 0
 				top: parent.top
-				topMargin: -5
+				topMargin: 5
 			}
 
 			onClicked: exerciseManager.moveExerciseUp();
@@ -73,7 +73,7 @@ FocusScope {
 				left: parent.left
 				leftMargin: 20
 				top: parent.top
-				topMargin: -5
+				topMargin: 5
 			}
 
 			onClicked: exerciseManager.moveExerciseDown();
@@ -85,6 +85,7 @@ FocusScope {
 
 			anchors {
 				top: parent.top
+				topMargin: 5
 				left: parent.left
 				leftMargin: 5
 				right: parent.right

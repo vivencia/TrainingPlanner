@@ -123,7 +123,6 @@ public:
 	Q_INVOKABLE void removeExercise(const uint index);
 	Q_INVOKABLE void setFilter(const QString& filter);
 	Q_INVOKABLE void search(const QString& search_term);
-	Q_INVOKABLE void makeFilterString(const QString& text);
 	Q_INVOKABLE QString getFilter() const { return m_filterString; }
 
 	Q_INVOKABLE void clearSelectedEntries();

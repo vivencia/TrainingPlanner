@@ -210,7 +210,7 @@ TPPage {
 	} //ListView
 
 	footer: TPToolBar {
-		height: footerHeight*2.7
+		height: footerHeight*2.5
 
 		TPLabel {
 			id: lblInfo

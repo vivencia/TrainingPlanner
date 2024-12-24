@@ -79,14 +79,20 @@ TPPage {
 				rightMargin: 5
 			}
 
-			Label {
+			TPLabel {
 				id: lblHeader
 				text: tDayManager.headerText
-				wrapMode: Text.WordWrap
-				color: appSettings.fontColor
 				font: AppGlobals.largeFont
-				horizontalAlignment: Text.AlignJustify
 				Layout.alignment: Qt.AlignCenter
+				Layout.minimumWidth: trainingDayPage.width - 20
+				Layout.maximumWidth: trainingDayPage.width - 20
+			}
+
+			TPLabel {
+				text: tDayManager.muscularGroup()
+				Layout.alignment: Qt.AlignCenter
+				Layout.minimumWidth: trainingDayPage.width - 20
+				Layout.maximumWidth: trainingDayPage.width - 20
 			}
 
 			RowLayout {
@@ -110,7 +116,7 @@ TPPage {
 
 			RowLayout {
 				visible: tDayManager.splitLetter !== "R"
-				Layout.fillWidth: true
+				Layout.maximumWidth: trainingDayPage.width - 20
 
 				TPLabel {
 					text: qsTr("Location:")
@@ -134,8 +140,9 @@ TPPage {
 				id: frmTrainingTime
 				visible: tDayManager.splitLetter !== "R"
 				enabled: tDayManager.timerActive ? false : tDayManager.dayIsEditable
-				height: 330
-				Layout.fillWidth: true
+				height: appSettings.pageHeight*0.4
+				Layout.maximumWidth: trainingDayPage.width - 20
+				Layout.minimumWidth: trainingDayPage.width - 20
 
 				background: Rectangle {
 					border.color: appSettings.fontColor

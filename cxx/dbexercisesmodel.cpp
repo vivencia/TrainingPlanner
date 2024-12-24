@@ -221,35 +221,6 @@ void DBExercisesModel::search(const QString& search_term)
 	}
 }
 
-void DBExercisesModel::makeFilterString(const QString& text)
-{
-	m_filterString = text;
-	m_filterString = m_filterString.replace(',', ' ').simplified();
-	const QStringList& words(m_filterString.split(' '));
-
-	if (words.count() > 0)
-	{
-		QStringList::const_iterator itr(words.begin());
-		const QStringList::const_iterator& itr_end(words.end());
-		m_filterString.clear();
-
-		do
-		{
-			if((*itr).length() < 3)
-				continue;
-			if (!m_filterString.isEmpty())
-				m_filterString.append('|');
-			m_filterString.append((*itr).toLower());
-			if (m_filterString.endsWith('s', Qt::CaseInsensitive) )
-				m_filterString.chop(1);
-			m_filterString.remove('.');
-			m_filterString.remove('(');
-			m_filterString.remove(')');
-		} while (++itr != itr_end);
-	}
-}
-
-
 void DBExercisesModel::clearSelectedEntries()
 {
 	for (uint i(0); i < m_selectedEntries.count(); ++i)

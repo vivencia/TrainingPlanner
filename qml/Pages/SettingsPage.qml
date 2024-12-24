@@ -268,6 +268,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 0;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 0; });
 				}
 
 				TPColorRectangle {
@@ -288,6 +289,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 1;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 1; });
 				}
 
 				TPColorRectangle {
@@ -308,6 +310,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 2;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 2; });
 				}
 
 				TPColorRectangle {
@@ -328,6 +331,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 3;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 3; });
 				}
 
 				TPColorRectangle {
@@ -348,6 +352,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 4;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 4; });
 				}
 
 				TPColorRectangle {
@@ -368,6 +373,7 @@ TPPage {
 					Layout.fillWidth: true
 
 					onClicked: appSettings.colorScheme = 5;
+					Component.onCompleted: appSettings.colorChanged.connect(function() { checked = appSettings.colorScheme === 5; });
 				}
 
 				TPColorRectangle {

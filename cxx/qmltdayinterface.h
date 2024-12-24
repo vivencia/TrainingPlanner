@@ -67,6 +67,7 @@ public:
 
 	inline QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString& = QString());
+	Q_INVOKABLE QString muscularGroup() const;
 
 	inline QString lastWorkOutLocation() const { return m_lastWorkOutLocation; }
 	void setLastWorkOutLocation(const QString& new_value);

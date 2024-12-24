@@ -32,7 +32,8 @@ TPPage {
 		TPLabel {
 			text: qsTr("Training Organizer")
 			font: AppGlobals.extraLargeFont
-			singleLine: true
+			width: parent.width - imgAppIcon.width - 15
+			height: parent.height
 
 			anchors {
 				top: parent.top
@@ -284,7 +285,7 @@ TPPage {
 				id: mesoContent
 				spacing: 2
 
-				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx ? "black" : appSettings.fontColor
+				readonly property string fntColor: index === mesocyclesModel.currentMesoIdx ? appSettings.fontColor : appSettings.disabledFontColor
 
 				TPLabel {
 					text: mesoName

@@ -17,6 +17,16 @@ Column {
 		parentDlg.dialogOpened.connect(resize);
 	}
 
+	Connections {
+        target: parentDlg
+        function onCustomIntProperty1Changed() {
+			optMesoPlan.checked = parentDlg.customIntProperty1 === 1;
+			optPreviousDay.checked = parentDlg.customIntProperty1 === 2;
+			optLoadFromFile.checked = parentDlg.customIntProperty1 === 3;
+			optEmptySession.checked = parentDlg.customIntProperty1 === 4;
+        }
+    }
+
 	TPRadioButton {
 		id: optMesoPlan
 		text: qsTr("Use the standard exercises plan for the division ") + parentDlg.customStringProperty2 + qsTr(" of the Mesocycle")

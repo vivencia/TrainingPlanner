@@ -16,6 +16,12 @@ Label {
 	height: _preferredHeight
 	verticalAlignment: Text.AlignVCenter
 
+	/*Rectangle {
+		border.color: "black"
+		color: "transparent"
+		anchors.fill: parent
+	}*/
+
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
 	property int heightAvailable: 25
@@ -55,7 +61,7 @@ Label {
 		}
 
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
-		singleLine = hasNewLineEscapeChr ? false : (wrapMode === Text.NoWrap ? true : width > _textWidth);
+		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;
 		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 1);
 		if (_textWidth > control.width)
 		{

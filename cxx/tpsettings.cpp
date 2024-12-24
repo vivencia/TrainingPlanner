@@ -117,9 +117,9 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 		break;
 		case 5: //Light
 			paneBackColor = std::move("#ffffff"_L1);
-			entrySelColor = std::move("#bbefff"_L1);
-			fntColor = std::move("000000"_L1);
-			disabledfntColor = std::move("b9b9b9"_L1);
+			entrySelColor = std::move("#e6f5ff"_L1);
+			fntColor = std::move("#1a28e7"_L1);
+			disabledfntColor = std::move("#bdcae6"_L1);
 			strIconFolder = std::move("black/"_L1);
 		break;
 	}
@@ -162,7 +162,7 @@ QString TPSettings::lightColorForScheme(const uint scheme) const
 		case 2: return std::move("#ebafc7"_L1); break;
 		case 3: return std::move("#f3f3f3"_L1); break;
 		case 4: return std::move("#d7e2de"_L1); break;
-		default: return std::move("#f9f9f9"_L1); break;
+		default: return std::move("#ffffff"_L1); break;
 	}
 }
 
@@ -175,7 +175,7 @@ QString TPSettings::darkColorForScheme(const uint scheme) const
 		case 2: return std::move("#fd1c20"_L1); break;
 		case 3: return std::move("#c1c1c1"_L1); break;
 		case 4: return std::move("#000000"_L1); break;
-		default: return std::move("#c7cfc6"_L1); break;
+		default: return std::move("#d7d7da"_L1); break;
 	}
 }
 

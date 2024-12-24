@@ -60,10 +60,10 @@ Column {
 		TPLabel {
 			text: qsTr("Search: ")
 			width: parent.width*0.3
+			height: 25
 
 			anchors {
 				left: parent.left
-				leftMargin: 5
 				verticalCenter: parent.verticalCenter
 			}
 		}
@@ -177,7 +177,7 @@ Column {
 				fontSizeMode: Text.Fit
 				leftPadding: 5
 				rightPadding: 5
-				topPadding: -5
+				topPadding: 0
 				bottomPadding: 2
 			}
 

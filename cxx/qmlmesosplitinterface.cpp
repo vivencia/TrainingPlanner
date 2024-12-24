@@ -86,7 +86,6 @@ void QmlMesoSplitInterface::changeMuscularGroup(const QString& new_musculargroup
 	splitModel->setMuscularGroup(new_musculargroup);
 	appMesoModel()->setMuscularGroup(m_mesoIdx, splitModel->_splitLetter(), new_musculargroup, false);
 	setSplitPageProperties(m_splitPages.value(splitModel->_splitLetter()), splitModel);
-	appExercisesModel()->makeFilterString(new_musculargroup);
 }
 
 void QmlMesoSplitInterface::moveRow(const uint from, const uint to, DBMesoSplitModel* splitModel)

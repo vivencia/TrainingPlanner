@@ -91,17 +91,14 @@ void QmlTDayInterface::setTimeOut(const QString& new_value, const bool bFromQml)
 void QmlTDayInterface::setHeaderText(const QString&)
 {
 	const bool bRestDay(splitLetter() == "R"_L1);
-	QString strWhatToTrain;
-	if (!bRestDay)
-	{
-		appExercisesModel()->makeFilterString(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
-		strWhatToTrain = std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + "</b><br><b>"_L1 +
-			std::move(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter())) + "</b>"_L1);
-	}
-	else
-		strWhatToTrain = std::move(tr("Rest day"));
+	const QString& strWhatToTrain{!bRestDay ? std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + "</b>"_L1) : std::move(tr("Rest day"))};
 	m_headerText = std::move("<b>"_L1 + appUtils()->formatDate(m_tDayModel->date()) + "</b><br>"_L1 + strWhatToTrain);
 	emit headerTextChanged();
+}
+
+QString QmlTDayInterface::muscularGroup() const
+{
+	return std::move(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
 }
 
 void QmlTDayInterface::setLastWorkOutLocation(const QString& new_value)

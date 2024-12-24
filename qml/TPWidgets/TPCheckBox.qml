@@ -21,7 +21,7 @@ Item {
 		implicitHeight: 20
 		radius: 4
 		color: "transparent"
-		border.color: control.enabled ? textColor : "darkgray"
+		border.color: control.enabled ? textColor : appSettings.disabledFontColor
 
 		anchors {
 			left: parent.left
@@ -35,7 +35,7 @@ Item {
 			x: 5
 			y: 5
 			radius: 2
-			color: control.enabled ? textColor : "darkgray"
+			border.color: control.enabled ? textColor : appSettings.disabledFontColor
 			visible: control.checked
 		}
 	}

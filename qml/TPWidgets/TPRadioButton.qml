@@ -27,7 +27,7 @@ Item {
 		implicitHeight: 20
 		radius: 10
 		color: "transparent"
-		border.color: control.enabled ? textColor : "darkgray"
+		border.color: control.enabled ? textColor : appSettings.disabledFontColor
 
 		anchors {
 			left: parent.left
@@ -41,7 +41,7 @@ Item {
 			x: 3
 			y: 3
 			radius: 7
-			color: control.enabled ? textColor : "darkgray"
+			border.color: control.enabled ? textColor : appSettings.disabledFontColor
 			visible: control.checked
 		}
 	}
@@ -61,15 +61,6 @@ Item {
 			leftMargin: 5
 			right: parent.right
 		}
-
-		/*Component.onCompleted: {
-			if (!multiLine)
-			{
-				adjustTextSize();
-				if (_textWidth > control.width)
-					wrapMode = Text.WordWrap;
-			}
-		}*/
 	}
 
 	TPImage {

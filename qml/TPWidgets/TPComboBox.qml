@@ -30,9 +30,7 @@ ComboBox {
 		contentItem: TPLabel {
 			text: model.text
 			enabled: model.enabled
-			lineCount: 1
-			widthAvailable: control.width
-			verticalAlignment: Text.AlignVCenter
+			//widthAvailable: control.width
 			leftPadding: completeModel ? 30 : 5
 
 			TPImage {
@@ -81,9 +79,7 @@ ComboBox {
 
 	contentItem: TPLabel {
 		text: control.displayText
-		lineCount: 1
-		widthAvailable: control.width
-		verticalAlignment: Text.AlignVCenter
+		//widthAvailable: control.width
 		leftPadding: completeModel ? 30 : 5
 	}
 
