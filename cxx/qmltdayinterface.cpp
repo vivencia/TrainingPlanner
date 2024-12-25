@@ -49,6 +49,8 @@ void QmlTDayInterface::setSplitLetter(const QString& new_value, const bool bFrom
 	{
 		if (m_splitLetter != new_value)
 		{
+			if (m_splitLetter == "R"_L1)
+				setDayIsEditable(false);
 			m_splitLetter = new_value;
 			if (bDontConfirm || !appSettings()->alwaysAskConfirmation())
 				adjustCalendar(m_splitLetter, true);
@@ -94,11 +96,6 @@ void QmlTDayInterface::setHeaderText(const QString&)
 	const QString& strWhatToTrain{!bRestDay ? std::move(tr("Workout number: <b>") + m_tDayModel->trainingDay() + "</b>"_L1) : std::move(tr("Rest day"))};
 	m_headerText = std::move("<b>"_L1 + appUtils()->formatDate(m_tDayModel->date()) + "</b><br>"_L1 + strWhatToTrain);
 	emit headerTextChanged();
-}
-
-QString QmlTDayInterface::muscularGroup() const
-{
-	return std::move(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
 }
 
 void QmlTDayInterface::setLastWorkOutLocation(const QString& new_value)
@@ -544,17 +541,17 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
-			setMainDateIsToday(m_Date == QDate::currentDate());
+			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
+
 			setEditMode(false);
-			setDayIsFinished(false, false);
+			setDayIsFinished(bFinished, false);
+			setDayIsEditable(false);
 			setHasMesoPlan(false);
 			setHasPreviousTDays(false);
+			setMainDateIsToday(m_Date == QDate::currentDate());
 			setNeedActivation(false);
 			setTimerActive(false);
 			setHasExercises(false);
-
-			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
-			setDayIsFinished(bFinished, false);
 			setTimeOut(bFinished ? m_tDayModel->timeOut() : "--:--"_L1, false);
 			setDayNotes(m_tDayModel->dayNotes(), false);
 			setTimeIn(m_tDayModel->timeIn().isEmpty() ? "--:--"_L1 : m_tDayModel->timeIn(), false);
@@ -584,6 +581,20 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		appDBInterface()->getTrainingDay(m_tDayModel);
 		QMetaObject::invokeMethod(m_tDayPage, "createNavButtons");
 	}
+	else
+	{
+		setEditMode(false);
+		setDayIsFinished(true, false);
+		setDayIsEditable(true);
+		setHasMesoPlan(false);
+		setHasPreviousTDays(false);
+		setMainDateIsToday(m_Date == QDate::currentDate());
+		setNeedActivation(false);
+		setTimerActive(false);
+		setHasExercises(false);
+		setTimeIn("--:--"_L1, false);
+		setTimeOut("--:--"_L1, false);
+	}
 
 	connect(appMesoModel()->mesoCalendarModel(m_mesoIdx), &DBMesoCalendarModel::calendarChanged, this, [this]
 																				(const QDate& startDate, const QDate& endDate) {
@@ -591,11 +602,12 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 			updateTDayPageWithNewCalendarInfo(startDate, endDate);
 	});
 
+	m_muscularGroup = std::move(appMesoModel()->muscularGroup(m_mesoIdx, _splitLetter()));
 	connect(appMesoModel(), &DBMesocyclesModel::muscularGroupChanged, this, [this] (const uint meso_idx, const int splitIndex, const QChar& chrSplitLetter) {
 		if (meso_idx == m_mesoIdx)
 		{
 			if (splitLetter().at(0) == chrSplitLetter)
-				setHeaderText();
+				emit this->muscularGroupChanged();
 		}
 	});
 

@@ -89,7 +89,7 @@ TPPage {
 			}
 
 			TPLabel {
-				text: tDayManager.muscularGroup()
+				text: tDayManager.muscularGroup
 				horizontalAlignment: Text.AlignHCenter
 				Layout.minimumWidth: trainingDayPage.width - 20
 				Layout.maximumWidth: trainingDayPage.width - 20
@@ -105,7 +105,7 @@ TPPage {
 				TPComboBox {
 					id: cboSplitLetter
 					model: AppGlobals.splitModel
-					enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
+					enabled: tDayManager.timerActive ? false : tDayManager.dayIsEditable
 					Layout.maximumWidth: 100
 
 					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(tDayManager.splitLetter); });

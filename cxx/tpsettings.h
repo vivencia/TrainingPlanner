@@ -16,26 +16,25 @@
 #define LISTS_COLOR_2_INDEX 9
 #define FONT_COLOR_INDEX 10
 #define DISABLED_FONT_COLOR_INDEX 11
-#define ICON_FOLDER_INDEX 12
-#define WEIGHT_UNIT_INDEX 13
-#define EXERCISES_VERSION_INDEX 14
+#define WEIGHT_UNIT_INDEX 12
+#define EXERCISES_VERSION_INDEX 13
 
-#define MESO_IDX_INDEX 15
-#define WINDOW_WIDTH_INDEX 16
-#define WINDOW_HEIGHT_INDEX 17
-#define PAGE_WIDTH_INDEX 18
-#define PAGE_HEIGHT_INDEX 19
-#define HEIGHT_TO_WIDTH_RATIO_INDEX 20
-#define FONT_SIZE_INDEX 21
-#define SMALLFONT_SIZE_INDEX 22
-#define LARGEFONT_SIZE_INDEX 23
-#define EXTRALARGEFONT_SIZE_INDEX 24
-#define COLOR_SCHEME_INDEX 25
+#define MESO_IDX_INDEX 14
+#define WINDOW_WIDTH_INDEX 15
+#define WINDOW_HEIGHT_INDEX 16
+#define PAGE_WIDTH_INDEX 17
+#define PAGE_HEIGHT_INDEX 18
+#define HEIGHT_TO_WIDTH_RATIO_INDEX 19
+#define FONT_SIZE_INDEX 20
+#define SMALLFONT_SIZE_INDEX 21
+#define LARGEFONT_SIZE_INDEX 22
+#define EXTRALARGEFONT_SIZE_INDEX 23
+#define COLOR_SCHEME_INDEX 24
 
-#define ASK_CONFIRMATION_INDEX 26
-#define USER_INDEX 27
+#define ASK_CONFIRMATION_INDEX 25
+#define USER_INDEX 26
 
-#define WEATHER_CITIES_INDEX 28
+#define WEATHER_CITIES_INDEX 27
 
 #define SETTINGS_FIELD_COUNT WEATHER_CITIES_INDEX + 1
 
@@ -68,7 +67,6 @@ Q_PROPERTY(QString listEntryColor1 READ listEntryColor1 NOTIFY colorChanged)
 Q_PROPERTY(QString listEntryColor2 READ listEntryColor2 NOTIFY colorChanged)
 Q_PROPERTY(QString fontColor READ fontColor NOTIFY colorChanged)
 Q_PROPERTY(QString disabledFontColor READ disabledFontColor NOTIFY colorChanged)
-Q_PROPERTY(QString iconFolder READ iconFolder NOTIFY colorChanged)
 Q_PROPERTY(QString weightUnit READ weightUnit WRITE setWeightUnit NOTIFY weightUnitChanged)
 
 Q_PROPERTY(int lastViewedMesoIdx READ lastViewedMesoIdx WRITE setLastViewedMesoIdx NOTIFY lastViewedMesoIdxChanged)
@@ -105,7 +103,6 @@ public:
 	inline QString listEntryColor2() const { return m_defaultValues.at(LISTS_COLOR_2_INDEX); }
 	inline QString fontColor() const { return m_defaultValues.at(FONT_COLOR_INDEX); }
 	inline QString disabledFontColor() const { return m_defaultValues.at(DISABLED_FONT_COLOR_INDEX); }
-	inline QString iconFolder() const { return m_defaultValues.at(ICON_FOLDER_INDEX); }
 
 	Q_INVOKABLE QString colorForScheme(const uint scheme) const;
 	Q_INVOKABLE QString lightColorForScheme(const uint scheme) const;

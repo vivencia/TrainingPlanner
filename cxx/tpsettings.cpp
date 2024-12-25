@@ -83,7 +83,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	QString colorLight, color, colorDark, paneBackColor, entrySelColor;
 	QString fntColor{std::move("#ffffff"_L1)};
 	QString disabledfntColor{std::move("#dcdcdc"_L1)};
-	QString strIconFolder{std::move("white/"_L1)};
 
 	color = std::move(colorForScheme(new_value));
 	colorLight = std::move(lightColorForScheme(new_value));
@@ -108,7 +107,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 			entrySelColor = std::move("#65696c"_L1);
 			fntColor = std::move("000000"_L1);
 			disabledfntColor = std::move("a8a8a8"_L1);
-			strIconFolder = std::move("black/"_L1);
 		break;
 		case 4: //Dark
 			paneBackColor = std::move("#3e3d48"_L1);
@@ -120,7 +118,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 			entrySelColor = std::move("#e6f5ff"_L1);
 			fntColor = std::move("#1a28e7"_L1);
 			disabledfntColor = std::move("#bdcae6"_L1);
-			strIconFolder = std::move("black/"_L1);
 		break;
 	}
 
@@ -134,7 +131,6 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#c3cad5"_L1);
 	m_defaultValues[FONT_COLOR_INDEX] = std::move(fntColor);
 	m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move(disabledfntColor);
-	m_defaultValues[ICON_FOLDER_INDEX] = std::move(strIconFolder);
 
 	changeValue(COLOR_SCHEME_INDEX, new_value);
 	emit colorChanged();

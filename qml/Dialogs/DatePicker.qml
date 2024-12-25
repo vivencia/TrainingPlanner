@@ -107,7 +107,7 @@ Rectangle {
 
 			function filterInput(): void {
 				yearsModel.clear();
-				var topYear, bottomYear;
+				let topYear, bottomYear;
 				yearOK = false;
 				switch (text.length) {
 					case 1: bottomYear = parseInt(text) * 1000; topYear = bottomYear + 999; break;
@@ -116,7 +116,7 @@ Rectangle {
 					case 4: bottomYear = topYear = parseInt(text); yearOK = true; break;
 					default: bottomYear = val.bottom; topYear = val.top; break;
 				}
-				for (var year = val.bottom; year <= val.top; year++) {
+				for (let year = val.bottom; year <= val.top; year++) {
 					if (year >= bottomYear && year <= topYear)
 						yearsModel.append({name: year});
 				}
@@ -245,7 +245,7 @@ Rectangle {
 						font.bold: true
 						scale: highlighted ? 1.25 : 1
 						Behavior on scale { NumberAnimation { duration: 150 } }
-						color: todayDate ? "red" : parent.highlighted ? "black" : monthGrid.month === model.month ? "white" : "gray"
+						color: todayDate ? "red" : parent.highlighted ? "green" : monthGrid.month === model.month ? appSettings.fontColor : appSettings.disabledFontColor
 						anchors.centerIn: parent
 					}
 					MouseArea {

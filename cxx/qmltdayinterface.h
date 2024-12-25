@@ -26,6 +26,7 @@ Q_PROPERTY(QString splitLetter READ splitLetter WRITE setSplitLetter NOTIFY spli
 Q_PROPERTY(QString timeIn READ timeIn WRITE setTimeIn NOTIFY timeInChanged FINAL)
 Q_PROPERTY(QString timeOut READ timeOut WRITE setTimeOut NOTIFY timeOutChanged FINAL)
 Q_PROPERTY(QString headerText READ headerText WRITE setHeaderText NOTIFY headerTextChanged FINAL)
+Q_PROPERTY(QString muscularGroup READ muscularGroup NOTIFY muscularGroupChanged FINAL)
 Q_PROPERTY(QString lastWorkOutLocation READ lastWorkOutLocation WRITE setLastWorkOutLocation NOTIFY lastWorkOutLocationChanged FINAL)
 Q_PROPERTY(QString dayNotes READ dayNotes WRITE setDayNotes NOTIFY dayNotesChanged FINAL)
 Q_PROPERTY(bool editMode READ editMode WRITE setEditMode NOTIFY editModeChanged FINAL)
@@ -67,7 +68,7 @@ public:
 
 	inline QString headerText() const { return m_headerText; }
 	void setHeaderText(const QString& = QString());
-	Q_INVOKABLE QString muscularGroup() const;
+	inline QString muscularGroup() const { return m_muscularGroup; }
 
 	inline QString lastWorkOutLocation() const { return m_lastWorkOutLocation; }
 	void setLastWorkOutLocation(const QString& new_value);
@@ -147,6 +148,7 @@ signals:
 	void timeInChanged();
 	void timeOutChanged();
 	void headerTextChanged();
+	void muscularGroupChanged();
 	void lastWorkOutLocationChanged();
 	void dayNotesChanged();
 	void editModeChanged();
@@ -186,7 +188,7 @@ private:
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_hour, m_min, m_sec;
-	QString m_splitLetter, m_timeIn, m_timeOut, m_headerText, m_lastWorkOutLocation, m_dayNotes;
+	QString m_splitLetter, m_timeIn, m_timeOut, m_headerText, m_muscularGroup, m_lastWorkOutLocation, m_dayNotes;
 	bool m_bEditMode, m_bDayIsFinished, m_bDayIsEditable, m_bHasPreviousTDays, m_bHasMesoPlan, m_bMainDateIsToday, m_bNeedActivation,
 			m_bTimerActive, m_bHasExercises;
 	QStringList m_previousTDays;

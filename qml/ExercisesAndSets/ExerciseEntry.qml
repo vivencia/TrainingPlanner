@@ -99,7 +99,7 @@ FocusScope {
 
 				TPButton {
 					id: btnFoldIcon
-					imageSource: showSets ? "black/fold-up" : "black/fold-down"
+					imageSource: showSets ? "fold-up" : "fold-down"
 					hasDropShadow: false
 					imageSize: 18
 					Layout.preferredWidth: 18

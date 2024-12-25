@@ -166,6 +166,7 @@ TPPage {
 
 					anchors {
 						left: parent.right
+						leftMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -184,7 +185,7 @@ TPPage {
 
 			Row {
 				visible: mesoManager.ownerIsCoach && !mesoManager.ownMeso
-				spacing: 0
+				spacing: 5
 				Layout.fillWidth: true
 
 				TPLabel {
@@ -300,6 +301,7 @@ TPPage {
 
 					anchors {
 						left: parent.right
+						leftMargin: 5
 						verticalCenter: parent.verticalCenter
 					}
 
@@ -507,9 +509,19 @@ TPPage {
 				TextArea {
 					id: txtMesoNotes
 					text: mesoManager.notes
-					color: appSettings.fontColor
-					textMargin: 0
+					font.pixelSize: appSettings.fontSize
+					font.bold: true
+					topPadding: appSettings.fontSize
+					leftPadding: 5
+					rightPadding: 5
+					bottomPadding: 5
 					height: 50
+
+					background: Rectangle {
+						color: "white"
+						radius: 6
+						border.color: appSettings.fontColor
+					}
 
 					onEditingFinished: mesoManager.notes = text;
 					onActiveFocusChanged: cursorPosition = activeFocus ? length : 0;

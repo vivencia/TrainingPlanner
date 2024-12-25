@@ -29,14 +29,7 @@ Item {
 
 	TPButton {
 		id: button
-		imageSource: {
-			let strColor = control.foreColor
-			if (strColor === appSettings.fontColor)
-				strColor = appSettings.iconFolder;
-			else
-				strColor = strColor + '/';
-			return strColor + (setNotesArea.visible ? "fold-up" : "fold-down")
-		}
+		imageSource: setNotesArea.visible ? "fold-up.png" : "fold-down.png"
 		hasDropShadow: false
 		width: 20
 		height: 20
@@ -59,12 +52,12 @@ Item {
 
 	ScrollView {
 		id: setNotesArea
-		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		contentWidth: availableWidth
 		visible: false
 		height: visible ? appSettings.pageHeight*0.15 : 0
 		width: control.width - 20
+		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
+		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
 		TextArea {
 			id: txtNotes

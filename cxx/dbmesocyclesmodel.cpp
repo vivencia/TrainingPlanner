@@ -219,7 +219,7 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar& splitLetter) const
 {
-	return m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter));
+	return splitLetter != 'R' ? m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) : QString();
 }
 
 QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_week) const

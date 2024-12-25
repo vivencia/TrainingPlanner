@@ -17,7 +17,7 @@ TPPopup {
 
 	TPImage {
 		id: importImg
-		source: appSettings.iconFolder+"mesocycle.png"
+		source: "mesocycle.png"
 		width: 50
 		height: 50
 

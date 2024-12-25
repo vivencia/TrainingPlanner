@@ -28,7 +28,7 @@ TPPopup {
 
 	TPImage {
 		id: importImg
-		source: appSettings.iconFolder+"import.png"
+		source: "import.png"
 		width: 50
 		height: 50
 
