@@ -21,7 +21,7 @@ public:
 	explicit TPImage(QQuickItem* parent = nullptr);
 
 	inline QString source() const { return mSource; }
-	void setSource(const QString& source);
+	void setSource(const QString& source, const bool bForce = false);
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
 	inline int imgSize() const { return mSize.width(); }
@@ -46,11 +46,13 @@ private:
 	QSize mSize, mNominalSize;
 	bool mDropShadow;
 	bool mbCanUpdate;
+	bool mbCanColorize;
 
 	void scaleImage(const bool bCallUpdate);
 	void convertToGrayScale();
 	void createDropShadowImage();
 	void grayScale(QImage& dstImg, const QImage& srcImg);
+	void colorize(QImage& dstImg, const QImage& srcImg);
 	void applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphicsEffect* effect, const int extent = 0);
 };
 

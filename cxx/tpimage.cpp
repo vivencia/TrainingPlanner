@@ -1,7 +1,9 @@
 #include "tpimage.h"
 #include "tpimageprovider.h"
+#include "tpsettings.h"
 
 #include <QPainter>
+#include <QGraphicsColorizeEffect>
 #include <QGraphicsDropShadowEffect>
 #include <QGraphicsEffect>
 #include <QGraphicsScene>
@@ -12,21 +14,33 @@ using namespace Qt::Literals::StringLiterals;
 #define DROP_SHADOW_EXTENT 5
 
 TPImage::TPImage(QQuickItem* parent)
-	: QQuickPaintedItem{parent}, m_imageToPaint(nullptr), mDropShadow(true), mbCanUpdate(true)
+	: QQuickPaintedItem{parent}, m_imageToPaint(nullptr), mDropShadow(true), mbCanUpdate(true), mbCanColorize(false)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
 	connect(this, &QQuickItem::heightChanged, this, [&] () { maybeResize(); });
+	connect(appSettings(), &TPSettings::colorChanged, this, [&] () {
+		if (mbCanColorize)
+		{
+			colorize(mImage, mImage);
+			mbCanUpdate = true;
+			checkEnabled(true);
+		}
+	});
 }
 
-void TPImage::setSource(const QString& source)
+void TPImage::setSource(const QString& source, const bool bForce)
 {
-	if (!source.isEmpty() && mSource != source)
+	if (!source.isEmpty() && bForce ? true : mSource != source)
 	{
 		bool bIsSVG(false);
-		if (source.endsWith("png"_L1) || (bIsSVG = source.endsWith("svg"_L1)))
+		mbCanColorize = true;
+		if (source.endsWith("png"_L1))
+			mSource = std::move(":/images/flat/"_L1 + source);
+		else if ((bIsSVG = source.endsWith("svg"_L1)))
 			mSource = std::move(":/images/"_L1 + source);
 		else
 		{
+			mbCanColorize = false;
 			if (source.contains("provider"_L1))
 			{
 				mImage = tpImageProvider()->getAvatar(source);
@@ -46,6 +60,8 @@ void TPImage::setSource(const QString& source)
 		{
 			if (bIsSVG)
 				mDropShadow = false;
+			if (mbCanColorize)
+				colorize(mImage, mImage);
 			maybeResize(true);
 			emit sourceChanged();
 		}
@@ -173,11 +189,12 @@ void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphics
 	dstImg.reinterpretAsFormat(QImage::Format_ARGB32);
 	dstImg.fill(Qt::transparent);
 	QPainter ptr(&dstImg);
-	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()), QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
+	scene.render(&ptr, QRectF(-extent, -extent, dstImg.width(), dstImg.height()),
+							QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
 }
 
 void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
-{
+{		
 	dstImg = srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
 	const uint imgHeight(dstImg.height());
 	const uint imgWidth(dstImg.width());
@@ -192,6 +209,19 @@ void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
 			*scanLine = qRgba(ci, ci, ci, qAlpha(pixel)/3);
 			++scanLine;
 		}
+	}
+}
+
+void TPImage::colorize(QImage& dstImg, const QImage& srcImg)
+{
+	if (!srcImg.isNull())
+	{
+		mSize.setHeight(srcImg.height());
+		mSize.setWidth(srcImg.width());
+		const QColor color{appSettings()->fontColor()};
+		QGraphicsColorizeEffect* colorEffect{new QGraphicsColorizeEffect()};
+		colorEffect->setColor(color);
+		applyEffectToImage(dstImg, srcImg, colorEffect);
 	}
 }
 

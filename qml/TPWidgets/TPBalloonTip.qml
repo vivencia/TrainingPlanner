@@ -51,7 +51,7 @@ TPPopup {
 
 	TPImage {
 		id: imgElement
-		source: imageSource.indexOf("png") !== -1 ? appSettings.iconFolder+imageSource : imageSource
+		source: imageSource
 		visible: imageSource.length > 0
 		width: 50
 		height: 50

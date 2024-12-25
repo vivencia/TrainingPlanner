@@ -83,14 +83,14 @@ TPPage {
 				id: lblHeader
 				text: tDayManager.headerText
 				font: AppGlobals.largeFont
-				Layout.alignment: Qt.AlignCenter
+				horizontalAlignment: Text.AlignHCenter
 				Layout.minimumWidth: trainingDayPage.width - 20
 				Layout.maximumWidth: trainingDayPage.width - 20
 			}
 
 			TPLabel {
 				text: tDayManager.muscularGroup()
-				Layout.alignment: Qt.AlignCenter
+				horizontalAlignment: Text.AlignHCenter
 				Layout.minimumWidth: trainingDayPage.width - 20
 				Layout.maximumWidth: trainingDayPage.width - 20
 			}

@@ -40,8 +40,6 @@ TPPage {
 			TPButton {
 				id: btnGPS
 				text: weatherInfo.gpsCity
-
-				textColor: "white"
 				imageSource: "gps.png"
 				enabled: weatherInfo.canUseGps
 				width: scrollViewCities.width
@@ -87,11 +85,9 @@ TPPage {
 					width: parent.width
 					height: 25
 
-					contentItem: Text {
+					contentItem: TPLabel {
 						id: txtCity
 						text: appSettings.weatherCity(index)
-						font.pixelSize: appSettings.fontSize
-						fontSizeMode: Text.Fit
 						leftPadding: 5
 						bottomPadding: 2
 

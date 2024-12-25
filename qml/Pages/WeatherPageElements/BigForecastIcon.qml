@@ -22,7 +22,6 @@ Item {
 		text: current.topText
 		wrapMode: Text.WordWrap
 		font: AppGlobals.extraLargeFont
-		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		heightAvailable: 0.1*appSettings.pageHeight
 
@@ -78,7 +77,6 @@ Item {
 		id: text2
 		text: current.bottomText
 		font: AppGlobals.regularFont
-		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 		wrapMode: Text.WordWrap
 		width: parent.width
@@ -102,7 +100,6 @@ Item {
 	TPLabel {
 		id: text3
 		text: current.bottomBottomText
-		fontColor: "black"
 		horizontalAlignment: Text.AlignHCenter
 
 		anchors {

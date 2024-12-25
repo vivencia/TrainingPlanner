@@ -1,66 +1,11 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/black/time.png</file>
-        <file>images/black/work.png</file>
-        <file>images/black/back.png</file>
-        <file>images/black/edit-calendar.png</file>
-        <file>images/black/close.png</file>
-        <file>images/black/exercises-add.png</file>
-        <file>images/black/mesocycle-add.png</file>
-        <file>images/black/mesocycle.png</file>
-        <file>images/black/settings.png</file>
-        <file>images/white/back.png</file>
-        <file>images/white/edit-calendar.png</file>
-        <file>images/white/close.png</file>
-        <file>images/white/exercises-add.png</file>
-        <file>images/white/mesocycle-add.png</file>
-        <file>images/white/mesocycle.png</file>
-        <file>images/white/settings.png</file>
-        <file>images/black/fold-down.png</file>
-        <file>images/black/fold-up.png</file>
-        <file>images/white/fold-down.png</file>
-        <file>images/white/fold-up.png</file>
         <file>images/no_image.jpg</file>
-        <file>images/white/add-new.png</file>
-        <file>images/black/add-new.png</file>
-        <file>images/white/work.png</file>
-        <file>images/white/time.png</file>
-        <file>images/black/save-day.png</file>
-        <file>images/black/revert-day.png</file>
-        <file>images/white/revert-day.png</file>
-        <file>images/white/save-day.png</file>
-        <file>images/white/edit.png</file>
-        <file>images/black/edit.png</file>
-        <file>images/black/menu.png</file>
-        <file>images/white/menu.png</file>
         <file>extras/exerciseslist.lst</file>
         <file>sounds/timer-end.wav</file>
         <file>translations/tplanner.pt_BR.qm</file>
         <file>images/app_logo.png</file>
         <file>images/app_icon.png</file>
-        <file>images/white/open-schedule.png</file>
-        <file>images/black/open-schedule.png</file>
-        <file>images/white/edit-clear.png</file>
-        <file>images/black/sound-off.png</file>
-        <file>images/white/sound-off.png</file>
-        <file>images/black/clear.png</file>
-        <file>images/white/clear.png</file>
-        <file>images/black/home.png</file>
-        <file>images/white/home.png</file>
-        <file>images/black/swap.png</file>
-        <file>images/white/swap.png</file>
-        <file>images/black/application-exit.png</file>
-        <file>images/white/application-exit.png</file>
-        <file>images/black/export.png</file>
-        <file>images/white/export.png</file>
-        <file>images/black/import-export.png</file>
-        <file>images/black/import.png</file>
-        <file>images/white/import.png</file>
-        <file>images/white/import-export.png</file>
-        <file>images/black/reset.png</file>
-        <file>images/white/reset.png</file>
-        <file>images/white/next.png</file>
-        <file>images/black/next.png</file>
         <file>images/avatars.png</file>
         <file>images/youtube.png</file>
         <file>images/instagram.png</file>
@@ -73,30 +18,21 @@
         <file>images/prev.png</file>
         <file>images/telegram.png</file>
         <file>images/whatsapp.png</file>
-        <file>images/white/openurl.png</file>
-        <file>images/black/openurl.png</file>
         <file>images/email.png</file>
         <file>images/choose_avatar.png</file>
         <file>images/warning.png</file>
         <file>images/set-completed.png</file>
         <file>images/remove.png</file>
-        <file>images/add-new.png</file>
         <file>images/minus.png</file>
         <file>images/plus.png</file>
         <file>images/copy-setvalue.png</file>
         <file>images/backup-folder.png</file>
         <file>images/backup.png</file>
-        <file>images/black/meso-calendar.png</file>
-        <file>images/white/meso-calendar.png</file>
         <file>images/down.png</file>
         <file>images/up.png</file>
         <file>images/calendar.png</file>
         <file>images/timer.png</file>
         <file>images/mainmenu.png</file>
-        <file>images/black/workout.png</file>
-        <file>images/white/workout.png</file>
-        <file>images/white/meso-splitplanner.png</file>
-        <file>images/black/meso-splitplanner.png</file>
         <file>images/doc-icon.png</file>
         <file>images/choose-file.png</file>
         <file>images/pdf-icon.png</file>
@@ -124,15 +60,42 @@
         <file>images/weather/weather-fog.svg</file>
         <file>images/weather/weather-few-clouds.svg</file>
         <file>images/weather.png</file>
-        <file>images/white/gps.png</file>
-        <file>images/black/gps.png</file>
         <file>images/reload.png</file>
         <file>images/statistics.png</file>
-        <file>images/white/calendar.png</file>
-        <file>images/black/calendar.png</file>
-        <file>images/black/filter.png</file>
-        <file>images/white/filter.png</file>
-        <file>images/white/choose.png</file>
-        <file>images/black/choose.png</file>
+        <file>images/flat/add-new.png</file>
+        <file>images/flat/application-exit.png</file>
+        <file>images/flat/back.png</file>
+        <file>images/flat/calendar.png</file>
+        <file>images/flat/choose.png</file>
+        <file>images/flat/clear.png</file>
+        <file>images/flat/close.png</file>
+        <file>images/flat/edit-calendar.png</file>
+        <file>images/flat/edit.png</file>
+        <file>images/flat/exercises-add.png</file>
+        <file>images/flat/export.png</file>
+        <file>images/flat/filter.png</file>
+        <file>images/flat/fold-down.png</file>
+        <file>images/flat/fold-up.png</file>
+        <file>images/flat/gps.png</file>
+        <file>images/flat/home.png</file>
+        <file>images/flat/import-export.png</file>
+        <file>images/flat/import.png</file>
+        <file>images/flat/menu.png</file>
+        <file>images/flat/meso-calendar.png</file>
+        <file>images/flat/meso-splitplanner.png</file>
+        <file>images/flat/mesocycle-add.png</file>
+        <file>images/flat/mesocycle.png</file>
+        <file>images/flat/next.png</file>
+        <file>images/flat/open-schedule.png</file>
+        <file>images/flat/openurl.png</file>
+        <file>images/flat/reset.png</file>
+        <file>images/flat/revert-day.png</file>
+        <file>images/flat/save-day.png</file>
+        <file>images/flat/settings.png</file>
+        <file>images/flat/sound-off.png</file>
+        <file>images/flat/swap.png</file>
+        <file>images/flat/time.png</file>
+        <file>images/flat/work.png</file>
+        <file>images/flat/workout.png</file>
     </qresource>
 </RCC>

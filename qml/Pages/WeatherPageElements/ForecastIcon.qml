@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import "../../TPWidgets"
+import "../.."
 
 Item {
     id: top
@@ -12,16 +14,15 @@ Item {
 
     implicitHeight: dayText.implicitHeight + icon.height + tempText.implicitHeight + 20
 
-    Text {
+    TPLabel {
         id: dayText
-        horizontalAlignment: Text.AlignHCenter
-        width: parent.width
         text: top.topText
-        font.pixelSize: 16
+        font.pointSize: 16
+        width: parent.width
 
         anchors {
 			top: parent.top
-			margins: 5
+			margins: 20
 			horizontalCenter: parent.horizontalCenter
 		}
     }
@@ -34,20 +35,20 @@ Item {
 
         anchors {
 			top: dayText.bottom
+			margins: 20
 			horizontalCenter: parent.horizontalCenter
 		}
     }
 
-    Text {
+    TPLabel {
         id: tempText
         text: top.bottomText
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: 18
+        font.pointSize: 18
         width: top.width
 
         anchors {
 			bottom: parent.bottom
-			bottomMargin: 10
+			margins: 20
 			horizontalCenter: parent.horizontalCenter
 		}
     }

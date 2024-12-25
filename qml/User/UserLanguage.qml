@@ -17,7 +17,7 @@ ColumnLayout {
 	TPRadioButton {
 		id: optEn
 		text: "Application Language: English"
-		image: "us.png"
+		image: "us"
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "en_US"
@@ -33,7 +33,7 @@ ColumnLayout {
 	TPRadioButton {
 		id: optBr
 		text: "Linguagem do aplicativo: Português do Brasil"
-		image: "brazil.png"
+		image: "brazil"
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "pt_BR"
@@ -48,7 +48,7 @@ ColumnLayout {
 	TPRadioButton {
 		id: optDe
 		text: "Sprache des Apps: Deutsch von Deutschland"
-		image: "deutschland.png"
+		image: "deutschland"
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "de_DE"

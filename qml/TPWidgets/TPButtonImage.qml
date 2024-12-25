@@ -4,7 +4,7 @@ import "../"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPImage {
-	source: imageSource.indexOf("png") !== -1 ? appSettings.iconFolder+imageSource : imageSource
+	source: imageSource
 	opacity: parent.opacity
 	enabled: parent.checkable ? !parent.checked : parent.enabled
 
