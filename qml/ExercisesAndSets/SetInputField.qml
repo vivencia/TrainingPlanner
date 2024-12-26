@@ -21,9 +21,9 @@ FocusScope {
 	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
 	property bool bClearInput: true
 	property color borderColor: appSettings.fontColor
-	property color labelColor: "black"
+	property color labelColor: appSettings.fontColor
 	property color inputColor: appSettings.fontColor
-	property color backColor: "white"
+	property color backColor: appSettings.paneBackgroundColor
 
 	readonly property var validatorType: [val_weigth, val_rep, val_time, val_set]
 	readonly property var maxLen: [5,4,5,1]

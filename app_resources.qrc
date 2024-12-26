@@ -28,8 +28,6 @@
         <file>images/copy-setvalue.png</file>
         <file>images/backup-folder.png</file>
         <file>images/backup.png</file>
-        <file>images/down.png</file>
-        <file>images/up.png</file>
         <file>images/calendar.png</file>
         <file>images/timer.png</file>
         <file>images/mainmenu.png</file>
@@ -97,5 +95,8 @@
         <file>images/flat/time.png</file>
         <file>images/flat/work.png</file>
         <file>images/flat/workout.png</file>
+        <file>images/flat/down.png</file>
+        <file>images/flat/up.png</file>
+        <file>images/add-new.png</file>
     </qresource>
 </RCC>

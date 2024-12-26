@@ -41,7 +41,6 @@ Q_PROPERTY(QString notes READ notes WRITE setNotes NOTIFY notesChanged FINAL)
 Q_PROPERTY(bool isEditable READ isEditable WRITE setIsEditable NOTIFY isEditableChanged FINAL)
 Q_PROPERTY(bool completed READ completed WRITE setCompleted NOTIFY completedChanged FINAL)
 Q_PROPERTY(bool lastSet READ lastSet WRITE setLastSet NOTIFY lastSetChanged FINAL)
-Q_PROPERTY(bool finishButtonEnabled READ finishButtonEnabled WRITE setFinishButtonEnabled NOTIFY finishButtonEnabledChanged FINAL)
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool current READ current WRITE setCurrent NOTIFY currentChanged FINAL)
@@ -52,7 +51,7 @@ public:
 	inline explicit QmlSetEntry(QObject* parent, QmlExerciseEntry* parentExercise, DBTrainingDayModel* tDayModel, const uint exercise_idx)
 		: QObject{parent}, m_parentExercise(parentExercise), m_tDayModel(tDayModel), m_exercise_idx(exercise_idx), m_setEntry(nullptr),
 		m_type(9999), m_number(9999), m_mode(9999), m_nsubsets(9999),
-		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bFinishButtonEnabled(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
+		m_bEditable(false), m_bCompleted(false), m_bLastSet(false), m_bTrackRestTime(false), m_bAutoRestTime(false),
 		m_bCurrent(false), m_bHasSubSets(false), m_bIsManuallyModified(false) {}
 
 	inline const uint exerciseIdx() const { return m_exercise_idx; }
@@ -139,9 +138,6 @@ public:
 	inline const bool lastSet() const { return m_bLastSet; }
 	inline void setLastSet(const bool new_value) { if (m_bLastSet != new_value) { m_bLastSet = new_value; emit lastSetChanged(); } }
 
-	inline const bool finishButtonEnabled () const { return m_bFinishButtonEnabled; }
-	inline void setFinishButtonEnabled(const bool new_value) { if (m_bFinishButtonEnabled != new_value) { m_bFinishButtonEnabled = new_value; emit finishButtonEnabledChanged(); } }
-
 	inline const bool trackRestTime() const { return m_bTrackRestTime; }
 	inline void setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; emit trackRestTimeChanged(); }
 
@@ -170,7 +166,6 @@ public:
 	inline void _setEditable(const bool new_value) { m_bEditable = new_value; }
 	inline void _setCompleted(const bool new_value) { m_bCompleted = new_value; }
 	inline void _setLastSet(const bool new_value) { m_bLastSet = new_value; }
-	inline void _setFinishButtonEnabled(const bool new_value) { m_bFinishButtonEnabled = new_value; }
 	inline void _setTrackRestTime(const bool new_value) { m_bTrackRestTime = new_value; }
 	inline void _setAutoRestTime(const bool new_value) { m_bAutoRestTime = new_value; }
 	inline void _setCurrent(const bool new_value) { m_bCurrent = new_value; }
@@ -200,7 +195,6 @@ signals:
 	void isEditableChanged();
 	void completedChanged();
 	void lastSetChanged();
-	void finishButtonEnabledChanged();
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void currentChanged();
@@ -215,7 +209,7 @@ private:
 	QQuickItem* m_setEntry;
 	QString m_exerciseName, m_restTime, m_reps, m_weight, m_subsets, m_notes;
 	uint m_type, m_number, m_mode, m_nsubsets;
-	bool m_bEditable, m_bCompleted, m_bLastSet, m_bFinishButtonEnabled, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets, m_bIsManuallyModified;
+	bool m_bEditable, m_bCompleted, m_bLastSet, m_bTrackRestTime, m_bAutoRestTime, m_bCurrent, m_bHasSubSets, m_bIsManuallyModified;
 };
 
 #endif // QMLSETENTRY_H

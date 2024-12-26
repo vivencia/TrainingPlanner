@@ -62,6 +62,9 @@ Rectangle {
 		onTriggered: fillPosition = 1;
 	}
 
+	//implicitHeight for layouts, height for other circumstances
+	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
+	//the property fixedSize must be set to true
 	onWidthChanged: {
 		if (!fixedSize && text.length > 0) {
 			const fwidth = buttonText._textWidth;
@@ -72,7 +75,7 @@ Rectangle {
 				buttonText.lineCount = Math.ceil(fwidth/width) + 1;
 				buttonText.height = buttonText.lineCount * buttonText._textHeight;
 				if (buttonText.height > height)
-					height = 10 + (textUnderIcon ? buttonText.height + imageSize : buttonText.height);
+					implicitHeight = height = 10 + (textUnderIcon ? buttonText.height + imageSize : buttonText.height);
 			}
 		}
 	}

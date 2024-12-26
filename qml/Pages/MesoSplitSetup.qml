@@ -287,7 +287,6 @@ Pane {
 
 		filterDlg.initialGroups = label.text;
 		filterDlg.muscularGroupCreated.connect(setLabelText);
-		filterDlg.show2(button, 3);
-
+		filterDlg.show(button, 3);
 	}
 } //Pane

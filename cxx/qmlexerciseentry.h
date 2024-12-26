@@ -33,6 +33,7 @@ Q_PROPERTY(bool compositeExercise READ compositeExercise WRITE setCompositeExerc
 Q_PROPERTY(bool trackRestTime READ trackRestTime WRITE setTrackRestTime NOTIFY trackRestTimeChanged FINAL)
 Q_PROPERTY(bool autoRestTime READ autoRestTime WRITE setAutoRestTime NOTIFY autoRestTimeChanged FINAL)
 Q_PROPERTY(bool canEditRestTimeTracking READ canEditRestTimeTracking WRITE setCanEditRestTimeTracking NOTIFY canEditRestTimeTrackingChanged FINAL)
+Q_PROPERTY(bool allSetsCompleted READ allSetsCompleted WRITE setAllSetsCompleted NOTIFY allSetsCompletedChanged FINAL)
 
 public:
 	inline explicit QmlExerciseEntry(QObject* parent, QmlTDayInterface* tDayPage, DBTrainingDayModel* tDayModel, const uint exercise_idx)
@@ -102,8 +103,8 @@ public:
 	inline const bool canEditRestTimeTracking() const { return m_bCanEditRestTimeTracking; }
 	inline void setCanEditRestTimeTracking(const bool new_value) { m_bCanEditRestTimeTracking = new_value; emit canEditRestTimeTrackingChanged(); }
 
-	inline const bool isCompleted() const { return m_bIsCompleted; }
-	inline void setIsCompleted(const bool new_value) { m_bIsCompleted = new_value; }
+	inline bool allSetsCompleted() const { return m_bAllSetsCompleted; }
+	inline void setAllSetsCompleted(const bool new_value) { m_bAllSetsCompleted = new_value; emit allSetsCompletedChanged(); }
 
 	Q_INVOKABLE void removeExercise(const bool bAsk = true);
 	Q_INVOKABLE void exerciseCompleted();
@@ -140,6 +141,7 @@ signals:
 	void trackRestTimeChanged();
 	void autoRestTimeChanged();
 	void canEditRestTimeTrackingChanged();
+	void allSetsCompletedChanged();
 	void setObjectCreated(const uint set_number);
 
 private:
@@ -148,7 +150,7 @@ private:
 	uint m_exercise_idx;
 	QQuickItem* m_exerciseEntry;
 	QString m_name, m_sets, m_reps, m_weight, m_restTime;
-	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking, m_bIsCompleted;
+	bool m_bLast, m_bEditable, m_bCompositeExercise, m_bTrackRestTime, m_bAutoRestTime, m_bCanEditRestTimeTracking, m_bAllSetsCompleted;
 	uint m_type;
 	TPTimer* m_setTimer;
 
@@ -162,13 +164,11 @@ private:
 	void createSetObject(const uint set_number, const uint type);
 	void createSetObject_part2(const uint set_number, const uint set_type_cpp);
 	void setCreated(const uint set_number, const uint nsets, auto conn);
-	void enableDisableExerciseCompletedButton();
 	inline void changeSetCompleteStatus(const uint set_number, const bool bCompleted);
 	inline uint findSetMode(const uint set_number) const;
 	[[maybe_unused]] inline int findCurrentSet();
 	void startRestTimer(const uint set_number, const QString& startTime, const bool bStopWatch);
 	void stopRestTimer(const uint set_number);
-	inline bool allSetsCompleted() const;
 	inline bool noSetsCompleted() const;
 };
 

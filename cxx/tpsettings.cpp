@@ -128,7 +128,7 @@ void TPSettings::setColorScheme(const uint new_value, const bool bFromQml)
 	m_defaultValues[PANE_COLOR_INDEX] = std::move(paneBackColor);
 	m_defaultValues[SELECTED_COLOR_INDEX] = std::move(entrySelColor);
 	m_defaultValues[LISTS_COLOR_1_INDEX] = std::move("#c8e3f0"_L1);
-	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#c3cad5"_L1);
+	m_defaultValues[LISTS_COLOR_2_INDEX] = std::move("#d4f1ff"_L1);
 	m_defaultValues[FONT_COLOR_INDEX] = std::move(fntColor);
 	m_defaultValues[DISABLED_FONT_COLOR_INDEX] = std::move(disabledfntColor);
 

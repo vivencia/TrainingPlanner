@@ -98,6 +98,7 @@ void TPImage::paint(QPainter* painter)
 		center.setX(0);
 	if (center.y() < 0)
 		center.setY(0);
+
 	painter->drawImage(center, *m_imageToPaint);
 }
 

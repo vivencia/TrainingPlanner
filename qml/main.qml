@@ -154,7 +154,8 @@ ApplicationWindow {
 			var component = Qt.createComponent("qrc:/qml/Dialogs/ImportDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem});
+				importConfirmDialog = component.createObject(contentItem, {parentPage: stackView.currentItem, importOptions: importOptions,
+							selectedFields: selectedFields});
 			}
 
 			if (component.status === Component.Ready)
@@ -162,9 +163,12 @@ ApplicationWindow {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		importConfirmDialog.parentPage = stackView.currentItem;
-		importConfirmDialog.importOptions = importOptions;
-		importConfirmDialog.selectedFields = selectedFields;
+		else {
+			importConfirmDialog.parentPage = stackView.currentItem;
+			importConfirmDialog.selectedFields = selectedFields;
+			importConfirmDialog.importOptions = 0;
+			importConfirmDialog.importOptions = importOptions;
+		}
 		importConfirmDialog.show(-1);
 	}
 

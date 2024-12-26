@@ -56,7 +56,7 @@ void QmlExerciseInterface::createExerciseObject()
 	newExercise->setTrackRestTime(bTrackRestTime);
 	newExercise->setAutoRestTime(bAutoRestTime);
 	newExercise->setCanEditRestTimeTracking(true);
-	newExercise->setIsCompleted(false);
+	newExercise->setAllSetsCompleted(false);
 	newExercise->setLastExercise(true);
 
 	createExerciseObject_part2(exercise_idx);
@@ -89,7 +89,7 @@ void QmlExerciseInterface::createExercisesObjects()
 		newExercise->setNewSetType(set_type);
 		newExercise->setTrackRestTime(m_tDayModel->trackRestTime(i-(i >= 1 ? 1 : 0)));
 		newExercise->setAutoRestTime(m_tDayModel->autoRestTime(i-(i >= 1 ? 1 : 0)));
-		newExercise->setIsCompleted(m_tDayModel->allSetsCompleted(i));
+		newExercise->setAllSetsCompleted(m_tDayModel->allSetsCompleted(i));
 		newExercise->setCanEditRestTimeTracking(!m_tDayModel->anySetCompleted(i));
 		newExercise->setLastExercise(i == n_exercises - 1);
 		m_exercisesList.append(newExercise);
@@ -159,10 +159,11 @@ void QmlExerciseInterface::gotoNextExercise(const uint exercise_idx) const
 		QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, false));
 		for(uint i(exercise_idx+1); i < m_exercisesList.count(); ++i)
 		{
-			if (!m_exercisesList.at(exercise_idx)->exerciseEntry())
+			if (!m_exercisesList.at(i)->allSetsCompleted())
 			{
-				QMetaObject::invokeMethod(m_exercisesList.at(exercise_idx+1)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
-				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, m_exercisesList.at(exercise_idx+1)->exerciseEntry()->y() + 50));
+				QMetaObject::invokeMethod(m_exercisesList.at(i)->exerciseEntry(), "paneExerciseShowHide", Q_ARG(bool, true));
+				QQuickItem* exercise_entry{m_exercisesList.at(i-1)->exerciseEntry()};
+				QMetaObject::invokeMethod(m_tDayPage->tDayPage(), "placeSetIntoView", Q_ARG(int, exercise_entry->y() + exercise_entry->height()));
 				return;
 			}
 		}

@@ -19,7 +19,7 @@ FocusScope {
 	Frame {
 		id: paneExercise
 		visible: height > 0
-		height: showSets ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
+		height: showSets ? implicitHeight : (exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight + 20)
 		implicitHeight: layoutMain.implicitHeight + exerciseSetsLayout.height + 20
 		implicitWidth: width
 		width: parent.width
@@ -43,7 +43,7 @@ FocusScope {
 
 		TPButton {
 			id: btnMoveExerciseUp
-			imageSource: "up"
+			imageSource: "up.png"
 			hasDropShadow: false
 			enabled: exerciseManager.exerciseIdx > 0
 			visible: exerciseManager.isEditable
@@ -62,7 +62,7 @@ FocusScope {
 
 		TPButton {
 			id: btnMoveExerciseDown
-			imageSource: "down"
+			imageSource: "down.png"
 			hasDropShadow: false
 			enabled: !exerciseManager.lastExercise
 			visible: exerciseManager.isEditable
@@ -107,7 +107,7 @@ FocusScope {
 					onClicked: paneExerciseShowHide(!showSets);
 				}
 
-				Label {
+				TPLabel {
 					id: lblExerciseNumber
 					text: exerciseManager.exerciseNumber + ":"
 					font.bold: true
@@ -141,7 +141,6 @@ FocusScope {
 				TPCheckBox {
 					id: chkTrackRestTime
 					text: qsTr("Track rest times?")
-					textColor: enabled ? "black" : appSettings.disabledFontColor
 					checked: exerciseManager.trackRestTime
 					width: layoutMain.width*0.45
 					Layout.preferredWidth: width
@@ -152,7 +151,6 @@ FocusScope {
 				TPCheckBox {
 					id: chkAutoRestTime
 					text: qsTr("Auto tracking")
-					textColor: enabled ? "black" : appSettings.disabledFontColor
 					enabled: exerciseManager.trackRestTime
 					checked: exerciseManager.autoRestTime
 					width: layoutMain.width*0.45
@@ -243,9 +241,8 @@ FocusScope {
 				onValueChanged: (str) => exerciseManager.restTime = str;
 			}
 
-			Label {
+			TPLabel {
 				text: qsTr("Set type: ")
-				font.bold: true
 			}
 
 			RowLayout {

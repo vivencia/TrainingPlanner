@@ -134,6 +134,6 @@ TPPopup {
 		mesosListView.currentIndex = -1;
 		selectMesoDlg.height = 0;
 		selectMesoDlg.height = Math.max(lblTitle.height, importImg.height) + mesosListView.height + btnCancel.height + 20;
-		show1();
+		show1(ypos);
 	}
 }

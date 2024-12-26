@@ -164,4 +164,9 @@ TPPopup {
 			muscularGroupCreated(muscularGroup);
 		}
 	}
+
+	function show(targetItem: Item, pos: int): void {
+		shown = true;
+		show2(targetItem, pos);
+	}
 }

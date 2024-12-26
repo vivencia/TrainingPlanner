@@ -195,7 +195,7 @@ TPPopup {
 	function show(ypos: int): void {
 		balloon.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) +
 						(button1Text.length > 0 ? 2*btn1.height : 0)
-		show1();
+		show1(ypos);
 	}
 
 	function showTimed(timeout: int, ypos: int): void {

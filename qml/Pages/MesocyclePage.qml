@@ -59,8 +59,8 @@ TPPage {
 				bottom: parent.bottom
 			}
 
-			function decreaseCounter() { fieldCounter--; }
-			function increaseCounter() { fieldCounter++; }
+			function decreaseCounter(): void { fieldCounter--; }
+			function increaseCounter(): void { fieldCounter++; }
 		}
 	}
 
@@ -509,6 +509,7 @@ TPPage {
 				TextArea {
 					id: txtMesoNotes
 					text: mesoManager.notes
+					color: appSettings.fontColor
 					font.pixelSize: appSettings.fontSize
 					font.bold: true
 					topPadding: appSettings.fontSize

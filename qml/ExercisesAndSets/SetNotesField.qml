@@ -9,7 +9,6 @@ Item {
 	id: control
 	implicitHeight: lblMain.height + setNotesArea.height + 10
 
-	property string foreColor: "black"
 	property string info: qsTr("Notes:")
 	property string readOnly
 	property string text
@@ -18,7 +17,6 @@ Item {
 	TPLabel {
 		id: lblMain
 		text: control.info
-		fontColor: control.foreColor
 		width: control.width*0.9
 
 		anchors {
@@ -62,6 +60,7 @@ Item {
 		TextArea {
 			id: txtNotes
 			text: control.text
+			color: appSettings.fontColor
 			font.pixelSize: appSettings.fontSize
 			font.bold: true
 			topPadding: appSettings.fontSize
@@ -73,7 +72,7 @@ Item {
 			background: Rectangle {
 				color: "white"
 				radius: 6
-				border.color: control.foreColor
+				border.color: appSettings.fontColor
 			}
 
 			onEditingFinished: editFinished(text);

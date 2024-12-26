@@ -30,7 +30,6 @@ ComboBox {
 		contentItem: TPLabel {
 			text: model.text
 			enabled: model.enabled
-			//widthAvailable: control.width
 			leftPadding: completeModel ? 30 : 5
 
 			TPImage {

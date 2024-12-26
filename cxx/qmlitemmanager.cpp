@@ -158,7 +158,9 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	}
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
-		const uint fieldStart((m_fileContents & IFC_MESO) ? 2 : 0);
+		const uint fieldStart(isBitSet(m_fileContents, IFC_MESO) ? 2 : 0);
+		if (isBitSet(m_fileContents, IFC_MESO) && !isBitSet(wanted_content, IFC_MESO))
+			appMesoModel()->setImportIdx(appMesoModel()->currentMesoIdx());
 		const uint wanted_content_temp(wanted_content);
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
 			setBit(wanted_content, (selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0));

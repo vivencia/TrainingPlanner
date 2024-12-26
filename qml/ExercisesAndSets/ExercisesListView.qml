@@ -146,7 +146,7 @@ Column {
 			interactive: true
 		}
 
-		function ensureVisible(item) {
+		function ensureVisible(item): void {
 			if (item) {
 				const ypos = item.mapToItem(contentItem, 0, 0).y;
 				const ext = item.height + ypos
@@ -172,7 +172,7 @@ Column {
 			contentItem: Text {
 				id: listItem
 				text: index+1 + ":  " + mainName + "\n"+ subName
-				color: exercisesModel.currentRow === index ? appSettings.fontColor : "black"
+				color: appSettings.fontColor
 				font.pixelSize: appSettings.fontSize
 				fontSizeMode: Text.Fit
 				leftPadding: 5
@@ -274,6 +274,6 @@ Column {
 			else
 				component.statusChanged.connect(finishCreation);
 		}
-		filterDlg.show2(btnMuscularGroups, 3);
+		filterDlg.show(btnMuscularGroups, 3);
 	}
 }

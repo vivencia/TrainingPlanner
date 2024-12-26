@@ -78,7 +78,7 @@ Frame {
 
 	Rectangle {
 		id: recMuscularGroup
-		color: appSettings.primaryColor
+		color: appSettings.paneBackgroundColor
 		radius: 6
 		height: txtGroups.height
 
@@ -103,7 +103,7 @@ Frame {
 	}
 
 	TPButton {
-		imageSource: "black/choose"
+		imageSource: "choose.png"
 
 		anchors {
 			left: recMuscularGroup.right
@@ -206,7 +206,6 @@ Frame {
 						TPRadioButton {
 							id: optCurrentExercise
 							text: qsTr("Exercise #") + "<b>" + (index + 1) + "</b>"
-							textColor: "black"
 							checked: index === splitModel.currentRow
 							width: parent.width/2
 
@@ -220,7 +219,7 @@ Frame {
 
 						TPButton {
 							id: btnMoveExerciseUp
-							imageSource: "up"
+							imageSource: "up.png"
 							hasDropShadow: false
 							height: 30
 							width: 30
@@ -237,7 +236,7 @@ Frame {
 
 						TPButton {
 							id: btnMoveExerciseDown
-							imageSource: "down"
+							imageSource: "down.png"
 							hasDropShadow: false
 							height: 30
 							width: 30
@@ -395,7 +394,6 @@ Frame {
 
 								TPLabel {
 									text: splitModel.typeLabel
-									fontColor: "black"
 									width: listItem.width*0.4
 									Layout.preferredWidth: width
 								}
@@ -428,7 +426,6 @@ Frame {
 
 								TPLabel {
 									text: splitModel.subSetsLabel
-									fontColor: "black"
 									Layout.preferredWidth: listItem.width*0.5
 								}
 								SetInputField {
@@ -469,7 +466,6 @@ Frame {
 									id: lblExercise1
 									text: splitModel.exerciseName1(index)
 									wrapMode: Text.WordWrap
-									fontColor: "black"
 									width: listItem.width*0.5
 									Layout.preferredWidth: width
 									Layout.preferredHeight: _preferredHeight
@@ -488,7 +484,6 @@ Frame {
 									id: lblExercise2
 									text: splitModel.exerciseName2(index)
 									wrapMode: Text.WordWrap
-									fontColor: "black"
 									width: listItem.width*0.5
 									Layout.preferredWidth: width
 									Layout.preferredHeight: _preferredHeight

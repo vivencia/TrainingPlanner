@@ -25,7 +25,7 @@ Item {
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
 	    font.pixelSize: appSettings.fontSize
-	    color: readOnly ? "transparent" : "black"
+	    color: readOnly ? "transparent" : appSettings.fontColor
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5
@@ -47,7 +47,7 @@ Item {
 
 		background: Rectangle {
 			color: control.readOnly ? "transparent" : "white"
-			border.color: control.readOnly ? "transparent" : "black"
+			border.color: control.readOnly ? "transparent" : appSettings.fontColor
 			radius: 5
 		}
 
@@ -61,7 +61,6 @@ Item {
 			id: readOnlyText
 			text: parent.text
 			wrapMode: Text.WordWrap
-			fontColor: enabled ? "black" : appSettings.disabledFontColor
 			visible: parent.readOnly
 			leftPadding: 10
 			width: parent.width
@@ -77,8 +76,6 @@ Item {
 
 		onReadOnlyChanged: {
 			if (readOnly) {
-				//ensureVisible(0);
-				//cursorPosition = 0;
 				if (bTextChanged) {
 					bTextChanged = false;
 					exerciseChanged(text);
@@ -112,6 +109,8 @@ Item {
 		TPButton {
 			id: btnClearText
 			imageSource: "edit-clear"
+			hasDropShadow: false
+			imageSize: 20
 			visible: !txtField.readOnly
 			focus: false
 
@@ -130,7 +129,7 @@ Item {
 
 	TPButton {
 		id: btnEditExercise
-		imageSource: "black/edit"
+		imageSource: "edit.png"
 		imageSize: 25
 		height: 25
 		width: 25

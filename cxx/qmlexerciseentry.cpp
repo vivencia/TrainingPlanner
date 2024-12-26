@@ -204,10 +204,7 @@ void QmlExerciseEntry::removeExercise(const bool bAsk)
 
 void QmlExerciseEntry::exerciseCompleted()
 {
-	m_setObjects.last()->setFinishButtonEnabled(false);
-	m_setObjects.last()->setIsEditable(false);
-	if (m_bIsCompleted)
-		m_tDayPage->gotoNextExercise(m_exercise_idx);
+	m_tDayPage->gotoNextExercise(m_exercise_idx);
 }
 
 void QmlExerciseEntry::moveExerciseUp()
@@ -540,7 +537,6 @@ void QmlExerciseEntry::createSetObject_part2(const uint set_number, const uint s
 	newSetEntry->_setNotes(m_tDayModel->setsNotes(m_exercise_idx));
 	newSetEntry->_setCompleted(m_tDayModel->setCompleted(m_exercise_idx, set_number));
 	newSetEntry->_setLastSet(m_tDayModel->setsNumber(m_exercise_idx) == set_number + 1);
-	newSetEntry->setFinishButtonEnabled(m_tDayModel->allSetsCompleted(m_exercise_idx));
 	newSetEntry->_setTrackRestTime(m_tDayModel->trackRestTime(m_exercise_idx));
 	newSetEntry->_setAutoRestTime(m_tDayModel->autoRestTime(m_exercise_idx));
 	newSetEntry->_setHasSubSets(set_type == SET_TYPE_CLUSTER || set_type == SET_TYPE_DROP);
@@ -598,23 +594,12 @@ void QmlExerciseEntry::setCreated(const uint set_number, const uint nsets, auto 
 	}
 }
 
-void QmlExerciseEntry::enableDisableExerciseCompletedButton()
-{
-	const bool bNoSetsCompleted{noSetsCompleted()};
-	const bool bAllSetsCompleted{allSetsCompleted()};
-	uint i(0);
-	for (; i < m_setObjects.count()-1; ++i)
-		m_setObjects.at(i)->setFinishButtonEnabled(false);
-	m_setObjects.at(i)->setFinishButtonEnabled(bAllSetsCompleted);
-	setCanEditRestTimeTracking(!bNoSetsCompleted);
-	m_bIsCompleted = bAllSetsCompleted;
-}
-
 inline void QmlExerciseEntry::changeSetCompleteStatus(const uint set_number, const bool bCompleted)
 {
 	m_setObjects.at(set_number)->setCompleted(bCompleted);
 	m_tDayModel->setSetCompleted(m_exercise_idx, set_number, bCompleted);
-	enableDisableExerciseCompletedButton();
+	setAllSetsCompleted(m_tDayModel->allSetsCompleted(m_exercise_idx));
+	setCanEditRestTimeTracking(!noSetsCompleted());
 }
 
 inline uint QmlExerciseEntry::findSetMode(const uint set_number) const
@@ -684,14 +669,6 @@ void QmlExerciseEntry::stopRestTimer(const uint set_number)
 		else
 			setObj->setRestTime(appUtils()->formatTime(set_timer->elapsedTime(), false, true), false);
 	}
-}
-
-inline bool QmlExerciseEntry::allSetsCompleted() const
-{
-	for (uint i(0); i < m_setObjects.count(); ++i)
-		if (!m_setObjects.at(i)->completed())
-			return false;
-	return true;
 }
 
 inline bool QmlExerciseEntry::noSetsCompleted() const

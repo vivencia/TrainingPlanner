@@ -59,7 +59,7 @@ TPPage {
 			background: Rectangle {
 				radius: width/2
 				opacity: index === indicator.currentIndex ? 0.95 : pressed ? 0.7 : 0.45
-				color: "black"
+				color: appSettings.paneBackgroundColor
 			}
 
 			Behavior on opacity {

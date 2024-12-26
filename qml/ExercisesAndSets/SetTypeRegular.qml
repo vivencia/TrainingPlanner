@@ -10,7 +10,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 FocusScope {
 	id: setItem
-	implicitHeight: setLayout.childrenRect.height*1.25 + setModeItem.height
+	implicitHeight: setLayout.childrenRect.height + setModeItem.height + btnCompleteExercise.height + 20
 	Layout.fillWidth: true
 
 	required property SetEntryManager setManager
@@ -107,9 +107,11 @@ FocusScope {
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
+			bottom: btnCompleteExercise.top
+			bottomMargin: 5
 		}
 
-		Label {
+		TPLabel {
 			id: lblSetNumber
 			text: qsTr("Set #") + setManager.strNumber
 			font.bold: true
@@ -296,21 +298,25 @@ FocusScope {
 
 			onEditFinished: (new_text) => setManager.notes = new_text;
 		}
-
-		TPButton {
-			id: btnCompleteExercise
-			text: qsTr("Exercise completed")
-			flat: false
-			visible: setManager.lastSet
-			enabled: setManager.finishButtonEnabled
-			Layout.alignment: Qt.AlignCenter
-			Layout.topMargin: -10
-			Layout.preferredWidth: implicitWidth
-
-			onClicked: {
-				setLayout.enabled = false;
-				exerciseManager.exerciseCompleted();
-			}
-		}
 	} // setLayout
+
+	TPButton {
+		id: btnCompleteExercise
+		text: qsTr("Exercise completed")
+		flat: false
+		visible: setManager.lastSet && exerciseManager.isEditable
+		enabled: exerciseManager.allSetsCompleted
+		height: visible ? 30 : 0
+
+		anchors {
+			horizontalCenter: parent.horizontalCenter
+			bottom: parent.bottom
+			bottomMargin: 5
+		}
+
+		onClicked: {
+			setLayout.enabled = false;
+			exerciseManager.exerciseCompleted();
+		}
+	}
 } // Item

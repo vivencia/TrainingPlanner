@@ -267,7 +267,6 @@ TPPage {
 				text: tDayManager.dayNotes
 				readOnly: !tDayManager.dayIsEditable
 				visible: tDayManager.splitLetter !== "R"
-				foreColor: appSettings.fontColor
 				Layout.fillWidth: true
 
 				onEditFinished: (new_text) => tDayManager.dayNotes = new_text;
@@ -479,8 +478,8 @@ TPPage {
 		TPButton {
 			id: btnFinishedDayOptions
 			imageSource: "menu.png"
-			backgroundColor: appSettings.primaryDarkColor
 			rounded: false
+			backgroundColor: appSettings.paneBackgroundColor
 			flat: false
 			fixedSize: true
 			width: 55

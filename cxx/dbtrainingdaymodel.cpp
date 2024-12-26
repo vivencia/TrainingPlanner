@@ -88,10 +88,8 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 	{
 		m_ExerciseData.append(new exerciseEntry);
 		m_ExerciseData[i]->name = splitModel->exerciseName(i, true);
-		const uint nsets{splitModel->setsNumber(i)};
-		//const uint orig_workingset{splitModel->workingSet(i)}; //If the split is being viewed on MesoSplitPlanner.qml, do not disturb the view by changing the current viewed set
-		//splitModel->setWorkingSet(i, 0, false);
 
+		const uint nsets{splitModel->setsNumber(i)};
 		uint set_type = splitModel->setType(i, 0);
 		QString nreps, nweight;
 		if (set_type != SET_TYPE_GIANT)
@@ -125,7 +123,6 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 			}
 			newSet(i, x, set_type, nreps, nweight, nextSetSuggestedTime(i, set_type), splitModel->setSubsets(i, x));
 		}
-		//splitModel->setWorkingSet(i, orig_workingset, false);
 	}
 	emit exerciseCountChanged();
 	emit tDayChanged(); //save now
