@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+class PagesListModel;
 class QmlExercisesDatabaseInterface;
 class QmlTDayInterface;
 class QmlUserInterface;
@@ -26,11 +27,9 @@ public:
 	~QmlItemManager();
 	void configureQmlEngine();
 
-	Q_INVOKABLE void openMainMenuShortCut(const int button_id);
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
-	Q_INVOKABLE inline void addMainMenuShortCutEntry(QQuickItem* entry) { m_mainMenuShortcutEntries.append(entry); }
 	Q_INVOKABLE void getSettingsPage(const uint startPageIndex);
 	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void getExercisesPage(QmlTDayInterface* connectPage = nullptr);
@@ -55,14 +54,13 @@ public slots:
 	void removeMainMenuShortCut(QQuickItem* page);
 
 private:
-	QList<QQuickItem*> m_mainMenuShortcutPages;
-	QList<QQuickItem*> m_mainMenuShortcutEntries;
 	uint m_fileContents;
 	QString m_exportFilename, m_importFilename;
 	QmlUserInterface* m_usersManager;
 	QmlExercisesDatabaseInterface* m_exercisesListManager;
 	QQmlComponent* m_weatherComponent, *m_statisticsComponent;
 	QQuickItem* m_weatherPage, *m_statisticsPage;
+	PagesListModel* m_pagesManager;
 
 	static QmlItemManager* _appItemManager;
 	friend QmlItemManager* appItemManager();

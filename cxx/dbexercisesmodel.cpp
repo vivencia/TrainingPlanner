@@ -416,7 +416,7 @@ bool DBExercisesModel::updateFromModel(const TPListModel* const model)
 	return true;
 }
 
-QVariant DBExercisesModel::data(const QModelIndex &index, int role) const
+QVariant DBExercisesModel::data(const QModelIndex& index, int role) const
 {
 	const int row(index.row());
 	if(row >= 0 && row < m_modeldata.count())

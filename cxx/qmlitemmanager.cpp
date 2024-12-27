@@ -17,6 +17,7 @@
 #include "qmltdayinterface.h"
 #include "qmluserinterface.h"
 
+#include "pageslistmodel.h"
 #include "osinterface.h"
 #include "statistics/tpstatistics.h"
 #include "tpglobals.h"
@@ -88,9 +89,10 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<QmlSetEntry>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "SetEntryManager");
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
 	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
+	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
 
 	//Root context properties. MainWindow app properties
-	QList<QQmlContext::PropertyPair> properties(8);
+	QList<QQmlContext::PropertyPair> properties(9);
 	properties[0] = QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) };
 	properties[1] = QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) };
 	properties[2] = QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) };
@@ -99,6 +101,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[5] = QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesModel()) };
 	properties[6] = QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) };
 	properties[7] = QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) };
+	properties[8] = QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) };
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl& url{"qrc:/qml/main.qml"_L1};
@@ -136,11 +139,6 @@ void QmlItemManager::configureQmlEngine()
 
 	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
 	connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
-}
-
-void QmlItemManager::openMainMenuShortCut(const int button_id)
-{
-	QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_mainMenuShortcutPages.at(button_id)));
 }
 
 void QmlItemManager::chooseFileToImport()
@@ -227,7 +225,7 @@ void QmlItemManager::getWeatherPage()
 			createWeatherPage_part2();
 	}
 	else
-		addMainMenuShortCut(QString(), m_weatherPage);
+		m_pagesManager->addMainMenuShortCut(QString(), m_weatherPage);
 }
 
 void QmlItemManager::getStatisticsPage()
@@ -245,7 +243,7 @@ void QmlItemManager::getStatisticsPage()
 			createStatisticsPage_part2();
 	}
 	else
-		addMainMenuShortCut(QString(), m_statisticsPage);
+		m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
 }
 
 const QString& QmlItemManager::setExportFileName(const QString& filename)
@@ -748,45 +746,13 @@ void QmlItemManager::importSlot_FileChosen(const QString& filePath, const int fi
 
 void QmlItemManager::addMainMenuShortCut(const QString& label, QQuickItem* page)
 {
-	if (m_mainMenuShortcutPages.contains(page) || label.isEmpty())
-		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
-	else
-	{
-		if (m_mainMenuShortcutPages.count() < 5)
-		{
-			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
-			QMetaObject::invokeMethod(appMainWindow(), "createShortCut", Q_ARG(QString, label),
-													Q_ARG(QQuickItem*, page), Q_ARG(int, m_mainMenuShortcutPages.count()));
-			m_mainMenuShortcutPages.append(page);
-		}
-		else
-		{
-			QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, page));
-			for (uint i(0); i < m_mainMenuShortcutPages.count()-1; ++i)
-			{
-				m_mainMenuShortcutPages.move(i+1, i);
-				m_mainMenuShortcutEntries.at(i)->setProperty("text", m_mainMenuShortcutEntries.at(i+1)->property("text").toString());
-			}
-			m_mainMenuShortcutEntries.at(4)->setProperty("text", label);
-			m_mainMenuShortcutPages.replace(4, page);
-		}
-	}
+	m_pagesManager->addMainMenuShortCut(label, page);
 }
 
 void QmlItemManager::removeMainMenuShortCut(QQuickItem* page)
 {
-	const int idx(m_mainMenuShortcutPages.indexOf(page));
-	if (idx != -1)
-	{
-		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, page));
-		m_mainMenuShortcutPages.remove(idx);
-		delete m_mainMenuShortcutEntries.at(idx);
-		m_mainMenuShortcutEntries.remove(idx);
-		for (uint i(idx); i < m_mainMenuShortcutEntries.count(); ++i)
-			m_mainMenuShortcutEntries.at(i)->setProperty("clickid", i);
-	}
+	m_pagesManager->removeMainMenuShortCut(page);
 }
-
 
 void QmlItemManager::createWeatherPage_part2()
 {
@@ -802,7 +768,7 @@ void QmlItemManager::createWeatherPage_part2()
 	#endif
 	appQmlEngine()->setObjectOwnership(m_weatherPage, QQmlEngine::CppOwnership);
 	m_weatherPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	addMainMenuShortCut(QString(), m_weatherPage);
+	m_pagesManager->addMainMenuShortCut(QString(), m_weatherPage);
 }
 
 void QmlItemManager::createStatisticsPage_part2()
@@ -819,5 +785,5 @@ void QmlItemManager::createStatisticsPage_part2()
 	#endif
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	addMainMenuShortCut(QString(), m_statisticsPage);
+	m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
 }

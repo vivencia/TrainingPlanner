@@ -24,23 +24,22 @@ class DBExercisesModel : public TPListModel
 Q_OBJECT
 QML_ELEMENT
 
-public:	
-	// Define the role names to be used
-	enum RoleNames {
-		exerciseIdRole = Qt::UserRole,
-		mainNameRole = Qt::UserRole+EXERCISES_COL_MAINNAME,
-		subNameRole = Qt::UserRole+EXERCISES_COL_SUBNAME,
-		muscularGroupRole = Qt::UserRole+EXERCISES_COL_MUSCULARGROUP,
-		nSetsRole = Qt::UserRole+EXERCISES_COL_SETSNUMBER,
-		nRepsRole = Qt::UserRole+EXERCISES_COL_REPSNUMBER,
-		nWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHT,
-		uWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHTUNIT,
-		mediaPathRole = Qt::UserRole+EXERCISES_COL_MEDIAPATH,
-		fromListRole = Qt::UserRole+EXERCISES_COL_FROMAPPLIST,
-		actualIndexRole = Qt::UserRole+EXERCISES_COL_ACTUALINDEX,
-		selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
-	};
+enum RoleNames {
+	exerciseIdRole = Qt::UserRole,
+	mainNameRole = Qt::UserRole+EXERCISES_COL_MAINNAME,
+	subNameRole = Qt::UserRole+EXERCISES_COL_SUBNAME,
+	muscularGroupRole = Qt::UserRole+EXERCISES_COL_MUSCULARGROUP,
+	nSetsRole = Qt::UserRole+EXERCISES_COL_SETSNUMBER,
+	nRepsRole = Qt::UserRole+EXERCISES_COL_REPSNUMBER,
+	nWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHT,
+	uWeightRole = Qt::UserRole+EXERCISES_COL_WEIGHTUNIT,
+	mediaPathRole = Qt::UserRole+EXERCISES_COL_MEDIAPATH,
+	fromListRole = Qt::UserRole+EXERCISES_COL_FROMAPPLIST,
+	actualIndexRole = Qt::UserRole+EXERCISES_COL_ACTUALINDEX,
+	selectedRole = Qt::UserRole+EXERCISES_COL_SELECTED
+};
 
+public:
 	explicit DBExercisesModel(QObject* parent = nullptr, const bool bMainExercisesModel = true);
 	void fillColumnNames();
 
@@ -144,8 +143,8 @@ public:
 	inline uint modifiedIndex(const uint pos) const
 	{
 		uint ret_pos(0);
-		QMap<uint,uint>::const_iterator itr(m_modifiedIndices.constBegin());
-		const QMap<uint,uint>::const_iterator& itr_end(m_modifiedIndices.constEnd());
+		QMap<uint,uint>::const_iterator itr{m_modifiedIndices.constBegin()};
+		const QMap<uint,uint>::const_iterator& itr_end{m_modifiedIndices.constEnd()};
 		while (itr != itr_end)
 		{
 			if (pos == ret_pos)
@@ -167,13 +166,13 @@ public:
 	QString makeTransactionStatementForDataBase(const uint index) const;
 
 	inline void resetPrivateData() override { clearSelectedEntries(); }
-	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const TPListModel* const model) override;
+	int importFromFile(const QString& filename) override final;
+	bool updateFromModel(const TPListModel* const model) override final;
 
-	int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return numberOfFields(); }
-	inline int rowCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return count(); }
-	QVariant data(const QModelIndex& index, int role) const override;
-	[[maybe_unused]] bool setData(const QModelIndex& index, const QVariant &value, int role) override;
+	int columnCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return numberOfFields(); }
+	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
+	QVariant data(const QModelIndex& index, int role) const override final;
+	[[maybe_unused]] bool setData(const QModelIndex& index, const QVariant &value, int role) override final;
 
 signals:
 	void exerciseChanged(const uint index);

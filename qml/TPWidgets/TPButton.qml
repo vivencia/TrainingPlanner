@@ -75,7 +75,7 @@ Rectangle {
 				buttonText.lineCount = Math.ceil(fwidth/width) + 1;
 				buttonText.height = buttonText.lineCount * buttonText._textHeight;
 				if (buttonText.height > height)
-					implicitHeight = height = 10 + (textUnderIcon ? buttonText.height + imageSize : buttonText.height);
+					implicitHeight = height = textUnderIcon ? buttonText.height + imageSize : buttonText.height;
 			}
 		}
 	}

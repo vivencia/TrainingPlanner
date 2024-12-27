@@ -230,10 +230,6 @@ ApplicationWindow {
 		parentPage: homePage
 	}
 
-	function createShortCut(label: string, page: Item, clickid: int): void {
-		mainMenu.createShortCut(label, page, clickid);
-	}
-
 	function displayResultMessage(title: string, message: string): void {
 		activityFinishedTip.title = title;
 		activityFinishedTip.message = message;

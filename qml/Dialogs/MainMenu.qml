@@ -9,11 +9,10 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 Drawer {
 	id: drawer
 	height: mainwindow.height
-	implicitWidth: mainwindow.width * 0.6
+	implicitWidth: mainwindow.width * 0.7
 	spacing: 0
 	padding: 0
 	edge: Qt.LeftEdge
-	opacity: 0.8	
 
 	onOpened: {
 		if (userModel.avatar(0) !== imgAvatar.source) {
@@ -45,33 +44,18 @@ Drawer {
 		}
 	}
 
-	TPButton {
-		id: btnExit
-		text: qsTr("Exit")
-		imageSource: "application-exit.png"
-		leftAlign: false
-		rounded: false
-
-		anchors {
-			left: parent.left
-			right: parent.right
-			bottom: parent.bottom
-		}
-
-		onClicked: osInterface.exitApp();
-	}
-
-	ColumnLayout {
+	Column {
 		id: drawerLayout
 		objectName: "drawerLayout"
 		spacing: 5
+		padding: 5
 		opacity: parent.opacity
+		height: drawer.height*0.6
 
 		anchors {
 			left: parent.left
 			right: parent.right
 			top: parent.top
-			bottom: btnExit.top
 			leftMargin: 5
 			rightMargin: 5
 			topMargin: 0
@@ -82,10 +66,9 @@ Drawer {
 			id: imgLogo
 			source: "app_icon"
 			dropShadow: false
-			width: 100
-			height: 100
-			Layout.alignment: Qt.AlignHCenter
-			Layout.topMargin: 0
+			width: parent.height*0.3
+			height: width
+			x: (parent.width-width)/2
 		}
 
 		TPLabel {
@@ -93,18 +76,15 @@ Drawer {
 			wrapMode: Text.WordWrap
 			font: AppGlobals.smallFont
 			horizontalAlignment: Text.AlignHCenter
-			width: drawer.implicitWidth-10
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
+			width: drawer.width - 10
 		}
 
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
-			width: 100
-			height: 100
-			Layout.alignment: Qt.AlignHCenter
-			Layout.topMargin: 0
+			width: parent.height*0.3
+			height: width
+			x: (parent.width-width)/2
 
 			MouseArea {
 				anchors.fill: parent
@@ -123,25 +103,21 @@ Drawer {
 		TPLabel {
 			id: lblAvatar
 			horizontalAlignment: Text.AlignHCenter
-			Layout.fillWidth: true
-			Layout.topMargin: 0
+			width: parent.width
 		}
 
 		Rectangle {
-			height: 3
 			color: appSettings.fontColor
-			Layout.topMargin: 10
-			Layout.fillWidth: true
+			height: 3
+			width: parent.width
 		}
 
 		TPButton {
 			id: btnExercises
 			text: qsTr("Exercises Database")
 			fixedSize: true
-			width: drawer.width - 10
-			Layout.minimumWidth: width
-			Layout.maximumWidth: width
-			Layout.preferredHeight: 25
+			height: 25
+			width: parent.width
 
 			enabled: { // Force the binding to re-evaluate so that the objectName check is run each time the page changes.
 				stackView.currentItem
@@ -158,9 +134,8 @@ Drawer {
 			id: btnSettings
 			text: qsTr("Settings")
 			fixedSize: true
-			Layout.minimumWidth: drawer.width - 10
-			Layout.maximumWidth: drawer.width - 10
-			Layout.preferredHeight: 25
+			height: 25
+			width: parent.width
 
 			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
 				stackView.currentItem
@@ -174,32 +149,97 @@ Drawer {
 		}
 
 		Rectangle {
-			height: 3
 			color: appSettings.fontColor
-			Layout.fillWidth: true
+			height: 3
+			width: parent.width
+			Layout.topMargin: 10
 			Layout.bottomMargin: 10
-		}
-
-		Item { // spacer item
-			Layout.fillWidth: true
-			Layout.fillHeight: true
 		}
 	} //ColumnLayout
 
-	property Component buttonComponent: null
-	function createShortCut(label: string, page: Item, clickid: int): void {
-		if (!buttonComponent)
-			buttonComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPButton.qml", Qt.Asynchronous);
+	ListView {
+		id: pagesList
+		model: pagesListModel
+		clip: true
+		boundsBehavior: Flickable.StopAtBounds
+		height: drawer.height*0.25
+		contentHeight: availableHeight
+		contentWidth: availableWidth
 
-		function finishCreation() {
-			const button = buttonComponent.createObject(drawerLayout, { text: label, clickId: clickid, autoResize: true, "Layout.fillWidth": true });
-			button.clicked.connect(function (id) { itemManager.openMainMenuShortCut(id);} );
-			itemManager.addMainMenuShortCutEntry(button);
+		ScrollBar.vertical: ScrollBar {
+			policy: ScrollBar.AsNeeded
+			active: true
 		}
 
-		if (buttonComponent.status === Component.Ready)
-			finishCreation();
-		else
-			buttonComponent.statusChanged.connect(finishCreation);
+		anchors {
+			top: drawerLayout.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		delegate: SwipeDelegate {
+			id: delegate
+			spacing: 10
+			padding: 5
+			width: pagesList.width
+			height: 35
+
+			contentItem: TPLabel {
+				id: listItem
+				text: displayText
+				horizontalAlignment: Text.AlignHCenter
+			}
+
+			background: Rectangle {
+				id:	backgroundColor
+				color: appSettings.primaryDarkColor
+				radius: 6
+				opacity: 1
+			}
+
+			onClicked: pagesListModel.openMainMenuShortCut(index);
+
+			swipe.right: Rectangle {
+				width: parent.width
+				height: parent.height
+				clip: false
+				color: SwipeDelegate.pressed ? "#555" : "#666"
+				radius: 5
+
+				TPImage {
+					source: "remove"
+					width: 30
+					height: 30
+					opacity: 2 * -delegate.swipe.position
+					z:2
+
+					anchors {
+						right: parent.right
+						rightMargin: 20
+						verticalCenter: parent.verticalCenter
+					}
+				}
+			} //swipe.right
+
+			swipe.onCompleted: pagesListModel.removeMainMenuShortCut(index);
+		} //delegate: SwipeDelegate
+	} //ListView
+
+	TPButton {
+		id: btnExit
+		text: qsTr("Exit")
+		imageSource: "application-exit.png"
+		leftAlign: false
+		rounded: false
+
+		anchors {
+			left: parent.left
+			right: parent.right
+			bottom: parent.bottom
+		}
+
+		onClicked: osInterface.exitApp();
 	}
 } //Drawer

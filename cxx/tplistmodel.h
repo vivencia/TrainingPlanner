@@ -61,10 +61,11 @@ public:
 	inline virtual void resetPrivateData() {}
 
 	// QAbstractItemModel interface
-	inline virtual int columnCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return 1; }
 	inline virtual int rowCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return count(); }
 	inline virtual QVariant data(const QModelIndex&, int) const override { return QVariant(); }
 	inline virtual bool setData(const QModelIndex&, const QVariant &, int) override { return false; }
+	// return the roles mapping to be used by QML
+	inline QHash<int, QByteArray> roleNames() const override final { return m_roleNames; }
 
 signals:
 	void countChanged();
@@ -85,9 +86,6 @@ protected:
 	uint m_tableId, m_fieldCount;
 	bool m_bReady, m_bModified, m_bImportMode;
 	QString m_filterString, m_exportName;
-
-	// return the roles mapping to be used by QML
-	inline virtual QHash<int, QByteArray> roleNames() const override { return m_roleNames; }
 
 	friend class DBExercisesModel;
 	friend class DBMesocyclesModel;

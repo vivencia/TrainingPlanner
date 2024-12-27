@@ -62,7 +62,7 @@ Label {
 
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
 		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;
-		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 1);
+		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);
 		if (_textWidth > control.width)
 		{
 			if (font.pixelSize > AppGlobals.smallFont.pixelSize)

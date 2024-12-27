@@ -84,6 +84,7 @@ set( CXX_SOURCES
 	cxx/dbmesocalendarmodel.h cxx/dbmesocalendarmodel.cpp
 	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
+	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
 
 	cxx/qmluserinterface.h cxx/qmluserinterface.cpp
 	cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp

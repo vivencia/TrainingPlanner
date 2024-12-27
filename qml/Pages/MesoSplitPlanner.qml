@@ -27,6 +27,7 @@ Frame {
 
 	background: Rectangle {
 		border.color: "transparent"
+		color: "transparent"
 		radius: 5
 	}
 

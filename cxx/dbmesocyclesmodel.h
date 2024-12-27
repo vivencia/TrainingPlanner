@@ -32,8 +32,6 @@ Q_OBJECT
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 
-public:
-
 	enum RoleNames {
 		mesoNameRole = Qt::UserRole+MESOCYCLES_COL_NAME,
 		mesoStartDateRole = Qt::UserRole+MESOCYCLES_COL_STARTDATE,
@@ -43,6 +41,7 @@ public:
 		mesoClientRole = Qt::UserRole+MESOCYCLES_COL_CLIENT
 	};
 
+public:
 	explicit DBMesocyclesModel(QObject* parent = nullptr, const bool bMainAppModel = true);
 	~DBMesocyclesModel();
 	void fillColumnNames();
