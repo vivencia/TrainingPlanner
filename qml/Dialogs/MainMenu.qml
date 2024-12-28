@@ -50,7 +50,7 @@ Drawer {
 		spacing: 5
 		padding: 5
 		opacity: parent.opacity
-		height: drawer.height*0.6
+		height: drawer.height*0.65
 
 		anchors {
 			left: parent.left
@@ -162,7 +162,7 @@ Drawer {
 		model: pagesListModel
 		clip: true
 		boundsBehavior: Flickable.StopAtBounds
-		height: drawer.height*0.25
+		height: drawer.height*0.35
 		contentHeight: availableHeight
 		contentWidth: availableWidth
 

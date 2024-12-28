@@ -103,8 +103,20 @@ ApplicationWindow {
 	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item): void {
 		pageDeActivated_main(stackView.currentItem);
-		if (page)
-			stackView.pop(page);
+		if (page) {
+			if (stackView.currentItem !== page) {
+				let items = [];
+				for (let i = 0; i < stackView.depth; ++i) {
+					if (stackView.get(i) !== page)
+						items.push(stackView.get(i));
+				}
+				stackView.clear();
+				for (let x = 0; x < items.length; ++x)
+					stackView.push(items[x], {}, StackView.Immediate);
+			}
+			else
+				stackView.pop();
+		}
 		else
 			stackView.pop();
 		pageActivated_main(stackView.currentItem);

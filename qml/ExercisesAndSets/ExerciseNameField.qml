@@ -19,6 +19,7 @@ Item {
 	signal removeButtonClicked()
 	signal editButtonClicked()
 	signal itemClicked()
+	signal itemPressed()
 
 	TextField {
 		id: txtField
@@ -55,6 +56,7 @@ Item {
 			enabled: txtField.readOnly
 			anchors.fill: txtField
 			onClicked: itemClicked();
+			onPressAndHold: itemPressed();
 		}
 
 		TPLabel {

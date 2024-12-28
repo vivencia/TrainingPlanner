@@ -262,7 +262,7 @@ TPPage {
 				anchors.fill: parent
 				radius: 6
 				layer.enabled: true
-				color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryLightColor : appSettings.listEntryColor2
+				color: index === mesocyclesModel.currentMesoIdx ? appSettings.primaryColor : appSettings.listEntryColor2
 				visible: false
 			}
 

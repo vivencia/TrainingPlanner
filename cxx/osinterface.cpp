@@ -65,13 +65,6 @@ OSInterface::OSInterface(QObject* parent)
 #endif
 }
 
-void OSInterface::exitApp()
-{
-	qApp->exit(0);
-	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
-	::exit(0);
-}
-
 void OSInterface::aboutToExit()
 {
 	appDBInterface()->cleanUpThreads();
@@ -322,7 +315,9 @@ void OSInterface::restartApp()
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);
 	::free(args[0]);
-	exitApp();
+	qApp->exit(0);
+	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
+	::exit(0);
 }
 #endif //Q_OS_ANDROID
 

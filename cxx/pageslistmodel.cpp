@@ -53,7 +53,7 @@ void PagesListModel::removeMainMenuShortCut(const uint index)
 {
 	if (index < m_modeldata.count())
 	{
-		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, nullptr));
+		QMetaObject::invokeMethod(appMainWindow(), "popFromStack", Q_ARG(QQuickItem*, m_modeldata.at(index)->page));
 		beginRemoveRows(QModelIndex(), index, index);
 		delete m_modeldata.at(index);
 		m_modeldata.remove(index);

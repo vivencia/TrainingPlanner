@@ -410,10 +410,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													currentIndex = splitModel.setType(row, splitModel.workingSet)
-											//}
+											if (index === row)
+												currentIndex = splitModel.setType(row, splitModel.workingSet);
 										});
 									}
 								}
@@ -440,10 +438,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setSubsets(row, splitModel.workingSet);
-											//}
+											if (index === row)
+												text = splitModel.setSubsets(row, splitModel.workingSet);
 										});
 									}
 
@@ -512,13 +508,11 @@ Frame {
 								onValueChanged: (str) => splitModel.setSetReps1(index, splitModel.workingSet, str);
 								onEnterOrReturnKeyPressed: txtNWeight.forceActiveFocus();
 								Component.onCompleted: {
-										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setReps1(row, splitModel.workingSet);
-											//}
-										});
-									}
+									splitModel.workingSetChanged.connect(function(row) {
+										if (index === row)
+											text = splitModel.setReps1(row, splitModel.workingSet);
+									});
+								}
 							}
 
 							RowLayout {
@@ -537,10 +531,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setReps1(row, splitModel.workingSet);
-											//}
+											if (index === row)
+												text = splitModel.setReps1(row, splitModel.workingSet);
 										});
 									}
 								}
@@ -557,10 +549,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setReps2(row, splitModel.workingSet);
-											//}
+											if (index === row)
+												text = splitModel.setReps2(row, splitModel.workingSet);
 										});
 									}
 								}
@@ -579,10 +569,8 @@ Frame {
 
 								Component.onCompleted: {
 									splitModel.workingSetChanged.connect(function(row) {
-										//if (visible) {
-											if (index === row)
-												text = splitModel.setWeight1(row, splitModel.workingSet);
-										//}
+										if (index === row)
+											text = splitModel.setWeight1(row, splitModel.workingSet);
 									});
 								}
 							}
@@ -603,10 +591,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setWeight1(row, splitModel.workingSet);
-											//}
+											if (index === row)
+												text = splitModel.setWeight1(row, splitModel.workingSet);
 										});
 									}
 								}
@@ -622,10 +608,8 @@ Frame {
 
 									Component.onCompleted: {
 										splitModel.workingSetChanged.connect(function(row) {
-											//if (visible) {
-												if (index === row)
-													text = splitModel.setWeight2(row, splitModel.workingSet);
-											//}
+											if (index === row)
+												text = splitModel.setWeight2(row, splitModel.workingSet);
 										});
 									}
 								}
@@ -645,7 +629,7 @@ Frame {
 				background: Rectangle {
 					id:	backgroundColor
 					radius: 6
-					color: splitModel.currentRow === index ? appSettings.primaryLightColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
+					color: splitModel.currentRow === index ? appSettings.primaryColor : index % 2 === 0 ? appSettings.listEntryColor1 : appSettings.listEntryColor2
 				}
 
 				onClicked: splitModel.currentRow = index;

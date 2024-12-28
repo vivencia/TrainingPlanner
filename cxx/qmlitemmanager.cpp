@@ -141,6 +141,13 @@ void QmlItemManager::configureQmlEngine()
 	connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));
 }
 
+void QmlItemManager::exitApp()
+{
+	qApp->exit(0);
+	// When the main event loop is not running, the above function does nothing, so we must actually exit, then
+	::exit(0);
+}
+
 void QmlItemManager::chooseFileToImport()
 {
 	QMetaObject::invokeMethod(appMainWindow(), "chooseFileToImport", Q_ARG(int, IFC_ANY));

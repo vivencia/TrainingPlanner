@@ -29,8 +29,6 @@ public:
 	#endif
 	}
 
-	Q_INVOKABLE void exitApp();
-
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck() const
 	{

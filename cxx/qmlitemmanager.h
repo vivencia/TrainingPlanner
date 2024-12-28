@@ -27,6 +27,7 @@ public:
 	~QmlItemManager();
 	void configureQmlEngine();
 
+	Q_INVOKABLE void exitApp();
 	Q_INVOKABLE void chooseFileToImport();
 	Q_INVOKABLE void tryToImport(const QList<bool>& selectedFields);
 	Q_INVOKABLE void displayImportDialogMessageAfterMesoSelection(const int meso_idx);
