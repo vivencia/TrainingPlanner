@@ -148,6 +148,24 @@ Drawer {
 			}
 		}
 
+		TPButton {
+			id: btnAllWorkouts
+			text: qsTr("All Workouts")
+			fixedSize: true
+			height: 25
+			width: parent.width
+
+			enabled: { // Force the binding to re-evaluate so that the check is run each time the page changes.
+				stackView.currentItem
+				!stackView.find((item, index) => { return item.objectName === "allWorkoutsPage"; })
+			}
+
+			onClicked: {
+				itemManager.getAllWorkoutsPage();
+				close();
+			}
+		}
+
 		Rectangle {
 			color: appSettings.fontColor
 			height: 3

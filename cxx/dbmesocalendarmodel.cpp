@@ -19,19 +19,18 @@ void DBMesoCalendarModel::createModel()
 	const QString& strSplit(appMesoModel()->split(mesoIdx()));
 	const uint startmonth(startDate.month());
 	const uint endmonth(endDate.month());
-	int splitIdx(startDate.dayOfWeek() - 1);
+	const uint nMonths{endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1};
 
-	uint nMonths(endmonth > startmonth ? endmonth - startmonth + 1 : (12 - startmonth) + endmonth + 1);
-	uint trainingDayNumber(0), trainingDayNumberTotal(0);
-	uint i(0);
+	int splitIdx(startDate.dayOfWeek() - 1);
+	uint trainingDayNumber, trainingDayNumberTotal(0);
 	uint month(startmonth);
 	uint year(startDate.year());
 	uint firstDay(startDate.day());
-	uint day(1);
+	uint day;
 	QStringList month_info;
 	month_info.reserve(31);
 
-	for (; i < nMonths; i++, month++)
+	for (uint i(0); i < nMonths; i++, month++)
 	{
 		if (month > 12)
 		{
@@ -44,11 +43,11 @@ void DBMesoCalendarModel::createModel()
 		const uint daysInMonth(QDate(year, month, 1).daysInMonth());
 		uint lastDay = i == nMonths - 1 ? endDate.day() : daysInMonth;
 
-		for(day = 1 ; day < firstDay; ++day)
+		for (day = 1 ; day < firstDay; ++day)
 			month_info.append(std::move("-1,-1,-1,N,-1,"_L1 + strYear + ',' + strMonth));
 		firstDay = 0;
 
-		for( ; day <= lastDay; day++ )
+		for (; day <= lastDay; day++)
 		{
 			if (strSplit.at(splitIdx) != QLatin1Char('R'))
 			{

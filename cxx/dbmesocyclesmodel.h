@@ -243,9 +243,9 @@ public:
 
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
-	void isNewMesoChanged(const uint meso_idx);
+	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
 	void mesoChanged(const uint meso_idx, const uint field);
-	void mesoCalendarFieldsChanged(const uint meso_idx);
+	void mesoCalendarFieldsChanged(const uint meso_idx, const uint field);
 	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar& splitLetter);
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();

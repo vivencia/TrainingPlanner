@@ -240,7 +240,7 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoStartDateRole);
 	changeCanHaveTodaysWorkout();
 	if (!isNewMeso(meso_idx))
-		emit mesoCalendarFieldsChanged(meso_idx);
+		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 	else
 		m_newMesoCalendarChanged[meso_idx] = true;
 }
@@ -252,7 +252,7 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoEndDateRole);
 	changeCanHaveTodaysWorkout();
 	if (!isNewMeso(meso_idx))
-		emit mesoCalendarFieldsChanged(meso_idx);
+		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 	else
 		m_newMesoCalendarChanged[meso_idx] = true;
 }
@@ -265,7 +265,7 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
 		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoSplitRole);
 		if (!isNewMeso(meso_idx))
-			emit mesoCalendarFieldsChanged(meso_idx);
+			emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_SPLIT);
 		else
 			m_newMesoCalendarChanged[meso_idx] = true;
 		makeUsedSplits(meso_idx);

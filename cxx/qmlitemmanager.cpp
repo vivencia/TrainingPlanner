@@ -25,6 +25,7 @@
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 #include "tptimer.h"
+#include "tpworkoutscalendar.h"
 #include "translationclass.h"
 #include "weather/weatherinfo.h"
 
@@ -41,7 +42,8 @@ QQmlApplicationEngine* QmlItemManager::_appQmlEngine(nullptr);
 QQuickWindow* QmlItemManager::_appMainWindow(nullptr);
 
 QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
-		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr), m_weatherPage(nullptr), m_statisticsPage(nullptr)
+		: QObject{nullptr}, m_usersManager(nullptr), m_exercisesListManager(nullptr),
+			m_weatherPage(nullptr), m_statisticsPage(nullptr), m_allWorkoutsPage(nullptr)
 {
 	_appItemManager = this;
 	appDBInterface()->init();
@@ -64,6 +66,12 @@ QmlItemManager::~QmlItemManager()
 	{
 		delete m_statisticsPage;
 		delete m_statisticsComponent;
+	}
+	if (m_allWorkoutsPage)
+	{
+		delete m_allWorkoutsPage;
+		delete m_allWorkoutsComponent;
+		delete m_wokoutsCalendar;
 	}
 }
 
@@ -90,6 +98,7 @@ void QmlItemManager::configureQmlEngine()
 	qmlRegisterType<WeatherInfo>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WeatherInfo");
 	qmlRegisterType<TPStatistics>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "Statistics");
 	qmlRegisterType<PagesListModel>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "PagesListModel");
+	qmlRegisterType<TPWorkoutsCalendar>("org.vivenciasoftware.TrainingPlanner.qmlcomponents", 1, 0, "WorkoutsCalendar");
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties(9);
@@ -251,6 +260,24 @@ void QmlItemManager::getStatisticsPage()
 	}
 	else
 		m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
+}
+
+void QmlItemManager::getAllWorkoutsPage()
+{
+	if (!m_allWorkoutsPage)
+	{
+		m_allWorkoutsComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/AllWorkouts.qml"_L1}, QQmlComponent::Asynchronous};
+		if (m_allWorkoutsComponent->status() != QQmlComponent::Ready)
+		{
+			connect(m_allWorkoutsComponent, &QQmlComponent::statusChanged, this, [this] (QQmlComponent::Status) {
+				createAllWorkoutsPage_part2();
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
+		else
+			createAllWorkoutsPage_part2();
+	}
+	else
+		m_pagesManager->addMainMenuShortCut(QString(), m_allWorkoutsPage);
 }
 
 const QString& QmlItemManager::setExportFileName(const QString& filename)
@@ -793,4 +820,31 @@ void QmlItemManager::createStatisticsPage_part2()
 	appQmlEngine()->setObjectOwnership(m_statisticsPage, QQmlEngine::CppOwnership);
 	m_statisticsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
 	m_pagesManager->addMainMenuShortCut(QString(), m_statisticsPage);
+}
+
+void QmlItemManager::createAllWorkoutsPage_part2()
+{
+	m_wokoutsCalendar = new TPWorkoutsCalendar{this};
+	QVariantMap allWorkoutsProperties;
+	allWorkoutsProperties.insert("workoutsCalendar", QVariant::fromValue(m_wokoutsCalendar));
+	m_allWorkoutsPage = static_cast<QQuickItem*>(m_allWorkoutsComponent->createWithInitialProperties(allWorkoutsProperties, appQmlEngine()->rootContext()));
+
+	#ifndef QT_NO_DEBUG
+	if (m_allWorkoutsComponent->status() == QQmlComponent::Error)
+	{
+		qDebug() << m_allWorkoutsComponent->errorString();
+		for (uint i(0); i < m_allWorkoutsComponent->errors().count(); ++i)
+			qDebug() << m_allWorkoutsComponent->errors().at(i).description();
+		return;
+	}
+	#endif
+	appQmlEngine()->setObjectOwnership(m_allWorkoutsPage, QQmlEngine::CppOwnership);
+	m_allWorkoutsPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
+	m_pagesManager->addMainMenuShortCut(QString(), m_allWorkoutsPage);
+
+	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
+	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
+	connect(appMesoModel(), &DBMesocyclesModel::mesoIdxChanged, m_wokoutsCalendar, &TPWorkoutsCalendar::reScanMesocycles);
+
+	m_wokoutsCalendar->scanMesocycles();
 }

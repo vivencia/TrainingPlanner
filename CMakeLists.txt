@@ -85,6 +85,7 @@ set( CXX_SOURCES
 	cxx/dbtrainingdaymodel.h cxx/dbtrainingdaymodel.cpp
 	cxx/dbusermodel.h cxx/dbusermodel.cpp
 	cxx/pageslistmodel.h cxx/pageslistmodel.cpp
+	cxx/tpworkoutscalendar.h cxx/tpworkoutscalendar.cpp
 
 	cxx/qmluserinterface.h cxx/qmluserinterface.cpp
 	cxx/qmlexercisesdatabaseinterface.h cxx/qmlexercisesdatabaseinterface.cpp
@@ -130,7 +131,6 @@ set( QML_SOURCES
     "qml/main.qml"
     "qml/VideoPlayer.qml"
     "qml/Dialogs/CalendarDialog.qml"
-    "qml/Dialogs/DatePicker.qml"
     "qml/Dialogs/FirstTimeDialog.qml"
     "qml/Dialogs/ImportDialog.qml"
     "qml/Dialogs/MainMenu.qml"
@@ -149,6 +149,7 @@ set( QML_SOURCES
     "qml/ExercisesAndSets/SetTypeRegular.qml"
     "qml/ExercisesAndSets/SetTypeGiant.qml"
     "qml/ExercisesAndSets/SimpleExercisesListPanel.qml"
+    "qml/Pages/AllWorkouts.qml"
     "qml/Pages/ClientsOrCoachesPage.qml"
     "qml/Pages/ConfigurationPage.qml"
 	"qml/Pages/ExercisesPage.qml"
@@ -175,6 +176,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPColorRectangle.qml"
     "qml/TPWidgets/TPComboBox.qml"
     "qml/TPWidgets/TPComplexDialog.qml"
+    "qml/TPWidgets/TPDatePicker.qml"
     "qml/TPWidgets/TPDigitalClock.qml"
     "qml/TPWidgets/TPFloatingMenuBar.qml"
     "qml/TPWidgets/TPImportDialog.qml"

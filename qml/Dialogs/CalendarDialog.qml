@@ -12,10 +12,9 @@ TPPopup {
 	x: (appSettings.pageWidth - width) / 2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height) / 2 // vertically centered
 
-	property alias initDate: datePickerControl.startDate
-	property alias showDate: datePickerControl.displayDate
-	property alias finalDate: datePickerControl.endDate
-	property alias selectedDate: datePickerControl.selectedDate
+	property date initDate
+	property date showDate
+	property date finalDate
 
 	property bool simpleCalendar: false
 
@@ -25,51 +24,30 @@ TPPopup {
 		anchors.fill: parent
 		spacing: 0
 
-		DatePicker {
+		TPDatePicker {
 			id: datePickerControl
-			justCalendar: simpleCalendar
 			focus: true
+			startDate: initDate
+			displayDate: showDate
+			endDate: finalDate
+			calendarModel: CalendarModel {
+				from: initDate
+				to: finalDate
+			}
 
 			Component.onCompleted: datePickerControl.setDate(showDate);
 		}
 
-		Pane {
-			height: 25
-			Layout.fillWidth: true
+		TPButton {
+			id: btnOK
+			text: "OK"
+			flat: false
+			Layout.alignment: Qt.AlignVCenter|Qt.AlignRight
+			Layout.rightMargin: 5
 
-			background: Rectangle {
-				color: "transparent"
-			}
-
-			TPButton {
-				id: btnOK
-				text: "OK"
-				flat: false
-
-				anchors {
-					right: parent.right
-					rightMargin: 5
-					verticalCenter: parent.verticalCenter
-				}
-
-				onClicked: {
-					dateSelected(datePickerControl.selectedDate)
-					calendarPopup.close();
-				}
-			}
-
-			TPButton {
-				text: qsTr("CANCEL")
-				flat: false
-				visible: !simpleCalendar
-
-				anchors {
-					right: btnOK.left
-					rightMargin: 30
-					verticalCenter: parent.verticalCenter
-				}
-
-				onClicked: calendarPopup.close()
+			onClicked: {
+				dateSelected(datePickerControl.selectedDate)
+				calendarPopup.close();
 			}
 		}
 	}

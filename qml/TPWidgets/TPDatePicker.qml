@@ -11,11 +11,11 @@ Rectangle {
 	height: cellSize * 10.5
 	width: cellSize * 8
 
+	required property var calendarModel
 	property date displayDate
 	property date startDate
 	property date endDate
 	property date selectedDate: displayDate
-	property bool justCalendar: false
 
 	readonly property date thisDay: new Date()
 	readonly property double cellSize: Screen.pixelDensity * 7
@@ -154,6 +154,7 @@ Rectangle {
 		snapMode: ListView.SnapToItem
 		orientation: ListView.Horizontal
 		spacing: cellSize
+		model: calendarModel
 
 		anchors {
 			top: titleOfDate.bottom
@@ -162,12 +163,6 @@ Rectangle {
 			right: parent.right
 			leftMargin: cellSize * 0.5
 			rightMargin: cellSize * 0.5
-		}
-
-		model: CalendarModel {
-			id: calendarModel
-			from: startDate
-			to: endDate
 		}
 
 		property int currentDay
@@ -183,10 +178,11 @@ Rectangle {
 		delegate: Rectangle {
 			height: cellSize * 7
 			width: cellSize * 7
+
 			Rectangle {
 				id: monthYearTitle
 				anchors.top: parent.top
-				height: cellSize * 1.3
+				height: cellSize
 				width: parent.width
 
 				Text {
@@ -203,6 +199,7 @@ Rectangle {
 				anchors.top: monthYearTitle.bottom
 				height: cellSize
 				width: parent.width
+
 				delegate: Text {
 					text: model.shortName
 					horizontalAlignment: Text.AlignHCenter
@@ -227,14 +224,7 @@ Rectangle {
 					width: cellSize
 					radius: cellSize * 0.5
 					opacity: monthGrid.month === model.month ? 1 : 0.5
-
-					gradient: Gradient {
-						orientation: Gradient.Vertical
-						GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
-						GradientStop { position: 0.25; color: appSettings.primaryColor; }
-						GradientStop { position: 0.50; color: appSettings.primaryDarkColor; }
-						GradientStop { position: 0.75; color: appSettings.primaryLightColor; }
-					}
+					color: appSettings.primaryColor
 
 					readonly property bool highlighted: model.day === calendar.currentDay && model.month === calendar.currentMonth
 					readonly property bool todayDate: model.year === thisDay.getFullYear() && model.month === thisDay.getMonth() && model.day === thisDay.getDate()

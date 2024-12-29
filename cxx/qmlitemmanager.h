@@ -8,6 +8,7 @@ class QmlExercisesDatabaseInterface;
 class QmlTDayInterface;
 class QmlUserInterface;
 class TPListModel;
+class TPWorkoutsCalendar;
 
 class QQmlApplicationEngine;
 class QQmlComponent;
@@ -36,6 +37,7 @@ public:
 	Q_INVOKABLE void getExercisesPage(QmlTDayInterface* connectPage = nullptr);
 	Q_INVOKABLE void getWeatherPage();
 	Q_INVOKABLE void getStatisticsPage();
+	Q_INVOKABLE void getAllWorkoutsPage();
 
 	const QString& setExportFileName(const QString& filename);
 	void continueExport(int exportMessageId, const bool bShare);
@@ -59,9 +61,10 @@ private:
 	QString m_exportFilename, m_importFilename;
 	QmlUserInterface* m_usersManager;
 	QmlExercisesDatabaseInterface* m_exercisesListManager;
-	QQmlComponent* m_weatherComponent, *m_statisticsComponent;
-	QQuickItem* m_weatherPage, *m_statisticsPage;
+	QQmlComponent* m_weatherComponent, *m_statisticsComponent, *m_allWorkoutsComponent;
+	QQuickItem* m_weatherPage, *m_statisticsPage, *m_allWorkoutsPage;
 	PagesListModel* m_pagesManager;
+	TPWorkoutsCalendar* m_wokoutsCalendar;
 
 	static QmlItemManager* _appItemManager;
 	friend QmlItemManager* appItemManager();
@@ -74,6 +77,7 @@ private:
 
 	void createWeatherPage_part2();
 	void createStatisticsPage_part2();
+	void createAllWorkoutsPage_part2();
 };
 
 inline QmlItemManager* appItemManager() { return QmlItemManager::_appItemManager; }

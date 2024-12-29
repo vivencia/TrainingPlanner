@@ -625,7 +625,7 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				m_calendarPage->setMesoIdx(new_meso_idx);
 		}
 	});
-	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx) {
+	connect(appMesoModel(), &DBMesocyclesModel::mesoCalendarFieldsChanged, this, [this] (const uint meso_idx, const uint field) {
 		if (meso_idx == m_mesoIdx)
 			QMetaObject::invokeMethod(m_mesoPage, "showCalendarChangedDialog");
 	});
