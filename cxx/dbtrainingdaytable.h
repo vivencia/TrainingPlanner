@@ -7,7 +7,7 @@
 
 class DBTrainingDayModel;
 
-static const QString DBTrainingDayFileName(u"TrainingDay.db.sqlite"_s);
+static const QString& DBTrainingDayFileName("TrainingDay.db.sqlite"_L1);
 
 class DBTrainingDayTable final : public TPDatabaseTable
 {
@@ -15,8 +15,8 @@ class DBTrainingDayTable final : public TPDatabaseTable
 public:
 	explicit DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model = nullptr);
 
-	void createTable() override;
-	void updateTable() override;
+	void createTable() override final;
+	void updateTable() override final;
 	void getTrainingDay();
 	void getTrainingDayExercises(const bool bClearSomeFieldsForReUse = false);
 	void getPreviousTrainingDaysInfo();

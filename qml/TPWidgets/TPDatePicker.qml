@@ -10,6 +10,7 @@ Rectangle {
 	clip: true
 	height: cellSize * 10.5
 	width: cellSize * 8
+	radius: 10
 
 	required property var calendarModel
 	property date displayDate
@@ -21,14 +22,17 @@ Rectangle {
 	readonly property double cellSize: Screen.pixelDensity * 7
 	readonly property int fontSizePx: cellSize * 0.32
 
-	signal okClicked(date selDate)
-	signal cancelClicked
+	signal dateSelected(date selDate)
 
 	Rectangle {
 		id: titleOfDate
+		color: appSettings.paneBackgroundColor
+		radius: 10
+		opacity: 0.8
+		z: 1
 		height: 2.5 * cellSize
 		width: parent.width
-		color: appSettings.paneBackgroundColor
+
 		gradient: Gradient {
 			orientation: Gradient.Horizontal
 			GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
@@ -36,8 +40,6 @@ Rectangle {
 			GradientStop { position: 0.50; color: appSettings.primaryColor; }
 			GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
 		}
-		opacity: 0.8
-		z: 1
 
 		anchors {
 			top: parent.top
@@ -156,6 +158,15 @@ Rectangle {
 		spacing: cellSize
 		model: calendarModel
 
+		Connections {
+			target: calendarModel
+			function onReadyChanged() {
+				calendar.currentIndex = calendarModel.indexOf(selectedDate);
+				calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
+				dateSelected(selectedDate);
+			}
+		}
+
 		anchors {
 			top: titleOfDate.bottom
 			bottom: parent.bottom
@@ -165,14 +176,14 @@ Rectangle {
 			rightMargin: cellSize * 0.5
 		}
 
-		property int currentDay
-		property int currentMonth
-		property int currentYear
-		property int dayOfWeek
-		readonly property var months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
+		property int currentDay: selectedDate.getDate()
+		property int currentMonth: selectedDate.getMonth()
+		property int currentYear: selectedDate.getFullYear()
+		property int dayOfWeek: selectedDate.getDay()
+		readonly property list<string> months: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
 									qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
 									qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
-		readonly property var weekNames: [qsTr("Sunday"), qsTr("Monday"), qsTr("Tuesday"), qsTr("Wednesday"),
+		readonly property list<string> weekNames: [qsTr("Sunday"), qsTr("Monday"), qsTr("Tuesday"), qsTr("Wednesday"),
 									qsTr("Thursday"), qsTr("Friday"), qsTr("Saturday")]
 
 		delegate: Rectangle {
@@ -242,6 +253,7 @@ Rectangle {
 						anchors.fill: parent
 						onClicked: {
 							selectedDate = new Date(model.year, model.month, model.day);
+							dateSelected(selectedDate);
 							calendar.currentYear = model.year;
 							calendar.currentMonth = model.month;
 							calendar.currentDay = model.day;
@@ -259,9 +271,9 @@ Rectangle {
 		z: 1
 		anchors.fill: calendar
 
-		property int currentYear
-		readonly property int startYear: startDate.getFullYear();
-		readonly property int endYear : endDate.getFullYear();
+		property int currentYear: startDate.getFullYear()
+		readonly property int startYear: startDate.getFullYear()
+		readonly property int endYear : endDate.getFullYear()
 
 		model: ListModel {
 			id: yearsModel
@@ -306,13 +318,14 @@ Rectangle {
 	} // ListView yearsList
 
 	function yearChosen(year: int): void {
-		setDate(new Date(year, showDate.getMonth(), showDate.getDate()));
+		setDate(new Date(year, selectedDate.getMonth(), selectedDate.getDate()));
 		selectedYear.readOnly = true;
 		yearsList.hide();
 	}
 
 	function setDate(newDate): void {
 		selectedDate = newDate;
+		dateSelected(selectedDate);
 		calendar.currentIndex = calendarModel.indexOf(selectedDate);
 		calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
 		calendar.currentDay = selectedDate.getDate();

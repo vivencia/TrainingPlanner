@@ -48,7 +48,6 @@ Drawer {
 		id: drawerLayout
 		objectName: "drawerLayout"
 		spacing: 5
-		padding: 5
 		opacity: parent.opacity
 		height: drawer.height*0.65
 
@@ -66,7 +65,7 @@ Drawer {
 			id: imgLogo
 			source: "app_icon"
 			dropShadow: false
-			width: parent.height*0.3
+			width: parent.height*0.25
 			height: width
 			x: (parent.width-width)/2
 		}
@@ -82,7 +81,7 @@ Drawer {
 		TPImage {
 			id: imgAvatar
 			dropShadow: true
-			width: parent.height*0.3
+			width: parent.height*0.25
 			height: width
 			x: (parent.width-width)/2
 

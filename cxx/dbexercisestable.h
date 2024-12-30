@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-static const QString DBExercisesFileName(u"ExercisesList.db.sqlite"_s);
+static const QString& DBExercisesFileName("ExercisesList.db.sqlite"_L1);
 
 class DBExercisesModel;
 
@@ -17,8 +17,8 @@ Q_OBJECT
 public:
 	explicit DBExercisesTable(const QString& dbFilePath, DBExercisesModel* model = nullptr);
 
-	void createTable() override;
-	void updateTable() override;
+	void createTable() override final;
+	void updateTable() override final;
 	void getAllExercises();
 	void updateExercisesList();
 	void saveExercises();

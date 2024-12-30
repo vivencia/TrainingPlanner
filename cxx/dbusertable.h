@@ -7,7 +7,7 @@
 
 class DBUserModel;
 
-static const QString DBUserFileName(u"User.db.sqlite"_s);
+static const QString& DBUserFileName("User.db.sqlite"_L1);
 
 class DBUserTable : public TPDatabaseTable
 {
@@ -15,8 +15,8 @@ class DBUserTable : public TPDatabaseTable
 public:
 	explicit DBUserTable(const QString& dbFilePath, DBUserModel* model = nullptr);
 
-	virtual void createTable();
-	virtual void updateTable() {}
+	virtual void createTable() override final;
+	virtual void updateTable() override final {}
 	void getAllUsers();
 	void saveUser();
 

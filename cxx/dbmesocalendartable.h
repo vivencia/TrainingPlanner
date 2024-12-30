@@ -15,8 +15,8 @@ class DBMesoCalendarTable final : public TPDatabaseTable
 public:
 	explicit DBMesoCalendarTable(const QString& dbFilePath, DBMesoCalendarModel* model = nullptr);
 
-	void createTable() override;
-	void updateTable() override;
+	void createTable() override final;
+	void updateTable() override final;
 	void getMesoCalendar();
 	void saveMesoCalendar();
 	void updateMesoCalendarEntry();

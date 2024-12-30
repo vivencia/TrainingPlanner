@@ -9,12 +9,12 @@
 DBTrainingDayTable::DBTrainingDayTable(const QString& dbFilePath, DBTrainingDayModel* model)
 	: TPDatabaseTable{nullptr}, m_model(model)
 {
-	m_tableName = u"training_day_table"_s;
+	m_tableName = std::move("training_day_table"_L1);
 	m_tableID = TRAININGDAY_TABLE_ID;
 	setObjectName(DBTrainingDayObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name(u"db_trainingday_connection"_s + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase(u"QSQLITE"_s, cnx_name);
+	const QString& cnx_name("db_trainingday_connection"_L1 + QString::number(m_UniqueID));
+	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
 	const QString& dbname(dbFilePath + DBTrainingDayFileName);
 	mSqlLiteDB.setDatabaseName( dbname );
 }

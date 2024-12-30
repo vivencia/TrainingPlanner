@@ -14,12 +14,28 @@ TPPage {
 
 	required property WorkoutsCalendar workoutsCalendar
 
-	TPDatePicker {
-		id: datePickerControl
-		focus: true
-		startDate: workoutsCalendar.initialDate
-		displayDate: new Date()
-		endDate: workoutsCalendar.finalDate
-		calendarModel: workoutsCalendar
+	ColumnLayout {
+		spacing: 5
+		anchors {
+			fill: parent
+			margins: 5
+		}
+
+		TPDatePicker {
+			id: datePickerControl
+			focus: true
+			startDate: workoutsCalendar.initialDate
+			displayDate: new Date()
+			endDate: workoutsCalendar.finalDate
+			calendarModel: workoutsCalendar
+			Layout.alignment: Qt.AlignHCenter
+
+			onDateSelected: (new_date) => workoutsCalendar.selectedDate = new_date;
+		}
+
+		TPLabel {
+			text: workoutsCalendar.mesoName
+			Layout.fillWidth: true
+		}
 	}
 }

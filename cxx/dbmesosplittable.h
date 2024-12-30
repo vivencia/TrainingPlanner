@@ -22,8 +22,8 @@ class DBMesoSplitTable final : public TPDatabaseTable
 public:
 	explicit DBMesoSplitTable(const QString& dbFilePath, DBMesoSplitModel* model = nullptr);
 
-	void createTable() override;
-	void updateTable() override;
+	void createTable() override final;
+	void updateTable() override final;
 	void getAllMesoSplits();
 	void saveMesoSplit();
 	void getAllSplits();

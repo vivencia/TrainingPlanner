@@ -9,7 +9,7 @@
 #include <utility>
 
 DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
-	: TPDatabaseTable{}, m_model{model}
+	: TPDatabaseTable{nullptr}, m_model{model}
 {
 	m_tableName = std::move("user_table"_L1);
 	m_tableID = USER_TABLE_ID;
