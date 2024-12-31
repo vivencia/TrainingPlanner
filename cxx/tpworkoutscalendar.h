@@ -4,6 +4,8 @@
 #include <QAbstractListModel>
 #include <QQmlEngine>
 
+struct st_workoutDayInfo;
+
 class TPWorkoutsCalendar : public QAbstractListModel
 {
 
@@ -16,6 +18,10 @@ Q_PROPERTY(QDate initialDate READ initialDate WRITE setInitialDate NOTIFY initia
 Q_PROPERTY(QDate finalDate READ finalDate WRITE setFinalDate NOTIFY finalDateChanged FINAL)
 Q_PROPERTY(QDate selectedDate READ selectedDate WRITE setSelectedDate NOTIFY selectedDateChanged FINAL)
 Q_PROPERTY(QString mesoName READ mesoName NOTIFY selectedDateChanged FINAL)
+Q_PROPERTY(QString trainingDay READ trainingDay NOTIFY workoutChanged FINAL)
+Q_PROPERTY(QString splitLetter READ splitLetter NOTIFY workoutChanged FINAL)
+Q_PROPERTY(bool workoutCompleted READ workoutCompleted NOTIFY workoutChanged FINAL)
+Q_PROPERTY(bool canViewWorkout READ canViewWorkout WRITE setCanViewWorkout NOTIFY canViewWorkoutChanged FINAL)
 
 enum RoleNames {
 	yearRole = Qt::UserRole,
@@ -23,7 +29,8 @@ enum RoleNames {
 };
 
 public:
-	explicit inline TPWorkoutsCalendar(QObject* parent = nullptr) : QAbstractListModel{parent}, m_selectedDay{&noDataDay}, m_bReady{false}
+	explicit inline TPWorkoutsCalendar(QObject* parent = nullptr) : QAbstractListModel{parent}, m_selectedDay{&noDataDay},
+					m_selectedDayWorkoutInfo{noWorkoutDay}, m_bReady{false}, m_bCanViewWorkout{false}
 	{
 		m_roleNames[yearRole] = std::move("year");
 		m_roleNames[monthRole] = std::move("month");
@@ -32,6 +39,7 @@ public:
 
 	void scanMesocycles(const uint startMesoIdx = 0);
 	Q_INVOKABLE int indexOf(const QDate& date) const;
+	Q_INVOKABLE void viewSelectedWorkout();
 
 	inline bool ready() const { return m_bReady; }
 	inline uint count() const { return m_monthsList.count(); }
@@ -42,6 +50,11 @@ public:
 	inline QDate selectedDate() const { return m_selectedDate; }
 	inline void setSelectedDate(const QDate& new_date) { m_selectedDate = new_date; findDateInList(); emit selectedDateChanged(); }
 	QString mesoName() const;
+	QString trainingDay() const;
+	QString splitLetter() const;
+	bool workoutCompleted() const;
+	inline bool canViewWorkout() const { return m_bCanViewWorkout; }
+	inline void setCanViewWorkout(const bool can_view) { m_bCanViewWorkout = can_view; emit canViewWorkoutChanged(); }
 
 	inline int rowCount(const QModelIndex& parent) const override { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex&, int) const override final;
@@ -57,6 +70,8 @@ signals:
 	void initialDateChanged();
 	void finalDateChanged();
 	void selectedDateChanged();
+	void workoutChanged();
+	void canViewWorkoutChanged();
 
 private:
 	struct dayInfo {
@@ -72,13 +87,18 @@ private:
 	QList<QList<dayInfo*>> m_monthsList;
 	QHash<int, QByteArray> m_roleNames;
 	dayInfo* m_selectedDay;
+	st_workoutDayInfo* m_selectedDayWorkoutInfo;
+	QList<st_workoutDayInfo*> m_workoutInfoList;
 
-	bool m_bReady;
+	bool m_bReady, m_bCanViewWorkout;
 	int m_mesoid, m_mesoidx, m_tdayid;
 	QDate m_initialDate, m_finalDate, m_selectedDate;
 	static dayInfo noDataDay;
+	static st_workoutDayInfo* noWorkoutDay;
 
 	void findDateInList();
+	void getWorkoutInfo();
+	void findWorkoutInList();
 };
 
 #endif // TPWORKOUTSCALENDAR_H

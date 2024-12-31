@@ -157,9 +157,9 @@ void DBMesocyclesModel::getMesoCalendarPage(const uint meso_idx)
 	mesoManager(meso_idx)->getCalendarPage();
 }
 
-void DBMesocyclesModel::todaysWorkout()
+void DBMesocyclesModel::openSpecificWorkout(const uint meso_idx, const QDate& date)
 {
-	mesoManager(mostRecentOwnMesoIdx())->getTrainingDayPage(QDate::currentDate());
+	mesoManager(meso_idx)->getTrainingDayPage(date);
 }
 
 void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo)

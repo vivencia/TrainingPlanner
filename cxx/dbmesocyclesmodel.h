@@ -53,7 +53,8 @@ public:
 	Q_INVOKABLE void getExercisesPlannerPage(const uint meso_idx);
 	Q_INVOKABLE void getMesoCalendarPage(const uint meso_idx);
 	Q_INVOKABLE void exportMeso(const uint meso_idx, const bool bShare, const bool bCoachInfo);
-	Q_INVOKABLE void todaysWorkout();
+	Q_INVOKABLE inline void todaysWorkout() { openSpecificWorkout(mostRecentOwnMesoIdx(), QDate::currentDate()); }
+	void openSpecificWorkout(const uint meso_idx, const QDate& date);
 
 	const uint newMesocycle(QStringList&& infolist);
 	void finishedLoadingFromDatabase();

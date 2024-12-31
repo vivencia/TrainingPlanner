@@ -44,10 +44,10 @@ void TPStatistics::createDataSet(const uint meso_idx, const QChar& splitLetter)
 
 	auto conn = std::make_shared<QMetaObject::Connection>();
 	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn,meso_idx,splitLetter]
-										(const uint table_idx, const QVariant data) {
+										(const uint table_idx, QVariant data) {
 		if (table_idx == MESOSPLIT_TABLE_ID)
 		{
-			const statsInfo& receivedSplit(data.value<statsInfo>());
+			statsInfo receivedSplit{std::move(data.value<statsInfo>())};
 			if (receivedSplit.mesoIdx == meso_idx && receivedSplit.splitLetter == splitLetter)
 			{
 				disconnect(*conn);
@@ -69,7 +69,7 @@ void TPStatistics::includeExercise(const uint exercise_idx, const bool include)
 	m_workingDataSet->m_exercisesIncluded[exercise_idx] = include;
 }
 
-void TPStatistics::generateExercisesForPlotting(const statsInfo* const splitInfo)
+void TPStatistics::generateExercisesForPlotting(statsInfo* splitInfo)
 {
 	if (m_workingDataSet)
 	{
@@ -148,14 +148,14 @@ void TPStatistics::generateDataSet()
 		return;
 	}
 	auto conn = std::make_shared<QMetaObject::Connection>();
-	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
+	*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data) {
 		if (table_idx == MESOCALENDAR_TABLE_ID)
 		{
 			disconnect(*conn);
 			const QList<QDate>& dates{data.value<QList<QDate>>()};
 			createXData(dates);
 			auto conn2 = std::make_shared<QMetaObject::Connection>();
-			*conn2 = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&dates] (const uint table_idx, const QVariant data2) {
+			*conn2 = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, QVariant data2) {
 				if (table_idx == TRAININGDAY_TABLE_ID)
 				{
 					disconnect(*conn2);

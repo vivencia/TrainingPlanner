@@ -298,6 +298,38 @@ void DBMesoCalendarTable::updateMesoCalendar()
 	saveMesoCalendar();
 }
 
+void DBMesoCalendarTable::workoutDayInfoForEntireMeso()
+{
+	clearWorkoutsInfoList();
+	if (openDatabase(true))
+	{
+		QSqlQuery query{getQuery()};
+		const QString& strQuery{"SELECT * FROM mesocycles_calendar_table WHERE meso_id=%1"_L1.arg(m_execArgs.at(0).toString())};
+		bool ok(false);
+		if (query.exec(strQuery))
+		{
+			if (query.first())
+			{
+				do {
+					st_workoutDayInfo* workout_info{new st_workoutDayInfo};
+					workout_info->trainingDay = std::move(query.value(MESOCALENDAR_COL_TRAINING_DAY).toString());
+					if (workout_info->trainingDay == '0')
+						workout_info->trainingDay = std::move(tr("Rest day"));
+					workout_info->splitLetter = std::move(query.value(MESOCALENDAR_COL_SPLITLETTER).toString());
+					workout_info->completed = std::move(query.value(MESOCALENDAR_COL_TRAININGCOMPLETE).toString() == "1"_L1);
+					workout_info->date = std::move(QDate(query.value(MESOCALENDAR_COL_YEAR).toUInt(), query.value(MESOCALENDAR_COL_MONTH).toUInt(),
+														query.value(MESOCALENDAR_COL_DAY).toUInt()));
+					m_workoutsInfoList.append(workout_info);
+				} while (query.next());
+				m_workoutsInfoList.at(0)->meso_id = m_execArgs.at(0).toUInt();
+				ok = true;
+			}
+		}
+		setQueryResult(ok, strQuery, SOURCE_LOCATION);
+	}
+	doneFunc(static_cast<TPDatabaseTable*>(this));
+}
+
 void DBMesoCalendarTable::completedDaysForSplitWithinTimePeriod()
 {
 	m_completedWorkoutDates.clear();

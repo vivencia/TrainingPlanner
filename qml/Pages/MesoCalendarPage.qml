@@ -126,7 +126,7 @@ TPPage {
 					height: calendar.cellSize
 					width: calendar.cellSize
 					radius: height * 0.5
-					border.color: "red"
+					border.color: "green"
 					border.width: bDayIsFinished ? 2 : 0
 					opacity: !highlighted ? 1 : 0.5
 
@@ -137,7 +137,7 @@ TPPage {
 					property string colorValue
 
 					Component.onCompleted: {
-						var colorValue = "transparent";
+						let colorValue = "transparent";
 						if ( monthGrid.month === model.month ) {
 							if (mesoCalendarModel.isTrainingDay(model.month+1, model.day-1)) {
 								colorValue =  appSettings.listEntryColor2;

@@ -504,6 +504,21 @@ void DBInterface::deleteMesoCalendarTable(const uint meso_idx, const bool bRemov
 	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
+
+void DBInterface::getWorkoutDayInfoForAllWorkouts(const uint meso_id)
+{
+	DBMesoCalendarTable* worker{new DBMesoCalendarTable{m_DBFilePath}};
+	auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(this, &DBInterface::databaseReady, this, [this,conn,worker] (const uint db_id) {
+		if (db_id == worker->uniqueID())
+		{
+			disconnect(*conn);
+			emit databaseReadyWithData(MESOCALENDAR_TABLE_ID, QVariant::fromValue(worker->workoutsInfo()));
+		}
+	});
+	worker->addExecArg(meso_id);
+	createThread(worker, [worker] () { return worker->workoutDayInfoForEntireMeso(); });
+}
 //-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 //-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------

@@ -56,7 +56,7 @@ private:
 	QDate m_startDate, m_endDate;
 	double m_xmin, m_xmax, m_ymin, m_ymax;
 
-	void generateExercisesForPlotting(const statsInfo* const splitInfo = nullptr);
+	void generateExercisesForPlotting(statsInfo* splitInfo = nullptr);
 	void createXData(const QList<QDate>&dates);
 	void createYData(const QList<QList<QStringList>>& workoutInfo);
 	friend TPStatistics* appStatistics();

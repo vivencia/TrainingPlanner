@@ -229,7 +229,17 @@ void QmlTDayInterface::loadExercisesFromDate(const QString& strDate)
 void QmlTDayInterface::loadExercisesFromMesoPlan(DBMesoSplitModel* const splitModel)
 {
 	if (!splitModel)
-		emit requestMesoSplitModel(splitLetter().at(0));
+	{
+		auto conn = std::make_shared<QMetaObject::Connection>();
+		*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this,conn] (const uint table_idx, QVariant data) {
+			if (table_idx == MESOSPLIT_TABLE_ID)
+			{
+				disconnect(*conn);
+				loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
+			}
+		});
+		appDBInterface()->loadCompleteMesoSplit(m_mesoIdx, _splitLetter());
+	}
 	else
 	{
 		if (splitModel->count() > 0)
@@ -243,7 +253,10 @@ void QmlTDayInterface::loadExercisesFromMesoPlan(DBMesoSplitModel* const splitMo
 
 void QmlTDayInterface::convertTDayToPlan()
 {
-	emit convertTDayToSplitPlan(m_tDayModel);
+	DBMesoSplitModel* splitModel{new DBMesoSplitModel{this, true, m_mesoIdx}};
+	splitModel->setImportMode(true); //Have the database thread delete the model after procuring its contents
+	splitModel->convertFromTDayModel(m_tDayModel);
+	appDBInterface()->saveMesoSplitComplete(splitModel);
 }
 
 void QmlTDayInterface::resetWorkout()
@@ -538,7 +551,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	emit addPageToMainMenu(tr("Workout: ") + appUtils()->formatDate(m_tDayModel->date()), m_tDayPage);
 	setHeaderText();
 
-	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
+	connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, QVariant data) {
 		if (table_id == TRAININGDAY_TABLE_ID)
 		{
 			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
@@ -565,7 +578,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 				if (tDayModel->dateStr() == m_tDayModel->dateStr())
 				{
 					if (m_tDayModel->splitLetter() != "R"_L1)
-						setTrainingDayPageEmptyDayOrChangedDayOptions(data.value<DBTrainingDayModel*>());
+						setTrainingDayPageEmptyDayOrChangedDayOptions(tDayModel);
 				}
 			}
 			else

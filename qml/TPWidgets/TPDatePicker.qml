@@ -17,10 +17,11 @@ Rectangle {
 	property date startDate
 	property date endDate
 	property date selectedDate: displayDate
+	property double sizeFactor: 7
 
 	readonly property date thisDay: new Date()
-	readonly property double cellSize: Screen.pixelDensity * 7
-	readonly property int fontSizePx: cellSize * 0.32
+	readonly property double cellSize: Screen.pixelDensity * sizeFactor
+	readonly property int fontSizePx: cellSize * (sizeFactor/21) //0.32
 
 	signal dateSelected(date selDate)
 

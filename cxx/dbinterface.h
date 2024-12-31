@@ -84,6 +84,7 @@ public:
 	void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
+	void getWorkoutDayInfoForAllWorkouts(const uint meso_id);
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------TRAININGDAY TABLE-----------------------------------------------------------
@@ -106,7 +107,7 @@ public:
 
 signals:
 	void databaseReady(const uint db_id);
-	void databaseReadyWithData(const uint table_idx, const QVariant data);
+	void databaseReadyWithData(const uint table_idx, QVariant data);
 
 public slots:
 	void cleanUpThreads();

@@ -54,7 +54,7 @@ void QmlMesoSplitInterface::getExercisesPlannerPage()
 {
 	if (!m_plannerComponent)
 	{
-		connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, const QVariant data) {
+		connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [this] (const uint table_id, QVariant data) {
 			if (table_id == MESOSPLIT_TABLE_ID)
 			{
 				connect(this, &QmlMesoSplitInterface::plannerPageCreated, this, [this,data] () {

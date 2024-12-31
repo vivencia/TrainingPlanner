@@ -399,34 +399,6 @@ void QMLMesoInterface::getTrainingDayPage(const QDate& date)
 	{
 		tDayPage = new QmlTDayInterface{this, m_mesoIdx, date};
 		m_tDayPages.insert(date, tDayPage);
-
-		connect(tDayPage, &QmlTDayInterface::requestMesoSplitModel, this, [=,this] (const QChar& splitletter) {
-			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoIdx};
-			auto conn = std::make_shared<QMetaObject::Connection>();
-			*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this] (const uint table_idx, const QVariant data) {
-				if (table_idx == MESOSPLIT_TABLE_ID)
-				{
-					disconnect(*conn);
-					tDayPage->loadExercisesFromMesoPlan(data.value<DBMesoSplitModel*>());
-				}
-			});
-			appDBInterface()->loadCompleteMesoSplit(m_mesoIdx, splitletter);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-
-		connect(tDayPage, &QmlTDayInterface::convertTDayToSplitPlan, this, [=,this] (const DBTrainingDayModel* const tDayModel) {
-			if (!m_exercisesPage)
-				m_exercisesPage = new QmlMesoSplitInterface{this, m_mesoIdx};
-			DBMesoSplitModel* splitModel(m_exercisesPage->splitModel(tDayModel->_splitLetter()));
-			if (!splitModel)
-			{
-				splitModel = new DBMesoSplitModel{this, true, m_mesoIdx};
-				splitModel->convertFromTDayModel(tDayModel);
-				appDBInterface()->saveMesoSplitComplete(splitModel);
-			}
-			else
-				splitModel->convertFromTDayModel(tDayModel);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 	tDayPage->getTrainingDayPage();
 }
@@ -470,7 +442,7 @@ void QMLMesoInterface::exportMeso(const bool bShare, const bool bCoachInfo)
 				{
 					auto conn = std::make_shared<QMetaObject::Connection>();
 					*conn = connect(appDBInterface(), &DBInterface::databaseReadyWithData, this, [=,this,&exportFileMessageId,&exportFileName]
-																					(const uint table_idx, const QVariant data) {
+																					(const uint table_idx, QVariant data) {
 						if (table_idx == MESOSPLIT_TABLE_ID)
 						{
 							disconnect(*conn);

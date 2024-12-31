@@ -167,7 +167,6 @@ signals:
 	void addPageToMainMenu(const QString& label, QQuickItem* page);
 	void removePageFromMainMenu(QQuickItem* page);
 	void requestMesoSplitModel(const QChar& splitletter);
-	void convertTDayToSplitPlan(const DBTrainingDayModel* const tDayModel);
 
 public slots:
 	void createExerciseObject();
