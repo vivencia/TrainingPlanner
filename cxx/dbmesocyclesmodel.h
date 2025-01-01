@@ -68,6 +68,7 @@ public:
 
 	void setModified(const uint meso_idx, const uint field);
 
+	int idxFromId(const uint meso_id) const;
 	inline const QString& id(const uint meso_idx) const
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_ID);

@@ -95,22 +95,19 @@ void QmlMesoSplitInterface::moveRow(const uint from, const uint to, DBMesoSplitM
 	emit splitModel->splitChanged(0, 100); //Save the data
 }
 
-void QmlMesoSplitInterface::swapMesoPlans(const QString& splitLetter1, const QString& splitLetter2)
+void QmlMesoSplitInterface::swapMesoPlans()
 {
-	m_splitPages.value(splitLetter1.at(0))->setProperty("splitLetter", splitLetter2);
-	m_splitPages.value(splitLetter2.at(0))->setProperty("splitLetter", splitLetter1);
-	DBMesoSplitModel* tempSplit(m_splitModels.value(splitLetter1.at(0)));
-	m_splitModels[splitLetter1.at(0)] = m_splitModels.value(splitLetter2.at(0));
-	appDBInterface()->saveMesoSplitComplete(m_splitModels.value(splitLetter1.at(0)));
-	m_splitModels[splitLetter2.at(0)] = tempSplit;
-	appDBInterface()->saveMesoSplitComplete(m_splitModels.value(splitLetter1.at(0)));
+	DBMesoSplitModel* tempSplit{m_splitModels.value(currentSplitLetter().at(0))};
+	m_splitModels[currentSplitLetter().at(0)] = m_splitModels.value(currentSwappableLetter().at(0));
+	appDBInterface()->saveMesoSplitComplete(currentSplitModel());
+	m_splitModels[currentSwappableLetter().at(0)] = tempSplit;
+	appDBInterface()->saveMesoSplitComplete(m_splitModels.value(currentSplitLetter().at(0)));
 }
 
-void QmlMesoSplitInterface::loadSplitFromPreviousMeso(DBMesoSplitModel* splitModel)
+void QmlMesoSplitInterface::loadSplitFromPreviousMeso()
 {
-	const int prevMesoId(getSplitPage(splitModel->_splitLetter())->property("prevMesoId").toInt());
-	if (prevMesoId >= 0)
-		appDBInterface()->loadSplitFromPreviousMeso(prevMesoId, splitModel);
+	if (m_prevMesoId >= 0)
+		appDBInterface()->loadSplitFromPreviousMeso(m_prevMesoId, currentSplitModel());
 }
 
 void QmlMesoSplitInterface::simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel, const uint exercise_idx)
@@ -172,6 +169,15 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 	}
 	else
 		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
+}
+
+void QmlMesoSplitInterface::setCurrentPage(const int index)
+{
+	m_currentSplitPage = m_splitPages.value(QChar(static_cast<int>('A') - index));
+	m_currentSplitLetter = std::move(m_splitPages.key(m_currentSplitPage));
+	m_bHasExercises = currentSplitModel()->count() > 1;
+	m_currentSwappableLetter = std::move(currentSplitModel()->findSwappableModel());
+	emit currentPageChanged();
 }
 
 void QmlMesoSplitInterface::exerciseSelected()
@@ -251,6 +257,10 @@ void QmlMesoSplitInterface::createPlannerPage()
 {
 	m_plannerComponent = new QQmlComponent{appQmlEngine(), QUrl{"qrc:/qml/Pages/ExercisesPlanner.qml"_L1}, QQmlComponent::Asynchronous};
 	m_plannerProperties["splitManager"_L1] = QVariant::fromValue(this);
+	m_currentSplitLetter = "N"_L1;
+	m_currentSwappableLetter = "N"_L1;
+	m_bHasExercises = false;
+
 	if (m_plannerComponent->status() != QQmlComponent::Ready)
 		connect(m_plannerComponent, &QQmlComponent::statusChanged, this, [this](QQmlComponent::Status status) {
 			if (status == QQmlComponent::Ready)
@@ -353,18 +363,14 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 
 void QmlMesoSplitInterface::setSplitPageProperties(QQuickItem* splitPage, const DBMesoSplitModel* const splitModel)
 {
-	int prevMesoId{appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx))};
-	if (prevMesoId >= 0)
+	m_prevMesoId = appMesoModel()->getPreviousMesoId(appMesoModel()->client(m_mesoIdx), appMesoModel()->_id(m_mesoIdx));
+	if (m_prevMesoId >= 0)
 	{
-		if (appDBInterface()->mesoHasPlan(prevMesoId, splitModel->splitLetter()))
-			splitPage->setProperty("prevMesoName", appMesoModel()->name(prevMesoId));
+		if (appDBInterface()->mesoHasPlan(m_prevMesoId, splitModel->splitLetter()))
+			m_prevMesoName = appMesoModel()->name(appMesoModel()->idxFromId(m_prevMesoId));
 		else
-			prevMesoId = -1; //Nothing from previous meso to import
+			m_prevMesoId = -1; //Nothing from previous meso to import
 	}
-	const QString& swappableLetter(splitModel->findSwappableModel());
-	splitPage->setProperty("prevMesoId", prevMesoId);
-	splitPage->setProperty("swappableLetter", swappableLetter);
-	splitPage->setProperty("bCanSwapPlan", !swappableLetter.isEmpty());
 }
 
 //Updates MesoSplitPlanner(and its corresponding models) with the changes originating in MesocyclePage.qml

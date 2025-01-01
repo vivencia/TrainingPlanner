@@ -18,6 +18,7 @@ Popup {
 	property bool closeButtonVisible: true
 	property int finalYPos: 0
 	property int startYPos: 0
+	property alias btnClose: btnCloseWindow
 
 	onClosed: {
 		bVisible = false;
@@ -74,12 +75,12 @@ Popup {
 	}
 
 	TPButton {
+		id: btnCloseWindow
 		imageSource: "close.png"
 		hasDropShadow: false
 		visible: closeButtonVisible
-		height: 30
-		width: 30
-
+		imageSize: 25
+		height: 25
 		z:2
 
 		anchors {

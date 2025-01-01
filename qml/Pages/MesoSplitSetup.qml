@@ -265,7 +265,7 @@ Pane {
 	property TPLabel curLabel: null
 	function showMGDialog(button: TPButton, letter_index: int, label: TPLabel): void {
 		if (filterDlg === null) {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/Dialogs/MuscularGroupPicker.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				filterDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, buttonLabel: qsTr("Define"), useFancyNames: true });

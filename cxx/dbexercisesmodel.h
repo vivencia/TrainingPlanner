@@ -2,7 +2,6 @@
 #define DBEXERCISESMODEL_H
 
 #include "tplistmodel.h"
-#include "tpglobals.h"
 
 #define EXERCISES_COL_ID 0
 #define EXERCISES_COL_MAINNAME 1
@@ -110,10 +109,10 @@ public:
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SELECTED) == STR_ONE; }
+	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SELECTED) == Qt::StringLiterals::operator""_L1("1", 1); }
 	Q_INVOKABLE inline void setSelected(const uint index, const bool selected)
 	{
-		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SELECTED] = selected ? STR_ONE : STR_ZERO;
+		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SELECTED] = selected ? Qt::StringLiterals::operator""_L1("1", 1) : Qt::StringLiterals::operator""_L1("0", 1);
 		addModifiedIndex(index);
 	}
 

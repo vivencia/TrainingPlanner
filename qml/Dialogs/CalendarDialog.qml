@@ -33,6 +33,8 @@ TPPopup {
 			calendarModel: CalendarModel {
 				from: initDate
 				to: finalDate
+
+				readonly property bool ready: true //the c++ and qml models must have the same API to avoid warnings and errors
 			}
 
 			Component.onCompleted: datePickerControl.setDate(showDate);

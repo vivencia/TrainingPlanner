@@ -34,7 +34,7 @@ TPPage {
 
 		TPImage {
 			id: imgNewMesoOK
-			source: "set-completed.png"
+			source: "set-completed"
 			enabled: !mesoManager.isNewMeso
 			width: 45
 			height: 45
@@ -509,7 +509,7 @@ TPPage {
 				TextArea {
 					id: txtMesoNotes
 					text: mesoManager.notes
-					color: appSettings.fontColor
+					color: "black"
 					font.pixelSize: appSettings.fontSize
 					font.bold: true
 					topPadding: appSettings.fontSize
@@ -536,7 +536,7 @@ TPPage {
 	property TPComplexDialog calendarChangeDlg: null
 	function showCalendarChangedDialog(): void {
 		if (!calendarChangeDlg) {
-			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				calendarChangeDlg = component.createObject(mainwindow, { parentPage: mesoPropertiesPage, title:qsTr("Adjust meso calendar?"),

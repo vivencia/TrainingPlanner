@@ -66,6 +66,7 @@ TPPopup {
 		opacity: 0.8
 		width: parent.width
 		height: 25
+		z:0
 
 		gradient: Gradient {
 			orientation: Gradient.Horizontal

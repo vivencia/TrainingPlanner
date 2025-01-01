@@ -15,7 +15,6 @@ TPPage {
 	objectName: "exercisesPlanner"
 
 	required property SplitManager splitManager
-	property alias currentPage: splitView.currentItem
 	property PageScrollButtons navButtons: null
 
 	signal exerciseSelectedFromSimpleExercisesList();
@@ -35,6 +34,8 @@ TPPage {
 		id: splitView
 		interactive: !exercisesPane.visible
 		anchors.fill: parent
+
+		onCurrentIndexChanged: splitManager.setCurrentPage(currentIndex);
 	} //SwipeView
 
 	PageIndicator {
@@ -87,7 +88,7 @@ TPPage {
 			text: qsTr("Clear")
 			imageSource: "clear.png"
 			textUnderIcon: true
-			enabled: currentPage ? currentPage.splitModel.count > 1 : false
+			enabled: splitManager.hasExercises
 			fixedSize: true
 			rounded: false
 			flat: false
@@ -100,15 +101,15 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: currentPage.splitModel.clearExercises();
+			onClicked: splitManager.currentSplitModel.clearExercises();
 		}
 
 		TPButton {
 			id: btnSwapPlan
-			text: currentPage ? currentPage.splitModel.splitLetter() + " <-> " + currentPage.swappableLetter : "A <-> B"
+			text: splitManager.currentSplitLetter + " <-> " + splitManager.currentSwappableLetter
 			imageSource: "swap.png"
 			textUnderIcon: true
-			visible: currentPage ? currentPage.bCanSwapPlan : false
+			visible: splitManager.canSwapExercises
 			fixedSize: true
 			rounded: false
 			flat: false
@@ -121,7 +122,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: splitManager.swapMesoPlans(currentPage.splitModel.splitLetter(), currentPage.swappableLetter);
+			onClicked: splitManager.swapMesoPlans();
 		}
 
 		TPButton {
@@ -161,7 +162,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: currentPage.appendNewExerciseToDivision();
+			onClicked: splitManager.currentPage.appendNewExerciseToDivision();
 		} //btnAddExercise
 	}
 
@@ -198,15 +199,15 @@ TPPage {
 	}
 
 	function setScrollBarPosition(pos): void {
-		if (currentPage)
-			currentPage.setScrollBarPosition(pos);
+		if (splitManager.currentPage)
+			splitManager.currentPage.setScrollBarPosition(pos);
 	}
 
 	function insertSplitPage(page: Item, idx: int): void {
 		splitView.insertItem(idx, page);
 	}
 
-	readonly property bool bExportEnabled: currentPage ? currentPage.splitModel.count > 1 : false
+	readonly property bool bExportEnabled: splitManager.hasExercises
 	onBExportEnabledChanged: {
 		if (imExportMenu) {
 			imExportMenu.enableMenuEntry(1, bExportEnabled);
@@ -218,27 +219,40 @@ TPPage {
 	property TPFloatingMenuBar imExportMenu: null
 	function showInExMenu(): void {
 		if (imExportMenu === null) {
-			var imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let imExportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			imExportMenu = imExportMenuComponent.createObject(pagePlanner, { parentPage: pagePlanner });
 			imExportMenu.addEntry(qsTr("Import"), "import.png", 0, true);
-			imExportMenu.addEntry(qsTr("Import from ") + currentPage.prevMesoName, "import.png", 1, currentPage.prevMesoId >= 0);
-			imExportMenu.addEntry(qsTr("Export"), "save-day.png", 2, true);
+			if (splitManager.prevMesoName().length > 0)
+				imExportMenu.addEntry(qsTr("Import from ") + splitManager.prevMesoName(), "import.png", 1, true);
+			imExportMenu.addEntry(qsTr("Export"), "export.png", 2, true);
 			if (Qt.platform.os === "android")
 				imExportMenu.addEntry(qsTr("Share"), "export.png", 3, true);
 			imExportMenu.menuEntrySelected.connect(selectedMenuOption);
 		}
-		imExportMenu.setMenuText(1);
 		imExportMenu.show2(btnImExport, 0);
 	}
 
 	function selectedMenuOption(menuid): void {
 		switch (menuid) {
 			case 0: splitManager.importMesoSplit(); break;
-			case 1: currentPage.showImportFromPreviousMesoMessage(); break;
+			case 1: msgDlgImport.show(-1); break;
 			case 2: exportTypeTip.init(false); break;
 			case 3: exportTypeTip.init(true); break;
 		}
 	}
+
+	TPBalloonTip {
+		id: msgDlgImport
+		title: qsTr("Import Exercises Plan?")
+		message: qsTr("Import the exercises plan for training division <b>") + splitManager.currentSplitLetter +
+						 qsTr("</b> from <b>") + splitManager.prevMesoName() + "</b>?"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		imageSource: "remove"
+		parentPage: pagePlanner
+
+		onButton1Clicked: splitManager.loadSplitFromPreviousMeso();
+	} //TPBalloonTip
 
 	TPBalloonTip {
 		id: exportTypeTip

@@ -10,7 +10,7 @@
 #include <QQmlListProperty>
 #include <QString>
 
-class	WeatherData : public QObject
+class WeatherData : public QObject
 {
 
 Q_OBJECT

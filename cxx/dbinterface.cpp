@@ -423,6 +423,14 @@ void DBInterface::loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplit
 	DBMesoSplitTable* worker{new DBMesoSplitTable{m_DBFilePath, model}};
 	worker->addExecArg(QString::number(prev_meso_id));
 	worker->addExecArg(model->splitLetter().at(0));
+	auto conn = std::make_shared<QMetaObject::Connection>();
+	*conn = connect(this, &DBInterface::databaseReady, this, [this,model,conn] (const uint db_id) {
+		if (m_WorkerLock[MESOSPLIT_TABLE_ID].hasID(db_id))
+		{
+			disconnect(*conn);
+			saveMesoSplitComplete(model);
+		}
+	});
 	createThread(worker, [worker] () { worker->getCompleteMesoSplit(); });
 }
 //-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------

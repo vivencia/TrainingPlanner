@@ -276,11 +276,11 @@ void TPUtils::removeFieldFromCompositeValue(const uint idx, QString& compositeSt
 
 bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2) const
 {
-	const QStringList& words2(string2.split(' '));
-	QStringList::const_iterator itr(words2.begin());
-	const QStringList::const_iterator& itr_end(words2.end());
-	uint matches(0);
-	uint nwords(0);
+	const QStringList& words2{string2.split(' ')};
+	QStringList::const_iterator itr{words2.begin()};
+	const QStringList::const_iterator& itr_end{words2.end()};
+	uint matches{0};
+	uint nwords{0};
 	do
 	{
 		nwords++;

@@ -107,7 +107,7 @@ uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 	QMLMesoInterface* mesomanager{new QMLMesoInterface{this, meso_idx}};
 	m_mesoManagerList.append(mesomanager);
 	if (bCreatePage)
-		mesomanager->getMesocyclePage();
+		getMesocyclePage(meso_idx);
 	return meso_idx;
 }
 
@@ -215,6 +215,17 @@ void DBMesocyclesModel::setModified(const uint meso_idx, const uint field)
 			emit isNewMesoChanged(meso_idx);
 	}
 	emit mesoChanged(meso_idx, field);
+}
+
+int DBMesocyclesModel::idxFromId(const uint meso_id) const
+{
+	const QString mesoIdStr{std::move(QString::number(meso_id))};
+	for (uint i{0}; i < m_modeldata.count(); ++i)
+	{
+		if (m_modeldata.at(i).at(MESOCYCLES_COL_ID) == mesoIdStr)
+			return i;
+	}
+	return -1;
 }
 
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar& splitLetter) const

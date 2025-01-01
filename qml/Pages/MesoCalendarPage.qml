@@ -156,10 +156,10 @@ TPPage {
 						font.pixelSize: appSettings.fontSize
 					}
 
-					SequentialAnimation {
+					SequentialAnimation { // Expand the button
 						id: animExpand
 						alwaysRunToEnd: true
-						// Expand the button
+
 						PropertyAnimation {
 							target: dayEntry
 							property: "scale"
@@ -168,10 +168,10 @@ TPPage {
 							easing.type: Easing.InOutCubic
 						}
 					}
-					SequentialAnimation {
+					SequentialAnimation { // Shrink back to normal
 						id: animShrink
 						alwaysRunToEnd: true
-						// Shrink back to normal
+
 						PropertyAnimation {
 							target: dayEntry
 							property: "scale"
@@ -181,7 +181,7 @@ TPPage {
 						}
 					}
 
-					function highlightDay(highlighted: bool) {
+					function highlightDay(highlighted: bool): void {
 						if (highlighted)
 							animExpand.start();
 						else
@@ -210,7 +210,7 @@ TPPage {
 	} //ListView
 
 	footer: TPToolBar {
-		height: footerHeight*2.5
+		height: footerHeight*2
 
 		TPLabel {
 			id: lblInfo
@@ -249,6 +249,7 @@ TPPage {
 
 			anchors {
 				top: lblInfo.bottom
+				topMargin: 5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right
@@ -260,6 +261,7 @@ TPPage {
 
 			anchors {
 				top: optChangeOnlyThisDay.bottom
+				topMargin: 5
 				left: cboSplitLetter.right
 				leftMargin: 10
 				right: parent.right

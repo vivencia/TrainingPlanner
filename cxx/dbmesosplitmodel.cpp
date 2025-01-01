@@ -357,14 +357,14 @@ static void muscularGroupSimplified(QString& muscularGroup)
 
 QString DBMesoSplitModel::findSwappableModel() const
 {
-	QString muscularGroup1(appMesoModel()->muscularGroup(mesoIdx(), _splitLetter()));
+	QString muscularGroup1{std::move(appMesoModel()->muscularGroup(mesoIdx(), _splitLetter()))};
 	if (!muscularGroup1.isEmpty())
 	{
 		muscularGroupSimplified(muscularGroup1);
 		QString muscularGroup2;
-		const QString& mesoSplit(appMesoModel()->split(mesoIdx()));
-		QString::const_iterator itr(mesoSplit.constBegin());
-		const QString::const_iterator& itr_end(mesoSplit.constEnd());
+		const QString& mesoSplit{appMesoModel()->split(mesoIdx())};
+		QString::const_iterator itr{mesoSplit.constBegin()};
+		const QString::const_iterator& itr_end{mesoSplit.constEnd()};
 
 		do {
 			if ((*itr) == QChar('R'))

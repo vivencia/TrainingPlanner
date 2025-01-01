@@ -11,19 +11,13 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 Frame {
 	id: paneSplit
 	objectName: "mesoSplitPlanner"
+	width: appSettings.pageWidth
+	padding: 0
+	spacing: 0
 
 	required property TPPage parentItem
 	required property DBMesoSplitModel splitModel
 	required property SplitManager splitManager
-
-	property bool bCanSwapPlan
-	property string swappableLetter
-	property string prevMesoName
-	property int prevMesoId
-
-	width: appSettings.pageWidth
-	padding: 0
-	spacing: 0
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -663,23 +657,5 @@ Frame {
 		splitModel.appendExercise();
 		lstSplitExercises.currentIndex = splitModel.currentRow;
 		lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
-	}
-
-	TPBalloonTip {
-		id: msgDlgImport
-		title: qsTr("Import Exercises Plan?")
-		message: qsTr("Import the exercises plan for training division <b>") + splitModel.splitLetter() +
-						 qsTr("</b> from <b>") + prevMesoName + "</b>?"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		imageSource: "remove"
-		parentPage: parentItem
-
-		onButton1Clicked: splitManager.loadSplitFromPreviousMeso(splitModel);
-	} //TPBalloonTip
-
-	function showImportFromPreviousMesoMessage(): void
-	{
-		msgDlgImport.show(-1);
 	}
 } //Page
