@@ -8,27 +8,6 @@
 
 TPUtils* TPUtils::app_utils(nullptr);
 
-TPUtils::TPUtils(QObject* parent)
-	: QObject{parent}, m_appLocale(nullptr), mb_appSuspended(false)
-{
-	app_utils = this;
-	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
-		if (state == Qt::ApplicationSuspended)
-		{
-			mb_appSuspended = true;
-			emit appSuspended();
-		}
-		else if (state == Qt::ApplicationActive)
-		{
-			if (mb_appSuspended)
-			{
-				emit appResumed();
-				mb_appSuspended = false;
-			}
-		}
-	});
-}
-
 const QString TPUtils::getCorrectPath(const QUrl& url) const
 {
 	QString path(url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme));

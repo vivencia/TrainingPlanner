@@ -49,10 +49,6 @@ QmlItemManager::QmlItemManager(QQmlApplicationEngine* qml_engine)
 	appDBInterface()->init();
 	_appQmlEngine = qml_engine;
 	configureQmlEngine();
-
-#ifdef Q_OS_ANDROID
-	appOsInterface()->appStartUpNotifications();
-#endif
 }
 
 QmlItemManager::~QmlItemManager()

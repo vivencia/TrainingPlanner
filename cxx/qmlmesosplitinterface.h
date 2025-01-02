@@ -34,13 +34,14 @@ public:
 	Q_INVOKABLE void getExercisesPlannerPage();
 	Q_INVOKABLE void changeMuscularGroup(const QString& new_musculargroup, DBMesoSplitModel* splitModel);
 	Q_INVOKABLE void moveRow(const uint from, const uint to, DBMesoSplitModel *splitModel);
+	Q_INVOKABLE void removeRow();
 	Q_INVOKABLE void swapMesoPlans();
 	Q_INVOKABLE void loadSplitFromPreviousMeso();
 	Q_INVOKABLE void simpleExercisesList(DBMesoSplitModel* splitModel, const bool show, const bool multi_sel = false, const uint exercise_idx = 0);
 	Q_INVOKABLE void exportMesoSplit(const bool bShare, const QString& splitLetter);
 	Q_INVOKABLE void importMesoSplit(const QString& filename = QString());
 	Q_INVOKABLE QString prevMesoName() const { return m_prevMesoName; }
-	Q_INVOKABLE void setCurrentPage(const int index);
+	Q_INVOKABLE QQuickItem* setCurrentPage(const int index);
 
 	inline DBMesoSplitModel* splitModel(const QChar& splitLetter) { return m_splitModels.value(splitLetter); } //will return nullptr if the page was naver created
 	inline QQuickItem* getSplitPage(const QChar& splitLetter) const { return m_splitPages.value(splitLetter); }

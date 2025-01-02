@@ -6,12 +6,30 @@
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
+#include <QDate>
+#include <QTime>
 #include <jni.h>
 
-class TPAndroidNotification;
+QT_FORWARD_DECLARE_CLASS(TPAndroidNotification)
+
+using namespace Qt::Literals::StringLiterals;
+
+struct notificationData {
+	short id;
+	short action;
+	QDate date;
+	QTime time;
+	bool clicked;
+	bool resolved;
+	QString message;
+	QString title;
+
+	explicit inline notificationData(): id{0}, action{0}, date{std::move(QDate::currentDate())}, time{QTime::currentTime()},
+					clicked{false}, resolved{false}, title{"TrainingPlanner"_L1} {}
+};
 #endif
 
-class TPListModel;
+QT_FORWARD_DECLARE_CLASS(TPListModel)
 
 class OSInterface : public QObject
 {
@@ -21,7 +39,7 @@ Q_OBJECT
 public:
 	explicit OSInterface(QObject* parent = nullptr);
 	inline OSInterface(const OSInterface& other)
-		: QObject{other.parent()}, m_appDataFilesPath(other.m_appDataFilesPath) {}
+		: QObject{other.parent()}, m_appDataFilesPath{other.m_appDataFilesPath}, m_AndroidNotification{nullptr} {}
 	inline ~OSInterface()
 	{
 	#ifdef Q_OS_ANDROID
@@ -30,10 +48,11 @@ public:
 	}
 
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
-	inline void initialCheck() const
+	inline void initialCheck()
 	{
 		#ifdef Q_OS_ANDROID
 			checkPendingIntents();
+			startAppNotifications();
 		#else
 			processArguments();
 		#endif
@@ -44,7 +63,7 @@ public:
 	void setFileReceivedAndSaved(const QString& url) const;
 	bool checkFileExists(const QString& url) const;
 	void onActivityResult(int requestCode, int resultCode);
-	void startNotificationAction(const QString& action);
+	void startNotificationAction(const short action, const short id);
 
 	void checkPendingIntents() const;
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
@@ -52,7 +71,8 @@ public:
 	bool androidSendMail(const QString& address, const QString& subject, const QString& attachment) const;
 	bool viewFile(const QString& filePath, const QString& title) const;
 	QString readFileFromAndroidFileDialog(const QString& android_uri) const;
-	void appStartUpNotifications();
+	void startAppNotifications();
+	void checkWorkouts();
 #else
 	void processArguments() const;
 	Q_INVOKABLE void restartApp();
@@ -67,6 +87,9 @@ public:
 signals:
 #ifdef Q_OS_ANDROID
 	void activityFinishedResult(const int requestCode, const int resultCode);
+	void appSuspended();
+	void appResumed();
+
 #endif
 
 public slots:
@@ -77,6 +100,8 @@ private:
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
+	bool mb_appSuspended;
+	QList<notificationData*> m_notifications;
 #endif
 
 	static OSInterface* app_os_interface;

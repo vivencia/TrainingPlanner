@@ -1,6 +1,8 @@
 #include "tpandroidnotification.h"
 
 #ifdef Q_OS_ANDROID
+#include "osinterface.h"
+
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qjniobject.h>
 #include <QtCore/private/qandroidextras_p.h>
@@ -34,20 +36,18 @@ TPAndroidNotification::~TPAndroidNotification()
 	}
 }
 
-uint TPAndroidNotification::sendNotification(const QString& title, const QString& message, const uint table_id)
+uint TPAndroidNotification::sendNotification(notificationData* data)
 {
-	const uint id(m_Ids.value(table_id).isEmpty() ? 0 : m_Ids.value(table_id).constLast() + 1);
+	const QJniObject& jtitle = QJniObject::fromString(data->title);
+	const QJniObject& jmessage = QJniObject::fromString(data->message);
 
-	const QJniObject& jtitle = QJniObject::fromString(title);
-	const QJniObject& jmessage = QJniObject::fromString(message);
-	const QJniObject& jaction = QJniObject::fromString(QString::number(table_id));
 	QJniObject::callStaticMethod<void>(
 					"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 					"notify",
-					"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V",
-					jtitle.object<jstring>(), jmessage.object<jstring>(), jaction.object<jstring>(), id);
-	m_Ids[table_id].append(id);
-	return id;
+					"(Ljava/lang/String;Ljava/lang/String;I;I)V",
+					jtitle.object<jstring>(), jmessage.object<jstring>(), data->action, data->id);
+	m_Ids[data->id].append(data->id);
+	return data->id;
 }
 
 void TPAndroidNotification::cancelNotification(const uint id)

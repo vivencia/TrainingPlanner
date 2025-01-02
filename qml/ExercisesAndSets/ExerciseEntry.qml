@@ -12,7 +12,7 @@ SwipeDelegate {
 	id: paneExercise
 	visible: height > 0
 	implicitHeight: showSets ? layoutMain.implicitHeight + exerciseSetsLayout.height + 20 :
-		(exerciseManager.hasSets ? txtExerciseName.height : layoutMain.implicitHeight + 20)
+		(exerciseManager.hasSets ? txtExerciseName.height + 10 : layoutMain.implicitHeight + 20)
 	swipe.enabled: enabled && !showSets
 	clip: true
 	padding: 5

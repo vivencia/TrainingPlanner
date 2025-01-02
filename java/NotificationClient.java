@@ -26,7 +26,7 @@ public class NotificationClient
 		TPActivityContext = context;
 	}
 
-    public static void notify(String title, String message, String action, int id)
+    public static void notify(String title, String message, short action, short id)
     {
 		try {
 		    Bitmap icon = BitmapFactory.decodeResource(TPActivityContext.getResources(), R.drawable.icon);
@@ -41,6 +41,7 @@ public class NotificationClient
 		    launchIntent.setAction(Intent.ACTION_MAIN);
 		    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 		    launchIntent.putExtra("TP_ACTION", action);
+		    launchIntent.putExtra("TP_ID", id);
 		    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		    if (launchIntent.resolveActivity(TPActivityContext.getPackageManager()) != null) {
 				PendingIntent notifyPendingIntent = PendingIntent.getActivity(TPActivityContext, id, launchIntent,
@@ -49,6 +50,7 @@ public class NotificationClient
 				Notification.Builder m_builder = new Notification.Builder(TPActivityContext, notificationChannel.getId());
 				m_builder.setSmallIcon(R.drawable.icon)
 				    .setLargeIcon(icon)
+				    .setWhen(System.currentTimeMillis())
 				    .setContentTitle(title)
 				    .setContentText(message)
 				    .setDefaults(Notification.DEFAULT_SOUND)

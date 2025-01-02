@@ -15,29 +15,15 @@ Frame {
 	padding: 0
 	spacing: 0
 
-	required property TPPage parentItem
 	required property DBMesoSplitModel splitModel
 	required property SplitManager splitManager
+	property PageScrollButtons navButtons: null
 
 	background: Rectangle {
 		border.color: "transparent"
 		color: "transparent"
 		radius: 5
 	}
-
-	TPBalloonTip {
-		id: msgDlgRemove
-		title: qsTr("Remove Exercise?")
-		message: splitModel.exerciseName(splitModel.currentRow) + qsTr("\nThis action cannot be undone.")
-		imageSource: "remove"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		onButton1Clicked: {
-			splitModel.removeExercise(splitModel.currentRow);
-			lstSplitExercises.positionViewAtIndex(splitModel.currentRow, ListView.Center);
-		}
-		parentPage: parentItem
-	} //TPBalloonTip
 
 	TPLabel {
 		id: lblMain
@@ -112,6 +98,7 @@ Frame {
 			id: lstSplitExercises
 			boundsBehavior: Flickable.StopAtBounds
 			flickableDirection: Flickable.VerticalFlick
+			currentIndex: splitModel.currentRow
 
 			anchors {
 				top: recMuscularGroup.bottom
@@ -131,18 +118,19 @@ Frame {
 				visible: lstSplitExercises.contentHeight > lstSplitExercises.height
 
 				onPositionChanged: {
-					if (parentItem.navButtons) {
+					if (navButtons) {
+						console.log(lstSplitExercises.contentY);
 						if (lstSplitExercises.contentY <= 50) {
-							parentItem.navButtons.showUpButton = false;
-							parentItem.navButtons.showDownButton = true;
+							navButtons.showUpButton = false;
+							navButtons.showDownButton = true;
 						}
 						else if (lstSplitExercises.contentHeight - lstSplitExercises.contentY - vBar.height <= 50) {
-							parentItem.navButtons.showUpButton = true;
-							parentItem.navButtons.showDownButton = false;
+							navButtons.showUpButton = true;
+							navButtons.showDownButton = false;
 						}
 						else {
-							parentItem.navButtons.showUpButton = true;
-							parentItem.navButtons.showDownButton = true;
+							navButtons.showUpButton = true;
+							navButtons.showDownButton = true;
 						}
 					}
 				}
@@ -259,7 +247,7 @@ Frame {
 						Keys.onReturnPressed: cboSetType.forceActiveFocus(); //Alphanumeric keyboard
 						onExerciseChanged: (new_text) => splitModel.setExerciseName(index, new_text);
 						onItemClicked: splitModel.currentRow = index;
-						onRemoveButtonClicked: msgDlgRemove.show(0);
+						onRemoveButtonClicked: splitManager.removeRow();
 						onEditButtonClicked: splitManager.simpleExercisesList(splitModel, !readOnly, true, 0);
 					} //ExerciseNameField
 
@@ -630,11 +618,7 @@ Frame {
 			} //delegate: ItemDelegate
 		} //ListView
 
-	Component.onCompleted: {
-		lstSplitExercises.currentIndex = splitModel.currentRow;
-		lstSplitExercises.positionViewAtIndex(0, ListView.Beginning);
-		splitModel.modelChanged.connect(reloadModel);
-	}
+	Component.onCompleted: splitModel.modelChanged.connect(reloadModel);
 
 	function reloadModel(): void {
 		lstSplitExercises.model = 0;

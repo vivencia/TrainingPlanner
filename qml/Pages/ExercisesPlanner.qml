@@ -16,6 +16,7 @@ TPPage {
 
 	required property SplitManager splitManager
 	property PageScrollButtons navButtons: null
+	property MesoSplitPlanner currentSplitPage: null
 
 	signal exerciseSelectedFromSimpleExercisesList();
 	signal simpleExercisesListClosed();
@@ -35,7 +36,10 @@ TPPage {
 		interactive: !exercisesPane.visible
 		anchors.fill: parent
 
-		onCurrentIndexChanged: splitManager.setCurrentPage(currentIndex);
+		onCurrentIndexChanged: {
+			currentSplitPage = splitManager.setCurrentPage(currentIndex);
+			currentSplitPage.navButtons = navButtons;
+		}
 	} //SwipeView
 
 	PageIndicator {
@@ -162,7 +166,7 @@ TPPage {
 				verticalCenter: parent.verticalCenter
 			}
 
-			onClicked: splitManager.currentPage.appendNewExerciseToDivision();
+			onClicked: currentSplitPage.appendNewExerciseToDivision();
 		} //btnAddExercise
 	}
 
@@ -184,7 +188,7 @@ TPPage {
 
 	function createNavButtons(): void {
 		if (navButtons === null) {
-			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				navButtons = component.createObject(pagePlanner, { ownerPage: pagePlanner });
@@ -199,8 +203,8 @@ TPPage {
 	}
 
 	function setScrollBarPosition(pos): void {
-		if (splitManager.currentPage)
-			splitManager.currentPage.setScrollBarPosition(pos);
+		if (currentSplitPage)
+			currentSplitPage.setScrollBarPosition(pos);
 	}
 
 	function insertSplitPage(page: Item, idx: int): void {
@@ -272,5 +276,29 @@ TPPage {
 			bShare = share;
 			show(-1);
 		}
+	}
+
+	TPBalloonTip {
+		id: msgDlgRemove
+		title: qsTr("Remove Exercise?")
+		message: exerciseName + qsTr("\nThis action cannot be undone.")
+		imageSource: "remove"
+		button1Text: qsTr("Yes")
+		button2Text: qsTr("No")
+		onButton1Clicked: splitManager.currentSplitModel.removeExercise(removeRow);
+		parentPage: pagePlanner
+
+		property int removeRow
+		property string exerciseName
+
+		function init(row: int, exercise: string): void {
+			removeRow = row;
+			exerciseName = exercise;
+			show(-1);
+		}
+	} //TPBalloonTip
+
+	function showDeleteDialog(row: int, exercise: string): void {
+		msgDlgRemove.init(row, exercise);
 	}
 } //Page

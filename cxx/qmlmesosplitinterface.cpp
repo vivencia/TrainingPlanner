@@ -95,6 +95,13 @@ void QmlMesoSplitInterface::moveRow(const uint from, const uint to, DBMesoSplitM
 	emit splitModel->splitChanged(0, 100); //Save the data
 }
 
+void QmlMesoSplitInterface::removeRow()
+{
+	const int cur_row{currentSplitModel()->currentRow()};
+	QMetaObject::invokeMethod(m_plannerPage, "showDeleteDialog", Q_ARG(int, cur_row),
+															Q_ARG(QString, currentSplitModel()->exerciseName(cur_row)));
+}
+
 void QmlMesoSplitInterface::swapMesoPlans()
 {
 	DBMesoSplitModel* tempSplit{m_splitModels.value(currentSplitLetter().at(0))};
@@ -171,13 +178,14 @@ void QmlMesoSplitInterface::importMesoSplit(const QString& filename)
 		appItemManager()->openRequestedFile(filename, IFC_MESOSPLIT);
 }
 
-void QmlMesoSplitInterface::setCurrentPage(const int index)
+QQuickItem* QmlMesoSplitInterface::setCurrentPage(const int index)
 {
-	m_currentSplitPage = m_splitPages.value(QChar(static_cast<int>('A') - index));
+	m_currentSplitPage = m_splitPages.value(QChar(static_cast<int>('A') + index));
 	m_currentSplitLetter = std::move(m_splitPages.key(m_currentSplitPage));
 	m_bHasExercises = currentSplitModel()->count() > 1;
 	m_currentSwappableLetter = std::move(currentSplitModel()->findSwappableModel());
 	emit currentPageChanged();
+	return m_currentSplitPage;
 }
 
 void QmlMesoSplitInterface::exerciseSelected()
@@ -293,9 +301,8 @@ void QmlMesoSplitInterface::createPlannerPage_part2()
 	#endif
 	appQmlEngine()->setObjectOwnership(m_plannerPage, QQmlEngine::CppOwnership);
 	m_plannerPage->setParentItem(appMainWindow()->findChild<QQuickItem*>("appStackView"));
-	emit plannerPageCreated();
 	QMetaObject::invokeMethod(m_plannerPage, "createNavButtons");
-
+	emit plannerPageCreated();
 	connect(this, &QmlMesoSplitInterface::addPageToMainMenu, appItemManager(), &QmlItemManager::addMainMenuShortCut);
 	connect(this, &QmlMesoSplitInterface::removePageFromMainMenu, appItemManager(), &QmlItemManager::removeMainMenuShortCut);
 	emit addPageToMainMenu(tr("Exercises Planner: ") + appMesoModel()->name(m_mesoIdx), m_plannerPage);
@@ -331,7 +338,6 @@ void QmlMesoSplitInterface::createMesoSplitPage_part2(const QChar& splitletter)
 	DBMesoSplitModel* splitmodel(m_splitModels.value(splitletter));
 
 	m_splitProperties["splitModel"_L1] = QVariant::fromValue(splitmodel);
-	m_splitProperties["parentItem"_L1] = QVariant::fromValue(m_plannerPage);
 	m_splitProperties["splitManager"_L1] = QVariant::fromValue(this);
 
 	QQuickItem* item (static_cast<QQuickItem*>(m_splitComponent->createWithInitialProperties(m_splitProperties, appQmlEngine()->rootContext())));

@@ -275,6 +275,7 @@ void DBMesoCalendarTable::dayInfo(const QDate& date, QStringList& dayInfoList)
 				dayInfoList.append(std::move(query.value(1).toString()));
 				dayInfoList.append(std::move(query.value(2).toString()));
 				dayInfoList.append(std::move(query.value(3).toString()));
+				dayInfoList.append(std::move(QString::number(date.toJulianDay())));
 				ok = true;
 			}
 		}

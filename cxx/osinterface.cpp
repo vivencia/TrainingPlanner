@@ -21,6 +21,14 @@
 
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
+
+#define NOTIFY_DO_NOTHING 0xA
+#define MESOCYCLE_NOTIFICATION 0x14
+#define SPLIT_NOTIFICATION 0x1E
+#define CALENDAR_NOTIFICATION 0x28
+#define NOTIFY_START_WORKOUT 0x32
+#define USER_NOTIFICATION 0x3C
+
 #else
 #include <QProcess>
 extern "C"
@@ -40,7 +48,7 @@ OSInterface::OSInterface(QObject* parent)
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
-	m_appDataFilesPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + '/';
+	m_appDataFilesPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + '/';
 
 #ifdef Q_OS_ANDROID
 	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
@@ -62,6 +70,32 @@ OSInterface::OSInterface(QObject* parent)
 		"startTPService",
 		"(Landroid/content/Context;)V",
 		context.object());
+
+	mb_appSuspended = false;
+	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
+	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
+	connect(this, &OSInterface::appResumed, this, &OSInterface::checkPendingIntents);
+	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
+		appItemManager()->displayActivityResultMessage(requestCode, resultCode);
+	});
+
+	connect(qApp, &QGuiApplication::applicationStateChanged, this, [&] (Qt::ApplicationState state) {
+		if (state == Qt::ApplicationSuspended)
+		{
+			mb_appSuspended = true;
+			emit appSuspended();
+		}
+		else if (state == Qt::ApplicationActive)
+		{
+			if (mb_appSuspended)
+			{
+				emit appResumed();
+				mb_appSuspended = false;
+			}
+		}
+	});
+
+	m_AndroidNotification = new TPAndroidNotification{this};
 #endif
 }
 
@@ -172,35 +206,41 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString& android_uri) c
 	return android_uri;
 }
 
-void OSInterface::appStartUpNotifications()
+void OSInterface::startAppNotifications()
 {
-	// if App was launched from VIEW or SEND Intent there's a race collision: the event will be lost,
-	// because App and UI wasn't completely initialized. Workaround: QShareActivity remembers that an Intent is pending
-	connect(appUtils(), &TPUtils::appResumed, this, &OSInterface::checkPendingIntents);
-	connect(this, &OSInterface::activityFinishedResult, this, [&] (const int requestCode, const int resultCode) {
-		appItemManager()->displayActivityResultMessage(requestCode, resultCode);
-	});
+	QTimer notificationsTimer{this};
+	notificationsTimer.setInterval(1000*30); //every 30min
+	notificationsTimer.callOnTimeout([this] () { checkWorkouts(); } );
+	notificationsTimer.start();
+	checkWorkouts();
+}
 
-	m_AndroidNotification = new TPAndroidNotification(this);
+void OSInterface::checkWorkouts()
+{
 	if (appMesoModel()->count() > 0)
 	{
-		DBMesoCalendarTable* calTable{new DBMesoCalendarTable(appDBInterface()->dbFilesPath())};
+		DBMesoCalendarTable* calTable{new DBMesoCalendarTable{appDBInterface()->dbFilesPath()}};
 		QStringList dayInfoList;
 		calTable->dayInfo(QDate::currentDate(), dayInfoList);
 		if (!dayInfoList.isEmpty())
 		{
-			QString message;
+			notificationData* data{new notificationData{}};
 			const QString& splitLetter{dayInfoList.at(2)};
 			if (splitLetter != "R"_L1) //day is training day
 			{
 				if (dayInfoList.at(3) == STR_ONE) //day is completed
-					message = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
+					data->message = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
 				else
-					message = std::move(tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter);
+					data->message = std::move(tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter);
+				data->action = NOTIFY_START_WORKOUT;
 			}
 			else
-				message = std::move(tr("Enjoy your day of rest from workouts!"));
-			m_AndroidNotification->sendNotification("Training Planner"_L1, message, WORKOUT_NOTIFICATION);
+			{
+				data->message = std::move(tr("Enjoy your day of rest from workouts!"));
+				data->action = NOTIFY_DO_NOTHING;
+			}
+			m_notifications.append(data);
+			m_AndroidNotification->sendNotification(data);
 		}
 		delete calTable;
 	}
@@ -242,10 +282,25 @@ void OSInterface::onActivityResult(int requestCode, int resultCode)
 	emit activityFinishedResult(requestCode, resultCode);
 }
 
-void OSInterface::startNotificationAction(const QString& action)
+void OSInterface::startNotificationAction(const short action, const short id)
 {
-	if (action.toUInt() == WORKOUT_NOTIFICATION)
-		appMesoModel()->todaysWorkout();
+	for (uint i{0}; i < m_notifications.count(); ++i)
+	{
+		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved)
+		{
+			m_notifications.at(i)->clicked = true;
+			switch (action)
+			{
+				case NOTIFY_DO_NOTHING:
+					m_notifications.at(i)->resolved = true;
+				break;
+				case NOTIFY_START_WORKOUT:
+					appMesoModel()->todaysWorkout();
+					m_notifications.at(i)->resolved = true;
+				break;
+			}
+		}
+	}
 }
 
 extern "C"
@@ -281,12 +336,12 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_notificationActionReceived(
-						JNIEnv *env, jobject obj, jstring action)
+						JNIEnv *env, jobject obj, jshort action, jshort id)
 {
 	Q_UNUSED (obj)
-	const char *actionStr = env->GetStringUTFChars(action, NULL);
-	appOsInterface()->startNotificationAction(actionStr);
-	env->ReleaseStringUTFChars(action, actionStr);
+	//const char *actionStr = env->GetStringUTFChars(action, NULL);
+	appOsInterface()->startNotificationAction(action, id);
+	//env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }
 } //extern "C"

@@ -8,12 +8,7 @@
 #include <QMap>
 #include <QObject>
 
-#define GENERAL_TP_NOTIFICATION 0xA
-#define MESOCYCLE_NOTIFICATION 0x14
-#define SPLIT_NOTIFICATION 0x1E
-#define CALENDAR_NOTIFICATION 0x28
-#define WORKOUT_NOTIFICATION 0x32
-#define USER_NOTIFICATION 0x3C
+QT_FORWARD_DECLARE_STRUCT(notificationData);
 
 class TPAndroidNotification : public QObject
 {
@@ -22,7 +17,7 @@ Q_OBJECT
 public:
 	explicit TPAndroidNotification(QObject* parent = nullptr);
 	~TPAndroidNotification();
-	uint sendNotification(const QString& title, const QString& message, const uint table_id = 0);
+	uint sendNotification(notificationData* data);
 	void cancelNotification(const uint id);
 
 private:

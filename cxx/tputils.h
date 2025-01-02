@@ -14,7 +14,7 @@ class TPUtils : public QObject
 Q_OBJECT
 
 public:
-	explicit TPUtils(QObject* parent = nullptr);
+	explicit inline TPUtils(QObject* parent = nullptr) : QObject{parent}, m_appLocale(nullptr) { app_utils = this; }
 	inline ~TPUtils() { delete m_appLocale; }
 
 	Q_INVOKABLE const QString getCorrectPath(const QUrl& url) const;
@@ -85,15 +85,9 @@ public:
 	inline int splitLetterToMesoSplitIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)) + 2; }
 	inline int splitLetterToMesoSplitIndex(const QChar& letter) const { return splitLetterToIndex(letter) + 2; }
 
-signals:
-	void appSuspended();
-	void appResumed();
-
 private:
 	QLocale* m_appLocale;
 	QString m_strLocale;
-
-	bool mb_appSuspended;
 
 	static TPUtils* app_utils;
 	friend TPUtils* appUtils();
