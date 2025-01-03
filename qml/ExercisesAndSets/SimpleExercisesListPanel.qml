@@ -7,7 +7,7 @@ import "../TPWidgets"
 
 TPPopup {
 	id: dlgExercisesList
-	bKeepAbove: true
+	keepAbove: true
 	finalYPos: 0
 	width: appSettings.pageWidth
 	height: shown ? appSettings.pageHeight * 0.5 : 30

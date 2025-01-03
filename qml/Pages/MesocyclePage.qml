@@ -15,6 +15,39 @@ TPPage {
 
 	required property MesoManager mesoManager
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
+	property int fieldCounter: 4
+
+	onFieldCounterChanged: {
+		switch (fieldCounter) {
+			case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
+			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
+			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
+			case 0:
+				newMesoTip.imageEnabled = true;
+				newMesoTip.title = qsTr("New program setup complete!");
+				newMesoTip.message = qsTr("Required fields setup");
+				newMesoTip.showTimed(5000, -3);
+			break;
+		}
+	}
+
+	TPBalloonTip {
+		id: newMesoTip
+		parentPage: mesoPropertiesPage
+		title: qsTr("New program setup incomplete")
+		message: qsTr("Change and/or accept the program's name")
+		imageEnabled: false
+		imageSource: "set-completed"
+		closeButtonVisible: false
+		closable: false
+
+		Component.onCompleted: {
+			if (mesoManager.isNewMeso)
+				newMesoTip.show(-2);
+			else if (!mesoManager.isNewMeso && fieldCounter === 0)
+				newMesoTip.showTimed(-2);
+		}
+	}
 
 	header: TPToolBar {
 		TPButton {
@@ -52,15 +85,11 @@ TPPage {
 			visible: mesoManager.isNewMeso
 			font: AppGlobals.smallFont
 
-			property int fieldCounter: 4
 			anchors {
 				left: imgNewMesoOK.right
 				leftMargin: 5
 				bottom: parent.bottom
 			}
-
-			function decreaseCounter(): void { fieldCounter--; }
-			function increaseCounter(): void { fieldCounter++; }
 		}
 	}
 
@@ -103,12 +132,12 @@ TPPage {
 					onCheck: {
 						txtMesoName.readOnly = checked;
 						if (checked) {
-							mesoManager.name = txtMesoName.text;
-							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+							mesoManager.acceptName();
+							decreaseCounter();
 						}
 						else {
 							txtMesoName.forceActiveFocus();
-							lblNewMesoRequiredFieldsCounter.increaseCounter();
+							increaseCounter();
 						}
 					}
 				}
@@ -120,8 +149,9 @@ TPPage {
 				ToolTip.text: qsTr("Name too short")
 				ToolTip.visible:!bMesoNameOK;
 				width: 0.9*parent.width
-				Layout.maximumWidth: width
-				Layout.minimumWidth: width
+				Layout.preferredWidth: width
+
+				onEditingFinished: mesoManager.name = text;
 
 				onEnterOrReturnKeyPressed: {
 					if (cboCoaches.visible)
@@ -353,11 +383,11 @@ TPPage {
 						btnStartDate.enabled = !checked;
 						if (checked) {
 							mesoManager.acceptStartDate();
-							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+							decreaseCounter();
 						}
 						else {
 							caldlg.open();
-							lblNewMesoRequiredFieldsCounter.increaseCounter();
+							increaseCounter();
 						}
 					}
 				}
@@ -400,10 +430,10 @@ TPPage {
 					mesoManager.realMeso = checked;
 					if (checked) {
 						mesoManager.acceptEndDate();
-						lblNewMesoRequiredFieldsCounter.decreaseCounter();
+						decreaseCounter();
 					}
 					else
-						lblNewMesoRequiredFieldsCounter.increaseCounter();
+						increaseCounter();
 				}
 			}
 
@@ -428,11 +458,11 @@ TPPage {
 						btnEndDate.enabled = !checked;
 						if (checked) {
 							mesoManager.acceptEndDate();
-							lblNewMesoRequiredFieldsCounter.decreaseCounter();
+							decreaseCounter();
 						}
 						else {
 							caldlg2.open();
-							lblNewMesoRequiredFieldsCounter.increaseCounter();
+							increaseCounter();
 						}
 					}
 				}
@@ -578,4 +608,7 @@ TPPage {
 			break;
 		}
 	}
+
+	function decreaseCounter(): void { fieldCounter--; }
+	function increaseCounter(): void { fieldCounter++; }
 } //Page

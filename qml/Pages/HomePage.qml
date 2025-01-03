@@ -66,7 +66,7 @@ TPPage {
 
 		delegate: SwipeDelegate {
 			id: mesoDelegate
-			width: parent ? parent.width : 0
+			width: parent.width
 
 			onClicked: mesocyclesModel.getMesocyclePage(index);
 

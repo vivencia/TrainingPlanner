@@ -7,13 +7,13 @@ import "../"
 Popup {
 	id: tpPopup
 	objectName: "TPPopup"
-	closePolicy: bKeepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
+	closePolicy: keepAbove ? Popup.NoAutoClose : Popup.CloseOnPressOutside
 	parent: Overlay.overlay //global Overlay object. Assures that the dialog is always displayed in relation to global coordinates
 	spacing: 0
 	padding: 0
 
 	required property Page parentPage
-	property bool bKeepAbove
+	property bool keepAbove
 	property bool bVisible: false
 	property bool closeButtonVisible: true
 	property int finalYPos: 0
@@ -21,12 +21,12 @@ Popup {
 	property alias btnClose: btnCloseWindow
 
 	onClosed: {
-		bVisible = false;
-		visible = false;
+		if (!keepAbove)
+			bVisible = false;
 	}
 
 	Component.onCompleted: {
-		if (!modal && bKeepAbove) {
+		if (!modal && keepAbove) {
 			parentPage.pageDeActivated.connect(function() { bVisible = tpPopup.visible; tpPopup.visible = false; });
 			parentPage.pageActivated.connect(function() { if (bVisible) tpPopup.visible = true; });
 		}
@@ -88,7 +88,7 @@ Popup {
 			right: parent.right
 		}
 
-		onClicked: close();
+		onClicked: closePopup();
 	}
 
 	enter: Transition {
@@ -126,11 +126,24 @@ Popup {
 		}
 	}
 
+	function closePopup(): void {
+		bVisible = false;
+		close();
+	}
+
 	function show1(ypos: int): void {
+		if (visible)
+			return;
+
 		x = (appSettings.pageWidth - width)/2;
 
-		if (ypos < 0)
-			ypos = (appSettings.pageHeight - height)/2;
+		if (ypos < 0) {
+			switch (ypos) {
+				case -1: ypos = (appSettings.pageHeight - height)/2; break;
+				case -2: ypos = parentPage.height - height; break;
+				case -3: ypos = y;
+			}
+		}
 
 		finalYPos = ypos;
 		if (ypos <= appSettings.pageHeight/2)

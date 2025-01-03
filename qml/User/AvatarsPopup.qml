@@ -10,7 +10,7 @@ import ".."
 
 TPPopup {
 	id: avatarsDlg
-	bKeepAbove: false
+	keepAbove: false
 	closeButtonVisible: false
 	width: appSettings.pageWidth
 	height: (repeater.bMale ? 2*appSettings.pageWidth/5 : 3*appSettings.pageWidth/5) + 30

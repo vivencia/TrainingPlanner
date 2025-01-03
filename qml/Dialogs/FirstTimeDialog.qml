@@ -10,7 +10,7 @@ TPPopup {
 	id: firstTimeDlg
 	objectName: "firstTimerDlg"
 	modal: true
-	bKeepAbove: true;
+	keepAbove: true;
 	width: appSettings.pageWidth - 50
 	height: moduleHeight + frmFooter.height
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
@@ -117,7 +117,7 @@ TPPopup {
 			onClicked: {
 				if (stackLayout.currentIndex === stackLayout.count - 1) {
 					userModel.mainUserConfigurationFinished();
-					close();
+					closePopup();
 				}
 				else {
 					if (stackLayout.currentIndex >= 1)

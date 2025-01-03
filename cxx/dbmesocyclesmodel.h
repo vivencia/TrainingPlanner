@@ -258,7 +258,7 @@ private:
 	QList<QMLMesoInterface*> m_mesoManagerList;
 	DBMesoSplitModel* m_splitModel;
 	QList<DBMesoCalendarModel*> m_calendarModelList;
-	QList<uchar> m_isNewMeso;
+	QList<short> m_isNewMeso;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;

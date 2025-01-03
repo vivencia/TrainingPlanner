@@ -7,7 +7,7 @@ import "../TPWidgets"
 
 TPPopup {
 	id: dlgMuscularGroup
-	bKeepAbove: true
+	keepAbove: true
 	width: appSettings.pageWidth/2
 	height: shown ? dlgHeight : 25
 

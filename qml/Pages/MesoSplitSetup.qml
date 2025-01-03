@@ -100,26 +100,22 @@ Pane {
 						var mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						bMesoSplitChanged = true;
-						if (cboindex === 6)
-							return;
-
 						let last_letter_idx;
+
 						switch(valueAt(cboindex)) {
-							case "A": last_letter_idx = 0; break;
-							case "B": last_letter_idx = 1; break;
-							case "C": last_letter_idx = 2; break;
-							case "D": last_letter_idx = 3; break;
-							case "E": last_letter_idx = 4; break;
-							case "F": last_letter_idx = 5; break;
+							case "A": last_letter_idx = 1; break;
+							case "B": last_letter_idx = 2; break;
+							case "C": last_letter_idx = 3; break;
+							case "D": last_letter_idx = 4; break;
+							case "E": last_letter_idx = 5; break;
+							case "F": last_letter_idx = 6; break;
+							case "R": last_letter_idx = index >= 1 ? splitRepeater.itemAt(index-1).children[1].currentIndex : 0; break;
 						}
-						++last_letter_idx;
-						if (splitRepeater.highest_letter_idx < last_letter_idx)
-							splitRepeater.highest_letter_idx = last_letter_idx;
 
 						for (let i = index + 1; i < 7; ++i) {
 							let cboModel = splitRepeater.itemAt(i).children[1].model;
 							for (let x = 0; x < 6; ++x)
-								cboModel.get(x).enabled = x <= splitRepeater.highest_letter_idx;
+								cboModel.get(x).enabled = (x <= last_letter_idx + 1);
 						}
 					}
 
@@ -130,20 +126,17 @@ Pane {
 						{
 							let last_letter_idx;
 							switch(splitRepeater.itemAt(index-1).children[1].currentValue) {
-								case "A": last_letter_idx = 0; break;
-								case "B": last_letter_idx = 1; break;
-								case "C": last_letter_idx = 2; break;
-								case "D": last_letter_idx = 3; break;
-								case "E": last_letter_idx = 4; break;
-								case "F": last_letter_idx = 5; break;
-								case "R": last_letter_idx = -1; break;
+								case "A": last_letter_idx = 1; break;
+								case "B": last_letter_idx = 2; break;
+								case "C": last_letter_idx = 3; break;
+								case "D": last_letter_idx = 4; break;
+								case "E": last_letter_idx = 5; break;
+								case "F": last_letter_idx = 6; break;
+								case "R": last_letter_idx = splitRepeater.itemAt(index-1).children[1].currentIndex; break;
 							}
-							++last_letter_idx;
-							if (splitRepeater.highest_letter_idx < last_letter_idx)
-								splitRepeater.highest_letter_idx = last_letter_idx;
 
 							for (let x = 0; x < 6; ++x)
-								model.get(x).enabled = x <= splitRepeater.highest_letter_idx;
+								model.get(x).enabled = (x <= last_letter_idx);
 						}
 						else {
 							for (let y = 1; y < 6; ++y)
@@ -234,11 +227,11 @@ Pane {
 		onCheck: {
 			bMesoSplitChanged = !checked;
 			if (checked) {
-				lblNewMesoRequiredFieldsCounter.decreaseCounter();
+				decreaseCounter();
 				mesoManager.split = txtMesoSplit.text;
 			}
 			else
-				lblNewMesoRequiredFieldsCounter.increaseCounter();
+				increaseCounter();
 		}
 	}
 

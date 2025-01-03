@@ -312,7 +312,7 @@ SwipeDelegate {
 
 	swipe.right: Rectangle {
 		width: parent.width
-		height: parent.height
+		height: parent.height - 30
 		clip: false
 		color: SwipeDelegate.pressed ? "#555" : "#666"
 		radius: 10

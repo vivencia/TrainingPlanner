@@ -91,13 +91,13 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
 	beginInsertRows(QModelIndex(), count(), count());
-	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << std::move(tr("New Plan")) << QString() << QString() <<
+	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << QString() << QString() << QString() <<
 		QString() << QString() << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
 		QString() << QString() << STR_ONE));
 	emit countChanged();
 	endInsertRows();
 
-	uchar newMesoRequiredFields(0);
+	short newMesoRequiredFields(0);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);

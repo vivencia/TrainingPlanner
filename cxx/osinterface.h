@@ -39,7 +39,11 @@ Q_OBJECT
 public:
 	explicit OSInterface(QObject* parent = nullptr);
 	inline OSInterface(const OSInterface& other)
-		: QObject{other.parent()}, m_appDataFilesPath{other.m_appDataFilesPath}, m_AndroidNotification{nullptr} {}
+		: QObject{other.parent()}, m_appDataFilesPath{other.m_appDataFilesPath}
+		#ifdef Q_OS_ANDROID
+		, m_AndroidNotification{nullptr}
+		#endif
+		{}
 	inline ~OSInterface()
 	{
 	#ifdef Q_OS_ANDROID
@@ -87,10 +91,9 @@ public:
 signals:
 #ifdef Q_OS_ANDROID
 	void activityFinishedResult(const int requestCode, const int resultCode);
+#endif
 	void appSuspended();
 	void appResumed();
-
-#endif
 
 public slots:
 	void aboutToExit();

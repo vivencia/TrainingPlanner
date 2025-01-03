@@ -127,11 +127,17 @@ void QMLMesoInterface::setName(const QString& new_value, const bool bFromQml)
 		{
 			m_name = new_value;
 			emit nameChanged();
-			appMesoModel()->setName(m_mesoIdx, m_name);
+			if (!isNewMeso())
+				acceptName();
 		}
 	}
 	else
 		m_name = new_value;
+}
+
+void QMLMesoInterface::acceptName()
+{
+	appMesoModel()->setName(m_mesoIdx, m_name);
 }
 
 void QMLMesoInterface::setCoach(const QString& new_value, const bool bFromQml)
@@ -503,6 +509,7 @@ void QMLMesoInterface::createMesocyclePage()
 {
 	if (!appMesoModel()->isNewMeso(m_mesoIdx))
 	{
+		setName(appMesoModel()->name(m_mesoIdx), false);
 		setStartDate(appMesoModel()->startDate(m_mesoIdx), false);
 		setEndDate(appMesoModel()->endDate(m_mesoIdx), false);
 		setMinimumMesoStartDate(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), m_mesoIdx));
@@ -510,6 +517,7 @@ void QMLMesoInterface::createMesocyclePage()
 	}
 	else
 	{
+		setName(std::move(tr("New Plan")), false);
 		const QDate& minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
 		setStartDate(minimumStartDate, false);
 		setEndDate(appUtils()->createDate(minimumStartDate, 0, 2, 0), false);
@@ -517,7 +525,6 @@ void QMLMesoInterface::createMesocyclePage()
 		setMaximumMesoEndDate(appUtils()->createDate(QDate::currentDate(), 0, 6, 0));
 	}
 
-	setName(appMesoModel()->name(m_mesoIdx), false);
 	setCoach(appMesoModel()->coach(m_mesoIdx), false);
 	setClient(appMesoModel()->client(m_mesoIdx), false);
 	setType(appMesoModel()->type(m_mesoIdx), false);

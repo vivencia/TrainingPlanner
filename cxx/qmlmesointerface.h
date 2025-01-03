@@ -94,6 +94,7 @@ public:
 
 	[[nodiscard]] inline QString name() const { return m_name; }
 	void setName(const QString& new_value, const bool bFromQml = true);
+	Q_INVOKABLE void acceptName();
 
 	[[nodiscard]] inline QString coach() const { return m_coach; }
 	void setCoach(const QString& new_value, const bool bFromQml = true);

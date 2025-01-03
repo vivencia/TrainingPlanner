@@ -9,7 +9,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: dlgTimer
-	bKeepAbove: !simpleTimer
+	keepAbove: !simpleTimer
 	width: timePickerOnly ? 150 : appSettings.pageWidth * 0.75
 	height: timePickerOnly ? 100 : appSettings.pageHeight * 0.30
 	x: (appSettings.pageWidth - width) / 2
@@ -340,7 +340,7 @@ TPPopup {
 						useTime(mainTimer.strHours + ":" + mainTimer.strMinutes);
 					else
 						useTime(appUtils.formatTime(mainTimer.currentElapsedTime(), false, true));
-					dlgTimer.close();
+					dlgTimer.closePopup();
 				} //btnUseTime
 			}
 		} //Row

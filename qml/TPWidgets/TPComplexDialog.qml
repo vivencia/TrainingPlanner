@@ -6,57 +6,38 @@ import "../"
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
+	id: dialog
+	modal: true
+	width: appSettings.pageWidth * 0.9
+
 	property string title: ""
 	property string button1Text: ""
 	property string button2Text: ""
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor
 
-	property int startYPosition: 0
-	property int finalXPos: 0
-
-	property string customItemSource: ""
-	property var customItem: null
+	property Item customItem: null
 	property bool customBoolProperty1
 	property bool customBoolProperty2
 	property bool customBoolProperty3
 	property int customIntProperty1
+	property string customItemSource: ""
 	property string customStringProperty1
 	property string customStringProperty2
 	property string customStringProperty3
-	property var customModel: []
-	property bool bAdjustHeightEveryOpen: false
-	property int totalHeight: 0
+	property list<string> customModel: []
 
 	signal button1Clicked();
 	signal button2Clicked();
 	signal dialogOpened();
 
-	id: dialog
-	modal: true
-	width: appSettings.pageWidth * 0.9
-	height: totalHeight + 20
-
-	NumberAnimation {
-		id: alternateCloseTransition
-		target: dialog
-		alwaysRunToEnd: true
-		running: false
-		property: "x"
-		from: x
-		to: finalXPos
-		duration: 500
-		easing.type: Easing.InOutCubic
-	}
-
 	onCustomItemSourceChanged: {
 		if (customItemSource.length > 0) {
-			var component = Qt.createComponent("qrc:/qml/TPWidgets/ComplexDialogModules/"+customItemSource, Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/TPWidgets/ComplexDialogModules/"+customItemSource, Qt.Asynchronous);
 
 			function finishCreation() {
 				customItem = component.createObject(mainLayout, { parentDlg: dialog, "Layout.row": 1,  "Layout.column": 0, "Layout.columnSpan": 2,
 						"Layout.leftMargin": 5, "Layout.rightMargin": 5, "Layout.fillWidth": true });
-				totalHeight += customItem.height;
 			}
 
 			if (component.status === Component.Ready)
@@ -79,12 +60,13 @@ TPPopup {
 			text: title
 			horizontalAlignment: Text.AlignHCenter
 			visible: title.length > 0
+			heightAvailable: 50
 			height: visible ? _preferredHeight : 0
 			Layout.row: 0
 			Layout.column: 0
 			Layout.columnSpan: 2
 			Layout.leftMargin: 5
-			Layout.topMargin: 20
+			Layout.topMargin: 5
 			Layout.rightMargin: 5
 			Layout.preferredWidth: mainLayout.width - 10
 		}
@@ -105,10 +87,8 @@ TPPopup {
 
 			onClicked: {
 				button1Clicked();
-				dialog.close();
+				dialog.closePopup();
 			}
-
-			Component.onCompleted: totalHeight += height;
 		}
 
 		TPButton {
@@ -126,18 +106,15 @@ TPPopup {
 
 			onClicked: {
 				button2Clicked();
-				dialog.close();
+				dialog.closePopup();
 			}
-
-			Component.onCompleted: totalHeight += height;
 		}
 	} //GridLayout
 
 	function show(ypos: int): void {
-		if (bAdjustHeightEveryOpen) {
-			dialogOpened();
-			totalHeight = lblTitle.height + 2*btn1.height + customItem.height + 20;
-		}
+		dialogOpened();
+		console.log(lblTitle.height, 2*btn1.height, customItem.height);
+		height = lblTitle.height + customItem.height + 50;
 		show1(ypos);
 	}
 }

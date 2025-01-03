@@ -6,10 +6,8 @@ import QtQuick.Effects
 import "../"
 
 TPPopup {
-	signal menuEntrySelected(id: int);
-
 	id: menu
-	bKeepAbove: false
+	keepAbove: false
 	height: entriesTotalHeight
 	width: largestEntryWidth
 	closeButtonVisible: false
@@ -18,6 +16,8 @@ TPPopup {
 	property int entriesTotalHeight: 0
 	property int largestEntryWidth: 0
 	property Component entryComponent: null
+
+	signal menuEntrySelected(id: int);
 
 	Component.onDestruction: clear();
 

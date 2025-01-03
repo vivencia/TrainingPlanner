@@ -8,7 +8,7 @@ import "../TPWidgets"
 
 TPPopup {
 	id: timePicker
-	bKeepAbove: true
+	keepAbove: true
 	width: appSettings.pageWidth * 0.78
 	height: appSettings.pageHeight * 0.60
 	x: (appSettings.pageWidth - width) / 2
@@ -552,7 +552,7 @@ TPPopup {
 				topMargin: -10
 			}
 
-			onClicked: timePicker.close();
+			onClicked: timePicker.closePopup();
 		}
 
 		TPButton {
@@ -569,7 +569,7 @@ TPPopup {
 			onClicked: {
 				timeSet(hrsDisplay, minutesDisplay);
 				timePicker.isOK = true;
-				timePicker.close();
+				timePicker.closePopup();
 			}
 		}
 	} // footer pane

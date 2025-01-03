@@ -569,7 +569,7 @@ TPPage {
 	property TPComplexDialog changeSplitLetterDialog: null
 	function showSplitLetterChangedDialog(): void {
 		if (!changeSplitLetterDialog) {
-			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				changeSplitLetterDialog = component.createObject(trainingDayPage, { parentPage: trainingDayPage, button1Text: qsTr("Yes"),
@@ -593,7 +593,7 @@ TPPage {
 	function showClearExercisesMessage(): void {
 		if (msgClearExercises === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgClearExercises = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Clear exercises list?"),

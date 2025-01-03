@@ -7,7 +7,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPPopup {
 	id: balloon
-	bKeepAbove: true
+	keepAbove: true
 	closeButtonVisible: false
 	width: appSettings.pageWidth * 0.8
 
@@ -20,6 +20,8 @@ TPPopup {
 	property string backColor: appSettings.primaryColor
 	property string textColor: appSettings.fontColor
 	property bool highlightMessage: false
+	property bool closable: true
+	property bool imageEnabled: true
 
 	property int startYPosition: 0
 	property int finalXPos: 0
@@ -43,32 +45,52 @@ TPPopup {
 		id: lblTitle
 		text: title
 		horizontalAlignment: Text.AlignHCenter
+		heightAvailable: 50
 		visible: title.length > 0
 		width: parent.width - (closeButtonVisible ? 20 : 10)
-		x: closeButtonVisible ? 5 : 10
-		y: closeButtonVisible ? 10 : 5
+
+		anchors {
+			top: parent.top
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: btnClose.left
+		}
 	}
 
 	TPImage {
 		id: imgElement
 		source: imageSource
 		visible: imageSource.length > 0
+		enabled: imageEnabled
 		width: 50
 		height: 50
-		layer.enabled: true
-		x: 5
-		y: title.length > 0 ? (balloon.height-height)/2 : (balloon.height-height)/3
+
+		anchors {
+			left: parent.left
+			leftMargin: 5
+			top: lblTitle.bottom
+			topMargin: 5
+		}
 	}
 
 	TPLabel {
 		id: lblMessage
 		text: message
 		wrapMode: Text.WordWrap
+		heightAvailable: 50
 		horizontalAlignment: Text.AlignJustify
 		width: (imageSource.length > 0 ? balloon.width - imgElement.width : balloon.width) - 10
 		visible: message.length > 0
-		x: imageSource.length > 0 ? imgElement.width + 5 : 5
-		y: title.length > 0 ? lblTitle.y + lblTitle.height + 10 : imageSource.length > 0 ? imgElement.y : 10
+
+		anchors {
+			top: lblTitle.bottom
+			topMargin: 5
+			left: imgElement.right
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 	}
 
 	RowLayout {
@@ -76,6 +98,8 @@ TPPopup {
 		z: 2
 
 		anchors {
+			top: lblMessage.bottom
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -95,7 +119,7 @@ TPPopup {
 
 			onClicked: {
 				button1Clicked();
-				balloon.close();
+				balloon.closePopup();
 			}
 		}
 
@@ -111,7 +135,7 @@ TPPopup {
 
 			onClicked: {
 				button2Clicked();
-				balloon.close();
+				balloon.closePopup();
 			}
 		}
 	}
@@ -141,24 +165,24 @@ TPPopup {
 
 	MouseArea {
 		id: mouseArea
-		property point prevPos
+		enabled: closable
 		z: 1
 		anchors.fill: parent
 
-		onPressed: (mouse) => {
-			prevPos = { x: mouse.x, y: mouse.y };
-		}
+		property point prevPos
+
+		onPressed: (mouse) => prevPos = { x: mouse.x, y: mouse.y };
 
 		onPositionChanged: {
 			const deltaX = mouseX - prevPos.x;
-			if ( Math.abs(deltaX) >= 10) {
+			if (Math.abs(deltaX) >= 10) {
 				x += deltaX;
 				if (deltaX > 0)
 					finalXPos = appSettings.pageWidth + 300;
 				else
 					finalXPos = -300;
 				alternateCloseTransition.start();
-				balloon.close();
+				balloon.closePopup();
 			}
 			prevPos = { x: mouseX, y: mouseY };
 		}
@@ -168,43 +192,42 @@ TPPopup {
 		id: hideTimer
 		running: false
 		repeat: false
+
 		property bool bCloseOnFinished
+		property int ypos
 
 		onTriggered: {
 			if (bCloseOnFinished)
-				balloon.close();
+				balloon.closePopup();
 			else
-				balloon.show(startYPosition);
+				balloon.show(ypos);
 		}
 
-		function delayedOpen(timeout: int): void {
+		function delayedOpen(timeout: int, ypos: int): void {
 			bCloseOnFinished = false;
 			interval = timeout;
+			hideTimer.ypos = ypos;
 			start();
-			balloon.show(startYPos);
 		}
 
-		function openTimed(timeout: int): void {
+		function openTimed(timeout: int, ypos: int): void {
 			bCloseOnFinished = true;
 			interval = timeout;
 			start();
-			balloon.show(startYPos);
+			balloon.show(ypos);
 		}
 	}
 
 	function show(ypos: int): void {
-		balloon.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) +
-						(button1Text.length > 0 ? 2*btn1.height : 0)
+		balloon.height = lblTitle.height + Math.max(imgElement.height, lblMessage.height) + (button1Text.length > 0 ? btn1.height + 5 : 0) + 10;
 		show1(ypos);
 	}
 
 	function showTimed(timeout: int, ypos: int): void {
-		startYPos = ypos;
-		hideTimer.openTimed(timeout);
+		hideTimer.openTimed(timeout, ypos);
 	}
 
 	function showLate(timeout: int, ypos: int): void {
-		startYPos = ypos;
-		hideTimer.delayedOpen(timeout);
+		hideTimer.delayedOpen(timeout, ypos);
 	}
 }

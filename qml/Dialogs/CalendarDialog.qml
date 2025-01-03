@@ -6,7 +6,7 @@ import "../TPWidgets"
 
 TPPopup {
     id: calendarPopup
-	bKeepAbove: !simpleCalendar
+	keepAbove: !simpleCalendar
 	width: datePickerControl.width
 	height: datePickerControl.height + 30
 	x: (appSettings.pageWidth - width) / 2 // horizontally centered
@@ -49,7 +49,7 @@ TPPopup {
 
 			onClicked: {
 				dateSelected(datePickerControl.selectedDate)
-				calendarPopup.close();
+				calendarPopup.closePopup();
 			}
 		}
 	}

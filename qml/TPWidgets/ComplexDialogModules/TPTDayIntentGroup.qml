@@ -13,7 +13,6 @@ Column {
 
 	Component.onCompleted: {
 		parentDlg.customIntProperty1 = 4;
-		parentDlg.bAdjustHeightEveryOpen = true;
 		parentDlg.dialogOpened.connect(resize);
 	}
 
