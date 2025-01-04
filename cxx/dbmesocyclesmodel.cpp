@@ -28,7 +28,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 	if (bMainAppModel)
 	{
 		app_meso_model = this;
-		m_exportName = std::move(tr("Training Plan"));
+		m_exportName = std::move(tr("Training Program"));
 
 		m_roleNames[mesoNameRole] = std::move("mesoName");
 		m_roleNames[mesoStartDateRole] = std::move("mesoStartDate");
@@ -51,14 +51,14 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 
 void DBMesocyclesModel::fillColumnNames()
 {
-	mColumnNames[MESOCYCLES_COL_NAME] = std::move(tr("Plan's name: "));
+	mColumnNames[MESOCYCLES_COL_NAME] = std::move(tr("Program's name: "));
 	mColumnNames[MESOCYCLES_COL_STARTDATE] = std::move(tr("Start date: "));
 	mColumnNames[MESOCYCLES_COL_ENDDATE] = std::move(tr("End date: "));
-	mColumnNames[MESOCYCLES_COL_NOTE] = std::move(tr("Plan's considerations: "));
+	mColumnNames[MESOCYCLES_COL_NOTE] = std::move(tr("Program's considerations: "));
 	mColumnNames[MESOCYCLES_COL_WEEKS] = std::move(tr("Number of weeks: "));
 	mColumnNames[MESOCYCLES_COL_SPLIT] = std::move(tr("Weekly Training Division: "));
 	mColumnNames[MESOCYCLES_COL_TYPE] = std::move(tr("Type: "));
-	mColumnNames[MESOCYCLES_COL_REALMESO] = std::move(tr("Mesocycle-style plan: "));
+	mColumnNames[MESOCYCLES_COL_REALMESO] = std::move(tr("Mesocycle-style program: "));
 	updateColumnLabels();
 }
 

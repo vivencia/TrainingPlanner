@@ -96,7 +96,7 @@ TPPage {
 
 				TPButton {
 					id: btnMesoInfo
-					text: qsTr("View Plan")
+					text: qsTr("View Program")
 					imageSource: "mesocycle.png"
 					imageSize: 30
 					backgroundColor: "transparent"
@@ -225,7 +225,7 @@ TPPage {
 				Behavior on opacity { NumberAnimation {} }
 
 				TPButton {
-					text: qsTr("Remove Plan")
+					text: qsTr("Remove Program")
 					imageSource: "remove"
 					hasDropShadow: false
 					z: 2
@@ -240,8 +240,8 @@ TPPage {
 
 				TPBalloonTip {
 					id: msgDlg
-					title: qsTr("Remove Plan?")
-					message: qsTr("This action cannot be undone. Note: removing a Plan does not remove the records of the days within it.")
+					title: qsTr("Remove Program?")
+					message: qsTr("This action cannot be undone. Note: removing a Program does not remove the workout records.")
 					button1Text: qsTr("Yes")
 					button2Text: qsTr("No")
 					imageSource: "remove"
@@ -327,7 +327,7 @@ TPPage {
 
 		TPButton {
 			id: btnAddMeso
-			text: qsTr("New Training Plan")
+			text: qsTr("New Training Program")
 			imageSource: "mesocycle-add.png"
 			backgroundColor: "transparent"
 			rounded: false
@@ -345,7 +345,7 @@ TPPage {
 
 		TPButton {
 			id: btnImportMeso
-			text: qsTr("Import plan from file")
+			text: qsTr("Import program from file")
 			imageSource: "import.png"
 			backgroundColor: "transparent"
 			rounded: false
@@ -393,7 +393,7 @@ TPPage {
 
 	TPComplexDialog {
 		id: exportTypeTip
-		customStringProperty1: bShare ? qsTr("Share complete plan?") : qsTr("Export complete plan to file?")
+		customStringProperty1: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
 		customStringProperty2: qsTr("Include Coach data?")
 		customStringProperty3: "export.png"
 		button1Text: qsTr("Yes")

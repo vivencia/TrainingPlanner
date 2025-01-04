@@ -515,7 +515,7 @@ void QMLMesoInterface::createMesocyclePage()
 	}
 	else
 	{
-		setName(std::move(tr("New Plan")), false);
+		setName(std::move(tr("New Program")), false);
 		const QDate& minimumStartDate{appUtils()->getNextMonday(appMesoModel()->getMesoMinimumStartDate(appMesoModel()->client(m_mesoIdx), 99999))};
 		setStartDate(minimumStartDate, false);
 		setEndDate(appUtils()->createDate(minimumStartDate, 0, 2, 0), false);

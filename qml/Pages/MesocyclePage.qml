@@ -203,7 +203,7 @@ TPPage {
 			}
 
 			TPCheckBox {
-				text: qsTr("This plan is for myself")
+				text: qsTr("This program is for myself")
 				checked: mesoManager.ownMeso
 				visible: mesoManager.ownerIsCoach
 				Layout.fillWidth: true
@@ -415,11 +415,11 @@ TPPage {
 			}
 
 			TPCheckBox {
-				text: qsTr("Mesocycle-style plan")
+				text: qsTr("Mesocycle-style program")
 				checked: mesoManager.realMeso
 				Layout.fillWidth: true
 
-				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
+				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight"), 5000);
 				onClicked: {
 					mesoManager.realMeso = checked;
 					if (checked)
