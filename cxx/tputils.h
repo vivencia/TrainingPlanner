@@ -80,10 +80,10 @@ public:
 	void setAppLocale(const QString& localeStr, const bool bWriteConfig);
 	inline const QString& strLocale() const { return m_strLocale; }
 
-	inline int splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
-	inline int splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
-	inline int splitLetterToMesoSplitIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)) + 2; }
-	inline int splitLetterToMesoSplitIndex(const QChar& letter) const { return splitLetterToIndex(letter) + 2; }
+	inline uint splitLetterToIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)); }
+	inline uint splitLetterToIndex(const QChar& letter) const { return static_cast<int>(letter.cell()) - static_cast<int>('A'); }
+	inline uint splitLetterToMesoSplitIndex(const QString& strletter) const { return splitLetterToIndex(strletter.at(0)) + 2; }
+	inline uint splitLetterToMesoSplitIndex(const QChar& letter) const { return splitLetterToIndex(letter) + 2; }
 
 private:
 	QLocale* m_appLocale;

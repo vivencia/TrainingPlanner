@@ -15,19 +15,22 @@ TPPage {
 
 	required property MesoManager mesoManager
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
-	property int fieldCounter: 4
 
-	onFieldCounterChanged: {
-		switch (fieldCounter) {
-			case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
-			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
-			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
-			case 0:
-				newMesoTip.imageEnabled = true;
-				newMesoTip.title = qsTr("New program setup complete!");
-				newMesoTip.message = qsTr("Required fields setup");
-				newMesoTip.showTimed(5000, -3);
-			break;
+	Connections {
+		target: mesoManager
+		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
+			switch (fieldCounter) {
+				case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
+				case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
+				case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
+				case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
+				case 0:
+					newMesoTip.imageEnabled = true;
+					newMesoTip.title = qsTr("New program setup complete!");
+					newMesoTip.message = qsTr("Required fields setup");
+					newMesoTip.showTimed(5000, -3);
+				break;
+			}
 		}
 	}
 
@@ -35,7 +38,6 @@ TPPage {
 		id: newMesoTip
 		parentPage: mesoPropertiesPage
 		title: qsTr("New program setup incomplete")
-		message: qsTr("Change and/or accept the program's name")
 		imageEnabled: false
 		imageSource: "set-completed"
 		closeButtonVisible: false
@@ -44,7 +46,7 @@ TPPage {
 		Component.onCompleted: {
 			if (mesoManager.isNewMeso)
 				newMesoTip.show(-2);
-			else if (!mesoManager.isNewMeso && fieldCounter === 0)
+			else if (!mesoManager.isNewMeso && mesoManager.newMesoFieldCounter === "0")
 				newMesoTip.showTimed(-2);
 		}
 	}
@@ -81,7 +83,7 @@ TPPage {
 
 		TPLabel {
 			id: lblNewMesoRequiredFieldsCounter
-			text: parseInt(fieldCounter)
+			text: mesoManager.newMesoFieldCounter
 			visible: mesoManager.isNewMeso
 			font: AppGlobals.smallFont
 
@@ -131,14 +133,10 @@ TPPage {
 
 					onCheck: {
 						txtMesoName.readOnly = checked;
-						if (checked) {
+						if (checked)
 							mesoManager.acceptName();
-							decreaseCounter();
-						}
-						else {
+						else
 							txtMesoName.forceActiveFocus();
-							increaseCounter();
-						}
 					}
 				}
 			}
@@ -381,14 +379,10 @@ TPPage {
 
 					onCheck: {
 						btnStartDate.enabled = !checked;
-						if (checked) {
+						if (checked)
 							mesoManager.acceptStartDate();
-							decreaseCounter();
-						}
-						else {
+						else
 							caldlg.open();
-							increaseCounter();
-						}
 					}
 				}
 			}
@@ -428,12 +422,8 @@ TPPage {
 				onPressAndHold: ToolTip.show(qsTr("A Mesocycle is a short-term plan, with defined starting and ending points and a specific goal in sight"), 5000);
 				onClicked: {
 					mesoManager.realMeso = checked;
-					if (checked) {
+					if (checked)
 						mesoManager.acceptEndDate();
-						decreaseCounter();
-					}
-					else
-						increaseCounter();
 				}
 			}
 
@@ -456,14 +446,10 @@ TPPage {
 
 					onCheck: {
 						btnEndDate.enabled = !checked;
-						if (checked) {
+						if (checked)
 							mesoManager.acceptEndDate();
-							decreaseCounter();
-						}
-						else {
+						else
 							caldlg2.open();
-							increaseCounter();
-						}
 					}
 				}
 			}
@@ -608,7 +594,4 @@ TPPage {
 			break;
 		}
 	}
-
-	function decreaseCounter(): void { fieldCounter--; }
-	function increaseCounter(): void { fieldCounter++; }
 } //Page

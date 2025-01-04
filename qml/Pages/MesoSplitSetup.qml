@@ -20,7 +20,7 @@ Pane {
 	readonly property int col3Width: appSettings.pageWidth*0.60
 	readonly property list<string> daysOfWeek: [qsTr("Mon"), qsTr("Tue"), qsTr("Wed"), qsTr("Thu"), qsTr("Fri"), qsTr("Sat"), qsTr("Sun")]
 
-	property bool bMesoSplitTextOK: true
+	readonly property bool bMesoSplitTextOK: mesoSplitText.indexOf('R') !== -1
 	property bool bMesoSplitChanged: false
 
 	background: Rectangle {
@@ -45,8 +45,6 @@ Pane {
 		ToolTip.visible: !bMesoSplitTextOK
 		readOnly: true
 		width: parent.width*0.3
-
-		onTextChanged: bMesoSplitTextOK = text.indexOf('R') !== -1
 
 		anchors {
 			top: parent.top
@@ -97,7 +95,7 @@ Pane {
 					}
 
 					onActivated: (cboindex) => {
-						var mesoSplit = txtMesoSplit.text;
+						let mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						bMesoSplitChanged = true;
 						let last_letter_idx;
@@ -109,13 +107,30 @@ Pane {
 							case "D": last_letter_idx = 4; break;
 							case "E": last_letter_idx = 5; break;
 							case "F": last_letter_idx = 6; break;
-							case "R": last_letter_idx = index >= 1 ? splitRepeater.itemAt(index-1).children[1].currentIndex : 0; break;
+							case "R":
+								last_letter_idx = 0;
+								if (index >= 1) {
+									let prev_index = index-1;
+									let prev_item_index;
+									do {
+										prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
+										if (prev_item_index !== 6) {
+											last_letter_idx = prev_item_index + 1;
+											break;
+										}
+									} while (--prev_index >= 0);
+								}
+							break;
 						}
 
 						for (let i = index + 1; i < 7; ++i) {
-							let cboModel = splitRepeater.itemAt(i).children[1].model;
+							const cboBox = splitRepeater.itemAt(i).children[1];
+							const curIdx = cboBox.currentIndex;
+							if (curIdx > last_letter_idx && curIdx !== 6)
+								cboBox.currentIndex = last_letter_idx;
+							let cboModel = cboBox.model;
 							for (let x = 0; x < 6; ++x)
-								cboModel.get(x).enabled = (x <= last_letter_idx + 1);
+								cboModel.get(x).enabled = (x <= last_letter_idx);
 						}
 					}
 
@@ -216,8 +231,7 @@ Pane {
 		imageSize: 20
 		flat: false
 		checkable: true
-		enabled: bMesoSplitChanged
-
+		enabled: bMesoSplitChanged && bMesoSplitTextOK
 		anchors {
 			top: mainLayout.bottom
 			topMargin: 5
@@ -226,12 +240,8 @@ Pane {
 
 		onCheck: {
 			bMesoSplitChanged = !checked;
-			if (checked) {
-				decreaseCounter();
+			if (checked)
 				mesoManager.split = txtMesoSplit.text;
-			}
-			else
-				increaseCounter();
 		}
 	}
 

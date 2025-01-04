@@ -83,12 +83,7 @@ public:
 	{
 		return m_modeldata.at(meso_idx).at(MESOCYCLES_COL_NAME);
 	}
-	inline void setName(const uint meso_idx, const QString& new_name)
-	{
-		m_modeldata[meso_idx][MESOCYCLES_COL_NAME] = new_name;
-		setModified(meso_idx, MESOCYCLES_COL_NAME);
-		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoNameRole);
-	}
+	void setName(const uint meso_idx, const QString& new_name);
 
 	inline const QString& strStartDate(const uint meso_idx) const
 	{
@@ -196,6 +191,8 @@ public:
 		setModified(meso_idx, MESOCYCLES_COL_REALMESO);
 	}
 
+	inline uint newMesoFieldCounter(const uint meso_idx) const { return m_newMesoFieldCounter.at(meso_idx); }
+
 	Q_INVOKABLE QString muscularGroup(const uint meso_idx, const QChar& splitLetter) const;
 	void setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const bool bEmitSignal = true);
 
@@ -246,6 +243,7 @@ public:
 signals:
 	void mesoIdxChanged(const uint old_meso_idx, const uint new_meso_idx);
 	void isNewMesoChanged(const uint meso_idx, const uint = 9999); //2nd parameter only need by TPWorkoutsCalendar
+	void newMesoFieldCounterChanged(const uint meso_idx, const uint field);
 	void mesoChanged(const uint meso_idx, const uint field);
 	void mesoCalendarFieldsChanged(const uint meso_idx, const uint field);
 	void muscularGroupChanged(const uint meso_idx, const uint splitIndex, const QChar& splitLetter);
@@ -259,6 +257,7 @@ private:
 	DBMesoSplitModel* m_splitModel;
 	QList<DBMesoCalendarModel*> m_calendarModelList;
 	QList<short> m_isNewMeso;
+	QList<short> m_newMesoFieldCounter;
 	QList<bool> m_newMesoCalendarChanged;
 	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;

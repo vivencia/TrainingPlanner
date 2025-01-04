@@ -12,6 +12,8 @@
 #include <QSettings>
 #include <utility>
 
+#define NEW_MESO_REQUIRED_FIELDS 4
+
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
@@ -37,7 +39,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 
 		mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
 		for(uint i(0); i < MESOCYCLES_TOTAL_COLS; ++i)
-			mColumnNames.append(QString());
+			mColumnNames.append(QString{});
 		fillColumnNames();
 
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
@@ -90,14 +92,14 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 
 uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
-	beginInsertRows(QModelIndex(), count(), count());
-	const uint meso_idx = newMesocycle(std::move(QStringList() << STR_MINUS_ONE << QString() << QString() << QString() <<
-		QString() << QString() << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
-		QString() << QString() << STR_ONE));
+	beginInsertRows(QModelIndex{}, count(), count());
+	const uint meso_idx = newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
+		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
+		QString{} << QString{} << STR_ONE));
 	emit countChanged();
 	endInsertRows();
 
-	short newMesoRequiredFields(0);
+	short newMesoRequiredFields{0};
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_NAME);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_STARTDATE);
 	setBit(newMesoRequiredFields, MESOCYCLES_COL_ENDDATE);
@@ -119,6 +121,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 	delete m_calendarModelList.at(meso_idx);
 	m_calendarModelList.remove(meso_idx);
 	m_isNewMeso.remove(meso_idx);
+	m_newMesoFieldCounter.remove(meso_idx);
 	m_splitModel->removeRow(meso_idx);
 	removeRow(meso_idx);
 
@@ -128,7 +131,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 		m_mesoManagerList.removeAt(meso_idx);
 	}
 
-	for (uint i(meso_idx); i < count(); ++i)
+	for (uint i{meso_idx}; i < count(); ++i)
 	{
 		m_splitModel->setMesoIdx(i);
 		m_calendarModelList.at(i)->setMesoIdx(i);
@@ -167,12 +170,13 @@ void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const
 	mesoManager(meso_idx)->exportMeso(bShare, bCoachInfo);
 }
 
+
 const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 {
 	appendList_fast(std::move(infolist));
-	m_splitModel->appendList_fast(std::move(QStringList(SIMPLE_MESOSPLIT_TOTAL_COLS)));
+	m_splitModel->appendList_fast(std::move(QStringList{SIMPLE_MESOSPLIT_TOTAL_COLS}));
 
-	const uint meso_idx(count()-1);
+	const uint meso_idx{count()-1};
 	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
@@ -182,9 +186,10 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
 		changeCanHaveTodaysWorkout();
 	}
-	m_usedSplits.append(QStringList());
+	m_usedSplits.append(QStringList{});
 	makeUsedSplits(meso_idx);
-	m_isNewMeso.append(uchar(0));
+	m_isNewMeso.append(0);
+	m_newMesoFieldCounter.append(NEW_MESO_REQUIRED_FIELDS);
 	setCurrentMesoIdx(meso_idx, false);
 	return meso_idx;
 }
@@ -230,12 +235,12 @@ int DBMesocyclesModel::idxFromId(const uint meso_id) const
 
 QString DBMesocyclesModel::muscularGroup(const uint meso_idx, const QChar& splitLetter) const
 {
-	return splitLetter != 'R' ? m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) : QString();
+	return splitLetter != 'R' ? m_splitModel->splitX(meso_idx, appUtils()->splitLetterToMesoSplitIndex(splitLetter)) : QString{};
 }
 
 QString DBMesocyclesModel::splitLetter(const uint meso_idx, const uint day_of_week) const
 {
-	return day_of_week <= 6 ? split(meso_idx).at(day_of_week) : QString();
+	return day_of_week <= 6 ? split(meso_idx).at(day_of_week) : QString{};
 }
 
 void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
@@ -244,13 +249,30 @@ void DBMesocyclesModel::setId(const uint meso_idx, const QString& new_id)
 	m_splitModel->m_modeldata[meso_idx][MESOSPLIT_COL_MESOID] = new_id;
 }
 
+void DBMesocyclesModel::setName(const uint meso_idx, const QString& new_name)
+{
+	m_modeldata[meso_idx][MESOCYCLES_COL_NAME] = new_name;
+	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_NAME))
+	{
+		m_newMesoFieldCounter[meso_idx]--;
+		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_NAME);
+	}
+	setModified(meso_idx, MESOCYCLES_COL_NAME);
+	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoNameRole);
+}
+
 void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_STARTDATE] = std::move(QString::number(new_date.toJulianDay()));
+	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_STARTDATE))
+	{
+		m_newMesoFieldCounter[meso_idx]--;
+		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
+	}
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoStartDateRole);
+	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoStartDateRole);
 	changeCanHaveTodaysWorkout();
-	if (!isNewMeso(meso_idx))
+	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 	else
 		m_newMesoCalendarChanged[meso_idx] = true;
@@ -259,10 +281,15 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 {
 	m_modeldata[meso_idx][MESOCYCLES_COL_ENDDATE] = std::move(QString::number(new_date.toJulianDay()));
+	if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_ENDDATE))
+	{
+		m_newMesoFieldCounter[meso_idx]--;
+		emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
+	}
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
-	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoEndDateRole);
+	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoEndDateRole);
 	changeCanHaveTodaysWorkout();
-	if (!isNewMeso(meso_idx))
+	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 	else
 		m_newMesoCalendarChanged[meso_idx] = true;
@@ -273,9 +300,14 @@ void DBMesocyclesModel::setSplit(const uint meso_idx, const QString& new_split)
 	if (new_split != split(meso_idx))
 	{
 		m_modeldata[meso_idx][MESOCYCLES_COL_SPLIT] = new_split;
+		if (isBitSet(m_isNewMeso.at(meso_idx), MESOCYCLES_COL_SPLIT))
+		{
+			m_newMesoFieldCounter[meso_idx]--;
+			emit newMesoFieldCounterChanged(meso_idx, MESOCYCLES_COL_SPLIT);
+		}
 		setModified(meso_idx, MESOCYCLES_COL_SPLIT);
-		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>() << mesoSplitRole);
-		if (!isNewMeso(meso_idx))
+		emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoSplitRole);
+		if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 			emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_SPLIT);
 		else
 			m_newMesoCalendarChanged[meso_idx] = true;
@@ -293,8 +325,7 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 {
 	if (isOwnMeso(meso_idx) != bOwnMeso)
 	{
-		setClient(meso_idx, bOwnMeso ? appUserModel()->userName(0) : appUserModel()->userName(0));
-		const int cur_ownmeso(m_mostRecentOwnMesoIdx);
+		const int cur_ownmeso{m_mostRecentOwnMesoIdx};
 		findNextOwnMeso();
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
 		{
@@ -306,7 +337,7 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 
 void DBMesocyclesModel::setMuscularGroup(const uint meso_idx, const QChar& splitLetter, const QString& newSplitValue, const bool bEmitSignal)
 {
-	const uint splitField(appUtils()->splitLetterToMesoSplitIndex(splitLetter));
+	const uint splitField{appUtils()->splitLetterToMesoSplitIndex(splitLetter)};
 	if (splitField < SIMPLE_MESOSPLIT_TOTAL_COLS)
 	{
 		m_splitModel->m_modeldata[meso_idx][splitField] = newSplitValue;
@@ -357,7 +388,7 @@ void DBMesocyclesModel::findNextOwnMeso()
 
 QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
 {
-	const int row(index.row());
+	const int row{index.row()};
 	if(row >= 0 && row < m_modeldata.count())
 	{
 		switch(role)
@@ -383,7 +414,7 @@ QVariant DBMesocyclesModel::data(const QModelIndex& index, int role) const
 					return QVariant(mColumnNames.at(MESOCYCLES_COL_CLIENT) + "<b>"_L1 + client(row) + "</b>"_L1);
 		}
 	}
-	return QString();
+	return QString{};
 }
 
 bool DBMesocyclesModel::isDateWithinMeso(const int meso_idx, const QDate& date) const
@@ -567,7 +598,7 @@ QString DBMesocyclesModel::formatFieldToExport(const uint field, const QString& 
 		case MESOCYCLES_COL_REALMESO:
 			return fieldValue == STR_ONE ? tr("Yes") : tr("No");
 	}
-	return QString(); //never reached
+	return QString{}; //never reached
 }
 
 QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& fieldValue, const QString& fieldName) const
@@ -578,11 +609,11 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& 
 		case MESOCYCLES_COL_ENDDATE:
 			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
 		case MESOCYCLES_COL_COACH:
-			return fieldName.contains(tr("Coach")) ? fieldValue : QString();
+			return fieldName.contains(tr("Coach")) ? fieldValue : QString{};
 		case MESOCYCLES_COL_CLIENT:
-			return fieldName.contains(tr("Client")) ? fieldValue : QString();
+			return fieldName.contains(tr("Client")) ? fieldValue : QString{};
 		case MESOCYCLES_COL_REALMESO:
 			return fieldValue == tr("Yes") ? STR_ONE : STR_ZERO;
 	}
-	return QString(); //never reached
+	return QString{}; //never reached
 }

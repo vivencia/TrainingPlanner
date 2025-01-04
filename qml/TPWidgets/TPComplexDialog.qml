@@ -113,7 +113,6 @@ TPPopup {
 
 	function show(ypos: int): void {
 		dialogOpened();
-		console.log(lblTitle.height, 2*btn1.height, customItem.height);
 		height = lblTitle.height + customItem.height + 50;
 		show1(ypos);
 	}

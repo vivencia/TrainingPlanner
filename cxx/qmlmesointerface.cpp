@@ -63,6 +63,7 @@ void QMLMesoInterface::setOwnMeso(const bool new_value, const bool bFromQml)
 			m_bOwnMeso = new_value;
 			emit ownMesoChanged();
 			appMesoModel()->setOwnMeso(m_mesoIdx, m_bOwnMeso);
+			setClient(m_bOwnMeso ? appUserModel()->userName(0) : appUserModel()->userName(appUserModel()->currentClient()));
 		}
 	}
 	else
@@ -164,11 +165,8 @@ void QMLMesoInterface::setClient(const QString& new_value, const bool bFromQml)
 			m_client = new_value;
 			emit clientChanged();
 			appMesoModel()->setClient(m_mesoIdx, m_client);
-			if (!ownMeso())
-			{
-				setMinimumMesoStartDate(appMesoModel()->getMesoMinimumStartDate(m_client, m_mesoIdx));
-				setStartDate(m_minimumMesoStartDate);
-			}
+			setMinimumMesoStartDate(appMesoModel()->getMesoMinimumStartDate(m_client, m_mesoIdx));
+			setStartDate(m_minimumMesoStartDate);
 		}
 	}
 	else
@@ -201,7 +199,7 @@ void QMLMesoInterface::setFile(const QString& new_value, const bool bFromQml)
 	{
 		if (m_file != new_value)
 		{
-			const QString& good_filepath(appUtils()->getCorrectPath(new_value));
+			const QString& good_filepath{appUtils()->getCorrectPath(new_value)};
 			if (!appUtils()->canReadFile(good_filepath))
 				return;
 			m_file = new_value;
@@ -577,11 +575,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 
 	QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, -1));
 	connect(appUserModel(), &DBUserModel::userAddedOrRemoved, this, [this] (const uint user_row, const bool bAdded) {
-		const int mode(appUserModel()->appUseMode(user_row) == APP_USE_MODE_SINGLE_COACH ? 0 : 1);
+		const int mode{appUserModel()->appUseMode(user_row) == APP_USE_MODE_SINGLE_COACH ? 0 : 1};
 		QMetaObject::invokeMethod(m_mesoPage, "updateCoachesAndClientsModels", Q_ARG(int, mode));
 	});
 
-	setPropertiesBasedOnUseMode();
 	connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 		if (user_row == 0 && field == USER_COL_APP_USE_MODE)
 			setPropertiesBasedOnUseMode();
@@ -619,10 +616,25 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				appDBInterface()->saveMesocycle(meso_idx);
 		}
 	});
-	connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
-		if (meso_idx == m_mesoIdx)
-			emit isNewMesoChanged();
-	});
+
+	if (appMesoModel()->isNewMeso(m_mesoIdx))
+	{
+		connect(appMesoModel(), &DBMesocyclesModel::isNewMesoChanged, this, [this] (const uint meso_idx) {
+			if (meso_idx == m_mesoIdx)
+				emit isNewMesoChanged();
+		});
+
+		m_newMesoFieldCounter = QString::number(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
+		emit newMesoFieldCounterChanged(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
+		connect(appMesoModel(), &DBMesocyclesModel::newMesoFieldCounterChanged, this, [this] (const uint meso_idx, const uint /*not yet used*/) {
+			if (meso_idx == m_mesoIdx)
+			{
+				const uint fieldCounter{appMesoModel()->newMesoFieldCounter(meso_idx)};
+				m_newMesoFieldCounter = QString::number(fieldCounter);
+				emit this->newMesoFieldCounterChanged(fieldCounter);
+			}
+		});
+	}
 
 	connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 		appMesoModel()->fillColumnNames();

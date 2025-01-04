@@ -119,7 +119,6 @@ Frame {
 
 				onPositionChanged: {
 					if (navButtons) {
-						console.log(lstSplitExercises.contentY);
 						if (lstSplitExercises.contentY <= 50) {
 							navButtons.showUpButton = false;
 							navButtons.showDownButton = true;

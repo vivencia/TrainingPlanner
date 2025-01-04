@@ -17,8 +17,8 @@ Rectangle {
 	property date startDate
 	property date endDate
 	property date selectedDate: displayDate
-	property double sizeFactor: 7
 
+	property double sizeFactor: 7
 	readonly property date thisDay: new Date()
 	readonly property double cellSize: Screen.pixelDensity * sizeFactor
 	readonly property int fontSizePx: cellSize * (sizeFactor/21) //0.32
@@ -160,7 +160,9 @@ Rectangle {
 		model: calendarModel
 
 		Connections {
-			target: calendarModel
+			target: calendarModel ? calendarModel : null
+			ignoreUnknownSignals: true
+
 			function onReadyChanged() {
 				calendar.currentIndex = calendarModel.indexOf(selectedDate);
 				calendar.positionViewAtIndex(calendar.currentIndex, ListView.SnapPosition);
