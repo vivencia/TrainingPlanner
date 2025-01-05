@@ -56,6 +56,54 @@ void DBExercisesModel::fillColumnNames()
 	mColumnNames[EXERCISES_COL_MEDIAPATH] = std::move(tr("Descriptive media: "));
 }
 
+QString DBExercisesModel::muscularGroup(const uint index) const
+{
+	const QStringList& groups{m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_MUSCULARGROUP).split(',')};
+	QString translatedGroups;
+	for (uint i{0}; i < groups.count(); ++i)
+	{
+		const QString& group{groups.at(i)};
+		if (group == "quadriceps")
+			translatedGroups += std::move(tr("Quadriceps")) + ", "_L1;
+		else if (group == "hamstrings")
+			translatedGroups += std::move(tr("Hamstrings")) + ", "_L1;
+		else if (group == "glutes")
+			translatedGroups += std::move(tr("Glutes")) + ", "_L1;
+		else if (group == "calves")
+			translatedGroups += std::move(tr("Calves")) + ", "_L1;
+		else if (group == "upper back")
+			translatedGroups += std::move(tr("Upper Back")) + ", "_L1;
+		else if (group == "middle back")
+			translatedGroups += std::move(tr("Middle Back")) + ", "_L1;
+		else if (group == "lower back")
+			translatedGroups += std::move(tr("Lower Back")) + ", "_L1;
+		else if (group == "biceps")
+			translatedGroups += std::move(tr("Biceps")) + ", "_L1;
+		else if (group == "triceps")
+			translatedGroups += std::move(tr("Triceps")) + ", "_L1;
+		else if (group == "fore arms")
+			translatedGroups += std::move(tr("Forearms")) + ", "_L1;
+		else if (group == "upper chest")
+			translatedGroups += std::move(tr("Upper Chest")) + ", "_L1;
+		else if (group == "middle chest")
+			translatedGroups += std::move(tr("Middle Chest")) + ", "_L1;
+		else if (group == "lower chest")
+			translatedGroups += std::move(tr("Lower Chest")) + ", "_L1;
+		else if (group == "front delts")
+			translatedGroups += std::move(tr("Front Delts")) + ", "_L1;
+		else if (group == "lateral delts")
+			translatedGroups += std::move(tr("Lateral Delts")) + ", "_L1;
+		else if (group == "rear delts")
+			translatedGroups += std::move(tr("Rear Delts")) + ", "_L1;
+		else if (group == "traps")
+			translatedGroups += std::move(tr("Traps")) + ", "_L1;
+		else if (group == "abs")
+			translatedGroups += std::move(tr("Abs")) + ", "_L1;
+	}
+	translatedGroups.chop(2);
+	return translatedGroups;
+}
+
 void DBExercisesModel::newExercise(const QString& name, const QString& subname, const QString& muscular_group)
 {
 	setLastID(lastID() + 1);

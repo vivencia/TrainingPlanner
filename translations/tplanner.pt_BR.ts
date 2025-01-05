@@ -151,6 +151,96 @@
         <translation>Peso: </translation>
     </message>
     <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="67"/>
+        <source>Quadriceps</source>
+        <translation>Quadríceps</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="69"/>
+        <source>Hamstrings</source>
+        <translation>Posterior de Coxa</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="71"/>
+        <source>Glutes</source>
+        <translation>Glúteos</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="73"/>
+        <source>Calves</source>
+        <translation>Panturrilhas</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="75"/>
+        <source>Upper Back</source>
+        <translation>Superior de Costas</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="77"/>
+        <source>Middle Back</source>
+        <translation>Meio das Costas</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="79"/>
+        <source>Lower Back</source>
+        <translation>Lombar</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="81"/>
+        <source>Biceps</source>
+        <translation>Bíceps</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="83"/>
+        <source>Triceps</source>
+        <translation>Tríceps</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="85"/>
+        <source>Forearms</source>
+        <translation>Antebraço</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="87"/>
+        <source>Upper Chest</source>
+        <translation>Peitoral Superior</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="89"/>
+        <source>Middle Chest</source>
+        <translation>Peitoral médio</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="91"/>
+        <source>Lower Chest</source>
+        <translation>Peitoral Inferior</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="93"/>
+        <source>Front Delts</source>
+        <translation>Deltoide Frontal</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="95"/>
+        <source>Lateral Delts</source>
+        <translation>Deltoide Lateral</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="97"/>
+        <source>Rear Delts</source>
+        <translation>Deltoide Posterios</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="99"/>
+        <source>Traps</source>
+        <translation>Trapézios</translation>
+    </message>
+    <message>
+        <location filename="../cxx/dbexercisesmodel.cpp" line="101"/>
+        <source>Abs</source>
+        <translation>Abdômen</translation>
+    </message>
+    <message>
         <location filename="../cxx/dbexercisesmodel.cpp" line="54"/>
         <source>Reps: </source>
         <translation>Repetições: </translation>
@@ -647,67 +737,67 @@
         <translation>Editar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="136"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="134"/>
         <source>Add</source>
         <translation>Adicionar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="149"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="147"/>
         <source>In/Export</source>
         <translation>Im/Exportar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="239"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="252"/>
         <source>Choose media</source>
         <translation>Escolher mídia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="249"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="262"/>
         <source>Please choose a media file</source>
         <translation>Por favor, escolha um arquivo de mídia</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="250"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="263"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="250"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="263"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="326"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="339"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="327"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="340"/>
         <source>Export</source>
         <translation>Exportar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="329"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="342"/>
         <source>Share</source>
         <translation>Compartilhar</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="345"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="358"/>
         <source>Share custom exercises?</source>
         <translation>Compartilhar exercícios novos?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="345"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="358"/>
         <source>Export custom exercises to file?</source>
         <translation>Exportar exercícios novos para um arquivo?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="347"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="360"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/ExercisesPage.qml" line="348"/>
+        <location filename="../qml/Pages/ExercisesPage.qml" line="361"/>
         <source>No</source>
         <translation>Não</translation>
     </message>
@@ -1103,17 +1193,17 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Dom</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="228"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="221"/>
         <source>Accept changes</source>
         <translation>Aceitar mudanças</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="250"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="243"/>
         <source>Exercises Planner</source>
         <translation>Programa de Exercícios</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesoSplitSetup.qml" line="274"/>
+        <location filename="../qml/Pages/MesoSplitSetup.qml" line="267"/>
         <source>Define</source>
         <translation>Definir</translation>
     </message>
@@ -1166,92 +1256,92 @@ Esta ação não pode ser desfeita.</translation>
         <translation>Nome muito curto</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="206"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="205"/>
         <source>This program is for myself</source>
         <translation>Este programa é para mim mesmo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="272"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="270"/>
         <source>Weigth Loss</source>
         <translation>Perder Peso</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="273"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="271"/>
         <source>Muscle Gain</source>
         <translation>Ganho muscular</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="274"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="272"/>
         <source>Bulking</source>
         <translation>Bulking</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="275"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="273"/>
         <source>Pre-contest</source>
         <translation>Pre-contest</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="276"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="274"/>
         <source>Strength Build-up</source>
         <translation>Ganhar força</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="277"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="275"/>
         <source>Physical Recovery</source>
         <translation>Recuperação física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="278"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="276"/>
         <source>Physical Maintenance</source>
         <translation>Manutenção física</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="279"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="277"/>
         <source>Other</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="314"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="312"/>
         <source>Instructions file</source>
         <translation>Arquivo de instruções</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="340"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="338"/>
         <source>Choose the instruction&apos;s file for this mesocycles</source>
         <translation>Escolha o arquivo de instruções para este mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="341"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="339"/>
         <source>PDF Files</source>
         <translation>Arquivos PDF</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="341"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="339"/>
         <source>Documents</source>
         <translation>Documentos</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="418"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="416"/>
         <source>Mesocycle-style program</source>
         <translation>Programa tipo Mesociclo</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="422"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="420"/>
         <source>A Mesocycle is a short-term program, with defined starting and ending points and a specific goal in sight</source>
         <translation>Um Mesociclo é um programa de curto prazo, com início e término bem definidos, e um objectivo específico em vista</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="558"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="556"/>
         <source>Adjust meso calendar?</source>
         <translation>Ajustar calendário do programa?</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="559"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="557"/>
         <source>Yes</source>
         <translation>Sim</translation>
     </message>
     <message>
-        <location filename="../qml/Pages/MesocyclePage.qml" line="559"/>
+        <location filename="../qml/Pages/MesocyclePage.qml" line="557"/>
         <source>No</source>
         <translation>Não</translation>
     </message>

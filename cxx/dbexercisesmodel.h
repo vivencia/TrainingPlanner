@@ -60,7 +60,7 @@ public:
 		addModifiedIndex(index);
 	}
 
-	Q_INVOKABLE inline QString muscularGroup(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_MUSCULARGROUP); }
+	Q_INVOKABLE QString muscularGroup(const uint index) const;
 	Q_INVOKABLE inline void setMuscularGroup(const uint index, const QString& new_group)
 	{
 		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_MUSCULARGROUP] = new_group;
@@ -141,7 +141,7 @@ public:
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
 	inline uint modifiedIndex(const uint pos) const
 	{
-		uint ret_pos(0);
+		uint ret_pos{0};
 		QMap<uint,uint>::const_iterator itr{m_modifiedIndices.constBegin()};
 		const QMap<uint,uint>::const_iterator& itr_end{m_modifiedIndices.constEnd()};
 		while (itr != itr_end)

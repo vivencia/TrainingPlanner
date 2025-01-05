@@ -124,8 +124,6 @@ TPPage {
 							bEdit = false;
 							exercisesList.enabled = true;
 							text = qsTr("Edit");
-							//if (!bJustSaved)
-							//	exercisesList.itemClicked(exercisesModel.currentRow, true);
 						}
 					}
 				} //btnEditExercise
@@ -184,11 +182,16 @@ TPPage {
 			TPTextInput {
 				id: txtExerciseName
 				readOnly: !bCanEdit
+				wrapMode: TextInput.WordWrap
 				font.italic: bCanEdit
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
 
+				onTextChanged: {
+					const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+					implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * 25 : 25;
+				}
 				onEnterOrReturnKeyPressed: txtMuscularGroup.forceActiveFocus();
 				onEditingFinished: exercisesModel.setMainName(exercisesModel.currentRow, text);
 			}
@@ -201,11 +204,16 @@ TPPage {
 			TPTextInput {
 				id: txtExerciseSubName
 				readOnly: !bCanEdit
+				wrapMode: TextInput.WordWrap
 				font.italic: bCanEdit
 				Layout.fillWidth: true
 				Layout.leftMargin: 10
 				Layout.rightMargin: 20
 
+				onTextChanged: {
+					const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+					implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * 25 : 25;
+				}
 				onEnterOrReturnKeyPressed: txtExerciseSubName.forceActiveFocus();
 				onEditingFinished: exercisesModel.setSubName(exercisesModel.currentRow, text);
 			}
@@ -218,11 +226,16 @@ TPPage {
 			TPTextInput {
 				id: txtMuscularGroup
 				readOnly: !bCanEdit
+				wrapMode: TextInput.WordWrap
 				font.italic: bCanEdit
 				Layout.fillWidth: true
 				Layout.rightMargin: 20
 				Layout.leftMargin: 10
 
+				onTextChanged: {
+					const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+					implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * 25 : 25;
+				}
 				onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
 				onEditingFinished: exercisesModel.setMuscularGroup(exercisesModel.currentRow, text);
 			}

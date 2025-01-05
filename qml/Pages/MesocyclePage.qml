@@ -181,9 +181,8 @@ TPPage {
 						for(let i = 0; i < coaches.length; ++i) {
 							if (coaches[i] !== currentCoach)
 								append({ "text": coaches[i], "value": i, "enabled": true });
-							if (coaches[i] === mesoManager.coach)
-								cboCoaches.currentIndex = i;
 						}
+						cboCoaches.currentIndex = Qt.binding(function() { return cboCoaches.find(mesoManager.coach); });
 					}
 				}
 
@@ -235,10 +234,9 @@ TPPage {
 							const clients = userModel.getClients();
 							for(let i = 0; i < clients.length; ++i) {
 								if (clients[i] !== currentClient)
-									append({ "text": clients[i], "value": i, "enabled": true });
-								if (clients[i] === mesoManager.client)
-									cboClients.currentIndex = i;
+									append({ "text": clients[i], "value": i, "enabled": true });	
 							}
+							cboClients.currentIndex = Qt.binding(function() { return cboClients.find(mesoManager.client); });
 						}
 					}
 

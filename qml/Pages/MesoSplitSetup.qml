@@ -98,29 +98,20 @@ Pane {
 						let mesoSplit = txtMesoSplit.text;
 						txtMesoSplit.text = mesoSplit.substring(0,index) + valueAt(cboindex) + mesoSplit.substring(index+1);
 						bMesoSplitChanged = true;
-						let last_letter_idx;
-
-						switch(valueAt(cboindex)) {
-							case "A": last_letter_idx = 1; break;
-							case "B": last_letter_idx = 2; break;
-							case "C": last_letter_idx = 3; break;
-							case "D": last_letter_idx = 4; break;
-							case "E": last_letter_idx = 5; break;
-							case "F": last_letter_idx = 6; break;
-							case "R":
-								last_letter_idx = 0;
-								if (index >= 1) {
-									let prev_index = index-1;
-									let prev_item_index;
-									do {
-										prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
-										if (prev_item_index !== 6) {
-											last_letter_idx = prev_item_index + 1;
-											break;
-										}
-									} while (--prev_index >= 0);
-								}
-							break;
+						let last_letter_idx = cboindex + 1;
+						if (last_letter_idx === 7) {
+							last_letter_idx = 0;
+							if (index >= 1) {
+								let prev_index = index-1;
+								let prev_item_index;
+								do {
+									prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
+									if (prev_item_index !== 6) {
+										last_letter_idx = prev_item_index + 1;
+										break;
+									}
+								} while (--prev_index >= 0);
+							}
 						}
 
 						for (let i = index + 1; i < 7; ++i) {
@@ -130,7 +121,7 @@ Pane {
 								cboBox.currentIndex = last_letter_idx;
 							let cboModel = cboBox.model;
 							for (let x = 0; x < 6; ++x)
-								cboModel.get(x).enabled = (x <= last_letter_idx);
+								cboModel.get(x).enabled = x <= last_letter_idx;
 						}
 					}
 
@@ -139,19 +130,21 @@ Pane {
 						btnMuscularGroups.visible = Qt.binding(function() { return currentIndex !== 6; });
 						if (index >=1)
 						{
-							let last_letter_idx;
-							switch(splitRepeater.itemAt(index-1).children[1].currentValue) {
-								case "A": last_letter_idx = 1; break;
-								case "B": last_letter_idx = 2; break;
-								case "C": last_letter_idx = 3; break;
-								case "D": last_letter_idx = 4; break;
-								case "E": last_letter_idx = 5; break;
-								case "F": last_letter_idx = 6; break;
-								case "R": last_letter_idx = splitRepeater.itemAt(index-1).children[1].currentIndex; break;
+							let last_letter_idx = indexOfValue(currentValue);
+							if (last_letter_idx === 6) {
+								let prev_index = index-1;
+								let prev_item_index;
+								do {
+									prev_item_index = splitRepeater.itemAt(prev_index).children[1].currentIndex;
+									if (prev_item_index !== 6) {
+										last_letter_idx = prev_item_index + 1;
+										break;
+									}
+								} while (--prev_index >= 0);
 							}
 
 							for (let x = 0; x < 6; ++x)
-								model.get(x).enabled = (x <= last_letter_idx);
+								model.get(x).enabled = x <= last_letter_idx;
 						}
 						else {
 							for (let y = 1; y < 6; ++y)
