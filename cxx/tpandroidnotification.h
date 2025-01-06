@@ -16,12 +16,8 @@ Q_OBJECT
 
 public:
 	explicit TPAndroidNotification(QObject* parent = nullptr);
-	~TPAndroidNotification();
-	uint sendNotification(notificationData* data);
+	void sendNotification(notificationData* data);
 	void cancelNotification(const uint id);
-
-private:
-	QMap<uint, QList<uint>> m_Ids;
 };
 
 #endif

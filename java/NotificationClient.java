@@ -26,7 +26,7 @@ public class NotificationClient
 		TPActivityContext = context;
 	}
 
-    public static void notify(String title, String message, short action, short id)
+    public static void notify(String title, String message, int action, int id)
     {
 		try {
 		    Bitmap icon = BitmapFactory.decodeResource(TPActivityContext.getResources(), R.drawable.icon);

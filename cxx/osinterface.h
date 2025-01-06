@@ -17,15 +17,14 @@ using namespace Qt::Literals::StringLiterals;
 struct notificationData {
 	short id;
 	short action;
-	QDate date;
-	QTime time;
-	bool clicked;
 	bool resolved;
+	QDateTime start_time;
+	QDateTime expiration;
 	QString message;
 	QString title;
 
-	explicit inline notificationData(): id{0}, action{0}, date{std::move(QDate::currentDate())}, time{QTime::currentTime()},
-					clicked{false}, resolved{false}, title{"TrainingPlanner"_L1} {}
+	explicit inline notificationData(): id{0}, action{0}, resolved{false},
+			start_time{QDate::currentDate(), QTime::currentTime()}, title{"TrainingPlanner"_L1} {}
 };
 #endif
 
@@ -38,12 +37,6 @@ Q_OBJECT
 
 public:
 	explicit OSInterface(QObject* parent = nullptr);
-	inline OSInterface(const OSInterface& other)
-		: QObject{other.parent()}, m_appDataFilesPath{other.m_appDataFilesPath}
-		#ifdef Q_OS_ANDROID
-		, m_AndroidNotification{nullptr}
-		#endif
-		{}
 	inline ~OSInterface()
 	{
 	#ifdef Q_OS_ANDROID
@@ -67,7 +60,8 @@ public:
 	void setFileReceivedAndSaved(const QString& url) const;
 	bool checkFileExists(const QString& url) const;
 	void onActivityResult(int requestCode, int resultCode);
-	void startNotificationAction(const short action, const short id);
+	void execNotification(const short action, const short id);
+	void removeNotification(notificationData* data);
 
 	void checkPendingIntents() const;
 	bool sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const;
@@ -76,6 +70,7 @@ public:
 	bool viewFile(const QString& filePath, const QString& title) const;
 	QString readFileFromAndroidFileDialog(const QString& android_uri) const;
 	void startAppNotifications();
+	void checkNotificationsStatus();
 	void checkWorkouts();
 #else
 	void processArguments() const;
@@ -110,7 +105,6 @@ private:
 	static OSInterface* app_os_interface;
 	friend OSInterface* appOsInterface();
 };
-Q_DECLARE_METATYPE(OSInterface*)
 
 inline OSInterface* appOsInterface() { return OSInterface::app_os_interface; }
 #endif // OSINTERFACE_H

@@ -225,17 +225,17 @@ void DBMesoCalendarModel::updateModel(const QDate& startDate, const QString& new
 
 void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, const QString& splitLetter)
 {
-	const uint year(date.year());
-	const uint month(date.month());
-	const uint day(date.day()-1);
+	const uint year{static_cast<uint>(date.year())};
+	const uint month{static_cast<uint>(date.month())};
+	const uint day{static_cast<uint>(date.day()-1)};
 
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for(uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_YEAR).toUInt() == year)
 		{
 			if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 			{
-				const QStringList& dayInfo(m_modeldata.at(i).at(day).split(','));
+				const QStringList& dayInfo{m_modeldata.at(i).at(day).split(',')};
 				m_modeldata[i][day] = std::move(dayInfo.at(MESOCALENDAR_COL_ID) + ',' + dayInfo.at(MESOCALENDAR_COL_MESOID) + ',' +
 						tDay + ',' + splitLetter + ',' + m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_TRAININGCOMPLETE) + ',' + dayInfo.at(MESOCALENDAR_COL_YEAR) + ',' +
 						dayInfo.at(MESOCALENDAR_COL_MONTH));
@@ -247,7 +247,7 @@ void DBMesoCalendarModel::updateDay(const QDate& date, const QString& tDay, cons
 
 int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 {
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for( uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
@@ -260,7 +260,7 @@ int DBMesoCalendarModel::getTrainingDay(const uint month, const uint day) const
 
 QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) const
 {
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for(uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
@@ -268,12 +268,12 @@ QString DBMesoCalendarModel::getSplitLetter(const uint month, const uint day) co
 				return m_modeldata.at(i).at(day).split(',').at(MESOCALENDAR_COL_SPLITLETTER);
 		}
 	}
-	return u"A"_s; //avoid errors downstream
+	return "A"_L1; //avoid errors downstream
 }
 
 bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
 {
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
@@ -286,7 +286,7 @@ bool DBMesoCalendarModel::isTrainingDay(const uint month, const uint day) const
 
 bool DBMesoCalendarModel::isPartOfMeso(const uint month, const uint day) const
 {
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
@@ -299,7 +299,7 @@ bool DBMesoCalendarModel::isPartOfMeso(const uint month, const uint day) const
 
 bool DBMesoCalendarModel::isDayFinished(const uint month, const uint day) const
 {
-	for(uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == month)
 		{
@@ -312,11 +312,11 @@ bool DBMesoCalendarModel::isDayFinished(const uint month, const uint day) const
 
 void DBMesoCalendarModel::setDayIsFinished(const QDate& date, const bool bFinished)
 {
-	for( uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(0).split(',').at(MESOCALENDAR_COL_MONTH).toUInt() == date.month())
 		{
-			QStringList dayInfo(std::move(m_modeldata.at(i).at(date.day()-1).split(',')));
+			QStringList dayInfo{std::move(m_modeldata.at(i).at(date.day()-1).split(','))};
 			dayInfo.replace(MESOCALENDAR_COL_TRAININGCOMPLETE, bFinished ? STR_ONE : STR_ZERO);
 			m_modeldata[i].replace(date.day()-1, std::move(dayInfo.join(',')));
 		}

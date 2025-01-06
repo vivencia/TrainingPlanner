@@ -65,6 +65,7 @@ public:
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
 	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
 	void changeCanHaveTodaysWorkout();
+	void setWorkoutIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 
 	void setModified(const uint meso_idx, const uint field);
 
@@ -250,6 +251,7 @@ signals:
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();
+	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 
 private:

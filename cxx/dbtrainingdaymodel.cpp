@@ -1,7 +1,7 @@
 #include "dbtrainingdaymodel.h"
 #include "tpglobals.h"
 #include "dbmesosplitmodel.h"
-#include "dbexercisesmodel.h"
+//#include "dbexercisesmodel.h"
 #include "dbmesocyclesmodel.h"
 #include "dbmesocalendarmodel.h"
 #include "tputils.h"
@@ -202,7 +202,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 	}
 
 	QString value;
-	uint exercise_idx(0), nsets(0);
+	uint exercise_idx(0);
 	QString type, resttime, subsets, reps, weight, notes, strTypes;
 	const QString tableIdStr("0x000"_L1 + QString::number(TRAININGDAY_TABLE_ID));
 	bool bFoundModelInfo(false);
@@ -225,7 +225,7 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
 					value = buf;
-					nsets = value.remove(0, value.indexOf(':') + 2).trimmed().toUInt();
+					const uint nsets{value.remove(0, value.indexOf(':') + 2).trimmed().toUInt()};
 
 					if (inFile->readLine(buf, sizeof(buf)) == -1)
 						return false;
@@ -399,8 +399,8 @@ void DBTrainingDayModel::removeExercise(const uint exercise_idx)
 
 static QString increaseStringTimeBy(const QString& strtime, const uint add_mins, const uint add_secs)
 {
-	uint secs(QStringView{strtime}.sliced(3, 2).toUInt());
-	uint mins(QStringView{strtime}.first(2).toUInt());
+	uint secs{QStringView{strtime}.sliced(3, 2).toUInt()};
+	uint mins{QStringView{strtime}.first(2).toUInt()};
 
 	secs += add_secs;
 	if (secs > 59)
@@ -409,15 +409,15 @@ static QString increaseStringTimeBy(const QString& strtime, const uint add_mins,
 		mins++;
 	}
 	mins += add_mins;
-	const QString& ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
-		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs)));
+	const QString& ret{(mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
+		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs))};
 	return ret;
 }
 
 static inline QString dropSetReps(const QString& reps)
 {
-	const float value(appUtils()->appLocale()->toFloat(reps));
-	QString value1(std::move(appUtils()->appLocale()->toString(qCeil(value * 0.8))));
+	const float value{appUtils()->appLocale()->toFloat(reps)};
+	QString value1{std::move(appUtils()->appLocale()->toString(qCeil(value * 0.8)))};
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.last(2) != "50"_L1)
@@ -425,7 +425,7 @@ static inline QString dropSetReps(const QString& reps)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(std::move(appUtils()->appLocale()->toString(qCeil(value * 0.8 * 0.8))));
+	QString value2{std::move(appUtils()->appLocale()->toString(qCeil(value * 0.8 * 0.8)))};
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.last(2) != "50"_L1)
@@ -438,8 +438,8 @@ static inline QString dropSetReps(const QString& reps)
 
 static inline QString dropSetWeight(const QString& weight)
 {
-	const float value(appUtils()->appLocale()->toFloat(weight));
-	QString value1(std::move(appUtils()->appLocale()->toString(value * 0.5, 'f', 2)));
+	const float value{appUtils()->appLocale()->toFloat(weight)};
+	QString value1{std::move(appUtils()->appLocale()->toString(value * 0.5, 'f', 2))};
 	if (value1.contains('.') || value1.contains(','))
 	{
 		if (value1.last(2) != "50"_L1)
@@ -447,7 +447,7 @@ static inline QString dropSetWeight(const QString& weight)
 		else
 			value1.chop(1); // nn,5 or nn.5
 	}
-	QString value2(std::move(appUtils()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2)));
+	QString value2{std::move(appUtils()->appLocale()->toString(value * 0.5 * 0.5, 'f', 2))};
 	if (value2.contains('.') || value2.contains(','))
 	{
 		if (value2.last(2) != "50"_L1)
@@ -462,7 +462,7 @@ void DBTrainingDayModel::newFirstSet(const uint exercise_idx, const uint type, c
 										const QString& nRestTime, const QString& nSubsets, const QString& notes)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::newFirstSet()", "out of range exercise_idx");
-	const QString& strType(QString::number(type));
+	const QString& strType{QString::number(type)};
 	m_ExerciseData.at(exercise_idx)->nsets = 1;
 	m_ExerciseData.at(exercise_idx)->type.append(strType);
 	m_ExerciseData.at(exercise_idx)->notes.append(notes);
@@ -539,7 +539,7 @@ const QString DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, 
 							std::move(m_ExerciseData.at(exercise_idx)->reps.constLast().split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set));
 		break;
 		default:
-			const QString& reps(m_ExerciseData.at(exercise_idx)->reps.at(set_number));
+			const QString& reps{m_ExerciseData.at(exercise_idx)->reps.at(set_number)};
 			strSetReps = sub_set == USE_LAST_SET_DATA ? reps : reps.contains(comp_exercise_separator) ?
 													std::move(reps.split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set)) :
 													std::move(reps);
@@ -548,7 +548,7 @@ const QString DBTrainingDayModel::nextSetSuggestedReps(const uint exercise_idx, 
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appUtils()->appLocale()->toFloat(strSetReps));
+		float lastSetValue{appUtils()->appLocale()->toFloat(strSetReps)};
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue = qCeil(lastSetValue * 0.8);
 		else
@@ -578,7 +578,7 @@ const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx
 							std::move(m_ExerciseData.at(exercise_idx)->weight.constLast().split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set));
 		break;
 		default:
-			const QString& weight(m_ExerciseData.at(exercise_idx)->weight.at(set_number));
+			const QString& weight{m_ExerciseData.at(exercise_idx)->weight.at(set_number)};
 			strStrWeight = sub_set == USE_LAST_SET_DATA ? weight : weight.contains(comp_exercise_separator) ?
 													std::move(weight.split(comp_exercise_separator, Qt::SkipEmptyParts).at(sub_set)) :
 													std::move(weight);
@@ -587,7 +587,7 @@ const QString DBTrainingDayModel::nextSetSuggestedWeight(const uint exercise_idx
 
 	if (type == SET_TYPE_PYRAMID || type == SET_TYPE_REVERSE_PYRAMID)
 	{
-		float lastSetValue(appUtils()->appLocale()->toFloat(strStrWeight));
+		float lastSetValue{appUtils()->appLocale()->toFloat(strStrWeight)};
 		if (type == SET_TYPE_PYRAMID)
 			lastSetValue *= 1.2;
 		else
@@ -608,13 +608,13 @@ void DBTrainingDayModel::newSet(const uint exercise_idx, const uint set_number, 
 							const QString& nReps, const QString& nWeight, const QString& nRestTime, const QString& nSubSets)
 {
 	Q_ASSERT_X(exercise_idx < m_ExerciseData.count(), "DBTrainingDayModel::newSet()", "out of range exercise_idx");
-	const uint total(m_ExerciseData.at(exercise_idx)->nsets);
+	const uint total{m_ExerciseData.at(exercise_idx)->nsets};
 	const int n(set_number - total + 1);
-	const QString& strType(QString::number(type));
+	const QString& strType{QString::number(type)};
 
 	m_ExerciseData.at(exercise_idx)->nsets += n;
 
-	for(uint i(0); i < n; ++i)
+	for(uint i{0}; i < n; ++i)
 	{
 		m_ExerciseData.at(exercise_idx)->type.append(strType);
 		m_ExerciseData.at(exercise_idx)->resttime.append(nRestTime.isEmpty() ? std::move(nextSetSuggestedTime(exercise_idx, type)) : nRestTime);

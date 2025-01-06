@@ -4,13 +4,12 @@ import QtQuick.Controls
 import "../"
 
 TextField {
-	property string textColor: appSettings.fontColor
-	property string backgroundColor: appSettings.primaryDarkColor
-
 	id: control
 	font.pixelSize: appSettings.fontSize
 	font.weight: Font.Bold
 	color: enabled ? textColor : appSettings.disabledFontColor
+	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
+	verticalAlignment: Text.AlignTop
 	leftInset: 0
 	rightInset: 0
 	topInset: 0
@@ -21,7 +20,12 @@ TextField {
 	rightPadding: 5
 	placeholderTextColor: "gray"
 	implicitWidth: AppGlobals.fontMetricsLarge.boundingRect(text).width + 5
-	implicitHeight: 25
+	implicitHeight: suggestedHeight
+
+	property string textColor: appSettings.fontColor
+	property string backgroundColor: appSettings.primaryDarkColor
+	property bool heightAdjustable: true
+	property int suggestedHeight: 25
 
 	signal enterOrReturnKeyPressed()
 
@@ -64,13 +68,15 @@ TextField {
 	}
 
 	onTextChanged: {
-		if (readOnly) {
-			ensureVisible(0);
-			cursorPosition = 0;
+		if (heightAdjustable) {
+			const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+			implicitHeight = textWidth > implicitWidth ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
 		}
+		positionCaret();
 	}
+	onReadOnlyChanged: positionCaret();
 
-	onReadOnlyChanged: {
+	function positionCaret(): void {
 		if (readOnly) {
 			ensureVisible(0);
 			cursorPosition = 0;

@@ -22,6 +22,8 @@
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
 
+const QString& workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
+
 #define NOTIFY_DO_NOTHING 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
 #define SPLIT_NOTIFICATION 0x1E
@@ -210,9 +212,32 @@ void OSInterface::startAppNotifications()
 {
 	QTimer notificationsTimer{this};
 	notificationsTimer.setInterval(1000*30); //every 30min
-	notificationsTimer.callOnTimeout([this] () { checkWorkouts(); } );
+	notificationsTimer.callOnTimeout([this] () { checkNotificationsStatus(); } );
 	notificationsTimer.start();
 	checkWorkouts();
+}
+
+void OSInterface::checkNotificationsStatus()
+{
+	const QDateTime now{std::move(QDateTime::currentDateTime())};
+	short action;
+	for (qsizetype i{m_notifications.count()-1}; i >= 0; --i)
+	{
+		if (m_notifications.at(i)->expiration == now)
+		{
+			action = m_notifications.at(i)->action;
+			removeNotification(m_notifications.at(i));
+			switch (action)
+			{
+				case NOTIFY_DO_NOTHING:
+				break;
+				case NOTIFY_START_WORKOUT:
+					//Workout for the -previous- day was not concluded(neither was the notification activated). Start a new one for the day
+					checkWorkouts();
+				break;
+			}
+		}
+	}
 }
 
 void OSInterface::checkWorkouts()
@@ -225,20 +250,32 @@ void OSInterface::checkWorkouts()
 		if (!dayInfoList.isEmpty())
 		{
 			notificationData* data{new notificationData{}};
+			data->id = QTime::currentTime().msecsSinceStartOfDay();
 			const QString& splitLetter{dayInfoList.at(2)};
 			if (splitLetter != "R"_L1) //day is training day
 			{
+
 				if (dayInfoList.at(3) == STR_ONE) //day is completed
-					data->message = std::move(tr("Your training routine seems to go well. Workout for the day is concluded"));
+				{
+					data->message = workoutDoneMessage;
+					data->action = NOTIFY_DO_NOTHING;
+				}
 				else
+				{
 					data->message = std::move(tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter);
-				data->action = NOTIFY_START_WORKOUT;
+					data->action = NOTIFY_START_WORKOUT;
+					connect(appMesoModel(), &DBMesocyclesModel::todaysWorkoutFinished, this, [this,data] () {
+						data->resolved = true;
+						removeNotification(data);
+					}, static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
+				}
 			}
 			else
 			{
 				data->message = std::move(tr("Enjoy your day of rest from workouts!"));
 				data->action = NOTIFY_DO_NOTHING;
 			}
+			data->expiration = std::move(QDateTime(QDate::currentDate(), QTime(23, 59, 59)));
 			m_notifications.append(data);
 			m_AndroidNotification->sendNotification(data);
 		}
@@ -282,13 +319,12 @@ void OSInterface::onActivityResult(int requestCode, int resultCode)
 	emit activityFinishedResult(requestCode, resultCode);
 }
 
-void OSInterface::startNotificationAction(const short action, const short id)
+void OSInterface::execNotification(const short action, const short id)
 {
-	for (uint i{0}; i < m_notifications.count(); ++i)
+	for (qsizetype i{0}; i < m_notifications.count(); ++i)
 	{
 		if (m_notifications.at(i)->id == id && !m_notifications.at(i)->resolved)
 		{
-			m_notifications.at(i)->clicked = true;
 			switch (action)
 			{
 				case NOTIFY_DO_NOTHING:
@@ -301,6 +337,24 @@ void OSInterface::startNotificationAction(const short action, const short id)
 			}
 		}
 	}
+}
+
+void OSInterface::removeNotification(notificationData* data)
+{
+	m_AndroidNotification->cancelNotification(data->id);
+	if (data->action == NOTIFY_START_WORKOUT)
+	{
+		if (data->resolved) //Send a new notification with an innocuous greeting message.
+		{
+			data->resolved = false;
+			data->message = workoutDoneMessage;
+			data->action = NOTIFY_DO_NOTHING;
+			m_AndroidNotification->sendNotification(data);
+			return;
+		}
+	}
+	m_notifications.removeOne(data);
+	delete data;
 }
 
 extern "C"
@@ -340,7 +394,7 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 {
 	Q_UNUSED (obj)
 	//const char *actionStr = env->GetStringUTFChars(action, NULL);
-	appOsInterface()->startNotificationAction(action, id);
+	appOsInterface()->execNotification(action, id);
 	//env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }

@@ -136,8 +136,7 @@ void QmlTDayInterface::setDayIsFinished(const bool new_value, const bool bFromQm
 		if (bFromQml)
 		{
 			const QDate& date{m_tDayModel->date()};
-			appMesoModel()->mesoCalendarModel(m_mesoIdx)->setDayIsFinished(date, new_value);
-			appDBInterface()->setDayIsFinished(m_mesoIdx, date, new_value);
+			appMesoModel()->setWorkoutIsFinished(m_mesoIdx, date, new_value);
 			if (new_value)
 			{
 				calculateWorkoutTime();

@@ -135,6 +135,7 @@ FocusScope {
 
 		TPTextInput {
 			id: txtMain
+			heightAdjustable: false
 			validator: validatorType[type]
 			inputMethodHints: type <= SetInputField.Type.RepType ? Qt.ImhFormattedNumbersOnly : Qt.ImhDigitsOnly
 			maximumLength: maxLen[type]
