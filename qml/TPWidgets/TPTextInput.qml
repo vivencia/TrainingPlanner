@@ -9,7 +9,7 @@ TextField {
 	font.weight: Font.Bold
 	color: enabled ? textColor : appSettings.disabledFontColor
 	wrapMode: heightAdjustable ? TextInput.WordWrap : TextInput.NoWrap
-	verticalAlignment: Text.AlignTop
+	verticalAlignment: suggestedHeight === 25 ? Text.AlignVCenter : Text.AlignTop
 	leftInset: 0
 	rightInset: 0
 	topInset: 0
@@ -19,7 +19,6 @@ TextField {
 	bottomPadding: 0
 	rightPadding: 5
 	placeholderTextColor: "gray"
-	implicitWidth: AppGlobals.fontMetricsLarge.boundingRect(text).width + 5
 	implicitHeight: suggestedHeight
 
 	property string textColor: appSettings.fontColor

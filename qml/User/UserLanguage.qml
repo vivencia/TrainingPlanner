@@ -9,10 +9,19 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 ColumnLayout {
 	Layout.rightMargin: 10
 	Layout.leftMargin: 10
+	spacing: 20
 
 	property bool bReady: false
-	readonly property int controlsSpacing: 10
-	readonly property int minimumHeight: optEn.height + optBr.height + optDe.height + 2*controlsSpacing
+	readonly property int minimumHeight: optEn.height + optBr.height + optDe.height + 2*spacing
+
+	Connections {
+        target: appSettings
+        function onAppLocaleChanged(): void {
+			optEn.checked = appSettings.appLocale === "en_US";
+			optBr.checked = appSettings.appLocale === "pt_BR";
+			optDe.checked = appSettings.appLocale === "de_DE";
+        }
+    }
 
 	TPRadioButton {
 		id: optEn

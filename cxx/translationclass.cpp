@@ -8,12 +8,12 @@
 #include <QSettings>
 #include <QTranslator>
 
-TranslationClass* TranslationClass::app_tr(nullptr);
+TranslationClass* TranslationClass::app_tr{nullptr};
 
 void TranslationClass::selectLanguage()
 {
 	QString strLocale{appSettings()->appLocale()};
-	const bool bConfigEmpty(strLocale.isEmpty());
+	const bool bConfigEmpty{strLocale.isEmpty()};
 	if (bConfigEmpty)
 	{
 		#ifndef Q_OS_ANDROID
@@ -23,10 +23,10 @@ void TranslationClass::selectLanguage()
 		strLocale = QLocale::system().name();
 		#endif
 	}
-	if (strLocale != u"en_US"_s)
+	if (strLocale != "en_US"_L1)
 		switchToLanguage(strLocale);
 	else
-		appUtils()->setAppLocale(u"en_US"_s, false);
+		appUtils()->setAppLocale("en_US"_L1, false);
 }
 
 void TranslationClass::switchToLanguage(const QString& language)
@@ -38,21 +38,19 @@ void TranslationClass::switchToLanguage(const QString& language)
 	{
 		QCoreApplication::removeTranslator(mTranslator);
 		delete mTranslator;
+		mTranslator = nullptr;
 	}
-	mTranslator = new QTranslator(this);
-
-	const bool bEnglish(language == u"en_US"_s);
+	const bool bEnglish{language == "en_US"_L1};
 	mbOK = bEnglish;
 	if (!bEnglish)
 	{
-		mbOK = mTranslator->load(u"tplanner.%1.qm"_s.arg(language), u":/translations/"_s, u"qm"_s);
+		mTranslator = new QTranslator{this};
+		mbOK = mTranslator->load("tplanner.%1.qm"_L1.arg(language), ":/translations/"_L1, "qm"_L1);
 		if (mbOK)
-		{
-			qApp->installTranslator(mTranslator);
-			if (appQmlEngine())
-				appQmlEngine()->retranslate();
-			emit applicationLanguageChanged();
-		}
+			qApp->installTranslator(mTranslator);	
 	}
+	if (appQmlEngine())
+		appQmlEngine()->retranslate();
+	emit applicationLanguageChanged();
 	appUtils()->setAppLocale(language, mbOK);
 }

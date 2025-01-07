@@ -186,6 +186,8 @@ TPPage {
 				Row {
 					id: iconRow
 					anchors.centerIn: parent
+					anchors.leftMargin: 20
+					padding: 0
 
 					property int daysCount: weatherInfo.forecast.length
 					property real iconWidth: (daysCount > 0) ? ((forecastFrame.width - 20) / daysCount) : forecastFrame.width
@@ -202,6 +204,7 @@ TPPage {
 							topText: dayOfWeek
 							middleIcon: weatherIcon
 							bottomText: minMaxTemperatures
+							Layout.alignment: Qt.AlignCenter
 						}
 					}
 				}

@@ -1,6 +1,3 @@
-// Copyright (C) 2022 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-
 import QtQuick
 import QtQuick.Controls
 
@@ -65,7 +62,7 @@ TPToolBar {
 			rightMargin: 5
 		}
 
-		onClicked: mainMenu.open();
+		onClicked: mainwindow.openMainMenu();
 	}
 
 	TPButton {
@@ -85,7 +82,7 @@ TPToolBar {
 
 		onClicked: {
 			if (mainCalendar === null) {
-				var component = Qt.createComponent("qrc:/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/Dialogs/CalendarDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					mainCalendar = component.createObject(mainwindow, { parentPage: homePage, showDate:new Date(),
@@ -118,7 +115,7 @@ TPToolBar {
 
 		onClicked: {
 			if (mainTimer === null) {
-				var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					mainTimer = component.createObject(mainwindow, { parentPage: homePage, simpleTimer:true });

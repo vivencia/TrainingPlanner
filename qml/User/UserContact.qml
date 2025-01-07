@@ -8,14 +8,12 @@ import "../TPWidgets"
 
 Frame {
 	id: frmContact
+	spacing: 10
 	padding: 0
-	spacing: 0
-	height: minimumHeight
-	implicitHeight: height;
-	implicitWidth: width
+	height: moduleHeight
 
 	background: Rectangle {
-		border.color: "transparent"
+		border.color: "black"
 		color: "transparent"
 	}
 
@@ -25,9 +23,8 @@ Frame {
 	property bool bEmailOK: true
 	property bool bSocialOK: true
 	readonly property int nControls: 7
-	readonly property int controlsSpacing: 10
-	readonly property int controlsHeight: 30
-	readonly property int minimumHeight: nControls*controlsHeight
+	readonly property int controlsHeight: 25
+	readonly property int moduleHeight: nControls*(controlsHeight+10)
 
 	TPLabel {
 		id: lblPhone
@@ -36,7 +33,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: (frmContact.availableHeight - minimumHeight)/2
+			topMargin: height < moduleHeight ? 20 : (height - moduleHeight)/2
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -128,7 +125,6 @@ Frame {
 
 		anchors {
 			top: txtPhone.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -199,7 +195,6 @@ Frame {
 
 		anchors {
 			top: txtEmail.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -242,35 +237,14 @@ Frame {
 		enabled: bEmailOK
 		width: parent.width*0.90
 		ToolTip.text: qsTr("Social media address is invalid")
+		ToolTip.visible: !bSocialOK;
 
 		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
-
-		onTextEdited: {
-			if (text.length > 10)
-				bSocialOK = true;
-			else if (text.length === 0)
-				bSocialOK === userModel.isEmpty();
-			else
-				bSocialOK = false;
-			ToolTip.visible = !bSocialOK;
-		}
-
-		onTextChanged: {
-			if (activeFocus) {
-				if (text.length > 10) {
-					bSocialOK = true;
-					userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
-				}
-				else if (text.length === 0)
-					bSocialOK === userModel.isEmpty();
-				else
-					bSocialOK = false;
-			}
-		}
+		onTextEdited: bSocialOK = text.length === 0 || text.length > 10;
+		onTextChanged: bSocialOK = text.length === 0 || text.length > 10;
 
 		anchors {
 			top: cboSocial.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 		}

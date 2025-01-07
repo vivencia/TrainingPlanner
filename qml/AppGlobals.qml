@@ -4,17 +4,6 @@ import QtCore
 import QtQuick
 
 QtObject {
-
-	function customFont(ffamily: int, fweight: int, fitalic: bool, fsize: int) {
-		return Qt.font({
-			family: Qt.fontFamilies()[ffamily],
-			weight: fweight,
-			italic: fitalic,
-			styleStrategy: Font.PreferAntialias,
-			pixelSize: fsize
-		});
-	}
-
 	readonly property font regularFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.Medium,
@@ -39,12 +28,6 @@ QtObject {
 	    pixelSize: appSettings.smallFontSize
 	})
 
-	readonly property FontMetrics fontMetricsSmall: FontMetrics {
-		font.family: smallFont.family
-		font.pixelSize: smallFont.pixelSize
-		font.weight: smallFont.weight
-	}
-
 	readonly property font largeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
 	    weight: Font.DemiBold,
@@ -53,12 +36,6 @@ QtObject {
 	    hintingPreference: Font.PreferFullHinting,
 	    pixelSize: appSettings.largeFontSize
 	})
-
-	readonly property FontMetrics fontMetricsLarge: FontMetrics {
-		font.family: largeFont.family
-		font.pixelSize: largeFont.pixelSize
-		font.weight: largeFont.weight
-	}
 
 	readonly property font extraLargeFont: Qt.font({
 	    family: Qt.fontFamilies()[0],
@@ -69,13 +46,7 @@ QtObject {
 	    pixelSize: appSettings.extraLargeFontSize
 	})
 
-	readonly property FontMetrics fontMetricsExtraLarge: FontMetrics {
-		font.family: extraLargeFont.family
-		font.pixelSize: extraLargeFont.pixelSize
-		font.weight: extraLargeFont.weight
-	}
-
-	property ListModel setTypesModel: ListModel {
+	readonly property ListModel setTypesModel: ListModel {
 		ListElement { text: qsTr("Regular"); value: 0; enabled: true; }
 		ListElement { text: qsTr("Pyramid"); value: 1; enabled: true; }
 		ListElement { text: qsTr("Drop Set"); value: 2; enabled: true; }
@@ -85,7 +56,7 @@ QtObject {
 		ListElement { text: qsTr("Inverted Pyramid"); value: 6; enabled: true; }
 	}
 
-	property ListModel splitModel: ListModel {
+	readonly property ListModel splitModel: ListModel {
 		ListElement { text: "A"; value: "A"; enabled: true; }
 		ListElement { text: "B"; value: "B"; enabled: true; }
 		ListElement { text: "C"; value: "C"; enabled: true; }

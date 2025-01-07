@@ -123,7 +123,7 @@ TPPage {
 				Label {
 					id: lblMax
 					text: "A"
-					font.pixelSize: 40
+					font.pixelSize: 30
 					font.weight: 400
 					color: appSettings.fontColor
 				}

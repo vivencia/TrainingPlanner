@@ -60,6 +60,7 @@ Item {
 			left: img.visible ? img.right : indicator.right
 			leftMargin: 5
 			right: parent.right
+			bottom: parent.bottom
 		}
 	}
 

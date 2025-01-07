@@ -9,10 +9,7 @@ import "../TPWidgets"
 Frame {
 	id: topFrame
 	padding: 0
-	spacing: controlsSpacing
-	height: minimumHeight
-	implicitHeight: height
-	implicitWidth: width
+	spacing: 10
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -22,14 +19,14 @@ Frame {
 	required property int userRow
 	property bool bReady: true
 	property bool bCoachOK: false
-	readonly property int controlsSpacing: 10
-	readonly property int minimumHeight: optPersonalUse.implicitHeight + optCoachUse.implicitHeight + chkHaveCoach.implicitHeight
+	readonly property int itemHeight: height/3
 
 	TPRadioButton {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
 		checked: userModel.appUseMode(userRow) === 1 || userModel.appUseMode(userRow) === 3;
 		multiLine: true
+		height: itemHeight
 
 		onClicked: {
 			if (checked)
@@ -39,7 +36,6 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: (topFrame.availableHeight - minimumHeight)/2
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -52,6 +48,7 @@ Frame {
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
 		checked: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4;
 		multiLine: true
+		height: itemHeight
 
 		onClicked: {
 			if (checked)
@@ -61,7 +58,6 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -74,6 +70,7 @@ Frame {
 		text: qsTr("I have a coach or a personal trainer")
 		checked: userModel.appUseMode(userRow) === 3 || userModel.appUseMode(userRow) === 4;
 		multiLine: true
+		height: itemHeight
 
 		onClicked: {
 			if (checked)
@@ -84,7 +81,6 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

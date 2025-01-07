@@ -10,11 +10,9 @@ import "../Pages"
 
 Frame {
 	id: frmUserData
-	spacing: controlsSpacing
+	spacing: 15
 	padding: 0
-	height: minimumHeight
-	implicitHeight: height
-	implicitWidth: width
+	height: moduleHeight
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -27,10 +25,9 @@ Frame {
 	property bool bNameOK: false
 	property bool bBirthDateOK: false
 	property bool bSexOK: false
-	readonly property int nControls: 6
-	readonly property int controlsHeight: 30
-	readonly property int controlsSpacing: 15
-	readonly property int minimumHeight: nControls*controlsHeight
+	readonly property int nControls: 5
+	readonly property int controlsHeight: 25
+	readonly property int moduleHeight: nControls*(controlsHeight+15)
 
 	TPLabel {
 		id: lblName
@@ -39,7 +36,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: (availableHeight - minimumHeight)/2
+			topMargin: (availableHeight - moduleHeight)/2
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -92,7 +89,6 @@ Frame {
 
 		anchors {
 			top: txtName.bottom
-			topMargin: controlsSpacing
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -170,6 +166,7 @@ Frame {
 		}
 
 		TPRadioButton {
+			id: chkMale
 			text: qsTr("Male")
 			height: controlsHeight
 			checked: userModel.sex(userRow) === 0
@@ -177,6 +174,7 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
+				chkFemale.checked = !checked;
 				if (checked) {
 					userModel.setSex(userRow, 0);
 					userModel.setAvatar(userRow, "image://tpimageprovider/m5");
@@ -191,6 +189,7 @@ Frame {
 		}
 
 		TPRadioButton {
+			id: chkFemale
 			text: qsTr("Female")
 			height: controlsHeight
 			checked: userModel.sex(userRow) === 1
@@ -198,6 +197,7 @@ Frame {
 
 			onClicked: {
 				bSexOK = true;
+				chkMale.checked = !checked;
 				if (checked) {
 					userModel.setSex(userRow, 1);
 					userModel.setAvatar(userRow, "image://tpimageprovider/f0");

@@ -32,7 +32,7 @@ Rectangle {
 		clip: true
 		model: max
 		delegate: Text {
-			minimumPointSize: 8
+			minimumPixelSize: 8
 			fontSizeMode: Text.Fit
 			horizontalAlignment: Text.AlignHCenter
 			leftPadding: 5

@@ -12,7 +12,7 @@ Rectangle {
 	opacity: checked ? 0.7 : 1
 	color: backgroundColor
 	height: 25
-	width: buttonText._preferredWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
+	width: buttonText._textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
 
 	property color textColor: appSettings.fontColor
 	property alias font: buttonText.font
@@ -30,6 +30,7 @@ Rectangle {
 	property bool hasDropShadow: true
 	property bool checked: false
 	property bool autoResize: false
+	property bool canResize: true
 	property int clickId: -1
 	property int imageSize: hasDropShadow ? 30 : 20
 	property bool bPressed: false
@@ -66,6 +67,11 @@ Rectangle {
 	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
 	//the property fixedSize must be set to true
 	onWidthChanged: {
+		if (!canResize) {
+			canResize = true;
+			return;
+		}
+
 		if (!fixedSize && text.length > 0) {
 			const fwidth = buttonText._textWidth;
 			if (fwidth >= width) {
@@ -83,7 +89,7 @@ Rectangle {
 	Component.onCompleted: {
 		if (imageSource.length > 0)
 		{
-			var component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				buttonImage = component.createObject(button,
@@ -119,6 +125,13 @@ Rectangle {
 		bottomPadding: 5
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
+
+		onSizeChanged: {
+			if (!fixedSize) {
+				canResize = false;
+				button.width = _textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
+			}
+		}
 
 		Component.onCompleted: {
 			if (imageSource.length > 0) {

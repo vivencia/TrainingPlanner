@@ -364,6 +364,8 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 		{
 			appSettings()->setLastViewedMesoIdx(meso_idx);
 			emit currentMesoIdxChanged();
+			m_bCurrentMesoHasData = !isNewMeso(meso_idx);
+			emit currentMesoHasDataChanged();
 		}
 	}
 }

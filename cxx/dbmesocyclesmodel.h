@@ -30,6 +30,7 @@ class DBMesocyclesModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
+Q_PROPERTY(bool currentMesoHasData READ currentMesoHasData NOTIFY currentMesoHasDataChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 
 	enum RoleNames {
@@ -65,6 +66,7 @@ public:
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
 	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
 	void changeCanHaveTodaysWorkout();
+	inline bool currentMesoHasData() const { return m_bCurrentMesoHasData; }
 	void setWorkoutIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 
 	void setModified(const uint meso_idx, const uint field);
@@ -251,6 +253,7 @@ signals:
 	void mostRecentOwnMesoChanged(const int meso_idx);
 	void currentMesoIdxChanged();
 	void canHaveTodaysWorkoutChanged();
+	void currentMesoHasDataChanged();
 	void todaysWorkoutFinished();
 	void usedSplitsChanged(const uint meso_idx);
 
@@ -263,7 +266,7 @@ private:
 	QList<bool> m_newMesoCalendarChanged;
 	QList<QStringList> m_usedSplits;
 	int m_currentMesoIdx, m_mostRecentOwnMesoIdx, m_importMesoIdx;
-	bool m_bCanHaveTodaysWorkout;
+	bool m_bCanHaveTodaysWorkout, m_bCurrentMesoHasData;
 
 	static DBMesocyclesModel* app_meso_model;
 	friend DBMesocyclesModel* appMesoModel();

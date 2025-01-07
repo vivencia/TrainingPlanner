@@ -10,13 +10,14 @@ TPPopup {
 	id: firstTimeDlg
 	objectName: "firstTimerDlg"
 	modal: true
-	keepAbove: true;
+	keepAbove: true
+	closeButtonVisible: false
 	width: appSettings.pageWidth - 50
 	height: moduleHeight + frmFooter.height
 	x: (appSettings.pageWidth - width)/2 // horizontally centered
 	finalYPos: (appSettings.pageHeight - height)/2 // vertically centered
 
-	readonly property int moduleHeight: usrProfile.minimumHeight
+	readonly property int moduleHeight: usrProfile.height
 
 	StackLayout {
 		id: stackLayout
@@ -27,35 +28,36 @@ TPPopup {
 			right: parent.right
 			top: parent.top
 			bottom: frmFooter.top
+			margins: 5
 		}
 
 		UserLanguage {
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserWelcome {
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserPersonalData {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserContact {
 			userRow: 0
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserCoach {
 			userRow: 0
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 
 		UserProfile {
@@ -66,8 +68,8 @@ TPPopup {
 		}
 
 		UserReady {
-			width: firstTimeDlg.width - 20
-			height: moduleHeight
+			Layout.fillWidth: true
+			Layout.fillHeight: true
 		}
 	}
 

@@ -18,7 +18,7 @@ Column {
 
 	Connections {
         target: parentDlg
-        function onCustomIntProperty1Changed() {
+        function onCustomIntProperty1Changed(): void {
 			optMesoPlan.checked = parentDlg.customIntProperty1 === 1;
 			optPreviousDay.checked = parentDlg.customIntProperty1 === 2;
 			optLoadFromFile.checked = parentDlg.customIntProperty1 === 3;

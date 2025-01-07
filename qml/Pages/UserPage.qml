@@ -27,7 +27,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
-			spacing: 10
+			spacing: 20
 
 			TPLabel {
 				text: qsTr("User Settings")
@@ -43,28 +43,31 @@ TPPage {
 				id: usrData
 				userRow: 0
 				parentPage: userPage
-				width: appSettings.pageWidth - 20
+				Layout.fillWidth: true
 			}
 
 			UserContact {
 				id: usrContact
 				userRow: 0
-				width: appSettings.pageWidth - 20				
+				Layout.fillWidth: true
+				Layout.topMargin: 10
 			}
 
 			UserCoach {
 				id: usrCoach
 				userRow: 0
-				width: appSettings.pageWidth - 20
-				Layout.topMargin: 20
+				height: usrContact.height
+				Layout.topMargin: 10
+				Layout.fillWidth: true
+				Layout.minimumHeight: height
+				Layout.maximumHeight: height
 			}
 
 			UserProfile {
 				id: usrProfile
 				userRow: 0
 				parentPage: userPage
-				width: appSettings.pageWidth - 20
-				Layout.topMargin: 20
+				Layout.fillWidth: true
 			}
 		}
 	}

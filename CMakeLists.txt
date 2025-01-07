@@ -155,6 +155,8 @@ set( QML_SOURCES
 	"qml/Pages/ExercisesPage.qml"
     "qml/Pages/ExercisesPlanner.qml"
     "qml/Pages/HomePage.qml"
+    "qml/Pages/HomePageElements/Footer.qml"
+    "qml/Pages/HomePageElements/MesosList.qml"
 	"qml/Pages/MesoCalendarPage.qml"
 	"qml/Pages/MesocyclePage.qml"
     "qml/Pages/MesoSplitPlanner.qml"

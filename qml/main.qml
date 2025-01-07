@@ -43,13 +43,21 @@ ApplicationWindow {
 		});
 	}
 
-	header: NavBar {
-		id: navBar
+	header: Loader {
+		active: appSettings.mainUserConfigured
+		asynchronous: true
+		source: "qrc:/qml/Dialogs/NavBar.qml"
 	}
 
-	MainMenu {
+	Loader {
 		id: mainMenu
-		objectName: "mainMenu"
+		active: appSettings.mainUserConfigured
+		asynchronous: true
+		source: "qrc:/qml/Dialogs/MainMenu.qml"
+	}
+
+	function openMainMenu(): void {
+		mainMenu.item.open();
 	}
 
 	Flickable {

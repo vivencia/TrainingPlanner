@@ -17,12 +17,12 @@ Item {
     TPLabel {
         id: dayText
         text: top.topText
-        font.pointSize: 16
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: 16
         width: parent.width
 
         anchors {
 			top: parent.top
-			margins: 20
 			horizontalCenter: parent.horizontalCenter
 		}
     }
@@ -35,7 +35,7 @@ Item {
 
         anchors {
 			top: dayText.bottom
-			margins: 20
+			margins: 10
 			horizontalCenter: parent.horizontalCenter
 		}
     }
@@ -43,12 +43,12 @@ Item {
     TPLabel {
         id: tempText
         text: top.bottomText
-        font.pointSize: 18
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: 18
         width: top.width
 
         anchors {
-			bottom: parent.bottom
-			margins: 20
+			top: icon.bottom
 			horizontalCenter: parent.horizontalCenter
 		}
     }

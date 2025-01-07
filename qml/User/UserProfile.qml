@@ -11,20 +11,18 @@ Frame {
 	id: frmUserProfile
 	spacing: 5
 	padding: 0
-	height: minimumHeight
+	height: 7*controlsHeight + imgAvatar.height
 	implicitWidth: width
 	implicitHeight: height
 
 	required property int userRow
+	required property TPPage parentPage
 	property bool bReady: (bClientRoleOK || bCoachRoleOK) & bGoalOK
 	property bool bCoachRoleOK: false
 	property bool bClientRoleOK: false
 	property bool bGoalOK: false
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
-	readonly property int minimumHeight: 7*controlsHeight + imgAvatar.height
-
-	required property TPPage parentPage
 
 	ListModel {
 		id: roleModelUser
