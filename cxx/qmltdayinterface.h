@@ -77,7 +77,7 @@ public:
 	void setDayNotes(const QString& new_value, const bool bFromQml = true);
 
 	inline bool editMode() const { return m_bEditMode; }
-	void setEditMode(const bool new_value);
+	void setEditMode(const bool new_value, const bool bFromQml = true);
 
 	inline bool dayIsFinished() const { return m_bDayIsFinished; }
 	void setDayIsFinished(const bool new_value, const bool bFromQml = true);

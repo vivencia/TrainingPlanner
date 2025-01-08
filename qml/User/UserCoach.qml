@@ -8,8 +8,8 @@ import "../TPWidgets"
 
 Frame {
 	id: topFrame
-	padding: 0
-	spacing: 10
+	height: moduleHeight
+	implicitHeight: Math.min(height, moduleHeight)
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -19,7 +19,8 @@ Frame {
 	required property int userRow
 	property bool bReady: true
 	property bool bCoachOK: false
-	readonly property int itemHeight: height/3
+	readonly property int moduleHeight: 0.25*appSettings.pageHeight
+	readonly property int itemHeight: implicitHeight/3
 
 	TPRadioButton {
 		id: optPersonalUse
@@ -36,6 +37,7 @@ Frame {
 
 		anchors {
 			top: parent.top
+			topMargin: 10
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -58,6 +60,7 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
+			topMargin: 20
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -81,6 +84,7 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
+			topMargin: 20
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

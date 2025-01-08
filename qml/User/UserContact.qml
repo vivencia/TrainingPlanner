@@ -11,9 +11,10 @@ Frame {
 	spacing: 10
 	padding: 0
 	height: moduleHeight
+	implicitHeight: Math.min(height, moduleHeight)
 
 	background: Rectangle {
-		border.color: "black"
+		border.color: "transparent"
 		color: "transparent"
 	}
 
@@ -24,7 +25,7 @@ Frame {
 	property bool bSocialOK: true
 	readonly property int nControls: 7
 	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: nControls*(controlsHeight+10)
+	readonly property int moduleHeight: nControls*(controlsHeight) + 10
 
 	TPLabel {
 		id: lblPhone
@@ -33,7 +34,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: height < moduleHeight ? 20 : (height - moduleHeight)/2
+			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -245,6 +246,7 @@ Frame {
 
 		anchors {
 			top: cboSocial.bottom
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 		}

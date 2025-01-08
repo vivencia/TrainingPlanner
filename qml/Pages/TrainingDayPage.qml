@@ -21,35 +21,6 @@ TPPage {
 	signal simpleExercisesListClosed();
 	signal silenceTimeWarning();
 
-	TimePicker {
-		id: dlgTimeIn
-		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtInTime.text)
-		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtInTime.text)
-		parentPage: trainingDayPage
-
-		onTimeSet: (hour, minutes) => tDayManager.timeIn = hour + ":" + minutes;
-	}
-
-	TimePicker {
-		id: dlgTimeOut
-		hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
-		minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
-		parentPage: trainingDayPage
-		bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
-
-		onTimeSet: (hour, minutes) => tDayManager.timeOut = hour + ":" + minutes;
-	}
-
-	TimePicker {
-		id: dlgTimeEndSession
-		hrsDisplay: appUtils.getHourFromCurrentTime()
-		minutesDisplay: appUtils.getMinutesFromCurrentTime()
-		bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
-		parentPage: trainingDayPage
-
-		onTimeSet: (hour, minutes) => tDayManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
-	}
-
 	ScrollView {
 		id: scrollTraining
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -109,7 +80,6 @@ TPPage {
 					Layout.maximumWidth: 100
 
 					Component.onCompleted: currentIndex = Qt.binding(function() { return cboSplitLetter.indexOfValue(tDayManager.splitLetter); });
-
 					onActivated: (index) => tDayManager.splitLetter = valueAt(index);
 				} //TPComboBox
 			}
@@ -139,10 +109,9 @@ TPPage {
 			Frame {
 				id: frmTrainingTime
 				visible: tDayManager.splitLetter !== "R"
-				enabled: tDayManager.timerActive ? false : tDayManager.dayIsEditable
+				enabled: tDayManager.timerActive ? false : !tDayManager.dayIsFinished
 				height: appSettings.pageHeight*0.4
-				Layout.maximumWidth: trainingDayPage.width - 20
-				Layout.minimumWidth: trainingDayPage.width - 20
+				Layout.preferredWidth: trainingDayPage.width - 20
 
 				background: Rectangle {
 					border.color: appSettings.fontColor
@@ -160,7 +129,10 @@ TPPage {
 						checked: true
 						Layout.fillWidth: true
 
-						onClicked: tDayManager.prepareWorkOutTimer();
+						onClicked: {
+							tDayManager.prepareWorkOutTimer();
+							optTimeConstrainedSession.checked = false;
+						}
 					}
 
 					TPRadioButton {
@@ -168,9 +140,12 @@ TPPage {
 						text: qsTr("Time constrained session")
 						checked: false
 						Layout.fillWidth: true
+
+						onClicked: optFreeTimeSession.checked = false;
 					}
 
 					RowLayout {
+						visible: optTimeConstrainedSession.checked
 						Layout.fillWidth: true
 						Layout.leftMargin: 30
 						Layout.bottomMargin: 10
@@ -178,7 +153,7 @@ TPPage {
 						TPButton {
 							id: btnTimeLength
 							text: qsTr("By duration")
-							visible: optTimeConstrainedSession.checked
+							autoResize: true
 							Layout.alignment: Qt.AlignCenter
 
 							onClicked: limitedTimeSessionTimer();
@@ -187,78 +162,149 @@ TPPage {
 						TPButton {
 							id: btnTimeHour
 							text: qsTr("By time of day")
-							visible: optTimeConstrainedSession.checked
+							autoResize: true
 							Layout.alignment: Qt.AlignCenter
 
-							onClicked: dlgTimeEndSession.open();
+							onClicked: restrictedTimeLoader.openDlg();
+						}
+
+						Loader {
+							id: restrictedTimeLoader
+							active: false
+							asynchronous: true
+
+							sourceComponent: TimePicker {
+								id: dlgTimeEndSession
+								hrsDisplay: appUtils.getHourFromCurrentTime()
+								minutesDisplay: appUtils.getMinutesFromCurrentTime()
+								bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
+								parentPage: trainingDayPage
+
+								onTimeSet: (hour, minutes) => tDayManager.prepareWorkOutTimer(appUtils.getCurrentTimeString(), hour + ":" + minutes);
+								onClosed: restrictedTimeLoader.active = false;
+							}
+
+							onLoaded: openDlg();
+
+							function openDlg(): void {
+								if (status === Loader.Ready)
+									item.open();
+								else
+									active = true;
+							}
 						}
 					} //RowLayout
 
-					TPLabel {
-						id: lblInTime
-						text: qsTr("In time:")
+					Row {
+						enabled: optFreeTimeSession.checked && (tDayManager.editMode || tDayManager.mainDateIsToday)
+						padding: 0
+						spacing: 10
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
+
+						TPLabel {
+							id: lblInTime
+							text: qsTr("In time:")
+							width: parent.width*0.35
+						}
 
 						TPTextInput {
 							id: txtInTime
 							text: tDayManager.timeIn
+							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
-							anchors {
-								left: parent.left
-								leftMargin: 80
-								verticalCenter: parent.verticalCenter
-							}
+							width: parent.width*0.25
 						}
 
 						TPButton {
 							id: btnInTime
 							imageSource: "time.png"
 							imageSize: 30
-							enabled: tDayManager.editMode || tDayManager.mainDateIsToday
 
-							anchors {
-								left: txtInTime.right
-								verticalCenter: parent.verticalCenter
+							onClicked: timeInLoader.openDlg();
+						}
+
+						Loader {
+							id: timeInLoader
+							active: false
+							asynchronous: true
+
+							sourceComponent: TimePicker {
+								id: dlgTimeIn
+								hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtInTime.text)
+								minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtInTime.text)
+								parentPage: trainingDayPage
+
+								onTimeSet: (hour, minutes) => tDayManager.timeIn = hour + ":" + minutes;
+								onClosed: timeInLoader.active = false;
 							}
 
-							onClicked: dlgTimeIn.open();
-						}
-					} //Label
+							onLoaded: openDlg();
 
-					TPLabel {
-						id: lblOutTime
-						text: qsTr("Out time:")
+							function openDlg(): void {
+								if (status === Loader.Ready)
+									item.open();
+								else
+									active = true;
+							}
+						}
+					}
+
+					Row {
+						enabled: optFreeTimeSession.checked && (tDayManager.editMode || tDayManager.mainDateIsToday)
+						padding: 0
+						spacing: 10
 						Layout.fillWidth: true
 						Layout.leftMargin: 5
-						Layout.topMargin: 10
+
+						TPLabel {
+							id: lblOutTime
+							text: qsTr("Out time:")
+							width: parent.width*0.35
+						}
 
 						TPTextInput {
 							id: txtOutTime
 							text: tDayManager.timeOut
+							horizontalAlignment: Text.AlignHCenter
 							readOnly: true
-
-							anchors {
-								left: parent.left
-								leftMargin: 80
-								verticalCenter: parent.verticalCenter
-							}
+							width: parent.width*0.25
 						}
 
 						TPButton {
 							id: btnOutTime
 							imageSource: "time.png"
 							imageSize: 30
-							enabled: tDayManager.editMode || tDayManager.mainDateIsToday
 
-							anchors {
-								left: txtOutTime.right
-								verticalCenter: parent.verticalCenter
+							onClicked: timeOutLoader.openDlg();
+						}
+
+						Loader {
+							id: timeOutLoader
+							active: false
+							asynchronous: true
+
+							sourceComponent: TimePicker {
+								id: dlgTimeOut
+								hrsDisplay: appUtils.getHourOrMinutesFromStrTime(txtOutTime.text)
+								minutesDisplay: appUtils.getMinutesOrSeconsFromStrTime(txtOutTime.text)
+								parentPage: trainingDayPage
+								bOnlyFutureTime: tDayManager.mainDateIsToday ? tDayManager.editMode : false
+
+								onTimeSet: (hour, minutes) => tDayManager.timeOut = hour + ":" + minutes;
+								onClosed: timeOutLoader.active = false;
 							}
 
-							onClicked: dlgTimeOut.open();
+							onLoaded: openDlg();
+
+							function openDlg(): void {
+								if (status === Loader.Ready)
+									item.open();
+								else
+									active = true;
+							}
 						}
-					} // RowLayout
+					}
 				} //ColumnLayout
 			} //Frame
 
@@ -549,13 +595,6 @@ TPPage {
 		} // bntAddExercise
 	} //footer: ToolBar
 
-	SimpleExercisesListPanel {
-		id: exercisesPane
-		parentPage: trainingDayPage
-		onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
-		onListClosed: simpleExercisesListClosed();
-	}
-
 	function changeComboModel(mesoSplit: string): void {
 		cboModel.get(0).enabled = mesoSplit.indexOf('A') !== -1;
 		cboModel.get(1).enabled = mesoSplit.indexOf('B') !== -1;
@@ -614,7 +653,7 @@ TPPage {
 	property TPComplexDialog adjustCalendarBox: null
 	function showAdjustCalendarDialog(): void {
 		if (!adjustCalendarBox) {
-			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				adjustCalendarBox = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Re-adjust meso calendar?"),
@@ -634,7 +673,7 @@ TPPage {
 	property TPComplexDialog intentDlg: null
 	function showIntentionDialog(): void {
 		if (!intentDlg) {
-			var component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/TPWidgets/TPComplexDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				intentDlg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("What do you want to do today?"),
@@ -678,19 +717,43 @@ TPPage {
 		scrollTimer.init(ypos);
 	}
 
+	property alias exercisesPane: simpleExercisesListLoader.item
+	Loader {
+		id: simpleExercisesListLoader
+		active: false
+		asynchronous: true
+
+		sourceComponent:SimpleExercisesListPanel {
+			parentPage: trainingDayPage
+			onExerciseSelected: exerciseSelectedFromSimpleExercisesList();
+			onListClosed: {
+				simpleExercisesListClosed();
+				simpleExercisesListLoader.active = false;
+			}
+		}
+		property bool enableMultipleSelection
+		onLoaded: showSimpleExercisesList(enableMultipleSelection);
+	}
+
 	function showSimpleExercisesList(multipleSel: bool): void {
-		exercisesPane.bEnableMultipleSelection = multipleSel;
-		exercisesPane.open();
+		if (simpleExercisesListLoader.status === Loader.Ready) {
+			exercisesPane.bEnableMultipleSelection = multipleSel;
+			exercisesPane.open();
+		}
+		else {
+			simpleExercisesListLoader.enableMultipleSelection = multipleSel;
+			simpleExercisesListLoader.active = true;
+		}
 	}
 
 	function hideSimpleExercisesList(): void {
-		exercisesPane.visible = false;
+		exercisesPane.close();
 	}
 
 	property TimerDialog dlgSessionLength: null
 	function limitedTimeSessionTimer(): void {
 		if (dlgSessionLength === null) {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/Dialogs/TimerDialog.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				dlgSessionLength = component.createObject(trainingDayPage, { parentPage: trainingDayPage, timePickerOnly: true,
@@ -710,7 +773,7 @@ TPPage {
 	function displayTimeWarning(timeleft: string, bmin: bool): void {
 		if (tipTimeWarn === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					tipTimeWarn = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Attention!"),
@@ -725,7 +788,7 @@ TPPage {
 			}
 			createMessageBox();
 		}
-		var timeout;
+		let timeout;
 		if (!bmin)
 		{
 			timeout = 60000;
@@ -741,7 +804,7 @@ TPPage {
 	function showMessageDialog(title: string, message: string, error: bool, msecs: int): void {
 		if (generalMessage === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					generalMessage = component.createObject(trainingDayPage, { parentPage: trainingDayPage, highlightMessage: true, button1Text: "OK"});
@@ -768,7 +831,7 @@ TPPage {
 	function showRemoveExerciseMessage(exerciseidx: int, exercisename: string): void {
 		if (msgRemoveExercise === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgRemoveExercise = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Remove Exercise?"),
@@ -791,7 +854,7 @@ TPPage {
 	function showRemoveSetMessage(setnumber: int, exerciseidx: int): void {
 		if (msgRemoveSet === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgRemoveSet = component.createObject(trainingDayPage, { parentPage: trainingDayPage, imageSource: "remove",
@@ -814,7 +877,7 @@ TPPage {
 	function resetWorkoutMessage(): void {
 		if (resetWorkoutMsg === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					resetWorkoutMsg = component.createObject(trainingDayPage, { parentPage: trainingDayPage, title: qsTr("Reset workout?"),
@@ -835,7 +898,7 @@ TPPage {
 	property PageScrollButtons navButtons: null
 	function createNavButtons(): void {
 		if (navButtons === null) {
-			var component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
+			let component = Qt.createComponent("qrc:/qml/ExercisesAndSets/PageScrollButtons.qml", Qt.Asynchronous);
 
 			function finishCreation() {
 				navButtons = component.createObject(trainingDayPage, { ownerPage: trainingDayPage });
@@ -853,7 +916,7 @@ TPPage {
 	property TPFloatingMenuBar optionsMenu: null
 	function showFinishedWorkoutOptions(): void {
 		if (optionsMenu === null) {
-			var optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let optionsMenuMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			optionsMenu = optionsMenuMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			optionsMenu.addEntry(qsTr("Edit workout"), "edit.png", 0, true);
 			optionsMenu.addEntry(qsTr("Reset Workout"), "reset.png", 1, true);
@@ -877,32 +940,42 @@ TPPage {
 	property TPFloatingMenuBar exportMenu: null
 	function showExportMenu(): void {
 		if (exportMenu === null) {
-			var exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
 			exportMenu = exportMenuComponent.createObject(trainingDayPage, { parentPage: trainingDayPage });
 			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
 			if (Qt.platform.os === "android")
 				exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
-			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(id === 1); });
+			exportMenu.menuEntrySelected.connect(function(id) { exportDlgLoader.openDlg(id === 1); });
 		}
 		exportMenu.show2(btnExport, 0);
 	}
 
-	TPBalloonTip {
-		id: exportTypeTip
-		title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
-		imageSource: "export.png"
-		button1Text: qsTr("Yes")
-		button2Text: qsTr("No")
-		parentPage: trainingDayPage
-		closeButtonVisible: true
+	Loader {
+		id: exportDlgLoader
+		active: false
+		asynchronous: true
+		sourceComponent: TPBalloonTip {
+			id: exportTypeTip
+			title: bShare ? qsTr("Share workout?") : qsTr("Export workout to file?")
+			imageSource: "export.png"
+			button1Text: qsTr("Yes")
+			button2Text: qsTr("No")
+			parentPage: trainingDayPage
+			closeButtonVisible: true
 
-		onButton1Clicked: tDayManager.exportTrainingDay(bShare);
-
+			onButton1Clicked: tDayManager.exportTrainingDay(exportDlgLoader.bShare);
+			onClosed: exportDlgLoader.active = false;
+		}
 		property bool bShare
+		onLoaded: openDlg(bShare);
 
-		function init(share: bool): void {
-			bShare = share;
-			show(-1);
+		function openDlg(share: bool): void {
+			if (status === Loader.Ready) {
+				bShare = share;
+				item.show(-1);
+			}
+			else
+				active = true;
 		}
 	}
 } // Page

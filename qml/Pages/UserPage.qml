@@ -27,7 +27,7 @@ TPPage {
 		ColumnLayout {
 			id: colMain
 			anchors.fill: parent
-			spacing: 20
+			spacing: 10
 
 			TPLabel {
 				text: qsTr("User Settings")
@@ -73,18 +73,19 @@ TPPage {
 	}
 
 	footer: TPToolBar {
-		id: coachsClientsToolBar
-		height: appSettings.pageHeight*0.15
+		height: 1.2*footerHeight
 
 		TPButton {
 			id: btnManageCoach
 			text: qsTr("Manage coach(es)/trainer(s)")
 			flat: false
-			visible: useMode >= 3
+			autoResize: true
+			enabled: useMode >= 3
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
 				top: parent.top
+				topMargin: 5
 			}
 
 			onClicked: userManager.getClientsOrCoachesPage(false, true);
@@ -94,11 +95,13 @@ TPPage {
 			id: btnManageClients
 			text: qsTr("Manage clients")
 			flat: false
-			visible: useMode === 2 || useMode === 4
+			autoResize: true
+			enabled: useMode === 2 || useMode === 4
 
 			anchors {
 				horizontalCenter: parent.horizontalCenter
-				top: btnManageCoach.bottom
+				bottom: parent.bottom
+				bottomMargin: 15
 			}
 
 			onClicked: userManager.getClientsOrCoachesPage(true, false);

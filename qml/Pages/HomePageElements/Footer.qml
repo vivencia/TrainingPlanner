@@ -7,7 +7,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 TPToolBar {
 		id: homePageToolBar
-		height: 0.16*appSettings.pageHeight
+		height: 1.5*footerHeight
 
 		TPButton {
 			id: btnAddMeso
@@ -38,6 +38,7 @@ TPToolBar {
 
 			anchors {
 				top: btnAddMeso.bottom
+				topMargin: 5
 				horizontalCenter: parent.horizontalCenter
 			}
 
@@ -56,6 +57,7 @@ TPToolBar {
 
 			anchors {
 				top: btnImportMeso.bottom
+				topMargin: 5
 				horizontalCenter: parent.horizontalCenter
 			}
 

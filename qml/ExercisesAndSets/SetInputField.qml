@@ -18,15 +18,15 @@ FocusScope {
 	property alias text: txtMain.text
 	property bool showLabel: true
 	property bool showButtons: true
+	property bool clearInput: true
 	property list<string> labelText: [ qsTr("Weight") + appSettings.weightUnit + ':', qsTr("Reps:"), qsTr("Rest time:"), qsTr("SubSets:") ]
-	property bool bClearInput: true
 	property color borderColor: appSettings.fontColor
 	property color labelColor: appSettings.fontColor
 	property color inputColor: appSettings.fontColor
 	property color backColor: appSettings.paneBackgroundColor
 
-	readonly property var validatorType: [val_weigth, val_rep, val_time, val_set]
-	readonly property var maxLen: [5,4,5,1]
+	readonly property list<QtObject> validatorType: [val_weigth, val_rep, val_time, val_set]
+	readonly property list<int> maxLen: [5,4,5,1]
 	property string origText
 
 	signal valueChanged(string str)
@@ -127,7 +127,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				bClearInput = false;
+				clearInput = false;
 				txtMain.text = appUtils.setTypeOperation(type, false, txtMain.text !== "" ? txtMain.text : origText)
 				valueChanged(txtMain.text);
 			}
@@ -164,16 +164,16 @@ FocusScope {
 			}
 
 			onEnterOrReturnKeyPressed: {
-				bClearInput = true;
+				clearInput = true;
 				control.enterOrReturnKeyPressed();
 			}
 
 			onActiveFocusChanged: {
 				if (activeFocus) {
-					if (bClearInput) {
+					if (clearInput) {
 						origText = text;
 						txtMain.clear();
-						bClearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
+						clearInput = false; //In case the window loose focus, when returning do not erase what was being written before the loosing of focus
 					}
 				}
 				else {
@@ -183,7 +183,7 @@ FocusScope {
 			}
 
 			onTextEdited: valueChanged(text = sanitizeText(text));
-			onTextChanged: if (!activeFocus) bClearInput = true;
+			onTextChanged: if (!activeFocus) clearInput = true;
 		} //TextInput
 
 		TPButton {
@@ -202,7 +202,7 @@ FocusScope {
 			}
 
 			onClicked: {
-				bClearInput = false;
+				clearInput = false;
 				txtMain.text = appUtils.setTypeOperation(type, true, txtMain.text !== "" ? txtMain.text : origText)
 				valueChanged(txtMain.text);
 			}

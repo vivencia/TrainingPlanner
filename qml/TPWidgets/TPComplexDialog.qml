@@ -68,7 +68,7 @@ TPPopup {
 			Layout.leftMargin: 5
 			Layout.topMargin: 5
 			Layout.rightMargin: 5
-			Layout.preferredWidth: mainLayout.width - 10
+			Layout.preferredWidth: mainLayout.width - (closeButtonVisible ? 30 : 10)
 		}
 
 		TPButton {
@@ -82,7 +82,6 @@ TPPopup {
 			Layout.columnSpan: button2Text.length > 0 ? 1 : 2
 			Layout.rightMargin: 5
 			Layout.bottomMargin: 10
-			Layout.topMargin: -10
 			Layout.alignment: button2Text.length > 0 ? Qt.AlignRight : Qt.AlignCenter
 
 			onClicked: {
@@ -101,7 +100,6 @@ TPPopup {
 			Layout.column: button1Text.length > 0 ? 1 : 0
 			Layout.leftMargin: 5
 			Layout.bottomMargin: 10
-			Layout.topMargin: -10
 			Layout.alignment: Qt.AlignLeft
 
 			onClicked: {

@@ -214,7 +214,7 @@ void DBMesocyclesModel::changeCanHaveTodaysWorkout()
 void DBMesocyclesModel::setWorkoutIsFinished(const uint meso_idx, const QDate& date, const bool bFinished)
 {
 	m_calendarModelList.value(meso_idx)->setDayIsFinished(date, bFinished);
-	appDBInterface()->setDayIsFinished(m_mesoIdx, date, bFinished);
+	appDBInterface()->setDayIsFinished(meso_idx, date, bFinished);
 	if (bFinished && date == QDate::currentDate())
 		emit todaysWorkoutFinished();
 }

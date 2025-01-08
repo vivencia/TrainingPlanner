@@ -204,29 +204,31 @@ FocusScope {
 			}
 		}
 
-		SetInputField {
-			id: txtNSubSets
-			type: SetInputField.SetType
-			text: setManager.subSets
-			availableWidth: controlWidth
-			visible: setManager.hasSubSets
-			labelText: myoLabels
-			enabled: !setManager.completed
+		Loader {
+			active: setManager.hasSubSets
+			asynchronous: true
 
-			onValueChanged: (str) => setManager.subSets = str;
+			sourceComponent: SetInputField {
+				id: txtNSubSets
+				type: SetInputField.SetType
+				text: setManager.subSets
+				availableWidth: controlWidth
+				labelText: myoLabels
+				enabled: !setManager.completed
 
-			onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
+				onValueChanged: (str) => setManager.subSets = str;
+				onEnterOrReturnKeyPressed: txtNReps.forceActiveFocus();
 
-			TPLabel {
-				id: lblTotalReps
-				text: setManager.strTotalReps
-				visible: setManager.hasSubSets
+				TPLabel {
+					id: lblTotalReps
+					text: setManager.strTotalReps
 
-				anchors {
-					top: parent.verticalCenter
-					topMargin: -(height/2)
-					left: parent.horizontalCenter
-					leftMargin: 10
+					anchors {
+						top: parent.verticalCenter
+						topMargin: -(height/2)
+						left: parent.horizontalCenter
+						leftMargin: 10
+					}
 				}
 			}
 		}

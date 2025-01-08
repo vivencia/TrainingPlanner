@@ -116,14 +116,17 @@ void QmlTDayInterface::setDayNotes(const QString& new_value, const bool bFromQml
 		m_tDayModel->setDayNotes(m_dayNotes);
 }
 
-void QmlTDayInterface::setEditMode(const bool new_value)
+void QmlTDayInterface::setEditMode(const bool new_value, const bool bFromQml)
 {
 	if (m_bEditMode != new_value)
 	{
 		m_bEditMode = new_value;
-		emit editModeChanged();
-		setDayIsEditable(m_bEditMode);
-		setDayIsFinished(m_bEditMode ? true : !m_tDayModel->timeOut().isEmpty());
+		if (bFromQml)
+		{
+			emit editModeChanged();
+			setDayIsEditable(m_bEditMode);
+			setDayIsFinished(m_bEditMode ? true : !m_tDayModel->timeOut().isEmpty());
+		}
 	}
 }
 
@@ -555,7 +558,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 		{
 			const bool bFinished(!m_tDayModel->timeOut().isEmpty());
 
-			setEditMode(false);
+			setEditMode(false, false);
 			setDayIsFinished(bFinished, false);
 			setDayIsEditable(false);
 			setHasMesoPlan(false);
@@ -595,7 +598,7 @@ void QmlTDayInterface::createTrainingDayPage_part2()
 	}
 	else
 	{
-		setEditMode(false);
+		setEditMode(false, false);
 		setDayIsFinished(true, false);
 		setDayIsEditable(true);
 		setHasMesoPlan(false);
@@ -642,8 +645,8 @@ void QmlTDayInterface::updateTDayPageWithNewCalendarInfo(const QDate& startDate,
 	{
 		if (m_Date <= endDate)
 		{
-			bool tDayChanged(false);
-			const DBMesoCalendarModel* const mesoCal(appMesoModel()->mesoCalendarModel(m_mesoIdx));
+			bool tDayChanged{false};
+			const DBMesoCalendarModel* const mesoCal{appMesoModel()->mesoCalendarModel(m_mesoIdx)};
 			const QString& tDay{QString::number(mesoCal->getTrainingDay(m_Date.month(), m_Date.day()))};
 			if (tDay != m_tDayModel->trainingDay())
 			{
@@ -695,7 +698,6 @@ void QmlTDayInterface::calculateWorkoutTime()
 		{
 			if (!timeOut().isEmpty() && !timeOut().contains('-'))
 			{
-				//optTimeConstrainedSession.checked = true;
 				m_workoutTimer->setStopWatch(false);
 				m_workoutTimer->prepareTimer(appUtils()->calculateTimeDifference_str(appUtils()->getCurrentTimeString(), timeOut()));
 			}

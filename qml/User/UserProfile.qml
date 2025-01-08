@@ -9,11 +9,11 @@ import "../Pages"
 
 Frame {
 	id: frmUserProfile
-	spacing: 5
 	padding: 0
-	height: 7*controlsHeight + imgAvatar.height
+	spacing: 0
+	height: moduleHeight
+	implicitHeight: Math.min(height, moduleHeight)
 	implicitWidth: width
-	implicitHeight: height
 
 	required property int userRow
 	required property TPPage parentPage
@@ -21,8 +21,10 @@ Frame {
 	property bool bCoachRoleOK: false
 	property bool bClientRoleOK: false
 	property bool bGoalOK: false
+	readonly property int nVisibleControls: lblCoachRole.visible ? 6 : 4
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
+	readonly property int moduleHeight: nVisibleControls*(controlsHeight+controlsSpacing) + imgAvatar.height
 
 	ListModel {
 		id: roleModelUser
@@ -65,6 +67,7 @@ Frame {
 
 		anchors {
 			top: parent.top
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

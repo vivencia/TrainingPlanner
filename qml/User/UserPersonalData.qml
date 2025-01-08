@@ -13,6 +13,7 @@ Frame {
 	spacing: 15
 	padding: 0
 	height: moduleHeight
+	implicitHeight: Math.min(height, moduleHeight)
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -27,7 +28,7 @@ Frame {
 	property bool bSexOK: false
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 25
-	readonly property int moduleHeight: nControls*(controlsHeight+15)
+	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
 	TPLabel {
 		id: lblName

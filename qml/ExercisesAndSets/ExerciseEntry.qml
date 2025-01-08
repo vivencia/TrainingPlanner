@@ -136,7 +136,7 @@ SwipeDelegate {
 			enabled: exerciseManager.isEditable && exerciseManager.canEditRestTimeTracking
 			spacing: 0
 			Layout.fillWidth: true
-			Layout.topMargin: 10
+			Layout.topMargin: 15
 
 			TPCheckBox {
 				id: chkTrackRestTime
@@ -195,37 +195,42 @@ SwipeDelegate {
 			}
 		}
 
-		RowLayout {
-			enabled: exerciseManager.isEditable
-			visible: exerciseManager.compositeExercise
-			spacing: 0
-			Layout.fillWidth: true
+		Loader {
+			active: exerciseManager.compositeExercise
+			asynchronous: true
 
-			SetInputField {
-				id: txtNReps2
-				text: exerciseManager.repsForExercise2
-				type: SetInputField.Type.RepType
-				availableWidth: layoutMain.width*0.45
-				backColor: "transparent"
-				borderColor: "transparent"
-				Layout.preferredWidth: width
+			sourceComponent: RowLayout {
+				id: compositeFields
+				enabled: exerciseManager.isEditable
+				spacing: 0
+				Layout.fillWidth: true
 
-				onValueChanged: (str) => exerciseManager.repsForExercise2 = str;
-				onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
-			}
+				SetInputField {
+					id: txtNReps2
+					text: exerciseManager.repsForExercise2
+					type: SetInputField.Type.RepType
+					availableWidth: layoutMain.width*0.45
+					backColor: "transparent"
+					borderColor: "transparent"
+					Layout.preferredWidth: width
 
-			SetInputField {
-				id: txtNWeight2
-				text: exerciseManager.weightForExercise2
-				type: SetInputField.Type.WeightType
-				availableWidth: layoutMain.width*0.45
-				backColor: "transparent"
-				borderColor: "transparent"
-				Layout.preferredWidth: width
-				Layout.leftMargin: 5
+					onValueChanged: (str) => exerciseManager.repsForExercise2 = str;
+					onEnterOrReturnKeyPressed: txtNWeight2.forceActiveFocus();
+				}
 
-				onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
-				onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
+				SetInputField {
+					id: txtNWeight2
+					text: exerciseManager.weightForExercise2
+					type: SetInputField.Type.WeightType
+					availableWidth: layoutMain.width*0.45
+					backColor: "transparent"
+					borderColor: "transparent"
+					Layout.preferredWidth: width
+					Layout.leftMargin: 5
+
+					onValueChanged: (str) => exerciseManager.weightForExercise2 = str;
+					onEnterOrReturnKeyPressed: txtNSets.forceActiveFocus();
+				}
 			}
 		}
 
@@ -264,12 +269,13 @@ SwipeDelegate {
 
 		Row {
 			enabled: exerciseManager.isEditable
-			spacing: 10
+			spacing: 5
+			Layout.topMargin: 5
 			Layout.fillWidth: true
 
 			TPLabel {
 				text: qsTr("Add new set(s):")
-				width: parent.width*0.4
+				width: parent.width*0.5
 			}
 
 			SetInputField {

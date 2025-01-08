@@ -26,7 +26,7 @@ Item {
 		font.weight: Font.Bold
 	    font.hintingPreference: Font.PreferFullHinting
 	    font.pixelSize: appSettings.fontSize
-	    color: readOnly ? "transparent" : appSettings.fontColor
+	    color: readOnly ? "transparent" : "black"
 		readOnly: true
 		wrapMode: Text.WordWrap
 		topPadding: 5

@@ -52,9 +52,7 @@ TPPage {
 
 		anchors {
 			fill: parent
-			leftMargin: 10
-			rightMargin: 10
-			topMargin: 40
+			margins: 10
 		}
 	}
 
