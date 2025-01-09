@@ -17,7 +17,7 @@ Q_OBJECT
 public:
 	explicit TPAndroidNotification(QObject* parent = nullptr);
 	void sendNotification(notificationData* data);
-	void cancelNotification(const uint id);
+	void cancelNotification(const short id);
 };
 
 #endif

@@ -3,7 +3,6 @@
 
 package org.vivenciasoftware.TrainingPlanner;
 
-import org.qtproject.qt.android.QtNative;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -15,7 +14,10 @@ import android.graphics.Color;
 import android.graphics.BitmapFactory;
 import android.app.NotificationChannel;
 import android.util.Log;
-import androidx.core.app.ShareCompat;
+//import androidx.core.app.ShareCompat;
+
+import org.qtproject.qt.android.bindings.QtActivity;
+import org.qtproject.qt.android.QtNative;
 
 public class NotificationClient
 {
@@ -26,7 +28,7 @@ public class NotificationClient
 		TPActivityContext = context;
 	}
 
-    public static void notify(String title, String message, int action, int id)
+	public static int notify(String title, String message, int action)
     {
 		try {
 		    Bitmap icon = BitmapFactory.decodeResource(TPActivityContext.getResources(), R.drawable.icon);
@@ -36,6 +38,7 @@ public class NotificationClient
 		    NotificationChannel notificationChannel;
 		    notificationChannel = new NotificationChannel("TP", "TrainingPlanner", NotificationManager.IMPORTANCE_DEFAULT);
 		    m_notificationManager.createNotificationChannel(notificationChannel);
+		    int id = (int)(Math.random() * 100 + 1);
 
 		    Intent launchIntent = TPActivityContext.getPackageManager().getLaunchIntentForPackage("org.vivenciasoftware.TrainingPlanner");
 		    launchIntent.setAction(Intent.ACTION_MAIN);
@@ -50,7 +53,6 @@ public class NotificationClient
 				Notification.Builder m_builder = new Notification.Builder(TPActivityContext, notificationChannel.getId());
 				m_builder.setSmallIcon(R.drawable.icon)
 				    .setLargeIcon(icon)
-				    .setWhen(System.currentTimeMillis())
 				    .setContentTitle(title)
 				    .setContentText(message)
 				    .setDefaults(Notification.DEFAULT_SOUND)
@@ -59,12 +61,15 @@ public class NotificationClient
 				    .setContentIntent(notifyPendingIntent);
 
 				m_notificationManager.notify(id, m_builder.build());
+				return id;
 		    }
-		    else
+		    else {
 				Log.i("************* NotificationClient ***************      ", "Could not resolve activity");
+			}
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
+		return -1;
     }
 
     public static void cancelNotify(int id) {

@@ -31,7 +31,7 @@ public class TPActivity extends QtActivity
 	//
 	public static native void fireActivityResult(int requestCode, int resultCode);
 	//
-	public static native void notificationActionReceived(short action, short id);
+	public static native void notificationActionReceived(int action, int id);
 
 	public static boolean isIntentPending;
 	public static boolean isInitialized;
@@ -165,8 +165,8 @@ public class TPActivity extends QtActivity
 				/*for (String key : extras.keySet()) {
 					Log.d(TAG, extras.get(key).toString());
 				}*/
-				short action = extras.getShort("TP_ACTION");
-				short id = extras.getShort("TP_ID");
+				int action = extras.getInt("TP_ACTION");
+				int id = extras.getInt("TP_ID");
 				notificationActionReceived(action, id);
 			}
 			return;

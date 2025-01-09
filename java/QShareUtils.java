@@ -28,7 +28,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Parcelable;
 import android.provider.MediaStore;
-import androidx.core.app.ShareCompat;
+//import androidx.core.app.ShareCompat;
 import androidx.core.content.FileProvider;
 import android.util.Log;
 

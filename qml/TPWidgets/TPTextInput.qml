@@ -67,13 +67,22 @@ TextField {
 	}
 
 	onTextChanged: {
-		if (heightAdjustable) {
-			const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
-			implicitHeight = textWidth > implicitWidth ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
-		}
+		//if (heightAdjustable && text.length > 0) {
+		//	adjustHeight();
+			//console.log("on text changed", text, implicitWidth, width, textWidth);
+		//}
 		positionCaret();
 	}
+
 	onReadOnlyChanged: positionCaret();
+	onWidthChanged: {
+		if (heightAdjustable && width >= 30 && text.length > 0) {
+			const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+			implicitHeight = textWidth > width ? Math.ceil(textWidth/width) * suggestedHeight : suggestedHeight;
+		}
+	//const textWidth = AppGlobals.fontMetricsRegular.boundingRect(text).width;
+	//console.log("on width changed", text, implicitWidth, width, textWidth);
+	}
 
 	function positionCaret(): void {
 		if (readOnly) {

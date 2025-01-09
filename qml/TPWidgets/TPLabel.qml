@@ -63,7 +63,7 @@ Label {
 			if (font.pixelSize > AppGlobals.smallFont.pixelSize)
 				font.pixelSize *= 0.9;
 			if (!singleLine) {
-				if (lineCount * font.pixelSize*1.35 > control.height)
+				if (control.height >= 15 && lineCount * font.pixelSize*1.35 > control.height)
 					wrapMode = Text.WordWrap;
 			}
 		}

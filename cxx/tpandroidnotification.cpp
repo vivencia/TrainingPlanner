@@ -25,19 +25,20 @@ void TPAndroidNotification::sendNotification(notificationData* data)
 	const QJniObject& jtitle{QJniObject::fromString(data->title)};
 	const QJniObject& jmessage{QJniObject::fromString(data->message)};
 
-	QJniObject::callStaticMethod<void>(
+	const jint ok = QJniObject::callStaticMethod<jint>(
 					"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 					"notify",
-					"(Ljava/lang/String;Ljava/lang/String;I;I)V",
-					jtitle.object<jstring>(), jmessage.object<jstring>(), static_cast<int>(data->action), static_cast<int>(data->id));
+					"(Ljava/lang/String;Ljava/lang/String;I)I",
+					jtitle.object<jstring>(), jmessage.object<jstring>(), static_cast<int>(data->action));
+	data->id = static_cast<short>(ok);
 }
 
-void TPAndroidNotification::cancelNotification(const uint id)
+void TPAndroidNotification::cancelNotification(const short id)
 {
 	QJniObject::callStaticMethod<void>(
 					"org/vivenciasoftware/TrainingPlanner/NotificationClient",
 					"cancelNotify",
 					"(I)V",
-					id);
+					static_cast<int>(id));
 }
 #endif

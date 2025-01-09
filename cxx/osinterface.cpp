@@ -214,6 +214,7 @@ void OSInterface::startAppNotifications()
 	notificationsTimer.setInterval(1000*30); //every 30min
 	notificationsTimer.callOnTimeout([this] () { checkNotificationsStatus(); } );
 	notificationsTimer.start();
+	m_bTodaysWorkoutFinishedConnected = false;
 	checkWorkouts();
 }
 
@@ -250,7 +251,7 @@ void OSInterface::checkWorkouts()
 		if (!dayInfoList.isEmpty())
 		{
 			notificationData* data{new notificationData{}};
-			data->id = QTime::currentTime().msecsSinceStartOfDay();
+			data->title = std::move("TrainingPlanner "_L1) + data->start_time.toString("dd/MM - hh:mm"_L1);
 			const QString& splitLetter{dayInfoList.at(2)};
 			if (splitLetter != "R"_L1) //day is training day
 			{
@@ -264,10 +265,14 @@ void OSInterface::checkWorkouts()
 				{
 					data->message = std::move(tr("Today is training day. Start your workout number ") + dayInfoList.at(1) + tr(" division: ") + splitLetter);
 					data->action = NOTIFY_START_WORKOUT;
-					connect(appMesoModel(), &DBMesocyclesModel::todaysWorkoutFinished, this, [this,data] () {
-						data->resolved = true;
-						removeNotification(data);
-					}, static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::AutoConnection));
+					if (!m_bTodaysWorkoutFinishedConnected)
+					{
+						connect(appMesoModel(), &DBMesocyclesModel::todaysWorkoutFinished, this, [this,data] () {
+							data->resolved = true;
+							removeNotification(data);
+						});
+						m_bTodaysWorkoutFinishedConnected = true;
+					}
 				}
 			}
 			else
@@ -390,11 +395,11 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_fire
 }
 
 JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_notificationActionReceived(
-						JNIEnv *env, jobject obj, jshort action, jshort id)
+						JNIEnv *env, jobject obj, jint action, jint id)
 {
 	Q_UNUSED (obj)
 	//const char *actionStr = env->GetStringUTFChars(action, NULL);
-	appOsInterface()->execNotification(action, id);
+	appOsInterface()->execNotification(static_cast<short>(action), static_cast<short>(id));
 	//env->ReleaseStringUTFChars(action, actionStr);
 	return;
 }

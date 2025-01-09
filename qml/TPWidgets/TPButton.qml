@@ -72,7 +72,7 @@ Rectangle {
 			return;
 		}
 
-		if (!fixedSize && text.length > 0) {
+		if (!fixedSize && width >= 20 && text.length > 0) {
 			const fwidth = buttonText._textWidth;
 			if (fwidth >= width) {
 				buttonText.wrapMode = Text.WordWrap;
@@ -126,10 +126,12 @@ Rectangle {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
+		readonly property int widthPadding: Qt.platform.os === "android" ? 80 : 20
 		onSizeChanged: {
 			if (!fixedSize) {
 				canResize = false;
-				button.width = _textWidth + (textUnderIcon ? 0 : (imageSource.length > 0 ? imageSize : 0)) + 10
+				width = _textWidth;
+				button.width = _textWidth + (textUnderIcon ? widthPadding : (imageSource.length > 0 ? imageSize : 0)) + widthPadding
 			}
 		}
 
@@ -158,11 +160,11 @@ Rectangle {
 			}
 
 			if (fixedSize) {
-				buttonText.width = button.width - 10;
-				if (buttonText.height > button.height)
-					buttonText.height = button.height;
+				width = button.width - 10;
+				if (height > button.height)
+					height = button.height;
 				if (!autoResize)
-					buttonText.heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
+					heightAvailable = button.height - 10 - (imageSource.length > 1 ? imageSize : 0);
 			}
 		}
 	}

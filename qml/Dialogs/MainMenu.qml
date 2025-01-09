@@ -257,6 +257,6 @@ Drawer {
 			bottom: parent.bottom
 		}
 
-		onClicked: osInterface.exitApp();
+		onClicked: itemManager.exitApp();
 	}
 } //Drawer

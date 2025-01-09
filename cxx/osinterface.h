@@ -23,8 +23,7 @@ struct notificationData {
 	QString message;
 	QString title;
 
-	explicit inline notificationData(): id{0}, action{0}, resolved{false},
-			start_time{QDate::currentDate(), QTime::currentTime()}, title{"TrainingPlanner"_L1} {}
+	explicit inline notificationData(): id{0}, action{0}, resolved{false}, start_time{QDate::currentDate(), QTime::currentTime()} {}
 };
 #endif
 
@@ -98,7 +97,7 @@ private:
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
-	bool mb_appSuspended;
+	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;
 #endif
 
