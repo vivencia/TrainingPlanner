@@ -16,38 +16,53 @@ TPPage {
 	required property MesoManager mesoManager
 	readonly property bool bMesoNameOK: txtMesoName.text.length >= 5
 
-	Connections {
-		target: mesoManager
-		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
-			switch (fieldCounter) {
-				case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
-				case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
-				case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
-				case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
-				case 0:
-					newMesoTip.imageEnabled = true;
-					newMesoTip.title = qsTr("New program setup complete!");
-					newMesoTip.message = qsTr("Required fields setup");
-					newMesoTip.showTimed(5000, -3);
-				break;
+	property TPBalloonTip newMesoTip: exportDlgLoader.item
+	Loader {
+		id: exportDlgLoader
+		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter >= 0
+		asynchronous: true
+
+		sourceComponent: TPBalloonTip {
+			id: newMesoTip
+			parentPage: mesoPropertiesPage
+			title: qsTr("New program setup incomplete")
+			imageEnabled: false
+			imageSource: "set-completed"
+			closeButtonVisible: false
+			closable: false
+
+			onClosed: {
+				if (mesoManager.newMesoFieldCounter === 0)
+					mesoManager.newMesoFieldCounter = -1;
 			}
+		}
+
+		onLoaded: {
+			newMesoMessageHandler(mesoManager.newMesoFieldCounter);
+			newMesoTip.show(-2);
 		}
 	}
 
-	TPBalloonTip {
-		id: newMesoTip
-		parentPage: mesoPropertiesPage
-		title: qsTr("New program setup incomplete")
-		imageEnabled: false
-		imageSource: "set-completed"
-		closeButtonVisible: false
-		closable: false
+	function newMesoMessageHandler(fieldCounter: int): void {
+		switch (fieldCounter) {
+			case 4: newMesoTip.message = qsTr("Change and/or accept the program's name"); break;
+			case 3: newMesoTip.message = qsTr("Change and/or accept the start date"); break;
+			case 2: newMesoTip.message = qsTr("Change and/or accept the end date"); break;
+			case 1: newMesoTip.message = qsTr("Change and/or accept the split division"); break;
+			case 0:
+				newMesoTip.imageEnabled = true;
+				newMesoTip.title = qsTr("New program setup complete!");
+				newMesoTip.message = qsTr("Required fields setup");
+				newMesoTip.showTimed(5000, -3);
+			break;
+		}
+	}
 
-		Component.onCompleted: {
-			if (mesoManager.isNewMeso)
-				newMesoTip.show(-2);
-			else if (!mesoManager.isNewMeso && mesoManager.newMesoFieldCounter === "0")
-				newMesoTip.showTimed(-2);
+	Connections {
+		target: mesoManager
+		function onNewMesoFieldCounterChanged(fieldCounter: int): void {
+			if (newMesoTip)
+				newMesoMessageHandler(fieldCounter);
 		}
 	}
 
@@ -83,7 +98,7 @@ TPPage {
 
 		TPLabel {
 			id: lblNewMesoRequiredFieldsCounter
-			text: mesoManager.newMesoFieldCounter
+			text: String(mesoManager.newMesoFieldCounter)
 			visible: mesoManager.isNewMeso
 			font: AppGlobals.smallFont
 
@@ -91,6 +106,7 @@ TPPage {
 				left: imgNewMesoOK.right
 				leftMargin: 5
 				bottom: parent.bottom
+				bottomMargin: 5
 			}
 		}
 	}
@@ -113,6 +129,7 @@ TPPage {
 			id: colMain
 			spacing: 5
 			anchors.fill: parent
+			anchors.topMargin: 15
 
 			TPLabel {
 				text: mesoManager.nameLabel

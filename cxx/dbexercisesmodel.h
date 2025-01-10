@@ -106,14 +106,12 @@ public:
 	Q_INVOKABLE inline void setActualIndex(const uint index, const uint new_index)
 	{
 		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_ACTUALINDEX] = QString::number(new_index);
-		addModifiedIndex(index);
 	}
 
 	Q_INVOKABLE inline bool isSelected(const uint index) const { return m_modeldata.at(m_indexProxy.at(index)).at(EXERCISES_COL_SELECTED) == Qt::StringLiterals::operator""_L1("1", 1); }
 	Q_INVOKABLE inline void setSelected(const uint index, const bool selected)
 	{
 		m_modeldata[m_indexProxy.at(index)][EXERCISES_COL_SELECTED] = selected ? Qt::StringLiterals::operator""_L1("1", 1) : Qt::StringLiterals::operator""_L1("0", 1);
-		addModifiedIndex(index);
 	}
 
 	inline uint count() const override { return m_indexProxy.count(); }
@@ -133,26 +131,12 @@ public:
 	inline void clearModifiedIndices() { m_modifiedIndices.clear(); }
 	inline void addModifiedIndex(const uint index)
 	{
-		m_modifiedIndices[index]++;
-		if (m_modifiedIndices.value(index) == 5)
-			emit exerciseChanged(index);
+		if (!m_modifiedIndices.contains(index))
+			m_modifiedIndices.append(index);
 	}
 
 	inline uint modifiedIndicesCount() const { return m_modifiedIndices.count(); }
-	inline uint modifiedIndex(const uint pos) const
-	{
-		uint ret_pos{0};
-		QMap<uint,uint>::const_iterator itr{m_modifiedIndices.constBegin()};
-		const QMap<uint,uint>::const_iterator& itr_end{m_modifiedIndices.constEnd()};
-		while (itr != itr_end)
-		{
-			if (pos == ret_pos)
-				break;
-			++itr;
-			++ret_pos;
-		}
-		return itr.value();
-	}
+	inline uint modifiedIndex(const uint pos) const { return m_modifiedIndices.at(pos); }
 
 	void setLastID(uint exercisesTableLastId) { m_exercisesTableLastId = exercisesTableLastId; }
 	inline int lastID() const { return m_exercisesTableLastId; }
@@ -166,15 +150,12 @@ public:
 
 	inline void resetPrivateData() override { clearSelectedEntries(); }
 	int importFromFile(const QString& filename) override final;
-	bool updateFromModel(const TPListModel* const model) override final;
+	bool updateFromModel(TPListModel* model) override final;
 
 	int columnCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return numberOfFields(); }
 	inline int rowCount(const QModelIndex& parent) const override final { Q_UNUSED(parent); return count(); }
 	QVariant data(const QModelIndex& index, int role) const override final;
 	[[maybe_unused]] bool setData(const QModelIndex& index, const QVariant &value, int role) override final;
-
-signals:
-	void exerciseChanged(const uint index);
 
 private:
 	typedef struct st_SelEntry{
@@ -186,7 +167,7 @@ private:
 
 	QList<uint> m_filteredIndices;
 	QList<uint> m_indexProxy;
-	QMap<uint,uint> m_modifiedIndices;
+	QList<uint> m_modifiedIndices;
 	QList<selectedEntry> m_selectedEntries;
 	uint m_selectedEntryToReplace;
 	int m_exercisesTableLastId;

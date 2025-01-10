@@ -394,23 +394,23 @@ QString DBExercisesModel::makeTransactionStatementForDataBase(const uint index) 
 
 int DBExercisesModel::importFromFile(const QString& filename)
 {
-	QFile* inFile{new QFile(filename)};
+	QFile* inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
 		return APPWINDOW_MSG_OPEN_FAILED;
 	}
 
-	QStringList modeldata(EXERCISES_TOTAL_COLS);
-	uint col(EXERCISES_COL_MAINNAME);
+	QStringList modeldata{EXERCISES_TOTAL_COLS};
+	uint col{EXERCISES_COL_MAINNAME};
 	QString value;
-	uint n_items(0);
-	const uint databaseLastIndex(appExercisesModel()->m_modeldata.count());
-	const QString tableIdStr("0x000"_L1 + QString::number(EXERCISES_TABLE_ID));
+	uint n_items{0};
+	const qsizetype databaseLastIndex{appExercisesModel()->m_modeldata.count()};
+	const QString tableIdStr{"0x000"_L1 + QString::number(EXERCISES_TABLE_ID)};
 	bool bFoundModelInfo(false);
 
 	char buf[256];
-	qint64 lineLength(0);
+	qint64 lineLength{0};
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
 	{
 		if (strstr(buf, STR_END_EXPORT.toLatin1().constData()) == NULL)
@@ -452,21 +452,21 @@ int DBExercisesModel::importFromFile(const QString& filename)
 	return m_modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBExercisesModel::updateFromModel(const TPListModel* const model)
+bool DBExercisesModel::updateFromModel(TPListModel* model)
 {
-	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
-	const QList<QStringList>::const_iterator& lst_itrend(model->m_modeldata.constEnd());
-	uint lastIndex(m_modeldata.count());
+	QList<QStringList>::iterator lst_itr{model->m_modeldata.begin()};
+	const QList<QStringList>::const_iterator& lst_itrend{model->m_modeldata.constEnd()};
+	qsizetype lastIndex{m_modeldata.count()};
 	do {
-		appendList((*lst_itr));
-		m_modifiedIndices[lastIndex]++;
+		appendList(std::move((*lst_itr)));
+		addModifiedIndex(lastIndex++);
 	} while (++lst_itr != lst_itrend);
 	return true;
 }
 
 QVariant DBExercisesModel::data(const QModelIndex& index, int role) const
 {
-	const int row(index.row());
+	const int row{index.row()};
 	if(row >= 0 && row < m_modeldata.count())
 	{
 		switch(role) {

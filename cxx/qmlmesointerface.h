@@ -53,7 +53,8 @@ Q_PROPERTY(QString muscularGroupD READ muscularGroupD WRITE setMuscularGroupD NO
 Q_PROPERTY(QString muscularGroupE READ muscularGroupE WRITE setMuscularGroupE NOTIFY muscularGroupEChanged FINAL)
 Q_PROPERTY(QString muscularGroupF READ muscularGroupF WRITE setMuscularGroupF NOTIFY muscularGroupFChanged FINAL)
 Q_PROPERTY(QString muscularGroupR READ muscularGroupR CONSTANT FINAL)
-Q_PROPERTY(QString newMesoFieldCounter READ newMesoFieldCounter NOTIFY newMesoFieldCounterChanged FINAL)
+
+Q_PROPERTY(int newMesoFieldCounter READ newMesoFieldCounter WRITE setNewMesoFieldCounter NOTIFY newMesoFieldCounterChanged FINAL)
 
 Q_PROPERTY(QDate startDate READ startDate WRITE setStartDate NOTIFY startDateChanged FINAL)
 Q_PROPERTY(QDate endDate READ endDate WRITE setEndDate NOTIFY endDateChanged FINAL)
@@ -147,7 +148,8 @@ public:
 	void setMuscularGroupF(const QString& new_value, const bool bFromQml = true);
 	[[nodiscard]] inline QString muscularGroupR() const { return m_muscularGroup.at(6); }
 
-	[[nodiscard]] inline QString newMesoFieldCounter() const { return m_newMesoFieldCounter; }
+	[[nodiscard]] inline int newMesoFieldCounter() const { return m_newMesoFieldCounter; }
+	void setNewMesoFieldCounter(const int new_value) { m_newMesoFieldCounter = new_value; emit newMesoFieldCounterChanged(new_value);}
 
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
@@ -188,7 +190,7 @@ signals:
 	void muscularGroupDChanged();
 	void muscularGroupEChanged();
 	void muscularGroupFChanged();
-	void newMesoFieldCounterChanged(const uint fieldCounter);
+	void newMesoFieldCounterChanged(const int fieldCounter);
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	void displayMessageOnAppWindow(const int message_id, const QString& filename = QString());
@@ -203,9 +205,10 @@ private:
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 	uint m_mesoIdx;
 	bool m_bOwnerIsCoach, m_bHasCoach, m_bRealMeso, m_bOwnMeso;
-	QString m_name, m_coach, m_client, m_type, m_file, m_strStartDate, m_strEndDate, m_weeks, m_split, m_notes, m_newMesoFieldCounter;
+	QString m_name, m_coach, m_client, m_type, m_file, m_strStartDate, m_strEndDate, m_weeks, m_split, m_notes;
 	QDate m_startDate, m_endDate, m_minimumMesoStartDate, m_maximumMesoEndDate;
 	QStringList m_muscularGroup;
+	int m_newMesoFieldCounter;
 	//----------------------------------------------------PAGE PROPERTIES-----------------------------------------------------------------
 
 	QMap<QDate,QmlTDayInterface*> m_tDayPages;

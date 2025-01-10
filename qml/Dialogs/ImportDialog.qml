@@ -21,6 +21,7 @@ TPPopup {
 
 		anchors {
 			top: parent.top
+			topMargin: 10
 			left: parent.left
 			right: parent.right
 		}
@@ -33,8 +34,7 @@ TPPopup {
 		height: 50
 
 		anchors {
-			top: parent.top
-			topMargin: lblTitle.height
+			verticalCenter: parent.verticalCenter
 			left: parent.left
 			leftMargin: 5
 		}
@@ -43,10 +43,11 @@ TPPopup {
 	ColumnLayout
 	{
 		id: fieldsLayout
-		spacing: 0
+		spacing: 5
 
 		anchors {
 			top: lblTitle.bottom
+			topMargin: 10
 			left: importImg.right
 			right: parent.right
 			rightMargin: 5
@@ -109,7 +110,7 @@ TPPopup {
 
 	function show(ypos): void {
 		importDlg.height = 0;
-		importDlg.height = Math.max(height + importImg.height) + repeater.itemsHeight + btnImport.height + 30;
+		importDlg.height = Math.max(repeater.itemsHeight + importImg.height) + btnImport.height + 30;
 		show1(ypos);
 	}
 }

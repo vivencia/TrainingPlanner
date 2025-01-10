@@ -48,6 +48,9 @@ public:
 	void importFromFile(const QString& filename, const int wanted_content = IFC_ANY_);
 	int incorporateImportedData(TPListModel* model, const int wanted_content = 0);
 
+signals:
+	void mesoForImportSelected();
+
 public slots:
 	void mainWindowStarted() const;
 	void displayMessageOnAppWindow(const int message_id, const QString& fileName = QString()) const;

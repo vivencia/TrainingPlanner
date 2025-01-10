@@ -18,6 +18,11 @@ QmlExercisesDatabaseInterface::~QmlExercisesDatabaseInterface()
 	delete m_exercisesComponent;
 }
 
+void QmlExercisesDatabaseInterface::saveExercise()
+{
+	appDBInterface()->saveExercises();
+}
+
 const uint QmlExercisesDatabaseInterface::removeExercise(const uint row)
 {
 	appDBInterface()->removeExercise(appExercisesModel()->actualIndex(row));
@@ -35,7 +40,7 @@ QString QmlExercisesDatabaseInterface::mediaLabel() const { return appExercisesM
 
 void QmlExercisesDatabaseInterface::exportExercises(const bool bShare)
 {
-	int exportFileMessageId(0);
+	int exportFileMessageId{0};
 	if (appExercisesModel()->collectExportData())
 	{
 		const QString& exportFileName{appOsInterface()->appDataFilesPath() + tr("TrainingPlanner Exercises List") + ".txt"_L1};
@@ -122,10 +127,6 @@ void QmlExercisesDatabaseInterface::createExercisesPage_part2(QmlTDayInterface *
 		QMetaObject::invokeMethod(appMainWindow(), "pushOntoStack", Q_ARG(QQuickItem*, m_exercisesPage));
 		if (connectPage)
 			connect(m_exercisesPage, SIGNAL(exerciseChosen()), connectPage, SLOT(createExerciseObject()));
-
-		connect(appExercisesModel(), &DBExercisesModel::exerciseChanged, this, [this] (const uint index) {
-			appDBInterface()->saveExercises();
-		});
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 			appExercisesModel()->fillColumnNames();

@@ -286,10 +286,10 @@ int DBTrainingDayModel::importFromFile(const QString& filename)
 	return exerciseCount() > 0 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBTrainingDayModel::updateFromModel(const TPListModel* const model)
+bool DBTrainingDayModel::updateFromModel(TPListModel* model)
 {
-	const DBTrainingDayModel* const tDayModel(static_cast<const DBTrainingDayModel* const>(const_cast<TPListModel*>(model)));
-	for (uint i(0); i < tDayModel->exerciseCount(); ++i)
+	DBTrainingDayModel* tDayModel{static_cast<DBTrainingDayModel*>(model)};
+	for (uint i{0}; i < tDayModel->exerciseCount(); ++i)
 	{
 		newExercise(i);
 		setExerciseName(i, tDayModel->exerciseName(i));

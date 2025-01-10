@@ -126,12 +126,11 @@ Rectangle {
 		verticalAlignment: Text.AlignVCenter
 		horizontalAlignment: Text.AlignHCenter
 
-		readonly property int widthPadding: Qt.platform.os === "android" ? 80 : 20
 		onSizeChanged: {
 			if (!fixedSize) {
 				canResize = false;
 				width = _textWidth;
-				button.width = _textWidth + (textUnderIcon ? widthPadding : (imageSource.length > 0 ? imageSize : 0)) + widthPadding
+				button.width = _textWidth + (textUnderIcon ? 10 : (imageSource.length > 0 ? imageSize : 0)) + 20
 			}
 		}
 

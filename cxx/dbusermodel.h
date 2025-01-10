@@ -203,7 +203,7 @@ public:
 	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }
 
 	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const TPListModel* const) override;
+	bool updateFromModel(TPListModel*) override;
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{

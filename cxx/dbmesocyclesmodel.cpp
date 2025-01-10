@@ -93,9 +93,9 @@ void DBMesocyclesModel::getMesocyclePage(const uint meso_idx)
 uint DBMesocyclesModel::createNewMesocycle(const bool bCreatePage)
 {
 	beginInsertRows(QModelIndex{}, count(), count());
-	const uint meso_idx = newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
+	const uint meso_idx{newMesocycle(std::move(QStringList{} << STR_MINUS_ONE << QString{} << QString{} << QString{} <<
 		QString{} << QString{} << std::move("ABCDERR"_L1) << appUserModel()->currentCoachName(0) << appUserModel()->userName(0) <<
-		QString{} << QString{} << STR_ONE));
+		QString{} << QString{} << STR_ONE))};
 	emit countChanged();
 	endInsertRows();
 
@@ -584,11 +584,11 @@ int DBMesocyclesModel::importFromFile(const QString& filename)
 bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
 {
 	setImportMode(true);
-	for (uint i(MESOCYCLES_COL_NAME); i < MESOCYCLES_TOTAL_COLS; ++i)
-		m_modeldata[meso_idx][i] = std::move(model->m_modeldata.at(0).at(i));
-	const DBMesoSplitModel* const splitModel(static_cast<DBMesocyclesModel*>(model)->mesoSplitModel());
-	for (uint i(MESOSPLIT_A); i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
-		m_splitModel->m_modeldata[meso_idx][i] = splitModel->m_modeldata.at(0).at(i);
+	for (uint i{MESOCYCLES_COL_NAME}; i < MESOCYCLES_TOTAL_COLS; ++i)
+		m_modeldata[meso_idx][i] = std::move(model->m_modeldata[0][i]);
+	DBMesoSplitModel* splitModel{static_cast<DBMesocyclesModel*>(model)->mesoSplitModel()};
+	for (uint i{MESOSPLIT_A}; i < SIMPLE_MESOSPLIT_TOTAL_COLS; ++i)
+		m_splitModel->m_modeldata[meso_idx][i] = std::move(splitModel->m_modeldata[0][i]);
 	setImportIdx(meso_idx);
 	m_isNewMeso[meso_idx] = 0;
 	changeCanHaveTodaysWorkout();

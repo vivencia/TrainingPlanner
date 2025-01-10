@@ -139,7 +139,7 @@ public:
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
 	bool checkIfFileContentMatchesThisSplit(QFile* inFile);
 	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const TPListModel* model) override;
+	bool updateFromModel(TPListModel* model) override;
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{

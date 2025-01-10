@@ -27,14 +27,14 @@ DBInterface* DBInterface::app_db_interface(nullptr);
 void DBInterface::init()
 {
 	m_DBFilePath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/Database/"_L1);
-	QDir appDir(m_DBFilePath);
+	QDir appDir{m_DBFilePath};
 	if (!appDir.mkpath(m_DBFilePath))
 	{
 		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("TP directory creation failed: ", m_DBFilePath);
 	}
 
-	QFileInfo f_info(m_DBFilePath + DBExercisesFileName);
+	QFileInfo f_info{m_DBFilePath + DBExercisesFileName};
 
 	if (!f_info.isReadable())
 	{
@@ -86,9 +86,9 @@ void DBInterface::init()
 	if (appSettings()->appVersion() != TP_APP_VERSION)
 	{
 		//All the code to update the database goes in here
-		//updateDB(new DBMesoCalendarTable(m_DBFilePath));
-		//updateDB(new DBMesocyclesTable(m_DBFilePath));
-		//DBUserTable user(m_DBFilePath);
+		//updateDB(new DBMesoCalendarTable{m_DBFilePath});
+		//updateDB(new DBMesocyclesTable{m_DBFilePath});
+		//DBUserTable user{m_DBFilePath};
 		//user.removeDBFile();
 		//appSettings()->saveAppVersion(TP_APP_VERSION);
 	}
@@ -192,21 +192,21 @@ void DBInterface::getAllUsers()
 
 void DBInterface::saveUser(const uint row)
 {
-	DBUserTable* worker{new DBUserTable(m_DBFilePath, appUserModel())};
+	DBUserTable* worker{new DBUserTable{m_DBFilePath, appUserModel()}};
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { worker->saveUser(); });
 }
 
 void DBInterface::removeUser(const uint row, const bool bCoach)
 {
-	DBUserTable* worker{new DBUserTable(m_DBFilePath)};
+	DBUserTable* worker{new DBUserTable{m_DBFilePath}};
 	worker->addExecArg(appUserModel()->userId(row));
 	createThread(worker, [worker] () { return worker->removeEntry(); });
 }
 
 void DBInterface::deleteUserTable(const bool bRemoveFile)
 {
-	DBUserTable* worker{new DBUserTable(m_DBFilePath, appUserModel())};
+	DBUserTable* worker{new DBUserTable{m_DBFilePath, appUserModel()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 //-----------------------------------------------------------USER TABLE-----------------------------------------------------------
@@ -214,19 +214,19 @@ void DBInterface::deleteUserTable(const bool bRemoveFile)
 //-----------------------------------------------------------EXERCISES TABLE-----------------------------------------------------------
 void DBInterface::getAllExercises()
 {
-	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	DBExercisesTable* worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
 	createThread(worker, [worker] () { worker->getAllExercises(); });
 }
 
 void DBInterface::saveExercises()
 {
-	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	DBExercisesTable* worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
 	createThread(worker, [worker] () { return worker->saveExercises(); });
 }
 
 void DBInterface::removeExercise(const uint row)
 {
-	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath)};
+	DBExercisesTable* worker{new DBExercisesTable{m_DBFilePath}};
 	worker->addExecArg(appExercisesModel()->id(row));
 	worker->addExecArg(row);
 	createThread(worker, [worker] () { return worker->removeEntry(); });
@@ -234,13 +234,13 @@ void DBInterface::removeExercise(const uint row)
 
 void DBInterface::deleteExercisesTable(const bool bRemoveFile)
 {
-	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	DBExercisesTable* worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
 	createThread(worker, [worker,bRemoveFile] () { return bRemoveFile ? worker->removeDBFile() : worker->clearTable(); } );
 }
 
 void DBInterface::updateExercisesList()
 {
-	DBExercisesTable* worker{new DBExercisesTable(m_DBFilePath, appExercisesModel())};
+	DBExercisesTable* worker{new DBExercisesTable{m_DBFilePath, appExercisesModel()}};
 	connect(worker, &DBExercisesTable::updatedFromExercisesList, this, [this] () {
 		appSettings()->setExercisesListVersion(m_exercisesListVersion);
 	});

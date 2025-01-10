@@ -531,7 +531,6 @@ void QMLMesoInterface::createMesocyclePage()
 	setOwnMeso(appMesoModel()->isOwnMeso(m_mesoIdx), false);
 	setRealMeso(appMesoModel()->isRealMeso(m_mesoIdx), false);
 	setSplit(appMesoModel()->split(m_mesoIdx), false);
-	setWeeks(appMesoModel()->nWeeks(m_mesoIdx), false);
 	setNotes(appMesoModel()->notes(m_mesoIdx), false);
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'A'));
 	m_muscularGroup.append(appMesoModel()->muscularGroup(m_mesoIdx, 'B'));
@@ -624,15 +623,10 @@ void QMLMesoInterface::createMesocyclePage_part2()
 				emit isNewMesoChanged();
 		});
 
-		m_newMesoFieldCounter = QString::number(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
-		emit newMesoFieldCounterChanged(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
+		setNewMesoFieldCounter(appMesoModel()->newMesoFieldCounter(m_mesoIdx));
 		connect(appMesoModel(), &DBMesocyclesModel::newMesoFieldCounterChanged, this, [this] (const uint meso_idx, const uint /*not yet used*/) {
 			if (meso_idx == m_mesoIdx)
-			{
-				const uint fieldCounter{appMesoModel()->newMesoFieldCounter(meso_idx)};
-				m_newMesoFieldCounter = QString::number(fieldCounter);
-				emit this->newMesoFieldCounterChanged(fieldCounter);
-			}
+				setNewMesoFieldCounter(appMesoModel()->newMesoFieldCounter(meso_idx));
 		});
 	}
 

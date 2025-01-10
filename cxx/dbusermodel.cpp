@@ -19,7 +19,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		m_exportName = std::move(tr("Coach information"));
 
 		mColumnNames.reserve(USER_TOTAL_COLS);
-		mColumnNames.append(QString());
+		mColumnNames.append(QString{});
 		mColumnNames.append(std::move(tr("Name: ")));
 		mColumnNames.append(std::move(tr("Birthday: ")));
 		mColumnNames.append(std::move(tr("Sex: ")));
@@ -30,9 +30,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		mColumnNames.append(std::move(tr("Professional job: ")));
 		mColumnNames.append(std::move(tr("Goal: ")));
 		mColumnNames.append(std::move("Avatar: "_L1));
-		mColumnNames.append(QString());
-		mColumnNames.append(QString());
-		mColumnNames.append(QString());
+		mColumnNames.append(QString{});
+		mColumnNames.append(QString{});
+		mColumnNames.append(QString{});
 
 		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
 			mColumnNames[USER_COL_NAME] = std::move(tr("Name: "));
@@ -87,8 +87,8 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList_fast(std::move(QStringList() << STR_MINUS_ONE << QString() << std::move("2451545"_L1) << STR_ZERO << QString() <<
-		QString() << QString() << QString() << QString() << QString() << std::move("image://tpimageprovider/m5"_L1) <<
+	appendList_fast(std::move(QStringList{} << STR_MINUS_ONE << QString{} << std::move("2451545"_L1) << STR_ZERO << QString{} <<
+		QString{} << QString{} << QString{} << QString{} << QString{} << std::move("image://tpimageprovider/m5"_L1) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
 }
@@ -171,11 +171,11 @@ int DBUserModel::findLastUser(const bool bCoach)
 
 const int DBUserModel::getRowByCoachName(const QString& coachname) const
 {
-	for (uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
 		{
-			const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+			const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
 			if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
 				return i;
 		}
@@ -186,9 +186,9 @@ const int DBUserModel::getRowByCoachName(const QString& coachname) const
 QStringList DBUserModel::getCoaches() const
 {
 	QStringList coaches;
-	for (uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
-		const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+		const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
 		if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
 			coaches.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
@@ -198,9 +198,9 @@ QStringList DBUserModel::getCoaches() const
 QStringList DBUserModel::getClients() const
 {
 	QStringList clients;
-	for (uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
-		const uint app_use_mode(m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt());
+		const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
 		if (app_use_mode == APP_USE_MODE_CLIENTS || app_use_mode == APP_USE_MODE_SINGLE_USER_WITH_COACH)
 			clients.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
@@ -209,7 +209,7 @@ QStringList DBUserModel::getClients() const
 
 uint DBUserModel::userRow(const QString& userName) const
 {
-	for (uint i(0); i < m_modeldata.count(); ++i)
+	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(USER_COL_NAME) == userName)
 			return i;
@@ -219,7 +219,7 @@ uint DBUserModel::userRow(const QString& userName) const
 
 int DBUserModel::importFromFile(const QString& filename)
 {
-	QFile* inFile{new QFile(filename)};
+	QFile* inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -259,7 +259,12 @@ int DBUserModel::importFromFile(const QString& filename)
 						++col;
 					}
 					else if (col == USER_COL_APP_USE_MODE)
+					{
 						modeldata[USER_COL_APP_USE_MODE] = QString::number(APP_USE_MODE_SINGLE_COACH);
+						modeldata[USER_COL_CURRENT_COACH] = "0"_L1;
+						modeldata[USER_COL_CURRENT_CLIENT] = "0"_L1;
+						break;
+					}
 				}
 			}
 		}
@@ -269,13 +274,15 @@ int DBUserModel::importFromFile(const QString& filename)
 	inFile->close();
 	delete inFile;
 	if (bFoundModelInfo)
-		m_modeldata.append(modeldata);
+		m_modeldata.append(std::move(modeldata));
 	return col >= USER_COL_APP_USE_MODE ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBUserModel::updateFromModel(const TPListModel* const model)
+bool DBUserModel::updateFromModel(TPListModel *model)
 {
-	appendList(model->m_modeldata.at(0));
+	if (count() == 1 && m_modeldata.at(0).at(USER_COL_ID) == "-1"_L1)
+		m_modeldata.clear();
+	appendList(std::move(model->m_modeldata[0]));
 	return true;
 }
 
@@ -297,7 +304,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 				return fieldValue.last(fieldValue.length()-24);
 			else
 				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? std::move("Avatar-m5"_L1) : std::move("Avatar-f0"_L1);
-		default: return QString();
+		default: return QString{};
 	}
 }
 
@@ -316,6 +323,6 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldV
 		}
 		case USER_COL_AVATAR:
 			return "image://tpimageprovider/"_L1 + fieldValue;
-		default: return QString();
+		default: return QString{};
 	}
 }

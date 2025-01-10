@@ -170,7 +170,15 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	{
 		const uint fieldStart(isBitSet(m_fileContents, IFC_MESO) ? 2 : 0);
 		if (isBitSet(m_fileContents, IFC_MESO) && !isBitSet(wanted_content, IFC_MESO))
-			appMesoModel()->setImportIdx(appMesoModel()->currentMesoIdx());
+		{
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn,selectedFields] () {
+				disconnect(*conn);
+				tryToImport(selectedFields);
+			});
+			selectWhichMesoToImportInto();
+			return;
+		}
 		const uint wanted_content_temp(wanted_content);
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
 			setBit(wanted_content, (selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0));
@@ -198,7 +206,7 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 void QmlItemManager::displayImportDialogMessageAfterMesoSelection(const int meso_idx)
 {
 	appMesoModel()->setImportIdx(meso_idx);
-	displayImportDialogMessage(m_fileContents, m_importFilename);
+	emit mesoForImportSelected();
 }
 
 void QmlItemManager::getSettingsPage(const uint startPageIndex)
@@ -350,6 +358,11 @@ void QmlItemManager::displayImportDialogMessage(const uint fileContents, const Q
 		const bool newMesoImport(appMesoModel()->importIdx() == -1);
 		if (newMesoImport && !(isBitSet(m_fileContents, IFC_MESO)))
 		{
+			auto conn = std::make_shared<QMetaObject::Connection>();
+			*conn = connect(this, &QmlItemManager::mesoForImportSelected, this, [this,conn] () {
+				disconnect(*conn);
+				displayImportDialogMessage(m_fileContents, m_importFilename);
+			});
 			selectWhichMesoToImportInto();
 			return;
 		}
@@ -543,17 +556,16 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 
 void QmlItemManager::importFromFile(const QString& filename, const int wanted_content)
 {
-	int importFileMessageId(APPWINDOW_MSG_IMPORT_FAILED);
+	int importFileMessageId{APPWINDOW_MSG_IMPORT_FAILED};
+	if (isBitSet(wanted_content, IFC_USER))
+	{
+		DBUserModel* usermodel{new DBUserModel{this, false}};
+		usermodel->deleteLater();
+		if (usermodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+			importFileMessageId = incorporateImportedData(usermodel);
+	}
 	if (isBitSet(wanted_content, IFC_MESO))
 	{
-		if (isBitSet(wanted_content, IFC_USER))
-		{
-			DBUserModel* usermodel{new DBUserModel{this, false}};
-			usermodel->deleteLater();
-			if (usermodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-				importFileMessageId = incorporateImportedData(usermodel);
-		}
-
 		DBMesocyclesModel* mesomodel{new DBMesocyclesModel{this, false}};
 		mesomodel->deleteLater();
 		if (mesomodel->importFromFile(filename) == APPWINDOW_MSG_READ_FROM_FILE_OK)
@@ -612,7 +624,7 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
 			{
-				const uint meso_idx = appMesoModel()->createNewMesocycle(false);
+				const uint meso_idx{appMesoModel()->createNewMesocycle(false)};
 				if ((ok = appMesoModel()->updateFromModel(meso_idx, model)))
 				{
 					//If we are importing a complete program with splits as well, let them save split code to the database. The code to save a
@@ -625,8 +637,8 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		break;
 		case MESOSPLIT_TABLE_ID:
 		{
-			DBMesoSplitModel* newSplitModel(static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model)));
-			DBMesoSplitModel* splitModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter()));
+			DBMesoSplitModel* newSplitModel{static_cast<DBMesoSplitModel*>(const_cast<TPListModel*>(model))};
+			DBMesoSplitModel* splitModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->plannerSplitModel(newSplitModel->_splitLetter())};
 			if (splitModel) //exercises planner page for the current meso has been loaded in the session
 			{
 				if ((ok = splitModel->updateFromModel(newSplitModel)))
@@ -646,8 +658,8 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		break;
 		case TRAININGDAY_TABLE_ID:
 		{
-			DBTrainingDayModel* newTDayModel(static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model)));
-			DBTrainingDayModel* tDayModel(appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday());
+			DBTrainingDayModel* newTDayModel{static_cast<DBTrainingDayModel*>(const_cast<TPListModel*>(model))};
+			DBTrainingDayModel* tDayModel{appMesoModel()->mesoManager(appMesoModel()->currentMesoIdx())->tDayModelForToday()};
 			if (tDayModel)
 			{
 				if ((ok = tDayModel->updateFromModel(newTDayModel)))

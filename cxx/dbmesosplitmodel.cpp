@@ -468,7 +468,7 @@ bool DBMesoSplitModel::checkIfFileContentMatchesThisSplit(QFile* inFile)
 //Only for a complete meso split
 int DBMesoSplitModel::importFromFile(const QString& filename)
 {
-	QFile* inFile{new QFile(filename)};
+	QFile* inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
@@ -476,11 +476,11 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 	}
 
 	char buf[512];
-	qint64 lineLength(0);
-	uint col(MESOSPLIT_COL_EXERCISENAME);
+	qint64 lineLength{0};
+	uint col{MESOSPLIT_COL_EXERCISENAME};
 	QString value;
-	bool split_match(false);
-	QStringList modeldata(COMPLETE_MESOSPLIT_TOTAL_COLS);
+	bool split_match{false};
+	QStringList modeldata{COMPLETE_MESOSPLIT_TOTAL_COLS};
 	modeldata[MESOSPLIT_COL_WORKINGSET] = STR_ZERO;
 
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)
@@ -530,17 +530,17 @@ int DBMesoSplitModel::importFromFile(const QString& filename)
 	return m_modeldata.count() > 1 ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
 }
 
-bool DBMesoSplitModel::updateFromModel(const TPListModel* const model)
+bool DBMesoSplitModel::updateFromModel(TPListModel* model)
 {
 	clear();
-	QList<QStringList>::const_iterator lst_itr(model->m_modeldata.constBegin());
+	QList<QStringList>::iterator lst_itr(model->m_modeldata.begin());
 	const QList<QStringList>::const_iterator& lst_itrend(model->m_modeldata.constEnd());
 	do {
-		appendList((*lst_itr));
+		appendList(std::move((*lst_itr)));
 	} while (++lst_itr != lst_itrend);
-	setSplitLetter(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->splitLetter());
-	setMuscularGroup(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->muscularGroup());
-	setMesoIdx(static_cast<DBMesoSplitModel* const>(const_cast<TPListModel*>(model))->mesoIdx());
+	setSplitLetter(static_cast<DBMesoSplitModel* const>(model)->splitLetter());
+	setMuscularGroup(static_cast<DBMesoSplitModel* const>(model)->muscularGroup());
+	setMesoIdx(static_cast<DBMesoSplitModel* const>(model)->mesoIdx());
 	appMesoModel()->setMuscularGroup(m_mesoIdx, _splitLetter(), muscularGroup(), false);
 	emit modelChanged();
 	if (model->importMode())

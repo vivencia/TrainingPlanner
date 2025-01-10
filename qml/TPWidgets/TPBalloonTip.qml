@@ -85,7 +85,7 @@ TPPopup {
 
 		anchors {
 			top: title.length > 0 ? lblTitle.bottom : parent.top
-			topMargin: 10
+			topMargin: 20
 			left: imageSource.length > 0 ? imgElement.right : parent.left
 			leftMargin: 5
 			right: parent.right
@@ -98,8 +98,6 @@ TPPopup {
 		z: 2
 
 		anchors {
-			top: lblMessage.bottom
-			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -219,8 +217,8 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		balloon.height = (title.length > 0 ? blTitle.height : 0) + Math.max(imgElement.height, lblMessage.height) +
-					(button1Text.length > 0 ? btn1.height + 5 : 0) + 10;
+		balloon.height = (title.length > 0 ? lblTitle.height : 0) + Math.max(imgElement.height, lblMessage.height) +
+					(button1Text.length > 0 ? btn1.height + 5 : 0) + 20;
 		show1(ypos);
 	}
 

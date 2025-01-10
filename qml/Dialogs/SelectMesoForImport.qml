@@ -23,7 +23,7 @@ TPPopup {
 
 		anchors {
 			top: parent.top
-			topMargin: 5
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 		}
@@ -37,8 +37,9 @@ TPPopup {
 
 		anchors {
 			top: parent.top
-			topMargin: lblTitle.lineCount*5
+			topMargin: 10
 			left: importImg.right
+			leftMargin: -5
 			right: parent.right
 			rightMargin: 15
 		}
@@ -54,12 +55,12 @@ TPPopup {
 		model: mesosList
 
 		anchors {
+			top: lblTitle.bottom
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
-			bottom: buttonsRow.top
-			bottomMargin: 5
 		}
 
 		ScrollBar.vertical: ScrollBar {

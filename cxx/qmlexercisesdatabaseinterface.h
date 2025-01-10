@@ -34,6 +34,7 @@ public:
 	QString weightLabel() const;
 	QString mediaLabel() const;
 
+	Q_INVOKABLE void saveExercise();
 	Q_INVOKABLE const uint removeExercise(const uint row);
 	Q_INVOKABLE void exportExercises(const bool bShare);
 	Q_INVOKABLE void importExercises(const QString& filename = QString());

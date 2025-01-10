@@ -51,7 +51,7 @@ public:
 
 	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
 	int importFromFile(const QString& filename) override;
-	bool updateFromModel(const TPListModel* const model) override;
+	bool updateFromModel(TPListModel* model) override;
 
 	const QString exportExtraInfo() const;
 	const QString formatSetTypeToExport(const QString& fieldValue) const;
