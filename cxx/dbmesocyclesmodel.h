@@ -58,14 +58,13 @@ public:
 	void openSpecificWorkout(const uint meso_idx, const QDate& date);
 
 	const uint newMesocycle(QStringList&& infolist);
-	void finishedLoadingFromDatabase();
 	inline DBMesoSplitModel* mesoSplitModel() { return m_splitModel; }
 	inline DBMesoCalendarModel* mesoCalendarModel(const uint meso_idx) const { return m_calendarModelList.value(meso_idx); }
 
 	inline bool isNewMeso(const uint meso_idx) const { return m_isNewMeso.at(meso_idx) != 0; }
 	Q_INVOKABLE inline bool isNewMeso() const { return currentMesoIdx() >= 0 ? isNewMeso(currentMesoIdx()) : true; }
 	inline bool canHaveTodaysWorkout() const { return m_bCanHaveTodaysWorkout; }
-	void changeCanHaveTodaysWorkout();
+	void changeCanHaveTodaysWorkout(const uint meso_idx);
 	inline bool currentMesoHasData() const { return m_bCurrentMesoHasData; }
 	void setWorkoutIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 

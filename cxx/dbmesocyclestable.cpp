@@ -7,15 +7,15 @@
 #include <QTime>
 
 DBMesocyclesTable::DBMesocyclesTable(const QString& dbFilePath, DBMesocyclesModel* model)
-	: TPDatabaseTable{}, m_model(model)
+	: TPDatabaseTable{}, m_model{model}
 {
 	m_tableName = std::move("mesocycles_table"_L1);
 	m_tableID = MESOCYCLES_TABLE_ID;
 	setObjectName(DBMesocyclesObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name("db_meso_connection"_L1 + QString::number(m_UniqueID));
+	const QString& cnx_name{"db_meso_connection"_L1 + QString::number(m_UniqueID)};
 	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString& dbname(dbFilePath + DBMesocyclesFileName);
+	const QString& dbname{dbFilePath + DBMesocyclesFileName};
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
@@ -39,7 +39,7 @@ void DBMesocyclesTable::createTable()
 										"real_meso INTEGER"
 									")"_L1
 		};
-		const bool ok = query.exec(strQuery);
+		const bool ok{query.exec(strQuery)};
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 }
@@ -122,7 +122,7 @@ void DBMesocyclesTable::getAllMesocycles()
 {
 	if (openDatabase(true))
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
 		const QString& strQuery{"SELECT * FROM mesocycles_table"_L1};
 
@@ -132,14 +132,12 @@ void DBMesocyclesTable::getAllMesocycles()
 			{
 				do
 				{
-					QStringList meso_info(MESOCYCLES_TOTAL_COLS);
-					for (uint i(MESOCYCLES_COL_ID); i < MESOCYCLES_TOTAL_COLS; ++i)
+					QStringList meso_info{MESOCYCLES_TOTAL_COLS};
+					for (uint i{MESOCYCLES_COL_ID}; i < MESOCYCLES_TOTAL_COLS; ++i)
 						meso_info[i] = std::move(query.value(i).toString());
 					static_cast<void>(m_model->newMesocycle(std::move(meso_info)));
 				} while (query.next ());
-				m_model->finishedLoadingFromDatabase();
-				ok = true;
-				m_model->setReady(true);
+				m_model->setReady(ok = true);
 			}
 		}
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
@@ -150,10 +148,10 @@ void DBMesocyclesTable::saveMesocycle()
 {
 	if (openDatabase())
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const uint row(m_execArgs.at(0).toUInt());
-		bool bUpdate(false);
+		const uint row{m_execArgs.at(0).toUInt()};
+		bool bUpdate{false};
 		QString strQuery;
 
 		if (query.exec("SELECT id FROM mesocycles_table WHERE id=%1"_L1.arg(m_model->id(row))))

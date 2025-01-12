@@ -23,6 +23,7 @@ ListView {
 		width: parent ? parent.width : 0
 
 		onClicked: mesocyclesModel.getMesocyclePage(index);
+		onPressAndHold: mesocyclesModel.currentMesoIdx = index;
 
 		Rectangle {
 			id: optionsRec

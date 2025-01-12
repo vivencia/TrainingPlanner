@@ -17,13 +17,13 @@
 DBMesocyclesModel* DBMesocyclesModel::app_meso_model(nullptr);
 
 DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
-	: TPListModel{parent},
-	 m_mostRecentOwnMesoIdx(-1), m_bCanHaveTodaysWorkout(false)
+	: TPListModel{parent}, m_mostRecentOwnMesoIdx{-1}, m_bCanHaveTodaysWorkout{false}
 {
 	setObjectName(DBMesocyclesObjectName);
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
 	m_splitModel = new DBMesoSplitModel{this, false, 10000};
+	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
 
 	if (bMainAppModel)
 	{
@@ -65,9 +65,9 @@ void DBMesocyclesModel::fillColumnNames()
 DBMesocyclesModel::~DBMesocyclesModel()
 {
 	delete m_splitModel;
-	for (uint i(0); i < m_calendarModelList.count(); ++i)
+	for (uint i{0}; i < m_calendarModelList.count(); ++i)
 		delete m_calendarModelList.at(i);
-	for (uint i(0); i < m_mesoManagerList.count(); ++i)
+	for (uint i{0}; i < m_mesoManagerList.count(); ++i)
 		delete m_mesoManagerList.at(i);
 }
 
@@ -138,6 +138,7 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 		emit mesoIdxChanged(i+1, i);
 	}
 
+	const int most_recent_ownMesoIdx{m_mostRecentOwnMesoIdx};
 	if (m_mostRecentOwnMesoIdx > meso_idx)
 		--m_mostRecentOwnMesoIdx;
 	else if (meso_idx == m_mostRecentOwnMesoIdx)
@@ -145,9 +146,11 @@ void DBMesocyclesModel::removeMesocycle(const uint meso_idx)
 		m_mostRecentOwnMesoIdx = -1;
 		findNextOwnMeso();
 	}
-
-	emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
-	changeCanHaveTodaysWorkout();
+	if (m_mostRecentOwnMesoIdx != most_recent_ownMesoIdx)
+	{
+		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
+		changeCanHaveTodaysWorkout(m_mostRecentOwnMesoIdx);
+	}
 }
 
 void DBMesocyclesModel::getExercisesPlannerPage(const uint meso_idx)
@@ -170,13 +173,14 @@ void DBMesocyclesModel::exportMeso(const uint meso_idx, const bool bShare, const
 	mesoManager(meso_idx)->exportMeso(bShare, bCoachInfo);
 }
 
-
 const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 {
 	appendList_fast(std::move(infolist));
 	m_splitModel->appendList_fast(std::move(QStringList{SIMPLE_MESOSPLIT_TOTAL_COLS}));
 
 	const uint meso_idx{count()-1};
+	if (m_modeldata.constLast().at(MESOCYCLES_COL_ID) == STR_MINUS_ONE)
+		setCurrentMesoIdx(meso_idx, false); //Do not change currentMesoIdx when loading all mesocycles. This value comes from the settings
 	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
@@ -184,30 +188,24 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 	{
 		m_mostRecentOwnMesoIdx = meso_idx;
 		emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
-		changeCanHaveTodaysWorkout();
+		changeCanHaveTodaysWorkout(meso_idx);
 	}
 	m_usedSplits.append(QStringList{});
 	makeUsedSplits(meso_idx);
 	m_isNewMeso.append(0);
 	m_newMesoFieldCounter.append(NEW_MESO_REQUIRED_FIELDS);
-	setCurrentMesoIdx(meso_idx, false);
 	return meso_idx;
 }
 
-void DBMesocyclesModel::finishedLoadingFromDatabase()
+void DBMesocyclesModel::changeCanHaveTodaysWorkout(const uint meso_idx)
 {
-	setReady(true);
-	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
-	if (m_currentMesoIdx == -1)
-		setCurrentMesoIdx(count()-1, false);
-}
-
-void DBMesocyclesModel::changeCanHaveTodaysWorkout()
-{
-	if (m_bCanHaveTodaysWorkout != isDateWithinMeso(m_mostRecentOwnMesoIdx, QDate::currentDate()))
+	if (meso_idx == currentMesoIdx() && isOwnMeso(meso_idx))
 	{
-		m_bCanHaveTodaysWorkout = !m_bCanHaveTodaysWorkout;
-		emit canHaveTodaysWorkoutChanged();
+		if (m_bCanHaveTodaysWorkout != isDateWithinMeso(meso_idx, QDate::currentDate()))
+		{
+			m_bCanHaveTodaysWorkout = !m_bCanHaveTodaysWorkout;
+			emit canHaveTodaysWorkoutChanged();
+		}
 	}
 }
 
@@ -279,7 +277,7 @@ void DBMesocyclesModel::setStartDate(const uint meso_idx, const QDate& new_date)
 	}
 	setModified(meso_idx, MESOCYCLES_COL_STARTDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoStartDateRole);
-	changeCanHaveTodaysWorkout();
+	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_STARTDATE);
 	else
@@ -296,7 +294,7 @@ void DBMesocyclesModel::setEndDate(const uint meso_idx, const QDate& new_date)
 	}
 	setModified(meso_idx, MESOCYCLES_COL_ENDDATE);
 	emit dataChanged(index(meso_idx, 0), index(meso_idx, 0), QList<int>{} << mesoEndDateRole);
-	changeCanHaveTodaysWorkout();
+	changeCanHaveTodaysWorkout(meso_idx);
 	if (!isNewMeso(meso_idx) && m_newMesoFieldCounter.at(meso_idx) == NEW_MESO_REQUIRED_FIELDS)
 		emit mesoCalendarFieldsChanged(meso_idx, MESOCYCLES_COL_ENDDATE);
 	else
@@ -338,7 +336,7 @@ void DBMesocyclesModel::setOwnMeso(const uint meso_idx, const bool bOwnMeso)
 		if (cur_ownmeso != m_mostRecentOwnMesoIdx)
 		{
 			emit mostRecentOwnMesoChanged(m_mostRecentOwnMesoIdx);
-			changeCanHaveTodaysWorkout();
+			changeCanHaveTodaysWorkout(meso_idx);
 		}
 	}
 }
@@ -366,6 +364,7 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 			emit currentMesoIdxChanged();
 			m_bCurrentMesoHasData = !isNewMeso(meso_idx);
 			emit currentMesoHasDataChanged();
+			changeCanHaveTodaysWorkout(meso_idx);
 		}
 	}
 }
@@ -591,7 +590,7 @@ bool DBMesocyclesModel::updateFromModel(const uint meso_idx, TPListModel* model)
 		m_splitModel->m_modeldata[meso_idx][i] = std::move(splitModel->m_modeldata[0][i]);
 	setImportIdx(meso_idx);
 	m_isNewMeso[meso_idx] = 0;
-	changeCanHaveTodaysWorkout();
+	changeCanHaveTodaysWorkout(meso_idx);
 	return true;
 }
 

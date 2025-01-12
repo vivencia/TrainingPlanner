@@ -16,11 +16,11 @@ Label {
 	height: _preferredHeight
 	verticalAlignment: Text.AlignVCenter
 
-	/*Rectangle {
+	Rectangle {
 		border.color: "black"
 		color: "transparent"
 		anchors.fill: parent
-	}*/
+	}
 
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
@@ -41,10 +41,10 @@ Label {
 
 	signal sizeChanged()
 
-	onTextChanged: text => {
+	/*onTextChanged: text => {
 		if (text.length > 0)
 			adjustTextSize();		
-	}
+	}*/
 
 	Component.onCompleted: {
 		appSettings.fontSizeChanged.connect(adjustTextSize);
@@ -53,8 +53,8 @@ Label {
 
 	function adjustTextSize() {
 		if (text.length === 0) return;
-		_textWidth = currentFontMetrics.tightBoundingRect(text).width
-		_textHeight = currentFontMetrics.tightBoundingRect("TP").height
+		_textWidth = currentFontMetrics.boundingRect(text).width
+		_textHeight = currentFontMetrics.boundingRect("TP").height
 		const hasNewLineEscapeChr = text.indexOf('\n') !== -1;
 		singleLine = hasNewLineEscapeChr ? false : width > _textWidth;
 		lineCount = (singleLine ? 0 : Math.ceil(_textWidth/widthAvailable)) + (hasNewLineEscapeChr ? text.split('\n').length - 1: 0);

@@ -131,9 +131,9 @@ Pane {
 								const curIdx = cboBox.currentIndex;
 								if (curIdx > last_letter_idx && curIdx !== 6)
 									cboBox.currentIndex = last_letter_idx;
-								let cboModel = cboBox.model;
+								//let cboModel = cboBox.model;
 								for (let x = 0; x < 6; ++x)
-									cboModel.get(x).enabled = x <= last_letter_idx;
+									cboBox.model.get(x).enabled = x <= last_letter_idx;
 							}
 						}
 
@@ -176,7 +176,7 @@ Pane {
 							right: parent.right
 						}
 
-						onClicked: showMGDialog(this, index, txtSplit);
+						onClicked: showMGDialog(this, index, splitRepeater.itemAt(index).children[0]);
 					}
 				} //Item
 

@@ -19,7 +19,7 @@ TPPage {
 	property TPBalloonTip newMesoTip: exportDlgLoader.item
 	Loader {
 		id: exportDlgLoader
-		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter >= 0
+		active: mesoManager.isNewMeso ? mesoManager.newMesoFieldCounter >= 0 : mesoManager.newMesoFieldCounter === 0
 		asynchronous: true
 
 		sourceComponent: TPBalloonTip {
