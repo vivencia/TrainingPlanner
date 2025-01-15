@@ -23,7 +23,7 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 	m_tableId = MESOCYCLES_TABLE_ID;
 	m_fieldCount = MESOCYCLES_TOTAL_COLS;
 	m_splitModel = new DBMesoSplitModel{this, false, 10000};
-	m_currentMesoIdx = appSettings()->lastViewedMesoIdx();
+	setCurrentMesoIdx(appSettings()->lastViewedMesoIdx(), false);
 
 	if (bMainAppModel)
 	{
@@ -358,11 +358,11 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 	if (meso_idx != m_currentMesoIdx)
 	{
 		m_currentMesoIdx = meso_idx;
+		m_bCurrentMesoHasData = meso_idx >= 0 ? meso_idx < m_isNewMeso.count() ? !isNewMeso(meso_idx) : false : false;
 		if (bEmitSignal)
 		{
 			appSettings()->setLastViewedMesoIdx(meso_idx);
 			emit currentMesoIdxChanged();
-			m_bCurrentMesoHasData = !isNewMeso(meso_idx);
 			emit currentMesoHasDataChanged();
 			changeCanHaveTodaysWorkout(meso_idx);
 		}

@@ -13,6 +13,8 @@ ListView {
 	boundsBehavior: Flickable.StopAtBounds
 	spacing: 10
 
+	readonly property TPButton btnExport: btn_Export
+
 	ScrollBar.vertical: ScrollBar {
 		policy: ScrollBar.AsNeeded
 		active: ScrollBar.AsNeeded
@@ -123,7 +125,7 @@ ListView {
 			}
 
 			TPButton {
-				id: btnExport
+				id: btn_Export
 				text: qsTr("Export")
 				imageSource: "export.png"
 				imageSize: 30
@@ -145,10 +147,8 @@ ListView {
 				}
 
 				onClicked: {
-					if (Qt.platform.os === "android") {
-						btnImExport = this;
+					if (Qt.platform.os === "android")
 						showExportMenu(index);
-					}
 					else
 						exportTypeTip.init(index, false);
 				}

@@ -45,10 +45,16 @@ TPPage {
 		}
 	}
 
+	property alias btnExport: mesosListLoader.btn_Export
 	Loader {
+		id: mesosListLoader
 		active: appSettings.mainUserConfigured
 		asynchronous: true
 		source: "qrc:/qml/Pages/HomePageElements/MesosList.qml"
+
+		property TPButton btn_Export
+
+		onLoaded: btn_Export = item.btnExport;
 
 		anchors {
 			fill: parent
@@ -71,7 +77,7 @@ TPPage {
 			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
 			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(meso_idx, id === 1); });
 		}
-		exportMenu.show2(btnImExport, 0);
+		exportMenu.show2(btnExport, 0);
 	}
 
 	Loader {
