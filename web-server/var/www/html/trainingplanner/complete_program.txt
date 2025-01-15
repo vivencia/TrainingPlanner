@@ -1,0 +1,205 @@
+## Informações do Treinador - 0x0006
+
+Nome: Guilherme Fortunato
+Aniversário: qua. 22/10/1980
+Sexo: Homen
+Cel: +55(19)99695-3111
+E-mail: guilhermeafortunado@gmail.com
+Media Social: 
+Você é: Atleta Amador
+Profissão: 
+Objetivo: Melhora da saúde
+Avatar: m5
+
+####
+
+## Plano de Treinamento - 0x0002
+
+Nome do plano: Fase de transição
+Início: dom. 20/10/2024
+Término: seg. 30/12/2024
+Considerações sobre o plano: 
+Número de semanas: 12
+Divisão Semanal dos Treinos: ABCDBRR
+Coach/Treinador: Guilherme Fortunato
+Cliente: Guilherme Fortunato
+Tipo: Manutenção Física
+Plano tipo Mesociclo: Sim
+
+Divisão A: Costas e abdômen
+Divisão B: Pernas completas
+Divisão C: Peito, ombros e braços
+Divisão D: Costas e braços
+Divisão E: 
+Divisão F: 
+
+####
+
+## Programa de Exercícios - 0x0003
+
+Divisão: A - Costas e abdômen
+
+Exercício: Remada Curvada - barra, pegada pronada
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 12;10;8;6;
+Peso: 40;80;100;120;
+
+Exercício: Serrote - halter ou kettlebell
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Normal;Pirâmide;Normal;Normal;
+Quantidade de subséries: 0
+Repetições: 12;12;12;12;
+Peso: 36;42;42;42;
+
+Exercício: Puxada Frontal - polia, pegada neutra média
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 15;12;10;8;
+Peso: 60;70;80;90;
+
+Exercício: Remada Baixa(Sentada) - polia, pegada neutra média
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 12;12;12;12;
+Peso: 70;80;90;100;
+
+Exercício: Abdominal na Barra Paralela - sem peso + Abdominal na Máquina - reto
+Quantidade de séries: 3
+Instruções para as séries:  
+Tipos de séries: Bi-Set;Bi-Set;Bi-Set;
+Quantidade de subséries: 0
+Repetições: 15;15;15; + 15;15;15; + 
+Peso: 10;10;10; + 10;10;10; + 
+
+####
+
+## Programa de Exercícios - 0x0003
+
+Divisão: B - Pernas completas
+
+Exercício: Mesa Flexora - amplitude total
+Quantidade de séries: 3
+Instruções para as séries:  
+Tipos de séries: Normal;Normal;Normal;
+Quantidade de subséries: 0
+Repetições: 12;12;12;
+Peso: 70;70;70;
+
+Exercício: Agachamento Máquina Platafoma - costas apoiadas na máquina
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 12;11;10;8;
+Peso: 40;80;120;140;
+
+Exercício: Agachamento na Máquina Plataforma - de frente para a máquina
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 8;6;6;10;
+Peso: 160;200;240;280;
+
+Exercício: Cadeira Extensora - amplitude total
+Quantidade de séries: 3
+Instruções para as séries:  
+Tipos de séries: Normal;Normal;Normal;
+Quantidade de subséries: 0
+Repetições: 12;12;12;
+Peso: 120;120;120;
+
+####
+
+## Programa de Exercícios - 0x0003
+
+Divisão: C - Peito, ombros e braços
+
+Exercício: Supino Inclinado 30o - barra
+Quantidade de séries: 5
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;Drop Set;
+Quantidade de subséries: 0;0;0;0;3;
+Repetições: 12;8;6;4;4;
+Peso: 60;80;100;120;100;
+
+Exercício: Supino Reto - barra
+Quantidade de séries: 5
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;Drop Set;
+Quantidade de subséries: 0;0;0;0;3;
+Repetições: 8;6;6;6;6;
+Peso: 60;80;100;120;100;
+
+Exercício: Crucifixo Reto - máquina sentada + Crucifixo Inverso(Voador) - máquina
+Quantidade de séries: 3
+Instruções para as séries:  
+Tipos de séries: Bi-Set;Bi-Set;Bi-Set;
+Quantidade de subséries: 0
+Repetições: 12;12;12; + 12;12;12;
+Peso: 100;100;100; + 100;100;100;
+
+Exercício: Elevação Lateral - halter, em pé
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 20;20;20;20;
+Peso: 16;18;20;22;
+
+Exercício: Rosca Direta - halter, banco inclinado + Tríceps Testa - halter, banco inclinado
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Bi-Set;Bi-Set;Bi-Set;Bi-Set;
+Quantidade de subséries: 0
+Repetições: 15;12;10;8; + 15;12;10;8;
+Peso: 16;18;20;22; + 16;18;20;22;
+
+####
+
+## Programa de Exercícios - 0x0003
+
+Divisão: D - Costas e braços
+
+Exercício: Puxada Frontal - polia, pegada neutra média
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 12;12;12;10;
+Peso: 70;80;90;100;
+
+Exercício: Remada Baixa(Sentada) - máquina, pegada neutra fechada
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 15;15;15;20;
+Peso: 100;150;200;250;
+
+Exercício: Pull-Down - polia, barra ou corda
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Pirâmide;Pirâmide;Pirâmide;Pirâmide;
+Quantidade de subséries: 0
+Repetições: 15;15;15;15;
+Peso: 70;80;90;100;
+
+Exercício: Rosca Direta - polia, barra reta + Extensão de Tríceps - polia, barra reta
+Quantidade de séries: 4
+Instruções para as séries:  
+Tipos de séries: Bi-Set;Bi-Set;Bi-Set;Bi-Set;
+Quantidade de subséries: 0
+Repetições: 15;12;12;8; + 15;12;12;12; +
+Peso: 50;70;90;110; + 50;70;80;80; +
+
+####
+

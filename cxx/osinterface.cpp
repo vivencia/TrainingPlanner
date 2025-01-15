@@ -435,6 +435,13 @@ void OSInterface::restartApp()
 }
 #endif //Q_OS_ANDROID
 
+#include "online_services/tponlineservices.h"
+
+void OSInterface::checkOnlineResources()
+{
+	//TPOnlineServices *tos = new TPOnlineServices{this};
+}
+
 void OSInterface::shareFile(const QString& fileName) const
 {
 	#ifdef Q_OS_ANDROID
@@ -445,7 +452,7 @@ void OSInterface::shareFile(const QString& fileName) const
 		QFile::setPermissions(exportFileName(), QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ReadGroup|QFileDevice::WriteGroup|QFileDevice::ReadOther|QFileDevice::WriteOther);
 	}
 	sendFile(exportFileName(), tr("Send file"), u"image/png"_s, 10);*/
-	sendFile(fileName, tr("Send file"), u"text/plain"_s, 10);
+	sendFile(fileName, tr("Send file"), "text/plain"_L1, 10);
 	#endif
 }
 void OSInterface::openURL(const QString& address) const
@@ -454,7 +461,7 @@ void OSInterface::openURL(const QString& address) const
 	androidOpenURL(address);
 	#else
 	auto* __restrict proc(new QProcess());
-	proc->startDetached(u"xdg-open"_s, QStringList() << address);
+	proc->startDetached("xdg-open"_L1, QStringList() << address);
 	delete proc;
 	#endif
 }
@@ -464,8 +471,8 @@ void OSInterface::startChatApp(const QString& phone, const QString& appname) con
 	if (phone.length() < 17)
 		return;
 	QString phoneNumbers;
-	QString::const_iterator itr(phone.constBegin());
-	const QString::const_iterator& itr_end(phone.constEnd());
+	QString::const_iterator itr{phone.constBegin()};
+	const QString::const_iterator& itr_end{phone.constEnd()};
 	do {
 		if ((*itr).isDigit())
 			phoneNumbers += *itr;

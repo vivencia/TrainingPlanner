@@ -102,6 +102,7 @@ set( CXX_SOURCES
 	cxx/weather/openweathermapbackend.cpp
 
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
+	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
 )
 
 set( JAVA_SOURCES
@@ -123,6 +124,14 @@ set( TS_FILES
 set( QM_FILES
     ${TRANSLATIONS_DIR}/tplanner.pt_BR.qm
     ${TRANSLATIONS_DIR}/tplanner.de_DE.qm
+)
+
+set( SERVER_FILES
+	web-server/etc/nginx/sites-available/default
+	web-server/etc/nginx/nginx.conf
+	web-server/etc/php/8.2/fpm/pool.d/www.conf
+	web-server/var/www/html/trainingplanner/admin/authenticate.php
+	web-server/var/www/html/trainingplanner/complete_program.txt
 )
 
 set( QML_SOURCES
@@ -209,6 +218,7 @@ qt_add_executable(TrainingPlanner
 	${QML_SOURCES}
 	${RESOURCE_FILES}
 	${QM_FILES}
+	${SERVER_FILES}
 )
 
 target_link_libraries(TrainingPlanner PUBLIC

@@ -67,7 +67,7 @@ signals:
 	void weatherInformation(const st_LocationInfo& location, const QList<st_WeatherInfo>& weatherDetails);
 
 private slots:
-	void handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
+	void handleWeatherInfoRequestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate);
 
 private:
 	QNetworkAccessManager* m_networkManager;

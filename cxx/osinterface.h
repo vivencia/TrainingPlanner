@@ -52,6 +52,7 @@ public:
 		#else
 			processArguments();
 		#endif
+		checkOnlineResources();
 	}
 
 #ifdef Q_OS_ANDROID
@@ -76,6 +77,7 @@ public:
 	Q_INVOKABLE void restartApp();
 #endif
 
+	void checkOnlineResources();
 	void shareFile(const QString& fileName) const;
 	Q_INVOKABLE void openURL(const QString& address) const;
 	Q_INVOKABLE void startChatApp(const QString& phone, const QString& appname) const;

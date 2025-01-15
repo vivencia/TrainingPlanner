@@ -281,7 +281,7 @@ void OpenWeatherMapBackend::requestWeatherInfoFromNet(const QGeoCoordinate& coor
 	url.setQuery(query);
 
 	QNetworkReply* reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoResquestReply(reply, coordinate); });
+	connect(reply, &QNetworkReply::finished, this, [this, reply, coordinate]() { handleWeatherInfoRequestReply(reply, coordinate); });
 }
 
 void OpenWeatherMapBackend::requestWeatherInfo(const QString& city, const QGeoCoordinate& coordinate)
@@ -293,7 +293,7 @@ void OpenWeatherMapBackend::requestWeatherInfo(const QString& city, const QGeoCo
 	}
 }
 
-void OpenWeatherMapBackend::handleWeatherInfoResquestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)
+void OpenWeatherMapBackend::handleWeatherInfoRequestReply(QNetworkReply* reply, const QGeoCoordinate& coordinate)
 {
 	if (!reply)
 		return;
