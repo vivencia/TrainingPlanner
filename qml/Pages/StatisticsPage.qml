@@ -221,10 +221,10 @@ TPPage {
 								});
 							}
 
-							function loadData() {
+							function loadData(): void {
 								clear();
 								const splits = mesocyclesModel.usedSplits(selectedMesoIdx);
-								for(var i = 0; i < splits.length; ++i)
+								for(let i = 0; i < splits.length; ++i)
 									append({ "text": splits[i] + ": " + mesocyclesModel.muscularGroup(selectedMesoIdx, splits[i]),
 											"value": splits[i], "enabled": true });
 							}
@@ -251,10 +251,10 @@ TPPage {
 								});
 							}
 
-							function loadData() {
+							function loadData(): void {
 								clear();
 								const exercises = appStatistics.exercisesList();
-								for(var i = 0; i < exercises.length; ++i)
+								for(let i = 0; i < exercises.length; ++i)
 									append({ "text": exercises[i], "value": i });
 							}
 						}
@@ -320,7 +320,7 @@ TPPage {
 		appStatistics.setEndDate(mesocyclesModel.endDate(selectedMesoIdx));
 	}
 
-	function changeSeries(type) {
+	function changeSeries(type): void {
 		if (appStatistics.exercisesSeries === 0)
 			chartView.removeAllSeries();
 		else {

@@ -13,8 +13,6 @@ ListView {
 	boundsBehavior: Flickable.StopAtBounds
 	spacing: 10
 
-	readonly property TPButton btnExport: btn_Export
-
 	ScrollBar.vertical: ScrollBar {
 		policy: ScrollBar.AsNeeded
 		active: ScrollBar.AsNeeded
@@ -26,6 +24,7 @@ ListView {
 
 		onClicked: mesocyclesModel.getMesocyclePage(index);
 		onPressAndHold: mesocyclesModel.currentMesoIdx = index;
+		swipe.onOpened: mesocyclesModel.setCurrentlyViewedMeso(index);
 
 		Rectangle {
 			id: optionsRec
@@ -125,7 +124,7 @@ ListView {
 			}
 
 			TPButton {
-				id: btn_Export
+				id: btnExport
 				text: qsTr("Export")
 				imageSource: "export.png"
 				imageSize: 30
@@ -134,7 +133,7 @@ ListView {
 				flat: false
 				textUnderIcon: true
 				fixedSize: true
-				enabled: mesocyclesModel.currentMesoHasData
+				enabled: mesocyclesModel.viewedMesoHasData
 				width: parent.width/2 - 10
 				height: parent.height/2 - 10
 				z:1
@@ -274,4 +273,43 @@ ListView {
 			}
 		}
 	} //delegate
+
+	property TPFloatingMenuBar exportMenu: null
+	function showExportMenu(meso_idx): void {
+		if (exportMenu === null) {
+			let exportMenuComponent = Qt.createComponent("qrc:/qml/TPWidgets/TPFloatingMenuBar.qml");
+			exportMenu = exportMenuComponent.createObject(homePage, { parentPage: homePage });
+			exportMenu.addEntry(qsTr("Export"), "save-day.png", 0, true);
+			exportMenu.addEntry(qsTr("Share"), "export.png", 1, true);
+			exportMenu.menuEntrySelected.connect(function(id) { exportTypeTip.init(meso_idx, id === 1); });
+		}
+		exportMenu.show2(btnExport, 0);
+	}
+
+	Loader {
+		id: exportTypeTip
+		active: mesocyclesModel.viewedMesoHasData
+		asynchronous: true
+		sourceComponent: TPComplexDialog {
+			id: dialog
+			customStringProperty1: bShare ? qsTr("Share complete program?") : qsTr("Export complete program to file?")
+			customStringProperty2: qsTr("Include Coach data?")
+			customStringProperty3: "export.png"
+			button1Text: qsTr("Yes")
+			button2Text: qsTr("No")
+			customItemSource: "TPDialogWithMessageAndCheckBox.qml"
+			closeButtonVisible: true
+			parentPage: homePage
+
+			onButton1Clicked: mesocyclesModel.exportMeso(mesoIdx, bShare, customBoolProperty1);
+		}
+
+		property int mesoIdx
+		property bool bShare
+		function init(meso_idx: int, share: bool): void {
+			mesoIdx = meso_idx;
+			bShare = share;
+			item.show(-1);
+		}
+	}
 } //ListView

@@ -2,6 +2,7 @@
 #include "tpglobals.h"
 #include "tputils.h"
 #include "translationclass.h"
+#include "online_services/tponlineservices.h"
 
 #include <utility>
 
@@ -215,6 +216,18 @@ uint DBUserModel::userRow(const QString& userName) const
 			return i;
 	}
 	return 0; //Should neve reach here
+}
+
+void DBUserModel::setUserName(const int row, const QString& new_name)
+{
+	if (_userName(row).isEmpty())
+		appOnlineServices()->registerUser(new_name, new_name);
+	else
+		appOnlineServices()->alterUser(_userName(row), new_name, new_name);
+	m_modeldata[row][USER_COL_NAME] = new_name;
+	emit userModified(row, USER_COL_NAME);
+	if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+		emit userAddedOrRemoved(row, true);
 }
 
 int DBUserModel::importFromFile(const QString& filename)

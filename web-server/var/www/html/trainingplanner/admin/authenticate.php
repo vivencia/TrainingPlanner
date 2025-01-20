@@ -68,12 +68,13 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
     }
 }
 else { //other commands to server
+    $return_var = 0;
+    $output = [];
+
     $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
     if ($username) { //new user creation. Encrypt password onto file and create the user's dir
         $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
         $cmd_args = "-bd5";
-        $return_var = 0;
-        $output = [];
         echo "$htpasswd $cmd_args $htpasswd_file $username $new_user_password";
         exec("$htpasswd $cmd_args $htpasswd_file $username $new_user_password", $output, $return_var);
         if ($return_var == 0) {
@@ -87,7 +88,39 @@ else { //other commands to server
             echo "Error creating user\r\n";
         echo "\nExit Code: $return_var";
     }
-    else
+    else {
+        $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
+        if ($username) { //remove user and their dir
+            $cmd_args = "-D";
+            exec("$htpasswd $cmd_args $htpasswd_file $username", $output, $return_var);
+            if ($return_var == 0) {
+                $rmdir = "/usr/bin/rmdir";
+                echo "$rmdir $rootdir$username\r\n";
+                exec("$rmdir $rootdir$username", null, $return_var);
+                echo "User successfully removed\r\n";
+            }
+        }
+        else {
+            $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
+            if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
+                $cmd_args = "-D";
+                exec("$htpasswd $cmd_args $htpasswd_file $username", $output, $return_var);
+                if ($return_var == 0) {
+                    $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
+                    $new_password = isset($_GET['password']) ? $_GET['password'] : '';
+                    $cmd_args = "-bd5";
+                    exec("$htpasswd $cmd_args $htpasswd_file $new_username $new_password", $output, $return_var);
+                    if ($return_var == 0) {
+                        $mvdir = "/usr/bin/mv";
+                        echo "$mvdir $rootdir$username $rootdir$new_username\r\n";
+                        exec("$mvdir $rootdir$username $rootdir$new_username", null, $return_var);
+                        echo "User successfully modified\r\n";
+                    }
+                }
+            }
+        }
+    }
+
         die("Missing user or command");
 }
 

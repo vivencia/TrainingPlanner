@@ -77,13 +77,7 @@ public:
 	Q_INVOKABLE uint userRow(const QString& userName) const;
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString& _userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
-	Q_INVOKABLE inline void setUserName(const int row, const QString& new_name)
-	{
-		m_modeldata[row][USER_COL_NAME] = new_name;
-		emit userModified(row, USER_COL_NAME);
-		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-			emit userAddedOrRemoved(row, true);
-	}
+	Q_INVOKABLE void setUserName(const int row, const QString& new_name);
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{

@@ -435,11 +435,9 @@ void OSInterface::restartApp()
 }
 #endif //Q_OS_ANDROID
 
-#include "online_services/tponlineservices.h"
-
 void OSInterface::checkOnlineResources()
 {
-	//TPOnlineServices *tos = new TPOnlineServices{this};
+//TODO
 }
 
 void OSInterface::shareFile(const QString& fileName) const

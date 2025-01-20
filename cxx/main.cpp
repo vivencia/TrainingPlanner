@@ -1,12 +1,13 @@
+#include "dbinterface.h"
+#include "dbexercisesmodel.h"
+#include "dbmesocyclesmodel.h"
+#include "dbusermodel.h"
+#include "osinterface.h"
+#include "qmlitemmanager.h"
 #include "tpsettings.h"
 #include "tputils.h"
 #include "translationclass.h"
-#include "osinterface.h"
-#include "dbinterface.h"
-#include "dbusermodel.h"
-#include "dbmesocyclesmodel.h"
-#include "dbexercisesmodel.h"
-#include "qmlitemmanager.h"
+#include "online_services/tponlineservices.h"
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -31,6 +32,7 @@ int main(int argc, char *argv[])
 		TPSettings tpSettings{};
 		TPUtils tpUtils{};
 		TranslationClass appTranslations{};
+		TPOnlineServices appTOS{};
 		OSInterface osInterface{};
 		DBInterface appDB{};
 		DBUserModel userModel{};

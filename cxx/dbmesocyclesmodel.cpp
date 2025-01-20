@@ -75,9 +75,9 @@ QMLMesoInterface* DBMesocyclesModel::mesoManager(const uint meso_idx)
 {
 	if (meso_idx >= m_mesoManagerList.count())
 	{
-		for (uint i(m_mesoManagerList.count()); i <= meso_idx ; ++i)
+		for (qsizetype i{m_mesoManagerList.count()}; i <= meso_idx ; ++i)
 		{
-			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, i}};
+			QMLMesoInterface* mesomanager{new QMLMesoInterface{this, static_cast<uint>(i)}};
 			m_mesoManagerList.append(mesomanager);
 		}
 	}
@@ -180,7 +180,8 @@ const uint DBMesocyclesModel::newMesocycle(QStringList&& infolist)
 
 	const uint meso_idx{count()-1};
 	if (m_modeldata.constLast().at(MESOCYCLES_COL_ID) == STR_MINUS_ONE)
-		setCurrentMesoIdx(meso_idx, false); //Do not change currentMesoIdx when loading all mesocycles. This value comes from the settings
+		setViewedMesoHasData(false);
+
 	m_splitModel->setMesoId(meso_idx, id(meso_idx));
 	m_calendarModelList.append(new DBMesoCalendarModel{this, meso_idx});
 	m_newMesoCalendarChanged.append(false);
@@ -358,12 +359,12 @@ void DBMesocyclesModel::setCurrentMesoIdx(const int meso_idx, const bool bEmitSi
 	if (meso_idx != m_currentMesoIdx)
 	{
 		m_currentMesoIdx = meso_idx;
-		m_bCurrentMesoHasData = meso_idx >= 0 ? meso_idx < m_isNewMeso.count() ? !isNewMeso(meso_idx) : false : false;
+		if (meso_idx >= 0 && meso_idx < m_isNewMeso.count())
+			setCurrentlyViewedMeso(meso_idx, bEmitSignal);
 		if (bEmitSignal)
 		{
 			appSettings()->setLastViewedMesoIdx(meso_idx);
 			emit currentMesoIdxChanged();
-			emit currentMesoHasDataChanged();
 			changeCanHaveTodaysWorkout(meso_idx);
 		}
 	}
@@ -374,7 +375,7 @@ void DBMesocyclesModel::makeUsedSplits(const uint meso_idx)
 	QStringList* usedSplit = &(m_usedSplits[meso_idx]);
 	usedSplit->clear();
 	const QString& strSplit{split(meso_idx)};
-	for (uint i(0); i < strSplit.length(); ++i)
+	for (uint i{0}; i < strSplit.length(); ++i)
 	{
 		const char chr(strSplit.at(i).toLatin1());
 		if (chr != 'R' && !usedSplit->contains(chr))
@@ -385,7 +386,7 @@ void DBMesocyclesModel::makeUsedSplits(const uint meso_idx)
 
 void DBMesocyclesModel::findNextOwnMeso()
 {
-	for (int i(count() -1); i >= 0; --i)
+	for (qsizetype i{count() -1}; i >= 0; --i)
 	{
 		if (isOwnMeso(i))
 		{
