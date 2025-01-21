@@ -1,6 +1,7 @@
 #include "qmluserinterface.h"
-#include "dbusermodel.h"
+
 #include "dbinterface.h"
+#include "dbusermodel.h"
 
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -43,6 +44,21 @@ void QmlUserInterface::getSettingsPage(const uint startPageIndex)
 	}
 }
 
+void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
+{
+	appDBInterface()->removeUser(user_row, bCoach);
+	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
+	int firstUserRow(-1), lastUserRow(-1);
+	if (curUserRow > 0)
+	{
+		firstUserRow = appUserModel()->findFirstUser(bCoach);
+		lastUserRow = appUserModel()->findLastUser(bCoach);
+	}
+	m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
+	m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
+	m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
+}
+
 void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches)
 {
 	setClientsOrCoachesPagesProperties(bManageClients, bManageCoaches);
@@ -62,21 +78,6 @@ void QmlUserInterface::getClientsOrCoachesPage(const bool bManageClients, const 
 		else
 			createClientsOrCoachesPage();
 	}
-}
-
-void QmlUserInterface::removeUser(const uint user_row, const bool bCoach)
-{
-	appDBInterface()->removeUser(user_row, bCoach);
-	const int curUserRow(appUserModel()->removeUser(user_row, bCoach));
-	int firstUserRow(-1), lastUserRow(-1);
-	if (curUserRow > 0)
-	{
-		firstUserRow = appUserModel()->findFirstUser(bCoach);
-		lastUserRow = appUserModel()->findLastUser(bCoach);
-	}
-	m_clientsOrCoachesPage->setProperty("curUserRow", curUserRow);
-	m_clientsOrCoachesPage->setProperty("firstUserRow", firstUserRow);
-	m_clientsOrCoachesPage->setProperty("lastUserRow", lastUserRow);
 }
 
 void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)

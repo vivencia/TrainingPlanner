@@ -13,6 +13,7 @@ static const QLatin1StringView uri_paramether_upload{"upload"};
 static const QLatin1StringView uri_paramether_user{"user"};
 static const QLatin1StringView uri_paramether_passwd{"password"};
 static const QLatin1StringView uri_paramether_file{"file"};
+static const QLatin1StringView uri_checkuser{"checkuser"};
 static const QLatin1StringView uri_adduser{"adduser"};
 static const QLatin1StringView uri_deluser{"deluser"};
 static const QLatin1StringView uri_alteruser{"moduser"};
@@ -42,14 +43,21 @@ inline QString makeCommandURI(const QString& command, const QString& parameter, 
 
 void TPOnlineServices::createRootUser()
 {
-	const QUrl url{std::move(makeCommandURI(uri_adduser, root_user, root_passwd))};
+	const QUrl url{std::move(makeCommandURI(uri_adduser, root_user, QString{}, QString{}, root_passwd))};
+	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+}
+
+void TPOnlineServices::checkUser(const QString &username, const QString &passwd)
+{
+	const QUrl url{std::move(makeCommandURI(uri_checkuser, QString{}, QString{}, username, passwd))};
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
 }
 
 void TPOnlineServices::registerUser(const QString& username, const QString& passwd)
 {
-	const QUrl url{std::move(makeCommandURI(uri_adduser, username, passwd))};
+	const QUrl url{std::move(makeCommandURI(uri_adduser, username, QString{}, QString{}, passwd))};
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
 }
@@ -72,8 +80,17 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 {
 	if (!reply)
 		return;
-	if (!reply->error())
-		qDebug() << QString::fromUtf8(reply->readAll());
-	else
-		qDebug() << reply->errorString();
+	QString replyString{std::move(QString::fromUtf8(reply->readAll()))};
+	if (reply->error())
+		replyString += " ***** "_L1 + std::move(reply->errorString());
+	qDebug() << replyString;
+	qsizetype ret_idx{replyString.indexOf("Return code: ")};
+	int ret_code = -100;
+	if (ret_idx != -1)
+	{
+		replyString.remove(ret_idx, replyString.length() - ret_idx);
+		ret_idx += 13;
+		ret_code = replyString.sliced(ret_idx, replyString.indexOf(' ', ret_idx + 1)).toInt();
+	}
+	emit networkRequestProcessed(ret_code, replyString.simplified());
 }

@@ -22,9 +22,13 @@ public:
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
 	void createRootUser();
+	void checkUser(const QString &username, const QString &passwd);
 	void registerUser(const QString &username, const QString &passwd);
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
+
+signals:
+	void networkRequestProcessed(const int ret_code, const QString &ret_string);
 
 private:
 	void handleServerRequestReply(QNetworkReply *reply);

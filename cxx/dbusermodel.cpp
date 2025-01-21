@@ -1,4 +1,6 @@
 #include "dbusermodel.h"
+
+#include "qmlitemmanager.h"
 #include "tpglobals.h"
 #include "tputils.h"
 #include "translationclass.h"
@@ -170,7 +172,7 @@ int DBUserModel::findLastUser(const bool bCoach)
 	return m_searchRow;
 }
 
-const int DBUserModel::getRowByCoachName(const QString& coachname) const
+const int DBUserModel::getRowByCoachName(const QString &coachname) const
 {
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
@@ -208,29 +210,61 @@ QStringList DBUserModel::getClients() const
 	return clients;
 }
 
-uint DBUserModel::userRow(const QString& userName) const
+uint DBUserModel::userRow(const QString &userName) const
 {
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
 		if (m_modeldata.at(i).at(USER_COL_NAME) == userName)
 			return i;
 	}
-	return 0; //Should neve reach here
+	return 0; //Should never reach here
 }
 
-void DBUserModel::setUserName(const int row, const QString& new_name)
+void DBUserModel::setUserName(const int row, const QString &new_name, const int ret_code, const QString &networkReply)
 {
-	if (_userName(row).isEmpty())
-		appOnlineServices()->registerUser(new_name, new_name);
+	QString name_prefix; //Used for easier identification on the server side
+	const uint app_use_mode{appUserModel()->appUseMode(row)};
+	switch (app_use_mode)
+	{
+		case APP_USE_MODE_CLIENTS:
+		case APP_USE_MODE_SINGLE_USER:
+			name_prefix = std::move("u_"_L1);
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+		case APP_USE_MODE_COACH_USER_WITH_COACH:
+			name_prefix = std::move("uc_"_L1);
+		break;
+		case APP_USE_MODE_SINGLE_COACH:
+			name_prefix = std::move("c_"_L1);
+		break;
+	}
+	if (ret_code == -1000)
+	{
+		appOnlineServices()->checkUser(name_prefix + new_name, new_name);
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
+			setUserName(row, new_name, ret_code, ret_string);
+		});
+	}
 	else
-		appOnlineServices()->alterUser(_userName(row), new_name, new_name);
-	m_modeldata[row][USER_COL_NAME] = new_name;
-	emit userModified(row, USER_COL_NAME);
-	if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-		emit userAddedOrRemoved(row, true);
+	{
+		if (ret_code == 0)
+		{
+			if (appUserModel()->_userName(row).isEmpty())
+				appOnlineServices()->registerUser(name_prefix + new_name, new_name);
+			else
+				appOnlineServices()->alterUser(name_prefix + appUserModel()->_userName(row), name_prefix + new_name, new_name);
+			m_modeldata[row][USER_COL_NAME] = new_name;
+			emit userModified(row, USER_COL_NAME);
+			if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+				emit userAddedOrRemoved(row, true);
+		}
+		else
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, networkReply);
+		emit userNameOK(row, ret_code == 0);
+	}
 }
 
-int DBUserModel::importFromFile(const QString& filename)
+int DBUserModel::importFromFile(const QString &filename)
 {
 	QFile* inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
@@ -299,7 +333,7 @@ bool DBUserModel::updateFromModel(TPListModel *model)
 	return true;
 }
 
-QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldValue) const
+QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
 	switch (field)
 	{
@@ -321,7 +355,7 @@ QString DBUserModel::formatFieldToExport(const uint field, const QString& fieldV
 	}
 }
 
-QString DBUserModel::formatFieldToImport(const uint field, const QString& fieldValue) const
+QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
 {
 	switch (field)
 	{

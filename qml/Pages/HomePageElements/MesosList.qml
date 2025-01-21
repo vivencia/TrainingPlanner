@@ -18,6 +18,14 @@ ListView {
 		active: ScrollBar.AsNeeded
 	}
 
+	property bool viewedMesoHasData
+	Connections {
+		target: mesocyclesModel
+		function onViewedMesoHasDataChanged() {
+			viewedMesoHasData = mesocyclesModel.viewedMesoHasData();
+		}
+	}
+
 	delegate: SwipeDelegate {
 		id: mesoDelegate
 		width: parent ? parent.width : 0
@@ -133,7 +141,7 @@ ListView {
 				flat: false
 				textUnderIcon: true
 				fixedSize: true
-				enabled: mesocyclesModel.viewedMesoHasData
+				enabled: viewedMesoHasData
 				width: parent.width/2 - 10
 				height: parent.height/2 - 10
 				z:1
@@ -288,7 +296,7 @@ ListView {
 
 	Loader {
 		id: exportTypeTip
-		active: mesocyclesModel.viewedMesoHasData
+		active: viewedMesoHasData
 		asynchronous: true
 		sourceComponent: TPComplexDialog {
 			id: dialog

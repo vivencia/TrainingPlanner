@@ -27,6 +27,8 @@
 #include "tptimer.h"
 #include "tpworkoutscalendar.h"
 #include "translationclass.h"
+
+#include "online_services/tponlineservices.h"
 #include "weather/weatherinfo.h"
 
 #include <QFile>
@@ -128,6 +130,7 @@ void QmlItemManager::configureQmlEngine()
 
 	if (!appSettings()->mainUserConfigured())
 	{
+		appOnlineServices()->createRootUser();
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);
@@ -688,6 +691,21 @@ void QmlItemManager::displayMessageOnAppWindow(const int message_id, const QStri
 	QString title, message;
 	switch (message_id)
 	{
+		case APPWINDOW_MSG_CUSTOM_MESSAGE:
+		{
+			const qsizetype sep_idx{fileName.lastIndexOf(record_separator)};
+			title = sep_idx >= 1 ? fileName.left(sep_idx) : std::move(tr("Message"));
+			message = sep_idx >= 1 ? fileName.right(fileName.length() - sep_idx - 1) : fileName;
+		}
+		break;
+		case APPWINDOW_MSG_CUSTOM_WARNING:
+			title = std::move(tr("WARNING!"));
+			message = fileName;
+		break;
+		case APPWINDOW_MSG_CUSTOM_ERROR:
+			title = std::move(tr("ERROR!"));
+			message = fileName;
+		break;
 		case APPWINDOW_MSG_EXPORT_OK:
 			title = std::move(tr("Succesfully exported"));
 			message = std::move(appUtils()->getFileName(fileName));

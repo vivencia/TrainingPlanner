@@ -23,12 +23,20 @@ Frame {
 	required property TPPage parentPage
 	required property int userRow
 	property bool bReady: bNameOK && bBirthDateOK && bSexOK
-	property bool bNameOK: false
+	property bool bNameOK: userModel.userName(userRow).length >= 5
 	property bool bBirthDateOK: false
 	property bool bSexOK: false
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
+
+	Connections {
+		target: userModel
+		function onUserNameOK(row: int, b_ok: bool): void {
+			if (row === userRow)
+				bNameOK = b_ok;
+		}
+	}
 
 	TPLabel {
 		id: lblName
@@ -50,8 +58,6 @@ Frame {
 		height: controlsHeight
 		text: userModel.userName(userRow);
 		ToolTip.text: qsTr("The name is too short")
-
-		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
 		onEditingFinished: {
 			if (bNameOK)

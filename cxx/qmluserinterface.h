@@ -21,8 +21,8 @@ public:
 	~QmlUserInterface();
 
 	void getSettingsPage(const uint startPageIndex);
-	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 	Q_INVOKABLE void removeUser(const uint user_row, const bool bCoach);
+	Q_INVOKABLE void getClientsOrCoachesPage(const bool bManageClients, const bool bManageCoaches);
 
 public slots:
 	void userModifiedSlot(const uint user_row, const uint field);

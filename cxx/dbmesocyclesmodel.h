@@ -30,7 +30,6 @@ class DBMesocyclesModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(bool canHaveTodaysWorkout READ canHaveTodaysWorkout NOTIFY canHaveTodaysWorkoutChanged FINAL)
-Q_PROPERTY(bool viewedMesoHasData READ viewedMesoHasData WRITE setViewedMesoHasData NOTIFY viewedMesoHasDataChanged FINAL)
 Q_PROPERTY(int currentMesoIdx READ currentMesoIdx WRITE setCurrentMesoIdx NOTIFY currentMesoIdxChanged FINAL)
 
 	enum RoleNames {
@@ -71,7 +70,7 @@ public:
 	{
 		setViewedMesoHasData(!isNewMeso(meso_idx), bEmitSignal);
 	}
-	inline bool viewedMesoHasData() const { return m_bViewedMesoHasData; }
+	Q_INVOKABLE inline bool viewedMesoHasData() const { return m_bViewedMesoHasData; }
 	inline void setViewedMesoHasData(const bool bHasData, const bool bEmitSignal = true)
 	{
 		m_bViewedMesoHasData = bHasData;
