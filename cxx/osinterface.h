@@ -43,6 +43,10 @@ public:
 	#endif
 	}
 
+	#ifdef Q_OS_LINUX
+		void configureLocalServer();
+	#endif
+
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck()
 	{
@@ -50,7 +54,9 @@ public:
 			checkPendingIntents();
 			startAppNotifications();
 		#else
-			processArguments();
+			#ifdef Q_OS_LINUX
+				processArguments();
+			#endif
 		#endif
 		checkOnlineResources();
 	}
@@ -73,8 +79,10 @@ public:
 	void checkNotificationsStatus();
 	void checkWorkouts();
 #else
-	void processArguments() const;
-	Q_INVOKABLE void restartApp();
+	#ifdef Q_OS_LINUX
+		void processArguments() const;
+		Q_INVOKABLE void restartApp();
+	#endif
 #endif
 
 	void checkOnlineResources();

@@ -127,11 +127,11 @@ set( QM_FILES
 )
 
 set( SERVER_FILES
-	web-server/etc/nginx/sites-available/default
-	web-server/etc/nginx/nginx.conf
-	web-server/etc/php/8.2/fpm/pool.d/www.conf
-	web-server/var/www/html/trainingplanner/admin/authenticate.php
-	web-server/var/www/html/trainingplanner/complete_program.txt
+	web-server/default
+	web-server/nginx.conf
+	web-server/www.conf
+	web-server/uri_parser.php
+	web-server/init_script.sh
 )
 
 set( QML_SOURCES

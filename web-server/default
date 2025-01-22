@@ -58,7 +58,7 @@ server {
 
 		# FastCGI location for handling requests
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;  # PHP-FPM socket (adjust as needed)
-        fastcgi_param SCRIPT_FILENAME /var/www/html/trainingplanner/admin/authenticate.php;  # Path to your PHP script
+        fastcgi_param SCRIPT_FILENAME /var/www/html/trainingplanner/scripts/uri_parser.php;  # Path to your PHP script
         include fastcgi_params;
 
 

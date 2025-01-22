@@ -101,6 +101,11 @@ OSInterface::OSInterface(QObject* parent)
 #endif
 }
 
+void OSInterface::configureLocalServer()
+{
+
+}
+
 void OSInterface::aboutToExit()
 {
 	appDBInterface()->cleanUpThreads();

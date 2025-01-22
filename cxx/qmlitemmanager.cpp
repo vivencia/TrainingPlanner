@@ -130,7 +130,9 @@ void QmlItemManager::configureQmlEngine()
 
 	if (!appSettings()->mainUserConfigured())
 	{
-		appOnlineServices()->createRootUser();
+#ifdef Q_OS_LINUX
+		appOsInterface()->configureLocalServer();
+#endif
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);

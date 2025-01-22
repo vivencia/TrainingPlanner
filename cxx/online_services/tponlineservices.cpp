@@ -1,5 +1,7 @@
 #include "tponlineservices.h"
 
+#include "../tpglobals.h"
+
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -78,19 +80,17 @@ void TPOnlineServices::alterUser(const QString &old_username, const QString &new
 
 void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 {
-	if (!reply)
-		return;
-	QString replyString{std::move(QString::fromUtf8(reply->readAll()))};
-	if (reply->error())
-		replyString += " ***** "_L1 + std::move(reply->errorString());
-	qDebug() << replyString;
-	qsizetype ret_idx{replyString.indexOf("Return code: ")};
 	int ret_code = -100;
-	if (ret_idx != -1)
+	QString replyString;
+	if (reply)
 	{
-		replyString.remove(ret_idx, replyString.length() - ret_idx);
-		ret_idx += 13;
-		ret_code = replyString.sliced(ret_idx, replyString.indexOf(' ', ret_idx + 1)).toInt();
+		replyString = std::move(QString::fromUtf8(reply->readAll()));
+		if (reply->error())
+			replyString += " ***** "_L1 + std::move(reply->errorString());
+		LOG_MESSAGE(replyString);
+		//Slice off "Return code: "
+		ret_code = replyString.sliced(13, replyString.indexOf(' ', 13)).toInt();
+		replyString.remove(0, replyString.indexOf(' ', 13) + 1);
 	}
 	emit networkRequestProcessed(ret_code, replyString.simplified());
 }
