@@ -324,6 +324,13 @@ void QmlItemManager::displayActivityResultMessage(const int requestCode, const i
 	QFile::remove(m_exportFilename);
 }
 
+void QmlItemManager::getPasswordDialog(const QString& title, const QString& message) const
+{
+	connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(qmlPasswordDialogClosed_slot(int,QString)),
+		static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	QMetaObject::invokeMethod(appMainWindow(), "showPasswordDialog", Q_ARG(QString, title), Q_ARG(QString, message));
+}
+
 void QmlItemManager::selectWhichMesoToImportInto()
 {
 	QString message;
@@ -334,7 +341,7 @@ void QmlItemManager::selectWhichMesoToImportInto()
 	QStringList mesoInfo;
 	QList<int> idxsList;
 	const QDate& today{QDate::currentDate()};
-	for (uint i(0); i < appMesoModel()->count(); ++i)
+	for (uint i{0}; i < appMesoModel()->count(); ++i)
 	{
 		if (appMesoModel()->isDateWithinMeso(i, today))
 		{

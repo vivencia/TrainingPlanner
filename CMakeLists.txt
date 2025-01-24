@@ -145,6 +145,7 @@ set( QML_SOURCES
     "qml/Dialogs/MainMenu.qml"
     "qml/Dialogs/MuscularGroupPicker.qml"
     "qml/Dialogs/NavBar.qml"
+    "qml/Dialogs/PasswordDialog.qml"
     "qml/Dialogs/SelectMesoForImport.qml"
     "qml/Dialogs/TimePicker.qml"
     "qml/Dialogs/TimerDialog.qml"

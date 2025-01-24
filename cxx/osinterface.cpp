@@ -32,15 +32,21 @@ const QString& workoutDoneMessage{qApp->tr("Your training routine seems to go we
 #define USER_NOTIFICATION 0x3C
 
 #else
+
+#ifdef Q_OS_LINUX
 #include <QProcess>
+static const QString& tp_server_config_script{QString(::getenv("HOME")) + "/software/trainingplanner/web-server/init_script.sh"_L1};
+
 extern "C"
 {
 	#include <unistd.h>
 }
 #endif
+#endif
 
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QProcess>
 #include <QStandardPaths>
 
 OSInterface* OSInterface::app_os_interface(nullptr);
@@ -99,11 +105,6 @@ OSInterface::OSInterface(QObject* parent)
 
 	m_AndroidNotification = new TPAndroidNotification{this};
 #endif
-}
-
-void OSInterface::configureLocalServer()
-{
-
 }
 
 void OSInterface::aboutToExit()
@@ -411,13 +412,56 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 } //extern "C"
 
 #else
+
+void OSInterface::configureLocalServer(bool second_pass)
+{
+	if (!second_pass)
+	{
+		QProcess *checkConfiguration{new QProcess{this}};
+		connect(checkConfiguration, &QProcess::finished, this, [this] (int exitCode, QProcess::ExitStatus) {
+			switch (exitCode)
+			{
+				case 0:
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 +
+							record_separator + "Up and running!"_L1);
+				break;
+				case 2: configureLocalServer(true); break;
+			}
+		});
+		checkConfiguration->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
+		return;
+	}
+	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this] (int resultCode, const QString& password) {
+		if (resultCode == 0)
+		{
+			QProcess *setupConfiguration{new QProcess{this}};
+			connect(setupConfiguration, &QProcess::finished, this, [this,setupConfiguration] (int exitCode, QProcess::ExitStatus exitStatus) {
+				if (exitStatus != QProcess::NormalExit)
+					exitCode = 10;
+				int network_status = networkStatus();
+				setBit(network_status, exitCode == 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+				unSetBit(network_status, exitCode != 0 ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+				setNetworkStatus(network_status);
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
+						setupConfiguration->readAllStandardOutput() + "\nReturn code("_L1 + QString::number(exitCode) + ')');
+			});
+			setupConfiguration->start(tp_server_config_script , {"setup"_L1, "-p="_L1 + password}, QIODeviceBase::ReadOnly);
+		}
+		else
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, "Linux TP Server"_L1 + record_separator +
+				"Setup operation canceled by the user"_L1);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appItemManager()->getPasswordDialog("Administrator's rights needed"_L1,
+								"In order to setup and/or start the local HTTP server, you need to provide your user's password"_L1);
+}
+
 void OSInterface::processArguments() const
 {
-	const QStringList& args(qApp->arguments());
+	const QStringList &args{qApp->arguments()};
 	if (args.count() > 1)
 	{
 		QString filename;
-		for (uint i(1); i < args.count(); ++i)
+		for (uint i{1}; i < args.count(); ++i)
 			filename += args.at(i) + ' ';
 		filename.chop(1);
 		const QFileInfo file{filename};
@@ -429,7 +473,7 @@ void OSInterface::processArguments() const
 void OSInterface::restartApp()
 {
 	char* args[2] = { nullptr, nullptr };
-	const QString& argv0{qApp->arguments().at(0)};
+	const QString &argv0{qApp->arguments().at(0)};
 	args[0] = static_cast<char*>(::malloc(static_cast<size_t>(argv0.toLocal8Bit().size()) * sizeof(char)));
 	::strncpy(args[0], argv0.toLocal8Bit().constData(), argv0.length());
 	::execv(args[0], args);

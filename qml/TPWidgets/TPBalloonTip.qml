@@ -69,8 +69,6 @@ TPPopup {
 		anchors {
 			left: parent.left
 			leftMargin: 5
-			top: title.length > 0 ? lblTitle.bottom : parent.top
-			topMargin: 5
 		}
 	}
 
@@ -90,6 +88,27 @@ TPPopup {
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
+		}
+
+		Component.onCompleted: anchorElements();
+		onSizeChanged: anchorElements();
+
+		function anchorElements() {
+			if (lblMessage.height < 50) {
+				if (imageSource.length > 0) {
+					imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : parent.top;
+					imgElement.anchors.topMargin = 5;
+					anchors.verticalCenter = imgElement.verticalCenter;
+				}
+				else
+					anchors.verticalCenter = parent.verticalCenter;
+			}
+			else {
+				anchors.top = title.length > 0 ? lblTitle.bottom : parent.top;
+				anchors.topMargin = 10;
+				if (imageSource.length > 0)
+					imgElement.anchors.verticalCenter = verticalCenter;
+			}
 		}
 	}
 
@@ -217,7 +236,7 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		balloon.height = (title.length > 0 ? lblTitle.height : 0) + Math.max(imgElement.height, lblMessage.height) +
+		balloon.height = (title.length > 0 ? lblTitle.height : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
 					(button1Text.length > 0 ? btn1.height + 5 : 0) + 20;
 		show1(ypos);
 	}

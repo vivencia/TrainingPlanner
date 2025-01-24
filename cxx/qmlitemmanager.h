@@ -42,6 +42,7 @@ public:
 	const QString& setExportFileName(const QString& filename);
 	void continueExport(int exportMessageId, const bool bShare);
 	void displayActivityResultMessage(const int requestCode, const int resultCode) const;
+	void getPasswordDialog(const QString& title, const QString& message) const;
 	void selectWhichMesoToImportInto();
 	void displayImportDialogMessage(const uint fileContents, const QString& filename);
 	void openRequestedFile(const QString& filename, const int wanted_content = IFC_ANY_);
@@ -50,6 +51,7 @@ public:
 
 signals:
 	void mesoForImportSelected();
+	void qmlPasswordDialogClosed(int resultCode, QString password);
 
 public slots:
 	void mainWindowStarted() const;
@@ -58,6 +60,7 @@ public slots:
 	void importSlot_FileChosen(const QString& filePath = QString(), const int fileType = IFC_ANY_);
 	void addMainMenuShortCut(const QString& label, QQuickItem* page);
 	void removeMainMenuShortCut(QQuickItem* page);
+	inline void qmlPasswordDialogClosed_slot(int resultCode, QString password) { emit qmlPasswordDialogClosed(resultCode, password); }
 
 private:
 	uint m_fileContents;

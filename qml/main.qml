@@ -25,6 +25,7 @@ ApplicationWindow {
 	signal saveFileRejected(filepath: string);
 	signal openFileChosen(filepath: string, filetype: int);
 	signal openFileRejected(filepath: string);
+	signal passwordDialogClosed(resultCode: int, password: string);
 
 	Component.onCompleted: {
 		if (Qt.platform.os === "android")
@@ -81,33 +82,6 @@ ApplicationWindow {
 		}
 	}
 
-	/*FirstTimeDialog {
-		DBUserModel {
-			id: userModel
-		}
-		id: firstTimeDlgg
-		parentPage: homePage
-	}*/
-
-	property var firstTimeDlg: null
-	function showFirstUseTimeDialog(): void {
-		function createFirstTimeDialog() {
-			var component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
-
-			function finishCreation() {
-				firstTimeDlg = component.createObject(homePage, { parentPage: homePage });
-				firstTimeDlg.open();
-			}
-
-			if (component.status === Component.Ready)
-				finishCreation();
-			else
-				component.statusChanged.connect(finishCreation);
-		}
-		createFirstTimeDialog();
-		//firstTimeDlgg.open();
-	}
-
 	signal pageDeActivated_main(Item page);
 	function popFromStack(page: Item): void {
 		pageDeActivated_main(stackView.currentItem);
@@ -146,6 +120,33 @@ ApplicationWindow {
 		importConfirmDialog.title = qsTr("Proceed with action?");
 		importConfirmDialog.message = message;
 		importConfirmDialog.show(-1);
+	}
+
+	/*FirstTimeDialog {
+		DBUserModel {
+			id: userModel
+		}
+		id: firstTimeDlgg
+		parentPage: homePage
+	}*/
+
+	property FirstTimeDialog firstTimeDlg: null
+	function showFirstUseTimeDialog(): void {
+		function createFirstTimeDialog() {
+			let component = Qt.createComponent("qrc:/qml/Dialogs/FirstTimeDialog.qml", Qt.Asynchronous);
+
+			function finishCreation() {
+				firstTimeDlg = component.createObject(homePage, { parentPage: homePage });
+				firstTimeDlg.open();
+			}
+
+			if (component.status === Component.Ready)
+				finishCreation();
+			else
+				component.statusChanged.connect(finishCreation);
+		}
+		createFirstTimeDialog();
+		//firstTimeDlgg.show1(-1);
 	}
 
 	property TPImportDialog importOpenDialog: null
@@ -217,7 +218,7 @@ ApplicationWindow {
 	function chooseFolderToSave(filename: string): void {
 		if (saveDialog === null) {
 			function createSaveDialog() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPSaveDialog.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/Dialogs/TPSaveDialog.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					saveDialog = component.createObject(contentItem, {});
@@ -231,6 +232,26 @@ ApplicationWindow {
 			createSaveDialog();
 		}
 		saveDialog.init(filename);
+	}
+
+	property PasswordDialog passwdDlg: null
+	function showPasswordDialog(title: string, message: string): void {
+		if (passwdDlg === null) {
+			function createPasswordDialog() {
+				let component = Qt.createComponent("qrc:/qml/Dialogs/PasswordDialog.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					passwdDlg = component.createObject(contentItem, { parentPage: homePage, title:title, message:message });
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createPasswordDialog();
+		}
+		passwdDlg.show(-1);
 	}
 
 	TPBalloonTip {

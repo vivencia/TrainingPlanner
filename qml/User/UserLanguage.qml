@@ -27,6 +27,7 @@ ColumnLayout {
 		id: optEn
 		text: "Application Language: English"
 		image: "us"
+		multiLine: true
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "en_US"
@@ -43,6 +44,7 @@ ColumnLayout {
 		id: optBr
 		text: "Linguagem do aplicativo: Português do Brasil"
 		image: "brazil"
+		multiLine: true
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "pt_BR"
@@ -58,6 +60,7 @@ ColumnLayout {
 		id: optDe
 		text: "Sprache des Apps: Deutsch von Deutschland"
 		image: "deutschland"
+		multiLine: true
 		imageWidth: 60
 		imageHeight: 32
 		checked: appSettings.appLocale === "de_DE"

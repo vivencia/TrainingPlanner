@@ -29,10 +29,22 @@ struct notificationData {
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
 
+enum SERVER_STATUS {
+	SERVER_UP_AND_RUNNING = 0,
+	SERVER_UNREACHABLE = 1
+};
+
+enum INTERNET_STATUS {
+	HAS_INTERNET = 2,
+	NO_INTERNET_ACCESS = 3
+};
+
 class OSInterface : public QObject
 {
 
 Q_OBJECT
+
+Q_PROPERTY(int networkStatus READ networkStatus WRITE setNetworkStatus NOTIFY networkStatusChanged FINAL)
 
 public:
 	explicit OSInterface(QObject* parent = nullptr);
@@ -43,9 +55,8 @@ public:
 	#endif
 	}
 
-	#ifdef Q_OS_LINUX
-		void configureLocalServer();
-	#endif
+	inline int networkStatus() const { return m_networkStatus; }
+	inline void setNetworkStatus(int new_status) {m_networkStatus = new_status; emit networkStatusChanged(); }
 
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck()
@@ -80,6 +91,7 @@ public:
 	void checkWorkouts();
 #else
 	#ifdef Q_OS_LINUX
+		void configureLocalServer(bool second_pass = false);
 		void processArguments() const;
 		Q_INVOKABLE void restartApp();
 	#endif
@@ -98,12 +110,14 @@ signals:
 #endif
 	void appSuspended();
 	void appResumed();
+	void networkStatusChanged();
 
 public slots:
 	void aboutToExit();
 
 private:
 	QString m_appDataFilesPath;
+	int m_networkStatus;
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
