@@ -271,6 +271,19 @@ bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2)
 	return false;
 }
 
+QString TPUtils::stripDiacriticsFromString(const QString& src) const
+{
+	QString filtered;
+    for (qsizetype i{0}; i < src.length(); ++i)
+	{
+		if (src.at(i).decompositionTag() != QChar::NoDecomposition)
+			filtered.push_back(src.at(i).decomposition().at(0));
+		else
+			filtered.push_back(src.at(i));
+	}
+	return filtered;
+}
+
 QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const
 {
 	strValue.replace('.', ',');

@@ -75,6 +75,8 @@ public:
 	}
 
 	bool stringsAreSimiliar(const QString& string1, const QString& string2) const;
+	QString stripDiacriticsFromString(const QString& src) const;
+
 	Q_INVOKABLE QString setTypeOperation(const uint settype, const bool bIncrease, QString strValue) const;
 
 	void setAppLocale(const QString& localeStr, const bool bWriteConfig);

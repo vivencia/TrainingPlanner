@@ -267,7 +267,6 @@ ApplicationWindow {
 	TPBalloonTip {
 		id: activityFinishedTip
 		imageSource: "import.png"
-		button1Text: "OK"
 		parentPage: homePage
 	}
 

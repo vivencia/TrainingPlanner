@@ -43,16 +43,9 @@ inline QString makeCommandURI(const QString& command, const QString& parameter, 
 	return ret;
 }
 
-void TPOnlineServices::createRootUser()
-{
-	const QUrl url{std::move(makeCommandURI(uri_adduser, root_user, QString{}, QString{}, root_passwd))};
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
-}
-
 void TPOnlineServices::checkUser(const QString &username, const QString &passwd)
 {
-	const QUrl url{std::move(makeCommandURI(uri_checkuser, QString{}, QString{}, username, passwd))};
+	const QUrl url{std::move(makeCommandURI(uri_checkuser, username, QString{}, QString{}, passwd))};
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
 	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
 }
@@ -89,8 +82,9 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 			replyString += " ***** "_L1 + std::move(reply->errorString());
 		LOG_MESSAGE(replyString);
 		//Slice off "Return code: "
-		ret_code = replyString.sliced(13, replyString.indexOf(' ', 13)).toInt();
-		replyString.remove(0, replyString.indexOf(' ', 13) + 1);
+		const qsizetype ret_code_idx{replyString.indexOf("Return code: ") + 13};
+		ret_code = replyString.sliced(ret_code_idx, replyString.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
+		static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
 	}
 	emit networkRequestProcessed(ret_code, replyString.simplified());
 }

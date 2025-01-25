@@ -168,8 +168,12 @@ public:
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
 	Q_INVOKABLE inline void setAppUseMode(const int row, const int new_use_opt)
 	{
-		m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
-		emit userModified(row, USER_COL_APP_USE_MODE);
+		if (new_use_opt != appUseMode(row))
+		{
+			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
+			emit userModified(row, USER_COL_APP_USE_MODE);
+			setUserName(row, userName(row));
+		}
 	}
 
 	Q_INVOKABLE inline int currentCoach(const int row) const { return row >= 0 && row < m_modeldata.count() ? _currentCoach(row).toUInt() : -1; }

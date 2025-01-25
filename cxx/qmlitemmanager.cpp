@@ -130,7 +130,7 @@ void QmlItemManager::configureQmlEngine()
 
 	if (!appSettings()->mainUserConfigured())
 	{
-#ifdef Q_OS_LINUX
+#ifndef Q_OS_ANDROID
 		appOsInterface()->configureLocalServer();
 #endif
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");

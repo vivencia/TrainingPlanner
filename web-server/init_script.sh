@@ -7,10 +7,6 @@ SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 PASSWORD=""
 
-run_as_sudo() {
-    echo $PASSWORD | sudo -S "$@"
-}
-
 get_passwd() {
     if [ ! $PASSWORD ]; then
         read -p "Sudo's password: " -s
@@ -28,6 +24,11 @@ get_passwd() {
             exit 3
         fi
     fi
+}
+
+run_as_sudo() {
+    get_passwd
+    echo $PASSWORD | sudo -S "$@"
 }
 
 for i in "$@"; do
@@ -54,10 +55,10 @@ case "$COMMAND" in
                     echo "Local TP Server up and running."
                     exit 0
                 else
-                    echo "PHP-FPM service is not running("$?")"
+                    echo "PHP-FPM service is not running("$?")."
                 fi
             else
-                echo "nginx service is not running("$?")"
+                echo "nginx service is not running("$?")."
             fi
         else
             echo "Local TP Server needs to be setup. Run" $SCRIPT_NAME "with the setup option."
@@ -68,13 +69,13 @@ case "$COMMAND" in
         echo "Beginning TP Server configuration..."
     ;;
     stop)
-        get_passwd
+        #get_passwd
         run_as_sudo /sbin/service nginx stop
         run_as_sudo /sbin/service $PHP_FPM_SERVICE stop
         exit 0
     ;;
     restart)
-        get_passwd
+        #get_passwd
         run_as_sudo /sbin/service nginx restart
         run_as_sudo /sbin/service $PHP_FPM_SERVICE restart
         exit 0
@@ -85,7 +86,7 @@ case "$COMMAND" in
     ;;
 esac
 
-get_passwd
+#get_passwd
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
 SCRIPTS_DIR=$TP_DIR/scripts
@@ -97,7 +98,8 @@ NGINX_USER=www-data
 
 PHP_FPM_CONFIG_DIR=/etc/php/8.2/fpm/pool.d
 
-USER_BELONGS_TO_GROUP=/usr/bin/id -nG "$USER_NAME" | grep -qw "$NGINX_USER"
+/usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
+USER_BELONGS_TO_GROUP=$?
 
 if [ ! -d "$TP_DIR" ]; then
 
@@ -137,11 +139,11 @@ else
         if [ -f $NGINX ]; then
             run_as_sudo /sbin/service nginx start
             if [ $? != 0 ]; then
-                echo "Error starting nginx service"
+                echo "Error starting nginx service."
                 exit 4
             fi
         else
-            echo "Please install nginx"
+            echo "Please install nginx."
             exit 4
         fi
     fi
@@ -150,10 +152,24 @@ else
         echo "Service php-fpm is already running."
     else
         echo "Starting php-fpm..."
-        $(run_as_sudo /sbin/service $PHP_FPM_SERVICE start)
+        run_as_sudo /sbin/service $PHP_FPM_SERVICE start
         if [ $? != 0 ]; then
-            echo "Error starting php-fpm service"
+            echo "Error starting php-fpm service."
             exit 5
+        fi
+    fi
+
+    PASS_FILE=$SCRIPTS_DIR/.passwds
+    HTPASSWD=$(which htpasswd)
+    MAIN_USER=admin
+    $HTPASSWD -bv $PASS_FILE $MAIN_USER $MAIN_USER
+    if [ $? != 0 ]; then
+        echo "Creating the main app user"
+        run_as_sudo $HTPASSWD -bd5 $PASS_FILE $MAIN_USER $MAIN_USER
+        if [ $? == 0 ]; then
+            run_as_sudo mkdir $TP_DIR/$MAIN_USER
+            run_as_sudo chown $NGINX_USER:$NGINX_USER
+            echo "Main app user created successfully"
         fi
     fi
 

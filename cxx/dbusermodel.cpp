@@ -220,46 +220,68 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-void DBUserModel::setUserName(const int row, const QString &new_name, const int ret_code, const QString &networkReply)
+static QString getNetworkUserName(const QString& userName, const uint app_use_mode)
 {
-	QString name_prefix; //Used for easier identification on the server side
-	const uint app_use_mode{appUserModel()->appUseMode(row)};
+	QString net_name{std::move(appUtils()->stripDiacriticsFromString(userName))};
+	net_name = std::move(net_name.toLower());
+	static_cast<void>(net_name.replace(' ', '_'));
+
 	switch (app_use_mode)
 	{
 		case APP_USE_MODE_CLIENTS:
 		case APP_USE_MODE_SINGLE_USER:
-			name_prefix = std::move("u_"_L1);
+			static_cast<void>(net_name.prepend(std::move("u_"_L1)));
 		break;
 		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
 		case APP_USE_MODE_COACH_USER_WITH_COACH:
-			name_prefix = std::move("uc_"_L1);
+			static_cast<void>(net_name.prepend(std::move("uc_"_L1)));
 		break;
 		case APP_USE_MODE_SINGLE_COACH:
-			name_prefix = std::move("c_"_L1);
+			static_cast<void>(net_name.prepend(std::move("c_"_L1)));
 		break;
 	}
+	return net_name;
+}
+
+void DBUserModel::setUserName(const int row, const QString &new_name, const int ret_code, const QString &networkReply)
+{
+	const QString& net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //Used for easier identification on the server side
+	QString password{new_name};
+	static_cast<void>(password.replace(' ', '_'));
+
 	if (ret_code == -1000)
 	{
-		appOnlineServices()->checkUser(name_prefix + new_name, new_name);
+		appOnlineServices()->checkUser(net_name, password);
 		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
+			if (_userName(row).isEmpty()) //User not registered in the local database
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
 			setUserName(row, new_name, ret_code, ret_string);
 		});
 	}
 	else
 	{
-		if (ret_code == 0)
+		switch (ret_code)
 		{
-			if (appUserModel()->_userName(row).isEmpty())
-				appOnlineServices()->registerUser(name_prefix + new_name, new_name);
-			else
-				appOnlineServices()->alterUser(name_prefix + appUserModel()->_userName(row), name_prefix + new_name, new_name);
-			m_modeldata[row][USER_COL_NAME] = new_name;
-			emit userModified(row, USER_COL_NAME);
-			if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-				emit userAddedOrRemoved(row, true);
+			case 6: //User does not exist in the online database
+				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
+				});
+				if (appUserModel()->_userName(row).isEmpty())
+					appOnlineServices()->registerUser(net_name, password);
+				else
+					appOnlineServices()->alterUser(getNetworkUserName(appUserModel()->_userName(row), appUserModel()->appUseMode(row)), net_name, password);
+			case 0: //User already and correctly registered on the server. But, for whatwever reason, might not be on the local database. So, skip the break statement
+				if (new_name != _userName(row))
+				{
+					m_modeldata[row][USER_COL_NAME] = new_name;
+					emit userModified(row, USER_COL_NAME);
+					if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+						emit userAddedOrRemoved(row, true);
+				}
+			break;
+			default:
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, networkReply);
 		}
-		else
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, networkReply);
 		emit userNameOK(row, ret_code == 0);
 	}
 }

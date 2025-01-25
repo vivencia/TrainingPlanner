@@ -9,6 +9,7 @@ TPPopup {
 	id: balloon
 	keepAbove: true
 	closeButtonVisible: false
+	focus: false
 	width: appSettings.pageWidth * 0.8
 
 	property string message: ""
@@ -236,8 +237,8 @@ TPPopup {
 	}
 
 	function show(ypos: int): void {
-		balloon.height = (title.length > 0 ? lblTitle.height : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
-					(button1Text.length > 0 ? btn1.height + 5 : 0) + 20;
+		balloon.height = (title.length > 0 ? lblTitle.height + 5 : 0) + (imageSource.length > 0 ? Math.max(imgElement.height, lblMessage.height) : lblMessage.height) +
+					(button1Text.length > 0 ? btn1.height + 10 : 0) + 5;
 		show1(ypos);
 	}
 

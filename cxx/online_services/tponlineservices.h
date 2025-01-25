@@ -21,7 +21,6 @@ public:
 
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	void createRootUser();
 	void checkUser(const QString &username, const QString &passwd);
 	void registerUser(const QString &username, const QString &passwd);
 	void removeUser(const QString &username);

@@ -89,10 +89,10 @@ else { //other commands to server
         $user_password = isset($_GET['password']) ? $_GET['password'] : '';
         $return_var = run_htpasswd("-bv", $username, $user_password);
         switch ($return_var) {
-            case 0: $error_string = "User exists and password is correct"; break;
-            case 3: $error_string = "User exists and password is wrong"; break;
-            case 6: $error_string = "User does not exist"; break;
-            default: $error_string = "User does not exist"; break;
+            case 0: $error_string = "User exists and password is correct."; break;
+            case 3: $error_string = "User exists and password is wrong."; break;
+            case 6: $error_string = "User does not exist."; break;
+            default: $error_string = "User does not exist."; break;
         }
         echo "Return code: $return_var $error_string";
         exit;

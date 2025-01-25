@@ -1,4 +1,5 @@
 #include "dbexercisesmodel.h"
+#include "tputils.h"
 #include "tpglobals.h"
 
 #include <QFile>
@@ -135,19 +136,6 @@ void DBExercisesModel::removeExercise(const uint index)
 	endRemoveRows();
 }
 
-static QString stripDiacritics(const QString& src)
-{
-	QString filtered;
-    for (uint i(0); i < src.length(); ++i)
-	{
-		if (src.at(i).decompositionTag() != QChar::NoDecomposition)
-			filtered.push_back(src.at(i).decomposition().at(0));
-		else
-			filtered.push_back(src.at(i));
-	}
-	return filtered;
-}
-
 void DBExercisesModel::setFilter(const QString& filter)
 {
 	beginRemoveRows(QModelIndex(), 0, count()-1);
@@ -163,7 +151,7 @@ void DBExercisesModel::setFilter(const QString& filter)
 		{
 			const QString& subject{(*lst_itr).at(EXERCISES_COL_MUSCULARGROUP)};
 			const QStringList& words_list{filter.split(fancy_record_separator1, Qt::SkipEmptyParts, Qt::CaseInsensitive)};
-			for (uint i(0); i < words_list.count(); ++i)
+			for (uint i{0}; i < words_list.count(); ++i)
 			{
 				if (subject.contains(words_list.at(i), Qt::CaseInsensitive))
 				{
@@ -202,7 +190,7 @@ void DBExercisesModel::search(const QString& search_term)
 			const uint idx{m_filteredIndices.isEmpty() ? i : m_filteredIndices.at(i)};
 			const QString& subject{m_modeldata.at(idx).at(EXERCISES_COL_MAINNAME) +
 						' ' + m_modeldata.at(idx).at(EXERCISES_COL_SUBNAME)};
-			const QStringList& words_list{stripDiacritics(search_term).split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
+			const QStringList& words_list{appUtils()->stripDiacriticsFromString(search_term).split(' ', Qt::SkipEmptyParts, Qt::CaseInsensitive)};
 
 			for (uint x{0}; x < words_list.count(); ++x)
 			{
