@@ -5,6 +5,7 @@
 #include <QNetworkAccessManager>
 
 QT_FORWARD_DECLARE_CLASS(QNetworkReply)
+QT_FORWARD_DECLARE_CLASS(QFile)
 
 class TPOnlineServices : public QObject
 {
@@ -26,11 +27,14 @@ public:
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
 
+	void sendFile(const QString &username, const QString &passwd, QFile *file);
+
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
 
 private:
 	void handleServerRequestReply(QNetworkReply *reply);
+	void uploadFile(const QUrl &url, QFile *file);
 
 	QNetworkAccessManager *m_networkManager;
 

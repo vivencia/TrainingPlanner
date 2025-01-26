@@ -243,7 +243,7 @@ static QString getNetworkUserName(const QString& userName, const uint app_use_mo
 	return net_name;
 }
 
-void DBUserModel::setUserName(const int row, const QString &new_name, const int ret_code, const QString &networkReply)
+void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const int ret_code, const QString &networkReply)
 {
 	const QString& net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //Used for easier identification on the server side
 	QString password{new_name};
@@ -252,11 +252,11 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 	if (ret_code == -1000)
 	{
 		appOnlineServices()->checkUser(net_name, password);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name,prev_use_mode] (const int ret_code, const QString& ret_string) {
 			if (_userName(row).isEmpty()) //User not registered in the local database
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
-			setUserName(row, new_name, ret_code, ret_string);
-		});
+			setUserName(row, new_name, prev_use_mode, ret_code, ret_string);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 	else
 	{
@@ -265,11 +265,12 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 			case 6: //User does not exist in the online database
 				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
 					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
-				});
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				if (appUserModel()->_userName(row).isEmpty())
 					appOnlineServices()->registerUser(net_name, password);
 				else
-					appOnlineServices()->alterUser(getNetworkUserName(appUserModel()->_userName(row), appUserModel()->appUseMode(row)), net_name, password);
+					appOnlineServices()->alterUser(getNetworkUserName(appUserModel()->_userName(row), prev_use_mode != -1 ? prev_use_mode :
+						appUserModel()->appUseMode(row)), net_name, password);
 			case 0: //User already and correctly registered on the server. But, for whatwever reason, might not be on the local database. So, skip the break statement
 				if (new_name != _userName(row))
 				{

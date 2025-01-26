@@ -130,7 +130,7 @@ set( SERVER_FILES
 	web-server/default
 	web-server/nginx.conf
 	web-server/www.conf
-	web-server/uri_parser.php
+	web-server/url_parser.php
 	web-server/init_script.sh
 )
 

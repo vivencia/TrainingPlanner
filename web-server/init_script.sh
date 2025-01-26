@@ -109,7 +109,7 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo chmod -R 770 $TP_DIR
     run_as_sudo chmod -R 770 $SCRIPTS_DIR
     run_as_sudo cp $SOURCES_DIR/$SCRIPT_NAME $SCRIPTS_DIR #copy this file to the scripts dir
-    run_as_sudo cp $SOURCES_DIR/uri_parser.php $SCRIPTS_DIR
+    run_as_sudo cp $SOURCES_DIR/url_parser.php $SCRIPTS_DIR
     run_as_sudo chown -R $NGINX_USER:$NGINX_USER $TP_DIR
 
     run_as_sudo cp -f $SOURCES_DIR/nginx.conf $NGINX_CONFIG_DIR

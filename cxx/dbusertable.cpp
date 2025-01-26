@@ -8,16 +8,16 @@
 
 #include <utility>
 
-DBUserTable::DBUserTable(const QString& dbFilePath, DBUserModel* model)
+DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel* model)
 	: TPDatabaseTable{nullptr}, m_model{model}
 {
 	m_tableName = std::move("user_table"_L1);
 	m_tableID = USER_TABLE_ID;
 	setObjectName(DBUserObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
-	const QString& cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
+	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
 	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
-	const QString& dbname(dbFilePath + DBUserFileName);
+	const QString &dbname(dbFilePath + DBUserFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
 
@@ -26,7 +26,7 @@ void DBUserTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"CREATE TABLE IF NOT EXISTS user_table ("
+		const QString &strQuery{"CREATE TABLE IF NOT EXISTS user_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
 										"birthday INTEGER,"
@@ -52,17 +52,17 @@ void DBUserTable::getAllUsers()
 {
 	if (openDatabase(true))
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString& strQuery{"SELECT * FROM user_table"_L1};
+		const QString &strQuery{"SELECT * FROM user_table"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
 			{
 				do
 				{
-					QStringList user_info(USER_TOTAL_COLS);
-					for (uint i(USER_COL_ID); i < USER_TOTAL_COLS; ++i)
+					QStringList user_info{USER_TOTAL_COLS};
+					for (uint i{USER_COL_ID}; i < USER_TOTAL_COLS; ++i)
 						user_info[i] = std::move(query.value(static_cast<int>(i)).toString());
 					m_model->appendList_fast(std::move(user_info));
 				} while (query.next());
@@ -78,10 +78,10 @@ void DBUserTable::saveUser()
 {
 	if (openDatabase())
 	{
-		bool ok(false);
+		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const uint row(m_execArgs.at(0).toUInt());
-		bool bUpdate(false);
+		const uint row{m_execArgs.at(0).toUInt()};
+		bool bUpdate{false};
 		QString strQuery;
 		if (query.exec("SELECT id FROM user_table WHERE id=%1"_L1.arg(m_model->_userId(row))))
 		{

@@ -1,13 +1,13 @@
 <?php
 
 $rootdir="/var/www/html/trainingplanner/";
-$htpasswd_file = $rootdir . "scripts/.passwds";
-$htpasswd = "/usr/bin/htpasswd"; //use fullpath
+$htpasswd_file=$rootdir . "scripts/.passwds";
+$htpasswd="/usr/bin/htpasswd"; //use fullpath
 
 // Function to verify credentials against .htpasswd file
 function verify_credentials($username, $password, $htpasswd_file) {
     if (!file_exists($htpasswd_file)) {
-        die("htpasswd file not found");
+        die("htpasswd file not found\r\n");
     }
 
     // Read the .htpasswd file line by line
@@ -26,16 +26,45 @@ function verify_credentials($username, $password, $htpasswd_file) {
     return false;
 }
 
-function download_file($file) {
-    if (file_exists($file)) {
+function upload_file($uploadDir) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Check if the file was uploaded
+        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            // Get file details
+            $fileTmpPath = $_FILES['file']['tmp_name'];
+            $fileName = $_FILES['file']['name'];
+            $uploadPath = $uploadDir . "/" . basename($fileName);
+            // Move the uploaded file to the upload directory
+            if (move_uploaded_file($fileTmpPath, $uploadPath)) {
+                echo "File uploaded successfully: " . htmlspecialchars($fileName);
+                echo "\r\n";
+                return true;
+            }
+            else {
+                echo "Error: Failed to move the uploaded file.\r\n";
+            }
+        }
+        else {
+            echo $_FILES['file'];
+            echo "Error: No file uploaded or an error occurred.\r\n";
+        }
+    }
+    else {
+        echo "Error: Invalid request method.\r\n";
+    }
+    return false;
+}
+function download_file($file,$downloadDir) {
+    $filename=$downloadDir . "/" . $file;
+    if (file_exists($filename)) {
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+        header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
-        header('Content-Length: ' . filesize($file));
-        readfile($file);
+        header('Content-Length: ' . filesize($filename));
+        readfile($filename);
         return true;
     }
     return false;
@@ -60,23 +89,44 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
     echo "User name OK\r\n";
     $password = isset($_GET['password']) ? $_GET['password'] : '';
     if (!$password)
-        die("Missing password");
+        die("Missing password\r\n");
     else {
         if (verify_credentials($username, $password, $htpasswd_file)) {
             // Authentication successful
             echo "Authentication Successful! Welcome ", $username;
-            $filename = isset($_GET['file']) ? $rootdir . $_GET['file'] : '';
-            if (download_file($filename)) {
-                echo "File found: ", $filename;
-                exit;
+            echo "\r\n";
+
+            $fileDir=$rootdir . $username;
+            $filename = isset($_GET['upload']) ? $rootdir . $_GET['upload'] : '';
+            if ($filename) {
+                if (upload_file($fileDir)) {
+                    exit;
+                }
+                else {
+                    die("Error\r\n");
+                }
             }
-            else
-                echo "File not found: ", $filename;
+
+            $filename = isset($_GET['file']) ? $rootdir . $_GET['file'] : '';
+            if ($filename) {
+                $filename=basename($filename);
+                if (download_file($filename,$fileDir)) {
+                    echo "File found: ", $filename;
+                    echo "\r\n";
+                    exit;
+                }
+                else
+                    echo "File not found: ", $filename;
+                    echo "\r\n";
+            }
+            else {
+                echo "Missing filename name argument(either upload= or file=)\r\n";
+            }
         }
         else {
             // Authentication failed
             header('HTTP/1.1 401 Unauthorized');
-            echo 'Authentication Failed. Invalid user or password.';
+            echo "Authentication Failed. Invalid user or password.\r\n";;
         }
     }
 }
@@ -89,12 +139,12 @@ else { //other commands to server
         $user_password = isset($_GET['password']) ? $_GET['password'] : '';
         $return_var = run_htpasswd("-bv", $username, $user_password);
         switch ($return_var) {
-            case 0: $error_string = "User exists and password is correct."; break;
-            case 3: $error_string = "User exists and password is wrong."; break;
-            case 6: $error_string = "User does not exist."; break;
-            default: $error_string = "User does not exist."; break;
+            case 0: $error_string = "User exists and password is correct"; break;
+            case 3: $error_string = "User exists and password is wrong"; break;
+            case 6: $error_string = "User does not exist"; break;
+            default: $error_string = "User does not exist"; break;
         }
-        echo "Return code: $return_var $error_string";
+        echo "Return code: $return_var $error_string\r\n";
         exit;
     }
     else {
@@ -106,12 +156,12 @@ else { //other commands to server
                 $mkdir = "/usr/bin/mkdir";
                 #echo "$mkdir $rootdir$username\r\n";
                 exec("$mkdir $rootdir$username", $output, $return_var);
-                $error_string  = "User successfully created";
+                $error_string  = "User successfully created\r\n";
                 //print_r($output);
             }
             if ($return_var != 0)
-                $error_string = "Error creating user";
-            echo "Return code: $return_var $error_string";
+                $error_string = "Error creating user\r\n";
+            echo "Return code: $return_var $error_string\r\n";
             exit;
         }
         else {
@@ -122,11 +172,11 @@ else { //other commands to server
                     $rmdir = "/usr/bin/rmdir";
                     #echo "$rmdir $rootdir$username\r\n";
                     exec("$rmdir $rootdir$username", $output, $return_var);
-                    $error_string = "User successfully removed";
+                    $error_string = "User successfully removed\r\n";
                 }
                 if ($return_var != 0)
-                    $error_string = "User removal failed";
-                echo "Return code: $return_var $error_string";
+                    $error_string = "User removal failed\r\n";
+                echo "Return code: $return_var $error_string\r\n";
                 exit;
             }
             else {
@@ -142,18 +192,18 @@ else { //other commands to server
                             $mvdir = "/usr/bin/mv";
                             #echo "$mvdir $rootdir$username $rootdir$new_username\r\n";
                             exec("$mvdir $rootdir$username $rootdir$new_username", $output, $return_var);
-                            $error_string = "User successfully modified";
+                            $error_string = "User successfully modified\r\n";
                         }
                     }
                     if ($return_var != 0)
-                        $error_string = "User modification failed";
-                    echo "Return code: $return_var $error_string";
+                        $error_string = "User modification failed\r\n";
+                    echo "Return code: $return_var $error_string\r\n";
                     exit;
                 }
             }
         }
     }
-    die("Missing user or command");
+    die("Missing user or command\r\n");
 }
 
 ?>

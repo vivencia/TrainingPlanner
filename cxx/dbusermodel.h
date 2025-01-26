@@ -77,7 +77,7 @@ public:
 	Q_INVOKABLE uint userRow(const QString &userName) const;
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString &_userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
-	Q_INVOKABLE void setUserName(const int row, const QString &new_name, const int ret_code = -1000, const QString &networkReply = QString());
+	Q_INVOKABLE void setUserName(const int row, const QString &new_name, const int prev_use_mode = -1, const int ret_code = -1000, const QString &networkReply = QString());
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
@@ -168,11 +168,12 @@ public:
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
 	Q_INVOKABLE inline void setAppUseMode(const int row, const int new_use_opt)
 	{
-		if (new_use_opt != appUseMode(row))
+		const uint prev_use_mode{appUseMode(row)};
+		if (new_use_opt != prev_use_mode)
 		{
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
-			setUserName(row, userName(row));
+			setUserName(row, userName(row), prev_use_mode);
 		}
 	}
 

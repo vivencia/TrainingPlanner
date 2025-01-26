@@ -65,9 +65,10 @@ Frame {
 		height: controlsHeight
 		width: parent.width*0.20
 
+
 		anchors {
 			top: parent.top
-			topMargin: -5
+			topMargin: -10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -110,7 +111,7 @@ Frame {
 
 		anchors {
 			top: cboUserRole.bottom
-			topMargin: controlsSpacing
+			topMargin: 5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
