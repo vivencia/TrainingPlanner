@@ -199,6 +199,7 @@ public:
 		emit userModified(row, USER_COL_CURRENT_CLIENT);
 	}
 
+	Q_INVOKABLE void setCoachPublicStatus(const uint row, const bool bPublic);
 	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }
 
 	int importFromFile(const QString &filename) override;

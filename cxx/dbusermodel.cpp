@@ -220,7 +220,7 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-static QString getNetworkUserName(const QString& userName, const uint app_use_mode)
+static QString getNetworkUserName(const QString &userName, const uint app_use_mode)
 {
 	QString net_name{std::move(appUtils()->stripDiacriticsFromString(userName))};
 	net_name = std::move(net_name.toLower());
@@ -243,11 +243,17 @@ static QString getNetworkUserName(const QString& userName, const uint app_use_mo
 	return net_name;
 }
 
+static QString makeUserPassword(const QString &userName)
+{
+	QString password{userName};
+	static_cast<void>(password.replace(' ', '_'));
+	return password;
+}
+
 void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const int ret_code, const QString &networkReply)
 {
-	const QString& net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //Used for easier identification on the server side
-	QString password{new_name};
-	static_cast<void>(password.replace(' ', '_'));
+	const QString &net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //Used for easier identification on the server side
+	const QString &password{makeUserPassword(new_name)};
 
 	if (ret_code == -1000)
 	{
@@ -287,9 +293,18 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 	}
 }
 
+void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
+{
+	const QString &user_name{userName(row)};
+	appOnlineServices()->addOrRemoveCoach(user_name, makeUserPassword(user_name), bPublic);
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
 int DBUserModel::importFromFile(const QString &filename)
 {
-	QFile* inFile{new QFile{filename}};
+	QFile *inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;

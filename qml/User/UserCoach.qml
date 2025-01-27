@@ -60,7 +60,27 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: 20
+			topMargin: 10
+			left: parent.left
+			leftMargin: 10
+			right: parent.right
+			rightMargin: 10
+		}
+	}
+
+	TPCheckBox {
+		id: chkOnlineCoach
+		text: qsTr("Make myself available online for TP users to contact me")
+		checked: false
+		multiLine: true
+		height: itemHeight
+		visible: optCoachUse.checked
+
+		onCheckedChanged: userModel.setCoachPublicStatus(userRow, checked);
+
+		anchors {
+			top: optCoachUse.bottom
+			topMargin: 10
 			left: parent.left
 			leftMargin: 10
 			right: parent.right
@@ -83,8 +103,25 @@ Frame {
 		}
 
 		anchors {
-			top: optCoachUse.bottom
-			topMargin: 20
+			top: chkOnlineCoach.visible ? chkOnlineCoach.bottom : optCoachUse.bottom
+			topMargin: 10
+			left: parent.left
+			leftMargin: 10
+			right: parent.right
+			rightMargin: 10
+		}
+	}
+
+	TPButton {
+		id: btnFindCoachOnline
+		text: qsTr("Look online for available coaches");
+		visible: chkHaveCoach.checked
+
+		onClicked: displayOnlineCoachesMenu();
+
+		anchors {
+			top: chkHaveCoach.bottom
+			topMargin: 10
 			left: parent.left
 			leftMargin: 10
 			right: parent.right

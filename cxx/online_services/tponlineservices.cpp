@@ -16,25 +16,8 @@ static const QLatin1StringView root_user{"admin"};
 static const QLatin1StringView root_passwd{"admin"};
 static const QLatin1StringView url_paramether_upload{"upload"};
 static const QLatin1StringView url_paramether_user{"user"};
-static const QLatin1StringView url_paramether_newuser{"newuser"};
 static const QLatin1StringView url_paramether_passwd{"password"};
 static const QLatin1StringView url_paramether_file{"file"};
-static const QLatin1StringView url_checkuser{"checkuser"};
-static const QLatin1StringView url_adduser{"adduser"};
-static const QLatin1StringView url_deluser{"deluser"};
-static const QLatin1StringView url_alteruser{"moduser"};
-
-inline QString makeDownloadURL(const QString& user, const QString& passwd, const QString& file)
-{
-	return "http://127.0.0.1/trainingplanner/?"_L1 + url_paramether_user + '=' + user + '&' + url_paramether_passwd + '=' + passwd + '&' +
-		url_paramether_file + '=' + file;
-}
-
-inline QString makeUploadURL(const QString& user, const QString& passwd, const QString& file)
-{
-	return "http://127.0.0.1/trainingplanner/?"_L1 + url_paramether_upload + '=' + user + '&' + url_paramether_passwd + '=' + passwd + '&' +
-		url_paramether_file + '=' + file;
-}
 
 inline QString makeCommandURL(const QString& command, const QString& parameter, const QString &parameter2 = QString{},
 								const QString &parameter3 = QString{}, const QString& passwd = QString{})
@@ -51,36 +34,50 @@ inline QString makeCommandURL(const QString& command, const QString& parameter, 
 
 void TPOnlineServices::checkUser(const QString &username, const QString &passwd)
 {
-	const QUrl url{std::move(makeCommandURL(url_checkuser, username, QString{}, QString{}, passwd))};
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+	const QUrl &url{makeCommandURL("checkuser"_L1, username, QString{}, QString{}, passwd)};
+	makeNetworkRequest(url);
 }
 
 void TPOnlineServices::registerUser(const QString& username, const QString& passwd)
 {
-	const QUrl url{std::move(makeCommandURL(url_adduser, username, QString{}, QString{}, passwd))};
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+	const QUrl &url{makeCommandURL("adduser"_L1, username, QString{}, QString{}, passwd)};
+	makeNetworkRequest(url);
 }
 
 void TPOnlineServices::removeUser(const QString &username)
 {
-	const QUrl url{std::move(makeCommandURL(url_deluser, username))};
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+	const QUrl &url{makeCommandURL("deluser"_L1, username)};
+	makeNetworkRequest(url);
 }
 
 void TPOnlineServices::alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd)
 {
-	const QUrl url{std::move(makeCommandURL(url_alteruser, old_username, url_paramether_newuser, new_username, new_passwd))};
-	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+	const QUrl &url{makeCommandURL("moduser"_L1, old_username, "newuser"_L1, new_username, new_passwd)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, bAdd ? "add_coach"_L1 : "del_coach"_L1, "", passwd)};
+	makeNetworkRequest(url);
 }
 
 void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file)
 {
-	const QUrl url{std::move(makeCommandURL(url_paramether_user, username, "upload"_L1, "", passwd))};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, "upload"_L1, "", passwd)};
 	uploadFile(url, file);
+}
+
+void TPOnlineServices::getFile(const QString &username, const QString &passwd, const QString &file)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, "file"_L1, file, passwd)};
+	//downloadFile(url, file);
+}
+
+void TPOnlineServices::makeNetworkRequest(const QUrl &url)
+{
+	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
 }
 
 void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
@@ -113,7 +110,7 @@ void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
 	filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
                            QVariant("form-data; name=\"uploaded_file\"; file=\""_L1 + file->fileName() + "\""_L1));
 	filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"_L1));
-	filePart.setBodyDevice(file);
+	filePart.setBodyDevice(file); //file must be opened and readable. Close it on the caller after networkRequestProcessed is connected
 	file->setParent(multiPart); // Let multipart manage the file's lifecycle
 	multiPart->append(filePart);
 

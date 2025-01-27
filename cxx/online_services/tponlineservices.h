@@ -26,13 +26,16 @@ public:
 	void registerUser(const QString &username, const QString &passwd);
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
+	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file);
+	void getFile(const QString &username, const QString &passwd, const QString &file);
 
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
 
 private:
+	void makeNetworkRequest(const QUrl &url);
 	void handleServerRequestReply(QNetworkReply *reply);
 	void uploadFile(const QUrl &url, QFile *file);
 

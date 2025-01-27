@@ -2,6 +2,7 @@
 
 $rootdir="/var/www/html/trainingplanner/";
 $htpasswd_file=$rootdir . "scripts/.passwds";
+$coaches_file=$rootdir . "scripts/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 
 // Function to verify credentials against .htpasswd file
@@ -36,24 +37,25 @@ function upload_file($uploadDir) {
             $uploadPath = $uploadDir . "/" . basename($fileName);
             // Move the uploaded file to the upload directory
             if (move_uploaded_file($fileTmpPath, $uploadPath)) {
-                echo "File uploaded successfully: " . htmlspecialchars($fileName);
+                echo "Return code 0 File uploaded successfully: " . htmlspecialchars($fileName);
                 echo "\r\n";
                 return true;
             }
             else {
-                echo "Error: Failed to move the uploaded file.\r\n";
+                echo "Return code 20 Failed to move the uploaded file.\r\n";
             }
         }
         else {
             echo $_FILES['file'];
-            echo "Error: No file uploaded or an error occurred.\r\n";
+            echo "Return code 21 No file uploaded or an error occurred.\r\n";
         }
     }
     else {
-        echo "Error: Invalid request method.\r\n";
+        echo "Return code 22 Invalid request method.\r\n";
     }
     return false;
 }
+
 function download_file($file,$downloadDir) {
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
@@ -65,9 +67,56 @@ function download_file($file,$downloadDir) {
         header('Pragma: public');
         header('Content-Length: ' . filesize($filename));
         readfile($filename);
+        echo "Return code 0 File found: ", $filename;
         return true;
     }
+    echo "Return code 1 File not found: ", $filename;
     return false;
+}
+
+function scan_dir($path) {
+    $files = array_values(array_diff(scandir($path), array('.', '..')));
+    foreach ($files as &$file) {
+        echo $file . "\r\n";
+    }
+}
+
+function add_coach($coach) {
+    global $coaches_file;
+    if (!file_exists($coaches_file)) {
+        $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to open coaches file!" .$coaches_file . "\r\n");
+    }
+    else {
+        $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as  $line) {
+            if ($line == $coach) {
+                echo "Return code 11: Coach already in the public list.\r\n";
+                return;
+            }
+        }
+        $fh = fopen($coaches_file, "a+")  or die("Return code: 10 Unable to open coaches file!" .$coaches_file . "\r\n");
+    }
+    fwrite($fh, $coach . "\n");
+    fclose($fh);
+    echo "Return code: 0 Coache in the public coaches file.\r\n";
+}
+
+function del_coach($coach) {
+    global $coaches_file;
+    if (file_exists($coaches_file)) {
+        $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as  $line) {
+            if ($line != $coach) {
+                $new_coaches = $new_coaches . $line . "\r\n";
+            }
+        }
+        $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to open coaches file!" .$coaches_file . "\r\n");
+        fwrite($fh, $new_coaches);
+        fclose($fh);
+        echo "Return code: 0 Coach removed from the public coaches file.\r\n";
+    }
+    else
+        echo "Return code 12 Public coaches file does not exist";
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -97,31 +146,36 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
             echo "\r\n";
 
             $fileDir=$rootdir . $username;
-            $filename = isset($_GET['upload']) ? $rootdir . $_GET['upload'] : '';
-            if ($filename) {
-                if (upload_file($fileDir)) {
+
+            if (isset($_GET['listfiles'])) {
+                scan_dir($fileDir);
+                exit;
+            }
+            if (isset($_GET['addcoach'])) {
+                add_coach($username);
+                exit;
+            }
+            if (isset($_GET['delcoach'])) {
+                del_coach($username);
+                exit;
+            }
+            if (isset($_GET['upload'])) {
+                $filename = $rootdir . $_GET['upload'];
+                if ($filename) {
+                    upload_file($fileDir);
                     exit;
                 }
-                else {
-                    die("Error\r\n");
+            }
+            if (isset($_GET['file'])) {
+                $filename = $rootdir . $_GET['file'];
+                if ($filename) {
+                    $filename=basename($filename);
+                    download_file($filename,$fileDir);
+                    exit;
                 }
             }
 
-            $filename = isset($_GET['file']) ? $rootdir . $_GET['file'] : '';
-            if ($filename) {
-                $filename=basename($filename);
-                if (download_file($filename,$fileDir)) {
-                    echo "File found: ", $filename;
-                    echo "\r\n";
-                    exit;
-                }
-                else
-                    echo "File not found: ", $filename;
-                    echo "\r\n";
-            }
-            else {
-                echo "Missing filename name argument(either upload= or file=)\r\n";
-            }
+            echo "Missing filename name argument(either upload= or file=)\r\n";
         }
         else {
             // Authentication failed
@@ -130,7 +184,7 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
         }
     }
 }
-else { //other commands to server
+else { //user management
     $return_var = 0;
     $error_string = "";
 
@@ -147,61 +201,58 @@ else { //other commands to server
         echo "Return code: $return_var $error_string\r\n";
         exit;
     }
-    else {
-        $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
-        if ($username) { //new user creation. Encrypt password onto file and create the user's dir
-            $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
-            $return_var = run_htpasswd("-bd5", $username, $new_user_password);
+
+    $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
+    if ($username) { //new user creation. Encrypt password onto file and create the user's dir
+        $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
+        $return_var = run_htpasswd("-bd5", $username, $new_user_password);
+        if ($return_var == 0) {
+            $mkdir = "/usr/bin/mkdir";
+            #echo "$mkdir $rootdir$username\r\n";
+            exec("$mkdir $rootdir$username", $output, $return_var);
+            $error_string  = "User successfully created\r\n";
+            //print_r($output);
+        }
+        if ($return_var != 0)
+            $error_string = "Error creating user\r\n";
+        echo "Return code: $return_var $error_string\r\n";
+        exit;
+    }
+
+    $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
+    if ($username) { //remove user and their dir
+        $return_var = run_htpasswd("-D", $username, "");
+        if ($return_var == 0) {
+            $rmdir = "/usr/bin/rmdir";
+            #echo "$rmdir $rootdir$username\r\n";
+            exec("$rmdir $rootdir$username", $output, $return_var);
+            $error_string = "User successfully removed\r\n";
+        }
+        if ($return_var != 0)
+            $error_string = "User removal failed\r\n";
+        echo "Return code: $return_var $error_string\r\n";
+        exit;
+    }
+
+    $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
+    if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
+        $cmd_args = "-D";
+        $return_var = run_htpasswd("-D", $username, "");
+        if ($return_var == 0) {
+            $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
+            $new_password = isset($_GET['password']) ? $_GET['password'] : '';
+            $return_var = run_htpasswd("-bd5", $new_username, $new_password);
             if ($return_var == 0) {
-                $mkdir = "/usr/bin/mkdir";
-                #echo "$mkdir $rootdir$username\r\n";
-                exec("$mkdir $rootdir$username", $output, $return_var);
-                $error_string  = "User successfully created\r\n";
-                //print_r($output);
-            }
-            if ($return_var != 0)
-                $error_string = "Error creating user\r\n";
-            echo "Return code: $return_var $error_string\r\n";
-            exit;
-        }
-        else {
-            $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
-            if ($username) { //remove user and their dir
-                $return_var = run_htpasswd("-D", $username, "");
-                if ($return_var == 0) {
-                    $rmdir = "/usr/bin/rmdir";
-                    #echo "$rmdir $rootdir$username\r\n";
-                    exec("$rmdir $rootdir$username", $output, $return_var);
-                    $error_string = "User successfully removed\r\n";
-                }
-                if ($return_var != 0)
-                    $error_string = "User removal failed\r\n";
-                echo "Return code: $return_var $error_string\r\n";
-                exit;
-            }
-            else {
-                $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
-                if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
-                    $cmd_args = "-D";
-                    $return_var = run_htpasswd("-D", $username, "");
-                    if ($return_var == 0) {
-                        $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
-                        $new_password = isset($_GET['password']) ? $_GET['password'] : '';
-                        $return_var = run_htpasswd("-bd5", $new_username, $new_password);
-                        if ($return_var == 0) {
-                            $mvdir = "/usr/bin/mv";
-                            #echo "$mvdir $rootdir$username $rootdir$new_username\r\n";
-                            exec("$mvdir $rootdir$username $rootdir$new_username", $output, $return_var);
-                            $error_string = "User successfully modified\r\n";
-                        }
-                    }
-                    if ($return_var != 0)
-                        $error_string = "User modification failed\r\n";
-                    echo "Return code: $return_var $error_string\r\n";
-                    exit;
-                }
+                $mvdir = "/usr/bin/mv";
+                #echo "$mvdir $rootdir$username $rootdir$new_username\r\n";
+                exec("$mvdir $rootdir$username $rootdir$new_username", $output, $return_var);
+                $error_string = "User successfully modified\r\n";
             }
         }
+        if ($return_var != 0)
+            $error_string = "User modification failed\r\n";
+        echo "Return code: $return_var $error_string\r\n";
+        exit;
     }
     die("Missing user or command\r\n");
 }
