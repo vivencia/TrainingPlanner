@@ -167,8 +167,8 @@ else
         echo "Creating the main app user"
         run_as_sudo $HTPASSWD -bd5 $PASS_FILE $MAIN_USER $MAIN_USER
         if [ $? == 0 ]; then
-            run_as_sudo mkdir $TP_DIR/$MAIN_USER
-            run_as_sudo chown $NGINX_USER:$NGINX_USER
+            run_as_sudo mkdir -m 774 $TP_DIR/$MAIN_USER
+            run_as_sudo chown $NGINX_USER:$NGINX_USER $TP_DIR/$MAIN_USER
             echo "Main app user created successfully"
         fi
     fi

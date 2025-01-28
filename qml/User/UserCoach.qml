@@ -1,5 +1,8 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Dialogs
+import QtCore
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -10,6 +13,8 @@ Frame {
 	id: topFrame
 	height: moduleHeight
 	implicitHeight: Math.min(height, moduleHeight)
+	spacing: 5
+	padding: 0
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -17,10 +22,14 @@ Frame {
 	}
 
 	required property int userRow
-	property bool bReady: true
+	property bool bReady: false
 	property bool bCoachOK: false
+	property bool bChooseResume: false
+	property bool bResumeSent: false
 	readonly property int moduleHeight: 0.25*appSettings.pageHeight
 	readonly property int itemHeight: implicitHeight/3
+
+	onBCoachOKChanged: bReady = bCoachOK;
 
 	TPRadioButton {
 		id: optPersonalUse
@@ -30,6 +39,7 @@ Frame {
 		height: itemHeight
 
 		onClicked: {
+			bReady = checked;
 			if (checked)
 				userModel.setAppUseMode(userRow, 1 + (chkHaveCoach.checked ? 2 : 0));
 			optCoachUse.checked = false;
@@ -37,11 +47,8 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: 10
 			left: parent.left
-			leftMargin: 10
 			right: parent.right
-			rightMargin: 10
 		}
 	}
 
@@ -53,6 +60,7 @@ Frame {
 		height: itemHeight
 
 		onClicked: {
+			bCoachOK = checked;
 			if (checked)
 				userModel.setAppUseMode(userRow, 2 + (chkHaveCoach.checked ? 2 : 0));
 			optPersonalUse.checked = false;
@@ -60,32 +68,79 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: 10
 			left: parent.left
-			leftMargin: 10
 			right: parent.right
-			rightMargin: 10
 		}
 	}
 
-	TPCheckBox {
-		id: chkOnlineCoach
-		text: qsTr("Make myself available online for TP users to contact me")
-		checked: false
-		multiLine: true
+	RowLayout {
+		id: onlineCoachRow
+		visible: optCoachUse.checked && userRow === 0
+		spacing: 0
 		height: itemHeight
-		visible: optCoachUse.checked
-
-		onCheckedChanged: userModel.setCoachPublicStatus(userRow, checked);
 
 		anchors {
 			top: optCoachUse.bottom
 			topMargin: 10
 			left: parent.left
-			leftMargin: 10
 			right: parent.right
-			rightMargin: 10
 		}
+
+		TPCheckBox {
+			id: chkOnlineCoach
+			text: qsTr("Make myself available online for TP users to contact me")
+			multiLine: true
+			height: itemHeight
+			Layout.preferredWidth: parent.width/2
+
+			Component.onCompleted: userModel.isCoachAlreadyRegisteredOnline(userRow);
+
+			Connections {
+				target: userModel
+				function onCoachOnlineStatus(registered: bool): void { chkOnlineCoach.checked = registered; }
+			}
+
+			onClicked: {
+				userModel.setCoachPublicStatus(userRow, checked);
+				if (checked)
+					bCoachOK = bResumeSent;
+			}
+		}
+
+		TPButton {
+			id: btnSendResume
+			text: qsTr("Send Résumé")
+			autoResize: true
+			enabled: chkOnlineCoach.checked
+			Layout.preferredWidth: parent.width/2
+
+			onClicked: bChooseResume = true;
+		}
+	}
+
+	Loader {
+		id: chooseResumeLoader
+		active: bChooseResume
+		asynchronous: true
+
+		sourceComponent: FileDialog {
+			id: chooseFileDlg
+			title: qsTr("Choose the file to import from")
+			defaultSuffix: "txt"
+			nameFilters: ["PDFs (*.pdf)", "ODFs (*.odf)", "DOCs (*.docx)"]
+			currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
+			fileMode: FileDialog.OpenFile
+
+			onAccepted: {
+				userModel.uploadResume(userRow, currentFile);
+				bChooseResume = false;
+				bResumeSent = true;
+				bCoachOK = true;
+			}
+			onRejected: bChooseResume = false;
+		}
+
+		onLoaded: item.open();
 	}
 
 	TPCheckBox {
@@ -103,12 +158,10 @@ Frame {
 		}
 
 		anchors {
-			top: chkOnlineCoach.visible ? chkOnlineCoach.bottom : optCoachUse.bottom
-			topMargin: 10
+			top: onlineCoachRow.visible ? onlineCoachRow.bottom : optCoachUse.bottom
+			topMargin: 20
 			left: parent.left
-			leftMargin: 10
 			right: parent.right
-			rightMargin: 10
 		}
 	}
 
@@ -121,11 +174,9 @@ Frame {
 
 		anchors {
 			top: chkHaveCoach.bottom
-			topMargin: 10
+			topMargin: 5
 			left: parent.left
-			leftMargin: 10
 			right: parent.right
-			rightMargin: 10
 		}
 	}
 

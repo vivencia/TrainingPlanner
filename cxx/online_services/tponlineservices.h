@@ -30,6 +30,7 @@ public:
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file);
 	void getFile(const QString &username, const QString &passwd, const QString &file);
+	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);

@@ -66,6 +66,15 @@ public:
 	Q_INVOKABLE int findPrevUser(const bool bCoach = false);
 	Q_INVOKABLE int findLastUser(const bool bCoach = false);
 	const int getRowByCoachName(const QString &coachname) const;
+	inline bool isCoach(const uint row) const
+	{
+		const uint app_use_mode{appUseMode(row)};
+		return app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH;
+	}
+	inline bool isUser(const uint row) const
+	{
+		return !isCoach(row);
+	}
 
 	Q_INVOKABLE QStringList getCoaches() const;
 	Q_INVOKABLE QStringList getClients() const;
@@ -200,6 +209,8 @@ public:
 	}
 
 	Q_INVOKABLE void setCoachPublicStatus(const uint row, const bool bPublic);
+	Q_INVOKABLE void isCoachAlreadyRegisteredOnline(const uint row);
+	Q_INVOKABLE void uploadResume(const uint row, const QString &resumeFileName);
 	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }
 
 	int importFromFile(const QString &filename) override;
@@ -226,6 +237,7 @@ signals:
 	void mainUserConfigurationFinishedSignal();
 	void labelsChanged();
 	void userNameOK(int row, bool b_ok);
+	void coachOnlineStatus(bool registered);
 
 private:
 	bool mb_empty;

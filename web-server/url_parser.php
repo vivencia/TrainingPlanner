@@ -2,7 +2,7 @@
 
 $rootdir="/var/www/html/trainingplanner/";
 $htpasswd_file=$rootdir . "scripts/.passwds";
-$coaches_file=$rootdir . "scripts/coaches";
+$coaches_file=$rootdir . "admin/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 
 // Function to verify credentials against .htpasswd file
@@ -11,6 +11,7 @@ function verify_credentials($username, $password, $htpasswd_file) {
         die("htpasswd file not found\r\n");
     }
 
+    #echo "Authenticating " . $username . " with password " . $password;
     // Read the .htpasswd file line by line
     $lines = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -88,7 +89,7 @@ function add_coach($coach) {
     }
     else {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($coaches as  $line) {
+        foreach ($coaches as $line) {
             if ($line == $coach) {
                 echo "Return code 11: Coach already in the public list.\r\n";
                 return;
@@ -98,14 +99,14 @@ function add_coach($coach) {
     }
     fwrite($fh, $coach . "\n");
     fclose($fh);
-    echo "Return code: 0 Coache in the public coaches file.\r\n";
+    echo "Return code: 0 Coach in the public coaches file.\r\n";
 }
 
 function del_coach($coach) {
     global $coaches_file;
     if (file_exists($coaches_file)) {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($coaches as  $line) {
+        foreach ($coaches as $line) {
             if ($line != $coach) {
                 $new_coaches = $new_coaches . $line . "\r\n";
             }
@@ -114,6 +115,18 @@ function del_coach($coach) {
         fwrite($fh, $new_coaches);
         fclose($fh);
         echo "Return code: 0 Coach removed from the public coaches file.\r\n";
+    }
+    else
+        echo "Return code 12 Public coaches file does not exist";
+}
+
+function get_coaches() {
+    global $coaches_file;
+    if (file_exists($coaches_file)) {
+        $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($coaches as $coach) {
+            echo $coach . " ";
+        }
     }
     else
         echo "Return code 12 Public coaches file does not exist";
@@ -135,15 +148,15 @@ function run_htpasswd($cmd_args, $username, $password) {
 $username = isset($_GET['user']) ? $_GET['user'] : '';
 
 if ($username) { //regular, most common usage: download/upload file/info from/to server
-    echo "User name OK\r\n";
+    #echo "User name OK\r\n";
     $password = isset($_GET['password']) ? $_GET['password'] : '';
     if (!$password)
         die("Missing password\r\n");
     else {
         if (verify_credentials($username, $password, $htpasswd_file)) {
             // Authentication successful
-            echo "Authentication Successful! Welcome ", $username;
-            echo "\r\n";
+            #echo "Authentication Successful! Welcome ", $username;
+            #echo "\r\n";
 
             $fileDir=$rootdir . $username;
 
@@ -157,6 +170,10 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
             }
             if (isset($_GET['delcoach'])) {
                 del_coach($username);
+                exit;
+            }
+            if (isset($_GET['getcoaches'])) {
+                get_coaches();
                 exit;
             }
             if (isset($_GET['upload'])) {

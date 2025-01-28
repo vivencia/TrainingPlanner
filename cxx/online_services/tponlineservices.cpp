@@ -58,7 +58,7 @@ void TPOnlineServices::alterUser(const QString &old_username, const QString &new
 
 void TPOnlineServices::addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, bAdd ? "add_coach"_L1 : "del_coach"_L1, "", passwd)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, bAdd ? "addcoach"_L1 : "delcoach"_L1, "", passwd)};
 	makeNetworkRequest(url);
 }
 
@@ -72,6 +72,12 @@ void TPOnlineServices::getFile(const QString &username, const QString &passwd, c
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, "file"_L1, file, passwd)};
 	//downloadFile(url, file);
+}
+
+void TPOnlineServices::getCoachesList(const QString &username, const QString &passwd)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, "getcoaches"_L1, "", passwd)};
+	makeNetworkRequest(url);
 }
 
 void TPOnlineServices::makeNetworkRequest(const QUrl &url)
@@ -93,8 +99,11 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 		LOG_MESSAGE(replyString);
 		//Slice off "Return code: "
 		const qsizetype ret_code_idx{replyString.indexOf("Return code: ") + 13};
-		ret_code = replyString.sliced(ret_code_idx, replyString.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
-		static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
+		if (ret_code_idx > 13)
+		{
+			ret_code = replyString.sliced(ret_code_idx, replyString.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
+			static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
+		}
 	}
 	emit networkRequestProcessed(ret_code, replyString.simplified());
 }
@@ -110,8 +119,8 @@ void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
 	filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
                            QVariant("form-data; name=\"uploaded_file\"; file=\""_L1 + file->fileName() + "\""_L1));
 	filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"_L1));
-	filePart.setBodyDevice(file); //file must be opened and readable. Close it on the caller after networkRequestProcessed is connected
-	file->setParent(multiPart); // Let multipart manage the file's lifecycle
+	filePart.setBodyDevice(file); //file must be readable and opened. Close it on the caller after networkRequestProcessed is connected
+	//file->setParent(multiPart); // Let multipart manage the file's lifecycle
 	multiPart->append(filePart);
 
 	// Send the request

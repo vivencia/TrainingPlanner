@@ -6,6 +6,9 @@
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
 
+#include <QFile>
+#include <QStandardPaths>
+
 #include <utility>
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
@@ -178,8 +181,7 @@ const int DBUserModel::getRowByCoachName(const QString &coachname) const
 	{
 		if (m_modeldata.at(i).at(USER_COL_NAME) == coachname)
 		{
-			const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
-			if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
+			if (isCoach(i))
 				return i;
 		}
 	}
@@ -191,8 +193,7 @@ QStringList DBUserModel::getCoaches() const
 	QStringList coaches;
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
-		const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
-		if (app_use_mode == APP_USE_MODE_SINGLE_COACH || app_use_mode == APP_USE_MODE_COACH_USER_WITH_COACH)
+		if (isCoach(i))
 			coaches.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
 	return coaches;
@@ -203,8 +204,7 @@ QStringList DBUserModel::getClients() const
 	QStringList clients;
 	for (uint i{0}; i < m_modeldata.count(); ++i)
 	{
-		const uint app_use_mode{m_modeldata.at(i).at(USER_COL_APP_USE_MODE).toUInt()};
-		if (app_use_mode == APP_USE_MODE_CLIENTS || app_use_mode == APP_USE_MODE_SINGLE_USER_WITH_COACH)
+		if (isUser(i))
 			clients.append(m_modeldata.at(i).at(USER_COL_NAME));
 	}
 	return clients;
@@ -252,7 +252,7 @@ static QString makeUserPassword(const QString &userName)
 
 void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const int ret_code, const QString &networkReply)
 {
-	const QString &net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //Used for easier identification on the server side
+	const QString &net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //How the user is identified on the server side
 	const QString &password{makeUserPassword(new_name)};
 
 	if (ret_code == -1000)
@@ -295,16 +295,74 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 
 void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
 {
-	const QString &user_name{userName(row)};
-	appOnlineServices()->addOrRemoveCoach(user_name, makeUserPassword(user_name), bPublic);
-	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
-		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
+	{
+		const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+		const QString &password{makeUserPassword(_userName(0))};
+		appOnlineServices()->addOrRemoveCoach(net_name, password, bPublic);
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
+}
+
+void DBUserModel::isCoachAlreadyRegisteredOnline(const uint row)
+{
+	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
+	{
+		const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+		const QString &password{makeUserPassword(_userName(0))};
+		appOnlineServices()->getCoachesList(net_name, password);
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
+			const QStringList& coaches{ret_string.split(' ')};
+			bool registered{!coaches.isEmpty() && !coaches.first().contains("does not"_L1)};
+			if (registered)
+				registered = coaches.contains(net_name);
+			emit coachOnlineStatus(registered);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	}
+}
+
+void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
+{
+	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
+	{
+		QFileInfo fi{resumeFileName};
+		if (fi.isReadable())
+		{
+			const qsizetype idx{resumeFileName.lastIndexOf('.')};
+			const QString &extension{idx > 0 ? resumeFileName.last(resumeFileName.length() - idx) : QString{}};
+			const QString &localResumeFileName{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/resume"_L1 + extension};
+			if (QFile::copy(resumeFileName, localResumeFileName))
+			{
+				QFile *resume{new QFile{localResumeFileName, this}};
+				if (resume->open(QIODeviceBase::ReadOnly))
+				{
+					const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+					const QString &password{makeUserPassword(_userName(0))};
+					appOnlineServices()->sendFile(net_name, password, resume);
+					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString& ret_string) {
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
+						resume->close();
+						resume->remove();
+						delete resume;
+					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					return;
+				}
+				else
+				{
+					resume->remove();
+					delete resume;
+				}
+			}
+		}
+		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + tr("Failed to open file"));
+	}
 }
 
 int DBUserModel::importFromFile(const QString &filename)
 {
-	QFile *inFile{new QFile{filename}};
+	QFile *inFile{new QFile{filename, this}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;
