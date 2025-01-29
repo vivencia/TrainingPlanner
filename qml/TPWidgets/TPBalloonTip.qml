@@ -46,7 +46,7 @@ TPPopup {
 		id: lblTitle
 		text: title
 		horizontalAlignment: Text.AlignHCenter
-		heightAvailable: 50
+		heightAvailable: 30
 		visible: title.length > 0
 		width: parent.width - (closeButtonVisible ? 20 : 10)
 
@@ -68,6 +68,8 @@ TPPopup {
 		height: 50
 
 		anchors {
+			top: title.length > 0 ? lblTitle.bottom : parent.top
+			topMargin: 20
 			left: parent.left
 			leftMargin: 5
 		}

@@ -23,9 +23,9 @@ Frame {
 	required property TPPage parentPage
 	required property int userRow
 	property bool bReady: bNameOK && bBirthDateOK && bSexOK
-	property bool bNameOK: userModel.userName(userRow).length >= 5
-	property bool bBirthDateOK: false
-	property bool bSexOK: false
+	property bool bNameOK
+	property bool bBirthDateOK
+	property bool bSexOK
 	readonly property int nControls: 5
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
@@ -39,8 +39,8 @@ Frame {
 	}
 
 	TPLabel {
-		id: lblName
-		text: userModel.nameLabel
+		id: lblBirthdate
+		text: userModel.birthdayLabel
 		height: controlsHeight
 
 		anchors {
@@ -54,75 +54,19 @@ Frame {
 	}
 
 	TPTextInput {
-		id: txtName
-		height: controlsHeight
-		text: userModel.userName(userRow);
-		ToolTip.text: qsTr("The name is too short")
-
-		onEditingFinished: {
-			if (bNameOK)
-				userModel.setUserName(userRow, text);
-		}
-
-		onEnterOrReturnKeyPressed: {
-			if (bNameOK)
-				caldlg.open();
-		}
-
-		onTextEdited: {
-			if (text.length >= 5) {
-				ToolTip.visible = false;
-				bNameOK = true;
-			}
-			else {
-				ToolTip.visible = true;
-				bNameOK = false;
-			}
-		}
-
-		anchors {
-			top: lblName.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
-	}
-
-	TPLabel {
-		id: lblBirthdate
-		text: userModel.birthdayLabel
-		height: controlsHeight
-
-		anchors {
-			top: txtName.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
-	}
-
-	TPTextInput {
 		id: txtBirthdate
 		text: userModel.birthDateFancy(userRow)
 		readOnly: true
-		enabled: bNameOK
 		height: controlsHeight
 
-		Component.onCompleted: bBirthDateOK = userModel.birthDate(userRow) !== new Date();
-
-		onTextEdited: {
-			frmSex.enabled = acceptableInput;
-			ToolTip.visible = !acceptableInput;
-		}
+		Component.onCompleted: bBirthDateOK = userModel.birthYear(userRow) >= 1940;
 
 		anchors {
 			top: lblBirthdate.bottom
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
-			rightMargin: btnBirthDate.width + 5
+			rightMargin: 5 + btnBirthDate.width
 		}
 
 		CalendarDialog {
@@ -150,9 +94,58 @@ Frame {
 		}
 	}
 
+	TPLabel {
+		id: lblName
+		text: userModel.nameLabel
+		height: controlsHeight
+
+		anchors {
+			top: txtBirthdate.bottom
+			topMargin: 10
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
+	TPTextInput {
+		id: txtName
+		height: controlsHeight
+		text: userModel.userName(userRow);
+		enabled: bBirthDateOK
+		ToolTip.text: qsTr("The name is too short")
+
+		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
+
+		onEditingFinished: {
+			if (bNameOK)
+				userModel.setUserName(userRow, text);
+		}
+
+		onTextEdited: {
+			if (text.length >= 5) {
+				ToolTip.visible = false;
+				bNameOK = true;
+			}
+			else {
+				ToolTip.visible = true;
+				bNameOK = false;
+			}
+		}
+
+		anchors {
+			top: lblName.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
 	Pane {
 		id: frmSex
-		enabled: bBirthDateOK
+		enabled: bNameOK
 		height: controlsHeight
 		padding: 0
 		spacing: 0
@@ -164,7 +157,7 @@ Frame {
 		}
 
 		anchors {
-			top: txtBirthdate.bottom
+			top: txtName.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5

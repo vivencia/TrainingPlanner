@@ -98,8 +98,8 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 			replyString += " ***** "_L1 + std::move(reply->errorString());
 		LOG_MESSAGE(replyString);
 		//Slice off "Return code: "
-		const qsizetype ret_code_idx{replyString.indexOf("Return code: ") + 13};
-		if (ret_code_idx > 13)
+		const qsizetype ret_code_idx{replyString.indexOf("Return code: "_L1) + 13};
+		if (ret_code_idx >= 13)
 		{
 			ret_code = replyString.sliced(ret_code_idx, replyString.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
 			static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
@@ -111,21 +111,26 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"
 void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
 {
-	QNetworkRequest request{url};
-	// Prepare the multipart data
-	QHttpMultiPart *multiPart{new QHttpMultiPart{QHttpMultiPart::FormDataType, this}};
-	// Add the file as a part
-	QHttpPart filePart;
-	filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
-                           QVariant("form-data; name=\"uploaded_file\"; file=\""_L1 + file->fileName() + "\""_L1));
-	filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"_L1));
-	filePart.setBodyDevice(file); //file must be readable and opened. Close it on the caller after networkRequestProcessed is connected
-	//file->setParent(multiPart); // Let multipart manage the file's lifecycle
-	multiPart->append(filePart);
+	if ( file->isOpen())
+	{
+		QNetworkRequest request{url};
 
-	// Send the request
-	QNetworkReply *reply{m_networkManager->post(request, multiPart)};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
-	multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
+		// Add the file as a part
+		QHttpPart filePart;
+		filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                           QVariant("multipart/form-data; name=\"file\"; filename=\"" + file->fileName() + "\""));
+        filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
+        filePart.setHeader(QNetworkRequest::ContentLengthHeader, file->size());
+        filePart.setBodyDevice(file);
+
+		// Prepare the multipart data
+		QHttpMultiPart *multiPart{new QHttpMultiPart{QHttpMultiPart::FormDataType, this}};
+		multiPart->append(filePart);
+		file->setParent(multiPart); // MultiPart will manage file deletion
+
+		// Send the request
+		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
+		connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
+	}
 }
-

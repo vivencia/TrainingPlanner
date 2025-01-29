@@ -86,12 +86,14 @@ public:
 	Q_INVOKABLE uint userRow(const QString &userName) const;
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString &_userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
-	Q_INVOKABLE void setUserName(const int row, const QString &new_name, const int prev_use_mode = -1, const int ret_code = -1000, const QString &networkReply = QString());
+	Q_INVOKABLE void setUserName(const int row, const QString &new_name, const int prev_use_mode = -1, const QDate &prev_birthdate = QDate{},
+								 int ret_code = -1000, const QString &networkReply = QString{});
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
 		return row >= 0 && row < m_modeldata.count() ? QDate::fromJulianDay(_birthDate(row).toLongLong()) : QDate::currentDate();
 	}
+	Q_INVOKABLE inline int birthYear(const int row) const { return birthDate(row).year(); }
 	Q_INVOKABLE inline QString birthDateFancy(const int row) const
 	{
 		return appUtils()->formatDate(birthDate(row));
@@ -99,8 +101,14 @@ public:
 	inline const QString &_birthDate(const uint row) const { return m_modeldata.at(row).at(USER_COL_BIRTHDAY); }
 	Q_INVOKABLE inline void setBirthDate(const uint row, const QDate& new_date)
 	{
-		m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
-		emit userModified(row, USER_COL_BIRTHDAY);
+		if (new_date != birthDate(row))
+		{
+			const QDate prev_date{std::move(birthDate(row))};
+			m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
+			emit userModified(row, USER_COL_BIRTHDAY);
+			if (!_userName(row).isEmpty())
+				setUserName(row, userName(row), -1, prev_date);
+		}
 	}
 
 	Q_INVOKABLE inline uint sex(const int row) const { return row >= 0 && row < m_modeldata.count() ? _sex(row).toUInt() : 2; }
@@ -180,6 +188,7 @@ public:
 		const uint prev_use_mode{appUseMode(row)};
 		if (new_use_opt != prev_use_mode)
 		{
+			setCoachPublicStatus(row, false);
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
 			setUserName(row, userName(row), prev_use_mode);
@@ -242,7 +251,10 @@ signals:
 private:
 	bool mb_empty;
 	int m_searchRow;
+	std::optional<bool> mb_coachRegistered;
 
+	QString getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const;
+	QString makeUserPassword(const QString &userName) const;
 	static DBUserModel* _appUserModel;
 	friend DBUserModel* appUserModel();
 };

@@ -22,9 +22,9 @@ TPPage {
 
 	onCurUserRowChanged: {
 		if (showCoaches)
-			chkCurrent.checked = userModel.currentCoach(0) === curUserRow;
+			chkCurrent.checked = (userModel.currentCoach(0) === curUserRow);
 		else
-			chkCurrent.checked = userModel.currentClient(0) === curUserRow;
+			chkCurrent.checked = (userModel.currentClient(0) === curUserRow);
 	}
 
 	TPLabel {
@@ -200,7 +200,6 @@ TPPage {
 				userRow: curUserRow
 				enabled: curUserRow > 0
 				width: appSettings.pageWidth - 20
-				Layout.topMargin: -30
 			}
 
 			UserProfile {
@@ -209,7 +208,6 @@ TPPage {
 				parentPage: clientsOrCoachesPage
 				enabled: curUserRow > 0
 				width: appSettings.pageWidth - 20
-				Layout.topMargin: 20
 			}
 		}
 	}
@@ -223,11 +221,11 @@ TPPage {
 
 		if (msgRemoveUser === null) {
 			function createMessageBox() {
-				var component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
+				let component = Qt.createComponent("qrc:/qml/TPWidgets/TPBalloonTip.qml", Qt.Asynchronous);
 
 				function finishCreation() {
 					msgRemoveUser = component.createObject(clientsOrCoachesPage, { parentPage: clientsOrCoachesPage, imageSource: "remove",
-						message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") });
+						title: "Placeholder", message: qsTr("This action cannot be undone."), button1Text: qsTr("Yes"), button2Text: qsTr("No") });
 					msgRemoveUser.button1Clicked.connect(function () { userManager.removeUser(curUserRow, showCoaches); });
 				}
 

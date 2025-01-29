@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	{
 #endif
 		QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
-		QApplication app(argc, argv);
+		QApplication app{argc, argv};
 
 		app.setOrganizationName("Vivencia Software"_L1);
 		app.setOrganizationDomain("org.vivenciasoftware"_L1);

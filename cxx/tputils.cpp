@@ -8,15 +8,15 @@
 
 TPUtils* TPUtils::app_utils(nullptr);
 
-const QString TPUtils::getCorrectPath(const QUrl& url) const
+const QString TPUtils::getCorrectPath(const QUrl &url) const
 {
-	QString path(url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme));
+	QString path{url.toString(QUrl::PrettyDecoded|QUrl::PreferLocalFile|QUrl::RemoveScheme)};
 	if (path.startsWith("file://"_L1))
 		path.remove(0, 7);
 	return path;
 }
 
-int TPUtils::getFileType(const QString& filename) const
+int TPUtils::getFileType(const QString &filename) const
 {
 	#ifdef Q_OS_ANDROID
 		return filename.contains("video%"_L1) ? 1 : (filename.contains("image%"_L1) ? 0 : -1);
@@ -27,33 +27,39 @@ int TPUtils::getFileType(const QString& filename) const
 	#endif
 }
 
-void TPUtils::copyToClipBoard(const QString& text) const
+void TPUtils::copyToClipBoard(const QString &text) const
 {
 	qApp->clipboard()->setText(text);
 }
 
-bool TPUtils::canReadFile(const QString& filename) const
+bool TPUtils::canReadFile(const QString &filename) const
 {
-	const QFileInfo file(filename);
+	const QFileInfo file{filename};
 	if (file.isFile())
 		return file.isReadable();
 	return false;
 }
 
-QString TPUtils::formatDate(const QDate& date) const
+QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 {
-	return m_appLocale->toString(date, "ddd d/M/yyyy"_L1);
+	switch (format)
+	{
+		case DF_QML_DISPLAY:
+			return m_appLocale->toString(date, "ddd d/M/yyyy"_L1);
+		break;
+		case DF_CATALOG:
+			return QString::number(date.year()) + QString::number(date.month()) + QString::number(date.day());
+		break;
+		case DF_DATABASE:
+			return QString::number(date.toJulianDay());
+		break;
+	}
+	return QString{};
 }
 
-QString TPUtils::formatTodayDate() const
+QDate TPUtils::getDateFromStrDate(const QString &strDate) const
 {
-	const QDate& today(QDate::currentDate());
-	return m_appLocale->toString(today, "ddd d/M/yyyy"_L1);
-}
-
-QDate TPUtils::getDateFromStrDate(const QString& strDate) const
-{
-	const QStringView& strdate(strDate);
+	const QStringView &strdate{strDate};
 	const int spaceIdx(strdate.indexOf(' '));
 	const int fSlashIdx(strdate.indexOf('/'));
 	const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
@@ -64,7 +70,7 @@ QDate TPUtils::getDateFromStrDate(const QString& strDate) const
 	return date;
 }
 
-uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) const
+uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const
 {
 	uint n(0);
 	const uint week1(date1.weekNumber());
@@ -80,13 +86,13 @@ uint TPUtils::calculateNumberOfWeeks(const QDate& date1, const QDate& date2) con
 	return n+1; //+1 include current week
 }
 
-QDate TPUtils::getNextMonday(const QDate& fromDate) const
+QDate TPUtils::getNextMonday(const QDate &fromDate) const
 {
-	constexpr uint daysToNextMonday[7] = { 7, 6, 5, 4, 3, 2, 1 };
+	constexpr uint daysToNextMonday[7]{ 7, 6, 5, 4, 3, 2, 1 };
 	return fromDate.addDays(daysToNextMonday[fromDate.dayOfWeek()-1]);
 }
 
-QDate TPUtils::createDate(const QDate& fromDate, const int years, const int months, const int days) const
+QDate TPUtils::createDate(const QDate &fromDate, const int years, const int months, const int days) const
 {
 	QDate newDate{fromDate};
 	newDate = std::move(newDate.addDays(days));
@@ -105,7 +111,7 @@ int TPUtils::daysInMonth(const int month, const int year) const
 	}
 }
 
-QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, const int addsecs) const
+QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const
 {
 	int secs(QStringView{strTime}.sliced(3, 2).toUInt());
 	int mins(QStringView{strTime}.first(2).toUInt());
@@ -127,30 +133,30 @@ QString TPUtils::addTimeToStrTime(const QString& strTime, const int addmins, con
 		mins = 0;
 		secs = 0;
 	}
-	const QString& ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
+	const QString &ret((mins <= 9 ? STR_ZERO + QString::number(mins) : QString::number(mins)) + QChar(':') +
 		(secs <= 9 ? STR_ZERO + QString::number(secs) : QString::number(secs)));
 	return ret;
 }
 
-QString TPUtils::getHourOrMinutesFromStrTime(const QString& strTime) const
+QString TPUtils::getHourOrMinutesFromStrTime(const QString &strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.first(idx) : QString();
 }
 
-QString TPUtils::getMinutesOrSeconsFromStrTime(const QString& strTime) const
+QString TPUtils::getMinutesOrSeconsFromStrTime(const QString &strTime) const
 {
 	const int idx(strTime.indexOf(':'));
 	return idx > 1 ? strTime.sliced(idx+1) : QString();
 }
 
-QString TPUtils::calculateTimeDifference_str(const QString& strTimeInit, const QString& strTimeFinal) const
+QString TPUtils::calculateTimeDifference_str(const QString &strTimeInit, const QString &strTimeFinal) const
 {
 	const QTime& time(calculateTimeDifference(strTimeInit, strTimeFinal));
 	return time.toString("hh:mm:ss"_L1);
 }
 
-QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString& strTimeFinal) const
+QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const
 {
 	int hour(strTimeFinal.first(2).toInt() - strTimeInit.first(2).toInt());
 	int min (strTimeFinal.last(2).toInt() - strTimeInit.last(2).toInt());
@@ -163,22 +169,22 @@ QTime TPUtils::calculateTimeDifference(const QString& strTimeInit, const QString
 	return QTime(hour, min, 0);
 }
 
-QString TPUtils::makeCompositeValue(const QString& defaultValue, const uint n_fields, const QLatin1Char& chr_sep) const
+QString TPUtils::makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const
 {
 	QString comp;
-	for(uint i(0); i < n_fields; ++i)
+	for(uint i{0}; i < n_fields; ++i)
 		comp += defaultValue + chr_sep;
 	return comp;
 }
 
-QString TPUtils::makeDoubleCompositeValue(const QString& defaultValue, const uint n_fields1, const uint n_fields2,
-												const QLatin1Char& chr_sep1, const QLatin1Char& chr_sep2) const
+QString TPUtils::makeDoubleCompositeValue(const QString &defaultValue, const uint n_fields1, const uint n_fields2,
+												const QLatin1Char &chr_sep1, const QLatin1Char &chr_sep2) const
 {
 	QString comp1{std::move(makeCompositeValue(defaultValue, n_fields1, chr_sep1))};
 	return makeCompositeValue(comp1, n_fields2, chr_sep2);
 }
 
-QString TPUtils::getCompositeValue(const uint idx, const QString& compositeString, const QLatin1Char& chr_sep) const
+QString TPUtils::getCompositeValue(const uint idx, const QString &compositeString, const QLatin1Char &chr_sep) const
 {
 	QString::const_iterator itr(compositeString.constBegin());
 	const QString::const_iterator& itr_end(compositeString.constEnd());
@@ -201,7 +207,7 @@ QString TPUtils::getCompositeValue(const uint idx, const QString& compositeStrin
 	return idx == 0 ? compositeString : QString();
 }
 
-void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString& compositeString, const QLatin1Char& chr_sep) const
+void TPUtils::setCompositeValue(const uint idx, const QString &newValue, QString &compositeString, const QLatin1Char &chr_sep) const
 {
 	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1);
@@ -236,7 +242,7 @@ void TPUtils::setCompositeValue(const uint idx, const QString& newValue, QString
 	compositeString += newValue + chr_sep;
 }
 
-void TPUtils::removeFieldFromCompositeValue(const uint idx, QString& compositeString, const QLatin1Char& chr_sep) const
+void TPUtils::removeFieldFromCompositeValue(const uint idx, QString &compositeString, const QLatin1Char &chr_sep) const
 {
 	int sep_pos(compositeString.indexOf(chr_sep));
 	int n_seps(-1), del_pos_1(0), del_pos_2(-1);
@@ -253,7 +259,7 @@ void TPUtils::removeFieldFromCompositeValue(const uint idx, QString& compositeSt
 	compositeString.remove(del_pos_1, del_pos_2 - del_pos_1 + 1);
 }
 
-bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2) const
+bool TPUtils::stringsAreSimiliar(const QString &string1, const QString &string2) const
 {
 	const QStringList& words2{string2.split(' ')};
 	QStringList::const_iterator itr{words2.begin()};
@@ -271,7 +277,7 @@ bool TPUtils::stringsAreSimiliar(const QString& string1, const QString& string2)
 	return false;
 }
 
-QString TPUtils::stripDiacriticsFromString(const QString& src) const
+QString TPUtils::stripDiacriticsFromString(const QString &src) const
 {
 	QString filtered;
     for (qsizetype i{0}; i < src.length(); ++i)
@@ -290,9 +296,9 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	strValue.replace('-', ""_L1);
 	strValue.replace('E', ""_L1);
 	strValue = strValue.trimmed();
-	const char rightmostDigit(!strValue.isEmpty() ? strValue.at(strValue.length()-1).toLatin1() : '0');
+	const char rightmostDigit{!strValue.isEmpty() ? strValue.at(strValue.length()-1).toLatin1() : '0'};
 
-	float result(m_appLocale->toFloat(strValue));
+	float result{m_appLocale->toFloat(strValue)};
 	switch (settype)
 		case 0: //SetInputField.Type.WeightType
 		{
@@ -327,7 +333,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				}
 				else
 				{
-					int paddingValue(0);
+					int paddingValue{0};
 					switch (rightmostDigit)
 					{
 						case '0':
@@ -355,7 +361,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 			else if (result < 0)
 				result = 0;
 
-			strValue = QString::number(result, 'f', 2);
+			strValue = std::move(QString::number(result, 'f', 2));
 			if (strValue.last(2) != "50"_L1)
 				strValue.chop(3);
 			return strValue;
@@ -387,7 +393,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 				}
 				else
 					result += 5;
-				strValue = strValue.first(3) + (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result));
+				strValue = std::move(strValue.first(3) + (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)));
 			}
 			else
 			{
@@ -400,7 +406,7 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 					result -= 5;
 				if (result < 0)
 					result = 0;
-				strValue = (result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)) + strValue.last(3);
+				strValue = std::move((result < 10 ? "0"_L1 : ""_L1) + QString::number(static_cast<uint>(result)) + strValue.last(3));
 			}
 			return strValue;
 		}
@@ -426,13 +432,13 @@ QString TPUtils::setTypeOperation(const uint settype, const bool bIncrease, QStr
 	}
 }
 
-void TPUtils::setAppLocale(const QString& localeStr, const bool bWriteConfig)
+void TPUtils::setAppLocale(const QString &localeStr, const bool bWriteConfig)
 {
 	if (m_appLocale)
 		delete m_appLocale;
 
-	const QString& strLanguage(localeStr.first(2));
-	const QString& strTerritory(localeStr.last(2));
+	const QString &strLanguage{localeStr.first(2)};
+	const QString &strTerritory{localeStr.last(2)};
 	QLocale::Language language;
 	QLocale::Territory territory;
 
@@ -451,7 +457,7 @@ void TPUtils::setAppLocale(const QString& localeStr, const bool bWriteConfig)
 		territory = QLocale::UnitedStates;
 
 	m_strLocale = localeStr;
-	m_appLocale = new QLocale(language, territory);
+	m_appLocale = new QLocale{language, territory};
 	m_appLocale->setNumberOptions(QLocale::IncludeTrailingZeroesAfterDot);
 	if (bWriteConfig)
 		appSettings()->setAppLocale(localeStr);

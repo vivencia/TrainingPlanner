@@ -93,7 +93,7 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList_fast(std::move(QStringList{} << STR_MINUS_ONE << QString{} << std::move("2451545"_L1) << STR_ZERO << QString{} <<
+	appendList_fast(std::move(QStringList{} << STR_MINUS_ONE << QString{} << std::move("2424151"_L1) << STR_ZERO << QString{} <<
 		QString{} << QString{} << QString{} << QString{} << QString{} << std::move("image://tpimageprovider/m5"_L1) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
@@ -220,12 +220,12 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-static QString getNetworkUserName(const QString &userName, const uint app_use_mode)
+QString DBUserModel::getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const
 {
 	QString net_name{std::move(appUtils()->stripDiacriticsFromString(userName))};
 	net_name = std::move(net_name.toLower());
 	static_cast<void>(net_name.replace(' ', '_'));
-
+	net_name.append('_' + appUtils()->formatDate(birthdate, TPUtils::DF_CATALOG));
 	switch (app_use_mode)
 	{
 		case APP_USE_MODE_CLIENTS:
@@ -243,25 +243,26 @@ static QString getNetworkUserName(const QString &userName, const uint app_use_mo
 	return net_name;
 }
 
-static QString makeUserPassword(const QString &userName)
+QString DBUserModel::makeUserPassword(const QString &userName) const
 {
 	QString password{userName};
 	static_cast<void>(password.replace(' ', '_'));
 	return password;
 }
 
-void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const int ret_code, const QString &networkReply)
+void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const QDate &prev_birthdate,
+								int ret_code, const QString &networkReply)
 {
-	const QString &net_name{getNetworkUserName(new_name, appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+	const QString &net_name{getNetworkUserName(new_name, appUseMode(row), birthDate(row))}; //How the user is identified on the server side
 	const QString &password{makeUserPassword(new_name)};
 
 	if (ret_code == -1000)
 	{
 		appOnlineServices()->checkUser(net_name, password);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name,prev_use_mode] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name,prev_use_mode,prev_birthdate] (const int ret_code, const QString& ret_string) {
 			if (_userName(row).isEmpty()) //User not registered in the local database
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
-			setUserName(row, new_name, prev_use_mode, ret_code, ret_string);
+			setUserName(row, new_name, prev_use_mode, prev_birthdate, ret_code, ret_string);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 	else
@@ -276,7 +277,8 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 					appOnlineServices()->registerUser(net_name, password);
 				else
 					appOnlineServices()->alterUser(getNetworkUserName(appUserModel()->_userName(row), prev_use_mode != -1 ? prev_use_mode :
-						appUserModel()->appUseMode(row)), net_name, password);
+						appUseMode(row), prev_birthdate.isValid() ? prev_birthdate : birthDate(row)), net_name, password);
+				ret_code = 0;
 			case 0: //User already and correctly registered on the server. But, for whatwever reason, might not be on the local database. So, skip the break statement
 				if (new_name != _userName(row))
 				{
@@ -297,11 +299,13 @@ void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
 {
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
-		const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+		const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
 		const QString &password{makeUserPassword(_userName(0))};
 		appOnlineServices()->addOrRemoveCoach(net_name, password, bPublic);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString& ret_string) {
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
+			if (ret_code == 0 && bPublic)
+				mb_coachRegistered = true;
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 }
@@ -310,16 +314,19 @@ void DBUserModel::isCoachAlreadyRegisteredOnline(const uint row)
 {
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
-		const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
-		const QString &password{makeUserPassword(_userName(0))};
-		appOnlineServices()->getCoachesList(net_name, password);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
-			const QStringList& coaches{ret_string.split(' ')};
-			bool registered{!coaches.isEmpty() && !coaches.first().contains("does not"_L1)};
-			if (registered)
-				registered = coaches.contains(net_name);
-			emit coachOnlineStatus(registered);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		if (!mb_coachRegistered)
+		{
+			const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
+			const QString &password{makeUserPassword(_userName(0))};
+			appOnlineServices()->getCoachesList(net_name, password);
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
+				const QStringList &coaches{ret_string.split(' ')};
+				mb_coachRegistered = !coaches.isEmpty() && !coaches.first().contains("does not"_L1);
+				if (mb_coachRegistered == true)
+					mb_coachRegistered = coaches.contains(net_name);
+				emit coachOnlineStatus(mb_coachRegistered == true);
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		}
 	}
 }
 
@@ -327,18 +334,19 @@ void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 {
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
-		QFileInfo fi{resumeFileName};
+		const QString &resumeFileName_ok{appUtils()->getCorrectPath(resumeFileName)};
+		QFileInfo fi{resumeFileName_ok};
 		if (fi.isReadable())
 		{
-			const qsizetype idx{resumeFileName.lastIndexOf('.')};
-			const QString &extension{idx > 0 ? resumeFileName.last(resumeFileName.length() - idx) : QString{}};
+			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
+			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
 			const QString &localResumeFileName{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/resume"_L1 + extension};
-			if (QFile::copy(resumeFileName, localResumeFileName))
+			if (QFile::copy(resumeFileName_ok, localResumeFileName))
 			{
 				QFile *resume{new QFile{localResumeFileName, this}};
 				if (resume->open(QIODeviceBase::ReadOnly))
 				{
-					const QString &net_name{getNetworkUserName(_userName(0), appUserModel()->appUseMode(row))}; //How the user is identified on the server side
+					const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
 					const QString &password{makeUserPassword(_userName(0))};
 					appOnlineServices()->sendFile(net_name, password, resume);
 					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString& ret_string) {
@@ -370,12 +378,12 @@ int DBUserModel::importFromFile(const QString &filename)
 	}
 
 	char buf[128];
-	qint64 lineLength(0);
-	uint col(USER_COL_NAME);
+	qint64 lineLength{0};
+	uint col{USER_COL_NAME};
 	QString value;
-	bool bFoundModelInfo(false);
-	const QString tableIdStr("0x000"_L1 + QString::number(USER_TABLE_ID));
-	QStringList modeldata(USER_TOTAL_COLS);
+	bool bFoundModelInfo{false};
+	const QString tableIdStr{"0x000"_L1 + QString::number(USER_TABLE_ID)};
+	QStringList modeldata{USER_TOTAL_COLS};
 	modeldata[0] = STR_MINUS_ONE;
 
 	while ((lineLength = inFile->readLine(buf, sizeof(buf))) != -1)

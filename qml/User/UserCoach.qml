@@ -13,7 +13,7 @@ Frame {
 	id: topFrame
 	height: moduleHeight
 	implicitHeight: Math.min(height, moduleHeight)
-	spacing: 5
+	spacing: 0
 	padding: 0
 
 	background: Rectangle {
@@ -27,7 +27,7 @@ Frame {
 	property bool bChooseResume: false
 	property bool bResumeSent: false
 	readonly property int moduleHeight: 0.25*appSettings.pageHeight
-	readonly property int itemHeight: implicitHeight/3
+	readonly property int itemHeight: implicitHeight/4
 
 	onBCoachOKChanged: bReady = bCoachOK;
 
@@ -38,6 +38,8 @@ Frame {
 		multiLine: true
 		height: itemHeight
 
+		Component.onCompleted: if (checked) bReady = true;
+
 		onClicked: {
 			bReady = checked;
 			if (checked)
@@ -47,6 +49,7 @@ Frame {
 
 		anchors {
 			top: parent.top
+			topMargin: -10
 			left: parent.left
 			right: parent.right
 		}
@@ -59,6 +62,8 @@ Frame {
 		multiLine: true
 		height: itemHeight
 
+		Component.onCompleted: bCoachOK = checked;
+
 		onClicked: {
 			bCoachOK = checked;
 			if (checked)
@@ -68,6 +73,7 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
+			topMargin: 10
 			left: parent.left
 			right: parent.right
 		}
@@ -81,7 +87,7 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: 10
+			topMargin: 20
 			left: parent.left
 			right: parent.right
 		}
@@ -127,7 +133,7 @@ Frame {
 			id: chooseFileDlg
 			title: qsTr("Choose the file to import from")
 			defaultSuffix: "txt"
-			nameFilters: ["PDFs (*.pdf)", "ODFs (*.odf)", "DOCs (*.docx)"]
+			nameFilters: [qsTr("Supported file types") + " (*.pdf *.odf *.docx)"]
 			currentFolder: StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
 			fileMode: FileDialog.OpenFile
 
@@ -158,8 +164,7 @@ Frame {
 		}
 
 		anchors {
-			top: onlineCoachRow.visible ? onlineCoachRow.bottom : optCoachUse.bottom
-			topMargin: 20
+			bottom: btnFindCoachOnline.top
 			left: parent.left
 			right: parent.right
 		}
@@ -168,13 +173,13 @@ Frame {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
-		visible: chkHaveCoach.checked
+		enabled: chkHaveCoach.checked
 
 		onClicked: displayOnlineCoachesMenu();
 
 		anchors {
-			top: chkHaveCoach.bottom
-			topMargin: 5
+			top: parent.bottom
+			topMargin: -10
 			left: parent.left
 			right: parent.right
 		}
