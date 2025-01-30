@@ -173,6 +173,7 @@ Frame {
 	TPButton {
 		id: btnFindCoachOnline
 		text: qsTr("Look online for available coaches");
+		visible: userRow === 0 && appSettings.mainUserConfigured
 		enabled: chkHaveCoach.checked
 
 		onClicked: displayOnlineCoachesMenu();
@@ -183,6 +184,26 @@ Frame {
 			left: parent.left
 			right: parent.right
 		}
+	}
+
+	property UserCoachRequest requestDlg: null
+	function displayOnlineCoachesMenu(): void {
+		if (requestDlg === null) {
+			function createRequestDialog() {
+				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
+
+				function finishCreation() {
+					requestDlg = component.createObject(contentItem, {});
+				}
+
+				if (component.status === Component.Ready)
+					finishCreation();
+				else
+					component.statusChanged.connect(finishCreation);
+			}
+			createRequestDialog();
+		}
+		requestDlg.show(-1);
 	}
 
 	function focusOnFirstField(): void {

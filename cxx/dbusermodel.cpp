@@ -1,5 +1,6 @@
 #include "dbusermodel.h"
 
+#include "osinterface.h"
 #include "qmlitemmanager.h"
 #include "tpglobals.h"
 #include "tputils.h"
@@ -250,9 +251,26 @@ QString DBUserModel::makeUserPassword(const QString &userName) const
 	return password;
 }
 
+void DBUserModel::_setUserName(const uint row, const QString &new_name)
+{
+	if (new_name != _userName(row))
+	{
+		m_modeldata[row][USER_COL_NAME] = new_name;
+		emit userModified(row, USER_COL_NAME);
+		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+			emit userAddedOrRemoved(row, true);
+	}
+}
+
 void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const QDate &prev_birthdate,
 								int ret_code, const QString &networkReply)
 {
+	if (!appOsInterface()->tpServerOK())
+	{
+		_setUserName(row, new_name);
+		return;
+	}
+
 	const QString &net_name{getNetworkUserName(new_name, appUseMode(row), birthDate(row))}; //How the user is identified on the server side
 	const QString &password{makeUserPassword(new_name)};
 
@@ -280,13 +298,7 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 						appUseMode(row), prev_birthdate.isValid() ? prev_birthdate : birthDate(row)), net_name, password);
 				ret_code = 0;
 			case 0: //User already and correctly registered on the server. But, for whatwever reason, might not be on the local database. So, skip the break statement
-				if (new_name != _userName(row))
-				{
-					m_modeldata[row][USER_COL_NAME] = new_name;
-					emit userModified(row, USER_COL_NAME);
-					if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-						emit userAddedOrRemoved(row, true);
-				}
+				_setUserName(row, new_name);
 			break;
 			default:
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, networkReply);
@@ -297,9 +309,12 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 
 void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
 {
+	if (!appOsInterface()->tpServerOK())
+		return;
+
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
-		const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
+		const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
 		const QString &password{makeUserPassword(_userName(0))};
 		appOnlineServices()->addOrRemoveCoach(net_name, password, bPublic);
 		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString& ret_string) {
@@ -312,18 +327,16 @@ void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
 
 void DBUserModel::isCoachAlreadyRegisteredOnline(const uint row)
 {
+	if (!appOsInterface()->tpServerOK())
+		return;
+
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
 		if (!mb_coachRegistered)
 		{
-			const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
-			const QString &password{makeUserPassword(_userName(0))};
-			appOnlineServices()->getCoachesList(net_name, password);
-			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
-				const QStringList &coaches{ret_string.split(' ')};
-				mb_coachRegistered = !coaches.isEmpty() && !coaches.first().contains("does not"_L1);
-				if (mb_coachRegistered == true)
-					mb_coachRegistered = coaches.contains(net_name);
+			connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
+				const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))};
+				mb_coachRegistered = coaches_list.contains(net_name);
 				emit coachOnlineStatus(mb_coachRegistered == true);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		}
@@ -332,6 +345,9 @@ void DBUserModel::isCoachAlreadyRegisteredOnline(const uint row)
 
 void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 {
+	if (!appOsInterface()->tpServerOK())
+		return;
+
 	if (row == 0 && isCoach(0)) //Only applicable to the main user that is a coach
 	{
 		const QString &resumeFileName_ok{appUtils()->getCorrectPath(resumeFileName)};
@@ -366,6 +382,37 @@ void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 		}
 		appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + tr("Failed to open file"));
 	}
+}
+
+void DBUserModel::mainUserConfigurationFinished()
+{
+	emit mainUserConfigurationFinishedSignal();
+	if (!appOsInterface()->tpServerOK())
+		return;
+
+	const QString &localProfile{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/profile.txt"_L1};
+	if (exportToFile(localProfile, true, true) == APPWINDOW_MSG_EXPORT_OK)
+	{
+		QFile *profile{new QFile{localProfile, this}};
+		if (profile->open(QIODeviceBase::ReadOnly))
+		{
+			appOnlineServices()->sendFile(networkUserName(0), networkUserPassword(0), profile);
+			profile->close();
+		}
+		delete profile;
+	}
+}
+
+void DBUserModel::onlineCoachesList()
+{
+	const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
+	const QString &password{makeUserPassword(_userName(0))};
+	appOnlineServices()->getCoachesList(net_name, password);
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
+		const QStringList &coaches{ret_string.split(' ')};
+		if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
+			emit coachesListReceived(coaches); //TODO prettyfy the names
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 }
 
 int DBUserModel::importFromFile(const QString &filename)

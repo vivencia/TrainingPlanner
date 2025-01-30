@@ -5,13 +5,19 @@ $htpasswd_file=$rootdir . "scripts/.passwds";
 $coaches_file=$rootdir . "admin/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 
+function print_r2($val){
+        echo '<pre>';
+        print_r($val);
+        echo  '</pre>';
+}
+
 // Function to verify credentials against .htpasswd file
 function verify_credentials($username, $password, $htpasswd_file) {
     if (!file_exists($htpasswd_file)) {
         die("htpasswd file not found\r\n");
     }
 
-    #echo "Authenticating " . $username . " with password " . $password;
+    #print_r2("Authenticating " . $username . " with password " . $password);
     // Read the .htpasswd file line by line
     $lines = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
@@ -29,6 +35,8 @@ function verify_credentials($username, $password, $htpasswd_file) {
 }
 
 function upload_file($uploadDir) {
+    #print_r2($_REQUEST);
+    #print_r2(getallheaders());
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if the file was uploaded
         if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
@@ -132,6 +140,21 @@ function get_coaches() {
         echo "Return code 12 Public coaches file does not exist";
 }
 
+function contact_coach($username, $coach) {
+    $user_info_file = $rootdir . $username . "/profile.txt";
+    $mkdir = "/usr/bin/mkdir";
+    exec($mkdir -p $rootdir$coach."/requests", $output, $return_var);
+    if ($return_var == 0) {
+        $coach_request_file = $rootdir$coach . "/requests/" . $user_name . ".txt";
+        exec("/usr/bin/cp" $user_info_file $coach_request_file, $output, $return_var);
+        if ($return_var == 0) {
+            print_r2("Return code 0 Client request to coach successful");
+            return;
+        }
+    }
+    print_r2("Return code 13 Could not complete client request to coach");
+}
+
 function run_htpasswd($cmd_args, $username, $password) {
     global $htpasswd;
     global $htpasswd_file;
@@ -176,12 +199,19 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 get_coaches();
                 exit;
             }
+            if (isset($_GET['contactcoach'])) {
+                $coach = $_GET['contactcoach'];
+                if ($coach)
+                    contact_coach($username, $coach);
+                exit;
+            }
             if (isset($_GET['upload'])) {
-                $filename = $rootdir . $_GET['upload'];
-                if ($filename) {
-                    upload_file($fileDir);
-                    exit;
+                $otheruser = $_GET['upload'];
+                if ($otheruser) {
+                    $fileDir=$rootdir . $otheruser;
                 }
+                upload_file($fileDir);
+                exit;
             }
             if (isset($_GET['file'])) {
                 $filename = $rootdir . $_GET['file'];
@@ -192,7 +222,7 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 }
             }
 
-            echo "Missing filename name argument(either upload= or file=)\r\n";
+            echo "Missing action argument\r\n";
         }
         else {
             // Authentication failed
@@ -271,7 +301,7 @@ else { //user management
         echo "Return code: $return_var $error_string\r\n";
         exit;
     }
-    die("Missing user or command\r\n");
+    print_r2("Welcome to the TrainingPlanner app server!");
 }
 
 ?>

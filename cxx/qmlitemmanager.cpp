@@ -100,15 +100,15 @@ void QmlItemManager::configureQmlEngine()
 
 	//Root context properties. MainWindow app properties
 	QList<QQmlContext::PropertyPair> properties(9);
-	properties[0] = QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) };
-	properties[1] = QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) };
-	properties[2] = QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) };
-	properties[3] = QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) };
-	properties[4] = QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) };
-	properties[5] = QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesModel()) };
-	properties[6] = QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) };
-	properties[7] = QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) };
-	properties[8] = QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) };
+	properties[0] = std::move(QQmlContext::PropertyPair{ "appSettings"_L1, QVariant::fromValue(appSettings()) });
+	properties[1] = std::move(QQmlContext::PropertyPair{ "appUtils"_L1, QVariant::fromValue(appUtils()) });
+	properties[2] = std::move(QQmlContext::PropertyPair{ "appTr"_L1, QVariant::fromValue(appTr()) });
+	properties[3] = std::move(QQmlContext::PropertyPair{ "userModel"_L1, QVariant::fromValue(appUserModel()) });
+	properties[4] = std::move(QQmlContext::PropertyPair{ "mesocyclesModel"_L1, QVariant::fromValue(appMesoModel()) });
+	properties[5] = std::move(QQmlContext::PropertyPair{ "exercisesModel"_L1, QVariant::fromValue(appExercisesModel()) });
+	properties[6] = std::move(QQmlContext::PropertyPair{ "itemManager"_L1, QVariant::fromValue(this) });
+	properties[7] = std::move(QQmlContext::PropertyPair{ "appStatistics"_L1, QVariant::fromValue(appStatistics()) });
+	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
 	const QUrl& url{"qrc:/qml/main.qml"_L1};
@@ -130,22 +130,18 @@ void QmlItemManager::configureQmlEngine()
 
 	if (!appSettings()->mainUserConfigured())
 	{
-#ifndef Q_OS_ANDROID
-		appOsInterface()->configureLocalServer();
-#endif
 		QMetaObject::invokeMethod(appMainWindow(), "showFirstUseTimeDialog");
+		connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
+			disconnect(appUserModel(), nullptr, this, nullptr);
+			appSettings()->setMainUserConfigured(true);
+			appOsInterface()->initialCheck();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);
 		});
 	}
 	else
 		appOsInterface()->initialCheck();
-
-	connect(appUserModel(), &DBUserModel::mainUserConfigurationFinishedSignal, this, [this] () {
-		disconnect(appUserModel(), nullptr, this, nullptr);
-		appSettings()->setMainUserConfigured(true);
-		appOsInterface()->initialCheck();
-	});
 
 	connect(appMainWindow(), SIGNAL(saveFileChosen(QString)), this, SLOT(exportSlot(QString)));
 	connect(appMainWindow(), SIGNAL(saveFileRejected(QString)), this, SLOT(exportSlot(QString)));

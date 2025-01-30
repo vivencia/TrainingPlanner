@@ -498,9 +498,9 @@ void DBMesocyclesModel::updateColumnLabels()
 	mColumnNames[MESOCYCLES_COL_CLIENT] = std::move(strClient);
 }
 
-int DBMesocyclesModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBMesocyclesModel::exportToFile(const QString &filename, const bool, const bool, const bool) const
 {
-	int res(this->TPListModel::exportToFile(filename, true, false));
+	int res{this->TPListModel::exportToFile(filename, true, false)};
 	if (res >= 0)
 	{
 		m_splitModel->setExportRow(m_exportRows.at(0));
@@ -512,7 +512,7 @@ int DBMesocyclesModel::exportToFile(const QString& filename, const bool, const b
 
 int DBMesocyclesModel::importFromFile(const QString& filename)
 {
-	QFile* inFile{new QFile(filename)};
+	QFile *inFile{new QFile{filename}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
 	{
 		delete inFile;

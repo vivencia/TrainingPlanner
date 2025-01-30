@@ -32,6 +32,21 @@ inline QString makeCommandURL(const QString& command, const QString& parameter, 
 	return ret;
 }
 
+void TPOnlineServices::checkServer()
+{
+	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{"http://127.0.0.1/trainingplanner"_L1}})};
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+		bool server_ok{false};
+		if (reply)
+		{
+			reply->deleteLater();
+			const QString &replyString{reply->readAll()};
+			server_ok = replyString == "Welcome to the TrainingPlanner app server!"_L1;
+		}
+		emit serverOnline(server_ok);
+	});
+}
+
 void TPOnlineServices::checkUser(const QString &username, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL("checkuser"_L1, username, QString{}, QString{}, passwd)};
@@ -62,9 +77,9 @@ void TPOnlineServices::addOrRemoveCoach(const QString &username, const QString &
 	makeNetworkRequest(url);
 }
 
-void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file)
+void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, "upload"_L1, "", passwd)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, "upload"_L1, targetUser, passwd)};
 	uploadFile(url, file);
 }
 

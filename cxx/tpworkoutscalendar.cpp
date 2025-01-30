@@ -152,10 +152,10 @@ void TPWorkoutsCalendar::findDateInList()
 	m_selectedDay = &TPWorkoutsCalendar::noDataDay;
 	for (uint i{0}; i < m_monthsList.count(); ++i)
 	{
-		const QDate& initDate{m_monthsList.at(i).at(m_monthsList.at(i).at(0)->start_day)->date};
+		const QDate &initDate{m_monthsList.at(i).at(m_monthsList.at(i).at(0)->start_day)->date};
 		if (initDate.year() == m_selectedDate.year() && initDate.month() == m_selectedDate.month())
 		{
-			const QList<dayInfo*>& selectedMonth = m_monthsList.at(i);
+			const QList<dayInfo*> &selectedMonth{m_monthsList.at(i)};
 			for (uint day{0}; day < selectedMonth.count(); ++day)
 			{
 				if (selectedMonth.at(day)->date == m_selectedDate)

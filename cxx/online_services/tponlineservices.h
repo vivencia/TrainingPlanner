@@ -22,18 +22,20 @@ public:
 
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
+	void checkServer();
 	void checkUser(const QString &username, const QString &passwd);
 	void registerUser(const QString &username, const QString &passwd);
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
 	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
 
-	void sendFile(const QString &username, const QString &passwd, QFile *file);
+	void sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser = QString{});
 	void getFile(const QString &username, const QString &passwd, const QString &file);
 	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
+	void serverOnline(const bool online);
 
 private:
 	void makeNetworkRequest(const QUrl &url);

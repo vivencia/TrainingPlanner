@@ -3,6 +3,7 @@
 #include "dbusermodel.h"
 #include "dbinterface.h"
 #include "qmlitemmanager.h"
+#include "online_services/tponlineservices.h"
 
 #ifdef Q_OS_ANDROID
 #include "tpandroidnotification.h"
@@ -48,6 +49,7 @@ extern "C"
 #include <QGuiApplication>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QTcpSocket>
 
 OSInterface* OSInterface::app_os_interface(nullptr);
 
@@ -57,6 +59,7 @@ OSInterface::OSInterface(QObject* parent)
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 	m_appDataFilesPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + '/';
+	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
 	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
@@ -105,6 +108,40 @@ OSInterface::OSInterface(QObject* parent)
 
 	m_AndroidNotification = new TPAndroidNotification{this};
 #endif
+}
+
+void OSInterface::checkInternetConnection()
+{
+    QTcpSocket checkConnectionSocket;
+    checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
+    checkConnectionSocket.waitForConnected(2000);
+
+    const bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
+    checkConnectionSocket.close();
+    setBit(m_networkStatus, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+	unSetBit(m_networkStatus, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+
+	if (isConnected)
+	{
+		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const bool online) {
+#ifdef Q_OS_LINUX
+	#ifndef Q_OS_ANDROID
+			if (!online)
+				configureLocalServer();
+	#endif
+#endif
+			setBit(m_networkStatus, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+			unSetBit(m_networkStatus, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+			setNetworkStatus(m_networkStatus);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appOnlineServices()->checkServer();
+	}
+	else
+	{
+		setBit(m_networkStatus, SERVER_UNREACHABLE);
+		unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
+		setNetworkStatus(m_networkStatus);
+	}
 }
 
 void OSInterface::aboutToExit()
@@ -412,6 +449,31 @@ JNIEXPORT void JNICALL Java_org_vivenciasoftware_TrainingPlanner_TPActivity_noti
 } //extern "C"
 
 #else
+
+QString OSInterface::executeAndCaptureOutput(const QString &program, QStringList& arguments, const bool b_asRoot, int* exitCode)
+{
+	auto* __restrict proc{new QProcess()};
+	QString app;
+
+	if (b_asRoot)
+	{
+		arguments.prepend(program);
+		app = std::move("/usr/bin/pkexec"_L1);
+	}
+	else
+		app = program;
+
+	proc->start(app, arguments);
+	proc->waitForFinished(10000);
+	QString strOutput{std::move(proc->readAllStandardOutput().constData())};
+	if (strOutput.isEmpty())
+		strOutput = std::move(proc->readAllStandardError().constData());
+	if (exitCode != nullptr)
+		*exitCode = proc->exitCode();
+
+	delete proc;
+	return strOutput;
+}
 
 void OSInterface::configureLocalServer(bool second_pass)
 {

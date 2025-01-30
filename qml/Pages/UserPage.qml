@@ -16,6 +16,22 @@ TPPage {
 
 	property UserManager userManager
 	property int useMode
+	property bool mainUserModified: false
+
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int) {
+			if (row === 0)
+				mainUserModified = true;
+		}
+	}
+
+	onPageDeActivated: {
+		if (mainUserModified) {
+			userModel.mainUserConfigurationFinished();
+			mainUserModified = false;
+		}
+	}
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AlwaysOff

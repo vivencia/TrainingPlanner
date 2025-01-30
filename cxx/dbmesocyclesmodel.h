@@ -232,7 +232,7 @@ public:
 	//the recently added meso
 	inline int importIdx() const { return m_importMesoIdx; }
 	inline void setImportIdx(const int new_import_idx) { m_importMesoIdx = new_import_idx; }
-	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	int exportToFile(const QString& filename, const bool = true, const bool = true, const bool = true) const override;
 	int importFromFile(const QString& filename) override;
 	bool updateFromModel(const uint meso_idx, TPListModel* model);
 

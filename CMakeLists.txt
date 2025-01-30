@@ -203,6 +203,7 @@ set( QML_SOURCES
     "qml/TPWidgets/ComplexDialogModules/TPTDayIntentGroup.qml"
     "qml/TPWidgets/ComplexDialogModules/TPDialogWithMessageAndCheckBox.qml"
     "qml/User/AvatarsPopup.qml"
+    "qml/User/UserCoachRequest.qml"
     "qml/User/UserCoach.qml"
     "qml/User/UserContact.qml"
     "qml/User/UserLanguage.qml"

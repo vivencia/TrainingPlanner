@@ -1,6 +1,8 @@
 #ifndef OSINTERFACE_H
 #define OSINTERFACE_H
 
+#include "tpglobals.h"
+
 #include <QObject>
 #include <QFile>
 
@@ -44,7 +46,8 @@ class OSInterface : public QObject
 
 Q_OBJECT
 
-Q_PROPERTY(int networkStatus READ networkStatus WRITE setNetworkStatus NOTIFY networkStatusChanged FINAL)
+Q_PROPERTY(bool internetOK READ internetOK NOTIFY networkStatusChanged FINAL)
+Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY networkStatusChanged FINAL)
 
 public:
 	explicit OSInterface(QObject* parent = nullptr);
@@ -55,6 +58,9 @@ public:
 	#endif
 	}
 
+	void checkInternetConnection();
+	inline bool internetOK() const { return isBitSet(m_networkStatus, HAS_INTERNET); }
+	inline bool tpServerOK() const { return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING); }
 	inline int networkStatus() const { return m_networkStatus; }
 	inline void setNetworkStatus(int new_status) {m_networkStatus = new_status; emit networkStatusChanged(); }
 
@@ -91,6 +97,7 @@ public:
 	void checkWorkouts();
 #else
 	#ifdef Q_OS_LINUX
+		QString executeAndCaptureOutput(const QString &program, QStringList &arguments, const bool b_asRoot = false, int *exitCode = nullptr);
 		void configureLocalServer(bool second_pass = false);
 		void processArguments() const;
 		Q_INVOKABLE void restartApp();

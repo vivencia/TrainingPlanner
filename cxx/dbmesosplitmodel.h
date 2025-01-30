@@ -136,7 +136,7 @@ public:
 
 	Q_INVOKABLE QString findSwappableModel() const;
 
-	int exportToFile(const QString& filename, const bool = true, const bool = true) const override;
+	int exportToFile(const QString& filename, const bool = true, const bool = true, const bool = true) const override;
 	bool checkIfFileContentMatchesThisSplit(QFile* inFile);
 	int importFromFile(const QString& filename) override;
 	bool updateFromModel(TPListModel* model) override;

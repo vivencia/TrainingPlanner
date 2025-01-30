@@ -128,22 +128,22 @@ void DBTrainingDayModel::convertMesoSplitModelToTDayModel(DBMesoSplitModel* cons
 	emit tDayChanged(); //save now
 }
 
-int DBTrainingDayModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBTrainingDayModel::exportToFile(const QString &filename, const bool, const bool, const bool) const
 {
 	if (exerciseCount() == 0)
 		return APPWINDOW_MSG_NOTHING_TO_EXPORT;
 
-	QFile* outFile{new QFile(filename)};
-	const bool bOK(outFile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Text));
+	QFile *outFile{new QFile{filename}};
+	const bool bOK{outFile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
 	if (bOK)
 	{
-		const QString& strHeader("## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1);
+		const QString &strHeader{"## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1};
 		outFile->write(strHeader.toUtf8().constData());
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);
 
 		QString setsTypes, subSets;
-		bool bHasSubsSets(false);
+		bool bHasSubsSets{false};
 		for (uint i{0}; i < m_ExerciseData.count(); ++i)
 		{
 			outFile->write(QString(QString::number(i+1) + ": "_L1).toUtf8().constData());

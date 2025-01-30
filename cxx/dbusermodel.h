@@ -220,7 +220,16 @@ public:
 	Q_INVOKABLE void setCoachPublicStatus(const uint row, const bool bPublic);
 	Q_INVOKABLE void isCoachAlreadyRegisteredOnline(const uint row);
 	Q_INVOKABLE void uploadResume(const uint row, const QString &resumeFileName);
-	Q_INVOKABLE inline void mainUserConfigurationFinished() { emit mainUserConfigurationFinishedSignal(); }
+	Q_INVOKABLE void mainUserConfigurationFinished();
+	Q_INVOKABLE void onlineCoachesList();
+	inline QString networkUserName(const uint row) const
+	{
+		return getNetworkUserName(_userName(row), appUseMode(row), birthDate(row));
+	}
+	inline QString networkUserPassword(const uint row) const
+	{
+		return makeUserPassword(_userName(row));
+	}
 
 	int importFromFile(const QString &filename) override;
 	bool updateFromModel(TPListModel*) override;
@@ -247,6 +256,7 @@ signals:
 	void labelsChanged();
 	void userNameOK(int row, bool b_ok);
 	void coachOnlineStatus(bool registered);
+	void coachesListReceived(const QStringList& coaches_list);
 
 private:
 	bool mb_empty;
@@ -255,6 +265,7 @@ private:
 
 	QString getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const;
 	QString makeUserPassword(const QString &userName) const;
+	void _setUserName(const uint row, const QString &new_name);
 	static DBUserModel* _appUserModel;
 	friend DBUserModel* appUserModel();
 };

@@ -384,20 +384,20 @@ QString DBMesoSplitModel::findSwappableModel() const
 	return QString();
 }
 
-int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool) const
+int DBMesoSplitModel::exportToFile(const QString& filename, const bool, const bool, const bool) const
 {
-	QFile* outFile{new QFile(filename)};
+	QFile *outFile{new QFile{filename}};
 	const bool bOK(outFile->open(QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text));
 	if (bOK)
 	{
-		const QString& strHeader("## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1);
+		const QString &strHeader{"## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1};
 		outFile->write(strHeader.toUtf8().constData());
 		outFile->write(exportExtraInfo().toUtf8().constData());
 		outFile->write("\n\n", 2);
 
 		QString value;
-		QList<QStringList>::const_iterator itr(m_modeldata.constBegin());
-		const QList<QStringList>::const_iterator& itr_end(m_modeldata.constEnd());
+		QList<QStringList>::const_iterator itr{m_modeldata.constBegin()};
+		const QList<QStringList>::const_iterator& itr_end{m_modeldata.constEnd()};
 
 		while (itr != itr_end)
 		{
