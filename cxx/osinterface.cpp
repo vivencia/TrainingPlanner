@@ -112,6 +112,7 @@ OSInterface::OSInterface(QObject* parent)
 
 void OSInterface::checkInternetConnection()
 {
+	m_networkStatus = 0;
     QTcpSocket checkConnectionSocket;
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
     checkConnectionSocket.waitForConnected(2000);

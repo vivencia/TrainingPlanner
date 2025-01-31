@@ -69,14 +69,18 @@ function download_file($file,$downloadDir) {
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
         header('Content-Description: File Transfer');
-        header('Content-Type: application/octet-stream');
+        if (substr("filename.txt",-4) == ".txt")
+            header('Content-Type: text/plain');
+        else
+            header('Content-Type: application/octet-stream');
         header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
         header('Content-Length: ' . filesize($filename));
         readfile($filename);
-        echo "Return code 0 File found: ", $filename;
+        #only return the contents of the file. Any extra string will only get in the way
+        #echo "Return code 0 File found: ", $filename;
         return true;
     }
     echo "Return code 1 File not found: ", $filename;
@@ -140,14 +144,12 @@ function get_coaches() {
         echo "Return code 12 Public coaches file does not exist";
 }
 
-function contact_coach($username, $coach) {
+function request_coach($username, $coach) {
+    global $rootdir;
     $user_info_file = $rootdir . $username . "/profile.txt";
-    $mkdir = "/usr/bin/mkdir";
-    exec($mkdir -p $rootdir$coach."/requests", $output, $return_var);
-    if ($return_var == 0) {
-        $coach_request_file = $rootdir$coach . "/requests/" . $user_name . ".txt";
-        exec("/usr/bin/cp" $user_info_file $coach_request_file, $output, $return_var);
-        if ($return_var == 0) {
+    if (mkdir($rootdir . $coach . "/requests", 0775, true)) {
+        $coach_request_file = $rootdir . $coach . "/requests/" . $user_name . ".txt";
+        if (copy($user_info_file, $coach_request_file)) {
             print_r2("Return code 0 Client request to coach successful");
             return;
         }
@@ -199,10 +201,10 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 get_coaches();
                 exit;
             }
-            if (isset($_GET['contactcoach'])) {
-                $coach = $_GET['contactcoach'];
+            if (isset($_GET['requestcoach'])) {
+                $coach = $_GET['requestcoach'];
                 if ($coach)
-                    contact_coach($username, $coach);
+                    request_coach($username, $coach);
                 exit;
             }
             if (isset($_GET['upload'])) {
@@ -214,12 +216,12 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                 exit;
             }
             if (isset($_GET['file'])) {
-                $filename = $rootdir . $_GET['file'];
-                if ($filename) {
-                    $filename=basename($filename);
-                    download_file($filename,$fileDir);
-                    exit;
-                }
+                if (isset($_GET['fromuser']))
+                    $filedir = $rootdir .  $_GET['fromuser'];
+                else
+                    $filedir = $rootdir . $username;
+                download_file($_GET['file'],$fileDir);
+                exit;
             }
 
             echo "Missing action argument\r\n";

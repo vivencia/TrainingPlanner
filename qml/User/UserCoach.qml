@@ -95,6 +95,7 @@ Frame {
 		TPCheckBox {
 			id: chkOnlineCoach
 			text: qsTr("Make myself available online for TP users to contact me")
+			checked: userModel.isCoachRegistered()
 			multiLine: true
 			height: itemHeight
 			Layout.preferredWidth: parent.width/2
@@ -193,7 +194,7 @@ Frame {
 				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					requestDlg = component.createObject(contentItem, {});
+					requestDlg = component.createObject(contentItem, { userRow: topFrame.userRow });
 				}
 
 				if (component.status === Component.Ready)

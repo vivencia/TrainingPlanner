@@ -28,13 +28,15 @@ public:
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
 	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
+	void sendRequestToCoach(const QString &username, const QString &passwd, const QString& coach_net_name);
 
 	void sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser = QString{});
-	void getFile(const QString &username, const QString &passwd, const QString &file);
+	void getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser = QString{});
 	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
+	void binaryFileReceived(const QByteArray &contents);
 	void serverOnline(const bool online);
 
 private:

@@ -14,6 +14,8 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
+const QLatin1StringView userprofileFileName{"/profile.txt"_L1};
+
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
 {
@@ -221,47 +223,6 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-QString DBUserModel::getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const
-{
-	QString net_name{std::move(appUtils()->stripDiacriticsFromString(userName))};
-	net_name = std::move(net_name.toLower());
-	static_cast<void>(net_name.replace(' ', '_'));
-	net_name.append('_' + appUtils()->formatDate(birthdate, TPUtils::DF_CATALOG));
-	switch (app_use_mode)
-	{
-		case APP_USE_MODE_CLIENTS:
-		case APP_USE_MODE_SINGLE_USER:
-			static_cast<void>(net_name.prepend(std::move("u_"_L1)));
-		break;
-		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
-		case APP_USE_MODE_COACH_USER_WITH_COACH:
-			static_cast<void>(net_name.prepend(std::move("uc_"_L1)));
-		break;
-		case APP_USE_MODE_SINGLE_COACH:
-			static_cast<void>(net_name.prepend(std::move("c_"_L1)));
-		break;
-	}
-	return net_name;
-}
-
-QString DBUserModel::makeUserPassword(const QString &userName) const
-{
-	QString password{userName};
-	static_cast<void>(password.replace(' ', '_'));
-	return password;
-}
-
-void DBUserModel::_setUserName(const uint row, const QString &new_name)
-{
-	if (new_name != _userName(row))
-	{
-		m_modeldata[row][USER_COL_NAME] = new_name;
-		emit userModified(row, USER_COL_NAME);
-		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
-			emit userAddedOrRemoved(row, true);
-	}
-}
-
 void DBUserModel::setUserName(const int row, const QString &new_name, const int prev_use_mode, const QDate &prev_birthdate,
 								int ret_code, const QString &networkReply)
 {
@@ -339,6 +300,7 @@ void DBUserModel::isCoachAlreadyRegisteredOnline(const uint row)
 				mb_coachRegistered = coaches_list.contains(net_name);
 				emit coachOnlineStatus(mb_coachRegistered == true);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			getOnlineCoachesList();
 		}
 	}
 }
@@ -364,13 +326,13 @@ void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 				{
 					const QString &net_name{getNetworkUserName(_userName(0), appUseMode(row), birthDate(row))}; //How the user is identified on the server side
 					const QString &password{makeUserPassword(_userName(0))};
-					appOnlineServices()->sendFile(net_name, password, resume);
 					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString& ret_string) {
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
 						resume->close();
 						resume->remove();
 						delete resume;
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					appOnlineServices()->sendFile(net_name, password, resume);
 					return;
 				}
 				else
@@ -390,7 +352,7 @@ void DBUserModel::mainUserConfigurationFinished()
 	if (!appOsInterface()->tpServerOK())
 		return;
 
-	const QString &localProfile{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/profile.txt"_L1};
+	const QString &localProfile{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + userprofileFileName};
 	if (exportToFile(localProfile, true, true) == APPWINDOW_MSG_EXPORT_OK)
 	{
 		QFile *profile{new QFile{localProfile, this}};
@@ -403,19 +365,170 @@ void DBUserModel::mainUserConfigurationFinished()
 	}
 }
 
-void DBUserModel::onlineCoachesList()
+void DBUserModel::sendRequestToCoaches(const uint row, const QList<bool>& selectedCoaches)
+{
+	if (!appOsInterface()->tpServerOK())
+		return;
+
+	for (uint i{0}; i < selectedCoaches.count(); ++i)
+	{
+		if (selectedCoaches.at(i))
+		{
+			const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
+			const QString &password{makeUserPassword(_userName(0))};
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
+				if (ret_code == 0)
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
+				else
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			appOnlineServices()->sendRequestToCoach(net_name, password, m_onlineUserInfo.at(i).at(USER_COL_NET_NAME));
+		}
+	}
+}
+
+void DBUserModel::getOnlineCoachesList()
 {
 	const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
 	const QString &password{makeUserPassword(_userName(0))};
-	appOnlineServices()->getCoachesList(net_name, password);
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,net_name] (const int ret_code, const QString& ret_string) {
 		const QStringList &coaches{ret_string.split(' ')};
 		if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
-			emit coachesListReceived(coaches); //TODO prettyfy the names
+		{
+			connect(this, &DBUserModel::userProfileAcquired, this, [this] {
+				QStringList coaches{m_onlineUserInfo.count()};
+				for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
+					coaches.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
+				emit coachesListReceived(coaches);
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			m_onlineUserInfo.clear();
+			for (uint i{0}; i < coaches.count(); ++i)
+				getUserOnlineProfile(coaches.at(i));
+		}
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appOnlineServices()->getCoachesList(net_name, password);
 }
 
-int DBUserModel::importFromFile(const QString &filename)
+void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profiles)
+{
+	if (!appOsInterface()->tpServerOK())
+		return;
+
+	const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
+	const QString &password{makeUserPassword(_userName(0))};
+
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles] (const int ret_code, const QString& ret_string) {
+		if (ret_code != 1)
+		{
+			const QString &temp_profile_filename{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/temp_profile.txt"};
+			QFile *temp_profile{new QFile{temp_profile_filename, this}};
+			if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
+			{
+				temp_profile->write(ret_string.toUtf8().constData());
+				temp_profile->close();
+				if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+					m_onlineUserInfo.last()[USER_COL_NET_NAME] = netName;
+				static_cast<void>(temp_profile->remove());
+			}
+			delete temp_profile;
+			if (n_max_profiles == m_onlineUserInfo.count())
+				emit userProfileAcquired();
+		}
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appOnlineServices()->getFile(net_name, password, userprofileFileName, netName);
+}
+
+bool DBUserModel::updateFromModel(TPListModel *model)
+{
+	if (count() == 1 && m_modeldata.at(0).at(USER_COL_ID) == "-1"_L1)
+		m_modeldata.clear();
+	appendList(std::move(model->m_modeldata[0]));
+	return true;
+}
+
+QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
+{
+	switch (field)
+	{
+		case USER_COL_BIRTHDAY:
+			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
+		case USER_COL_SEX:
+			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
+		case USER_COL_SOCIALMEDIA:
+		{
+			QString strSocial{fieldValue};
+			return strSocial.replace(record_separator, fancy_record_separator1);
+		}
+		case USER_COL_AVATAR:
+			if (fieldValue.contains("tpimageprovider"_L1))
+				return fieldValue.last(fieldValue.length()-24);
+			else
+				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? std::move("Avatar-m5"_L1) : std::move("Avatar-f0"_L1);
+		default: return QString{};
+	}
+}
+
+QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
+{
+	switch (field)
+	{
+		case USER_COL_BIRTHDAY:
+			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
+		case USER_COL_SEX:
+			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
+		case USER_COL_SOCIALMEDIA:
+		{
+			QString strSocial{fieldValue};
+			return strSocial.replace(fancy_record_separator1, record_separator);
+		}
+		case USER_COL_AVATAR:
+			return "image://tpimageprovider/"_L1 + fieldValue;
+		default: return QString{};
+	}
+}
+
+QString DBUserModel::getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const
+{
+	QString net_name{std::move(appUtils()->stripDiacriticsFromString(userName))};
+	net_name = std::move(net_name.toLower());
+	static_cast<void>(net_name.replace(' ', '_'));
+	net_name.append('_' + appUtils()->formatDate(birthdate, TPUtils::DF_CATALOG));
+	switch (app_use_mode)
+	{
+		case APP_USE_MODE_CLIENTS:
+		case APP_USE_MODE_SINGLE_USER:
+			static_cast<void>(net_name.prepend(std::move("u_"_L1)));
+		break;
+		case APP_USE_MODE_SINGLE_USER_WITH_COACH:
+		case APP_USE_MODE_COACH_USER_WITH_COACH:
+			static_cast<void>(net_name.prepend(std::move("uc_"_L1)));
+		break;
+		case APP_USE_MODE_SINGLE_COACH:
+			static_cast<void>(net_name.prepend(std::move("c_"_L1)));
+		break;
+	}
+	return net_name;
+}
+
+QString DBUserModel::makeUserPassword(const QString &userName) const
+{
+	QString password{userName};
+	static_cast<void>(password.replace(' ', '_'));
+	return password;
+}
+
+void DBUserModel::_setUserName(const uint row, const QString &new_name)
+{
+	if (new_name != _userName(row))
+	{
+		m_modeldata[row][USER_COL_NAME] = new_name;
+		emit userModified(row, USER_COL_NAME);
+		if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+			emit userAddedOrRemoved(row, true);
+	}
+}
+
+int DBUserModel::_importFromFile(const QString &filename, QList<QStringList>& targetModel)
 {
 	QFile *inFile{new QFile{filename, this}};
 	if (!inFile->open(QIODeviceBase::ReadOnly|QIODeviceBase::Text))
@@ -472,55 +585,6 @@ int DBUserModel::importFromFile(const QString &filename)
 	inFile->close();
 	delete inFile;
 	if (bFoundModelInfo)
-		m_modeldata.append(std::move(modeldata));
+		targetModel.append(std::move(modeldata));
 	return col >= USER_COL_APP_USE_MODE ? APPWINDOW_MSG_READ_FROM_FILE_OK : APPWINDOW_MSG_UNKNOWN_FILE_FORMAT;
-}
-
-bool DBUserModel::updateFromModel(TPListModel *model)
-{
-	if (count() == 1 && m_modeldata.at(0).at(USER_COL_ID) == "-1"_L1)
-		m_modeldata.clear();
-	appendList(std::move(model->m_modeldata[0]));
-	return true;
-}
-
-QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
-{
-	switch (field)
-	{
-		case USER_COL_BIRTHDAY:
-			return appUtils()->formatDate(QDate::fromJulianDay(fieldValue.toInt()));
-		case USER_COL_SEX:
-			return fieldValue == STR_ZERO ? std::move(tr("Male")) : std::move(tr("Female"));
-		case USER_COL_SOCIALMEDIA:
-		{
-			QString strSocial{fieldValue};
-			return strSocial.replace(record_separator, fancy_record_separator1);
-		}
-		case USER_COL_AVATAR:
-			if (fieldValue.contains("tpimageprovider"_L1))
-				return fieldValue.last(fieldValue.length()-24);
-			else
-				return m_modeldata.at(m_exportRows.at(0)).at(USER_COL_SEX) == STR_ZERO ? std::move("Avatar-m5"_L1) : std::move("Avatar-f0"_L1);
-		default: return QString{};
-	}
-}
-
-QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldValue) const
-{
-	switch (field)
-	{
-		case USER_COL_BIRTHDAY:
-			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
-		case USER_COL_SEX:
-			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
-		case USER_COL_SOCIALMEDIA:
-		{
-			QString strSocial{fieldValue};
-			return strSocial.replace(fancy_record_separator1, record_separator);
-		}
-		case USER_COL_AVATAR:
-			return "image://tpimageprovider/"_L1 + fieldValue;
-		default: return QString{};
-	}
 }

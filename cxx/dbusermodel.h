@@ -5,6 +5,7 @@
 #include "tpglobals.h"
 #include "tputils.h"
 
+#define USER_COL_NET_NAME 0
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
 #define USER_COL_BIRTHDAY 2
@@ -221,7 +222,12 @@ public:
 	Q_INVOKABLE void isCoachAlreadyRegisteredOnline(const uint row);
 	Q_INVOKABLE void uploadResume(const uint row, const QString &resumeFileName);
 	Q_INVOKABLE void mainUserConfigurationFinished();
-	Q_INVOKABLE void onlineCoachesList();
+	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
+	Q_INVOKABLE void sendRequestToCoaches(const uint row, const QList<bool>& selectedCoaches);
+
+	void getOnlineCoachesList();
+	void getUserOnlineProfile(const QString& netName, uint n_max_profiles = 1);
+
 	inline QString networkUserName(const uint row) const
 	{
 		return getNetworkUserName(_userName(row), appUseMode(row), birthDate(row));
@@ -231,7 +237,7 @@ public:
 		return makeUserPassword(_userName(row));
 	}
 
-	int importFromFile(const QString &filename) override;
+	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
 
 	inline bool isFieldFormatSpecial (const uint field) const override
@@ -257,15 +263,18 @@ signals:
 	void userNameOK(int row, bool b_ok);
 	void coachOnlineStatus(bool registered);
 	void coachesListReceived(const QStringList& coaches_list);
+	void userProfileAcquired();
 
 private:
 	bool mb_empty;
 	int m_searchRow;
 	std::optional<bool> mb_coachRegistered;
+	QList<QStringList> m_onlineUserInfo;
 
 	QString getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const;
 	QString makeUserPassword(const QString &userName) const;
 	void _setUserName(const uint row, const QString &new_name);
+	int _importFromFile(const QString &filename, QList<QStringList>& targetModel);
 	static DBUserModel* _appUserModel;
 	friend DBUserModel* appUserModel();
 };
