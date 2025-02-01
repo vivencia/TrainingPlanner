@@ -250,14 +250,21 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 		{
 			case 6: //User does not exist in the online database
 				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,row,new_name] (const int ret_code, const QString& ret_string) {
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
+					if (ret_code == 0)
+					{
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Online registration") + record_separator + ret_string);
+						_setUserName(row, new_name);
+					}
+					else
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+					emit userNameOK(row, ret_code == 0);
 				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				if (appUserModel()->_userName(row).isEmpty())
 					appOnlineServices()->registerUser(net_name, password);
 				else
 					appOnlineServices()->alterUser(getNetworkUserName(appUserModel()->_userName(row), prev_use_mode != -1 ? prev_use_mode :
 						appUseMode(row), prev_birthdate.isValid() ? prev_birthdate : birthDate(row)), net_name, password);
-				ret_code = 0;
+				return;
 			case 0: //User already and correctly registered on the server. But, for whatwever reason, might not be on the local database. So, skip the break statement
 				_setUserName(row, new_name);
 			break;

@@ -11,6 +11,21 @@ function print_r2($val){
         echo  '</pre>';
 }
 
+function erasedir($path) {
+    $dir = opendir($path);
+    while( false !== ($file = readdir($dir)) ) {
+        if (( $file != '.' ) && ( $file != '..' )) {
+            $full = $path . '/' . $file;
+            if (is_dir($full))
+                erasedir($full);
+            else if (is_file($full))
+                unlink($full);
+        }
+    }
+    closedir($dir);
+    return rmdir($path);
+}
+
 // Function to verify credentials against .htpasswd file
 function verify_credentials($username, $password, $htpasswd_file) {
     if (!file_exists($htpasswd_file)) {
@@ -43,9 +58,10 @@ function upload_file($uploadDir) {
             // Get file details
             $fileTmpPath = $_FILES['file']['tmp_name'];
             $fileName = $_FILES['file']['name'];
-            $uploadPath = $uploadDir . "/" . basename($fileName);
+            $uploadFilePath = $uploadDir . "/" . basename($fileName);
             // Move the uploaded file to the upload directory
-            if (move_uploaded_file($fileTmpPath, $uploadPath)) {
+            if (move_uploaded_file($fileTmpPath, $uploadFilePath)) {
+                chmod($uploadFilePath, 0664);
                 echo "Return code 0 File uploaded successfully: " . htmlspecialchars($fileName);
                 echo "\r\n";
                 return true;
@@ -98,6 +114,7 @@ function add_coach($coach) {
     global $coaches_file;
     if (!file_exists($coaches_file)) {
         $fh = fopen($coaches_file, "w")  or die("Return code: 10 Unable to open coaches file!" .$coaches_file . "\r\n");
+        chmod($coaches_file, 0664);
     }
     else {
         $coaches = file($coaches_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -147,8 +164,10 @@ function get_coaches() {
 function request_coach($username, $coach) {
     global $rootdir;
     $user_info_file = $rootdir . $username . "/profile.txt";
-    if (mkdir($rootdir . $coach . "/requests", 0775, true)) {
-        $coach_request_file = $rootdir . $coach . "/requests/" . $user_name . ".txt";
+    $requests_dir = $rootdir . $coach . "/requests/";
+    if (mkdir($requests_dir, 0775, true)) {
+        chmod($requests_dir, 0775);
+        $coach_request_file = $requests_dir . $user_name . ".txt";
         if (copy($user_info_file, $coach_request_file)) {
             print_r2("Return code 0 Client request to coach successful");
             return;
@@ -254,55 +273,69 @@ else { //user management
     $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
     if ($username) { //new user creation. Encrypt password onto file and create the user's dir
         $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
-        $return_var = run_htpasswd("-bd5", $username, $new_user_password);
-        if ($return_var == 0) {
-            $mkdir = "/usr/bin/mkdir";
-            #echo "$mkdir $rootdir$username\r\n";
-            exec("$mkdir $rootdir$username", $output, $return_var);
-            $error_string  = "User successfully created\r\n";
-            //print_r($output);
+        $ok = run_htpasswd("-bd5", $username, $new_user_password);
+        if ($ok == 0) {
+            $userdir = $rootdir . $username;
+            if (!is_dir($userdir)) {
+                if (!mkdir($userdir, 0775))
+                    $ok = 1;
+                else
+                    chmod($userdir, 0775);
+             }
         }
-        if ($return_var != 0)
-            $error_string = "Error creating user\r\n";
-        echo "Return code: $return_var $error_string\r\n";
+        if ($ok == 0)
+            echo "Return code: 0 User successfully created\r\n";
+        else
+            echo "Return code: 30 Error creating user\r\n";
         exit;
     }
 
     $username = isset($_GET['deluser']) ? $_GET['deluser'] : '';
     if ($username) { //remove user and their dir
-        $return_var = run_htpasswd("-D", $username, "");
-        if ($return_var == 0) {
-            $rmdir = "/usr/bin/rmdir";
-            #echo "$rmdir $rootdir$username\r\n";
-            exec("$rmdir $rootdir$username", $output, $return_var);
-            $error_string = "User successfully removed\r\n";
+        $ok = run_htpasswd("-D", $username, "");
+        if ($ok == 0) {
+            $userdir = $rootdir . $username;
+            if (is_dir($userdir)) {
+                if (!erasedir($userdir))
+                    $ok = 1;
+            }
         }
-        if ($return_var != 0)
-            $error_string = "User removal failed\r\n";
-        echo "Return code: $return_var $error_string\r\n";
+        if ($ok == 0)
+            echo "Return code: 0 User successfully removed\r\n";
+        else
+            echo "Return code: 31 User removal failed\r\n";
         exit;
     }
 
     $username = isset($_GET['moduser']) ? $_GET['moduser'] : '';
     if ($username) { //remove moduser, create newuser and rename moduser dir to newuser
         $cmd_args = "-D";
-        $return_var = run_htpasswd("-D", $username, "");
-        if ($return_var == 0) {
+        $ok = run_htpasswd("-D", $username, "");
+        if ($ok == 0) {
             $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
             $new_password = isset($_GET['password']) ? $_GET['password'] : '';
-            $return_var = run_htpasswd("-bd5", $new_username, $new_password);
-            if ($return_var == 0) {
-                $mvdir = "/usr/bin/mv";
-                #echo "$mvdir $rootdir$username $rootdir$new_username\r\n";
-                exec("$mvdir $rootdir$username $rootdir$new_username", $output, $return_var);
-                $error_string = "User successfully modified\r\n";
+            $ok = run_htpasswd("-bd5", $new_username, $new_password);
+            if ($ok == 0) {
+                $userdir = $rootdir . $username;
+                if (is_dir($userdir)) {
+                    if (!rename($rootdir . $username, $rootdir . $new_username))
+                        $ok = 1;
+                }
+                else {
+                    if (!mkdir($userdir, 0775))
+                        $ok = 1;
+                    else
+                        chmod($userdir, 0775);
+                }
             }
         }
-        if ($return_var != 0)
-            $error_string = "User modification failed\r\n";
-        echo "Return code: $return_var $error_string\r\n";
+        if ($ok == 0)
+            echo "Return code: 0 User successfully modified\r\n";
+        else
+            echo "Return code: 32 User modification failed\r\n";
         exit;
     }
+
     print_r2("Welcome to the TrainingPlanner app server!");
 }
 

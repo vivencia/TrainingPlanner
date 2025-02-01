@@ -80,6 +80,8 @@ Frame {
 				userModel.setBirthDate(userRow, date);
 				txtBirthdate.text = userModel.birthDateFancy(userRow);
 				bBirthDateOK = true;
+				if (txtName.text.length === 0)
+					txtName.forceActiveFocus();
 			}
 		}
 
@@ -116,14 +118,18 @@ Frame {
 		enabled: bBirthDateOK
 		ToolTip.text: qsTr("The name is too short")
 
+		property bool bTextChanged: false
 		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
 		onEditingFinished: {
-			if (bNameOK)
+			if (bTextChanged && bNameOK) {
 				userModel.setUserName(userRow, text);
+				bTextChanged = false;
+			}
 		}
 
 		onTextEdited: {
+			bTextChanged = true;
 			if (text.length >= 5) {
 				ToolTip.visible = false;
 				bNameOK = true;

@@ -23,16 +23,17 @@ inline QString makeCommandURL(const QString& option, const QString& value, const
 								const QString &value2 = QString{}, const QString &option3 = QString{}, const QString &value3 = QString{})
 {
 	QString ret{"http://127.0.0.1/trainingplanner/?"_L1 + option + '=' + value};
-	if (!option2.isEmpty())
-		ret += '&' + option2;
 	if (!passwd.isEmpty())
 		ret += '&' + url_paramether_passwd + '=' + passwd;
+	if (!option2.isEmpty())
+		ret += '&' + option2;
 	if (!value2.isEmpty())
 		ret += '=' + value2;
 	if (!option3.isEmpty())
 		ret += '&' + option3;
 	if (!value3.isEmpty())
 		ret += '=' + value3;
+	LOG_MESSAGE(ret)
 	return ret;
 }
 
@@ -95,7 +96,7 @@ void TPOnlineServices::sendFile(const QString &username, const QString &passwd, 
 
 void TPOnlineServices::getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "file"_L1, file, "fromuser"_L1, targetUser)};
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "file"_L1, file, !targetUser.isEmpty() ? "fromuser"_L1 : QString{}, targetUser)};
 	makeNetworkRequest(url);
 }
 
