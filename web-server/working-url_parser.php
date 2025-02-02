@@ -1,7 +1,5 @@
 <?php
 
-//mkdir() does not set the permissions specified. Must use chmod() afterwards
-
 $rootdir="/var/www/html/trainingplanner/";
 $htpasswd_file=$rootdir . "scripts/.passwds";
 $coaches_file=$rootdir . "admin/coaches";
@@ -98,26 +96,11 @@ function download_file($file,$downloadDir) {
         header('Content-Length: ' . filesize($filename));
         readfile($filename);
         #only return the contents of the file. Any extra string will only get in the way
-        echo "Return code 0## ", basename($filename) . "##";
+        #echo "Return code 0 File found: ", $filename;
         return true;
     }
-    echo "Return code 1 File not found: ", basename($filename);
+    echo "Return code 1 File not found: ", $filename;
     return false;
-}
-
-function get_binfile($binfile, $targetuser) {
-    $src_dir = $rootdir . $targetuser;
-    if (is_dir($src_dir)) {
-        $files = array_values(array_diff(scandir($src_dir), array('.', '..')));
-        foreach ($files as &$file) {
-            $filename = basename($file);
-            if ($binfile == substr($filename, 0, strlen($filename) - 4)) {
-                download_file($src_dir, $filename);
-                return;
-            }
-        }
-    }
-    echo "Return code 1 File not found: ", $binfile . " in " . $src_dir;
 }
 
 function scan_dir($path) {
@@ -182,22 +165,15 @@ function request_coach($username, $coach) {
     global $rootdir;
     $user_info_file = $rootdir . $username . "/profile.txt";
     $requests_dir = $rootdir . $coach . "/requests/";
-    if (!is_dir($requests_dir)) {
-        if (mkdir($requests_dir, 0775, true))
-            chmod($requests_dir, 0775);
-        else {
-            echo "Return code 13 Could not create requests dir";
-            return false;
+    if (mkdir($requests_dir, 0775, true)) {
+        chmod($requests_dir, 0775);
+        $coach_request_file = $requests_dir . $user_name . ".txt";
+        if (copy($user_info_file, $coach_request_file)) {
+            print_r2("Return code 0 Client request to coach successful");
+            return;
         }
     }
-    $coach_request_file = $requests_dir . $user_name . ".txt";
-    if (file_exists($coach_request_file))
-        unlink($coach_request_file);
-    if (copy($user_info_file, $coach_request_file)) {
-        echo "Return code 0 Client request to coach successful";
-        return;
-    }
-    echo "Return code 14 Could not complete client request to coach";
+    print_r2("Return code 13 Could not complete client request to coach");
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -263,18 +239,8 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                     $filedir = $rootdir .  $_GET['fromuser'];
                 else
                     $filedir = $rootdir . $username;
-                download_file($_GET['file'], $fileDir);
+                download_file($_GET['file'],$fileDir);
                 exit;
-            }
-            if (isset($_GET['getbinfile'])) {
-                $binfile = $_GET['getbinfile'];
-                if ($binfile) {
-                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
-                    if ($targetuser) {
-                        get_binfile($binfile, $targetuser);
-                        exit;
-                    }
-                }
             }
 
             echo "Missing action argument\r\n";

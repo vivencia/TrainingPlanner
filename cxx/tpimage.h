@@ -18,16 +18,17 @@ Q_PROPERTY(bool dropShadow READ dropShadow WRITE setDropShadow FINAL)
 Q_PROPERTY(int imgSize READ imgSize WRITE setImgSize NOTIFY imgSizeChanged)
 
 public:
-	explicit TPImage(QQuickItem* parent = nullptr);
+	explicit TPImage(QQuickItem *parent = nullptr);
 
 	inline QString source() const { return mSource; }
-	void setSource(const QString& source, const bool bForce = false);
+	void setSource(const QString &source, const bool bForce = false);
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
 	inline int imgSize() const { return mSize.width(); }
 	void setImgSize(const int size);
 
-	void paint(QPainter* painter);
+	Q_INVOKABLE void saveToDisk(const QString &filename);
+	void paint(QPainter *painter);
 
 public slots:
 	void checkEnabled(const bool bCallUpdate = true);
@@ -42,7 +43,7 @@ private:
 	QImage mImage;
 	QImage mImageDisabled;
 	QImage mImageShadow;
-	QImage* m_imageToPaint;
+	QImage *m_imageToPaint;
 	QSize mSize, mNominalSize;
 	bool mDropShadow;
 	bool mbCanUpdate;

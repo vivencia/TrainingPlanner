@@ -50,23 +50,33 @@ TPPopup {
 				id: coachesRepeater
 				model: coachesList
 
-				delegate: TPCheckBox {
-					text: model[index]
-					width: itemsLayout.width
+				delegate: Row {
 					Layout.fillWidth: true
 					height: 25
 
-					onCheckedChanged: {
-						selectedCoaches[index] = checked;
-						for (let i = 0; i < selectedCoaches.length; ++i) {
-							if (selectedCoaches[i] === true) {
-								btnSendRequest.enabled = true;
-								return;
+					TPCheckBox {
+						text: model[index]
+						width: itemsLayout.width*0.7
+
+						onCheckedChanged: {
+							selectedCoaches[index] = checked;
+							for (let i = 0; i < selectedCoaches.length; ++i) {
+								if (selectedCoaches[i] === true) {
+									btnSendRequest.enabled = true;
+									return;
+								}
 							}
+							btnSendRequest.enabled = false;
 						}
-						btnSendRequest.enabled = false;
+					} //CheckBox
+
+					TPButton {
+						text: qsTr("Résumé")
+						width: itemsLayout.width*0.3
+
+						onClicked: userModel.downloadResume(index);
 					}
-				}
+				} //Row
 			} //Repeater
 		} //ColumnLayout
 	} //ScrollView
@@ -82,6 +92,6 @@ TPPopup {
 			bottomMargin: 5
 		}
 
-		onClicked: userModel.sendRequestToCoaches(userRow, selectedCoaches);
+		onClicked: userModel.sendRequestToCoaches(selectedCoaches);
 	}
 }

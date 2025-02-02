@@ -3,6 +3,7 @@
 #include "osinterface.h"
 #include "qmlitemmanager.h"
 #include "tpglobals.h"
+#include "tpimage.h"
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
@@ -14,7 +15,8 @@
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 
-const QLatin1StringView userprofileFileName{"/profile.txt"_L1};
+static const QLatin1StringView userprofileFileName{"profile.txt"_L1};
+static const QString &appDataPath{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1};
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, mb_empty(false), m_searchRow(-1)
@@ -96,7 +98,7 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList_fast(std::move(QStringList{} << STR_MINUS_ONE << QString{} << std::move("2424151"_L1) << STR_ZERO << QString{} <<
+	appendList_fast(std::move(QStringList{} << STR_MINUS_ONE << QString{} << std::move("2424151"_L1) << "-1"_L1 << QString{} <<
 		QString{} << QString{} << QString{} << QString{} << QString{} << std::move("image://tpimageprovider/m5"_L1) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
@@ -275,6 +277,27 @@ void DBUserModel::setUserName(const int row, const QString &new_name, const int 
 	}
 }
 
+void DBUserModel::setAvatar(const int row, const QString &new_avatar)
+{
+	TPImage img{nullptr};
+	img.setSource(new_avatar);
+	QString avatar_str{std::move(appDataPath + "avatar.png"_L1)};
+	img.saveToDisk(avatar_str);
+	m_modeldata[row][USER_COL_AVATAR] = std::move(avatar_str);
+	emit userModified(row, USER_COL_AVATAR);
+
+	if (row == 0 && appOsInterface()->tpServerOK())
+	{
+		QFile *avatar_file{new QFile{avatar(0), this}};
+		if (avatar_file->open(QIODeviceBase::ReadOnly))
+		{
+			appOnlineServices()->sendFile(networkUserName(0), networkUserPassword(0), avatar_file);
+			avatar_file->close();
+		}
+		delete avatar_file;
+	}
+}
+
 void DBUserModel::setCoachPublicStatus(const uint row, const bool bPublic)
 {
 	if (!appOsInterface()->tpServerOK())
@@ -325,7 +348,7 @@ void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 		{
 			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
 			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-			const QString &localResumeFileName{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/resume"_L1 + extension};
+			const QString &localResumeFileName{appDataPath + "resume"_L1 + extension};
 			if (QFile::copy(resumeFileName_ok, localResumeFileName))
 			{
 				QFile *resume{new QFile{localResumeFileName, this}};
@@ -353,13 +376,44 @@ void DBUserModel::uploadResume(const uint row, const QString &resumeFileName)
 	}
 }
 
+void DBUserModel::downloadResume(const uint coach_index)
+{
+	if (!appOsInterface()->tpServerOK())
+		return;
+
+	if (coach_index < m_onlineUserInfo.count())
+	{
+		const QString &net_name{getNetworkUserName(_userName(0), appUseMode(0), birthDate(0))}; //How the user is identified on the server side
+		const QString &password{makeUserPassword(_userName(0))};
+		connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this]
+						(const int ret_code, const QString &filename, const QByteArray &contents) {
+			if (ret_code == 0)
+			{
+				const QString &localResumeFileName{appDataPath + filename};
+				QFile *resume{new QFile{localResumeFileName, this}};
+				static_cast<void>(resume->remove());
+				if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+				{
+					resume->write(contents);
+					resume->close();
+					appOsInterface()->openURL(localResumeFileName);
+				}
+				delete resume;
+			}
+			else
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+		});
+		appOnlineServices()->getBinFile(net_name, password, "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_NET_NAME));
+	}
+}
+
 void DBUserModel::mainUserConfigurationFinished()
 {
 	emit mainUserConfigurationFinishedSignal();
 	if (!appOsInterface()->tpServerOK())
 		return;
 
-	const QString &localProfile{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + userprofileFileName};
+	const QString &localProfile{appDataPath + userprofileFileName};
 	if (exportToFile(localProfile, true, true) == APPWINDOW_MSG_EXPORT_OK)
 	{
 		QFile *profile{new QFile{localProfile, this}};
@@ -372,7 +426,7 @@ void DBUserModel::mainUserConfigurationFinished()
 	}
 }
 
-void DBUserModel::sendRequestToCoaches(const uint row, const QList<bool>& selectedCoaches)
+void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
 {
 	if (!appOsInterface()->tpServerOK())
 		return;
@@ -427,7 +481,7 @@ void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profil
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles] (const int ret_code, const QString& ret_string) {
 		if (ret_code != 1)
 		{
-			const QString &temp_profile_filename{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/temp_profile.txt"};
+			const QString &temp_profile_filename{appDataPath + "temp_profile.txt"_L1};
 			QFile *temp_profile{new QFile{temp_profile_filename, this}};
 			if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
 			{

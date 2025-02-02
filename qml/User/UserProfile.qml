@@ -21,6 +21,7 @@ Frame {
 	property bool bCoachRoleOK: false
 	property bool bClientRoleOK: false
 	property bool bGoalOK: false
+	property int appUseMode: userModel.appUseMode(userRow)
 	readonly property int nVisibleControls: lblCoachRole.visible ? 6 : 4
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
@@ -58,13 +59,22 @@ Frame {
 		bCoachRoleOK = userModel.coachRole(userRow).length > 1;
 	}
 
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int) {
+			if (row === userRow) {
+				if (field === 11)
+					appUseMode = userModel.appUseMode(row);
+			}
+		}
+	}
+
 	TPLabel {
 		id: lblUserRole
 		text: userModel.userRoleLabel
-		visible: userModel.appUseMode(userRow) !== 2
+		visible: appUseMode !== 2
 		height: controlsHeight
 		width: parent.width*0.20
-
 
 		anchors {
 			top: parent.top
@@ -79,7 +89,7 @@ Frame {
 	TPComboBox {
 		id: cboUserRole
 		model: roleModelUser
-		visible: lblUserRole.visible
+		visible: appUseMode !== 2
 		height: controlsHeight
 		width: parent.width*0.80
 
@@ -105,7 +115,7 @@ Frame {
 	TPLabel {
 		id: lblGoal
 		text: userModel.goalLabel
-		visible: userModel.appUseMode(userRow) !== 2
+		visible: appUseMode !== 2
 		height: controlsHeight
 		width: parent.width*0.20
 
@@ -122,7 +132,7 @@ Frame {
 	TPComboBox {
 		id: cboGoal
 		model: goalModel
-		visible: lblGoal.visible
+		visible: appUseMode !== 2
 		enabled: bClientRoleOK || bCoachRoleOK
 		height: controlsHeight
 		width: parent.width*0.80
@@ -161,7 +171,7 @@ Frame {
 	TPLabel {
 		id: lblCoachRole
 		text: userModel.coachRoleLabel
-		visible: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4
+		visible: appUseMode === 2 || appUseMode === 4
 		height: controlsHeight
 		width: parent.width*0.15
 
@@ -178,7 +188,7 @@ Frame {
 	TPComboBox {
 		id: cboCoachRole
 		model: roleModelCoach
-		visible: lblCoachRole.visible
+		visible: appUseMode === 2 || appUseMode === 4
 		height: controlsHeight
 		width: parent.width*0.80
 

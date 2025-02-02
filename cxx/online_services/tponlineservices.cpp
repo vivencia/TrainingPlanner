@@ -100,6 +100,12 @@ void TPOnlineServices::getFile(const QString &username, const QString &passwd, c
 	makeNetworkRequest(url);
 }
 
+void TPOnlineServices::getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension, const QString &targetUser)
+{
+	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension, "fromuser"_L1, targetUser)};
+	makeNetworkRequest(url);
+}
+
 void TPOnlineServices::getCoachesList(const QString &username, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getcoaches"_L1)};
@@ -126,7 +132,26 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
 			if (fileType.contains("application/octet-stream"_L1))
 			{
-				emit binaryFileReceived(reply->readAll());
+				QByteArray data{std::move(reply->readAll())};
+				const qsizetype ret_code_idx{data.indexOf("Return code: ") + 13};
+				if (ret_code_idx >= 13)
+				{
+					ret_code = replyString.sliced(ret_code_idx, data.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
+					if (ret_code == 0)
+					{
+						const qsizetype filename_sep_idx{data.indexOf("##", ret_code_idx) + 2};
+						if (filename_sep_idx >= 2)
+						{
+							const qsizetype filename_sep_idx2{data.indexOf("##", filename_sep_idx)};
+							const QString filename{std::move(data.sliced(filename_sep_idx, filename_sep_idx2 - filename_sep_idx))};
+							static_cast<void>(data.remove(0, filename_sep_idx2 + 2));
+							emit binaryFileReceived(ret_code, filename, data);
+							return;
+						}
+					}
+				}
+				emit binaryFileReceived(ret_code, "Error downloading bynary file: "_L1, data);
+				LOG_MESSAGE("Error downloading bynary file: "_L1 + QString::fromUtf8(data));
 				return;
 			}
 		}

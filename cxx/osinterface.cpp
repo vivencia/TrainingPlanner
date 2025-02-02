@@ -23,7 +23,7 @@
 //"(Landroid/content/Context;Landroid/net/Uri;)Ljava/lang/String;"
 // String f(Context, Uri)
 
-const QString& workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
+const QString &workoutDoneMessage{qApp->tr("Your training routine seems to go well. Workout for the day is concluded")};
 
 #define NOTIFY_DO_NOTHING 0xA
 #define MESOCYCLE_NOTIFICATION 0x14
@@ -36,7 +36,7 @@ const QString& workoutDoneMessage{qApp->tr("Your training routine seems to go we
 
 #ifdef Q_OS_LINUX
 #include <QProcess>
-static const QString& tp_server_config_script{QString(::getenv("HOME")) + "/software/trainingplanner/web-server/init_script.sh"_L1};
+static const QString &tp_server_config_script{QString(::getenv("HOME")) + "/software/trainingplanner/web-server/init_script.sh"_L1};
 
 extern "C"
 {
@@ -171,7 +171,7 @@ void OSInterface::checkPendingIntents() const
  * If a requestId was set we want to get the Activity Result back (recommended)
  * We need the Request Id and Result Id to control our workflow
 */
-bool OSInterface::sendFile(const QString& filePath, const QString& title, const QString& mimeType, const int& requestId) const
+bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int& requestId) const
 {
 	const QJniObject& jsPath = QJniObject::fromString(filePath);
 	const QJniObject& jsTitle = QJniObject::fromString(title);
@@ -189,7 +189,7 @@ bool OSInterface::sendFile(const QString& filePath, const QString& title, const 
 	return true;
 }
 
-void OSInterface::androidOpenURL(const QString& address) const
+void OSInterface::androidOpenURL(const QString &address) const
 {
 	QString url;
 	if (!address.startsWith("http"_L1))
@@ -209,9 +209,9 @@ void OSInterface::androidOpenURL(const QString& address) const
 	}
 }
 
-bool OSInterface::androidSendMail(const QString& address, const QString& subject, const QString& attachment) const
+bool OSInterface::androidSendMail(const QString &address, const QString &subject, const QString &attachment) const
 {
-	const QString& attachment_file(attachment.isEmpty() ? QString() : "file://"_L1 + attachment);
+	const QString &attachment_file(attachment.isEmpty() ? QString() : "file://"_L1 + attachment);
 	const QJniObject& jsAddress = QJniObject::fromString(address);
 	const QJniObject& jsSubject = QJniObject::fromString(subject);
 	const QJniObject& jsAttach = QJniObject::fromString(attachment_file);
@@ -222,7 +222,7 @@ bool OSInterface::androidSendMail(const QString& address, const QString& subject
 	return ok;
 }
 
-bool OSInterface::viewFile(const QString& filePath, const QString& title) const
+bool OSInterface::viewFile(const QString &filePath, const QString &title) const
 {
 	const QJniObject& jsPath = QJniObject::fromString(filePath);
 	const QJniObject& jsTitle = QJniObject::fromString(title);
@@ -238,13 +238,13 @@ bool OSInterface::viewFile(const QString& filePath, const QString& title) const
 	return ok;
 }
 
-QString OSInterface::readFileFromAndroidFileDialog(const QString& android_uri) const
+QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) const
 {
 	if (android_uri.startsWith("//com"_L1))
 	{
 		QString properFilename;
 		properFilename = "content:"_L1 + android_uri;
-		const QString& localFile{m_appDataFilesPath + "tempfile"_L1};
+		const QString &localFile{m_appDataFilesPath + "tempfile"_L1};
 		static_cast<void>(QFile::remove(localFile));
 		return QFile::copy(properFilename, localFile) ? properFilename : QString();
 	}
@@ -296,7 +296,7 @@ void OSInterface::checkWorkouts()
 		{
 			notificationData* data{new notificationData{}};
 			data->title = std::move("TrainingPlanner "_L1) + data->start_time.toString("dd/MM - hh:mm"_L1);
-			const QString& splitLetter{dayInfoList.at(2)};
+			const QString &splitLetter{dayInfoList.at(2)};
 			if (splitLetter != "R"_L1) //day is training day
 			{
 
@@ -332,9 +332,9 @@ void OSInterface::checkWorkouts()
 	}
 }
 
-void OSInterface::setFileUrlReceived(const QString& url) const
+void OSInterface::setFileUrlReceived(const QString &url) const
 {
-	const QString& androidUrl{appUtils()->getCorrectPath(url)};
+	const QString &androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
@@ -344,9 +344,9 @@ void OSInterface::setFileUrlReceived(const QString& url) const
 	}
 }
 
-void OSInterface::setFileReceivedAndSaved(const QString& url) const
+void OSInterface::setFileReceivedAndSaved(const QString &url) const
 {
-	const QString& androidUrl{appUtils()->getCorrectPath(url)};
+	const QString &androidUrl{appUtils()->getCorrectPath(url)};
 	if (QFileInfo::exists(androidUrl))
 		appItemManager()->openRequestedFile(androidUrl);
 	else
@@ -494,7 +494,7 @@ void OSInterface::configureLocalServer(bool second_pass)
 		checkConfiguration->start(tp_server_config_script, {"test"_L1}, QIODeviceBase::ReadOnly);
 		return;
 	}
-	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this] (int resultCode, const QString& password) {
+	connect(appItemManager(), &QmlItemManager::qmlPasswordDialogClosed, this, [this] (int resultCode, const QString &password) {
 		if (resultCode == 0)
 		{
 			QProcess *setupConfiguration{new QProcess{this}};
@@ -552,7 +552,7 @@ void OSInterface::checkOnlineResources()
 //TODO
 }
 
-void OSInterface::shareFile(const QString& fileName) const
+void OSInterface::shareFile(const QString &fileName) const
 {
 	#ifdef Q_OS_ANDROID
 	/*setExportFileName("app_logo.png");
@@ -565,7 +565,7 @@ void OSInterface::shareFile(const QString& fileName) const
 	sendFile(fileName, tr("Send file"), "text/plain"_L1, 10);
 	#endif
 }
-void OSInterface::openURL(const QString& address) const
+void OSInterface::openURL(const QString &address) const
 {
 	#ifdef Q_OS_ANDROID
 	androidOpenURL(address);
@@ -576,13 +576,13 @@ void OSInterface::openURL(const QString& address) const
 	#endif
 }
 
-void OSInterface::startChatApp(const QString& phone, const QString& appname) const
+void OSInterface::startChatApp(const QString &phone, const QString &appname) const
 {
 	if (phone.length() < 17)
 		return;
 	QString phoneNumbers;
 	QString::const_iterator itr{phone.constBegin()};
-	const QString::const_iterator& itr_end{phone.constEnd()};
+	const QString::const_iterator &itr_end{phone.constEnd()};
 	do {
 		if ((*itr).isDigit())
 			phoneNumbers += *itr;
@@ -597,14 +597,14 @@ void OSInterface::startChatApp(const QString& phone, const QString& appname) con
 	openURL(address);
 }
 
-void OSInterface::sendMail(const QString& address, const QString& subject, const QString& attachment_file) const
+void OSInterface::sendMail(const QString &address, const QString &subject, const QString &attachment_file) const
 {
 	#ifdef Q_OS_ANDROID
 	if (!androidSendMail(address, subject, attachment_file))
 	{
 		if (appUserModel()->email(0).contains("gmail.com"_L1))
 		{
-			const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
+			const QString &gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
 			openURL(gmailURL);
 		}
 	}
@@ -620,7 +620,7 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 		{
 			if (appUserModel()->email(0).contains("gmail.com"_L1))
 			{
-				const QString& gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
+				const QString &gmailURL(u"https://mail.google.com/mail/u/%1/?view=cm&to=%2&su=%3"_s.arg(appUserModel()->email(0), address, subject));
 				openURL(gmailURL);
 			}
 		}
@@ -629,12 +629,12 @@ void OSInterface::sendMail(const QString& address, const QString& subject, const
 	#endif
 }
 
-void OSInterface::viewExternalFile(const QString& filename) const
+void OSInterface::viewExternalFile(const QString &filename) const
 {
 	if (!appUtils()->canReadFile(appUtils()->getCorrectPath(filename)))
 		return;
 	#ifdef Q_OS_ANDROID
-	const QString& localFile{m_appDataFilesPath + "tempfile"_L1 + filename.last(4)};
+	const QString &localFile{m_appDataFilesPath + "tempfile"_L1 + filename.last(4)};
 	static_cast<void>(QFile::remove(localFile));
 	if (QFile::copy(filename, localFile))
 		viewFile(localFile, tr("View file with..."));

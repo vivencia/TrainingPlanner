@@ -2,6 +2,7 @@
 #include "tpimageprovider.h"
 #include "tpsettings.h"
 
+#include <QFileInfo>
 #include <QPainter>
 #include <QGraphicsColorizeEffect>
 #include <QGraphicsDropShadowEffect>
@@ -13,7 +14,7 @@ using namespace Qt::Literals::StringLiterals;
 
 #define DROP_SHADOW_EXTENT 5
 
-TPImage::TPImage(QQuickItem* parent)
+TPImage::TPImage(QQuickItem *parent)
 	: QQuickPaintedItem{parent}, m_imageToPaint(nullptr), mDropShadow(true), mbCanUpdate(true), mbCanColorize(false)
 {
 	connect(this, &QQuickItem::enabledChanged, this, [&] () { checkEnabled(); });
@@ -33,29 +34,39 @@ void TPImage::setSource(const QString& source, const bool bForce)
 	if (!source.isEmpty() && bForce ? true : mSource != source)
 	{
 		bool bIsSVG(false);
-		mbCanColorize = true;
-		if (source.endsWith("png"_L1))
-			mSource = std::move(":/images/flat/"_L1 + source);
-		else if ((bIsSVG = source.endsWith("svg"_L1)))
-			mSource = std::move(":/images/"_L1 + source);
+		QFileInfo img_file{source};
+		if (img_file.isFile())
+		{
+			if (img_file.isReadable())
+			{
+				mbCanColorize = false;
+				mSource = source;
+			}
+		}
+		else if (source.startsWith("image://tpimageprovider"_L1))
+		{
+			mImage = std::move(tpImageProvider()->getAvatar(source));
+			if (!mImage.isNull())
+			{
+				mbCanColorize = false;
+				mSource = source;
+				mNominalSize.setHeight(0);
+				maybeResize(true);
+				emit sourceChanged();
+			}
+			return;
+		}
 		else
 		{
-			mbCanColorize = false;
-			if (source.contains("provider"_L1))
-			{
-				mImage = tpImageProvider()->getAvatar(source);
-				if (!mImage.isNull())
-				{
-					mSource = source;
-					mNominalSize.setHeight(0);
-					maybeResize(true);
-					emit sourceChanged();
-				}
-				return;
-			}
+			mbCanColorize = true;
+			if (source.endsWith("png"_L1))
+				mSource = std::move(":/images/flat/"_L1 + source);
+			else if ((bIsSVG = source.endsWith("svg"_L1)))
+				mSource = std::move(":/images/"_L1 + source);
 			else
 				mSource = std::move(":/images/"_L1 + source + ".png"_L1);
 		}
+
 		if (mImage.load(mSource))
 		{
 			if (bIsSVG)
@@ -85,7 +96,23 @@ void TPImage::setImgSize(const int size)
 	}
 }
 
-void TPImage::paint(QPainter* painter)
+void TPImage::saveToDisk(const QString &filename)
+{
+	if (!m_imageToPaint)
+		return;
+	QFileInfo img_info{filename};
+	if (img_info.isWritable())
+	{
+		if (img_info.exists())
+		{
+			if (!QFile::remove(filename))
+				return;
+		}
+		static_cast<void>(m_imageToPaint->save(filename));
+	}
+}
+
+void TPImage::paint(QPainter *painter)
 {
 	if (!mbCanUpdate)
 		return;

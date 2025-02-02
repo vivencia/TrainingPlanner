@@ -176,11 +176,7 @@ public:
 
 	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 && row < m_modeldata.count() ? _avatar(row) : QString(); }
 	inline const QString &_avatar(const uint row) const { return m_modeldata.at(row).at(USER_COL_AVATAR); }
-	Q_INVOKABLE inline void setAvatar(const int row, const QString &new_avatar)
-	{
-		m_modeldata[row][USER_COL_AVATAR] = new_avatar;
-		emit userModified(row, USER_COL_AVATAR);
-	}
+	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar);
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
@@ -221,15 +217,22 @@ public:
 	Q_INVOKABLE void setCoachPublicStatus(const uint row, const bool bPublic);
 	Q_INVOKABLE void isCoachAlreadyRegisteredOnline(const uint row);
 	Q_INVOKABLE void uploadResume(const uint row, const QString &resumeFileName);
+	Q_INVOKABLE void downloadResume(const uint coach_index);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
-	Q_INVOKABLE void sendRequestToCoaches(const uint row, const QList<bool>& selectedCoaches);
+	Q_INVOKABLE void sendRequestToCoaches(const QList<bool> &selectedCoaches);
 
 	void getOnlineCoachesList();
 	void getUserOnlineProfile(const QString& netName, uint n_max_profiles = 1);
 
-	inline QString networkUserName(const uint row) const
+	inline QString networkUserName(const uint row)
 	{
+		if (row == 0)
+		{
+			if (m_networkName.isEmpty())
+				m_networkName = std::move(getNetworkUserName(_userName(0), appUseMode(0), birthDate(0)));
+			return m_networkName;
+		}
 		return getNetworkUserName(_userName(row), appUseMode(row), birthDate(row));
 	}
 	inline QString networkUserPassword(const uint row) const
@@ -268,6 +271,7 @@ signals:
 private:
 	bool mb_empty;
 	int m_searchRow;
+	QString m_networkName;
 	std::optional<bool> mb_coachRegistered;
 	QList<QStringList> m_onlineUserInfo;
 
