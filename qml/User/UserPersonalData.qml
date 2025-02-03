@@ -30,14 +30,6 @@ Frame {
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
-	Connections {
-		target: userModel
-		function onUserNameOK(row: int, b_ok: bool): void {
-			if (row === userRow)
-				bNameOK = b_ok;
-		}
-	}
-
 	TPLabel {
 		id: lblBirthdate
 		text: userModel.birthdayLabel

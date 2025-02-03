@@ -100,7 +100,7 @@ Frame {
 			height: itemHeight
 			Layout.preferredWidth: parent.width/2
 
-			Component.onCompleted: userModel.isCoachAlreadyRegisteredOnline(userRow);
+			Component.onCompleted: userModel.isCoachAlreadyRegisteredOnline();
 
 			Connections {
 				target: userModel
@@ -108,7 +108,7 @@ Frame {
 			}
 
 			onClicked: {
-				userModel.setCoachPublicStatus(userRow, checked);
+				userModel.setCoachPublicStatus(checked);
 				if (checked)
 					bCoachOK = bResumeSent;
 			}
@@ -139,7 +139,7 @@ Frame {
 			fileMode: FileDialog.OpenFile
 
 			onAccepted: {
-				userModel.uploadResume(userRow, currentFile);
+				userModel.uploadResume(currentFile);
 				bChooseResume = false;
 				bResumeSent = true;
 				bCoachOK = true;

@@ -12,7 +12,7 @@
 #include <QTime>
 #include <jni.h>
 
-QT_FORWARD_DECLARE_CLASS(TPAndroidNotification)
+//QT_FORWARD_DECLARE_CLASS(TPAndroidNotification)
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -30,6 +30,7 @@ struct notificationData {
 #endif
 
 QT_FORWARD_DECLARE_CLASS(TPListModel)
+QT_FORWARD_DECLARE_CLASS(QTimer);
 
 enum SERVER_STATUS {
 	SERVER_UP_AND_RUNNING = 0,
@@ -50,7 +51,7 @@ Q_PROPERTY(bool internetOK READ internetOK NOTIFY networkStatusChanged FINAL)
 Q_PROPERTY(bool tpServerOK READ tpServerOK NOTIFY networkStatusChanged FINAL)
 
 public:
-	explicit OSInterface(QObject* parent = nullptr);
+	explicit OSInterface(QObject *parent = nullptr);
 	inline ~OSInterface()
 	{
 	#ifdef Q_OS_ANDROID
@@ -62,7 +63,7 @@ public:
 	inline bool internetOK() const { return isBitSet(m_networkStatus, HAS_INTERNET); }
 	inline bool tpServerOK() const { return isBitSet(m_networkStatus, SERVER_UP_AND_RUNNING); }
 	inline int networkStatus() const { return m_networkStatus; }
-	inline void setNetworkStatus(int new_status) {m_networkStatus = new_status; emit networkStatusChanged(); }
+	void setNetworkStatus(int new_status);
 
 	inline const QString& appDataFilesPath() const { return m_appDataFilesPath; }
 	inline void initialCheck()
@@ -125,11 +126,13 @@ public slots:
 private:
 	QString m_appDataFilesPath;
 	int m_networkStatus;
+	QTimer *m_checkConnectionTimer;
 
 #ifdef Q_OS_ANDROID
 	TPAndroidNotification* m_AndroidNotification;
 	bool mb_appSuspended, m_bTodaysWorkoutFinishedConnected;
 	QList<notificationData*> m_notifications;
+	QTimer *m_notificationsTimer;
 #endif
 
 	static OSInterface* app_os_interface;

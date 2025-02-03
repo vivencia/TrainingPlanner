@@ -87,8 +87,16 @@ public:
 	Q_INVOKABLE uint userRow(const QString &userName) const;
 	Q_INVOKABLE inline QString userName(const int row) const { return row >= 0 && row < m_modeldata.count() ? _userName(row) : QString(); }
 	inline const QString &_userName(const uint row) const { return m_modeldata.at(row).at(USER_COL_NAME); }
-	Q_INVOKABLE void setUserName(const int row, const QString &new_name, const int prev_use_mode = -1, const QDate &prev_birthdate = QDate{},
-								 int ret_code = -1000, const QString &networkReply = QString{});
+	Q_INVOKABLE inline void setUserName(const int row, const QString &new_name)
+	{
+		if (new_name != _userName(row))
+		{
+			m_modeldata[row][USER_COL_NAME] = new_name;
+			emit userModified(row, USER_COL_NAME);
+			if (m_modeldata.count() > 1 && m_modeldata.at(row).at(USER_COL_ID) == STR_MINUS_ONE)
+				emit userAddedOrRemoved(row, true);
+		}
+	}
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
@@ -104,11 +112,8 @@ public:
 	{
 		if (new_date != birthDate(row))
 		{
-			const QDate prev_date{std::move(birthDate(row))};
 			m_modeldata[row][USER_COL_BIRTHDAY] = QString::number(new_date.toJulianDay());
 			emit userModified(row, USER_COL_BIRTHDAY);
-			if (!_userName(row).isEmpty())
-				setUserName(row, userName(row), -1, prev_date);
 		}
 	}
 
@@ -182,13 +187,12 @@ public:
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
 	Q_INVOKABLE inline void setAppUseMode(const int row, const int new_use_opt)
 	{
-		const uint prev_use_mode{appUseMode(row)};
-		if (new_use_opt != prev_use_mode)
+		if (new_use_opt != appUseMode(row))
 		{
-			setCoachPublicStatus(row, false);
+			if (row == 0 && isCoach(0))
+				setCoachPublicStatus(false);
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
-			setUserName(row, userName(row), prev_use_mode);
 		}
 	}
 
@@ -214,9 +218,10 @@ public:
 		emit userModified(row, USER_COL_CURRENT_CLIENT);
 	}
 
-	Q_INVOKABLE void setCoachPublicStatus(const uint row, const bool bPublic);
-	Q_INVOKABLE void isCoachAlreadyRegisteredOnline(const uint row);
-	Q_INVOKABLE void uploadResume(const uint row, const QString &resumeFileName);
+	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered == true; }
+	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
+	Q_INVOKABLE void isCoachAlreadyRegisteredOnline();
+	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
 	Q_INVOKABLE void downloadResume(const uint coach_index);
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
@@ -224,21 +229,6 @@ public:
 
 	void getOnlineCoachesList();
 	void getUserOnlineProfile(const QString& netName, uint n_max_profiles = 1);
-
-	inline QString networkUserName(const uint row)
-	{
-		if (row == 0)
-		{
-			if (m_networkName.isEmpty())
-				m_networkName = std::move(getNetworkUserName(_userName(0), appUseMode(0), birthDate(0)));
-			return m_networkName;
-		}
-		return getNetworkUserName(_userName(row), appUseMode(row), birthDate(row));
-	}
-	inline QString networkUserPassword(const uint row) const
-	{
-		return makeUserPassword(_userName(row));
-	}
 
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
@@ -251,7 +241,6 @@ public:
 			case USER_COL_BIRTHDAY:
 			case USER_COL_SEX:
 			case USER_COL_SOCIALMEDIA:
-			case USER_COL_AVATAR:
 				return true;
 		}
 	}
@@ -260,24 +249,23 @@ public:
 
 signals:
 	void userModified(const uint row, const uint field);
+	void labelsChanged();
 	void userAddedOrRemoved(const uint row, const bool bAdded);
 	void mainUserConfigurationFinishedSignal();
-	void labelsChanged();
-	void userNameOK(int row, bool b_ok);
+	void mainUserOnlineCheckInChanged();
 	void coachOnlineStatus(bool registered);
 	void coachesListReceived(const QStringList& coaches_list);
 	void userProfileAcquired();
 
 private:
-	bool mb_empty;
 	int m_searchRow;
-	QString m_networkName;
-	std::optional<bool> mb_coachRegistered;
+	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	QList<QStringList> m_onlineUserInfo;
 
-	QString getNetworkUserName(const QString &userName, const uint app_use_mode, const QDate &birthdate) const;
-	QString makeUserPassword(const QString &userName) const;
-	void _setUserName(const uint row, const QString &new_name);
+	bool onlineCheckIn();
+	QString generateUniqueUserId() const;
+	QString getUserPassword() const;
+	void sendAvatarToServer();
 	int _importFromFile(const QString &filename, QList<QStringList>& targetModel);
 	static DBUserModel* _appUserModel;
 	friend DBUserModel* appUserModel();

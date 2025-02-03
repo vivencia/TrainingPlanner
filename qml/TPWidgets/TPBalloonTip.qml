@@ -57,6 +57,8 @@ TPPopup {
 			leftMargin: 5
 			right: btnClose.left
 		}
+
+		onTextChanged: anchorElements();
 	}
 
 	TPImage {
@@ -73,6 +75,8 @@ TPPopup {
 			left: parent.left
 			leftMargin: 5
 		}
+
+		onSourceChanged: anchorElements();
 	}
 
 	TPLabel {
@@ -85,9 +89,7 @@ TPPopup {
 		visible: message.length > 0
 
 		anchors {
-			top: title.length > 0 ? lblTitle.bottom : parent.top
-			topMargin: 20
-			left: imageSource.length > 0 ? imgElement.right : parent.left
+			topMargin: 0
 			leftMargin: 5
 			right: parent.right
 			rightMargin: 5
@@ -95,24 +97,7 @@ TPPopup {
 
 		Component.onCompleted: anchorElements();
 		onSizeChanged: anchorElements();
-
-		function anchorElements() {
-			if (lblMessage.height < 50) {
-				if (imageSource.length > 0) {
-					imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : parent.top;
-					imgElement.anchors.topMargin = 5;
-					anchors.verticalCenter = imgElement.verticalCenter;
-				}
-				else
-					anchors.verticalCenter = parent.verticalCenter;
-			}
-			else {
-				anchors.top = title.length > 0 ? lblTitle.bottom : parent.top;
-				anchors.topMargin = 10;
-				if (imageSource.length > 0)
-					imgElement.anchors.verticalCenter = verticalCenter;
-			}
-		}
+		onTextChanged: anchorElements();
 	}
 
 	RowLayout {
@@ -250,5 +235,23 @@ TPPopup {
 
 	function showLate(timeout: int, ypos: int): void {
 		hideTimer.delayedOpen(timeout, ypos);
+	}
+
+	function anchorElements() {
+		if (lblMessage.height < 50) {
+			if (imageSource.length > 0) {
+				imgElement.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
+				imgElement.anchors.topMargin = 5;
+				lblMessage.anchors.verticalCenter = imgElement.verticalCenter;
+			}
+			else
+				lblMessage.anchors.verticalCenter = balloon.verticalCenter;
+		}
+		else {
+			lblMessage.anchors.top = title.length > 0 ? lblTitle.bottom : balloon.top;
+			if (imageSource.length > 0)
+				imgElement.anchors.verticalCenter = lblMessage.verticalCenter;
+		}
+		lblMessage.anchors.left = imageSource.length > 0 ? imgElement.right : balloon.left;
 	}
 }

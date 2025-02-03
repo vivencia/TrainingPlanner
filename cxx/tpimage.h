@@ -5,7 +5,7 @@
 #include <QQuickPaintedItem>
 #include <QImage>
 
-class QGraphicsEffect;
+QT_FORWARD_DECLARE_CLASS(QGraphicsEffect);
 
 class TPImage : public QQuickPaintedItem
 {
@@ -52,9 +52,9 @@ private:
 	void scaleImage(const bool bCallUpdate);
 	void convertToGrayScale();
 	void createDropShadowImage();
-	void grayScale(QImage& dstImg, const QImage& srcImg);
-	void colorize(QImage& dstImg, const QImage& srcImg);
-	void applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphicsEffect* effect, const int extent = 0);
+	void grayScale(QImage &dstImg, const QImage &srcImg);
+	void colorize(QImage &dstImg, const QImage &srcImg);
+	void applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent = 0);
 };
 
 #endif // TPIMAGE_H

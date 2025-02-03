@@ -8,7 +8,7 @@
 
 #include <utility>
 
-DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel* model)
+DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel *model)
 	: TPDatabaseTable{nullptr}, m_model{model}
 {
 	m_tableName = std::move("user_table"_L1);
@@ -102,15 +102,13 @@ void DBUserTable::saveUser()
 		else
 		{
 			strQuery = std::move(u"INSERT INTO user_table "
-				"(name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
-				" VALUES(\'%1\', %2, \'%3\', \'%4\', \'%5\', \'%6\', \'%7\',\'%8\', \'%9\', \'%10\', %11, %12, %13)"_s
-					.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
+				"(id,name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
+				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', \'%11\', %12, %13, %14)"_s
+					.arg(m_model->_userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
 					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient()));
 		}
 		ok = query.exec(strQuery);
-		if (ok && !bUpdate)
-			m_model->setUserId(row, query.lastInsertId().toString());
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
 	}
 	doneFunc(static_cast<TPDatabaseTable*>(this));

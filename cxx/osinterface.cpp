@@ -50,19 +50,25 @@ extern "C"
 #include <QProcess>
 #include <QStandardPaths>
 #include <QTcpSocket>
+#include <QTimer>
 
 OSInterface* OSInterface::app_os_interface(nullptr);
+constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
+constexpr uint CONNECTION_ERR_TIMEOUT{60*1000};
 
-OSInterface::OSInterface(QObject* parent)
+OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
 	m_appDataFilesPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) + '/';
-	checkInternetConnection();
+	m_checkConnectionTimer = new QTimer{this};
+	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+	m_checkConnectionTimer->callOnTimeout( [this] () { checkInternetConnection(); });
+	m_checkConnectionTimer->start();
 
 #ifdef Q_OS_ANDROID
-	const QJniObject& context(QNativeInterface::QAndroidApplication::context());
+	const QJniObject &context(QNativeInterface::QAndroidApplication::context());
 
 	context.callStaticMethod<void>(
 		"org/vivenciasoftware/TrainingPlanner/QShareUtils",
@@ -145,6 +151,19 @@ void OSInterface::checkInternetConnection()
 	}
 }
 
+void OSInterface::setNetworkStatus(int new_status)
+{
+	if (new_status != m_networkStatus)
+	{
+		m_networkStatus = new_status;
+		if (isBitSet(m_networkStatus, SERVER_UNREACHABLE) || isBitSet(m_networkStatus, NO_INTERNET_ACCESS))
+			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
+		else
+			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+		emit networkStatusChanged();
+	}
+}
+
 void OSInterface::aboutToExit()
 {
 	appDBInterface()->cleanUpThreads();
@@ -153,7 +172,7 @@ void OSInterface::aboutToExit()
 #ifdef Q_OS_ANDROID
 void OSInterface::checkPendingIntents() const
 {
-	const QJniObject& activity = QNativeInterface::QAndroidApplication::context();
+	const QJniObject &activity = QNativeInterface::QAndroidApplication::context();
 	if(activity.isValid())
 	{
 		activity.callMethod<void>("checkPendingIntents","()V");
@@ -173,9 +192,9 @@ void OSInterface::checkPendingIntents() const
 */
 bool OSInterface::sendFile(const QString &filePath, const QString &title, const QString &mimeType, const int& requestId) const
 {
-	const QJniObject& jsPath = QJniObject::fromString(filePath);
-	const QJniObject& jsTitle = QJniObject::fromString(title);
-	const QJniObject& jsMimeType = QJniObject::fromString(mimeType);
+	const QJniObject &jsPath = QJniObject::fromString(filePath);
+	const QJniObject &jsTitle = QJniObject::fromString(title);
+	const QJniObject &jsMimeType = QJniObject::fromString(mimeType);
 	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"sendFile",
 													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Z",
@@ -193,11 +212,11 @@ void OSInterface::androidOpenURL(const QString &address) const
 {
 	QString url;
 	if (!address.startsWith("http"_L1))
-		url = "https://"_L1 + address;
+		url = std::move("https://"_L1 + address);
 	else
 		url = address;
 
-	const QJniObject& jsPath = QJniObject::fromString(url);
+	const QJniObject &jsPath = QJniObject::fromString(url);
 	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"openURL",
 													"(Ljava/lang/String;)Z",
@@ -211,10 +230,10 @@ void OSInterface::androidOpenURL(const QString &address) const
 
 bool OSInterface::androidSendMail(const QString &address, const QString &subject, const QString &attachment) const
 {
-	const QString &attachment_file(attachment.isEmpty() ? QString() : "file://"_L1 + attachment);
-	const QJniObject& jsAddress = QJniObject::fromString(address);
-	const QJniObject& jsSubject = QJniObject::fromString(subject);
-	const QJniObject& jsAttach = QJniObject::fromString(attachment_file);
+	const QString &attachment_file{attachment.isEmpty() ? QString() : "file://"_L1 + attachment};
+	const QJniObject &jsAddress = QJniObject::fromString(address);
+	const QJniObject &jsSubject = QJniObject::fromString(subject);
+	const QJniObject &jsAttach = QJniObject::fromString(attachment_file);
 	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"sendEmail",
 													"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
@@ -224,8 +243,8 @@ bool OSInterface::androidSendMail(const QString &address, const QString &subject
 
 bool OSInterface::viewFile(const QString &filePath, const QString &title) const
 {
-	const QJniObject& jsPath = QJniObject::fromString(filePath);
-	const QJniObject& jsTitle = QJniObject::fromString(title);
+	const QJniObject &jsPath = QJniObject::fromString(filePath);
+	const QJniObject &jsTitle = QJniObject::fromString(title);
 	const jboolean ok = QJniObject::callStaticMethod<jboolean>("org/vivenciasoftware/TrainingPlanner/QShareUtils",
 													"viewFile",
 													"(Ljava/lang/String;Ljava/lang/String;)Z",
@@ -242,8 +261,7 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) c
 {
 	if (android_uri.startsWith("//com"_L1))
 	{
-		QString properFilename;
-		properFilename = "content:"_L1 + android_uri;
+		const QString &properFilename{"content:"_L1 + android_uri};
 		const QString &localFile{m_appDataFilesPath + "tempfile"_L1};
 		static_cast<void>(QFile::remove(localFile));
 		return QFile::copy(properFilename, localFile) ? properFilename : QString();
@@ -254,10 +272,10 @@ QString OSInterface::readFileFromAndroidFileDialog(const QString &android_uri) c
 
 void OSInterface::startAppNotifications()
 {
-	QTimer notificationsTimer{this};
-	notificationsTimer.setInterval(1000*30); //every 30min
-	notificationsTimer.callOnTimeout([this] () { checkNotificationsStatus(); } );
-	notificationsTimer.start();
+	m_notificationsTimer = new QTimer{this};
+	m_notificationsTimer->setInterval(30*60*1000); //every 30min
+	m_notificationsTimer->callOnTimeout([this] () { checkNotificationsStatus(); } );
+	m_notificationsTimer.start();
 	m_bTodaysWorkoutFinishedConnected = false;
 	checkWorkouts();
 }

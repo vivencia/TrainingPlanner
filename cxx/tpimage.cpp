@@ -33,22 +33,18 @@ void TPImage::setSource(const QString& source, const bool bForce)
 {
 	if (!source.isEmpty() && bForce ? true : mSource != source)
 	{
-		bool bIsSVG(false);
+		mbCanColorize = false;
 		QFileInfo img_file{source};
 		if (img_file.isFile())
 		{
 			if (img_file.isReadable())
-			{
-				mbCanColorize = false;
 				mSource = source;
-			}
 		}
 		else if (source.startsWith("image://tpimageprovider"_L1))
 		{
 			mImage = std::move(tpImageProvider()->getAvatar(source));
 			if (!mImage.isNull())
 			{
-				mbCanColorize = false;
 				mSource = source;
 				mNominalSize.setHeight(0);
 				maybeResize(true);
@@ -61,16 +57,20 @@ void TPImage::setSource(const QString& source, const bool bForce)
 			mbCanColorize = true;
 			if (source.endsWith("png"_L1))
 				mSource = std::move(":/images/flat/"_L1 + source);
-			else if ((bIsSVG = source.endsWith("svg"_L1)))
+			else if (source.endsWith("svg"_L1))
+			{
+				mDropShadow = false;
 				mSource = std::move(":/images/"_L1 + source);
+			}
 			else
+			{
+				mbCanColorize = false;
 				mSource = std::move(":/images/"_L1 + source + ".png"_L1);
+			}
 		}
 
 		if (mImage.load(mSource))
 		{
-			if (bIsSVG)
-				mDropShadow = false;
 			if (mbCanColorize)
 				colorize(mImage, mImage);
 			maybeResize(true);
@@ -119,7 +119,7 @@ void TPImage::paint(QPainter *painter)
 	if (!m_imageToPaint)
 		return;
 
-	QPointF center(boundingRect().center() - m_imageToPaint->rect().center());
+	QPointF center{boundingRect().center() - m_imageToPaint->rect().center()};
 
 	if (center.x() < 0)
 		center.setX(0);
@@ -199,14 +199,14 @@ void TPImage::createDropShadowImage()
 {
 	if (!mImage.isNull())
 	{
-		QGraphicsDropShadowEffect* shadowEffect{new QGraphicsDropShadowEffect()};
+		QGraphicsDropShadowEffect *shadowEffect{new QGraphicsDropShadowEffect()};
 		shadowEffect->setOffset(DROP_SHADOW_EXTENT, DROP_SHADOW_EXTENT);
 		shadowEffect->setBlurRadius(DROP_SHADOW_EXTENT);
 		applyEffectToImage(mImageShadow, mImage, shadowEffect, DROP_SHADOW_EXTENT);
 	}
 }
 
-void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphicsEffect* effect, const int extent)
+void TPImage::applyEffectToImage(QImage &dstImg, const QImage &srcImg, QGraphicsEffect *effect, const int extent)
 {
 	QGraphicsScene scene;
 	QGraphicsPixmapItem item;
@@ -221,15 +221,15 @@ void TPImage::applyEffectToImage(QImage& dstImg, const QImage& srcImg, QGraphics
 							QRectF(-extent, -extent, dstImg.width(), dstImg.height()));
 }
 
-void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
+void TPImage::grayScale(QImage &dstImg, const QImage &srcImg)
 {		
 	dstImg = srcImg.convertToFormat(srcImg.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
-	const uint imgHeight(dstImg.height());
-	const uint imgWidth(dstImg.width());
+	const int imgHeight{dstImg.height()};
+	const int imgWidth{dstImg.width()};
 	QRgb pixel;
 	for (uint y{0}; y < imgHeight; ++y)
 	{
-		QRgb* scanLine{reinterpret_cast<QRgb*>(dstImg.scanLine(y))};
+		QRgb *scanLine{reinterpret_cast<QRgb*>(dstImg.scanLine(y))};
 		for (uint x{0}; x < imgWidth; ++x)
 		{
 			pixel = *scanLine;
@@ -240,20 +240,20 @@ void TPImage::grayScale(QImage& dstImg, const QImage& srcImg)
 	}
 }
 
-void TPImage::colorize(QImage& dstImg, const QImage& srcImg)
+void TPImage::colorize(QImage &dstImg, const QImage &srcImg)
 {
 	if (!srcImg.isNull())
 	{
 		mSize.setHeight(srcImg.height());
 		mSize.setWidth(srcImg.width());
 		const QColor color{appSettings()->fontColor()};
-		QGraphicsColorizeEffect* colorEffect{new QGraphicsColorizeEffect()};
+		QGraphicsColorizeEffect *colorEffect{new QGraphicsColorizeEffect()};
 		colorEffect->setColor(color);
 		applyEffectToImage(dstImg, srcImg, colorEffect);
 	}
 }
 
-/*void TPImage::blurred(QImage& dstImg, const QImage& srcImg, const QRect& rect, const int radius, const bool alphaOnly)
+/*void TPImage::blurred(QImage &dstImg, const QImage &srcImg, const QRect& rect, const int radius, const bool alphaOnly)
 {
 	dstImg = srcImg.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
