@@ -5,8 +5,8 @@ import QtQuick.Shapes
 ToolBar {
 	spacing: 0
 	padding: 0
-	height: headerHeight
 	width: appSettings.windowWidth
+	implicitWidth: width
 
 	background: Shape {
 		preferredRendererType: Shape.CurveRenderer

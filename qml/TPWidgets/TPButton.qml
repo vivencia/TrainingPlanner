@@ -30,20 +30,21 @@ Rectangle {
 	property bool hasDropShadow: true
 	property bool checked: false
 	property bool autoResize: false
-	property bool canResize: true
 	property int clickId: -1
 	property int imageSize: hasDropShadow ? 30 : 20
-	property bool bPressed: false
-	property bool bEmitSignal: false
-	property Item associatedItem: null
-	property TPButtonImage buttonImage: null
+
+	//Local variables. Do not use outside this file
+	property bool _canResize: true
+	property bool _bPressed: false
+	property bool _bEmitSignal: false
+	property TPButtonImage _buttonImage: null
 
 	signal clicked(int clickid);
 	signal check(int clickid);
 
 	onImageSourceChanged: {
-		if (buttonImage)
-			buttonImage.imageSource = imageSource;
+		if (_buttonImage)
+			_buttonImage.imageSource = imageSource;
 	}
 
 	onHighlightedChanged:
@@ -67,8 +68,8 @@ Rectangle {
 	//The width of the button must be specified either by the layout(or anchors) or must be explicitly set, in which case
 	//the property fixedSize must be set to true
 	onWidthChanged: {
-		if (!canResize) {
-			canResize = true;
+		if (!_canResize) {
+			_canResize = true;
 			return;
 		}
 
@@ -92,7 +93,7 @@ Rectangle {
 			let component = Qt.createComponent("TPButtonImage.qml", Qt.Asynchronous);
 
 			function finishCreation() {
-				buttonImage = component.createObject(button,
+				_buttonImage = component.createObject(button,
 					{imageSource: imageSource, bIconOnly: text.length === 0, textUnderIcon: textUnderIcon,
 							width: imageSize, height: imageSize, dropShadow: hasDropShadow});
 				if (button.text.length === 0) {
@@ -128,7 +129,7 @@ Rectangle {
 
 		onSizeChanged: {
 			if (!fixedSize) {
-				canResize = false;
+				_canResize = false;
 				width = _textWidth;
 				button.width = _textWidth + (textUnderIcon ? 10 : (imageSource.length > 0 ? imageSize : 0)) + 20
 			}
@@ -170,7 +171,7 @@ Rectangle {
 
 	function onMousePressed(mouse: MouseEvent): void {
 		mouse.accepted = true;
-		bPressed = true;
+		_bPressed = true;
 		forceActiveFocus();
 		fillPosition = 0;
 		if (!checkable)
@@ -183,9 +184,9 @@ Rectangle {
 
 	function onMouseReleased(mouse: MouseEvent): void {
 		mouse.accepted = true;
-		if (bPressed) {
-			bEmitSignal = true;
-			bPressed = false;
+		if (_bPressed) {
+			_bEmitSignal = true;
+			_bPressed = false;
 		}
 	}
 
@@ -222,8 +223,8 @@ Rectangle {
 		}
 
 		onFinished: {
-			if (bEmitSignal) {
-				bEmitSignal = false;
+			if (_bEmitSignal) {
+				_bEmitSignal = false;
 				button.clicked(button.clickId);
 			}
 		}

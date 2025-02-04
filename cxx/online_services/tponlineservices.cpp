@@ -189,7 +189,7 @@ void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
 		// Prepare the multipart data
 		QHttpMultiPart *multiPart{new QHttpMultiPart{QHttpMultiPart::FormDataType, this}};
 		multiPart->append(filePart);
-		file->setParent(multiPart); // MultiPart will manage file deletion
+		//file->setParent(multiPart); // MultiPart will manage file deletion
 
 		// Send the request
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};

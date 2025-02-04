@@ -11,8 +11,6 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 TPPage {
 	id: userPage
 	objectName: "userPage"
-	width: appSettings.pageWidth
-	height: appSettings.pageHeight
 
 	property UserManager userManager
 	property int useMode
@@ -23,13 +21,6 @@ TPPage {
 		function onUserModified(row: int, field: int) {
 			if (row === 0)
 				mainUserModified = true;
-		}
-	}
-
-	onPageDeActivated: {
-		if (mainUserModified) {
-			userModel.mainUserConfigurationFinished();
-			mainUserModified = false;
 		}
 	}
 
@@ -66,17 +57,12 @@ TPPage {
 				id: usrContact
 				userRow: 0
 				Layout.fillWidth: true
-				Layout.topMargin: 10
 			}
 
 			UserCoach {
 				id: usrCoach
 				userRow: 0
-				height: usrContact.height
-				Layout.topMargin: 10
 				Layout.fillWidth: true
-				Layout.minimumHeight: height
-				Layout.maximumHeight: height
 			}
 
 			UserProfile {
@@ -126,5 +112,12 @@ TPPage {
 
 	function avatarChangedBySexSelection(row: int): void {
 		usrProfile.defaultAvatarChanged(row);
+	}
+
+	function whenPageDeActivated(): void {
+		if (mainUserModified) {
+			userModel.mainUserConfigurationFinished();
+			mainUserModified = false;
+		}
 	}
 }

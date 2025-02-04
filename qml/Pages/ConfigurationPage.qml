@@ -11,12 +11,13 @@ TPPage {
 	property alias currentPage: splitView.currentItem
 	property alias startPageIndex: splitView.currentIndex
 
+	onPageDeActivated: userPage.whenPageDeActivated();
+
 	SwipeView {
 		id: splitView
 		objectName: "splitSwipeView"
 		currentIndex: 0
 		interactive: true
-		height: parent.height
 		anchors.fill: parent
 
 		SettingsPage {

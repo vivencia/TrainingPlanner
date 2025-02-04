@@ -18,7 +18,6 @@ DBUserModel* DBUserModel::_appUserModel(nullptr);
 
 static const QLatin1StringView userprofileFileName{"profile.txt"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
-static const QString &appDataPath{QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1};
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, m_searchRow{-1}
@@ -42,7 +41,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 		mColumnNames.append(std::move(tr("Your are: ")));
 		mColumnNames.append(std::move(tr("Professional job: ")));
 		mColumnNames.append(std::move(tr("Goal: ")));
-		mColumnNames.append(std::move("Avatar: "_L1));
+		mColumnNames.append(QString{});
 		mColumnNames.append(QString{});
 		mColumnNames.append(QString{});
 		mColumnNames.append(QString{});
@@ -59,7 +58,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 			emit labelsChanged();
 		});
 
-		static_cast<void>(onlineCheckIn());
+		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
 	}
 }
 
@@ -102,7 +101,7 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList_fast(std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) << "-1"_L1 << QString{} <<
+	appendList_fast(std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) << "2"_L1 << QString{} <<
 		QString{} << QString{} << QString{} << QString{} << QString{} << std::move("image://tpimageprovider/m5"_L1) <<
 		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
@@ -231,7 +230,7 @@ uint DBUserModel::userRow(const QString &userName) const
 
 void DBUserModel::setAvatar(const int row, const QString &new_avatar)
 {
-	const QString &avatar_str{appDataPath + _userId(row) + "_avatar.png"_L1};
+	const QString &avatar_str{m_appDataPath + _userId(row) + "_avatar.png"_L1};
 	TPImage img{nullptr};
 	img.setSource(new_avatar);
 	img.saveToDisk(avatar_str);
@@ -266,8 +265,7 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 		appOnlineServices()->addOrRemoveCoach(_userId(0), getUserPassword(), bPublic);
 		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString& ret_string) {
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
-			if (ret_code == 0 && bPublic)
-				mb_coachRegistered = true;
+			mb_coachRegistered = ret_code == 0 && bPublic;
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	}
 }
@@ -313,7 +311,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 		{
 			const qsizetype idx{resumeFileName_ok.lastIndexOf('.')};
 			const QString &extension{idx > 0 ? resumeFileName_ok.last(resumeFileName_ok.length() - idx) : QString{}};
-			const QString &localResumeFileName{appDataPath + "resume"_L1 + extension};
+			const QString &localResumeFileName{m_appDataPath + "resume"_L1 + extension};
 			if (QFile::copy(resumeFileName_ok, localResumeFileName))
 			{
 				QFile *resume{new QFile{localResumeFileName, this}};
@@ -355,7 +353,7 @@ void DBUserModel::downloadResume(const uint coach_index)
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
 			{
-				const QString &localResumeFileName{appDataPath + filename};
+				const QString &localResumeFileName{m_appDataPath + filename};
 				QFile *resume{new QFile{localResumeFileName, this}};
 				static_cast<void>(resume->remove());
 				if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
@@ -385,16 +383,20 @@ void DBUserModel::mainUserConfigurationFinished()
 
 	if (mainUserRegistered())
 	{
-		const QString &localProfile{appDataPath + userprofileFileName};
-		if (exportToFile(localProfile, true, true) == APPWINDOW_MSG_EXPORT_OK)
+		const QString &localProfile{m_appDataPath + userprofileFileName};
+		if (exportToFile(localProfile, true, true, false) == APPWINDOW_MSG_EXPORT_OK)
 		{
 			QFile *profile{new QFile{localProfile, this}};
 			if (profile->open(QIODeviceBase::ReadOnly))
 			{
+				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,profile] (const int ret_code, const QString& ret_string) {
+					profile->close();
+					delete profile;
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 				appOnlineServices()->sendFile(_userId(0), getUserPassword(), profile);
-				profile->close();
 			}
-			delete profile;
+			else
+				delete profile;
 		}
 		emit mainUserConfigurationFinishedSignal();
 		return;
@@ -463,7 +465,7 @@ void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profil
 						(const int ret_code, const QString& ret_string) {
 		if (ret_code != 1)
 		{
-			const QString &temp_profile_filename{appDataPath + "temp_profile.txt"_L1};
+			const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
 			QFile *temp_profile{new QFile{temp_profile_filename, this}};
 			if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
 			{
@@ -483,7 +485,7 @@ void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profil
 
 bool DBUserModel::updateFromModel(TPListModel *model)
 {
-	appendList(std::move(model->m_modeldata[0]));
+	addUser_fast(std::move(model->m_modeldata[0]));
 	return true;
 }
 
@@ -581,10 +583,14 @@ void DBUserModel::sendAvatarToServer()
 	QFile *avatar_file{new QFile{avatar(0), this}};
 	if (avatar_file->open(QIODeviceBase::ReadOnly))
 	{
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,avatar_file] (const int ret_code, const QString& ret_string) {
+			avatar_file->close();
+			delete avatar_file;
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->sendFile(_userId(0), getUserPassword(), avatar_file);
-		avatar_file->close();
 	}
-	delete avatar_file;
+	else
+		delete avatar_file;
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList>& targetModel)

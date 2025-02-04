@@ -57,7 +57,14 @@ public:
 	inline QString userRoleLabel() const { return mColumnNames.at(USER_COL_USERROLE); }
 	inline QString coachRoleLabel() const { return mColumnNames.at(USER_COL_COACHROLE); }
 	inline QString goalLabel() const { return mColumnNames.at(USER_COL_GOAL); }
-	inline QString avatarLabel() const { return mColumnNames.at(USER_COL_AVATAR); }
+	inline QString avatarLabel() const { return std::move("Avatar: "_L1); }
+
+	inline void addUser_fast(QStringList&& user_info)
+	{
+		m_modeldata.append(std::move(user_info));
+		if (m_modeldata.count() == 1)
+			static_cast<void>(onlineCheckIn());
+	}
 
 	Q_INVOKABLE int addUser(const bool bCoach);
 	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);
@@ -189,8 +196,11 @@ public:
 	{
 		if (new_use_opt != appUseMode(row))
 		{
-			if (row == 0 && isCoach(0))
-				setCoachPublicStatus(false);
+			if (mb_coachRegistered == true)
+			{
+				if (new_use_opt != APP_USE_MODE_SINGLE_COACH && new_use_opt != APP_USE_MODE_COACH_USER_WITH_COACH)
+					setCoachPublicStatus(false);
+			}
 			m_modeldata[row][USER_COL_APP_USE_MODE] = QString::number(new_use_opt);
 			emit userModified(row, USER_COL_APP_USE_MODE);
 		}
@@ -259,6 +269,7 @@ signals:
 
 private:
 	int m_searchRow;
+	QString m_appDataPath;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	QList<QStringList> m_onlineUserInfo;
 

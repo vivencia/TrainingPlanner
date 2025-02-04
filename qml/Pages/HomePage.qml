@@ -13,6 +13,7 @@ TPPage {
 
 	header: TPToolBar {
 		bottomPadding: 20
+		height: headerHeight
 
 		TPImage {
 			id: imgAppIcon

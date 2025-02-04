@@ -29,9 +29,9 @@ TPImage::TPImage(QQuickItem *parent)
 	});
 }
 
-void TPImage::setSource(const QString& source, const bool bForce)
+void TPImage::setSource(const QString &source)
 {
-	if (!source.isEmpty() && bForce ? true : mSource != source)
+	if (!source.isEmpty())
 	{
 		mbCanColorize = false;
 		QFileInfo img_file{source};
@@ -98,18 +98,15 @@ void TPImage::setImgSize(const int size)
 
 void TPImage::saveToDisk(const QString &filename)
 {
-	if (!m_imageToPaint)
+	if (mImage.isNull())
 		return;
 	QFileInfo img_info{filename};
-	if (img_info.isWritable())
+	if (img_info.exists())
 	{
-		if (img_info.exists())
-		{
-			if (!QFile::remove(filename))
-				return;
-		}
-		static_cast<void>(m_imageToPaint->save(filename));
+		if (!QFile::remove(filename))
+			return;
 	}
+	static_cast<void>(mImage.save(filename));
 }
 
 void TPImage::paint(QPainter *painter)

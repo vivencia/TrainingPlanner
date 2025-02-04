@@ -135,7 +135,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 
 			while (itr != itr_end)
 			{
-				for (uint i(0); i < (*itr).count(); ++i)
+				for (uint i{0}; i < (*itr).count(); ++i)
 				{
 					if (i < mColumnNames.count())
 					{
@@ -157,9 +157,9 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 		}
 		else
 		{
-			for (uint x(0); x < m_exportRows.count(); ++x)
+			for (uint x{0}; x < m_exportRows.count(); ++x)
 			{
-				for (uint i(0); i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+				for (uint i{0}; i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
 				{
 					if (i < mColumnNames.count())
 					{

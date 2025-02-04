@@ -132,6 +132,7 @@ set( SERVER_FILES
 	web-server/www.conf
 	web-server/url_parser.php
 	web-server/init_script.sh
+	web-server/usersdb.sh
 )
 
 set( QML_SOURCES

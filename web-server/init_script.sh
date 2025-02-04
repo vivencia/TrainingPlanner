@@ -47,6 +47,50 @@ for i in "$@"; do
     esac
 done
 
+SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
+SCRIPTS_DIR=$TP_DIR/scripts
+
+NGINX="$(which nginx)"
+NGINX_CONFIG_DIR=/etc/nginx
+NGINX_SERVER_CONFIG_DIR=/etc/nginx/sites-available
+NGINX_USER=www-data
+
+PHP_FPM_CONFIG_DIR=/etc/php/8.2/fpm/pool.d
+
+/usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
+USER_BELONGS_TO_GROUP=$?
+
+ADMIN=admin
+ADMIN_DIR=$TP_DIR/$ADMIN
+USERS_DB=$TP_DIR/$ADMIN/users.db
+
+create_admin_user() {
+    PASS_FILE=$SCRIPTS_DIR/.passwds
+    HTPASSWD=$(which htpasswd)
+    $HTPASSWD -bv $PASS_FILE $ADMIN $ADMIN
+    if [ $? != 0 ]; then
+        echo "Creating the main app user"
+        run_as_sudo $HTPASSWD -bd5 $PASS_FILE $ADMIN $ADMIN
+        if [ $? == 0 ]; then
+            run_as_sudo mkdir -m 774 $ADMIN_DIR
+            run_as_sudo chown $NGINX_USER:$NGINX_USER $ADMIN_DIR
+            echo "Main app user created successfully"
+        fi
+    fi
+}
+
+create_users_db() {
+    if sqlite3 -line $USERS_DB 'CREATE TABLE IF NOT EXISTS user_table (id INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  avatar TEXT, use_mode INTEGER DEFAULT 1, current_coach INTEGER, current_user INTEGER);' &>/dev/null; then
+        run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
+        run_as_sudo chmod 664 $USERS_DB
+        echo "Users database created"
+        return 0
+    else
+        echo "Failed to create users database: " $USERS_DB
+        return 1
+    fi
+}
+
 case "$COMMAND" in
     test)
         if [ -d "$TP_DIR" ]; then
@@ -69,37 +113,24 @@ case "$COMMAND" in
         echo "Beginning TP Server configuration..."
     ;;
     stop)
-        #get_passwd
         run_as_sudo /sbin/service nginx stop
         run_as_sudo /sbin/service $PHP_FPM_SERVICE stop
         exit 0
     ;;
     restart)
-        #get_passwd
         run_as_sudo /sbin/service nginx restart
         run_as_sudo /sbin/service $PHP_FPM_SERVICE restart
         exit 0
     ;;
+    dbcreate)
+        create_users_db
+        exit $?
+    ;;
     *)
-	echo "Usage: $SCRIPT_NAME {setup|test|stop|restart}" >&2
+	echo "Usage: $SCRIPT_NAME {setup|test|stop|restart|dbcreate}" >&2
 	exit 1
     ;;
 esac
-
-#get_passwd
-
-SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
-SCRIPTS_DIR=$TP_DIR/scripts
-
-NGINX="$(which nginx)"
-NGINX_CONFIG_DIR=/etc/nginx
-NGINX_SERVER_CONFIG_DIR=/etc/nginx/sites-available
-NGINX_USER=www-data
-
-PHP_FPM_CONFIG_DIR=/etc/php/8.2/fpm/pool.d
-
-/usr/bin/id -nG $USER_NAME | grep -qw $NGINX_USER
-USER_BELONGS_TO_GROUP=$?
 
 if [ ! -d "$TP_DIR" ]; then
 
@@ -121,6 +152,9 @@ if [ ! -d "$TP_DIR" ]; then
     run_as_sudo chmod g+w $NGINX_SERVER_CONFIG_DIR/default
 
     run_as_sudo cp -f $SOURCES_DIR/www.conf $PHP_FPM_CONFIG_DIR
+
+    create_admin_user
+    create_users_db
 
     if ! $USER_BELONGS_TO_GROUP; then
         run_as_sudo usermod -a -G $NGINX_USER $(whoami)
@@ -156,20 +190,6 @@ else
         if [ $? != 0 ]; then
             echo "Error starting php-fpm service."
             exit 5
-        fi
-    fi
-
-    PASS_FILE=$SCRIPTS_DIR/.passwds
-    HTPASSWD=$(which htpasswd)
-    MAIN_USER=admin
-    $HTPASSWD -bv $PASS_FILE $MAIN_USER $MAIN_USER
-    if [ $? != 0 ]; then
-        echo "Creating the main app user"
-        run_as_sudo $HTPASSWD -bd5 $PASS_FILE $MAIN_USER $MAIN_USER
-        if [ $? == 0 ]; then
-            run_as_sudo mkdir -m 774 $TP_DIR/$MAIN_USER
-            run_as_sudo chown $NGINX_USER:$NGINX_USER $TP_DIR/$MAIN_USER
-            echo "Main app user created successfully"
         fi
     fi
 

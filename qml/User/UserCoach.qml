@@ -11,10 +11,10 @@ import "../TPWidgets"
 
 Frame {
 	id: topFrame
-	height: moduleHeight
-	implicitHeight: Math.min(height, moduleHeight)
 	spacing: 0
 	padding: 0
+	height: moduleHeight
+	implicitHeight: Math.min(height, moduleHeight)
 
 	background: Rectangle {
 		border.color: "transparent"
@@ -26,7 +26,7 @@ Frame {
 	property bool bCoachOK: false
 	property bool bChooseResume: false
 	property bool bResumeSent: false
-	readonly property int moduleHeight: 0.25*appSettings.pageHeight
+	readonly property int moduleHeight: 0.35*appSettings.pageHeight
 	readonly property int itemHeight: implicitHeight/4
 
 	onBCoachOKChanged: bReady = bCoachOK;
@@ -73,7 +73,7 @@ Frame {
 
 		anchors {
 			top: optPersonalUse.bottom
-			topMargin: 10
+			topMargin: -5
 			left: parent.left
 			right: parent.right
 		}
@@ -87,7 +87,7 @@ Frame {
 
 		anchors {
 			top: optCoachUse.bottom
-			topMargin: 20
+			topMargin: 5
 			left: parent.left
 			right: parent.right
 		}
@@ -155,7 +155,7 @@ Frame {
 		text: qsTr("I have a coach or a personal trainer")
 		checked: userModel.appUseMode(userRow) === 3 || userModel.appUseMode(userRow) === 4;
 		multiLine: true
-		height: itemHeight
+		height: 25
 
 		onClicked: {
 			if (checked)
@@ -176,12 +176,15 @@ Frame {
 		text: qsTr("Look online for available coaches");
 		visible: userRow === 0 && appSettings.mainUserConfigured
 		enabled: chkHaveCoach.checked
+		autoResize: true
+		fixedSize: true
+		height: 25
 
 		onClicked: displayOnlineCoachesMenu();
 
 		anchors {
-			top: parent.bottom
-			topMargin: -10
+			bottom: parent.bottom
+			bottomMargin: -10
 			left: parent.left
 			right: parent.right
 		}

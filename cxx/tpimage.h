@@ -21,7 +21,7 @@ public:
 	explicit TPImage(QQuickItem *parent = nullptr);
 
 	inline QString source() const { return mSource; }
-	void setSource(const QString &source, const bool bForce = false);
+	void setSource(const QString &source);
 	inline bool dropShadow() const { return mDropShadow; }
 	void setDropShadow(const bool drop_shadow);
 	inline int imgSize() const { return mSize.width(); }

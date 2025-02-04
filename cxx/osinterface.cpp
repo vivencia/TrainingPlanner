@@ -119,35 +119,36 @@ OSInterface::OSInterface(QObject *parent)
 void OSInterface::checkInternetConnection()
 {
 	m_networkStatus = 0;
+	int network_status{0};
     QTcpSocket checkConnectionSocket;
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
     checkConnectionSocket.waitForConnected(2000);
 
     const bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
     checkConnectionSocket.close();
-    setBit(m_networkStatus, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
-	unSetBit(m_networkStatus, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+    setBit(network_status, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+	unSetBit(network_status, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 
 	if (isConnected)
 	{
-		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this] (const bool online) {
+		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this,network_status] (const bool online) mutable {
 #ifdef Q_OS_LINUX
 	#ifndef Q_OS_ANDROID
 			if (!online)
 				configureLocalServer();
 	#endif
 #endif
-			setBit(m_networkStatus, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-			unSetBit(m_networkStatus, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-			setNetworkStatus(m_networkStatus);
+			setBit(network_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+			unSetBit(network_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+			setNetworkStatus(network_status);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appOnlineServices()->checkServer();
 	}
 	else
 	{
-		setBit(m_networkStatus, SERVER_UNREACHABLE);
-		unSetBit(m_networkStatus, SERVER_UP_AND_RUNNING);
-		setNetworkStatus(m_networkStatus);
+		setBit(network_status, SERVER_UNREACHABLE);
+		unSetBit(network_status, SERVER_UP_AND_RUNNING);
+		setNetworkStatus(network_status);
 	}
 }
 
@@ -155,11 +156,11 @@ void OSInterface::setNetworkStatus(int new_status)
 {
 	if (new_status != m_networkStatus)
 	{
-		m_networkStatus = new_status;
-		if (isBitSet(m_networkStatus, SERVER_UNREACHABLE) || isBitSet(m_networkStatus, NO_INTERNET_ACCESS))
+		if (isBitSet(new_status, SERVER_UNREACHABLE) || isBitSet(new_status, NO_INTERNET_ACCESS))
 			m_checkConnectionTimer->setInterval(CONNECTION_ERR_TIMEOUT); //When network is out, check more frequently
 		else
 			m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
+		m_networkStatus = new_status;
 		emit networkStatusChanged();
 	}
 }
