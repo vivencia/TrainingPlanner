@@ -207,6 +207,7 @@ set( QML_SOURCES
     "qml/User/UserCoachRequest.qml"
     "qml/User/UserCoach.qml"
     "qml/User/UserContact.qml"
+    "qml/User/UserExistingFromNet.qml"
     "qml/User/UserLanguage.qml"
     "qml/User/UserPersonalData.qml"
     "qml/User/UserProfile.qml"

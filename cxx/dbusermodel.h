@@ -5,7 +5,6 @@
 #include "tpglobals.h"
 #include "tputils.h"
 
-#define USER_COL_NET_NAME 0
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
 #define USER_COL_BIRTHDAY 2

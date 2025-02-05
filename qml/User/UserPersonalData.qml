@@ -31,8 +31,8 @@ Frame {
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
 	TPLabel {
-		id: lblBirthdate
-		text: userModel.birthdayLabel
+		id: lblName
+		text: userModel.nameLabel
 		height: controlsHeight
 
 		anchors {
@@ -46,10 +46,63 @@ Frame {
 	}
 
 	TPTextInput {
+		id: txtName
+		height: controlsHeight
+		text: userModel.userName(userRow);
+		ToolTip.text: qsTr("The name is too short")
+
+		property bool bTextChanged: false
+		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
+
+		onEditingFinished: {
+			if (bTextChanged && bNameOK) {
+				userModel.setUserName(userRow, text);
+				bTextChanged = false;
+			}
+		}
+
+		onTextEdited: {
+			bTextChanged = true;
+			if (text.length >= 5) {
+				ToolTip.visible = false;
+				bNameOK = true;
+			}
+			else {
+				ToolTip.visible = true;
+				bNameOK = false;
+			}
+		}
+
+		anchors {
+			top: lblName.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
+	TPLabel {
+		id: lblBirthdate
+		text: userModel.birthdayLabel
+		height: controlsHeight
+
+		anchors {
+			top: txtName.bottom
+			topMargin: 10
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
+	TPTextInput {
 		id: txtBirthdate
 		text: userModel.birthDateFancy(userRow)
 		readOnly: true
 		height: controlsHeight
+		enabled: bNameOK
 
 		Component.onCompleted: bBirthDateOK = userModel.birthYear(userRow) >= 1940;
 
@@ -88,62 +141,9 @@ Frame {
 		}
 	}
 
-	TPLabel {
-		id: lblName
-		text: userModel.nameLabel
-		height: controlsHeight
-
-		anchors {
-			top: txtBirthdate.bottom
-			topMargin: 10
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
-	}
-
-	TPTextInput {
-		id: txtName
-		height: controlsHeight
-		text: userModel.userName(userRow);
-		enabled: bBirthDateOK
-		ToolTip.text: qsTr("The name is too short")
-
-		property bool bTextChanged: false
-		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
-
-		onEditingFinished: {
-			if (bTextChanged && bNameOK) {
-				userModel.setUserName(userRow, text);
-				bTextChanged = false;
-			}
-		}
-
-		onTextEdited: {
-			bTextChanged = true;
-			if (text.length >= 5) {
-				ToolTip.visible = false;
-				bNameOK = true;
-			}
-			else {
-				ToolTip.visible = true;
-				bNameOK = false;
-			}
-		}
-
-		anchors {
-			top: lblName.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
-	}
-
 	Pane {
 		id: frmSex
-		enabled: bNameOK
+		enabled: bBirthDateOK
 		height: controlsHeight
 		padding: 0
 		spacing: 0

@@ -367,7 +367,7 @@ void DBUserModel::downloadResume(const uint coach_index)
 			else
 				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 		});
-		appOnlineServices()->getBinFile(_userId(0), getUserPassword(), "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_NET_NAME));
+		appOnlineServices()->getBinFile(_userId(0), getUserPassword(), "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID));
 	}
 }
 
@@ -423,7 +423,7 @@ void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
 				else
 					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			appOnlineServices()->sendRequestToCoach(_userId(0), getUserPassword(), m_onlineUserInfo.at(i).at(USER_COL_NET_NAME));
+			appOnlineServices()->sendRequestToCoach(_userId(0), getUserPassword(), m_onlineUserInfo.at(i).at(USER_COL_ID));
 		}
 	}
 }
@@ -472,7 +472,7 @@ void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profil
 				temp_profile->write(ret_string.toUtf8().constData());
 				temp_profile->close();
 				if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-					m_onlineUserInfo.last()[USER_COL_NET_NAME] = netName;
+					m_onlineUserInfo.last()[USER_COL_ID] = netName;
 				static_cast<void>(temp_profile->remove());
 			}
 			delete temp_profile;
