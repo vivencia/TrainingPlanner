@@ -17,8 +17,4 @@ TPLabel {
 	topPadding: 30
 	leftPadding: 30
 	rightPadding: 30
-
-	function focusOnFirstField() {
-		return;
-	}
 }

@@ -111,7 +111,7 @@ void QmlItemManager::configureQmlEngine()
 	properties[8] = std::move(QQmlContext::PropertyPair{ "pagesListModel"_L1, QVariant::fromValue(m_pagesManager = new PagesListModel{this}) });
 	appQmlEngine()->rootContext()->setContextProperties(properties);
 
-	const QUrl& url{"qrc:/qml/main.qml"_L1};
+	const QUrl &url{"qrc:/qml/main.qml"_L1};
 	QObject::connect(appQmlEngine(), &QQmlApplicationEngine::objectCreated, appQmlEngine(), [url] (const QObject* const obj, const QUrl& objUrl) {
 		if (!obj && url == objUrl)
 		{
@@ -161,7 +161,7 @@ void QmlItemManager::chooseFileToImport()
 
 void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 {
-	uint wanted_content(0);
+	uint wanted_content{0};
 	if (isBitSet(m_fileContents, IFC_MESO))
 	{
 		setBit(wanted_content, isBitSet(m_fileContents, IFC_USER) && selectedFields.at(1) ? IFC_USER : 0);
@@ -169,7 +169,7 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 	}
 	if (isBitSet(m_fileContents, IFC_MESOSPLIT))
 	{
-		const uint fieldStart(isBitSet(m_fileContents, IFC_MESO) ? 2 : 0);
+		const int fieldStart{isBitSet(m_fileContents, IFC_MESO) ? 2 : 0};
 		if (isBitSet(m_fileContents, IFC_MESO) && !isBitSet(wanted_content, IFC_MESO))
 		{
 			auto conn = std::make_shared<QMetaObject::Connection>();
@@ -180,7 +180,7 @@ void QmlItemManager::tryToImport(const QList<bool>& selectedFields)
 			selectWhichMesoToImportInto();
 			return;
 		}
-		const uint wanted_content_temp(wanted_content);
+		const uint wanted_content_temp{wanted_content};
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_A))
 			setBit(wanted_content, (selectedFields.at(fieldStart) ? IFC_MESOSPLIT_A : 0));
 		if (isBitSet(m_fileContents, IFC_MESOSPLIT_B))
@@ -224,7 +224,7 @@ void QmlItemManager::getClientsOrCoachesPage(const bool bManageClients, const bo
 	m_usersManager->getClientsOrCoachesPage(bManageClients, bManageCoaches);
 }
 
-void QmlItemManager::getExercisesPage(QmlTDayInterface* connectPage)
+void QmlItemManager::getExercisesPage(QmlTDayInterface *connectPage)
 {
 	if (!m_exercisesListManager)
 		m_exercisesListManager = new QmlExercisesDatabaseInterface{this};

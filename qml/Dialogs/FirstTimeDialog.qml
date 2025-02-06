@@ -41,6 +41,11 @@ TPPopup {
 			Layout.fillHeight: true
 		}
 
+		UserExistingFromNet {
+			Layout.fillWidth: true
+			Layout.fillHeight: true
+		}
+
 		UserPersonalData {
 			userRow: 0
 			parentPage: firstTimeDlg.parentPage
@@ -122,8 +127,14 @@ TPPopup {
 					closePopup();
 				}
 				else {
-					if (stackLayout.currentIndex >= 1)
-						stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
+					if (stackLayout.currentIndex === 2)
+						//Might be trying to connect online to retrieve existing user info. But, if Next was clicked, it means that a local
+						//new user will be created, so we must cancel pending requests to try to retrieve info from the net
+						userModel.cancelPendingOnlineRequests();
+					else {
+						if (stackLayout.currentIndex >= 3)
+							stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
+					}
 				}
 				stackLayout.currentIndex++;
 			}

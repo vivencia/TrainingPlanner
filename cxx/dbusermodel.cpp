@@ -250,6 +250,43 @@ void DBUserModel::setAvatar(const int row, const QString &new_avatar)
 	}
 }
 
+void DBUserModel::checkUserOnline(const QString &email)
+{
+	if (!onlineCheckIn())
+	{
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,email] () {
+			checkUserOnline(email);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		return;
+	}
+
+	appOnlineServices()->checkOnlineUser(email);
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+		if (ret_code == 0)
+			m_onlineUserId = ret_string;
+		emit userOnlineCheckResult(ret_code == 0);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
+void DBUserModel::importFromOnlineServer()
+{
+	if (!onlineCheckIn())
+	{
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+			importFromOnlineServer();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		return;
+	}
+
+	appOnlineServices()->getOnlineUserData(m_onlineUserId);
+	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+		if (ret_code == 0)
+			emit userOnlineImportFinished(importFromString(ret_string));
+		else
+			emit userOnlineImportFinished(false);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+}
+
 void DBUserModel::setCoachPublicStatus(const bool bPublic)
 {
 	if (isCoach(0)) //Only applicable to the main user that is a coach
@@ -263,7 +300,7 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 		}
 
 		appOnlineServices()->addOrRemoveCoach(_userId(0), getUserPassword(), bPublic);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString &ret_string) {
 			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
 			mb_coachRegistered = ret_code == 0 && bPublic;
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -317,7 +354,7 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 				QFile *resume{new QFile{localResumeFileName, this}};
 				if (resume->open(QIODeviceBase::ReadOnly))
 				{
-					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString& ret_string) {
+					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString &ret_string) {
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
 						resume->close();
 						resume->remove();
@@ -389,7 +426,7 @@ void DBUserModel::mainUserConfigurationFinished()
 			QFile *profile{new QFile{localProfile, this}};
 			if (profile->open(QIODeviceBase::ReadOnly))
 			{
-				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,profile] (const int ret_code, const QString& ret_string) {
+				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,profile] (const int ret_code, const QString &ret_string) {
 					profile->close();
 					delete profile;
 				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
@@ -417,7 +454,7 @@ void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
 	{
 		if (selectedCoaches.at(i))
 		{
-			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
 				if (ret_code == 0)
 					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
 				else
@@ -432,7 +469,7 @@ void DBUserModel::getOnlineCoachesList()
 {
 	if (onlineCheckIn())
 	{
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
 			const QStringList &coaches{ret_string.split(' ')};
 			if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
 			{
@@ -451,7 +488,7 @@ void DBUserModel::getOnlineCoachesList()
 	}
 }
 
-void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profiles)
+void DBUserModel::getUserOnlineProfile(const QString &netName, uint n_max_profiles)
 {
 	if (!onlineCheckIn())
 	{
@@ -462,7 +499,7 @@ void DBUserModel::getUserOnlineProfile(const QString& netName, uint n_max_profil
 	}
 
 	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles]
-						(const int ret_code, const QString& ret_string) {
+						(const int ret_code, const QString &ret_string) {
 		if (ret_code != 1)
 		{
 			const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
@@ -487,6 +524,11 @@ bool DBUserModel::updateFromModel(TPListModel *model)
 {
 	addUser_fast(std::move(model->m_modeldata[0]));
 	return true;
+}
+
+bool DBUserModel::importFromString(const QString &user_data)
+{
+
 }
 
 QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
@@ -544,14 +586,14 @@ bool DBUserModel::onlineCheckIn()
 	if (!mb_userRegistered && !m_modeldata.isEmpty())
 	{
 		appOnlineServices()->checkUser(_userId(0), _userId(0));
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
 			switch (ret_code)
 			{
 				case 0:
 					mb_userRegistered = true;
 				break;
 				case 6: //User does not exist in the online database
-					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString& ret_string) {
+					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
 						mb_userRegistered = true;
 						emit mainUserOnlineCheckInChanged();
 						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
@@ -583,7 +625,7 @@ void DBUserModel::sendAvatarToServer()
 	QFile *avatar_file{new QFile{avatar(0), this}};
 	if (avatar_file->open(QIODeviceBase::ReadOnly))
 	{
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,avatar_file] (const int ret_code, const QString& ret_string) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,avatar_file] (const int ret_code, const QString &ret_string) {
 			avatar_file->close();
 			delete avatar_file;
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));

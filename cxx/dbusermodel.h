@@ -227,6 +227,12 @@ public:
 		emit userModified(row, USER_COL_CURRENT_CLIENT);
 	}
 
+	Q_INVOKABLE inline void cancelPendingOnlineRequests()
+	{
+		disconnect(this, &DBUserModel::mainUserOnlineCheckInChanged, nullptr, nullptr);
+	}
+	Q_INVOKABLE void checkUserOnline(const QString &email);
+	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void isCoachAlreadyRegisteredOnline();
@@ -237,10 +243,11 @@ public:
 	Q_INVOKABLE void sendRequestToCoaches(const QList<bool> &selectedCoaches);
 
 	void getOnlineCoachesList();
-	void getUserOnlineProfile(const QString& netName, uint n_max_profiles = 1);
+	void getUserOnlineProfile(const QString &netName, uint n_max_profiles = 1);
 
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
 	bool updateFromModel(TPListModel*) override;
+	bool importFromString(const QString &user_data);
 
 	inline bool isFieldFormatSpecial (const uint field) const override
 	{
@@ -260,15 +267,17 @@ signals:
 	void userModified(const uint row, const uint field);
 	void labelsChanged();
 	void userAddedOrRemoved(const uint row, const bool bAdded);
+	void userOnlineCheckResult(const bool registered);
+	void userOnlineImportFinished(const bool result);
 	void mainUserConfigurationFinishedSignal();
 	void mainUserOnlineCheckInChanged();
 	void coachOnlineStatus(bool registered);
-	void coachesListReceived(const QStringList& coaches_list);
+	void coachesListReceived(const QStringList &coaches_list);
 	void userProfileAcquired();
 
 private:
 	int m_searchRow;
-	QString m_appDataPath;
+	QString m_appDataPath, m_onlineUserId;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	QList<QStringList> m_onlineUserInfo;
 
@@ -276,11 +285,11 @@ private:
 	QString generateUniqueUserId() const;
 	QString getUserPassword() const;
 	void sendAvatarToServer();
-	int _importFromFile(const QString &filename, QList<QStringList>& targetModel);
-	static DBUserModel* _appUserModel;
-	friend DBUserModel* appUserModel();
+	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
+	static DBUserModel *_appUserModel;
+	friend DBUserModel *appUserModel();
 };
 
-inline DBUserModel* appUserModel() { return DBUserModel::_appUserModel; }
+inline DBUserModel *appUserModel() { return DBUserModel::_appUserModel; }
 
 #endif // DBUSERMODEL_H

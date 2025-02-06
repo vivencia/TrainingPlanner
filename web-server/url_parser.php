@@ -3,7 +3,8 @@
 //mkdir() does not set the permissions specified. Must use chmod() afterwards
 
 $rootdir="/var/www/html/trainingplanner/";
-$htpasswd_file=$rootdir . "scripts/.passwds";
+$scriptsdir=$rootdir . "scripts/";
+$htpasswd_file=$scriptsdir . ".passwds";
 $coaches_file=$rootdir . "admin/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 
@@ -213,6 +214,28 @@ function run_htpasswd($cmd_args, $username, $password) {
     return $return_var;
 }
 
+function run_dbscript($cmd, $cmd_opt, $userid) {
+    global $scriptsdir;
+    $dbscript=$scriptsdir . "usersdb.sh";
+
+    ob_start();
+    if ($userid) {
+        if ($cmd_opt)
+            passthru("$dbscript $userid $cmd $cmd_opt", $return_var);
+        else
+            passthru("$dbscript $userid $cmd", $return_var);
+    }
+    else {
+        if ($cmd_opt)
+            passthru("$dbscript $cmd $cmd_opt", $return_var);
+        else
+            passthru("$dbscript $cmd", $return_var);
+    }
+    $output = ob_get_clean();
+    echo "Return code " . $return_var . "  " . $output;
+    return $return_var;
+}
+
 $username = isset($_GET['user']) ? $_GET['user'] : '';
 
 if ($username) { //regular, most common usage: download/upload file/info from/to server
@@ -287,8 +310,18 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
     }
 }
 else { //user management
-    $return_var = 0;
-    $error_string = "";
+
+    $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
+    if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+        run_dbscript("getid", $query, "");
+        exit;
+    }
+
+    $userid = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
+    if ($userid) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
+        run_dbscript("getall", "", $userid);
+        exit;
+    }
 
     $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
     if ($username) { //check if user exists
