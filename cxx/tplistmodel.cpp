@@ -15,7 +15,7 @@ void TPListModel::removeRow(const uint row)
 	endRemoveRows();
 }
 
-void TPListModel::appendList(const QStringList& list)
+void TPListModel::appendList(const QStringList &list)
 {
 	beginInsertRows(QModelIndex(), count(), count());
 	m_modeldata.append(list);
@@ -23,7 +23,7 @@ void TPListModel::appendList(const QStringList& list)
 	endInsertRows();
 }
 
-void TPListModel::appendList(QStringList&& list)
+void TPListModel::appendList(QStringList &&list)
 {
 	beginInsertRows(QModelIndex(), count(), count());
 	m_modeldata.append(std::move(list));
@@ -60,7 +60,7 @@ void TPListModel::moveRow(const uint from, const uint to)
 {
 	if (from < count() && to < count())
 	{
-		QStringList tempList(std::move(m_modeldata[from]));
+		QStringList tempList{std::move(m_modeldata[from])};
 
 		if (to > from)
 		{
@@ -96,10 +96,10 @@ bool TPListModel::isDifferent(const TPListModel* const model) const
 	else
 		return false; //model is not usefull
 
-	bool bEqual(true);
-	for (uint n(0); n < count(); ++n)
+	bool bEqual{true};
+	for (uint n{0}; n < count(); ++n)
 	{
-		for (uint i(1); i < model->m_modeldata.at(0).count(); ++i)
+		for (uint i{1}; i < model->m_modeldata.at(0).count(); ++i)
 		{
 			if (m_modeldata.at(n).at(i) != model->m_modeldata.at(0).at(i))
 			{
@@ -114,7 +114,47 @@ bool TPListModel::isDifferent(const TPListModel* const model) const
 	return true;
 }
 
-int TPListModel::exportToFile(const QString& filename, const bool writeHeader, const bool writeEnd, const bool appendInfo) const
+bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool appendInfo)
+{
+	QFile *outFile{new QFile{filename}};
+	const bool bOK{outFile->open(appendInfo ? QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text :
+							QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text)};
+	if (bOK)
+	{
+		if (m_exportRows.isEmpty())
+		{
+			QList<QStringList>::const_iterator itr{m_modeldata.constBegin()};
+			const QList<QStringList>::const_iterator& itr_end{m_modeldata.constEnd()};
+
+			while (itr != itr_end)
+			{
+				for (uint i{0}; i < (*itr).count(); ++i)
+				{
+					outFile->write((*itr).at(i).toUtf8().constData());
+					outFile->write("\n", 1);
+				}
+			}
+		}
+		else
+		{
+			for (uint x{0}; x < m_exportRows.count(); ++x)
+			{
+				const QStringList &modeldata{m_modeldata.at(m_exportRows.at(x))};
+				for (uint i{0}; i < modeldata.count(); ++i)
+				{
+					outFile->write(modeldata.at(i).toUtf8().constData());
+					outFile->write("\n", 1);
+				}
+			}
+		}
+		outFile->write("\n", 1);
+		outFile->close();
+	}
+	delete outFile;
+	return bOK;
+}
+
+int TPListModel::exportToFile(const QString &filename, const bool writeHeader, const bool writeEnd, const bool appendInfo) const
 {
 	QFile *outFile{new QFile{filename}};
 	const bool bOK{outFile->open(appendInfo ? QIODeviceBase::ReadWrite|QIODeviceBase::Append|QIODeviceBase::Text :
@@ -123,7 +163,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 	{
 		if (writeHeader)
 		{
-			const QString& strHeader("## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1);
+			const QString &strHeader{"## "_L1 + exportName() + " - 0x000"_L1 + QString::number(tableID()) + "\n\n"_L1};
 			outFile->write(strHeader.toUtf8().constData());
 		}
 
@@ -159,7 +199,8 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 		{
 			for (uint x{0}; x < m_exportRows.count(); ++x)
 			{
-				for (uint i{0}; i < m_modeldata.at(m_exportRows.at(x)).count(); ++i)
+				const QStringList &modeldata{m_modeldata.at(m_exportRows.at(x))};
+				for (uint i{0}; i < modeldata.count(); ++i)
 				{
 					if (i < mColumnNames.count())
 					{
@@ -167,9 +208,9 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 						{
 							outFile->write(mColumnNames.at(i).toUtf8().constData());
 							if (!isFieldFormatSpecial(i))
-								value = m_modeldata.at(m_exportRows.at(x)).at(i);
+								value = modeldata.at(i);
 							else
-								value = formatFieldToExport(i, m_modeldata.at(m_exportRows.at(x)).at(i));
+								value = std::move(formatFieldToExport(i, modeldata.at(i)));
 							outFile->write(value.replace(comp_exercise_separator, comp_exercise_fancy_separator).toUtf8().constData());
 							outFile->write("\n", 1);
 						}
@@ -186,7 +227,7 @@ int TPListModel::exportToFile(const QString& filename, const bool writeHeader, c
 	return bOK ? APPWINDOW_MSG_EXPORT_OK : APPWINDOW_MSG_OPEN_CREATE_FILE_FAILED;
 }
 
-void TPListModel::setExportFilter(const QString& filter, const uint field)
+void TPListModel::setExportFilter(const QString &filter, const uint field)
 {
 	const QRegularExpression regex{filter, QRegularExpression::CaseInsensitiveOption};
 	QList<QStringList>::const_iterator lst_itr(m_modeldata.constBegin());

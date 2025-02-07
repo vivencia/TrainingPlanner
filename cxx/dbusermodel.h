@@ -43,9 +43,15 @@ Q_PROPERTY(QString userRoleLabel READ userRoleLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString coachRoleLabel READ coachRoleLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString goalLabel READ goalLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString avatarLabel READ avatarLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString newUserLabel READ newUserLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString existingUserLabel READ existingUserLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString invalidEmailLabel READ invalidEmailLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
 
 public:
 	explicit DBUserModel(QObject *parent = nullptr, const bool bMainUserModel = true);
+	void updateColumnNames();
 
 	inline QString nameLabel() const { return mColumnNames.at(USER_COL_NAME); }
 	inline QString birthdayLabel() const { return mColumnNames.at(USER_COL_BIRTHDAY); }
@@ -57,6 +63,11 @@ public:
 	inline QString coachRoleLabel() const { return mColumnNames.at(USER_COL_COACHROLE); }
 	inline QString goalLabel() const { return mColumnNames.at(USER_COL_GOAL); }
 	inline QString avatarLabel() const { return std::move("Avatar: "_L1); }
+	QString newUserLabel() const;
+	QString existingUserLabel() const;
+	QString invalidEmailLabel() const;
+	QString checkEmailLabel() const;
+	QString importUserLabel() const;
 
 	inline void addUser_fast(QStringList&& user_info)
 	{
@@ -65,7 +76,9 @@ public:
 			static_cast<void>(onlineCheckIn());
 	}
 
+	Q_INVOKABLE void createMainUser();
 	Q_INVOKABLE int addUser(const bool bCoach);
+	Q_INVOKABLE void removeMainUser();
 	Q_INVOKABLE uint removeUser(const int row, const bool bCoach);
 
 	Q_INVOKABLE int findFirstUser(const bool bCoach = false);
@@ -280,10 +293,14 @@ private:
 	QString m_appDataPath, m_onlineUserId;
 	std::optional<bool> mb_userRegistered, mb_coachRegistered;
 	QList<QStringList> m_onlineUserInfo;
+	bool mb_mainUserConfigured;
 
 	bool onlineCheckIn();
+	void registerUserOnline();
 	QString generateUniqueUserId() const;
 	QString getUserPassword() const;
+	void sendProfileToServer();
+	void sendUserInfoToServer();
 	void sendAvatarToServer();
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 	static DBUserModel *_appUserModel;

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
@@ -20,8 +21,6 @@ Frame {
 		color: "transparent"
 	}
 
-	required property TPPage parentPage
-	required property int userRow
 	property bool bReady: false
 	property bool bImport: false
 	readonly property int nControls: 5
@@ -49,18 +48,46 @@ Frame {
 
 	TPRadioButton {
 		id: optNewUser
-		text: qsTr("Create a new user")
+		text: userModel.newUserLabel
 		multiLine: true
-		height: itemHeight
 
-		onCheckedChanged: bReady === checked;
+		onClicked: {
+			bReady === checked;
+			optImportUser.checked = !checked;
+			if (checked)
+				userModel.createMainUser();
+		}
+
+
+		anchors {
+			top: parent.top
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 	}
 
 	TPRadioButton {
 		id: optImportUser
-		text: qsTr("User already registered")
+		text: userModel.existingUserLabel
 		multiLine: true
-		height: itemHeight
+
+		onClicked: {
+			optNewUser.checked = !checked;
+			if (checked)
+				txtEmail.forceActiveFocus();
+		}
+
+		anchors {
+			top: optNewUser.bottom
+			topMargin: 10
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
 	}
 
 	TPLabel {
@@ -70,6 +97,7 @@ Frame {
 
 		anchors {
 			top: optImportUser.bottom
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -79,11 +107,9 @@ Frame {
 
 	TPTextInput {
 		id: txtEmail
-		text: userModel.email(userRow)
 		enabled: optImportUser.checked
-		ToolTip.text: qsTr("Invalid email address")
+		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
-		width: parent.width*0.9
 
 		onTextEdited: {
 			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
@@ -97,33 +123,38 @@ Frame {
 			top: lblEmail.bottom
 			left: parent.left
 			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 		}
 	}
 
-	Row {
-		spacing: 0
-		padding: 0
+	RowLayout {
+		spacing: 10
 		height: controlsHeight
 		enabled: optImportUser.checked
 
 		anchors {
 			top: txtEmail.bottom
+			topMargin: 20
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
+			rightMargin: 5
 		}
 
 		TPButton {
 			id: btnCheckEMail
-			text: qsTr("Check")
+			text: userModel.checkEmailLabel
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: userModel.checkUserOnline(txtEmail.text);
 		}
 
 		TPButton {
 			id: btnImport
-			text: qsTr("Import")
+			text: userModel.importUserLabel
 			enabled: bImport
+			Layout.alignment: Qt.AlignCenter
 
 			onClicked: userModel.importFromOnlineServer();
 		}

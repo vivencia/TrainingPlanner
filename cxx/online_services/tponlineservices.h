@@ -23,27 +23,32 @@ public:
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
 	void checkServer();
+	void checkOnlineUser(const QString &query);
+	void getOnlineUserData(const QString &user_id);
 	void checkUser(const QString &username, const QString &passwd);
 	void registerUser(const QString &username, const QString &passwd);
+	void updateOnlineUserInfo(const QString &username, const QString &passwd, QFile *file);
 	void removeUser(const QString &username);
 	void alterUser(const QString &old_username, const QString &new_username, const QString &new_passwd);
 	void addOrRemoveCoach(const QString &username, const QString &passwd, const bool bAdd);
 	void sendRequestToCoach(const QString &username, const QString &passwd, const QString& coach_net_name);
 
-	void sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser = QString{});
+	void sendFile(const QString &username, const QString &passwd, QFile *file,
+					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 	void getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser = QString{});
 	void getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension, const QString &targetUser);
 	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
+	void _networkRequestProcessed(const int ret_code, const QString &ret_string);
 	void binaryFileReceived(const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const bool online);
 
 private:
 	void makeNetworkRequest(const QUrl &url);
-	void handleServerRequestReply(QNetworkReply *reply);
-	void uploadFile(const QUrl &url, QFile *file);
+	void handleServerRequestReply(QNetworkReply *reply, const bool b_internal_signal_only = false);
+	void uploadFile(const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 
 	QNetworkAccessManager *m_networkManager;
 

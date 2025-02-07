@@ -323,6 +323,13 @@ else { //user management
         exit;
     }
 
+    $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
+    if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
+        run_dbscript("add", "", $userid);
+        exit;
+    }
+
+    run_dbscript("del", "", $username);
     $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
     if ($username) { //check if user exists
         $user_password = isset($_GET['password']) ? $_GET['password'] : '';
@@ -361,6 +368,7 @@ else { //user management
     if ($username) { //remove user and their dir
         $ok = run_htpasswd("-D", $username, "");
         if ($ok == 0) {
+            run_dbscript("del", "", $username);
             $userdir = $rootdir . $username;
             if (is_dir($userdir)) {
                 if (!erasedir($userdir))

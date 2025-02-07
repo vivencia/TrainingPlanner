@@ -24,9 +24,9 @@ public:
 	inline int mesoIdx() const { return m_mesoIdx; }
 	inline void setMesoIdx(const int new_mesoidx) { m_mesoIdx = new_mesoidx; }
 
-	void appendList(const QStringList& list);
-	void appendList(QStringList&& list);
-	inline void appendList_fast(QStringList&& list) { m_modeldata.append(std::move(list)); }
+	void appendList(const QStringList &list);
+	void appendList(QStringList &&list);
+	inline void appendList_fast(QStringList &&list) { m_modeldata.append(std::move(list)); }
 	virtual void clear();
 	void clearFast();
 
@@ -36,22 +36,23 @@ public:
 	Q_INVOKABLE void removeRow (const uint row);
 	void moveRow(const uint from, const uint to);
 
-	[[nodiscard]] inline const QString& columnLabel(const uint col) const { return mColumnNames.at(col); }
+	[[nodiscard]] inline const QString &columnLabel(const uint col) const { return mColumnNames.at(col); }
 
 	bool isDifferent(const TPListModel* const model) const;
-	virtual int exportToFile(const QString& filename, const bool writeHeader = true, const bool writeEnd = true, const bool appendInfo = true) const;
-	virtual int importFromFile(const QString& filename) { Q_UNUSED(filename); return false; }
+	bool exportContentsOnlyToFile(const QString &filename, const bool appendInfo = false);
+	virtual int exportToFile(const QString &filename, const bool writeHeader = true, const bool writeEnd = true, const bool appendInfo = true) const;
+	virtual int importFromFile(const QString &filename) { Q_UNUSED(filename); return false; }
 	virtual bool updateFromModel(TPListModel*) { return false; }
-	virtual QString formatFieldToExport(const uint field, const QString& fieldValue) const { Q_UNUSED(field); return fieldValue; }
+	virtual QString formatFieldToExport(const uint field, const QString &fieldValue) const { Q_UNUSED(field); return fieldValue; }
 
-	inline const QString& exportName() const { return m_exportName; }
+	inline const QString &exportName() const { return m_exportName; }
 	inline void setExportRow(const int row) { Q_ASSERT_X(row >= 0, "TPListModel::setExportRow", "row < 0"); m_exportRows.append(row); }
-	void setExportFilter(const QString& filter, const uint field);
+	void setExportFilter(const QString &filter, const uint field);
 	virtual inline bool isFieldFormatSpecial (const uint) const { return false; }
 
-	inline const QString& extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
-	inline const QStringList& getRow_const(const uint row) const { return m_modeldata.at(row); }
-	inline QStringList& getRow(const uint row) { return m_modeldata[row]; }
+	inline const QString &extraInfo(const uint pos) const { return m_extraInfo.at(pos); }
+	inline const QStringList &getRow_const(const uint row) const { return m_modeldata.at(row); }
+	inline QStringList &getRow(const uint row) { return m_modeldata[row]; }
 
 	inline bool importMode() const { return m_bImportMode; }
 	inline void setImportMode(const bool bimportmode) { m_bImportMode = bimportmode; }

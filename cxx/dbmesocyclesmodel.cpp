@@ -8,6 +8,7 @@
 #include "qmlmesointerface.h"
 #include "tpglobals.h"
 #include "tpsettings.h"
+#include "translationclass.h"
 
 #include <QSettings>
 #include <utility>
@@ -38,9 +39,13 @@ DBMesocyclesModel::DBMesocyclesModel(QObject* parent, const bool bMainAppModel)
 		m_roleNames[mesoClientRole] = std::move("mesoClient");
 
 		mColumnNames.reserve(MESOCYCLES_TOTAL_COLS);
-		for(uint i(0); i < MESOCYCLES_TOTAL_COLS; ++i)
-			mColumnNames.append(QString{});
+		for(uint i{0}; i < MESOCYCLES_TOTAL_COLS; ++i)
+			mColumnNames.append(std::move(QString{}));
 		fillColumnNames();
+
+		connect(appTr(), &TranslationClass::applicationLanguageChanged, this, [this] () {
+			fillColumnNames();
+		});
 
 		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint field) {
 			if (user_row == 0 && field == USER_COL_APP_USE_MODE)

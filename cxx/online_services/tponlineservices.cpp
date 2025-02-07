@@ -52,6 +52,18 @@ void TPOnlineServices::checkServer()
 	});
 }
 
+void TPOnlineServices::checkOnlineUser(const QString &query)
+{
+	const QUrl &url{makeCommandURL("onlineuser"_L1, query)};
+	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::getOnlineUserData(const QString &user_id)
+{
+	const QUrl &url{makeCommandURL("onlinedata"_L1, user_id)};
+	makeNetworkRequest(url);
+}
+
 void TPOnlineServices::checkUser(const QString &username, const QString &passwd)
 {
 	const QUrl &url{makeCommandURL("checkuser"_L1, username, passwd)};
@@ -62,6 +74,20 @@ void TPOnlineServices::registerUser(const QString& username, const QString& pass
 {
 	const QUrl &url{makeCommandURL("adduser"_L1, username, passwd)};
 	makeNetworkRequest(url);
+}
+
+void TPOnlineServices::updateOnlineUserInfo(const QString &username, const QString &passwd, QFile *file)
+{
+	connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,username] (const int ret_code, const QString &ret_string) {
+		if (ret_code == 0)
+		{
+			const QUrl &url{makeCommandURL("alteronlineuser"_L1, username)};
+			makeNetworkRequest(url);
+		}
+		else
+			emit networkRequestProcessed(ret_code, ret_string);
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	sendFile(username, passwd, file, QString{}, true);
 }
 
 void TPOnlineServices::removeUser(const QString &username)
@@ -88,7 +114,7 @@ void TPOnlineServices::sendRequestToCoach(const QString &username, const QString
 	makeNetworkRequest(url);
 }
 
-void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser)
+void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser, const bool b_internal_signal_only)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser)};
 	uploadFile(url, file);
@@ -118,7 +144,7 @@ void TPOnlineServices::makeNetworkRequest(const QUrl &url)
 	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
 }
 
-void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
+void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool b_internal_signal_only)
 {
 	int ret_code = -100;
 	QString replyString;
@@ -168,11 +194,14 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply)
 			static_cast<void>(replyString.remove(0, replyString.indexOf(' ', ret_code_idx) + 1));
 		}
 	}
-	emit networkRequestProcessed(ret_code, replyString.simplified());
+	if (!b_internal_signal_only)
+		emit networkRequestProcessed(ret_code, replyString.simplified());
+	else
+		emit _networkRequestProcessed(ret_code, replyString.simplified());
 }
 
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"
-void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
+void TPOnlineServices::uploadFile(const QUrl &url, QFile *file, const bool b_internal_signal_only)
 {
 	if ( file->isOpen())
 	{
@@ -193,7 +222,7 @@ void TPOnlineServices::uploadFile(const QUrl &url, QFile *file)
 
 		// Send the request
 		QNetworkReply *reply{m_networkManager->post(request, multiPart)};
-		connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+		connect(reply, &QNetworkReply::finished, this, [this,reply,b_internal_signal_only]() { handleServerRequestReply(reply, b_internal_signal_only); });
 		multiPart->setParent(reply); // Let the reply manage the multipart's lifecycle
 	}
 }

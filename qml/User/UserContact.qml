@@ -137,7 +137,7 @@ Frame {
 		id: txtEmail
 		text: userModel.email(userRow)
 		enabled: bPhoneOK
-		ToolTip.text: qsTr("Invalid email address")
+		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
 		width: parent.width*0.9
 
