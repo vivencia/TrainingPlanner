@@ -200,7 +200,7 @@ public:
 
 	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 && row < m_modeldata.count() ? _avatar(row) : QString(); }
 	inline const QString &_avatar(const uint row) const { return m_modeldata.at(row).at(USER_COL_AVATAR); }
-	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar);
+	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool upload = true);
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
 	inline const QString &_appUseMode(const uint row) const { return m_modeldata.at(row).at(USER_COL_APP_USE_MODE); }
@@ -302,6 +302,7 @@ private:
 	void sendProfileToServer();
 	void sendUserInfoToServer();
 	void sendAvatarToServer();
+	void downloadAvatarFromServer(const uint row);
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();

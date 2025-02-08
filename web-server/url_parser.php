@@ -65,21 +65,21 @@ function upload_file($uploadDir) {
             // Move the uploaded file to the upload directory
             if (move_uploaded_file($fileTmpPath, $uploadFilePath)) {
                 chmod($uploadFilePath, 0664);
-                echo "Return code 0 File uploaded successfully: " . htmlspecialchars($fileName);
+                echo "Return code: 0 File uploaded successfully: " . htmlspecialchars($fileName);
                 echo "\r\n";
                 return true;
             }
             else {
-                echo "Return code 20 Failed to move the uploaded file.\r\n";
+                echo "Return code: 20 Failed to move the uploaded file.\r\n";
             }
         }
         else {
             echo $_FILES['file'];
-            echo "Return code 21 No file uploaded or an error occurred.\r\n";
+            echo "Return code: 21: No file uploaded or an error occurred.\r\n";
         }
     }
     else {
-        echo "Return code 22 Invalid request method.\r\n";
+        echo "Return code: 22: Invalid request method.\r\n";
     }
     return false;
 }
@@ -99,10 +99,10 @@ function download_file($file,$downloadDir) {
         header('Content-Length: ' . filesize($filename));
         readfile($filename);
         #only return the contents of the file. Any extra string will only get in the way
-        echo "Return code 0## ", basename($filename) . "##";
+        echo "Return code: 0## ", basename($filename) . "##";
         return true;
     }
-    echo "Return code 1 File not found: ", basename($filename);
+    echo "Return code 1: File not found: ", basename($filename);
     return false;
 }
 
@@ -118,7 +118,7 @@ function get_binfile($binfile, $targetuser) {
             }
         }
     }
-    echo "Return code 1 File not found: ", $binfile . " in " . $src_dir;
+    echo "Return code: 1 File not found: ", $binfile . " in " . $src_dir;
 }
 
 function scan_dir($path) {
@@ -164,7 +164,7 @@ function del_coach($coach) {
         echo "Return code: 0 Coach removed from the public coaches file.\r\n";
     }
     else
-        echo "Return code 12 Public coaches file does not exist";
+        echo "Return code: 12 Public coaches file does not exist";
 }
 
 function get_coaches() {
@@ -176,7 +176,7 @@ function get_coaches() {
         }
     }
     else
-        echo "Return code 12 Public coaches file does not exist";
+        echo "Return code: 12 Public coaches file does not exist";
 }
 
 function request_coach($username, $coach) {
@@ -187,7 +187,7 @@ function request_coach($username, $coach) {
         if (mkdir($requests_dir, 0775, true))
             chmod($requests_dir, 0775);
         else {
-            echo "Return code 13 Could not create requests dir";
+            echo "Return code: 13 Could not create requests dir";
             return false;
         }
     }
@@ -195,10 +195,10 @@ function request_coach($username, $coach) {
     if (file_exists($coach_request_file))
         unlink($coach_request_file);
     if (copy($user_info_file, $coach_request_file)) {
-        echo "Return code 0 Client request to coach successful";
+        echo "Return code: 0 Client request to coach successful";
         return;
     }
-    echo "Return code 14 Could not complete client request to coach";
+    echo "Return code: 14 Could not complete client request to coach";
 }
 
 function run_htpasswd($cmd_args, $username, $password) {
@@ -232,7 +232,7 @@ function run_dbscript($cmd, $cmd_opt, $userid) {
             passthru("$dbscript $cmd", $return_var);
     }
     $output = ob_get_clean();
-    echo "Return code " . $return_var . "  " . $output;
+    echo "Return code: " . $return_var . "  " . $output;
     return $return_var;
 }
 

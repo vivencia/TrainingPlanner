@@ -27,6 +27,14 @@ Frame {
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 10
 
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int): void {
+			if (row === userRow && field === 100)
+				getUserInfo();
+		}
+	}
+
 	TPLabel {
 		id: lblPhone
 		text: userModel.phoneLabel
@@ -44,14 +52,12 @@ Frame {
 
 	TPTextInput {
 		id: txtPhone
-		text: userModel.phone(userRow)
 		inputMethodHints: Qt.ImhDigitsOnly
 		inputMask: "+55\\(99\\)99999\\-9999\\"
 		ToolTip.text: qsTr("Invalid phone number")
 		height: controlsHeight
 		width: frmContact.width*0.7
 
-		Component.onCompleted: bPhoneOK = userModel.phone(userRow).length >= 17
 		onEditingFinished: userModel.setPhone(userRow, text);
 
 		onActiveFocusChanged: {
@@ -72,7 +78,6 @@ Frame {
 			if (text.length === 17) {
 				ToolTip.visible = false;
 				bPhoneOK = true;
-				userModel.setPhone(userRow, text);
 			}
 			else {
 				ToolTip.visible = true;
@@ -135,30 +140,16 @@ Frame {
 
 	TPTextInput {
 		id: txtEmail
-		text: userModel.email(userRow)
 		enabled: bPhoneOK
 		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
 		width: parent.width*0.9
 
-		Component.onCompleted: {
-			const str = userModel.email(userRow);
-			bEmailOK = (str.length === 0 || (str.indexOf("@") !== -1 && str.indexOf(".") !== -1));
-		}
-
 		onEditingFinished: userModel.setEmail(userRow, text);
 
 		onTextEdited: {
-			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
-				ToolTip.visible = false;
-				bEmailOK = true;
-				if (text.length > 10)
-					userModel.setEmail(userRow, text);
-			}
-			else {
-				ToolTip.visible = true;
-				bEmailOK = false;
-			}
+			bEmailOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
+			ToolTip.visible = !bEmailOK;
 		}
 
 		onEnterOrReturnKeyPressed: {
@@ -233,16 +224,15 @@ Frame {
 
 	TPTextInput {
 		id: txtSocial
-		text: userModel.socialMedia(userRow, cboSocial.currentIndex);
 		height: controlsHeight
 		enabled: bEmailOK
 		width: parent.width*0.90
 		ToolTip.text: qsTr("Social media address is invalid")
-		ToolTip.visible: !bSocialOK;
 
 		onEditingFinished: userModel.setSocialMedia(userRow, cboSocial.currentIndex, text);
-		onTextEdited: bSocialOK = text.length === 0 || text.length > 10;
-		onTextChanged: bSocialOK = text.length === 0 || text.length > 10;
+
+		onTextEdited: checkSocial()
+		onTextChanged: checkSocial();
 
 		anchors {
 			top: cboSocial.bottom
@@ -250,13 +240,17 @@ Frame {
 			left: parent.left
 			leftMargin: 5
 		}
+
+		function checkSocial(): void {
+			bSocialOK = text.length === 0 || text.length > 10;
+			ToolTip.visible = !bSocialOK;
+		}
 	}
 
 	TPButton {
 		id: btnOpenSocialMedia
 		imageSource: "openurl"
 		enabled: bSocialOK
-		visible: userRow !== 0
 		width: 30
 		height: 30
 
@@ -266,6 +260,16 @@ Frame {
 		}
 
 		onClicked: osInterface.openURL(txtSocial.text);
+	}
+
+	function getUserInfo(): void {
+		txtPhone.text = userModel.phone(userRow);
+		bPhoneOK = txtPhone.text.length >= 17
+		const email = userModel.email(userRow);
+		txtEmail.text = email;
+		bEmailOK = (email.length === 0 || (email.indexOf("@") !== -1 && email.indexOf(".") !== -1));
+		cboSocial.currentIndex = 0;
+		txtSocial.text = userModel.socialMedia(userRow, 0);
 	}
 
 	function focusOnFirstField() {

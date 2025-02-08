@@ -27,6 +27,18 @@ Frame {
 	readonly property int controlsSpacing: 10
 	readonly property int moduleHeight: nVisibleControls*(controlsHeight+controlsSpacing) + imgAvatar.height
 
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int): void {
+			if (row === userRow) {
+				if (field === 100)
+					getUserInfo();
+				else if (field === 10)
+					imgAvatar.source = userModel.avatar(userRow);
+			}
+		}
+	}
+
 	ListModel {
 		id: roleModelUser
 		ListElement { text: qsTr("Occasional Gym Goer"); value: 0; enabled: true; }
@@ -105,11 +117,6 @@ Frame {
 			userModel.setUserRole(userRow, textAt(index));
 			bClientRoleOK = true;
 		}
-
-		Component.onCompleted: {
-			currentIndex = find(userModel.userRole(userRow));
-			bClientRoleOK = userModel.userRole(userRow).length > 1;
-		}
 	}
 
 	TPLabel {
@@ -161,11 +168,6 @@ Frame {
 			userModel.setGoal(userRow, textAt(index));
 			bGoalOK = true;
 		}
-
-		Component.onCompleted: {
-			currentIndex = find(userModel.goal(userRow));
-			bGoalOK = userModel.goal(userRow).length > 1;
-		}
 	}
 
 	TPLabel {
@@ -203,11 +205,6 @@ Frame {
 		onActivated: (index) => {
 			userModel.setCoachRole(userRow, textAt(index));
 			bCoachRoleOK = true;
-		}
-
-		Component.onCompleted: {
-			currentIndex = find(userModel.coachRole(userRow));
-			bCoachRoleOK = userModel.coachRole(userRow).length > 1;
 		}
 	}
 
@@ -279,6 +276,21 @@ Frame {
 	function defaultAvatarChanged(row: int): void {
 		if (row === userRow)
 			imgAvatar.source = userModel.avatar(userRow);
+	}
+
+	function getUserInfo(): void {
+		const client_role = userModel.userRole(userRow);
+		bClientRoleOK = client_role.length > 5;
+		if (bClientRoleOK)
+			cboUserRole.currentIndex = cboUserRole.find(client_role);
+		const user_goal = userModel.goal(userRow);
+		bGoalOK = user_goal.length > 5;
+		if (bGoalOK)
+			cboGoal.currentIndex = cboGoal.find(user_goal);
+		const coach_role = userModel.coachRole(userRow);
+		bCoachRoleOK = coach_role.length > 5;
+		if (bCoachRoleOK)
+			cboCoachRole.currentIndex = cboCoachRole.find(coach_role);
 	}
 
 	function focusOnFirstField(): void {

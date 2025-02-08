@@ -58,7 +58,6 @@ Frame {
 				userModel.createMainUser();
 		}
 
-
 		anchors {
 			top: parent.top
 			topMargin: 5
@@ -111,12 +110,21 @@ Frame {
 		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
 
-		onTextEdited: {
-			if (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1)) {
-				ToolTip.visible = false;
+		property bool inputOK: false
+
+		onEnterOrReturnKeyPressed: {
+			if (inputOK) {
+				if (!bImport)
+					btnCheckEMail.clicked(0);
+				else
+					btnImport.clicked(0);
 			}
-			else
-				ToolTip.visible = true;
+		}
+
+		onTextEdited: {
+			inputOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
+			ToolTip.visible = !inputOK;
+			btnCheckEMail.enabled = inputOK;
 		}
 
 		anchors {
@@ -147,7 +155,10 @@ Frame {
 			text: userModel.checkEmailLabel
 			Layout.alignment: Qt.AlignCenter
 
-			onClicked: userModel.checkUserOnline(txtEmail.text);
+			onClicked: {
+				userModel.checkUserOnline(txtEmail.text);
+				enabled = false;
+			}
 		}
 
 		TPButton {
@@ -156,7 +167,10 @@ Frame {
 			enabled: bImport
 			Layout.alignment: Qt.AlignCenter
 
-			onClicked: userModel.importFromOnlineServer();
+			onClicked: {
+				userModel.importFromOnlineServer();
+				bImport = false;
+			}
 		}
 	}
 }

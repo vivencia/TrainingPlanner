@@ -57,7 +57,7 @@ constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
 constexpr uint CONNECTION_ERR_TIMEOUT{60*1000};
 
 OSInterface::OSInterface(QObject *parent)
-	: QObject{parent}
+	: QObject{parent}, m_networkStatus{0}
 {
 	app_os_interface = this;
 	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToExit()));
@@ -66,6 +66,7 @@ OSInterface::OSInterface(QObject *parent)
 	m_checkConnectionTimer->setInterval(CONNECTION_CHECK_TIMEOUT);
 	m_checkConnectionTimer->callOnTimeout( [this] () { checkInternetConnection(); });
 	m_checkConnectionTimer->start();
+	checkInternetConnection();
 
 #ifdef Q_OS_ANDROID
 	const QJniObject &context(QNativeInterface::QAndroidApplication::context());
@@ -118,7 +119,6 @@ OSInterface::OSInterface(QObject *parent)
 
 void OSInterface::checkInternetConnection()
 {
-	m_networkStatus = 0;
 	int network_status{0};
     QTcpSocket checkConnectionSocket;
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP

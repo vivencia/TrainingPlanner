@@ -77,6 +77,7 @@ void DBUserModel::createMainUser()
 		m_modeldata.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
 			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} <<
 			QString::number(APP_USE_MODE_SINGLE_USER) << STR_ZERO << STR_ZERO));
+		emit userModified(0, 100);
 	}
 }
 
@@ -127,7 +128,8 @@ int DBUserModel::addUser(const bool bCoach)
 
 void DBUserModel::removeMainUser()
 {
-	m_modeldata.removeFirst();
+	if (!m_modeldata.isEmpty())
+		m_modeldata.removeFirst();
 }
 
 uint DBUserModel::removeUser(const int row, const bool bCoach)
@@ -251,25 +253,28 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-void DBUserModel::setAvatar(const int row, const QString &new_avatar)
+void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
 {
 	const QString &avatar_str{m_appDataPath + _userId(row) + "_avatar.png"_L1};
-	TPImage img{nullptr};
-	img.setSource(new_avatar);
-	img.saveToDisk(avatar_str);
 	m_modeldata[row][USER_COL_AVATAR] = std::move(avatar_str);
 	emit userModified(row, USER_COL_AVATAR);
 
-	if (row == 0)
-	{
-		if (!onlineCheckIn())
+	if (upload) {
+		TPImage img{nullptr};
+		img.setSource(new_avatar);
+		img.saveToDisk(avatar_str);
+
+		if (row == 0)
 		{
-			connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
-				sendAvatarToServer();
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			return;
+			if (!onlineCheckIn())
+			{
+				connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
+					sendAvatarToServer();
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				return;
+			}
+			sendAvatarToServer();
 		}
-		sendAvatarToServer();
 	}
 }
 
@@ -294,7 +299,11 @@ void DBUserModel::importFromOnlineServer()
 			if (ret_code == 0)
 			{
 				removeMainUser();
-				emit userOnlineImportFinished(importFromString(ret_string));
+				if (importFromString(ret_string))
+				{
+					downloadAvatarFromServer(m_modeldata.count() - 1);
+					emit userOnlineImportFinished(true);
+				}
 			}
 			else
 				emit userOnlineImportFinished(false);
@@ -547,6 +556,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	if (modeldata.count() > USER_TOTAL_COLS)
 		modeldata.removeLast();
 	m_modeldata.append(std::move(modeldata));
+	emit userModified(m_modeldata.count() - 1, 100);
 	return true;
 }
 
@@ -700,6 +710,28 @@ void DBUserModel::sendAvatarToServer()
 	}
 	else
 		delete avatar_file;
+}
+
+void DBUserModel::downloadAvatarFromServer(const uint row)
+{
+	connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this,row]
+						(const int ret_code, const QString &filename, const QByteArray &contents) {
+		if (ret_code == 0)
+		{
+			const QString &localAvatarFileName{m_appDataPath + filename};
+			QFile *avatarImg{new QFile{localAvatarFileName, this}};
+			static_cast<void>(avatarImg->remove());
+			if (avatarImg->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+			{
+				avatarImg->write(contents);
+				avatarImg->close();
+			}
+			delete avatarImg;
+			setAvatar(row, localAvatarFileName, false);
+		}
+	});
+	const QString& avatarFileName{_userId(row) + "_avatar"};
+	appOnlineServices()->getBinFile(_userId(row), _userId(row), avatarFileName, _userId(row));
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)

@@ -195,9 +195,9 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool
 		}
 	}
 	if (!b_internal_signal_only)
-		emit networkRequestProcessed(ret_code, replyString.simplified());
+		emit networkRequestProcessed(ret_code, replyString.trimmed());
 	else
-		emit _networkRequestProcessed(ret_code, replyString.simplified());
+		emit _networkRequestProcessed(ret_code, replyString.trimmed());
 }
 
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"

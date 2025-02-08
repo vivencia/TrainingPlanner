@@ -30,6 +30,14 @@ Frame {
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int): void {
+			if (row === userRow && field === 100)
+				getUserInfo();
+		}
+	}
+
 	TPLabel {
 		id: lblName
 		text: userModel.nameLabel
@@ -48,11 +56,9 @@ Frame {
 	TPTextInput {
 		id: txtName
 		height: controlsHeight
-		text: userModel.userName(userRow);
 		ToolTip.text: qsTr("The name is too short")
 
 		property bool bTextChanged: false
-		Component.onCompleted: bNameOK = userModel.userName(userRow).length >= 5;
 
 		onEditingFinished: {
 			if (bTextChanged && bNameOK) {
@@ -99,12 +105,9 @@ Frame {
 
 	TPTextInput {
 		id: txtBirthdate
-		text: userModel.birthDateFancy(userRow)
 		readOnly: true
 		height: controlsHeight
 		enabled: bNameOK
-
-		Component.onCompleted: bBirthDateOK = userModel.birthYear(userRow) >= 1940;
 
 		anchors {
 			top: lblBirthdate.bottom
@@ -148,8 +151,6 @@ Frame {
 		padding: 0
 		spacing: 0
 
-		Component.onCompleted: bSexOK = userModel.sex(userRow) <= 1;
-
 		background: Rectangle {
 			color: "transparent"
 		}
@@ -167,7 +168,6 @@ Frame {
 			id: chkMale
 			text: qsTr("Male")
 			height: controlsHeight
-			checked: userModel.sex(userRow) === 0
 			width: frmSex.width/2
 
 			onClicked: {
@@ -190,7 +190,6 @@ Frame {
 			id: chkFemale
 			text: qsTr("Female")
 			height: controlsHeight
-			checked: userModel.sex(userRow) === 1
 			width: frmSex.width/2
 
 			onClicked: {
@@ -208,6 +207,17 @@ Frame {
 				rightMargin: 10
 			}
 		}
+	}
+
+	function getUserInfo(): void {
+		txtName.text = userModel.userName(userRow);
+		bNameOK = txtName.text.length >= 5;
+		txtBirthdate.text = userModel.birthDateFancy(userRow);
+		bBirthDateOK = userModel.birthYear(userRow) >= 1940;
+		const sex = userModel.sex(userRow);
+		chkMale.checked = sex === 0;
+		chkFemale.checked = sex === 1;
+		bSexOK = sex <= 1;
 	}
 
 	function focusOnFirstField() {

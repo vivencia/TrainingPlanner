@@ -31,14 +31,19 @@ Frame {
 
 	onBCoachOKChanged: bReady = bCoachOK;
 
+	Connections {
+		target: userModel
+		function onUserModified(row: int, field: int): void {
+			if (row === userRow && field === 100)
+				getUserInfo();
+		}
+	}
+
 	TPRadioButton {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
-		checked: userModel.appUseMode(userRow) === 1 || userModel.appUseMode(userRow) === 3;
 		multiLine: true
 		height: itemHeight
-
-		Component.onCompleted: if (checked) bReady = true;
 
 		onClicked: {
 			bReady = checked;
@@ -58,11 +63,8 @@ Frame {
 	TPRadioButton {
 		id: optCoachUse
 		text: qsTr("I will use this application to track my own workouts and/or coach or train other people")
-		checked: userModel.appUseMode(userRow) === 2 || userModel.appUseMode(userRow) === 4;
 		multiLine: true
 		height: itemHeight
-
-		Component.onCompleted: bCoachOK = checked;
 
 		onClicked: {
 			bCoachOK = checked;
@@ -95,12 +97,9 @@ Frame {
 		TPCheckBox {
 			id: chkOnlineCoach
 			text: qsTr("Make myself available online for TP users to contact me")
-			checked: userModel.isCoachRegistered()
 			multiLine: true
 			height: itemHeight
 			Layout.preferredWidth: parent.width/2
-
-			Component.onCompleted: userModel.isCoachAlreadyRegisteredOnline();
 
 			Connections {
 				target: userModel
@@ -153,7 +152,6 @@ Frame {
 	TPCheckBox {
 		id: chkHaveCoach
 		text: qsTr("I have a coach or a personal trainer")
-		checked: userModel.appUseMode(userRow) === 3 || userModel.appUseMode(userRow) === 4;
 		multiLine: true
 		height: 25
 
@@ -208,6 +206,19 @@ Frame {
 			createRequestDialog();
 		}
 		requestDlg.show(-1);
+	}
+
+	function getUserInfo(): void {
+		const app_use_mode = userModel.appUseMode(userRow);
+		bReady = app_use_mode === 1 || app_use_mode === 3;
+		optPersonalUse.checked = bReady;
+		if (!bReady) {
+			bCoachOK = app_use_mode === 2 || app_use_mode === 4;
+			optCoachUse.checked = bCoach;
+			if (bCoachOK)
+				userModel.isCoachAlreadyRegisteredOnline();
+			chkHaveCoach.checked = app_use_mode === 3 || app_use_mode === 4;
+		}
 	}
 
 	function focusOnFirstField(): void {
