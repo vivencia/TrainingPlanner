@@ -84,11 +84,14 @@ function upload_file($uploadDir) {
     return false;
 }
 
-function download_file($file,$downloadDir) {
+function download_file($file, $downloadDir) {
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
+        $file_desciptor = basename($filename)."##";
+        $size = strlen($filename) + filesize($filename);
+        echo $file_desciptor;
         header('Content-Description: File Transfer');
-        if (substr("filename.txt",-4) == ".txt")
+        if (substr($filename,-4) == ".txt")
             header('Content-Type: text/plain');
         else
             header('Content-Type: application/octet-stream');
@@ -96,10 +99,9 @@ function download_file($file,$downloadDir) {
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
-        header('Content-Length: ' . filesize($filename));
+        header('Content-Length: ' . $size);
         readfile($filename);
-        #only return the contents of the file. Any extra string will only get in the way
-        echo "Return code: 0## ", basename($filename) . "##";
+        //only return the contents of the file. Any extra string will only get in the way
         return true;
     }
     echo "Return code 1: File not found: ", basename($filename);
@@ -107,13 +109,14 @@ function download_file($file,$downloadDir) {
 }
 
 function get_binfile($binfile, $targetuser) {
+    global $rootdir;
     $src_dir = $rootdir . $targetuser;
     if (is_dir($src_dir)) {
         $files = array_values(array_diff(scandir($src_dir), array('.', '..')));
         foreach ($files as &$file) {
             $filename = basename($file);
             if ($binfile == substr($filename, 0, strlen($filename) - 4)) {
-                download_file($src_dir, $filename);
+                download_file($filename, $src_dir);
                 return;
             }
         }

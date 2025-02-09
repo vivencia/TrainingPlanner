@@ -38,6 +38,9 @@ Frame {
 		}
 	}
 
+	onUserRowChanged: getUserInfo();
+	Component.onCompleted: getUserInfo();
+
 	TPLabel {
 		id: lblName
 		text: userModel.nameLabel
@@ -156,7 +159,7 @@ Frame {
 		}
 
 		anchors {
-			top: txtName.bottom
+			top: txtBirthdate.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5

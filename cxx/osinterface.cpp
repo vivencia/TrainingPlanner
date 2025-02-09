@@ -54,7 +54,7 @@ extern "C"
 
 OSInterface* OSInterface::app_os_interface(nullptr);
 constexpr uint CONNECTION_CHECK_TIMEOUT{10*60*1000};
-constexpr uint CONNECTION_ERR_TIMEOUT{60*1000};
+constexpr uint CONNECTION_ERR_TIMEOUT{20*1000};
 
 OSInterface::OSInterface(QObject *parent)
 	: QObject{parent}, m_networkStatus{0}
@@ -131,24 +131,23 @@ void OSInterface::checkInternetConnection()
 
 	if (isConnected)
 	{
-		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, [this,network_status] (const bool online) mutable {
-#ifdef Q_OS_LINUX
-	#ifndef Q_OS_ANDROID
-			if (!online)
-				configureLocalServer();
-	#endif
-#endif
-			setBit(network_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-			unSetBit(network_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
-			setNetworkStatus(network_status);
-		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appOnlineServices()->checkServer();
+		setNetworkStatus(network_status);
+		connect(appOnlineServices(), &TPOnlineServices::serverOnline, this, &OSInterface::checkServerResponseSlot,
+			static_cast<Qt::ConnectionType>(Qt::UniqueConnection|Qt::SingleShotConnection));
+		appOnlineServices()->checkServer(network_status);
 	}
 	else
 	{
+		#ifndef QT_NO_DEBUG
+		//When debugging, and using the local server as online server, ignore if the internet is not working
+		setBit(network_status, HAS_INTERNET);
+		unSetBit(network_status, NO_INTERNET_ACCESS);
+		appOnlineServices()->checkServer(network_status);
+		#else
 		setBit(network_status, SERVER_UNREACHABLE);
 		unSetBit(network_status, SERVER_UP_AND_RUNNING);
 		setNetworkStatus(network_status);
+		#endif
 	}
 }
 
@@ -168,6 +167,19 @@ void OSInterface::setNetworkStatus(int new_status)
 void OSInterface::aboutToExit()
 {
 	appDBInterface()->cleanUpThreads();
+}
+
+void OSInterface::checkServerResponseSlot(const bool online, int network_status)
+{
+#ifdef Q_OS_LINUX
+	#ifndef Q_OS_ANDROID
+	if (!online)
+		configureLocalServer();
+	#endif
+#endif
+	setBit(network_status, online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+	unSetBit(network_status, !online ? SERVER_UP_AND_RUNNING : SERVER_UNREACHABLE);
+	setNetworkStatus(network_status);
 }
 
 #ifdef Q_OS_ANDROID

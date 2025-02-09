@@ -37,10 +37,14 @@ inline QString makeCommandURL(const QString& option, const QString& value, const
 	return ret;
 }
 
-void TPOnlineServices::checkServer()
+/* The network_status param is not used, but it's carried from the caller to the signal handler. When using local, unnamed lambdas that would
+	not be necessary, but functions connected to the serverOnline signal might be called several times before a response is obtained, so we use
+	Qt::UniqueConnection which cannot be used with a lambda
+*/
+void TPOnlineServices::checkServer(int network_status)
 {
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{QUrl{"http://127.0.0.1/trainingplanner"_L1}})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &QNetworkReply::finished, this, [this,reply,network_status]() {
 		bool server_ok{false};
 		if (reply)
 		{
@@ -48,7 +52,7 @@ void TPOnlineServices::checkServer()
 			const QString &replyString{reply->readAll()};
 			server_ok = replyString.contains("Welcome to the TrainingPlanner"_L1);
 		}
-		emit serverOnline(server_ok);
+		emit serverOnline(server_ok, network_status);
 	});
 }
 
@@ -159,24 +163,14 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool
 			if (fileType.contains("application/octet-stream"_L1))
 			{
 				QByteArray data{std::move(reply->readAll())};
-				const qsizetype ret_code_idx{data.indexOf("Return code: ") + 13};
-				if (ret_code_idx >= 13)
+				const qsizetype filename_sep_idx{data.indexOf("##")};
+				if (filename_sep_idx >= 2)
 				{
-					ret_code = replyString.sliced(ret_code_idx, data.indexOf(' ', ret_code_idx) - ret_code_idx).toInt();
-					if (ret_code == 0)
-					{
-						const qsizetype filename_sep_idx{data.indexOf("##", ret_code_idx) + 2};
-						if (filename_sep_idx >= 2)
-						{
-							const qsizetype filename_sep_idx2{data.indexOf("##", filename_sep_idx)};
-							const QString filename{std::move(data.sliced(filename_sep_idx, filename_sep_idx2 - filename_sep_idx))};
-							static_cast<void>(data.remove(0, filename_sep_idx2 + 2));
-							emit binaryFileReceived(ret_code, filename, data);
-							return;
-						}
-					}
+					const QString filename{std::move(data.sliced(0, filename_sep_idx))};
+					emit binaryFileReceived(0, filename, data.sliced(filename_sep_idx + 2, data.size() - filename_sep_idx - 2));
+					return;
 				}
-				emit binaryFileReceived(ret_code, "Error downloading bynary file: "_L1, data);
+				emit binaryFileReceived(1, "Error downloading bynary file: "_L1, data);
 				LOG_MESSAGE("Error downloading bynary file: "_L1 + QString::fromUtf8(data));
 				return;
 			}

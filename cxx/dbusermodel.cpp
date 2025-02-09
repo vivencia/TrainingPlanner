@@ -1,5 +1,6 @@
 #include "dbusermodel.h"
 
+#include "dbinterface.h"
 #include "osinterface.h"
 #include "qmlitemmanager.h"
 #include "tpglobals.h"
@@ -44,6 +45,9 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
+		connect(this, &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
+			appDBInterface()->saveUser(user_row);
+		});
 	}
 }
 
@@ -77,7 +81,7 @@ void DBUserModel::createMainUser()
 		m_modeldata.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
 			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} <<
 			QString::number(APP_USE_MODE_SINGLE_USER) << STR_ZERO << STR_ZERO));
-		emit userModified(0, 100);
+		emit userModified(0);
 	}
 }
 
@@ -435,6 +439,9 @@ void DBUserModel::downloadResume(const uint coach_index)
 
 void DBUserModel::mainUserConfigurationFinished()
 {
+	mb_mainUserConfigured = true;
+	emit mainUserConfigurationFinishedSignal();
+
 	if (!onlineCheckIn())
 	{
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
@@ -442,9 +449,7 @@ void DBUserModel::mainUserConfigurationFinished()
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
-
-	mb_mainUserConfigured = true;
-	if (!mb_userRegistered || mb_userRegistered != true)
+	if (!mainUserRegistered())
 	{
 		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this] () {
 			mainUserConfigurationFinished();
@@ -453,13 +458,9 @@ void DBUserModel::mainUserConfigurationFinished()
 	}
 	else
 	{
-		if (mainUserRegistered())
-		{
-			sendProfileToServer();
-			sendUserInfoToServer();
-		}
+		sendProfileToServer();
+		sendUserInfoToServer();
 	}
-	emit mainUserConfigurationFinishedSignal();
 }
 
 void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
@@ -545,6 +546,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netName, uint n_max_profil
 bool DBUserModel::updateFromModel(TPListModel *model)
 {
 	addUser_fast(std::move(model->m_modeldata[0]));
+	emit userModified(m_modeldata.count() - 1);
 	return true;
 }
 
@@ -556,7 +558,7 @@ bool DBUserModel::importFromString(const QString &user_data)
 	if (modeldata.count() > USER_TOTAL_COLS)
 		modeldata.removeLast();
 	m_modeldata.append(std::move(modeldata));
-	emit userModified(m_modeldata.count() - 1, 100);
+	emit userModified(m_modeldata.count() - 1);
 	return true;
 }
 
@@ -720,11 +722,13 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 		{
 			const QString &localAvatarFileName{m_appDataPath + filename};
 			QFile *avatarImg{new QFile{localAvatarFileName, this}};
-			static_cast<void>(avatarImg->remove());
-			if (avatarImg->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+			if (!avatarImg->exists() || avatarImg->remove())
 			{
-				avatarImg->write(contents);
-				avatarImg->close();
+				if (avatarImg->open(QIODeviceBase::WriteOnly))
+				{
+					avatarImg->write(contents);
+					avatarImg->close();
+				}
 			}
 			delete avatarImg;
 			setAvatar(row, localAvatarFileName, false);

@@ -94,7 +94,6 @@ void QmlUserInterface::userModifiedSlot(const uint user_row, const uint field)
 				QMetaObject::invokeMethod(m_clientsOrCoachesPage, "avatarChangedBySexSelection", Q_ARG(int, static_cast<int>(user_row)));
 		}
 	}
-	appDBInterface()->saveUser(user_row);
 }
 
 void QmlUserInterface::createSettingsPage()

@@ -31,13 +31,18 @@ Frame {
 		target: userModel
 		function onUserModified(row: int, field: int): void {
 			if (row === userRow) {
-				if (field === 100)
-					getUserInfo();
-				else if (field === 10)
-					imgAvatar.source = userModel.avatar(userRow);
+				switch (field) {
+					case 100: getUserInfo(); break;
+					case 10: imgAvatar.source = userModel.avatar(userRow); break;
+					case 11: appUseMode = userModel.appUseMode(row); break;
+					default: break;
+				}
 			}
 		}
 	}
+
+	onUserRowChanged: getUserInfo();
+	Component.onCompleted: getUserInfo();
 
 	ListModel {
 		id: roleModelUser
@@ -60,25 +65,6 @@ Frame {
 	background: Rectangle {
 		border.color: "transparent"
 		color: "transparent"
-	}
-
-	onUserRowChanged: {
-		cboUserRole.currentIndex = cboUserRole.find(userModel.userRole(userRow));
-		bClientRoleOK = userModel.userRole(userRow).length > 1;
-		cboGoal.currentIndex = cboGoal.find(userModel.goal(userRow));
-		bGoalOK = userModel.goal(userRow).length > 1;
-		cboCoachRole.currentIndex = cboCoachRole.find(userModel.coachRole(userRow));
-		bCoachRoleOK = userModel.coachRole(userRow).length > 1;
-	}
-
-	Connections {
-		target: userModel
-		function onUserModified(row: int, field: int) {
-			if (row === userRow) {
-				if (field === 11)
-					appUseMode = userModel.appUseMode(row);
-			}
-		}
 	}
 
 	TPLabel {
@@ -284,7 +270,7 @@ Frame {
 		if (bClientRoleOK)
 			cboUserRole.currentIndex = cboUserRole.find(client_role);
 		const user_goal = userModel.goal(userRow);
-		bGoalOK = user_goal.length > 5;
+		bGoalOK = user_goal.length > 1;
 		if (bGoalOK)
 			cboGoal.currentIndex = cboGoal.find(user_goal);
 		const coach_role = userModel.coachRole(userRow);

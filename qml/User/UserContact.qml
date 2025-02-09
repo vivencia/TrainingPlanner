@@ -35,6 +35,9 @@ Frame {
 		}
 	}
 
+	onUserRowChanged: getUserInfo();
+	Component.onCompleted: getUserInfo();
+
 	TPLabel {
 		id: lblPhone
 		text: userModel.phoneLabel

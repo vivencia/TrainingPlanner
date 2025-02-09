@@ -122,6 +122,7 @@ signals:
 
 public slots:
 	void aboutToExit();
+	void checkServerResponseSlot(const bool online, int network_status);
 
 private:
 	QString m_appDataFilesPath;

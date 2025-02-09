@@ -22,7 +22,7 @@ public:
 
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
-	void checkServer();
+	void checkServer(int network_status);
 	void checkOnlineUser(const QString &query);
 	void getOnlineUserData(const QString &user_id);
 	void checkUser(const QString &username, const QString &passwd);
@@ -43,7 +43,7 @@ signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
 	void _networkRequestProcessed(const int ret_code, const QString &ret_string);
 	void binaryFileReceived(const int ret_code, const QString& filename, const QByteArray &contents);
-	void serverOnline(const bool online);
+	void serverOnline(const bool online, int network_status);
 
 private:
 	void makeNetworkRequest(const QUrl &url);

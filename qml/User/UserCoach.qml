@@ -39,6 +39,9 @@ Frame {
 		}
 	}
 
+	onUserRowChanged: getUserInfo();
+	Component.onCompleted: getUserInfo();
+
 	TPRadioButton {
 		id: optPersonalUse
 		text: qsTr("I will use this application to track my own workouts only")
@@ -214,7 +217,7 @@ Frame {
 		optPersonalUse.checked = bReady;
 		if (!bReady) {
 			bCoachOK = app_use_mode === 2 || app_use_mode === 4;
-			optCoachUse.checked = bCoach;
+			optCoachUse.checked = bCoachOK;
 			if (bCoachOK)
 				userModel.isCoachAlreadyRegisteredOnline();
 			chkHaveCoach.checked = app_use_mode === 3 || app_use_mode === 4;

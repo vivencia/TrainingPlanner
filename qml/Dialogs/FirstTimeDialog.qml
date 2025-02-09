@@ -132,7 +132,7 @@ TPPopup {
 						//new user will be created, so we must cancel pending requests to try to retrieve info from the net
 						userModel.cancelPendingOnlineRequests();
 					else {
-						if (stackLayout.currentIndex >= 3)
+						if (stackLayout.currentIndex >= 3 && stackLayout.currentIndex < stackLayout.count - 2)
 							stackLayout.itemAt(stackLayout.currentIndex+1).focusOnFirstField();
 					}
 				}

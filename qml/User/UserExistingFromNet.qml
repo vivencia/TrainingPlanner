@@ -52,7 +52,7 @@ Frame {
 		multiLine: true
 
 		onClicked: {
-			bReady === checked;
+			bReady = checked;
 			optImportUser.checked = !checked;
 			if (checked)
 				userModel.createMainUser();

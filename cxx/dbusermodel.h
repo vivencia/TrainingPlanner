@@ -72,6 +72,7 @@ public:
 	inline void addUser_fast(QStringList&& user_info)
 	{
 		m_modeldata.append(std::move(user_info));
+		//DBUserTable call here when reading from the database. When we get the data for the main user, initialize the network connection
 		if (m_modeldata.count() == 1)
 			static_cast<void>(onlineCheckIn());
 	}
@@ -246,7 +247,7 @@ public:
 	}
 	Q_INVOKABLE void checkUserOnline(const QString &email);
 	Q_INVOKABLE void importFromOnlineServer();
-	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered == true; }
+	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
 	Q_INVOKABLE void isCoachAlreadyRegisteredOnline();
 	Q_INVOKABLE void uploadResume(const QString &resumeFileName);
@@ -277,7 +278,7 @@ public:
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
 signals:
-	void userModified(const uint row, const uint field);
+	void userModified(const uint row, const uint field = 100); //100 all fields
 	void labelsChanged();
 	void userAddedOrRemoved(const uint row, const bool bAdded);
 	void userOnlineCheckResult(const bool registered);

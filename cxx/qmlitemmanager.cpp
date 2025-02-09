@@ -136,9 +136,6 @@ void QmlItemManager::configureQmlEngine()
 			appSettings()->setMainUserConfigured(true);
 			appOsInterface()->initialCheck();
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		connect(appUserModel(), &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
-			appDBInterface()->saveUser(user_row);
-		});
 	}
 	else
 		appOsInterface()->initialCheck();
@@ -624,10 +621,7 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 		break;
 		case USER_TABLE_ID:
 			if (appUserModel()->isDifferent(model))
-			{
-				if ((ok = appUserModel()->updateFromModel(model)))
-					appDBInterface()->saveUser(appUserModel()->count()-1);
-			}
+				ok = appUserModel()->updateFromModel(model);
 		break;
 		case MESOCYCLES_TABLE_ID:
 			if (appMesoModel()->isDifferent(model))
