@@ -17,6 +17,7 @@
 #include <utility>
 
 DBUserModel* DBUserModel::_appUserModel(nullptr);
+QString DBUserModel::_localAvatarFilePath{};
 
 static const QLatin1StringView userProfileFileName{"profile.txt"_L1};
 static const QLatin1StringView userLocalDataFileName{"user.data"_L1};
@@ -45,6 +46,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
+		_localAvatarFilePath = m_appDataPath + "%_avatar.png"_L1;
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);
 		});
@@ -259,14 +261,11 @@ uint DBUserModel::userRow(const QString &userName) const
 
 void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
 {
-	const QString &avatar_str{m_appDataPath + _userId(row) + "_avatar.png"_L1};
-	m_modeldata[row][USER_COL_AVATAR] = std::move(avatar_str);
-	emit userModified(row, USER_COL_AVATAR);
-
 	if (upload) {
 		TPImage img{nullptr};
 		img.setSource(new_avatar);
-		img.saveToDisk(avatar_str);
+		img.saveToDisk(_localAvatarFilePath.arg(_userId(row)));
+		emit userModified(row, USER_COL_AVATAR);
 
 		if (row == 0)
 		{
@@ -734,8 +733,7 @@ void DBUserModel::downloadAvatarFromServer(const uint row)
 			setAvatar(row, localAvatarFileName, false);
 		}
 	});
-	const QString& avatarFileName{_userId(row) + "_avatar"};
-	appOnlineServices()->getBinFile(_userId(row), _userId(row), avatarFileName, _userId(row));
+	appOnlineServices()->getBinFile(_userId(row), _userId(row), _userId(row) + "_avatar"_L1, _userId(row));
 }
 
 int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &targetModel)
@@ -768,15 +766,12 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 				{
 					if (col < USER_COL_APP_USE_MODE)
 					{
-						if (col != USER_COL_AVATAR)
-						{
-							value = buf;
-							value = value.remove(0, value.indexOf(':') + 2).simplified();
-							if (!isFieldFormatSpecial(col))
-								modeldata[col] = std::move(value);
-							else
-								modeldata[col] = std::move(formatFieldToImport(col, value));
-						}
+						value = buf;
+						value = value.remove(0, value.indexOf(':') + 2).simplified();
+						if (!isFieldFormatSpecial(col))
+							modeldata[col] = std::move(value);
+						else
+							modeldata[col] = std::move(formatFieldToImport(col, value));
 						++col;
 					}
 					else if (col == USER_COL_APP_USE_MODE)

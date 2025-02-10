@@ -7,15 +7,15 @@
 
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
-#define USER_COL_BIRTHDAY 2
-#define USER_COL_SEX 3
-#define USER_COL_PHONE 4
-#define USER_COL_EMAIL 5
-#define USER_COL_SOCIALMEDIA 6
-#define USER_COL_USERROLE 7
-#define USER_COL_COACHROLE 8
-#define USER_COL_GOAL 9
-#define USER_COL_AVATAR 10
+#define USER_COL_PASSWORD 2
+#define USER_COL_BIRTHDAY 3
+#define USER_COL_SEX 4
+#define USER_COL_PHONE 5
+#define USER_COL_EMAIL 6
+#define USER_COL_SOCIALMEDIA 7
+#define USER_COL_USERROLE 8
+#define USER_COL_COACHROLE 9
+#define USER_COL_GOAL 10
 #define USER_COL_APP_USE_MODE 11
 #define USER_COL_CURRENT_COACH 12
 #define USER_COL_CURRENT_CLIENT 13
@@ -27,6 +27,8 @@
 #define APP_USE_MODE_SINGLE_COACH 2
 #define APP_USE_MODE_SINGLE_USER_WITH_COACH 3
 #define APP_USE_MODE_COACH_USER_WITH_COACH 4
+
+#define USER_COL_AVATAR 20 //not in database, but used on model and GUI operations
 
 class DBUserModel : public TPListModel
 {
@@ -118,6 +120,8 @@ public:
 		}
 	}
 
+	inline const QString &password(const uint row) const { return m_modeldata.at(row).at(USER_COL_PASSWORD); }
+
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
 		return row >= 0 && row < m_modeldata.count() ? QDate::fromJulianDay(_birthDate(row).toLongLong()) : QDate::currentDate();
@@ -199,8 +203,10 @@ public:
 		emit userModified(row, USER_COL_GOAL);
 	}
 
-	Q_INVOKABLE inline QString avatar(const int row) const { return row >= 0 && row < m_modeldata.count() ? _avatar(row) : QString(); }
-	inline const QString &_avatar(const uint row) const { return m_modeldata.at(row).at(USER_COL_AVATAR); }
+	Q_INVOKABLE inline QString avatar(const int row) const
+	{
+		return row >= 0 && row < m_modeldata.count() ? _localAvatarFilePath.arg(_userId(row)) : QString{};
+	}
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool upload = true);
 
 	Q_INVOKABLE inline uint appUseMode(const int row) const { return row >= 0 && row < m_modeldata.count() ? _appUseMode(row).toUInt() : 0; }
@@ -305,6 +311,8 @@ private:
 	void sendAvatarToServer();
 	void downloadAvatarFromServer(const uint row);
 	int _importFromFile(const QString &filename, QList<QStringList> &targetModel);
+
+	static QString _localAvatarFilePath;
 	static DBUserModel *_appUserModel;
 	friend DBUserModel *appUserModel();
 };

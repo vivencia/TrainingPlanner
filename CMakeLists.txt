@@ -103,6 +103,14 @@ set( CXX_SOURCES
 
 	cxx/statistics/tpstatistics.h cxx/statistics/tpstatistics.cpp
 	cxx/online_services/tponlineservices.h cxx/online_services/tponlineservices.cpp
+
+	cxx/tpkeychain/tpkeychain.h cxx/tpkeychain/tpkeychain.cpp
+	cxx/tpkeychain/keychain.h cxx/tpkeychain/keychain_p.h cxx/tpkeychain/keychain.cpp
+	cxx/tpkeychain/androidkeystore_p.h cxx/tpkeychain/androidkeystore.cpp
+	cxx/tpkeychain/keychain_android.cpp
+	cxx/tpkeychain/keychain_unix.cpp
+	cxx/tpkeychain/libsecret_p.h cxx/tpkeychain/libsecret.cpp
+	cxx/tpkeychain/plaintextstore_p.h cxx/tpkeychain/plaintextstore.cpp
 )
 
 set( JAVA_SOURCES
@@ -133,6 +141,7 @@ set( SERVER_FILES
 	web-server/url_parser.php
 	web-server/init_script.sh
 	web-server/usersdb.sh
+	web-server/user.fields
 )
 
 set( QML_SOURCES
@@ -225,6 +234,12 @@ qt_add_executable(TrainingPlanner
 	${SERVER_FILES}
 )
 
+pkg_check_modules(LIBSECRET REQUIRED libsecret-1)
+        add_definitions(-DHAVE_LIBSECRET=1)
+        INCLUDE_DIRECTORIES(${LIBSECRET_INCLUDE_DIRS})
+        LINK_DIRECTORIES(${LIBSECRET_LIBRARY_DIRS})
+        list(APPEND keychain_LIBRARIES_PRIVATE ${LIBSECRET_LIBRARIES})
+
 target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Core
 	Qt6::CorePrivate
@@ -238,6 +253,7 @@ target_link_libraries(TrainingPlanner PUBLIC
 	Qt6::Network
     Qt6::Positioning
     Qt6::Charts
+    ${keychain_LIBRARIES_PRIVATE}
 )
 
 set(trainingplanner_resource_files

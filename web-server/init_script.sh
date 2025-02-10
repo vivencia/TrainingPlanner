@@ -7,6 +7,10 @@ SCRIPT_NAME=$(basename "$0")
 USER_NAME=$(whoami)
 PASSWORD=""
 
+print_usage() {
+	echo "Usage: $SCRIPT_NAME {setup|test|stop|restart|dbcreate}" >&2
+}
+
 get_passwd() {
     if [ ! $PASSWORD ]; then
         read -p "Sudo's password: " -s
@@ -36,6 +40,10 @@ for i in "$@"; do
         -p=*|--password=*)
             PASSWORD="${i#*=}"
             shift # past argument=value
+        ;;
+        -h|--help)
+            print_usage
+            exit 0
         ;;
         -*|--*)
             echo "Unknown option $i"
@@ -80,7 +88,7 @@ create_admin_user() {
 }
 
 create_users_db() {
-    if sqlite3 -line $USERS_DB 'CREATE TABLE IF NOT EXISTS user_table (id INTEGER PRIMARY KEY, name TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  avatar TEXT, use_mode INTEGER DEFAULT 1, current_coach INTEGER, current_user INTEGER);' &>/dev/null; then
+    if sqlite3 -line $USERS_DB 'CREATE TABLE IF NOT EXISTS user_table (id INTEGER PRIMARY KEY, name TEXT, password TEXT, birthday INTEGER, sex TEXT, phone TEXT, email TEXT, social TEXT, role TEXT, coach_role TEXT, goal TEXT,  use_mode INTEGER DEFAULT 1, current_coach INTEGER, current_user INTEGER);' &>/dev/null; then
         run_as_sudo chown -R $NGINX_USER:$NGINX_USER $USERS_DB
         run_as_sudo chmod 664 $USERS_DB
         echo "Users database created"
@@ -127,8 +135,8 @@ case "$COMMAND" in
         exit $?
     ;;
     *)
-	echo "Usage: $SCRIPT_NAME {setup|test|stop|restart|dbcreate}" >&2
-	exit 1
+        print_usage
+        exit 0
     ;;
 esac
 

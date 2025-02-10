@@ -16,7 +16,7 @@ DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel *model)
 	setObjectName(DBUserObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
-	mSqlLiteDB = QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name);
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name)); //TEST std::move
 	const QString &dbname(dbFilePath + DBUserFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -29,6 +29,7 @@ void DBUserTable::createTable()
 		const QString &strQuery{"CREATE TABLE IF NOT EXISTS user_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
+										"password TEXT,"
 										"birthday INTEGER,"
 										"sex TEXT,"
 										"phone TEXT,"
@@ -37,7 +38,6 @@ void DBUserTable::createTable()
 										"role TEXT,"
 										"coach_role TEXT,"
 										"goal TEXT,"
-										"avatar TEXT,"
 										"use_mode INTEGER DEFAULT 1,"
 										"current_coach INTEGER, "
 										"current_user INTEGER"
@@ -93,20 +93,20 @@ void DBUserTable::saveUser()
 		if (bUpdate)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			strQuery = std::move(u"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
-						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', avatar=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14"_s
-				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
-					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
+			strQuery = std::move(u"UPDATE user_table SET name=\'%1\', password=\'%2\', birthday=%3, sex=\'%4\', phone=\'%5\', email=\'%6\', social=\'%7\', "
+						"role=\'%8\', coach_role=\'%9\', goal=\'%10\', use_mode=%11, current_coach=%12, current_user=%13 WHERE id=%14"_s
+				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->password(row), m_model->_sex(row), m_model->_phone(row),
+					m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row),
 					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient(), m_model->_userId(row)));
 		}
 		else
 		{
 			strQuery = std::move(u"INSERT INTO user_table "
-				"(id,name,birthday,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
-				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', \'%11\', %12, %13, %14)"_s
-					.arg(m_model->_userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
-					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_avatar(row),
-					m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient()));
+				"(id,name,birthday,password,sex,phone,email,social,role,coach_role,goal,avatar,use_mode,current_coach,current_user)"
+				" VALUES(%1, \'%2\', \'%3\', %4, \'%5\', \'%6\', \'%7\', \'%8\', \'%9\',\'%10\', \'%11\', %12, %13, %14)"_s
+					.arg(m_model->_userId(row), m_model->_userName(row), m_model->password(row), m_model->_birthDate(row), m_model->_sex(row),
+					m_model->_phone(row), m_model->_email(row), m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row),
+					m_model->_goal(row), m_model->_appUseMode(row), m_model->_currentCoach(row), m_model->_currentClient()));
 		}
 		ok = query.exec(strQuery);
 		setQueryResult(ok, strQuery, SOURCE_LOCATION);
