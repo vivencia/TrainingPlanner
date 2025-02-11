@@ -124,10 +124,21 @@ void OSInterface::checkInternetConnection()
     checkConnectionSocket.connectToHost("google.com"_L1, 443); // 443 for HTTPS or use Port 80 for HTTP
     checkConnectionSocket.waitForConnected(2000);
 
-    const bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
+    bool isConnected{checkConnectionSocket.state() == QTcpSocket::ConnectedState};
     checkConnectionSocket.close();
+#ifndef QT_NO_DEBUG
+	if (!isConnected)
+	{
+		//When debugging, and using the local server as online server, ignore if the internet is not working
+		setBit(network_status, HAS_INTERNET);
+		unSetBit(network_status, NO_INTERNET_ACCESS);
+		appOnlineServices()->checkServer(network_status);
+		isConnected = true;
+	}
+#else
     setBit(network_status, isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
 	unSetBit(network_status, !isConnected ? HAS_INTERNET : NO_INTERNET_ACCESS);
+#endif
 
 	if (isConnected)
 	{
@@ -138,16 +149,9 @@ void OSInterface::checkInternetConnection()
 	}
 	else
 	{
-		#ifndef QT_NO_DEBUG
-		//When debugging, and using the local server as online server, ignore if the internet is not working
-		setBit(network_status, HAS_INTERNET);
-		unSetBit(network_status, NO_INTERNET_ACCESS);
-		appOnlineServices()->checkServer(network_status);
-		#else
 		setBit(network_status, SERVER_UNREACHABLE);
 		unSetBit(network_status, SERVER_UP_AND_RUNNING);
 		setNetworkStatus(network_status);
-		#endif
 	}
 }
 

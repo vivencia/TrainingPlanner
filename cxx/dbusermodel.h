@@ -7,18 +7,17 @@
 
 #define USER_COL_ID 0
 #define USER_COL_NAME 1
-#define USER_COL_PASSWORD 2
-#define USER_COL_BIRTHDAY 3
-#define USER_COL_SEX 4
-#define USER_COL_PHONE 5
-#define USER_COL_EMAIL 6
-#define USER_COL_SOCIALMEDIA 7
-#define USER_COL_USERROLE 8
-#define USER_COL_COACHROLE 9
-#define USER_COL_GOAL 10
-#define USER_COL_APP_USE_MODE 11
-#define USER_COL_CURRENT_COACH 12
-#define USER_COL_CURRENT_CLIENT 13
+#define USER_COL_BIRTHDAY 2
+#define USER_COL_SEX 3
+#define USER_COL_PHONE 4
+#define USER_COL_EMAIL 5
+#define USER_COL_SOCIALMEDIA 6
+#define USER_COL_USERROLE 7
+#define USER_COL_COACHROLE 8
+#define USER_COL_GOAL 9
+#define USER_COL_APP_USE_MODE 10
+#define USER_COL_CURRENT_COACH 11
+#define USER_COL_CURRENT_CLIENT 12
 
 #define USER_TOTAL_COLS USER_COL_CURRENT_CLIENT + 1
 
@@ -36,6 +35,7 @@ class DBUserModel : public TPListModel
 Q_OBJECT
 
 Q_PROPERTY(QString nameLabel READ nameLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString passwordLabel READ passwordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString birthdayLabel READ birthdayLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString sexLabel READ sexLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString phoneLabel READ phoneLabel NOTIFY labelsChanged FINAL)
@@ -65,6 +65,7 @@ public:
 	inline QString coachRoleLabel() const { return mColumnNames.at(USER_COL_COACHROLE); }
 	inline QString goalLabel() const { return mColumnNames.at(USER_COL_GOAL); }
 	inline QString avatarLabel() const { return std::move("Avatar: "_L1); }
+	QString passwordLabel() const;
 	QString newUserLabel() const;
 	QString existingUserLabel() const;
 	QString invalidEmailLabel() const;
@@ -120,7 +121,8 @@ public:
 		}
 	}
 
-	inline const QString &password(const uint row) const { return m_modeldata.at(row).at(USER_COL_PASSWORD); }
+	QString password() const;
+	Q_INVOKABLE void setPassword(const QString& passwd);
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{

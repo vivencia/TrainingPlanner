@@ -26,7 +26,7 @@ Frame {
 	property bool bNameOK
 	property bool bBirthDateOK
 	property bool bSexOK
-	readonly property int nControls: 5
+	readonly property int nControls: 7
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
@@ -92,12 +92,44 @@ Frame {
 	}
 
 	TPLabel {
+		id: lblPassword
+		text: userModel.passwordLabel
+		height: controlsHeight
+
+		anchors {
+			top: txtName.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
+	TPTextInput {
+		id: txtPassword
+		echoMode: TextInput.Password
+		heightAdjustable: false
+
+		anchors {
+			top: lblPassword.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+
+		onEditingFinished: userModel.setPassword(text.trim());
+		onEnterOrReturnKeyPressed: btnBirthDate.clicked(0);
+	}
+
+	TPLabel {
 		id: lblBirthdate
 		text: userModel.birthdayLabel
 		height: controlsHeight
 
 		anchors {
-			top: txtName.bottom
+			top: txtPassword.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5

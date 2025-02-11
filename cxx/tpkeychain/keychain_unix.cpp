@@ -10,6 +10,8 @@
 #include "libsecret_p.h"
 #include "plaintextstore_p.h"
 
+#include "../tpglobals.h"
+
 #include <QScopedPointer>
 
 using namespace QKeychain;
@@ -19,8 +21,14 @@ using namespace QKeychain;
 
 void ReadPasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::findPassword(key, q->service(), this))
-		q->emitFinishedWithError(OtherError, tr("Unknown error"));
+	if (LibSecretKeyring::findPassword(key, q->service(), this))
+		q->emitFinished();
+	else
+	{
+		DEFINE_SOURCE_LOCATION
+		ERROR_MESSAGE("LibSecret", "Read password failed. Using fallback()")
+		fallbackOnError();
+	}
 }
 
 void ReadPasswordJobPrivate::fallbackOnError()
@@ -40,8 +48,14 @@ void ReadPasswordJobPrivate::fallbackOnError()
 
 void WritePasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::writePassword(service, key, service, mode, data, this))
-		q->emitFinishedWithError(OtherError, tr("Unknown error"));
+	if (LibSecretKeyring::writePassword(service, key, service, mode, data, this))
+        q->emitFinished();
+	else
+	{
+		DEFINE_SOURCE_LOCATION
+		ERROR_MESSAGE("LibSecret", "Write password failed. Using fallback()")
+		fallbackOnError();
+	}
 }
 
 void WritePasswordJobPrivate::fallbackOnError()
@@ -57,8 +71,14 @@ void WritePasswordJobPrivate::fallbackOnError()
 
 void DeletePasswordJobPrivate::scheduledStart()
 {
-	if (!LibSecretKeyring::deletePassword(key, q->service(), this))
-		q->emitFinishedWithError(OtherError, tr("Unknown error"));
+	if (LibSecretKeyring::deletePassword(key, q->service(), this))
+		q->emitFinished();
+	else
+	{
+		DEFINE_SOURCE_LOCATION
+		ERROR_MESSAGE("LibSecret", "Delete password failed. Using fallback()")
+		fallbackOnError();
+	}
 }
 
 void DeletePasswordJobPrivate::fallbackOnError()

@@ -8,6 +8,7 @@
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
+#include "tpkeychain/tpkeychain.h"
 
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -31,6 +32,7 @@ int main(int argc, char *argv[])
 
 		TPSettings tpSettings{};
 		TPUtils tpUtils{};
+		TPKeyChain tpKeyChain{};
 		TranslationClass appTranslations{};
 		TPOnlineServices appTOS{};
 		OSInterface osInterface{};

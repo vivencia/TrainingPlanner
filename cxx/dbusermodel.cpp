@@ -9,6 +9,7 @@
 #include "tputils.h"
 #include "translationclass.h"
 #include "online_services/tponlineservices.h"
+#include "tpkeychain/tpkeychain.h"
 
 #include <QDateTime>
 #include <QFile>
@@ -66,6 +67,7 @@ void DBUserModel::updateColumnNames()
 	mColumnNames[USER_COL_GOAL] = std::move(tr("Goal: "));
 }
 
+QString DBUserModel::passwordLabel() const { return tr("Password:"); }
 QString DBUserModel::newUserLabel() const
 {
 	return !m_modeldata.isEmpty() && !userName(0).isEmpty() ? tr("Continue Setup") : tr("Create a new user");
@@ -81,8 +83,8 @@ void DBUserModel::createMainUser()
 	if (m_modeldata.isEmpty())
 	{
 		m_modeldata.insert(0, std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) <<
-			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} <<
-			QString::number(APP_USE_MODE_SINGLE_USER) << STR_ZERO << STR_ZERO));
+			"2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString::number(APP_USE_MODE_SINGLE_USER)
+			<< STR_ZERO << STR_ZERO));
 		emit userModified(0);
 	}
 }
@@ -126,9 +128,9 @@ int DBUserModel::addUser(const bool bCoach)
 			break;
 		}
 	}
-	appendList_fast(std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1) << "2"_L1 << QString{} <<
-		QString{} << QString{} << QString{} << QString{} << QString{} << std::move("image://tpimageprovider/m5"_L1) <<
-		QString::number(use_mode) << QString::number(cur_coach) << QString::number(cur_client)));
+	appendList_fast(std::move(QStringList{} << std::move(generateUniqueUserId()) << QString{} << std::move("2424151"_L1)
+		<< "2"_L1 << QString{} << QString{} << QString{} << QString{} << QString{} << QString{} << QString::number(use_mode)
+		<< QString::number(cur_coach) << QString::number(cur_client)));
 	return m_modeldata.count() - 1;
 }
 
@@ -257,6 +259,27 @@ uint DBUserModel::userRow(const QString &userName) const
 			return i;
 	}
 	return 0; //Should never reach here
+}
+
+QString DBUserModel::password() const
+{
+	connect(appkeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+		qDebug() << "key: " << key;
+		qDebug() << "password: " << value;
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appkeyChain()->readKey(_userId(0));
+	return QString{};
+}
+
+void DBUserModel::setPassword(const QString &password)
+{
+#ifndef QT_NO_DEBUG
+	connect(appkeyChain(), &TPKeyChain::keyStored, this, [this] (const QString &key) {
+		qDebug() << "key: " << key << " stored";
+		this->DBUserModel::password();
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+#endif
+	appkeyChain()->writeKey(_userId(0), password);
 }
 
 void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)

@@ -1,5 +1,7 @@
 #include "tpkeychain.h"
 
+TPKeyChain *TPKeyChain::_appKeyChain{nullptr};
+
 using namespace Qt::Literals::StringLiterals;
 
 TPKeyChain::TPKeyChain(QObject *parent)
@@ -8,6 +10,7 @@ TPKeyChain::TPKeyChain(QObject *parent)
 	  m_writeCredentialJob{"org.vivenciasoftware.TrainingPlanner"_L1},
 	  m_deleteCredentialJob{"org.vivenciasoftware.TrainingPlanner"_L1}
 {
+	_appKeyChain = this;
 	m_readCredentialJob.setAutoDelete(false);
 	m_writeCredentialJob.setAutoDelete(false);
 	m_deleteCredentialJob.setAutoDelete(false);

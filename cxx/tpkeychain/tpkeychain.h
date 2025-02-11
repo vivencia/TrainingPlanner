@@ -27,6 +27,11 @@ private:
     QKeychain::ReadPasswordJob m_readCredentialJob;
     QKeychain::WritePasswordJob m_writeCredentialJob;
     QKeychain::DeletePasswordJob m_deleteCredentialJob;
+
+    static TPKeyChain *_appKeyChain;
+    friend TPKeyChain *appkeyChain();
 };
+
+inline TPKeyChain *appkeyChain() { return TPKeyChain::_appKeyChain; }
 
 #endif // TPKEYCHAIN_H
