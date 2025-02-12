@@ -21,9 +21,7 @@ using namespace QKeychain;
 
 void ReadPasswordJobPrivate::scheduledStart()
 {
-	if (LibSecretKeyring::findPassword(key, q->service(), this))
-		q->emitFinished();
-	else
+	if (!LibSecretKeyring::findPassword(key, q->service(), this))
 	{
 		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("LibSecret", "Read password failed. Using fallback()")
@@ -48,9 +46,7 @@ void ReadPasswordJobPrivate::fallbackOnError()
 
 void WritePasswordJobPrivate::scheduledStart()
 {
-	if (LibSecretKeyring::writePassword(service, key, service, mode, data, this))
-        q->emitFinished();
-	else
+	if (!LibSecretKeyring::writePassword(service, key, service, mode, data, this))
 	{
 		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("LibSecret", "Write password failed. Using fallback()")
@@ -71,9 +67,7 @@ void WritePasswordJobPrivate::fallbackOnError()
 
 void DeletePasswordJobPrivate::scheduledStart()
 {
-	if (LibSecretKeyring::deletePassword(key, q->service(), this))
-		q->emitFinished();
-	else
+	if (!LibSecretKeyring::deletePassword(key, q->service(), this))
 	{
 		DEFINE_SOURCE_LOCATION
 		ERROR_MESSAGE("LibSecret", "Delete password failed. Using fallback()")

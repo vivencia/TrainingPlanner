@@ -39,7 +39,6 @@ public:
 protected:
     JobPrivate(const QString &service_, Job *q);
 
-protected:
     QKeychain::Error error;
     QString errorString;
     QString service;

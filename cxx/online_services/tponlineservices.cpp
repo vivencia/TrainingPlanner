@@ -56,9 +56,9 @@ void TPOnlineServices::checkServer(int network_status)
 	});
 }
 
-void TPOnlineServices::checkOnlineUser(const QString &query)
+void TPOnlineServices::checkOnlineUser(const QString &query, const QString &passwd)
 {
-	const QUrl &url{makeCommandURL("onlineuser"_L1, query)};
+	const QUrl &url{makeCommandURL("onlineuser"_L1, query, passwd)};
 	makeNetworkRequest(url);
 }
 

@@ -48,6 +48,7 @@ Q_PROPERTY(QString avatarLabel READ avatarLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString newUserLabel READ newUserLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString existingUserLabel READ existingUserLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString invalidEmailLabel READ invalidEmailLabel NOTIFY labelsChanged FINAL)
+Q_PROPERTY(QString invalidPasswordLabel READ invalidPasswordLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString checkEmailLabel READ checkEmailLabel NOTIFY labelsChanged FINAL)
 Q_PROPERTY(QString importUserLabel READ importUserLabel NOTIFY labelsChanged FINAL)
 
@@ -69,6 +70,7 @@ public:
 	QString newUserLabel() const;
 	QString existingUserLabel() const;
 	QString invalidEmailLabel() const;
+	QString invalidPasswordLabel() const;
 	QString checkEmailLabel() const;
 	QString importUserLabel() const;
 
@@ -253,7 +255,7 @@ public:
 	{
 		disconnect(this, &DBUserModel::mainUserOnlineCheckInChanged, nullptr, nullptr);
 	}
-	Q_INVOKABLE void checkUserOnline(const QString &email);
+	Q_INVOKABLE void checkUserOnline(const QString &email, const QString &password);
 	Q_INVOKABLE void importFromOnlineServer();
 	Q_INVOKABLE inline bool mainUserRegistered() const { return mb_userRegistered && mb_userRegistered == true; }
 	Q_INVOKABLE void setCoachPublicStatus(const bool bPublic);
@@ -307,7 +309,6 @@ private:
 	bool onlineCheckIn();
 	void registerUserOnline();
 	QString generateUniqueUserId() const;
-	QString getUserPassword() const;
 	void sendProfileToServer();
 	void sendUserInfoToServer();
 	void sendAvatarToServer();

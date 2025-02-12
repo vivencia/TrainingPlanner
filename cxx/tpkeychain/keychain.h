@@ -89,6 +89,7 @@ public:
     void start();
 
     QString service() const;
+    void setService(const QString &new_service);
 
     /**
      * @note Call this method only after finished() has been emitted.
@@ -188,7 +189,7 @@ public:
      * @param service The service string used by this job (can be empty).
      * @param parent The parent of this job.
      */
-    explicit ReadPasswordJob(const QString &service, QObject *parent = nullptr);
+    explicit ReadPasswordJob(const QString &service = QString{}, QObject *parent = nullptr);
     ~ReadPasswordJob() override;
 
     /**
@@ -226,7 +227,7 @@ public:
      * @param service The service string used by this job (can be empty).
      * @param parent The parent of this job.
      */
-    explicit WritePasswordJob(const QString &service, QObject *parent = nullptr);
+    explicit WritePasswordJob(const QString &service = QString{}, QObject *parent = nullptr);
     ~WritePasswordJob() override;
 
     /**
@@ -263,7 +264,7 @@ public:
      * @param service The service string used by this job (can be empty).
      * @param parent The parent of this job.
      */
-    explicit DeletePasswordJob(const QString &service, QObject *parent = nullptr);
+    explicit DeletePasswordJob(const QString &service = QString{}, QObject *parent = nullptr);
     ~DeletePasswordJob() override;
 
 private:

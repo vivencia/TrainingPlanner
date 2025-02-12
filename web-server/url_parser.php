@@ -217,6 +217,32 @@ function run_htpasswd($cmd_args, $username, $password) {
     return $return_var;
 }
 
+function update_datafile_with_password($userid) {
+    global $rootdir;
+    global $htpasswd_file;
+
+    $users = file($htpasswd_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $password="";
+    foreach ($users as $user) {
+        $sep=strpos($user, ':');
+        $username=substr($user, 0, $sep);
+        if ($username == $userid) {
+            $password=substr($user, $sep+1, strlen($user)-$sep);
+            break;
+        }
+    }
+    if ($password != "") {
+        $userdatafile = $rootdir . $userid . "/user.data";
+        if (file_exists($userdatafile)) {
+            $fh = fopen($userdatafile, 'a')  or die("Return code: 10 Unable to open user.data file!" .$userdatafile . "\r\n");
+            fwrite($fh, $password);
+            fclose($fh);
+            return true;
+        }
+    }
+    return false;
+}
+
 function run_dbscript($cmd, $cmd_opt, $userid) {
     global $scriptsdir;
     $dbscript=$scriptsdir . "usersdb.sh";
@@ -316,7 +342,8 @@ else { //user management
 
     $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
     if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
-        run_dbscript("getid", $query, "");
+        $password = isset($_GET['password']) ? $_GET['password'] : '';
+        run_dbscript("getid", $query . ' ' . $password , "");
         exit;
     }
 
@@ -328,7 +355,8 @@ else { //user management
 
     $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
     if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
-        run_dbscript("add", "", $userid);
+        if (update_datafile_with_password($userid))
+            run_dbscript("add", "", $userid);
         exit;
     }
 
@@ -350,7 +378,7 @@ else { //user management
     $username = isset($_GET['adduser']) ? $_GET['adduser'] : '';
     if ($username) { //new user creation. Encrypt password onto file and create the user's dir
         $new_user_password = isset($_GET['password']) ? $_GET['password'] : '';
-        $ok = run_htpasswd("-bd5", $username, $new_user_password);
+        $ok = run_htpasswd("-bB", $username, $new_user_password);
         if ($ok == 0) {
             $userdir = $rootdir . $username;
             if (!is_dir($userdir)) {
@@ -392,7 +420,7 @@ else { //user management
         if ($ok == 0) {
             $new_username = isset($_GET['newuser']) ? $_GET['newuser'] : '';
             $new_password = isset($_GET['password']) ? $_GET['password'] : '';
-            $ok = run_htpasswd("-bd5", $new_username, $new_password);
+            $ok = run_htpasswd("-bB", $new_username, $new_password);
             if ($ok == 0) {
                 $userdir = $rootdir . $username;
                 if (is_dir($userdir)) {

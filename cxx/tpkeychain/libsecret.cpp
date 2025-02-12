@@ -9,7 +9,7 @@
 
 const SecretSchema *qtkeychainSchema(void)
 {
-    static const SecretSchema schema = { "org.qt.keychain",
+    static const SecretSchema schema = { "org.vivenciasoftware.TrainingPlanner",
                                          SECRET_SCHEMA_DONT_MATCH_NAME,
                                          { { "user", SECRET_SCHEMA_ATTRIBUTE_STRING },
                                            { "server", SECRET_SCHEMA_ATTRIBUTE_STRING },

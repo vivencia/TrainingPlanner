@@ -23,7 +23,7 @@ public:
 	inline ~TPOnlineServices() { delete m_networkManager; }
 
 	void checkServer(int network_status);
-	void checkOnlineUser(const QString &query);
+	void checkOnlineUser(const QString &query, const QString &passwd);
 	void getOnlineUserData(const QString &user_id);
 	void checkUser(const QString &username, const QString &passwd);
 	void registerUser(const QString &username, const QString &passwd);

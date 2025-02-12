@@ -23,7 +23,7 @@ Frame {
 
 	property bool bReady: false
 	property bool bImport: false
-	readonly property int nControls: 5
+	readonly property int nControls: 7
 	readonly property int controlsHeight: 25
 	readonly property int moduleHeight: nControls*(controlsHeight) + 15
 
@@ -113,18 +113,13 @@ Frame {
 		property bool inputOK: false
 
 		onEnterOrReturnKeyPressed: {
-			if (inputOK) {
-				if (!bImport)
-					btnCheckEMail.clicked(0);
-				else
-					btnImport.clicked(0);
-			}
+			if (inputOK)
+				txtPassword.forceActiveFocus();
 		}
 
 		onTextEdited: {
 			inputOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
 			ToolTip.visible = !inputOK;
-			btnCheckEMail.enabled = inputOK;
 		}
 
 		anchors {
@@ -136,10 +131,58 @@ Frame {
 		}
 	}
 
+	TPLabel {
+		id: lblPassword
+		text: userModel.passwordLabel
+		height: controlsHeight
+
+		anchors {
+			top: txtEmail.bottom
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
+	TPTextInput {
+		id: txtPassword
+		echoMode: TextInput.Password
+		ToolTip.text: userModel.invalidPasswordLabel
+		heightAdjustable: false
+		height: controlsHeight
+		enabled: txtEmail.inputOK
+
+		property bool inputOK: false
+
+		onEnterOrReturnKeyPressed: {
+			if (inputOK) {
+				if (!bImport)
+					btnCheckEMail.clicked(0);
+				else
+					btnImport.clicked(0);
+			}
+		}
+
+		onTextEdited: {
+			inputOK = text.length >= 6
+			ToolTip.visible = !inputOK;
+			btnCheckEMail.enabled = inputOK;
+		}
+
+		anchors {
+			top: lblPassword.bottom
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
+		}
+	}
+
 	RowLayout {
 		spacing: 10
 		height: controlsHeight
-		enabled: optImportUser.checked
 
 		anchors {
 			top: txtEmail.bottom
@@ -153,10 +196,11 @@ Frame {
 		TPButton {
 			id: btnCheckEMail
 			text: userModel.checkEmailLabel
+			enabled: txtPassword.inputOK;
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				userModel.checkUserOnline(txtEmail.text);
+				userModel.checkUserOnline(txtEmail.text.trim(), txtPassword.text.trim());
 				enabled = false;
 			}
 		}

@@ -23,6 +23,11 @@ QString Job::service() const
     return d->service;
 }
 
+void Job::setService(const QString &new_service)
+{
+	d->service = new_service;
+}
+
 QSettings *Job::settings() const
 {
     return d->settings;
@@ -217,7 +222,7 @@ ReadPasswordJobPrivate::ReadPasswordJobPrivate(const QString &service_, ReadPass
 
 JobPrivate::JobPrivate(const QString &service_, Job *qq)
     : q(qq),
-      mode(Text),
+      mode(Binary),
       error(NoError),
       service(service_),
       autoDelete(true),

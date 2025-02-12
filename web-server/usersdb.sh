@@ -8,14 +8,18 @@ USER_ID=""
 BASE_SERVER_DIR=/var/www/html
 TP_DIR=$BASE_SERVER_DIR/trainingplanner
 ADMIN="admin"
-USERS_DB=$TP_DIR/$ADMIN/users.db
-FIELDS_FILE=$TP_DIR/$ADMIN/user.fields
+ADMIN_DIR="$TP_DIR/$ADMIN/"
+USERS_DB=$ADMIN_DIR"users.db"
+FIELDS_FILE=$ADMIN_DIR"user.fields"
 USER_DIR=$TP_DIR/$USER_ID
 DATA_FILE=$USER_DIR/user.data
 SQLITE=$(which sqlite3)
 
 SOURCES_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #the directory of this script
 cd "${SOURCES_DIR}" || exit
+N_FIELDS=$(wc -l "${FIELDS_FILE}" | cut -d ' ' -f 1)
+LAST_FIELD=$N_FIELDS
+(( LAST_FIELD-- ))
 
 user_exists() {
     RETURN_ID=$(sqlite3 -line $USERS_DB "SELECT id FROM user_table WHERE id=$USER_ID;")
@@ -37,7 +41,7 @@ get_values() {
         done < $DATA_FILE
     fi
     rm -f $DATA_FILE #do not leave file behind. Might lead to problems if, for example, a file upload fails and this script uses an already used file
-    if [ $i == 14 ]; then
+    if [ $i == $N_FIELDS ]; then
         return 0
     else
         return 1
@@ -53,7 +57,7 @@ get_fields() {
             (( x++ ))
         done < $FIELDS_FILE
     fi
-    if [[ $x == 14 ]]; then
+    if [[ $x == $N_FIELDS ]]; then
         return 0
     else
         return 1
@@ -65,8 +69,8 @@ get_update_command() {
     if get_fields; then
         if get_values; then
             i=1
-            while [ $i -le 13 ]; do
-                if [ $i != 13 ]; then
+            while [ $i -lt $N_FIELDS ]; do
+                if [ $i != $LAST_FIELD ]; then
                     UPDATE_CMD="$UPDATE_CMD ${FIELDS[$i]}=${VALUES[$i]},"
                 else
                     UPDATE_CMD="UPDATE user_table SET $UPDATE_CMD ${FIELDS[$i]}=${VALUES[$i]} WHERE ${FIELDS[0]}=${VALUES[0]};"
@@ -84,7 +88,7 @@ get_insert_command() {
     if get_fields; then
         (( z=0 ))
         for field in "${FIELDS[@]}"; do
-            if [ $z != 13 ]; then
+            if [ $z != $LAST_FIELD ]; then
                 INSERT_CMD="$INSERT_CMD${field},"
             else
                 INSERT_CMD="$INSERT_CMD${field}) VALUES("
@@ -93,8 +97,8 @@ get_insert_command() {
         done
         if get_values; then
             (( z=0 ))
-            while [ $z -le 13 ]; do
-                if [ $z != 13 ]; then
+            while [ $z -lt $N_FIELDS  ]; do
+                if [ $z != $LAST_FIELD ]; then
                     INSERT_CMD="$INSERT_CMD${VALUES[$z]},"
                 else
                     INSERT_CMD="INSERT INTO user_table ($INSERT_CMD${VALUES[$z]});"
@@ -141,7 +145,7 @@ get_field_value() {
 }
 
 REQUESTED_ID=""
-#argument must be in the format: field=value i.e. email=john@mail.com
+#argument must be in the format: field=value password i.e. email=john@mail.com 123456
 get_id() {
     FIELD=$(echo "${1}" | cut -d '=' -f 1)
     VALUE=$(echo "${1}" | cut -d '=' -f 2)
@@ -149,10 +153,25 @@ get_id() {
     REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT id FROM user_table WHERE $FIELD=$VALUE;")
     if [[ $REQUESTED_ID != "" ]]; then
         REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
-        return 0
+        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM user_table WHERE id=$REQUESTED_ID;")
+        REQUESTED_PASSWD=$(echo "${REQUESTED_PASSWD}" | cut -d '=' -f 2)
+        TEMP_HT_FILE=$ADMIN_DIR$REQUESTED_ID".htpasswd"
+        echo $REQUESTED_ID:$REQUESTED_PASSWD > $TEMP_HT_FILE
+        /usr/bin/htpasswd -bv $TEMP_HT_FILE $REQUESTED_ID $REQUESTED_PASSWD > /dev/null 2>&1
+        rm -f $TEMP_HT_FILE
+        return_var = "$?";
+        case "$return_var" in
+            0) error_string = "User exists and password is correct";;
+            3) error_string = "User exists and password is wrong";;
+            6) error_string = "User does not exist";;
+            *) error_string = "User does not exist";;
+        esac
     else
-        return 1
+        error_string = "User does not exist"
+        return_var = 6
     fi
+    echo $error_string
+    return $return_var
 }
 
 check_user_dir()
@@ -231,12 +250,8 @@ do
             fi
         ;;
         getid)
-            if get_id "${2}"; then
-                echo "$REQUESTED_ID"
-                exit 0
-            else
-                exit 16
-            fi
+            get_id "${2}" "${3}"
+            exit $?
         ;;
         *)
             USER_ID=$var

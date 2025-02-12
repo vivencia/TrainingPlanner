@@ -1,8 +1,6 @@
 #ifndef TPKEYCHAIN_H
 #define TPKEYCHAIN_H
 
-#include "keychain.h"
-
 #include <QObject>
 
 class TPKeyChain : public QObject
@@ -11,7 +9,7 @@ class TPKeyChain : public QObject
 Q_OBJECT
 
 public:
-    explicit TPKeyChain(QObject *parent = nullptr);
+    explicit inline TPKeyChain(QObject *parent = nullptr): QObject{parent} { _appKeyChain = this; }
 
     Q_INVOKABLE void readKey(const QString &key);
     Q_INVOKABLE void writeKey(const QString &key, const QString &value);
@@ -24,14 +22,10 @@ Q_SIGNALS:
     void error(const QString &errorText);
 
 private:
-    QKeychain::ReadPasswordJob m_readCredentialJob;
-    QKeychain::WritePasswordJob m_writeCredentialJob;
-    QKeychain::DeletePasswordJob m_deleteCredentialJob;
-
     static TPKeyChain *_appKeyChain;
-    friend TPKeyChain *appkeyChain();
+    friend TPKeyChain *appKeyChain();
 };
 
-inline TPKeyChain *appkeyChain() { return TPKeyChain::_appKeyChain; }
+inline TPKeyChain *appKeyChain() { return TPKeyChain::_appKeyChain; }
 
 #endif // TPKEYCHAIN_H

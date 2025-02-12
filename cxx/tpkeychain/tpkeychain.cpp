@@ -1,63 +1,58 @@
 #include "tpkeychain.h"
+#include "keychain.h"
 
 TPKeyChain *TPKeyChain::_appKeyChain{nullptr};
 
 using namespace Qt::Literals::StringLiterals;
 
-TPKeyChain::TPKeyChain(QObject *parent)
-	: QObject{parent},
-	  m_readCredentialJob{"org.vivenciasoftware.TrainingPlanner"_L1},
-	  m_writeCredentialJob{"org.vivenciasoftware.TrainingPlanner"_L1},
-	  m_deleteCredentialJob{"org.vivenciasoftware.TrainingPlanner"_L1}
-{
-	_appKeyChain = this;
-	m_readCredentialJob.setAutoDelete(false);
-	m_writeCredentialJob.setAutoDelete(false);
-	m_deleteCredentialJob.setAutoDelete(false);
-}
-
 void TPKeyChain::readKey(const QString &key)
 {
-	m_readCredentialJob.setKey(key);
+	QKeychain::ReadPasswordJob *readCredentialJob{new QKeychain::ReadPasswordJob{key, this}};
+	readCredentialJob->setKey(key);
+	readCredentialJob->setService(key);
 
-	connect(&m_readCredentialJob, &QKeychain::ReadPasswordJob::finished, this, [this,key] (QKeychain::Job *) {
-		if (m_readCredentialJob.error()) {
-			emit error(tr("Read key failed: %1").arg(qPrintable(m_readCredentialJob.errorString())));
+	connect(readCredentialJob, &QKeychain::ReadPasswordJob::finished, this, [this,key] (QKeychain::Job *readCredentialJob) {
+		if (readCredentialJob->error()) {
+			emit error(tr("Read key failed: %1").arg(qPrintable(readCredentialJob->errorString())));
 			return;
 		}
-		emit keyRestored(key, m_readCredentialJob.textData());
-	});
+		emit keyRestored(key, static_cast<QKeychain::ReadPasswordJob*>(readCredentialJob)->binaryData());
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
-	m_readCredentialJob.start();
+	readCredentialJob->start();
 }
 
 void TPKeyChain::writeKey(const QString &key, const QString &value)
 {
-	m_writeCredentialJob.setKey(key);
+	QKeychain::WritePasswordJob *writeCredentialJob{new QKeychain::WritePasswordJob{key, this}};
+	writeCredentialJob->setKey(key);
+	writeCredentialJob->setAutoDelete(true);
 
-	connect(&m_writeCredentialJob, &QKeychain::WritePasswordJob::finished, this, [this,key] (QKeychain::Job *) {
-		if (m_writeCredentialJob.error()) {
-			emit error(tr("Write key failed: %1").arg(qPrintable(m_writeCredentialJob.errorString())));
+	connect(writeCredentialJob, &QKeychain::WritePasswordJob::finished, this, [this,key] (QKeychain::Job *writeCredentialJob) {
+		if (writeCredentialJob->error()) {
+			emit error(tr("Write key failed: %1").arg(qPrintable(writeCredentialJob->errorString())));
 			return;
 		}
 		emit keyStored(key);
-	});
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
-	m_writeCredentialJob.setTextData(value);
-	m_writeCredentialJob.start();
+	writeCredentialJob->setBinaryData(value.toLatin1());
+	writeCredentialJob->start();
 }
 
 void TPKeyChain::deleteKey(const QString &key)
 {
-	m_deleteCredentialJob.setKey(key);
+	QKeychain::DeletePasswordJob *deleteCredentialJob{new QKeychain::DeletePasswordJob{key, this}};
+	deleteCredentialJob->setKey(key);
+	deleteCredentialJob->setAutoDelete(true);
 
-	connect(&m_deleteCredentialJob, &QKeychain::DeletePasswordJob::finished, this, [this,key] (QKeychain::Job *) {
-		if (m_deleteCredentialJob.error()) {
-			emit error(tr("Delete key failed: %1").arg(qPrintable(m_deleteCredentialJob.errorString())));
+	connect(deleteCredentialJob, &QKeychain::DeletePasswordJob::finished, this, [this,key] (QKeychain::Job *deleteCredentialJob) {
+		if (deleteCredentialJob->error()) {
+			emit error(tr("Delete key failed: %1").arg(qPrintable(deleteCredentialJob->errorString())));
 			return;
 		}
 		emit keyDeleted(key);
-	});
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 
-	m_deleteCredentialJob.start();
+	deleteCredentialJob->start();
 }
