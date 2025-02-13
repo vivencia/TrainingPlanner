@@ -131,10 +131,9 @@ Frame {
 		}
 	}
 
-	TPLabel {
-		id: lblPassword
-		text: userModel.passwordLabel
-		height: controlsHeight
+	TPPassword {
+		id: passwordControl
+		enabled: txtEmail.inputOK
 
 		anchors {
 			top: txtEmail.bottom
@@ -144,40 +143,9 @@ Frame {
 			right: parent.right
 			rightMargin: 5
 		}
-	}
 
-	TPTextInput {
-		id: txtPassword
-		echoMode: TextInput.Password
-		ToolTip.text: userModel.invalidPasswordLabel
-		heightAdjustable: false
-		height: controlsHeight
-		enabled: txtEmail.inputOK
-
-		property bool inputOK: false
-
-		onEnterOrReturnKeyPressed: {
-			if (inputOK) {
-				if (!bImport)
-					btnCheckEMail.clicked(0);
-				else
-					btnImport.clicked(0);
-			}
-		}
-
-		onTextEdited: {
-			inputOK = text.length >= 6
-			ToolTip.visible = !inputOK;
-			btnCheckEMail.enabled = inputOK;
-		}
-
-		anchors {
-			top: lblPassword.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
-		}
+		onPasswordUnacceptable: btnCheckEMail.enabled = false;
+		onPasswordAccepted: btnCheckEMail.enabled = true;
 	}
 
 	RowLayout {
@@ -185,8 +153,8 @@ Frame {
 		height: controlsHeight
 
 		anchors {
-			top: txtEmail.bottom
-			topMargin: 20
+			top: passwordControl.bottom
+			topMargin: 10
 			left: parent.left
 			leftMargin: 5
 			right: parent.right
@@ -196,11 +164,10 @@ Frame {
 		TPButton {
 			id: btnCheckEMail
 			text: userModel.checkEmailLabel
-			enabled: txtPassword.inputOK;
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {
-				userModel.checkUserOnline(txtEmail.text.trim(), txtPassword.text.trim());
+				userModel.checkUserOnline(txtEmail.text.trim(), passwordControl.getPassword());
 				enabled = false;
 			}
 		}

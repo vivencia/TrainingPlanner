@@ -211,7 +211,6 @@ Frame {
 
 	TPImage {
 		id: imgAvatar
-		source: userModel.avatar(userRow)
 		height: 100
 		width: 100
 

@@ -11,12 +11,12 @@
 DBUserTable::DBUserTable(const QString &dbFilePath, DBUserModel *model)
 	: TPDatabaseTable{nullptr}, m_model{model}
 {
-	m_tableName = std::move("user_table"_L1);
-	m_tableID = USER_TABLE_ID;
+	m_tableName = std::move("users_table"_L1);
+	m_tableID = USERS_TABLE_ID;
 	setObjectName(DBUserObjectName);
 	m_UniqueID = QTime::currentTime().msecsSinceStartOfDay();
 	const QString &cnx_name("db_exercises_connection"_L1 + QString::number(m_UniqueID));
-	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name)); //TEST std::move
+	mSqlLiteDB = std::move(QSqlDatabase::addDatabase("QSQLITE"_L1, cnx_name));
 	const QString &dbname(dbFilePath + DBUserFileName);
 	mSqlLiteDB.setDatabaseName(dbname);
 }
@@ -26,7 +26,7 @@ void DBUserTable::createTable()
 	if (openDatabase())
 	{
 		QSqlQuery query{getQuery()};
-		const QString &strQuery{"CREATE TABLE IF NOT EXISTS user_table ("
+		const QString &strQuery{"CREATE TABLE IF NOT EXISTS users_table ("
 										"id INTEGER PRIMARY KEY,"
 										"name TEXT,"
 										"birthday INTEGER,"
@@ -53,7 +53,7 @@ void DBUserTable::getAllUsers()
 	{
 		bool ok{false};
 		QSqlQuery query{getQuery()};
-		const QString &strQuery{"SELECT * FROM user_table"_L1};
+		const QString &strQuery{"SELECT * FROM users_table"_L1};
 		if (query.exec(strQuery))
 		{
 			if (query.first ())
@@ -82,7 +82,7 @@ void DBUserTable::saveUser()
 		const uint row{m_execArgs.at(0).toUInt()};
 		bool bUpdate{false};
 		QString strQuery;
-		if (query.exec("SELECT id FROM user_table WHERE id=%1"_L1.arg(m_model->_userId(row))))
+		if (query.exec("SELECT id FROM users_table WHERE id=%1"_L1.arg(m_model->_userId(row))))
 		{
 			if (query.first())
 				bUpdate = query.value(0).toUInt() >= 0;
@@ -92,7 +92,7 @@ void DBUserTable::saveUser()
 		if (bUpdate)
 		{
 			//from_list is set to 0 because an edited exercise, regardless of its id, is considered different from the default list provided exercise
-			strQuery = std::move(u"UPDATE user_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
+			strQuery = std::move(u"UPDATE users_table SET name=\'%1\', birthday=%2, sex=\'%3\', phone=\'%4\', email=\'%5\', social=\'%6\', "
 						"role=\'%7\', coach_role=\'%8\', goal=\'%9\', use_mode=%10, current_coach=%11, current_user=%12 WHERE id=%13"_s
 				.arg(m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row), m_model->_phone(row), m_model->_email(row),
 					m_model->_socialMedia(row), m_model->_userRole(row), m_model->_coachRole(row), m_model->_goal(row), m_model->_appUseMode(row),
@@ -100,7 +100,7 @@ void DBUserTable::saveUser()
 		}
 		else
 		{
-			strQuery = std::move(u"INSERT INTO user_table "
+			strQuery = std::move(u"INSERT INTO users_table "
 				"(id,name,birthday,sex,phone,email,social,role,coach_role,goal,use_mode,current_coach,current_user)"
 				" VALUES(%1, \'%2\', %3, \'%4\', \'%5\', \'%6\', \'%7\', \'%8\',\'%9\', \'%10\', %11, %12, %13)"_s
 					.arg(m_model->_userId(row), m_model->_userName(row), m_model->_birthDate(row), m_model->_sex(row),

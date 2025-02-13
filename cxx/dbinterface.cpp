@@ -94,7 +94,7 @@ void DBInterface::init()
 	}
 }
 
-void DBInterface::threadFinished(TPDatabaseTable* dbObj)
+void DBInterface::threadFinished(TPDatabaseTable *dbObj)
 {
 	const QString &dbObjName{dbObj->objectName()};
 	dbObj->setResolved(true);
@@ -104,7 +104,7 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	emit databaseReady(dbObj->uniqueID());
 	if (m_WorkerLock[dbObj->tableID()].hasNext())
 	{
-		const TPDatabaseTable* const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
+		const TPDatabaseTable *const nextDbObj{m_WorkerLock[dbObj->tableID()].nextObj()};
 		LOG_MESSAGE("Database  " << dbObjName << " - " << nextDbObj->uniqueID() <<" starting in sequence of previous thread")
 		nextDbObj->thread()->start();
 		if (nextDbObj->waitForThreadToFinish())
@@ -112,14 +112,14 @@ void DBInterface::threadFinished(TPDatabaseTable* dbObj)
 	}
 }
 
-void DBInterface::updateDB(TPDatabaseTable* worker)
+void DBInterface::updateDB(TPDatabaseTable *worker)
 {
 	createThread(worker, [worker] () { worker->updateTable(); });
 }
 
-void DBInterface::createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc )
+void DBInterface::createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc )
 {
-	worker->setCallbackForDoneFunc([this] (TPDatabaseTable* obj) { return threadFinished(obj); });
+	worker->setCallbackForDoneFunc([this] (TPDatabaseTable *obj) { return threadFinished(obj); });
 
 	QThread* thread{new QThread()};
 	connect(thread, &QThread::started, worker, execFunc);
@@ -148,7 +148,7 @@ void DBInterface::createThread(TPDatabaseTable* worker, const std::function<void
 
 void DBInterface::cleanUpThreads()
 {
-	TPDatabaseTable* dbObj(nullptr);
+	TPDatabaseTable *dbObj(nullptr);
 	bool locks_empty(true);
 
 	for (uint x(1); x <= APP_TABLES_NUMBER; ++x)

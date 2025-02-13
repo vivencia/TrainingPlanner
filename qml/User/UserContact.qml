@@ -21,7 +21,7 @@ Frame {
 	required property int userRow
 	property bool bReady: bPhoneOK & bEmailOK & bSocialOK
 	property bool bPhoneOK: false
-	property bool bEmailOK: true
+	property bool bEmailOK: false
 	property bool bSocialOK: true
 	readonly property int nControls: 7
 	readonly property int controlsHeight: 25

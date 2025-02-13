@@ -204,6 +204,7 @@ set( QML_SOURCES
     "qml/TPWidgets/TPImportDialog.qml"
     "qml/TPWidgets/TPLabel.qml"
     "qml/TPWidgets/TPMouseArea.qml"
+    "qml/TPWidgets/TPPassword.qml"
     "qml/TPWidgets/TPPopup.qml"
     "qml/TPWidgets/TPRadioButton.qml"
     "qml/TPWidgets/TPSaveDialog.qml"

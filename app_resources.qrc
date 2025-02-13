@@ -99,5 +99,7 @@
         <file>images/flat/up.png</file>
         <file>images/add-new.png</file>
         <file>images/password.png</file>
+        <file>images/flat/hide-password.png</file>
+        <file>images/flat/show-password.png</file>
     </qresource>
 </RCC>

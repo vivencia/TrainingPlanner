@@ -34,12 +34,12 @@ public:
 	explicit inline DBInterface()
 		: QObject{nullptr}, mb_importMode(false) { app_db_interface = this; }
 	inline DBInterface(const DBInterface& other) = delete;
-	inline DBInterface& operator()(const DBInterface& other) = delete;
+	inline DBInterface &operator()(const DBInterface& other) = delete;
 	inline ~DBInterface() {}
 
-	inline const QString& dbFilesPath() const { return m_DBFilePath; }
+	inline const QString &dbFilesPath() const { return m_DBFilePath; }
 	void init();
-	void threadFinished(TPDatabaseTable* dbObj);
+	void threadFinished(TPDatabaseTable *dbObj);
 
 	//-----------------------------------------------------------USER TABLE-----------------------------------------------------------
 	void getAllUsers();
@@ -72,15 +72,15 @@ public:
 	void loadCompleteMesoSplit(const uint meso_idx, const QChar& splitLetter);
 	void loadAllSplits(const uint meso_idx);
 	void saveMesoSplitComplete(DBMesoSplitModel* model);
-	bool mesoHasPlan(const uint meso_id, const QString& splitLetter) const;
+	bool mesoHasPlan(const uint meso_id, const QString &splitLetter) const;
 	void loadSplitFromPreviousMeso(const uint prev_meso_id, DBMesoSplitModel* model);
 	//-----------------------------------------------------------MESOSPLIT TABLE-----------------------------------------------------------
 
 	//-----------------------------------------------------------MESOCALENDAR TABLE-----------------------------------------------------------
 	void getMesoCalendar(const uint meso_idx);
 	void changeMesoCalendar(const uint meso_idx, const bool bPreserveOldInfo, const bool bPreserveOldInfoUntilDayBefore);
-	void updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString& splitLetter);
-	void updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString& trainingDay, const QString& splitLetter);
+	void updateMesoCalendarModel(const uint meso_idx, const QDate& date, const QString &splitLetter);
+	void updateMesoCalendarEntry(const uint meso_idx, const QDate& date, const QString &trainingDay, const QString &splitLetter);
 	void setDayIsFinished(const uint meso_idx, const QDate& date, const bool bFinished);
 	void removeMesoCalendar(const uint meso_idx);
 	void deleteMesoCalendarTable(const uint meso_idx, const bool bRemoveFile);
@@ -91,7 +91,7 @@ public:
 	void getTrainingDay(DBTrainingDayModel* tDayModel);
 	void getTrainingDayExercises(DBTrainingDayModel* tDayModel);
 	void verifyTDayOptions(DBTrainingDayModel* tDayModel);
-	void loadExercisesFromDate(const QString& strDate, DBTrainingDayModel* tDayModel);
+	void loadExercisesFromDate(const QString &strDate, DBTrainingDayModel* tDayModel);
 	void loadExercisesFromMesoPlan(DBTrainingDayModel* tDayModel, DBMesoSplitModel* const splitModel);
 	void convertTDayToPlan(const DBTrainingDayModel* const tDayModel, DBMesoSplitModel* const splitModel);
 	void saveTrainingDay(DBTrainingDayModel* const tDayModel);
@@ -125,7 +125,7 @@ private:
 		inline void appendObj(TPDatabaseTable* dbobj) { dbObjs.append(dbobj); }
 		inline void removeAt(const uint index) { if (index < dbObjs.count()) { dbObjs.removeAt(index); if (currentIndex > 0) currentIndex--; } }
 		bool hasID(const uint id) const {
-			for (uint i(0); i < dbObjs.count(); ++i)
+			for (uint i{0}; i < dbObjs.count(); ++i)
 			{
 				if (dbObjs.at(i)->uniqueID() == id)
 					return true;
@@ -142,12 +142,12 @@ private:
 	QTimer m_threadCleaner;
 	QString m_exercisesListVersion;
 
-	void updateDB(TPDatabaseTable* worker);
-	void createThread(TPDatabaseTable* worker, const std::function<void(void)>& execFunc);
+	void updateDB(TPDatabaseTable *worker);
+	void createThread(TPDatabaseTable *worker, const std::function<void(void)> &execFunc);
 
-	static DBInterface* app_db_interface;
-	friend DBInterface* appDBInterface();
+	static DBInterface *app_db_interface;
+	friend DBInterface *appDBInterface();
 };
 
-inline DBInterface* appDBInterface() { return DBInterface::app_db_interface; }
+inline DBInterface *appDBInterface() { return DBInterface::app_db_interface; }
 #endif // DBINTERFACE_H

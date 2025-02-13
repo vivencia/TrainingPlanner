@@ -28,7 +28,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 	: TPListModel{parent}, m_searchRow{-1}
 {
 	setObjectName(DBUserObjectName);
-	m_tableId = USER_TABLE_ID;
+	m_tableId = USERS_TABLE_ID;
 
 	if (bMainUserModel)
 	{
@@ -47,7 +47,7 @@ DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
 
 		mb_mainUserConfigured = appSettings()->mainUserConfigured();
 		m_appDataPath = std::move(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Files/"_L1);
-		_localAvatarFilePath = m_appDataPath + "%_avatar.png"_L1;
+		_localAvatarFilePath = m_appDataPath + "%1_avatar.png"_L1;
 		connect(this, &DBUserModel::userModified, this, [this] (const uint user_row, const uint) {
 			appDBInterface()->saveUser(user_row);
 		});
@@ -369,11 +369,14 @@ void DBUserModel::setCoachPublicStatus(const bool bPublic)
 			return;
 		}
 
-		appOnlineServices()->addOrRemoveCoach(_userId(0), getUserPassword(), bPublic);
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString &ret_string) {
-			appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
-			mb_coachRegistered = ret_code == 0 && bPublic;
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,bPublic] (const QString &key, const QString &value) {
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,bPublic] (const int ret_code, const QString &ret_string) {
+				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach registration") + record_separator + ret_string);
+				mb_coachRegistered = ret_code == 0 && bPublic;
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			appOnlineServices()->addOrRemoveCoach(key, value, bPublic);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
 	}
 }
 
@@ -424,13 +427,16 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 				QFile *resume{new QFile{localResumeFileName, this}};
 				if (resume->open(QIODeviceBase::ReadOnly))
 				{
-					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString &ret_string) {
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
-						resume->close();
-						resume->remove();
-						delete resume;
+					connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,resume] (const QString &key, const QString &value) {
+						connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,resume] (const int ret_code, const QString &ret_string) {
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Résumé uploading") + record_separator + ret_string);
+							resume->close();
+							resume->remove();
+							delete resume;
+						}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+						appOnlineServices()->sendFile(key, value, resume);
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					appOnlineServices()->sendFile(_userId(0), getUserPassword(), resume);
+					appKeyChain()->readKey(_userId(0));
 					return;
 				}
 				else
@@ -456,25 +462,28 @@ void DBUserModel::downloadResume(const uint coach_index)
 
 	if (coach_index < m_onlineUserInfo.count())
 	{
-		connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this]
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+			connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
-			if (ret_code == 0)
-			{
-				const QString &localResumeFileName{m_appDataPath + filename};
-				QFile *resume{new QFile{localResumeFileName, this}};
-				static_cast<void>(resume->remove());
-				if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+				if (ret_code == 0)
 				{
-					resume->write(contents);
-					resume->close();
-					appOsInterface()->openURL(localResumeFileName);
+					const QString &localResumeFileName{m_appDataPath + filename};
+					QFile *resume{new QFile{localResumeFileName, this}};
+					static_cast<void>(resume->remove());
+					if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+					{
+						resume->write(contents);
+						resume->close();
+						appOsInterface()->openURL(localResumeFileName);
+					}
+					delete resume;
 				}
-				delete resume;
-			}
-			else
-				appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
-		});
-		appOnlineServices()->getBinFile(_userId(0), getUserPassword(), "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID));
+				else
+					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
+			});
+			appOnlineServices()->getBinFile(key, value, "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID));
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
 	}
 }
 
@@ -514,41 +523,47 @@ void DBUserModel::sendRequestToCoaches(const QList<bool>& selectedCoaches)
 		return;
 	}
 
-	for (uint i{0}; i < selectedCoaches.count(); ++i)
-	{
-		if (selectedCoaches.at(i))
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,selectedCoaches] (const QString &key, const QString &value) {
+		for (uint i{0}; i < selectedCoaches.count(); ++i)
 		{
-			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-				if (ret_code == 0)
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
-				else
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
-			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-			appOnlineServices()->sendRequestToCoach(_userId(0), getUserPassword(), m_onlineUserInfo.at(i).at(USER_COL_ID));
+			if (selectedCoaches.at(i))
+			{
+				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+					if (ret_code == 0)
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tr("Coach contacting") + record_separator + ret_string);
+					else
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+				appOnlineServices()->sendRequestToCoach(key, value, m_onlineUserInfo.at(i).at(USER_COL_ID));
+			}
 		}
-	}
+	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+	appKeyChain()->readKey(_userId(0));
 }
 
 void DBUserModel::getOnlineCoachesList()
 {
 	if (onlineCheckIn())
 	{
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-			const QStringList &coaches{ret_string.split(' ')};
-			if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
-			{
-				connect(this, &DBUserModel::userProfileAcquired, this, [this] {
-					QStringList coaches{m_onlineUserInfo.count()};
-					for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
-						coaches.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
-					emit coachesListReceived(coaches);
-				}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-				m_onlineUserInfo.clear();
-				for (uint i{0}; i < coaches.count(); ++i)
-					getUserOnlineProfile(coaches.at(i));
-			}
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+				const QStringList &coaches{ret_string.split(' ')};
+				if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
+				{
+					connect(this, &DBUserModel::userProfileAcquired, this, [this] {
+						QStringList coaches{m_onlineUserInfo.count()};
+						for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
+							coaches.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
+						emit coachesListReceived(coaches);
+					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+					m_onlineUserInfo.clear();
+					for (uint i{0}; i < coaches.count(); ++i)
+						getUserOnlineProfile(coaches.at(i));
+				}
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			appOnlineServices()->getCoachesList(key, value);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appOnlineServices()->getCoachesList(_userId(0), getUserPassword());
+		appKeyChain()->readKey(_userId(0));
 	}
 }
 
@@ -562,26 +577,29 @@ void DBUserModel::getUserOnlineProfile(const QString &netName, uint n_max_profil
 		return;
 	}
 
-	connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles]
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netName,n_max_profiles] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles]
 						(const int ret_code, const QString &ret_string) {
-		if (ret_code != 1)
-		{
-			const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
-			QFile *temp_profile{new QFile{temp_profile_filename, this}};
-			if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
+			if (ret_code != 1)
 			{
-				temp_profile->write(ret_string.toUtf8().constData());
-				temp_profile->close();
-				if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-					m_onlineUserInfo.last()[USER_COL_ID] = netName;
-				static_cast<void>(temp_profile->remove());
+				const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
+				QFile *temp_profile{new QFile{temp_profile_filename, this}};
+				if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
+				{
+					temp_profile->write(ret_string.toUtf8().constData());
+					temp_profile->close();
+					if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
+						m_onlineUserInfo.last()[USER_COL_ID] = netName;
+					static_cast<void>(temp_profile->remove());
+				}
+				delete temp_profile;
+				if (n_max_profiles == m_onlineUserInfo.count())
+					emit userProfileAcquired();
 			}
-			delete temp_profile;
-			if (n_max_profiles == m_onlineUserInfo.count())
-				emit userProfileAcquired();
-		}
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appOnlineServices()->getFile(key, value, userProfileFileName, netName);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appOnlineServices()->getFile(_userId(0), getUserPassword(), userProfileFileName, netName);
+	appKeyChain()->readKey(_userId(0));
 }
 
 bool DBUserModel::updateFromModel(TPListModel *model)
@@ -664,38 +682,36 @@ void DBUserModel::registerUserOnline()
 {
 	if (!mb_userRegistered && mb_mainUserConfigured)
 	{
-		appOnlineServices()->checkUser(_userId(0), _userId(0));
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-			switch (ret_code)
-			{
-				case 0:
-					mb_userRegistered = true;
-				break;
-				case 6: //User does not exist in the online database
-					connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,key,value] (const int ret_code, const QString &ret_string) {
+				switch (ret_code)
+				{
+					case 0:
 						mb_userRegistered = true;
-						emit mainUserOnlineCheckInChanged();
-						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
-					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-					appOnlineServices()->registerUser(_userId(0), getUserPassword());
-				break;
-				default:
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
-					mb_userRegistered = false;
-				break;
-			}
+					break;
+					case 6: //User does not exist in the online database
+						connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
+							mb_userRegistered = true;
+							emit mainUserOnlineCheckInChanged();
+							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
+						}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+						appOnlineServices()->registerUser(key, value);
+					break;
+					default:
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, ret_string);
+						mb_userRegistered = false;
+					break;
+				}
+			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+			appOnlineServices()->checkUser(key, value);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
 	}
 }
 
 inline QString DBUserModel::generateUniqueUserId() const
 {
 	return QString::number(QDateTime::currentMSecsSinceEpoch());
-}
-
-QString DBUserModel::getUserPassword() const
-{
-	return _userId(0);
 }
 
 void DBUserModel::sendProfileToServer()
@@ -804,7 +820,7 @@ int DBUserModel::_importFromFile(const QString &filename, QList<QStringList> &ta
 	uint col{USER_COL_NAME};
 	QString value;
 	bool bFoundModelInfo{false};
-	const QString tableIdStr{"0x000"_L1 + QString::number(USER_TABLE_ID)};
+	const QString tableIdStr{"0x000"_L1 + QString::number(USERS_TABLE_ID)};
 	QStringList modeldata{USER_TOTAL_COLS};
 	modeldata[0] = STR_MINUS_ONE;
 

@@ -489,7 +489,7 @@ void QmlItemManager::openRequestedFile(const QString& filename, const int wanted
 				if (strstr(buf, "0x00") != NULL)
 				{
 					inData = buf;
-					if (inData.indexOf(QString::number(USER_TABLE_ID)) != -1)
+					if (inData.indexOf(QString::number(USERS_TABLE_ID)) != -1)
 					{
 						if (wanted_content == IFC_ANY || wanted_content == IFC_USER)
 							setBit(fileContents, IFC_USER);
@@ -619,7 +619,7 @@ int QmlItemManager::incorporateImportedData(TPListModel* model, const int wanted
 			if ((ok = appExercisesModel()->updateFromModel(model)))
 				appDBInterface()->saveExercises();
 		break;
-		case USER_TABLE_ID:
+		case USERS_TABLE_ID:
 			if (appUserModel()->isDifferent(model))
 				ok = appUserModel()->updateFromModel(model);
 		break;

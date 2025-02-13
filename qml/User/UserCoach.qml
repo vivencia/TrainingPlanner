@@ -86,7 +86,7 @@ Frame {
 
 	RowLayout {
 		id: onlineCoachRow
-		visible: optCoachUse.checked && userRow === 0
+		visible: appSettings.mainUserConfigured && optCoachUse.checked && userRow === 0
 		spacing: 0
 		height: itemHeight
 

@@ -22,8 +22,9 @@ Frame {
 
 	required property TPPage parentPage
 	required property int userRow
-	property bool bReady: bNameOK && bBirthDateOK && bSexOK
+	property bool bReady: bNameOK && bPasswordOK && bBirthDateOK && bSexOK
 	property bool bNameOK
+	property bool bPasswordOK
 	property bool bBirthDateOK
 	property bool bSexOK
 	readonly property int nControls: 7
@@ -91,10 +92,9 @@ Frame {
 		}
 	}
 
-	TPLabel {
-		id: lblPassword
-		text: userModel.passwordLabel
-		height: controlsHeight
+	TPPassword {
+		id: passwordControl
+		enabled: bNameOK
 
 		anchors {
 			top: txtName.bottom
@@ -104,23 +104,12 @@ Frame {
 			right: parent.right
 			rightMargin: 5
 		}
-	}
 
-	TPTextInput {
-		id: txtPassword
-		echoMode: TextInput.Password
-		heightAdjustable: false
-
-		anchors {
-			top: lblPassword.bottom
-			left: parent.left
-			leftMargin: 5
-			right: parent.right
-			rightMargin: 5
+		onPasswordUnacceptable: bPasswordOK = false;
+		onPasswordAccepted: {
+			bPasswordOK = true;
+			userModel.setPassword(getPassword());
 		}
-
-		onEditingFinished: userModel.setPassword(text.trim());
-		onEnterOrReturnKeyPressed: btnBirthDate.clicked(0);
 	}
 
 	TPLabel {
@@ -129,7 +118,7 @@ Frame {
 		height: controlsHeight
 
 		anchors {
-			top: txtPassword.bottom
+			top: passwordControl.bottom
 			topMargin: 10
 			left: parent.left
 			leftMargin: 5
@@ -142,7 +131,7 @@ Frame {
 		id: txtBirthdate
 		readOnly: true
 		height: controlsHeight
-		enabled: bNameOK
+		enabled: bPasswordOK
 
 		anchors {
 			top: lblBirthdate.bottom
@@ -258,6 +247,8 @@ Frame {
 	function focusOnFirstField() {
 		if (!bNameOK)
 			txtName.forceActiveFocus();
+		else if (!bPasswordOK)
+			passwordControl.forceActiveFocus();
 		else if (!bBirthDateOK)
 			caldlg.open();
 		else
