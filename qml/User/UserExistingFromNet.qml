@@ -107,6 +107,7 @@ Frame {
 	TPTextInput {
 		id: txtEmail
 		enabled: optImportUser.checked
+		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
 
@@ -164,6 +165,7 @@ Frame {
 		TPButton {
 			id: btnCheckEMail
 			text: userModel.checkEmailLabel
+			enabled: false
 			Layout.alignment: Qt.AlignCenter
 
 			onClicked: {

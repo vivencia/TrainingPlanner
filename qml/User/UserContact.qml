@@ -143,6 +143,7 @@ Frame {
 
 	TPTextInput {
 		id: txtEmail
+		inputMethodHints: Qt.ImhLowercaseOnly|Qt.ImhEmailCharactersOnly|Qt.ImhNoAutoUppercase
 		enabled: bPhoneOK
 		ToolTip.text: userModel.invalidEmailLabel
 		height: controlsHeight
@@ -151,7 +152,7 @@ Frame {
 		onEditingFinished: userModel.setEmail(userRow, text);
 
 		onTextEdited: {
-			bEmailOK = (text.length === 0 || (text.indexOf("@") !== -1 && text.indexOf(".") !== -1));
+			bEmailOK = text.indexOf("@") !== -1 && text.indexOf(".") !== -1;
 			ToolTip.visible = !bEmailOK;
 		}
 
@@ -270,7 +271,7 @@ Frame {
 		bPhoneOK = txtPhone.text.length >= 17
 		const email = userModel.email(userRow);
 		txtEmail.text = email;
-		bEmailOK = (email.length === 0 || (email.indexOf("@") !== -1 && email.indexOf(".") !== -1));
+		bEmailOK = email.indexOf("@") !== -1 && email.indexOf(".") !== -1;
 		cboSocial.currentIndex = 0;
 		txtSocial.text = userModel.socialMedia(userRow, 0);
 	}

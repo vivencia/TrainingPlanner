@@ -76,6 +76,7 @@ TPPopup {
 	TPTextInput {
 		id: txtPassword
 		echoMode: TextInput.Password
+		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
 		heightAdjustable: false
 
 		anchors {

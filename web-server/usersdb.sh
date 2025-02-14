@@ -22,7 +22,7 @@ LAST_FIELD=$N_FIELDS
 (( LAST_FIELD-- ))
 
 user_exists() {
-    RETURN_ID=$(sqlite3 -line $USERS_DB "SELECT id FROM user_table WHERE id=$USER_ID;")
+    RETURN_ID=$(sqlite3 -line $USERS_DB "SELECT id FROM users_table WHERE id=$USER_ID;")
     if [[ $RETURN_ID != "" ]]; then
         return 0
     else
@@ -73,7 +73,7 @@ get_update_command() {
                 if [ $i != $LAST_FIELD ]; then
                     UPDATE_CMD="$UPDATE_CMD ${FIELDS[$i]}=${VALUES[$i]},"
                 else
-                    UPDATE_CMD="UPDATE user_table SET $UPDATE_CMD ${FIELDS[$i]}=${VALUES[$i]} WHERE ${FIELDS[0]}=${VALUES[0]};"
+                    UPDATE_CMD="UPDATE users_table SET $UPDATE_CMD ${FIELDS[$i]}=${VALUES[$i]} WHERE ${FIELDS[0]}=${VALUES[0]};"
                 fi
                 (( i++ ))
             done
@@ -101,7 +101,7 @@ get_insert_command() {
                 if [ $z != $LAST_FIELD ]; then
                     INSERT_CMD="$INSERT_CMD${VALUES[$z]},"
                 else
-                    INSERT_CMD="INSERT INTO user_table ($INSERT_CMD${VALUES[$z]});"
+                    INSERT_CMD="INSERT INTO users_table ($INSERT_CMD${VALUES[$z]});"
                 fi
                 (( z++ ))
             done
@@ -111,7 +111,7 @@ get_insert_command() {
     return 1
 }
 
-DEL_CMD="DELETE FROM user_table WHERE id="
+DEL_CMD="DELETE FROM users_table WHERE id="
 get_del_command() {
     DEL_CMD="$DEL_CMD$USER_ID;"
 }
@@ -123,7 +123,7 @@ get_all_values() {
             value_len=${#VALUE}
             VALUE=${VALUE:1:$value_len-1} #the first 1: start at the second char, skipping the space that sqlite3 puts before the value
             ALL_USER_VALUES=${ALL_USER_VALUES}${VALUE}$'\n'
-    done < <(sqlite3 -line $USERS_DB "SELECT * FROM user_table WHERE id=$USER_ID;")
+    done < <(sqlite3 -line $USERS_DB "SELECT * FROM users_table WHERE id=$USER_ID;")
     if [[ $ALL_USER_VALUES != "" ]]; then
         return 0
     else
@@ -133,7 +133,7 @@ get_all_values() {
 
 REQUESTED_FIELD_VALUE=""
 get_field_value() {
-    REQUESTED_FIELD_VALUE=$(sqlite3 -line $USERS_DB "SELECT $1 FROM user_table WHERE id=$USER_ID;")
+    REQUESTED_FIELD_VALUE=$(sqlite3 -line $USERS_DB "SELECT $1 FROM users_table WHERE id=$USER_ID;")
     if [[ $REQUESTED_FIELD_VALUE != "" ]]; then
         field_name_len=${#1}
         value_len=${#REQUESTED_FIELD_VALUE}
@@ -150,10 +150,10 @@ get_id() {
     FIELD=$(echo "${1}" | cut -d '=' -f 1)
     VALUE=$(echo "${1}" | cut -d '=' -f 2)
     VALUE="'$VALUE'" #sqlite3 needs single quotes for string values
-    REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT id FROM user_table WHERE $FIELD=$VALUE;")
+    REQUESTED_ID=$($SQLITE -line $USERS_DB "SELECT id FROM users_table WHERE $FIELD=$VALUE;")
     if [[ $REQUESTED_ID != "" ]]; then
         REQUESTED_ID=$(echo "${REQUESTED_ID}" | cut -d '=' -f 2)
-        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM user_table WHERE id=$REQUESTED_ID;")
+        REQUESTED_PASSWD=$($SQLITE -line $USERS_DB "SELECT password FROM users_table WHERE id=$REQUESTED_ID;")
         REQUESTED_PASSWD=$(echo "${REQUESTED_PASSWD}" | cut -d '=' -f 2)
         TEMP_HT_FILE=$ADMIN_DIR$REQUESTED_ID".htpasswd"
         echo $REQUESTED_ID:$REQUESTED_PASSWD > $TEMP_HT_FILE

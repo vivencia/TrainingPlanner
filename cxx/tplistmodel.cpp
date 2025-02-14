@@ -133,6 +133,7 @@ bool TPListModel::exportContentsOnlyToFile(const QString &filename, const bool a
 					outFile->write((*itr).at(i).toUtf8().constData());
 					outFile->write("\n", 1);
 				}
+				++itr;
 			}
 		}
 		else

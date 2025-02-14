@@ -22,6 +22,8 @@ Rectangle {
 	readonly property date thisDay: new Date()
 	readonly property double cellSize: Screen.pixelDensity * sizeFactor
 	readonly property int fontSizePx: cellSize * (sizeFactor/21) //0.32
+	readonly property list<string> months_names: [qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"), qsTr("May"), qsTr("June"), qsTr("July"),
+		qsTr("August"), qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")]
 
 	signal dateSelected(date selDate)
 
@@ -126,15 +128,25 @@ Rectangle {
 			}
 		}
 
-		Text {
+		TextField {
 			id: selectedWeekDayMonth
+			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
 			leftPadding: cellSize * 0.5
+			horizontalAlignment: Text.AlignLeft
 			verticalAlignment: Text.AlignVCenter
 			font.pixelSize: height * 0.5
 			font.bold: true
-			text: calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay + " " + calendar.months[calendar.currentMonth].slice(0, 3)
+			readOnly: true
 			color: appSettings.fontColor
-			opacity: yearsList.visible ? 0.7 : 1
+			opacity: monthsList.visible ? 0.7 : 1
+			z: 1
+
+			background: Rectangle {
+				height: cellSize * 2
+				width: parent.width
+				border.color: "transparent"
+				color: "transparent"
+			}
 
 			anchors {
 				left: parent.left
@@ -143,9 +155,64 @@ Rectangle {
 				bottom: parent.bottom
 			}
 
-			MouseArea {
-				anchors.fill: parent
-				onClicked: yearsList.hide();
+			onTextEdited: filterInput();
+
+			Keys.onPressed: (event) => {
+				switch (event.key) {
+					case Qt.Key_Enter:
+					case Qt.Key_Return:
+						event.accepted = true;
+						monthChosen(monthsList.currentIndex);
+					break;
+					default: return;
+				}
+			}
+
+			onPressed: {
+				if (monthsList.visible) {
+					if (text.length === 0)
+						text = Qt.binding(function() {
+							return calendar.weekNames[calendar.dayOfWeek].slice(0, 3) + ", " + calendar.currentDay +
+											" " + calendar.months[calendar.currentMonth].slice(0, 3); });
+					readOnly = true;
+					monthsList.hide();
+				}
+				else {
+					readOnly = false;
+					clear();
+					forceActiveFocus();
+					filterInput();
+					monthsList.show();
+				}
+			}
+
+			function filterInput(): void {
+				monthsModel.clear();
+				let monthOK = false;
+				for (let i = 0; i < 12; ++i) {
+					if (calendar.currentYear === startDate.getFullYear()) {
+						if (i < startDate.getMonth())
+							continue;
+					}
+					if (calendar.currentYear === endDate.getFullYear()) {
+						if (i > startDate.getMonth())
+							continue;
+					}
+					if (text.length === 0)
+						monthsModel.append({name: months_names[i]});
+					else {
+						const found = months_names[i].toLowerCase().indexOf(text.toLowerCase()) >= 0;
+						if (found) {
+							monthsModel.append({name: months_names[i]});
+							if (!monthOK) {
+								monthOK = true;
+								monthsList.currentIndex = i;
+							}
+						}
+					}
+				}
+				if (!monthOK)
+					monthsList.currentIndex = calendar.currentMonth;
 			}
 		}
 	} //titleOfDate
@@ -320,10 +387,69 @@ Rectangle {
 		}
 	} // ListView yearsList
 
+	ListView {
+		id: monthsList
+		visible: false
+		z: 1
+		anchors.fill: calendar
+
+		property int currentMonth: startDate.getMonth()
+		readonly property int startMonth: startDate.getMonth()
+		readonly property int endMonth : endDate.getMonth()
+
+		model: ListModel {
+			id: monthsModel
+		}
+
+		delegate: Rectangle {
+			width: monthsList.width
+			height: cellSize * 1.5
+			gradient: Gradient {
+				orientation: Gradient.Horizontal
+				GradientStop { position: 0.0; color: appSettings.paneBackgroundColor; }
+				GradientStop { position: 0.25; color: appSettings.primaryLightColor; }
+				GradientStop { position: 0.50; color: appSettings.primaryColor; }
+				GradientStop { position: 0.75; color: appSettings.primaryDarkColor; }
+			}
+			opacity: 0.8
+
+			Text {
+				anchors.centerIn: parent
+				font.pixelSize: fontSizePx * 1.5
+				text: name
+				scale: index === monthsList.currentMonth - monthsList.startMonth ? 1.5 : 1
+				color: appSettings.fontColor
+			}
+
+			MouseArea {
+				anchors.fill: parent
+				onClicked: monthChosen(monthsModel.get(index).monthidx);
+			}
+		}
+
+		function show(): void {
+			visible = true;
+			calendar.visible = false;
+			currentMonth = calendar.currentMonth;
+			monthsList.positionViewAtIndex(currentMonth - startMonth, ListView.SnapToItem);
+		}
+
+		function hide(): void {
+			visible = false;
+			calendar.visible = true;
+		}
+	} // ListView monthsList
+
 	function yearChosen(year: int): void {
 		setDate(new Date(year, selectedDate.getMonth(), selectedDate.getDate()));
 		selectedYear.readOnly = true;
 		yearsList.hide();
+	}
+
+	function monthChosen(month: int): void {
+		setDate(new Date(selectedDate.getFullYear(), month, selectedDate.getDate()));
+		selectedWeekDayMonth.readOnly = true;
+		monthsList.hide();
 	}
 
 	function setDate(newDate): void {

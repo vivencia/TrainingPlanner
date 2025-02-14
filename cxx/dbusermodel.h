@@ -123,8 +123,8 @@ public:
 		}
 	}
 
-	QString password() const;
 	Q_INVOKABLE void setPassword(const QString& passwd);
+	Q_INVOKABLE void getPassword();
 
 	Q_INVOKABLE inline QDate birthDate(const int row) const
 	{
@@ -287,6 +287,9 @@ public:
 	QString formatFieldToExport(const uint field, const QString &fieldValue) const override;
 	QString formatFieldToImport(const uint field, const QString &fieldValue) const;
 
+public slots:
+	void getPasswordFromUserInput(const int resultCode, const QString &password);
+
 signals:
 	void userModified(const uint row, const uint field = 100); //100 all fields
 	void labelsChanged();
@@ -298,6 +301,7 @@ signals:
 	void coachOnlineStatus(bool registered);
 	void coachesListReceived(const QStringList &coaches_list);
 	void userProfileAcquired();
+	void userPasswordAvailable(const QString& password);
 
 private:
 	int m_searchRow;

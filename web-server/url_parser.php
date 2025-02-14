@@ -243,7 +243,7 @@ function update_datafile_with_password($userid) {
     return false;
 }
 
-function run_dbscript($cmd, $cmd_opt, $userid) {
+function run_dbscript($cmd, $cmd_opt, $userid, $print_output) {
     global $scriptsdir;
     $dbscript=$scriptsdir . "usersdb.sh";
 
@@ -261,7 +261,8 @@ function run_dbscript($cmd, $cmd_opt, $userid) {
             passthru("$dbscript $cmd", $return_var);
     }
     $output = ob_get_clean();
-    echo "Return code: " . $return_var . "  " . $output;
+    if ($print_output)
+        echo "Return code: " . $return_var . "  " . $output;
     return $return_var;
 }
 
@@ -343,24 +344,23 @@ else { //user management
     $query = isset($_GET['onlineuser']) ? $_GET['onlineuser'] : '';
     if ($query) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
         $password = isset($_GET['password']) ? $_GET['password'] : '';
-        run_dbscript("getid", $query . ' ' . $password , "");
+        run_dbscript("getid", $query . ' ' . $password , "", true);
         exit;
     }
 
     $userid = isset($_GET['onlinedata']) ? $_GET['onlinedata'] : '';
     if ($userid) { //Check if there is an already existing user in the online database. The  unique key used to identify an user is decided on the TrainingPlanner app source code. This script is agnostic to it
-        run_dbscript("getall", "", $userid);
+        run_dbscript("getall", "", $userid, true);
         exit;
     }
 
     $userid = isset($_GET['alteronlineuser']) ? $_GET['alteronlineuser'] : '';
     if ($userid) { //dbscript expects the file user.data to have been previously uploaded to $userid dir
         if (update_datafile_with_password($userid))
-            run_dbscript("add", "", $userid);
+            run_dbscript("add", "", $userid, true);
         exit;
     }
 
-    run_dbscript("del", "", $username);
     $username = isset($_GET['checkuser']) ? $_GET['checkuser'] : '';
     if ($username) { //check if user exists
         $user_password = isset($_GET['password']) ? $_GET['password'] : '';
@@ -399,7 +399,7 @@ else { //user management
     if ($username) { //remove user and their dir
         $ok = run_htpasswd("-D", $username, "");
         if ($ok == 0) {
-            run_dbscript("del", "", $username);
+            run_dbscript("del", "", $username, false);
             $userdir = $rootdir . $username;
             if (is_dir($userdir)) {
                 if (!erasedir($userdir))

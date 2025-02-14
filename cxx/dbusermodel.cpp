@@ -13,6 +13,7 @@
 
 #include <QDateTime>
 #include <QFile>
+#include <QQuickWindow>
 #include <QStandardPaths>
 
 #include <utility>
@@ -20,8 +21,8 @@
 DBUserModel* DBUserModel::_appUserModel(nullptr);
 QString DBUserModel::_localAvatarFilePath{};
 
-static const QLatin1StringView userProfileFileName{"profile.txt"_L1};
-static const QLatin1StringView userLocalDataFileName{"user.data"_L1};
+static const QLatin1StringView& userProfileFileName{"profile.txt"_L1};
+static const QLatin1StringView& userLocalDataFileName{"user.data"_L1};
 static const QString &tpNetworkTitle{qApp->tr("TP Network")};
 
 DBUserModel::DBUserModel(QObject *parent, const bool bMainUserModel)
@@ -278,24 +279,20 @@ uint DBUserModel::userRow(const QString &userName) const
 	return 0; //Should never reach here
 }
 
-QString DBUserModel::password() const
-{
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
-
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-	appKeyChain()->readKey(_userId(0));
-	return QString{};
-}
-
 void DBUserModel::setPassword(const QString &password)
 {
-#ifndef QT_NO_DEBUG
-	connect(appKeyChain(), &TPKeyChain::keyStored, this, [this] (const QString &key) {
-		qDebug() << "key: " << key << " stored";
-		this->DBUserModel::password();
-	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-#endif
 	appKeyChain()->writeKey(_userId(0), password);
+}
+
+void DBUserModel::getPassword()
+{
+	if (!m_modeldata.isEmpty())
+	{
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
+			emit userPasswordAvailable(value);
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		appKeyChain()->readKey(_userId(0));
+	}
 }
 
 void DBUserModel::setAvatar(const int row, const QString &new_avatar, const bool upload)
@@ -462,7 +459,7 @@ void DBUserModel::downloadResume(const uint coach_index)
 
 	if (coach_index < m_onlineUserInfo.count())
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,coach_index] (const QString &key, const QString &value) {
 			connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 				if (ret_code == 0)
@@ -545,12 +542,12 @@ void DBUserModel::getOnlineCoachesList()
 {
 	if (onlineCheckIn())
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this] (const QString &key, const QString &value) {
 			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
 				const QStringList &coaches{ret_string.split(' ')};
 				if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
 				{
-					connect(this, &DBUserModel::userProfileAcquired, this, [this] {
+					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] {
 						QStringList coaches{m_onlineUserInfo.count()};
 						for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
 							coaches.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
@@ -621,6 +618,17 @@ bool DBUserModel::importFromString(const QString &user_data)
 	return true;
 }
 
+void DBUserModel::getPasswordFromUserInput(const int resultCode, const QString &password)
+{
+	if (resultCode == 0)
+	{
+		connect(appKeyChain(), &TPKeyChain::keyStored, this, [this] (const QString &key) {
+			registerUserOnline();
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		setPassword(password);
+	}
+}
+
 QString DBUserModel::formatFieldToExport(const uint field, const QString &fieldValue) const
 {
 	switch (field)
@@ -674,7 +682,6 @@ bool DBUserModel::onlineCheckIn()
 	}
 
 	registerUserOnline();
-	emit mainUserOnlineCheckInChanged();
 	return mb_userRegistered == true;
 }
 
@@ -688,11 +695,18 @@ void DBUserModel::registerUserOnline()
 				{
 					case 0:
 						mb_userRegistered = true;
+						emit mainUserOnlineCheckInChanged();
+					break;
+					case 3:
+						connect(appMainWindow(), SIGNAL(passwordDialogClosed(int,QString)), this, SLOT(getPasswordFromUserInput(int,QString)));
 					break;
 					case 6: //User does not exist in the online database
 						connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this] (const int ret_code, const QString &ret_string) {
-							mb_userRegistered = true;
-							emit mainUserOnlineCheckInChanged();
+							if (ret_code == 0)
+							{
+								mb_userRegistered = true;
+								emit mainUserOnlineCheckInChanged();
+							}
 							appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_MESSAGE, tpNetworkTitle + record_separator + tr("User information updated"));
 						}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 						appOnlineServices()->registerUser(key, value);
@@ -722,7 +736,7 @@ void DBUserModel::sendProfileToServer()
 		QFile *profile{new QFile{localProfile, this}};
 		if (profile->open(QIODeviceBase::ReadOnly))
 		{
-			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,profile] (const QString &key, const QString &value) {
 				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,profile] (const int ret_code, const QString &ret_string) {
 					profile->close();
 					delete profile;
@@ -744,7 +758,7 @@ void DBUserModel::sendUserInfoToServer()
 		QFile *userdata{new QFile{localUserData, this}};
 		if (userdata->open(QIODeviceBase::ReadOnly))
 		{
-			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+			connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,userdata] (const QString &key, const QString &value) {
 				connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,userdata] (const int ret_code, const QString &ret_string) {
 					userdata->close();
 					delete userdata;
@@ -767,7 +781,7 @@ void DBUserModel::sendAvatarToServer()
 	QFile *avatar_file{new QFile{avatar(0), this}};
 	if (avatar_file->open(QIODeviceBase::ReadOnly))
 	{
-		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,avatar_file] (const QString &key, const QString &value) {
 			connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,avatar_file] (const int ret_code, const QString &ret_string) {
 				avatar_file->close();
 				delete avatar_file;
@@ -782,7 +796,7 @@ void DBUserModel::sendAvatarToServer()
 
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [&] (const QString &key, const QString &value) {
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
 		connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this,row]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)

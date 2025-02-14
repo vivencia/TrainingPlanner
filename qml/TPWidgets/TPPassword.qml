@@ -27,6 +27,7 @@ FocusScope {
 		id: txtPassword
 		heightAdjustable: false
 		echoMode: btnShowHidePassword.show ? TextInput.Normal : TextInput.Password
+		inputMethodHints: Qt.ImhSensitiveData|Qt.ImhNoPredictiveText
 		ToolTip.text: userModel.invalidPasswordLabel
 		focus: true
 		height: 25
@@ -36,6 +37,11 @@ FocusScope {
 		onEnterOrReturnKeyPressed: {
 			if (inputOK)
 				passwordAccepted();
+		}
+
+		onTextChanged: {
+			inputOK = text.length >= 6;
+			ToolTip.visible = !inputOK;
 		}
 
 		onTextEdited: {
@@ -69,7 +75,10 @@ FocusScope {
 				verticalCenter: txtPassword.verticalCenter
 			}
 
-			onClicked: show = !show;
+			onClicked: {
+				show = !show;
+				txtPassword.forceActiveFocus();
+			}
 		}
 
 		TPButton {
@@ -85,7 +94,10 @@ FocusScope {
 				verticalCenter: txtPassword.verticalCenter
 			}
 
-			onClicked: txtPassword.clear();
+			onClicked: {
+				txtPassword.clear();
+				txtPassword.forceActiveFocus();
+			}
 		}
 	}
 
@@ -101,6 +113,11 @@ FocusScope {
 		}
 
 		onClicked: passwordAccepted();
+	}
+
+	function setPasswordText(passwd: string): void {
+		if (passwd.length >= 6)
+			txtPassword.text = passwd;
 	}
 
 	function getPassword(): string {

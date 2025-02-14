@@ -33,8 +33,8 @@ Frame {
 			if (row === userRow) {
 				switch (field) {
 					case 100: getUserInfo(); break;
-					case 10: imgAvatar.source = userModel.avatar(userRow); break;
-					case 11: appUseMode = userModel.appUseMode(row); break;
+					case 20: imgAvatar.source = userModel.avatar(userRow); break;
+					case 10: appUseMode = userModel.appUseMode(row); break;
 					default: break;
 				}
 			}
@@ -266,16 +266,13 @@ Frame {
 	function getUserInfo(): void {
 		const client_role = userModel.userRole(userRow);
 		bClientRoleOK = client_role.length > 5;
-		if (bClientRoleOK)
-			cboUserRole.currentIndex = cboUserRole.find(client_role);
+		cboUserRole.currentIndex = bClientRoleOK ? cboUserRole.find(client_role) : -1;
 		const user_goal = userModel.goal(userRow);
 		bGoalOK = user_goal.length > 1;
-		if (bGoalOK)
-			cboGoal.currentIndex = cboGoal.find(user_goal);
+		cboGoal.currentIndex = bGoalOK ? cboGoal.find(user_goal) : -1;
 		const coach_role = userModel.coachRole(userRow);
 		bCoachRoleOK = coach_role.length > 5;
-		if (bCoachRoleOK)
-			cboCoachRole.currentIndex = cboCoachRole.find(coach_role);
+		cboCoachRole.currentIndex = bCoachRoleOK ? cboCoachRole.find(coach_role) : -1;
 	}
 
 	function focusOnFirstField(): void {

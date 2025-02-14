@@ -242,6 +242,13 @@ Frame {
 		chkMale.checked = sex === 0;
 		chkFemale.checked = sex === 1;
 		bSexOK = sex <= 1;
+		userModel.userPasswordAvailable.connect(getUserPassword);
+		userModel.getPassword();
+	}
+
+	function getUserPassword(password): void {
+		passwordControl.setPasswordText(password);
+		userModel.userPasswordAvailable.disconnect(getUserPassword);
 	}
 
 	function focusOnFirstField() {

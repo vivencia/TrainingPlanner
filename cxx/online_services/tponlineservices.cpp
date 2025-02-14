@@ -197,7 +197,7 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool
 //curl -X POST -F file=@/home/guilherme/Documents/Fase_de_transição_-_Completo.txt "http://127.0.0.1/trainingplanner/?user=uc_guilherme_fortunato&upload&password=Guilherme_Fortunato"
 void TPOnlineServices::uploadFile(const QUrl &url, QFile *file, const bool b_internal_signal_only)
 {
-	if ( file->isOpen())
+	if (file->isOpen())
 	{
 		QNetworkRequest request{url};
 
