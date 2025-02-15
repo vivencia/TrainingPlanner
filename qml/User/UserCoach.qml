@@ -8,6 +8,7 @@ import org.vivenciasoftware.TrainingPlanner.qmlcomponents
 
 import ".."
 import "../TPWidgets"
+import "../Pages"
 
 Frame {
 	id: topFrame
@@ -22,6 +23,7 @@ Frame {
 	}
 
 	required property int userRow
+	required property TPPage parentPage
 	property bool bReady: false
 	property bool bCoachOK: false
 	property bool bChooseResume: false
@@ -198,7 +200,7 @@ Frame {
 				let component = Qt.createComponent("qrc:/qml/User/UserCoachRequest.qml", Qt.Asynchronous);
 
 				function finishCreation() {
-					requestDlg = component.createObject(contentItem, { userRow: topFrame.userRow });
+					requestDlg = component.createObject(contentItem, { parentPage: topFrame.parentPage, userRow: topFrame.userRow });
 				}
 
 				if (component.status === Component.Ready)
@@ -208,7 +210,7 @@ Frame {
 			}
 			createRequestDialog();
 		}
-		requestDlg.show(-1);
+		requestDlg.show1(-1);
 	}
 
 	function getUserInfo(): void {

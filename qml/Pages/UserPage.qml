@@ -62,6 +62,7 @@ TPPage {
 			UserCoach {
 				id: usrCoach
 				userRow: 0
+				parentPage: userPage
 				Layout.fillWidth: true
 			}
 

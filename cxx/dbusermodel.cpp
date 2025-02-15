@@ -392,7 +392,7 @@ void DBUserModel::isCoachAlreadyRegisteredOnline()
 		if (!mb_coachRegistered)
 		{
 			connect(this, &DBUserModel::coachesListReceived, this, [this] (const QStringList &coaches_list) {
-				mb_coachRegistered = coaches_list.contains(_userId(0));
+				mb_coachRegistered = coaches_list.contains(userName(0));
 				emit coachOnlineStatus(mb_coachRegistered == true);
 			}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 			getOnlineCoachesList();
@@ -460,7 +460,7 @@ void DBUserModel::downloadResume(const uint coach_index)
 	if (coach_index < m_onlineUserInfo.count())
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,coach_index] (const QString &key, const QString &value) {
-			connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this]
+			connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 				if (ret_code == 0)
 				{
@@ -564,29 +564,29 @@ void DBUserModel::getOnlineCoachesList()
 	}
 }
 
-void DBUserModel::getUserOnlineProfile(const QString &netName, uint n_max_profiles)
+void DBUserModel::getUserOnlineProfile(const QString &netID, uint n_max_profiles)
 {
 	if (!onlineCheckIn())
 	{
-		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,netName,n_max_profiles] () {
-			getUserOnlineProfile(netName, n_max_profiles);
+		connect(this, &DBUserModel::mainUserOnlineCheckInChanged, this, [this,netID,n_max_profiles] () {
+			getUserOnlineProfile(netID, n_max_profiles);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		return;
 	}
 
-	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netName,n_max_profiles] (const QString &key, const QString &value) {
-		connect(appOnlineServices(), &TPOnlineServices::networkRequestProcessed, this, [this,netName,n_max_profiles]
-						(const int ret_code, const QString &ret_string) {
-			if (ret_code != 1)
+	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,netID,n_max_profiles] (const QString &key, const QString &value) {
+		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,netID,n_max_profiles]
+						(const int ret_code, const QString &filename, const QByteArray &contents) {
+			if (ret_code == 0)
 			{
 				const QString &temp_profile_filename{m_appDataPath + "temp_profile.txt"_L1};
 				QFile *temp_profile{new QFile{temp_profile_filename, this}};
 				if (temp_profile->open(QIODeviceBase::WriteOnly|QIODeviceBase::Truncate|QIODeviceBase::Text))
 				{
-					temp_profile->write(ret_string.toUtf8().constData());
+					temp_profile->write(contents);
 					temp_profile->close();
 					if (_importFromFile(temp_profile_filename, m_onlineUserInfo) == APPWINDOW_MSG_READ_FROM_FILE_OK)
-						m_onlineUserInfo.last()[USER_COL_ID] = netName;
+						m_onlineUserInfo.last()[USER_COL_ID] = netID;
 					static_cast<void>(temp_profile->remove());
 				}
 				delete temp_profile;
@@ -594,7 +594,7 @@ void DBUserModel::getUserOnlineProfile(const QString &netName, uint n_max_profil
 					emit userProfileAcquired();
 			}
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
-		appOnlineServices()->getFile(key, value, userProfileFileName, netName);
+		appOnlineServices()->getFile(key, value, userProfileFileName, netID);
 	}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 	appKeyChain()->readKey(_userId(0));
 }
@@ -797,7 +797,7 @@ void DBUserModel::sendAvatarToServer()
 void DBUserModel::downloadAvatarFromServer(const uint row)
 {
 	connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,row] (const QString &key, const QString &value) {
-		connect(appOnlineServices(), &TPOnlineServices::binaryFileReceived, this, [this,row]
+		connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,row]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
 			if (ret_code == 0)
 			{

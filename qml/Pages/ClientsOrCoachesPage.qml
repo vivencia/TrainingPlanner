@@ -243,4 +243,12 @@ TPPage {
 	function avatarChangedBySexSelection(row: int) {
 		usrProfile.defaultAvatarChanged(row);
 	}
+
+	function whenPageActivated(): void {
+		//Online data might change. Keep up with it
+		usrData.getUserInfo();
+		usrContact.getUserInfo();
+		usrCoach.getUserInfo();
+		usrProfile.getUserInfo();
+	}
 }

@@ -87,7 +87,7 @@ function upload_file($uploadDir) {
 function download_file($file, $downloadDir) {
     $filename=$downloadDir . "/" . $file;
     if (file_exists($filename)) {
-        $file_desciptor = basename($filename)."##";
+        $file_desciptor = basename($filename)."%%";
         $size = strlen($filename) + filesize($filename);
         echo $file_desciptor;
         header('Content-Description: File Transfer');

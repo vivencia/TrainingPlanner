@@ -21,7 +21,7 @@ Frame {
 	property bool bCoachRoleOK: false
 	property bool bClientRoleOK: false
 	property bool bGoalOK: false
-	property int appUseMode: userModel.appUseMode(userRow)
+	property int appUseMode
 	readonly property int nVisibleControls: lblCoachRole.visible ? 6 : 4
 	readonly property int controlsHeight: 25
 	readonly property int controlsSpacing: 10
@@ -34,7 +34,7 @@ Frame {
 				switch (field) {
 					case 100: getUserInfo(); break;
 					case 20: imgAvatar.source = userModel.avatar(userRow); break;
-					case 10: appUseMode = userModel.appUseMode(row); break;
+					case 10: appUseMode = userModel.appUseMode(userRow); break;
 					default: break;
 				}
 			}
@@ -264,6 +264,7 @@ Frame {
 	}
 
 	function getUserInfo(): void {
+		appUseMode = userModel.appUseMode(userRow);
 		const client_role = userModel.userRole(userRow);
 		bClientRoleOK = client_role.length > 5;
 		cboUserRole.currentIndex = bClientRoleOK ? cboUserRole.find(client_role) : -1;
@@ -273,6 +274,7 @@ Frame {
 		const coach_role = userModel.coachRole(userRow);
 		bCoachRoleOK = coach_role.length > 5;
 		cboCoachRole.currentIndex = bCoachRoleOK ? cboCoachRole.find(coach_role) : -1;
+		imgAvatar.source = userModel.avatar(userRow);
 	}
 
 	function focusOnFirstField(): void {

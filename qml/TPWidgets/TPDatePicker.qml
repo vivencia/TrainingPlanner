@@ -139,11 +139,10 @@ Rectangle {
 			readOnly: true
 			color: appSettings.fontColor
 			opacity: monthsList.visible ? 0.7 : 1
+			height: cellSize * 2
 			z: 1
 
 			background: Rectangle {
-				height: cellSize * 2
-				width: parent.width
 				border.color: "transparent"
 				color: "transparent"
 			}

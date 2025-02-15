@@ -10,8 +10,8 @@ import "../TPWidgets"
 TPPopup {
 	id: dlgCoachRequest
 	keepAbove: true
-	width: appSettings.pageWidth/2
-	height: appSettings.pageHeight * 0.5
+	width: appSettings.pageWidth*0.8
+	height: appSettings.pageHeight * 0.4
 
 	required property int userRow
 	property list<string> coachesList;
@@ -20,12 +20,15 @@ TPPopup {
 	Connections {
 		target: userModel
 		function onCoachesListReceived(coaches_list: list<string>): void {
+			coachesList = 0;
 			coachesList = coaches_list;
 			selectedCoaches.length = 0;
 			for (let i = 0; i < coachesList.length; ++i)
 				selectedCoaches.push(false);
 		}
 	}
+
+	onOpened: userModel.getOnlineCoachesList();
 
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded

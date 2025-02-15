@@ -45,7 +45,7 @@ Frame {
 
 		anchors {
 			top: parent.top
-			topMargin: -10
+			topMargin: -5
 			left: parent.left
 			leftMargin: 5
 			right: parent.right

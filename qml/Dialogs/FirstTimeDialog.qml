@@ -61,6 +61,7 @@ TPPopup {
 
 		UserCoach {
 			userRow: 0
+			parentPage: firstTimeDlg.parentPage
 			Layout.fillWidth: true
 			Layout.fillHeight: true
 		}

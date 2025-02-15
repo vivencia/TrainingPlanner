@@ -121,7 +121,7 @@ void TPOnlineServices::sendRequestToCoach(const QString &username, const QString
 void TPOnlineServices::sendFile(const QString &username, const QString &passwd, QFile *file, const QString &targetUser, const bool b_internal_signal_only)
 {
 	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "upload"_L1, targetUser)};
-	uploadFile(url, file);
+	uploadFile(url, file, b_internal_signal_only);
 }
 
 void TPOnlineServices::getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser)
@@ -142,10 +142,10 @@ void TPOnlineServices::getCoachesList(const QString &username, const QString &pa
 	makeNetworkRequest(url);
 }
 
-void TPOnlineServices::makeNetworkRequest(const QUrl &url)
+void TPOnlineServices::makeNetworkRequest(const QUrl &url, const bool b_internal_signal_only)
 {
 	QNetworkReply *reply{m_networkManager->get(QNetworkRequest{url})};
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleServerRequestReply(reply); });
+	connect(reply, &QNetworkReply::finished, this, [this,reply,b_internal_signal_only]() { handleServerRequestReply(reply, b_internal_signal_only); });
 }
 
 void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool b_internal_signal_only)
@@ -160,18 +160,18 @@ void TPOnlineServices::handleServerRequestReply(QNetworkReply *reply, const bool
 		if (headers.contains("Content-Type"_L1))
 		{
 			const QString &fileType{headers.value("Content-Type"_L1).toByteArray()};
-			if (fileType.contains("application/octet-stream"_L1))
+			if (fileType.contains("application/octet-stream"_L1) || fileType.contains("text/plain"_L1))
 			{
 				QByteArray data{std::move(reply->readAll())};
-				const qsizetype filename_sep_idx{data.indexOf("##")};
+				const qsizetype filename_sep_idx{data.indexOf("%%")};
 				if (filename_sep_idx >= 2)
 				{
 					const QString filename{std::move(data.sliced(0, filename_sep_idx))};
-					emit binaryFileReceived(0, filename, data.sliced(filename_sep_idx + 2, data.size() - filename_sep_idx - 2));
+					emit fileReceived(0, filename, data.sliced(filename_sep_idx + 2, data.size() - filename_sep_idx - 2));
 					return;
 				}
-				emit binaryFileReceived(1, "Error downloading bynary file: "_L1, data);
-				LOG_MESSAGE("Error downloading bynary file: "_L1 + QString::fromUtf8(data));
+				emit fileReceived(1, "Error downloading file: "_L1, data);
+				LOG_MESSAGE("Error downloading file: "_L1 + QString::fromUtf8(data));
 				return;
 			}
 		}

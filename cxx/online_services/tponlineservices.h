@@ -42,11 +42,11 @@ public:
 signals:
 	void networkRequestProcessed(const int ret_code, const QString &ret_string);
 	void _networkRequestProcessed(const int ret_code, const QString &ret_string);
-	void binaryFileReceived(const int ret_code, const QString& filename, const QByteArray &contents);
+	void fileReceived(const int ret_code, const QString& filename, const QByteArray &contents);
 	void serverOnline(const bool online, int network_status);
 
 private:
-	void makeNetworkRequest(const QUrl &url);
+	void makeNetworkRequest(const QUrl &url, const bool b_internal_signal_only = false);
 	void handleServerRequestReply(QNetworkReply *reply, const bool b_internal_signal_only = false);
 	void uploadFile(const QUrl &url, QFile *file, const bool b_internal_signal_only = false);
 

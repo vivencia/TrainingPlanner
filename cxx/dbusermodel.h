@@ -209,7 +209,7 @@ public:
 
 	Q_INVOKABLE inline QString avatar(const int row) const
 	{
-		return row >= 0 && row < m_modeldata.count() ? _localAvatarFilePath.arg(_userId(row)) : QString{};
+		return row >= 0 && row < m_modeldata.count() ? !_userId(row).isEmpty() ? _localAvatarFilePath.arg(_userId(row)) : QString{} : QString{};
 	}
 	Q_INVOKABLE void setAvatar(const int row, const QString &new_avatar, const bool upload = true);
 
@@ -265,8 +265,8 @@ public:
 	Q_INVOKABLE void mainUserConfigurationFinished();
 	Q_INVOKABLE inline bool isCoachRegistered() { return mb_coachRegistered ? mb_coachRegistered == true : false; }
 	Q_INVOKABLE void sendRequestToCoaches(const QList<bool> &selectedCoaches);
+	Q_INVOKABLE void getOnlineCoachesList();
 
-	void getOnlineCoachesList();
 	void getUserOnlineProfile(const QString &netName, uint n_max_profiles = 1);
 
 	inline int importFromFile(const QString &filename) override { return _importFromFile(filename, m_modeldata); }
