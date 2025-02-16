@@ -17,7 +17,17 @@ public:
 	enum DATE_FORMAT {
 		DF_QML_DISPLAY,
 		DF_CATALOG,
-		DF_DATABASE
+		DF_DATABASE,
+		DF_ONLINE
+	};
+
+	enum TIME_FORMAT {
+		TF_QML_DISPLAY_COMPLETE,
+		TF_QML_DISPLAY_NO_SEC,
+		TF_QML_DISPLAY_NO_HOUR,
+		TF_FANCY,
+		TF_FANCY_SECS,
+		TF_ONLINE
 	};
 
 	explicit inline TPUtils(QObject *parent = nullptr) : QObject{parent}, m_appLocale{nullptr} { app_utils = this; }
@@ -33,38 +43,26 @@ public:
 
 	Q_INVOKABLE QString formatDate(const QDate &date, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	inline QString formatTodayDate() const { return formatDate(QDate::currentDate()); }
-	QDate getDateFromStrDate(const QString &strDate) const;
+	QDate getDateFromDateString(const QString &strdate, const DATE_FORMAT format = DF_QML_DISPLAY) const;
 	uint calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const;
 	QDate getNextMonday(const QDate &fromDate) const;
 	QDate createDate(const QDate &fromDate, const int years, const int months, const int days) const;
 	Q_INVOKABLE inline QDate getDayBefore(const QDate &date) const { return date.addDays(-1); }
 	int daysInMonth(const int month, const int year) const;
 
-	Q_INVOKABLE inline QString formatTime(const QTime &time, const bool use_hours = false, const bool use_secs = false) const
-	{
-		return time.toString((use_hours ? "hh:mm"_L1 : "mm"_L1) + (use_secs ? ":ss"_L1 : ""_L1));
-	}
-
-	inline QString currentFormattedTimeString() const
-	{
-		QString strTime{std::move(QTime::currentTime().toString("hh  mm"_L1))};
-		strTime.insert(6, std::move("min"_L1));
-		strTime.insert(3, std::move(tr("and")));
-		strTime.insert(2, std::move("hs"_L1));
-		return strTime;
-	}
-
-	Q_INVOKABLE QString getCurrentTimeString(const bool use_secs = false) const { return !use_secs ?
-					QTime::currentTime().toString("hh:mm"_L1) : QTime::currentTime().toString("hh:mm:ss"_L1); }
+	Q_INVOKABLE QString formatTime(const QTime &time, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
+	QTime getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const;
+	Q_INVOKABLE inline QString getCurrentTimeString(const TIME_FORMAT format = TF_QML_DISPLAY_NO_SEC) const { return formatTime(QTime::currentTime(), format); }
 	Q_INVOKABLE QString addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const;
 	Q_INVOKABLE inline QString getHourFromCurrentTime() const { return getHourOrMinutesFromStrTime(QTime::currentTime().toString("hh:mm"_L1)); }
 	Q_INVOKABLE inline QString getMinutesFromCurrentTime() const { return getMinutesOrSeconsFromStrTime(QTime::currentTime().toString("hh:mm"_L1)); }
 	Q_INVOKABLE QString getHourOrMinutesFromStrTime(const QString &strTime) const;
 	Q_INVOKABLE QString getMinutesOrSeconsFromStrTime(const QString &strTime) const;
-	QTime timeFromStrTime(const QString &strTime) const { return QTime::fromString(strTime, "hh:mm"_L1); }
 	Q_INVOKABLE QTime getCurrentTime() const { return QTime::currentTime(); }
 	QString calculateTimeDifference_str(const QString &strTimeInit, const QString &strTimeFinal) const;
 	QTime calculateTimeDifference(const QString &strTimeInit, const QString &strTimeFinal) const;
+
+	QDateTime getDateTimeFromOnlineString(const QString &datetime) const;
 
 	QString makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const;
 	QString makeDoubleCompositeValue(const QString &defaultValue, const uint n_fields1, const uint n_fields2,

@@ -586,7 +586,7 @@ void DBInterface::verifyTDayOptions(DBTrainingDayModel *tDayModel)
 
 void DBInterface::loadExercisesFromDate(const QString &strDate, DBTrainingDayModel *tDayModel)
 {
-	const QDate &date{appUtils()->getDateFromStrDate(strDate)};
+	const QDate &date{appUtils()->getDateFromDateString(strDate)};
 	DBTrainingDayTable *worker{new DBTrainingDayTable{m_DBFilePath, tDayModel}};
 	worker->addExecArg(appMesoModel()->id(tDayModel->mesoIdx()));
 	worker->addExecArg(QString::number(date.toJulianDay()));

@@ -622,7 +622,7 @@ QString DBMesocyclesModel::formatFieldToImport(const uint field, const QString& 
 	{
 		case MESOCYCLES_COL_STARTDATE:
 		case MESOCYCLES_COL_ENDDATE:
-			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
+			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
 		case MESOCYCLES_COL_COACH:
 			return fieldName.contains(tr("Coach")) ? fieldValue : QString{};
 		case MESOCYCLES_COL_CLIENT:

@@ -12,6 +12,7 @@
 #include "tpkeychain/tpkeychain.h"
 
 #include <QDateTime>
+#include <QDir>
 #include <QFile>
 #include <QQuickWindow>
 #include <QStandardPaths>
@@ -447,6 +448,18 @@ void DBUserModel::uploadResume(const QString &resumeFileName)
 	}
 }
 
+static QString getResumeFile(const QString &dir)
+{
+	QDir directory{dir};
+	const QStringList& resume_types{directory.entryList(QStringList{} << "*.pdf"_L1 << "*.odf"_L1 << "*.docx"_L1, QDir::Files)};
+	for (const auto &it : resume_types)
+	{
+		if (it.contains("resume"))
+			return it;
+	}
+	return QString {};
+}
+
 void DBUserModel::downloadResume(const uint coach_index)
 {
 	if (!onlineCheckIn())
@@ -460,25 +473,37 @@ void DBUserModel::downloadResume(const uint coach_index)
 	if (coach_index < m_onlineUserInfo.count())
 	{
 		connect(appKeyChain(), &TPKeyChain::keyRestored, this, [this,coach_index] (const QString &key, const QString &value) {
-			connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this]
+			QString localResumeFileName{std::move(getResumeFile(m_appDataPath))};
+			QFileInfo fi{localResumeFileName};
+			QDateTime m_time;
+			if (fi.exists())
+				m_time = std::move(fi.lastModified());
+			qDebug() << m_time.toSecsSinceEpoch();
+			connect(appOnlineServices(), &TPOnlineServices::fileReceived, this, [this,localResumeFileName]
 						(const int ret_code, const QString &filename, const QByteArray &contents) {
-				if (ret_code == 0)
+				switch (ret_code)
 				{
-					const QString &localResumeFileName{m_appDataPath + filename};
-					QFile *resume{new QFile{localResumeFileName, this}};
-					static_cast<void>(resume->remove());
-					if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+					case 0: //file downloaded
 					{
-						resume->write(contents);
-						resume->close();
-						appOsInterface()->openURL(localResumeFileName);
+						QFile *resume{new QFile{localResumeFileName, this}};
+						static_cast<void>(resume->remove());
+						if (resume->open(QIODeviceBase::WriteOnly|QIODeviceBase::NewOnly))
+						{
+							resume->write(contents);
+							resume->close();
+							appOsInterface()->openURL(localResumeFileName);
+						}
+						delete resume;
 					}
-					delete resume;
+					break;
+					case 1: //online file and local file are the same
+						appOsInterface()->openURL(localResumeFileName);
+					break;
+					default: //some error
+						appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 				}
-				else
-					appItemManager()->displayMessageOnAppWindow(APPWINDOW_MSG_CUSTOM_ERROR, filename + contents);
 			});
-			appOnlineServices()->getBinFile(key, value, "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID));
+			appOnlineServices()->getBinFile(key, value, "resume"_L1, m_onlineUserInfo.at(coach_index).at(USER_COL_ID), m_time);
 		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 		appKeyChain()->readKey(_userId(0));
 	}
@@ -548,10 +573,10 @@ void DBUserModel::getOnlineCoachesList()
 				if (!coaches.isEmpty() && !coaches.first().contains("does not"_L1))
 				{
 					connect(this, &DBUserModel::userProfileAcquired, this, [this,coaches] {
-						QStringList coaches{m_onlineUserInfo.count()};
+						QStringList coaches_names{m_onlineUserInfo.count()};
 						for (uint i{0}; i < m_onlineUserInfo.count(); ++i)
-							coaches.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
-						emit coachesListReceived(coaches);
+							coaches_names.append(m_onlineUserInfo.at(i).at(USER_COL_NAME));
+						emit coachesListReceived(coaches_names);
 					}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
 					m_onlineUserInfo.clear();
 					for (uint i{0}; i < coaches.count(); ++i)
@@ -651,7 +676,7 @@ QString DBUserModel::formatFieldToImport(const uint field, const QString &fieldV
 	switch (field)
 	{
 		case USER_COL_BIRTHDAY:
-			return QString::number(appUtils()->getDateFromStrDate(fieldValue).toJulianDay());
+			return QString::number(appUtils()->getDateFromDateString(fieldValue).toJulianDay());
 		case USER_COL_SEX:
 			return fieldValue == tr("Male") ? STR_ZERO : STR_ONE;
 		case USER_COL_SOCIALMEDIA:

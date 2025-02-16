@@ -53,21 +53,43 @@ QString TPUtils::formatDate(const QDate &date, const DATE_FORMAT format) const
 		case DF_DATABASE:
 			return QString::number(date.toJulianDay());
 		break;
+		case DF_ONLINE:
+			return QString::number(date.year()).right(2) + QString::number(date.month()) + QString::number(date.day());
+		break;
 	}
 	return QString{};
 }
 
-QDate TPUtils::getDateFromStrDate(const QString &strDate) const
+QDate TPUtils::getDateFromDateString(const QString &strdate, const DATE_FORMAT format) const
 {
-	const QStringView &strdate{strDate};
-	const int spaceIdx(strdate.indexOf(' '));
-	const int fSlashIdx(strdate.indexOf('/'));
-	const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
-	const int day(strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toInt());
-	const int month(strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt());
-	const int year(strdate.last(4).toInt());
-	const QDate date{year, month, day};
-	return date;
+	int day{0}, month{0}, year{0};
+	switch (format)
+	{
+		case DF_QML_DISPLAY:
+			{
+				const int spaceIdx(strdate.indexOf(' '));
+				const int fSlashIdx(strdate.indexOf('/'));
+				const int fSlashIdx2 = strdate.indexOf('/', fSlashIdx+1);
+				day = strdate.sliced(spaceIdx+1, fSlashIdx-spaceIdx-1).toInt();
+				month = strdate.sliced(fSlashIdx+1, fSlashIdx2-fSlashIdx-1).toInt();
+				year = strdate.last(4).toInt();
+			}
+		break;
+		case DF_CATALOG:
+			year = strdate.first(4).toInt();
+			month = strdate.sliced(4, 2).toInt();
+			day = strdate.sliced(6, 2).toInt();
+		break;
+		case DF_DATABASE:
+			return QDate::fromJulianDay(strdate.toLongLong());
+		break;
+		case DF_ONLINE:
+			year = strdate.first(2).toInt();
+			month = strdate.sliced(2, 2).toInt();
+			day = strdate.sliced(4, 2).toInt();
+		break;
+	}
+	return QDate{year, month, day};
 }
 
 uint TPUtils::calculateNumberOfWeeks(const QDate &date1, const QDate &date2) const
@@ -109,6 +131,78 @@ int TPUtils::daysInMonth(const int month, const int year) const
 		case 1: return year % 4 == 0 ? 29 : 28;
 		default: return 31;
 	}
+}
+
+QString TPUtils::formatTime(const QTime &time, const TIME_FORMAT format) const
+{
+	switch (format)
+	{
+		case TF_QML_DISPLAY_COMPLETE:
+			return time.toString("hh:mm:ss"_L1);
+		break;
+		case TF_QML_DISPLAY_NO_SEC:
+			return time.toString("hh:mm"_L1);
+		break;
+		case TF_QML_DISPLAY_NO_HOUR:
+			return time.toString("mm:ss"_L1);
+		break;
+		case TF_FANCY:
+		{
+			QString strTime{std::move(time.toString("hh  mm"_L1))};
+			strTime.insert(6, std::move("min"_L1));
+			strTime.insert(3, std::move(tr("and")));
+			strTime.insert(2, std::move("hs"_L1));
+		}
+		case TF_FANCY_SECS:
+		{
+			QString strTime{std::move(time.toString("hh, mm  ss"_L1))};
+			strTime.insert(10, std::move("secs"));
+			strTime.insert(7, std::move(tr("and")));
+			strTime.insert(6, std::move("min"_L1));
+			strTime.insert(2, std::move("hs"_L1));
+		}
+		break;
+		case TF_ONLINE:
+			return time.toString("hhmmss"_L1);
+		break;
+	}
+	return QString{};
+}
+
+QTime TPUtils::getTimeFromTimeString(const QString &strtime, const TIME_FORMAT format) const
+{
+	int hour{0}, min{0}, sec{0};
+	switch (format)
+	{
+		case TF_QML_DISPLAY_COMPLETE:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(3, 2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
+		case TF_QML_DISPLAY_NO_SEC:
+			hour = strtime.first(2).toInt();
+			min = strtime.last(2).toInt();
+		break;
+		case TF_QML_DISPLAY_NO_HOUR:
+			min = strtime.first(2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
+		case TF_FANCY:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(6, 2).toInt();
+		break;
+		case TF_FANCY_SECS:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(6, 2).toInt();
+			sec = strtime.sliced(strtime.length() - 6, 2).toInt();
+		break;
+		case TF_ONLINE:
+			hour = strtime.first(2).toInt();
+			min = strtime.sliced(2, 2).toInt();
+			sec = strtime.last(2).toInt();
+		break;
+	}
+	return QTime{hour, min, sec};
 }
 
 QString TPUtils::addTimeToStrTime(const QString &strTime, const int addmins, const int addsecs) const
@@ -167,6 +261,13 @@ QTime TPUtils::calculateTimeDifference(const QString &strTimeInit, const QString
 		min += 60;
 	}
 	return QTime(hour, min, 0);
+}
+
+QDateTime TPUtils::getDateTimeFromOnlineString(const QString &datetime) const
+{
+	QDate date;
+	QTime time;
+	return QDateTime{date, time};
 }
 
 QString TPUtils::makeCompositeValue(const QString &defaultValue, const uint n_fields, const QLatin1Char &chr_sep) const

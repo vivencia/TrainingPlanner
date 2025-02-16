@@ -8,6 +8,9 @@ $htpasswd_file=$scriptsdir . ".passwds";
 $coaches_file=$rootdir . "admin/coaches";
 $htpasswd="/usr/bin/htpasswd"; //use fullpath
 
+// set the default timezone to use.
+date_default_timezone_set('America/Sao_Paulo');
+
 function print_r2($val){
         echo '<pre>';
         print_r($val);
@@ -122,6 +125,15 @@ function get_binfile($binfile, $targetuser) {
         }
     }
     echo "Return code: 1 File not found: ", $binfile . " in " . $src_dir;
+}
+
+function check_file_mtime($binfile, $targetuser) {
+    global $rootdir;
+    $filename = $rootdir . $targetuser . "/" . $binfile;
+    if (is_file($filename))
+        echo "Return code: 0 ", date('Hisymd', filemtime($filename));
+    else
+        echo "Return code: 1 File not found:  ", $filename;
 }
 
 function scan_dir($path) {
@@ -325,6 +337,18 @@ if ($username) { //regular, most common usage: download/upload file/info from/to
                     $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
                     if ($targetuser) {
                         get_binfile($binfile, $targetuser);
+                        exit;
+                    }
+                }
+            }
+
+            //?user=1739556367374&password=lrTp1$&getbinfile=resume&fromuser=1739556367374
+            if (isset($_GET['checkfilemtime'])) {
+                $binfile = $_GET['checkfilemtime'];
+                if ($binfile) {
+                    $targetuser = isset($_GET['fromuser']) ? $_GET['fromuser'] : '';
+                    if ($targetuser) {
+                        check_file_mtime($binfile, $targetuser);
                         exit;
                     }
                 }

@@ -36,7 +36,8 @@ public:
 	void sendFile(const QString &username, const QString &passwd, QFile *file,
 					const QString &targetUser = QString{}, const bool b_internal_signal_only = false);
 	void getFile(const QString &username, const QString &passwd, const QString &file, const QString &targetUser = QString{});
-	void getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension, const QString &targetUser);
+	void getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension,
+			const QString &targetUser, const QDateTime& m_time);
 	void getCoachesList(const QString &username, const QString &passwd);
 
 signals:

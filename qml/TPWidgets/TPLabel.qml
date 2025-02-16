@@ -16,12 +16,6 @@ Label {
 	height: _preferredHeight
 	verticalAlignment: Text.AlignVCenter
 
-	/*Rectangle {
-		border.color: "black"
-		color: "transparent"
-		anchors.fill: parent
-	}*/
-
 	property string fontColor: appSettings.fontColor
 	property int widthAvailable: appSettings.pageWidth - 20
 	property int heightAvailable: 25
@@ -40,6 +34,12 @@ Label {
 	}
 
 	signal sizeChanged()
+
+	/*Rectangle {
+		border.color: "black"
+		color: "transparent"
+		anchors.fill: parent
+	}*/
 
 	onTextChanged: text => {
 		if (text.length > 0)

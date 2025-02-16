@@ -29,7 +29,8 @@ void WeatherData::setWeatherInfo(const st_WeatherInfo& w_info, const st_WeatherI
 	if (w_currentdayforecast)
 		m_temperature += '\n' + std::move(w_currentdayforecast->m_temp_min + '/' + w_currentdayforecast->m_temp_max);
 	m_icon = std::move(w_info.m_weatherIconId);
-	m_description = std::move(tr("Weather now(") + std::move(appUtils()->currentFormattedTimeString()) + ")\n"_L1 + w_info.m_weatherDescription);
+	m_description = std::move(tr("Weather now(") + std::move(appUtils()->formatTime(
+									QTime::currentTime(), TPUtils::TF_FANCY)) + ")\n"_L1 + w_info.m_weatherDescription);
 	m_extra_info = std::move(
 					tr("Humidity: ") + w_info.m_humidity + '\t' + tr("Pressure: ") + w_info.m_pressure + '\n' +
 					tr("Wind speed: " ) + w_info.m_wind   + ' ' + tr("UV Index: ") + w_info.m_uvi    + '\n' +

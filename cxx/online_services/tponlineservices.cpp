@@ -1,6 +1,7 @@
 #include "tponlineservices.h"
 
 #include "../tpglobals.h"
+#include "../tputils.h"
 
 #include <QFile>
 #include <QHttpMultiPart>
@@ -20,7 +21,9 @@ static const QLatin1StringView url_paramether_passwd{"password"};
 static const QLatin1StringView url_paramether_file{"file"};
 
 inline QString makeCommandURL(const QString& option, const QString& value, const QString& passwd = QString{}, const QString &option2 = QString{},
-								const QString &value2 = QString{}, const QString &option3 = QString{}, const QString &value3 = QString{})
+								const QString &value2 = QString{}, const QString &option3 = QString{}, const QString &value3 = QString{}
+								//, const QString &option4 = QString{}, const QString &value4 = QString{}
+								)
 {
 	QString ret{"http://127.0.0.1/trainingplanner/?"_L1 + option + '=' + value};
 	if (!passwd.isEmpty())
@@ -33,6 +36,10 @@ inline QString makeCommandURL(const QString& option, const QString& value, const
 		ret += '&' + option3;
 	if (!value3.isEmpty())
 		ret += '=' + value3;
+	/*if (!option4.isEmpty())
+		ret += '&' + option4;
+	if (!value4.isEmpty())
+		ret += '=' + value4;*/
 	LOG_MESSAGE(ret)
 	return ret;
 }
@@ -130,10 +137,31 @@ void TPOnlineServices::getFile(const QString &username, const QString &passwd, c
 	makeNetworkRequest(url);
 }
 
-void TPOnlineServices::getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension, const QString &targetUser)
+void TPOnlineServices::getBinFile(const QString &username, const QString &passwd, const QString &filename_without_extension,
+									const QString &targetUser, const QDateTime& m_time)
 {
-	const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension, "fromuser"_L1, targetUser)};
-	makeNetworkRequest(url);
+	if (!m_time.isNull())
+	{
+		connect(this, &TPOnlineServices::_networkRequestProcessed, this, [this,username,passwd,filename_without_extension,targetUser,m_time]
+				(const int ret_code, const QString &ret_string) {
+			if (ret_code == 0)
+			{
+				const QDateTime &online_mtime{appUtils()->getDateTimeFromOnlineString(ret_string)};
+				if (online_mtime > m_time)
+					getBinFile(username, passwd, filename_without_extension, targetUser, QDateTime{});
+			}
+			else
+				emit fileReceived(1, ret_string, QByteArray{});
+		}, static_cast<Qt::ConnectionType>(Qt::SingleShotConnection));
+		//filename_without_extension must not be without extension when checking for the modification time
+		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "checkfilemtime"_L1, filename_without_extension, "fromuser"_L1, targetUser)};
+		makeNetworkRequest(url, true);
+	}
+	else
+	{
+		const QUrl &url{makeCommandURL(url_paramether_user, username, passwd, "getbinfile"_L1, filename_without_extension, "fromuser"_L1, targetUser)};
+			makeNetworkRequest(url);
+	}
 }
 
 void TPOnlineServices::getCoachesList(const QString &username, const QString &passwd)

@@ -30,24 +30,42 @@ TPPopup {
 
 	onOpened: userModel.getOnlineCoachesList();
 
+	TPLabel {
+		id: lblTitle
+		text: qsTr("Available coaches online")
+		horizontalAlignment: Text.AlignHCenter
+		heightAvailable: 50
+
+		anchors {
+			top: parent.top
+			topMargin: 5
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 20
+		}
+	}
+
 	ScrollView {
 		ScrollBar.horizontal.policy: ScrollBar.AsNeeded
 		ScrollBar.vertical.policy: ScrollBar.AsNeeded
 		contentWidth: availableWidth
 
 		anchors {
-			top: parent.top
+			top: lblTitle.bottom
+			topMargin: 5
 			left: parent.left
+			leftMargin: 5
 			right: parent.right
+			rightMargin: 5
 			bottom: btnSendRequest.top
 			bottomMargin: 5
 		}
 
 		ColumnLayout {
 			id: itemsLayout
-			spacing: 0
+			spacing: 5
 			anchors.fill: parent
-			anchors.leftMargin: 5
 
 			Repeater {
 				id: coachesRepeater
@@ -56,10 +74,13 @@ TPPopup {
 				delegate: Row {
 					Layout.fillWidth: true
 					height: 25
+					spacing: 0
+					padding: 5
 
 					TPCheckBox {
-						text: model[index]
-						width: itemsLayout.width*0.7
+						text: coachesList[index]
+						width: itemsLayout.width*0.65
+						multiLine: true
 
 						onCheckedChanged: {
 							selectedCoaches[index] = checked;
@@ -90,7 +111,10 @@ TPPopup {
 		visible: coachesList.length > 0
 
 		anchors {
-			horizontalCenter: parent.horizontalCenter
+			left: parent.left
+			leftMargin: 5
+			right: parent.right
+			rightMargin: 5
 			bottom: parent.bottom
 			bottomMargin: 5
 		}
